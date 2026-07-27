@@ -1,0 +1,133 @@
+import { TransformComponent, ColliderComponent, CoreComponentRegistry } from "../../ecs/CoreComponents";
+import { Entity } from "../../ecs/Entity";
+import { World } from "../../ecs/World";
+import { AABB } from "./CollisionTypes";
+import { ShapeType, ConvexPolygonShape } from "../shapes/Shapes";
+
+/**
+ * Bounds object used for Sweep and Prune.
+ * @internal
+ */
+interface EntityBounds {
+  entity: Entity;
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
+const boundsPool: EntityBounds[] = [];
+
+/** @public */
+export class BroadPhase {
+  static getShapeBounds(transform: Readonly<TransformComponent>, collider: Readonly<ColliderComponent>): AABB {
+    const worldX = transform.worldX ?? transform.x;
+    const worldY = transform.worldY ?? transform.y;
+    const cx = worldX + (collider.offsetX ?? 0);
+    const cy = worldY + (collider.offsetY ?? 0);
+    const shape = collider.shape;
+
+    if (shape.type === ShapeType.Circle) {
+      return {
+        minX: cx - shape.radius,
+        minY: cy - shape.radius,
+        maxX: cx + shape.radius,
+        maxY: cy + shape.radius,
+      };
+    } else if (shape.type === ShapeType.Box) {
+      return {
+        minX: cx - shape.width / 2,
+        minY: cy - shape.height / 2,
+        maxX: cx + shape.width / 2,
+        maxY: cy + shape.height / 2,
+      };
+    } else if (shape.type === ShapeType.Polygon) {
+      const poly = shape as ConvexPolygonShape;
+      if (poly.vertices && poly.vertices.length > 0) {
+        const rot = transform.worldRotation ?? transform.rotation ?? 0;
+        const scaleX = transform.worldScaleX ?? transform.scaleX ?? 1;
+        const scaleY = transform.worldScaleY ?? transform.scaleY ?? 1;
+        const cos = Math.cos(rot);
+        const sin = Math.sin(rot);
+
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+
+        for (const v of poly.vertices) {
+          const sx = v.x * scaleX;
+          const sy = v.y * scaleY;
+          const rx = cos * sx - sin * sy;
+          const ry = sin * sx + cos * sy;
+          const wx = cx + rx;
+          const wy = cy + ry;
+
+          if (wx < minX) minX = wx;
+          if (wy < minY) minY = wy;
+          if (wx > maxX) maxX = wx;
+          if (wy > maxY) maxY = wy;
+        }
+
+        return { minX, minY, maxX, maxY };
+      }
+    }
+
+    return { minX: cx, minY: cy, maxX: cx, maxY: cy };
+  }
+
+  /**
+   * Implementation of the Sweep and Prune algorithm (1D) designed to reduce per-frame
+   * allocations by reusing an internal object pool for entity bounds.
+   *
+   * @remarks
+   * While this implementation minimizes per-entity object creation, it still performs
+   * temporary allocations during sorting and when returning the result pairs.
+   */
+  static sweepAndPrune(entities: Entity[], world: World<CoreComponentRegistry>): Array<[Entity, Entity]> {
+    // Re-use or expand boundsPool to minimize object allocation overhead.
+    // Note: slice(), sort(), and the result array still perform temporary allocations.
+    const count = entities.length;
+    for (let i = 0; i < count; i++) {
+      const entity = entities[i];
+      const transform = world.getComponent(entity, "Transform") as unknown as TransformComponent;
+      const collider = world.getComponent(entity, "Collider") as unknown as ColliderComponent;
+
+      if (!boundsPool[i]) {
+        boundsPool[i] = { entity: 0, minX: 0, minY: 0, maxX: 0, maxY: 0 };
+      }
+
+      const b = boundsPool[i];
+      b.entity = entity;
+
+      if (!transform || !collider) {
+        b.minX = b.minY = b.maxX = b.maxY = 0;
+      } else {
+        const aabb = this.getShapeBounds(transform, collider);
+        b.minX = aabb.minX;
+        b.minY = aabb.minY;
+        b.maxX = aabb.maxX;
+        b.maxY = aabb.maxY;
+      }
+    }
+
+    // Sort only the active portion of the pool
+    const activeBounds = boundsPool.slice(0, count);
+    activeBounds.sort((a, b) => a.minX - b.minX);
+
+    const pairs: Array<[Entity, Entity]> = [];
+    for (let i = 0; i < count; i++) {
+      const a = activeBounds[i];
+      if (a.entity === 0) continue; // Skip invalid
+
+      for (let j = i + 1; j < count; j++) {
+        const b = activeBounds[j];
+        if (b.minX > a.maxX) break;
+        if (a.minY <= b.maxY && b.minY <= a.maxY) {
+          pairs.push([a.entity, b.entity]);
+        }
+      }
+    }
+    return pairs;
+  }
+}

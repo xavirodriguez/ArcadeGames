@@ -1,0 +1,44 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "outDir": "./dist", // STOP CONTAMINATION: Output directory configured to "./dist" for compiled artifacts
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": true,
+    "downlevelIteration": true,
+    "paths": {
+      "@/*": [
+        "./*",
+        "./src/*"
+      ],
+      "@tiny-aster/core": [
+        "./packages/core/src/index.ts"
+      ],
+      "@tiny-aster/core/*": [
+        "./packages/core/src/*"
+      ],
+      "@tiny-aster/network": [
+        "./packages/network/src/index.ts"
+      ],
+      "@tiny-aster/renderer-skia": [
+        "./packages/renderer-skia/src/index.ts"
+      ],
+      "@tiny-aster/renderer-canvas": [
+        "./packages/renderer-canvas/src/index.ts"
+      ],
+      "@tiny-aster/react-native": [
+        "./packages/react-native/src/index.ts"
+      ]
+    }
+  },
+  "exclude": [
+      "server",
+      "packages/core/tests"
+  ],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}

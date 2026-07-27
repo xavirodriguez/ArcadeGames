@@ -1,0 +1,32 @@
+{
+  "name": "asteroides-server",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "pnpm exec tsx src/index.ts",
+    "build": "pnpm exec tsc",
+    "test": "pnpm exec jest --passWithNoTests",
+    "clean:artifacts": "[ -d src ] && find src -type f \\( -name \"*.js\" -o -name \"*.js.map\" \\) -delete || true"
+  },
+  "dependencies": {
+    "@colyseus/core": "^0.17.0",
+    "@colyseus/schema": "^4.0.19",
+    "@colyseus/ws-transport": "^0.17.13",
+    "better-sqlite3": "^12.9.0",
+    "colyseus": "^0.17.0",
+    "express": "^5.2.1",
+    "msgpackr": "^1.11.12",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tiny-aster/core": "workspace:*",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.x",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.9",
+    "tsx": "^4.x",
+    "typescript": "^5.x"
+  }
+}

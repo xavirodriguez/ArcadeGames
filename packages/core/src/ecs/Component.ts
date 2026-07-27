@@ -1,0 +1,45 @@
+/**
+ * Base interface for all components.
+ *
+ * @remarks
+ * Components are expected to have a unique 'type' property that matches their
+ * key in the {@link ComponentRegistry}.
+ * @public
+ */
+export interface Component {
+  type: string;
+}
+
+/**
+ * Registry of all components available in a specific World instance.
+ * @public
+ */
+export type ComponentRegistry = Record<string, Component>;
+
+/** @public */
+export type ComponentType<TRegistry extends ComponentRegistry> =
+  Extract<keyof TRegistry, string>;
+
+/** @public */
+export type ComponentOf<
+  TRegistry extends ComponentRegistry,
+  TType extends ComponentType<TRegistry>
+> = TRegistry[TType];
+
+/**
+ * Recursively makes all properties of a type readonly.
+ *
+ * @remarks
+ * This is used to encourage immutability when accessing components through
+ * non-mutating world methods. Note that this is a compile-time check and
+ * does not prevent runtime mutations if the type is cast back to mutable.
+ * @public
+ */
+export type DeepReadonly<T> =
+  T extends (...args: unknown[]) => unknown
+    ? T
+    : T extends readonly unknown[]
+      ? ReadonlyArray<DeepReadonly<T[number]>>
+      : T extends object
+        ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+        : T;

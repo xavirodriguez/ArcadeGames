@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist", // STOP CONTAMINATION: Output directory configured to "./dist" for compiled artifacts
+    "target": "esnext",
+    "module": "commonjs",
+    "lib": ["esnext", "dom"],
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tiny-aster/core": ["../packages/core/src/index.ts"],
+      "@tiny-aster/core/games/asteroids": ["../src/games/asteroids/index.ts"],
+      "@tiny-aster/react-native": ["../packages/react-native/src/index.ts"],
+      "@tiny-aster/network": ["../packages/network/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

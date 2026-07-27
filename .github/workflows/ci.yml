@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  ci:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build through Turborepo
+        run: pnpm exec turbo run build
+
+      - name: Lint through Turborepo
+        run: pnpm exec turbo run lint
+
+      - name: Typecheck through Turborepo
+        run: pnpm exec turbo run typecheck
+
+      - name: Run tests through Turborepo
+        run: pnpm exec turbo run test

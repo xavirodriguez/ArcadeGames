@@ -1,0 +1,51 @@
+name: Documentation CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-docs:
+    name: Build API Reference
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # We use --frozen-lockfile to ensure reproducible builds in CI
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate documentation
+        run: pnpm docs:build
+
+      - name: Verify API reference output
+        run: |
+          if [ ! -d "docs/api-reference" ] || [ -z "$(ls -A docs/api-reference)" ]; then
+            echo "ERROR: docs/api-reference is empty or missing"
+            exit 1
+          fi
+
+      - name: Upload API Reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-reference
+          path: docs/api-reference
+          retention-days: 7

@@ -2,7 +2,7 @@ import { System, World, HealthComponent, EventBus, TransformComponent, RenderCom
 import { GameStateComponent, BossComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { createEmitter } from "@tiny-aster/core";
-import { CollisionLayers } from "@tiny-aster/core";
+import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { Juice } from "@tiny-aster/core";
 
 export class BossSystem extends System<SpaceInvadersComponentRegistry> {

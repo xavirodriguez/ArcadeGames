@@ -1,6 +1,4 @@
-import { System } from "../../../ecs/System";
-import { World } from "../../../ecs/World";
-import { CoreComponentRegistry } from "../../../ecs/CoreComponents";
+import { System, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { LootTableComponent } from "../types/ArcadeTypes";
 
 /** @public */
@@ -32,7 +30,7 @@ export class LootSystem extends System<CoreComponentRegistry & { LootTable: Loot
 
         const table = registry[loot.tableId] || registry["default"];
         if (table && table.length > 0) {
-          const totalWeight = table.reduce((sum, item) => sum + item.weight, 0);
+          const totalWeight = table.reduce((sum: number, item: { weight: number }) => sum + item.weight, 0);
           const roll = world.gameplayRandom.range(0, totalWeight);
 
           let currentSum = 0;

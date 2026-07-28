@@ -139,7 +139,7 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
 
   it("should resolve ship-asteroid collision and reduce lives", () => {
     const ship = world.createEntity();
-    world.addComponent(ship, { type: "Ship", sessionId: "my-session" });
+    world.addComponent(ship, { type: "Ship", sessionId: "my-session", shootCooldownRemaining: 0 });
     world.addComponent(ship, {
       type: "Transform",
       x: 0,

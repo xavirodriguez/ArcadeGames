@@ -99,6 +99,7 @@ export abstract class BaseGame<
     // Register the blueprint registry as a world resource for the command buffer
     this.world.setResource("BlueprintRegistry", this.blueprints);
     this.world.setResource("EventBus", this.eventBus);
+    this.world.setResource("InputSystem", this.unifiedInput);
   }
 
   /**

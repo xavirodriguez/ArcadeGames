@@ -1,4 +1,4 @@
-import { World, BaseGame, TransformComponent } from "../../../index";
+import { World, BaseGame, TransformComponent } from "@tiny-aster/core";
 import {
   PipeComponent,
   FLAPPY_CONFIG,
@@ -6,8 +6,8 @@ import {
 } from "../types/FlappyBirdTypes";
 import { IFlappyBirdGame, IFlappyStateSystem } from "../types/GameInterfaces";
 import { createPipe } from "../EntityFactory";
-import { EventBus } from "../../../index";
-import { BaseGameStateSystem } from "../../../index";
+import { EventBus } from "@tiny-aster/core";
+import { BaseGameStateSystem } from "@tiny-aster/core";
 
 /**
  * System that manages game logic: scores, spawner, and game over condition.

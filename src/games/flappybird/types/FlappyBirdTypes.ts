@@ -1,4 +1,4 @@
-import { Component, CoreComponentRegistry } from "../../../index";
+import { Component, CoreComponentRegistry } from "@tiny-aster/core";
 
 export interface FlappyBirdComponentRegistry extends CoreComponentRegistry {
   FlappyInput: FlappyBirdInputComponent;

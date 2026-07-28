@@ -1,11 +1,11 @@
-import { World, ComponentType } from "../../../index";
-import { System } from "../../../index";
-import { Entity, TransformComponent, CollisionEventsComponent, Collider2DComponent, RenderComponent } from "../../../index";
+import { World, ComponentType } from "@tiny-aster/core";
+import { System } from "@tiny-aster/core";
+import { Entity, TransformComponent, CollisionEventsComponent, Collider2DComponent, RenderComponent } from "@tiny-aster/core";
 import { IFlappyBirdGame } from "../types/GameInterfaces";
 import { FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
-import { Juice } from "../../../index";
-import { createEmitter } from "../../../index";
-import { EventBus } from "../../../index";
+import { Juice } from "@tiny-aster/core";
+import { createEmitter } from "@tiny-aster/core";
+import { EventBus } from "@tiny-aster/core";
 
 /**
  * System that reacts to collision events between the bird and pipes or ground.

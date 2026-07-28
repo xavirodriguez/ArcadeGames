@@ -22,8 +22,9 @@ import { PongSpinSystem } from "./systems/PongSpinSystem";
 import { PongEntityFactory } from "./EntityFactory";
 import { NetworkController } from "./input/NetworkController";
 import { type PongState, type PongInput, type PongComponentRegistry } from "./types";
-import { PongConfigSchema, PongConfig } from "./types/PongConfigSchema";
+import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
 import { drawPongBall } from "./rendering/PongCanvasVisuals";
+import { CollisionLayers } from "../shared/types/CollisionLayers";
 
 export type PongMode = "local" | "ai" | "online";
 
@@ -34,7 +35,15 @@ export type PongMode = "local" | "ai" | "online";
  * Implementa una física de rebotes basada en el ángulo de incidencia y el movimiento
  * relativo de las paletas (spin). Gestiona modos de juego contra IA o multijugador local.
  */
-export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegistry> {
+import { TransformComponent, VelocityComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition } from "@tiny-aster/core";
+
+export interface PongBlueprintMap extends Record<string, BlueprintDefinition<PongComponentRegistry, any, any>> {
+  ball: BlueprintDefinition<PongComponentRegistry, any, {}>;
+  paddle: BlueprintDefinition<PongComponentRegistry, any, { side: "left" | "right" }>;
+  state: BlueprintDefinition<PongComponentRegistry, any, {}>;
+}
+
+export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegistry, any, PongBlueprintMap> {
   private stateSystem!: PongGameStateSystem;
   private assetLoader: AssetLoader;
   private networkController?: NetworkController;
@@ -71,6 +80,141 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
     await this.onPreloadAssets();
+
+    // Register blueprints
+    this.blueprints.register("ball", {
+      spawn: (world, entity, _args: {}) => {
+        const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
+        world.addComponent(entity, {
+          type: "Transform",
+          x: config.WIDTH / 2,
+          y: config.HEIGHT / 2,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: config.WIDTH / 2,
+          worldY: config.HEIGHT / 2,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: true
+        } as TransformComponent);
+        world.addComponent(entity, {
+          type: "Velocity",
+          vx: config.BALL_SPEED_START,
+          vy: config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1),
+          angularVelocity: 0
+        } as VelocityComponent);
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "circle",
+          size: config.BALL_SIZE,
+          color: "white",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0
+        } as any);
+        world.addComponent(entity, {
+          type: "Collider",
+          shape: { type: ShapeType.Circle, radius: config.BALL_SIZE } as CircleShape,
+          layer: CollisionLayers.PROJECTILE,
+          mask: CollisionLayers.PLAYER,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: config.WIDTH,
+          height: config.HEIGHT,
+          mode: "bounce"
+        } as any);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as any);
+        world.addComponent(entity, { type: "Tag", tags: ["Ball"] } as any);
+        world.addComponent(entity, { type: "Ball", spinFactor: 0, spinDecay: 0.02 } as any);
+      }
+    });
+
+    this.blueprints.register("paddle", {
+      spawn: (world, entity, args: { side: "left" | "right" }) => {
+        const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
+        const x = args.side === "left" ? 40 : config.WIDTH - 40;
+        const y = config.HEIGHT / 2;
+        world.addComponent(entity, {
+          type: "Transform",
+          x,
+          y,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: x,
+          worldY: y,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: true
+        } as TransformComponent);
+        world.addComponent(entity, {
+          type: "Velocity",
+          vx: 0,
+          vy: 0,
+          angularVelocity: 0
+        } as VelocityComponent);
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "polygon",
+          size: config.PADDLE_WIDTH,
+          color: "white",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0,
+          vertices: [
+            { x: -config.PADDLE_WIDTH / 2, y: -config.PADDLE_HEIGHT / 2 },
+            { x: config.PADDLE_WIDTH / 2, y: -config.PADDLE_HEIGHT / 2 },
+            { x: config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
+            { x: -config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
+          ]
+        } as any);
+        world.addComponent(entity, {
+          type: "Collider",
+          shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,
+          layer: CollisionLayers.PLAYER,
+          mask: CollisionLayers.PROJECTILE,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as ColliderComponent);
+        world.addComponent(entity, { type: "Tag", tags: ["Paddle", args.side] } as any);
+        world.addComponent(entity, { type: "Paddle", side: args.side, previousY: y, lastVelocityY: 0 } as any);
+      }
+    });
+
+    this.blueprints.register("state", {
+      spawn: (world, entity, _args: {}) => {
+        world.addComponent(entity, {
+          type: "PongState",
+          scoreP1: 0,
+          scoreP2: 0,
+          isGameOver: false,
+          comboMultiplier: 1,
+          gameOverLogged: false
+        } as any);
+      }
+    });
 
     const mode = this._config.gameOptions?.mode || "local";
     const aiDifficulty = mode === "ai" ? "medium" : undefined;

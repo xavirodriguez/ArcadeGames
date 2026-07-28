@@ -1,4 +1,4 @@
-import { Component } from "../../../ecs/Component";
+import { Component } from "@tiny-aster/core";
 
 /** @public */
 export interface LootTableComponent extends Component {

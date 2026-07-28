@@ -1,5 +1,5 @@
 import { World } from "@tiny-aster/core";
-import { CollisionLayers } from "@tiny-aster/core";
+import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { Entity, Component, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, Collider2DComponent, ReclaimableComponent } from "@tiny-aster/core";
 import { SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG } from "./types/SpaceInvadersTypes";

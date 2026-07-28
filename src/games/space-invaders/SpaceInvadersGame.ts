@@ -1,4 +1,6 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, TransformComponent, RenderComponent, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, LootSystem, PowerUpSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter } from "@tiny-aster/core";
+import { LootSystem, PowerUpSystem } from "../shared/arcade";
+import { EnemyFactory } from "./EnemyFactory";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG } from "./types/SpaceInvadersTypes";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
@@ -23,8 +25,19 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * Unlike Asteroids, it uses a rigid formation system where the movement
  * of one entity affects the whole group (Swarm movement).
  */
+import { TransformComponent, VelocityComponent, RenderComponent, Collider2DComponent, HealthComponent, BlueprintDefinition } from "@tiny-aster/core";
+import { CollisionLayers } from "../shared/types/CollisionLayers";
+
+export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, any, any>> {
+  player: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
+  invader: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
+  shield: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
+  state: BlueprintDefinition<SpaceInvadersComponentRegistry, any, {}>;
+  formation: BlueprintDefinition<SpaceInvadersComponentRegistry, any, {}>;
+}
+
 export class SpaceInvadersGame
-  extends BaseGame<GameStateComponent, InputState, SpaceInvadersComponentRegistry>
+  extends BaseGame<GameStateComponent, InputState, SpaceInvadersComponentRegistry, any, SpaceInvadersBlueprintMap>
   implements ISpaceInvadersGame {
 
   public isMultiplayer = false;
@@ -65,6 +78,160 @@ export class SpaceInvadersGame
     if (!this.playerBulletPool) this.playerBulletPool = new PlayerBulletPool();
     if (!this.enemyBulletPool) this.enemyBulletPool = new EnemyBulletPool();
     if (!this.particlePool) this.particlePool = new ParticlePool();
+
+    // Register blueprints
+    this.blueprints.register("player", {
+      spawn: (world, entity, args: { x: number, y: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent);
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "player_ship",
+          size: config.PLAYER_RENDER_WIDTH,
+          color: "#00FF00",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 0,
+          hitFlashFrames: 0,
+          angularVelocity: 0
+        } as RenderComponent);
+        world.addComponent(entity, {
+          type: "Collider2D",
+          shape: { type: "circle", radius: config.PLAYER_COLLIDER_RADIUS },
+          layer: CollisionLayers.PLAYER,
+          mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as Collider2DComponent);
+        world.addComponent(entity, {
+          type: "Health",
+          current: config.PLAYER_INITIAL_LIVES,
+          max: config.PLAYER_INITIAL_LIVES,
+          invulnerableRemaining: 0,
+        } as HealthComponent);
+        world.addComponent(entity, {
+          type: "Input",
+          moveLeft: false,
+          moveRight: false,
+          shoot: false,
+          shootCooldownRemaining: 0,
+        } as any);
+        world.addComponent(entity, { type: "Player" } as any);
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: GAME_CONFIG.SCREEN_WIDTH - config.PLAYER_RENDER_WIDTH,
+          height: GAME_CONFIG.SCREEN_HEIGHT,
+          mode: "bounce"
+        } as any);
+
+        createEmitter(world as any, {
+          type: "spawn",
+          x: args.x,
+          y: args.y,
+          rate: 0,
+          burst: true,
+          count: 4,
+          lifetime: [1.0, 1.5],
+          speed: [30, 60],
+          angle: [260, 280],
+          size: [2, 4],
+          color: ["#00FF00"],
+          loop: false
+        });
+      }
+    });
+
+    this.blueprints.register("invader", {
+      spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
+        const blueprintId = args.row === 0 ? "invader_commander" : "invader_scout";
+        const enemy = EnemyFactory.createEnemy(world, blueprintId, args.x, args.y, {}, false);
+        const points = (5 - args.row) * 10;
+
+        world.addComponent(enemy, { type: "Invader", row: args.row, col: args.col, points } as any);
+        world.addComponent(enemy, {
+          type: "LootTable",
+          tableId: "invader",
+          drops: [
+            { type: "speed", chance: 0.05, config: { value: 1.5, duration: 5000 } },
+            { type: "triple_shot", chance: 0.05, config: { duration: 8000 } }
+          ]
+        } as any);
+      }
+    });
+
+    this.blueprints.register("shield", {
+      spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "shield_block",
+          size: 15,
+          color: "#00FF00",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 0,
+          hitFlashFrames: 0,
+          angularVelocity: 0
+        } as RenderComponent);
+        world.addComponent(entity, {
+          type: "Collider2D",
+          shape: { type: "aabb", halfWidth: 7.5, halfHeight: 7.5 },
+          layer: CollisionLayers.DEBRIS,
+          mask: CollisionLayers.ENEMY | CollisionLayers.PROJECTILE,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as Collider2DComponent);
+        world.addComponent(entity, {
+          type: "Shield",
+          hp: config.SHIELD_SEGMENT_HP,
+          maxHp: config.SHIELD_SEGMENT_HP,
+          segment: { row: args.row, col: args.col }
+        } as any);
+      }
+    });
+
+    this.blueprints.register("state", {
+      spawn: (world, entity, _args: {}) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        world.addComponent(entity, {
+          type: "GameState",
+          lives: config.PLAYER_INITIAL_LIVES,
+          score: 0,
+          level: 1,
+          invadersRemaining: 0,
+          isGameOver: false,
+          combo: 0,
+          multiplier: 1,
+          comboTimerRemaining: 0,
+          screenShake: null,
+          kamikazesActive: 0,
+        } as any);
+      }
+    });
+
+    this.blueprints.register("formation", {
+      spawn: (world, entity, _args: {}) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        world.addComponent(entity, {
+          type: "Formation",
+          direction: 1,
+          stepDownPending: false,
+          speed: config.INVADER_SPEED_BASE,
+          descentStep: config.INVADER_DESCENT_STEP,
+          leftBound: 0,
+          rightBound: 0,
+          fireCooldownRemaining: config.ENEMY_FIRE_INTERVAL_MIN,
+        } as any);
+      }
+    });
 
     // Bind inputs for UnifiedInputSystem
     this.unifiedInput.bind("moveLeft", [this.config.KEYS.LEFT]);

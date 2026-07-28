@@ -4,9 +4,9 @@ import { SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG, SpaceInvadersComponentRegistry } from "./types/SpaceInvadersTypes";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { createEmitter } from "@tiny-aster/core";
-import { CollisionLayers } from "@tiny-aster/core";
+import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { Collider2DComponent, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent } from "@tiny-aster/core";
-import { LootTableComponent } from "@tiny-aster/core";
+import { LootTableComponent } from "../shared/arcade";
 import {
   InputComponent,
   PlayerComponent,
@@ -52,74 +52,55 @@ const createBaseEntity = (world: World<any>, deferred?: boolean): { entity: Enti
     };
 };
 
+import { BlueprintRegistry } from "@tiny-aster/core";
+
+function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
+  const isUpdating = world.isUpdating;
+  const commands = world.commands;
+
+  if (isUpdating) {
+    const entity = world.reserveEntityId();
+    commands.createEntity(entity);
+
+    const mockWorld = new Proxy(world, {
+      get(target, prop, receiver) {
+        if (prop === "addComponent") {
+          return (ent: number, comp: any) => commands.addComponent(ent, comp);
+        }
+        if (prop === "createEntity") {
+          return () => {
+            const ent = target.reserveEntityId();
+            commands.createEntity(ent);
+            return ent;
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      }
+    });
+
+    const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
+    const blueprint = registry?.get(blueprintId);
+    if (blueprint) {
+      blueprint.spawn(mockWorld, entity, args);
+    }
+    return entity;
+  }
+
+  const entity = world.createEntity();
+  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
+  const blueprint = registry?.get(blueprintId);
+  if (blueprint) {
+    blueprint.spawn(world, entity, args);
+  }
+  return entity;
+}
+
 /**
  * Creates the player ship entity.
  * Includes input handling, health, and boundary constraints.
  */
 export function createPlayer(world: World<any>, x: number, y: number, deferred?: boolean): Entity {
-  const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-  const { entity: player, add } = createBaseEntity(world, deferred);
-  add({ type: "Transform", x, y, rotation: 0, scaleX: 1, scaleY: 1, worldX: x, worldY: y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-  add({ type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent);
-  add({
-    type: "Render",
-    shape: "player_ship",
-    size: config.PLAYER_RENDER_WIDTH, // Using width as size for simplicity
-    color: "#00FF00",
-    rotation: 0,
-    visible: true,
-    opacity: 1,
-    order: 0,
-    hitFlashFrames: 0,
-    angularVelocity: 0
-  } as RenderComponent);
-  add({
-    type: "Collider2D",
-    shape: { type: "circle", radius: config.PLAYER_COLLIDER_RADIUS },
-    layer: CollisionLayers.PLAYER,
-    mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS, // Enemy bullets or Invaders
-    offsetX: 0,
-    offsetY: 0,
-    isTrigger: false,
-    enabled: true
-  } as Collider2DComponent);
-  add({
-    type: "Health",
-    current: config.PLAYER_INITIAL_LIVES,
-    max: config.PLAYER_INITIAL_LIVES,
-    invulnerableRemaining: 0,
-  } as HealthComponent);
-  add({
-    type: "Input",
-    moveLeft: false,
-    moveRight: false,
-    shoot: false,
-    shootCooldownRemaining: 0,
-  } as InputComponent);
-  add({ type: "Player" } as PlayerComponent);
-  add({
-    type: "Boundary",
-    width: GAME_CONFIG.SCREEN_WIDTH - config.PLAYER_RENDER_WIDTH,
-    height: GAME_CONFIG.SCREEN_HEIGHT,
-    mode: "bounce"
-  } as any);
-
-  createEmitter(world as any, {
-    type: "spawn",
-    x,
-    y,
-    rate: 0,
-    burst: true,
-    count: 4,
-    lifetime: [1.0, 1.5],
-    speed: [30, 60],
-    angle: [260, 280],
-    size: [2, 4],
-    color: ["#00FF00"],
-    loop: false
-  });
-
-  return player;
+  return spawnEntity(world, "player", { x, y });
 }
 
 /**
@@ -127,38 +108,7 @@ export function createPlayer(world: World<any>, x: number, y: number, deferred?:
  * Points are assigned based on the row (classic Space Invaders scoring).
  */
 export function createInvader(world: World<any>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
-  // Use "invader_commander" for top row, "invader_scout" for others
-  const blueprintId = row === 0 ? "invader_commander" : "invader_scout";
-
-  const invader = EnemyFactory.createEnemy(world, blueprintId, x, y, {}, deferred);
-
-  // Handle deferred additions if world is updating or deferred flag is set
-  const isDeferred = !!(deferred || world.isUpdating);
-  const add = (comp: any) => {
-    if (isDeferred) {
-      world.getCommandBuffer().addComponent(invader, comp);
-    } else {
-      world.addComponent(invader, comp);
-    }
-  };
-
-  // Points based on row (classic: top rows more points)
-  const points = (5 - row) * 10;
-
-  // Add game-specific Invader component that was previously part of the manual factory
-  add({ type: "Invader", row, col, points } as InvaderComponent);
-
-  // 10% chance to have a loot table (matching standard LootSystem logic)
-  add({
-    type: "LootTable",
-    tableId: "invader",
-    drops: [
-      { type: "speed", chance: 0.05, config: { value: 1.5, duration: 5000 } },
-      { type: "triple_shot", chance: 0.05, config: { duration: 8000 } }
-    ]
-  } as any);
-
-  return invader;
+  return spawnEntity(world, "invader", { x, y, row, col });
 }
 
 /**
@@ -203,79 +153,21 @@ export function createEnemyBullet(world: World<any>, x: number, y: number, pool:
  * Creates a single destructible block of a shield/bunker.
  */
 export function createShieldSegment(world: World<any>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
-  const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-  const { entity: segment, add } = createBaseEntity(world, deferred);
-  add({ type: "Transform", x, y, rotation: 0, scaleX: 1, scaleY: 1, worldX: x, worldY: y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-  add({
-    type: "Render",
-    shape: "shield_block",
-    size: 15,
-    color: "#00FF00",
-    rotation: 0,
-    visible: true,
-    opacity: 1,
-    order: 0,
-    hitFlashFrames: 0,
-    angularVelocity: 0
-  } as RenderComponent);
-  add({
-    type: "Collider2D",
-    shape: { type: "aabb", halfWidth: 7.5, halfHeight: 7.5 },
-    layer: CollisionLayers.DEBRIS,
-    mask: CollisionLayers.ENEMY | CollisionLayers.PROJECTILE, // Invaders or Bullets (Player & Enemy)
-    offsetX: 0,
-    offsetY: 0,
-    isTrigger: false,
-    enabled: true
-  } as Collider2DComponent);
-  add({
-    type: "Shield",
-    hp: config.SHIELD_SEGMENT_HP,
-    maxHp: config.SHIELD_SEGMENT_HP,
-    segment: { row, col }
-  } as ShieldComponent);
-  return segment;
+  return spawnEntity(world, "shield", { x, y, row, col });
 }
 
 /**
  * Creates the global game state entity.
  */
 export function createGameState(world: World<any>, deferred?: boolean): Entity {
-  const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-  const { entity: gameState, add } = createBaseEntity(world, deferred);
-  add({
-    type: "GameState",
-    lives: config.PLAYER_INITIAL_LIVES,
-    score: 0,
-    level: 1,
-    invadersRemaining: 0,
-    isGameOver: false,
-    combo: 0,
-    multiplier: 1,
-    comboTimerRemaining: 0,
-    screenShake: null,
-    kamikazesActive: 0,
-  } as GameStateComponent);
-  return gameState;
+  return spawnEntity(world, "state", {});
 }
 
 /**
  * Creates the singleton entity that coordinates the invader grid movement.
  */
 export function createFormationController(world: World<any>, deferred?: boolean): Entity {
-  const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-  const { entity: controller, add } = createBaseEntity(world, deferred);
-  add({
-    type: "Formation",
-    direction: 1,
-    stepDownPending: false,
-    speed: config.INVADER_SPEED_BASE,
-    descentStep: config.INVADER_DESCENT_STEP,
-    leftBound: 0,
-    rightBound: 0,
-    fireCooldownRemaining: config.ENEMY_FIRE_INTERVAL_MIN,
-  } as FormationComponent);
-  return controller;
+  return spawnEntity(world, "formation", {});
 }
 
 /**

@@ -36,8 +36,8 @@ export class ScreenShakeSystem extends System<CoreComponentRegistry> {
 
     if (mainCameraEntity !== undefined) {
       if (activeIntensity > 0) {
-        const offsetX = (Math.random() - 0.5) * 2 * activeIntensity;
-        const offsetY = (Math.random() - 0.5) * 2 * activeIntensity;
+        const offsetX = (world.renderRandom.next() - 0.5) * 2 * activeIntensity;
+        const offsetY = (world.renderRandom.next() - 0.5) * 2 * activeIntensity;
 
         if (!world.hasComponent(mainCameraEntity, "VisualOffset")) {
           world.addComponent(mainCameraEntity, {

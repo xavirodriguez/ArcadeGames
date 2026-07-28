@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, HealthComponent, TransformComponent } from "../../../index";
+import { ShapeDrawer, EffectDrawer, HealthComponent, TransformComponent } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 
 /**

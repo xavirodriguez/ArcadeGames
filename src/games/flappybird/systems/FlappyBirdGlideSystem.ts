@@ -1,9 +1,9 @@
-import { System } from "../../../index";
-import { World } from "../../../index";
-import { RandomService } from "../../../index";
+import { System } from "@tiny-aster/core";
+import { World } from "@tiny-aster/core";
+import { RandomService } from "@tiny-aster/core";
 import { BirdComponent, FLAPPY_CONFIG, FlappyBirdInputComponent } from "../types/FlappyBirdTypes";
-import { createEmitter } from "../../../index";
-import { TransformComponent, VelocityComponent } from "../../../index";
+import { createEmitter } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent } from "@tiny-aster/core";
 
 import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 

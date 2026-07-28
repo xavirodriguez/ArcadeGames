@@ -1,5 +1,5 @@
-import { World } from "../../../index";
-import { RenderUpdateSystem } from "../../../index";
+import { World } from "@tiny-aster/core";
+import { RenderUpdateSystem } from "@tiny-aster/core";
 import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 
 /**

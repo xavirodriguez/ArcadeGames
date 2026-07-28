@@ -1,4 +1,5 @@
-import { World, computeShipPhysics, CollisionLayers } from "@tiny-aster/core";
+import { World, computeShipPhysics } from "@tiny-aster/core";
+import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { AsteroidsGame } from "../AsteroidsGame";
 import { createShip, createAsteroid, createBullet, fragmentAsteroid } from "../EntityFactory";
 
@@ -35,11 +36,11 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const config = { SHIP_THRUST: 150, SHIP_ROTATION_SPEED: 4.0, SHIP_FRICTION: 0.5 };
 
       // Rotate Right
-      let result = computeShipPhysics(transform, velocity, { rotateRight: true }, config, 0.1);
+      let result = computeShipPhysics(transform, velocity, { actions: new Set(["rotateRight"]), axes: {} }, config, 0.1);
       expect(result.rotation).toBeCloseTo(0.4, 4);
 
       // Rotate Left
-      result = computeShipPhysics(transform, velocity, { rotateLeft: true }, config, 0.1);
+      result = computeShipPhysics(transform, velocity, { actions: new Set(["rotateLeft"]), axes: {} }, config, 0.1);
       expect(result.rotation).toBeCloseTo(-0.4, 4);
     });
 
@@ -49,7 +50,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const config = { SHIP_THRUST: 100, SHIP_ROTATION_SPEED: 4.0, SHIP_FRICTION: 1.0 };
 
       // Apply thrust for 0.1 seconds
-      const result = computeShipPhysics(transform, velocity, { thrust: true }, config, 0.1);
+      const result = computeShipPhysics(transform, velocity, { actions: new Set(["thrust"]), axes: {} }, config, 0.1);
       // ax = cos(0)*100 = 100. vx_pre = ax*0.1 = 10. vx_post = 10 * (1 - 1.0*0.1) = 9
       expect(result.vx).toBeCloseTo(9, 4);
       expect(result.vy).toBe(0);

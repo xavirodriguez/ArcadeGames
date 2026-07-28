@@ -1,6 +1,4 @@
-import { System } from "../../../ecs/System";
-import { World } from "../../../ecs/World";
-import { CoreComponentRegistry } from "../../../ecs/CoreComponents";
+import { System, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { PowerUpComponent } from "../types/ArcadeTypes";
 
 /** @public */

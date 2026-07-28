@@ -1,4 +1,5 @@
-import { CoreComponentRegistry, CoreEvents, LootTableComponent, PowerUpComponent } from "@tiny-aster/core";
+import { CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
+import { LootTableComponent, PowerUpComponent } from "../../shared/arcade";
 import {
   GameStateComponent,
   InputComponent,
@@ -28,4 +29,11 @@ export interface AsteroidsEventRegistry extends CoreEvents, Record<string, unkno
   "asteroid:destroyed": { entity: number; size: "large" | "medium" | "small" };
   "ufo:spawned": { entity: number };
   "score:changed": { newScore: number; delta: number };
+}
+
+/** @public */
+export interface AsteroidsBlueprintMap extends Record<string, import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, any, any>> {
+  ship: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number }>;
+  bullet: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; vx: number; vy: number; ownerId?: string; ttl?: number }>;
+  asteroid: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }>;
 }

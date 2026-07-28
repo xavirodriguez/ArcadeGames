@@ -1,4 +1,4 @@
-import { World, System, VelocityComponent } from "@tiny-aster/core";
+import { World, System, VelocityComponent, InputSystem } from "@tiny-aster/core";
 import { type PongInput, type PongComponentRegistry } from "../types";
 import { PongConfig, DEFAULT_PONG_CONFIG } from "../types/PongConfigSchema";
 import { AIPongController } from "../input/AIPongController";
@@ -27,9 +27,9 @@ export class PongInputSystem extends System<PongComponentRegistry> {
       return p && p.side === "left";
     });
 
-    const inputSystem = world.getInputSystem();
-    const p1Up = inputSystem.isPressed("p1Up");
-    const p1Down = inputSystem.isPressed("p1Down");
+    const inputSystem = world.getResource<InputSystem>("InputSystem");
+    const p1Up = inputSystem ? inputSystem.getAction("p1Up") : false;
+    const p1Down = inputSystem ? inputSystem.getAction("p1Down") : false;
 
     p1Paddles.forEach(entity => {
       world.mutateComponent(entity, "Velocity", (vel: VelocityComponent) => {
@@ -63,8 +63,8 @@ export class PongInputSystem extends System<PongComponentRegistry> {
           else vel.vy = 0;
         } else {
           // Local multiplayer mode
-          const p2Up = inputSystem.isPressed("p2Up");
-          const p2Down = inputSystem.isPressed("p2Down");
+          const p2Up = inputSystem ? inputSystem.getAction("p2Up") : false;
+          const p2Down = inputSystem ? inputSystem.getAction("p2Down") : false;
           if (p2Up) vel.vy = -config.PADDLE_SPEED;
           else if (p2Down) vel.vy = config.PADDLE_SPEED;
           else vel.vy = 0;

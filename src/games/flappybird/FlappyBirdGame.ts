@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, TransformComponent, RenderComponent, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
@@ -20,8 +20,18 @@ import {
  * Implementa mecánicas de scroll infinito y generación procedural de obstáculos (tuberías).
  * Utiliza un sistema de gravedad simple y una única acción de entrada ("jump").
  */
+import { Collider2DComponent, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter } from "@tiny-aster/core";
+import { CollisionLayers } from "../shared/types/CollisionLayers";
+
+export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, any, any>> {
+  bird: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number, y: number }>;
+  pipe: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number, gapY: number }>;
+  ground: BlueprintDefinition<FlappyBirdComponentRegistry, any, {}>;
+  state: BlueprintDefinition<FlappyBirdComponentRegistry, any, {}>;
+}
+
 export class FlappyBirdGame
-  extends BaseGame<FlappyBirdState, FlappyBirdInput, FlappyBirdComponentRegistry>
+  extends BaseGame<FlappyBirdState, FlappyBirdInput, FlappyBirdComponentRegistry, any, FlappyBirdBlueprintMap>
   implements IFlappyBirdGame {
 
   private gameStateSystem!: FlappyBirdGameStateSystem;
@@ -50,6 +60,182 @@ export class FlappyBirdGame
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
     await this.onPreloadAssets();
+
+    // Register blueprints
+    this.blueprints.register("bird", {
+      spawn: (world, entity, args: { x: number, y: number }) => {
+        world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent);
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "bird",
+          size: FLAPPY_CONFIG.BIRD_RADIUS,
+          color: "#FFD700",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 0,
+          hitFlashFrames: 0,
+          angularVelocity: 0
+        } as RenderComponent);
+        world.addComponent(entity, {
+          type: "Collider2D",
+          shape: { type: "circle", radius: (FLAPPY_CONFIG.BIRD_RADIUS - 2) * 0.85 },
+          layer: CollisionLayers.PLAYER,
+          mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as Collider2DComponent);
+        world.addComponent(entity, {
+          type: "Bird",
+          velocityY: 0,
+          isAlive: true,
+          isGliding: false,
+          nearMissTimer: 0,
+          coyoteTimer: 0,
+        });
+        world.addComponent(entity, {
+          type: "FlappyInput",
+          flap: false,
+          glide: false,
+          flapCooldownRemaining: 0,
+        });
+        world.addComponent(entity, {
+          type: "Health",
+          current: 1,
+          max: 1,
+          invulnerableRemaining: 0,
+        } as HealthComponent);
+
+        createEmitter(world as any, {
+          type: "spawn",
+          x: args.x,
+          y: args.y,
+          rate: 0,
+          burst: true,
+          count: 3,
+          lifetime: [0.8, 1.2],
+          speed: [20, 40],
+          angle: [260, 280],
+          size: [3, 5],
+          color: ["#FFD700"],
+          loop: false
+        });
+      }
+    });
+
+    this.blueprints.register("pipe", {
+      spawn: (world, entity, args: { x: number, gapY: number }) => {
+        // Since original createPipe spawned TWO entities, we can spawn a bottom pipe too or define separate blueprints.
+        // But to keep it as a single spawner interface, let's spawn both from this blueprint using commands inside commands!
+        const halfGap = FLAPPY_CONFIG.GAP_SIZE / 2;
+        const pipeWidth = FLAPPY_CONFIG.PIPE_WIDTH;
+        const pipeSpeed = FLAPPY_CONFIG.PIPE_SPEED;
+
+        // Top Pipe components are added on this entity
+        const topY = args.gapY - halfGap;
+        world.addComponent(entity, { type: "Transform", x: args.x, y: topY / 2, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: topY / 2, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        world.addComponent(entity, { type: "Velocity", vx: -pipeSpeed, vy: 0, angularVelocity: 0 } as VelocityComponent);
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "pipe",
+          size: pipeWidth,
+          color: "#2ecc71",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 0,
+          hitFlashFrames: 0,
+          angularVelocity: 0
+        } as RenderComponent);
+        world.addComponent(entity, {
+          type: "Collider2D",
+          shape: { type: "aabb", halfWidth: pipeWidth / 2, halfHeight: topY / 2 },
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as Collider2DComponent);
+        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: false });
+
+        // Spawn Bottom Pipe entity deferredly/immediately
+        const bottomEntity = world.createEntity();
+        const bottomY = args.gapY + halfGap;
+        const bottomHeight = FLAPPY_CONFIG.SCREEN_HEIGHT - bottomY;
+        world.addComponent(bottomEntity, { type: "Transform", x: args.x, y: bottomY + bottomHeight / 2, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: bottomY + bottomHeight / 2, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        world.addComponent(bottomEntity, { type: "Velocity", vx: -pipeSpeed, vy: 0, angularVelocity: 0 } as VelocityComponent);
+        world.addComponent(bottomEntity, {
+          type: "Render",
+          shape: "pipe",
+          size: pipeWidth,
+          color: "#2ecc71",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 0,
+          hitFlashFrames: 0,
+          angularVelocity: 0
+        } as RenderComponent);
+        world.addComponent(bottomEntity, {
+          type: "Collider2D",
+          shape: { type: "aabb", halfWidth: pipeWidth / 2, halfHeight: bottomHeight / 2 },
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as Collider2DComponent);
+        world.addComponent(bottomEntity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: true });
+      }
+    });
+
+    this.blueprints.register("ground", {
+      spawn: (world, entity, _args: {}) => {
+        world.addComponent(entity, { type: "Transform", x: FLAPPY_CONFIG.SCREEN_WIDTH / 2, y: FLAPPY_CONFIG.GROUND_Y, rotation: 0, scaleX: 1, scaleY: 1, worldX: FLAPPY_CONFIG.SCREEN_WIDTH / 2, worldY: FLAPPY_CONFIG.GROUND_Y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        world.addComponent(entity, {
+          type: "Collider2D",
+          shape: { type: "aabb", halfWidth: FLAPPY_CONFIG.SCREEN_WIDTH / 2, halfHeight: (FLAPPY_CONFIG.SCREEN_HEIGHT - FLAPPY_CONFIG.GROUND_Y) / 2 },
+          layer: CollisionLayers.DEBRIS,
+          mask: CollisionLayers.PLAYER,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as Collider2DComponent);
+        world.addComponent(entity, { type: "Ground" });
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "ground",
+          size: FLAPPY_CONFIG.SCREEN_WIDTH,
+          color: "#deb887",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 0,
+          hitFlashFrames: 0,
+          angularVelocity: 0
+        } as RenderComponent);
+      }
+    });
+
+    this.blueprints.register("state", {
+      spawn: (world, entity, _args: {}) => {
+        world.addComponent(entity, {
+          type: "FlappyState",
+          score: 0,
+          isGameOver: false,
+          highScore: 0,
+          pipeSpawnTimer: 0,
+          gameOverLogged: false,
+          comboMultiplier: 1,
+        });
+      }
+    });
 
     // Bind inputs for UnifiedInputSystem
     this.unifiedInput.bind("flap", [FLAPPY_CONFIG.KEYS.FLAP]);

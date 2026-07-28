@@ -20,71 +20,81 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
   }
 
   public override update(world: World<PongComponentRegistry>, deltaTime: number): void {
-    const collisions = world.getEvents("Collision" as any);
-    if (!collisions || collisions.length === 0) return;
+    const entities = world.query("CollisionEvents");
+    const processedPairs = new Set<string>();
 
-    collisions.forEach((event: any) => {
-      const { entityA, entityB, manifold } = event;
+    for (const entityA of entities) {
+      const colComp = world.getComponent(entityA, "CollisionEvents");
+      if (!colComp) continue;
 
-      const isBallA = world.hasComponent(entityA, "Ball" as any);
-      const isBallB = world.hasComponent(entityB, "Ball" as any);
+      for (const col of colComp.collisions) {
+        const entityB = col.otherEntity;
+        const pairId = entityA < entityB ? `${entityA},${entityB}` : `${entityB},${entityA}`;
+        if (processedPairs.has(pairId)) continue;
+        processedPairs.add(pairId);
 
-      if (isBallA || isBallB) {
-        const ballEntity = isBallA ? entityA : entityB;
-        const otherEntity = isBallA ? entityB : entityA;
+        const isBallA = world.hasComponent(entityA, "Ball" as any);
+        const isBallB = world.hasComponent(entityB, "Ball" as any);
 
-        const isPaddle = world.hasComponent(otherEntity, "Paddle" as any);
+        if (isBallA || isBallB) {
+          const ballEntity = isBallA ? entityA : entityB;
+          const otherEntity = isBallA ? entityB : entityA;
 
-        if (isPaddle) {
-          const paddleComp = world.getComponent(otherEntity, "Paddle" as any) as any;
-          const ballVel = world.getComponent(ballEntity, "Velocity") as VelocityComponent;
+          const isPaddle = world.hasComponent(otherEntity, "Paddle" as any);
 
-          if (ballVel && paddleComp) {
-            // Revert X velocity and scale up speed slightly
-            const nextVx = -ballVel.vx * this.config.BALL_ACCELERATION;
+          if (isPaddle) {
+            const paddleComp = world.getComponent(otherEntity, "Paddle" as any) as any;
+            const ballVel = world.getComponent(ballEntity, "Velocity") as VelocityComponent;
 
-            // Simple spin factor based on relative paddle motion
-            const relativeVelocityY = ballVel.vy - paddleComp.lastVelocityY;
-            const spin = relativeVelocityY * 0.05;
+            if (ballVel && paddleComp) {
+              // Revert X velocity and scale up speed slightly
+              const nextVx = -ballVel.vx * this.config.BALL_ACCELERATION;
 
-            world.mutateComponent(ballEntity, "Ball", (ballComp: BallComponent) => {
-              ballComp.spinFactor = Math.max(-2, Math.min(2, ballComp.spinFactor + spin));
-            });
+              // Simple spin factor based on relative paddle motion
+              const relativeVelocityY = ballVel.vy - paddleComp.lastVelocityY;
+              const spin = relativeVelocityY * 0.05;
 
-            // Apply spin to Y velocity
-            const nextVy = ballVel.vy + (spin * 100);
-
-            world.mutateComponent(ballEntity, "Velocity", (vel: VelocityComponent) => {
-              vel.vx = nextVx;
-              vel.vy = nextVy;
-            });
-
-            // Juice/ScreenShake effect
-            Juice.shake(world, 4, 150);
-            Juice.squash(world, ballEntity, 1.4, 0.7, 100);
-
-            // Particle feedback on hit location
-            const ballTransform = world.getComponent(ballEntity, "Transform") as TransformComponent;
-            if (ballTransform) {
-              const emitter = createEmitter(world, {
-                x: ballTransform.x,
-                y: ballTransform.y,
-                rate: 0,
-                burst: 10,
-                particleLifetime: 300,
-                speed: 150,
-                color: "white",
-                size: 3
+              world.mutateComponent(ballEntity, "Ball", (ballComp: BallComponent) => {
+                ballComp.spinFactor = Math.max(-2, Math.min(2, ballComp.spinFactor + spin));
               });
-              world.addComponent(emitter, { type: "TTL", ttl: 350 } as any);
-            }
 
-            // Play hit audio
-            const eventBus = world.getEventBus();
-            eventBus.emit("PlaySFX" as any, { name: "hit" });
+              // Apply spin to Y velocity
+              const nextVy = ballVel.vy + (spin * 100);
+
+              world.mutateComponent(ballEntity, "Velocity", (vel: VelocityComponent) => {
+                vel.vx = nextVx;
+                vel.vy = nextVy;
+              });
+
+              // Juice/ScreenShake effect
+              Juice.shake(world, 4, 150);
+              Juice.squash(world, ballEntity, 1.4, 0.7, 100);
+
+              // Particle feedback on hit location
+              const ballTransform = world.getComponent(ballEntity, "Transform") as TransformComponent;
+              if (ballTransform) {
+                const emitter = createEmitter(world, {
+                  type: "hit",
+                  x: ballTransform.x,
+                  y: ballTransform.y,
+                  rate: 0,
+                  burst: true,
+                  count: 10,
+                  lifetime: [0.3, 0.3],
+                  speed: [150, 150],
+                  color: "white",
+                  size: [3, 3]
+                });
+                world.getCommandBuffer().addComponent(emitter, { type: "TTL", ttl: 350, timeLeft: 0.35, remaining: 0.35 } as any);
+              }
+
+              // Play hit audio
+              const eventBus = world.getEventBus();
+              eventBus.emit("PlaySFX" as any, { name: "hit" });
+            }
           }
         }
       }
-    });
+    }
   }
 }

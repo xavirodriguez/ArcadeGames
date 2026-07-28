@@ -7,10 +7,10 @@ import {
   TTLComponent,
   ColliderComponent,
   CollisionEventsComponent,
-  CollisionLayers,
   ShapeType,
   BoundaryComponent
 } from "@tiny-aster/core";
+import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 
@@ -40,80 +40,52 @@ const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any)
     };
 };
 
+import { BlueprintRegistry } from "@tiny-aster/core";
+
+function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
+  const isUpdating = world.isUpdating;
+  const commands = world.commands;
+
+  if (isUpdating) {
+    const entity = world.reserveEntityId();
+    commands.createEntity(entity);
+
+    const mockWorld = new Proxy(world, {
+      get(target, prop, receiver) {
+        if (prop === "addComponent") {
+          return (ent: number, comp: any) => commands.addComponent(ent, comp);
+        }
+        if (prop === "createEntity") {
+          return () => {
+            const ent = target.reserveEntityId();
+            commands.createEntity(ent);
+            return ent;
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      }
+    });
+
+    const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
+    const blueprint = registry?.get(blueprintId);
+    if (blueprint) {
+      blueprint.spawn(mockWorld, entity, args);
+    }
+    return entity;
+  }
+
+  const entity = world.createEntity();
+  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
+  const blueprint = registry?.get(blueprintId);
+  if (blueprint) {
+    blueprint.spawn(world, entity, args);
+  }
+  return entity;
+}
+
 /** @public */
 export const createShip = (config: { world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, x: number, y: number }): number => {
-    const { entity, add } = createBaseEntity(config.world);
-    const screen = config.world.getResource<{ width: number, height: number }>("ScreenConfig") || { width: 800, height: 600 };
-
-    add({
-        type: "Transform",
-        x: config.x,
-        y: config.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: config.x,
-        worldY: config.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-    } as TransformComponent);
-
-    add({
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-    } as VelocityComponent);
-
-    add({
-        type: "Render",
-        visible: true,
-        opacity: 1,
-        order: 1,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-    } as RenderComponent);
-
-    add({
-        type: "Health",
-        current: 3,
-        max: 3
-    } as HealthComponent);
-
-    add({
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 15 },
-        layer: CollisionLayers.PLAYER,
-        mask: CollisionLayers.ENEMY,
-        enabled: true,
-        isTrigger: false
-    } as ColliderComponent);
-
-    add({
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-    } as CollisionEventsComponent);
-
-    add({
-        type: "Boundary",
-        width: screen.width,
-        height: screen.height,
-        mode: "wrap"
-    } as BoundaryComponent);
-
-    add({
-        type: "Ship",
-        sessionId: "",
-        shootCooldownRemaining: 0
-    } as AsteroidsComponentRegistry["Ship"]);
-
-    return entity;
+    return spawnEntity(config.world, "ship", { x: config.x, y: config.y });
 };
 
 /**
@@ -183,76 +155,15 @@ export function createBullet(
     life = worldOrConfig.ttl ?? bulletTtl;
   }
 
-  const { entity, add } = createBaseEntity(world);
-
-  // Paso 3: Bullet initialization:
-
-  // 1. Initialize "Transform" (including all fields worldX/Y/Rotation/Scale and dirty: true)
-  add({
-    type: "Transform",
+  return spawnEntity(world, "bullet", {
     x: posX,
     y: posY,
-    rotation: rotVal,
-    scaleX: 1,
-    scaleY: 1,
-    worldX: posX,
-    worldY: posY,
-    worldRotation: rotVal,
-    worldScaleX: 1,
-    worldScaleY: 1,
-    dirty: true
-  } as TransformComponent);
-
-  // 2. Initialize "Velocity" (calculate vx and vy based on direction/rotation and shoot speed)
-  add({
-    type: "Velocity",
     vx: vxVal,
     vy: vyVal,
-    angularVelocity: 0
-  } as VelocityComponent);
-
-  // 3. Initialize "Render" following the interface of CoreComponents.ts
-  add({
-    type: "Render",
-    visible: true,
-    opacity: 1,
-    order: 2,
     rotation: rotVal,
-    angularVelocity: 0,
-    hitFlashFrames: 0
-  } as RenderComponent);
-
-  // 4. Initialize "Bullet" (type: "Bullet", ownerId)
-  add({
-    type: "Bullet",
-    ownerId: owner
-  } as AsteroidsComponentRegistry["Bullet"]);
-
-  // 5. Initialize "TTL" - setting BOTH remaining and timeLeft to the same initial value
-  add({
-    type: "TTL",
-    remaining: life,
-    timeLeft: life
-  } as TTLComponent);
-
-  add({
-    type: "Collider",
-    shape: { type: ShapeType.Circle, radius: 2 },
-    layer: CollisionLayers.PROJECTILE,
-    mask: CollisionLayers.ENEMY,
-    enabled: true,
-    isTrigger: false
-  } as ColliderComponent);
-
-  add({
-    type: "CollisionEvents",
-    collisions: [],
-    activeTriggers: [],
-    triggersEntered: [],
-    triggersExited: []
-  } as CollisionEventsComponent);
-
-  return entity;
+    ownerId: owner,
+    ttl: life
+  });
 }
 
 /** @public */
@@ -265,79 +176,14 @@ export const createAsteroid = (config: {
     vy?: number;
     angularVelocity?: number;
 }): number => {
-    const { entity, add } = createBaseEntity(config.world);
-    const screen = config.world.getResource<{ width: number, height: number }>("ScreenConfig") || { width: 800, height: 600 };
-
-    add({
-        type: "Transform",
+    return spawnEntity(config.world, "asteroid", {
         x: config.x,
         y: config.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: config.x,
-        worldY: config.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-    } as TransformComponent);
-
-    const randVx = (config.world.gameplayRandom.next() - 0.5) * 100;
-    const randVy = (config.world.gameplayRandom.next() - 0.5) * 100;
-    const randAng = (config.world.gameplayRandom.next() - 0.5) * 2;
-
-    add({
-        type: "Velocity",
-        vx: config.vx !== undefined ? config.vx : randVx,
-        vy: config.vy !== undefined ? config.vy : randVy,
-        angularVelocity: config.angularVelocity !== undefined ? config.angularVelocity : randAng
-    } as VelocityComponent);
-
-    add({
-        type: "Asteroid",
-        size: config.size
-    } as AsteroidsComponentRegistry["Asteroid"]);
-
-    add({
-        type: "Render",
-        visible: true,
-        opacity: 1,
-        order: 0,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-    } as RenderComponent);
-
-    let radius = 40;
-    if (config.size === "medium") radius = 20;
-    else if (config.size === "small") radius = 10;
-
-    add({
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius },
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-        enabled: true,
-        isTrigger: false
-    } as ColliderComponent);
-
-    add({
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-    } as CollisionEventsComponent);
-
-    add({
-        type: "Boundary",
-        width: screen.width,
-        height: screen.height,
-        mode: "wrap"
-    } as BoundaryComponent);
-
-    return entity;
+        size: config.size,
+        vx: config.vx,
+        vy: config.vy,
+        angularVelocity: config.angularVelocity
+    });
 };
 
 /**

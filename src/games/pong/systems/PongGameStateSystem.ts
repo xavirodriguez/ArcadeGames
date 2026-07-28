@@ -7,8 +7,12 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
   private _isGameOver = false;
 
   constructor(config: PongConfig) {
-    super();
+    super("PongState");
     this.config = config;
+  }
+
+  protected evaluateGameOverCondition(gameState: PongState): boolean {
+    return gameState.isGameOver;
   }
 
   protected updateGameState(
@@ -72,7 +76,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
   }
 
   protected getGameState(world: World<PongComponentRegistry>): PongState | undefined {
-    return world.getSingleton("PongState" as any);
+    return world.getSingleton("PongState" as any) as PongState | undefined;
   }
 
   public isGameOver(): boolean {

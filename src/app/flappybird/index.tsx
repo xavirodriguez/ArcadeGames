@@ -16,7 +16,7 @@ import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
 import { MutatorService } from "@/services/MutatorService";
 import { MutatorBadge } from "@/components/MutatorBadge";
 import { Mutator } from "@/config/MutatorConfig";
-import { FlappyBirdGame, FlappyBirdInput } from "@tiny-aster/core";
+import { FlappyBirdGame, FlappyBirdInput } from "../../games/flappybird";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";

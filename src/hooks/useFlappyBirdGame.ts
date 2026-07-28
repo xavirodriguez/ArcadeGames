@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useGame } from "@tiny-aster/react-native";
 import { useHighScore } from "./useHighScore";
-import { FlappyBirdGame, INITIAL_FLAPPY_STATE, FlappyBirdState, FlappyBirdInput } from "@tiny-aster/core";
+import { FlappyBirdGame, INITIAL_FLAPPY_STATE, FlappyBirdState, FlappyBirdInput } from "../games/flappybird";
 import { MutatorService } from "../services/MutatorService";
 import type { Mutator } from "../config/MutatorConfig";
 

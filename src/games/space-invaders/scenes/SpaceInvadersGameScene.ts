@@ -9,11 +9,10 @@ import {
   RenderUpdateSystem,
   BoundarySystem,
   CollisionSystem2D,
-  LootSystem,
-  PowerUpSystem,
   MutatorSystem,
   SystemPhase
 } from "@tiny-aster/core";
+import { LootSystem, PowerUpSystem } from "../../shared/arcade";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersInputSystem } from "../systems/SpaceInvadersInputSystem";
 import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationSystem";

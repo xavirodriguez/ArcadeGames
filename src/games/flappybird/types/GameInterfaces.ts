@@ -1,6 +1,6 @@
-import { IGame } from "../../../index";
+import { IGame } from "@tiny-aster/core";
 import { FlappyBirdState, FlappyBirdInput } from "./FlappyBirdTypes";
-import { Renderer } from "../../../index";
+import { Renderer } from "@tiny-aster/core";
 
 /**
  * Public interface for the Flappy Bird game controller.

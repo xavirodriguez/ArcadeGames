@@ -5,8 +5,6 @@ import {
   BaseGame,
   BaseGameConfig,
   AssetLoader,
-  LootSystem,
-  PowerUpSystem,
   JuiceSystem,
   MutatorSystem,
   SpatialPartitioningSystem,
@@ -33,10 +31,22 @@ import {
   INetworkGame,
   ConfigService,
   SystemPhase,
-  ServerUpdatePayload
+  ServerUpdatePayload,
+  TransformComponent,
+  VelocityComponent,
+  RenderComponent,
+  HealthComponent,
+  ColliderComponent,
+  CollisionEventsComponent,
+  TTLComponent,
+  BoundaryComponent,
+  ShapeType,
+  CircleShape
 } from "@tiny-aster/core";
 
-import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
+import { LootSystem, PowerUpSystem } from "../shared/arcade";
+import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
 import { AsteroidCollisionSystem } from "./systems/AsteroidCollisionSystem";
@@ -56,7 +66,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * @public
  */
 export class AsteroidsGame
-  extends BaseGame<GameStateComponent, InputState, AsteroidsComponentRegistry, AsteroidsEventRegistry>
+  extends BaseGame<GameStateComponent, InputState, AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap>
   implements IAsteroidsGame, INetworkGame {
 
   private gameStateSystem!: AsteroidGameStateSystem;
@@ -109,6 +119,205 @@ export class AsteroidsGame
     if (!this.bulletPool) this.bulletPool = new BulletPool();
     if (!this.particlePool) this.particlePool = new ParticlePool();
     if (!this.assetLoader) this.assetLoader = new AssetLoader();
+
+    // Register blueprints
+    this.blueprints.register("ship", {
+      spawn: (world, entity, args: { x: number; y: number }) => {
+        const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+        world.addComponent(entity, {
+          type: "Transform",
+          x: args.x,
+          y: args.y,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: args.x,
+          worldY: args.y,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: true
+        } as TransformComponent);
+        world.addComponent(entity, {
+          type: "Velocity",
+          vx: 0,
+          vy: 0,
+          angularVelocity: 0
+        } as VelocityComponent);
+        world.addComponent(entity, {
+          type: "Render",
+          visible: true,
+          opacity: 1,
+          order: 1,
+          rotation: 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0
+        } as RenderComponent);
+        world.addComponent(entity, {
+          type: "Health",
+          current: 3,
+          max: 3
+        } as HealthComponent);
+        world.addComponent(entity, {
+          type: "Collider",
+          shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
+          layer: CollisionLayers.PLAYER,
+          mask: CollisionLayers.ENEMY,
+          enabled: true,
+          isTrigger: false
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: screen.width,
+          height: screen.height,
+          mode: "wrap"
+        } as BoundaryComponent);
+        world.addComponent(entity, {
+          type: "Ship",
+          sessionId: "",
+          shootCooldownRemaining: 0
+        } as AsteroidsComponentRegistry["Ship"]);
+      }
+    });
+
+    this.blueprints.register("bullet", {
+      spawn: (world, entity, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
+        world.addComponent(entity, {
+          type: "Transform",
+          x: args.x,
+          y: args.y,
+          rotation: args.rotation ?? 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: args.x,
+          worldY: args.y,
+          worldRotation: args.rotation ?? 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: true
+        } as TransformComponent);
+        world.addComponent(entity, {
+          type: "Velocity",
+          vx: args.vx,
+          vy: args.vy,
+          angularVelocity: 0
+        } as VelocityComponent);
+        world.addComponent(entity, {
+          type: "Render",
+          visible: true,
+          opacity: 1,
+          order: 2,
+          rotation: args.rotation ?? 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0
+        } as RenderComponent);
+        world.addComponent(entity, {
+          type: "Bullet",
+          ownerId: args.ownerId
+        } as AsteroidsComponentRegistry["Bullet"]);
+        world.addComponent(entity, {
+          type: "TTL",
+          remaining: args.ttl ?? 2.0,
+          timeLeft: args.ttl ?? 2.0
+        } as TTLComponent);
+        world.addComponent(entity, {
+          type: "Collider",
+          shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
+          layer: CollisionLayers.PROJECTILE,
+          mask: CollisionLayers.ENEMY,
+          enabled: true,
+          isTrigger: false
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
+      }
+    });
+
+    this.blueprints.register("asteroid", {
+      spawn: (world, entity, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
+        const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+        world.addComponent(entity, {
+          type: "Transform",
+          x: args.x,
+          y: args.y,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: args.x,
+          worldY: args.y,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: true
+        } as TransformComponent);
+
+        const randVx = (world.gameplayRandom.next() - 0.5) * 100;
+        const randVy = (world.gameplayRandom.next() - 0.5) * 100;
+        const randAng = (world.gameplayRandom.next() - 0.5) * 2;
+
+        world.addComponent(entity, {
+          type: "Velocity",
+          vx: args.vx !== undefined ? args.vx : randVx,
+          vy: args.vy !== undefined ? args.vy : randVy,
+          angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng
+        } as VelocityComponent);
+
+        world.addComponent(entity, {
+          type: "Asteroid",
+          size: args.size
+        } as AsteroidsComponentRegistry["Asteroid"]);
+
+        world.addComponent(entity, {
+          type: "Render",
+          visible: true,
+          opacity: 1,
+          order: 0,
+          rotation: 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0
+        } as RenderComponent);
+
+        let radius = 40;
+        if (args.size === "medium") radius = 20;
+        else if (args.size === "small") radius = 10;
+
+        world.addComponent(entity, {
+          type: "Collider",
+          shape: { type: ShapeType.Circle, radius } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
+          enabled: true,
+          isTrigger: false
+        } as ColliderComponent);
+
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
+
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: screen.width,
+          height: screen.height,
+          mode: "wrap"
+        } as BoundaryComponent);
+      }
+    });
 
     if (!this.networkManager) {
       this.networkManager = NetworkManager.registerGame(this.gameId, this, {

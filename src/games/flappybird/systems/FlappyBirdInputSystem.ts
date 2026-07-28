@@ -1,4 +1,4 @@
-import { System, World, VelocityComponent, InputStateComponent, Juice } from "../../../index";
+import { System, World, VelocityComponent, InputStateComponent, Juice } from "@tiny-aster/core";
 import { FlappyBirdInputComponent, BirdComponent, FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 
 const InputUtils = {

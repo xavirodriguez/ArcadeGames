@@ -8,11 +8,225 @@ import {
   ColliderComponent,
   CollisionEventsComponent,
   ShapeType,
-  BoundaryComponent
+  BoundaryComponent,
+  BlueprintRegistry,
+  CircleShape
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
+
+/**
+ * Registers ship, bullet, and asteroid blueprints.
+ * Keeping them in a single place allows unifying test world runs with game runs.
+ * @public
+ */
+export function registerAsteroidsBlueprints(
+  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>,
+  customRegistry?: BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>
+): void {
+  const registry = customRegistry || world.getResource<BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>>("BlueprintRegistry") || new BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>();
+
+  registry.register("ship", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
+      const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      w.addComponent(entity, {
+        type: "Transform",
+        x: args.x,
+        y: args.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: args.x,
+        worldY: args.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as TransformComponent);
+      w.addComponent(entity, {
+        type: "Velocity",
+        vx: 0,
+        vy: 0,
+        angularVelocity: 0
+      } as VelocityComponent);
+      w.addComponent(entity, {
+        type: "Render",
+        visible: true,
+        opacity: 1,
+        order: 1,
+        rotation: 0,
+        angularVelocity: 0,
+        hitFlashFrames: 0
+      } as RenderComponent);
+      w.addComponent(entity, {
+        type: "Health",
+        current: 3,
+        max: 3
+      } as HealthComponent);
+      w.addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
+        layer: CollisionLayers.PLAYER,
+        mask: CollisionLayers.ENEMY,
+        enabled: true,
+        isTrigger: false
+      } as ColliderComponent);
+      w.addComponent(entity, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as CollisionEventsComponent);
+      w.addComponent(entity, {
+        type: "Boundary",
+        width: screen.width,
+        height: screen.height,
+        mode: "wrap"
+      } as BoundaryComponent);
+      w.addComponent(entity, {
+        type: "Ship",
+        sessionId: "",
+        shootCooldownRemaining: 0
+      } as AsteroidsComponentRegistry["Ship"]);
+    }
+  });
+
+  registry.register("bullet", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
+      w.addComponent(entity, {
+        type: "Transform",
+        x: args.x,
+        y: args.y,
+        rotation: args.rotation ?? 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: args.x,
+        worldY: args.y,
+        worldRotation: args.rotation ?? 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as TransformComponent);
+      w.addComponent(entity, {
+        type: "Velocity",
+        vx: args.vx,
+        vy: args.vy,
+        angularVelocity: 0
+      } as VelocityComponent);
+      w.addComponent(entity, {
+        type: "Render",
+        visible: true,
+        opacity: 1,
+        order: 2,
+        rotation: args.rotation ?? 0,
+        angularVelocity: 0,
+        hitFlashFrames: 0
+      } as RenderComponent);
+      w.addComponent(entity, {
+        type: "Bullet",
+        ownerId: args.ownerId
+      } as AsteroidsComponentRegistry["Bullet"]);
+      w.addComponent(entity, {
+        type: "TTL",
+        remaining: args.ttl ?? 2.0,
+        timeLeft: args.ttl ?? 2.0
+      } as TTLComponent);
+      w.addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
+        layer: CollisionLayers.PROJECTILE,
+        mask: CollisionLayers.ENEMY,
+        enabled: true,
+        isTrigger: false
+      } as ColliderComponent);
+      w.addComponent(entity, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as CollisionEventsComponent);
+    }
+  });
+
+  registry.register("asteroid", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
+      const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      w.addComponent(entity, {
+        type: "Transform",
+        x: args.x,
+        y: args.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: args.x,
+        worldY: args.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as TransformComponent);
+
+      const randVx = (w.gameplayRandom.next() - 0.5) * 100;
+      const randVy = (w.gameplayRandom.next() - 0.5) * 100;
+      const randAng = (w.gameplayRandom.next() - 0.5) * 2;
+
+      w.addComponent(entity, {
+        type: "Velocity",
+        vx: args.vx !== undefined ? args.vx : randVx,
+        vy: args.vy !== undefined ? args.vy : randVy,
+        angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng
+      } as VelocityComponent);
+
+      w.addComponent(entity, {
+        type: "Asteroid",
+        size: args.size
+      } as AsteroidsComponentRegistry["Asteroid"]);
+
+      w.addComponent(entity, {
+        type: "Render",
+        visible: true,
+        opacity: 1,
+        order: 0,
+        rotation: 0,
+        angularVelocity: 0,
+        hitFlashFrames: 0
+      } as RenderComponent);
+
+      let radius = 40;
+      if (args.size === "medium") radius = 20;
+      else if (args.size === "small") radius = 10;
+
+      w.addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Circle, radius } as CircleShape,
+        layer: CollisionLayers.ENEMY,
+        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
+        enabled: true,
+        isTrigger: false
+      } as ColliderComponent);
+
+      w.addComponent(entity, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as CollisionEventsComponent);
+
+      w.addComponent(entity, {
+        type: "Boundary",
+        width: screen.width,
+        height: screen.height,
+        mode: "wrap"
+      } as BoundaryComponent);
+    }
+  });
+
+  world.setResource("BlueprintRegistry", registry);
+}
 
 // Generadores de entidades genéricas que admiten cualquier tipo de componente dinámico.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,8 +253,6 @@ const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any)
         add: (comp: any) => world.addComponent(entity, comp)
     };
 };
-
-import { BlueprintRegistry } from "@tiny-aster/core";
 
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
   const isUpdating = world.isUpdating;

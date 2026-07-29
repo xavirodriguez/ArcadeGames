@@ -2,7 +2,7 @@ import { World, EventBus } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidCollisionSystem } from "../systems/AsteroidCollisionSystem";
 import { ParticlePool } from "../EntityPool";
-import { createBullet } from "../EntityFactory";
+import { createBullet, registerAsteroidsBlueprints } from "../EntityFactory";
 
 describe("AsteroidCollisionSystem & Bullet Tests", () => {
   let world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
@@ -17,6 +17,7 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
     particlePool = new ParticlePool();
     collisionSystem = new AsteroidCollisionSystem();
     world.gameplayRandom.unlock(); // Unlock random for the test simulation
+    registerAsteroidsBlueprints(world);
 
     // Setup GameState singleton
     const stateEntity = world.createEntity();

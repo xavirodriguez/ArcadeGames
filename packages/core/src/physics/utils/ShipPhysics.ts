@@ -7,7 +7,7 @@
 export function computeShipPhysics(
   transform: { rotation: number },
   velocity: { vx: number; vy: number },
-  input: { actions: Set<string>; axes: Record<string, number> },
+  input: { actions: any; axes: Record<string, number>; rotationAmount?: number; rotateLeft?: boolean; rotateRight?: boolean; thrust?: boolean },
   config: { SHIP_THRUST: number; SHIP_ROTATION_SPEED: number; SHIP_FRICTION: number },
   deltaTimeSec: number
 ): { vx: number; vy: number; rotation: number } {
@@ -15,16 +15,28 @@ export function computeShipPhysics(
   let vx = velocity.vx;
   let vy = velocity.vy;
 
-  const actions = input.actions instanceof Set ? input.actions : new Set<string>((input.actions && typeof (input.actions as any)[Symbol.iterator] === "function") ? input.actions : []);
+  let actionsSet: { has(action: string): boolean };
+  if (input.actions instanceof Set) {
+    actionsSet = input.actions;
+  } else if (Array.isArray(input.actions)) {
+    actionsSet = new Set(input.actions);
+  } else if (input.actions && typeof input.actions === "object") {
+    actionsSet = {
+      has: (action: string) => (input.actions as any)[action] === true
+    };
+  } else {
+    actionsSet = new Set<string>();
+  }
+
   const axes = input.axes || {};
 
-  const rotationAmount = axes["rotate_x"] ?? axes["horizontal"];
-  const rotateLeft = actions.has("rotateLeft");
-  const rotateRight = actions.has("rotateRight");
-  const thrust = actions.has("thrust");
+  const rotationAmount = axes["rotate_x"] ?? axes["horizontal"] ?? input.rotationAmount;
+  const rotateLeft = actionsSet.has("rotateLeft") || input.rotateLeft === true;
+  const rotateRight = actionsSet.has("rotateRight") || input.rotateRight === true;
+  const thrust = actionsSet.has("thrust") || input.thrust === true;
 
   // 1. Rotation handling
-  if (rotationAmount !== undefined && rotationAmount !== 0) {
+  if (rotationAmount !== undefined) {
     rotation += rotationAmount * config.SHIP_ROTATION_SPEED * deltaTimeSec;
   } else {
     if (rotateLeft) {

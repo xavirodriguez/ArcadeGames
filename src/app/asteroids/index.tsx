@@ -29,10 +29,10 @@ export default function AsteroidsScreen() {
   const [started, setStarted] = useState(false);
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(isMulti && started);
-
   const [playerName, setPlayerName] = useState("Player");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+
+  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(started, isMulti && started, initialSeed);
 
   // Handle incoming daily challenge parameters
   useEffect(() => {

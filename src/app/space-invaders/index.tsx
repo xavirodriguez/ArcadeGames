@@ -33,7 +33,7 @@ export default function SpaceInvadersScreen() {
   const [started, setStarted] = useState(isDailyFromParams);
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(isDailyFromParams);
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(isMulti && started, initialSeed);
+  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   const { room, connected, serverState } = useMultiplayer("space-invaders", playerName, isMulti && started);

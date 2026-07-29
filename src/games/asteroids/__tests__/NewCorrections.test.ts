@@ -1,6 +1,6 @@
-import { World, computeShipPhysics, TTLSystem } from "@tiny-aster/core";
+import { World, computeShipPhysics, TTLSystem, InvulnerabilitySystem } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
-import { createAsteroid, fragmentAsteroid, createShip } from "../EntityFactory";
+import { createAsteroid, fragmentAsteroid, createShip, registerAsteroidsBlueprints } from "../EntityFactory";
 import { AsteroidCollisionSystem } from "../systems/AsteroidCollisionSystem";
 
 describe("Phase 1-3 New Corrections Unit Tests", () => {
@@ -8,6 +8,7 @@ describe("Phase 1-3 New Corrections Unit Tests", () => {
     it("should successfully fragment asteroid and set child velocities directly without failing", () => {
       const world = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
       world.gameplayRandom.unlock();
+      registerAsteroidsBlueprints(world);
 
       // Create a large parent asteroid
       const parent = createAsteroid({ world, x: 100, y: 100, size: "large" });
@@ -54,8 +55,11 @@ describe("Phase 1-3 New Corrections Unit Tests", () => {
   describe("2. Invulnerable component expiration & vulnerability", () => {
     it("should decrement remaining time and remove Invulnerable component when <= 0", () => {
       const world = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
+      registerAsteroidsBlueprints(world);
       const ttlSystem = new TTLSystem();
+      const invulnSystem = new InvulnerabilitySystem();
       world.addSystem(ttlSystem);
+      world.addSystem(invulnSystem);
 
       const ship = createShip({ world, x: 100, y: 100 });
       world.addComponent(ship, { type: "LocalPlayer" } as any);
@@ -87,11 +91,14 @@ describe("Phase 1-3 New Corrections Unit Tests", () => {
     it("should make ship vulnerable to collisions immediately after invulnerability expires", () => {
       const world = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
       world.gameplayRandom.unlock(); // Unlock random for the test!
+      registerAsteroidsBlueprints(world);
 
       const collisionSystem = new AsteroidCollisionSystem();
       const ttlSystem = new TTLSystem();
+      const invulnSystem = new InvulnerabilitySystem();
 
       world.addSystem(ttlSystem);
+      world.addSystem(invulnSystem);
       world.addSystem(collisionSystem);
 
       // Setup GameState singleton

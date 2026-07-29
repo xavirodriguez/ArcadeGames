@@ -576,7 +576,18 @@ export class World<
   }
 
   public flush(): void {
-    this.commandBuffer.flush(this);
+    const random = this.gameplayRandom;
+    const wasLocked = random ? random.isLocked() : false;
+    if (random && wasLocked) {
+      random.unlock();
+    }
+    try {
+      this.commandBuffer.flush(this);
+    } finally {
+      if (random && wasLocked) {
+        random.lock();
+      }
+    }
   }
 
   /**

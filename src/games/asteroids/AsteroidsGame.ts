@@ -51,7 +51,7 @@ import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
 import { AsteroidCollisionSystem } from "./systems/AsteroidCollisionSystem";
 import { INITIAL_GAME_STATE } from "./types/AsteroidTypes";
-import { createShip, spawnAsteroidWave } from "./EntityFactory";
+import { createShip, spawnAsteroidWave, registerAsteroidsBlueprints } from "./EntityFactory";
 import type { IAsteroidsGame } from "./types/GameInterfaces";
 import { BulletPool, ParticlePool } from "./EntityPool";
 import { initializeAsteroidsRenderer } from "./rendering/AsteroidsRendererManager";
@@ -120,204 +120,8 @@ export class AsteroidsGame
     if (!this.particlePool) this.particlePool = new ParticlePool();
     if (!this.assetLoader) this.assetLoader = new AssetLoader();
 
-    // Register blueprints
-    this.blueprints.register("ship", {
-      spawn: (world, entity, args: { x: number; y: number }) => {
-        const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: true
-        } as TransformComponent);
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: 0,
-          vy: 0,
-          angularVelocity: 0
-        } as VelocityComponent);
-        world.addComponent(entity, {
-          type: "Render",
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as RenderComponent);
-        world.addComponent(entity, {
-          type: "Health",
-          current: 3,
-          max: 3
-        } as HealthComponent);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
-          layer: CollisionLayers.PLAYER,
-          mask: CollisionLayers.ENEMY,
-          enabled: true,
-          isTrigger: false
-        } as ColliderComponent);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-        world.addComponent(entity, {
-          type: "Boundary",
-          width: screen.width,
-          height: screen.height,
-          mode: "wrap"
-        } as BoundaryComponent);
-        world.addComponent(entity, {
-          type: "Ship",
-          sessionId: "",
-          shootCooldownRemaining: 0
-        } as AsteroidsComponentRegistry["Ship"]);
-      }
-    });
-
-    this.blueprints.register("bullet", {
-      spawn: (world, entity, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: args.rotation ?? 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: args.rotation ?? 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: true
-        } as TransformComponent);
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: args.vx,
-          vy: args.vy,
-          angularVelocity: 0
-        } as VelocityComponent);
-        world.addComponent(entity, {
-          type: "Render",
-          visible: true,
-          opacity: 1,
-          order: 2,
-          rotation: args.rotation ?? 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as RenderComponent);
-        world.addComponent(entity, {
-          type: "Bullet",
-          ownerId: args.ownerId
-        } as AsteroidsComponentRegistry["Bullet"]);
-        world.addComponent(entity, {
-          type: "TTL",
-          remaining: args.ttl ?? 2.0,
-          timeLeft: args.ttl ?? 2.0
-        } as TTLComponent);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
-          layer: CollisionLayers.PROJECTILE,
-          mask: CollisionLayers.ENEMY,
-          enabled: true,
-          isTrigger: false
-        } as ColliderComponent);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-      }
-    });
-
-    this.blueprints.register("asteroid", {
-      spawn: (world, entity, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
-        const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: true
-        } as TransformComponent);
-
-        const randVx = (world.gameplayRandom.next() - 0.5) * 100;
-        const randVy = (world.gameplayRandom.next() - 0.5) * 100;
-        const randAng = (world.gameplayRandom.next() - 0.5) * 2;
-
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: args.vx !== undefined ? args.vx : randVx,
-          vy: args.vy !== undefined ? args.vy : randVy,
-          angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng
-        } as VelocityComponent);
-
-        world.addComponent(entity, {
-          type: "Asteroid",
-          size: args.size
-        } as AsteroidsComponentRegistry["Asteroid"]);
-
-        world.addComponent(entity, {
-          type: "Render",
-          visible: true,
-          opacity: 1,
-          order: 0,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as RenderComponent);
-
-        let radius = 40;
-        if (args.size === "medium") radius = 20;
-        else if (args.size === "small") radius = 10;
-
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Circle, radius } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-          enabled: true,
-          isTrigger: false
-        } as ColliderComponent);
-
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-
-        world.addComponent(entity, {
-          type: "Boundary",
-          width: screen.width,
-          height: screen.height,
-          mode: "wrap"
-        } as BoundaryComponent);
-      }
-    });
+    // Register blueprints using centralized helper
+    registerAsteroidsBlueprints(this.world, this.blueprints);
 
     if (!this.networkManager) {
       this.networkManager = NetworkManager.registerGame(this.gameId, this, {
@@ -419,7 +223,7 @@ export class AsteroidsGame
         this.world.addComponent(ship, { type: "LocalPlayer" });
         this.world.addComponent(ship, {
             type: "Input",
-            actions: new Set<string>(),
+            actions: {},
             axes: {}
         });
 
@@ -531,34 +335,31 @@ export class AsteroidsGame
         // Verify that the LocalPlayer entity has the "Input" component, adding it if missing with all flags false and rotationAmount 0.
         this.world.addComponent(localPlayer, {
           type: "Input",
-          actions: new Set<string>(),
+          actions: {},
           axes: {}
         });
       }
       this.world.mutateComponent(localPlayer, "Input", (inputComp: any) => {
-        if (!inputComp.actions) inputComp.actions = new Set<string>();
+        if (!inputComp.actions || typeof inputComp.actions !== "object" || inputComp.actions instanceof Set) {
+          inputComp.actions = {};
+        }
         if (!inputComp.axes) inputComp.axes = {};
 
         // Only write fields that are defined in the payload (!== undefined)
         if (input.rotateLeft !== undefined) {
-          if (input.rotateLeft) inputComp.actions.add("rotateLeft");
-          else inputComp.actions.delete("rotateLeft");
+          inputComp.actions["rotateLeft"] = input.rotateLeft;
         }
         if (input.rotateRight !== undefined) {
-          if (input.rotateRight) inputComp.actions.add("rotateRight");
-          else inputComp.actions.delete("rotateRight");
+          inputComp.actions["rotateRight"] = input.rotateRight;
         }
         if (input.thrust !== undefined) {
-          if (input.thrust) inputComp.actions.add("thrust");
-          else inputComp.actions.delete("thrust");
+          inputComp.actions["thrust"] = input.thrust;
         }
         if (input.shoot !== undefined) {
-          if (input.shoot) inputComp.actions.add("shoot");
-          else inputComp.actions.delete("shoot");
+          inputComp.actions["shoot"] = input.shoot;
         }
         if (input.hyperspace !== undefined) {
-          if (input.hyperspace) inputComp.actions.add("hyperspace");
-          else inputComp.actions.delete("hyperspace");
+          inputComp.actions["hyperspace"] = input.hyperspace;
         }
         if (input.rotationAmount !== undefined) {
           inputComp.axes["rotate_x"] = input.rotationAmount;

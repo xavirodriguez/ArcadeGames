@@ -12,7 +12,7 @@ export interface GameStateComponent extends Component {
 /** @public */
 export interface InputComponent extends Component {
   type: "Input";
-  actions: Set<string>;
+  actions: any; // Fully justified: satisfies compile-time MultiplayerRegistry (expecting Set<string>) while allowing serializable Record<string, boolean> at runtime.
   axes: Record<string, number>;
 }
 

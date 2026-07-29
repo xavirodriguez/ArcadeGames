@@ -4,7 +4,7 @@ import { World, GameLoop, CoreComponentRegistry } from "@tiny-aster/core";
 import { CanvasRenderer as EngineCanvasRenderer } from "@tiny-aster/renderer-canvas";
 
 interface CanvasRendererProps<TRegistry extends CoreComponentRegistry> {
-  world: World<TRegistry>;
+  world: World<TRegistry> | (() => World<TRegistry>);
   gameLoop?: GameLoop;
   onInitialize?: (renderer: EngineCanvasRenderer<TRegistry>) => void;
 }
@@ -33,7 +33,8 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
 
     const unsub = gameLoop?.subscribeRender((_alpha) => {
       if (rendererRef.current && ctx) {
-        rendererRef.current.render(world, ctx);
+        const activeWorld = typeof world === "function" ? world() : world;
+        rendererRef.current.render(activeWorld, ctx);
       }
     });
 
@@ -46,12 +47,16 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
     return null;
   }
 
+  // Get screen config to resize the outer view container dynamically if needed
+  const activeWorld = typeof world === "function" ? world() : world;
+  const screenConfig = activeWorld.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+
   return (
     <View style={styles.container}>
       <canvas
         ref={canvasRef}
-        width={800}
-        height={600}
+        width={screenConfig.width}
+        height={screenConfig.height}
         style={{ width: "100%", height: "100%" }}
       />
     </View>

@@ -69,6 +69,14 @@ export class SpaceInvadersGameScene extends Scene {
     if (eventBus) {
       this.world.setResource("EventBus", eventBus);
     }
+    const blueprints = (this.game as unknown as { blueprints: any }).blueprints;
+    if (blueprints) {
+      this.world.setResource("BlueprintRegistry", blueprints);
+    }
+    const inputSystem = (this.game as unknown as { unifiedInput: any }).unifiedInput;
+    if (inputSystem) {
+      this.world.setResource("InputSystem", inputSystem);
+    }
 
     // 1. Systems registration
     const inputSys = new SpaceInvadersInputSystem(this.playerBulletPool);

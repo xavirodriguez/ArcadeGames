@@ -138,7 +138,7 @@ export default function SpaceInvadersScreen() {
           onSetSeed={restartWithSeed}
         />
         <CanvasRenderer
-          world={game.getWorld()}
+          world={() => game.getWorld()}
           gameLoop={game.getGameLoop()}
           onInitialize={(renderer) => game.initializeRenderer(renderer)}
         />

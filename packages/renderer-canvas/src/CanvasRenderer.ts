@@ -1,18 +1,65 @@
-import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent } from "@tiny-aster/core";
+import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
 
 /**
  * Basic 2D Canvas renderer.
  */
 export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> implements Renderer<TRegistry, CanvasRenderingContext2D> {
   private sortedEntities: Entity[] = [];
+  public readonly type = "canvas";
+  private readonly backgroundEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
 
   constructor(
     private readonly shapeDrawers: Map<string, ShapeDrawer<CanvasRenderingContext2D, TRegistry>> = new Map()
-  ) {}
+  ) {
+    // Pre-populate default shape drawers if not already present
+    if (!this.shapeDrawers.has("Circle")) {
+      this.shapeDrawers.set("Circle", new CanvasCircleDrawer());
+    }
+    if (!this.shapeDrawers.has("circle")) {
+      this.shapeDrawers.set("circle", new CanvasCircleDrawer());
+    }
+    if (!this.shapeDrawers.has("Box")) {
+      this.shapeDrawers.set("Box", new CanvasBoxDrawer());
+    }
+    if (!this.shapeDrawers.has("box")) {
+      this.shapeDrawers.set("box", new CanvasBoxDrawer());
+    }
+    if (!this.shapeDrawers.has("Polygon")) {
+      this.shapeDrawers.set("Polygon", new CanvasPolygonDrawer());
+    }
+    if (!this.shapeDrawers.has("polygon")) {
+      this.shapeDrawers.set("polygon", new CanvasPolygonDrawer());
+    }
+  }
+
+  public registerShape(name: string, drawer: ShapeDrawer<CanvasRenderingContext2D, TRegistry>): void {
+    this.shapeDrawers.set(name, drawer);
+  }
+
+  public registerBackgroundEffect(name: string, drawer: EffectDrawer<CanvasRenderingContext2D, TRegistry>): void {
+    this.backgroundEffects.set(name, drawer);
+  }
 
   public render(world: World<TRegistry>, ctx: CanvasRenderingContext2D): void {
     const canvas = ctx.canvas;
+
+    const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
+    if (screenConfig) {
+      if (canvas.width !== screenConfig.width) {
+        canvas.width = screenConfig.width;
+      }
+      if (canvas.height !== screenConfig.height) {
+        canvas.height = screenConfig.height;
+      }
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw background effects first (e.g. scrolling skies)
+    for (const drawer of this.backgroundEffects.values()) {
+      drawer.draw(ctx, world);
+    }
 
     const cameraType = "Camera2D" as Extract<keyof TRegistry, string>;
     const transformType = "Transform" as Extract<keyof TRegistry, string>;
@@ -82,21 +129,29 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       ctx.scale(scaleX, scaleY);
       ctx.globalAlpha = render.opacity;
 
-      if (render.color) {
-        ctx.fillStyle = render.color;
-      }
+      const drawColor = render.color || "white";
+      ctx.fillStyle = drawColor;
+      ctx.strokeStyle = drawColor;
 
-      const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;
-      if (collider && collider.enabled) {
-        const shapeTypeStr = ShapeType[collider.shape.type];
-        const drawer = this.shapeDrawers.get(shapeTypeStr);
-        if (drawer) {
-          drawer.draw(ctx, world, entity);
-        }
+      // 1. Try custom registered shape drawer
+      const customDrawer = render.shape ? this.shapeDrawers.get(render.shape) : undefined;
+      if (customDrawer) {
+        customDrawer.draw(ctx, world, entity);
       } else {
-        ctx.beginPath();
-        ctx.arc(0, 0, 5, 0, Math.PI * 2);
-        ctx.fill();
+        // 2. Try default collider shape drawer
+        const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;
+        if (collider && collider.enabled) {
+          const shapeTypeStr = ShapeType[collider.shape.type];
+          const drawer = this.shapeDrawers.get(shapeTypeStr);
+          if (drawer) {
+            drawer.draw(ctx, world, entity);
+          }
+        } else {
+          // 3. Draw fallback circle
+          ctx.beginPath();
+          ctx.arc(0, 0, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       ctx.restore();

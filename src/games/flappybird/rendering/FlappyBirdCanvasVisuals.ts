@@ -161,6 +161,9 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
  * Scrolling sky background effect.
  */
 let bgOffset = 0;
+let cachedSkyGradient: CanvasGradient | null = null;
+let lastGradientHeight = 0;
+
 export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world) {
     const gameState = world.getSingleton("FlappyState");
@@ -168,10 +171,13 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     const { width = 400, height = 600 } = world.getResource<{width: number, height: number}>("ScreenConfig") || { width: 400, height: 600 };
 
     // Background sky
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, "#3498db");
-    gradient.addColorStop(1, "#87ceeb");
-    ctx.fillStyle = gradient;
+    if (!cachedSkyGradient || lastGradientHeight !== height) {
+      cachedSkyGradient = ctx.createLinearGradient(0, 0, 0, height);
+      cachedSkyGradient.addColorStop(0, "#3498db");
+      cachedSkyGradient.addColorStop(1, "#87ceeb");
+      lastGradientHeight = height;
+    }
+    ctx.fillStyle = cachedSkyGradient;
     ctx.fillRect(0, 0, width, height);
 
     // Scroll logic

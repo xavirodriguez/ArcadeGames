@@ -2,6 +2,7 @@ import { World } from "../src/ecs/World";
 import { CoreComponentRegistry } from "../src/ecs/CoreComponents";
 import { LocalPredictionSystem } from "../src/network/LocalPredictionSystem";
 import { RemoteInterpolationSystem } from "../src/network/RemoteInterpolationSystem";
+import { NetworkController } from "../src/network/NetworkController";
 import { AuthoritativeServerState } from "../src/network/types";
 import { computeShipPhysics } from "../src/physics/utils/ShipPhysics";
 
@@ -221,5 +222,90 @@ describe("ReplicationSystem Tests", () => {
     expect(transform.x).toBeCloseTo(10 + 10 * expectedAlpha, 4);
     expect(transform.y).toBeCloseTo(20 + 20 * expectedAlpha, 4);
     expect(transform.rotation).toBeCloseTo((Math.PI / 2) * expectedAlpha, 4);
+  });
+  it("debería desbloquear y restaurar correctamente el estado de bloqueo de gameplayRandom durante reconcile()", () => {
+    // Bloquear el generador aleatorio para simular que está bloqueado durante la reconciliación
+    world.gameplayRandom.lock();
+    expect(world.gameplayRandom.isLocked()).toBe(true);
+
+    const localPlayer = world.createEntity();
+    world.addComponent(localPlayer, {
+      type: "Transform",
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 0,
+      worldY: 0,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: false,
+    });
+    world.addComponent(localPlayer, {
+      type: "Velocity",
+      vx: 0,
+      vy: 0,
+      angularVelocity: 0,
+    });
+    world.addComponent(localPlayer, {
+      type: "LocalPlayer",
+    });
+    world.addComponent(localPlayer, {
+      type: "Input",
+      actions: new Set(["thrust"]),
+      axes: {},
+    });
+
+    // Añadir un simulateFn que intente generar un número aleatorio
+    let randomNum = -1;
+    const predictionSystemWithRandom = new LocalPredictionSystem<TestRegistry>(mockNetworkManager, (w) => {
+      // Debería poder llamarse sin lanzar excepción porque reconcile desbloquea el generador
+      randomNum = w.gameplayRandom.next();
+    });
+
+    // Simulamos un update para registrar un input en inputQueue.
+    // Desbloqueamos temporalmente ya que en una partida normal update() se ejecuta dentro de Schedule.update() (el cual desbloquea el generador).
+    world.gameplayRandom.unlock();
+    predictionSystemWithRandom.update(world, 0.016);
+    world.gameplayRandom.lock();
+
+    const serverState: AuthoritativeServerState = {
+      x: 10,
+      y: 10,
+      vx: 1,
+      vy: 1,
+    };
+
+    // Reconciliar. Esto debería ejecutar simulateFn sin arrojar error sobre el contexto bloqueado
+    expect(() => {
+      predictionSystemWithRandom.reconcile(world, 0, serverState);
+    }).not.toThrow();
+
+    // Comprobar que pudimos obtener el número aleatorio correctamente
+    expect(randomNum).toBeGreaterThanOrEqual(0);
+    expect(randomNum).toBeLessThan(1);
+
+    // Asegurar que restauró el estado de bloqueo (debería volver a estar bloqueado)
+    expect(world.gameplayRandom.isLocked()).toBe(true);
+  });
+
+  it("debería desbloquear y restaurar correctamente el estado de bloqueo de gameplayRandom durante runSimulationStep()", () => {
+    const networkController = new NetworkController<TestRegistry>(world, (dt: number) => {
+      // El callback de simulación intenta generar un número aleatorio
+      world.gameplayRandom.next();
+    });
+
+    world.gameplayRandom.lock();
+    expect(world.gameplayRandom.isLocked()).toBe(true);
+
+    // Ejecutar simulation step; no debería lanzar error de Gameplay context is locked
+    expect(() => {
+      networkController.runSimulationStep(0.016, false);
+    }).not.toThrow();
+
+    // Comprobar que vuelve a estar bloqueado al final
+    expect(world.gameplayRandom.isLocked()).toBe(true);
   });
 });

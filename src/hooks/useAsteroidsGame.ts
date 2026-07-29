@@ -15,7 +15,7 @@ import { MutatorService } from "../services/MutatorService";
  * y configuración del modo multijugador.
  */
 
-export function useAsteroidsGame(isMultiplayer: boolean = false) {
+export function useAsteroidsGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {
   const [mutators, setMutators] = useState<any[] | null>(null);
 
   useEffect(() => {
@@ -33,11 +33,12 @@ export function useAsteroidsGame(isMultiplayer: boolean = false) {
 
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<AsteroidsGame, GameStateComponent, InputState>(
-      mutators !== null ? AsteroidsGame : null,
+      started && mutators !== null ? AsteroidsGame : null,
       isMultiplayer,
       {
         initialState: INITIAL_GAME_STATE,
-        gameOptions: memoizedGameOptions
+        gameOptions: memoizedGameOptions,
+        seed
       }
     );
 

@@ -8,7 +8,7 @@ import type { Mutator } from "../config/MutatorConfig";
 /**
  * Custom hook to manage the lifecycle of the Flappy Bird game engine.
  */
-export function useFlappyBirdGame(isMultiplayer: boolean = false) {
+export function useFlappyBirdGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   useEffect(() => {
@@ -23,9 +23,9 @@ export function useFlappyBirdGame(isMultiplayer: boolean = false) {
 
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<FlappyBirdGame, FlappyBirdState, FlappyBirdInput>(
-      FlappyBirdGame,
+      started ? FlappyBirdGame : null,
       isMultiplayer,
-      { gameOptions, initialState: INITIAL_FLAPPY_STATE }
+      { gameOptions, initialState: INITIAL_FLAPPY_STATE, seed }
     );
 
   const { highScore, updateHighScore } = useHighScore("flappy-high-score");

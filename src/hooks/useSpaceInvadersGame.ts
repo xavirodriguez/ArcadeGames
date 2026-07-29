@@ -10,7 +10,7 @@ import type { Mutator } from "../config/MutatorConfig";
  * @param isMultiplayer - Whether to start in multiplayer mode.
  * @param seed - Optional seed intended to support reproducible gameplay.
  */
-export function useSpaceInvadersGame(isMultiplayer: boolean = false, seed?: number) {
+export function useSpaceInvadersGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function useSpaceInvadersGame(isMultiplayer: boolean = false, seed?: numb
 
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<SpaceInvadersGame, GameStateComponent, InputState>(
-      SpaceInvadersGame,
+      started ? SpaceInvadersGame : null,
       isMultiplayer,
       { gameOptions, initialState: INITIAL_GAME_STATE, seed }
     );

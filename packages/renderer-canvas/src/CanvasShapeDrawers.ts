@@ -76,8 +76,11 @@ export class CanvasPolygonDrawer<TRegistry extends CoreComponentRegistry = CoreC
     const render = world.getComponent(entity, renderType) as RenderComponent | undefined;
 
     let vertices: Array<{ x: number; y: number }> | undefined;
-    if (render && (render as any).vertices) {
-      vertices = (render as any).vertices;
+    if (render) {
+      const renderWithVertices = render as unknown as { vertices?: Array<{ x: number; y: number }> };
+      if (renderWithVertices.vertices) {
+        vertices = renderWithVertices.vertices;
+      }
     }
 
     let offsetX = 0;

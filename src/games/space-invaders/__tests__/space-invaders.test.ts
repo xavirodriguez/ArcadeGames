@@ -1,4 +1,4 @@
-import { World, SystemPhase, CollisionEventsComponent } from "@tiny-aster/core";
+import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry } from "@tiny-aster/core";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
@@ -13,6 +13,27 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
   beforeEach(() => {
     world = new World<SpaceInvadersComponentRegistry>();
+
+    const blueprints = new BlueprintRegistry<SpaceInvadersComponentRegistry, any, any>();
+    blueprints.register("state", {
+      spawn: (w: World<SpaceInvadersComponentRegistry>, entity: number, _args: {}) => {
+        const config = w.getResource("GameConfig" as any) as any;
+        w.addComponent(entity, {
+          type: "GameState",
+          lives: config.PLAYER_INITIAL_LIVES,
+          score: 0,
+          level: 1,
+          invadersRemaining: 0,
+          isGameOver: false,
+          combo: 0,
+          multiplier: 1,
+          comboTimerRemaining: 0,
+          screenShake: null,
+          kamikazesActive: 0,
+        } as any);
+      }
+    });
+    world.setResource("BlueprintRegistry", blueprints);
 
     const mockConfig = {
       KEYS: {

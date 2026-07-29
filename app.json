@@ -31,7 +31,9 @@
     "plugins": [
       "expo-router",
       "expo-asset",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-audio",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
@@ -50,7 +52,6 @@
         "projectId": "73fa3f33-9fb8-472b-a676-868aaac4e963"
       }
     },
-    "owner": "ensable",
-    "newArchEnabled": true
+    "owner": "ensable"
   }
 }

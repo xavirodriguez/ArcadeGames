@@ -59,7 +59,20 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
   }
 
   public runSimulationStep(deltaTime: number, isResimulating: boolean) {
-    this.runSimStep(deltaTime, isResimulating);
+    const random = this.world.gameplayRandom;
+    const wasLocked = random ? random.isLocked() : false;
+
+    if (random) {
+      random.unlock();
+    }
+
+    try {
+      this.runSimStep(deltaTime, isResimulating);
+    } finally {
+      if (random && wasLocked) {
+        random.lock();
+      }
+    }
   }
 
   public updateFromServer(payload: ServerUpdatePayload, localSessionId?: string) {

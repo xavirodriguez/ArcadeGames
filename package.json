@@ -57,6 +57,7 @@
     "expo-audio": "~55.0.15",
     "expo-constants": "~55.0.16",
     "expo-dev-client": "~55.0.36",
+    "expo-doctor": "^1.20.1",
     "expo-font": "~55.0.8",
     "expo-haptics": "~55.0.15",
     "expo-keep-awake": "~55.0.8",
@@ -92,10 +93,10 @@
     "zod": "^4.1.4"
   },
   "devDependencies": {
-    "@babel/cli": "^8.0.4",
-    "@babel/core": "^7.25.2",
-    "@babel/preset-env": "^8.0.2",
-    "@babel/preset-typescript": "^8.0.1",
+    "@babel/cli": "^7.29.7",
+    "@babel/core": "7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-typescript": "^7.29.7",
     "@eslint/js": "^9.34.0",
     "@microsoft/api-documenter": "^7.28.9",
     "@microsoft/api-extractor": "^7.56.3",

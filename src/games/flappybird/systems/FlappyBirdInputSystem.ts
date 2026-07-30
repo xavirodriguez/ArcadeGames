@@ -82,7 +82,7 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
 
           if (mutableInput.flapCooldownRemaining <= 0 && (mutableInput.flap || InputBufferSystem.consume(world, entity, "flap"))) {
             shouldFlap = true;
-            mutableInput.flapCooldownRemaining = this.config.FLAP_COOLDOWN;
+            mutableInput.flapCooldownRemaining = this.config.FLAP_COOLDOWN / 1000;
           }
         });
 
@@ -96,7 +96,7 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
         }
 
         // Apply gravity
-        const dt = deltaTime / 1000;
+        const dt = deltaTime;
         let nextVelY = 0;
         world.mutateComponent(entity, "Velocity", v => {
           v.vy += (this.config.GRAVITY || FLAPPY_CONFIG.GRAVITY) * dt;

@@ -167,7 +167,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           data: { content: comboText }
         } as unknown as RenderComponent);
         world.getCommandBuffer().addComponent(popup, { type: "UIText", content: comboText, wordWrap: false, maxLines: 1 } as UITextComponent);
-        world.getCommandBuffer().addComponent(popup, { type: "TTL", timeLeft: 1000, remaining: 1000 } as TTLComponent);
+        world.getCommandBuffer().addComponent(popup, { type: "TTL", timeLeft: 1.0, remaining: 1.0 } as TTLComponent);
 
         // Side-effects like Juice are deferred naturally or can be applied here
         Juice.add(world, popup, { property: "y", target: -40, duration: 1000, easing: "easeOut" });

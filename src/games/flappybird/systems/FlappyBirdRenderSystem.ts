@@ -28,7 +28,7 @@ export class FlappyBirdRenderSystem extends RenderUpdateSystem {
 
         // Framerate-independent lerp: 1 - exp(-speed * dt)
         const lerpSpeed = 10;
-        const dtSeconds = deltaTime / 1000;
+        const dtSeconds = deltaTime;
         const lerpFactor = 1 - Math.exp(-lerpSpeed * dtSeconds);
 
         world.mutateComponent(entity, "Render", r => {

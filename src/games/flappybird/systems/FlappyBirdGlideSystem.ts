@@ -10,7 +10,7 @@ import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 export class FlappyBirdGlideSystem extends System<FlappyBirdComponentRegistry> {
   public update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
     const birds = world.query("Bird", "FlappyInput", "Transform", "Velocity");
-    const dtSeconds = deltaTime / 1000;
+    const dtSeconds = deltaTime;
 
     birds.forEach(entity => {
       const bird = world.getComponent(entity, "Bird")!;

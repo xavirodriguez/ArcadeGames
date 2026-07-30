@@ -26,7 +26,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
 
       // Simple side to side movement
       world.mutateComponent(entity, "Transform", p => {
-          p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer / 1000) * 200;
+          p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer) * 200;
       });
 
       // Phase changes
@@ -38,7 +38,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
       });
 
       // Shooting patterns
-      if (Math.floor(boss.timer / 1000) % 2 === 0 && Math.floor((boss.timer - deltaTime) / 1000) % 2 !== 0) {
+      if (Math.floor(boss.timer) % 2 === 0 && Math.floor(boss.timer - deltaTime) % 2 !== 0) {
          // Burst effect when "shooting"
          createEmitter(world, {
             type: "shoot",

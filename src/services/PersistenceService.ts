@@ -1,11 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { logger } from "../utils/logger";
 
 export class PersistenceService {
   static async save(key: string, data: unknown): Promise<void> {
     try {
       await AsyncStorage.setItem(key, JSON.stringify(data));
     } catch (e) {
-      console.error("Failed to save data to storage", e);
+      logger.error("Failed to save data to storage", e);
     }
   }
 
@@ -14,7 +15,7 @@ export class PersistenceService {
       const data = await AsyncStorage.getItem(key);
       return data ? JSON.parse(data) : defaultValue;
     } catch (e) {
-      console.error("Failed to load data from storage", e);
+      logger.error("Failed to load data from storage", e);
       return defaultValue;
     }
   }

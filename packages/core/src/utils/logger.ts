@@ -1,7 +1,12 @@
+declare const __DEV__: boolean;
+
 const isDev = typeof (globalThis as any).__DEV__ !== "undefined"
   ? (globalThis as any).__DEV__
-  : process.env.NODE_ENV !== "production";
+  : (process.env.NODE_ENV !== "production");
 
+/**
+ * Platform-agnostic core logging utility.
+ */
 export const logger = {
   log: (...args: unknown[]) => {
     if (isDev) console.log(...args);
@@ -14,5 +19,5 @@ export const logger = {
   },
   debug: (namespace: string, ...args: unknown[]) => {
     if (isDev) console.log(`[${namespace}]`, ...args);
-  },
+  }
 };

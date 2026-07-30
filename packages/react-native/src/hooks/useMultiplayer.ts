@@ -10,7 +10,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ColyseusTransport } from "@tiny-aster/network-colyseus";
 import { Room } from "@colyseus/sdk";
-import { InputFrame, BinaryCompression } from "@tiny-aster/core";
+import { InputFrame, BinaryCompression, logger } from "@tiny-aster/core";
 
 /**
  * Manages the network lifecycle for a game session.
@@ -97,7 +97,7 @@ export function useMultiplayer(roomName: string, playerName: string, active: boo
             const TICK_BUFFER = 2;
 
             localTickRef.current = data.serverTick + Math.ceil((rtt / 2) / FRAME_DURATION) + TICK_BUFFER;
-            console.log(`Synced tick: server=${data.serverTick}, local=${localTickRef.current}, rtt=${rtt}`);
+            logger.log(`Synced tick: server=${data.serverTick}, local=${localTickRef.current}, rtt=${rtt}`);
         });
 
         /**
@@ -124,7 +124,7 @@ export function useMultiplayer(roomName: string, playerName: string, active: boo
                     });
                 }
             } catch (e) {
-                console.error("[useMultiplayer] Failed to parse world_delta:", e);
+                logger.error("[useMultiplayer] Failed to parse world_delta:", e);
             }
         });
 
@@ -147,7 +147,7 @@ export function useMultiplayer(roomName: string, playerName: string, active: boo
                     });
                 }
             } catch (e) {
-                console.error("[useMultiplayer] Failed to unpack binary delta:", e);
+                logger.error("[useMultiplayer] Failed to unpack binary delta:", e);
             }
         });
 
@@ -163,7 +163,7 @@ export function useMultiplayer(roomName: string, playerName: string, active: boo
         });
 
       } catch (e) {
-        console.error("Failed to connect to multiplayer room:", e);
+        logger.error("Failed to connect to multiplayer room:", e);
       }
     }
 

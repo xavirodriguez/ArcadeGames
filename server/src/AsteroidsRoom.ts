@@ -32,6 +32,7 @@ const InputFrameSchema = z.object({
   axes: z.record(z.string(), z.number())
 });
 import { leaderboardStore } from "./DailyLeaderboardStore";
+import { logger } from "../../src/utils/logger";
 import { getDateKey } from "./utils/DateUtils";
 import { NetworkMetricsCollector } from "./metrics/NetworkMetrics";
 
@@ -150,7 +151,7 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
     this.onMessage("input", (client: any, frame: any) => {
       const parsedFrame = InputFrameSchema.safeParse(frame);
       if (!parsedFrame.success) {
-        console.warn(`[AsteroidsRoom] Invalid input frame from client ${client.sessionId}:`, parsedFrame.error.issues);
+        logger.warn(`[AsteroidsRoom] Invalid input frame from client ${client.sessionId}:`, parsedFrame.error.issues);
         return;
       }
       const validFrame = parsedFrame.data as unknown as InputFrame;
@@ -180,7 +181,7 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
 
       this.world.getEventBus().on("game:over" as any, () => {
           this.state.gameOver = true;
-          console.log(`[AsteroidsRoom] Game Over. Final Authoritative Score: ${this.state.score}`);
+          logger.log(`[AsteroidsRoom] Game Over. Final Authoritative Score: ${this.state.score}`);
       });
     });
 
@@ -224,7 +225,7 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
     const player = this.state.players.get(client.sessionId);
     if (player && player.score > 0) {
         const dateKey = getDateKey();
-        console.log(`[AsteroidsRoom] Recording authoritative score for ${player.name}: ${player.score}`);
+        logger.log(`[AsteroidsRoom] Recording authoritative score for ${player.name}: ${player.score}`);
         leaderboardStore.addScore("asteroids", dateKey, player.sessionId, player.score, player.name, true);
     }
 
@@ -314,7 +315,7 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
   }
 
   onDispose() {
-    console.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
+    logger.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
     this.stateHistory.clear();
     this.inputBuffers.clear();
     this.clientAcks.clear();

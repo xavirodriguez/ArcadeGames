@@ -26,12 +26,18 @@ export class ServerTimeService {
   /**
    * Sincroniza el tiempo con el servidor.
    */
-  public static async syncTime(): Promise<void> {
+  public static async syncTime(options?: { timeout?: number }): Promise<void> {
     if (this.syncInProgress) return;
     this.syncInProgress = true;
 
+    const timeoutMs = options?.timeout ?? 5000;
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
-      const response = await fetch(`${this.SERVER_BASE_URL}/api/server-time`);
+      const response = await fetch(`${this.SERVER_BASE_URL}/api/server-time`, {
+        signal: controller.signal
+      });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const data: ServerTimeResponse = await response.json();
@@ -44,9 +50,14 @@ export class ServerTimeService {
       if (Math.abs(this.timeOffset) > 5 * 60 * 1000) {
         console.warn(`[TimeSync] Large clock drift detected: ${Math.round(this.timeOffset / 1000)}s. Please check your system clock.`);
       }
-    } catch (error) {
-      console.error("[TimeSync] Failed to sync time with server:", error);
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
+        console.error(`[TimeSync] Request timed out after ${timeoutMs}ms`);
+      } else {
+        console.error("[TimeSync] Failed to sync time with server:", error);
+      }
     } finally {
+      clearTimeout(id);
       this.syncInProgress = false;
     }
   }

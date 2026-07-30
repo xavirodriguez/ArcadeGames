@@ -199,4 +199,22 @@ describe("BaseGame lifecycle", () => {
     expect(game.getLifecycleState()).toBe("DESTROYED");
     expect(game.getGameLoop().start).not.toHaveBeenCalled();
   });
+
+  test("init() times out and sets lifecycle state to ERROR when initialization hangs", async () => {
+    class HangingGame extends BaseGame<any, any, any, any, any> {
+      public update(_dt: number): void {}
+      public getGameState(): any { return {}; }
+      public isGameOver(): boolean { return false; }
+
+      protected override async onRegisterSystems(): Promise<void> {
+        // Never resolves
+        return new Promise(() => {});
+      }
+    }
+
+    const game = new HangingGame({ initTimeout: 50 });
+
+    await expect(game.init()).rejects.toThrow("Game initialization timed out");
+    expect(game.getLifecycleState()).toBe("ERROR");
+  });
 });

@@ -234,5 +234,50 @@ describe("Refactoring Tests: EventBus & SceneManager", () => {
       expect(manager.getCurrentScene()).toBe(sceneA);
       expect(sceneA.resumeCalled).toBe(true);
     });
+
+    it("should rollback on push timeout", async () => {
+      const sceneA = new MockScene(new World(), "SceneA");
+      await manager.transitionTo(sceneA);
+
+      const sceneB = new MockScene(new World(), "SceneB", 100); // 100ms delay in onEnter
+
+      const errorSpy = jest.fn();
+      eventBus.on("scene:error" as any, errorSpy);
+
+      // Push with 20ms timeout
+      await expect(manager.push(sceneB, { timeout: 20 })).rejects.toThrow("Push transition timed out");
+
+      // Verify rollback
+      expect(manager.getCurrentScene()).toBe(sceneA);
+      expect(manager.getState()).toBe(SceneState.ACTIVE);
+      expect(sceneB.enterCalled).toBe(false);
+
+      expect(errorSpy).toHaveBeenCalled();
+    });
+
+    it("should rollback on pop timeout", async () => {
+      const sceneA = new MockScene(new World(), "SceneA");
+      await manager.transitionTo(sceneA);
+
+      const sceneB = new MockScene(new World(), "SceneB");
+      await manager.push(sceneB);
+
+      // Now popped scene has a slow onExit
+      const poppedScene = sceneB as any;
+      poppedScene.onExit = async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      };
+
+      const errorSpy = jest.fn();
+      eventBus.on("scene:error" as any, errorSpy);
+
+      // Pop with 20ms timeout
+      await expect(manager.pop({ timeout: 20 })).rejects.toThrow("Pop transition timed out");
+
+      // Verify rollback (sceneB should still be current and on stack)
+      expect(manager.getCurrentScene()).toBe(sceneB);
+      expect(manager.getState()).toBe(SceneState.ACTIVE);
+      expect(errorSpy).toHaveBeenCalled();
+    });
   });
 });

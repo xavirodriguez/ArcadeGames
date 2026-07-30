@@ -50,6 +50,9 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   public readonly gameId = "pong";
   private config!: PongConfig;
 
+  private stallStartTime = 0;
+  private isStalled = false;
+
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode } | PongMode = "local") {
     const isConfig = typeof config === "object" && config !== null;
     const mode = isConfig
@@ -265,7 +268,26 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   public override update(dt: number): void {
-      this.world.update(dt);
+    if (this.shouldStallSimulation()) {
+      if (!this.isStalled) {
+        this.isStalled = true;
+        this.stallStartTime = Date.now();
+      } else {
+        const stalledDuration = Date.now() - this.stallStartTime;
+        if (stalledDuration > 3000) {
+          console.warn(`[PongGame] Simulation stalled: Waiting for server inputs for ${stalledDuration}ms`);
+          this.eventBus.emit("simulation:stalled" as any, { duration: stalledDuration } as any);
+        }
+      }
+      return;
+    }
+
+    if (this.isStalled) {
+      this.isStalled = false;
+      this.eventBus.emit("simulation:unstalled" as any, {} as any);
+    }
+
+    this.world.update(dt);
   }
 
   private async onPreloadAssets(): Promise<void> {

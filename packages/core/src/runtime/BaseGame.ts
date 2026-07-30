@@ -20,7 +20,8 @@ export enum GameLifecycleState {
   RUNNING = "RUNNING",
   PAUSED = "PAUSED",
   STOPPED = "STOPPED",
-  DESTROYED = "DESTROYED"
+  DESTROYED = "DESTROYED",
+  ERROR = "ERROR"
 }
 
 /** @public */
@@ -44,6 +45,8 @@ export interface BaseGameConfig<
   seed?: number;
   /** Optional audio player injection */
   audio?: IAudioPlayer;
+  /** Timeout for game initialization in milliseconds. Defaults to 10000. */
+  initTimeout?: number;
 }
 
 /**
@@ -131,6 +134,22 @@ export abstract class BaseGame<
   }
 
   /**
+   * Returns the last encountered error from the game loop, if any.
+   */
+  public getLastError(): Error | null {
+    return this.loop.getLastError();
+  }
+
+  /**
+   * Subscribes to critical loop exception events.
+   * @param callback - Callback invoked when an error is caught in the game loop.
+   * @returns Unsubscribe function.
+   */
+  public subscribeError(callback: (err: Error) => void): () => void {
+    return this.loop.subscribeError(callback);
+  }
+
+  /**
    * Called during game initialization.
    * Runs the Template Method cycle: registers systems, initializes entities, and starts the game loop.
    */
@@ -138,16 +157,42 @@ export abstract class BaseGame<
     if (this.lifecycleState !== GameLifecycleState.UNINITIALIZED) {
       return;
     }
-    await this.onRegisterSystems();
-    if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
-      return;
+
+    const timeoutMs = this._config.initTimeout ?? 10000;
+    let timeoutId: any;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error("Game initialization timed out"));
+      }, timeoutMs);
+    });
+
+    const initPromise = (async () => {
+      await this.onRegisterSystems();
+      if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
+        return;
+      }
+      await this.onInitializeEntities();
+      if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
+        return;
+      }
+    })();
+
+    try {
+      await Promise.race([initPromise, timeoutPromise]);
+      if ((this.lifecycleState as GameLifecycleState) !== GameLifecycleState.DESTROYED) {
+        this.lifecycleState = GameLifecycleState.READY;
+        this.start();
+      }
+    } catch (error) {
+      if ((this.lifecycleState as GameLifecycleState) !== GameLifecycleState.DESTROYED) {
+        this.lifecycleState = GameLifecycleState.ERROR;
+      }
+      throw error;
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
-    await this.onInitializeEntities();
-    if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
-      return;
-    }
-    this.lifecycleState = GameLifecycleState.READY;
-    this.start();
   }
 
   /**

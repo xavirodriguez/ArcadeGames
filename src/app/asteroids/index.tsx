@@ -11,7 +11,6 @@ import { useMultiplayer } from "@tiny-aster/react-native";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
-import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { ShootButton } from "../../components/ShootButton";
 import { HyperspaceButton } from "../../components/HyperspaceButton";
 import { SeedWidget } from "@/components/SeedWidget";

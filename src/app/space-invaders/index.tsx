@@ -40,9 +40,6 @@ export default function SpaceInvadersScreen() {
 
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
-  // Hook up Keyboard controls on web
-  useKeyboardControls(handleMultiplayerInput, started && isReady);
-
   const { room, connected, serverState } = useMultiplayer("space-invaders", playerName, isMulti && started);
 
   useEffect(() => {

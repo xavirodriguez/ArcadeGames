@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useKeepAwake } from "./useKeepAwake";
 import { useGameServices } from "../providers/GameServicesProvider";
+import { logger } from "@tiny-aster/core";
 import type { BaseGame, BaseGameConfig } from "@tiny-aster/core";
 
 export type GameConfig = BaseGameConfig & {
@@ -102,7 +103,7 @@ export function useGame<
     try {
       gameInstance = new GameClass(config);
     } catch (err) {
-      console.error("Failed to construct game instance:", err);
+      logger.error("Failed to construct game instance:", err);
       setIsReady(false);
       return;
     }
@@ -120,7 +121,7 @@ export function useGame<
         }
       }).catch((err) => {
         if (isMounted) {
-          console.error(err);
+          logger.error(err);
           setError(err instanceof Error ? err : new Error(String(err)));
         } else {
           gameInstance.destroy();
@@ -179,7 +180,7 @@ export function useGame<
   }, [game]);
 
   const restart = useCallback((seed?: number) => {
-    game?.restart(seed).catch(console.error);
+    game?.restart(seed).catch((err) => logger.error(err));
   }, [game]);
 
   return {

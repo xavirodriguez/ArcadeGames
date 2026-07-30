@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+(globalThis as any).__DEV__ = true;
+import { logger } from "../src/utils/logger";
+
 const FORBIDDEN_PATTERNS = [
   {
     name: 'Direct world.addComponent in System',
@@ -58,9 +61,9 @@ function checkFile(filepath: string): number {
         if (line.includes('getCommandBuffer()') || line.includes('commands.') || line.includes('buffer.')) continue;
         if (line.includes('if (') && line.includes('.hasComponent')) continue;
 
-        console.log(`[${rule.severity.toUpperCase()}] ${rule.name} in ${filepath}`);
-        console.log(`  -> ${line.trim()}`);
-        if (rule.message) console.log(`  -> ${rule.message}`);
+        logger.log(`[${rule.severity.toUpperCase()}] ${rule.name} in ${filepath}`);
+        logger.log(`  -> ${line.trim()}`);
+        if (rule.message) logger.log(`  -> ${rule.message}`);
         if (rule.severity === 'error') errors++;
     }
   });
@@ -87,7 +90,7 @@ walk('./src', fp => {
 });
 
 if (totalErrors > 0) {
-  console.log(`\nFound ${totalErrors} potential invariant violations.`);
+  logger.log(`\nFound ${totalErrors} potential invariant violations.`);
 } else {
-  console.log('\nAll ECS invariants passed.');
+  logger.log('\nAll ECS invariants passed.');
 }

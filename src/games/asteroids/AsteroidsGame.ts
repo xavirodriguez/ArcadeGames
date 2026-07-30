@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+import { logger } from "../../utils/logger";
 import {
   World,
   GameLoop,
@@ -251,7 +252,7 @@ export class AsteroidsGame
     this.world.setResource("ScreenConfig", screenConfig);
 
     if (__DEV__) {
-        console.log(`[AsteroidsGame] ScreenConfig updated: ${width}x${height}`);
+        logger.log(`[AsteroidsGame] ScreenConfig updated: ${width}x${height}`);
     }
   }
 
@@ -271,7 +272,7 @@ export class AsteroidsGame
         ]);
       }
     } catch (e) {
-      console.warn("[Asteroids] Asset preloading failed. Visuals or Audio may lag.", e);
+      logger.warn("[Asteroids] Asset preloading failed. Visuals or Audio may lag.", e);
     }
   }
 
@@ -371,7 +372,7 @@ export class AsteroidsGame
 
   public override start(): void {
     super.start();
-    if (__DEV__) console.log("[AsteroidsGame] Simulation started");
+    logger.log("[AsteroidsGame] Simulation started");
   }
 
   public override destroy(): void {
@@ -388,13 +389,13 @@ export class AsteroidsGame
   public override pause(): void {
     super.pause();
     this.world.setResource("IsPaused", true);
-    if (__DEV__) console.log("[AsteroidsGame] Simulation paused");
+    logger.log("[AsteroidsGame] Simulation paused");
   }
 
   public override resume(): void {
     super.resume();
     this.world.setResource("IsPaused", false);
-    if (__DEV__) console.log("[AsteroidsGame] Simulation resumed");
+    logger.log("[AsteroidsGame] Simulation resumed");
   }
 
 }

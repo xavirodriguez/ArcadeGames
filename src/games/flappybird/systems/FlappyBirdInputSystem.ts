@@ -53,9 +53,6 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
   public update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
     if (this.isMultiplayer) return;
 
-    const inputState = world.getSingleton("InputState");
-    const flapRequested = inputState ? InputUtils.isPressed(inputState, "flap") : false;
-
     const entities = world.query("Bird", "FlappyInput", "Velocity");
 
     entities.forEach((entity) => {
@@ -68,9 +65,6 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
 
         // Sync input state & timers
         world.mutateComponent(entity, "FlappyInput", mutableInput => {
-          mutableInput.flap = flapRequested;
-          mutableInput.glide = flapRequested; // Using same button for now as per design
-
           if (mutableInput.flapCooldownRemaining > 0) {
             mutableInput.flapCooldownRemaining -= deltaTime;
           }

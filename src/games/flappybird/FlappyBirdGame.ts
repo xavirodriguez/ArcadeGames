@@ -307,9 +307,20 @@ export class FlappyBirdGame
   }
 
   public setInput(input: Partial<FlappyBirdInput>) {
-    Object.entries(input).forEach(([key, value]) => {
-      this.unifiedInput.setOverride(key, !!value);
-    });
+    this.setInputState(input);
+  }
+
+  public setInputState(input: Partial<FlappyBirdInput>): void {
+    const world = this.getWorld();
+    const bird = world.query("Bird")[0];
+    if (bird !== undefined) {
+      world.mutateComponent(bird, "FlappyInput", (inputComp: any) => {
+        if (input.flap !== undefined) {
+          inputComp.flap = input.flap;
+          inputComp.glide = input.flap;
+        }
+      });
+    }
   }
 
   public updateFromServer(state: Record<string, unknown>) {

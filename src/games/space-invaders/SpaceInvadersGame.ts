@@ -325,9 +325,19 @@ export class SpaceInvadersGame
   }
 
   public setInput(input: Partial<InputState>) {
-    Object.entries(input).forEach(([key, value]) => {
-      this.unifiedInput.setOverride(key, !!value);
-    });
+    this.setInputState(input);
+  }
+
+  public setInputState(input: Partial<InputState>): void {
+    const world = this.getWorld();
+    const player = world.query("Player")[0];
+    if (player !== undefined) {
+      world.mutateComponent(player, "Input", (inputComp: any) => {
+        if (input.moveLeft !== undefined) inputComp.moveLeft = input.moveLeft;
+        if (input.moveRight !== undefined) inputComp.moveRight = input.moveRight;
+        if (input.shoot !== undefined) inputComp.shoot = input.shoot;
+      });
+    }
   }
 
   public updateFromServer(state: Record<string, unknown>) {

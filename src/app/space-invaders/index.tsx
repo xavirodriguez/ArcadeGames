@@ -10,6 +10,7 @@ import { ShootButton } from "../../components/ShootButton";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useSpaceInvadersGame } from "@/hooks/useSpaceInvadersGame";
 import { useMultiplayer } from "@tiny-aster/react-native";
+import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { SeedWidget } from "@/components/SeedWidget";
 import { DailyChallengeBanner } from "@/components/DailyChallengeBanner";
 import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
@@ -35,6 +36,9 @@ export default function SpaceInvadersScreen() {
   const [isDaily, setIsDaily] = useState(isDailyFromParams);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
+
+  // Hook up Keyboard controls on web
+  useKeyboardControls(handleMultiplayerInput, started && isReady);
 
   const { room, connected, serverState } = useMultiplayer("space-invaders", playerName, isMulti && started);
 
@@ -70,18 +74,21 @@ export default function SpaceInvadersScreen() {
         room.send("input", input);
     } else {
         handleInput(input);
+
+        // Decoupled Integration with ECS world via Input Bridge
+        if (typeof (game as any)?.setInputState === "function") {
+          (game as any).setInputState(input);
+        }
     }
-  }, [isMulti, room, handleInput]);
+  }, [isMulti, room, handleInput, game]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });
-    game?.getInputSystem().setOverride("shoot", true);
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
     handleMultiplayerInput({ shoot: false });
-    game?.getInputSystem().clearOverride("shoot");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   if (!started) {
     return (
@@ -149,6 +156,18 @@ export default function SpaceInvadersScreen() {
               joystickId="movement_joystick"
               type="movement"
               world={game.getWorld()}
+              onMove={(x, y) => {
+                handleMultiplayerInput({
+                  moveLeft: x < -0.3,
+                  moveRight: x > 0.3,
+                });
+              }}
+              onRelease={() => {
+                handleMultiplayerInput({
+                  moveLeft: false,
+                  moveRight: false,
+                });
+              }}
             />
           </View>
           <ShootButton

@@ -10,6 +10,7 @@ import { ShootButton } from "../../components/ShootButton";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useFlappyBirdGame } from "@/hooks/useFlappyBirdGame";
 import { useMultiplayer } from "@tiny-aster/react-native";
+import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { SeedWidget } from "@/components/SeedWidget";
 import { DailyChallengeBanner } from "@/components/DailyChallengeBanner";
 import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
@@ -29,6 +30,9 @@ export default function FlappyBirdScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useFlappyBirdGame(started, isMulti && started);
+
+  // Hook up Keyboard controls on web
+  useKeyboardControls(handleMultiplayerInput, started && isReady);
 
   // Handle incoming daily challenge parameters
   useEffect(() => {
@@ -86,18 +90,21 @@ export default function FlappyBirdScreen() {
         if (input.flap) room.send("flap");
     } else {
         handleInput(input);
+
+        // Decoupled Integration with ECS world via Input Bridge
+        if (typeof (game as any)?.setInputState === "function") {
+          (game as any).setInputState(input);
+        }
     }
-  }, [isMulti, room, handleInput]);
+  }, [isMulti, room, handleInput, game]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ flap: true });
-    game?.getInputSystem().setOverride("flap", true);
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
     handleMultiplayerInput({ flap: false });
-    game?.getInputSystem().clearOverride("flap");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   if (!started) {
     return (
@@ -168,6 +175,16 @@ export default function FlappyBirdScreen() {
               joystickId="movement_joystick"
               type="movement"
               world={game.getWorld()}
+              onMove={(x, y) => {
+                if (y < -0.3) {
+                  handleMultiplayerInput({ flap: true });
+                } else {
+                  handleMultiplayerInput({ flap: false });
+                }
+              }}
+              onRelease={() => {
+                handleMultiplayerInput({ flap: false });
+              }}
             />
           </View>
           <ShootButton

@@ -162,9 +162,15 @@ export function useGame<
 
   const handleInput = useCallback((input: Partial<TInput>) => {
     if (!game) return;
-    Object.entries(input).forEach(([action, pressed]) => {
-      game.getInputSystem().setOverride(action, !!pressed);
-    });
+    if (typeof (game as any).setInputState === "function") {
+      (game as any).setInputState(input);
+    } else if (typeof (game as any).setInput === "function") {
+      (game as any).setInput(input);
+    } else {
+      Object.entries(input).forEach(([action, pressed]) => {
+        game.getInputSystem().setOverride(action, !!pressed);
+      });
+    }
   }, [game]);
 
   const togglePause = useCallback(() => {

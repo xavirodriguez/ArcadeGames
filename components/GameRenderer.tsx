@@ -64,12 +64,16 @@ export const GameRenderer = <TRegistry extends ComponentRegistry>({
       gameLoop.stopInternalLoop();
     }
 
-    gameLoop.start();
+    if (!propGameLoop) {
+      gameLoop.start();
+    }
 
     return () => {
-      gameLoop.stop();
+      if (!propGameLoop) {
+        gameLoop.stop();
+      }
     };
-  }, [gameLoop]);
+  }, [gameLoop, propGameLoop]);
 
   if (Platform.OS === "web" || !CanvasComponent) {
     return null;

@@ -139,7 +139,13 @@ export abstract class BaseGame<
       return;
     }
     await this.onRegisterSystems();
+    if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
+      return;
+    }
     await this.onInitializeEntities();
+    if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
+      return;
+    }
     this.lifecycleState = GameLifecycleState.READY;
     this.start();
   }
@@ -268,6 +274,9 @@ export abstract class BaseGame<
     }
 
     await this.onBeforeRestart();
+    if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
+      return;
+    }
     this.destroy();
     this.eventBus.clear();
 

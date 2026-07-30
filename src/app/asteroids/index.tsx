@@ -11,6 +11,7 @@ import { useMultiplayer } from "@tiny-aster/react-native";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
+import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { ShootButton } from "../../components/ShootButton";
 import { HyperspaceButton } from "../../components/HyperspaceButton";
 import { SeedWidget } from "@/components/SeedWidget";
@@ -35,8 +36,7 @@ export default function AsteroidsScreen() {
 
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(started, isMulti && started, initialSeed);
 
-  // Hook up Keyboard controls on web
-  useKeyboardControls(handleMultiplayerInput, started && isReady);
+  useKeyboardControls(game);
 
   // Handle incoming daily challenge parameters
   useEffect(() => {
@@ -148,6 +148,22 @@ export default function AsteroidsScreen() {
     handleMultiplayerInput({ hyperspace: false });
   }, [handleMultiplayerInput]);
 
+  const handleJoystickMove = useCallback((x: number, y: number) => {
+    handleMultiplayerInput({
+      rotationAmount: x,
+      thrust: y < -0.15,
+    });
+  }, [handleMultiplayerInput]);
+
+  const handleJoystickRelease = useCallback(() => {
+    handleMultiplayerInput({
+      rotationAmount: 0,
+      rotateLeft: false,
+      rotateRight: false,
+      thrust: false,
+    });
+  }, [handleMultiplayerInput]);
+
   if (!started) {
     return (
       <StartScreen
@@ -226,22 +242,8 @@ export default function AsteroidsScreen() {
               joystickId="movement_joystick"
               type="movement"
               world={game.getWorld()}
-              onMove={(x, y) => {
-                handleMultiplayerInput({
-                  rotateLeft: x < -0.3,
-                  rotateRight: x > 0.3,
-                  thrust: y < -0.3,
-                  rotationAmount: x,
-                });
-              }}
-              onRelease={() => {
-                handleMultiplayerInput({
-                  rotateLeft: false,
-                  rotateRight: false,
-                  thrust: false,
-                  rotationAmount: 0,
-                });
-              }}
+              onMove={handleJoystickMove}
+              onRelease={handleJoystickRelease}
             />
           </View>
           <View style={styles.rightControlArea} pointerEvents="box-none">

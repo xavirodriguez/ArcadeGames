@@ -77,6 +77,7 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
           if (mutableInput.flapCooldownRemaining <= 0 && (mutableInput.flap || InputBufferSystem.consume(world, entity, "flap"))) {
             shouldFlap = true;
             mutableInput.flapCooldownRemaining = this.config.FLAP_COOLDOWN / 1000;
+            mutableInput.flap = false; // Reset flap after trigger so it doesn't repeat infinitely
           }
         });
 

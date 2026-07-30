@@ -312,13 +312,11 @@ export class FlappyBirdGame
 
   public setInputState(input: Partial<FlappyBirdInput>): void {
     const world = this.getWorld();
-    const bird = world.query("Bird")[0];
+    const bird = world.query("Bird", "FlappyInput" as any)[0];
     if (bird !== undefined) {
-      world.mutateComponent(bird, "FlappyInput", (inputComp: any) => {
-        if (input.flap !== undefined) {
-          inputComp.flap = input.flap;
-          inputComp.glide = input.flap;
-        }
+      world.mutateComponent(bird, "FlappyInput" as any, (inp: any) => {
+        if (input.flap !== undefined) inp.flap = input.flap;
+        if (input.glide !== undefined) inp.glide = input.glide;
       });
     }
   }
@@ -462,6 +460,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public getGameState() { return INITIAL_FLAPPY_STATE; }
   public getSeed() { return 0; }
   public setInput(input: Partial<FlappyBirdInput>) {}
+  public setInputState(input: Partial<FlappyBirdInput>) {}
   public subscribe(cb: (state: FlappyBirdState) => void) { return () => {}; }
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }

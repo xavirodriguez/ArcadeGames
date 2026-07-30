@@ -1,76 +1,80 @@
 import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 
-interface KeyMapping {
-  [key: string]: string[];
-}
-
-const DEFAULT_MAPS: KeyMapping = {
-  rotateLeft: ["ArrowLeft", "KeyA"],
-  moveLeft: ["ArrowLeft", "KeyA"],
-  rotateRight: ["ArrowRight", "KeyD"],
-  moveRight: ["ArrowRight", "KeyD"],
-  thrust: ["ArrowUp", "KeyW"],
-  shoot: ["Space"],
-  flap: ["Space"],
-  hyperspace: ["ShiftLeft", "KeyH"],
-};
-
 /**
- * Custom Hook for Web Keyboard Controls (React Bridge Input architecture).
- * Listens to keydown and keyup events and forwards logical actions to the provided callback.
+ * Custom hook to register keyboard controls on the Web platform.
+ * Binds keys like arrows/WASD/Space/Shift and delegates actions directly to
+ * game.setInputState() for the React Bridge architecture.
  */
-export function useKeyboardControls(
-  onInput: (input: Record<string, boolean>) => void,
-  active: boolean = true
-) {
-  const onInputRef = useRef(onInput);
-  onInputRef.current = onInput;
+export function useKeyboardControls(game: any) {
+  const activeKeys = useRef<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (Platform.OS !== "web" || !active) {
-      return;
-    }
+    if (Platform.OS !== "web" || !game) return;
 
-    const state: Record<string, boolean> = {};
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const code = e.code || e.key;
 
-    const handleKey = (code: string, pressed: boolean) => {
-      const changes: Record<string, boolean> = {};
-      let hasChanges = false;
-
-      Object.entries(DEFAULT_MAPS).forEach(([action, keys]) => {
-        if (keys.includes(code)) {
-          if (state[action] !== pressed) {
-            state[action] = pressed;
-            changes[action] = pressed;
-            hasChanges = true;
-          }
-        }
-      });
-
-      if (hasChanges) {
-        onInputRef.current(changes);
-      }
-    };
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      // Prevent default page scroll on Space or Arrows
-      if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) {
+      // Prevent scrolling on space and arrow keys
+      if (
+        ["Space", " ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(code) ||
+        ["Space", " ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
+      ) {
         e.preventDefault();
       }
-      handleKey(e.code, true);
+
+      if (activeKeys.current[code]) return; // Avoid key-repeat spam
+
+      activeKeys.current[code] = true;
+      updateInputState();
     };
 
-    const onKeyUp = (e: KeyboardEvent) => {
-      handleKey(e.code, false);
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const code = e.code || e.key;
+      activeKeys.current[code] = false;
+      updateInputState();
     };
 
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
+    const updateInputState = () => {
+      if (typeof game.setInputState !== "function") return;
+
+      const keys = activeKeys.current;
+
+      const rotateLeft = !!(keys["ArrowLeft"] || keys["KeyA"] || keys["a"] || keys["A"] || keys["Left"]);
+      const rotateRight = !!(keys["ArrowRight"] || keys["KeyD"] || keys["d"] || keys["D"] || keys["Right"]);
+      const thrust = !!(keys["ArrowUp"] || keys["KeyW"] || keys["w"] || keys["W"] || keys["Up"]);
+      const shoot = !!(keys["Space"] || keys[" "] || keys["Spacebar"]);
+      const hyperspace = !!(keys["ShiftLeft"] || keys["KeyH"] || keys["h"] || keys["H"] || keys["Shift"]);
+
+      const inputState: Record<string, any> = {
+        rotateLeft,
+        rotateRight,
+        thrust,
+        shoot,
+        hyperspace,
+        moveLeft: rotateLeft,
+        moveRight: rotateRight,
+        flap: shoot,
+        glide: shoot,
+      };
+
+      if (rotateLeft && !rotateRight) {
+        inputState.rotationAmount = -1.0;
+      } else if (rotateRight && !rotateLeft) {
+        inputState.rotationAmount = 1.0;
+      } else {
+        inputState.rotationAmount = 0.0;
+      }
+
+      game.setInputState(inputState);
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { passive: false });
+    window.addEventListener("keyup", handleKeyUp, { passive: false });
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [active]);
+  }, [game]);
 }

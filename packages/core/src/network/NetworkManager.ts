@@ -1,6 +1,8 @@
 import { WorldSnapshot, ComponentDataSnapshot } from "../snapshots/WorldSnapshot";
 import { NetworkTransport } from "./NetworkTransport";
 import { NullTransport } from "./NullTransport";
+import { World, ComponentRegistry } from "../ecs/World";
+import { EventRegistry } from "../events/EventBus";
 
 /** @public */
 export class Replicator {
@@ -20,7 +22,14 @@ export class Replicator {
     this.serverToLocal.delete(serverId);
   }
 
-  public resolveEntity(serverId: string, world: any, serverComponents: Record<string, any> = {}): number {
+  public resolveEntity<
+    TComponents extends ComponentRegistry = ComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry
+  >(
+    serverId: string,
+    world?: World<TComponents, TEvents, any>,
+    serverComponents: Record<string, any> = {}
+  ): number {
     let localId = this.serverToLocal.get(serverId);
     if (localId === undefined) {
       const newEntityId = (world && typeof world.createEntity === "function") ? world.createEntity() : 0;
@@ -30,16 +39,16 @@ export class Replicator {
 
     const actualLocalId = localId as number;
 
-    if (world && typeof world.hasComponent === "function") {
+    if (world) {
       for (const [type, comp] of Object.entries(serverComponents)) {
         if (comp) {
           const componentToSet = { ...comp, type };
-          if (world.hasComponent(actualLocalId, type)) {
-            world.mutateComponent(actualLocalId, type, (existing: any) => {
+          if (world.hasComponent(actualLocalId, type as any)) {
+            world.mutateComponent(actualLocalId, type as any, (existing: any) => {
               Object.assign(existing, componentToSet);
             });
           } else {
-            world.addComponent(actualLocalId, componentToSet);
+            world.addComponent(actualLocalId, componentToSet as any);
           }
         }
       }
@@ -59,7 +68,7 @@ export class NetworkManager<
 > {
   private transport: NetworkTransport<TServerEvents, TClientEvents>;
   private replicator = new Replicator();
-  public world?: any;
+  public world?: World<any, any, any>;
 
   constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>) {
     this.transport = transport || new NullTransport<TServerEvents, TClientEvents>();

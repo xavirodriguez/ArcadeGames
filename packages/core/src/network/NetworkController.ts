@@ -1,5 +1,6 @@
 import { World } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
+import { EventRegistry } from "../events/EventBus";
 import { NetworkManager } from "./NetworkManager";
 import { NullTransport } from "./NullTransport";
 import { InputFrame, ServerUpdatePayload, DeltaSnapshotPayload, FullSnapshotPayload } from "./NetTypes";
@@ -8,14 +9,20 @@ import { InputFrame, ServerUpdatePayload, DeltaSnapshotPayload, FullSnapshotPayl
  * Handles replication, prediction, and server updates for games.
  * @public
  */
-export class NetworkController<TComponents extends ComponentRegistry = ComponentRegistry> {
-  public networkManager?: NetworkManager;
+export class NetworkController<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry
+> {
+  public networkManager?: NetworkManager<TEvents, any>;
   public lastProcessedFullStateVersion = -1;
   public isMultiplayer = false;
-  private world: World<TComponents, any, any>;
+  private world: World<TComponents, TEvents, any>;
   private runSimStep: (deltaTime: number, isResimulating: boolean) => void;
 
-  constructor(world: World<TComponents, any, any>, runSimStep?: (deltaTime: number, isResimulating: boolean) => void) {
+  constructor(
+    world: World<TComponents, TEvents, any>,
+    runSimStep?: (deltaTime: number, isResimulating: boolean) => void
+  ) {
     this.world = world;
     this.runSimStep = runSimStep ?? ((dt) => world.update(dt));
   }
@@ -23,7 +30,7 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
   public setMultiplayerMode(active: boolean) {
     this.isMultiplayer = active;
     if (!active) {
-      this.networkManager?.setTransport(new NullTransport());
+      this.networkManager?.setTransport(new NullTransport<TEvents, any>());
     }
   }
 

@@ -2,7 +2,8 @@ import { Component, ComponentRegistry } from "./Component";
 import { Entity } from "./Entity";
 import { Shape } from "../physics/shapes/Shapes";
 import { CollisionLayer, CollisionMask, Collision } from "../physics/collision/CollisionTypes";
-import { World } from "./World";
+import { World, BlueprintRegistryMap } from "./World";
+import { EventRegistry } from "../events/EventBus";
 
 /** @public */
 export interface TransformComponent extends Component {
@@ -52,11 +53,15 @@ export interface TTLComponent extends Component {
 }
 
 /** @public */
-export interface ReclaimableComponent extends Component {
+export interface ReclaimableComponent<
+  TComponents extends ComponentRegistry = any,
+  TEvents extends EventRegistry = any,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = any
+> extends Component {
   type: "Reclaimable";
   poolName: string;
   poolId: string;
-  onReclaim?: (world: World<any, any, any>, entity: Entity) => void;
+  onReclaim?: (world: World<TComponents, TEvents, TBlueprints>, entity: Entity) => void;
 }
 
 /** @public */

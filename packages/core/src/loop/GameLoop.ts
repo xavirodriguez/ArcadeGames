@@ -212,12 +212,7 @@ export class GameLoop {
   }
 
   private loop = (currentTime: number) => {
-    try {
-      this.tick(currentTime);
-    } catch (error) {
-      // Catching the error is done inside tick, but we also prevent scheduling the next frame on error
-      throw error;
-    }
+    this.tick(currentTime);
 
     if (this.isRunning && !this.manual) {
       this.frameHandle = this.scheduler.requestFrame(this.loop);

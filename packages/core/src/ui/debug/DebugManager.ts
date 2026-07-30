@@ -92,6 +92,7 @@ export class DebugManager {
   }
 
   private setupMonkeyPatching(): void {
+    /* eslint-disable-next-line @typescript-eslint/no-this-alias */
     const self = this;
 
     // 1. Monkey-patch EventBus.emit to record all events.
@@ -133,6 +134,7 @@ export class DebugManager {
     const originalUpdate = system.update;
     this.originalUpdates.set(system, originalUpdate);
 
+    /* eslint-disable-next-line @typescript-eslint/no-this-alias */
     const self = this;
     const wrappedUpdate = function (this: any, world: any, deltaTime: number) {
       const startTime = performance.now();

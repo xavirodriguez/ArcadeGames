@@ -93,7 +93,14 @@ export function useGame<
     }
 
     let isMounted = true;
-    const gameInstance = new GameClass(config);
+    let gameInstance: TGame;
+    try {
+      gameInstance = new GameClass(config);
+    } catch (err) {
+      console.error("Failed to construct game instance:", err);
+      setIsReady(false);
+      return;
+    }
     setIsReady(false);
 
     // Async initialization
@@ -103,9 +110,15 @@ export function useGame<
           gameInstance.start();
           setGame(gameInstance);
           setIsReady(true);
+        } else {
+          gameInstance.destroy();
         }
       }).catch((err) => {
-        if (isMounted) console.error(err);
+        if (isMounted) {
+          console.error(err);
+        } else {
+          gameInstance.destroy();
+        }
       });
     }
 

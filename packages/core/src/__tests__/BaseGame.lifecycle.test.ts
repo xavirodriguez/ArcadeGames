@@ -32,6 +32,40 @@ class TestGame extends BaseGame<any, any, any, any, any> {
   }
 }
 
+class LifecycleGuardGame extends BaseGame<any, any, any, any, any> {
+  public onRegisterSystemsDelay = 10;
+  public onInitializeEntitiesDelay = 10;
+  public onBeforeRestartDelay = 10;
+
+  constructor(config: BaseGameConfig<any, any> = {}) {
+    super(config);
+    this.loop = {
+      start: jest.fn(),
+      stop: jest.fn(),
+      pause: jest.fn(),
+      resume: jest.fn(),
+      subscribeUpdate: jest.fn(),
+      subscribeRender: jest.fn()
+    } as any;
+  }
+
+  public update(_dt: number): void {}
+  public getGameState(): any { return {}; }
+  public isGameOver(): boolean { return false; }
+
+  protected override async onRegisterSystems(): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, this.onRegisterSystemsDelay));
+  }
+
+  protected override async onInitializeEntities(): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, this.onInitializeEntitiesDelay));
+  }
+
+  protected override async onBeforeRestart(): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, this.onBeforeRestartDelay));
+  }
+}
+
 describe("BaseGame lifecycle", () => {
   test("destroy() clears all registered systems", async () => {
     const game = new TestGame();
@@ -114,5 +148,55 @@ describe("BaseGame lifecycle", () => {
     game.resume();
     expect(game.isPausedState()).toBe(false);
     expect(game.getGameLoop().resume).not.toHaveBeenCalled();
+  });
+
+  test("init() aborts if destroyed during onRegisterSystems()", async () => {
+    const game = new LifecycleGuardGame();
+    const initPromise = game.init();
+
+    // Destroy immediately before onRegisterSystems resolves
+    game.destroy();
+
+    await initPromise;
+    expect(game.getLifecycleState()).toBe("DESTROYED");
+    expect(game.getGameLoop().start).not.toHaveBeenCalled();
+  });
+
+  test("init() aborts if destroyed during onInitializeEntities()", async () => {
+    const game = new LifecycleGuardGame();
+    // Make onRegisterSystems fast so it resolves before we destroy, but keep onInitializeEntities slow
+    game.onRegisterSystemsDelay = 1;
+    game.onInitializeEntitiesDelay = 50;
+
+    const initPromise = game.init();
+
+    // Wait a little bit for onRegisterSystems to finish
+    await new Promise(resolve => setTimeout(resolve, 5));
+    // Destroy now, which is during onInitializeEntities
+    game.destroy();
+
+    await initPromise;
+    expect(game.getLifecycleState()).toBe("DESTROYED");
+    expect(game.getGameLoop().start).not.toHaveBeenCalled();
+  });
+
+  test("restart() aborts if destroyed during onBeforeRestart()", async () => {
+    const game = new LifecycleGuardGame();
+    await game.init();
+
+    // Clear calls
+    const startMock = game.getGameLoop().start as jest.Mock;
+    startMock.mockClear();
+
+    // Trigger restart
+    const restartPromise = game.restart();
+
+    // Destroy during onBeforeRestart
+    game.destroy();
+
+    await restartPromise;
+    // It should have remained DESTROYED and not resurrected back to UNINITIALIZED / READY / RUNNING
+    expect(game.getLifecycleState()).toBe("DESTROYED");
+    expect(game.getGameLoop().start).not.toHaveBeenCalled();
   });
 });

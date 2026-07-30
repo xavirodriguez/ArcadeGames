@@ -40,6 +40,9 @@ export default function SpaceInvadersScreen() {
 
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
+  // Hook up Keyboard controls on web
+  useKeyboardControls(handleMultiplayerInput, started && isReady);
+
   const { room, connected, serverState } = useMultiplayer("space-invaders", playerName, isMulti && started);
 
   useEffect(() => {
@@ -74,18 +77,21 @@ export default function SpaceInvadersScreen() {
         room.send("input", input);
     } else {
         handleInput(input);
+
+        // Decoupled Integration with ECS world via Input Bridge
+        if (typeof (game as any)?.setInputState === "function") {
+          (game as any).setInputState(input);
+        }
     }
-  }, [isMulti, room, handleInput]);
+  }, [isMulti, room, handleInput, game]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });
-    game?.getInputSystem().setOverride("shoot", true);
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
     handleMultiplayerInput({ shoot: false });
-    game?.getInputSystem().clearOverride("shoot");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleJoystickMove = useCallback((x: number, y: number) => {
     if (typeof (game as any).setInputState === "function") {

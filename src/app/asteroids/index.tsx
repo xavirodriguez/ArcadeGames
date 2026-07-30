@@ -9,6 +9,7 @@ import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useAsteroidsGame } from "@/hooks/useAsteroidsGame";
 import { useMultiplayer } from "@tiny-aster/react-native";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { ShootButton } from "../../components/ShootButton";
@@ -117,7 +118,6 @@ export default function AsteroidsScreen() {
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });
-    game?.getInputSystem().setOverride("shoot", true);
 
     // Initial shot
     if (autoFireIntervalRef.current) clearInterval(autoFireIntervalRef.current);
@@ -125,13 +125,11 @@ export default function AsteroidsScreen() {
     // Auto-fire logic after 400ms
     autoFireIntervalRef.current = setTimeout(() => {
         autoFireIntervalRef.current = setInterval(() => {
-            // Toggle to trigger another shoot action if it's based on state change
-            // or just keep it true if the system handles continuous shooting
-            game?.getInputSystem().setOverride("shoot", true);
+            handleMultiplayerInput({ shoot: true });
         }, 200); // Shoot every 200ms during auto-fire
     }, 400);
 
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
     if (autoFireIntervalRef.current) {
@@ -140,18 +138,15 @@ export default function AsteroidsScreen() {
         autoFireIntervalRef.current = null;
     }
     handleMultiplayerInput({ shoot: false });
-    game?.getInputSystem().clearOverride("shoot");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleHyperspacePress = useCallback(() => {
     handleMultiplayerInput({ hyperspace: true });
-    game?.getInputSystem().setOverride("hyperspace", true);
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleHyperspaceRelease = useCallback(() => {
     handleMultiplayerInput({ hyperspace: false });
-    game?.getInputSystem().clearOverride("hyperspace");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleJoystickMove = useCallback((x: number, y: number) => {
     handleMultiplayerInput({

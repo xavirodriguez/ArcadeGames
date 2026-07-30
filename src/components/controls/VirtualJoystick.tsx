@@ -42,7 +42,7 @@ export interface VirtualJoystickProps {
   opacity?: number;
   /** Whether to show the background ring. */
   showBackgroundRing?: boolean;
-  /** The ECS World to integrate with. */
+  /** The ECS World to integrate with (Obsolete/unused). */
   world?: World;
   /** Optional style for the touchable container. */
   containerStyle?: StyleProp<ViewStyle>;
@@ -58,7 +58,7 @@ export interface VirtualJoystickProps {
  * Features:
  * - Floating Dynamic behavior (appears on touch).
  * - Reanimated 3 for smooth, decoupled knob movement.
- * - Direct ECS integration via world.getMutableComponent.
+ * - Direct React Bridge integration.
  */
 export function VirtualJoystick({
   joystickId = "joystick",

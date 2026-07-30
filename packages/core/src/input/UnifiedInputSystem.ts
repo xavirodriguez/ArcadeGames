@@ -18,6 +18,7 @@ import { InputSystem } from "./InputSystem";
  *
  * @deprecated Use game.setInputState(...) React Bridge instead.
  * @public
+ * @deprecated This system is obsolete. Use the React Bridge input architecture (game.setInputState) instead.
  */
 export class UnifiedInputSystem extends System<ComponentRegistry> implements InputSystem {
   private overrides: Record<string, boolean> = {};

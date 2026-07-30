@@ -10,6 +10,7 @@ import { useAsteroidsGame } from "@/hooks/useAsteroidsGame";
 import { useMultiplayer } from "@tiny-aster/react-native";
 import { useTranslation } from "@/hooks/useTranslation";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
+import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { ShootButton } from "../../components/ShootButton";
 import { HyperspaceButton } from "../../components/HyperspaceButton";
 import { SeedWidget } from "@/components/SeedWidget";
@@ -33,6 +34,8 @@ export default function AsteroidsScreen() {
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
 
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(started, isMulti && started, initialSeed);
+
+  useKeyboardControls(game);
 
   // Handle incoming daily challenge parameters
   useEffect(() => {
@@ -150,6 +153,22 @@ export default function AsteroidsScreen() {
     game?.getInputSystem().clearOverride("hyperspace");
   }, [game, handleMultiplayerInput]);
 
+  const handleJoystickMove = useCallback((x: number, y: number) => {
+    handleMultiplayerInput({
+      rotationAmount: x,
+      thrust: y < -0.15,
+    });
+  }, [handleMultiplayerInput]);
+
+  const handleJoystickRelease = useCallback(() => {
+    handleMultiplayerInput({
+      rotationAmount: 0,
+      rotateLeft: false,
+      rotateRight: false,
+      thrust: false,
+    });
+  }, [handleMultiplayerInput]);
+
   if (!started) {
     return (
       <StartScreen
@@ -228,6 +247,8 @@ export default function AsteroidsScreen() {
               joystickId="movement_joystick"
               type="movement"
               world={game.getWorld()}
+              onMove={handleJoystickMove}
+              onRelease={handleJoystickRelease}
             />
           </View>
           <View style={styles.rightControlArea} pointerEvents="box-none">

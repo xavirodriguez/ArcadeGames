@@ -10,6 +10,7 @@ import { ShootButton } from "../../components/ShootButton";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useSpaceInvadersGame } from "@/hooks/useSpaceInvadersGame";
 import { useMultiplayer } from "@tiny-aster/react-native";
+import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { SeedWidget } from "@/components/SeedWidget";
 import { DailyChallengeBanner } from "@/components/DailyChallengeBanner";
 import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
@@ -34,6 +35,9 @@ export default function SpaceInvadersScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(isDailyFromParams);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
+
+  useKeyboardControls(game);
+
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   const { room, connected, serverState } = useMultiplayer("space-invaders", playerName, isMulti && started);
@@ -81,6 +85,28 @@ export default function SpaceInvadersScreen() {
   const handleShootRelease = useCallback(() => {
     handleMultiplayerInput({ shoot: false });
     game?.getInputSystem().clearOverride("shoot");
+  }, [game, handleMultiplayerInput]);
+
+  const handleJoystickMove = useCallback((x: number, y: number) => {
+    if (typeof (game as any).setInputState === "function") {
+      (game as any).setInputState({ rotationAmount: x });
+    } else {
+      handleMultiplayerInput({
+        moveLeft: x < -0.15,
+        moveRight: x > 0.15,
+      });
+    }
+  }, [game, handleMultiplayerInput]);
+
+  const handleJoystickRelease = useCallback(() => {
+    if (typeof (game as any).setInputState === "function") {
+      (game as any).setInputState({ rotationAmount: 0, moveLeft: false, moveRight: false });
+    } else {
+      handleMultiplayerInput({
+        moveLeft: false,
+        moveRight: false,
+      });
+    }
   }, [game, handleMultiplayerInput]);
 
   if (!started) {
@@ -149,6 +175,8 @@ export default function SpaceInvadersScreen() {
               joystickId="movement_joystick"
               type="movement"
               world={game.getWorld()}
+              onMove={handleJoystickMove}
+              onRelease={handleJoystickRelease}
             />
           </View>
           <ShootButton

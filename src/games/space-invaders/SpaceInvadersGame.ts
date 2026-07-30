@@ -325,9 +325,31 @@ export class SpaceInvadersGame
   }
 
   public setInput(input: Partial<InputState>) {
-    Object.entries(input).forEach(([key, value]) => {
-      this.unifiedInput.setOverride(key, !!value);
-    });
+    this.setInputState(input);
+  }
+
+  public setInputState(input: Partial<InputState>): void {
+    const world = this.getWorld();
+    const player = world.query("Player" as any, "Input" as any)[0];
+    if (player !== undefined) {
+      world.mutateComponent(player, "Input" as any, (inp: any) => {
+        if (input.moveLeft !== undefined) inp.moveLeft = input.moveLeft;
+        if (input.moveRight !== undefined) inp.moveRight = input.moveRight;
+        if (input.shoot !== undefined) inp.shoot = input.shoot;
+        if (input.rotationAmount !== undefined) {
+          if (input.rotationAmount < -0.15) {
+            inp.moveLeft = true;
+            inp.moveRight = false;
+          } else if (input.rotationAmount > 0.15) {
+            inp.moveLeft = false;
+            inp.moveRight = true;
+          } else {
+            inp.moveLeft = false;
+            inp.moveRight = false;
+          }
+        }
+      });
+    }
   }
 
   public updateFromServer(state: Record<string, unknown>) {
@@ -473,6 +495,7 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public async restart() {}
   public subscribe(cb: (state: GameStateComponent) => void) { return () => {}; }
   public setInput(input: Partial<InputState>) {}
+  public setInputState(input: Partial<InputState>) {}
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
 }

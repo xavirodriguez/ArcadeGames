@@ -9,6 +9,7 @@ export interface IFlappyBirdGame extends IGame<FlappyBirdState> {
   isMultiplayer: boolean;
   getGameState(): FlappyBirdState;
   setInput(input: Partial<FlappyBirdInput>): void;
+  setInputState(input: Partial<FlappyBirdInput>): void;
   isPausedState(): boolean;
   isGameOver(): boolean;
   initializeRenderer(renderer: Renderer): void;

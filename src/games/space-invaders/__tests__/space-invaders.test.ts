@@ -1,6 +1,7 @@
 import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry } from "@tiny-aster/core";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
+import { ComboSystem } from "../../shared/arcade";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { createGameState } from "../EntityFactory";
 import { ParticlePool } from "../EntityPool";
@@ -30,6 +31,13 @@ describe("Space Invaders Combo Logic & Performance", () => {
           comboTimerRemaining: 0,
           screenShake: null,
           kamikazesActive: 0,
+        } as any);
+        w.addComponent(entity, {
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: config.COMBO_TIMEOUT / 1000
         } as any);
       }
     });
@@ -94,9 +102,10 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
     world.addSystem(collisionSystem, { phase: SystemPhase.GameRules });
     world.addSystem(gameStateSystem, { phase: SystemPhase.GameRules });
+    world.addSystem(new ComboSystem() as any, { phase: SystemPhase.Simulation });
   });
 
-  it("should initialize GameState with correct default combo values and no Combo component", () => {
+  it("should initialize GameState with correct default combo values and verify Combo component is attached", () => {
     createGameState(world);
     const gameState = world.getSingleton("GameState");
     expect(gameState).toBeDefined();
@@ -104,9 +113,15 @@ describe("Space Invaders Combo Logic & Performance", () => {
     expect(gameState?.multiplier).toBe(1);
     expect(gameState?.comboTimerRemaining).toBe(0);
 
-    // Verify Combo component does not exist in world
+    // Verify Combo component exists in world and is attached to the GameState entity
     const comboEntities = world.query("Combo" as any);
-    expect(comboEntities.length).toBe(0);
+    expect(comboEntities.length).toBe(1);
+
+    const comboComp = world.getComponent(comboEntities[0], "Combo" as any) as any;
+    expect(comboComp).toBeDefined();
+    expect(comboComp.combo).toBe(0);
+    expect(comboComp.multiplier).toBe(1);
+    expect(comboComp.timerRemaining).toBe(0);
   });
 
   it("should increment combo and reset timer on invader destruction", () => {
@@ -150,7 +165,8 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
     const gameState = world.getSingleton("GameState");
     expect(gameState?.combo).toBe(1);
-    expect(gameState?.comboTimerRemaining).toBeCloseTo(1.984); // 2.0 - 0.016 (due to decrement in GameStateSystem during same tick)
+    // With phase-based update, ComboSystem runs before CollisionSystem, so the timer is set to 2.0 at the end of the tick
+    expect(gameState?.comboTimerRemaining).toBe(2.0);
     expect(gameState?.multiplier).toBe(1); // 1 + floor(1/5) = 1
   });
 
@@ -214,11 +230,17 @@ describe("Space Invaders Combo Logic & Performance", () => {
   it("should expire combo back to 0 and multiplier to 1 when COMBO_TIMEOUT is reached", () => {
     createGameState(world);
 
-    // Mutate manually to simulate combo
+    // Mutate both GameState and Combo component manually to simulate combo
     world.mutateSingleton("GameState", (gs) => {
       gs.combo = 10;
       gs.multiplier = 3;
       gs.comboTimerRemaining = 2.0;
+    });
+    const comboEntities = world.query("Combo" as any);
+    world.mutateComponent(comboEntities[0], "Combo" as any, (c: any) => {
+      c.combo = 10;
+      c.multiplier = 3;
+      c.timerRemaining = 2.0;
     });
 
     // Advance 1.0 second -> combo timer decrements but combo is preserved

@@ -1,5 +1,5 @@
 import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter } from "@tiny-aster/core";
-import { LootSystem, PowerUpSystem } from "../shared/arcade";
+import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG } from "./types/SpaceInvadersTypes";
@@ -214,6 +214,13 @@ export class SpaceInvadersGame
           screenShake: null,
           kamikazesActive: 0,
         } as any);
+        world.addComponent(entity, {
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: config.COMBO_TIMEOUT / 1000
+        } as any);
       }
     });
 
@@ -250,6 +257,7 @@ export class SpaceInvadersGame
     const sceneWorld = gameScene.getWorld();
     sceneWorld.addSystem(new LootSystem());
     sceneWorld.addSystem(new PowerUpSystem());
+    sceneWorld.addSystem(new ComboSystem() as any);
 
     if (!this.networkManager) {
       this.networkManager = NetworkManager.registerGame(this.gameId, this, {

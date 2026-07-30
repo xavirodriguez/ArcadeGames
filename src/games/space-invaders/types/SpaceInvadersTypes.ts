@@ -1,4 +1,5 @@
 import { Component, CoreComponentRegistry } from "@tiny-aster/core";
+import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
 
 /**
  * Component for Boss entities.
@@ -47,6 +48,7 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   Boss: BossComponent;
   Kamikaze: KamikazeComponent;
   UIText: UITextComponent;
+  Combo: ComboComponent;
 }
 
 /**

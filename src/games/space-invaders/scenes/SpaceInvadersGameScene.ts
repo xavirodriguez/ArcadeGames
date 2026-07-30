@@ -12,7 +12,7 @@ import {
   MutatorSystem,
   SystemPhase
 } from "@tiny-aster/core";
-import { LootSystem, PowerUpSystem } from "../../shared/arcade";
+import { LootSystem, PowerUpSystem, ComboSystem } from "../../shared/arcade";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersInputSystem } from "../systems/SpaceInvadersInputSystem";
 import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationSystem";
@@ -92,6 +92,7 @@ export class SpaceInvadersGameScene extends Scene {
     this.world.addSystem(new SpaceInvadersCollisionSystem(this.particlePool), { phase: SystemPhase.GameRules });
     this.world.addSystem(new KamikazeSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BossSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ComboSystem() as any, { phase: SystemPhase.Simulation });
     this.world.addSystem(new LootSystem() as any, { phase: SystemPhase.GameRules });
     this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });

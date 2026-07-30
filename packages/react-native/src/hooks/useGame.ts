@@ -66,6 +66,11 @@ export function useGame<
   const [gameState, setGameState] = useState<TState | null>(initialState);
   const [isPaused, setIsPaused] = useState(false);
   const isPausedRef = useRef(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  if (error) {
+    throw error;
+  }
 
   const services = useGameServices();
 
@@ -116,6 +121,7 @@ export function useGame<
       }).catch((err) => {
         if (isMounted) {
           console.error(err);
+          setError(err instanceof Error ? err : new Error(String(err)));
         } else {
           gameInstance.destroy();
         }
@@ -139,9 +145,16 @@ export function useGame<
       }
     });
 
+    const unsubscribeError = gameInstance.subscribeError((err) => {
+      if (isMounted) {
+        setError(err);
+      }
+    });
+
     return () => {
       isMounted = false;
       unsubscribe();
+      unsubscribeError();
       gameInstance.destroy();
     };
   // Re-initialize if game class or config change

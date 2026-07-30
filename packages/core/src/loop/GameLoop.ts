@@ -27,6 +27,14 @@ export interface GameLoopConfig {
    * Useful when an external driver (like Reanimated) calls `tick()` manually.
    */
   manual?: boolean;
+  /**
+   * Optional callback triggered when the loop is manual, running, and no tick has been received for the timeout duration.
+   */
+  onWatchdogTimeout?: () => void;
+  /**
+   * Watchdog timeout in milliseconds. Defaults to 5000.
+   */
+  watchdogTimeout?: number;
 }
 
 /**
@@ -47,6 +55,8 @@ export interface GameLoopConfig {
 export class GameLoop {
   private renderSubscribers: Set<RenderCallback> = new Set();
   private updateSubscribers: Set<UpdateCallback> = new Set();
+  private errorSubscribers: Set<(err: Error) => void> = new Set();
+  private lastError: Error | null = null;
   private lastTime = 0;
   private accumulator = 0;
   private readonly step: number;
@@ -57,11 +67,18 @@ export class GameLoop {
   private isPaused = false;
   private frameHandle: unknown;
 
+  private lastTickTime = 0;
+  private watchdogIntervalId: any = undefined;
+  private readonly watchdogTimeout: number;
+  private readonly onWatchdogTimeout?: () => void;
+
   constructor(config: GameLoopConfig = {}) {
     this.step = config.step ?? 1 / 60;
     this.maxDelta = config.maxDelta ?? 0.25;
     this.scheduler = config.scheduler ?? browserFrameScheduler;
     this.manual = config.manual ?? false;
+    this.watchdogTimeout = config.watchdogTimeout ?? 5000;
+    this.onWatchdogTimeout = config.onWatchdogTimeout;
   }
 
   /**
@@ -71,8 +88,11 @@ export class GameLoop {
     if (this.isRunning) return;
     this.isRunning = true;
     this.lastTime = this.scheduler.now();
+    this.lastTickTime = Date.now();
     if (!this.manual) {
       this.frameHandle = this.scheduler.requestFrame(this.loop);
+    } else {
+      this.startWatchdog();
     }
   }
 
@@ -85,6 +105,7 @@ export class GameLoop {
       this.scheduler.cancelFrame(this.frameHandle);
       this.frameHandle = undefined;
     }
+    this.stopWatchdog();
   }
 
   /**
@@ -92,6 +113,7 @@ export class GameLoop {
    */
   public pause() {
     this.isPaused = true;
+    this.stopWatchdog();
   }
 
   /**
@@ -100,6 +122,10 @@ export class GameLoop {
   public resume() {
     this.isPaused = false;
     this.lastTime = this.scheduler.now();
+    this.lastTickTime = Date.now();
+    if (this.manual) {
+      this.startWatchdog();
+    }
   }
 
   /**
@@ -111,6 +137,31 @@ export class GameLoop {
       this.scheduler.cancelFrame(this.frameHandle);
       this.frameHandle = undefined;
     }
+    this.startWatchdog();
+  }
+
+  private startWatchdog() {
+    this.stopWatchdog();
+    if (!this.manual || !this.isRunning || this.isPaused) return;
+
+    this.watchdogIntervalId = setInterval(() => {
+      if (this.isRunning && !this.isPaused) {
+        const elapsed = Date.now() - this.lastTickTime;
+        if (elapsed > this.watchdogTimeout) {
+          console.warn(`[GameLoop] Watchdog alert: No tick received in manual mode for ${elapsed}ms (timeout: ${this.watchdogTimeout}ms). External driver might be stalled.`);
+          if (this.onWatchdogTimeout) {
+            this.onWatchdogTimeout();
+          }
+        }
+      }
+    }, 1000);
+  }
+
+  private stopWatchdog() {
+    if (this.watchdogIntervalId !== undefined) {
+      clearInterval(this.watchdogIntervalId);
+      this.watchdogIntervalId = undefined;
+    }
   }
 
   /**
@@ -120,34 +171,44 @@ export class GameLoop {
   public tick(currentTime?: number) {
     if (!this.isRunning) return;
 
-    // Use scheduler time if not provided
-    const now = currentTime ?? this.scheduler.now();
+    this.lastTickTime = Date.now();
 
-    if (this.isPaused) {
+    try {
+      // Use scheduler time if not provided
+      const now = currentTime ?? this.scheduler.now();
+
+      if (this.isPaused) {
+        this.lastTime = now;
+        return;
+      }
+
+      let deltaTime = (now - this.lastTime) / 1000;
       this.lastTime = now;
-      return;
+
+      // Prevent spiral of death
+      if (deltaTime > this.maxDelta) {
+        deltaTime = this.maxDelta;
+      }
+
+      this.accumulator += deltaTime;
+
+      while (this.accumulator >= this.step) {
+        // NOTE: The update subscriber receives deltaTime strictly in seconds (e.g. 1/60 ~ 0.01667 seconds).
+        // Systems in this engine (such as AnimationSystem, TTLSystem, JuiceSystem, ComboSystem, ScreenShakeSystem, ParticleSystem)
+        // must expect and process delta time consistently in seconds.
+        this.updateSubscribers.forEach(sub => sub(this.step));
+        this.accumulator -= this.step;
+      }
+
+      const alpha = this.accumulator / this.step;
+      this.renderSubscribers.forEach(sub => sub(alpha));
+    } catch (error: any) {
+      this.stop();
+      this.lastError = error instanceof Error ? error : new Error(String(error));
+      console.error("[GameLoop] Critical exception in tick, stopping loop:", this.lastError);
+      this.errorSubscribers.forEach(sub => sub(this.lastError!));
+      throw error;
     }
-
-    let deltaTime = (now - this.lastTime) / 1000;
-    this.lastTime = now;
-
-    // Prevent spiral of death
-    if (deltaTime > this.maxDelta) {
-      deltaTime = this.maxDelta;
-    }
-
-    this.accumulator += deltaTime;
-
-    while (this.accumulator >= this.step) {
-      // NOTE: The update subscriber receives deltaTime strictly in seconds (e.g. 1/60 ~ 0.01667 seconds).
-      // Systems in this engine (such as AnimationSystem, TTLSystem, JuiceSystem, ComboSystem, ScreenShakeSystem, ParticleSystem)
-      // must expect and process delta time consistently in seconds.
-      this.updateSubscribers.forEach(sub => sub(this.step));
-      this.accumulator -= this.step;
-    }
-
-    const alpha = this.accumulator / this.step;
-    this.renderSubscribers.forEach(sub => sub(alpha));
   }
 
   private loop = (currentTime: number) => {
@@ -176,5 +237,22 @@ export class GameLoop {
   public subscribeRender(callback: RenderCallback): () => void {
     this.renderSubscribers.add(callback);
     return () => this.renderSubscribers.delete(callback);
+  }
+
+  /**
+   * Returns the last encountered error, if any.
+   */
+  public getLastError(): Error | null {
+    return this.lastError;
+  }
+
+  /**
+   * Subscribes a callback to be notified of critical loop exceptions.
+   * @param callback - The callback receiving the error.
+   * @returns A function to unsubscribe.
+   */
+  public subscribeError(callback: (err: Error) => void): () => void {
+    this.errorSubscribers.add(callback);
+    return () => this.errorSubscribers.delete(callback);
   }
 }

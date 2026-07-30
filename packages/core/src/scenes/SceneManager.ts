@@ -263,10 +263,21 @@ export class SceneManager {
    * @remarks
    * Useful for overlays or menus that should preserve the underlying game state.
    */
-  public async push(scene: Scene): Promise<void> {
+  public async push(scene: Scene, options?: { timeout?: number }): Promise<void> {
     return this.enqueueTransition(async () => {
-      this.transitionToken++;
+      const myToken = ++this.transitionToken;
       const previousState = this.state;
+      const oldScene = this.currentScene;
+      const oldStack = [...this.sceneStack];
+      const timeoutMs = options?.timeout ?? this.transitionTimeout;
+
+      let timeoutId: any;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error("Push transition timed out"));
+        }, timeoutMs);
+      });
+
       try {
         if (this.currentScene) {
           runLifecycleSync(() => this.currentScene!.onPause());
@@ -276,24 +287,50 @@ export class SceneManager {
         this.sceneStack.push(scene);
         this.currentScene = scene;
 
-        if (this.onWorldCreated) {
-          await this.onWorldCreated(scene.getWorld());
+        const loadPromise = (async () => {
+          if (this.onWorldCreated) {
+            await this.onWorldCreated(scene.getWorld());
+          }
+
+          if (myToken !== this.transitionToken) return;
+
+          await runLifecycleAsync(async () => {
+            const sceneAsAny = scene as unknown as Record<string, unknown>;
+            if (typeof sceneAsAny.onEnter === "function") {
+              await (sceneAsAny.onEnter as (w: World) => Promise<void>)(scene.getWorld());
+            }
+          });
+        })();
+
+        try {
+          await Promise.race([loadPromise, timeoutPromise]);
+        } finally {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
         }
 
-        await runLifecycleAsync(async () => {
-          const sceneAsAny = scene as unknown as Record<string, unknown>;
-          if (typeof sceneAsAny.onEnter === "function") {
-            await (sceneAsAny.onEnter as (w: World) => Promise<void>)(scene.getWorld());
-          }
-        });
+        if (myToken !== this.transitionToken) return;
 
         this.state = SceneState.ACTIVE;
       } catch (error) {
+        if (myToken !== this.transitionToken) return;
+
+        this.transitionToken++; // Obsolete this token to prevent late execution
         const eventBus = this.world.getResource<EventBus>("EventBus");
         if (eventBus) {
           eventBus.emit("scene:error" as any, { action: "push", error } as any);
         }
+
+        // Rollback stack and scene properly
+        this.currentScene = oldScene;
+        this.sceneStack = oldStack;
         this.state = previousState;
+
+        if (oldScene) {
+          runLifecycleSync(() => oldScene.onResume());
+        }
+
         throw error;
       }
     });
@@ -305,7 +342,7 @@ export class SceneManager {
    * @remarks
    * Executes `onExit` for the popped scene and `onResume` for the top of the stack.
    */
-  public async pop(): Promise<void> {
+  public async pop(options?: { timeout?: number }): Promise<void> {
     return this.enqueueTransition(async () => {
       const eventBus = this.world.getResource<EventBus>("EventBus");
       if (this.sceneStack.length <= 1) {
@@ -315,19 +352,41 @@ export class SceneManager {
         return;
       }
 
-      this.transitionToken++;
+      const myToken = ++this.transitionToken;
       const previousState = this.state;
+      const oldScene = this.currentScene;
+      const oldStack = [...this.sceneStack];
       const poppedScene = this.sceneStack[this.sceneStack.length - 1];
+      const timeoutMs = options?.timeout ?? this.transitionTimeout;
+
+      let timeoutId: any;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error("Pop transition timed out"));
+        }, timeoutMs);
+      });
 
       try {
         this.state = SceneState.UNLOADING;
 
-        await runLifecycleAsync(async () => {
-          const sceneAsAny = poppedScene as unknown as Record<string, unknown>;
-          if (typeof sceneAsAny.onExit === "function") {
-            await (sceneAsAny.onExit as (w: World) => Promise<void>)(poppedScene.getWorld());
+        const unloadPromise = (async () => {
+          await runLifecycleAsync(async () => {
+            const sceneAsAny = poppedScene as unknown as Record<string, unknown>;
+            if (typeof sceneAsAny.onExit === "function") {
+              await (sceneAsAny.onExit as (w: World) => Promise<void>)(poppedScene.getWorld());
+            }
+          });
+        })();
+
+        try {
+          await Promise.race([unloadPromise, timeoutPromise]);
+        } finally {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
           }
-        });
+        }
+
+        if (myToken !== this.transitionToken) return;
 
         this.sceneStack.pop();
         this.currentScene = this.sceneStack[this.sceneStack.length - 1];
@@ -337,10 +396,18 @@ export class SceneManager {
         }
         this.state = SceneState.ACTIVE;
       } catch (error) {
+        if (myToken !== this.transitionToken) return;
+
+        this.transitionToken++; // Obsolete this token
         if (eventBus) {
           eventBus.emit("scene:error" as any, { action: "pop", error } as any);
         }
+
+        // Rollback stack and scene properly
+        this.currentScene = oldScene;
+        this.sceneStack = oldStack;
         this.state = previousState;
+
         throw error;
       }
     });

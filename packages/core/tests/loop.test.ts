@@ -108,4 +108,62 @@ describe("GameLoop", () => {
 
     loop.stop();
   });
+
+  it("should capture system/subscriber exceptions, stop the loop, and notify error subscribers", () => {
+    const scheduler = new MockScheduler();
+    const loop = new GameLoop({ scheduler });
+
+    loop.subscribeUpdate(() => {
+      throw new Error("Critical system failure");
+    });
+
+    let caughtError: Error | null = null;
+    loop.subscribeError((err) => {
+      caughtError = err;
+    });
+
+    loop.start();
+
+    expect(() => {
+      scheduler.tick(16.67);
+    }).toThrow("Critical system failure");
+
+    // Loop should be stopped
+    expect(loop.getLastError()).not.toBeNull();
+    expect(loop.getLastError()?.message).toBe("Critical system failure");
+    expect(caughtError).not.toBeNull();
+    expect((caughtError as any).message).toBe("Critical system failure");
+  });
+
+  it("should trigger watchdog callback in manual mode if no tick is received before timeout", async () => {
+    jest.useFakeTimers();
+
+    const watchdogSpy = jest.fn();
+    const loop = new GameLoop({
+      manual: true,
+      watchdogTimeout: 1500,
+      onWatchdogTimeout: watchdogSpy
+    });
+
+    loop.start();
+
+    // Advance timers by 1000ms - not timed out yet
+    jest.advanceTimersByTime(1000);
+    expect(watchdogSpy).not.toHaveBeenCalled();
+
+    // Advance timers by another 1000ms -> total 2000ms, which is > 1500ms
+    jest.advanceTimersByTime(1000);
+    expect(watchdogSpy).toHaveBeenCalled();
+
+    // Now call tick and reset mock
+    watchdogSpy.mockClear();
+    loop.tick();
+
+    // Advance another 1000ms -> shouldn't trigger because tick reset the timer
+    jest.advanceTimersByTime(1000);
+    expect(watchdogSpy).not.toHaveBeenCalled();
+
+    loop.stop();
+    jest.useRealTimers();
+  });
 });

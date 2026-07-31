@@ -277,7 +277,7 @@ export class SpaceInvadersGame
   }
 
   public override update(dt: number): void {
-      this.world.update(dt);
+      this.getWorld().update(dt);
   }
 
   private async onPreloadAssets(): Promise<void> {

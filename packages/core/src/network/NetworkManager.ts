@@ -1,11 +1,15 @@
 import { WorldSnapshot, ComponentDataSnapshot } from "../snapshots/WorldSnapshot";
 import { NetworkTransport } from "./NetworkTransport";
 import { NullTransport } from "./NullTransport";
-import { World, ComponentRegistry } from "../ecs/World";
+import { World, ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
 import { EventRegistry } from "../events/EventBus";
 
 /** @public */
-export class Replicator {
+export class Replicator<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+> {
   private serverToLocal = new Map<string, number>();
 
   constructor() {}
@@ -22,12 +26,9 @@ export class Replicator {
     this.serverToLocal.delete(serverId);
   }
 
-  public resolveEntity<
-    TComponents extends ComponentRegistry = ComponentRegistry,
-    TEvents extends EventRegistry = EventRegistry
-  >(
+  public resolveEntity(
     serverId: string,
-    world?: World<TComponents, TEvents, any>,
+    world?: World<TComponents, TEvents, TBlueprints>,
     serverComponents: Record<string, any> = {}
   ): number {
     let localId = this.serverToLocal.get(serverId);
@@ -64,11 +65,14 @@ export class Replicator {
  */
 export class NetworkManager<
   TServerEvents extends Record<string, any> = Record<string, any>,
-  TClientEvents extends Record<string, any> = Record<string, any>
+  TClientEvents extends Record<string, any> = Record<string, any>,
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
   private transport: NetworkTransport<TServerEvents, TClientEvents>;
-  private replicator = new Replicator();
-  public world?: World<any, any, any>;
+  private replicator = new Replicator<TComponents, TEvents, TBlueprints>();
+  public world?: World<TComponents, TEvents, TBlueprints>;
 
   constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>) {
     this.transport = transport || new NullTransport<TServerEvents, TClientEvents>();
@@ -76,11 +80,14 @@ export class NetworkManager<
 
   public static registerGame<
     TServer extends Record<string, any> = Record<string, any>,
-    TClient extends Record<string, any> = Record<string, any>
-  >(_gameId: string, _game: unknown, options: any = {}): NetworkManager<TServer, TClient> {
-    const manager = new NetworkManager<TServer, TClient>(options.transport || new NullTransport<TServer, TClient>());
+    TClient extends Record<string, any> = Record<string, any>,
+    TComponents extends ComponentRegistry = ComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(_gameId: string, _game: unknown, options: any = {}): NetworkManager<TServer, TClient, TComponents, TEvents, TBlueprints> {
+    const manager = new NetworkManager<TServer, TClient, TComponents, TEvents, TBlueprints>(options.transport || new NullTransport<TServer, TClient>());
     if (options.world) {
-      manager.world = options.world;
+      manager.world = options.world as World<TComponents, TEvents, TBlueprints>;
     }
     return manager;
   }
@@ -93,7 +100,7 @@ export class NetworkManager<
     this.transport = transport;
   }
 
-  public getReplicator(): Replicator {
+  public getReplicator(): Replicator<TComponents, TEvents, TBlueprints> {
     return this.replicator;
   }
 
@@ -129,7 +136,7 @@ export class NetworkManager<
   }
 
   public reset(): void {
-    this.replicator = new Replicator();
+    this.replicator = new Replicator<TComponents, TEvents, TBlueprints>();
   }
 }
 

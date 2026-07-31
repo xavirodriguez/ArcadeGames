@@ -89,13 +89,8 @@ export default function FlappyBirdScreen() {
         if (input.flap) room.send("flap");
     } else {
         handleInput(input);
-
-        // Decoupled Integration with ECS world via Input Bridge
-        if (typeof (game as any)?.setInputState === "function") {
-          (game as any).setInputState(input);
-        }
     }
-  }, [isMulti, room, handleInput, game]);
+  }, [isMulti, room, handleInput]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ flap: true });
@@ -107,21 +102,13 @@ export default function FlappyBirdScreen() {
 
   const handleJoystickMove = useCallback((x: number, y: number) => {
     if (Math.abs(x) > 0.25 || Math.abs(y) > 0.25) {
-      if (typeof (game as any).setInputState === "function") {
-        (game as any).setInputState({ flap: true });
-      } else {
-        handleMultiplayerInput({ flap: true });
-      }
+      handleMultiplayerInput({ flap: true });
     }
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleJoystickRelease = useCallback(() => {
-    if (typeof (game as any).setInputState === "function") {
-      (game as any).setInputState({ flap: false });
-    } else {
-      handleMultiplayerInput({ flap: false });
-    }
-  }, [game, handleMultiplayerInput]);
+    handleMultiplayerInput({ flap: false });
+  }, [handleMultiplayerInput]);
 
   if (!started) {
     return (

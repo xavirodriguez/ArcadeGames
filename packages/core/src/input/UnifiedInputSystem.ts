@@ -29,6 +29,7 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
    * Manually sets an input action state.
    */
   public setOverride(action: string, pressed: boolean): void {
+    console.warn(`[UnifiedInputSystem] setOverride('${action}', ${pressed}) is deprecated. Use game.setInputState instead.`);
     this.overrides[action] = pressed;
   }
 

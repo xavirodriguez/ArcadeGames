@@ -45,31 +45,33 @@ export class SnapshotRestore {
     world["componentIndex"].clear();
     world["componentVersions"].clear();
 
-    for (const type in state.componentData) {
-      const storage = new Map<number, any>();
-      const index = new Set<number>();
-      const versions = new Map<number, number>();
+    if (state.componentData) {
+      for (const type in state.componentData) {
+        const storage = new Map<number, any>();
+        const index = new Set<number>();
+        const versions = new Map<number, number>();
 
-      world["componentMaps"].set(type, storage);
-      world["componentIndex"].set(type, index);
-      world["componentVersions"].set(type, versions);
+        world["componentMaps"].set(type, storage);
+        world["componentIndex"].set(type, index);
+        world["componentVersions"].set(type, versions);
 
-      const snapshotEntities = state.componentData[type];
-      for (const entityIdStr in snapshotEntities) {
-        const entityId = parseInt(entityIdStr);
-        const sourceComp = snapshotEntities[entityId];
-        const component = ComponentCloner.cloneComponent(sourceComp);
+        const snapshotEntities = state.componentData[type];
+        for (const entityIdStr in snapshotEntities) {
+          const entityId = parseInt(entityIdStr);
+          const sourceComp = snapshotEntities[entityId];
+          const component = ComponentCloner.cloneComponent(sourceComp);
 
-        storage.set(entityId, component);
-        index.add(entityId);
-        versions.set(entityId, world["_stateVersion"]);
+          storage.set(entityId, component);
+          index.add(entityId);
+          versions.set(entityId, world["_stateVersion"]);
 
-        let componentSet = world["entityComponentSets"].get(entityId);
-        if (!componentSet) {
-          componentSet = new Set();
-          world["entityComponentSets"].set(entityId, componentSet);
+          let componentSet = world["entityComponentSets"].get(entityId);
+          if (!componentSet) {
+            componentSet = new Set();
+            world["entityComponentSets"].set(entityId, componentSet);
+          }
+          componentSet.add(type);
         }
-        componentSet.add(type);
       }
     }
 

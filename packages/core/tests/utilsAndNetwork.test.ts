@@ -130,6 +130,22 @@ describe("MultiplayerSystems", () => {
     const bufferUnpacked = BinaryCompression.unpack(Buffer.from(packed));
     expect(bufferUnpacked).toEqual(payload);
   });
+
+  it("should validate unpack payloads using a validator type guard", () => {
+    const payload = { hello: "world" };
+    const packed = BinaryCompression.pack(payload);
+
+    // This should pass
+    const isPayload = (data: any): data is { hello: string } => data && typeof data.hello === "string";
+    const unpacked = BinaryCompression.unpack(packed, isPayload);
+    expect(unpacked).toEqual(payload);
+
+    // This should throw
+    const isNotPayload = (data: any): data is { bye: string } => data && typeof data.bye === "string";
+    expect(() => BinaryCompression.unpack(packed, isNotPayload)).toThrow(
+      "BinaryCompression: Unpacked data failed validation type guard."
+    );
+  });
 });
 
 describe("ObjectPool", () => {

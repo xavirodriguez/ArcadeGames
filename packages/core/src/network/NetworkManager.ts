@@ -67,12 +67,11 @@ export class NetworkManager<
   TServerEvents extends Record<string, any> = Record<string, any>,
   TClientEvents extends Record<string, any> = Record<string, any>,
   TComponents extends ComponentRegistry = ComponentRegistry,
-  TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
   private transport: NetworkTransport<TServerEvents, TClientEvents>;
-  private replicator = new Replicator<TComponents, TEvents, TBlueprints>();
-  public world?: World<TComponents, TEvents, TBlueprints>;
+  private replicator = new Replicator<TComponents, any, TBlueprints>();
+  public world?: World<TComponents, any, TBlueprints>;
 
   constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>) {
     this.transport = transport || new NullTransport<TServerEvents, TClientEvents>();
@@ -82,12 +81,11 @@ export class NetworkManager<
     TServer extends Record<string, any> = Record<string, any>,
     TClient extends Record<string, any> = Record<string, any>,
     TComponents extends ComponentRegistry = ComponentRegistry,
-    TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
-  >(_gameId: string, _game: unknown, options: any = {}): NetworkManager<TServer, TClient, TComponents, TEvents, TBlueprints> {
-    const manager = new NetworkManager<TServer, TClient, TComponents, TEvents, TBlueprints>(options.transport || new NullTransport<TServer, TClient>());
+  >(_gameId: string, _game: unknown, options: any = {}): NetworkManager<TServer, TClient, TComponents, TBlueprints> {
+    const manager = new NetworkManager<TServer, TClient, TComponents, TBlueprints>(options.transport || new NullTransport<TServer, TClient>());
     if (options.world) {
-      manager.world = options.world as World<TComponents, TEvents, TBlueprints>;
+      manager.world = options.world as World<TComponents, any, TBlueprints>;
     }
     return manager;
   }
@@ -100,7 +98,7 @@ export class NetworkManager<
     this.transport = transport;
   }
 
-  public getReplicator(): Replicator<TComponents, TEvents, TBlueprints> {
+  public getReplicator(): Replicator<TComponents, any, TBlueprints> {
     return this.replicator;
   }
 
@@ -136,7 +134,7 @@ export class NetworkManager<
   }
 
   public reset(): void {
-    this.replicator = new Replicator<TComponents, TEvents, TBlueprints>();
+    this.replicator = new Replicator<TComponents, any, TBlueprints>();
   }
 }
 
@@ -148,34 +146,36 @@ export interface INetworkGame {
 /** @public */
 export class NetworkReplicationUtils {
   public static applyDelta(base: WorldSnapshot, delta: Partial<WorldSnapshot>): void {
-    if (delta.tick !== undefined) base.tick = delta.tick;
-    if (delta.stateVersion !== undefined) base.stateVersion = delta.stateVersion;
-    if (delta.structureVersion !== undefined) base.structureVersion = delta.structureVersion;
-    if (delta.seed !== undefined) base.seed = delta.seed;
-    if (delta.rngState !== undefined) base.rngState = delta.rngState;
-    if (delta.nextEntityId !== undefined) base.nextEntityId = delta.nextEntityId;
-    if (delta.entities !== undefined) {
-      base.entities = [...delta.entities];
+    const b = base as any;
+    const d = delta as any;
+    if (d.tick !== undefined) b.tick = d.tick;
+    if (d.stateVersion !== undefined) b.stateVersion = d.stateVersion;
+    if (d.structureVersion !== undefined) b.structureVersion = d.structureVersion;
+    if (d.seed !== undefined) b.seed = d.seed;
+    if (d.rngState !== undefined) b.rngState = d.rngState;
+    if (d.nextEntityId !== undefined) b.nextEntityId = d.nextEntityId;
+    if (d.entities !== undefined) {
+      b.entities = [...d.entities];
     }
-    if (delta.freeEntities !== undefined) {
-      base.freeEntities = [...delta.freeEntities];
+    if (d.freeEntities !== undefined) {
+      b.freeEntities = [...d.freeEntities];
     }
 
-    if (delta.componentData) {
-      if (!base.componentData) {
-        base.componentData = {};
+    if (d.componentData) {
+      if (!b.componentData) {
+        b.componentData = {};
       }
-      for (const [type, entityMap] of Object.entries(delta.componentData)) {
-        if (!base.componentData[type]) {
-          base.componentData[type] = {};
+      for (const [type, entityMap] of Object.entries(d.componentData)) {
+        if (!b.componentData[type]) {
+          b.componentData[type] = {};
         }
-        for (const [entityId, comp] of Object.entries(entityMap)) {
+        for (const [entityId, comp] of Object.entries(entityMap as Record<string, any>)) {
           const entityIdNum = Number(entityId);
           if (comp === null || comp === undefined) {
-            delete base.componentData[type][entityIdNum];
+            delete b.componentData[type][entityIdNum];
           } else {
-            base.componentData[type][entityIdNum] = {
-              ...base.componentData[type][entityIdNum],
+            b.componentData[type][entityIdNum] = {
+              ...b.componentData[type][entityIdNum],
               ...comp
             };
           }
@@ -183,15 +183,15 @@ export class NetworkReplicationUtils {
       }
     }
 
-    if (delta.isSoA !== undefined) base.isSoA = delta.isSoA;
-    if (delta.soaComponentData) {
-      if (!base.soaComponentData) {
-        base.soaComponentData = {};
+    if (d.isSoA !== undefined) b.isSoA = d.isSoA;
+    if (d.soaComponentData) {
+      if (!b.soaComponentData) {
+        b.soaComponentData = {};
       }
-      for (const [type, soaData] of Object.entries(delta.soaComponentData)) {
-        base.soaComponentData[type] = {
-          ...base.soaComponentData[type],
-          ...soaData
+      for (const [type, soaData] of Object.entries(d.soaComponentData)) {
+        b.soaComponentData[type] = {
+          ...b.soaComponentData[type],
+          ...soaData as any
         };
       }
     }
@@ -199,7 +199,7 @@ export class NetworkReplicationUtils {
 }
 
 function reconstructComponentData(snapshot: WorldSnapshot): ComponentDataSnapshot {
-  if (snapshot.isSoA && snapshot.soaComponentData) {
+  if (snapshot.isSoA === true && snapshot.soaComponentData) {
     const componentData: ComponentDataSnapshot = {};
     const soaComponentData = snapshot.soaComponentData;
 

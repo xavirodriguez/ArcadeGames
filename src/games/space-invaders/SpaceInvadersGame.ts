@@ -51,10 +51,7 @@ export class SpaceInvadersGame
 
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown> } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
-    const rawConfig = require("./config/space-invaders.json");
     super({
-      pauseKey: rawConfig.KEYS.PAUSE,
-      restartKey: rawConfig.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
       gameOptions: { ...config.gameOptions, seed }
     });

@@ -55,9 +55,9 @@ export interface TTLComponent extends Component {
 
 /** @public */
 export interface ReclaimableComponent<
-  TComponents extends ComponentRegistry = any,
-  TEvents extends EventRegistry = any,
-  TBlueprints extends BlueprintRegistryMap<TComponents> = any
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > extends Component {
   type: "Reclaimable";
   poolName: string;

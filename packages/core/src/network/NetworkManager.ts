@@ -85,7 +85,7 @@ export class NetworkManager<
   >(_gameId: string, _game: unknown, options: any = {}): NetworkManager<TServer, TClient, TComponents, TBlueprints> {
     const manager = new NetworkManager<TServer, TClient, TComponents, TBlueprints>(options.transport || new NullTransport<TServer, TClient>());
     if (options.world) {
-      manager.world = options.world;
+      manager.world = options.world as World<TComponents, TEvents, TBlueprints>;
     }
     return manager;
   }

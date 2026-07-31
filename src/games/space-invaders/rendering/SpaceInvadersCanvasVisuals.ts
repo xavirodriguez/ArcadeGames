@@ -3,7 +3,7 @@ import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/Spa
 
 /**
  * Visuals for the player ship.
- * Sleek sci-fi dual-winged fighter with an active flickering thruster flame.
+ * Sleek sci-fi dual-winged fighter with dynamic motion tilting and wing cannon muzzle flashes.
  */
 export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -21,10 +21,19 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     ctx.save();
 
-    // 1. Flickering thruster flame (fully deterministic using world.renderRandom)
+    // 1. Dynamic motion leaning/tilting based on horizontal velocity
+    const velocityType = "Velocity" as Extract<keyof SpaceInvadersComponentRegistry, string>;
+    const velocity = world.getComponent(entity, velocityType) as any;
+    if (velocity && Math.abs(velocity.vx) > 10) {
+      // Lean into the movement direction
+      const tilt = (velocity.vx > 0) ? 0.07 : -0.07;
+      ctx.rotate(tilt);
+    }
+
+    // 2. Flickering thruster flame (fully deterministic using world.renderRandom)
     const rng = world.renderRandom;
-    const flameHeight = 10 + rng.next() * 12;
-    const flameWidth = 6 + rng.next() * 4;
+    const flameHeight = 12 + rng.next() * 14;
+    const flameWidth = 7 + rng.next() * 5;
     ctx.fillStyle = "#FF5500";
     ctx.beginPath();
     ctx.moveTo(-flameWidth / 2, size / 4);
@@ -42,7 +51,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // 2. Twin wings (Sleek aerodynamic wings)
+    // 3. Twin wings (Sleek aerodynamic wings)
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.moveTo(-size / 2, size / 4);
@@ -56,7 +65,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // 3. Central main ship hull
+    // 4. Central main ship hull
     ctx.fillStyle = (color === "white") ? "white" : "#00DD00"; // darker green for shading depth
     ctx.beginPath();
     ctx.moveTo(-size / 6, size / 4);
@@ -67,7 +76,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // 4. Cockpit windshield
+    // 5. Cockpit windshield
     ctx.fillStyle = (color === "white") ? "white" : "#00FFFF"; // Cyan canopy glass
     ctx.beginPath();
     ctx.moveTo(-size / 10, -size / 8);
@@ -77,10 +86,39 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // 5. Dual side blasters
+    // 6. Dual side blasters
     ctx.fillStyle = "#888888";
-    ctx.fillRect(-size / 2.2, -size / 12, 3, size / 4);
-    ctx.fillRect(size / 2.2 - 3, -size / 12, 3, size / 4);
+    const leftBlasterX = -size / 2.2;
+    const rightBlasterX = size / 2.2 - 3;
+    const blasterY = -size / 12;
+    const blasterH = size / 4;
+    ctx.fillRect(leftBlasterX, blasterY, 3, blasterH);
+    ctx.fillRect(rightBlasterX, blasterY, 3, blasterH);
+
+    // 7. Dynamic muzzle flash when shooting
+    const inputType = "Input" as Extract<keyof SpaceInvadersComponentRegistry, string>;
+    const input = world.getComponent(entity, inputType) as any;
+    if (input && input.shootCooldownRemaining > 0.38) {
+      // Left cannon flash
+      ctx.fillStyle = "#FFFF88";
+      ctx.beginPath();
+      ctx.arc(leftBlasterX + 1.5, blasterY, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctx.arc(leftBlasterX + 1.5, blasterY, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Right cannon flash
+      ctx.fillStyle = "#FFFF88";
+      ctx.beginPath();
+      ctx.arc(rightBlasterX + 1.5, blasterY, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctx.arc(rightBlasterX + 1.5, blasterY, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.restore();
   }
@@ -116,7 +154,6 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
 
     if (blueprintId === "invader_commander") {
       // --- Commander Shape (Menacing wide alien with claws & antennas) ---
-      // Magenta / Violet tone naturally or colored via blueprint
       ctx.fillRect(-s * 5, -s * 3, s * 10, s * 2);
       ctx.fillRect(-s * 4, -s, s * 8, s * 3);
 
@@ -305,7 +342,7 @@ export const drawSpaceInvadersUFO: ShapeDrawer<CanvasRenderingContext2D, SpaceIn
 
 /**
  * Visuals for bullets.
- * Styled as energy projectile capsules with glowing neon borders and hyper-white core.
+ * Styled as energy projectile capsules with glowing neon borders, laser motion trails, and hyper-white core.
  */
 export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -315,12 +352,32 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     ctx.save();
 
-    // Outer glow simulation using canvas shadows (doesn't trigger heap allocation)
+    // 1. Procedural afterimage laser motion trail based on bullet velocity direction
+    const velocityType = "Velocity" as Extract<keyof SpaceInvadersComponentRegistry, string>;
+    const vel = world.getComponent(entity, velocityType) as any;
+    if (vel) {
+      const trailLength = 24;
+      const angle = Math.atan2(vel.vy, vel.vx);
+      const trailX = -Math.cos(angle) * trailLength;
+      const trailY = -Math.sin(angle) * trailLength;
+
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath();
+      ctx.moveTo(-size / 2, 0);
+      ctx.lineTo(trailX, trailY);
+      ctx.lineTo(size / 2, 0);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // 2. Glowing shadow overlay simulation
     ctx.shadowBlur = 6;
     ctx.shadowColor = color;
 
-    // Glowing envelope capsule
+    // 3. Main glowing capsule envelope
     ctx.fillStyle = color;
+    ctx.globalAlpha = 1.0;
     ctx.beginPath();
     if (ctx.roundRect) {
       ctx.roundRect(-size / 2, -size, size, size * 2, size / 2);
@@ -329,7 +386,7 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
     }
     ctx.fill();
 
-    // Internal hot plasma laser core
+    // 4. Hot laser plasma core
     ctx.shadowBlur = 0;
     ctx.fillStyle = "#FFFFFF";
     ctx.beginPath();
@@ -407,7 +464,7 @@ export const drawSpaceInvadersShield: ShapeDrawer<CanvasRenderingContext2D, Spac
 
 /**
  * Visuals for particles.
- * High-juice sparkling diamonds that dynamically shrink and fade based on their remaining TTL.
+ * High-juice sparkling diamonds that dynamically shrink, fade, and diffuse soft glowing halos.
  */
 export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -429,10 +486,17 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
     }
 
     ctx.save();
+
+    // Draw secondary soft heat dispersion halo
+    ctx.fillStyle = color;
+    ctx.globalAlpha = opacity * 0.28;
+    ctx.beginPath();
+    ctx.arc(0, 0, currentSize * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Main diamond sparkle path
     ctx.globalAlpha = opacity;
     ctx.fillStyle = color;
-
-    // Sparkling starburst diamond path
     ctx.beginPath();
     ctx.moveTo(0, -currentSize);
     ctx.lineTo(currentSize / 2, 0);
@@ -453,17 +517,27 @@ interface Star {
   color: string;
 }
 
+interface NebulaCloud {
+  x: number;
+  y: number;
+  radius: number;
+  color: string;
+  speed: number;
+}
+
 const stars: Star[] = [];
+const nebulas: NebulaCloud[] = [];
 
 /**
- * Generate seedable starfield once at compilation/module load to enforce 0 heap allocations in drawing loop.
+ * Generate seedable starfield and nebulas once at compilation/module load to enforce 0 heap allocations in drawing loop.
  */
-function initializeStarfield() {
-  let seed = 12345;
+function initializeSpaceArt() {
+  let seed = 54321;
   function lcg() {
     seed = (seed * 1664525 + 1013904223) % 4294967296;
     return seed / 4294967296;
   }
+  // Initialize Stars
   for (let i = 0; i < 60; i++) {
     const layer = Math.floor(lcg() * 3);
     let speed = 20;
@@ -473,15 +547,15 @@ function initializeStarfield() {
     if (layer === 0) {
       speed = 10 + lcg() * 10;
       size = 1.0;
-      color = "rgba(120, 120, 255, 0.4)"; // faint blue background star
+      color = "rgba(100, 100, 255, 0.4)"; // Faint deep blue
     } else if (layer === 1) {
       speed = 25 + lcg() * 15;
       size = 1.5;
-      color = "rgba(220, 100, 220, 0.6)"; // medium pink star
+      color = "rgba(220, 100, 220, 0.6)"; // Medium purple-pink
     } else {
       speed = 60 + lcg() * 30;
       size = 2.0;
-      color = "rgba(100, 255, 255, 0.85)"; // bright cyan foreground star
+      color = "rgba(100, 255, 255, 0.85)"; // Bright foreground cyan
     }
 
     stars.push({
@@ -492,18 +566,45 @@ function initializeStarfield() {
       color
     });
   }
+
+  // Initialize Cosmic Nebula Gas Clouds
+  nebulas.push({ x: 200, y: 150, radius: 180, color: "rgba(0, 255, 255, 0.05)", speed: 4 }); // Cyan Cloud
+  nebulas.push({ x: 600, y: 400, radius: 210, color: "rgba(255, 0, 255, 0.04)", speed: 6 }); // Pink Cloud
+  nebulas.push({ x: 400, y: -80, radius: 150, color: "rgba(100, 100, 255, 0.045)", speed: 5 }); // Deep Blue Cloud
 }
-initializeStarfield();
+initializeSpaceArt();
 
 /**
- * Parallax Starfield Background effect drawer with retro glowing cabinet borders.
+ * Parallax Starfield & Cosmic Nebula Background effect drawer with retro glowing cabinet borders and soft CRT Scanlines.
  */
 export const spaceInvadersStarfield: EffectDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world) {
     const tick = world.tick;
     ctx.save();
 
-    // 1. Draw drift stars (modulo-wrapped based on tick)
+    // 1. Draw slow drifting cosmic nebulas (simulated using layered alpha circles for smooth gas halos)
+    for (let i = 0; i < nebulas.length; i++) {
+      const neb = nebulas[i];
+      const currentY = (neb.y + neb.speed * (tick / 60)) % 800 - 100;
+
+      ctx.fillStyle = neb.color;
+      // Core gas cloud
+      ctx.beginPath();
+      ctx.arc(neb.x, currentY, neb.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Middle gas cloud
+      ctx.beginPath();
+      ctx.arc(neb.x, currentY, neb.radius * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner dense gas cloud
+      ctx.beginPath();
+      ctx.arc(neb.x, currentY, neb.radius * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 2. Draw drifting stars (modulo-wrapped)
     for (let i = 0; i < stars.length; i++) {
       const star = stars[i];
       const currentY = (star.y + star.speed * (tick / 60)) % 600;
@@ -511,7 +612,7 @@ export const spaceInvadersStarfield: EffectDrawer<CanvasRenderingContext2D, Spac
       ctx.fillRect(star.x, currentY, star.size, star.size);
     }
 
-    // 2. Draw glowing side-borders for retro CRT cabinet feel
+    // 3. Draw glowing neon side-borders for premium retro cabinet feel
     ctx.strokeStyle = "rgba(255, 0, 255, 0.25)";
     ctx.lineWidth = 2;
     ctx.shadowBlur = 8;
@@ -524,6 +625,19 @@ export const spaceInvadersStarfield: EffectDrawer<CanvasRenderingContext2D, Spac
     ctx.stroke();
 
     ctx.restore();
+
+    // 4. Overlay soft scanline grids
+    ctx.fillStyle = "rgba(0, 0, 0, 0.12)";
+    for (let y = 0; y < 600; y += 4) {
+      ctx.fillRect(0, y, 800, 1.5);
+    }
+
+    // 5. Retro Screen Vignette border
+    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.fillRect(0, 0, 800, 8); // Top edge
+    ctx.fillRect(0, 592, 800, 8); // Bottom edge
+    ctx.fillRect(0, 0, 8, 600); // Left edge
+    ctx.fillRect(792, 0, 8, 600); // Right edge
   }
 };
 

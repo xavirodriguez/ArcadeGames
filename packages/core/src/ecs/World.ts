@@ -1,4 +1,4 @@
-import { ComponentRegistry, ComponentType } from "./Component";
+import { ComponentRegistry, ComponentType, DeepReadonly } from "./Component";
 import { Entity } from "./Entity";
 import { EventRegistry, EventBus } from "../events/EventBus";
 import { Query } from "./Query";
@@ -56,6 +56,18 @@ export class World<
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
+  public static readonly RESOURCE_VALIDATORS: Record<string, (val: any) => boolean> = {
+    EventBus: (val) => val !== null && typeof val?.emit === "function" && typeof val?.on === "function",
+    SpatialCullingCandidates: (val) => Array.isArray(val),
+    SpatialCullingEnabled: (val) => typeof val === "boolean",
+    SpatialCullingMargin: (val) => typeof val === "number",
+    ScreenShake: (val) => typeof val === "object" && val !== null && typeof val.intensity === "number" && typeof val.duration === "number" && typeof val.remaining === "number",
+    BlueprintRegistry: (val) => typeof val === "object" && val !== null && typeof val.get === "function",
+    StateMachineRegistry: (val) => typeof val === "object" && val !== null,
+    ScreenConfig: (val) => typeof val === "object" && val !== null && typeof val.width === "number" && typeof val.height === "number",
+    UseSoASnapshots: (val) => typeof val === "boolean",
+  };
+
   private activeEntities = new Set<Entity>();
   private cachedEntities: ReadonlyArray<Entity> | null = null;
 
@@ -416,12 +428,12 @@ export class World<
   public readComponent<K extends ComponentType<TComponents>>(
     entity: Entity,
     type: K
-  ): TComponents[K] | undefined {
+  ): DeepReadonly<TComponents[K]> | undefined {
     const component = this.getComponent(entity, type);
     if (isDev && component !== undefined) {
-      return Object.freeze(component) as TComponents[K];
+      return Object.freeze(component) as unknown as DeepReadonly<TComponents[K]>;
     }
-    return component;
+    return component as unknown as DeepReadonly<TComponents[K]>;
   }
 
   /**
@@ -622,7 +634,14 @@ export class World<
   }
 
   getResource<T>(name: string): T | undefined {
-    return this.resources.get(name) as T;
+    const val = this.resources.get(name);
+    if (isDev && val !== undefined) {
+      const validator = World.RESOURCE_VALIDATORS[name];
+      if (validator && !validator(val)) {
+        throw new Error(`Resource type assertion failed for resource "${name}". Value does not match the expected shape.`);
+      }
+    }
+    return val as T;
   }
 
   deleteResource(name: string): void {

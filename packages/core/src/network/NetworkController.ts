@@ -1,4 +1,4 @@
-import { World } from "../ecs/World";
+import { World, BlueprintRegistryMap } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
 import { EventRegistry } from "../events/EventBus";
 import { NetworkManager } from "./NetworkManager";
@@ -11,16 +11,17 @@ import { InputFrame, ServerUpdatePayload, DeltaSnapshotPayload, FullSnapshotPayl
  */
 export class NetworkController<
   TComponents extends ComponentRegistry = ComponentRegistry,
-  TEvents extends EventRegistry = EventRegistry
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
-  public networkManager?: NetworkManager<TEvents, any>;
+  public networkManager?: NetworkManager<TEvents, any, TComponents, TBlueprints>;
   public lastProcessedFullStateVersion = -1;
   public isMultiplayer = false;
-  private world: World<TComponents, TEvents, any>;
+  private world: World<TComponents, TEvents, TBlueprints>;
   private runSimStep: (deltaTime: number, isResimulating: boolean) => void;
 
   constructor(
-    world: World<TComponents, TEvents, any>,
+    world: World<TComponents, TEvents, TBlueprints>,
     runSimStep?: (deltaTime: number, isResimulating: boolean) => void
   ) {
     this.world = world;

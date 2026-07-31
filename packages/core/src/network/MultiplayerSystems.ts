@@ -1,7 +1,7 @@
 import { Packr } from "msgpackr";
 import { ServerUpdatePayload } from "./NetTypes";
 import { WorldSnapshot } from "../snapshots/WorldSnapshot";
-import { World, ComponentRegistry } from "../ecs/World";
+import { World, ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
 import { EventRegistry } from "../events/EventBus";
 import { System } from "../ecs/System";
 
@@ -24,9 +24,10 @@ export class NetworkDeltaSystem {
     constructor(tracker: ReplicationStateTracker) {}
     public generateDelta<
       TComponents extends ComponentRegistry = ComponentRegistry,
-      TEvents extends EventRegistry = EventRegistry
+      TEvents extends EventRegistry = EventRegistry,
+      TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
     >(
-      world: World<TComponents, TEvents, any>,
+      world: World<TComponents, TEvents, TBlueprints>,
       sessionId: string,
       sequence: number,
       baselineAck: number,
@@ -41,26 +42,41 @@ export class NetworkDeltaSystem {
     }
 }
 /** @public */
+export interface InterestNode {
+    entityId?: number;
+    priority?: number;
+    [key: string]: any;
+}
+
+/** @public */
 export class NetworkBudgetManager {
-    public prioritize(sessionId: string, interest: any[], selfEntityId?: string): any[] { return interest; }
+    public prioritize(sessionId: string, interest: InterestNode[], selfEntityId?: string): InterestNode[] { return interest; }
 }
 /** @public */
 export class BinaryCompression {
     public static pack(packet: any): Uint8Array {
         return packr.pack(packet);
     }
-    public static unpack<T = any>(packet: Uint8Array | ArrayBuffer | Buffer): T {
+    public static unpack<T = any>(
+        packet: Uint8Array | ArrayBuffer | Buffer,
+        validator?: (data: unknown) => data is T
+    ): T {
         const buf = packet instanceof Uint8Array ? packet : new Uint8Array(packet);
-        return packr.unpack(buf) as T;
+        const decoded = packr.unpack(buf);
+        if (validator && !validator(decoded)) {
+            throw new Error("BinaryCompression: Unpacked data failed validation type guard.");
+        }
+        return decoded as T;
     }
 }
 
 /** @public */
 export class InterestManagerSystem<
   TComponents extends ComponentRegistry = ComponentRegistry,
-  TEvents extends EventRegistry = EventRegistry
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > extends System<TComponents, TEvents> {
-    public update(world: World<TComponents, TEvents, any>, deltaTime: number): void {}
-    public override onRegister(world: World<TComponents, TEvents, any>): void {}
+    public update(world: World<TComponents, TEvents, TBlueprints>, deltaTime: number): void {}
+    public override onRegister(world: World<TComponents, TEvents, TBlueprints>): void {}
     public override dispose(): void {}
 }

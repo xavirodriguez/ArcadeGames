@@ -80,8 +80,8 @@ export class AsteroidsGame
   private resizeListener?: () => void;
   private isHeadless: boolean;
 
-  public get networkManager(): NetworkManager | undefined { return this.network.networkManager; }
-  public set networkManager(val: NetworkManager | undefined) { this.network.networkManager = val; }
+  public get networkManager(): NetworkManager<Record<string, any>, Record<string, any>, AsteroidsComponentRegistry> | undefined { return this.network.networkManager; }
+  public set networkManager(val: NetworkManager<Record<string, any>, Record<string, any>, AsteroidsComponentRegistry> | undefined) { this.network.networkManager = val as any; }
   public get lastProcessedFullStateVersion(): number { return this.network.lastProcessedFullStateVersion; }
   public set lastProcessedFullStateVersion(val: number) { this.network.lastProcessedFullStateVersion = val; }
   public get isMultiplayer(): boolean { return this.network.isMultiplayer; }

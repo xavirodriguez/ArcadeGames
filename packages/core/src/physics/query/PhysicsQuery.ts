@@ -1,4 +1,5 @@
-import { World, ComponentRegistry } from "../../ecs/World";
+import { World, ComponentRegistry, BlueprintRegistryMap } from "../../ecs/World";
+import { EventRegistry } from "../../events/EventBus";
 import { Entity } from "../../ecs/Entity";
 import { Shape, ShapeType, ConvexPolygonShape } from "../shapes/Shapes";
 import { NarrowPhase } from "../collision/NarrowPhase";
@@ -6,8 +7,12 @@ import { TransformComponent, ColliderComponent } from "../../ecs/CoreComponents"
 
 /** @public */
 export class PhysicsQuery {
-  public static pointCast<TComponents extends ComponentRegistry>(
-    world: World<TComponents, any, any>,
+  public static pointCast<
+    TComponents extends ComponentRegistry = ComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(
+    world: World<TComponents, TEvents, TBlueprints>,
     x: number,
     y: number
   ): Entity[] {
@@ -76,8 +81,12 @@ export class PhysicsQuery {
     return results;
   }
 
-  public static shapeCast<TComponents extends ComponentRegistry>(
-    world: World<TComponents, any, any>,
+  public static shapeCast<
+    TComponents extends ComponentRegistry = ComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(
+    world: World<TComponents, TEvents, TBlueprints>,
     shape: Shape,
     x: number,
     y: number

@@ -1,7 +1,7 @@
 import { Packr } from "msgpackr";
 import { ServerUpdatePayload } from "./NetTypes";
 import { WorldSnapshot } from "../snapshots/WorldSnapshot";
-import { World, ComponentRegistry } from "../ecs/World";
+import { World, ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
 import { EventRegistry } from "../events/EventBus";
 import { System } from "../ecs/System";
 
@@ -24,9 +24,10 @@ export class NetworkDeltaSystem {
     constructor(tracker: ReplicationStateTracker) {}
     public generateDelta<
       TComponents extends ComponentRegistry = ComponentRegistry,
-      TEvents extends EventRegistry = EventRegistry
+      TEvents extends EventRegistry = EventRegistry,
+      TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
     >(
-      world: World<TComponents, TEvents, any>,
+      world: World<TComponents, TEvents, TBlueprints>,
       sessionId: string,
       sequence: number,
       baselineAck: number,
@@ -58,9 +59,10 @@ export class BinaryCompression {
 /** @public */
 export class InterestManagerSystem<
   TComponents extends ComponentRegistry = ComponentRegistry,
-  TEvents extends EventRegistry = EventRegistry
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > extends System<TComponents, TEvents> {
-    public update(world: World<TComponents, TEvents, any>, deltaTime: number): void {}
-    public override onRegister(world: World<TComponents, TEvents, any>): void {}
+    public update(world: World<TComponents, TEvents, TBlueprints>, deltaTime: number): void {}
+    public override onRegister(world: World<TComponents, TEvents, TBlueprints>): void {}
     public override dispose(): void {}
 }

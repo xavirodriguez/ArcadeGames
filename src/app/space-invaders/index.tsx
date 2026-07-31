@@ -69,18 +69,13 @@ export default function SpaceInvadersScreen() {
     }
   }, [isMulti, serverState, game]);
 
-  const handleMultiplayerInput = useCallback((input: Record<string, boolean>) => {
+  const handleMultiplayerInput = useCallback((input: Partial<InputState>) => {
     if (isMulti && room) {
         room.send("input", input);
     } else {
         handleInput(input);
-
-        // Decoupled Integration with ECS world via Input Bridge
-        if (typeof (game as any)?.setInputState === "function") {
-          (game as any).setInputState(input);
-        }
     }
-  }, [isMulti, room, handleInput, game]);
+  }, [isMulti, room, handleInput]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });
@@ -91,26 +86,20 @@ export default function SpaceInvadersScreen() {
   }, [handleMultiplayerInput]);
 
   const handleJoystickMove = useCallback((x: number, y: number) => {
-    if (typeof (game as any).setInputState === "function") {
-      (game as any).setInputState({ rotationAmount: x });
-    } else {
-      handleMultiplayerInput({
-        moveLeft: x < -0.15,
-        moveRight: x > 0.15,
-      });
-    }
-  }, [game, handleMultiplayerInput]);
+    handleMultiplayerInput({
+      rotationAmount: x,
+      moveLeft: x < -0.15,
+      moveRight: x > 0.15,
+    });
+  }, [handleMultiplayerInput]);
 
   const handleJoystickRelease = useCallback(() => {
-    if (typeof (game as any).setInputState === "function") {
-      (game as any).setInputState({ rotationAmount: 0, moveLeft: false, moveRight: false });
-    } else {
-      handleMultiplayerInput({
-        moveLeft: false,
-        moveRight: false,
-      });
-    }
-  }, [game, handleMultiplayerInput]);
+    handleMultiplayerInput({
+      rotationAmount: 0,
+      moveLeft: false,
+      moveRight: false,
+    });
+  }, [handleMultiplayerInput]);
 
   if (!started) {
     return (

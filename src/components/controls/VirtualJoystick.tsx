@@ -7,23 +7,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { World, Component, TagComponent } from "@tiny-aster/core";
-import { Entity } from "@tiny-aster/core";
 
 export type JoystickType = "movement" | "rotation";
-
-export interface VirtualJoystickComponent extends Component {
-  type: "VirtualJoystick";
-  active: boolean;
-  originX: number;
-  originY: number;
-  currentX: number;
-  currentY: number;
-  radius: number;
-  joystickType: JoystickType;
-  horizontalAxis: string;
-  verticalAxis: string;
-}
 
 export interface VirtualJoystickProps {
   /** Unique ID for identifying the ECS entity. */
@@ -42,8 +27,6 @@ export interface VirtualJoystickProps {
   opacity?: number;
   /** Whether to show the background ring. */
   showBackgroundRing?: boolean;
-  /** The ECS World to integrate with (Obsolete/unused). */
-  world?: World;
   /** Optional style for the touchable container. */
   containerStyle?: StyleProp<ViewStyle>;
   /** Optional callback for movement. */
@@ -69,7 +52,6 @@ export function VirtualJoystick({
   activeColor = "rgba(255,255,255,0.7)",
   opacity = 0.6,
   showBackgroundRing = true,
-  world,
   containerStyle,
   onMove,
   onRelease,

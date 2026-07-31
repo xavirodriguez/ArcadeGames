@@ -107,11 +107,8 @@ export default function AsteroidsScreen() {
         }
     } else {
         handleInput(input);
-
-        // Task 3: Decoupled Integration with ECS world for touch controls via Input Bridge
-        game?.setInputState(input);
     }
-  }, [isMulti, room, sendInput, game, handleInput]);
+  }, [isMulti, room, sendInput, handleInput]);
 
   const autoFireIntervalRef = useRef<NodeJS.Timeout | null>(null);
 

@@ -43,8 +43,6 @@ export class FlappyBirdGame
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown> } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     super({
-      pauseKey: FLAPPY_CONFIG.KEYS.PAUSE,
-      restartKey: FLAPPY_CONFIG.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
       gameOptions: { ...config.gameOptions, seed }
     });

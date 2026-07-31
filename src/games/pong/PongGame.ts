@@ -62,7 +62,6 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     const seed = isConfig ? (config.gameOptions?.seed as number || config.seed) : undefined;
 
     super({
-      pauseKey: "Escape",
       isMultiplayer,
       gameOptions: { mode, seed, ...((isConfig && config.gameOptions) || {}) }
     });

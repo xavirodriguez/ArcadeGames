@@ -51,10 +51,7 @@ export class SpaceInvadersGame
 
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown> } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
-    const rawConfig = require("./config/space-invaders.json");
     super({
-      pauseKey: rawConfig.KEYS.PAUSE,
-      restartKey: rawConfig.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
       gameOptions: { ...config.gameOptions, seed }
     });
@@ -338,15 +335,18 @@ export class SpaceInvadersGame
         if (input.moveRight !== undefined) inp.moveRight = input.moveRight;
         if (input.shoot !== undefined) inp.shoot = input.shoot;
         if (input.rotationAmount !== undefined) {
-          if (input.rotationAmount < -0.15) {
-            inp.moveLeft = true;
-            inp.moveRight = false;
-          } else if (input.rotationAmount > 0.15) {
-            inp.moveLeft = false;
-            inp.moveRight = true;
-          } else {
-            inp.moveLeft = false;
-            inp.moveRight = false;
+          const rotAmount = Number(input.rotationAmount);
+          if (!isNaN(rotAmount)) {
+            if (rotAmount < -0.15) {
+              inp.moveLeft = true;
+              inp.moveRight = false;
+            } else if (rotAmount > 0.15) {
+              inp.moveLeft = false;
+              inp.moveRight = true;
+            } else {
+              inp.moveLeft = false;
+              inp.moveRight = false;
+            }
           }
         }
       });

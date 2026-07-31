@@ -48,6 +48,7 @@ export interface BoundaryComponent extends Component {
 export interface TTLComponent extends Component {
   type: "TTL";
   timeLeft: number;
+  /** @deprecated Use timeLeft instead. */
   remaining: number;
   onCompleteEvent?: string;
 }
@@ -115,8 +116,11 @@ export interface AnimatorComponent extends Component {
   elapsedTime: number;
   isPlaying: boolean;
   animations: Record<string, AnimationDefinition>;
+  /** @deprecated Use currentAnimation instead. */
   current: string | null;
+  /** @deprecated Use elapsedTime instead. */
   elapsed: number;
+  /** @deprecated Use frameIndex instead. */
   frame: number;
 }
 
@@ -152,6 +156,12 @@ export interface ParticleEmitterConfig {
 export interface ParticleEmitterComponent extends Component {
   type: "ParticleEmitter";
   config: ParticleEmitterConfig;
+  /**
+   * Status of the particle emitter.
+   * - If boolean: `true` indicates persistent emission loop; `false` indicates inactive.
+   * - If number: represents the timed emission duration/TTL in seconds (or milliseconds depending on configuration),
+   *   counting down to 0 after which emission is stopped automatically.
+   */
   active: boolean | number;
   elapsed: number;
 }
@@ -284,7 +294,10 @@ export interface IHierarchicalComponent extends Component {
     children: Entity[];
 }
 
-/** @public */
+/**
+ * @deprecated Collider2DComponent is legacy. Use ColliderComponent and its modern collision system instead.
+ * @public
+ */
 export interface Collider2DComponent extends Component {
   type: "Collider2D";
   shape: { type: "circle"; radius: number } | { type: "aabb"; halfWidth: number; halfHeight: number };

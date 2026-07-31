@@ -41,6 +41,10 @@ describe("PhysicsQuery and SpatialPartitioningSystem Tests", () => {
 
     const matchesOutside = PhysicsQuery.pointCast(world, 115, 100);
     expect(matchesOutside).not.toContain(entity);
+
+    // Verify World.physics proxy works
+    expect(world.physics.pointCast(105, 100)).toContain(entity);
+    expect(world.physics.pointCast(115, 100)).not.toContain(entity);
   });
 
   it("should cast shape and detect intersection", () => {
@@ -76,6 +80,10 @@ describe("PhysicsQuery and SpatialPartitioningSystem Tests", () => {
     // Test with non-overlapping shape
     const matchesNoOverlap = PhysicsQuery.shapeCast(world, castShape, 130, 100);
     expect(matchesNoOverlap).not.toContain(entity);
+
+    // Verify World.physics proxy works
+    expect(world.physics.shapeCast(castShape, 112, 100)).toContain(entity);
+    expect(world.physics.shapeCast(castShape, 130, 100)).not.toContain(entity);
   });
 
   it("should detect convex polygon collisions using SAT", () => {

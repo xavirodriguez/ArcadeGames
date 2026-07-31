@@ -42,17 +42,31 @@ export class NetworkDeltaSystem {
     }
 }
 /** @public */
+export interface InterestNode {
+    entityId?: number;
+    priority?: number;
+    [key: string]: any;
+}
+
+/** @public */
 export class NetworkBudgetManager {
-    public prioritize(sessionId: string, interest: any[], selfEntityId?: string): any[] { return interest; }
+    public prioritize(sessionId: string, interest: InterestNode[], selfEntityId?: string): InterestNode[] { return interest; }
 }
 /** @public */
 export class BinaryCompression {
     public static pack(packet: any): Uint8Array {
         return packr.pack(packet);
     }
-    public static unpack<T = any>(packet: Uint8Array | ArrayBuffer | Buffer): T {
+    public static unpack<T = any>(
+        packet: Uint8Array | ArrayBuffer | Buffer,
+        validator?: (data: unknown) => data is T
+    ): T {
         const buf = packet instanceof Uint8Array ? packet : new Uint8Array(packet);
-        return packr.unpack(buf) as T;
+        const decoded = packr.unpack(buf);
+        if (validator && !validator(decoded)) {
+            throw new Error("BinaryCompression: Unpacked data failed validation type guard.");
+        }
+        return decoded as T;
     }
 }
 

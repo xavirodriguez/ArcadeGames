@@ -31,10 +31,6 @@ export interface BaseGameConfig<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry
 > {
-  /** [KeyboardEvent.code] Key to toggle pause. */
-  pauseKey?: string;
-  /** [KeyboardEvent.code] Key to restart the game. */
-  restartKey?: string;
   /** Enables multiplayer-specific synchronization logic. */
   isMultiplayer?: boolean;
   /** Global game options, including the initial simulation seed. */

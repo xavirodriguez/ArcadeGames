@@ -152,4 +152,38 @@ describe("ECS Core", () => {
 
     world.isUpdating = false;
   });
+
+  it("should validate resource shapes with getResource in dev mode", () => {
+    const world = new World<CoreComponentRegistry>();
+
+    // Test valid ScreenConfig resource
+    world.setResource("ScreenConfig", { width: 800, height: 600 });
+    expect(world.getResource("ScreenConfig")).toEqual({ width: 800, height: 600 });
+
+    // Test invalid ScreenConfig resource
+    world.setResource("ScreenConfig", { width: "invalid" } as any);
+    expect(() => {
+      world.getResource("ScreenConfig");
+    }).toThrow(/Resource type assertion failed for resource "ScreenConfig"/);
+
+    // Test valid SpatialCullingCandidates resource
+    world.setResource("SpatialCullingCandidates", [1, 2, 3]);
+    expect(world.getResource("SpatialCullingCandidates")).toEqual([1, 2, 3]);
+
+    // Test invalid SpatialCullingCandidates resource
+    world.setResource("SpatialCullingCandidates", "not-an-array" as any);
+    expect(() => {
+      world.getResource("SpatialCullingCandidates");
+    }).toThrow(/Resource type assertion failed for resource "SpatialCullingCandidates"/);
+
+    // Test null safety checks for object resources
+    world.setResource("ScreenConfig", null as any);
+    expect(() => {
+      world.getResource("ScreenConfig");
+    }).toThrow(/Resource type assertion failed for resource "ScreenConfig"/);
+
+    // Clean up
+    world.deleteResource("ScreenConfig");
+    world.deleteResource("SpatialCullingCandidates");
+  });
 });

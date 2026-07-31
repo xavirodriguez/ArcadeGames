@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, HierarchySystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
@@ -248,6 +248,7 @@ export class FlappyBirdGame
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });
     this.world.addSystem(new FlappyBirdGlideSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Collision });
     this.world.addSystem(new FlappyBirdCollisionSystem(this), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });

@@ -101,7 +101,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const { PlayerBullet: bullet, Invader: invader } = invaderBullet;
       const invaderComp = world.getComponent(invader, "Invader");
 
-      // Mutate GameState and Combo components
+      // Mutate Combo component
       let nextCombo = 0;
       let nextMultiplier = 1;
 
@@ -120,15 +120,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           gs.combo = nextCombo;
           gs.comboTimerRemaining = this.config!.COMBO_TIMEOUT / 1000;
           gs.multiplier = nextMultiplier;
-        });
-      } else {
-        // Fallback for environments where Combo is not attached to GameState
-        world.mutateSingleton("GameState", (gs) => {
-          gs.combo++;
-          gs.comboTimerRemaining = this.config!.COMBO_TIMEOUT / 1000;
-          gs.multiplier = Math.min(this.config!.MAX_MULTIPLIER, 1 + Math.floor(gs.combo / 5));
-          nextCombo = gs.combo;
-          nextMultiplier = gs.multiplier;
         });
       }
 

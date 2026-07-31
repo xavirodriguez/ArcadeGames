@@ -34,6 +34,24 @@ export type BlueprintRegistryMap<
 > = Record<string, BlueprintDefinition<TComponents, TEvents, unknown>>;
 
 /**
+ * Registry interface for strongly-typed ECS resources.
+ * Can be extended via declaration merging.
+ * @public
+ */
+export interface ResourceRegistry {
+  EventBus: any;
+  SpatialCullingCandidates: any[];
+  SpatialCullingEnabled: boolean;
+  SpatialCullingMargin: number;
+  ScreenShake: any;
+  BlueprintRegistry: any;
+  StateMachineRegistry: any;
+  ScreenConfig: { width: number; height: number };
+  UseSoASnapshots: boolean;
+  InputSystem: any;
+}
+
+/**
  * The World acts as the central container for an ECS (Entity Component System) simulation.
  * It manages entities, components, systems, and resources.
  *
@@ -629,11 +647,15 @@ export class World<
     }
   }
 
-  setResource<T>(name: string, resource: T): void {
+  setResource<K extends keyof ResourceRegistry>(name: K, resource: ResourceRegistry[K]): void;
+  setResource<T>(name: string, resource: T): void;
+  setResource(name: string, resource: any): void {
     this.resources.set(name, resource);
   }
 
-  getResource<T>(name: string): T | undefined {
+  getResource<K extends keyof ResourceRegistry>(name: K): ResourceRegistry[K] | undefined;
+  getResource<T>(name: string): T | undefined;
+  getResource(name: string): any {
     const val = this.resources.get(name);
     if (isDev && val !== undefined) {
       const validator = World.RESOURCE_VALIDATORS[name];
@@ -641,7 +663,7 @@ export class World<
         throw new Error(`Resource type assertion failed for resource "${name}". Value does not match the expected shape.`);
       }
     }
-    return val as T;
+    return val;
   }
 
   deleteResource(name: string): void {

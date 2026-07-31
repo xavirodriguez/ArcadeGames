@@ -42,7 +42,7 @@ export class SnapshotSerializer {
     world: World<TComponents>,
     target?: WorldSnapshot
   ): WorldSnapshot {
-    const componentData: ComponentDataSnapshot = target?.componentData ?? {};
+    const componentData: ComponentDataSnapshot = (target && !target.isSoA) ? target.componentData : {};
     const internal = world as unknown as InternalWorldAccess<TComponents>;
 
     const activeEntities = internal.activeEntities;
@@ -86,7 +86,8 @@ export class SnapshotSerializer {
       stateVersion: world.stateVersion,
       seed: world.gameplayRandom.getSeed(),
       rngState: world.gameplayRandom.getSeed(),
-      tick: world.tick
+      tick: world.tick,
+      isSoA: false
     };
   }
 

@@ -18,9 +18,9 @@
  * These must be managed, re-initialized, or manually synchronized after restoration.
  * @public
  */
-export interface WorldSnapshot {
+/** @public */
+export interface BaseWorldSnapshot {
   entities: number[];
-  componentData: ComponentDataSnapshot;
   nextEntityId: number;
   freeEntities: number[];
   structureVersion: number;
@@ -28,13 +28,23 @@ export interface WorldSnapshot {
   seed: number;
   rngState?: number;
   tick: number;
-
-  /**
-   * Structure of Arrays (SoA) optimization flags and payload.
-   */
-  isSoA?: boolean;
-  soaComponentData?: Record<string, SoAComponentTypeData>;
 }
+
+/** @public */
+export interface AoSWorldSnapshot extends BaseWorldSnapshot {
+  isSoA?: false;
+  componentData: ComponentDataSnapshot;
+}
+
+/** @public */
+export interface SoAWorldSnapshot extends BaseWorldSnapshot {
+  isSoA: true;
+  componentData?: ComponentDataSnapshot;
+  soaComponentData: Record<string, SoAComponentTypeData>;
+}
+
+/** @public */
+export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;
 
 /**
  * Flat storage of component data organized by type and entity ID (classic AoS representation).

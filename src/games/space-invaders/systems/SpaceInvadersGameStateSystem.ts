@@ -56,18 +56,6 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           });
         }
       }
-    } else {
-      // Fallback: Decrement local combo timer and clear if expired if no Combo component is attached
-      if (gameState.comboTimerRemaining > 0) {
-        world.mutateSingleton("GameState", (gs) => {
-          gs.comboTimerRemaining -= deltaTime;
-          if (gs.comboTimerRemaining <= 0) {
-            gs.comboTimerRemaining = 0;
-            gs.combo = 0;
-            gs.multiplier = 1;
-          }
-        });
-      }
     }
   }
 

@@ -48,6 +48,7 @@ import {
 
 import { LootSystem, PowerUpSystem } from "../shared/arcade";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
@@ -232,6 +233,15 @@ export class AsteroidsGame
 
         // Spawn first wave
         spawnAsteroidWave(this.world, 1);
+
+        // Apply active beneficial mutators
+        const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
+        for (const mutatorId of activeBeneficials) {
+          const mutator = BENEFICIAL_MUTATORS[mutatorId];
+          if (mutator) {
+            mutator.apply(this.world);
+          }
+        }
     } finally {
         this.world.gameplayRandom.lock();
     }

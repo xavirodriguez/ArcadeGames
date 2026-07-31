@@ -1,10 +1,12 @@
 import { Component, CoreComponentRegistry } from "@tiny-aster/core";
+import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
 
 export interface FlappyBirdComponentRegistry extends CoreComponentRegistry {
   FlappyInput: FlappyBirdInputComponent;
   Bird: BirdComponent;
   Pipe: PipeComponent;
   FlappyState: FlappyBirdState;
+  Combo: ComboComponent;
 }
 
 /**

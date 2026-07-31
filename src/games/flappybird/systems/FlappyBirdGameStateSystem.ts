@@ -51,8 +51,23 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
           world.mutateComponent(entity, "Pipe", p => {
              p.scored = true;
           });
+
+          // Increment Combo on pipe passed!
+          let nextMultiplier = 1;
+          const comboEntities = world.query("Combo" as any);
+          const comboEntity = comboEntities[0];
+          if (comboEntity !== undefined) {
+            world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+              c.combo++;
+              c.timerRemaining = 3.0; // 3 seconds timeout
+              c.multiplier = Math.min(10, 1 + Math.floor(c.combo / 3)); // max 10 multiplier
+              nextMultiplier = c.multiplier;
+            });
+          }
+
           world.mutateSingleton("FlappyState", (gs) => {
-              gs.score += gs.comboMultiplier || 1;
+              gs.score += nextMultiplier;
+              gs.comboMultiplier = nextMultiplier;
               if (gs.score > gs.highScore) {
                 gs.highScore = gs.score;
               }
@@ -62,6 +77,18 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         }
       }
     });
+
+    // Sync local FlappyState combo fields from the unified Combo component (updated by ComboSystem)
+    const comboEntities = world.query("Combo" as any);
+    const comboEntity = comboEntities[0];
+    if (comboEntity !== undefined) {
+      const comboComp = world.getComponent(comboEntity, "Combo" as any) as any;
+      if (comboComp && gameState.comboMultiplier !== comboComp.multiplier) {
+        world.mutateSingleton("FlappyState", (gs) => {
+          gs.comboMultiplier = comboComp.multiplier;
+        });
+      }
+    }
   }
 
   protected getGameState(world: World<FlappyBirdComponentRegistry>): FlappyBirdState | undefined {
@@ -84,7 +111,17 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
             state.isGameOver = false;
             state.score = 0;
             state.pipeSpawnTimer = 0;
+            state.comboMultiplier = 1;
         });
+        const comboEntities = w.query("Combo" as any);
+        const comboEntity = comboEntities[0];
+        if (comboEntity !== undefined) {
+          w.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+            c.combo = 0;
+            c.multiplier = 1;
+            c.timerRemaining = 0;
+          });
+        }
     }
   }
 }

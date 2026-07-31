@@ -1,6 +1,8 @@
 import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, HierarchySystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
+import { ComboSystem } from "../shared/arcade";
+import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
 import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";
 import { FlappyBirdGlideSystem } from "./systems/FlappyBirdGlideSystem";
@@ -232,6 +234,13 @@ export class FlappyBirdGame
           gameOverLogged: false,
           comboMultiplier: 1,
         });
+        world.addComponent(entity, {
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: 3.0
+        } as any);
       }
     });
 
@@ -252,6 +261,7 @@ export class FlappyBirdGame
     this.world.addSystem(new CollisionSystem2D() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Collision });
     this.world.addSystem(new FlappyBirdCollisionSystem(this), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
+    this.world.addSystem(new ComboSystem() as any, { phase: SystemPhase.GameRules });
 
     this.world.addSystem(new MutatorSystem(mutators) as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
@@ -274,6 +284,15 @@ export class FlappyBirdGame
     createGameState(this.world);
     createBird({ world: this.world, x: FLAPPY_CONFIG.BIRD_X, y: FLAPPY_CONFIG.BIRD_START_Y });
     createGround(this.world);
+
+    // Apply active beneficial mutators
+    const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
+    for (const mutatorId of activeBeneficials) {
+      const mutator = BENEFICIAL_MUTATORS[mutatorId];
+      if (mutator) {
+        mutator.apply(this.world);
+      }
+    }
   }
 
   protected override async onBeforeRestart(): Promise<void> {

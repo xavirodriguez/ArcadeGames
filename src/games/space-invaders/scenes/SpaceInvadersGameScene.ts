@@ -15,6 +15,7 @@ import {
 } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../../shared/arcade";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 import { SpaceInvadersInputSystem } from "../systems/SpaceInvadersInputSystem";
 import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationSystem";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
@@ -115,5 +116,14 @@ export class SpaceInvadersGameScene extends Scene {
     createFormationController(this.world);
     spawnInvaderWave(this.world, 1);
     spawnShields(this.world);
+
+    // Apply active beneficial mutators
+    const activeBeneficials = ((this.game as any)._config?.gameOptions?.activeBeneficialMutators as string[]) || [];
+    for (const mutatorId of activeBeneficials) {
+      const mutator = BENEFICIAL_MUTATORS[mutatorId];
+      if (mutator) {
+        mutator.apply(this.world);
+      }
+    }
   }
 }

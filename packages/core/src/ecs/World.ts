@@ -13,6 +13,7 @@ import { SnapshotRestoreSoA } from "../snapshots/SnapshotRestoreSoA";
 import { WorldCommandBuffer } from "./WorldCommandBuffer";
 import { BlueprintDefinition } from "./BlueprintRegistry";
 import { ComponentCloner } from "./ComponentCloner";
+import { PhysicsQuery } from "../physics/query/PhysicsQuery";
 
 declare const __DEV__: boolean;
 
@@ -168,6 +169,19 @@ export class World<
    */
   public renderRandom = new RandomService();
 
+  /**
+   * Namespace for physics queries to decompose World god-object complexity.
+   * @public
+   */
+  public readonly physics = {
+    pointCast: (x: number, y: number): Entity[] => {
+      return PhysicsQuery.pointCast(this, x, y);
+    },
+    shapeCast: (shape: any, x: number, y: number): Entity[] => {
+      return PhysicsQuery.shapeCast(this, shape, x, y);
+    }
+  };
+
   /** @internal */
   private _structureVersion = 0;
   /** @internal */
@@ -194,7 +208,14 @@ export class World<
   public get structureVersion(): number { return this._structureVersion; }
   /** Incremented on any state change (structural change or component mutation). */
   public get stateVersion(): number { return this._stateVersion; }
-  /** Seeded RNG service intended for gameplay logic to support reproducibility. */
+  /**
+   * Seeded RNG service intended for gameplay logic to support reproducibility.
+   *
+   * @deprecated Accessing gameplayRandom directly is discouraged. Instead, gameplay systems
+   * should use random numbers provided via the system's update context, and keep it encapsulated
+   * from the rendering/visual loop.
+   * @public
+   */
   public get gameplayRandom(): RandomService { return this._gameplayRandom; }
   public getEventBus(): EventBus<TEvents> { return this.getResource<EventBus<TEvents>>("EventBus")!; }
   public getCommandBuffer(): WorldCommandBuffer<TComponents, TEvents, TBlueprints> { return this.commandBuffer; }

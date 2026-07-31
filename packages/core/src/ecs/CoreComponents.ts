@@ -156,6 +156,12 @@ export interface ParticleEmitterConfig {
 export interface ParticleEmitterComponent extends Component {
   type: "ParticleEmitter";
   config: ParticleEmitterConfig;
+  /**
+   * Status of the particle emitter.
+   * - If boolean: `true` indicates persistent emission loop; `false` indicates inactive.
+   * - If number: represents the timed emission duration/TTL in seconds (or milliseconds depending on configuration),
+   *   counting down to 0 after which emission is stopped automatically.
+   */
   active: boolean | number;
   elapsed: number;
 }

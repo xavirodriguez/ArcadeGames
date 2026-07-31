@@ -11,9 +11,12 @@ import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import {
   drawSpaceInvadersPlayer,
   drawSpaceInvadersInvader,
+  drawSpaceInvadersUFO,
   drawSpaceInvadersBullet,
   drawSpaceInvadersShield,
-  drawSpaceInvadersParticle
+  drawSpaceInvadersParticle,
+  spaceInvadersStarfield,
+  spaceInvadersScreenShakeEffect
 } from "./rendering/SpaceInvadersCanvasVisuals";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
@@ -295,10 +298,15 @@ export class SpaceInvadersGame
     if ((renderer as any).type === "canvas") {
       (renderer as any).registerShape("player_ship", drawSpaceInvadersPlayer);
       (renderer as any).registerShape("invader", drawSpaceInvadersInvader);
+      (renderer as any).registerShape("ufo", drawSpaceInvadersUFO);
       (renderer as any).registerShape("player_bullet", drawSpaceInvadersBullet);
       (renderer as any).registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
       (renderer as any).registerShape("shield_block", drawSpaceInvadersShield);
       (renderer as any).registerShape("particle", drawSpaceInvadersParticle);
+
+      // Register background effects
+      (renderer as any).registerBackgroundEffect("starfield", spaceInvadersStarfield);
+      (renderer as any).registerBackgroundEffect("screen_shake", spaceInvadersScreenShakeEffect);
     }
   }
 

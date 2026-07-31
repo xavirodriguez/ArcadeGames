@@ -4,6 +4,7 @@ import {
   EventBus,
   BaseGame,
   MovementSystem,
+  HierarchySystem,
   TTLSystem,
   JuiceSystem,
   RenderUpdateSystem,
@@ -88,6 +89,7 @@ export class SpaceInvadersGameScene extends Scene {
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new SpaceInvadersFormationSystem(this.enemyBulletPool), { phase: SystemPhase.Simulation });
     this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new SpaceInvadersCollisionSystem(this.particlePool), { phase: SystemPhase.GameRules });
     this.world.addSystem(new KamikazeSystem(), { phase: SystemPhase.Simulation });

@@ -1,4 +1,4 @@
-import { World, ShapeDrawer, CoreComponentRegistry, ShapeType, CircleShape, BoxShape, ColliderComponent, RenderComponent, ConvexPolygonShape } from "@tiny-aster/core";
+import { World, ShapeDrawer, CoreComponentRegistry, ShapeType, CircleShape, BoxShape, ColliderComponent, RenderComponent, ConvexPolygonShape, TransformComponent, ParallaxLayerComponent } from "@tiny-aster/core";
 
 /**
  * Drawer for circle shapes in HTML5 Canvas.
@@ -42,8 +42,9 @@ export class CanvasParallaxTileDrawer<TRegistry extends CoreComponentRegistry = 
 
   public draw(ctx: CanvasRenderingContext2D, world: World<TRegistry>, entity: number): void {
     const transformType = "Transform" as Extract<keyof TRegistry, string>;
-    const transform = world.getComponent(entity, transformType) as any;
-    const layer = world.getComponent(entity, "ParallaxLayer" as any) as any;
+    const transform = world.getComponent(entity, transformType) as TransformComponent | undefined;
+    const layerType = "ParallaxLayer" as Extract<keyof TRegistry, string>;
+    const layer = world.getComponent(entity, layerType) as ParallaxLayerComponent | undefined;
     if (!transform || !layer) return;
 
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };

@@ -33,7 +33,7 @@ export class PlayerBulletPool extends ProjectilePool<InvaderBulletComponents, Pr
           height: GAME_CONFIG.SCREEN_HEIGHT,
           mode: "destroy"
         } as BoundaryComponent,
-        ttl: { type: "TTL", remaining: 0 },
+        ttl: { type: "TTL", remaining: 0, timeLeft: 0 },
         reclaimable: { type: "Reclaimable", poolId: "PlayerBulletPool", poolName: "PlayerBulletPool" } as ReclaimableComponent,
         bullet: { type: "PlayerBullet" }
       }),
@@ -53,7 +53,8 @@ export class PlayerBulletPool extends ProjectilePool<InvaderBulletComponents, Pr
         }
         data.boundary.width = GAME_CONFIG.SCREEN_WIDTH;
         data.boundary.height = GAME_CONFIG.SCREEN_HEIGHT;
-        data.ttl.remaining = p.ttl / 1000;
+        data.ttl.remaining = p.ttl;
+        data.ttl.timeLeft = p.ttl;
       }
     });
   }
@@ -86,7 +87,7 @@ export class EnemyBulletPool extends ProjectilePool<InvaderBulletComponents, Pro
           height: GAME_CONFIG.SCREEN_HEIGHT,
           mode: "destroy"
         } as BoundaryComponent,
-        ttl: { type: "TTL", remaining: 0 },
+        ttl: { type: "TTL", remaining: 0, timeLeft: 0 },
         reclaimable: { type: "Reclaimable", poolId: "EnemyBulletPool", poolName: "EnemyBulletPool" } as ReclaimableComponent,
         bullet: { type: "EnemyBullet" }
       }),
@@ -106,7 +107,8 @@ export class EnemyBulletPool extends ProjectilePool<InvaderBulletComponents, Pro
         }
         data.boundary.width = GAME_CONFIG.SCREEN_WIDTH;
         data.boundary.height = GAME_CONFIG.SCREEN_HEIGHT;
-        data.ttl.remaining = p.ttl / 1000;
+        data.ttl.remaining = p.ttl;
+        data.ttl.timeLeft = p.ttl;
       }
     });
   }
@@ -131,7 +133,7 @@ export class ParticlePool extends ProjectilePool<ProjectileComponents, Projectil
             shape: { type: "circle", radius: 0 },
             layer: 0, mask: 0, offsetX: 0, offsetY: 0, isTrigger: true, enabled: false
         } as Collider2DComponent,
-        ttl: { type: "TTL", remaining: 0 },
+        ttl: { type: "TTL", remaining: 0, timeLeft: 0 },
         reclaimable: { type: "Reclaimable", poolId: "ParticlePool", poolName: "ParticlePool" } as ReclaimableComponent
       }),
       reset: (data) => {
@@ -145,7 +147,8 @@ export class ParticlePool extends ProjectilePool<ProjectileComponents, Projectil
         data.velocity.vy = p.dy;
         data.render.size = p.size;
         data.render.color = p.color;
-        data.ttl.remaining = p.ttl / 1000;
+        data.ttl.remaining = p.ttl;
+        data.ttl.timeLeft = p.ttl;
       }
     });
   }

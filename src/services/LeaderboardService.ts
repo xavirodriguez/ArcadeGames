@@ -1,5 +1,4 @@
 import { generateScoreSignature } from "../utils/SecurityUtils";
-import { logger } from "../utils/logger";
 
 /**
  * Service to interact with the global daily leaderboard.
@@ -38,7 +37,7 @@ export class LeaderboardService {
       });
       return response.ok;
     } catch (e) {
-      logger.warn("Failed to submit score to leaderboard (offline?)", e);
+      console.warn("Failed to submit score to leaderboard (offline?)", e);
       return false;
     }
   }
@@ -55,7 +54,7 @@ export class LeaderboardService {
       if (!response.ok) return [];
       return await response.json();
     } catch (e) {
-      logger.warn("Failed to fetch leaderboard (offline?)", e);
+      console.warn("Failed to fetch leaderboard (offline?)", e);
       return [];
     }
   }

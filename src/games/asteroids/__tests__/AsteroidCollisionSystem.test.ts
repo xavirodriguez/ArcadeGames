@@ -52,6 +52,7 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
     expect(bulletComp.ownerId).toBe("player-1");
 
     const ttl = world.getComponent(bullet, "TTL") as any;
+    expect(ttl.timeLeft).toBe(3);
     expect(ttl.remaining).toBe(3);
   });
 

@@ -11,26 +11,26 @@ const JoinOptionsSchema = z.object({
 });
 
 class Invader extends Schema {
-  @type("number") x!: number;
-  @type("number") y!: number;
+  @type("number") x: number;
+  @type("number") y: number;
 }
 
 class SpaceInvadersState extends Schema {
   @type({ map: Invader }) invaders = new MapSchema<Invader>();
 }
 
-export class SpaceInvadersRoom extends Room<{ state: SpaceInvadersState }> {
-  onCreate(options: unknown) {
+export class SpaceInvadersRoom extends (Room as any) {
+  onCreate(options: any) {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const _validOptions = parsedOptions.success ? parsedOptions.data : {};
 
     this.setState(new SpaceInvadersState());
-    this.setSimulationInterval((_dt: number) => {});
-    this.onMessage("move", (_client: Client, _data: unknown) => {});
+    this.setSimulationInterval((dt: number) => {});
+    this.onMessage("move", (client: Client, data: any) => {});
   }
-  onJoin(client: Client, options: unknown) {
+  onJoin(client: Client, options: any) {
     const parsedOptions = JoinOptionsSchema.safeParse(options);
     const _validOptions = parsedOptions.success ? parsedOptions.data : {};
   }
-  onLeave(_client: Client) {}
+  onLeave(client: Client) {}
 }

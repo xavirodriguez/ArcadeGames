@@ -1,29 +1,21 @@
 import { ReplicationStrategy, ReplicationResult } from "./ReplicationStrategy";
-import type { AsteroidsRoom } from "../AsteroidsRoom";
-import type { Client } from "@colyseus/core";
-import type { AsteroidsState } from "../schema/GameState";
 
-interface DetailedInterestNode {
-  entityId: string | number;
-  priority?: number;
-}
-
-export class BudgetReplicationStrategy implements ReplicationStrategy<AsteroidsRoom, Client, AsteroidsState> {
-  replicate(room: AsteroidsRoom, clients: Client[], state: AsteroidsState, tick: number): ReplicationResult {
+export class BudgetReplicationStrategy implements ReplicationStrategy {
+  replicate(room: any, clients: any[], state: any, tick: number): ReplicationResult {
     let totalBytesSentThisTick = 0;
     let totalSerializationMs = 0;
     let totalEntitiesFiltered = 0;
     const totalEntitiesInWorld = room.world.entities.length;
 
-    const detailedInterestMap = room.world.getResource<Map<string, DetailedInterestNode[]>>("DetailedInterestMap");
+    const detailedInterestMap = room.world.getResource("DetailedInterestMap");
 
-    clients.forEach((client: Client) => {
+    clients.forEach((client: any) => {
       const isNew = room.newClients.has(client.sessionId);
       const interest = detailedInterestMap?.get(client.sessionId) || [];
 
       const selfEntityId = room.playerEntities.get(client.sessionId)?.toString();
       const prioritized = room.budgetManager.prioritize(client.sessionId, interest, selfEntityId);
-      const interestIds = new Set(prioritized.map((e) => typeof e.entityId === "number" ? e.entityId : parseInt(e.entityId || "0", 10)));
+      const interestIds = new Set(prioritized.map((e: any) => parseInt(e.entityId)));
 
       totalEntitiesFiltered += (totalEntitiesInWorld - interestIds.size);
 

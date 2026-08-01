@@ -101,7 +101,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const { PlayerBullet: bullet, Invader: invader } = invaderBullet;
       const invaderComp = world.getComponent(invader, "Invader");
 
-      // Mutate Combo component
+      // Mutate GameState and Combo components
       let nextCombo = 0;
       let nextMultiplier = 1;
 
@@ -120,6 +120,15 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           gs.combo = nextCombo;
           gs.comboTimerRemaining = this.config!.COMBO_TIMEOUT / 1000;
           gs.multiplier = nextMultiplier;
+        });
+      } else {
+        // Fallback for environments where Combo is not attached to GameState
+        world.mutateSingleton("GameState", (gs) => {
+          gs.combo++;
+          gs.comboTimerRemaining = this.config!.COMBO_TIMEOUT / 1000;
+          gs.multiplier = Math.min(this.config!.MAX_MULTIPLIER, 1 + Math.floor(gs.combo / 5));
+          nextCombo = gs.combo;
+          nextMultiplier = gs.multiplier;
         });
       }
 
@@ -158,7 +167,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           data: { content: comboText }
         } as unknown as RenderComponent);
         world.getCommandBuffer().addComponent(popup, { type: "UIText", content: comboText, wordWrap: false, maxLines: 1 } as UITextComponent);
-        world.getCommandBuffer().addComponent(popup, { type: "TTL", remaining: 1.0 } as TTLComponent);
+        world.getCommandBuffer().addComponent(popup, { type: "TTL", timeLeft: 1000, remaining: 1000 } as TTLComponent);
 
         // Side-effects like Juice are deferred naturally or can be applied here
         Juice.add(world, popup, { property: "y", target: -40, duration: 1000, easing: "easeOut" });

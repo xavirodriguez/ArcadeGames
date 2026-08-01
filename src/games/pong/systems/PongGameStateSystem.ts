@@ -35,29 +35,18 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
 
         // Ball passed left edge -> Player 2 scores
         if (transform.x < 0) {
-          gameState.scoreP2 += gameState.comboMultiplier || 1;
+          gameState.scoreP2++;
           scorer = "p2";
           scored = true;
         }
         // Ball passed right edge -> Player 1 scores
         else if (transform.x > this.config.WIDTH) {
-          gameState.scoreP1 += gameState.comboMultiplier || 1;
+          gameState.scoreP1++;
           scorer = "p1";
           scored = true;
         }
 
         if (scored && scorer) {
-          // Reset combo on score
-          const comboEntities = world.query("Combo" as any);
-          const comboEntity = comboEntities[0];
-          if (comboEntity !== undefined) {
-            world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
-              c.combo = 0;
-              c.multiplier = 1;
-              c.timerRemaining = 0;
-            });
-          }
-
           // Play score audio
           const eventBus = world.getEventBus();
           eventBus.emit("PlaySFX" as any, { name: "score" });
@@ -84,16 +73,6 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
         }
       }
     });
-
-    // Sync local PongState combo fields from the unified Combo component (updated by ComboSystem)
-    const comboEntities = world.query("Combo" as any);
-    const comboEntity = comboEntities[0];
-    if (comboEntity !== undefined) {
-      const comboComp = world.getComponent(comboEntity, "Combo" as any) as any;
-      if (comboComp && gameState.comboMultiplier !== comboComp.multiplier) {
-        gameState.comboMultiplier = comboComp.multiplier;
-      }
-    }
   }
 
   protected getGameState(world: World<PongComponentRegistry>): PongState | undefined {
@@ -111,16 +90,6 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
       state.scoreP1 = 0;
       state.scoreP2 = 0;
       state.isGameOver = false;
-      state.comboMultiplier = 1;
-    }
-    const comboEntities = world.query("Combo" as any);
-    const comboEntity = comboEntities[0];
-    if (comboEntity !== undefined) {
-      world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
-        c.combo = 0;
-        c.multiplier = 1;
-        c.timerRemaining = 0;
-      });
     }
   }
 }

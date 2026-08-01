@@ -72,7 +72,7 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
         invaderCount: invaders.length,
       });
     } else {
-      const moveX = formation.direction * formation.speed * deltaTime;
+      const moveX = formation.direction * formation.speed * (deltaTime / 1000);
 
       // Calculate current min/max bounds before moving
       let minX = Infinity;
@@ -119,7 +119,7 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
         this.config.ENEMY_FIRE_INTERVAL_MIN,
         this.config.ENEMY_FIRE_INTERVAL_MAX
       ) / (1 + ratio); // Faster firing as fewer invaders remain
-      nextCooldownRemaining = nextCooldown / 1000;
+      nextCooldownRemaining = nextCooldown;
     }
 
     // Pure mutation

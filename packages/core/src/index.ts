@@ -36,10 +36,6 @@ export * from "./events/EventBus";
 export * from "./input/InputSystem";
 export * from "./input/UnifiedInputSystem";
 
-// Debug
-export * from "./ui/debug/DebugManager";
-export * from "./debug/ReplayRecorder";
-
 // Loop & Runtime
 export * from "./loop/GameLoop";
 export * from "./loop/FrameScheduler";
@@ -88,7 +84,6 @@ export * from "./systems/HierarchySystem";
 export * from "./systems/AbstractHierarchySystem";
 export * from "./systems/MutatorSystem";
 export * from "./systems/ScreenShakeSystem";
-export * from "./systems/ParallaxSystem";
 export * from "./systems/StateMachineSystem";
 export * from "./systems/TilemapRenderSystem";
 
@@ -108,7 +103,6 @@ export * from "./config/ConfigService";
 export * from "./config/BaseConfigSchema";
 
 // Utils
-export * from "./utils/logger";
 export * from "./utils/RandomService";
 export * from "./utils/Juice";
 export * from "./utils/ObjectPool";

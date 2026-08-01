@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { logger } from "../utils/logger";
 
 const MUTE_KEY = "settings:audio_muted";
 
@@ -22,7 +21,7 @@ export class AudioSettingsService {
       this.initialized = true;
       this.notifyListeners();
     } catch (e) {
-      logger.warn("[AudioSettingsService] Failed to load mute state", e);
+      console.warn("[AudioSettingsService] Failed to load mute state", e);
     }
   }
 
@@ -43,7 +42,7 @@ export class AudioSettingsService {
     try {
       await AsyncStorage.setItem(MUTE_KEY, String(muted));
     } catch (e) {
-      logger.warn("[AudioSettingsService] Failed to save mute state", e);
+      console.warn("[AudioSettingsService] Failed to save mute state", e);
     }
   }
 
@@ -76,7 +75,7 @@ export class AudioSettingsService {
       try {
         listener(this.muted);
       } catch (e) {
-        logger.error("[AudioSettingsService] Error in listener callback:", e);
+        console.error("[AudioSettingsService] Error in listener callback:", e);
       }
     });
   }

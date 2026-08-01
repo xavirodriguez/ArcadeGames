@@ -10,7 +10,6 @@ import { ShootButton } from "../../components/ShootButton";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useSpaceInvadersGame } from "@/hooks/useSpaceInvadersGame";
 import { useMultiplayer } from "@tiny-aster/react-native";
-import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { SeedWidget } from "@/components/SeedWidget";
 import { DailyChallengeBanner } from "@/components/DailyChallengeBanner";
 import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
@@ -35,9 +34,6 @@ export default function SpaceInvadersScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(isDailyFromParams);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
-
-  useKeyboardControls(game);
-
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   const { room, connected, serverState } = useMultiplayer("space-invaders", playerName, isMulti && started);
@@ -69,7 +65,7 @@ export default function SpaceInvadersScreen() {
     }
   }, [isMulti, serverState, game]);
 
-  const handleMultiplayerInput = useCallback((input: Partial<InputState>) => {
+  const handleMultiplayerInput = useCallback((input: Record<string, boolean>) => {
     if (isMulti && room) {
         room.send("input", input);
     } else {
@@ -79,27 +75,13 @@ export default function SpaceInvadersScreen() {
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });
-  }, [handleMultiplayerInput]);
+    game?.getInputSystem().setOverride("shoot", true);
+  }, [game, handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
     handleMultiplayerInput({ shoot: false });
-  }, [handleMultiplayerInput]);
-
-  const handleJoystickMove = useCallback((x: number, y: number) => {
-    handleMultiplayerInput({
-      rotationAmount: x,
-      moveLeft: x < -0.15,
-      moveRight: x > 0.15,
-    });
-  }, [handleMultiplayerInput]);
-
-  const handleJoystickRelease = useCallback(() => {
-    handleMultiplayerInput({
-      rotationAmount: 0,
-      moveLeft: false,
-      moveRight: false,
-    });
-  }, [handleMultiplayerInput]);
+    game?.getInputSystem().clearOverride("shoot");
+  }, [game, handleMultiplayerInput]);
 
   if (!started) {
     return (
@@ -163,12 +145,10 @@ export default function SpaceInvadersScreen() {
 
         <View style={styles.controls} pointerEvents="box-none">
           <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
-            {/* React Bridge: VirtualJoystick is a pure visual component routing coordinates directly to game.setInputState */}
             <VirtualJoystick
               joystickId="movement_joystick"
               type="movement"
-              onMove={handleJoystickMove}
-              onRelease={handleJoystickRelease}
+              world={game.getWorld()}
             />
           </View>
           <ShootButton

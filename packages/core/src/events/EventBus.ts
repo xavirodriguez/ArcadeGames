@@ -29,8 +29,6 @@ export type EventHandler<TPayload> = (payload: TPayload, event: string) => void;
  * @typeParam TEvents - The registry of custom events for this bus.
  * @public
  */
-import { logger } from "../utils/logger";
-
 export class EventBus<TEvents extends EventRegistry = EventRegistry> {
   private handlers = new Map<string, Set<EventHandler<unknown>>>();
   private primaryBuffer: { event: string; payload: unknown }[] = [];
@@ -122,8 +120,8 @@ export class EventBus<TEvents extends EventRegistry = EventRegistry> {
         for (let i = 0; i < handlersToIterate.length; i++) {
           try {
             handlersToIterate[i](payload, event);
-          } catch (e: any) {
-            logger.error(`EventBus: Error in handler for event "${event}":`, e?.message, e?.stack);
+          } catch (_e) {
+            // Silently catch handler errors to prevent crashing the main loop
           }
         }
       }

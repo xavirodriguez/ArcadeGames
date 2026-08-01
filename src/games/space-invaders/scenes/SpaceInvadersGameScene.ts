@@ -35,6 +35,7 @@ import {
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { ISpaceInvadersGame } from "../types/GameInterfaces";
+import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 
 /**
  * Main gameplay scene for Space Invaders.
@@ -67,6 +68,7 @@ export class SpaceInvadersGameScene extends Scene {
   public onEnter(): void {
     // Inject resources into the scene world
     this.world.setResource("GameConfig", this.config);
+    this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });
     const eventBus = (this.game as unknown as { eventBus: EventBus }).eventBus;
     if (eventBus) {
       this.world.setResource("EventBus", eventBus);
@@ -112,6 +114,16 @@ export class SpaceInvadersGameScene extends Scene {
     // 2. Initial entities
     if (this.game.isMultiplayer) return; // Wait for server state
     createGameState(this.world);
+
+    // Apply beneficial mutators right after creating the GameState entity
+    const beneficialMutators: string[] = (this.game as any)._config?.gameOptions?.beneficialMutators || [];
+    for (const mId of beneficialMutators) {
+      const mutator = BENEFICIAL_MUTATORS[mId];
+      if (mutator) {
+        mutator.apply(this.world);
+      }
+    }
+
     createPlayer(this.world, GAME_CONFIG.SCREEN_CENTER_X, GAME_CONFIG.SCREEN_HEIGHT - 50);
     createFormationController(this.world);
     spawnInvaderWave(this.world, 1);

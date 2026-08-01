@@ -1,22 +1,30 @@
 import { ReplicationStrategy, ReplicationResult } from "./ReplicationStrategy";
 import { filterSoASnapshot, BinaryCompression, SnapshotSerializer } from "@tiny-aster/core";
+import type { AsteroidsRoom } from "../AsteroidsRoom";
+import type { Client } from "@colyseus/core";
+import type { AsteroidsState } from "../schema/GameState";
 
-export class BinaryReplicationStrategy implements ReplicationStrategy {
-  replicate(room: any, clients: any[], state: any, tick: number): ReplicationResult {
+interface DetailedInterestNode {
+  entityId: string | number;
+  priority?: number;
+}
+
+export class BinaryReplicationStrategy implements ReplicationStrategy<AsteroidsRoom, Client, AsteroidsState> {
+  replicate(room: AsteroidsRoom, clients: Client[], state: AsteroidsState, tick: number): ReplicationResult {
     let totalBytesSentThisTick = 0;
     let totalSerializationMs = 0;
     let totalEntitiesFiltered = 0;
     const totalEntitiesInWorld = room.world.entities.length;
 
-    const detailedInterestMap = room.world.getResource("DetailedInterestMap");
+    const detailedInterestMap = room.world.getResource<Map<string, DetailedInterestNode[]>>("DetailedInterestMap");
 
-    clients.forEach((client: any) => {
+    clients.forEach((client: Client) => {
       const isNew = room.newClients.has(client.sessionId);
       const interest = detailedInterestMap?.get(client.sessionId) || [];
 
       const selfEntityId = room.playerEntities.get(client.sessionId)?.toString();
       const prioritized = room.budgetManager.prioritize(client.sessionId, interest, selfEntityId);
-      const interestIds = new Set<number>(prioritized.map((e: any) => parseInt(e.entityId)));
+      const interestIds = new Set<number>(prioritized.map((e) => typeof e.entityId === "number" ? e.entityId : parseInt(e.entityId || "0", 10)));
 
       totalEntitiesFiltered += (totalEntitiesInWorld - interestIds.size);
 
@@ -37,7 +45,7 @@ export class BinaryReplicationStrategy implements ReplicationStrategy {
             aosSnapshot.entities = aosSnapshot.entities.filter((id: number) => interestIds.has(id));
             for (const type in aosSnapshot.componentData) {
               for (const id in aosSnapshot.componentData[type]) {
-                if (!interestIds.has(parseInt(id))) {
+                if (!interestIds.has(parseInt(id, 10))) {
                   delete aosSnapshot.componentData[type][id];
                 }
               }

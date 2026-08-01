@@ -255,8 +255,7 @@ export class SpaceInvadersGameScene extends Scene {
     if (this.game.isMultiplayer) return; // Wait for server state
     createGameState(this.world);
 
-    // Apply beneficial mutators right after creating the GameState entity (e.g. combo_head_start)
-    // This runs before the first simulation update/tick is executed.
+    // Apply beneficial mutators right after creating the GameState entity
     const beneficialMutators: string[] = (this.game as any)._config?.gameOptions?.beneficialMutators || [];
     for (const mId of beneficialMutators) {
       const mutator = BENEFICIAL_MUTATORS[mId];
@@ -270,7 +269,7 @@ export class SpaceInvadersGameScene extends Scene {
     spawnInvaderWave(this.world, 1);
     spawnShields(this.world);
 
-    // Apply active beneficial mutators if any additional ones are configured
+    // Apply active beneficial mutators
     const activeBeneficials = ((this.game as any)._config?.gameOptions?.activeBeneficialMutators as string[]) || [];
     for (const mutatorId of activeBeneficials) {
       const mutator = BENEFICIAL_MUTATORS[mutatorId];

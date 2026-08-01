@@ -97,8 +97,7 @@ export class EnemyFactory {
       if (blueprint.physics.ttl !== undefined) {
           add({
               type: "TTL",
-              remaining: blueprint.physics.ttl,
-              timeLeft: blueprint.physics.ttl
+              remaining: blueprint.physics.ttl
           } as TTLComponent);
       }
     }

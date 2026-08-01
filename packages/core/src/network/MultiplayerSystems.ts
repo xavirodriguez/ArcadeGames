@@ -1,6 +1,9 @@
 import { Packr } from "msgpackr";
 import { ServerUpdatePayload } from "./NetTypes";
 import { WorldSnapshot } from "../snapshots/WorldSnapshot";
+import { World, ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
+import { EventRegistry } from "../events/EventBus";
+import { System } from "../ecs/System";
 
 const packr = new Packr({
     useRecords: false,
@@ -19,7 +22,18 @@ export class ClientAckTracker {
 /** @public */
 export class NetworkDeltaSystem {
     constructor(tracker: ReplicationStateTracker) {}
-    public generateDelta(world: any, sessionId: string, sequence: number, baselineAck: number, interestIds: Set<number>, forceFull: boolean): ServerUpdatePayload {
+    public generateDelta<
+      TComponents extends ComponentRegistry = ComponentRegistry,
+      TEvents extends EventRegistry = EventRegistry,
+      TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+    >(
+      world: World<TComponents, TEvents, TBlueprints>,
+      sessionId: string,
+      sequence: number,
+      baselineAck: number,
+      interestIds: Set<number>,
+      forceFull: boolean
+    ): ServerUpdatePayload {
         return {
             kind: "delta",
             tick: 0,
@@ -28,25 +42,41 @@ export class NetworkDeltaSystem {
     }
 }
 /** @public */
+export interface InterestNode {
+    entityId?: number | string;
+    priority?: number;
+    [key: string]: any;
+}
+
+/** @public */
 export class NetworkBudgetManager {
-    public prioritize(sessionId: string, interest: any[], selfEntityId?: string): any[] { return interest; }
+    public prioritize(sessionId: string, interest: InterestNode[], selfEntityId?: string): InterestNode[] { return interest; }
 }
 /** @public */
 export class BinaryCompression {
     public static pack(packet: any): Uint8Array {
         return packr.pack(packet);
     }
-    public static unpack<T = any>(packet: Uint8Array | ArrayBuffer | Buffer): T {
+    public static unpack<T = any>(
+        packet: Uint8Array | ArrayBuffer | Buffer,
+        validator?: (data: unknown) => data is T
+    ): T {
         const buf = packet instanceof Uint8Array ? packet : new Uint8Array(packet);
-        return packr.unpack(buf) as T;
+        const decoded = packr.unpack(buf);
+        if (validator && !validator(decoded)) {
+            throw new Error("BinaryCompression: Unpacked data failed validation type guard.");
+        }
+        return decoded as T;
     }
 }
 
-import { System } from "../ecs/System";
-
 /** @public */
-export class InterestManagerSystem extends System<any, any> {
-    public update(world: any, deltaTime: number): void {}
-    public override onRegister(world: any): void {}
+export class InterestManagerSystem<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+> extends System<TComponents, TEvents> {
+    public update(world: World<TComponents, TEvents, TBlueprints>, deltaTime: number): void {}
+    public override onRegister(world: World<TComponents, TEvents, TBlueprints>): void {}
     public override dispose(): void {}
 }

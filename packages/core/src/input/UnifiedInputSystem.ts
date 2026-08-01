@@ -15,10 +15,18 @@ import { InputSystem } from "./InputSystem";
  * loop and OS-level latency. Captured state reflects the latest available data
  * at the start of the simulation update and may not be perfectly
  * synchronized with the exact moment of physical input.
+ *
+ * @deprecated Use game.setInputState(...) React Bridge instead.
  * @public
+ * @deprecated This system is obsolete. Use the React Bridge input architecture (game.setInputState) instead.
  */
 export class UnifiedInputSystem extends System<ComponentRegistry> implements InputSystem {
   private overrides: Record<string, boolean> = {};
+
+  constructor() {
+    super();
+    console.warn("[UnifiedInputSystem] This system is obsolete. Use the React Bridge input architecture (game.setInputState) instead.");
+  }
 
   public bind(_action: string, _keys: string[]): void {}
 
@@ -26,6 +34,7 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
    * Manually sets an input action state.
    */
   public setOverride(action: string, pressed: boolean): void {
+    console.warn(`[UnifiedInputSystem] setOverride('${action}', ${pressed}) is deprecated. Use game.setInputState instead.`);
     this.overrides[action] = pressed;
   }
 

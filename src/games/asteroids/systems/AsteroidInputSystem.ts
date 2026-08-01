@@ -1,5 +1,4 @@
-import { World, System } from "@tiny-aster/core";
-import { computeShipPhysics } from "../utils/AsteroidPhysics";
+import { World, System, computeShipPhysics } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import { createBullet } from "../EntityFactory";
@@ -14,7 +13,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
   }
 
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, deltaTime: number): void {
-      const dtSec = deltaTime / 1000;
+      const dtSec = deltaTime;
       const config = world.getResource<AsteroidConfig>("GameConfig") || this.config;
 
       // Query local player entities

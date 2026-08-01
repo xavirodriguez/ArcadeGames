@@ -2,7 +2,8 @@ import { Component, ComponentRegistry } from "./Component";
 import { Entity } from "./Entity";
 import { Shape } from "../physics/shapes/Shapes";
 import { CollisionLayer, CollisionMask, Collision } from "../physics/collision/CollisionTypes";
-import { World } from "./World";
+import { World, BlueprintRegistryMap } from "./World";
+import { EventRegistry } from "../events/EventBus";
 
 /** @public */
 export interface TransformComponent extends Component {
@@ -46,17 +47,20 @@ export interface BoundaryComponent extends Component {
 /** @public */
 export interface TTLComponent extends Component {
   type: "TTL";
-  timeLeft: number;
   remaining: number;
   onCompleteEvent?: string;
 }
 
 /** @public */
-export interface ReclaimableComponent extends Component {
+export interface ReclaimableComponent<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+> extends Component {
   type: "Reclaimable";
   poolName: string;
   poolId: string;
-  onReclaim?: (world: World<any, any, any>, entity: Entity) => void;
+  onReclaim?: (world: World<TComponents, TEvents, TBlueprints>, entity: Entity) => void;
 }
 
 /** @public */
@@ -105,9 +109,6 @@ export interface AnimationDefinition {
 /** @public */
 export interface AnimatorComponent extends Component {
   type: "Animator";
-  currentAnimation?: string;
-  frameIndex: number;
-  elapsedTime: number;
   isPlaying: boolean;
   animations: Record<string, AnimationDefinition>;
   current: string | null;
@@ -147,6 +148,12 @@ export interface ParticleEmitterConfig {
 export interface ParticleEmitterComponent extends Component {
   type: "ParticleEmitter";
   config: ParticleEmitterConfig;
+  /**
+   * Status of the particle emitter.
+   * - If boolean: `true` indicates persistent emission loop; `false` indicates inactive.
+   * - If number: represents the timed emission duration/TTL in seconds (or milliseconds depending on configuration),
+   *   counting down to 0 after which emission is stopped automatically.
+   */
   active: boolean | number;
   elapsed: number;
 }
@@ -274,12 +281,32 @@ export interface TrailComponent extends Component {
 }
 
 /** @public */
+export interface ParallaxLayerComponent extends Component {
+  type: "ParallaxLayer";
+  factorX: number;
+  factorY: number;
+  tileWidth: number;
+  tileHeight: number;
+  initialX: number;
+  initialY: number;
+  speedX?: number;
+  speedY?: number;
+  autoScrollX: number;
+  autoScrollY: number;
+  layerType: string;
+  paused: boolean;
+}
+
+/** @public */
 export interface IHierarchicalComponent extends Component {
     parentEntity?: Entity;
     children: Entity[];
 }
 
-/** @public */
+/**
+ * @deprecated Collider2DComponent is legacy. Use ColliderComponent and its modern collision system instead.
+ * @public
+ */
 export interface Collider2DComponent extends Component {
   type: "Collider2D";
   shape: { type: "circle"; radius: number } | { type: "aabb"; halfWidth: number; halfHeight: number };
@@ -319,6 +346,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Trail: TrailComponent;
   Sprite: SpriteComponent;
   Tag: import("./TagComponent").TagComponent;
+  ParallaxLayer: ParallaxLayerComponent;
 }
 
 export { Entity };

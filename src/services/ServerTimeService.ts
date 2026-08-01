@@ -14,6 +14,8 @@ export interface ServerTimeResponse {
  * entre el reloj local y el remoto. La precisión de `getCorrectedTime()` depende de
  * la latencia de la red y la estabilidad del reloj del sistema.
  */
+import { logger } from "../utils/logger";
+
 export class ServerTimeService {
   private static timeOffset: number = 0;
   private static lastSync: number = 0;
@@ -48,13 +50,13 @@ export class ServerTimeService {
       this.lastSync = now;
 
       if (Math.abs(this.timeOffset) > 5 * 60 * 1000) {
-        console.warn(`[TimeSync] Large clock drift detected: ${Math.round(this.timeOffset / 1000)}s. Please check your system clock.`);
+        logger.warn(`[TimeSync] Large clock drift detected: ${Math.round(this.timeOffset / 1000)}s. Please check your system clock.`);
       }
     } catch (error: any) {
       if (error?.name === "AbortError") {
-        console.error(`[TimeSync] Request timed out after ${timeoutMs}ms`);
+        logger.error(`[TimeSync] Request timed out after ${timeoutMs}ms`);
       } else {
-        console.error("[TimeSync] Failed to sync time with server:", error);
+        logger.error("[TimeSync] Failed to sync time with server:", error);
       }
     } finally {
       clearTimeout(id);

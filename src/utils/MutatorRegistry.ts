@@ -39,32 +39,96 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "faster_bullets",
     description: "Balas 10% más rápidas en todos los juegos",
     xpCost: 500,
-    apply: (_world: World) => {
-      // implementation would depend on game config modification or systemic override
+    apply: (world: World) => {
+      const config = world.getResource<any>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_BULLET_SPEED === "number") {
+          newConfig.PLAYER_BULLET_SPEED = Math.round(newConfig.PLAYER_BULLET_SPEED * 1.10);
+        }
+        if (typeof newConfig.BULLET_SPEED === "number") {
+          newConfig.BULLET_SPEED = Math.round(newConfig.BULLET_SPEED * 1.10);
+        }
+        world.setResource("GameConfig", newConfig);
+      }
     }
   },
   "extra_life": {
     id: "extra_life",
     description: "Empezar con 1 vida extra",
     xpCost: 800,
-    apply: (_world: World) => {
-      // increase player health
+    apply: (world: World) => {
+      const config = world.getResource<any>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_INITIAL_LIVES === "number") {
+          newConfig.PLAYER_INITIAL_LIVES += 1;
+        }
+        world.setResource("GameConfig", newConfig);
+      }
+
+      if (world.getSingleton("GameState" as any)) {
+        world.mutateSingleton("GameState" as any, (gs: any) => {
+          if (typeof gs.lives === "number") {
+            gs.lives += 1;
+          }
+        });
+      }
+
+      const players = world.query("Player" as any, "Health" as any);
+      for (const player of players) {
+        world.mutateComponent(player, "Health" as any, (h: any) => {
+          h.current += 1;
+          h.max += 1;
+        });
+      }
     }
   },
   "combo_head_start": {
     id: "combo_head_start",
     description: "Empezar con combo x2",
     xpCost: 300,
-    apply: (_world: World) => {
-      // set multiplier in gamestate
+    apply: (world: World) => {
+      const comboEntities = world.query("Combo" as any);
+      const comboEntity = comboEntities[0];
+      if (comboEntity !== undefined) {
+        world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+          c.combo = 5;
+          c.multiplier = 2;
+          c.timerRemaining = c.timerDuration || 2.0;
+        });
+      }
+
+      const gameState = world.getSingleton("GameState" as any);
+      if (gameState) {
+        world.mutateSingleton("GameState" as any, (gs: any) => {
+          gs.combo = 5;
+          gs.multiplier = 2;
+          gs.comboTimerRemaining = gs.comboTimerRemaining || 2.0;
+        });
+      }
+
+      const flappyState = world.getSingleton("FlappyState" as any);
+      if (flappyState) {
+        world.mutateSingleton("FlappyState" as any, (fs: any) => {
+          fs.comboMultiplier = 2;
+        });
+      }
     }
   },
   "shield_pulse": {
     id: "shield_pulse",
     description: "Escudo de 3 segundos al inicio de cada partida",
     xpCost: 1000,
-    apply: (_world: World) => {
-      // set invulnerability frames
+    apply: (world: World) => {
+      world.setResource("HasShieldPulse", true);
+
+      const players = world.query("Player" as any, "Health" as any);
+      for (const player of players) {
+        world.mutateComponent(player, "Health" as any, (h: any) => {
+          h.invulnerableRemaining = 3.0; // 3 seconds
+        });
+      }
     }
   },
 };

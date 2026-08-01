@@ -37,7 +37,6 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
     if (this.isMultiplayer) return;
-    const inputState = world.getSingleton("InputState");
     const entities = world.query("Player", "Input", "Transform", "Velocity");
 
     entities.forEach((entity) => {
@@ -51,17 +50,6 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
         let nextMoveRight = input.moveRight;
         let nextShoot = input.shoot;
         let nextShootCooldownRemaining = input.shootCooldownRemaining;
-
-        // Sync input component with manager
-        if (inputState) {
-          nextMoveLeft = InputUtils.isPressed(inputState, "moveLeft");
-          nextMoveRight = InputUtils.isPressed(inputState, "moveRight");
-          nextShoot = InputUtils.isPressed(inputState, "shoot");
-
-          const horizontal = InputUtils.getAxis(inputState, "horizontal");
-          if (horizontal < -0.35) nextMoveLeft = true;
-          if (horizontal > 0.35) nextMoveRight = true;
-        }
 
         // Apply movement
         let moveX = 0;
@@ -80,7 +68,7 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
           if (activeBullets.length === 0) {
             // Estructural: fuera de mutación
             createPlayerBullet(world, pos.x, pos.y - 10, this.bulletPool);
-            nextShootCooldownRemaining = this.config!.PLAYER_SHOOT_COOLDOWN;
+            nextShootCooldownRemaining = this.config!.PLAYER_SHOOT_COOLDOWN / 1000;
           }
         }
 

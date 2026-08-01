@@ -1,6 +1,8 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, HierarchySystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, ParallaxSystem } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
+import { ComboSystem } from "../shared/arcade";
+import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
 import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";
 import { FlappyBirdGlideSystem } from "./systems/FlappyBirdGlideSystem";
@@ -43,8 +45,6 @@ export class FlappyBirdGame
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown> } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     super({
-      pauseKey: FLAPPY_CONFIG.KEYS.PAUSE,
-      restartKey: FLAPPY_CONFIG.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
       gameOptions: { ...config.gameOptions, seed }
     });
@@ -214,7 +214,7 @@ export class FlappyBirdGame
           size: FLAPPY_CONFIG.SCREEN_WIDTH,
           color: "#deb887",
           rotation: 0,
-          visible: true,
+          visible: false, // Changed from true to false to hide redundant legacy render (scrolling ground is now a ParallaxLayer)
           opacity: 1,
           order: 0,
           hitFlashFrames: 0,
@@ -234,6 +234,13 @@ export class FlappyBirdGame
           gameOverLogged: false,
           comboMultiplier: 1,
         });
+        world.addComponent(entity, {
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: 3.0
+        } as any);
       }
     });
 
@@ -250,15 +257,18 @@ export class FlappyBirdGame
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });
     this.world.addSystem(new FlappyBirdGlideSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Collision });
     this.world.addSystem(new FlappyBirdCollisionSystem(this), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
+    this.world.addSystem(new ComboSystem() as any, { phase: SystemPhase.GameRules });
 
     this.world.addSystem(new MutatorSystem(mutators) as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
     // Visual / Presentation
     this.world.addSystem(new JuiceSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Presentation });
     this.world.addSystem(new FlappyBirdRenderSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ParallaxSystem() as any, { phase: SystemPhase.Presentation });
 
     if (!this.networkManager) {
       this.networkManager = NetworkManager.registerGame(this.gameId, this, {
@@ -270,11 +280,231 @@ export class FlappyBirdGame
     this.world.addSystem(new RemoteInterpolationSystem(this.networkManager) as System<any>, { phase: SystemPhase.Presentation });
   }
 
+  private createParallaxLayers(world: World<FlappyBirdComponentRegistry>): void {
+    // 1. Sky Gradient Layer (Far back, static)
+    const sky = world.createEntity();
+    world.addComponent(sky, {
+      type: "Transform",
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 0,
+      worldY: 0,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    } as TransformComponent);
+    world.addComponent(sky, {
+      type: "ParallaxLayer",
+      factorX: 0,
+      factorY: 0,
+      tileWidth: FLAPPY_CONFIG.SCREEN_WIDTH,
+      tileHeight: FLAPPY_CONFIG.SCREEN_HEIGHT,
+      initialX: 0,
+      initialY: 0,
+      autoScrollX: 0,
+      autoScrollY: 0,
+      layerType: "sky_gradient",
+      paused: false
+    } as any);
+    world.addComponent(sky, {
+      type: "Render",
+      shape: "parallax_tile",
+      visible: true,
+      opacity: 1,
+      order: -100,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    } as RenderComponent);
+
+    // 2. Mountains Layer (Slowest)
+    const mountains = world.createEntity();
+    world.addComponent(mountains, {
+      type: "Transform",
+      x: 0,
+      y: 320,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 0,
+      worldY: 320,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    } as TransformComponent);
+    world.addComponent(mountains, {
+      type: "ParallaxLayer",
+      factorX: 0.1,
+      factorY: 0.05,
+      tileWidth: FLAPPY_CONFIG.SCREEN_WIDTH,
+      tileHeight: 120,
+      initialX: 0,
+      initialY: 320,
+      speedX: -10,
+      speedY: 0,
+      autoScrollX: 0,
+      autoScrollY: 0,
+      layerType: "mountains",
+      paused: false
+    } as any);
+    world.addComponent(mountains, {
+      type: "Render",
+      shape: "parallax_tile",
+      visible: true,
+      opacity: 0.5,
+      order: -95,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    } as RenderComponent);
+
+    // 3. Skyline City Layer (Medium)
+    const skyline = world.createEntity();
+    world.addComponent(skyline, {
+      type: "Transform",
+      x: 0,
+      y: 300,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 0,
+      worldY: 300,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    } as TransformComponent);
+    world.addComponent(skyline, {
+      type: "ParallaxLayer",
+      factorX: 0.25,
+      factorY: 0.1,
+      tileWidth: FLAPPY_CONFIG.SCREEN_WIDTH,
+      tileHeight: 150,
+      initialX: 0,
+      initialY: 300,
+      speedX: -25,
+      speedY: 0,
+      autoScrollX: 0,
+      autoScrollY: 0,
+      layerType: "skyline",
+      paused: false
+    } as any);
+    world.addComponent(skyline, {
+      type: "Render",
+      shape: "parallax_tile",
+      visible: true,
+      opacity: 0.7,
+      order: -90,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    } as RenderComponent);
+
+    // 4. Clouds Layer (Fast sky layer)
+    const clouds = world.createEntity();
+    world.addComponent(clouds, {
+      type: "Transform",
+      x: 0,
+      y: 80,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 0,
+      worldY: 80,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    } as TransformComponent);
+    world.addComponent(clouds, {
+      type: "ParallaxLayer",
+      factorX: 0.4,
+      factorY: 0.15,
+      tileWidth: 300,
+      tileHeight: 100,
+      initialX: 0,
+      initialY: 80,
+      speedX: -45,
+      speedY: 0,
+      autoScrollX: 0,
+      autoScrollY: 0,
+      layerType: "clouds",
+      paused: false
+    } as any);
+    world.addComponent(clouds, {
+      type: "Render",
+      shape: "parallax_tile",
+      visible: true,
+      opacity: 0.85,
+      order: -80,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    } as RenderComponent);
+
+    // 5. Ground Scrolling Visual Layer (Full speed)
+    const groundVisual = world.createEntity();
+    world.addComponent(groundVisual, {
+      type: "Transform",
+      x: 0,
+      y: FLAPPY_CONFIG.GROUND_Y,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 0,
+      worldY: FLAPPY_CONFIG.GROUND_Y,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    } as TransformComponent);
+    world.addComponent(groundVisual, {
+      type: "ParallaxLayer",
+      factorX: 1.0,
+      factorY: 1.0,
+      tileWidth: 100,
+      tileHeight: FLAPPY_CONFIG.SCREEN_HEIGHT - FLAPPY_CONFIG.GROUND_Y,
+      initialX: 0,
+      initialY: FLAPPY_CONFIG.GROUND_Y,
+      speedX: -FLAPPY_CONFIG.PIPE_SPEED,
+      speedY: 0,
+      autoScrollX: 0,
+      autoScrollY: 0,
+      layerType: "ground",
+      paused: false
+    } as any);
+    world.addComponent(groundVisual, {
+      type: "Render",
+      shape: "parallax_tile",
+      visible: true,
+      opacity: 1,
+      order: 10, // Render in front of bird and pipes
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    } as RenderComponent);
+  }
+
   protected override async onInitializeEntities(): Promise<void> {
     if (this.isMultiplayer) return;
     createGameState(this.world);
     createBird({ world: this.world, x: FLAPPY_CONFIG.BIRD_X, y: FLAPPY_CONFIG.BIRD_START_Y });
     createGround(this.world);
+    this.createParallaxLayers(this.world);
+
+    // Apply active beneficial mutators
+    const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
+    for (const mutatorId of activeBeneficials) {
+      const mutator = BENEFICIAL_MUTATORS[mutatorId];
+      if (mutator) {
+        mutator.apply(this.world);
+      }
+    }
   }
 
   protected override async onBeforeRestart(): Promise<void> {
@@ -307,9 +537,18 @@ export class FlappyBirdGame
   }
 
   public setInput(input: Partial<FlappyBirdInput>) {
-    Object.entries(input).forEach(([key, value]) => {
-      this.unifiedInput.setOverride(key, !!value);
-    });
+    this.setInputState(input);
+  }
+
+  public setInputState(input: Partial<FlappyBirdInput>): void {
+    const world = this.getWorld();
+    const bird = world.query("Bird", "FlappyInput" as any)[0];
+    if (bird !== undefined) {
+      world.mutateComponent(bird, "FlappyInput" as any, (inp: any) => {
+        if (input.flap !== undefined) inp.flap = input.flap;
+        if (input.glide !== undefined) inp.glide = input.glide;
+      });
+    }
   }
 
   public updateFromServer(state: Record<string, unknown>) {
@@ -413,11 +652,10 @@ export class FlappyBirdGame
 
   public initializeRenderer(renderer: Renderer<any>): void {
     if ((renderer as any).type === "canvas") {
-      const { drawFlappyBird, drawFlappyPipe, drawFlappyGround, scrollingBackgroundEffect } = require("./rendering/FlappyBirdCanvasVisuals");
+      const { drawFlappyBird, drawFlappyPipe, drawFlappyGround } = require("./rendering/FlappyBirdCanvasVisuals");
       (renderer as any).registerShape("bird", drawFlappyBird);
       (renderer as any).registerShape("pipe", drawFlappyPipe);
       (renderer as any).registerShape("ground", drawFlappyGround);
-      (renderer as any).registerBackgroundEffect("scrollingSky", scrollingBackgroundEffect);
     }
   }
 
@@ -451,6 +689,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public getGameState() { return INITIAL_FLAPPY_STATE; }
   public getSeed() { return 0; }
   public setInput(input: Partial<FlappyBirdInput>) {}
+  public setInputState(input: Partial<FlappyBirdInput>) {}
   public subscribe(cb: (state: FlappyBirdState) => void) { return () => {}; }
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }

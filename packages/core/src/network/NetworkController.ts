@@ -1,21 +1,30 @@
-import { World } from "../ecs/World";
+import { World, BlueprintRegistryMap, ComponentType } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
+import { EventRegistry, CombinedEvents } from "../events/EventBus";
 import { NetworkManager } from "./NetworkManager";
 import { NullTransport } from "./NullTransport";
 import { InputFrame, ServerUpdatePayload, DeltaSnapshotPayload, FullSnapshotPayload } from "./NetTypes";
+import { WorldSnapshot } from "../snapshots/WorldSnapshot";
 
 /**
  * Handles replication, prediction, and server updates for games.
  * @public
  */
-export class NetworkController<TComponents extends ComponentRegistry = ComponentRegistry> {
-  public networkManager?: NetworkManager;
+export class NetworkController<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+> {
+  public networkManager?: NetworkManager<any, any, TComponents, TBlueprints>;
   public lastProcessedFullStateVersion = -1;
   public isMultiplayer = false;
-  private world: World<TComponents, any, any>;
+  private world: World<TComponents, TEvents, TBlueprints>;
   private runSimStep: (deltaTime: number, isResimulating: boolean) => void;
 
-  constructor(world: World<TComponents, any, any>, runSimStep?: (deltaTime: number, isResimulating: boolean) => void) {
+  constructor(
+    world: World<TComponents, TEvents, TBlueprints>,
+    runSimStep?: (deltaTime: number, isResimulating: boolean) => void
+  ) {
     this.world = world;
     this.runSimStep = runSimStep ?? ((dt) => world.update(dt));
   }
@@ -23,26 +32,29 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
   public setMultiplayerMode(active: boolean) {
     this.isMultiplayer = active;
     if (!active) {
-      this.networkManager?.setTransport(new NullTransport());
+      this.networkManager?.setTransport(new NullTransport<any, any>());
     }
   }
 
   public applyInputToEntity(entityId: number, input: InputFrame) {
-    if (!this.world.hasComponent(entityId, "Input" as any)) {
+    const inputType = "Input" as unknown as ComponentType<TComponents>;
+    if (!this.world.hasComponent(entityId, inputType)) {
       this.world.addComponent(entityId, {
-        type: "Input",
+        type: inputType,
         actions: new Set<string>(),
         axes: {}
-      } as any);
+      } as unknown as TComponents[ComponentType<TComponents>] & { type: ComponentType<TComponents> });
     }
-    this.world.mutateComponent(entityId, "Input" as any, (inputComp: any) => {
-      inputComp.actions = new Set<string>(input.actions || []);
-      inputComp.axes = { ...input.axes };
+    this.world.mutateComponent(entityId, inputType, (inputComp: unknown) => {
+      const ic = inputComp as { actions: Set<string>; axes: Record<string, number> };
+      ic.actions = new Set<string>(input.actions || []);
+      ic.axes = { ...input.axes };
     });
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
-    const localPlayer = this.world.query("LocalPlayer" as any)[0];
+    const localPlayerType = "LocalPlayer" as unknown as ComponentType<TComponents>;
+    const localPlayer = this.world.query(localPlayerType)[0];
     if (localPlayer !== undefined) {
       this.applyInputToEntity(localPlayer, input);
     }
@@ -51,7 +63,7 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
     this.runSimulationStep(deltaTime, false);
 
     if (this.isMultiplayer && this.networkManager) {
-      const strategy = this.networkManager.getStrategy() as { recordPrediction?: (input: any, world: any) => void } | undefined;
+      const strategy = this.networkManager.getStrategy() as { recordPrediction?: (input: unknown, world: unknown) => void } | undefined;
       if (strategy && strategy.recordPrediction) {
         strategy.recordPrediction(input, this.world);
       }
@@ -91,11 +103,15 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
 
     if (!this.networkManager) return;
 
-    this.networkManager.processServerUpdate(serverTick, delta as any, localSessionId);
+    this.networkManager.processServerUpdate(serverTick, delta as WorldSnapshot, localSessionId);
 
     const eventBus = this.world.getEventBus();
-    if (eventBus && (delta as any).stateVersion !== undefined) {
-      eventBus.emit("net:ack_version" as any, { version: (delta as any).stateVersion, tick: serverTick } as any);
+    const deltaRecord = delta as unknown as Record<string, unknown>;
+    if (eventBus && deltaRecord.stateVersion !== undefined) {
+      eventBus.emit(
+        "net:ack_version" as keyof CombinedEvents<TEvents> & string,
+        { version: deltaRecord.stateVersion, tick: serverTick } as unknown as CombinedEvents<TEvents>[keyof CombinedEvents<TEvents> & string]
+      );
     }
   }
 

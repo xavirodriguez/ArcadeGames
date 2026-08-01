@@ -1,9 +1,8 @@
-import { Room as ColyseusRoom, type Client, CloseCode } from "@colyseus/core";
+import { Room, type Client, CloseCode } from "@colyseus/core";
 import { AsteroidsState, Player, Asteroid, Bullet } from "./schema/GameState";
 
-const Room = ColyseusRoom as any as { new <T extends object = any>(): ColyseusRoom<{ state: T }> };
-import { InputFrame, ReplayFrame } from "./NetTypes";
-import { World, InterestManagerSystem, ReplicationStateTracker, ClientAckTracker, NetworkDeltaSystem, NetworkBudgetManager, WorldSnapshot, Schedule, SystemPhase } from "@tiny-aster/core";
+import { InputFrame, ReplayFrame, GameEvent } from "./NetTypes";
+import { World, InterestManagerSystem, ReplicationStateTracker, ClientAckTracker, NetworkDeltaSystem, NetworkBudgetManager, WorldSnapshot, Schedule, SystemPhase, ComponentType, CombinedEvents } from "@tiny-aster/core";
 import { AsteroidsGame, createShip, createAsteroid, AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../../src/games/asteroids";
 import { z } from "zod";
 import { ReplicationStrategy } from "./replication/ReplicationStrategy";
@@ -32,6 +31,7 @@ const InputFrameSchema = z.object({
   axes: z.record(z.string(), z.number())
 });
 import { leaderboardStore } from "./DailyLeaderboardStore";
+import { logger } from "../../src/utils/logger";
 import { getDateKey } from "./utils/DateUtils";
 import { NetworkMetricsCollector } from "./metrics/NetworkMetrics";
 
@@ -57,7 +57,7 @@ import { NetworkMetricsCollector } from "./metrics/NetworkMetrics";
  */
 const HISTORY_BUFFER_TICKS = 30;
 
-export class AsteroidsRoom extends Room<AsteroidsState> {
+export class AsteroidsRoom extends Room<{ state: AsteroidsState }> {
   maxClients = 4;
   private fixedTimeStep = 16.66;
   private inputBuffers = new Map<string, InputFrame[]>();
@@ -65,17 +65,17 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
   private clientAcks = new Map<string, number>();
   private replayFrames: ReplayFrame[] = [];
   private gameSimulation!: AsteroidsGame;
-  private world!: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
-  private playerEntities = new Map<string, number>();
-  private newClients = new Set<string>();
+  public world!: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
+  public playerEntities = new Map<string, number>();
+  public newClients = new Set<string>();
   private nextPlayerNumber = 1;
-  private networkMetrics = new NetworkMetricsCollector();
+  public networkMetrics = new NetworkMetricsCollector();
   private replicationTracker = new ReplicationStateTracker();
-  private ackTracker = new ClientAckTracker();
-  private budgetManager = new NetworkBudgetManager();
-  private deltaSystem = new NetworkDeltaSystem(this.replicationTracker);
+  public ackTracker = new ClientAckTracker();
+  public budgetManager = new NetworkBudgetManager();
+  public deltaSystem = new NetworkDeltaSystem(this.replicationTracker);
   private REPLICATION_MODE: 'legacy' | 'interest' | 'delta' | 'budget' | 'binary' = 'binary';
-  private replicationStrategy!: ReplicationStrategy;
+  private replicationStrategy!: ReplicationStrategy<AsteroidsRoom, Client, AsteroidsState>;
 
   private spawnAsteroids(count: number) {
     const gameplayRandom = this.world.gameplayRandom;
@@ -145,12 +145,12 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
     this.state.serverTick = 0;
 
     this.setPatchRate(50);
-    this.setSimulationInterval((dt: any) => this.update(dt));
+    this.setSimulationInterval((dt: number) => this.update(dt));
 
-    this.onMessage("input", (client: any, frame: any) => {
+    this.onMessage("input", (client: Client, frame: unknown) => {
       const parsedFrame = InputFrameSchema.safeParse(frame);
       if (!parsedFrame.success) {
-        console.warn(`[AsteroidsRoom] Invalid input frame from client ${client.sessionId}:`, parsedFrame.error.issues);
+        logger.warn(`[AsteroidsRoom] Invalid input frame from client ${client.sessionId}:`, parsedFrame.error.issues);
         return;
       }
       const validFrame = parsedFrame.data as unknown as InputFrame;
@@ -159,17 +159,18 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
       this.inputBuffers.set(client.sessionId, buffer);
     });
 
-    this.onMessage("sync_tick", (client: any, data: any) => {
-      if (data?.lastAckedVersion !== undefined) {
-        this.clientAcks.set(client.sessionId, data.lastAckedVersion);
+    this.onMessage("sync_tick", (client: Client, data: unknown) => {
+      const syncData = data as Record<string, unknown> | null | undefined;
+      if (syncData?.lastAckedVersion !== undefined) {
+        this.clientAcks.set(client.sessionId, syncData.lastAckedVersion as number);
       }
-      if (data?.sequence !== undefined) {
-        this.ackTracker.recordAck(client.sessionId, data.sequence, this.state.serverTick);
+      if (syncData?.sequence !== undefined) {
+        this.ackTracker.recordAck(client.sessionId, syncData.sequence as number, this.state.serverTick);
       }
       client.send("sync_tick", {
         protocolVersion: this.state.protocolVersion,
         serverTick: this.state.serverTick,
-        timestamp: (data?.timestamp && data.timestamp > 0) ? data.timestamp : Date.now()
+        timestamp: (syncData?.timestamp && (syncData.timestamp as number) > 0) ? syncData.timestamp : Date.now()
       });
     });
 
@@ -178,13 +179,13 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
       this.state.gameStarted = true;
       this.spawnAsteroids(6);
 
-      this.world.getEventBus().on("game:over" as any, () => {
+      this.world.getEventBus().on("game:over" as keyof CombinedEvents<AsteroidsEventRegistry> & string, () => {
           this.state.gameOver = true;
-          console.log(`[AsteroidsRoom] Game Over. Final Authoritative Score: ${this.state.score}`);
+          logger.log(`[AsteroidsRoom] Game Over. Final Authoritative Score: ${this.state.score}`);
       });
     });
 
-    this.onMessage("metrics", (client: any) => {
+    this.onMessage("metrics", (client: Client) => {
       client.send("metrics", {
         protocolVersion: this.state.protocolVersion,
         ...this.networkMetrics.getMetrics()
@@ -224,7 +225,7 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
     const player = this.state.players.get(client.sessionId);
     if (player && player.score > 0) {
         const dateKey = getDateKey();
-        console.log(`[AsteroidsRoom] Recording authoritative score for ${player.name}: ${player.score}`);
+        logger.log(`[AsteroidsRoom] Recording authoritative score for ${player.name}: ${player.score}`);
         leaderboardStore.addScore("asteroids", dateKey, player.sessionId, player.score, player.name, true);
     }
 
@@ -273,15 +274,15 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
         totalBytesSentThisTick,
         trackedEntitiesCount,
         totalSerializationMs,
-        (this as any).clients.length,
-        (this as any).clients.length > 0 ? totalEntitiesFiltered / (this as any).clients.length : 0
+        this.clients.length,
+        this.clients.length > 0 ? totalEntitiesFiltered / this.clients.length : 0
     );
 
 
     this.replayFrames.push({
         tick: this.state.serverTick,
         inputs: currentInputs,
-        events: []
+        events: [] as GameEvent[]
     });
 
     if (this.replayFrames.length > 18000) {
@@ -314,7 +315,7 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
   }
 
   onDispose() {
-    console.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
+    logger.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
     this.stateHistory.clear();
     this.inputBuffers.clear();
     this.clientAcks.clear();
@@ -360,7 +361,7 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
         if (ship) {
             // score logic if available
         }
-        const playerScore = this.world.getComponent(entity, "PlayerScore" as any) as { score: number } | undefined;
+        const playerScore = this.world.getComponent(entity, "PlayerScore" as unknown as ComponentType<AsteroidsComponentRegistry>) as { score: number } | undefined;
         if (playerScore) {
             player.score = playerScore.score;
         }

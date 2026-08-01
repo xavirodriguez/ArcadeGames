@@ -101,7 +101,8 @@ describe("MultiplayerSystems", () => {
 
     const replicationTracker = {};
     const deltaSystem = new NetworkDeltaSystem(replicationTracker);
-    expect(deltaSystem.generateDelta({}, "session", 1, 0, new Set(), false)).toEqual({
+    const testWorldForDelta = new World();
+    expect(deltaSystem.generateDelta(testWorldForDelta, "session", 1, 0, new Set(), false)).toEqual({
       kind: "delta",
       tick: 0,
       delta: {}
@@ -111,7 +112,7 @@ describe("MultiplayerSystems", () => {
     const interest = [{ id: 1 }];
     expect(budgetManager.prioritize("session", interest)).toBe(interest);
 
-    const mockWorld = {};
+    const mockWorld = new World();
     const interestManager = new InterestManagerSystem();
     expect(() => interestManager.update(mockWorld, 0.16)).not.toThrow();
     expect(() => interestManager.onRegister(mockWorld)).not.toThrow();
@@ -128,6 +129,22 @@ describe("MultiplayerSystems", () => {
 
     const bufferUnpacked = BinaryCompression.unpack(Buffer.from(packed));
     expect(bufferUnpacked).toEqual(payload);
+  });
+
+  it("should validate unpack payloads using a validator type guard", () => {
+    const payload = { hello: "world" };
+    const packed = BinaryCompression.pack(payload);
+
+    // This should pass
+    const isPayload = (data: any): data is { hello: string } => data && typeof data.hello === "string";
+    const unpacked = BinaryCompression.unpack(packed, isPayload);
+    expect(unpacked).toEqual(payload);
+
+    // This should throw
+    const isNotPayload = (data: any): data is { bye: string } => data && typeof data.bye === "string";
+    expect(() => BinaryCompression.unpack(packed, isNotPayload)).toThrow(
+      "BinaryCompression: Unpacked data failed validation type guard."
+    );
   });
 });
 
@@ -311,7 +328,7 @@ describe("ProjectilePool", () => {
           velocity: { type: "Velocity", vx: 0, vy: 0 },
           render: { type: "Render", color: "white" },
           collider: { type: "Collider2D", radius: 5 },
-          ttl: { type: "TTL", timeLeft: 1.0 },
+          ttl: { type: "TTL", remaining: 1.0 },
           reclaimable: { type: "Reclaimable" }
         } as any),
         reset: (data: any) => {

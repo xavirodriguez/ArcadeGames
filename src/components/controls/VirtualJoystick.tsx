@@ -7,23 +7,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { World, Component, TagComponent } from "@tiny-aster/core";
-import { Entity } from "@tiny-aster/core";
 
 export type JoystickType = "movement" | "rotation";
-
-export interface VirtualJoystickComponent extends Component {
-  type: "VirtualJoystick";
-  active: boolean;
-  originX: number;
-  originY: number;
-  currentX: number;
-  currentY: number;
-  radius: number;
-  joystickType: JoystickType;
-  horizontalAxis: string;
-  verticalAxis: string;
-}
 
 export interface VirtualJoystickProps {
   /** Unique ID for identifying the ECS entity. */
@@ -42,8 +27,6 @@ export interface VirtualJoystickProps {
   opacity?: number;
   /** Whether to show the background ring. */
   showBackgroundRing?: boolean;
-  /** The ECS World to integrate with. */
-  world?: World;
   /** Optional style for the touchable container. */
   containerStyle?: StyleProp<ViewStyle>;
   /** Optional callback for movement. */
@@ -58,7 +41,7 @@ export interface VirtualJoystickProps {
  * Features:
  * - Floating Dynamic behavior (appears on touch).
  * - Reanimated 3 for smooth, decoupled knob movement.
- * - Direct ECS integration via world.getMutableComponent.
+ * - Direct React Bridge integration.
  */
 export function VirtualJoystick({
   joystickId = "joystick",
@@ -69,7 +52,6 @@ export function VirtualJoystick({
   activeColor = "rgba(255,255,255,0.7)",
   opacity = 0.6,
   showBackgroundRing = true,
-  world,
   containerStyle,
   onMove,
   onRelease,
@@ -84,44 +66,6 @@ export function VirtualJoystick({
   const knobX = useSharedValue(0);
   const knobY = useSharedValue(0);
 
-  const entityRef = useRef<Entity | null>(null);
-
-  // Sync with ECS Entity Lifecycle
-  useEffect(() => {
-    if (!world) return;
-
-    const entity = world.reserveEntityId();
-    world.getCommandBuffer().createEntity(entity);
-    world.getCommandBuffer().addComponent(entity, {
-      type: "Tag",
-      tags: [joystickId]
-    } as TagComponent);
-    world.getCommandBuffer().addComponent(entity, {
-      type: "VirtualJoystick",
-      active: false,
-      originX: 0,
-      originY: 0,
-      currentX: 0,
-      currentY: 0,
-      radius: MAX_OFFSET,
-      joystickType: type,
-      // Default axes based on type if not specified
-      horizontalAxis: type === "rotation" ? "rotate_horizontal" : "horizontal",
-      verticalAxis: type === "rotation" ? "rotate_vertical" : "vertical",
-    } as any);
-
-    entityRef.current = entity;
-    world.flush();
-
-    return () => {
-      if (entityRef.current !== null) {
-        world.getCommandBuffer().removeEntity(entityRef.current);
-        world.flush();
-        entityRef.current = null;
-      }
-    };
-  }, [world, type, joystickId, MAX_OFFSET]);
-
   const pan = Gesture.Pan()
     .runOnJS(true)
     .minDistance(0)
@@ -133,17 +77,6 @@ export function VirtualJoystick({
       knobY.value = 0;
 
       if (onMove) onMove(0, 0);
-
-      if (world && entityRef.current !== null) {
-        const entity = entityRef.current;
-        world.mutateComponent(entity, "VirtualJoystick" as any, (joystick: any) => {
-          joystick.active = true;
-          joystick.originX = e.x;
-          joystick.originY = e.y;
-          joystick.currentX = e.x;
-          joystick.currentY = e.y;
-        });
-      }
     })
     .onUpdate((e) => {
       const dx = e.x - basePos.value.x;
@@ -162,15 +95,6 @@ export function VirtualJoystick({
         const normY = clamp === 0 ? 0 : (clamp / MAX_OFFSET) * Math.sin(angle);
         onMove(normX, normY);
       }
-
-      // Write raw absolute coordinates to ECS for simulation
-      if (world && entityRef.current !== null) {
-        const entity = entityRef.current;
-        world.mutateComponent(entity, "VirtualJoystick" as any, (joystick: any) => {
-          joystick.currentX = e.x;
-          joystick.currentY = e.y;
-        });
-      }
     })
     .onEnd(() => {
       knobX.value = withSpring(0, { damping: 20, stiffness: 300 });
@@ -180,13 +104,6 @@ export function VirtualJoystick({
       });
 
       if (onRelease) onRelease();
-
-      if (world && entityRef.current !== null) {
-        const entity = entityRef.current;
-        world.mutateComponent(entity, "VirtualJoystick" as any, (joystick: any) => {
-          joystick.active = false;
-        });
-      }
     });
 
   const baseStyle = useAnimatedStyle(() => ({

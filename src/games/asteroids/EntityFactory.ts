@@ -57,7 +57,8 @@ export function registerAsteroidsBlueprints(
         order: 1,
         rotation: 0,
         angularVelocity: 0,
-        hitFlashFrames: 0
+        hitFlashFrames: 0,
+        shape: "ship"
       } as RenderComponent);
       w.addComponent(entity, {
         type: "Health",
@@ -122,7 +123,8 @@ export function registerAsteroidsBlueprints(
         order: 2,
         rotation: args.rotation ?? 0,
         angularVelocity: 0,
-        hitFlashFrames: 0
+        hitFlashFrames: 0,
+        shape: "bullet"
       } as RenderComponent);
       w.addComponent(entity, {
         type: "Bullet",
@@ -130,8 +132,7 @@ export function registerAsteroidsBlueprints(
       } as AsteroidsComponentRegistry["Bullet"]);
       w.addComponent(entity, {
         type: "TTL",
-        remaining: args.ttl ?? 2.0,
-        timeLeft: args.ttl ?? 2.0
+        remaining: args.ttl ?? 2.0
       } as TTLComponent);
       w.addComponent(entity, {
         type: "Collider",
@@ -192,7 +193,8 @@ export function registerAsteroidsBlueprints(
         order: 0,
         rotation: 0,
         angularVelocity: 0,
-        hitFlashFrames: 0
+        hitFlashFrames: 0,
+        shape: "asteroid"
       } as RenderComponent);
 
       let radius = 40;
@@ -225,7 +227,56 @@ export function registerAsteroidsBlueprints(
     }
   });
 
+  registry.register("particle", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; color?: string; ttl?: number; size?: number }) => {
+      w.addComponent(entity, {
+        type: "Transform",
+        x: args.x,
+        y: args.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: args.x,
+        worldY: args.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as TransformComponent);
+      w.addComponent(entity, {
+        type: "Velocity",
+        vx: args.vx,
+        vy: args.vy,
+        angularVelocity: 0
+      } as VelocityComponent);
+      w.addComponent(entity, {
+        type: "Render",
+        visible: true,
+        opacity: 1,
+        order: 2,
+        rotation: 0,
+        angularVelocity: 0,
+        hitFlashFrames: 0,
+        shape: "particle",
+        size: args.size ?? 2,
+        color: args.color ?? "white"
+      } as RenderComponent);
+      w.addComponent(entity, {
+        type: "TTL",
+        remaining: args.ttl ?? 0.5
+      } as TTLComponent);
+    }
+  });
+
   world.setResource("BlueprintRegistry", registry);
+}
+
+/** @public */
+export function spawnParticle(
+  world: World<any>,
+  args: { x: number; y: number; vx: number; vy: number; color?: string; ttl?: number; size?: number }
+): number {
+  return spawnEntity(world, "particle", args);
 }
 
 // Generadores de entidades genéricas que admiten cualquier tipo de componente dinámico.
@@ -302,7 +353,7 @@ export const createShip = (config: { world: World<AsteroidsComponentRegistry, As
 
 /**
  * Factory function to create and initialize a Bullet entity in the Asteroids game.
- * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL (timeLeft & remaining), Collider, CollisionEvents.
+ * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL (remaining), Collider, CollisionEvents.
  * @public
  */
 export function createBullet(

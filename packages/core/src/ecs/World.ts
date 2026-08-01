@@ -1,4 +1,4 @@
-import { ComponentRegistry, ComponentType } from "./Component";
+import { ComponentRegistry, ComponentType, DeepReadonly } from "./Component";
 import { Entity } from "./Entity";
 import { EventRegistry, EventBus } from "../events/EventBus";
 import { Query } from "./Query";
@@ -13,6 +13,7 @@ import { SnapshotRestoreSoA } from "../snapshots/SnapshotRestoreSoA";
 import { WorldCommandBuffer } from "./WorldCommandBuffer";
 import { BlueprintDefinition } from "./BlueprintRegistry";
 import { ComponentCloner } from "./ComponentCloner";
+import { PhysicsQuery } from "../physics/query/PhysicsQuery";
 
 declare const __DEV__: boolean;
 
@@ -32,6 +33,24 @@ export type BlueprintRegistryMap<
   TComponents extends ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry
 > = Record<string, BlueprintDefinition<TComponents, TEvents, unknown>>;
+
+/**
+ * Registry interface for strongly-typed ECS resources.
+ * Can be extended via declaration merging.
+ * @public
+ */
+export interface ResourceRegistry {
+  EventBus: any;
+  SpatialCullingCandidates: any[];
+  SpatialCullingEnabled: boolean;
+  SpatialCullingMargin: number;
+  ScreenShake: any;
+  BlueprintRegistry: any;
+  StateMachineRegistry: any;
+  ScreenConfig: { width: number; height: number };
+  UseSoASnapshots: boolean;
+  InputSystem: any;
+}
 
 /**
  * The World acts as the central container for an ECS (Entity Component System) simulation.
@@ -56,6 +75,18 @@ export class World<
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
+  public static readonly RESOURCE_VALIDATORS: Record<string, (val: any) => boolean> = {
+    EventBus: (val) => val !== null && typeof val?.emit === "function" && typeof val?.on === "function",
+    SpatialCullingCandidates: (val) => Array.isArray(val),
+    SpatialCullingEnabled: (val) => typeof val === "boolean",
+    SpatialCullingMargin: (val) => typeof val === "number",
+    ScreenShake: (val) => typeof val === "object" && val !== null && typeof val.intensity === "number" && typeof val.duration === "number" && typeof val.remaining === "number",
+    BlueprintRegistry: (val) => typeof val === "object" && val !== null && typeof val.get === "function",
+    StateMachineRegistry: (val) => typeof val === "object" && val !== null,
+    ScreenConfig: (val) => typeof val === "object" && val !== null && typeof val.width === "number" && typeof val.height === "number",
+    UseSoASnapshots: (val) => typeof val === "boolean",
+  };
+
   private activeEntities = new Set<Entity>();
   private cachedEntities: ReadonlyArray<Entity> | null = null;
 
@@ -138,6 +169,19 @@ export class World<
    */
   public renderRandom = new RandomService();
 
+  /**
+   * Namespace for physics queries to decompose World god-object complexity.
+   * @public
+   */
+  public readonly physics = {
+    pointCast: (x: number, y: number): Entity[] => {
+      return PhysicsQuery.pointCast(this, x, y);
+    },
+    shapeCast: (shape: any, x: number, y: number): Entity[] => {
+      return PhysicsQuery.shapeCast(this, shape, x, y);
+    }
+  };
+
   /** @internal */
   private _structureVersion = 0;
   /** @internal */
@@ -164,7 +208,14 @@ export class World<
   public get structureVersion(): number { return this._structureVersion; }
   /** Incremented on any state change (structural change or component mutation). */
   public get stateVersion(): number { return this._stateVersion; }
-  /** Seeded RNG service intended for gameplay logic to support reproducibility. */
+  /**
+   * Seeded RNG service intended for gameplay logic to support reproducibility.
+   *
+   * @deprecated Accessing gameplayRandom directly is discouraged. Instead, gameplay systems
+   * should use random numbers provided via the system's update context, and keep it encapsulated
+   * from the rendering/visual loop.
+   * @public
+   */
   public get gameplayRandom(): RandomService { return this._gameplayRandom; }
   public getEventBus(): EventBus<TEvents> { return this.getResource<EventBus<TEvents>>("EventBus")!; }
   public getCommandBuffer(): WorldCommandBuffer<TComponents, TEvents, TBlueprints> { return this.commandBuffer; }
@@ -416,12 +467,12 @@ export class World<
   public readComponent<K extends ComponentType<TComponents>>(
     entity: Entity,
     type: K
-  ): TComponents[K] | undefined {
+  ): DeepReadonly<TComponents[K]> | undefined {
     const component = this.getComponent(entity, type);
     if (isDev && component !== undefined) {
-      return Object.freeze(component) as TComponents[K];
+      return Object.freeze(component) as unknown as DeepReadonly<TComponents[K]>;
     }
-    return component;
+    return component as unknown as DeepReadonly<TComponents[K]>;
   }
 
   /**
@@ -617,12 +668,23 @@ export class World<
     }
   }
 
-  setResource<T>(name: string, resource: T): void {
+  setResource<K extends keyof ResourceRegistry>(name: K, resource: ResourceRegistry[K]): void;
+  setResource<T>(name: string, resource: T): void;
+  setResource(name: string, resource: any): void {
     this.resources.set(name, resource);
   }
 
-  getResource<T>(name: string): T | undefined {
-    return this.resources.get(name) as T;
+  getResource<K extends keyof ResourceRegistry>(name: K): ResourceRegistry[K] | undefined;
+  getResource<T>(name: string): T | undefined;
+  getResource(name: string): any {
+    const val = this.resources.get(name);
+    if (isDev && val !== undefined) {
+      const validator = World.RESOURCE_VALIDATORS[name];
+      if (validator && !validator(val)) {
+        throw new Error(`Resource type assertion failed for resource "${name}". Value does not match the expected shape.`);
+      }
+    }
+    return val;
   }
 
   deleteResource(name: string): void {

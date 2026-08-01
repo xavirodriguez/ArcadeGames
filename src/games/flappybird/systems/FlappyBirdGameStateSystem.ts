@@ -25,7 +25,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         gs.pipeSpawnTimer += deltaTime;
     });
 
-    if (gameState.pipeSpawnTimer >= this.config.PIPE_SPAWN_INTERVAL) {
+    if (gameState.pipeSpawnTimer >= this.config.PIPE_SPAWN_INTERVAL / 1000) {
       const margin = 100;
       const gapY = world.gameplayRandom.nextInt(margin, this.config.SCREEN_HEIGHT - margin);
       createPipe({
@@ -37,6 +37,15 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
       world.mutateSingleton("FlappyState", (gs) => {
           gs.pipeSpawnTimer = 0;
       });
+    }
+
+    if (gameState.isGameOver) {
+      const layers = world.query("ParallaxLayer" as any);
+      for (const layer of layers) {
+        world.mutateComponent(layer, "ParallaxLayer" as any, (l: any) => {
+          l.paused = true;
+        });
+      }
     }
 
     // Remove pipes that are off-screen and update score
@@ -51,8 +60,23 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
           world.mutateComponent(entity, "Pipe", p => {
              p.scored = true;
           });
+
+          // Increment Combo on pipe passed!
+          let nextMultiplier = 1;
+          const comboEntities = world.query("Combo" as any);
+          const comboEntity = comboEntities[0];
+          if (comboEntity !== undefined) {
+            world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+              c.combo++;
+              c.timerRemaining = 3.0; // 3 seconds timeout
+              c.multiplier = Math.min(10, 1 + Math.floor(c.combo / 3)); // max 10 multiplier
+              nextMultiplier = c.multiplier;
+            });
+          }
+
           world.mutateSingleton("FlappyState", (gs) => {
-              gs.score += gs.comboMultiplier || 1;
+              gs.score += nextMultiplier;
+              gs.comboMultiplier = nextMultiplier;
               if (gs.score > gs.highScore) {
                 gs.highScore = gs.score;
               }
@@ -62,6 +86,18 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         }
       }
     });
+
+    // Sync local FlappyState combo fields from the unified Combo component (updated by ComboSystem)
+    const comboEntities = world.query("Combo" as any);
+    const comboEntity = comboEntities[0];
+    if (comboEntity !== undefined) {
+      const comboComp = world.getComponent(comboEntity, "Combo" as any) as any;
+      if (comboComp && gameState.comboMultiplier !== comboComp.multiplier) {
+        world.mutateSingleton("FlappyState", (gs) => {
+          gs.comboMultiplier = comboComp.multiplier;
+        });
+      }
+    }
   }
 
   protected getGameState(world: World<FlappyBirdComponentRegistry>): FlappyBirdState | undefined {
@@ -84,7 +120,25 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
             state.isGameOver = false;
             state.score = 0;
             state.pipeSpawnTimer = 0;
+            state.comboMultiplier = 1;
         });
+        const layers = w.query("ParallaxLayer" as any);
+        for (const layer of layers) {
+          w.mutateComponent(layer, "ParallaxLayer" as any, (l: any) => {
+            l.paused = false;
+            l.autoScrollX = 0;
+            l.autoScrollY = 0;
+          });
+        }
+        const comboEntities = w.query("Combo" as any);
+        const comboEntity = comboEntities[0];
+        if (comboEntity !== undefined) {
+          w.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+            c.combo = 0;
+            c.multiplier = 1;
+            c.timerRemaining = 0;
+          });
+        }
     }
   }
 }

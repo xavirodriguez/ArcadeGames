@@ -1,4 +1,5 @@
 import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter } from "@tiny-aster/core";
+import { logger } from "../../utils/logger";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -10,9 +11,13 @@ import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import {
   drawSpaceInvadersPlayer,
   drawSpaceInvadersInvader,
+  drawSpaceInvadersUFO,
   drawSpaceInvadersBullet,
   drawSpaceInvadersShield,
-  drawSpaceInvadersParticle
+  drawSpaceInvadersParticle,
+  drawSpaceInvadersBoss,
+  spaceInvadersStarfield,
+  spaceInvadersScreenShakeEffect
 } from "./rendering/SpaceInvadersCanvasVisuals";
 import {
   RetroCRTScanlinesEffect,
@@ -60,10 +65,7 @@ export class SpaceInvadersGame
 
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown> } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
-    const rawConfig = require("./config/space-invaders.json");
     super({
-      pauseKey: rawConfig.KEYS.PAUSE,
-      restartKey: rawConfig.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
       gameOptions: { ...config.gameOptions, seed }
     });
@@ -121,7 +123,7 @@ export class SpaceInvadersGame
           type: "Health",
           current: config.PLAYER_INITIAL_LIVES,
           max: config.PLAYER_INITIAL_LIVES,
-          invulnerableRemaining: 0,
+          invulnerableRemaining: world.getResource("HasShieldPulse") ? 3.0 : 0,
         } as HealthComponent);
         world.addComponent(entity, {
           type: "Input",
@@ -286,7 +288,7 @@ export class SpaceInvadersGame
   }
 
   public override update(dt: number): void {
-      this.world.update(dt);
+      this.getWorld().update(dt);
   }
 
   private async onPreloadAssets(): Promise<void> {
@@ -299,7 +301,7 @@ export class SpaceInvadersGame
         audio.loadSFX("game_over", "/audio/game_over.mp3"),
       ]);
     } catch (e) {
-      console.warn("[SpaceInvaders] Asset preloading failed.", e);
+      logger.warn("[SpaceInvaders] Asset preloading failed.", e);
     }
   }
 
@@ -307,6 +309,7 @@ export class SpaceInvadersGame
     if ((renderer as any).type === "canvas") {
       (renderer as any).registerShape("player_ship", drawSpaceInvadersPlayer);
       (renderer as any).registerShape("invader", drawSpaceInvadersInvader);
+      (renderer as any).registerShape("ufo", drawSpaceInvadersUFO);
       (renderer as any).registerShape("player_bullet", drawSpaceInvadersBullet);
       (renderer as any).registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
       (renderer as any).registerShape("shield_block", drawSpaceInvadersShield);
@@ -347,9 +350,34 @@ export class SpaceInvadersGame
   }
 
   public setInput(input: Partial<InputState>) {
-    Object.entries(input).forEach(([key, value]) => {
-      this.unifiedInput.setOverride(key, !!value);
-    });
+    this.setInputState(input);
+  }
+
+  public setInputState(input: Partial<InputState>): void {
+    const world = this.getWorld();
+    const player = world.query("Player" as any, "Input" as any)[0];
+    if (player !== undefined) {
+      world.mutateComponent(player, "Input" as any, (inp: any) => {
+        if (input.moveLeft !== undefined) inp.moveLeft = input.moveLeft;
+        if (input.moveRight !== undefined) inp.moveRight = input.moveRight;
+        if (input.shoot !== undefined) inp.shoot = input.shoot;
+        if (input.rotationAmount !== undefined) {
+          const rotAmount = Number(input.rotationAmount);
+          if (!isNaN(rotAmount)) {
+            if (rotAmount < -0.15) {
+              inp.moveLeft = true;
+              inp.moveRight = false;
+            } else if (rotAmount > 0.15) {
+              inp.moveLeft = false;
+              inp.moveRight = true;
+            } else {
+              inp.moveLeft = false;
+              inp.moveRight = false;
+            }
+          }
+        }
+      });
+    }
   }
 
   public updateFromServer(state: Record<string, unknown>) {
@@ -455,23 +483,23 @@ export class SpaceInvadersGame
 
   public override start(): void {
     super.start();
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation started");
+    logger.log("[SpaceInvadersGame] Simulation started");
   }
 
   public stop(): void {
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation stopped");
+    logger.log("[SpaceInvadersGame] Simulation stopped");
   }
 
   public override pause(): void {
     super.pause();
     this.getWorld().setResource("IsPaused", true);
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation paused");
+    logger.log("[SpaceInvadersGame] Simulation paused");
   }
 
   public override resume(): void {
     super.resume();
     this.getWorld().setResource("IsPaused", false);
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation resumed");
+    logger.log("[SpaceInvadersGame] Simulation resumed");
   }
 }
 
@@ -495,6 +523,7 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public async restart() {}
   public subscribe(cb: (state: GameStateComponent) => void) { return () => {}; }
   public setInput(input: Partial<InputState>) {}
+  public setInputState(input: Partial<InputState>) {}
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
 }

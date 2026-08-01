@@ -26,7 +26,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
 
       // Simple side to side movement
       world.mutateComponent(entity, "Transform", p => {
-          p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer / 1000) * 200;
+          p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer) * 200;
       });
 
       // Phase changes
@@ -38,7 +38,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
       });
 
       // Shooting patterns
-      if (Math.floor(boss.timer / 1000) % 2 === 0 && Math.floor((boss.timer - deltaTime) / 1000) % 2 !== 0) {
+      if (Math.floor(boss.timer) % 2 === 0 && Math.floor(boss.timer - deltaTime) % 2 !== 0) {
          // Burst effect when "shooting"
          createEmitter(world, {
             type: "shoot",
@@ -74,7 +74,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
     const boss = world.reserveEntityId();
     commands.createEntity(boss);
     commands.addComponent(boss, { type: "Transform", x: GAME_CONFIG.SCREEN_WIDTH / 2, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: GAME_CONFIG.SCREEN_WIDTH / 2, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-    commands.addComponent(boss, { type: "Render", shape: "invader", size: 80, color: "#FF00FF", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
+    commands.addComponent(boss, { type: "Render", shape: "boss_mothership", size: 80, color: "#FF00FF", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
     commands.addComponent(boss, {
       type: "Collider2D",
       shape: { type: "circle", radius: 40 },

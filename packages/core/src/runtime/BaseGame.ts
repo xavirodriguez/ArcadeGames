@@ -9,6 +9,8 @@ import { UnifiedInputSystem } from "../input/UnifiedInputSystem";
 import { Schedule } from "../ecs/Schedule";
 import { SceneManager } from "../scenes/SceneManager";
 import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
+import { DebugManager } from "../ui/debug/DebugManager";
+import { ReplayRecorder } from "../debug/ReplayRecorder";
 
 /**
  * Representation of the game lifecycle states.
@@ -29,10 +31,6 @@ export interface BaseGameConfig<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry
 > {
-  /** [KeyboardEvent.code] Key to toggle pause. */
-  pauseKey?: string;
-  /** [KeyboardEvent.code] Key to restart the game. */
-  restartKey?: string;
   /** Enables multiplayer-specific synchronization logic. */
   isMultiplayer?: boolean;
   /** Global game options, including the initial simulation seed. */
@@ -47,6 +45,8 @@ export interface BaseGameConfig<
   audio?: IAudioPlayer;
   /** Timeout for game initialization in milliseconds. Defaults to 10000. */
   initTimeout?: number;
+  /** Enables developer debug tools manually. */
+  debug?: boolean;
 }
 
 /**
@@ -78,6 +78,9 @@ export abstract class BaseGame<
   public sceneManager: SceneManager;
   public audio: IAudioPlayer;
 
+  public debugManager?: DebugManager;
+  public replayRecorder?: ReplayRecorder;
+
   constructor(config: BaseGameConfig<TComponents, TEvents> = {}) {
     this._config = config;
     this.world = new World<TComponents, TEvents, TBlueprints>(config.schedule);
@@ -96,6 +99,20 @@ export abstract class BaseGame<
         this.update(dt);
       }
     });
+
+    const isDev = typeof (globalThis as any).__DEV__ !== "undefined"
+      ? (globalThis as any).__DEV__
+      : (process.env.NODE_ENV !== "production");
+    const enableDebug = config.debug !== false && (config.debug || isDev);
+
+    if (enableDebug) {
+      if (this.debugManager) this.debugManager.dispose();
+      if (this.replayRecorder) this.replayRecorder.dispose();
+
+      this.debugManager = new DebugManager(this.world, this.eventBus as any, this.loop);
+      this.replayRecorder = new ReplayRecorder(this.world, this.loop);
+      this.replayRecorder.startRecording();
+    }
   }
 
   private registerInternalResources(): void {
@@ -289,6 +306,15 @@ export abstract class BaseGame<
     this.lifecycleState = GameLifecycleState.DESTROYED;
     this.loop.stop();
 
+    if (this.debugManager) {
+      this.debugManager.dispose();
+      this.debugManager = undefined;
+    }
+    if (this.replayRecorder) {
+      this.replayRecorder.dispose();
+      this.replayRecorder = undefined;
+    }
+
     this.world.schedule.clearSystems();
     this.eventBus.clear();
 
@@ -332,6 +358,20 @@ export abstract class BaseGame<
     this.world = new World<TComponents, TEvents, TBlueprints>(this._config.schedule);
     this.registerInternalResources();
     this.sceneManager = new SceneManager(this.world, this.eventBus as any);
+
+    const isDev = typeof (globalThis as any).__DEV__ !== "undefined"
+      ? (globalThis as any).__DEV__
+      : (process.env.NODE_ENV !== "production");
+    const enableDebug = this._config.debug !== false && (this._config.debug || isDev);
+
+    if (enableDebug) {
+      if (this.debugManager) this.debugManager.dispose();
+      if (this.replayRecorder) this.replayRecorder.dispose();
+
+      this.debugManager = new DebugManager(this.world, this.eventBus as any, this.loop);
+      this.replayRecorder = new ReplayRecorder(this.world, this.loop);
+      this.replayRecorder.startRecording();
+    }
 
     // Re-register systems and initialize entities by running init()
     await this.init();

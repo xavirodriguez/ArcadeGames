@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+import { logger } from "../../utils/logger";
 import {
   World,
   GameLoop,
@@ -9,6 +10,7 @@ import {
   MutatorSystem,
   SpatialPartitioningSystem,
   SpatialCullingSystem,
+  HierarchySystem,
   RenderUpdateSystem,
   MovementSystem,
   BoundarySystem,
@@ -91,8 +93,8 @@ export class AsteroidsGame
   private resizeListener?: () => void;
   private isHeadless: boolean;
 
-  public get networkManager(): NetworkManager | undefined { return this.network.networkManager; }
-  public set networkManager(val: NetworkManager | undefined) { this.network.networkManager = val; }
+  public get networkManager(): NetworkManager<Record<string, any>, Record<string, any>, AsteroidsComponentRegistry> | undefined { return this.network.networkManager; }
+  public set networkManager(val: NetworkManager<Record<string, any>, Record<string, any>, AsteroidsComponentRegistry> | undefined) { this.network.networkManager = val; }
   public get lastProcessedFullStateVersion(): number { return this.network.lastProcessedFullStateVersion; }
   public set lastProcessedFullStateVersion(val: number) { this.network.lastProcessedFullStateVersion = val; }
   public get isMultiplayer(): boolean { return this.network.isMultiplayer; }
@@ -159,6 +161,7 @@ export class AsteroidsGame
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new FrictionSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new CCDSystem(), { phase: SystemPhase.Simulation, priority: -10 });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new AsteroidCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
@@ -241,6 +244,15 @@ export class AsteroidsGame
 
         // Spawn first wave
         spawnAsteroidWave(this.world, 1);
+
+        // Apply active beneficial mutators
+        const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
+        for (const mutatorId of activeBeneficials) {
+          const mutator = BENEFICIAL_MUTATORS[mutatorId];
+          if (mutator) {
+            mutator.apply(this.world);
+          }
+        }
     } finally {
         this.world.gameplayRandom.lock();
     }
@@ -263,7 +275,7 @@ export class AsteroidsGame
     this.world.setResource("ScreenConfig", screenConfig);
 
     if (__DEV__) {
-        console.log(`[AsteroidsGame] ScreenConfig updated: ${width}x${height}`);
+        logger.log(`[AsteroidsGame] ScreenConfig updated: ${width}x${height}`);
     }
   }
 
@@ -283,7 +295,7 @@ export class AsteroidsGame
         ]);
       }
     } catch (e) {
-      console.warn("[Asteroids] Asset preloading failed. Visuals or Audio may lag.", e);
+      logger.warn("[Asteroids] Asset preloading failed. Visuals or Audio may lag.", e);
     }
   }
 
@@ -397,7 +409,7 @@ export class AsteroidsGame
 
   public override start(): void {
     super.start();
-    if (__DEV__) console.log("[AsteroidsGame] Simulation started");
+    logger.log("[AsteroidsGame] Simulation started");
   }
 
   public override destroy(): void {
@@ -414,13 +426,13 @@ export class AsteroidsGame
   public override pause(): void {
     super.pause();
     this.world.setResource("IsPaused", true);
-    if (__DEV__) console.log("[AsteroidsGame] Simulation paused");
+    logger.log("[AsteroidsGame] Simulation paused");
   }
 
   public override resume(): void {
     super.resume();
     this.world.setResource("IsPaused", false);
-    if (__DEV__) console.log("[AsteroidsGame] Simulation resumed");
+    logger.log("[AsteroidsGame] Simulation resumed");
   }
 
 }

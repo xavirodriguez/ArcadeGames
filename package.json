@@ -90,6 +90,8 @@
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.12",
     "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
     "zod": "^4.1.4"
   },
   "devDependencies": {
@@ -120,7 +122,7 @@
     "jest-expo": "~55.0.20",
     "jiti": "^2.6.1",
     "react-native-worklets": "^0.7.2",
-    "ts-jest": "^29.4.9",
+    "ts-jest": "^29.4.11",
     "ts-morph": "^28.0.0",
     "tsx": "^4.21.0",
     "turbo": "^2.9.18",
@@ -128,6 +130,6 @@
     "typescript-eslint": "^8.41.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.0.0"
   }
 }

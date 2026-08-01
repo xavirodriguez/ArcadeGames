@@ -10,6 +10,7 @@ export interface ISpaceInvadersGame extends IGame<GameStateComponent> {
   isMultiplayer: boolean;
   getGameState(): GameStateComponent;
   setInput(input: Partial<InputState>): void;
+  setInputState(input: Partial<InputState>): void;
   isPausedState(): boolean;
   isGameOver(): boolean;
   initializeRenderer(renderer: Renderer): void;

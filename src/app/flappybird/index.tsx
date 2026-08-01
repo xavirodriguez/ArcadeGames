@@ -10,6 +10,7 @@ import { ShootButton } from "../../components/ShootButton";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useFlappyBirdGame } from "@/hooks/useFlappyBirdGame";
 import { useMultiplayer } from "@tiny-aster/react-native";
+import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { SeedWidget } from "@/components/SeedWidget";
 import { DailyChallengeBanner } from "@/components/DailyChallengeBanner";
 import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
@@ -29,6 +30,8 @@ export default function FlappyBirdScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useFlappyBirdGame(started, isMulti && started);
+
+  useKeyboardControls(game);
 
   // Handle incoming daily challenge parameters
   useEffect(() => {
@@ -91,13 +94,21 @@ export default function FlappyBirdScreen() {
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ flap: true });
-    game?.getInputSystem().setOverride("flap", true);
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
     handleMultiplayerInput({ flap: false });
-    game?.getInputSystem().clearOverride("flap");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
+
+  const handleJoystickMove = useCallback((x: number, y: number) => {
+    if (Math.abs(x) > 0.25 || Math.abs(y) > 0.25) {
+      handleMultiplayerInput({ flap: true });
+    }
+  }, [handleMultiplayerInput]);
+
+  const handleJoystickRelease = useCallback(() => {
+    handleMultiplayerInput({ flap: false });
+  }, [handleMultiplayerInput]);
 
   if (!started) {
     return (
@@ -164,10 +175,12 @@ export default function FlappyBirdScreen() {
 
         <View style={styles.controls} pointerEvents="box-none">
           <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+            {/* React Bridge: VirtualJoystick is a pure visual component routing coordinates directly to game.setInputState */}
             <VirtualJoystick
               joystickId="movement_joystick"
               type="movement"
-              world={game.getWorld()}
+              onMove={handleJoystickMove}
+              onRelease={handleJoystickRelease}
             />
           </View>
           <ShootButton

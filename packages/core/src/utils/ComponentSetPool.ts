@@ -3,6 +3,10 @@ import { Component } from "../ecs/Component";
 import { Entity, ReclaimableComponent } from "../ecs/CoreComponents";
 import { ObjectPool } from "./ObjectPool";
 
+function isReclaimableComponent(comp: Component): comp is ReclaimableComponent {
+  return comp.type === "Reclaimable";
+}
+
 /**
  * Generic ComponentSetPool that manages a pool of component sets.
  *
@@ -59,8 +63,8 @@ export class ComponentSetPool<T extends Record<string, Component>> {
 
         for (const key in components) {
           const comp = components[key];
-          if (comp.type === "Reclaimable") {
-            (comp as unknown as ReclaimableComponent).onReclaim = (w: World, e: Entity) => this.release(w, e);
+          if (isReclaimableComponent(comp)) {
+            comp.onReclaim = (w: World, e: Entity) => this.release(w, e);
           }
           commands.addComponent(entity, comp);
         }
@@ -74,8 +78,8 @@ export class ComponentSetPool<T extends Record<string, Component>> {
       const comp = components[key];
 
       // Automatically wire up Reclaimable components to return to this pool
-      if (comp.type === "Reclaimable") {
-        (comp as unknown as ReclaimableComponent).onReclaim = (w: World, e: Entity) => this.release(w, e);
+      if (isReclaimableComponent(comp)) {
+        comp.onReclaim = (w: World, e: Entity) => this.release(w, e);
       }
 
       world.addComponent(entity, comp);

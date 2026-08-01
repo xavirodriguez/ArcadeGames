@@ -1,4 +1,4 @@
-import { System, World, CoreComponentRegistry } from "@tiny-aster/core";
+import { System, World, CoreComponentRegistry, Component, ComponentRegistry } from "@tiny-aster/core";
 import { PowerUpComponent } from "../types/ArcadeTypes";
 
 /** @public */
@@ -7,15 +7,23 @@ export interface IPowerUpEffect {
 }
 
 /** @public */
-export class PowerUpSystem extends System<CoreComponentRegistry & { PowerUp: PowerUpComponent }> {
-  public update(world: World<CoreComponentRegistry & { PowerUp: PowerUpComponent }>, _deltaTime: number): void {
-      const powerUpType = "PowerUp" as Extract<keyof (CoreComponentRegistry & { PowerUp: PowerUpComponent }), string>;
-      const collisionType = "CollisionEvents" as Extract<keyof (CoreComponentRegistry & { PowerUp: PowerUpComponent }), string>;
-      const entities = world.query(powerUpType, collisionType);
+export interface PowerUpSystemComponents extends CoreComponentRegistry {
+  PowerUp: PowerUpComponent;
+  LocalPlayer?: Component;
+  RemotePlayer?: Component;
+  Player?: Component;
+}
+
+/** @public */
+export class PowerUpSystem<
+  TComponents extends PowerUpSystemComponents = PowerUpSystemComponents
+> extends System<TComponents> {
+  public update(world: World<TComponents>, _deltaTime: number): void {
+      const entities = world.query("PowerUp", "CollisionEvents");
 
       for (const entity of entities) {
-          const powerUp = world.getComponent(entity, powerUpType) as PowerUpComponent | undefined;
-          const collisionsComp = world.getComponent(entity, collisionType) as any;
+          const powerUp = world.getComponent(entity, "PowerUp");
+          const collisionsComp = world.getComponent(entity, "CollisionEvents");
 
           if (!powerUp || !collisionsComp || !collisionsComp.collisions) continue;
 
@@ -23,16 +31,16 @@ export class PowerUpSystem extends System<CoreComponentRegistry & { PowerUp: Pow
               const other = col.otherEntity;
 
               // Check if other is player
-              const isPlayer = world.hasComponent(other, "LocalPlayer" as any) ||
-                               world.hasComponent(other, "RemotePlayer" as any) ||
-                               world.hasComponent(other, "Player" as any);
+              const isPlayer = world.hasComponent(other, "LocalPlayer") ||
+                               world.hasComponent(other, "RemotePlayer") ||
+                               world.hasComponent(other, "Player");
 
               if (isPlayer) {
                   const registry = world.getResource<Record<string, IPowerUpEffect>>("PowerUpEffects") || {
                       speed_boost: {
-                          apply(w: World<any>, player: number) {
-                              if (w.hasComponent(player, "Velocity" as any)) {
-                                  w.mutateComponent(player, "Velocity" as any, (v: any) => {
+                          apply(w: World<TComponents>, player: number) {
+                              if (w.hasComponent(player, "Velocity")) {
+                                  w.mutateComponent(player, "Velocity", (v) => {
                                       v.vx *= 1.5;
                                       v.vy *= 1.5;
                                   });

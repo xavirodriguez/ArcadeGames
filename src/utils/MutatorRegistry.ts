@@ -89,21 +89,29 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     description: "Empezar con combo x2",
     xpCost: 300,
     apply: (world: World) => {
-      const config = world.getResource<any>("GameConfig");
-      const comboTimeout = config?.COMBO_TIMEOUT ?? 2000;
-
-      world.mutateSingleton("GameState" as any, (gs: any) => {
-        gs.combo = 5;
-        gs.multiplier = 2;
-        gs.comboTimerRemaining = comboTimeout / 1000;
-      });
-
       const comboEntities = world.query("Combo" as any);
-      if (comboEntities.length > 0) {
-        world.mutateComponent(comboEntities[0], "Combo" as any, (c: any) => {
+      const comboEntity = comboEntities[0];
+      if (comboEntity !== undefined) {
+        world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
           c.combo = 5;
           c.multiplier = 2;
-          c.timerRemaining = comboTimeout / 1000;
+          c.timerRemaining = c.timerDuration || 2.0;
+        });
+      }
+
+      const gameState = world.getSingleton("GameState" as any);
+      if (gameState) {
+        world.mutateSingleton("GameState" as any, (gs: any) => {
+          gs.combo = 5;
+          gs.multiplier = 2;
+          gs.comboTimerRemaining = gs.comboTimerRemaining || 2.0;
+        });
+      }
+
+      const flappyState = world.getSingleton("FlappyState" as any);
+      if (flappyState) {
+        world.mutateSingleton("FlappyState" as any, (fs: any) => {
+          fs.comboMultiplier = 2;
         });
       }
     }

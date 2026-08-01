@@ -26,161 +26,82 @@
 
 ---
 
-## 🗺️ Part 1: Core Gameplay Loop Document
+## 🗺️ Part 1: Core Gameplay Loop & Target Duration
 
-Here we outline the moment-to-moment, session, and long-term meta-loops across the retro-arcade catalog, with special focus on how they interface with the central `@tiny-aster/core` engine.
+We outline the moment-to-moment, session, and long-term meta-loops across the retro-arcade catalog, utilizing a progression-based target duration.
 
-### Core Loop: Space Invaders
+### ⏱️ Phase & Target Duration Progression
+For any game phase `n`:
+* **Odd Phases**: Increase the **target duration** required to survive and pass.
+* **Even Phases**: Increase the **relative difficulty by 15%** multiplicatively.
+* The player advances to the next phase only by successfully surviving the entire phase duration.
 
-```
-     +-------------------------------------------------------------+
-     |                 MOMENT-TO-MOMENT (0-30s)                    |
-     |  Action: Shoot Invaders, Dodge Bullet, Use Shields          |
-     |  Feedback: Hit Flashes, Popups (e.g., x2), Screen Shake     |
-     |  Reward: Score Gain & Combo Multiplier Increment            |
-     +------------------------------+------------------------------+
-                                    |
-                                    v
-     +-------------------------------------------------------------+
-     |                   SESSION LOOP (5-30 mins)                  |
-     |  Goal: Clear Invader Rows & Boss Waves                      |
-     |  Tension: Speed Scaling (remaining/total) + Kamikaze Dives  |
-     |  Resolution: Victory (all clear) or Defeat (GameOver)       |
-     +------------------------------+------------------------------+
-                                    |
-                                    v
-     +-------------------------------------------------------------+
-     |                LONG-TERM LOOP (META-PROGRESS)               |
-     |  Progression: Accumulate XP from Scores & Accomplishments   |
-     |  Retention: Unlock & Apply Beneficial Mutators via XP       |
-     +-------------------------------------------------------------+
+#### Phase Settings Formula
+```typescript
+const durationMinutes = 2 + Math.floor((phase - 1) / 2);
+const difficultyMultiplier = Math.pow(1.15, Math.floor(phase / 2));
 ```
 
-#### Moment-to-Moment (0–30 seconds)
-- **Action**: The player moves left/right and fires bullets to destroy incoming rows of invaders, while using protective shields to absorb enemy fire.
-- **Feedback**: Destroying an invader triggers an immediate white hit flash (`hitFlashFrames = 4`), spawns colorful explosion particles using `world.gameplayRandom` velocities, requests screen shake upon taking damage, and displays a floating combo multiplier text popup (e.g. `x2`, `x3`) which floats upwards using the `Juice` easing system.
-- **Reward**: Intrinsic satisfaction of clearing rows plus immediate score increments multiplied by the player's active combo multiplier.
+| Phase | Survived Duration Required | Relative Difficulty | Phase Change Focus |
+| :---: | :---: | :---: | :--- |
+| **1** | 2 minutes | 100.00% | Base Experience |
+| **2** | 2 minutes | 115.00% | +15% Relative Difficulty |
+| **3** | 3 minutes | 115.00% | +1 minute of survival duration |
+| **4** | 3 minutes | 132.25% | +15% over previous difficulty |
+| **5** | 4 minutes | 132.25% | +1 minute of survival duration |
+| **6** | 4 minutes | 152.09% | +15% Relative Difficulty |
 
-#### Session Loop (5–30 minutes)
-- **Goal**: Clear successive waves of invaders and defeat boss entities (`BossComponent`) to advance level progression (`level++`).
-- **Tension**: Escalating difficulty. The invader formation's speed increases inversely to the remaining invaders: speed scale = `1 - (remaining / total)`. Boss phases trigger distinct kamikaze dive attacks (`KamikazeComponent`).
-- **Resolution**: Level completion triggers the next wave with `LEVEL_SPEED_MULTIPLIER` applied, while player death or a mother-ship breach at `limit = SCREEN_HEIGHT - 100` triggers the Game Over state.
-
-#### Long-Term Loop (Meta-Progression)
-- **Progression**: Post-session scores and high-score candidates are converted directly to player Profile Experience points (`XP`).
-- **Retention Hook**: Players accumulate persistent XP to purchase beneficial mutators from the `MutatorRegistry` (`faster_bullets`, `extra_life`, `combo_head_start`, `shield_pulse`), drastically shifting the baseline difficulty of their next play sessions.
-
----
-
-### Core Loop: Asteroids
-
-#### Moment-to-Moment (0–30 seconds)
-- **Action**: Rotate ship, apply forward thrust, navigate wrap-around screen boundaries, and split large asteroids into smaller, faster shards.
-- **Feedback**: Dynamic particle thruster exhaust, boundary wrap-around teleportation, explosive asteroid fractures, and critical-angle hyperspace jumps.
-- **Reward**: High-risk trajectory adjustments and precision shooting to compile points while managing momentum/drift.
-
-#### Session Loop (5–30 minutes)
-- **Goal**: Clear the playfield of all asteroids and hostile UFOs.
-- **Tension**: Drift momentum vs. increasing count of smaller, high-velocity asteroid shards; random incoming UFO target acquisition.
-- **Resolution**: Level cleared when asteroid and UFO queries return 0 entities; Game Over when ship lives reach 0.
-
-#### Long-Term Loop (Meta-Progression)
-- **Progression**: XP gained from asteroid fractures and UFO takedowns.
-- **Retention Hook**: Meta-purchased upgrades like `hyper_drift` (highly responsive thrusters with low friction) or `bouncing_bullets` (projectiles bounce on boundary walls instead of wrapping around).
+#### Game-Specific Difficulty Distribution
+The `difficultyMultiplier` escalates the intensity of main simulation levers as follows:
+* **Space Invaders**: Increases formation speed, reduces enemy shooting intervals, and increases kamikaze dive attack probabilities.
+* **Asteroids**: Increases starting wave count, asteroid drift speeds, and UFO spawning frequency.
+* **Flappy Bird**: Increases pipe scrolling velocity and vertical gap position variance.
+* **Pong**: Increases AI opponent reaction time and balls' maximum speed limits.
 
 ---
 
-### Core Loop: Flappy Bird
+## 📊 Part 2: Normalized XP Progression Economy
 
-#### Moment-to-Moment (0–30 seconds)
-- **Action**: Press Flap to exert vertical upward impulse, fighting gravity to thread the bird through narrow gaps in incoming obstacle pipes.
-- **Feedback**: Immediate flapping bounce, near-miss score popups, and scrolling background adjustments.
-- **Reward**: Pure focus and timing-based success as each pipe set is cleared.
+Rather than using score directly (which scales wildly across different games), player rewards are calculated using a normalized formula ensuring session length and skill performance are both highly valued.
 
-#### Session Loop (5–30 minutes)
-- **Goal**: Maximize pipe clear score without colliding with the ground or pipe segments.
-- **Tension**: Constant gravity acceleration, unpredictable gap heights, and dwindling recovery windows.
-- **Resolution**: Single-hit collision immediately initiates Game Over state.
+### Normalized XP Formula
+```text
+XP = 20 × minutesSurvived + 60 × phasesCompleted + 40 × performanceRatio
+```
 
-#### Long-Term Loop (Meta-Progression)
-- **Progression**: Earn XP per successfully cleared pipe gap and for near-miss maneuvers.
-- **Retention Hook**: Unlock beneficial mutators like `heavy_gravity` (double gravity but stronger jumps) or cosmetic trails unlocked via level milestones.
+Where the `performanceRatio` is clamped between `0` and `1` using game-specific target metrics:
+* **Space Invaders**: `clamp(playerScore / (1000 * level), 0, 1)`
+* **Asteroids**: `clamp(playerScore / (1500 * level), 0, 1)`
+* **Flappy Bird**: `clamp(playerScore / 10, 0, 1)`
+* **Pong**: `clamp(maxPoints / 5, 0, 1)`
 
----
-
-### Core Loop: Pong
-
-#### Moment-to-Moment (0–30 seconds)
-- **Action**: Move paddle vertically to intercept and deflect a high-velocity bouncing ball, imparting vertical "spin" based on paddle movement on deflection.
-- **Feedback**: Kinetic paddle impact sound requests, ball squish and stretch effects, hit flash animations.
-- **Reward**: Bypassing the opponent's paddle defense to score a point.
-
-#### Session Loop (5–30 minutes)
-- **Goal**: Reach the maximum target score (`MAX_SCORE = 5`) before the opponent.
-- **Tension**: Continuous ball velocity escalation (`BALL_ACCELERATION = 1.05`) with each successive paddle collision.
-- **Resolution**: Reaching the score cap awards set victory and terminates the session.
-
-#### Long-Term Loop (Meta-Progression)
-- **Progression**: XP earned based on victory score margins and clean rally lengths.
-- **Retention Hook**: Unlock modifiers like `ghost_ball` (making the ball invisible for 1 second after paddle deflection) to customize gameplay.
+### XP Progress Examples
+* **Novice session (1 min survival, 0 phases, 0.40 performance)**: `20 * 1 + 60 * 0 + 40 * 0.40 = 36 XP`
+* **Onboarding success (2 min survival, 1 phase, 0.50 performance)**: `20 * 2 + 60 * 1 + 40 * 0.50 = 120 XP`
+* **Advanced session (4 mins survival, 2 phases, 0.65 performance)**: `20 * 4 + 60 * 2 + 40 * 0.65 = 226 XP`
+* **Master session (10 mins survival, 4 phases, 0.80 performance)**: `20 * 10 + 60 * 4 + 40 * 0.80 = 472 XP`
 
 ---
 
-## 📊 Part 2: Economy Balance Spreadsheet Template
+## 🚶 Part 3: Mutator Classification & Upgrades
 
-All numeric constants in the arcade engine must be grounded in actual code configurations and balanced systematically. The following tables outline the parameters, baseline limits, and meta-game pricing structures.
+We organize modifiers into four explicit categories to declare compatibility and manage risks:
 
-### Space Invaders & Core Game Balance Baseline
+1. **Beneficial**: Direct power-ups.
+2. **Trade-off**: High-reward with a clear operational cost.
+3. **Challenge**: Intentionally scales game difficulty.
+4. **Cosmetic**: Visual enhancements with zero gameplay impact.
 
-| Variable Name | Base Value | Min Limit | Max Limit | Tuning Notes & Code Config Location |
+| Mutator ID | Category | XP Cost | Compatible Games | Economy Rationale & Tuning Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| `PLAYER_SPEED` | `300` px/s | `150` | `600` | Ship lateral traversal speed. `GAME_CONFIG.PLAYER_SPEED` |
-| `PLAYER_INITIAL_LIVES` | `3` | `1` | `5` | Lives assigned at session start. `GAME_CONFIG.PLAYER_INITIAL_LIVES` |
-| `PLAYER_SHOOT_COOLDOWN` | `500` ms | `100` | `1000` | Minimum firing interval. `GAME_CONFIG.PLAYER_SHOOT_COOLDOWN` |
-| `PLAYER_BULLET_SPEED` | `500` px/s | `300` | `1000` | Upward bullet travel velocity. `GAME_CONFIG.PLAYER_BULLET_SPEED` |
-| `ENEMY_BULLET_SPEED` | `250` px/s | `100` | `600` | Downward bullet velocity. `GAME_CONFIG.ENEMY_BULLET_SPEED` |
-| `ENEMY_FIRE_INTERVAL_MIN`| `1000` ms | `500` | `2000` | Minimum delay between invader shots. `GAME_CONFIG.ENEMY_FIRE_INTERVAL_MIN` |
-| `ENEMY_FIRE_INTERVAL_MAX`| `3000` ms | `1500` | `5000` | Maximum delay between invader shots. `GAME_CONFIG.ENEMY_FIRE_INTERVAL_MAX` |
-| `INVADER_SPEED_BASE` | `50` px/s | `20` | `150` | Initial movement speed of the wave. `GAME_CONFIG.INVADER_SPEED_BASE` |
-| `INVADER_SPEED_MAX` | `400` px/s | `200` | `800` | Formation speed when 1 invader remains. `GAME_CONFIG.INVADER_SPEED_MAX` |
-| `INVADER_DESCENT_STEP` | `20` px | `5` | `50` | Downward descent distance on edge wall hit. `GAME_CONFIG.INVADER_DESCENT_STEP` |
-| `LEVEL_SPEED_MULTIPLIER` | `1.1` | `1.0` | `1.5` | Formation speed scaling factor per level cleared. `GAME_CONFIG.LEVEL_SPEED_MULTIPLIER` |
-| `SHIELD_SEGMENT_HP` | `3` | `1` | `10` | Durability of individual shield blocks. `GAME_CONFIG.SHIELD_SEGMENT_HP` |
-| `COMBO_TIMEOUT` | `2000` ms | `1000` | `5000` | Grace period in ms before combo resets. `GAME_CONFIG.COMBO_TIMEOUT` |
-| `MAX_MULTIPLIER` | `10` | `3` | `20` | Score multiplier cap = `1 + floor(combo / 5)`. `GAME_CONFIG.MAX_MULTIPLIER` |
-| `PARTICLE_COUNT` | `8` | `0` | `24` | Burst particles spawned on invader death. `GAME_CONFIG.PARTICLE_COUNT` |
-
-### Meta-Progression & XP Upgrade Economy
-
-XP costs are designed around a curve where early-game upgrades can be achieved in 1–2 high-score sessions (~10–15 mins), while advanced upgrades require mastery over several play sessions.
-
-| Mutator ID | Upgrade Name | XP Cost | Economy Rationale & Tuning Notes |
-| :--- | :--- | :--- | :--- |
-| `combo_head_start` | Combo Head Start | `300` XP | **Low-tier**: Immediate x2 multiplier; helps players maximize early-stage score multipliers. Good initial purchase. |
-| `faster_bullets` | Faster Bullets | `500` XP | **Mid-tier**: 10% speed increase across all games. Decreases bullet travel time, directly increasing hit probability. |
-| `extra_life` | Extra Life | `800` XP | **High-tier**: +1 starting life. Directly increases session duration and high score potential. |
-| `shield_pulse` | Shield Pulse | `1000` XP | **Top-tier**: 3 seconds of absolute invulnerability at game start. Allows aggressive early positioning. |
-
----
-
-## 🚶 Part 3: Player Onboarding Flow
-
-To maximize player retention and minimize initial frustration, retro-arcade games implement the following onboarding flow:
-
-### Onboarding Checklist & Progress Gates
-
-- [ ] **Core Verb Introduction (First 30 seconds)**
-  - Instantly display a clear overlay of the core controls (e.g., `A/D` or Left/Right Arrow to Move, `Space` to Shoot).
-  - High-visibility mobile UI overlays are rendered if a touch device is detected.
-- [ ] **First Success Guarantee (Safe Start)**
-  - Initial invader rows move at baseline speed (`INVADER_SPEED_BASE = 50`), rendering them very slow-moving targets.
-  - Enemy fire cooldowns start on their maximum interval, reducing projectile spam during the first 15 seconds.
-- [ ] **Safe-Context Mechanic Training**
-  - Shields (`SHIELD_COUNT = 4`) are positioned as massive protective walls absorbing early erratic fire.
-  - Gives the player space to learn the lateral movement and bullet velocities in a safe zone before enemies descend.
-- [ ] **The Session Hook (Retention Gate)**
-  - On first game over, display the calculated Score and any High Score Achievements.
-  - Render the **Passport Overlay** displaying XP progress. Explicitly state the progress made toward unlocking their first beneficial mutator (e.g., *"You earned 120 XP! Just 180 XP more to unlock Combo Head Start!"*).
+| `combo_head_start` | Beneficial | `300` XP | All | Starts with x2 multiplier to maximize early-stage scoring. |
+| `faster_bullets` | Beneficial | `500` XP | Space Invaders, Asteroids | 10% speed increase across player bullets, directly improving hit probability. |
+| `extra_life` | Beneficial | `800` XP | Space Invaders, Asteroids | Start with +1 life. Avoided in Flappy Bird/Pong due to mechanics. |
+| `shield_pulse` | Beneficial | `1000` XP | All | Grants 3 seconds of absolute invulnerability on startup. |
+| `hyper_drift` | Trade-off | N/A (Daily) | Asteroids | Higher thruster response, but friction drops significantly. |
+| `bouncing_bullets` | Trade-off | N/A (Daily) | Asteroids | Proyectiles bounce off borders, but can clutter screen. |
+| `heavy_gravity` | Trade-off | N/A (Daily) | Flappy Bird | Double gravity paired with stronger flap jumps. |
+| `ghost_ball` | Trade-off | N/A (Daily) | Pong | Ball disappears for 1 sec on impact, confusing both players. |
 
 ---
 

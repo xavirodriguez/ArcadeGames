@@ -42,9 +42,9 @@ export class CanvasParallaxTileDrawer<TRegistry extends CoreComponentRegistry = 
 
   public draw(ctx: CanvasRenderingContext2D, world: World<TRegistry>, entity: number): void {
     const transformType = "Transform" as Extract<keyof TRegistry, string>;
-    const transform = world.getComponent(entity, transformType) as unknown as TransformComponent | undefined;
-    const parallaxLayerType = "ParallaxLayer" as Extract<keyof TRegistry, string>;
-    const layer = world.getComponent(entity, parallaxLayerType) as unknown as ParallaxLayerComponent | undefined;
+    const transform = world.getComponent(entity, transformType) as TransformComponent | undefined;
+    const layerType = "ParallaxLayer" as Extract<keyof TRegistry, string>;
+    const layer = world.getComponent(entity, layerType) as ParallaxLayerComponent | undefined;
     if (!transform || !layer) return;
 
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };

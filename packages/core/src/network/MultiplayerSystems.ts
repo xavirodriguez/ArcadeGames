@@ -43,7 +43,7 @@ export class NetworkDeltaSystem {
 }
 /** @public */
 export interface InterestNode {
-    entityId?: number;
+    entityId?: number | string;
     priority?: number;
     [key: string]: any;
 }

@@ -18,10 +18,10 @@ import { ReplayData, InputFrame } from "./NetTypes";
 
 export interface IReplayableGame {
   getWorld(): {
-    query(type: string): any[];
-    getComponent<T>(entity: any, type: string): T | undefined;
+    query(type: string): number[];
+    getComponent<T>(entity: number, type: string): T | undefined;
   };
-  applyInputToEntity(entity: any, inputFrame: InputFrame): void;
+  applyInputToEntity(entity: number, inputFrame: InputFrame): void;
   runSimulationStep(deltaTime: number, isReconciliation: boolean): void;
 }
 
@@ -30,8 +30,8 @@ export interface IReplayableGame {
  */
 export class ReplayManager {
   private replayData: ReplayData | null = null;
-  private currentFrameIndex: number = 0;
-  private isPlaying: boolean = false;
+  private currentFrameIndex = 0;
+  private isPlaying = false;
 
   /**
    * Initializes the manager with a recorded replay dataset.

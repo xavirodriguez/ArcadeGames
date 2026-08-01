@@ -4,11 +4,14 @@ import { Client, Room } from "@colyseus/sdk";
 /**
  * Network transport implementation using Colyseus.
  */
-export class ColyseusTransport implements NetworkTransport {
+export class ColyseusTransport<
+  TServerEvents extends Record<string, any> = Record<string, any>,
+  TClientEvents extends Record<string, any> = Record<string, any>
+> implements NetworkTransport<TServerEvents, TClientEvents> {
   public readonly isOffline = false;
   private client: Client | null = null;
   private room: Room | null = null;
-  private messageHandlers = new Map<string, Set<(message: any) => void>>();
+  private messageHandlers = new Map<keyof TServerEvents, Set<(message: unknown) => void>>();
 
   /**
    * @param roomName - Default room name to join or create.
@@ -49,7 +52,7 @@ export class ColyseusTransport implements NetworkTransport {
     // Register a wildcard listener to dispatch messages to local handlers
     this.room.onMessage("*", (type, message) => {
       const typeStr = typeof type === "string" ? type : String(type);
-      const handlers = this.messageHandlers.get(typeStr);
+      const handlers = this.messageHandlers.get(typeStr as keyof TServerEvents);
       if (handlers) {
         handlers.forEach((handler) => handler(message));
       }
@@ -59,9 +62,9 @@ export class ColyseusTransport implements NetworkTransport {
   /**
    * Sends a message to the server.
    */
-  public send(type: string, message: any): void {
+  public send<K extends keyof TClientEvents>(type: K, message: TClientEvents[K]): void {
     if (this.room) {
-      this.room.send(type, message);
+      this.room.send(type as string, message);
     }
   }
 
@@ -69,11 +72,11 @@ export class ColyseusTransport implements NetworkTransport {
    * Registers a message handler.
    * Discards Colyseus' unsubscribe return to match NetworkTransport signature.
    */
-  public onMessage(type: string, handler: (message: any) => void): void {
+  public onMessage<K extends keyof TServerEvents>(type: K, handler: (message: TServerEvents[K]) => void): void {
     if (!this.messageHandlers.has(type)) {
       this.messageHandlers.set(type, new Set());
     }
-    this.messageHandlers.get(type)!.add(handler);
+    this.messageHandlers.get(type)!.add(handler as (message: unknown) => void);
   }
 
   public disconnect(): void {

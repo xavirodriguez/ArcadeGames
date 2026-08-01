@@ -1,4 +1,4 @@
-import { World, ComponentRegistry, BlueprintRegistryMap } from "../../ecs/World";
+import { World, ComponentRegistry, BlueprintRegistryMap, ComponentType } from "../../ecs/World";
 import { Entity } from "../../ecs/Entity";
 import { Shape, ShapeType, ConvexPolygonShape } from "../shapes/Shapes";
 import { NarrowPhase } from "../collision/NarrowPhase";
@@ -17,10 +17,10 @@ export class PhysicsQuery {
     y: number
   ): Entity[] {
     const results: Entity[] = [];
-    const entities = world.query("Collider" as any, "Transform" as any);
+    const entities = world.query("Collider" as ComponentType<TComponents>, "Transform" as ComponentType<TComponents>);
     for (const entity of entities) {
-      const transform = world.getComponent(entity, "Transform" as any) as TransformComponent | undefined;
-      const collider = world.getComponent(entity, "Collider" as any) as ColliderComponent | undefined;
+      const transform = world.getComponent(entity, "Transform" as ComponentType<TComponents>) as TransformComponent | undefined;
+      const collider = world.getComponent(entity, "Collider" as ComponentType<TComponents>) as ColliderComponent | undefined;
       if (!transform || !collider || !collider.enabled) continue;
 
       const worldX = transform.worldX ?? transform.x;
@@ -54,12 +54,11 @@ export class PhysicsQuery {
           }
         }
       } else if (shape.type === ShapeType.Polygon) {
-        const poly = shape as ConvexPolygonShape;
-        if (poly.vertices) {
+        if (shape.vertices) {
           const rot = transform.worldRotation ?? transform.rotation ?? 0;
           const cos = Math.cos(rot);
           const sin = Math.sin(rot);
-          const worldVerts = poly.vertices.map((v) => {
+          const worldVerts = shape.vertices.map((v) => {
             const rx = cos * v.x - sin * v.y;
             const ry = sin * v.x + cos * v.y;
             return { x: cx + rx, y: cy + ry };
@@ -92,10 +91,10 @@ export class PhysicsQuery {
     y: number
   ): Entity[] {
     const results: Entity[] = [];
-    const entities = world.query("Collider" as any, "Transform" as any);
+    const entities = world.query("Collider" as ComponentType<TComponents>, "Transform" as ComponentType<TComponents>);
     for (const entity of entities) {
-      const transform = world.getComponent(entity, "Transform" as any) as TransformComponent | undefined;
-      const collider = world.getComponent(entity, "Collider" as any) as ColliderComponent | undefined;
+      const transform = world.getComponent(entity, "Transform" as ComponentType<TComponents>) as TransformComponent | undefined;
+      const collider = world.getComponent(entity, "Collider" as ComponentType<TComponents>) as ColliderComponent | undefined;
       if (!transform || !collider || !collider.enabled) continue;
 
       const worldX = transform.worldX ?? transform.x;

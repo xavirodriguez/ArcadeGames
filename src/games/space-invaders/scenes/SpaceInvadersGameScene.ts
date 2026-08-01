@@ -40,7 +40,6 @@ import {
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { ISpaceInvadersGame } from "../types/GameInterfaces";
-import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 
 /**
  * Main gameplay scene for Space Invaders.

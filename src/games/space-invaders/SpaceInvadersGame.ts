@@ -15,6 +15,7 @@ import {
   drawSpaceInvadersBullet,
   drawSpaceInvadersShield,
   drawSpaceInvadersParticle,
+  drawSpaceInvadersBoss,
   spaceInvadersStarfield,
   spaceInvadersScreenShakeEffect
 } from "./rendering/SpaceInvadersCanvasVisuals";
@@ -303,6 +304,7 @@ export class SpaceInvadersGame
       (renderer as any).registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
       (renderer as any).registerShape("shield_block", drawSpaceInvadersShield);
       (renderer as any).registerShape("particle", drawSpaceInvadersParticle);
+      (renderer as any).registerShape("boss_mothership", drawSpaceInvadersBoss);
 
       // Register background effects
       (renderer as any).registerBackgroundEffect("starfield", spaceInvadersStarfield);

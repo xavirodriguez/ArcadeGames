@@ -39,6 +39,15 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
       });
     }
 
+    if (gameState.isGameOver) {
+      const layers = world.query("ParallaxLayer" as any);
+      for (const layer of layers) {
+        world.mutateComponent(layer, "ParallaxLayer" as any, (l: any) => {
+          l.paused = true;
+        });
+      }
+    }
+
     // Remove pipes that are off-screen and update score
     const pipes = world.query("Pipe", "Transform");
     pipes.forEach((entity) => {
@@ -113,6 +122,14 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
             state.pipeSpawnTimer = 0;
             state.comboMultiplier = 1;
         });
+        const layers = w.query("ParallaxLayer" as any);
+        for (const layer of layers) {
+          w.mutateComponent(layer, "ParallaxLayer" as any, (l: any) => {
+            l.paused = false;
+            l.autoScrollX = 0;
+            l.autoScrollY = 0;
+          });
+        }
         const comboEntities = w.query("Combo" as any);
         const comboEntity = comboEntities[0];
         if (comboEntity !== undefined) {

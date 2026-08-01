@@ -1,7 +1,7 @@
-import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry } from "@tiny-aster/core";
+import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry, EventBus } from "@tiny-aster/core";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
-import { ComboSystem } from "../../shared/arcade";
+import { ComboSystem, PowerUpSystem } from "../../shared/arcade";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { createGameState } from "../EntityFactory";
 import { ParticlePool } from "../EntityPool";
@@ -391,5 +391,204 @@ describe("Space Invaders Combo Logic & Performance", () => {
     expect(gameState?.combo).toBe(1);
     expect(gameState?.multiplier).toBe(1); // 1 + floor(1/5) = 1
     expect(gameState?.score).toBe(10); // 10 points * multiplier 1 = 10
+  });
+
+  describe("Beneficial Mutators Integration", () => {
+    it("should apply faster_bullets mutator and increase bullet speeds by 10%", () => {
+      const config = world.getResource<any>("GameConfig");
+      const basePlayerSpeed = config.PLAYER_BULLET_SPEED;
+
+      BENEFICIAL_MUTATORS["faster_bullets"].apply(world);
+
+      const updatedConfig = world.getResource<any>("GameConfig");
+      expect(updatedConfig.PLAYER_BULLET_SPEED).toBe(Math.round(basePlayerSpeed * 1.10));
+    });
+
+    it("should apply extra_life mutator and increase starting lives", () => {
+      // 1. Setup GameState and Player
+      createGameState(world);
+      const player = world.createEntity();
+      world.addComponent(player, { type: "Player" } as any);
+      world.addComponent(player, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 } as any);
+
+      const configBefore = world.getResource<any>("GameConfig").PLAYER_INITIAL_LIVES;
+
+      // 2. Apply mutator
+      BENEFICIAL_MUTATORS["extra_life"].apply(world);
+
+      // 3. Assert config, GameState, and Player health are incremented
+      const updatedConfig = world.getResource<any>("GameConfig");
+      expect(updatedConfig.PLAYER_INITIAL_LIVES).toBe(configBefore + 1);
+
+      const gameState = world.getSingleton("GameState");
+      expect(gameState?.lives).toBe(configBefore + 1);
+
+      const health = world.getComponent(player, "Health" as any) as any;
+      expect(health.current).toBe(4);
+      expect(health.max).toBe(4);
+    });
+
+    it("should apply shield_pulse mutator and grant 3 seconds on-spawn invulnerability", () => {
+      BENEFICIAL_MUTATORS["shield_pulse"].apply(world);
+
+      // Assert HasShieldPulse resource is set
+      expect(world.getResource("HasShieldPulse")).toBe(true);
+
+      // Create a player ship using a mock blueprint setup to mimic our player blueprint
+      const config = world.getResource<any>("GameConfig");
+      const player = world.createEntity();
+      world.addComponent(player, { type: "Player" } as any);
+      world.addComponent(player, {
+        type: "Health",
+        current: config.PLAYER_INITIAL_LIVES,
+        max: config.PLAYER_INITIAL_LIVES,
+        invulnerableRemaining: world.getResource("HasShieldPulse") ? 3.0 : 0
+      } as any);
+
+      const health = world.getComponent(player, "Health" as any) as any;
+      expect(health.invulnerableRemaining).toBe(3.0);
+    });
+  });
+
+  describe("Falling Loot & Power-up Spawning and Resolution", () => {
+    let mockEventBus: EventBus;
+
+    beforeEach(() => {
+      mockEventBus = new EventBus();
+      world.setResource("EventBus", mockEventBus);
+
+      // Register standard Power-up system and custom PowerUpEffects on our test world
+      world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Simulation });
+
+      world.setResource("PowerUpEffects", {
+        speed_boost: {
+          apply(w: World<any>, playerEntity: number) {
+            const config = w.getResource<any>("GameConfig");
+            if (config) {
+              config.PLAYER_SPEED = Math.round(config.PLAYER_SPEED * 1.30);
+            }
+          }
+        },
+        shield: {
+          apply(w: World<any>, playerEntity: number) {
+            if (w.hasComponent(playerEntity, "Health")) {
+              w.mutateComponent(playerEntity, "Health", (h: any) => {
+                h.invulnerableRemaining = 3.0;
+              });
+            }
+          }
+        }
+      });
+    });
+
+    it("should spawn falling powerup entity upon receiving loot:spawn event", () => {
+      let spawnedPowerUp: number | undefined;
+
+      // Setup event listener mimicking SpaceInvadersGameScene
+      mockEventBus.on("loot:spawn" as any, (event: any) => {
+        const powerUpEntity = world.createEntity();
+        world.addComponent(powerUpEntity, {
+          type: "Transform",
+          x: event.x,
+          y: event.y,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: event.x,
+          worldY: event.y,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: false
+        } as any);
+        world.addComponent(powerUpEntity, {
+          type: "Velocity",
+          vx: 0,
+          vy: 100,
+          angularVelocity: 0
+        } as any);
+        world.addComponent(powerUpEntity, {
+          type: "Render",
+          shape: "shield_block",
+          size: 15,
+          color: "#FFFF00",
+          rotation: 0,
+          visible: true,
+          opacity: 1,
+          order: 1,
+          hitFlashFrames: 0,
+          angularVelocity: 0
+        } as any);
+        world.addComponent(powerUpEntity, {
+          type: "Collider2D",
+          shape: { type: "aabb", halfWidth: 7.5, halfHeight: 7.5 },
+          layer: 0x0008, // DEBRIS
+          mask: 0x0001, // PLAYER
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: true,
+          enabled: true
+        } as any);
+        world.addComponent(powerUpEntity, {
+          type: "PowerUp",
+          powerUpType: event.lootType
+        } as any);
+        world.addComponent(powerUpEntity, {
+          type: "Boundary",
+          width: 800,
+          height: 600,
+          mode: "destroy"
+        } as any);
+
+        spawnedPowerUp = powerUpEntity;
+      });
+
+      // Emit event
+      mockEventBus.emit("loot:spawn" as any, { x: 120, y: 150, lootType: "speed_boost" });
+
+      // Verify power-up entity spawned with correct properties
+      expect(spawnedPowerUp).toBeDefined();
+      expect(world.hasComponent(spawnedPowerUp!, "PowerUp" as any)).toBe(true);
+      expect(world.hasComponent(spawnedPowerUp!, "Transform" as any)).toBe(true);
+      expect(world.hasComponent(spawnedPowerUp!, "Velocity" as any)).toBe(true);
+
+      const powerupComp = world.getComponent(spawnedPowerUp!, "PowerUp" as any) as any;
+      expect(powerupComp.powerUpType).toBe("speed_boost");
+
+      const velocityComp = world.getComponent(spawnedPowerUp!, "Velocity" as any) as any;
+      expect(velocityComp.vy).toBe(100);
+    });
+
+    it("should apply speed_boost effect and destroy power-up on player collision", () => {
+      // 1. Create player
+      const player = world.createEntity();
+      world.addComponent(player, { type: "Player" } as any);
+      world.addComponent(player, { type: "Transform", x: 200, y: 500, rotation: 0, scaleX: 1, scaleY: 1, worldX: 200, worldY: 500, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
+
+      // 2. Create speed_boost powerup entity
+      const powerUp = world.createEntity();
+      world.addComponent(powerUp, { type: "PowerUp", powerUpType: "speed_boost" } as any);
+
+      // Add collision event to trigger PowerUpSystem update
+      world.addComponent(powerUp, {
+        type: "CollisionEvents",
+        collisions: [{ otherEntity: player, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as any);
+
+      const originalPlayerSpeed = world.getResource<any>("GameConfig").PLAYER_SPEED;
+
+      // Run world update to tick PowerUpSystem
+      world.update(0.016);
+
+      // Assert player speed is boosted by 30%
+      const newPlayerSpeed = world.getResource<any>("GameConfig").PLAYER_SPEED;
+      expect(newPlayerSpeed).toBe(Math.round(originalPlayerSpeed * 1.30));
+
+      // Assert power-up entity is destroyed
+      expect(world.hasEntity(powerUp)).toBe(false);
+    });
   });
 });

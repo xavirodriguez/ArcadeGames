@@ -42,12 +42,14 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     apply: (world: World) => {
       const config = world.getResource<any>("GameConfig");
       if (config) {
-        if (config.PLAYER_BULLET_SPEED !== undefined) {
-          config.PLAYER_BULLET_SPEED = Math.round(config.PLAYER_BULLET_SPEED * 1.10);
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_BULLET_SPEED === "number") {
+          newConfig.PLAYER_BULLET_SPEED = Math.round(newConfig.PLAYER_BULLET_SPEED * 1.10);
         }
-        if (config.BULLET_SPEED !== undefined) {
-          config.BULLET_SPEED = Math.round(config.BULLET_SPEED * 1.10);
+        if (typeof newConfig.BULLET_SPEED === "number") {
+          newConfig.BULLET_SPEED = Math.round(newConfig.BULLET_SPEED * 1.10);
         }
+        world.setResource("GameConfig", newConfig);
       }
     }
   },
@@ -58,26 +60,27 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     apply: (world: World) => {
       const config = world.getResource<any>("GameConfig");
       if (config) {
-        if (config.PLAYER_INITIAL_LIVES !== undefined) {
-          config.PLAYER_INITIAL_LIVES += 1;
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_INITIAL_LIVES === "number") {
+          newConfig.PLAYER_INITIAL_LIVES += 1;
         }
+        world.setResource("GameConfig", newConfig);
       }
 
-      const gameState = world.getSingleton("GameState" as any);
-      if (gameState) {
+      if (world.getSingleton("GameState" as any)) {
         world.mutateSingleton("GameState" as any, (gs: any) => {
-          gs.lives = (gs.lives || 3) + 1;
+          if (typeof gs.lives === "number") {
+            gs.lives += 1;
+          }
         });
       }
 
-      const healthEntities = world.query("Health" as any);
-      for (const entity of healthEntities) {
-        if (world.hasComponent(entity, "Player" as any) || world.hasComponent(entity, "Bird" as any)) {
-          world.mutateComponent(entity, "Health" as any, (h: any) => {
-            h.current = (h.current || 1) + 1;
-            h.max = (h.max || 1) + 1;
-          });
-        }
+      const players = world.query("Player" as any, "Health" as any);
+      for (const player of players) {
+        world.mutateComponent(player, "Health" as any, (h: any) => {
+          h.current += 1;
+          h.max += 1;
+        });
       }
     }
   },
@@ -118,17 +121,13 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     description: "Escudo de 3 segundos al inicio de cada partida",
     xpCost: 1000,
     apply: (world: World) => {
-      const playerQuery = world.query("Player" as any);
-      const localPlayerQuery = world.query("LocalPlayer" as any);
-      const birdQuery = world.query("Bird" as any);
-      const allPlayers = [...playerQuery, ...localPlayerQuery, ...birdQuery];
+      world.setResource("HasShieldPulse", true);
 
-      for (const entity of allPlayers) {
-        if (world.hasComponent(entity, "Health" as any)) {
-          world.mutateComponent(entity, "Health" as any, (h: any) => {
-            h.invulnerableRemaining = 3000;
-          });
-        }
+      const players = world.query("Player" as any, "Health" as any);
+      for (const player of players) {
+        world.mutateComponent(player, "Health" as any, (h: any) => {
+          h.invulnerableRemaining = 3.0; // 3 seconds
+        });
       }
     }
   },

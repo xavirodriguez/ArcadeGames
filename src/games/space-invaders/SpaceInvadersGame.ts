@@ -112,7 +112,7 @@ export class SpaceInvadersGame
           type: "Health",
           current: config.PLAYER_INITIAL_LIVES,
           max: config.PLAYER_INITIAL_LIVES,
-          invulnerableRemaining: 0,
+          invulnerableRemaining: world.getResource("HasShieldPulse") ? 3.0 : 0,
         } as HealthComponent);
         world.addComponent(entity, {
           type: "Input",

@@ -2,8 +2,8 @@
 
 **Author**: GameDesigner (Systems & Mechanics Architect)
 **Status**: Living Document
-**Version**: 1.0.0
-**Last Updated**: October 2023
+**Version**: 1.1.0
+**Last Updated**: November 2023
 **Target Engine**: `@tiny-aster/core` (Entity Component System)
 
 ---
@@ -13,6 +13,7 @@
 | Version | Date | Author | Description of Changes |
 | :--- | :--- | :--- | :--- |
 | `1.0.0` | 2023-10-24 | GameDesigner | Initial specification of core gameplay loops, economy balance baseline, onboarding flows, beneficial mutator integration, and architectural combo unification proposal. |
+| `1.1.0` | 2023-11-10 | GameDesigner | Fully designed and implemented Beneficial Mutators (faster_bullets, extra_life, shield_pulse) and integrated falling loot & powerup spawning mechanics in Space Invaders. |
 
 ---
 
@@ -193,98 +194,97 @@ These specifications provide unambiguous guidelines for implementing core progre
 **Player Fantasy**: Power fantasy. Transforming starting stats to bypass early-game friction.
 
 #### 1. Mutator: `faster_bullets` (10% Speed Increase)
+- **Purpose**: Increase player projectile velocity to minimize travel latency and improve target hit probability under high speeds.
 - **Input State**:
   - Read from active game configuration: `world.getResource<Config>("GameConfig")`
 - **Output Mutation**:
-  - When the game initializes, reduce over active mutators list:
+  - Modifies the active "GameConfig" resource, setting the bullet speed parameters 10% higher.
+  - Implementation:
     ```typescript
-    const config = activeMutators.reduce((cfg, mutator) => mutator.apply(cfg), baseConfig);
-    ```
-  - Inside the individual mutator's configuration apply function (defined in `MutatorConfig.ts`):
-    ```typescript
-    apply: (cfg) => ({
-      ...cfg,
-      PLAYER_BULLET_SPEED: ((cfg.PLAYER_BULLET_SPEED as number) || 500) * 1.10,
-      BULLET_SPEED: ((cfg.BULLET_SPEED as number) || 300) * 1.10
-    })
+    apply: (world: World) => {
+      const config = world.getResource<any>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_BULLET_SPEED === "number") {
+          newConfig.PLAYER_BULLET_SPEED = Math.round(newConfig.PLAYER_BULLET_SPEED * 1.10);
+        }
+        if (typeof newConfig.BULLET_SPEED === "number") {
+          newConfig.BULLET_SPEED = Math.round(newConfig.BULLET_SPEED * 1.10);
+        }
+        world.setResource("GameConfig", newConfig);
+      }
+    }
     ```
 - **Success Condition**: Player bullets across Asteroids and Space Invaders travel 10% faster on the screen, verified by checking entity velocity vectors.
 - **Failure State**: Physics validation fails or bullet speed exceeds maximum safe limits (`1000`), handled gracefully by `PhysicsSafetySchema` which catches and rejects the configuration.
 
 #### 2. Mutator: `extra_life` (Start with +1 Life)
+- **Purpose**: Direct survival extension. Grants players an extra margin of error to explore deep waves and compile higher scores.
 - **Input State**:
+  - Read from active game configuration: `world.getResource("GameConfig")`
   - Singleton read: `world.getSingleton("GameState")`
 - **Output Mutation**:
-  - In `SpaceInvadersGame.ts` or `AsteroidsGame.ts`, initialize the Game State component:
-    ```typescript
-    world.mutateSingleton("GameState", (gs) => {
-      gs.lives = (this.config.PLAYER_INITIAL_LIVES || 3) + 1;
-    });
-    ```
+  - Modifies `PLAYER_INITIAL_LIVES` on the `GameConfig` resource, increments `lives` inside the `GameState` singleton, and increments player entity's `HealthComponent` parameters to guarantee consistency across any setup order.
 - **Success Condition**: Player starts with 4 lives visible on the UI.
-- **Failure State**: The player starts with the default 3 lives because the mutator was applied after the initial singleton instantiation.
-- **Edge Cases**:
-  - What if the game does not support lives (e.g. Pong)? The mutator ignores the game or does not mutate the state.
+- **Failure State**: Player starts with the default 3 lives because the mutator was applied after the initial singleton/entity instantiation.
 
 #### 3. Mutator: `combo_head_start` (Start with x2 Multiplier)
+- **Purpose**: Accelerate progression velocity. Bypasses the initial build-up phase to let players score heavily on early, easier targets.
 - **Input State**:
   - Singleton read: `world.getSingleton("GameState")`
 - **Output Mutation**:
-  - On game start:
-    ```typescript
-    world.mutateSingleton("GameState", (gs) => {
-      gs.combo = 5; // Yields x2 multiplier since 1 + floor(5 / 5) = 2
-      gs.multiplier = 2;
-      gs.comboTimerRemaining = this.config.COMBO_TIMEOUT / 1000;
-    });
-    ```
+  - On game start, sets the base combo count to 5 (threshold for x2), multiplier to 2, and restarts the combo expiration timer.
 - **Success Condition**: The very first hit scores double the base score value.
 - **Failure State**: Combo timer expires instantly before the first shot lands due to a lack of cooldown initialization.
 
 #### 4. Mutator: `shield_pulse` (3-Second Invulnerability)
+- **Purpose**: On-spawn tactical protection. Prevents cheap deaths from rapid spawns and allows players to establish immediate lateral dominance.
 - **Input State**:
-  - Component query: `world.query("Player", "Health")`
+  - Sets a `HasShieldPulse` resource flag on the world which is read by player initialization factories/blueprints.
 - **Output Mutation**:
-  - Locate the Player entity and mutate their starting health component:
-    ```typescript
-    const players = world.query("Player", "Health");
-    for (const player of players) {
-      world.mutateComponent(player, "Health", (h) => {
-        h.invulnerableRemaining = 3000; // 3000ms
-      });
-    }
-    ```
+  - Initializes player `HealthComponent` with `invulnerableRemaining = 3.0` (3.0 seconds).
 - **Success Condition**: Player can absorb damage for the first 3 seconds without losing life points.
 - **Failure State**: Player takes damage immediately on frame 1 due to delay in system registration.
 
 ---
 
+### Mechanic: Falling Loot & Power-Up System (Space Invaders)
+
+**Purpose**: High-agency positive feedback loop. Rewards destroying invaders with procedural drops that fall downward for tactical capture.
+**Player Fantasy**: Direct battlefield augmentation and momentum shifts.
+
+#### 1. Drop Generation & Spawning
+- **Trigger**: Triggered via `LootSystem` when an entity carrying a `LootTable` component (like invaders) is flagged as `Dead`.
+- **RNG Sourcing**: Sourced strictly from `world.gameplayRandom` to calculate weighted probability rolls.
+- **Entity Spawning**: Emits `"loot:spawn"`, caught by the Scene. Creates a Power-Up entity with the following blueprint payload:
+  - **Transform**: At coordinates `(x, y)` of the destroyed invader.
+  - **Velocity**: `vx: 0`, `vy: 100` px/s (falling vertically towards the player).
+  - **Collider2D**: `shape: aabb` (`halfWidth: 7.5`, `halfHeight: 7.5`), `layer: CollisionLayers.DEBRIS`, `mask: CollisionLayers.PLAYER`, and `isTrigger: true`.
+  - **Render**: `shape: "shield_block"` (15px colored square) with custom color-coding depending on type.
+  - **Boundary**: `mode: "destroy"` so falling power-ups that exit the bottom boundary are automatically reaped.
+
+#### 2. Power-Up Effects Specification
+Upon colliding with the player, the power-up is consumed and applies its custom effects payload defined on the active `PowerUpEffects` resource registry:
+
+- **Speed Boost (`speed_boost`)**:
+  - *Effect*: Amplifies player's move speed `PLAYER_SPEED` by 30% permanently for the current round, allowing extremely fast lateral evasions.
+  - *Color*: Yellow (`#FFFF00`)
+- **Shield Protection (`shield`)**:
+  - *Effect*: Grants the player `3.0` seconds of absolute invulnerability.
+  - *Color*: Cyan (`#00FFFF`)
+- **Extra Life (`extra_life`)**:
+  - *Effect*: Increments current player health and GameState lives, clamped to max capacity.
+  - *Color*: Magenta (`#FF00FF`)
+- **Score Multiplier (`score_multiplier`)**:
+  - *Effect*: Instantly builds +5 combo count, boosting multiplier and resetting the combo grace period timer.
+  - *Color*: Orange (`#FFA500`)
+
+---
+
 ## ⚠️ Known Architecture Inconsistency to Flag
 
-### Combo System Duplication
-Currently, the codebase exhibits duplicated combo logic:
-1. **Generic Core**: `@tiny-aster/core` contains a generalized `ComboSystem` and `ComboComponent` at `packages/core/src/games/arcade/`.
-2. **Space Invaders local**: Space Invaders completely bypasses this core component, instead housing `combo`, `multiplier`, and `comboTimerRemaining` directly inside its local `GameStateComponent` and processing state updates natively in `SpaceInvadersCollisionSystem.ts` and `SpaceInvadersGameStateSystem.ts`.
-
-#### Proposed Unification Design
-Instead of games continuously reinventing custom combo systems, all games should transition to consuming the generic core system:
-
-1. **Adopt Core Component**: Refactor each game's local state component to reference `ComboComponent` as a attached entity component:
-   ```typescript
-   export interface ComboComponent extends Component {
-     type: "Combo";
-     combo: number;
-     multiplier: number;
-     timerRemaining: number;
-     timerDuration: number;
-   }
-   ```
-2. **Attach to Player Entity**: Rather than pollution of global `GameState`, the combo is attached to the player's ship or bird. This allows multi-player independent combo multipliers.
-3. **Event-Driven Multiplier Increments**: When collisions or points are scored, dispatch a core event:
-   ```typescript
-   eventBus.emit("combo:increment", { entity: playerEntity, increment: 1 });
-   ```
-   The `ComboSystem` handles incrementing, updating timers, and ceiling thresholds (e.g. `MAX_MULTIPLIER`), maintaining single-responsibility and clean architectural boundaries.
+### Combo System Unification (Complete)
+All compatible arcade games (Space Invaders, Pong, and Flappy Bird) are integrated with and 100% reliant on the shared/generic `ComboSystem` and `ComboComponent` (located in `src/games/shared/arcade/`). All fallback/duplicated local combo and timer decrement blocks have been completely removed from their collision and game state systems to ensure that the generic components remain the absolute single source of truth.
 
 ---
 

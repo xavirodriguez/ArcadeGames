@@ -281,6 +281,23 @@ export interface TrailComponent extends Component {
 }
 
 /** @public */
+export interface ParallaxLayerComponent extends Component {
+  type: "ParallaxLayer";
+  factorX: number;
+  factorY: number;
+  tileWidth: number;
+  tileHeight: number;
+  initialX: number;
+  initialY: number;
+  speedX?: number;
+  speedY?: number;
+  autoScrollX: number;
+  autoScrollY: number;
+  layerType: string;
+  paused: boolean;
+}
+
+/** @public */
 export interface IHierarchicalComponent extends Component {
     parentEntity?: Entity;
     children: Entity[];
@@ -329,6 +346,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Trail: TrailComponent;
   Sprite: SpriteComponent;
   Tag: import("./TagComponent").TagComponent;
+  ParallaxLayer: ParallaxLayerComponent;
 }
 
 export { Entity };

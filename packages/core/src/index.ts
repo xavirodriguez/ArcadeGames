@@ -88,6 +88,7 @@ export * from "./systems/HierarchySystem";
 export * from "./systems/AbstractHierarchySystem";
 export * from "./systems/MutatorSystem";
 export * from "./systems/ScreenShakeSystem";
+export * from "./systems/ParallaxSystem";
 export * from "./systems/StateMachineSystem";
 export * from "./systems/TilemapRenderSystem";
 

@@ -266,18 +266,25 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    PongEntityFactory.createBall(this.world);
-    PongEntityFactory.createPaddle(this.world, "left");
-    PongEntityFactory.createPaddle(this.world, "right");
-    PongEntityFactory.createGameState(this.world);
+    // Temporarily unlock gameplayRandom for spawning initialization
+    this.world.gameplayRandom.unlock();
 
-    // Apply active beneficial mutators
-    const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
-    for (const mutatorId of activeBeneficials) {
-      const mutator = BENEFICIAL_MUTATORS[mutatorId];
-      if (mutator) {
-        mutator.apply(this.world);
+    try {
+      PongEntityFactory.createBall(this.world);
+      PongEntityFactory.createPaddle(this.world, "left");
+      PongEntityFactory.createPaddle(this.world, "right");
+      PongEntityFactory.createGameState(this.world);
+
+      // Apply active beneficial mutators
+      const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
+      for (const mutatorId of activeBeneficials) {
+        const mutator = BENEFICIAL_MUTATORS[mutatorId];
+        if (mutator) {
+          mutator.apply(this.world);
+        }
       }
+    } finally {
+      this.world.gameplayRandom.lock();
     }
   }
 

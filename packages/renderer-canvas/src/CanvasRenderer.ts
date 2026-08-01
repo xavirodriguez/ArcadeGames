@@ -1,5 +1,5 @@
 import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent } from "@tiny-aster/core";
-import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
+import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer, CanvasParallaxTileDrawer } from "./CanvasShapeDrawers";
 
 /**
  * Basic 2D Canvas renderer.
@@ -30,6 +30,9 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     }
     if (!this.shapeDrawers.has("polygon")) {
       this.shapeDrawers.set("polygon", new CanvasPolygonDrawer());
+    }
+    if (!this.shapeDrawers.has("parallax_tile")) {
+      this.shapeDrawers.set("parallax_tile", new CanvasParallaxTileDrawer());
     }
   }
 

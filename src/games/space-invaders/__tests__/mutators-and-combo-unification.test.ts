@@ -106,7 +106,7 @@ describe("Unified Combo and Beneficial Mutators Integration Tests", () => {
       BENEFICIAL_MUTATORS["shield_pulse"].apply(world);
 
       const health = world.getComponent(playerEntity, "Health" as any) as any;
-      expect(health.invulnerableRemaining).toBe(3.0);
+      expect(health.invulnerableRemaining).toBe(3);
     });
   });
 

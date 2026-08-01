@@ -25,7 +25,7 @@ import { PongEntityFactory } from "./EntityFactory";
 import { NetworkController } from "./input/NetworkController";
 import { type PongState, type PongInput, type PongComponentRegistry } from "./types";
 import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
-import { drawPongBall } from "./rendering/PongCanvasVisuals";
+import { drawPongBall, drawPongPaddle, drawPongBackground } from "./rendering/PongCanvasVisuals";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 
 export type PongMode = "local" | "ai" | "online";
@@ -176,7 +176,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         } as VelocityComponent);
         world.addComponent(entity, {
           type: "Render",
-          shape: "polygon",
+          shape: "paddle",
           size: config.PADDLE_WIDTH,
           color: "white",
           rotation: 0,
@@ -266,18 +266,25 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    PongEntityFactory.createBall(this.world);
-    PongEntityFactory.createPaddle(this.world, "left");
-    PongEntityFactory.createPaddle(this.world, "right");
-    PongEntityFactory.createGameState(this.world);
+    // Temporarily unlock gameplayRandom for spawning initialization
+    this.world.gameplayRandom.unlock();
 
-    // Apply active beneficial mutators
-    const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
-    for (const mutatorId of activeBeneficials) {
-      const mutator = BENEFICIAL_MUTATORS[mutatorId];
-      if (mutator) {
-        mutator.apply(this.world);
+    try {
+      PongEntityFactory.createBall(this.world);
+      PongEntityFactory.createPaddle(this.world, "left");
+      PongEntityFactory.createPaddle(this.world, "right");
+      PongEntityFactory.createGameState(this.world);
+
+      // Apply active beneficial mutators
+      const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
+      for (const mutatorId of activeBeneficials) {
+        const mutator = BENEFICIAL_MUTATORS[mutatorId];
+        if (mutator) {
+          mutator.apply(this.world);
+        }
       }
+    } finally {
+      this.world.gameplayRandom.lock();
     }
   }
 
@@ -315,6 +322,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   public initializeRenderer(renderer: Renderer<PongComponentRegistry>): void {
     if ((renderer as any).type === "canvas") {
       (renderer as any).registerShape("circle", drawPongBall); // Override default circle with spinning ball
+      (renderer as any).registerShape("paddle", drawPongPaddle); // Register premium sci-fi rounded glow paddle drawer
+      (renderer as any).registerBackgroundEffect("pong_bg", drawPongBackground); // Register scrolling grid, glowing center line and vignette background
     }
   }
 

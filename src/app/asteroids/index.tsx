@@ -234,10 +234,10 @@ export default function AsteroidsScreen() {
 
         <View style={styles.controls} pointerEvents="box-none">
           <View style={styles.leftControlArea} pointerEvents="box-none">
+            {/* React Bridge: VirtualJoystick is a pure visual component routing coordinates directly to game.setInputState */}
             <VirtualJoystick
               joystickId="movement_joystick"
               type="movement"
-              world={game.getWorld()}
               onMove={handleJoystickMove}
               onRelease={handleJoystickRelease}
             />

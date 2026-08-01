@@ -480,7 +480,7 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
     let currentSize = size;
 
     if (ttl && ttl.remaining > 0) {
-      const ratio = Math.max(0, Math.min(1, ttl.timeLeft / ttl.remaining));
+      const ratio = Math.max(0, Math.min(1, ttl.remaining));
       opacity = ratio;
       currentSize = size * (0.3 + 0.7 * ratio);
     }

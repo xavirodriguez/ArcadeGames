@@ -132,8 +132,7 @@ export function registerAsteroidsBlueprints(
       } as AsteroidsComponentRegistry["Bullet"]);
       w.addComponent(entity, {
         type: "TTL",
-        remaining: args.ttl ?? 2.0,
-        timeLeft: args.ttl ?? 2.0
+        remaining: args.ttl ?? 2.0
       } as TTLComponent);
       w.addComponent(entity, {
         type: "Collider",
@@ -264,8 +263,7 @@ export function registerAsteroidsBlueprints(
       } as RenderComponent);
       w.addComponent(entity, {
         type: "TTL",
-        remaining: args.ttl ?? 0.5,
-        timeLeft: args.ttl ?? 0.5
+        remaining: args.ttl ?? 0.5
       } as TTLComponent);
     }
   });
@@ -355,7 +353,7 @@ export const createShip = (config: { world: World<AsteroidsComponentRegistry, As
 
 /**
  * Factory function to create and initialize a Bullet entity in the Asteroids game.
- * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL (timeLeft & remaining), Collider, CollisionEvents.
+ * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL (remaining), Collider, CollisionEvents.
  * @public
  */
 export function createBullet(

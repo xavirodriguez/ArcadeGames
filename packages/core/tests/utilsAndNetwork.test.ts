@@ -328,7 +328,7 @@ describe("ProjectilePool", () => {
           velocity: { type: "Velocity", vx: 0, vy: 0 },
           render: { type: "Render", color: "white" },
           collider: { type: "Collider2D", radius: 5 },
-          ttl: { type: "TTL", timeLeft: 1.0 },
+          ttl: { type: "TTL", remaining: 1.0 },
           reclaimable: { type: "Reclaimable" }
         } as any),
         reset: (data: any) => {

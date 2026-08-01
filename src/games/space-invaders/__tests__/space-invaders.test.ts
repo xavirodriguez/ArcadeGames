@@ -284,6 +284,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
     expect(versionAfter - versionBefore).toBe(5);
   });
 
+  // Test 1: Verify initial state is x2 with the combo_head_start mutator
   it("should initialize GameState with combo x2 multiplier when combo_head_start mutator is applied", () => {
     createGameState(world);
     BENEFICIAL_MUTATORS["combo_head_start"].apply(world);
@@ -302,6 +303,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
     expect(comboComp.timerRemaining).toBe(2.0);
   });
 
+  // Test 2: Verify that the first impact scores with the x2 multiplier when the mutator is applied
   it("should score first hit with x2 multiplier when combo_head_start mutator is applied", () => {
     createGameState(world);
     BENEFICIAL_MUTATORS["combo_head_start"].apply(world);
@@ -348,6 +350,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
     expect(gameState?.score).toBe(20); // 10 points * multiplier 2 = 20
   });
 
+  // Test 3: Verify normal x1 behavior without the mutator
   it("should score first hit with x1 multiplier when mutator is NOT applied (normal behavior)", () => {
     createGameState(world);
 

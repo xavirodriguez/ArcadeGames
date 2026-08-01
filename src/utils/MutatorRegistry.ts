@@ -89,13 +89,16 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     description: "Empezar con combo x2",
     xpCost: 300,
     apply: (world: World) => {
+      const config = world.getResource<any>("GameConfig");
+      const comboTimeout = config?.COMBO_TIMEOUT ? (config.COMBO_TIMEOUT / 1000) : 2.0;
+
       const comboEntities = world.query("Combo" as any);
       const comboEntity = comboEntities[0];
       if (comboEntity !== undefined) {
         world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
           c.combo = 5;
           c.multiplier = 2;
-          c.timerRemaining = c.timerDuration || 2.0;
+          c.timerRemaining = comboTimeout;
         });
       }
 
@@ -104,7 +107,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         world.mutateSingleton("GameState" as any, (gs: any) => {
           gs.combo = 5;
           gs.multiplier = 2;
-          gs.comboTimerRemaining = gs.comboTimerRemaining || 2.0;
+          gs.comboTimerRemaining = comboTimeout;
         });
       }
 

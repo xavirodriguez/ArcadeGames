@@ -13,25 +13,27 @@ export function useKeyboardControls(game: any) {
     if (Platform.OS !== "web" || !game) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const code = e.code || e.key;
+      const code = e.code;
+      const key = e.key;
 
       // Prevent scrolling on space and arrow keys
       if (
         ["Space", " ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(code) ||
-        ["Space", " ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
+        ["Space", " ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)
       ) {
         e.preventDefault();
       }
 
-      if (activeKeys.current[code]) return; // Avoid key-repeat spam
-
-      activeKeys.current[code] = true;
+      if (code) activeKeys.current[code] = true;
+      if (key) activeKeys.current[key] = true;
       updateInputState();
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      const code = e.code || e.key;
-      activeKeys.current[code] = false;
+      const code = e.code;
+      const key = e.key;
+      if (code) activeKeys.current[code] = false;
+      if (key) activeKeys.current[key] = false;
       updateInputState();
     };
 

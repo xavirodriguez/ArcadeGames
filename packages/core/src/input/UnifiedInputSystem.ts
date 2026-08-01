@@ -23,6 +23,11 @@ import { InputSystem } from "./InputSystem";
 export class UnifiedInputSystem extends System<ComponentRegistry> implements InputSystem {
   private overrides: Record<string, boolean> = {};
 
+  constructor() {
+    super();
+    console.warn("[UnifiedInputSystem] This system is obsolete. Use the React Bridge input architecture (game.setInputState) instead.");
+  }
+
   public bind(_action: string, _keys: string[]): void {}
 
   /**

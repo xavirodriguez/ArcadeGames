@@ -168,9 +168,7 @@ export function useGame<
     } else if (typeof (game as any).setInput === "function") {
       (game as any).setInput(input);
     } else {
-      Object.entries(input).forEach(([action, pressed]) => {
-        game.getInputSystem().setOverride(action, !!pressed);
-      });
+      console.warn("[useGame] No setInputState or setInput method found on game instance.");
     }
   }, [game]);
 

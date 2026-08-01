@@ -175,10 +175,10 @@ export default function FlappyBirdScreen() {
 
         <View style={styles.controls} pointerEvents="box-none">
           <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+            {/* React Bridge: VirtualJoystick is a pure visual component routing coordinates directly to game.setInputState */}
             <VirtualJoystick
               joystickId="movement_joystick"
               type="movement"
-              world={game.getWorld()}
               onMove={handleJoystickMove}
               onRelease={handleJoystickRelease}
             />

@@ -322,8 +322,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   public initializeRenderer(renderer: Renderer<PongComponentRegistry>): void {
     if ((renderer as any).type === "canvas") {
       (renderer as any).registerShape("circle", drawPongBall); // Override default circle with spinning ball
-      (renderer as any).registerShape("paddle", drawPongPaddle); // Register premium sci-fi rounded glow paddle drawer
-      (renderer as any).registerBackgroundEffect("pong_bg", drawPongBackground); // Register scrolling grid, glowing center line and vignette background
+      (renderer as any).registerShape("paddle", drawPongPaddle); // Glowing neon paddles
+      (renderer as any).registerBackgroundEffect("pong_bg", drawPongBackground); // Custom grid grid background
     }
   }
 

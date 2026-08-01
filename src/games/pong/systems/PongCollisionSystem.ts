@@ -85,7 +85,7 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
                   color: "white",
                   size: [3, 3]
                 });
-                world.getCommandBuffer().addComponent(emitter, { type: "TTL", ttl: 350, timeLeft: 0.35, remaining: 0.35 } as any);
+                world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 0.35 } as any);
               }
 
               // Play hit audio

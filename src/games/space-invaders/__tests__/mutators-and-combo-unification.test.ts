@@ -93,7 +93,7 @@ describe("Unified Combo and Beneficial Mutators Integration Tests", () => {
     });
 
     it("should apply 'shield_pulse' mutator correctly by granting 3 seconds of invulnerability at start", () => {
-      // Create local player entity with health
+      // Create player entity with health
       const playerEntity = world.createEntity();
       world.addComponent(playerEntity, { type: "Player" } as any);
       world.addComponent(playerEntity, {

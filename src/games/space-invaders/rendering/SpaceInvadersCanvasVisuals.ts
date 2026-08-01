@@ -21,6 +21,39 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     ctx.save();
 
+    // 0. Render a glowing energy shield bubble if the player is currently invulnerable
+    const healthType = "Health" as Extract<keyof SpaceInvadersComponentRegistry, string>;
+    const health = world.getComponent(entity, healthType) as any;
+    if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
+      const rng = world.renderRandom;
+      const pulse = 1.0 + 0.08 * Math.sin(world.tick / 4);
+      const shieldRadius = (size / 1.5) * pulse;
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(0, 255, 255, 0.45)";
+      ctx.lineWidth = 2 + rng.next() * 2; // slight organic flicker
+
+      // Glowing core circle
+      ctx.beginPath();
+      ctx.arc(0, 0, shieldRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Soft internal shield grid pattern
+      ctx.fillStyle = "rgba(0, 255, 255, 0.08)";
+      ctx.beginPath();
+      ctx.arc(0, 0, shieldRadius - 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Concentric smaller energy ring
+      ctx.strokeStyle = "rgba(0, 255, 255, 0.2)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, shieldRadius - 6, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
     // 1. Dynamic motion leaning/tilting based on horizontal velocity
     const velocityType = "Velocity" as Extract<keyof SpaceInvadersComponentRegistry, string>;
     const velocity = world.getComponent(entity, velocityType) as any;
@@ -470,7 +503,8 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    const { size = 2, color = "white" } = render;
+    const { size = 2 } = render;
+    let { color = "white" } = render;
 
     // Check TTL to scale and fade smoothly
     const ttlType = "TTL" as Extract<keyof SpaceInvadersComponentRegistry, string>;
@@ -478,23 +512,37 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
 
     let opacity = 1.0;
     let currentSize = size;
+    let ratio = 1.0;
 
     if (ttl && ttl.remaining > 0) {
-      const ratio = Math.max(0, Math.min(1, ttl.remaining));
+      ratio = Math.max(0, Math.min(1, ttl.remaining));
       opacity = ratio;
       currentSize = size * (0.3 + 0.7 * ratio);
     }
 
+    // 1. Dynamic heat/plasma dispersion color shift based on remaining TTL ratio (No heap allocations!)
+    // If the particle is yellow, shift to orange/red as it ages. If white/cyan, shift to deep blue.
+    if (color === "yellow" || color === "#FFFF00") {
+      if (ratio < 0.4) color = "#FF3300"; // cool red
+      else if (ratio < 0.7) color = "#FF9900"; // warm orange
+    } else if (color === "white" || color === "#FFFFFF") {
+      if (ratio < 0.3) color = "#0055FF"; // deep cooling blue
+      else if (ratio < 0.6) color = "#00FFFF"; // warm cyan
+    } else if (color === "#FF00FF" || color === "magenta") {
+      if (ratio < 0.4) color = "#660066"; // deep purple
+      else if (ratio < 0.7) color = "#CC00CC"; // magenta-red
+    }
+
     ctx.save();
 
-    // Draw secondary soft heat dispersion halo
+    // 2. Draw secondary soft glowing heat dispersion halo
     ctx.fillStyle = color;
-    ctx.globalAlpha = opacity * 0.28;
+    ctx.globalAlpha = opacity * 0.32;
     ctx.beginPath();
-    ctx.arc(0, 0, currentSize * 2.2, 0, Math.PI * 2);
+    ctx.arc(0, 0, currentSize * 2.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Main diamond sparkle path
+    // 3. Main sparkling diamond path
     ctx.globalAlpha = opacity;
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -504,6 +552,30 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
     ctx.lineTo(-currentSize / 2, 0);
     ctx.closePath();
     ctx.fill();
+
+    // 4. Procedural sparkling tail / trail along flight velocity vector (Fully zero-allocation!)
+    const velocityType = "Velocity" as Extract<keyof SpaceInvadersComponentRegistry, string>;
+    const vel = world.getComponent(entity, velocityType) as any;
+    if (vel && (Math.abs(vel.vx) > 5 || Math.abs(vel.vy) > 5)) {
+      const angle = Math.atan2(vel.vy, vel.vx);
+      const renderRandom = world.renderRandom;
+
+      // Determine back offset positions
+      const trailDist1 = currentSize * (1.6 + renderRandom.next() * 0.8);
+      const trailX1 = -Math.cos(angle) * trailDist1;
+      const trailY1 = -Math.sin(angle) * trailDist1;
+
+      // Draw first trailing tiny spark
+      const trailSize1 = currentSize * 0.5;
+      ctx.globalAlpha = opacity * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(trailX1, trailY1 - trailSize1);
+      ctx.lineTo(trailX1 + trailSize1 / 2, trailY1);
+      ctx.lineTo(trailX1, trailY1 + trailSize1);
+      ctx.lineTo(trailX1 - trailSize1 / 2, trailY1);
+      ctx.closePath();
+      ctx.fill();
+    }
 
     ctx.restore();
   }
@@ -654,5 +726,117 @@ export const spaceInvadersScreenShakeEffect: EffectDrawer<CanvasRenderingContext
       const dy = (renderRandom.next() - 0.5) * intensity;
       ctx.translate(dx, dy);
     }
+  }
+};
+
+/**
+ * Visuals for the Boss Mothership.
+ * Menacing heavy dreadnought with a pulsing procedural plasma core, rotating shielding rings,
+ * and animated visual feedback indicating damage (shifting armor plating based on HP).
+ */
+export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render) return;
+    const { size = 80 } = render;
+    let { color = "#FF00FF" } = render;
+
+    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
+      if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
+        ctx.globalAlpha = 0.3;
+      }
+      color = "white";
+    }
+
+    ctx.save();
+
+    const bossType = "Boss" as Extract<keyof SpaceInvadersComponentRegistry, string>;
+    const boss = world.getComponent(entity, bossType) as any;
+    const tick = world.tick;
+
+    const hpRatio = boss ? (boss.hp / boss.maxHp) : 1.0;
+
+    // 1. Draw rotating protective shield ring (outer layer)
+    const ringRadius = size * 0.6;
+    const ringAngle = (tick / 40) % (Math.PI * 2);
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, ringRadius, ringAngle, ringAngle + Math.PI * 0.5);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, ringRadius, ringAngle + Math.PI, ringAngle + Math.PI * 1.5);
+    ctx.stroke();
+
+    // 2. Draw Menacing Heavy Mothership Hull
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    // Complex layered spacecraft shape: heavy center dome with long curved wings/wingspikes
+    ctx.moveTo(-size / 2, -size / 8);
+    ctx.bezierCurveTo(-size / 3, -size / 2, size / 3, -size / 2, size / 2, -size / 8); // top curve
+    ctx.lineTo(size * 0.6, size / 6); // wing edge right
+    ctx.lineTo(size * 0.35, size / 12); // inner wing notch right
+    ctx.lineTo(0, size / 3); // bottom center point
+    ctx.lineTo(-size * 0.35, size / 12); // inner wing notch left
+    ctx.lineTo(-size * 0.6, size / 6); // wing edge left
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. Procedural flashing plasma engine vents on the back/top
+    ctx.fillStyle = (tick % 10 < 5) ? "#FF0055" : "#FFCC00";
+    ctx.fillRect(-size / 4 - 3, -size / 2, 6, size / 8);
+    ctx.fillRect(size / 4 - 3, -size / 2, 6, size / 8);
+
+    // 4. Heavy Segmented Armor Plates that slide / adjust based on remaining HP ratio
+    // Left and right plates move outwards when HP is high, clamp inwards as a "defensive" cocoon as HP is low
+    const armorOffset = size * 0.08 * hpRatio;
+    ctx.fillStyle = (color === "white") ? "white" : "#990099"; // Darker base armor color
+
+    // Left armor plate
+    ctx.beginPath();
+    ctx.moveTo(-size / 3 - armorOffset, -size / 6);
+    ctx.lineTo(-size * 0.5 - armorOffset, 0);
+    ctx.lineTo(-size / 3 - armorOffset, size / 6);
+    ctx.lineTo(-size / 6 - armorOffset, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right armor plate
+    ctx.beginPath();
+    ctx.moveTo(size / 3 + armorOffset, -size / 6);
+    ctx.lineTo(size * 0.5 + armorOffset, 0);
+    ctx.lineTo(size / 3 + armorOffset, size / 6);
+    ctx.lineTo(size / 6 + armorOffset, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // 5. Pulsing hot core reactor (fully deterministic using tick-sine pulse)
+    const corePulse = 0.8 + 0.2 * Math.sin(tick / 6);
+    const coreSize = size * 0.16 * corePulse;
+
+    // Core glow halo (zero allocation, no canvas gradient, just solid arc overlays)
+    ctx.fillStyle = "rgba(0, 255, 255, 0.18)";
+    ctx.beginPath();
+    ctx.arc(0, 0, coreSize * 1.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#00FFFF";
+    ctx.beginPath();
+    ctx.arc(0, 0, coreSize, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.arc(0, 0, coreSize * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 6. Glow beacons/eyes
+    ctx.fillStyle = "#FF0000";
+    ctx.beginPath();
+    ctx.arc(-size * 0.15, -size * 0.12, 3, 0, Math.PI * 2);
+    ctx.arc(size * 0.15, -size * 0.12, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 };

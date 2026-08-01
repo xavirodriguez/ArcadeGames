@@ -46,6 +46,18 @@ import {
 
 import { LootSystem, PowerUpSystem } from "../shared/arcade";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+import {
+  RetroCRTScanlinesEffect,
+  ScrollingStarfieldEffect,
+  HyperdriveWarpSpeedLinesEffect,
+  EnergyShieldBubbleEffect,
+  DebrisShockwaveEffect,
+  SkiaRetroCRTScanlinesEffect,
+  SkiaScrollingStarfieldEffect,
+  SkiaHyperdriveWarpSpeedLinesEffect,
+  SkiaEnergyShieldBubbleEffect,
+  SkiaDebrisShockwaveEffect
+} from "../shared/rendering/SharedVFX";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
@@ -311,6 +323,20 @@ export class AsteroidsGame
   public initializeRenderer(renderer: Renderer<AsteroidsComponentRegistry>): void {
     if (this.isHeadless) return;
     initializeAsteroidsRenderer(renderer);
+
+    if ((renderer as any).type === "canvas") {
+      (renderer as any).registerBackgroundEffect("starfield", ScrollingStarfieldEffect);
+      (renderer as any).registerBackgroundEffect("crt_scanlines", RetroCRTScanlinesEffect);
+      (renderer as any).registerBackgroundEffect("warp_speed", HyperdriveWarpSpeedLinesEffect);
+      (renderer as any).registerShape("shield_bubble", EnergyShieldBubbleEffect);
+      (renderer as any).registerShape("shockwave", DebrisShockwaveEffect);
+    } else if ((renderer as any).type === "skia") {
+      (renderer as any).registerBackgroundEffect("starfield", SkiaScrollingStarfieldEffect);
+      (renderer as any).registerBackgroundEffect("crt_scanlines", SkiaRetroCRTScanlinesEffect);
+      (renderer as any).registerBackgroundEffect("warp_speed", SkiaHyperdriveWarpSpeedLinesEffect);
+      (renderer as any).registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect);
+      (renderer as any).registerShape("shockwave", SkiaDebrisShockwaveEffect);
+    }
   }
 
   public getGameState(): GameStateComponent {

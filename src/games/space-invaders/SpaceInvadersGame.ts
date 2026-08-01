@@ -14,6 +14,16 @@ import {
   drawSpaceInvadersShield,
   drawSpaceInvadersParticle
 } from "./rendering/SpaceInvadersCanvasVisuals";
+import {
+  RetroCRTScanlinesEffect,
+  ScrollingStarfieldEffect,
+  EnergyShieldBubbleEffect,
+  DebrisShockwaveEffect,
+  SkiaRetroCRTScanlinesEffect,
+  SkiaScrollingStarfieldEffect,
+  SkiaEnergyShieldBubbleEffect,
+  SkiaDebrisShockwaveEffect
+} from "../shared/rendering/SharedVFX";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -301,6 +311,18 @@ export class SpaceInvadersGame
       (renderer as any).registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
       (renderer as any).registerShape("shield_block", drawSpaceInvadersShield);
       (renderer as any).registerShape("particle", drawSpaceInvadersParticle);
+
+      // Register custom new VFX
+      (renderer as any).registerBackgroundEffect("starfield", ScrollingStarfieldEffect);
+      (renderer as any).registerBackgroundEffect("crt_scanlines", RetroCRTScanlinesEffect);
+      (renderer as any).registerShape("shield_bubble", EnergyShieldBubbleEffect);
+      (renderer as any).registerShape("shockwave", DebrisShockwaveEffect);
+    } else if ((renderer as any).type === "skia") {
+      // Register custom new VFX for Skia mode
+      (renderer as any).registerBackgroundEffect("starfield", SkiaScrollingStarfieldEffect);
+      (renderer as any).registerBackgroundEffect("crt_scanlines", SkiaRetroCRTScanlinesEffect);
+      (renderer as any).registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect);
+      (renderer as any).registerShape("shockwave", SkiaDebrisShockwaveEffect);
     }
   }
 

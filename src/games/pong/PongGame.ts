@@ -25,6 +25,7 @@ import { type PongState, type PongInput, type PongComponentRegistry } from "./ty
 import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
 import { drawPongBall } from "./rendering/PongCanvasVisuals";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { RetroCRTScanlinesEffect, SkiaRetroCRTScanlinesEffect } from "../shared/rendering/SharedVFX";
 
 export type PongMode = "local" | "ai" | "online";
 
@@ -297,6 +298,12 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   public initializeRenderer(renderer: Renderer<PongComponentRegistry>): void {
     if ((renderer as any).type === "canvas") {
       (renderer as any).registerShape("circle", drawPongBall); // Override default circle with spinning ball
+
+      // Register custom new VFX - Overlay CRT grid on the Pong board!
+      (renderer as any).registerBackgroundEffect("crt_scanlines", RetroCRTScanlinesEffect);
+    } else if ((renderer as any).type === "skia") {
+      // Register custom new VFX - Overlay CRT grid on the Pong board!
+      (renderer as any).registerBackgroundEffect("crt_scanlines", SkiaRetroCRTScanlinesEffect);
     }
   }
 

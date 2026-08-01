@@ -39,16 +39,46 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "faster_bullets",
     description: "Balas 10% más rápidas en todos los juegos",
     xpCost: 500,
-    apply: (_world: World) => {
-      // implementation would depend on game config modification or systemic override
+    apply: (world: World) => {
+      const config = world.getResource<any>("GameConfig");
+      if (config) {
+        if (config.PLAYER_BULLET_SPEED !== undefined) {
+          config.PLAYER_BULLET_SPEED = Math.round(config.PLAYER_BULLET_SPEED * 1.10);
+        }
+        if (config.BULLET_SPEED !== undefined) {
+          config.BULLET_SPEED = Math.round(config.BULLET_SPEED * 1.10);
+        }
+      }
     }
   },
   "extra_life": {
     id: "extra_life",
     description: "Empezar con 1 vida extra",
     xpCost: 800,
-    apply: (_world: World) => {
-      // increase player health
+    apply: (world: World) => {
+      const config = world.getResource<any>("GameConfig");
+      if (config) {
+        if (config.PLAYER_INITIAL_LIVES !== undefined) {
+          config.PLAYER_INITIAL_LIVES += 1;
+        }
+      }
+
+      const gameState = world.getSingleton("GameState" as any);
+      if (gameState) {
+        world.mutateSingleton("GameState" as any, (gs: any) => {
+          gs.lives = (gs.lives || 3) + 1;
+        });
+      }
+
+      const healthEntities = world.query("Health" as any);
+      for (const entity of healthEntities) {
+        if (world.hasComponent(entity, "Player" as any) || world.hasComponent(entity, "Bird" as any)) {
+          world.mutateComponent(entity, "Health" as any, (h: any) => {
+            h.current = (h.current || 1) + 1;
+            h.max = (h.max || 1) + 1;
+          });
+        }
+      }
     }
   },
   "combo_head_start": {
@@ -56,21 +86,29 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     description: "Empezar con combo x2",
     xpCost: 300,
     apply: (world: World) => {
-      const config = world.getResource<any>("GameConfig");
-      const comboTimeout = config?.COMBO_TIMEOUT ?? 2000;
-
-      world.mutateSingleton("GameState" as any, (gs: any) => {
-        gs.combo = 5;
-        gs.multiplier = 2;
-        gs.comboTimerRemaining = comboTimeout / 1000;
-      });
-
       const comboEntities = world.query("Combo" as any);
-      if (comboEntities.length > 0) {
-        world.mutateComponent(comboEntities[0], "Combo" as any, (c: any) => {
+      const comboEntity = comboEntities[0];
+      if (comboEntity !== undefined) {
+        world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
           c.combo = 5;
           c.multiplier = 2;
-          c.timerRemaining = comboTimeout / 1000;
+          c.timerRemaining = c.timerDuration || 2.0;
+        });
+      }
+
+      const gameState = world.getSingleton("GameState" as any);
+      if (gameState) {
+        world.mutateSingleton("GameState" as any, (gs: any) => {
+          gs.combo = 5;
+          gs.multiplier = 2;
+          gs.comboTimerRemaining = gs.comboTimerRemaining || 2.0;
+        });
+      }
+
+      const flappyState = world.getSingleton("FlappyState" as any);
+      if (flappyState) {
+        world.mutateSingleton("FlappyState" as any, (fs: any) => {
+          fs.comboMultiplier = 2;
         });
       }
     }
@@ -79,8 +117,19 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "shield_pulse",
     description: "Escudo de 3 segundos al inicio de cada partida",
     xpCost: 1000,
-    apply: (_world: World) => {
-      // set invulnerability frames
+    apply: (world: World) => {
+      const playerQuery = world.query("Player" as any);
+      const localPlayerQuery = world.query("LocalPlayer" as any);
+      const birdQuery = world.query("Bird" as any);
+      const allPlayers = [...playerQuery, ...localPlayerQuery, ...birdQuery];
+
+      for (const entity of allPlayers) {
+        if (world.hasComponent(entity, "Health" as any)) {
+          world.mutateComponent(entity, "Health" as any, (h: any) => {
+            h.invulnerableRemaining = 3000;
+          });
+        }
+      }
     }
   },
 };

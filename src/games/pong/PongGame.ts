@@ -16,6 +16,8 @@ import {
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
+import { ComboSystem } from "../shared/arcade";
+import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 import { PongInputSystem } from "./systems/PongInputSystem";
 import { PongSpinSystem } from "./systems/PongSpinSystem";
@@ -215,6 +217,13 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
           comboMultiplier: 1,
           gameOverLogged: false
         } as any);
+        world.addComponent(entity, {
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: 2.0
+        } as any);
       }
     });
 
@@ -246,6 +255,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
     this.world.addSystem(new PongCollisionSystem(this.config), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.stateSystem, { phase: SystemPhase.GameRules });
+    this.world.addSystem(new ComboSystem() as any, { phase: SystemPhase.GameRules });
 
     this.world.addSystem(new MutatorSystem(mutators as any), { phase: SystemPhase.Simulation });
 
@@ -260,6 +270,15 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     PongEntityFactory.createPaddle(this.world, "left");
     PongEntityFactory.createPaddle(this.world, "right");
     PongEntityFactory.createGameState(this.world);
+
+    // Apply active beneficial mutators
+    const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
+    for (const mutatorId of activeBeneficials) {
+      const mutator = BENEFICIAL_MUTATORS[mutatorId];
+      if (mutator) {
+        mutator.apply(this.world);
+      }
+    }
   }
 
   protected override async onBeforeRestart(): Promise<void> {

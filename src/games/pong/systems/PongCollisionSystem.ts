@@ -58,6 +58,17 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
                 ballComp.spinFactor = Math.max(-2, Math.min(2, ballComp.spinFactor + spin));
               });
 
+              // Increment Combo on paddle hit!
+              const comboEntities = world.query("Combo" as any);
+              const comboEntity = comboEntities[0];
+              if (comboEntity !== undefined) {
+                world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+                  c.combo++;
+                  c.timerRemaining = 2.0;
+                  c.multiplier = Math.min(10, 1 + Math.floor(c.combo / 3));
+                });
+              }
+
               // Apply spin to Y velocity
               const nextVy = ballVel.vy + (spin * 100);
 

@@ -25,7 +25,7 @@ import { PongEntityFactory } from "./EntityFactory";
 import { NetworkController } from "./input/NetworkController";
 import { type PongState, type PongInput, type PongComponentRegistry } from "./types";
 import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
-import { drawPongBall } from "./rendering/PongCanvasVisuals";
+import { drawPongBall, drawPongPaddle, drawPongBackground } from "./rendering/PongCanvasVisuals";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 
 export type PongMode = "local" | "ai" | "online";
@@ -176,7 +176,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         } as VelocityComponent);
         world.addComponent(entity, {
           type: "Render",
-          shape: "polygon",
+          shape: "paddle",
           size: config.PADDLE_WIDTH,
           color: "white",
           rotation: 0,
@@ -315,6 +315,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   public initializeRenderer(renderer: Renderer<PongComponentRegistry>): void {
     if ((renderer as any).type === "canvas") {
       (renderer as any).registerShape("circle", drawPongBall); // Override default circle with spinning ball
+      (renderer as any).registerShape("paddle", drawPongPaddle); // Glowing neon paddles
+      (renderer as any).registerBackgroundEffect("pong_bg", drawPongBackground); // Custom grid grid background
     }
   }
 

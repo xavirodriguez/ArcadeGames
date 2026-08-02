@@ -1,5 +1,4 @@
 import { Component, CoreComponentRegistry } from "@tiny-aster/core";
-import { ComboComponent } from "../shared/arcade/components/ComboComponent";
 
 export interface BallComponent extends Component {
   spinFactor: number;
@@ -39,5 +38,4 @@ export interface PongComponentRegistry extends CoreComponentRegistry {
   Ball: BallComponent;
   Paddle: PaddleComponent;
   PongState: PongState;
-  Combo: ComboComponent;
 }

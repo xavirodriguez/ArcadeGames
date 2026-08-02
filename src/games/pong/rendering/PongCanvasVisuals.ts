@@ -1,16 +1,8 @@
-import { ShapeDrawer, EffectDrawer, World, TransformComponent } from "@tiny-aster/core";
-import { PongComponentRegistry, BallComponent } from "../types";
-import { PongConfig } from "../types/PongConfigSchema";
-import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
-import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
-
-// Instantiate the reusable, zero-allocation motion trail helper
-const ballMotionTrail = new CanvasMotionTrail(30);
+import { World, TransformComponent } from "@tiny-aster/core";
+import { BallComponent } from "../types";
 
 /**
- * Upgraded, high-fidelity ball shape drawer with a swirling core and dynamic fading afterimage trails.
- * Leverages generic, zero-allocation motion trail utilities.
- * @public
+ * Función especializada para renderizar el estado de la bola con su efecto de giro.
  */
 export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {

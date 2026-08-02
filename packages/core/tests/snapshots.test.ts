@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry, TransformComponent, BinaryCompression, AoSWorldSnapshot, SoAWorldSnapshot } from "../src";
+import { World, CoreComponentRegistry, TransformComponent, BinaryCompression } from "../src";
 
 describe("World Snapshots", () => {
   it("should capture and restore world state", () => {
@@ -13,7 +13,7 @@ describe("World Snapshots", () => {
     };
     world.addComponent(entity, transform);
 
-    const snapshot = world.snapshot() as AoSWorldSnapshot;
+    const snapshot = world.snapshot();
     expect(snapshot.entities).toContain(entity);
     expect(snapshot.componentData["Transform"][entity].x).toBe(10);
 
@@ -69,7 +69,7 @@ describe("World Snapshots", () => {
       };
       world.addComponent(entity, transform);
 
-      const snapshot = world.snapshot() as SoAWorldSnapshot;
+      const snapshot = world.snapshot();
       expect(snapshot.isSoA).toBe(true);
       expect(snapshot.soaComponentData).toBeDefined();
       expect(snapshot.soaComponentData!["Transform"].entities[0]).toBe(entity);
@@ -98,18 +98,18 @@ describe("World Snapshots", () => {
       };
       world.addComponent(entity, transform);
 
-      const snapshot = world.snapshot() as SoAWorldSnapshot;
+      const snapshot = world.snapshot();
       expect(snapshot.isSoA).toBe(true);
 
       // Serialize and deserialize to binary
       const binary = BinaryCompression.pack(snapshot);
       expect(binary).toBeInstanceOf(Uint8Array);
 
-      const unpacked = BinaryCompression.unpack(binary) as SoAWorldSnapshot;
+      const unpacked = BinaryCompression.unpack(binary);
       expect(unpacked.isSoA).toBe(true);
       expect(unpacked.soaComponentData).toBeDefined();
 
-      const transformData = unpacked.soaComponentData!["Transform"];
+      const transformData = unpacked.soaComponentData["Transform"];
       expect(transformData.entities[0]).toBe(entity);
       expect(transformData.values).toBeDefined();
 

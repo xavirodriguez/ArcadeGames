@@ -222,16 +222,6 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
       state.scoreP1 = 0;
       state.scoreP2 = 0;
       state.isGameOver = false;
-      state.comboMultiplier = 1;
-    }
-    const comboEntities = world.query("Combo" as any);
-    const comboEntity = comboEntities[0];
-    if (comboEntity !== undefined) {
-      world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
-        c.combo = 0;
-        c.multiplier = 1;
-        c.timerRemaining = 0;
-      });
     }
   }
 }

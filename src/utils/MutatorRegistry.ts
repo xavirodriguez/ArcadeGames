@@ -141,15 +141,8 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "shield_pulse",
     description: "Escudo de 3 segundos al inicio de cada partida",
     xpCost: 1000,
-    apply: (world: World) => {
-      world.setResource("HasShieldPulse", true);
-
-      const players = world.query("Player" as any, "Health" as any);
-      for (const player of players) {
-        world.mutateComponent(player, "Health" as any, (h: any) => {
-          h.invulnerableRemaining = 3.0; // 3 seconds
-        });
-      }
+    apply: (_world: World) => {
+      // set invulnerability frames
     }
   },
 };

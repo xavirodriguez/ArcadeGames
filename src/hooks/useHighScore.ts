@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { z } from "zod";
-import { logger } from "../utils/logger";
 
 const DEFAULT_KEY = "asteroids_high_score";
 
@@ -28,7 +27,7 @@ export function useHighScore(key: string = DEFAULT_KEY) {
         setHighScore(validatedScore);
       } catch (error) {
         if (__DEV__) {
-          logger.error("Error loading high score:", error);
+          console.error("Error loading high score:", error);
         }
         // Fallback to 0 if validation fails
         setHighScore(0);
@@ -45,7 +44,7 @@ export function useHighScore(key: string = DEFAULT_KEY) {
           setHighScore(score);
         } catch (error) {
           if (__DEV__) {
-            logger.error("Error saving high score:", error);
+            console.error("Error saving high score:", error);
           }
         }
       }

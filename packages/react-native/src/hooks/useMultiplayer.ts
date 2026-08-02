@@ -10,7 +10,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ColyseusTransport } from "@tiny-aster/network-colyseus";
 import { Room } from "@colyseus/sdk";
-import { InputFrame, BinaryCompression, logger } from "@tiny-aster/core";
+import { InputFrame, BinaryCompression } from "@tiny-aster/core";
 
 /**
  * Manages the network lifecycle for a game session.
@@ -19,10 +19,10 @@ import { InputFrame, BinaryCompression, logger } from "@tiny-aster/core";
  * @param playerName - Display name for the player.
  * @param active - If false, the hook will disconnect and cleanup.
  */
-export function useMultiplayer<TState = unknown>(roomName: string, playerName: string, active: boolean) {
+export function useMultiplayer(roomName: string, playerName: string, active: boolean) {
   const [room, setRoom] = useState<Room | null>(null);
   const [connected, setConnected] = useState(false);
-  const [serverState, setServerState] = useState<TState | { delta: unknown; tick: number } | null>(null);
+  const [serverState, setServerState] = useState<any>(null);
   const cancelledRef = useRef(false);
 
   const localTickRef = useRef(0);
@@ -43,7 +43,7 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
     if (!active || !playerName) return;
 
     cancelledRef.current = false;
-    const connection = new ColyseusTransport<any, any>(roomName, { name: playerName });
+    const connection = new ColyseusTransport(roomName, { name: playerName });
 
     async function setup() {
       try {
@@ -59,18 +59,17 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
 
         setRoom(joinedRoom);
         setConnected(true);
-        setServerState(joinedRoom.state as any);
+        setServerState(joinedRoom.state);
 
         joinedRoom.onStateChange((state: any) => {
           setServerState({ ...state }); // Spread ensures React re-renders even if object reference is reused
-          const stateRecord = state as unknown as Record<string, unknown>;
-          if (stateRecord && typeof stateRecord.serverTick === "number") {
-            serverTickRef.current = stateRecord.serverTick;
+          if (state.serverTick) {
+            serverTickRef.current = state.serverTick;
           }
-          if (stateRecord && typeof stateRecord.lastProcessedTick === "number") {
-            lastProcessedTickRef.current = stateRecord.lastProcessedTick;
+          if (state.lastProcessedTick) {
+            lastProcessedTickRef.current = state.lastProcessedTick;
             // Clear old inputs from buffer
-            inputBufferRef.current = inputBufferRef.current.filter(f => f.tick > (stateRecord.lastProcessedTick as number));
+            inputBufferRef.current = inputBufferRef.current.filter(f => f.tick > state.lastProcessedTick);
           }
         });
 
@@ -98,7 +97,7 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
             const TICK_BUFFER = 2;
 
             localTickRef.current = data.serverTick + Math.ceil((rtt / 2) / FRAME_DURATION) + TICK_BUFFER;
-            logger.log(`Synced tick: server=${data.serverTick}, local=${localTickRef.current}, rtt=${rtt}`);
+            console.log(`Synced tick: server=${data.serverTick}, local=${localTickRef.current}, rtt=${rtt}`);
         });
 
         /**
@@ -108,10 +107,10 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
         joinedRoom.onMessage("world_delta", (data: { tick: number, delta: string }) => {
             if (data.tick <= lastProcessedTickRef.current) return;
             try {
-                const deltaObj = JSON.parse(data.delta) as Record<string, unknown>;
+                const deltaObj = JSON.parse(data.delta);
                 let versionChanged = false;
                 if (deltaObj.stateVersion !== undefined && deltaObj.stateVersion !== lastAckedVersionRef.current) {
-                    lastAckedVersionRef.current = deltaObj.stateVersion as number;
+                    lastAckedVersionRef.current = deltaObj.stateVersion;
                     versionChanged = true;
                 }
                 // Forward parsed delta to avoid double parsing in the game
@@ -125,7 +124,7 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
                     });
                 }
             } catch (e) {
-                logger.error("[useMultiplayer] Failed to parse world_delta:", e);
+                console.error("[useMultiplayer] Failed to parse world_delta:", e);
             }
         });
 
@@ -148,7 +147,7 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
                     });
                 }
             } catch (e) {
-                logger.error("[useMultiplayer] Failed to unpack binary delta:", e);
+                console.error("[useMultiplayer] Failed to unpack binary delta:", e);
             }
         });
 
@@ -158,13 +157,13 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
             lastAckedVersion: lastAckedVersionRef.current
         });
 
-        joinedRoom.onLeave((_code: number) => {
+        joinedRoom.onLeave((_code: any) => {
           setConnected(false);
           setRoom(null);
         });
 
       } catch (e) {
-        logger.error("Failed to connect to multiplayer room:", e);
+        console.error("Failed to connect to multiplayer room:", e);
       }
     }
 
@@ -178,7 +177,7 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
     };
   }, [roomName, playerName, active]);
 
-  const sendInput = useCallback((input: Record<string, unknown>) => {
+  const sendInput = useCallback((input: Record<string, any>) => {
     if (!room || !connected) return null;
 
     // Convert legacy flat input fields into the generic Set and Record structure
@@ -210,7 +209,7 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
       }
     }
     if (input.rotationAmount !== undefined) {
-      persistentInputRef.current.axes["rotate_x"] = input.rotationAmount as number;
+      persistentInputRef.current.axes["rotate_x"] = input.rotationAmount;
     }
     if (input.shoot !== undefined) {
       if (input.shoot) {
@@ -229,13 +228,13 @@ export function useMultiplayer<TState = unknown>(roomName: string, playerName: s
 
     // Also support direct generic actions and axes parameters
     if (input.actions) {
-      for (const action of input.actions as string[]) {
+      for (const action of input.actions) {
         persistentInputRef.current.actions.add(action);
       }
     }
     if (input.axes) {
-      for (const [key, val] of Object.entries(input.axes as Record<string, number>)) {
-        persistentInputRef.current.axes[key] = val;
+      for (const [key, val] of Object.entries(input.axes)) {
+        persistentInputRef.current.axes[key] = val as number;
       }
     }
 

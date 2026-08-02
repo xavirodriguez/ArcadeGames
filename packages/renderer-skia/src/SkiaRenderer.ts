@@ -1,5 +1,6 @@
-import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent } from "@tiny-aster/core";
 import { SkCanvas, SkPaint, Skia } from "@shopify/react-native-skia";
+import { SkiaCircleDrawer, SkiaBoxDrawer } from "./SkiaShapeDrawers";
 
 /**
  * Skia renderer implementation for TinyAster using @shopify/react-native-skia.
@@ -7,14 +8,42 @@ import { SkCanvas, SkPaint, Skia } from "@shopify/react-native-skia";
 export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> implements Renderer<TRegistry, SkCanvas> {
   private paint: SkPaint;
   private sortedEntities: Entity[] = [];
+  public readonly type = "skia";
+  private readonly backgroundEffects: Map<string, EffectDrawer<SkCanvas, TRegistry>> = new Map();
 
   constructor(
     private readonly shapeDrawers: Map<string, ShapeDrawer<SkCanvas, TRegistry>> = new Map()
   ) {
     this.paint = Skia.Paint();
+
+    // Populate default shape drawers
+    if (!this.shapeDrawers.has("Circle")) {
+      this.shapeDrawers.set("Circle", new SkiaCircleDrawer(this.paint));
+    }
+    if (!this.shapeDrawers.has("circle")) {
+      this.shapeDrawers.set("circle", new SkiaCircleDrawer(this.paint));
+    }
+    if (!this.shapeDrawers.has("Box")) {
+      this.shapeDrawers.set("Box", new SkiaBoxDrawer(this.paint));
+    }
+    if (!this.shapeDrawers.has("box")) {
+      this.shapeDrawers.set("box", new SkiaBoxDrawer(this.paint));
+    }
+  }
+
+  public registerShape(name: string, drawer: ShapeDrawer<SkCanvas, TRegistry>): void {
+    this.shapeDrawers.set(name, drawer);
+  }
+
+  public registerBackgroundEffect(name: string, drawer: EffectDrawer<SkCanvas, TRegistry>): void {
+    this.backgroundEffects.set(name, drawer);
   }
 
   public render(world: World<TRegistry>, canvas: SkCanvas, _interpolation?: number): void {
+    // Draw background effects first (e.g. scrolling starfield, retro CRT)
+    for (const drawer of this.backgroundEffects.values()) {
+      drawer.draw(canvas, world);
+    }
     const cameraType = "Camera2D" as Extract<keyof TRegistry, string>;
     const transformType = "Transform" as Extract<keyof TRegistry, string>;
     const renderType = "Render" as Extract<keyof TRegistry, string>;
@@ -92,15 +121,23 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
       this.paint.setColor(Skia.Color(render.color || "white"));
       this.paint.setAlphaf(render.opacity ?? 1);
 
-      const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;
-      if (collider && collider.enabled) {
-        const shapeTypeStr = ShapeType[collider.shape.type];
-        const drawer = this.shapeDrawers.get(shapeTypeStr);
-        if (drawer) {
-          drawer.draw(canvas, world, entity);
-        }
+      // 1. Try custom registered shape drawer (e.g., shield_bubble, player_ship, invader)
+      const customDrawer = render.shape ? this.shapeDrawers.get(render.shape) : undefined;
+      if (customDrawer) {
+        customDrawer.draw(canvas, world, entity);
       } else {
-        canvas.drawCircle(0, 0, 5, this.paint);
+        // 2. Try default physical collider shape drawer
+        const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;
+        if (collider && collider.enabled) {
+          const shapeTypeStr = ShapeType[collider.shape.type];
+          const drawer = this.shapeDrawers.get(shapeTypeStr);
+          if (drawer) {
+            drawer.draw(canvas, world, entity);
+          }
+        } else {
+          // 3. Draw fallback circle
+          canvas.drawCircle(0, 0, 5, this.paint);
+        }
       }
 
       canvas.restore();

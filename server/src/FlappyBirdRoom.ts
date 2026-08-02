@@ -11,34 +11,31 @@ const JoinOptionsSchema = z.object({
 });
 
 class Bird extends Schema {
-  @type("number") x!: number;
-  @type("number") y!: number;
+  @type("number") x: number;
+  @type("number") y: number;
 }
 
 class FlappyState extends Schema {
   @type({ map: Bird }) birds = new MapSchema<Bird>();
 }
 
-export class FlappyBirdRoom extends Room<{ state: FlappyState }> {
-  private random: unknown;
+export class FlappyBirdRoom extends (Room as any) {
+  private random: any;
 
-  onCreate(options: unknown) {
+  onCreate(options: any) {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const _validOptions = parsedOptions.success ? parsedOptions.data : {};
 
     this.setState(new FlappyState());
-    this.setSimulationInterval((_dt: number) => {});
-    this.onMessage("jump", (_client: Client) => {});
+    this.setSimulationInterval((dt: number) => {});
+    this.onMessage("jump", (client: Client) => {});
   }
 
-  onJoin(client: Client, options: unknown) {
+  onJoin(client: Client, options: any) {
     const parsedOptions = JoinOptionsSchema.safeParse(options);
     const _validOptions = parsedOptions.success ? parsedOptions.data : {};
 
-    const bird = new Bird();
-    bird.x = 0;
-    bird.y = 0;
-    this.state.birds.set(client.sessionId, bird);
+    this.state.birds.set(client.sessionId, new Bird());
   }
 
   onLeave(client: Client) {

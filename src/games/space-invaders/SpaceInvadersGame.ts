@@ -359,10 +359,35 @@ export class SpaceInvadersGame
     this.isMultiplayer = active;
   }
 
+  public override setInputState(input: Partial<InputState>): void {
+    const world = this.getWorld();
+    const playerEntity = world.query("Player")[0];
+    if (playerEntity !== undefined) {
+      if (!world.hasComponent(playerEntity, "Input")) {
+        world.addComponent(playerEntity, {
+          type: "Input",
+          moveLeft: false,
+          moveRight: false,
+          shoot: false,
+          shootCooldownRemaining: 0,
+        } as any);
+      }
+      world.mutateComponent(playerEntity, "Input", (inputComp: any) => {
+        if (input.moveLeft !== undefined) {
+          inputComp.moveLeft = input.moveLeft;
+        }
+        if (input.moveRight !== undefined) {
+          inputComp.moveRight = input.moveRight;
+        }
+        if (input.shoot !== undefined) {
+          inputComp.shoot = input.shoot;
+        }
+      });
+    }
+  }
+
   public setInput(input: Partial<InputState>) {
-    Object.entries(input).forEach(([key, value]) => {
-      this.unifiedInput.setOverride(key, !!value);
-    });
+    this.setInputState(input);
   }
 
   public updateFromServer(state: Record<string, unknown>) {
@@ -507,6 +532,7 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public destroy() {}
   public async restart() {}
   public subscribe(cb: (state: GameStateComponent) => void) { return () => {}; }
+  public setInputState(input: Partial<InputState>) {}
   public setInput(input: Partial<InputState>) {}
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }

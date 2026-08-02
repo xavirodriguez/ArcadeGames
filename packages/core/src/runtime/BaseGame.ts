@@ -391,6 +391,12 @@ export abstract class BaseGame<
   public abstract isGameOver(): boolean;
 
   /**
+   * Decoupled Input Bridge: Sets the state of the local player inputs in the ECS World.
+   * Can be overridden by subclasses to write directly to entity components.
+   */
+  public setInputState(input: Partial<TInput>): void {}
+
+  /**
    * Helper to handle deferred or immediate entity creation and component attachment.
    */
   protected createBaseEntity(deferred?: boolean): { entity: Entity; add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & { type: K }) => void } {

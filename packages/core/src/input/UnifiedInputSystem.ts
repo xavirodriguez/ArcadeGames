@@ -16,6 +16,7 @@ import { InputSystem } from "./InputSystem";
  * at the start of the simulation update and may not be perfectly
  * synchronized with the exact moment of physical input.
  * @public
+ * @deprecated Use React Bridge input routing via BaseGame.setInputState() instead.
  */
 export class UnifiedInputSystem extends System<ComponentRegistry> implements InputSystem {
   private overrides: Record<string, boolean> = {};

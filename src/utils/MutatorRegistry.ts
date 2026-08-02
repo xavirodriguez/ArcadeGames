@@ -128,21 +128,21 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
           fs.comboMultiplier = 2;
         });
       }
-
-      const pongState = world.getSingleton("PongState" as any);
-      if (pongState) {
-        world.mutateSingleton("PongState" as any, (ps: any) => {
-          ps.comboMultiplier = 2;
-        });
-      }
     }
   },
   "shield_pulse": {
     id: "shield_pulse",
     description: "Escudo de 3 segundos al inicio de cada partida",
     xpCost: 1000,
-    apply: (_world: World) => {
-      // set invulnerability frames
+    apply: (world: World) => {
+      world.setResource("HasShieldPulse", true);
+
+      const players = world.query("Player" as any, "Health" as any);
+      for (const player of players) {
+        world.mutateComponent(player, "Health" as any, (h: any) => {
+          h.invulnerableRemaining = 3.0; // 3 seconds
+        });
+      }
     }
   },
 };

@@ -1,8 +1,15 @@
-import { World, TransformComponent } from "@tiny-aster/core";
-import { BallComponent } from "../types";
+import { ShapeDrawer, EffectDrawer, World, TransformComponent } from "@tiny-aster/core";
+import { PongComponentRegistry, BallComponent } from "../types";
+import { PongConfig } from "../types/PongConfigSchema";
+import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
+
+// Instantiate the reusable, zero-allocation motion trail helper
+const ballMotionTrail = new CanvasMotionTrail(30);
 
 /**
- * Función especializada para renderizar el estado de la bola con su efecto de giro.
+ * Upgraded, high-fidelity ball shape drawer with a swirling core and dynamic fading afterimage trails.
+ * @public
  */
 export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -134,8 +141,8 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
 };
 
 /**
- * Procedural retro space-grid background effect drawer with scrolling grid, CRT scanlines, and screen vignette.
- * Leverages the generic drawProceduralGrid utility.
+ * Procedural retro space-grid background effect drawer with scrolling grid, CRT scanlines, screen vignette,
+ * scored freeze neon overlays, and protective neon shield rendering.
  * @public
  */
 export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {

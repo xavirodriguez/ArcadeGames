@@ -23,4 +23,5 @@ export interface IGame<TState = unknown> {
   subscribe(callback: (state: TState) => void): () => void;
   isPausedState(): boolean;
   getInputSystem(): InputSystem;
+  setInputState(input: Partial<any>): void;
 }

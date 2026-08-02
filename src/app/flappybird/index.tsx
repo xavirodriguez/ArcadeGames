@@ -20,6 +20,7 @@ import { FlappyBirdGame, FlappyBirdInput } from "../../games/flappybird";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
+import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 
 export default function FlappyBirdScreen() {
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
@@ -29,6 +30,9 @@ export default function FlappyBirdScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useFlappyBirdGame(started, isMulti && started);
+
+  // Activate keyboard controls for Web
+  useKeyboardControls(game, isReady);
 
   // Handle incoming daily challenge parameters
   useEffect(() => {
@@ -86,18 +90,17 @@ export default function FlappyBirdScreen() {
         if (input.flap) room.send("flap");
     } else {
         handleInput(input);
+        game?.setInputState(input);
     }
-  }, [isMulti, room, handleInput]);
+  }, [isMulti, room, handleInput, game]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ flap: true });
-    game?.getInputSystem().setOverride("flap", true);
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
     handleMultiplayerInput({ flap: false });
-    game?.getInputSystem().clearOverride("flap");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   if (!started) {
     return (
@@ -167,7 +170,19 @@ export default function FlappyBirdScreen() {
             <VirtualJoystick
               joystickId="movement_joystick"
               type="movement"
-              world={game.getWorld()}
+              onMove={(x, y) => {
+                const flap = y < -0.25;
+                handleMultiplayerInput({
+                  flap,
+                  glide: flap,
+                });
+              }}
+              onRelease={() => {
+                handleMultiplayerInput({
+                  flap: false,
+                  glide: false,
+                });
+              }}
             />
           </View>
           <ShootButton

@@ -16,7 +16,6 @@ import {
   BoundarySystem,
   FrictionSystem,
   ScreenShakeSystem,
-  JoystickSystem,
   TTLSystem,
   InvulnerabilitySystem,
   CollisionSystem2D,
@@ -143,7 +142,6 @@ export class AsteroidsGame
 
     this.world.setResource("SpatialCullingEnabled", true);
 
-    this.world.addSystem(new JoystickSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new SpatialCullingSystem({ margin: 100 }), { phase: SystemPhase.Simulation, priority: 100 });
     this.world.addSystem(new AsteroidInputSystem(this.config), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });

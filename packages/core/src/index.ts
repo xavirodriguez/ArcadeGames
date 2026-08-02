@@ -81,7 +81,6 @@ export * from "./systems/SpatialPartitioningSystem";
 export * from "./systems/RenderUpdateSystem";
 export * from "./systems/TrailSystem";
 export * from "./systems/ParticleSystem";
-export * from "./systems/JoystickSystem";
 export * from "./systems/AnimationSystem";
 export * from "./systems/FeedbackSystem";
 export * from "./systems/HierarchySystem";

@@ -12,6 +12,7 @@ import {
   MutatorSystem,
   SystemPhase
 } from "@tiny-aster/core";
+import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../../shared/arcade";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersInputSystem } from "../systems/SpaceInvadersInputSystem";
@@ -108,6 +109,28 @@ export class SpaceInvadersGameScene extends Scene {
 
     // 2. Initial entities
     if (this.game.isMultiplayer) return; // Wait for server state
+
+    // Apply beneficial mutators if any are active before creating entities so they can set resources (e.g. HasComboHeadStart)
+    const activeMutators = (this.game as any)._config.gameOptions?.mutators || (this.game as any)._config.gameOptions?.activeMutators || [];
+    const beneficial = (this.game as any)._config.gameOptions?.beneficialMutators || [];
+
+    const beneficialSet = new Set<string>();
+    for (const m of activeMutators) {
+      const id = typeof m === "string" ? m : m?.id;
+      if (id && BENEFICIAL_MUTATORS[id]) {
+        beneficialSet.add(id);
+      }
+    }
+    for (const bId of beneficial) {
+      if (typeof bId === "string" && BENEFICIAL_MUTATORS[bId]) {
+        beneficialSet.add(bId);
+      }
+    }
+
+    for (const bId of beneficialSet) {
+      BENEFICIAL_MUTATORS[bId].apply(this.world);
+    }
+
     createGameState(this.world);
     createPlayer(this.world, GAME_CONFIG.SCREEN_CENTER_X, GAME_CONFIG.SCREEN_HEIGHT - 50);
     createFormationController(this.world);

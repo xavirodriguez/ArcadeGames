@@ -202,6 +202,11 @@ export class SpaceInvadersGame
     this.blueprints.register("state", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const hasComboHeadStart = world.getResource("HasComboHeadStart") === true;
+        const initialCombo = hasComboHeadStart ? 5 : 0;
+        const initialMultiplier = hasComboHeadStart ? 2 : 1;
+        const initialTimerRemaining = hasComboHeadStart ? config.COMBO_TIMEOUT / 1000 : 0;
+
         world.addComponent(entity, {
           type: "GameState",
           lives: config.PLAYER_INITIAL_LIVES,
@@ -209,17 +214,17 @@ export class SpaceInvadersGame
           level: 1,
           invadersRemaining: 0,
           isGameOver: false,
-          combo: 0,
-          multiplier: 1,
-          comboTimerRemaining: 0,
+          combo: initialCombo,
+          multiplier: initialMultiplier,
+          comboTimerRemaining: initialTimerRemaining,
           screenShake: null,
           kamikazesActive: 0,
         } as any);
         world.addComponent(entity, {
           type: "Combo",
-          combo: 0,
-          multiplier: 1,
-          timerRemaining: 0,
+          combo: initialCombo,
+          multiplier: initialMultiplier,
+          timerRemaining: initialTimerRemaining,
           timerDuration: config.COMBO_TIMEOUT / 1000
         } as any);
       }

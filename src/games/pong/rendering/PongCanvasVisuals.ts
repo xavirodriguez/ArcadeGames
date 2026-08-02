@@ -1,5 +1,11 @@
-import { World, TransformComponent } from "@tiny-aster/core";
-import { BallComponent } from "../types";
+import { ShapeDrawer, EffectDrawer, World, TransformComponent } from "@tiny-aster/core";
+import { PongComponentRegistry, BallComponent } from "../types";
+import { PongConfig } from "../types/PongConfigSchema";
+import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
+
+// Instantiate the reusable, zero-allocation motion trail helper
+const ballMotionTrail = new CanvasMotionTrail(30);
 
 /**
  * Función especializada para renderizar el estado de la bola con su efecto de giro.

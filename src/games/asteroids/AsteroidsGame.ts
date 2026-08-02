@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { logger } from "../../utils/logger";
 import {
   World,
   GameLoop,
@@ -10,7 +9,6 @@ import {
   MutatorSystem,
   SpatialPartitioningSystem,
   SpatialCullingSystem,
-  HierarchySystem,
   RenderUpdateSystem,
   MovementSystem,
   BoundarySystem,
@@ -48,7 +46,7 @@ import {
 
 import { LootSystem, PowerUpSystem } from "../shared/arcade";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
-import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
+import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
@@ -82,8 +80,8 @@ export class AsteroidsGame
   private resizeListener?: () => void;
   private isHeadless: boolean;
 
-  public get networkManager(): NetworkManager<Record<string, any>, Record<string, any>, AsteroidsComponentRegistry> | undefined { return this.network.networkManager; }
-  public set networkManager(val: NetworkManager<Record<string, any>, Record<string, any>, AsteroidsComponentRegistry> | undefined) { this.network.networkManager = val; }
+  public get networkManager(): NetworkManager | undefined { return this.network.networkManager; }
+  public set networkManager(val: NetworkManager | undefined) { this.network.networkManager = val; }
   public get lastProcessedFullStateVersion(): number { return this.network.lastProcessedFullStateVersion; }
   public set lastProcessedFullStateVersion(val: number) { this.network.lastProcessedFullStateVersion = val; }
   public get isMultiplayer(): boolean { return this.network.isMultiplayer; }
@@ -150,7 +148,6 @@ export class AsteroidsGame
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new FrictionSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new CCDSystem(), { phase: SystemPhase.Simulation, priority: -10 });
-    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new AsteroidCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
@@ -233,15 +230,6 @@ export class AsteroidsGame
 
         // Spawn first wave
         spawnAsteroidWave(this.world, 1);
-
-        // Apply active beneficial mutators
-        const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
-        for (const mutatorId of activeBeneficials) {
-          const mutator = BENEFICIAL_MUTATORS[mutatorId];
-          if (mutator) {
-            mutator.apply(this.world);
-          }
-        }
     } finally {
         this.world.gameplayRandom.lock();
     }
@@ -264,7 +252,7 @@ export class AsteroidsGame
     this.world.setResource("ScreenConfig", screenConfig);
 
     if (__DEV__) {
-        logger.log(`[AsteroidsGame] ScreenConfig updated: ${width}x${height}`);
+        console.log(`[AsteroidsGame] ScreenConfig updated: ${width}x${height}`);
     }
   }
 
@@ -284,7 +272,7 @@ export class AsteroidsGame
         ]);
       }
     } catch (e) {
-      logger.warn("[Asteroids] Asset preloading failed. Visuals or Audio may lag.", e);
+      console.warn("[Asteroids] Asset preloading failed. Visuals or Audio may lag.", e);
     }
   }
 
@@ -324,6 +312,40 @@ export class AsteroidsGame
   public initializeRenderer(renderer: Renderer<AsteroidsComponentRegistry>): void {
     if (this.isHeadless) return;
     initializeAsteroidsRenderer(renderer);
+
+    if ((renderer as any).type === "canvas") {
+      (renderer as any).registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
+      (renderer as any).registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
+      (renderer as any).registerBackgroundEffect("warp_speed", SharedVFX.HyperdriveWarpSpeedLinesEffect);
+      (renderer as any).registerBackgroundEffect("nebula", SharedVFX.DriftingNebulaBackgroundEffect);
+      (renderer as any).registerBackgroundEffect("matrix_rain", SharedVFX.MatrixDigitalRainEffect);
+      (renderer as any).registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
+      (renderer as any).registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
+      (renderer as any).registerShape("shield_bubble", SharedVFX.EnergyShieldBubbleEffect);
+      (renderer as any).registerShape("shockwave", SharedVFX.DebrisShockwaveEffect);
+      (renderer as any).registerShape("thruster_flame", SharedVFX.ThrusterPlumeFlameEffect);
+      (renderer as any).registerShape("laser_beam", SharedVFX.LaserRailBeamEffect);
+      (renderer as any).registerShape("singularity", SharedVFX.SingularityVortexEffect);
+      (renderer as any).registerShape("comet_trail", SharedVFX.CometMotionTrailEffect);
+      (renderer as any).registerShape("hologram_glitch", SharedVFX.RGBHologramGlitchEffect);
+      (renderer as any).registerShape("floating_text", SharedVFX.FloatingTextScoreEffect);
+    } else if ((renderer as any).type === "skia") {
+      (renderer as any).registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
+      (renderer as any).registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
+      (renderer as any).registerBackgroundEffect("warp_speed", SharedVFX.SkiaHyperdriveWarpSpeedLinesEffect);
+      (renderer as any).registerBackgroundEffect("nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
+      (renderer as any).registerBackgroundEffect("matrix_rain", SharedVFX.SkiaMatrixDigitalRainEffect);
+      (renderer as any).registerBackgroundEffect("crt_glitch", SharedVFX.SkiaCRTGlitchShudderEffect);
+      (renderer as any).registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);
+      (renderer as any).registerShape("shield_bubble", SharedVFX.SkiaEnergyShieldBubbleEffect);
+      (renderer as any).registerShape("shockwave", SharedVFX.SkiaDebrisShockwaveEffect);
+      (renderer as any).registerShape("thruster_flame", SharedVFX.SkiaThrusterPlumeFlameEffect);
+      (renderer as any).registerShape("laser_beam", SharedVFX.SkiaLaserRailBeamEffect);
+      (renderer as any).registerShape("singularity", SharedVFX.SkiaSingularityVortexEffect);
+      (renderer as any).registerShape("comet_trail", SharedVFX.SkiaCometMotionTrailEffect);
+      (renderer as any).registerShape("hologram_glitch", SharedVFX.SkiaRGBHologramGlitchEffect);
+      (renderer as any).registerShape("floating_text", SharedVFX.SkiaFloatingTextScoreEffect);
+    }
   }
 
   public getGameState(): GameStateComponent {
@@ -384,7 +406,7 @@ export class AsteroidsGame
 
   public override start(): void {
     super.start();
-    logger.log("[AsteroidsGame] Simulation started");
+    if (__DEV__) console.log("[AsteroidsGame] Simulation started");
   }
 
   public override destroy(): void {
@@ -401,13 +423,13 @@ export class AsteroidsGame
   public override pause(): void {
     super.pause();
     this.world.setResource("IsPaused", true);
-    logger.log("[AsteroidsGame] Simulation paused");
+    if (__DEV__) console.log("[AsteroidsGame] Simulation paused");
   }
 
   public override resume(): void {
     super.resume();
     this.world.setResource("IsPaused", false);
-    logger.log("[AsteroidsGame] Simulation resumed");
+    if (__DEV__) console.log("[AsteroidsGame] Simulation resumed");
   }
 
 }

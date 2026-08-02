@@ -11,21 +11,21 @@ const JoinOptionsSchema = z.object({
 });
 
 class PongState extends Schema {
-  @type("number") ballX!: number;
-  @type("number") ballY!: number;
+  @type("number") ballX: number;
+  @type("number") ballY: number;
 }
 
-export class PongRoom extends Room<{ state: PongState }> {
-  onCreate(options: unknown) {
+export class PongRoom extends (Room as any) {
+  onCreate(options: any) {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const _validOptions = parsedOptions.success ? parsedOptions.data : {};
 
     this.setState(new PongState());
-    this.onMessage("move", (_client: Client, _data: unknown) => {});
+    this.onMessage("move", (client: Client, data: any) => {});
   }
-  onJoin(client: Client, options: unknown) {
+  onJoin(client: Client, options: any) {
     const parsedOptions = JoinOptionsSchema.safeParse(options);
     const _validOptions = parsedOptions.success ? parsedOptions.data : {};
   }
-  onLeave(_client: Client) {}
+  onLeave(client: Client) {}
 }

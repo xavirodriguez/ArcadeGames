@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { World, System } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
-import { fragmentAsteroid, spawnParticle } from "../EntityFactory";
+import { fragmentAsteroid } from "../EntityFactory";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -14,20 +14,6 @@ import { fragmentAsteroid, spawnParticle } from "../EntityFactory";
 export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, AsteroidsEventRegistry> {
   constructor() {
     super();
-  }
-
-  private createExplosion(world: World<any>, x: number, y: number, count: number, color: string): void {
-    const rng = world.gameplayRandom;
-    for (let i = 0; i < count; i++) {
-      const angle = rng.next() * Math.PI * 2;
-      const speed = rng.next() * 120 + 40;
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-      const ttl = rng.next() * 0.6 + 0.3; // 0.3 to 0.9 seconds
-      const size = rng.next() * 3 + 1; // 1 to 4 px size
-
-      spawnParticle(world, { x, y, vx, vy, color, ttl, size });
-    }
   }
 
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, _deltaTime: number): void {
@@ -132,11 +118,6 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
                 }
             }
 
-            const astTransform = world.getComponent(asteroid, "Transform");
-            if (astTransform) {
-                this.createExplosion(world, astTransform.x, astTransform.y, 8, "#FFCC33");
-            }
-
             // ✅ PASO 1: Leer componentes y fragmentar ANTES de encolar la destrucción.
             // fragmentAsteroid lee Transform y Velocity del asteroide padre síncronamente.
             // createAsteroid internamente usa CommandBuffer si world.isUpdating === true,
@@ -170,12 +151,6 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           // Ignore collision if ship is invulnerable
           if (world.hasComponent(ship, "Invulnerable" as any)) {
             continue;
-          }
-
-          const shipTransform = world.getComponent(ship, "Transform");
-          if (shipTransform) {
-            this.createExplosion(world, shipTransform.x, shipTransform.y, 25, "#FF3300");
-            this.createExplosion(world, shipTransform.x, shipTransform.y, 15, "#FFFF00");
           }
 
           let lives = 0;

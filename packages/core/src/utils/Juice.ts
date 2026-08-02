@@ -22,20 +22,19 @@ export class Juice {
    */
   public static shake(world: World<CoreComponentRegistry>, intensity: number, duration: number): void {
     const shake = world.getSingleton("ScreenShake");
-    const durationSec = duration / 1000;
     if (shake) {
         world.mutateSingleton("ScreenShake", (s: ScreenShakeComponent) => {
             s.intensity = Math.max(s.intensity, intensity);
-            s.duration = Math.max(s.duration, durationSec);
-            s.remaining = Math.max(s.remaining, durationSec);
+            s.duration = Math.max(s.duration, duration);
+            s.remaining = Math.max(s.remaining, duration);
         });
     } else {
         // Fallback to resource-based shake if component not found
         const res = world.getResource<{intensity: number, duration: number, remaining: number}>("ScreenShake");
         if (res) {
             res.intensity = Math.max(res.intensity, intensity);
-            res.duration = Math.max(res.duration, durationSec);
-            res.remaining = Math.max(res.remaining, durationSec);
+            res.duration = Math.max(res.duration, duration);
+            res.remaining = Math.max(res.remaining, duration);
         }
     }
   }
@@ -62,8 +61,6 @@ export class Juice {
         juice.animations.push({
             type: "animation",
             ...anim,
-            duration: anim.duration / 1000,
-            delay: anim.delay !== undefined ? anim.delay / 1000 : undefined,
             elapsed: 0
         });
     });

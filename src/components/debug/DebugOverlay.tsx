@@ -12,7 +12,7 @@ import {
   Clipboard,
   ActivityIndicator
 } from 'react-native';
-import { BaseGame, Shape } from "@tiny-aster/core";
+import { BaseGame } from "@tiny-aster/core";
 import Svg, { Circle, Rect } from 'react-native-svg';
 
 export interface EventLogEntry {
@@ -33,7 +33,7 @@ export interface ColliderShapeInfo {
   x: number;
   y: number;
   isTrigger: boolean;
-  shape: Shape;
+  shape: any;
 }
 
 interface DebugOverlayProps {

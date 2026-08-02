@@ -52,6 +52,9 @@ export function registerAsteroidsBlueprints(
       } as VelocityComponent);
       w.addComponent(entity, {
         type: "Render",
+        shape: "player_ship",
+        size: 15,
+        color: "#00f0ff",
         visible: true,
         opacity: 1,
         order: 1,
@@ -117,6 +120,9 @@ export function registerAsteroidsBlueprints(
       } as VelocityComponent);
       w.addComponent(entity, {
         type: "Render",
+        shape: "bullet",
+        size: 2,
+        color: "#00ff66",
         visible: true,
         opacity: 1,
         order: 2,
@@ -185,8 +191,15 @@ export function registerAsteroidsBlueprints(
         size: args.size
       } as AsteroidsComponentRegistry["Asteroid"]);
 
+      let radius = 40;
+      if (args.size === "medium") radius = 20;
+      else if (args.size === "small") radius = 10;
+
       w.addComponent(entity, {
         type: "Render",
+        shape: "asteroid",
+        size: radius * 2,
+        color: "#ff66cc",
         visible: true,
         opacity: 1,
         order: 0,
@@ -194,10 +207,6 @@ export function registerAsteroidsBlueprints(
         angularVelocity: 0,
         hitFlashFrames: 0
       } as RenderComponent);
-
-      let radius = 40;
-      if (args.size === "medium") radius = 20;
-      else if (args.size === "small") radius = 10;
 
       w.addComponent(entity, {
         type: "Collider",

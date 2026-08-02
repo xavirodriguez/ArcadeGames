@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { World, System } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
-import { fragmentAsteroid } from "../EntityFactory";
+import { fragmentAsteroid, createParticle } from "../EntityFactory";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -122,6 +122,28 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
             // fragmentAsteroid lee Transform y Velocity del asteroide padre síncronamente.
             // createAsteroid internamente usa CommandBuffer si world.isUpdating === true,
             // por lo que los hijos se crean de forma diferida y segura.
+            const asteroidTransform = world.getComponent(asteroid, "Transform");
+            const particlePool = world.getResource<any>("ParticlePool");
+            if (asteroidTransform && particlePool) {
+              const ax = asteroidTransform.x;
+              const ay = asteroidTransform.y;
+              const particleCount = size === "large" ? 24 : (size === "medium" ? 16 : 10);
+              const rng = world.gameplayRandom;
+              for (let i = 0; i < particleCount; i++) {
+                const angle = rng.next() * Math.PI * 2;
+                const speed = rng.nextRange(40, 150);
+                const px = ax + (rng.next() - 0.5) * 8;
+                const py = ay + (rng.next() - 0.5) * 8;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+                const colors = ["#a78bfa", "#c084fc", "#e9d5ff", "#a1a1aa"];
+                const color = colors[rng.nextInt(0, colors.length)];
+                const pSize = rng.nextRange(1.5, 4.5);
+                const ttl = rng.nextRange(0.4, 0.9);
+                createParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
+              }
+            }
+
             fragmentAsteroid(world, asteroid);
 
             // ✅ PASO 2: Encolar destrucción DESPUÉS de haber leído los datos del padre.
@@ -162,6 +184,26 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
               state.isGameOver = true;
             }
           });
+
+          // Spawn particle explosion for player ship impact/death
+          const shipTransform = world.getComponent(ship, "Transform");
+          const shipParticlePool = world.getResource<any>("ParticlePool");
+          if (shipTransform && shipParticlePool) {
+            const sx = shipTransform.x;
+            const sy = shipTransform.y;
+            const rng = world.gameplayRandom;
+            for (let i = 0; i < 24; i++) {
+              const angle = rng.next() * Math.PI * 2;
+              const speed = rng.nextRange(60, 200);
+              const vx = Math.cos(angle) * speed;
+              const vy = Math.sin(angle) * speed;
+              const colors = ["#00f0ff", "#5cf2ff", "#ff5d00", "#ffffff"];
+              const color = colors[rng.nextInt(0, colors.length)];
+              const pSize = rng.nextRange(2.0, 5.5);
+              const ttl = rng.nextRange(0.5, 1.2);
+              createParticle(world, sx, sy, vx, vy, color, shipParticlePool, pSize, ttl);
+            }
+          }
 
           if (lives > 0) {
             // Respawn ship at center with invulnerability

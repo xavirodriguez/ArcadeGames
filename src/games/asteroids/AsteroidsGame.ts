@@ -135,6 +135,7 @@ export class AsteroidsGame
     }
 
     this.world.setResource("BulletPool", this.bulletPool);
+    this.world.setResource("ParticlePool", this.particlePool);
     this.world.setResource("AssetLoader", this.assetLoader);
 
     this.gameStateSystem = new AsteroidGameStateSystem(this);

@@ -264,10 +264,15 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    PongEntityFactory.createBall(this.world);
-    PongEntityFactory.createPaddle(this.world, "left");
-    PongEntityFactory.createPaddle(this.world, "right");
-    PongEntityFactory.createGameState(this.world);
+    this.world.gameplayRandom.unlock();
+    try {
+      PongEntityFactory.createBall(this.world);
+      PongEntityFactory.createPaddle(this.world, "left");
+      PongEntityFactory.createPaddle(this.world, "right");
+      PongEntityFactory.createGameState(this.world);
+    } finally {
+      this.world.gameplayRandom.lock();
+    }
   }
 
   protected override async onBeforeRestart(): Promise<void> {

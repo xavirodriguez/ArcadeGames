@@ -1,4 +1,5 @@
 import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry } from "@tiny-aster/core";
+import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
 import { ComboSystem } from "../../shared/arcade";
@@ -19,6 +20,11 @@ describe("Space Invaders Combo Logic & Performance", () => {
     blueprints.register("state", {
       spawn: (w: World<SpaceInvadersComponentRegistry>, entity: number, _args: {}) => {
         const config = w.getResource("GameConfig" as any) as any;
+        const hasComboHeadStart = w.getResource("HasComboHeadStart") === true;
+        const initialCombo = hasComboHeadStart ? 5 : 0;
+        const initialMultiplier = hasComboHeadStart ? 2 : 1;
+        const initialTimerRemaining = hasComboHeadStart ? config.COMBO_TIMEOUT / 1000 : 0;
+
         w.addComponent(entity, {
           type: "GameState",
           lives: config.PLAYER_INITIAL_LIVES,
@@ -26,17 +32,17 @@ describe("Space Invaders Combo Logic & Performance", () => {
           level: 1,
           invadersRemaining: 0,
           isGameOver: false,
-          combo: 0,
-          multiplier: 1,
-          comboTimerRemaining: 0,
+          combo: initialCombo,
+          multiplier: initialMultiplier,
+          comboTimerRemaining: initialTimerRemaining,
           screenShake: null,
           kamikazesActive: 0,
         } as any);
         w.addComponent(entity, {
           type: "Combo",
-          combo: 0,
-          multiplier: 1,
-          timerRemaining: 0,
+          combo: initialCombo,
+          multiplier: initialMultiplier,
+          timerRemaining: initialTimerRemaining,
           timerDuration: config.COMBO_TIMEOUT / 1000
         } as any);
       }
@@ -281,5 +287,122 @@ describe("Space Invaders Combo Logic & Performance", () => {
     // Screen shake and combo timer decrements are skipped entirely when inactive.
     // So stateVersion increases exactly by 5 (1 per tick).
     expect(versionAfter - versionBefore).toBe(5);
+  });
+
+  describe("Beneficial Mutator 'combo_head_start'", () => {
+    it("should initialize GameState with combo x2 when 'combo_head_start' is applied", () => {
+      BENEFICIAL_MUTATORS["combo_head_start"].apply(world);
+      createGameState(world);
+
+      const gameState = world.getSingleton("GameState");
+      expect(gameState).toBeDefined();
+      expect(gameState?.combo).toBe(5);
+      expect(gameState?.multiplier).toBe(2);
+      expect(gameState?.comboTimerRemaining).toBe(2.0); // COMBO_TIMEOUT / 1000 = 2000 / 1000
+
+      const comboEntities = world.query("Combo" as any);
+      expect(comboEntities.length).toBe(1);
+      const comboComp = world.getComponent(comboEntities[0], "Combo" as any) as any;
+      expect(comboComp).toBeDefined();
+      expect(comboComp.combo).toBe(5);
+      expect(comboComp.multiplier).toBe(2);
+      expect(comboComp.timerRemaining).toBe(2.0);
+    });
+
+    it("should score first impact with x2 multiplier when 'combo_head_start' is active", () => {
+      BENEFICIAL_MUTATORS["combo_head_start"].apply(world);
+      createGameState(world);
+
+      // Add a dummy Boss to prevent wave spawning from level progression
+      const dummyBoss = world.createEntity();
+      world.addComponent(dummyBoss, { type: "Boss", hp: 10, maxHp: 10, timer: 0, phase: 1 });
+
+      // Create an invader with CollisionEvents
+      const invader = world.createEntity();
+      world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 });
+      world.addComponent(invader, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
+      world.addComponent(invader, { type: "Render", shape: "invader", size: 20, color: "#FFF", visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0, rotation: 0 });
+
+      // Create player bullet
+      const bullet = world.createEntity();
+      world.addComponent(bullet, { type: "PlayerBullet" });
+
+      // Add CollisionEvents to trigger handling
+      const events: CollisionEventsComponent = {
+        type: "CollisionEvents",
+        collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      };
+      world.addComponent(invader, events);
+
+      const bulletEvents: CollisionEventsComponent = {
+        type: "CollisionEvents",
+        collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      };
+      world.addComponent(bullet, bulletEvents);
+
+      // Run update
+      world.update(0.016);
+
+      const gameState = world.getSingleton("GameState");
+      // Original points is 10. Multiplier was 2 (initial) but the kill increments combo to 6.
+      // Next multiplier: Math.min(5, 1 + floor(6 / 5)) = 2.
+      // Score gain = 10 * 2 = 20.
+      expect(gameState?.combo).toBe(6);
+      expect(gameState?.multiplier).toBe(2);
+      expect(gameState?.score).toBe(20);
+    });
+
+    it("should score first impact with x1 multiplier (normal behavior) without the mutator", () => {
+      // Normal behavior: do not apply mutator
+      createGameState(world);
+
+      // Add a dummy Boss to prevent wave spawning from level progression
+      const dummyBoss = world.createEntity();
+      world.addComponent(dummyBoss, { type: "Boss", hp: 10, maxHp: 10, timer: 0, phase: 1 });
+
+      // Create an invader with CollisionEvents
+      const invader = world.createEntity();
+      world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 });
+      world.addComponent(invader, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
+      world.addComponent(invader, { type: "Render", shape: "invader", size: 20, color: "#FFF", visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0, rotation: 0 });
+
+      // Create player bullet
+      const bullet = world.createEntity();
+      world.addComponent(bullet, { type: "PlayerBullet" });
+
+      // Add CollisionEvents to trigger handling
+      const events: CollisionEventsComponent = {
+        type: "CollisionEvents",
+        collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      };
+      world.addComponent(invader, events);
+
+      const bulletEvents: CollisionEventsComponent = {
+        type: "CollisionEvents",
+        collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      };
+      world.addComponent(bullet, bulletEvents);
+
+      // Run update
+      world.update(0.016);
+
+      const gameState = world.getSingleton("GameState");
+      // Normal: combo = 1, multiplier = 1, score gain = 10 * 1 = 10.
+      expect(gameState?.combo).toBe(1);
+      expect(gameState?.multiplier).toBe(1);
+      expect(gameState?.score).toBe(10);
+    });
   });
 });

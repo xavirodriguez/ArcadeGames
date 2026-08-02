@@ -49,6 +49,10 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         if (typeof newConfig.BULLET_SPEED === "number") {
           newConfig.BULLET_SPEED = Math.round(newConfig.BULLET_SPEED * 1.10);
         }
+        // Pong paddle speed turbo boost modification
+        if (typeof newConfig.PADDLE_SPEED === "number") {
+          newConfig.PADDLE_SPEED = Math.round(newConfig.PADDLE_SPEED * 1.15);
+        }
         world.setResource("GameConfig", newConfig);
       }
     }
@@ -65,6 +69,16 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
           newConfig.PLAYER_INITIAL_LIVES += 1;
         }
         world.setResource("GameConfig", newConfig);
+      }
+
+      // Adapt to Pong score starting advantage
+      world.setResource("ExtraLifeScoreP1", 1);
+      if (world.getSingleton("PongState" as any)) {
+        world.mutateSingleton("PongState" as any, (gs: any) => {
+          if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
+            gs.scoreP1 = 1;
+          }
+        });
       }
 
       if (world.getSingleton("GameState" as any)) {
@@ -112,6 +126,13 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
       if (flappyState) {
         world.mutateSingleton("FlappyState" as any, (fs: any) => {
           fs.comboMultiplier = 2;
+        });
+      }
+
+      const pongState = world.getSingleton("PongState" as any);
+      if (pongState) {
+        world.mutateSingleton("PongState" as any, (ps: any) => {
+          ps.comboMultiplier = 2;
         });
       }
     }

@@ -178,5 +178,48 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
     ctx.stroke();
 
     ctx.restore();
+
+    // Draw floating neon "GOAL!" transition freeze text and countdown overlays if active
+    const state = world.getSingleton("PongState");
+    if (state && state.scoreFreezeRemaining !== undefined && state.scoreFreezeRemaining > 0) {
+      ctx.save();
+      const text = state.lastScorer === "p1" ? "P1 SCORES!" : "P2 SCORES!";
+      const neonColor = state.lastScorer === "p1" ? "#FF00FF" : "#00FFFF";
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // Drawing Pulsing Glow drop shadow text
+      const pulseFactor = 1.0 + 0.1 * Math.sin(world.tick / 4);
+      ctx.font = `bold ${Math.round(48 * pulseFactor)}px monospace`;
+
+      ctx.shadowColor = neonColor;
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = neonColor;
+      ctx.fillText(text, width / 2, height / 2);
+
+      // White inner text
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText(text, width / 2, height / 2);
+
+      ctx.restore();
+    }
+
+    // Draw the glowing neon shield barrier behind Player 1 if shield_pulse is active
+    if (state && state.shieldPulseRemaining !== undefined && state.shieldPulseRemaining > 0) {
+      ctx.save();
+      ctx.strokeStyle = "#00FFFF";
+      ctx.shadowColor = "#00FFFF";
+      ctx.shadowBlur = 15;
+      ctx.lineWidth = 4.0;
+      ctx.globalAlpha = 0.4 + 0.3 * Math.sin(world.tick / 5);
+
+      ctx.beginPath();
+      // Draw a sleek curved arc barrier right at the P1 defensive line
+      ctx.arc(0, height / 2, height * 0.8, -Math.PI / 3, Math.PI / 3);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 };

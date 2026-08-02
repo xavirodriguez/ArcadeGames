@@ -4,6 +4,7 @@ module.exports = {
     "<rootDir>/server/jest.config.cjs",
     "<rootDir>/src/games/asteroids/jest.config.cjs",
     "<rootDir>/src/games/flappybird/jest.config.cjs",
-    "<rootDir>/src/games/space-invaders/jest.config.cjs"
+    "<rootDir>/src/games/space-invaders/jest.config.cjs",
+    "<rootDir>/src/games/pong/jest.config.cjs"
   ]
 };

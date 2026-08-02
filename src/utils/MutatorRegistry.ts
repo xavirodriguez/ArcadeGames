@@ -39,24 +39,102 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "faster_bullets",
     description: "Balas 10% más rápidas en todos los juegos",
     xpCost: 500,
-    apply: (_world: World) => {
-      // implementation would depend on game config modification or systemic override
+    apply: (world: World) => {
+      const config = world.getResource<any>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_BULLET_SPEED === "number") {
+          newConfig.PLAYER_BULLET_SPEED = Math.round(newConfig.PLAYER_BULLET_SPEED * 1.10);
+        }
+        if (typeof newConfig.BULLET_SPEED === "number") {
+          newConfig.BULLET_SPEED = Math.round(newConfig.BULLET_SPEED * 1.10);
+        }
+        // Pong paddle speed turbo boost modification
+        if (typeof newConfig.PADDLE_SPEED === "number") {
+          newConfig.PADDLE_SPEED = Math.round(newConfig.PADDLE_SPEED * 1.15);
+        }
+        world.setResource("GameConfig", newConfig);
+      }
     }
   },
   "extra_life": {
     id: "extra_life",
     description: "Empezar con 1 vida extra",
     xpCost: 800,
-    apply: (_world: World) => {
-      // increase player health
+    apply: (world: World) => {
+      const config = world.getResource<any>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_INITIAL_LIVES === "number") {
+          newConfig.PLAYER_INITIAL_LIVES += 1;
+        }
+        world.setResource("GameConfig", newConfig);
+      }
+
+      // Adapt to Pong score starting advantage
+      world.setResource("ExtraLifeScoreP1", 1);
+      if (world.getSingleton("PongState" as any)) {
+        world.mutateSingleton("PongState" as any, (gs: any) => {
+          if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
+            gs.scoreP1 = 1;
+          }
+        });
+      }
+
+      if (world.getSingleton("GameState" as any)) {
+        world.mutateSingleton("GameState" as any, (gs: any) => {
+          if (typeof gs.lives === "number") {
+            gs.lives += 1;
+          }
+        });
+      }
+
+      const players = world.query("Player" as any, "Health" as any);
+      for (const player of players) {
+        world.mutateComponent(player, "Health" as any, (h: any) => {
+          h.current += 1;
+          h.max += 1;
+        });
+      }
     }
   },
   "combo_head_start": {
     id: "combo_head_start",
     description: "Empezar con combo x2",
     xpCost: 300,
-    apply: (_world: World) => {
-      // set multiplier in gamestate
+    apply: (world: World) => {
+      const comboEntities = world.query("Combo" as any);
+      const comboEntity = comboEntities[0];
+      if (comboEntity !== undefined) {
+        world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+          c.combo = 5;
+          c.multiplier = 2;
+          c.timerRemaining = c.timerDuration || 2.0;
+        });
+      }
+
+      const gameState = world.getSingleton("GameState" as any);
+      if (gameState) {
+        world.mutateSingleton("GameState" as any, (gs: any) => {
+          gs.combo = 5;
+          gs.multiplier = 2;
+          gs.comboTimerRemaining = gs.comboTimerRemaining || 2.0;
+        });
+      }
+
+      const flappyState = world.getSingleton("FlappyState" as any);
+      if (flappyState) {
+        world.mutateSingleton("FlappyState" as any, (fs: any) => {
+          fs.comboMultiplier = 2;
+        });
+      }
+
+      const pongState = world.getSingleton("PongState" as any);
+      if (pongState) {
+        world.mutateSingleton("PongState" as any, (ps: any) => {
+          ps.comboMultiplier = 2;
+        });
+      }
     }
   },
   "shield_pulse": {

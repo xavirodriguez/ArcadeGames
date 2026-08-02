@@ -35,6 +35,21 @@ export class AIPongController {
       errorMargin = 10;
     }
 
+    // Dynamic Tension Lever: Scale AI responsiveness based on the player's current combo multiplier.
+    // Higher combo multiplier = faster AI reaction and smaller tracking error margin!
+    const comboEntities = world.query("Combo");
+    if (comboEntities.length > 0) {
+      const comboComponent = world.getComponent(comboEntities[0], "Combo") as any;
+      if (comboComponent && comboComponent.multiplier) {
+        const mult = comboComponent.multiplier;
+        if (mult > 1) {
+          // Decrease reaction delay (minimum 1 frame) and error margin (minimum 4 pixels)
+          reactionDelay = Math.max(1, Math.round(reactionDelay / mult));
+          errorMargin = Math.max(4, Math.round(errorMargin / (mult * 0.75)));
+        }
+      }
+    }
+
     this.reactionTimer++;
     if (this.reactionTimer >= reactionDelay) {
       this.reactionTimer = 0;

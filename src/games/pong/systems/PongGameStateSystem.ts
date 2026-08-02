@@ -25,42 +25,29 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
       return;
     }
 
-    const balls = world.query("Ball" as any);
-    balls.forEach(ball => {
-      const transform = world.getComponent(ball, "Transform") as TransformComponent;
+    world.mutateSingleton("PongState" as any, (gs: any) => {
+      // Decrement shield_pulse remaining timer if active
+      if (gs.shieldPulseRemaining !== undefined && gs.shieldPulseRemaining > 0) {
+        gs.shieldPulseRemaining = Math.max(0, gs.shieldPulseRemaining - deltaTime);
+      }
 
-      if (transform) {
-        let scored = false;
-        let scorer: "p1" | "p2" | null = null;
+      // Handle 1.2s Score Transition Freeze
+      if (gs.scoreFreezeRemaining !== undefined && gs.scoreFreezeRemaining > 0) {
+        gs.scoreFreezeRemaining = Math.max(0, gs.scoreFreezeRemaining - deltaTime);
 
-        // Ball passed left edge -> Player 2 scores
-        if (transform.x < 0) {
-          gameState.scoreP2++;
-          scorer = "p2";
-          scored = true;
-        }
-        // Ball passed right edge -> Player 1 scores
-        else if (transform.x > this.config.WIDTH) {
-          gameState.scoreP1++;
-          scorer = "p1";
-          scored = true;
-        }
+        // Lock ball movement during freeze
+        const balls = world.query("Ball" as any);
+        balls.forEach(ball => {
+          world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
+            v.vx = 0;
+            v.vy = 0;
+          });
+        });
 
-        if (scored && scorer) {
-          // Play score audio
-          const eventBus = world.getEventBus();
-          eventBus.emit("PlaySFX" as any, { name: "score" });
-
-          // Check Win Condition
-          if (
-            gameState.scoreP1 >= this.config.MAX_SCORE ||
-            gameState.scoreP2 >= this.config.MAX_SCORE
-          ) {
-            gameState.isGameOver = true;
-            this._isGameOver = true;
-            eventBus.emit("PlaySFX" as any, { name: "game_over" });
-          } else {
-            // Reset ball position and send it towards the player who scored
+        // Freeze is over, launch the ball towards the player who was scored against (so, scorer launches)
+        if (gs.scoreFreezeRemaining <= 0) {
+          const scorer = gs.lastScorer;
+          balls.forEach(ball => {
             world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
               t.x = this.config.WIDTH / 2;
               t.y = this.config.HEIGHT / 2;
@@ -69,7 +56,152 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
               v.vx = scorer === "p1" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START;
               v.vy = this.config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1);
             });
+            world.mutateComponent(ball, "Ball" as any, (b: any) => {
+              b.spinFactor = 0;
+            });
+          });
+          gs.lastScorer = null;
+        }
+        return;
+      }
+
+      const balls = world.query("Ball" as any);
+      balls.forEach(ball => {
+        const transform = world.getComponent(ball, "Transform") as TransformComponent;
+
+        if (transform) {
+          let scored = false;
+          let scorer: "p1" | "p2" | null = null;
+
+          // Ball passed left edge -> Check if shield pulse is active
+          if (transform.x < 0) {
+            if (gs.shieldPulseRemaining !== undefined && gs.shieldPulseRemaining > 0) {
+              // Bounce ball off shield pulse barrier!
+              world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
+                v.vx = this.config.BALL_SPEED_START * 1.1; // Bounces back
+                v.vy = this.config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1);
+              });
+              world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
+                t.x = 20; // Safe position inside
+              });
+
+              // Trigger visual feedback (Screen shake, particles, and sfx)
+              const eventBus = world.getEventBus();
+              eventBus.emit("PlaySFX" as any, { name: "hit" });
+              const shake = world.getSingleton("ScreenShake" as any) as any;
+              if (shake) {
+                world.mutateSingleton("ScreenShake" as any, (s: any) => {
+                  s.remaining = 0.3;
+                  s.intensity = 8;
+                });
+              }
+
+              const emitter = world.createEntity();
+              world.addComponent(emitter, {
+                type: "ParticleEmitter",
+                config: {
+                  type: "shield_bounce",
+                  x: 0,
+                  y: transform.y,
+                  rate: 0,
+                  burst: true,
+                  count: 15,
+                  lifetime: [0.4, 0.4],
+                  speed: [100, 200],
+                  color: "#00FFFF",
+                  size: [2, 4]
+                },
+                active: true,
+                elapsed: 0
+              } as any);
+              world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 0.55 } as any);
+            } else {
+              gs.scoreP2 += gs.comboMultiplier || 1;
+              scorer = "p2";
+              scored = true;
+            }
           }
+          // Ball passed right edge -> Player 1 scores
+          else if (transform.x > this.config.WIDTH) {
+            gs.scoreP1 += gs.comboMultiplier || 1;
+            scorer = "p1";
+            scored = true;
+          }
+
+          if (scored && scorer) {
+            // Reset combo on score
+            const comboEntities = world.query("Combo" as any);
+            const comboEntity = comboEntities[0];
+            if (comboEntity !== undefined) {
+              world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+                c.combo = 0;
+                c.multiplier = 1;
+                c.timerRemaining = 0;
+              });
+            }
+
+            // Trigger particle celebration explosion at the scoring border (30+ particles)
+            const emitterX = scorer === "p1" ? this.config.WIDTH : 0;
+            const celebrationColor = scorer === "p1" ? "#FF00FF" : "#00FFFF";
+            const emitter = world.createEntity();
+            world.addComponent(emitter, {
+              type: "ParticleEmitter",
+              config: {
+                type: "goal_celebration",
+                x: emitterX,
+                y: transform.y,
+                rate: 0,
+                burst: true,
+                count: 35,
+                lifetime: [0.6, 1.0],
+                speed: [150, 250],
+                color: celebrationColor,
+                size: [3, 6],
+                angle: scorer === "p1" ? [135, 225] : [-45, 45] // Explode inwards
+              },
+              active: true,
+              elapsed: 0
+            } as any);
+            world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 1.2 } as any);
+
+            // Play score audio
+            const eventBus = world.getEventBus();
+            eventBus.emit("PlaySFX" as any, { name: "score" });
+
+            // Check Win Condition
+            if (
+              gs.scoreP1 >= this.config.MAX_SCORE ||
+              gs.scoreP2 >= this.config.MAX_SCORE
+            ) {
+              gs.isGameOver = true;
+              this._isGameOver = true;
+              eventBus.emit("PlaySFX" as any, { name: "game_over" });
+            } else {
+              // Trigger 1.2-second transition freeze state instead of instant reset
+              gs.scoreFreezeRemaining = 1.2;
+              gs.lastScorer = scorer;
+
+              // Move ball to center during freeze
+              world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
+                t.x = this.config.WIDTH / 2;
+                t.y = this.config.HEIGHT / 2;
+              });
+              world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
+                v.vx = 0;
+                v.vy = 0;
+              });
+            }
+          }
+        }
+      });
+
+      // Sync local PongState combo fields from the unified Combo component (updated by ComboSystem)
+      const comboEntities = world.query("Combo" as any);
+      const comboEntity = comboEntities[0];
+      if (comboEntity !== undefined) {
+        const comboComp = world.getComponent(comboEntity, "Combo" as any) as any;
+        if (comboComp && gs.comboMultiplier !== comboComp.multiplier) {
+          gs.comboMultiplier = comboComp.multiplier;
         }
       }
     });

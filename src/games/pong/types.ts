@@ -17,6 +17,9 @@ export interface PongState extends Component {
   isGameOver: boolean;
   comboMultiplier: number;
   gameOverLogged: boolean;
+  shieldPulseRemaining?: number;
+  scoreFreezeRemaining?: number;
+  lastScorer?: "p1" | "p2" | null;
 }
 
 export interface PongInput {

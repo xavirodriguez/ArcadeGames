@@ -209,13 +209,19 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
     this.blueprints.register("state", {
       spawn: (world, entity, _args: {}) => {
+        const hasShieldPulse = world.getResource("HasShieldPulse") === true;
+        const initialScoreP1 = world.getResource("ExtraLifeScoreP1") === 1 ? 1 : 0;
+
         world.addComponent(entity, {
           type: "PongState",
-          scoreP1: 0,
+          scoreP1: initialScoreP1,
           scoreP2: 0,
           isGameOver: false,
           comboMultiplier: 1,
-          gameOverLogged: false
+          gameOverLogged: false,
+          shieldPulseRemaining: hasShieldPulse ? 5.0 : 0.0,
+          scoreFreezeRemaining: 0,
+          lastScorer: null
         } as any);
       }
     });

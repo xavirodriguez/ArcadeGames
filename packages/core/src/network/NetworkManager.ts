@@ -132,58 +132,65 @@ export interface INetworkGame {
 /** @public */
 export class NetworkReplicationUtils {
   public static applyDelta(base: WorldSnapshot, delta: Partial<WorldSnapshot>): void {
-    if (delta.tick !== undefined) base.tick = delta.tick;
-    if (delta.stateVersion !== undefined) base.stateVersion = delta.stateVersion;
-    if (delta.structureVersion !== undefined) base.structureVersion = delta.structureVersion;
-    if (delta.seed !== undefined) base.seed = delta.seed;
-    if (delta.rngState !== undefined) base.rngState = delta.rngState;
-    if (delta.nextEntityId !== undefined) base.nextEntityId = delta.nextEntityId;
-    if (delta.entities !== undefined) {
-      base.entities = [...delta.entities];
+    const d = delta as any;
+    if (d.tick !== undefined) base.tick = d.tick;
+    if (d.stateVersion !== undefined) base.stateVersion = d.stateVersion;
+    if (d.structureVersion !== undefined) base.structureVersion = d.structureVersion;
+    if (d.seed !== undefined) base.seed = d.seed;
+    if (d.rngState !== undefined) base.rngState = d.rngState;
+    if (d.nextEntityId !== undefined) base.nextEntityId = d.nextEntityId;
+    if (d.entities !== undefined) {
+      base.entities = [...d.entities];
     }
-    if (delta.freeEntities !== undefined) {
-      base.freeEntities = [...delta.freeEntities];
+    if (d.freeEntities !== undefined) {
+      base.freeEntities = [...d.freeEntities];
     }
 
-    if (delta.componentData) {
-      if (!base.componentData) {
-        base.componentData = {};
-      }
-      for (const [type, entityMap] of Object.entries(delta.componentData)) {
-        if (!base.componentData[type]) {
-          base.componentData[type] = {};
+    if (d.componentData) {
+      if (!base.isSoA) {
+        if (!base.componentData) {
+          (base as any).componentData = {};
         }
-        for (const [entityId, comp] of Object.entries(entityMap)) {
-          const entityIdNum = Number(entityId);
-          if (comp === null || comp === undefined) {
-            delete base.componentData[type][entityIdNum];
-          } else {
-            base.componentData[type][entityIdNum] = {
-              ...base.componentData[type][entityIdNum],
-              ...comp
-            };
+        for (const [type, entityMap] of Object.entries(d.componentData)) {
+          if (!base.componentData[type]) {
+            base.componentData[type] = {};
+          }
+          for (const [entityId, comp] of Object.entries(entityMap as any)) {
+            const entityIdNum = Number(entityId);
+            if (comp === null || comp === undefined) {
+              delete base.componentData[type][entityIdNum];
+            } else {
+              base.componentData[type][entityIdNum] = {
+                ...base.componentData[type][entityIdNum],
+                ...comp as any
+              };
+            }
           }
         }
       }
     }
 
-    if (delta.isSoA !== undefined) base.isSoA = delta.isSoA;
-    if (delta.soaComponentData) {
-      if (!base.soaComponentData) {
-        base.soaComponentData = {};
-      }
-      for (const [type, soaData] of Object.entries(delta.soaComponentData)) {
-        base.soaComponentData[type] = {
-          ...base.soaComponentData[type],
-          ...soaData
-        };
+    if (d.isSoA !== undefined) {
+      (base as any).isSoA = d.isSoA;
+    }
+    if (d.soaComponentData) {
+      if (base.isSoA) {
+        if (!base.soaComponentData) {
+          (base as any).soaComponentData = {};
+        }
+        for (const [type, soaData] of Object.entries(d.soaComponentData)) {
+          base.soaComponentData[type] = {
+            ...base.soaComponentData[type],
+            ...soaData as any
+          } as any;
+        }
       }
     }
   }
 }
 
 function reconstructComponentData(snapshot: WorldSnapshot): ComponentDataSnapshot {
-  if (snapshot.isSoA && snapshot.soaComponentData) {
+  if (snapshot.isSoA) {
     const componentData: ComponentDataSnapshot = {};
     const soaComponentData = snapshot.soaComponentData;
 
@@ -233,5 +240,5 @@ function reconstructComponentData(snapshot: WorldSnapshot): ComponentDataSnapsho
     return componentData;
   }
 
-  return snapshot.componentData || {};
+  return snapshot.componentData;
 }

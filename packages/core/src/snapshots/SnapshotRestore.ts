@@ -27,6 +27,10 @@ export class SnapshotRestore {
     world: World<TComponents>,
     state: WorldSnapshot
   ): void {
+    if (state.isSoA) {
+      throw new Error("SnapshotRestore does not support SoA WorldSnapshot. Use SnapshotRestoreSoA instead.");
+    }
+
     world["activeEntities"] = new Set(state.entities);
     world["nextEntityId"] = state.nextEntityId;
     world["freeEntities"] = [...state.freeEntities];

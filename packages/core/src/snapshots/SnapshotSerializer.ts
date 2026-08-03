@@ -1,7 +1,7 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
 import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
-import { WorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
+import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
 
 /**
  * Internal interface to access private world state for serialization.
@@ -40,8 +40,8 @@ export class SnapshotSerializer {
    */
   public static snapshot<TComponents extends ComponentRegistry>(
     world: World<TComponents>,
-    target?: WorldSnapshot
-  ): WorldSnapshot {
+    target?: AoSWorldSnapshot
+  ): AoSWorldSnapshot {
     const componentData: ComponentDataSnapshot = target?.componentData ?? {};
     const internal = world as unknown as InternalWorldAccess<TComponents>;
 

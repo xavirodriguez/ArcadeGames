@@ -660,7 +660,8 @@ export class World<
     if (this.getResource("UseSoASnapshots") === true) {
       return SnapshotSerializerSoA.snapshot(this);
     }
-    return SnapshotSerializer.snapshot(this, target);
+    const aosTarget = target && !target.isSoA ? target : undefined;
+    return SnapshotSerializer.snapshot(this, aosTarget);
   }
 
   /**

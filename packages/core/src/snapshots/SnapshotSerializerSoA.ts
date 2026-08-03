@@ -1,7 +1,7 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
 import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
-import { WorldSnapshot, SoAComponentTypeData } from "./WorldSnapshot";
+import { SoAWorldSnapshot, SoAComponentTypeData } from "./WorldSnapshot";
 
 /**
  * Internal interface to access private world state for serialization.
@@ -28,7 +28,7 @@ export class SnapshotSerializerSoA {
    */
   public static snapshot<TComponents extends ComponentRegistry>(
     world: World<TComponents>
-  ): WorldSnapshot {
+  ): SoAWorldSnapshot {
     const internal = world as unknown as InternalWorldAccess<TComponents>;
     const activeEntities = internal.activeEntities;
     const componentMaps = internal.componentMaps;
@@ -111,7 +111,6 @@ export class SnapshotSerializerSoA {
 
     return {
       entities: Array.from(activeEntities).sort((a, b) => a - b),
-      componentData: {}, // Empty in SoA mode to avoid duplicate storage
       nextEntityId: internal.nextEntityId,
       freeEntities: [...internal.freeEntities],
       structureVersion: world.structureVersion,

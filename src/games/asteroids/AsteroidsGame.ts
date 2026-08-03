@@ -33,6 +33,7 @@ import {
   SystemPhase,
   ServerUpdatePayload,
   TransformComponent,
+  HierarchySystem,
   VelocityComponent,
   RenderComponent,
   HealthComponent,
@@ -149,6 +150,7 @@ export class AsteroidsGame
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new FrictionSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new CCDSystem(), { phase: SystemPhase.Simulation, priority: -10 });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new AsteroidCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });

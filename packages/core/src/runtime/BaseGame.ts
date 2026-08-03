@@ -83,7 +83,11 @@ export abstract class BaseGame<
     this.world = new World<TComponents, TEvents, TBlueprints>(config.schedule);
     this.eventBus = new EventBus<TEvents>();
     this.blueprints = new BlueprintRegistry<TComponents, TBlueprints>();
-    this.loop = new GameLoop();
+    this.loop = new GameLoop({
+      step: 1 / 60,
+      maxDelta: 0.25,
+      manual: config.isMultiplayer
+    });
     this.unifiedInput = new UnifiedInputSystem();
     this.sceneManager = new SceneManager(this.world, this.eventBus as any);
     this.audio = config.audio || new NullAudioPlayer();
@@ -394,7 +398,13 @@ export abstract class BaseGame<
    * Decoupled Input Bridge: Sets the state of the local player inputs in the ECS World.
    * Can be overridden by subclasses to write directly to entity components.
    */
-  public setInputState(input: Partial<TInput>): void {}
+  public setInputState(input: Partial<TInput>): void {
+    if (this.unifiedInput) {
+      Object.entries(input).forEach(([action, pressed]) => {
+        this.unifiedInput.setOverride(action, !!pressed);
+      });
+    }
+  }
 
   /**
    * Helper to handle deferred or immediate entity creation and component attachment.

@@ -10,7 +10,8 @@ import {
   BoundarySystem,
   CollisionSystem2D,
   MutatorSystem,
-  SystemPhase
+  SystemPhase,
+  HierarchySystem
 } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../../shared/arcade";
@@ -87,6 +88,7 @@ export class SpaceInvadersGameScene extends Scene {
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new SpaceInvadersFormationSystem(this.enemyBulletPool), { phase: SystemPhase.Simulation });
     this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });

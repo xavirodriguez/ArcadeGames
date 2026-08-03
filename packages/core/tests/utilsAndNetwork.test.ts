@@ -257,7 +257,7 @@ describe("ComponentSetPool", () => {
 
     // Releasing components
     expect(pool.size).toBe(2);
-    pool.release(world, entity);
+    pool.release({ world, entity });
     expect(pool.size).toBe(3);
 
     // Acquire when world is updating
@@ -297,7 +297,7 @@ describe("PrefabPool", () => {
     const pos = world.getComponent(entity, "Position") as any;
     expect(pos.value).toBe(42);
 
-    pool.release(world, entity);
+    pool.release({ world, entity });
     expect(pool.size).toBe(4);
   });
 });

@@ -38,9 +38,19 @@ export class TTLSystem extends System<CoreComponentRegistry> {
         }
 
         if (reclaimable) {
-          const pool = world.getResource<IEntityPool>(reclaimable.poolId);
-          if (pool && typeof pool.release === "function") {
-            pool.release(world, entity);
+          if (typeof reclaimable.onReclaim === "function") {
+            reclaimable.onReclaim({ world, entity });
+          } else {
+            const pool = world.getResource<IEntityPool>(reclaimable.poolId);
+            if (pool && typeof pool.release === "function") {
+              pool.release({ world, entity });
+            } else {
+              const message = `Reclaimable entity ${entity} references unregistered pool "${reclaimable.poolId}"`;
+              if (process.env.NODE_ENV !== "production") {
+                throw new Error(message);
+              }
+              console.warn(message);
+            }
           }
         }
 

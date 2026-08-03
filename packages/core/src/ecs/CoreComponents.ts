@@ -52,16 +52,32 @@ export interface TTLComponent extends Component {
 }
 
 /** @public */
+export interface ReleaseContext<
+  TWorld extends World = World,
+> {
+  world: TWorld;
+  entity: Entity;
+}
+
+/** @public */
+export interface ComponentSetReleaseContext<
+  T extends Record<string, Component>,
+  TWorld extends World = World,
+> extends ReleaseContext<TWorld> {
+  container?: T;
+}
+
+/** @public */
 export interface ReclaimableComponent extends Component {
   type: "Reclaimable";
   poolName: string;
   poolId: string;
-  onReclaim?: (world: World<any, any, any>, entity: Entity) => void;
+  onReclaim?: (context: ReleaseContext) => void;
 }
 
 /** @public */
 export interface IEntityPool {
-  release(world: World<any, any, any>, entity: Entity): void;
+  release(context: ReleaseContext): void;
 }
 
 /** @public */

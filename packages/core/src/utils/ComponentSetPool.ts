@@ -1,6 +1,6 @@
 import { World } from "../ecs/World";
 import { Component } from "../ecs/Component";
-import { Entity, ReclaimableComponent } from "../ecs/CoreComponents";
+import { Entity, ReclaimableComponent, ReleaseContext, ComponentSetReleaseContext } from "../ecs/CoreComponents";
 import { ObjectPool } from "./ObjectPool";
 
 /**
@@ -16,6 +16,7 @@ import { ObjectPool } from "./ObjectPool";
 export class ComponentSetPool<T extends Record<string, Component>> {
   private pool: ObjectPool<T>;
   private keyToType: Record<string, string>;
+  private readonly activeEntities = new Set<Entity>();
 
   /**
    * @param factory - Creates a new set of component objects.
@@ -65,31 +66,12 @@ export class ComponentSetPool<T extends Record<string, Component>> {
         // CommandBuffer creation logic
         commands.createEntity(entity);
 
+        this.activeEntities.add(entity);
+
         for (const key in components) {
           const comp = components[key];
           if (comp.type === "Reclaimable") {
-            (comp as unknown as ReclaimableComponent).onReclaim = (w: any, e?: any) => {
-              let finalWorld: World | undefined;
-              let finalEntity: Entity | undefined;
-
-              if (w instanceof World) {
-                finalWorld = w;
-                finalEntity = e;
-              } else if (typeof w === "number") {
-                finalEntity = w;
-                if (e instanceof World) {
-                  finalWorld = e;
-                }
-              }
-
-              if (finalWorld && finalEntity !== undefined) {
-                this.release(finalWorld, finalEntity);
-              } else {
-                if (typeof (globalThis as any).__DEV__ !== "undefined" ? (globalThis as any).__DEV__ : true) {
-                  console.warn("[ComponentSetPool] onReclaim called with invalid or missing World instance:", { w, e });
-                }
-              }
-            };
+            (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);
           }
           commands.addComponent(entity, comp);
         }
@@ -98,34 +80,14 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     }
 
     const entity = world.createEntity();
+    this.activeEntities.add(entity);
 
     for (const key in components) {
       const comp = components[key];
 
       // Automatically wire up Reclaimable components to return to this pool
       if (comp.type === "Reclaimable") {
-        (comp as unknown as ReclaimableComponent).onReclaim = (w: any, e?: any) => {
-          let finalWorld: World | undefined;
-          let finalEntity: Entity | undefined;
-
-          if (w instanceof World) {
-            finalWorld = w;
-            finalEntity = e;
-          } else if (typeof w === "number") {
-            finalEntity = w;
-            if (e instanceof World) {
-              finalWorld = e;
-            }
-          }
-
-          if (finalWorld && finalEntity !== undefined) {
-            this.release(finalWorld, finalEntity);
-          } else {
-            if (typeof (globalThis as any).__DEV__ !== "undefined" ? (globalThis as any).__DEV__ : true) {
-              console.warn("[ComponentSetPool] onReclaim called with invalid or missing World instance:", { w, e });
-            }
-          }
-        };
+        (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);
       }
 
       world.addComponent(entity, comp);
@@ -134,48 +96,32 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     return { entity, components };
   }
 
+  private handleInvalidRelease(entity: Entity): void {
+    const message = `Double release or foreign entity detected: entity=${entity}, pool=ComponentSetPool`;
+
+    if (process.env.NODE_ENV !== "production") {
+      throw new Error(message);
+    }
+
+    console.warn(message);
+  }
+
   /**
    * Releases an entity's components back to the pool.
    * NOTE: This does NOT remove the entity from the world. The caller is responsible
    * for calling world.removeEntity(entity) after notifying the pool.
    *
-   * @param world - The ECS world.
-   * @param entity - The entity to reclaim.
-   * @param container - Optional container object to reuse for components gathering.
+   * @param context - The release context containing world, entity and optional container.
    */
-  public release(world: World, entity: Entity, container?: T): void {
-    let finalWorld = world;
-    let finalEntity = entity;
+  public release(context: ComponentSetReleaseContext<T>): void {
+    const { world, entity, container } = context;
 
-    if (!(world instanceof World) && ((entity as any) instanceof World)) {
-      finalWorld = entity as any;
-      finalEntity = world as any;
-    } else if (!(world instanceof World) && typeof world === "number" && entity === undefined) {
-      throw new TypeError(
-        `ComponentSetPool.release expects a World instance as the first argument, but received an Entity ID (${world}). ` +
-        `Make sure to pass both world and entity: pool.release(world, entity).`
-      );
-    }
-
-    if (!finalWorld || !(finalWorld instanceof World)) {
-      throw new TypeError(
-        `ComponentSetPool.release: Invalid World instance provided. ` +
-        `Expected World, received: ${typeof finalWorld}`
-      );
-    }
-
-    if (typeof finalEntity !== "number") {
-      throw new TypeError(
-        `ComponentSetPool.release: Invalid Entity ID provided. ` +
-        `Expected a number, received: ${typeof finalEntity}`
-      );
-    }
-
-    // Check if reclaimable component is already marked as released to prevent double-release
-    const reclaimable = finalWorld.getComponent(finalEntity, "Reclaimable") as any;
-    if (reclaimable && reclaimable._released) {
+    if (!this.activeEntities.has(entity)) {
+      this.handleInvalidRelease(entity);
       return;
     }
+
+    this.activeEntities.delete(entity);
 
     const components = container || ({} as T);
     let allFound = true;

@@ -1,6 +1,6 @@
 import { World } from "../ecs/World";
 import { Component } from "../ecs/Component";
-import { Entity } from "../ecs/CoreComponents";
+import { Entity, ReleaseContext } from "../ecs/CoreComponents";
 import { ComponentSetPool } from "./ComponentSetPool";
 
 /**
@@ -55,35 +55,8 @@ export class PrefabPool<T extends Record<string, Component>, I> {
   /**
    * Releases an entity back to the pool.
    */
-  public release(world: World, entity: Entity): void {
-    let finalWorld = world;
-    let finalEntity = entity;
-
-    if (!(world instanceof World) && ((entity as any) instanceof World)) {
-      finalWorld = entity as any;
-      finalEntity = world as any;
-    } else if (!(world instanceof World) && typeof world === "number" && entity === undefined) {
-      throw new TypeError(
-        `PrefabPool.release expects a World instance as the first argument, but received an Entity ID (${world}). ` +
-        `Make sure to pass both world and entity: pool.release(world, entity).`
-      );
-    }
-
-    if (!finalWorld || !(finalWorld instanceof World)) {
-      throw new TypeError(
-        `PrefabPool.release: Invalid World instance provided. ` +
-        `Expected World, received: ${typeof finalWorld}`
-      );
-    }
-
-    if (typeof finalEntity !== "number") {
-      throw new TypeError(
-        `PrefabPool.release: Invalid Entity ID provided. ` +
-        `Expected a number, received: ${typeof finalEntity}`
-      );
-    }
-
-    this.pool.release(finalWorld, finalEntity);
+  public release(context: ReleaseContext): void {
+    this.pool.release(context);
   }
 
   /**

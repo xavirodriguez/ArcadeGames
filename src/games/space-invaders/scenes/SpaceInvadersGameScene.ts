@@ -81,6 +81,10 @@ export class SpaceInvadersGameScene extends Scene {
       this.world.setResource("InputSystem", inputSystem);
     }
 
+    this.world.setResource("PlayerBulletPool", this.playerBulletPool);
+    this.world.setResource("EnemyBulletPool", this.enemyBulletPool);
+    this.world.setResource("ParticlePool", this.particlePool);
+
     // 1. Systems registration
     const inputSys = new SpaceInvadersInputSystem(this.playerBulletPool);
     if (this.game.isMultiplayer) inputSys.setMultiplayerMode(true);
@@ -139,5 +143,15 @@ export class SpaceInvadersGameScene extends Scene {
     createFormationController(this.world);
     spawnInvaderWave(this.world, 1);
     spawnShields(this.world);
+  }
+
+  public override onExit(world: World): void {
+    this.playerBulletPool.clear?.();
+    this.enemyBulletPool.clear?.();
+    this.particlePool.clear?.();
+
+    world.deleteResource("PlayerBulletPool");
+    world.deleteResource("EnemyBulletPool");
+    world.deleteResource("ParticlePool");
   }
 }

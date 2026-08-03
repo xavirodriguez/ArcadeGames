@@ -125,7 +125,13 @@ export default function PongScreen() {
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/");
+            }
+          }}
         >
           <Text style={styles.backButtonText}>← MENÚ</Text>
         </TouchableOpacity>
@@ -209,7 +215,13 @@ const StartScreen: FC<{
       <View style={styles.startScreen}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/");
+            }
+          }}
         >
           <Text style={styles.backButtonText}>← MENÚ</Text>
         </TouchableOpacity>

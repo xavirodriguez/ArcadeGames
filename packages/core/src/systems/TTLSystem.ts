@@ -40,7 +40,7 @@ export class TTLSystem extends System<CoreComponentRegistry> {
         if (reclaimable) {
           const pool = world.getResource<IEntityPool>(reclaimable.poolId);
           if (pool && typeof pool.release === "function") {
-            pool.release(entity);
+            pool.release(world, entity);
           }
         }
 

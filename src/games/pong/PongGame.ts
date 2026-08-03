@@ -12,7 +12,8 @@ import {
   Renderer,
   MutatorSystem,
   SystemPhase,
-  ServerUpdatePayload
+  ServerUpdatePayload,
+  HierarchySystem
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
@@ -257,6 +258,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PongSpinSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new PongVelocityGuardrailSystem(), { phase: SystemPhase.Simulation });
 
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });

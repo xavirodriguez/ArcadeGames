@@ -1,6 +1,6 @@
 import { World } from "../ecs/World";
 import { Component } from "../ecs/Component";
-import { Entity } from "../ecs/CoreComponents";
+import { Entity, ReleaseContext } from "../ecs/CoreComponents";
 import { ComponentSetPool } from "./ComponentSetPool";
 
 /**
@@ -55,8 +55,8 @@ export class PrefabPool<T extends Record<string, Component>, I> {
   /**
    * Releases an entity back to the pool.
    */
-  public release(world: World, entity: Entity): void {
-    this.pool.release(world, entity);
+  public release(context: ReleaseContext): void {
+    this.pool.release(context);
   }
 
   /**

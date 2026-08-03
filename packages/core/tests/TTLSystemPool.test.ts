@@ -96,7 +96,7 @@ describe("TTLSystem and Pool interactions", () => {
     const entity1 = pool.acquire(world, { x: 50 });
 
     // Release entity1 back to the pool
-    pool.release(world, entity1);
+    pool.release({ world, entity: entity1 });
 
     // Remove entity from world so its components are no longer active
     world.removeEntity(entity1);
@@ -108,7 +108,7 @@ describe("TTLSystem and Pool interactions", () => {
     expect(pos2.x).toBe(100);
   });
 
-  it("should handle repeated calls to release gracefully", () => {
+  it("throws on double release in development", () => {
     const factory = () => ({
       position: { type: "Transform", x: 0, y: 0 } as any,
       ttl: { type: "TTL", remaining: 1.0, timeLeft: 1.0 } as any,
@@ -126,15 +126,13 @@ describe("TTLSystem and Pool interactions", () => {
     const initialSize = pool.size;
 
     // Release once
-    expect(() => pool.release(world, entity)).not.toThrow();
+    expect(() => pool.release({ world, entity })).not.toThrow();
     expect(pool.size).toBe(initialSize + 1);
 
-    // Remove entity from world so components are not found next time
-    world.removeEntity(entity);
-
-    // Release second time (should be safe and ignore/not increment size because components are already stripped from entity or missing)
-    expect(() => pool.release(world, entity)).not.toThrow();
-    expect(pool.size).toBe(initialSize + 1); // Remains same, did not double-add
+    // Release second time (should throw double release error in dev/test)
+    expect(() => {
+      pool.release({ world, entity });
+    }).toThrow(/double release/i);
   });
 
   it("should handle partially released or destroyed entities gracefully", () => {
@@ -158,7 +156,153 @@ describe("TTLSystem and Pool interactions", () => {
     world.removeComponent(entity, "Transform");
 
     // Releasing this entity should fail the "allFound" check in ComponentSetPool and NOT return components to the pool
-    expect(() => pool.release(world, entity)).not.toThrow();
+    expect(() => pool.release({ world, entity })).not.toThrow();
     expect(pool.size).toBe(initialSize); // Size did not increase
+  });
+
+  it("releases an entity using a named context", () => {
+    const factory = () => ({
+      position: { type: "Transform", x: 0, y: 0 } as any,
+      ttl: { type: "TTL", remaining: 1.0, timeLeft: 1.0 } as any,
+      reclaimable: { type: "Reclaimable", poolId: "TestPoolContext", poolName: "TestPoolContext" } as any
+    });
+
+    const pool = new PrefabPool({
+      factory,
+      reset: () => {},
+      initializer: () => {},
+      initialSize: 1
+    });
+
+    const entity = pool.acquire(world, {});
+    expect(world.hasEntity(entity)).toBe(true);
+
+    pool.release({ world, entity });
+
+    // Removing the entity via commands or removing it manually to check
+    world.getCommandBuffer().removeEntity(entity);
+    world.flush();
+    expect(world.hasEntity(entity)).toBe(false);
+  });
+
+  it("passes the correct world and entity to onReclaim", () => {
+    const onReclaimMock = jest.fn();
+    const factory = () => ({
+      position: { type: "Transform", x: 0, y: 0 } as any,
+      ttl: { type: "TTL", remaining: 1.0, timeLeft: 1.0 } as any,
+      reclaimable: {
+        type: "Reclaimable",
+        poolId: "TestPoolReclaim",
+        poolName: "TestPoolReclaim",
+        onReclaim: onReclaimMock
+      } as any
+    });
+
+    const pool = new PrefabPool({
+      factory,
+      reset: () => {},
+      initializer: () => {},
+      initialSize: 1
+    });
+
+    world.setResource("TestPoolReclaim", pool);
+
+    const entity = pool.acquire(world, {});
+
+    // Wire up custom mock onReclaim on the acquired component
+    const reclaimable = world.getMutableComponent(entity, "Reclaimable") as any;
+    reclaimable.onReclaim = onReclaimMock;
+
+    // Tick the world by 1.1s so it expires
+    world.update(1.1);
+    world.flush();
+
+    expect(onReclaimMock).toHaveBeenCalledWith({
+      world,
+      entity,
+    });
+  });
+
+  it("returns an expired Space Invaders projectile to its pool", () => {
+    const factory = () => ({
+      position: { type: "Transform", x: 0, y: 0 } as any,
+      ttl: { type: "TTL", remaining: 1.0, timeLeft: 1.0 } as any,
+      reclaimable: { type: "Reclaimable", poolId: "playerBulletPool", poolName: "playerBulletPool" } as any
+    });
+
+    const mockPool = {
+      release: jest.fn()
+    };
+
+    world.setResource("playerBulletPool", mockPool as any);
+
+    const pool = new PrefabPool({
+      factory,
+      reset: () => {},
+      initializer: () => {},
+      initialSize: 1
+    });
+
+    const entity = pool.acquire(world, {});
+
+    // Clear onReclaim so TTLSystem is forced to fall back to the resource poolId lookup
+    const reclaimable = world.getMutableComponent(entity, "Reclaimable") as any;
+    reclaimable.onReclaim = undefined;
+
+    // Tick the world by 1.1s so it expires
+    world.update(1.1);
+    world.flush();
+
+    expect(mockPool.release).toHaveBeenCalledWith({
+      world,
+      entity,
+    });
+  });
+
+  it("fails descriptively when the referenced pool is not registered", () => {
+    const factory = () => ({
+      position: { type: "Transform", x: 0, y: 0 } as any,
+      ttl: { type: "TTL", remaining: 1.0, timeLeft: 1.0 } as any,
+      reclaimable: { type: "Reclaimable", poolId: "NonExistentPool", poolName: "NonExistentPool" } as any
+    });
+
+    const pool = new PrefabPool({
+      factory,
+      reset: () => {},
+      initializer: () => {},
+      initialSize: 1
+    });
+
+    const entity = pool.acquire(world, {});
+
+    // Clear onReclaim so TTLSystem is forced to fall back to the resource poolId lookup
+    const reclaimable = world.getMutableComponent(entity, "Reclaimable") as any;
+    reclaimable.onReclaim = undefined;
+
+    // Tick the world by 1.1s so it expires. It should throw an error in dev/test environment.
+    expect(() => {
+      world.update(1.1);
+      world.flush();
+    }).toThrow(/unregistered pool/i);
+  });
+
+  it("rejects entities not owned by the pool", () => {
+    const factory = () => ({
+      position: { type: "Transform", x: 0, y: 0 } as any,
+      ttl: { type: "TTL", remaining: 1.0, timeLeft: 1.0 } as any,
+      reclaimable: { type: "Reclaimable", poolId: "TestPoolForeign", poolName: "TestPoolReclaim" } as any
+    });
+
+    const pool = new PrefabPool({
+      factory,
+      reset: () => {},
+      initializer: () => {},
+      initialSize: 1
+    });
+
+    const foreignEntity = 9999; // Not owned/acquired by pool
+    expect(() => {
+      pool.release({ world, entity: foreignEntity });
+    }).toThrow(/foreign entity/i);
   });
 });

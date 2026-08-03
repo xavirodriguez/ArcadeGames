@@ -1,6 +1,6 @@
 import { World } from "../ecs/World";
 import { Component } from "../ecs/Component";
-import { Entity, ReclaimableComponent } from "../ecs/CoreComponents";
+import { Entity, ReclaimableComponent, ReleaseContext, ComponentSetReleaseContext } from "../ecs/CoreComponents";
 import { ObjectPool } from "./ObjectPool";
 
 /**
@@ -16,6 +16,7 @@ import { ObjectPool } from "./ObjectPool";
 export class ComponentSetPool<T extends Record<string, Component>> {
   private pool: ObjectPool<T>;
   private keyToType: Record<string, string>;
+  private readonly activeEntities = new Set<Entity>();
 
   /**
    * @param factory - Creates a new set of component objects.
@@ -57,10 +58,12 @@ export class ComponentSetPool<T extends Record<string, Component>> {
         // CommandBuffer creation logic
         commands.createEntity(entity);
 
+        this.activeEntities.add(entity);
+
         for (const key in components) {
           const comp = components[key];
           if (comp.type === "Reclaimable") {
-            (comp as unknown as ReclaimableComponent).onReclaim = (w: World, e: Entity) => this.release(w, e);
+            (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);
           }
           commands.addComponent(entity, comp);
         }
@@ -69,13 +72,14 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     }
 
     const entity = world.createEntity();
+    this.activeEntities.add(entity);
 
     for (const key in components) {
       const comp = components[key];
 
       // Automatically wire up Reclaimable components to return to this pool
       if (comp.type === "Reclaimable") {
-        (comp as unknown as ReclaimableComponent).onReclaim = (w: World, e: Entity) => this.release(w, e);
+        (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);
       }
 
       world.addComponent(entity, comp);
@@ -84,16 +88,33 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     return { entity, components };
   }
 
+  private handleInvalidRelease(entity: Entity): void {
+    const message = `Double release or foreign entity detected: entity=${entity}, pool=ComponentSetPool`;
+
+    if (process.env.NODE_ENV !== "production") {
+      throw new Error(message);
+    }
+
+    console.warn(message);
+  }
+
   /**
    * Releases an entity's components back to the pool.
    * NOTE: This does NOT remove the entity from the world. The caller is responsible
    * for calling world.removeEntity(entity) after notifying the pool.
    *
-   * @param world - The ECS world.
-   * @param entity - The entity to reclaim.
-   * @param container - Optional container object to reuse for components gathering.
+   * @param context - The release context containing world, entity and optional container.
    */
-  public release(world: World, entity: Entity, container?: T): void {
+  public release(context: ComponentSetReleaseContext<T>): void {
+    const { world, entity, container } = context;
+
+    if (!this.activeEntities.has(entity)) {
+      this.handleInvalidRelease(entity);
+      return;
+    }
+
+    this.activeEntities.delete(entity);
+
     const components = container || ({} as T);
     let allFound = true;
 

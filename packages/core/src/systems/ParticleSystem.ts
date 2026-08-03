@@ -127,8 +127,6 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
 /** @public */
 export function createEmitter(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity {
   const commands = world.getCommandBuffer();
-  const entity = world.createEntity();
-
   const component = {
     type: "ParticleEmitter",
     config,
@@ -136,7 +134,14 @@ export function createEmitter(world: World<CoreComponentRegistry>, config: Parti
     elapsed: 0,
   } as ParticleEmitterComponent;
 
-  commands.addComponent(entity, component);
-
-  return entity;
+  if (world.isUpdating) {
+    const entity = world.reserveEntityId();
+    commands.createEntity(entity);
+    commands.addComponent(entity, component);
+    return entity;
+  } else {
+    const entity = world.createEntity();
+    commands.addComponent(entity, component);
+    return entity;
+  }
 }

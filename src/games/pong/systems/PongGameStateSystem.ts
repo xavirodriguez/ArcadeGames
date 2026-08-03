@@ -1,4 +1,4 @@
-import { World, BaseGameStateSystem, TransformComponent, VelocityComponent, EventBus } from "@tiny-aster/core";
+import { World, BaseGameStateSystem, TransformComponent, VelocityComponent, EventBus, createEmitter } from "@tiny-aster/core";
 import { type PongState, type PongComponentRegistry } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 
@@ -96,24 +96,18 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
                 });
               }
 
-              const emitter = world.createEntity();
-              world.addComponent(emitter, {
-                type: "ParticleEmitter",
-                config: {
-                  type: "shield_bounce",
-                  x: 0,
-                  y: transform.y,
-                  rate: 0,
-                  burst: true,
-                  count: 15,
-                  lifetime: [0.4, 0.4],
-                  speed: [100, 200],
-                  color: "#00FFFF",
-                  size: [2, 4]
-                },
-                active: true,
-                elapsed: 0
-              } as any);
+              const emitter = createEmitter(world as any, {
+                type: "shield_bounce",
+                x: 0,
+                y: transform.y,
+                rate: 0,
+                burst: true,
+                count: 15,
+                lifetime: [0.4, 0.4],
+                speed: [100, 200],
+                color: "#00FFFF",
+                size: [2, 4]
+              });
               world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 0.55 } as any);
             } else {
               gs.scoreP2 += gs.comboMultiplier || 1;
@@ -143,25 +137,19 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
             // Trigger particle celebration explosion at the scoring border (30+ particles)
             const emitterX = scorer === "p1" ? this.config.WIDTH : 0;
             const celebrationColor = scorer === "p1" ? "#FF00FF" : "#00FFFF";
-            const emitter = world.createEntity();
-            world.addComponent(emitter, {
-              type: "ParticleEmitter",
-              config: {
-                type: "goal_celebration",
-                x: emitterX,
-                y: transform.y,
-                rate: 0,
-                burst: true,
-                count: 35,
-                lifetime: [0.6, 1.0],
-                speed: [150, 250],
-                color: celebrationColor,
-                size: [3, 6],
-                angle: scorer === "p1" ? [135, 225] : [-45, 45] // Explode inwards
-              },
-              active: true,
-              elapsed: 0
-            } as any);
+            const emitter = createEmitter(world as any, {
+              type: "goal_celebration",
+              x: emitterX,
+              y: transform.y,
+              rate: 0,
+              burst: true,
+              count: 35,
+              lifetime: [0.6, 1.0],
+              speed: [150, 250],
+              color: celebrationColor,
+              size: [3, 6],
+              angle: scorer === "p1" ? [135, 225] : [-45, 45] // Explode inwards
+            });
             world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 1.2 } as any);
 
             // Play score audio

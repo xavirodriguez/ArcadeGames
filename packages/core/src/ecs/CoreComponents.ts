@@ -61,7 +61,7 @@ export interface ReclaimableComponent extends Component {
 
 /** @public */
 export interface IEntityPool {
-  release(entity: Entity): void;
+  release(world: World<any, any, any>, entity: Entity): void;
 }
 
 /** @public */

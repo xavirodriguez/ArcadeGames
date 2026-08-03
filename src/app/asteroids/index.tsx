@@ -175,7 +175,13 @@ export default function AsteroidsScreen() {
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/");
+            }
+          }}
         >
           <Text style={styles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
@@ -288,7 +294,13 @@ const StartScreen: FC<{
       <View style={styles.startScreen}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/");
+            }
+          }}
         >
           <Text style={styles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>

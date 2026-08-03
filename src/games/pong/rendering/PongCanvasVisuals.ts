@@ -8,7 +8,8 @@ import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid } from "../../shar
 const ballMotionTrail = new CanvasMotionTrail(30);
 
 /**
- * Función especializada para renderizar el estado de la bola con su efecto de giro.
+ * Upgraded, high-fidelity ball shape drawer with a swirling core and dynamic fading afterimage trails.
+ * @public
  */
 export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -140,8 +141,8 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
 };
 
 /**
- * Procedural retro space-grid background effect drawer with scrolling grid, CRT scanlines, and screen vignette.
- * Leverages the generic drawProceduralGrid utility.
+ * Procedural retro space-grid background effect drawer with scrolling grid, CRT scanlines, screen vignette,
+ * scored freeze neon overlays, and protective neon shield rendering.
  * @public
  */
 export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {

@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry, TransformComponent, BinaryCompression } from "../src";
+import { World, CoreComponentRegistry, TransformComponent, BinaryCompression, AoSWorldSnapshot, SoAWorldSnapshot } from "../src";
 
 describe("World Snapshots", () => {
   it("should capture and restore world state", () => {
@@ -15,7 +15,7 @@ describe("World Snapshots", () => {
 
     const snapshot = world.snapshot();
     expect(snapshot.entities).toContain(entity);
-    expect(snapshot.componentData["Transform"][entity].x).toBe(10);
+    expect((snapshot as AoSWorldSnapshot).componentData["Transform"][entity].x).toBe(10);
 
     // Modify world
     world.mutateComponent(entity, "Transform", (t) => {
@@ -44,7 +44,7 @@ describe("World Snapshots", () => {
 
     // No changes
     const delta1 = world.deltaSnapshot(version1);
-    expect(delta1.componentData).toEqual({});
+    expect((delta1 as any).componentData).toEqual({});
 
     // Change something
     world.mutateComponent(entity, "Transform", (t) => {
@@ -52,7 +52,7 @@ describe("World Snapshots", () => {
     });
 
     const delta2 = world.deltaSnapshot(version1);
-    expect(delta2.componentData!["Transform"][entity].x).toBe(100);
+    expect((delta2 as any).componentData!["Transform"][entity].x).toBe(100);
   });
 
   describe("SoA Snapshots", () => {
@@ -71,8 +71,8 @@ describe("World Snapshots", () => {
 
       const snapshot = world.snapshot();
       expect(snapshot.isSoA).toBe(true);
-      expect(snapshot.soaComponentData).toBeDefined();
-      expect(snapshot.soaComponentData!["Transform"].entities[0]).toBe(entity);
+      expect((snapshot as SoAWorldSnapshot).soaComponentData).toBeDefined();
+      expect((snapshot as SoAWorldSnapshot).soaComponentData!["Transform"].entities[0]).toBe(entity);
 
       // Modify world
       world.mutateComponent(entity, "Transform", (t) => {

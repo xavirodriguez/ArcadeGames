@@ -18,9 +18,12 @@
  * These must be managed, re-initialized, or manually synchronized after restoration.
  * @public
  */
-export interface WorldSnapshot {
+/**
+ * Base properties shared by both AoS and SoA snapshots.
+ * @public
+ */
+export interface BaseWorldSnapshot {
   entities: number[];
-  componentData: ComponentDataSnapshot;
   nextEntityId: number;
   freeEntities: number[];
   structureVersion: number;
@@ -28,13 +31,47 @@ export interface WorldSnapshot {
   seed: number;
   rngState?: number;
   tick: number;
-
-  /**
-   * Structure of Arrays (SoA) optimization flags and payload.
-   */
-  isSoA?: boolean;
-  soaComponentData?: Record<string, SoAComponentTypeData>;
 }
+
+/**
+ * Snapshot representation organizing component data classically by entity (Array of Structures).
+ * @public
+ */
+export interface AoSWorldSnapshot extends BaseWorldSnapshot {
+  isSoA?: false;
+  componentData: ComponentDataSnapshot;
+}
+
+/**
+ * Snapshot representation organizing component data continuously by property (Structure of Arrays).
+ * @public
+ */
+export interface SoAWorldSnapshot extends BaseWorldSnapshot {
+  isSoA: true;
+  soaComponentData: Record<string, SoAComponentTypeData>;
+}
+
+/**
+ * Represents a serializable snapshot of the world state.
+ *
+ * @remarks
+ * Snapshots include entity lists, component data, and RNG state. They are
+ * intended for persistence, networking, and rollback mechanisms.
+ *
+ * @warning
+ * **Serializable state only**: Snapshots only capture serializable state (primitive
+ * values, plain objects/arrays). The following are NOT captured and will be lost or
+ * corrupted during snapshot/restore:
+ * - Functions and closures.
+ * - Class instances (unless they are plain objects under the hood).
+ * - Circular references.
+ * - External/native resources (e.g. GPU buffers, DOM elements, AudioContext handles).
+ * - Map and Set instances (must be converted to Objects/Arrays if needed).
+ *
+ * These must be managed, re-initialized, or manually synchronized after restoration.
+ * @public
+ */
+export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;
 
 /**
  * Flat storage of component data organized by type and entity ID (classic AoS representation).
@@ -95,15 +132,16 @@ export interface SoAComponentTypeData {
  * @public
  */
 export function filterSoASnapshot(snapshot: WorldSnapshot, interestIds: Set<number>): WorldSnapshot {
-  if (!snapshot.isSoA || !snapshot.soaComponentData) {
+  if (!snapshot.isSoA || !(snapshot as any).soaComponentData) {
     return snapshot;
   }
 
   const filteredEntities = snapshot.entities.filter(id => interestIds.has(id));
   const filteredSoaComponentData: Record<string, SoAComponentTypeData> = {};
 
-  for (const type in snapshot.soaComponentData) {
-    const data: SoAComponentTypeData = snapshot.soaComponentData[type];
+  const soaComponentData = snapshot.soaComponentData;
+  for (const type in soaComponentData) {
+    const data: SoAComponentTypeData = soaComponentData[type];
     const keys: string[] = data.keys;
     const numKeys: number = keys.length;
     const entities = data.entities;

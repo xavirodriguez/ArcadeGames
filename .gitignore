@@ -78,3 +78,4 @@ server/src/**/*.js.map
 # Phase 1: Prevent contamination of compiled JS and JS map files under src/
 **/src/**/*.js
 **/src/**/*.js.map
+.vercel

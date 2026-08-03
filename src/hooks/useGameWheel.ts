@@ -47,6 +47,14 @@ export function useGameWheel(
     if (!element) return;
 
     const handleWheel = (event: WheelEvent) => {
+      // Only block scroll and invoke callback if the element is active (hovered or focused)
+      // and the listener is enabled.
+      if (!enabled) return;
+
+      const isHovered = element.matches(":hover");
+      const isFocused = document.activeElement === element;
+      if (!isHovered && !isFocused) return;
+
       // 1. Immediately prevent default browser scrolling behavior (requires passive: false)
       event.preventDefault();
 

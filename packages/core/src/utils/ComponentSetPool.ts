@@ -50,6 +50,14 @@ export class ComponentSetPool<T extends Record<string, Component>> {
   public acquire(world: World): { entity: Entity; components: T } {
     const components = this.pool.acquire();
 
+    // Clean up _released flag upon reuse/acquisition
+    for (const key in components) {
+      const comp = components[key];
+      if (comp.type === "Reclaimable") {
+        delete (comp as any)._released;
+      }
+    }
+
     if (world.isUpdating) {
         // Reserve ID immediately but defer activation
         const entity = world.reserveEntityId();
@@ -121,7 +129,7 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     for (const key in this.keyToType) {
       const type = this.keyToType[key];
       // Use getMutableComponent to avoid mutation proxy when releasing/resetting components
-      const comp = world.getMutableComponent(entity, type);
+      const comp = finalWorld.getMutableComponent(finalEntity, type);
       if (comp) {
         components[key as keyof T] = comp as T[keyof T];
       } else {
@@ -131,6 +139,10 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     }
 
     if (allFound) {
+      const reclaimableComp = finalWorld.getMutableComponent(finalEntity, "Reclaimable") as any;
+      if (reclaimableComp) {
+        reclaimableComp._released = true;
+      }
       this.pool.release(components);
     }
   }

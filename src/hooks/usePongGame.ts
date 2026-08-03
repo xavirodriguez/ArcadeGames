@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useGame } from "@tiny-aster/react-native";
 import { PongGame, PongState, PongInput } from "../games/pong";
+import { ExpoAssetProvider } from "../providers/ExpoAssetProvider";
 
 export const usePongGame = (mode: "local" | "ai" | "online" | null, seed?: number) => {
   const gameOptions = useMemo(
@@ -11,6 +12,10 @@ export const usePongGame = (mode: "local" | "ai" | "online" | null, seed?: numbe
   return useGame<PongGame, PongState, PongInput>(
     mode ? PongGame : null,
     mode === "online",
-    { gameOptions, seed }
+    {
+      gameOptions,
+      seed,
+      assetProvider: new ExpoAssetProvider()
+    }
   );
 };

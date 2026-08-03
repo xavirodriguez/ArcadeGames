@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry, TransformComponent, VelocityComponent } from "../src";
+import { World, CoreComponentRegistry, TransformComponent, VelocityComponent, createEmitter } from "../src";
 
 describe("ECS Core", () => {
   it("should create and manage entities and components", () => {
@@ -151,5 +151,77 @@ describe("ECS Core", () => {
     }).toThrow(/Direct structural mutation/);
 
     world.isUpdating = false;
+  });
+
+  describe("createEmitter safe queuing during world update", () => {
+    it("queues emitter creation during world update and does not throw exception", () => {
+      const world = new World<CoreComponentRegistry>();
+      world.isUpdating = true;
+
+      let emitterEntity: number | undefined;
+      expect(() => {
+        emitterEntity = createEmitter(world, {
+          type: "test_emitter",
+          x: 100,
+          y: 200,
+          rate: 10,
+          count: 1
+        } as any);
+      }).not.toThrow();
+
+      expect(emitterEntity).toBeDefined();
+      // Ensure it is not active/available in activeEntities yet (since creation is deferred)
+      expect(world.hasEntity(emitterEntity!)).toBe(false);
+
+      world.isUpdating = false;
+    });
+
+    it("creates the emitter after commands are flushed", () => {
+      const world = new World<CoreComponentRegistry>();
+      world.isUpdating = true;
+
+      const emitterEntity = createEmitter(world, {
+        type: "test_emitter",
+        x: 100,
+        y: 200,
+        rate: 10,
+        count: 1
+      } as any);
+
+      expect(world.hasEntity(emitterEntity)).toBe(false);
+
+      world.isUpdating = false;
+      world.flush();
+
+      expect(world.hasEntity(emitterEntity)).toBe(true);
+      const component = world.getComponent(emitterEntity, "ParticleEmitter");
+      expect(component).toBeDefined();
+      expect(component?.config.type).toBe("test_emitter");
+    });
+
+    it("does not mutate world structure directly from update", () => {
+      const world = new World<CoreComponentRegistry>();
+      const spyCreateEntity = jest.spyOn(world, "createEntity");
+
+      world.isUpdating = true;
+
+      createEmitter(world, {
+        type: "test_emitter",
+        x: 100,
+        y: 200,
+        rate: 10,
+        count: 1
+      } as any);
+
+      // The direct createEntity should NOT have been called during update
+      expect(spyCreateEntity).not.toHaveBeenCalled();
+
+      world.isUpdating = false;
+      world.flush();
+
+      // After flushing, createEntity still wasn't called on world directly (because WorldCommandBuffer uses custom set.add)
+      // or at least not synchronously from update.
+      spyCreateEntity.mockRestore();
+    });
   });
 });

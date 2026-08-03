@@ -9,6 +9,7 @@ import { UnifiedInputSystem } from "../input/UnifiedInputSystem";
 import { Schedule } from "../ecs/Schedule";
 import { SceneManager } from "../scenes/SceneManager";
 import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
+import { IAssetProvider } from "../assets/AssetLoader";
 
 /**
  * Representation of the game lifecycle states.
@@ -45,6 +46,8 @@ export interface BaseGameConfig<
   seed?: number;
   /** Optional audio player injection */
   audio?: IAudioPlayer;
+  /** Optional asset provider injection */
+  assetProvider?: IAssetProvider;
   /** Timeout for game initialization in milliseconds. Defaults to 10000. */
   initTimeout?: number;
 }

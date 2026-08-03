@@ -40,6 +40,10 @@ export class AssetLoader {
     this.provider = provider;
   }
 
+  public hasProvider(): boolean {
+    return this.provider !== undefined;
+  }
+
   public queueAssets(assets: AssetDescriptor[]) {
     for (const asset of assets) {
       AssetDescriptorSchema.parse(asset);

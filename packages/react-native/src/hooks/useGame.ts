@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useKeepAwake } from "./useKeepAwake";
 import { useGameServices } from "../providers/GameServicesProvider";
-import type { BaseGame, BaseGameConfig } from "@tiny-aster/core";
+import type { BaseGame, BaseGameConfig, IAssetProvider } from "@tiny-aster/core";
 
 export type GameConfig = BaseGameConfig & {
   seed?: number;
@@ -12,6 +12,7 @@ export interface GameOptions<TState> {
   seed?: number;
   gameOptions?: Record<string, unknown>;
   initialState?: TState | null;
+  assetProvider?: IAssetProvider;
 }
 
 // Constructor type - accepts any class that extends BaseGame
@@ -57,8 +58,9 @@ export function useGame<
   const config = useMemo(() => ({
     isMultiplayer,
     seed,
-    gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) }
-  }), [isMultiplayer, seed, gameOptions]);
+    gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) },
+    assetProvider: options.assetProvider
+  }), [isMultiplayer, seed, gameOptions, options.assetProvider]);
 
   const [game, setGame] = useState<TGame | null>(null);
   const [isReady, setIsReady] = useState(false);

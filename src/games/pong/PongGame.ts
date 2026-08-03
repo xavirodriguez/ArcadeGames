@@ -57,20 +57,22 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   private stallStartTime = 0;
   private isStalled = false;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode } | PongMode = "local") {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode, assetProvider?: any } | PongMode = "local") {
     const isConfig = typeof config === "object" && config !== null;
     const mode = isConfig
       ? (config.gameOptions?.mode as PongMode || config.mode || "local")
       : config;
     const isMultiplayer = isConfig ? config.isMultiplayer : false;
     const seed = isConfig ? (config.gameOptions?.seed as number || config.seed) : undefined;
+    const assetProvider = isConfig ? (config as any).assetProvider : undefined;
 
     super({
       pauseKey: "Escape",
       isMultiplayer,
+      assetProvider,
       gameOptions: { mode, seed, ...((isConfig && config.gameOptions) || {}) }
     });
-    this.assetLoader = new AssetLoader();
+    this.assetLoader = new AssetLoader(assetProvider);
   }
 
   protected override async onRegisterSystems(): Promise<void> {

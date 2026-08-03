@@ -5,6 +5,7 @@ import { AsteroidsGame } from "../games/asteroids/AsteroidsGame";
 import { INITIAL_GAME_STATE } from "../types/GameTypes";
 import type { GameStateComponent, InputState } from "../types/GameTypes";
 import { MutatorService } from "../services/MutatorService";
+import { ExpoAssetProvider } from "../providers/ExpoAssetProvider";
 
 /**
  * Hook especializado para gestionar la instancia del juego Asteroids.
@@ -38,7 +39,8 @@ export function useAsteroidsGame(started: boolean, isMultiplayer: boolean = fals
       {
         initialState: INITIAL_GAME_STATE,
         gameOptions: memoizedGameOptions,
-        seed
+        seed,
+        assetProvider: new ExpoAssetProvider()
       }
     );
 

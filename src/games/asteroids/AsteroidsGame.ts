@@ -95,6 +95,7 @@ export class AsteroidsGame
     this.isMultiplayer = config.isMultiplayer || false;
     const rawConfig = require("./config/asteroids.json");
     this.config = ConfigService.load<AsteroidConfig>(this.gameId, AsteroidConfigSchema, rawConfig);
+    this.assetLoader = new AssetLoader(config.assetProvider);
   }
 
   protected override async onRegisterSystems(): Promise<void> {
@@ -114,13 +115,18 @@ export class AsteroidsGame
         window.addEventListener("resize", this.resizeListener);
     }
 
-    if (!this.isHeadless) {
-        await this.onPreloadAssets();
-    }
-
     if (!this.bulletPool) this.bulletPool = new BulletPool();
     if (!this.particlePool) this.particlePool = new ParticlePool();
-    if (!this.assetLoader) this.assetLoader = new AssetLoader();
+    if (!this.assetLoader) {
+      this.assetLoader = new AssetLoader(this._config.assetProvider);
+    }
+
+    if (!this.isHeadless) {
+        if (!this.assetLoader.hasProvider()) {
+          throw new Error("AsteroidsGame initialization failed: no asset provider was configured");
+        }
+        await this.onPreloadAssets();
+    }
 
     // Register blueprints using centralized helper
     registerAsteroidsBlueprints(this.world, this.blueprints);

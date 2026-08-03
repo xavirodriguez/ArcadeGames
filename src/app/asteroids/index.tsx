@@ -22,6 +22,7 @@ import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { InputState } from "../../types/GameTypes";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
+import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 
 export default function AsteroidsScreen() {
   const { t } = useTranslation();
@@ -33,6 +34,9 @@ export default function AsteroidsScreen() {
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
 
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(started, isMulti && started, initialSeed);
+
+  // Activate keyboard controls for Web
+  useKeyboardControls(game, isReady);
 
   // Handle incoming daily challenge parameters
   useEffect(() => {
@@ -110,45 +114,21 @@ export default function AsteroidsScreen() {
     }
   }, [isMulti, room, sendInput, game, handleInput]);
 
-  const autoFireIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });
-    game?.getInputSystem().setOverride("shoot", true);
-
-    // Initial shot
-    if (autoFireIntervalRef.current) clearInterval(autoFireIntervalRef.current);
-
-    // Auto-fire logic after 400ms
-    autoFireIntervalRef.current = setTimeout(() => {
-        autoFireIntervalRef.current = setInterval(() => {
-            // Toggle to trigger another shoot action if it's based on state change
-            // or just keep it true if the system handles continuous shooting
-            game?.getInputSystem().setOverride("shoot", true);
-        }, 200); // Shoot every 200ms during auto-fire
-    }, 400);
-
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
-    if (autoFireIntervalRef.current) {
-        clearTimeout(autoFireIntervalRef.current);
-        clearInterval(autoFireIntervalRef.current);
-        autoFireIntervalRef.current = null;
-    }
     handleMultiplayerInput({ shoot: false });
-    game?.getInputSystem().clearOverride("shoot");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleHyperspacePress = useCallback(() => {
     handleMultiplayerInput({ hyperspace: true });
-    game?.getInputSystem().setOverride("hyperspace", true);
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleHyperspaceRelease = useCallback(() => {
     handleMultiplayerInput({ hyperspace: false });
-    game?.getInputSystem().clearOverride("hyperspace");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   if (!started) {
     return (
@@ -227,7 +207,25 @@ export default function AsteroidsScreen() {
             <VirtualJoystick
               joystickId="movement_joystick"
               type="movement"
-              world={game.getWorld()}
+              onMove={(x, y) => {
+                const rotateLeft = x < -0.25;
+                const rotateRight = x > 0.25;
+                const thrust = y < -0.25;
+                handleMultiplayerInput({
+                  rotateLeft,
+                  rotateRight,
+                  thrust,
+                  rotationAmount: x,
+                });
+              }}
+              onRelease={() => {
+                handleMultiplayerInput({
+                  rotateLeft: false,
+                  rotateRight: false,
+                  thrust: false,
+                  rotationAmount: 0,
+                });
+              }}
             />
           </View>
           <View style={styles.rightControlArea} pointerEvents="box-none">

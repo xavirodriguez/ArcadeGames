@@ -15,6 +15,7 @@ import {
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
+import { ParticlePool } from "./EntityPool";
 
 /**
  * Registers ship, bullet, and asteroid blueprints.
@@ -52,12 +53,16 @@ export function registerAsteroidsBlueprints(
       } as VelocityComponent);
       w.addComponent(entity, {
         type: "Render",
+        shape: "player_ship",
+        size: 15,
+        color: "#00f0ff",
         visible: true,
         opacity: 1,
         order: 1,
         rotation: 0,
         angularVelocity: 0,
-        hitFlashFrames: 0
+        hitFlashFrames: 0,
+        shape: "ship"
       } as RenderComponent);
       w.addComponent(entity, {
         type: "Health",
@@ -117,12 +122,16 @@ export function registerAsteroidsBlueprints(
       } as VelocityComponent);
       w.addComponent(entity, {
         type: "Render",
+        shape: "bullet",
+        size: 2,
+        color: "#00ff66",
         visible: true,
         opacity: 1,
         order: 2,
         rotation: args.rotation ?? 0,
         angularVelocity: 0,
-        hitFlashFrames: 0
+        hitFlashFrames: 0,
+        shape: "bullet"
       } as RenderComponent);
       w.addComponent(entity, {
         type: "Bullet",
@@ -185,19 +194,23 @@ export function registerAsteroidsBlueprints(
         size: args.size
       } as AsteroidsComponentRegistry["Asteroid"]);
 
+      let radius = 40;
+      if (args.size === "medium") radius = 20;
+      else if (args.size === "small") radius = 10;
+
       w.addComponent(entity, {
         type: "Render",
+        shape: "asteroid",
+        size: radius * 2,
+        color: "#ff66cc",
         visible: true,
         opacity: 1,
         order: 0,
         rotation: 0,
         angularVelocity: 0,
-        hitFlashFrames: 0
+        hitFlashFrames: 0,
+        shape: "asteroid"
       } as RenderComponent);
-
-      let radius = 40;
-      if (args.size === "medium") radius = 20;
-      else if (args.size === "small") radius = 10;
 
       w.addComponent(entity, {
         type: "Collider",
@@ -478,3 +491,21 @@ export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, Aster
         });
     }
 };
+
+/**
+ * Creates a particle entity from the ParticlePool.
+ * @public
+ */
+export function createParticle(
+  world: World<any, any, any>,
+  x: number,
+  y: number,
+  dx: number,
+  dy: number,
+  color: string,
+  pool: ParticlePool,
+  size = 3,
+  ttl = 0.8
+): number {
+  return pool.acquire(world, { x, y, dx, dy, size, color, ttl });
+}

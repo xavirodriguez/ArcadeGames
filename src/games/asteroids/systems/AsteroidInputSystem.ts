@@ -1,5 +1,4 @@
-import { World, System } from "@tiny-aster/core";
-import { computeShipPhysics } from "../utils/AsteroidPhysics";
+import { World, System, computeShipPhysics } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import { createBullet } from "../EntityFactory";

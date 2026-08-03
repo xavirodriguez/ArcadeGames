@@ -306,10 +306,31 @@ export class FlappyBirdGame
     this.isMultiplayer = active;
   }
 
+  public override setInputState(input: Partial<FlappyBirdInput>): void {
+    const world = this.getWorld();
+    const birdEntity = world.query("Bird")[0];
+    if (birdEntity !== undefined) {
+      if (!world.hasComponent(birdEntity, "FlappyInput")) {
+        world.addComponent(birdEntity, {
+          type: "FlappyInput",
+          flap: false,
+          glide: false,
+          flapCooldownRemaining: 0,
+        } as any);
+      }
+      world.mutateComponent(birdEntity, "FlappyInput", (inputComp: any) => {
+        if (input.flap !== undefined) {
+          inputComp.flap = input.flap;
+        }
+        if (input.glide !== undefined) {
+          inputComp.glide = input.glide;
+        }
+      });
+    }
+  }
+
   public setInput(input: Partial<FlappyBirdInput>) {
-    Object.entries(input).forEach(([key, value]) => {
-      this.unifiedInput.setOverride(key, !!value);
-    });
+    this.setInputState(input);
   }
 
   public updateFromServer(state: Record<string, unknown>) {
@@ -450,6 +471,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public isGameOver() { return false; }
   public getGameState() { return INITIAL_FLAPPY_STATE; }
   public getSeed() { return 0; }
+  public setInputState(input: Partial<FlappyBirdInput>) {}
   public setInput(input: Partial<FlappyBirdInput>) {}
   public subscribe(cb: (state: FlappyBirdState) => void) { return () => {}; }
   public initializeRenderer() {}

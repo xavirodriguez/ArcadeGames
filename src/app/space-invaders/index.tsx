@@ -20,6 +20,7 @@ import { SpaceInvadersGame } from "@/games/space-invaders";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
+import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 
 export default function SpaceInvadersScreen() {
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
@@ -34,6 +35,9 @@ export default function SpaceInvadersScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(isDailyFromParams);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
+
+  // Activate keyboard controls for Web
+  useKeyboardControls(game, isReady);
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   const { room, connected, serverState } = useMultiplayer("space-invaders", playerName, isMulti && started);
@@ -70,18 +74,17 @@ export default function SpaceInvadersScreen() {
         room.send("input", input);
     } else {
         handleInput(input);
+        game?.setInputState(input);
     }
-  }, [isMulti, room, handleInput]);
+  }, [isMulti, room, handleInput, game]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });
-    game?.getInputSystem().setOverride("shoot", true);
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
     handleMultiplayerInput({ shoot: false });
-    game?.getInputSystem().clearOverride("shoot");
-  }, [game, handleMultiplayerInput]);
+  }, [handleMultiplayerInput]);
 
   if (!started) {
     return (
@@ -148,7 +151,20 @@ export default function SpaceInvadersScreen() {
             <VirtualJoystick
               joystickId="movement_joystick"
               type="movement"
-              world={game.getWorld()}
+              onMove={(x, y) => {
+                const moveLeft = x < -0.25;
+                const moveRight = x > 0.25;
+                handleMultiplayerInput({
+                  moveLeft,
+                  moveRight,
+                });
+              }}
+              onRelease={() => {
+                handleMultiplayerInput({
+                  moveLeft: false,
+                  moveRight: false,
+                });
+              }}
             />
           </View>
           <ShootButton

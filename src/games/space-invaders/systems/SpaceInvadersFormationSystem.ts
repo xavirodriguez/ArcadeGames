@@ -58,6 +58,7 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
           const nextY = pos.y + descentStep;
           world.mutateComponent(entity, "Transform", t => {
             t.y = nextY;
+            t.dirty = true;
           });
         }
       }
@@ -102,6 +103,7 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
             const nextX = pos.x + moveX;
             world.mutateComponent(entity, "Transform", t => {
               t.x = nextX;
+              t.dirty = true;
             });
           }
         }

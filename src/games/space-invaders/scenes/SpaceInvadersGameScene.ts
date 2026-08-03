@@ -67,6 +67,7 @@ export class SpaceInvadersGameScene extends Scene {
   public onEnter(): void {
     // Inject resources into the scene world
     this.world.setResource("GameConfig", this.config);
+    this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });
     const eventBus = (this.game as unknown as { eventBus: EventBus }).eventBus;
     if (eventBus) {
       this.world.setResource("EventBus", eventBus);

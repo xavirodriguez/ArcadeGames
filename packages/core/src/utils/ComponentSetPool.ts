@@ -49,6 +49,14 @@ export class ComponentSetPool<T extends Record<string, Component>> {
   public acquire(world: World): { entity: Entity; components: T } {
     const components = this.pool.acquire();
 
+    // Clean up _released flag upon reuse/acquisition
+    for (const key in components) {
+      const comp = components[key];
+      if (comp.type === "Reclaimable") {
+        delete (comp as any)._released;
+      }
+    }
+
     if (world.isUpdating) {
         // Reserve ID immediately but defer activation
         const entity = world.reserveEntityId();
@@ -60,7 +68,28 @@ export class ComponentSetPool<T extends Record<string, Component>> {
         for (const key in components) {
           const comp = components[key];
           if (comp.type === "Reclaimable") {
-            (comp as unknown as ReclaimableComponent).onReclaim = (w: World, e: Entity) => this.release(w, e);
+            (comp as unknown as ReclaimableComponent).onReclaim = (w: any, e?: any) => {
+              let finalWorld: World | undefined;
+              let finalEntity: Entity | undefined;
+
+              if (w instanceof World) {
+                finalWorld = w;
+                finalEntity = e;
+              } else if (typeof w === "number") {
+                finalEntity = w;
+                if (e instanceof World) {
+                  finalWorld = e;
+                }
+              }
+
+              if (finalWorld && finalEntity !== undefined) {
+                this.release(finalWorld, finalEntity);
+              } else {
+                if (typeof (globalThis as any).__DEV__ !== "undefined" ? (globalThis as any).__DEV__ : true) {
+                  console.warn("[ComponentSetPool] onReclaim called with invalid or missing World instance:", { w, e });
+                }
+              }
+            };
           }
           commands.addComponent(entity, comp);
         }
@@ -75,7 +104,28 @@ export class ComponentSetPool<T extends Record<string, Component>> {
 
       // Automatically wire up Reclaimable components to return to this pool
       if (comp.type === "Reclaimable") {
-        (comp as unknown as ReclaimableComponent).onReclaim = (w: World, e: Entity) => this.release(w, e);
+        (comp as unknown as ReclaimableComponent).onReclaim = (w: any, e?: any) => {
+          let finalWorld: World | undefined;
+          let finalEntity: Entity | undefined;
+
+          if (w instanceof World) {
+            finalWorld = w;
+            finalEntity = e;
+          } else if (typeof w === "number") {
+            finalEntity = w;
+            if (e instanceof World) {
+              finalWorld = e;
+            }
+          }
+
+          if (finalWorld && finalEntity !== undefined) {
+            this.release(finalWorld, finalEntity);
+          } else {
+            if (typeof (globalThis as any).__DEV__ !== "undefined" ? (globalThis as any).__DEV__ : true) {
+              console.warn("[ComponentSetPool] onReclaim called with invalid or missing World instance:", { w, e });
+            }
+          }
+        };
       }
 
       world.addComponent(entity, comp);
@@ -94,13 +144,46 @@ export class ComponentSetPool<T extends Record<string, Component>> {
    * @param container - Optional container object to reuse for components gathering.
    */
   public release(world: World, entity: Entity, container?: T): void {
+    let finalWorld = world;
+    let finalEntity = entity;
+
+    if (!(world instanceof World) && ((entity as any) instanceof World)) {
+      finalWorld = entity as any;
+      finalEntity = world as any;
+    } else if (!(world instanceof World) && typeof world === "number" && entity === undefined) {
+      throw new TypeError(
+        `ComponentSetPool.release expects a World instance as the first argument, but received an Entity ID (${world}). ` +
+        `Make sure to pass both world and entity: pool.release(world, entity).`
+      );
+    }
+
+    if (!finalWorld || !(finalWorld instanceof World)) {
+      throw new TypeError(
+        `ComponentSetPool.release: Invalid World instance provided. ` +
+        `Expected World, received: ${typeof finalWorld}`
+      );
+    }
+
+    if (typeof finalEntity !== "number") {
+      throw new TypeError(
+        `ComponentSetPool.release: Invalid Entity ID provided. ` +
+        `Expected a number, received: ${typeof finalEntity}`
+      );
+    }
+
+    // Check if reclaimable component is already marked as released to prevent double-release
+    const reclaimable = finalWorld.getComponent(finalEntity, "Reclaimable") as any;
+    if (reclaimable && reclaimable._released) {
+      return;
+    }
+
     const components = container || ({} as T);
     let allFound = true;
 
     for (const key in this.keyToType) {
       const type = this.keyToType[key];
       // Use getMutableComponent to avoid mutation proxy when releasing/resetting components
-      const comp = world.getMutableComponent(entity, type);
+      const comp = finalWorld.getMutableComponent(finalEntity, type);
       if (comp) {
         components[key as keyof T] = comp as T[keyof T];
       } else {
@@ -110,6 +193,10 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     }
 
     if (allFound) {
+      const reclaimableComp = finalWorld.getMutableComponent(finalEntity, "Reclaimable") as any;
+      if (reclaimableComp) {
+        reclaimableComp._released = true;
+      }
       this.pool.release(components);
     }
   }

@@ -161,4 +161,132 @@ describe("TTLSystem and Pool interactions", () => {
     expect(() => pool.release(world, entity)).not.toThrow();
     expect(pool.size).toBe(initialSize); // Size did not increase
   });
+
+  describe("Robustness, Swapped Arguments, and Double-Release Prevention", () => {
+    it("should handle swapped arguments on release(entity, world) gracefully", () => {
+      const factory = () => ({
+        position: { type: "Transform", x: 0, y: 0 } as any,
+        reclaimable: { type: "Reclaimable", poolId: "SwappedPool", poolName: "SwappedPool" } as any
+      });
+      const pool = new PrefabPool({
+        factory,
+        reset: () => {},
+        initializer: () => {},
+        initialSize: 1
+      });
+      world.setResource("SwappedPool", pool);
+      const entity = pool.acquire(world, {});
+      const initialSize = pool.size;
+
+      // Call release with arguments swapped: release(entity, world)
+      expect(() => pool.release(entity as any, world as any)).not.toThrow();
+      expect(pool.size).toBe(initialSize + 1);
+    });
+
+    it("should throw a TypeError if release is called with only an Entity ID and no World instance", () => {
+      const factory = () => ({
+        position: { type: "Transform", x: 0, y: 0 } as any,
+        reclaimable: { type: "Reclaimable", poolId: "SingleArgPool", poolName: "SingleArgPool" } as any
+      });
+      const pool = new PrefabPool({
+        factory,
+        reset: () => {},
+        initializer: () => {},
+        initialSize: 1
+      });
+      world.setResource("SingleArgPool", pool);
+      const entity = pool.acquire(world, {});
+
+      // Call release with only 1 argument: release(entity)
+      expect(() => pool.release(entity as any, undefined as any)).toThrow(TypeError);
+    });
+
+    it("should prevent double-release in the same frame/state", () => {
+      const factory = () => ({
+        position: { type: "Transform", x: 0, y: 0 } as any,
+        reclaimable: { type: "Reclaimable", poolId: "DoubleReleasePool", poolName: "DoubleReleasePool" } as any
+      });
+      const pool = new PrefabPool({
+        factory,
+        reset: () => {},
+        initializer: () => {},
+        initialSize: 1
+      });
+      world.setResource("DoubleReleasePool", pool);
+      const entity = pool.acquire(world, {});
+      const initialSize = pool.size;
+
+      // First release
+      pool.release(world, entity);
+      expect(pool.size).toBe(initialSize + 1);
+
+      // Second release immediately (should be ignored due to _released flag)
+      pool.release(world, entity);
+      expect(pool.size).toBe(initialSize + 1); // No increase!
+    });
+
+    it("should reset the _released flag on the reclaimable component when acquired again", () => {
+      const factory = () => ({
+        position: { type: "Transform", x: 0, y: 0 } as any,
+        reclaimable: { type: "Reclaimable", poolId: "ReAcquirePool", poolName: "ReAcquirePool" } as any
+      });
+      const pool = new PrefabPool({
+        factory,
+        reset: () => {},
+        initializer: () => {},
+        initialSize: 1
+      });
+      world.setResource("ReAcquirePool", pool);
+      const entity = pool.acquire(world, {});
+      const initialSize = pool.size;
+
+      // Release first time
+      pool.release(world, entity);
+      expect(pool.size).toBe(initialSize + 1);
+
+      // Remove from world to completely recycle ID
+      world.removeEntity(entity);
+
+      // Re-acquire - should clear/delete _released flag so it can be released again
+      const entity2 = pool.acquire(world, {});
+      expect(pool.size).toBe(initialSize);
+
+      // Release entity2
+      pool.release(world, entity2);
+      expect(pool.size).toBe(initialSize + 1); // Succeeds and increments again!
+    });
+
+    it("should process multiple expired entities and release them in a single tick update", () => {
+      const factory = () => ({
+        position: { type: "Transform", x: 0, y: 0 } as any,
+        ttl: { type: "TTL", remaining: 0.1, timeLeft: 0.1 } as any,
+        reclaimable: { type: "Reclaimable", poolId: "MultiPool", poolName: "ReAcquirePool" } as any
+      });
+      const pool = new PrefabPool<any, any>({
+        factory,
+        reset: () => {},
+        initializer: (components, params: any) => {
+          components.ttl.remaining = params.ttl;
+        },
+        initialSize: 2
+      });
+      world.setResource("MultiPool", pool);
+
+      const entity1 = pool.acquire(world, { ttl: 0.05 });
+      const entity2 = pool.acquire(world, { ttl: 0.05 });
+
+      expect(world.hasComponent(entity1, "TTL")).toBe(true);
+      expect(world.hasComponent(entity2, "TTL")).toBe(true);
+
+      const initialSize = pool.size;
+
+      // Update world by 0.1s to trigger expiration of both entities
+      world.update(0.1);
+      world.flush();
+
+      expect(world.hasComponent(entity1, "TTL")).toBe(false);
+      expect(world.hasComponent(entity2, "TTL")).toBe(false);
+      expect(pool.size).toBe(initialSize + 2); // Both released back to the pool
+    });
+  });
 });

@@ -129,7 +129,7 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     for (const key in this.keyToType) {
       const type = this.keyToType[key];
       // Use getMutableComponent to avoid mutation proxy when releasing/resetting components
-      const comp = finalWorld.getMutableComponent(finalEntity, type);
+      const comp = world.getMutableComponent(entity, type);
       if (comp) {
         components[key as keyof T] = comp as T[keyof T];
       } else {
@@ -139,7 +139,7 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     }
 
     if (allFound) {
-      const reclaimableComp = finalWorld.getMutableComponent(finalEntity, "Reclaimable") as any;
+      const reclaimableComp = world.getMutableComponent(entity, "Reclaimable") as any;
       if (reclaimableComp) {
         reclaimableComp._released = true;
       }

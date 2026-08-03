@@ -10,14 +10,14 @@ import {
 } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import {
-  drawAsteroidsPlayerShip,
-  drawAsteroidsAsteroid,
-  drawAsteroidsBullet
+  drawAsteroidsPlayerShip as canvasDrawAsteroidsPlayerShip,
+  drawAsteroidsAsteroid as canvasDrawAsteroidsAsteroid,
+  drawAsteroidsBullet as canvasDrawAsteroidsBullet
 } from "./AsteroidsCanvasVisuals";
 import {
-  drawSkiaAsteroidsPlayerShip,
-  drawSkiaAsteroidsAsteroid,
-  drawSkiaAsteroidsBullet
+  drawSkiaAsteroidsPlayerShip as skiaDrawAsteroidsPlayerShip,
+  drawSkiaAsteroidsAsteroid as skiaDrawAsteroidsAsteroid,
+  drawSkiaAsteroidsBullet as skiaDrawAsteroidsBullet
 } from "./AsteroidsSkiaVisuals";
 
 // Dynamically import Skia safely to support Node-based Jest tests without throwing
@@ -560,12 +560,12 @@ export const drawAsteroidsParticleSkia: ShapeDrawer<any, AsteroidsComponentRegis
 export const initializeAsteroidsRenderer = (renderer: Renderer<AsteroidsComponentRegistry>) => {
   const r = renderer as any;
   if (r.type === "canvas") {
-    r.registerShape("player_ship", drawAsteroidsPlayerShip);
-    r.registerShape("asteroid", drawAsteroidsAsteroid);
-    r.registerShape("bullet", drawAsteroidsBullet);
+    r.registerShape("player_ship", canvasDrawAsteroidsPlayerShip);
+    r.registerShape("asteroid", canvasDrawAsteroidsAsteroid);
+    r.registerShape("bullet", canvasDrawAsteroidsBullet);
   } else if (r.type === "skia") {
-    r.registerShape("player_ship", drawSkiaAsteroidsPlayerShip);
-    r.registerShape("asteroid", drawSkiaAsteroidsAsteroid);
-    r.registerShape("bullet", drawSkiaAsteroidsBullet);
+    r.registerShape("player_ship", skiaDrawAsteroidsPlayerShip);
+    r.registerShape("asteroid", skiaDrawAsteroidsAsteroid);
+    r.registerShape("bullet", skiaDrawAsteroidsBullet);
   }
 };

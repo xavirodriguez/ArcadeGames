@@ -61,8 +61,7 @@ export function registerAsteroidsBlueprints(
         order: 1,
         rotation: 0,
         angularVelocity: 0,
-        hitFlashFrames: 0,
-        shape: "ship"
+        hitFlashFrames: 0
       } as RenderComponent);
       w.addComponent(entity, {
         type: "Health",
@@ -130,8 +129,7 @@ export function registerAsteroidsBlueprints(
         order: 2,
         rotation: args.rotation ?? 0,
         angularVelocity: 0,
-        hitFlashFrames: 0,
-        shape: "bullet"
+        hitFlashFrames: 0
       } as RenderComponent);
       w.addComponent(entity, {
         type: "Bullet",
@@ -208,8 +206,7 @@ export function registerAsteroidsBlueprints(
         order: 0,
         rotation: 0,
         angularVelocity: 0,
-        hitFlashFrames: 0,
-        shape: "asteroid"
+        hitFlashFrames: 0
       } as RenderComponent);
 
       w.addComponent(entity, {

@@ -19,7 +19,7 @@ export class SnapshotRestoreSoA {
     world: World<TComponents>,
     state: WorldSnapshot
   ): void {
-    if (!state.isSoA || !state.soaComponentData) {
+    if (!state.isSoA) {
       throw new Error("[SnapshotRestoreSoA] State snapshot is not formatted as SoA.");
     }
 

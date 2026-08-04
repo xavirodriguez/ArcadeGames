@@ -25,7 +25,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         gs.pipeSpawnTimer += deltaTime;
     });
 
-    if (gameState.pipeSpawnTimer >= this.config.PIPE_SPAWN_INTERVAL) {
+    if (gameState.pipeSpawnTimer >= this.config.PIPE_SPAWN_INTERVAL / 1000) {
       const margin = 100;
       const gapY = world.gameplayRandom.nextInt(margin, this.config.SCREEN_HEIGHT - margin);
       createPipe({

@@ -323,14 +323,7 @@ export class SpaceInvadersGame
       (renderer as any).registerShape("particle", drawSpaceInvadersParticle);
 
       // Register custom new VFX
-      (renderer as any).registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
-      (renderer as any).registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
-      (renderer as any).registerBackgroundEffect("warp_speed", SharedVFX.HyperdriveWarpSpeedLinesEffect);
-      (renderer as any).registerBackgroundEffect("nebula", SharedVFX.DriftingNebulaBackgroundEffect);
-      (renderer as any).registerBackgroundEffect("matrix_rain", SharedVFX.MatrixDigitalRainEffect);
-      (renderer as any).registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
-      (renderer as any).registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
-      (renderer as any).registerShape("shield_bubble", SharedVFX.EnergyShieldBubbleEffect);
+    (renderer as any).registerShape("shield_bubble", SharedVFX.EnergyShieldBubbleEffect);
       (renderer as any).registerShape("shockwave", SharedVFX.DebrisShockwaveEffect);
       (renderer as any).registerShape("thruster_flame", SharedVFX.ThrusterPlumeFlameEffect);
       (renderer as any).registerShape("laser_beam", SharedVFX.LaserRailBeamEffect);
@@ -340,14 +333,7 @@ export class SpaceInvadersGame
       (renderer as any).registerShape("floating_text", SharedVFX.FloatingTextScoreEffect);
     } else if ((renderer as any).type === "skia") {
       // Register custom new VFX for Skia mode
-      (renderer as any).registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
-      (renderer as any).registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
-      (renderer as any).registerBackgroundEffect("warp_speed", SharedVFX.SkiaHyperdriveWarpSpeedLinesEffect);
-      (renderer as any).registerBackgroundEffect("nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
-      (renderer as any).registerBackgroundEffect("matrix_rain", SharedVFX.SkiaMatrixDigitalRainEffect);
-      (renderer as any).registerBackgroundEffect("crt_glitch", SharedVFX.SkiaCRTGlitchShudderEffect);
-      (renderer as any).registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);
-      (renderer as any).registerShape("shield_bubble", SharedVFX.SkiaEnergyShieldBubbleEffect);
+(renderer as any).registerShape("shield_bubble", SharedVFX.SkiaEnergyShieldBubbleEffect);
       (renderer as any).registerShape("shockwave", SharedVFX.SkiaDebrisShockwaveEffect);
       (renderer as any).registerShape("thruster_flame", SharedVFX.SkiaThrusterPlumeFlameEffect);
       (renderer as any).registerShape("laser_beam", SharedVFX.SkiaLaserRailBeamEffect);

@@ -1,25 +1,36 @@
 /**
- * Interface representing an input system.
+ * Interface representing a strongly-typed input system.
  * @public
  */
-export interface InputSystem {
+export interface IInputSystem<TInput extends Record<string, any>> {
   /**
    * Manually sets an input action state.
    */
-  setOverride(action: string, pressed: boolean): void;
+  setOverride(action: keyof TInput & string, pressed: boolean): void;
 
   /**
    * Clears a manual input action override.
    */
-  clearOverride(action: string): void;
+  clearOverride(action: keyof TInput & string): void;
 
   /**
    * Returns the state of an action.
    */
-  getAction(action: string): boolean;
+  getAction(action: keyof TInput & string): boolean;
 
   /**
    * Binds raw input keys to a logical action.
    */
-  bind(action: string, keys: string[]): void;
+  bind(action: keyof TInput & string, keys: string[]): void;
+
+  /**
+   * Optional cleanup method.
+   */
+  dispose?(): void;
 }
+
+/**
+ * Interface representing an input system.
+ * @public
+ */
+export type InputSystem = IInputSystem<Record<string, any>>;

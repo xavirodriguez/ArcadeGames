@@ -2,11 +2,35 @@ import { WorldSnapshot, ComponentDataSnapshot } from "../snapshots/WorldSnapshot
 import { NetworkTransport } from "./NetworkTransport";
 import { NullTransport } from "./NullTransport";
 
-/** @public */
-export class Replicator {
-  private serverToLocal = new Map<string, number>();
+/**
+ * Minimum subset of World methods needed by the replicator.
+ * @public
+ */
+export interface INetworkableWorld {
+  createEntity(): number;
+  hasComponent(entity: number, type: string): boolean;
+  mutateComponent(entity: number, type: string, updater: (existing: any) => void): boolean;
+  addComponent(entity: number, component: any): void;
+}
 
-  constructor() {}
+/**
+ * Interface representing a state replicator.
+ * @public
+ */
+export interface IStateReplicator {
+  getMappings(): Map<string, number>;
+  getLocalId(serverId: string): number | undefined;
+  removeMapping(serverId: string): void;
+  resolveEntity(serverId: string, world: INetworkableWorld, serverComponents?: Record<string, any>): number;
+  replicate(world: INetworkableWorld, snapshot: WorldSnapshot): void;
+}
+
+/**
+ * Robust, modular implementation of state replication.
+ * @public
+ */
+export class NetworkReplicator implements IStateReplicator {
+  private serverToLocal = new Map<string, number>();
 
   public getMappings(): Map<string, number> {
     return this.serverToLocal;
@@ -20,34 +44,57 @@ export class Replicator {
     this.serverToLocal.delete(serverId);
   }
 
-  public resolveEntity(serverId: string, world: any, serverComponents: Record<string, any> = {}): number {
+  public resolveEntity(serverId: string, world: INetworkableWorld, serverComponents: Record<string, any> = {}): number {
     let localId = this.serverToLocal.get(serverId);
     if (localId === undefined) {
-      const newEntityId = (world && typeof world.createEntity === "function") ? world.createEntity() : 0;
+      const newEntityId = world.createEntity();
       this.serverToLocal.set(serverId, newEntityId);
       localId = newEntityId;
     }
 
     const actualLocalId = localId as number;
 
-    if (world && typeof world.hasComponent === "function") {
-      for (const [type, comp] of Object.entries(serverComponents)) {
-        if (comp) {
-          const componentToSet = { ...comp, type };
-          if (world.hasComponent(actualLocalId, type)) {
-            world.mutateComponent(actualLocalId, type, (existing: any) => {
-              Object.assign(existing, componentToSet);
-            });
-          } else {
-            world.addComponent(actualLocalId, componentToSet);
-          }
+    for (const [type, comp] of Object.entries(serverComponents)) {
+      if (comp) {
+        const componentToSet = { ...comp, type };
+        if (world.hasComponent(actualLocalId, type)) {
+          world.mutateComponent(actualLocalId, type, (existing: any) => {
+            Object.assign(existing, componentToSet);
+          });
+        } else {
+          world.addComponent(actualLocalId, componentToSet);
         }
       }
     }
 
     return actualLocalId;
   }
+
+  public replicate(world: INetworkableWorld, snapshot: WorldSnapshot): void {
+    if (!snapshot || !snapshot.entities) return;
+
+    const componentData = reconstructComponentData(snapshot);
+
+    for (const serverIdNum of snapshot.entities) {
+      const serverId = String(serverIdNum);
+      const serverComponents: Record<string, any> = {};
+
+      for (const [type, entityMap] of Object.entries(componentData)) {
+        if (entityMap && entityMap[serverIdNum] !== undefined) {
+          serverComponents[type] = entityMap[serverIdNum];
+        }
+      }
+
+      this.resolveEntity(serverId, world, serverComponents);
+    }
+  }
 }
+
+/**
+ * Legacy class alias for backward compatibility.
+ * @public
+ */
+export class Replicator extends NetworkReplicator {}
 
 /**
  * Coordinator for network synchronization, prediction, and state reconciliation.
@@ -58,8 +105,8 @@ export class NetworkManager<
   TClientEvents extends Record<string, any> = Record<string, any>
 > {
   private transport: NetworkTransport<TServerEvents, TClientEvents>;
-  private replicator = new Replicator();
-  public world?: any;
+  private replicator: IStateReplicator = new NetworkReplicator();
+  public world?: INetworkableWorld;
 
   constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>) {
     this.transport = transport || new NullTransport<TServerEvents, TClientEvents>();
@@ -84,7 +131,7 @@ export class NetworkManager<
     this.transport = transport;
   }
 
-  public getReplicator(): Replicator {
+  public getReplicator(): IStateReplicator {
     return this.replicator;
   }
 
@@ -99,28 +146,13 @@ export class NetworkManager<
       return;
     }
 
-    if (!snapshot || !snapshot.entities) return;
-
-    const componentData = reconstructComponentData(snapshot);
-
-    for (const serverIdNum of snapshot.entities) {
-      const serverId = String(serverIdNum);
-      const serverComponents: Record<string, any> = {};
-
-      for (const [type, entityMap] of Object.entries(componentData)) {
-        if (entityMap && entityMap[serverIdNum] !== undefined) {
-          serverComponents[type] = entityMap[serverIdNum];
-        }
-      }
-
-      if (this.world) {
-        this.replicator.resolveEntity(serverId, this.world, serverComponents);
-      }
+    if (this.world) {
+      this.replicator.replicate(this.world, snapshot);
     }
   }
 
   public reset(): void {
-    this.replicator = new Replicator();
+    this.replicator = new NetworkReplicator();
   }
 }
 

@@ -4,7 +4,7 @@ import { EventRegistry, EventBus } from "../events/EventBus";
 import { BlueprintRegistry } from "../ecs/BlueprintRegistry";
 import { IGame } from "./IGame";
 import { GameLoop } from "../loop/GameLoop";
-import { InputSystem } from "../input/InputSystem";
+import { InputSystem, IInputSystem } from "../input/InputSystem";
 import { UnifiedInputSystem } from "../input/UnifiedInputSystem";
 import { Schedule } from "../ecs/Schedule";
 import { SceneManager } from "../scenes/SceneManager";
@@ -28,7 +28,8 @@ export enum GameLifecycleState {
 /** @public */
 export interface BaseGameConfig<
   TComponents extends ComponentRegistry = ComponentRegistry,
-  TEvents extends EventRegistry = EventRegistry
+  TEvents extends EventRegistry = EventRegistry,
+  TInput extends Record<string, any> = Record<string, any>
 > {
   /** [KeyboardEvent.code] Key to toggle pause. */
   pauseKey?: string;
@@ -50,6 +51,10 @@ export interface BaseGameConfig<
   assetProvider?: IAssetProvider;
   /** Timeout for game initialization in milliseconds. Defaults to 10000. */
   initTimeout?: number;
+  /** Optional custom input system injection */
+  inputSystem?: IInputSystem<TInput>;
+  /** Optional custom scene manager factory */
+  sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager;
 }
 
 /**
@@ -68,20 +73,20 @@ export abstract class BaseGame<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
-> implements IGame<TState> {
+> implements IGame<TState, TInput> {
   public world: World<TComponents, TEvents, TBlueprints>;
   public eventBus: EventBus<TEvents>;
   public blueprints: BlueprintRegistry<TComponents, TBlueprints>;
   protected loop: GameLoop;
-  protected unifiedInput: UnifiedInputSystem;
-  protected _config: BaseGameConfig<TComponents, TEvents>;
+  protected unifiedInput: IInputSystem<TInput>;
+  protected _config: BaseGameConfig<TComponents, TEvents, TInput>;
   private lifecycleState: GameLifecycleState = GameLifecycleState.UNINITIALIZED;
   private isPaused = false;
 
   public sceneManager: SceneManager;
   public audio: IAudioPlayer;
 
-  constructor(config: BaseGameConfig<TComponents, TEvents> = {}) {
+  constructor(config: BaseGameConfig<TComponents, TEvents, TInput> = {}) {
     this._config = config;
     this.world = new World<TComponents, TEvents, TBlueprints>(config.schedule);
     this.eventBus = new EventBus<TEvents>();
@@ -91,8 +96,10 @@ export abstract class BaseGame<
       maxDelta: 0.25,
       manual: config.isMultiplayer
     });
-    this.unifiedInput = new UnifiedInputSystem();
-    this.sceneManager = new SceneManager(this.world, this.eventBus as any);
+    this.unifiedInput = config.inputSystem || new UnifiedInputSystem();
+    this.sceneManager = config.sceneManagerFactory
+      ? config.sceneManagerFactory(this.world, this.eventBus)
+      : new SceneManager(this.world, this.eventBus as any);
     this.audio = config.audio || new NullAudioPlayer();
 
     this.registerInternalResources();
@@ -129,7 +136,7 @@ export abstract class BaseGame<
   /**
    * Returns the input system instance.
    */
-  getInputSystem(): InputSystem {
+  getInputSystem(): IInputSystem<TInput> {
     return this.unifiedInput;
   }
 
@@ -338,7 +345,9 @@ export abstract class BaseGame<
     // Reset world and re-register resources
     this.world = new World<TComponents, TEvents, TBlueprints>(this._config.schedule);
     this.registerInternalResources();
-    this.sceneManager = new SceneManager(this.world, this.eventBus as any);
+    this.sceneManager = this._config.sceneManagerFactory
+      ? this._config.sceneManagerFactory(this.world, this.eventBus)
+      : new SceneManager(this.world, this.eventBus as any);
 
     // Re-register systems and initialize entities by running init()
     await this.init();
@@ -361,6 +370,13 @@ export abstract class BaseGame<
 
   /**
    * Hook for subclasses to register their ECS systems.
+   * Called during `init()`. This is the first lifecycle hook executed during game startup.
+   *
+   * @remarks
+   * Invocation order:
+   * 1. `init()` is called.
+   * 2. `onRegisterSystems()` is executed (systems are registered here).
+   * 3. `onInitializeEntities()` is executed.
    */
   protected async onRegisterSystems(): Promise<void> {
     // Overridden by subclasses to register systems
@@ -368,6 +384,13 @@ export abstract class BaseGame<
 
   /**
    * Hook for subclasses to initialize entities.
+   * Called during `init()` after systems have been successfully registered.
+   *
+   * @remarks
+   * Invocation order:
+   * 1. `init()` is called.
+   * 2. `onRegisterSystems()` is executed.
+   * 3. `onInitializeEntities()` is executed (entities are spawned here).
    */
   protected async onInitializeEntities(): Promise<void> {
     // Overridden by subclasses to initialize entities
@@ -375,6 +398,15 @@ export abstract class BaseGame<
 
   /**
    * Hook for subclasses to execute cleanup or custom logic before restarting.
+   * Called at the very beginning of the `restart()` method.
+   *
+   * @remarks
+   * Invocation order:
+   * 1. `restart()` is called.
+   * 2. `onBeforeRestart()` is executed (cleanup/save high-level stats).
+   * 3. Current world and event handlers are destroyed.
+   * 4. A new World is instantiated.
+   * 5. `init()` is called (triggering `onRegisterSystems()` and `onInitializeEntities()` again).
    */
   protected async onBeforeRestart(): Promise<void> {
     // Overridden by subclasses if needed

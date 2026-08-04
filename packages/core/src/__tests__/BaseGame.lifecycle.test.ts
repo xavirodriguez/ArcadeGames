@@ -217,4 +217,84 @@ describe("BaseGame lifecycle", () => {
     await expect(game.init()).rejects.toThrow("Game initialization timed out");
     expect(game.getLifecycleState()).toBe("ERROR");
   });
+
+  test("allows custom inputSystem and sceneManagerFactory injection, falling back to defaults", async () => {
+    // 1. Without injecting anything:
+    const gameDefault = new TestGame();
+    expect(gameDefault.getInputSystem()).toBeDefined();
+    expect(gameDefault.sceneManager).toBeDefined();
+
+    // 2. With injecting custom implementations:
+    const mockInputSystem = {
+      setOverride: jest.fn(),
+      clearOverride: jest.fn(),
+      getAction: jest.fn(),
+      bind: jest.fn()
+    };
+    const mockSceneManager = { dummy: true } as any;
+    const mockSceneManagerFactory = jest.fn().mockReturnValue(mockSceneManager);
+
+    const gameCustom = new TestGame({
+      inputSystem: mockInputSystem,
+      sceneManagerFactory: mockSceneManagerFactory
+    });
+
+    expect(gameCustom.getInputSystem()).toBe(mockInputSystem);
+    expect(gameCustom.sceneManager).toBe(mockSceneManager);
+    expect(mockSceneManagerFactory).toHaveBeenCalledWith(gameCustom.world, gameCustom.eventBus);
+
+    // Verify it propagates to restart()
+    await gameCustom.restart();
+    expect(gameCustom.getInputSystem()).toBe(mockInputSystem);
+    expect(gameCustom.sceneManager).toBe(mockSceneManager);
+  });
+
+  test("verifies the exact invocation order of lifecycle hooks during init() and restart()", async () => {
+    const invocationOrder: string[] = [];
+
+    class OrderTestGame extends BaseGame<any, any, any, any, any> {
+      constructor() {
+        super();
+        this.loop = {
+          start: jest.fn(),
+          stop: jest.fn(),
+          pause: jest.fn(),
+          resume: jest.fn(),
+          subscribeUpdate: jest.fn(),
+          subscribeRender: jest.fn()
+        } as any;
+      }
+
+      public update(_dt: number): void {}
+      public getGameState(): any { return {}; }
+      public isGameOver(): boolean { return false; }
+
+      protected override async onRegisterSystems(): Promise<void> {
+        invocationOrder.push("onRegisterSystems");
+      }
+
+      protected override async onInitializeEntities(): Promise<void> {
+        invocationOrder.push("onInitializeEntities");
+      }
+
+      protected override async onBeforeRestart(): Promise<void> {
+        invocationOrder.push("onBeforeRestart");
+      }
+    }
+
+    const game = new OrderTestGame();
+    expect(invocationOrder).toEqual([]);
+
+    await game.init();
+    expect(invocationOrder).toEqual(["onRegisterSystems", "onInitializeEntities"]);
+
+    // Clear and test restart
+    invocationOrder.length = 0;
+    await game.restart();
+    expect(invocationOrder).toEqual([
+      "onBeforeRestart",
+      "onRegisterSystems",
+      "onInitializeEntities"
+    ]);
+  });
 });

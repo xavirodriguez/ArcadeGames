@@ -1,7 +1,7 @@
-import { RenderCommand } from "./RenderTypes";
+import { RenderCommand, RenderCommandBuffer } from "./RenderTypes";
 
 /** @public */
-export class RenderCommandBufferImpl {
+export class RenderCommandBufferImpl implements RenderCommandBuffer {
   private commands: RenderCommand[] = [];
   push(command: RenderCommand) { this.commands.push(command); }
   clear() { this.commands = []; }

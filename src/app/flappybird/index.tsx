@@ -95,11 +95,11 @@ export default function FlappyBirdScreen() {
   }, [isMulti, room, handleInput, game]);
 
   const handleShootPress = useCallback(() => {
-    handleMultiplayerInput({ flap: true });
+    handleMultiplayerInput({ flap: true, glide: true });
   }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
-    handleMultiplayerInput({ flap: false });
+    handleMultiplayerInput({ flap: false, glide: false });
   }, [handleMultiplayerInput]);
 
   if (!started) {

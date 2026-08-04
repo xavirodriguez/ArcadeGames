@@ -13,6 +13,10 @@ const InputUtils = {
 export class InputBufferSystem extends System<FlappyBirdComponentRegistry> {
   private static buffers = new Map<number, Set<string>>();
 
+  public override onRegister(world: World<any>): void {
+    InputBufferSystem.buffers.clear();
+  }
+
   public static buffer(world: World<any>, entity: number, action: string): void {
     let set = this.buffers.get(entity);
     if (!set) {
@@ -68,22 +72,42 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
 
         // Sync input state & timers
         world.mutateComponent(entity, "FlappyInput", mutableInput => {
-          mutableInput.flap = flapRequested;
-          mutableInput.glide = flapRequested; // Using same button for now as per design
+          const isButtonDown = flapRequested || mutableInput.glide || mutableInput.flap;
+
+          // Track initial press vs hold
+          const wasButtonDown = !!mutableInput.isPressed;
+          mutableInput.isPressed = isButtonDown;
+
+          const isNewPress = isButtonDown && !wasButtonDown;
+
+          // Track press duration to separate tap (flap) from hold (glide)
+          if (isButtonDown) {
+            mutableInput.pressDuration = (mutableInput.pressDuration || 0) + deltaTime;
+          } else {
+            mutableInput.pressDuration = 0;
+          }
 
           if (mutableInput.flapCooldownRemaining > 0) {
             mutableInput.flapCooldownRemaining -= deltaTime;
           }
 
-          // Apply flap buffer
-          if (mutableInput.flap) {
+          // Apply flap buffer on new press
+          if (isNewPress) {
             InputBufferSystem.buffer(world, entity, "flap");
           }
 
-          if (mutableInput.flapCooldownRemaining <= 0 && (mutableInput.flap || InputBufferSystem.consume(world, entity, "flap"))) {
+          const isFlapRequested = isNewPress || (mutableInput.flap && !wasButtonDown);
+
+          if (mutableInput.flapCooldownRemaining <= 0 && (isFlapRequested || InputBufferSystem.consume(world, entity, "flap"))) {
             shouldFlap = true;
-            mutableInput.flapCooldownRemaining = this.config.FLAP_COOLDOWN;
+            mutableInput.flapCooldownRemaining = this.config.FLAP_COOLDOWN / 1000;
+            mutableInput.flap = false;
+            // Always consume/clear any buffered press if we successfully flapped
+            InputBufferSystem.consume(world, entity, "flap");
           }
+
+          // Glide is only activated if the button is held for more than 200ms (0.2 seconds)
+          mutableInput.glide = isButtonDown && (mutableInput.pressDuration > 0.2);
         });
 
         if (shouldFlap) {
@@ -96,7 +120,7 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
         }
 
         // Apply gravity
-        const dt = deltaTime / 1000;
+        const dt = deltaTime;
         let nextVelY = 0;
         world.mutateComponent(entity, "Velocity", v => {
           v.vy += (this.config.GRAVITY || FLAPPY_CONFIG.GRAVITY) * dt;

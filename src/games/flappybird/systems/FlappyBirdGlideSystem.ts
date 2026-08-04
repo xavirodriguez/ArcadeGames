@@ -10,7 +10,7 @@ import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 export class FlappyBirdGlideSystem extends System<FlappyBirdComponentRegistry> {
   public update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
     const birds = world.query("Bird", "FlappyInput", "Transform", "Velocity");
-    const dtSeconds = deltaTime / 1000;
+    const dtSeconds = deltaTime;
 
     birds.forEach(entity => {
       const bird = world.getComponent(entity, "Bird")!;
@@ -38,8 +38,8 @@ export class FlappyBirdGlideSystem extends System<FlappyBirdComponentRegistry> {
             b.isGliding = true;
         });
 
-        const rng = world.getResource<RandomService>("render")!;
-        if (rng.next() < 0.2) {
+        const rng = world.getResource<RandomService>("render");
+        if (rng && rng.next() < 0.2) {
             createEmitter(world as any, {
                 type: "glide",
                 x: pos.x - 10,

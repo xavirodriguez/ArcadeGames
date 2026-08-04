@@ -1,6 +1,6 @@
 import { World, ComponentType } from "@tiny-aster/core";
 import { System } from "@tiny-aster/core";
-import { Entity, TransformComponent, CollisionEventsComponent, Collider2DComponent, RenderComponent } from "@tiny-aster/core";
+import { Entity, TransformComponent, CollisionEventsComponent, ColliderComponent, ShapeType, RenderComponent } from "@tiny-aster/core";
 import { IFlappyBirdGame } from "../types/GameInterfaces";
 import { FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { Juice } from "@tiny-aster/core";
@@ -70,24 +70,24 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
   }
 
   private handleNearMissLogic(world: World<FlappyBirdComponentRegistry>): void {
-    const birds = world.query("Bird", "Transform", "Collider2D");
-    const pipes = world.query("Pipe", "Transform", "Collider2D");
+    const birds = world.query("Bird", "Transform", "Collider");
+    const pipes = world.query("Pipe", "Transform", "Collider");
 
     for (const bird of birds) {
       const birdComp = world.getComponent(bird, "Bird")!;
       if (!birdComp.isAlive) continue;
 
       const birdPos = world.getComponent(bird, "Transform")!;
-      const birdCol = world.getComponent(bird, "Collider2D")!; // radius is in shape
-      const birdRadius = birdCol.shape.type === "circle" ? birdCol.shape.radius : 0;
+      const birdCol = world.getComponent(bird, "Collider")!; // radius is in shape
+      const birdRadius = birdCol.shape.type === ShapeType.Circle ? birdCol.shape.radius : 0;
 
       for (const pipe of pipes) {
         const pipePos = world.getComponent(pipe, "Transform")!;
         const pipeComp = world.getComponent(pipe, "Pipe")!;
-        const pipeCol = world.getComponent(pipe, "Collider2D")!;
+        const pipeCol = world.getComponent(pipe, "Collider")!;
 
-        const pipeWidth = pipeCol.shape.type === "aabb" ? pipeCol.shape.halfWidth * 2 : 0;
-        const halfPipeHeight = pipeCol.shape.type === "aabb" ? pipeCol.shape.halfHeight : 0;
+        const pipeWidth = pipeCol.shape.type === ShapeType.Box ? pipeCol.shape.width : 0;
+        const halfPipeHeight = pipeCol.shape.type === ShapeType.Box ? pipeCol.shape.height / 2 : 0;
         const isTopPipe = pipePos.y < pipeComp.gapY;
 
         // Bird AABB
@@ -117,7 +117,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
         if (dist > 0 && dist < 12) {
            if (birdComp.nearMissTimer <= 0) {
              world.mutateComponent(bird, "Bird", b => {
-                b.nearMissTimer = 300;
+                b.nearMissTimer = 0.3;
              });
 
              world.mutateSingleton("FlappyState", gs => {

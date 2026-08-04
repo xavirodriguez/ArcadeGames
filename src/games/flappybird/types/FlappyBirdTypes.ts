@@ -22,6 +22,8 @@ export interface FlappyBirdInput {
 export interface FlappyBirdInputComponent extends Component, FlappyBirdInput {
   type: "FlappyInput";
   flapCooldownRemaining: number;
+  pressDuration?: number;
+  isPressed?: boolean;
 }
 
 /**

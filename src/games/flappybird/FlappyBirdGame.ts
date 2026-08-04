@@ -20,7 +20,7 @@ import {
  * Implementa mecánicas de scroll infinito y generación procedural de obstáculos (tuberías).
  * Utiliza un sistema de gravedad simple y una única acción de entrada ("jump").
  */
-import { Collider2DComponent, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter } from "@tiny-aster/core";
+import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 
 export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, any, any>> {
@@ -79,15 +79,22 @@ export class FlappyBirdGame
           angularVelocity: 0
         } as RenderComponent);
         world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "circle", radius: (FLAPPY_CONFIG.BIRD_RADIUS - 2) * 0.85 },
+          type: "Collider",
+          shape: { type: ShapeType.Circle, radius: (FLAPPY_CONFIG.BIRD_RADIUS - 2) * 0.85 } as CircleShape,
           layer: CollisionLayers.PLAYER,
           mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
           offsetX: 0,
           offsetY: 0,
           isTrigger: false,
           enabled: true
-        } as Collider2DComponent);
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
         world.addComponent(entity, {
           type: "Bird",
           velocityY: 0,
@@ -151,15 +158,22 @@ export class FlappyBirdGame
           angularVelocity: 0
         } as RenderComponent);
         world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: pipeWidth / 2, halfHeight: topY / 2 },
+          type: "Collider",
+          shape: { type: ShapeType.Box, width: pipeWidth, height: topY } as BoxShape,
           layer: CollisionLayers.ENEMY,
           mask: CollisionLayers.PLAYER,
           offsetX: 0,
           offsetY: 0,
           isTrigger: false,
           enabled: true
-        } as Collider2DComponent);
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
         world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: false });
 
         // Spawn Bottom Pipe entity deferredly/immediately
@@ -181,15 +195,22 @@ export class FlappyBirdGame
           angularVelocity: 0
         } as RenderComponent);
         world.addComponent(bottomEntity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: pipeWidth / 2, halfHeight: bottomHeight / 2 },
+          type: "Collider",
+          shape: { type: ShapeType.Box, width: pipeWidth, height: bottomHeight } as BoxShape,
           layer: CollisionLayers.ENEMY,
           mask: CollisionLayers.PLAYER,
           offsetX: 0,
           offsetY: 0,
           isTrigger: false,
           enabled: true
-        } as Collider2DComponent);
+        } as ColliderComponent);
+        world.addComponent(bottomEntity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
         world.addComponent(bottomEntity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: true });
       }
     });
@@ -198,15 +219,22 @@ export class FlappyBirdGame
       spawn: (world, entity, _args: {}) => {
         world.addComponent(entity, { type: "Transform", x: FLAPPY_CONFIG.SCREEN_WIDTH / 2, y: FLAPPY_CONFIG.GROUND_Y, rotation: 0, scaleX: 1, scaleY: 1, worldX: FLAPPY_CONFIG.SCREEN_WIDTH / 2, worldY: FLAPPY_CONFIG.GROUND_Y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: FLAPPY_CONFIG.SCREEN_WIDTH / 2, halfHeight: (FLAPPY_CONFIG.SCREEN_HEIGHT - FLAPPY_CONFIG.GROUND_Y) / 2 },
+          type: "Collider",
+          shape: { type: ShapeType.Box, width: FLAPPY_CONFIG.SCREEN_WIDTH, height: FLAPPY_CONFIG.SCREEN_HEIGHT - FLAPPY_CONFIG.GROUND_Y } as BoxShape,
           layer: CollisionLayers.DEBRIS,
           mask: CollisionLayers.PLAYER,
           offsetX: 0,
           offsetY: 0,
           isTrigger: false,
           enabled: true
-        } as Collider2DComponent);
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
         world.addComponent(entity, { type: "Ground" });
         world.addComponent(entity, {
           type: "Render",
@@ -245,7 +273,7 @@ export class FlappyBirdGame
     const inputSys = new FlappyBirdInputSystem(this.config);
     if (this.isMultiplayer) inputSys.setMultiplayerMode(true);
 
-    this.world.addSystem(this.unifiedInput as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Input });
+    this.world.addSystem(this.unifiedInput as unknown as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Input });
     this.world.addSystem(new InputBufferSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });
     this.world.addSystem(new FlappyBirdGlideSystem(), { phase: SystemPhase.Simulation });

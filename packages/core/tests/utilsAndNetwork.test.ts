@@ -421,7 +421,10 @@ describe("RenderCommandBufferImpl", () => {
     const buffer = new RenderCommandBufferImpl();
     expect(buffer.getCommands()).toEqual([]);
 
-    buffer.push({ type: "rect", x: 10, y: 20 } as any);
+    buffer.push({
+      type: "DrawCircle" as any,
+      data: { x: 10, y: 20, radius: 5, color: "red" }
+    });
     expect(buffer.getCommands().length).toBe(1);
 
     buffer.clear();

@@ -15,7 +15,10 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
 
     constructor(
         private networkManager: NetworkManager,
-        private simulateFn?: (world: World<TRegistry>, input: unknown, dt: number) => void
+        private simulateFn?: (world: World<TRegistry>, input: unknown, dt: number) => void,
+        private queryComponents: string[] = ["Transform", "LocalPlayer", "Velocity", "Input"],
+        private reconcileQueryComponents: string[] = ["Transform", "LocalPlayer", "Velocity"],
+        private reconcileFn?: (world: World<TRegistry>, entity: number, input: any, dt: number) => void
     ) {
         super();
     }
@@ -24,19 +27,19 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
         const w = world as unknown as World<MultiplayerRegistry>;
         const dtSec = deltaTime;
 
-        const localQuery = w.query("Transform", "LocalPlayer", "Velocity", "Input");
+        const localQuery = w.query(...(this.queryComponents as any));
         for (const entity of localQuery) {
-            const input     = w.getComponent(entity, "Input");
-            const velocity  = w.getComponent(entity, "Velocity");
-            const transform = w.getComponent(entity, "Transform");
+            const input     = w.getComponent(entity, "Input" as any);
+            const velocity  = w.getComponent(entity, "Velocity" as any);
+            const transform = w.getComponent(entity, "Transform" as any);
             if (!input || !velocity || !transform) continue;
 
             if (this.simulateFn) {
                 this.simulateFn(world, input, dtSec);
             }
 
-            const finalVelocity  = w.getComponent(entity, "Velocity")!;
-            const finalTransform = w.getComponent(entity, "Transform")!;
+            const finalVelocity  = w.getComponent(entity, "Velocity" as any)! as any;
+            const finalTransform = w.getComponent(entity, "Transform" as any)! as any;
 
             this.inputQueue.push({
                 tick: this.lastProcessedTick++,
@@ -69,13 +72,13 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
         try {
             this.inputQueue = this.inputQueue.filter(i => i.tick > serverTick);
 
-            const localQuery = w.query("Transform", "LocalPlayer", "Velocity");
+            const localQuery = w.query(...(this.reconcileQueryComponents as any));
             for (const entity of localQuery) {
-                w.mutateComponent(entity, "Transform", (t) => {
+                w.mutateComponent(entity, "Transform" as any, (t: any) => {
                     t.x = serverState.x;
                     t.y = serverState.y;
                 });
-                w.mutateComponent(entity, "Velocity", (v) => {
+                w.mutateComponent(entity, "Velocity" as any, (v: any) => {
                     v.vx = serverState.vx;
                     v.vy = serverState.vy;
                 });
@@ -87,13 +90,16 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
                         this.simulateFn(world, item.input, itemDtSec);
                     }
 
-                    const currentTransform = w.getComponent(entity, "Transform")!;
-                    const currentVelocity  = w.getComponent(entity, "Velocity")!;
+                    if (this.reconcileFn) {
+                        this.reconcileFn(world, entity, item.input, itemDtSec);
+                    } else {
+                        const currentVelocity  = w.getComponent(entity, "Velocity" as any)! as any;
 
-                    w.mutateComponent(entity, "Transform", (t) => {
-                        t.x += currentVelocity.vx * itemDtSec;
-                        t.y += currentVelocity.vy * itemDtSec;
-                    });
+                        w.mutateComponent(entity, "Transform" as any, (t: any) => {
+                            t.x += currentVelocity.vx * itemDtSec;
+                            t.y += currentVelocity.vy * itemDtSec;
+                        });
+                    }
                 }
             }
         } finally {

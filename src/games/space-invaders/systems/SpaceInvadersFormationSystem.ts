@@ -45,13 +45,31 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
 
     // 2. Move formation or handle step down
     const margin = 20;
+    const moveX = formation.direction * formation.speed * (deltaTime / 1000);
 
-    if (formation.stepDownPending) {
+    // Calculate current min/max bounds before moving
+    let minX = Infinity;
+    let maxX = -Infinity;
+    for (const entity of invaders) {
+      const pos = world.getComponent(entity, "Transform");
+      if (!pos) continue;
+      if (pos.x < minX) minX = pos.x;
+      if (pos.x > maxX) maxX = pos.x;
+    }
+
+    const leftLimit = margin;
+    const rightLimit = GAME_CONFIG.SCREEN_WIDTH - margin;
+
+    // Use predictive edge checking considering movement direction
+    const willHitRight = formation.direction > 0 && maxX + moveX >= rightLimit;
+    const willHitLeft  = formation.direction < 0 && minX + moveX <= leftLimit;
+
+    if (willHitRight || willHitLeft) {
       const directionBefore = formation.direction;
       const nextDirection = (directionBefore * -1) as 1 | -1;
       const descentStep = formation.descentStep;
 
-      // Movimiento vertical (estructuralmente distribuido)
+      // Movimiento vertical inmediato (estructuralmente distribuido)
       for (const entity of invaders) {
         const pos = world.getComponent(entity, "Transform");
         if (pos) {
@@ -73,39 +91,14 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
         invaderCount: invaders.length,
       });
     } else {
-      const moveX = formation.direction * formation.speed * (deltaTime / 1000);
-
-      // Calculate current min/max bounds before moving
-      let minX = Infinity;
-      let maxX = -Infinity;
       for (const entity of invaders) {
         const pos = world.getComponent(entity, "Transform");
-        if (!pos) continue;
-        if (pos.x < minX) minX = pos.x;
-        if (pos.x > maxX) maxX = pos.x;
-      }
-
-      const leftLimit = margin;
-      const rightLimit = GAME_CONFIG.SCREEN_WIDTH - margin;
-
-      // Use predictive edge checking considering movement direction
-      const willHitRight = formation.direction > 0 && maxX + moveX >= rightLimit;
-      const willHitLeft  = formation.direction < 0 && minX + moveX <= leftLimit;
-
-      if (willHitRight || willHitLeft) {
-        world.mutateComponent(formationEntity, "Formation", f => {
-          f.stepDownPending = true;
-        });
-      } else {
-        for (const entity of invaders) {
-          const pos = world.getComponent(entity, "Transform");
-          if (pos) {
-            const nextX = pos.x + moveX;
-            world.mutateComponent(entity, "Transform", t => {
-              t.x = nextX;
-              t.dirty = true;
-            });
-          }
+        if (pos) {
+          const nextX = pos.x + moveX;
+          world.mutateComponent(entity, "Transform", t => {
+            t.x = nextX;
+            t.dirty = true;
+          });
         }
       }
     }

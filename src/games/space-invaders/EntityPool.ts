@@ -57,6 +57,9 @@ export class PlayerBulletPool extends ProjectilePool<any, ProjectileParams> {
       initializer: (data, p, world) => {
         data.position.x = p.x;
         data.position.y = p.y;
+        data.position.worldX = p.x;
+        data.position.worldY = p.y;
+        data.position.dirty = true;
         data.velocity.vx = p.dx;
         data.velocity.vy = p.dy;
         data.render.size = p.size;
@@ -91,7 +94,7 @@ export class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {
           type: "Collider",
           shape: { type: ShapeType.Circle, radius: 0 } as CircleShape,
           layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER,
+          mask: CollisionLayers.PLAYER | CollisionLayers.DEBRIS,
           offsetX: 0, offsetY: 0, isTrigger: false, enabled: true
         } as ColliderComponent,
         boundary: {
@@ -118,6 +121,9 @@ export class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {
       initializer: (data, p, world) => {
         data.position.x = p.x;
         data.position.y = p.y;
+        data.position.worldX = p.x;
+        data.position.worldY = p.y;
+        data.position.dirty = true;
         data.velocity.vx = p.dx;
         data.velocity.vy = p.dy;
         data.render.size = p.size;
@@ -163,6 +169,9 @@ export class ParticlePool extends ProjectilePool<any, ProjectileParams> {
       initializer: (data, p) => {
         data.position.x = p.x;
         data.position.y = p.y;
+        data.position.worldX = p.x;
+        data.position.worldY = p.y;
+        data.position.dirty = true;
         data.velocity.vx = p.dx;
         data.velocity.vy = p.dy;
         data.render.size = p.size;

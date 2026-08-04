@@ -30,6 +30,17 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
           if (t.y > b.height) t.y = 0;
         } else if (b.mode === "destroy") {
           if (t.x < 0 || t.x > b.width || t.y < 0 || t.y > b.height) {
+            const reclaimable = world.getComponent(entity, "Reclaimable");
+            if (reclaimable) {
+              if (typeof reclaimable.onReclaim === "function") {
+                reclaimable.onReclaim({ world, entity });
+              } else {
+                const pool = world.getResource<any>(reclaimable.poolId);
+                if (pool && typeof pool.release === "function") {
+                  pool.release({ world, entity });
+                }
+              }
+            }
             world.getCommandBuffer().removeEntity(entity);
           }
         } else if (b.mode === "bounce") {

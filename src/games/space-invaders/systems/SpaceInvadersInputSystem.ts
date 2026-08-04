@@ -80,7 +80,7 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
           if (activeBullets.length === 0) {
             // Estructural: fuera de mutación
             createPlayerBullet(world, pos.x, pos.y - 10, this.bulletPool);
-            nextShootCooldownRemaining = this.config!.PLAYER_SHOOT_COOLDOWN;
+            nextShootCooldownRemaining = this.config!.PLAYER_SHOOT_COOLDOWN / 1000;
           }
         }
 

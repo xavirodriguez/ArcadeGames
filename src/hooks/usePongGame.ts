@@ -3,6 +3,8 @@ import { useGame } from "@tiny-aster/react-native";
 import { PongGame, PongState, PongInput } from "../games/pong";
 import { ExpoAssetProvider } from "../providers/ExpoAssetProvider";
 
+const expoAssetProvider = new ExpoAssetProvider();
+
 export const usePongGame = (mode: "local" | "ai" | "online" | null, seed?: number) => {
   const gameOptions = useMemo(
     () => ({ mode, seed }),
@@ -15,7 +17,7 @@ export const usePongGame = (mode: "local" | "ai" | "online" | null, seed?: numbe
     {
       gameOptions,
       seed,
-      assetProvider: new ExpoAssetProvider()
+      assetProvider: expoAssetProvider
     }
   );
 };

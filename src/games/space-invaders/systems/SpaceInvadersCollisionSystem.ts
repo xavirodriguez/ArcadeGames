@@ -92,7 +92,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         }
       }
 
-      world.getCommandBuffer().removeEntity(bullet);
+      this.removeBulletSafely(world, bullet);
       return;
     }
 
@@ -193,7 +193,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       }
 
       world.getCommandBuffer().removeEntity(invader);
-      world.getCommandBuffer().removeEntity(bullet);
+      this.removeBulletSafely(world, bullet);
       return;
     }
 
@@ -203,7 +203,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const bullet = (bulletShield as Record<string, Entity>).PlayerBullet || (bulletShield as Record<string, Entity>).EnemyBullet;
       const shield = (bulletShield as Record<string, Entity>).Shield;
       this.damageShield(world, shield);
-      world.getCommandBuffer().removeEntity(bullet);
+      this.removeBulletSafely(world, bullet);
       return;
     }
 
@@ -233,7 +233,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
             }
         });
       }
-      world.getCommandBuffer().removeEntity(bullet);
+      this.removeBulletSafely(world, bullet);
       return;
     }
 
@@ -290,6 +290,21 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         this._particlePool
       );
     }
+  }
+
+  private removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: Entity): void {
+    const reclaimable = world.getComponent(bullet, "Reclaimable");
+    if (reclaimable) {
+      if (typeof reclaimable.onReclaim === "function") {
+        reclaimable.onReclaim({ world, entity: bullet });
+      } else {
+        const pool = world.getResource<any>(reclaimable.poolId);
+        if (pool && typeof pool.release === "function") {
+          pool.release({ world, entity: bullet });
+        }
+      }
+    }
+    world.getCommandBuffer().removeEntity(bullet);
   }
 
   private checkInvadersBottom(world: World<SpaceInvadersComponentRegistry>, _gameState: GameStateComponent): void {

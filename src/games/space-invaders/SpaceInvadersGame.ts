@@ -7,13 +7,6 @@ import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInv
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
-import {
-  drawSpaceInvadersPlayer,
-  drawSpaceInvadersInvader,
-  drawSpaceInvadersBullet,
-  drawSpaceInvadersShield,
-  drawSpaceInvadersParticle
-} from "./rendering/SpaceInvadersCanvasVisuals";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
@@ -315,6 +308,13 @@ export class SpaceInvadersGame
 
   public initializeRenderer(renderer: Renderer<any>): void {
     if ((renderer as any).type === "canvas") {
+      const {
+        drawSpaceInvadersPlayer,
+        drawSpaceInvadersInvader,
+        drawSpaceInvadersBullet,
+        drawSpaceInvadersShield,
+        drawSpaceInvadersParticle
+      } = require("./rendering/SpaceInvadersCanvasVisuals");
       (renderer as any).registerShape("player_ship", drawSpaceInvadersPlayer);
       (renderer as any).registerShape("invader", drawSpaceInvadersInvader);
       (renderer as any).registerShape("player_bullet", drawSpaceInvadersBullet);
@@ -332,6 +332,20 @@ export class SpaceInvadersGame
       (renderer as any).registerShape("hologram_glitch", SharedVFX.RGBHologramGlitchEffect);
       (renderer as any).registerShape("floating_text", SharedVFX.FloatingTextScoreEffect);
     } else if ((renderer as any).type === "skia") {
+      const {
+        drawSkiaSpaceInvadersPlayer,
+        drawSkiaSpaceInvadersInvader,
+        drawSkiaSpaceInvadersBullet,
+        drawSkiaSpaceInvadersShield,
+        drawSkiaSpaceInvadersParticle
+      } = require("./rendering/SpaceInvadersSkiaVisuals");
+      (renderer as any).registerShape("player_ship", drawSkiaSpaceInvadersPlayer);
+      (renderer as any).registerShape("invader", drawSkiaSpaceInvadersInvader);
+      (renderer as any).registerShape("player_bullet", drawSkiaSpaceInvadersBullet);
+      (renderer as any).registerShape("enemy_bullet", drawSkiaSpaceInvadersBullet);
+      (renderer as any).registerShape("shield_block", drawSkiaSpaceInvadersShield);
+      (renderer as any).registerShape("particle", drawSkiaSpaceInvadersParticle);
+
       // Register custom new VFX for Skia mode
 (renderer as any).registerShape("shield_bubble", SharedVFX.SkiaEnergyShieldBubbleEffect);
       (renderer as any).registerShape("shockwave", SharedVFX.SkiaDebrisShockwaveEffect);

@@ -468,6 +468,12 @@ export class FlappyBirdGame
       (renderer as any).registerShape("pipe", drawFlappyPipe);
       (renderer as any).registerShape("ground", drawFlappyGround);
       (renderer as any).registerBackgroundEffect("scrollingSky", scrollingBackgroundEffect);
+    } else if ((renderer as any).type === "skia") {
+      const { drawSkiaFlappyBird, drawSkiaFlappyPipe, drawSkiaFlappyGround, scrollingSkiaBackgroundEffect } = require("./rendering/FlappyBirdSkiaVisuals");
+      (renderer as any).registerShape("bird", drawSkiaFlappyBird);
+      (renderer as any).registerShape("pipe", drawSkiaFlappyPipe);
+      (renderer as any).registerShape("ground", drawSkiaFlappyGround);
+      (renderer as any).registerBackgroundEffect("scrollingSky", scrollingSkiaBackgroundEffect);
     }
   }
 

@@ -2,7 +2,7 @@ import { World } from "@tiny-aster/core";
 import { Entity, Component } from "@tiny-aster/core";
 import { EnemyBlueprints } from "./config/EnemyBlueprints";
 import { EnemyTagComponent } from "./components/EnemyTagComponent";
-import { TransformComponent, VelocityComponent, RenderComponent, Collider2DComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent } from "@tiny-aster/core";
 
 /**
  * Interface for runtime overrides when creating an enemy.
@@ -121,17 +121,25 @@ export class EnemyFactory {
 
     // 4. Collision
     add({
-      type: "Collider2D",
+      type: "Collider",
       shape: blueprint.collision.radius
-        ? { type: "circle", radius: blueprint.collision.radius }
-        : { type: "aabb", halfWidth: blueprint.collision.halfWidth ?? 10, halfHeight: blueprint.collision.halfHeight ?? 10 },
+        ? { type: ShapeType.Circle, radius: blueprint.collision.radius } as CircleShape
+        : { type: ShapeType.Box, width: (blueprint.collision.halfWidth ?? 10) * 2, height: (blueprint.collision.halfHeight ?? 10) * 2 } as BoxShape,
       layer: blueprint.collision.layer,
       mask: blueprint.collision.mask,
       offsetX: 0,
       offsetY: 0,
       isTrigger: blueprint.collision.isTrigger,
       enabled: true
-    } as Collider2DComponent);
+    } as ColliderComponent);
+
+    add({
+      type: "CollisionEvents",
+      collisions: [],
+      activeTriggers: [],
+      triggersEntered: [],
+      triggersExited: []
+    } as CollisionEventsComponent);
 
     // 5. Health
     const maxHealth = overrides.health ?? blueprint.stats.health;

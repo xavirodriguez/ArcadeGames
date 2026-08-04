@@ -33,4 +33,4 @@ export interface IInputSystem<TInput extends Record<string, any>> {
  * Interface representing an input system.
  * @public
  */
-export interface InputSystem extends IInputSystem<Record<string, any>> {}
+export type InputSystem = IInputSystem<Record<string, any>>;

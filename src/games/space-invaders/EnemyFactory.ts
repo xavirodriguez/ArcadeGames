@@ -40,14 +40,27 @@ export class EnemyFactory {
     x: number,
     y: number,
     overrides: EnemyOverrides = {},
-    deferred?: boolean
+    deferred?: boolean,
+    entityId?: Entity
   ): Entity {
     const blueprint = EnemyBlueprints[blueprintId];
     if (!blueprint) {
       throw new Error(`EnemyFactory: Blueprint "${blueprintId}" not found.`);
     }
 
-    const { entity, add } = this.createBaseEntity(world, deferred);
+    const isDeferred = !!(deferred || world.isUpdating);
+    const { entity, add } = entityId !== undefined
+      ? {
+          entity: entityId,
+          add: (comp: Component) => {
+            if (isDeferred) {
+              world.getCommandBuffer().addComponent(entityId, comp);
+            } else {
+              world.addComponent(entityId, comp);
+            }
+          }
+        }
+      : this.createBaseEntity(world, deferred);
 
     // 1. Transform
     add({

@@ -156,11 +156,11 @@ export class SpaceInvadersGame
     this.blueprints.register("invader", {
       spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
         const blueprintId = args.row === 0 ? "invader_commander" : "invader_scout";
-        const enemy = EnemyFactory.createEnemy(world, blueprintId, args.x, args.y, {}, false);
+        EnemyFactory.createEnemy(world, blueprintId, args.x, args.y, {}, false, entity);
         const points = (5 - args.row) * 10;
 
-        world.addComponent(enemy, { type: "Invader", row: args.row, col: args.col, points } as any);
-        world.addComponent(enemy, {
+        world.addComponent(entity, { type: "Invader", row: args.row, col: args.col, points } as any);
+        world.addComponent(entity, {
           type: "LootTable",
           tableId: "invader",
           drops: [

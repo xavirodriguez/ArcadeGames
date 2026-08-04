@@ -1,4 +1,4 @@
-import { ComponentRegistry, ComponentType } from "./Component";
+import { ComponentRegistry, ComponentType, DeepReadonly } from "./Component";
 import { Entity } from "./Entity";
 import { EventRegistry, EventBus } from "../events/EventBus";
 import { Query } from "./Query";
@@ -416,12 +416,12 @@ export class World<
   public readComponent<K extends ComponentType<TComponents>>(
     entity: Entity,
     type: K
-  ): TComponents[K] | undefined {
+  ): DeepReadonly<TComponents[K]> | undefined {
     const component = this.getComponent(entity, type);
     if (isDev && component !== undefined) {
-      return Object.freeze(component) as TComponents[K];
+      return Object.freeze(component) as unknown as DeepReadonly<TComponents[K]>;
     }
-    return component;
+    return component as unknown as DeepReadonly<TComponents[K]> | undefined;
   }
 
   /**
@@ -618,11 +618,18 @@ export class World<
   }
 
   setResource<T>(name: string, resource: T): void {
+    if (isDev) {
+      assertResourceShape(name, resource);
+    }
     this.resources.set(name, resource);
   }
 
   getResource<T>(name: string): T | undefined {
-    return this.resources.get(name) as T;
+    const value = this.resources.get(name);
+    if (isDev) {
+      assertResourceShape(name, value);
+    }
+    return value as T;
   }
 
   deleteResource(name: string): void {
@@ -696,6 +703,48 @@ export class World<
    */
   public deltaSnapshot(sinceVersion: number): Partial<WorldSnapshot> {
     return SnapshotSerializer.deltaSnapshot(this, sinceVersion);
+  }
+}
+
+function assertResourceShape(name: string, value: unknown): void {
+  if (value === undefined || value === null) return;
+
+  switch (name) {
+    case "EventBus":
+      if (typeof (value as any).emit !== "function" || typeof (value as any).on !== "function") {
+        throw new Error(`[World] Resource "EventBus" does not match the expected EventBus interface (must have emit and on methods).`);
+      }
+      break;
+    case "ScreenConfig":
+      if (typeof value !== "object" || typeof (value as any).width !== "number" || typeof (value as any).height !== "number") {
+        throw new Error(`[World] Resource "ScreenConfig" does not match the expected shape { width: number, height: number }.`);
+      }
+      break;
+    case "SpatialCullingMargin":
+      if (typeof value !== "number") {
+        throw new Error(`[World] Resource "SpatialCullingMargin" must be a number.`);
+      }
+      break;
+    case "SpatialCullingEnabled":
+      if (typeof value !== "boolean") {
+        throw new Error(`[World] Resource "SpatialCullingEnabled" must be a boolean.`);
+      }
+      break;
+    case "UseSoASnapshots":
+      if (typeof value !== "boolean") {
+        throw new Error(`[World] Resource "UseSoASnapshots" must be a boolean.`);
+      }
+      break;
+    case "ScreenShake":
+      if (typeof value !== "object" || typeof (value as any).intensity !== "number" || typeof (value as any).duration !== "number" || typeof (value as any).remaining !== "number") {
+        throw new Error(`[World] Resource "ScreenShake" does not match the expected shape { intensity: number, duration: number, remaining: number }.`);
+      }
+      break;
+    case "SpatialCullingCandidates":
+      if (!Array.isArray(value)) {
+        throw new Error(`[World] Resource "SpatialCullingCandidates" must be an array of entities.`);
+      }
+      break;
   }
 }
 

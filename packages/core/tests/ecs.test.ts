@@ -223,5 +223,37 @@ describe("ECS Core", () => {
       // or at least not synchronously from update.
       spyCreateEntity.mockRestore();
     });
+
+    it("should validate resource shapes in development mode", () => {
+      const world = new World<CoreComponentRegistry>();
+
+      // Test a valid ScreenConfig
+      world.setResource("ScreenConfig", { width: 800, height: 600 });
+      expect(world.getResource("ScreenConfig")).toEqual({ width: 800, height: 600 });
+
+      // Test an invalid ScreenConfig (should throw error)
+      expect(() => {
+        world.setResource("ScreenConfig", { width: "800", height: 600 } as any);
+      }).toThrow(/ScreenConfig.*shape/);
+
+      // Test a valid EventBus
+      const validBus = { emit: () => {}, on: () => {} };
+      world.setResource("EventBus", validBus);
+      expect(world.getResource("EventBus")).toBe(validBus);
+
+      // Test an invalid EventBus
+      expect(() => {
+        world.setResource("EventBus", { emit: () => {} } as any);
+      }).toThrow(/EventBus.*match/);
+
+      // Test a valid SpatialCullingMargin
+      world.setResource("SpatialCullingMargin", 150);
+      expect(world.getResource("SpatialCullingMargin")).toBe(150);
+
+      // Test an invalid SpatialCullingMargin
+      expect(() => {
+        world.setResource("SpatialCullingMargin", "150" as any);
+      }).toThrow(/SpatialCullingMargin.*must be/);
+    });
   });
 });

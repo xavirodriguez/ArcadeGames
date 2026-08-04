@@ -146,9 +146,9 @@ export class SpaceInvadersGameScene extends Scene {
   }
 
   public override onExit(world: World): void {
-    this.playerBulletPool.clear?.();
-    this.enemyBulletPool.clear?.();
-    this.particlePool.clear?.();
+    (this.playerBulletPool as any).clear?.();
+    (this.enemyBulletPool as any).clear?.();
+    (this.particlePool as any).clear?.();
 
     world.deleteResource("PlayerBulletPool");
     world.deleteResource("EnemyBulletPool");

@@ -1,4 +1,4 @@
-import { System, World, HealthComponent, EventBus, TransformComponent, RenderComponent, Component, Collider2DComponent } from "@tiny-aster/core";
+import { System, World, HealthComponent, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent } from "@tiny-aster/core";
 import { GameStateComponent, BossComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { createEmitter } from "@tiny-aster/core";
@@ -77,15 +77,22 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
     commands.addComponent(boss, { type: "Transform", x: GAME_CONFIG.SCREEN_WIDTH / 2, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: GAME_CONFIG.SCREEN_WIDTH / 2, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
     commands.addComponent(boss, { type: "Render", shape: "invader", size: 80, color: "#FF00FF", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
     commands.addComponent(boss, {
-      type: "Collider2D",
-      shape: { type: "circle", radius: 40 },
+      type: "Collider",
+      shape: { type: ShapeType.Circle, radius: 40 } as CircleShape,
       layer: CollisionLayers.ENEMY,
       mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
       offsetX: 0,
       offsetY: 0,
       isTrigger: false,
       enabled: true
-    } as Collider2DComponent);
+    } as ColliderComponent);
+    commands.addComponent(boss, {
+      type: "CollisionEvents",
+      collisions: [],
+      activeTriggers: [],
+      triggersEntered: [],
+      triggersExited: []
+    } as CollisionEventsComponent);
     commands.addComponent(boss, { type: "Boss", hp, maxHp: hp, timer: 0, phase: 1 } as BossComponent);
     commands.addComponent(boss, { type: "Health", current: hp, max: hp } as HealthComponent);
   }

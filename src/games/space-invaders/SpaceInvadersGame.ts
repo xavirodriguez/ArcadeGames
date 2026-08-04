@@ -26,7 +26,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * Unlike Asteroids, it uses a rigid formation system where the movement
  * of one entity affects the whole group (Swarm movement).
  */
-import { TransformComponent, VelocityComponent, RenderComponent, Collider2DComponent, HealthComponent, BlueprintDefinition } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 
 export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, any, any>> {
@@ -99,15 +99,22 @@ export class SpaceInvadersGame
           angularVelocity: 0
         } as RenderComponent);
         world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "circle", radius: config.PLAYER_COLLIDER_RADIUS },
+          type: "Collider",
+          shape: { type: ShapeType.Circle, radius: config.PLAYER_COLLIDER_RADIUS } as CircleShape,
           layer: CollisionLayers.PLAYER,
           mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
           offsetX: 0,
           offsetY: 0,
           isTrigger: false,
           enabled: true
-        } as Collider2DComponent);
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
         world.addComponent(entity, {
           type: "Health",
           current: config.PLAYER_INITIAL_LIVES,
@@ -181,15 +188,22 @@ export class SpaceInvadersGame
           angularVelocity: 0
         } as RenderComponent);
         world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: 7.5, halfHeight: 7.5 },
+          type: "Collider",
+          shape: { type: ShapeType.Box, width: 15, height: 15 } as BoxShape,
           layer: CollisionLayers.DEBRIS,
           mask: CollisionLayers.ENEMY | CollisionLayers.PROJECTILE,
           offsetX: 0,
           offsetY: 0,
           isTrigger: false,
           enabled: true
-        } as Collider2DComponent);
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
         world.addComponent(entity, {
           type: "Shield",
           hp: config.SHIELD_SEGMENT_HP,

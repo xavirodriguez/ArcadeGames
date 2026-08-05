@@ -89,7 +89,6 @@ export class SpaceInvadersGameScene extends Scene {
     const inputSys = new SpaceInvadersInputSystem(this.playerBulletPool);
     if (this.game.isMultiplayer) inputSys.setMultiplayerMode(true);
 
-    this.world.addSystem((this.game as any).unifiedInput, { phase: SystemPhase.Input });
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
@@ -100,7 +99,7 @@ export class SpaceInvadersGameScene extends Scene {
     this.world.addSystem(new SpaceInvadersCollisionSystem(this.particlePool), { phase: SystemPhase.GameRules });
     this.world.addSystem(new KamikazeSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BossSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new ComboSystem() as any, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new LootSystem() as any, { phase: SystemPhase.GameRules });
     this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });

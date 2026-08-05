@@ -8,6 +8,29 @@ import { createGameState } from "../EntityFactory";
 import { ParticlePool, EnemyBulletPool } from "../EntityPool";
 import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationSystem";
 
+const getGameState = (w: World<any>) => {
+  const state = w.getSingleton("GameState") as any;
+  if (!state) return undefined;
+  let combo = 0;
+  let multiplier = 1;
+  let comboTimerRemaining = 0;
+  const comboEntities = w.query("Combo" as any);
+  if (comboEntities.length > 0) {
+    const comboComp = w.getComponent(comboEntities[0], "Combo" as any) as any;
+    if (comboComp) {
+      combo = comboComp.combo;
+      multiplier = comboComp.multiplier;
+      comboTimerRemaining = Math.max(0, comboComp.timerRemaining);
+    }
+  }
+  return {
+    ...state,
+    combo,
+    multiplier,
+    comboTimerRemaining
+  };
+};
+
 describe("Space Invaders Combo Logic & Performance", () => {
   let world: World<SpaceInvadersComponentRegistry>;
   let collisionSystem: SpaceInvadersCollisionSystem;
@@ -33,9 +56,6 @@ describe("Space Invaders Combo Logic & Performance", () => {
           level: 1,
           invadersRemaining: 0,
           isGameOver: false,
-          combo: initialCombo,
-          multiplier: initialMultiplier,
-          comboTimerRemaining: initialTimerRemaining,
           screenShake: null,
           kamikazesActive: 0,
         } as any);
@@ -109,12 +129,12 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
     world.addSystem(collisionSystem, { phase: SystemPhase.GameRules });
     world.addSystem(gameStateSystem, { phase: SystemPhase.GameRules });
-    world.addSystem(new ComboSystem() as any, { phase: SystemPhase.Simulation });
+    world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
   });
 
   it("should initialize GameState with correct default combo values and verify Combo component is attached", () => {
     createGameState(world);
-    const gameState = world.getSingleton("GameState");
+    const gameState = getGameState(world);
     expect(gameState).toBeDefined();
     expect(gameState?.combo).toBe(0);
     expect(gameState?.multiplier).toBe(1);
@@ -170,7 +190,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
     // Run collision update
     world.update(0.016);
 
-    const gameState = world.getSingleton("GameState");
+    const gameState = getGameState(world);
     expect(gameState?.combo).toBe(1);
     // With phase-based update, ComboSystem runs before CollisionSystem, so the timer is set to 2.0 at the end of the tick
     expect(gameState?.comboTimerRemaining).toBe(2.0);
@@ -216,33 +236,28 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
     // Kill 1
     addKill(100);
-    expect(world.getSingleton("GameState")?.combo).toBe(1);
-    expect(world.getSingleton("GameState")?.multiplier).toBe(1);
+    expect(getGameState(world)?.combo).toBe(1);
+    expect(getGameState(world)?.multiplier).toBe(1);
 
     // Kill up to 5 -> multiplier should become 2 (1 + floor(5/5) = 2)
     for (let i = 2; i <= 5; i++) {
       addKill(100 + i);
     }
-    expect(world.getSingleton("GameState")?.combo).toBe(5);
-    expect(world.getSingleton("GameState")?.multiplier).toBe(2);
+    expect(getGameState(world)?.combo).toBe(5);
+    expect(getGameState(world)?.multiplier).toBe(2);
 
     // Kill up to 25 -> multiplier capped at MAX_MULTIPLIER = 5 (1 + floor(25/5) = 6 capped to 5)
     for (let i = 6; i <= 25; i++) {
       addKill(100 + i);
     }
-    expect(world.getSingleton("GameState")?.combo).toBe(25);
-    expect(world.getSingleton("GameState")?.multiplier).toBe(5); // Capped at MAX_MULTIPLIER
+    expect(getGameState(world)?.combo).toBe(25);
+    expect(getGameState(world)?.multiplier).toBe(5); // Capped at MAX_MULTIPLIER
   });
 
   it("should expire combo back to 0 and multiplier to 1 when COMBO_TIMEOUT is reached", () => {
     createGameState(world);
 
-    // Mutate both GameState and Combo component manually to simulate combo
-    world.mutateSingleton("GameState", (gs) => {
-      gs.combo = 10;
-      gs.multiplier = 3;
-      gs.comboTimerRemaining = 2.0;
-    });
+    // Mutate Combo component manually to simulate combo
     const comboEntities = world.query("Combo" as any);
     world.mutateComponent(comboEntities[0], "Combo" as any, (c: any) => {
       c.combo = 10;
@@ -252,14 +267,14 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
     // Advance 1.0 second -> combo timer decrements but combo is preserved
     world.update(1.0);
-    let gameState = world.getSingleton("GameState");
+    let gameState = getGameState(world);
     expect(gameState?.combo).toBe(10);
     expect(gameState?.multiplier).toBe(3);
     expect(gameState?.comboTimerRemaining).toBeCloseTo(1.0);
 
     // Advance another 1.1 seconds -> combo timer reaches 0 and combo expires
     world.update(1.1);
-    gameState = world.getSingleton("GameState");
+    gameState = getGameState(world);
     expect(gameState?.combo).toBe(0);
     expect(gameState?.multiplier).toBe(1);
     expect(gameState?.comboTimerRemaining).toBe(0);
@@ -295,7 +310,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
       BENEFICIAL_MUTATORS["combo_head_start"].apply(world);
       createGameState(world);
 
-      const gameState = world.getSingleton("GameState");
+      const gameState = getGameState(world);
       expect(gameState).toBeDefined();
       expect(gameState?.combo).toBe(5);
       expect(gameState?.multiplier).toBe(2);
@@ -350,7 +365,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
       // Run update
       world.update(0.016);
 
-      const gameState = world.getSingleton("GameState");
+      const gameState = getGameState(world);
       // Original points is 10. Multiplier was 2 (initial) but the kill increments combo to 6.
       // Next multiplier: Math.min(5, 1 + floor(6 / 5)) = 2.
       // Score gain = 10 * 2 = 20.
@@ -399,7 +414,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
       // Run update
       world.update(0.016);
 
-      const gameState = world.getSingleton("GameState");
+      const gameState = getGameState(world);
       // Normal: combo = 1, multiplier = 1, score gain = 10 * 1 = 10.
       expect(gameState?.combo).toBe(1);
       expect(gameState?.multiplier).toBe(1);

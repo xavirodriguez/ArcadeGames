@@ -14,6 +14,27 @@
 
 import { World } from "@tiny-aster/core";
 
+export type MutatorHook = (world: World, mutatorId: string) => void;
+
+const mutatorHooks: MutatorHook[] = [];
+
+/**
+ * Registers a game-specific hook to run when a mutator is applied.
+ */
+export function registerMutatorHook(hook: MutatorHook): void {
+  mutatorHooks.push(hook);
+}
+
+function runMutatorHooks(world: World, mutatorId: string): void {
+  for (const hook of mutatorHooks) {
+    try {
+      hook(world, mutatorId);
+    } catch (e) {
+      console.error(`Error in mutator hook for ${mutatorId}:`, e);
+    }
+  }
+}
+
 /**
  * Interface for a beneficial mutator definition.
  */
@@ -55,6 +76,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         }
         world.setResource("GameConfig", newConfig);
       }
+      runMutatorHooks(world, "faster_bullets");
     }
   },
   "extra_life": {
@@ -71,15 +93,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         world.setResource("GameConfig", newConfig);
       }
 
-      // Adapt to Pong score starting advantage
       world.setResource("ExtraLifeScoreP1", 1);
-      if (world.getSingleton("PongState" as any)) {
-        world.mutateSingleton("PongState" as any, (gs: any) => {
-          if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
-            gs.scoreP1 = 1;
-          }
-        });
-      }
 
       if (world.getSingleton("GameState" as any)) {
         world.mutateSingleton("GameState" as any, (gs: any) => {
@@ -96,6 +110,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
           h.max += 1;
         });
       }
+      runMutatorHooks(world, "extra_life");
     }
   },
   "combo_head_start": {
@@ -128,13 +143,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
           gs.comboTimerRemaining = comboTimeout;
         });
       }
-
-      const flappyState = world.getSingleton("FlappyState" as any);
-      if (flappyState) {
-        world.mutateSingleton("FlappyState" as any, (fs: any) => {
-          fs.comboMultiplier = 2;
-        });
-      }
+      runMutatorHooks(world, "combo_head_start");
     }
   },
   "shield_pulse": {
@@ -150,6 +159,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
           h.invulnerableRemaining = 3.0; // 3 seconds
         });
       }
+      runMutatorHooks(world, "shield_pulse");
     }
   },
 };

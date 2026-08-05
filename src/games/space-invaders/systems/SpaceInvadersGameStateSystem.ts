@@ -39,36 +39,6 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
       });
     }
 
-    // Sync local GameState combo fields from the unified Combo component (updated by ComboSystem)
-    const comboEntities = world.query("Combo" as any);
-    const comboEntity = comboEntities[0];
-    if (comboEntity !== undefined) {
-      const comboComp = world.getComponent(comboEntity, "Combo" as any) as any;
-      if (comboComp) {
-        const targetTimer = Math.max(0, comboComp.timerRemaining);
-        if (gameState.combo !== comboComp.combo ||
-            gameState.multiplier !== comboComp.multiplier ||
-            Math.abs(gameState.comboTimerRemaining - targetTimer) > 0.0001) {
-          world.mutateSingleton("GameState", (gs) => {
-            gs.combo = comboComp.combo;
-            gs.multiplier = comboComp.multiplier;
-            gs.comboTimerRemaining = targetTimer;
-          });
-        }
-      }
-    } else {
-      // Fallback: Decrement local combo timer and clear if expired if no Combo component is attached
-      if (gameState.comboTimerRemaining > 0) {
-        world.mutateSingleton("GameState", (gs) => {
-          gs.comboTimerRemaining -= deltaTime;
-          if (gs.comboTimerRemaining <= 0) {
-            gs.comboTimerRemaining = 0;
-            gs.combo = 0;
-            gs.multiplier = 1;
-          }
-        });
-      }
-    }
   }
 
   protected getGameState(world: World<SpaceInvadersComponentRegistry>): GameStateComponent | undefined {

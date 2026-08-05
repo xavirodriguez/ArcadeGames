@@ -18,8 +18,20 @@ import {
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
 import { ComboSystem } from "../shared/arcade";
-import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
+import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorRegistry";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
+
+registerMutatorHook((world, mutatorId) => {
+  if (mutatorId === "extra_life") {
+    if (world.getSingleton("PongState" as any)) {
+      world.mutateSingleton("PongState" as any, (gs: any) => {
+        if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
+          gs.scoreP1 = 1;
+        }
+      });
+    }
+  }
+});
 import { PongInputSystem } from "./systems/PongInputSystem";
 import { PongSpinSystem } from "./systems/PongSpinSystem";
 import { PongEntityFactory } from "./EntityFactory";
@@ -216,12 +228,19 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         const hasShieldPulse = world.getResource("HasShieldPulse") === true;
         const initialScoreP1 = world.getResource("ExtraLifeScoreP1") === 1 ? 1 : 0;
 
+        const comboObj = {
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: 2.0
+        };
+
         world.addComponent(entity, {
           type: "PongState",
           scoreP1: initialScoreP1,
           scoreP2: 0,
           isGameOver: false,
-          comboMultiplier: 1,
           gameOverLogged: false,
           shieldPulseRemaining: hasShieldPulse ? 5.0 : 0.0,
           scoreFreezeRemaining: 0,
@@ -266,7 +285,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
     this.world.addSystem(new PongCollisionSystem(this.config), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.stateSystem, { phase: SystemPhase.GameRules });
-    this.world.addSystem(new ComboSystem() as any, { phase: SystemPhase.GameRules });
+    this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
 
     this.world.addSystem(new MutatorSystem(mutators as any), { phase: SystemPhase.Simulation });
 

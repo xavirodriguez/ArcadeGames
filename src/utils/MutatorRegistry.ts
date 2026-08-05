@@ -56,6 +56,27 @@ export function applyMutatorHooks(mutatorId: string, world: World): void {
   }
 }
 
+export type MutatorHook = (world: World, mutatorId: string) => void;
+
+const mutatorHooks: MutatorHook[] = [];
+
+/**
+ * Registers a game-specific hook to run when a mutator is applied.
+ */
+export function registerMutatorHook(hook: MutatorHook): void {
+  mutatorHooks.push(hook);
+}
+
+function runMutatorHooks(world: World, mutatorId: string): void {
+  for (const hook of mutatorHooks) {
+    try {
+      hook(world, mutatorId);
+    } catch (e) {
+      console.error(`Error in mutator hook for ${mutatorId}:`, e);
+    }
+  }
+}
+
 /**
  * Interface for a beneficial mutator definition.
  */
@@ -94,8 +115,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         }
         world.setResource("GameConfig", newConfig);
       }
-      // Apply game-specific mutator hooks (e.g. paddle speed turbo boost in Pong)
-      applyMutatorHooks("faster_bullets", genericWorld);
+      runMutatorHooks(world, "faster_bullets");
     }
   },
   "extra_life": {
@@ -113,9 +133,10 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         world.setResource("GameConfig", newConfig);
       }
 
-      const gameState = world.getSingleton("GameState");
-      if (gameState) {
-        world.mutateSingleton("GameState", (gs) => {
+      world.setResource("ExtraLifeScoreP1", 1);
+
+      if (world.getSingleton("GameState" as any)) {
+        world.mutateSingleton("GameState" as any, (gs: any) => {
           if (typeof gs.lives === "number") {
             gs.lives += 1;
           }
@@ -129,9 +150,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
           h.max += 1;
         });
       }
-
-      // Apply game-specific mutator hooks (e.g. starting score advantage in Pong)
-      applyMutatorHooks("extra_life", genericWorld);
+      runMutatorHooks(world, "extra_life");
     }
   },
   "combo_head_start": {
@@ -165,9 +184,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
           gs.comboTimerRemaining = comboTimeout;
         });
       }
-
-      // Apply game-specific mutator hooks (e.g. combo head start in Flappy Bird)
-      applyMutatorHooks("combo_head_start", genericWorld);
+      runMutatorHooks(world, "combo_head_start");
     }
   },
   "shield_pulse": {
@@ -184,8 +201,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
           h.invulnerableRemaining = 3.0; // 3 seconds
         });
       }
-      // Apply game-specific mutator hooks
-      applyMutatorHooks("shield_pulse", genericWorld);
+      runMutatorHooks(world, "shield_pulse");
     }
   },
 };

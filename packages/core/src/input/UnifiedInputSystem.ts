@@ -19,7 +19,16 @@ import { InputSystem } from "./InputSystem";
  * @deprecated Use React Bridge input routing via BaseGame.setInputState() instead.
  */
 export class UnifiedInputSystem extends System<ComponentRegistry> implements InputSystem {
+  private static warned = false;
   private overrides: Record<string, boolean> = {};
+
+  constructor() {
+    super();
+    if (!UnifiedInputSystem.warned) {
+      console.warn("UnifiedInputSystem is deprecated. Use React Bridge input routing via BaseGame.setInputState() instead.");
+      UnifiedInputSystem.warned = true;
+    }
+  }
 
   public bind(_action: string, _keys: string[]): void {}
 

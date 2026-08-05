@@ -183,15 +183,6 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
         }
       });
 
-      // Sync local PongState combo fields from the unified Combo component (updated by ComboSystem)
-      const comboEntities = world.query("Combo" as any);
-      const comboEntity = comboEntities[0];
-      if (comboEntity !== undefined) {
-        const comboComp = world.getComponent(comboEntity, "Combo" as any) as any;
-        if (comboComp && gs.comboMultiplier !== comboComp.multiplier) {
-          gs.comboMultiplier = comboComp.multiplier;
-        }
-      }
     });
   }
 

@@ -1,8 +1,8 @@
-import { System, World, CoreComponentRegistry } from "@tiny-aster/core";
+import { System, World, ComponentRegistry } from "@tiny-aster/core";
 
 /** @public */
-export class ComboSystem extends System<CoreComponentRegistry> {
-  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+export class ComboSystem<TComponents extends ComponentRegistry = ComponentRegistry> extends System<TComponents> {
+  public update(world: World<TComponents>, deltaTime: number): void {
     world.query("Combo" as any).forEach((entity) => {
       const combo = world.getComponent(entity, "Combo" as any) as any;
       if (!combo || combo.timerRemaining <= 0) return;

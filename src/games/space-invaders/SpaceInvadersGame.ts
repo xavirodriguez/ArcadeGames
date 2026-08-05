@@ -221,9 +221,6 @@ export class SpaceInvadersGame
           level: 1,
           invadersRemaining: 0,
           isGameOver: false,
-          combo: initialCombo,
-          multiplier: initialMultiplier,
-          comboTimerRemaining: initialTimerRemaining,
           screenShake: null,
           kamikazesActive: 0,
         } as any);
@@ -270,7 +267,7 @@ export class SpaceInvadersGame
     const sceneWorld = gameScene.getWorld();
     sceneWorld.addSystem(new LootSystem());
     sceneWorld.addSystem(new PowerUpSystem());
-    sceneWorld.addSystem(new ComboSystem() as any);
+    sceneWorld.addSystem(new ComboSystem());
 
     if (!this.networkManager) {
       this.networkManager = NetworkManager.registerGame(this.gameId, this, {
@@ -361,7 +358,29 @@ export class SpaceInvadersGame
   public getGameState(): GameStateComponent {
     const world = this.getWorld();
     const state = world.getSingleton("GameState");
-    return state ? { ...state } : INITIAL_GAME_STATE;
+    if (!state) return INITIAL_GAME_STATE;
+
+    let combo = 0;
+    let multiplier = 1;
+    let comboTimerRemaining = 0;
+
+    const comboEntities = world.query("Combo" as any);
+    const comboEntity = comboEntities[0];
+    if (comboEntity !== undefined) {
+      const comboComp = world.getComponent(comboEntity, "Combo" as any) as any;
+      if (comboComp) {
+        combo = comboComp.combo;
+        multiplier = comboComp.multiplier;
+        comboTimerRemaining = Math.max(0, comboComp.timerRemaining);
+      }
+    }
+
+    return {
+      ...state,
+      combo,
+      multiplier,
+      comboTimerRemaining
+    };
   }
 
   public getWorld(): World<SpaceInvadersComponentRegistry> {

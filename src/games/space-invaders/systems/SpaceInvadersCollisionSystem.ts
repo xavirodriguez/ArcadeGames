@@ -247,7 +247,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
     const invaderShield = this.matchPair(world, e1, e2, "Invader", "Shield");
     if (invaderShield) {
-      world.getCommandBuffer().removeEntity(invaderShield.Shield);
+      this.damageShield(world, invaderShield.Shield);
       return;
     }
   }

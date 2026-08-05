@@ -122,6 +122,7 @@ export abstract class Scene {
    * @deprecated Use the standard onUpdate flow.
    */
   public update(dt: number): void {
+    console.warn(`[Scene] Deprecated method 'update' called on scene '${this.name || "unknown"}'. Use 'onUpdate' or register systems in the ECS world instead.`);
     this.onUpdate(dt, this.world);
   }
 
@@ -129,6 +130,7 @@ export abstract class Scene {
    * @deprecated Delegate rendering to {@link Renderer.render}.
    */
   public render(renderer: import("../rendering/Renderer").Renderer, ctx?: unknown): void {
+    console.warn(`[Scene] Deprecated method 'render' called on scene '${this.name || "unknown"}'. Delegate rendering to Renderer.render instead.`);
     renderer.render(this.world, ctx || {});
   }
 }

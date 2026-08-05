@@ -9,6 +9,7 @@ import { ComponentRegistry } from "../ecs/Component";
  * @public
  */
 export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistry, TContext = unknown> {
+  readonly type: string;
   /**
    * Renders the current state of the world.
    * @param world - The ECS world to render.
@@ -16,6 +17,9 @@ export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistr
    * @param interpolation - Optional interpolation factor for smooth rendering between fixed timesteps.
    */
   render(world: World<TRegistry>, ctx: TContext, interpolation?: number): void;
+
+  registerShape(name: string, drawer: ShapeDrawer<any, TRegistry>): void;
+  registerBackgroundEffect(name: string, drawer: EffectDrawer<any, TRegistry>): void;
 }
 
 /**

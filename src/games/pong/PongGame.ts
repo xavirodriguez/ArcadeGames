@@ -349,27 +349,27 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     // Audio preloading moved to game logic or specific service if needed
   }
 
-  public initializeRenderer(renderer: Renderer<PongComponentRegistry>): void {
-    if ((renderer as any).type === "canvas") {
+  public initializeRenderer(renderer: Renderer<PongComponentRegistry, any>): void {
+    if (renderer.type === "canvas") {
       const { drawPongBall, drawPongPaddle, drawPongBackground } = require("./rendering/PongCanvasVisuals");
-      (renderer as any).registerShape("circle", drawPongBall); // Override default circle with spinning ball
-      (renderer as any).registerShape("paddle", drawPongPaddle); // Glowing neon paddles
-      (renderer as any).registerBackgroundEffect("pong_bg", drawPongBackground); // Custom grid grid background
+      renderer.registerShape("circle", drawPongBall); // Override default circle with spinning ball
+      renderer.registerShape("paddle", drawPongPaddle); // Glowing neon paddles
+      renderer.registerBackgroundEffect("pong_bg", drawPongBackground); // Custom grid grid background
 
       // Register standard fallback VFX too
-      (renderer as any).registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
-      (renderer as any).registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
-      (renderer as any).registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
-    } else if ((renderer as any).type === "skia") {
+      renderer.registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
+      renderer.registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
+      renderer.registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
+    } else if (renderer.type === "skia") {
       const { drawSkiaPongBall, drawSkiaPongPaddle, drawSkiaPongBackground } = require("./rendering/PongSkiaVisuals");
-      (renderer as any).registerShape("circle", drawSkiaPongBall);
-      (renderer as any).registerShape("paddle", drawSkiaPongPaddle);
-      (renderer as any).registerBackgroundEffect("pong_bg", drawSkiaPongBackground);
+      renderer.registerShape("circle", drawSkiaPongBall);
+      renderer.registerShape("paddle", drawSkiaPongPaddle);
+      renderer.registerBackgroundEffect("pong_bg", drawSkiaPongBackground);
 
       // Register custom new VFX - Overlay CRT grid, screen glow, and glitching on the Pong board!
-      (renderer as any).registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
-      (renderer as any).registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);
-      (renderer as any).registerBackgroundEffect("crt_glitch", SharedVFX.SkiaCRTGlitchShudderEffect);
+      renderer.registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
+      renderer.registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);
+      renderer.registerBackgroundEffect("crt_glitch", SharedVFX.SkiaCRTGlitchShudderEffect);
     }
   }
 
@@ -404,3 +404,28 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     }
   }
 }
+
+// ==========================================================================
+// GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
+// ==========================================================================
+
+registerMutatorHook("faster_bullets", (world) => {
+  const config = world.getResource<any>("GameConfig");
+  if (config && typeof config.PADDLE_SPEED === "number") {
+    const newConfig = { ...config };
+    newConfig.PADDLE_SPEED = Math.round(newConfig.PADDLE_SPEED * 1.15);
+    world.setResource("GameConfig", newConfig);
+  }
+});
+
+registerMutatorHook("extra_life", (world) => {
+  world.setResource("ExtraLifeScoreP1", 1);
+  const pongState = world.getSingleton("PongState" as any);
+  if (pongState) {
+    world.mutateSingleton("PongState" as any, (gs: any) => {
+      if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
+        gs.scoreP1 = 1;
+      }
+    });
+  }
+});

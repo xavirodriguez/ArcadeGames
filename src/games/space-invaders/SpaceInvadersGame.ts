@@ -303,8 +303,8 @@ export class SpaceInvadersGame
     }
   }
 
-  public initializeRenderer(renderer: Renderer<any>): void {
-    if ((renderer as any).type === "canvas") {
+  public initializeRenderer(renderer: Renderer<any, any>): void {
+    if (renderer.type === "canvas") {
       const {
         drawSpaceInvadersPlayer,
         drawSpaceInvadersInvader,
@@ -312,23 +312,23 @@ export class SpaceInvadersGame
         drawSpaceInvadersShield,
         drawSpaceInvadersParticle
       } = require("./rendering/SpaceInvadersCanvasVisuals");
-      (renderer as any).registerShape("player_ship", drawSpaceInvadersPlayer);
-      (renderer as any).registerShape("invader", drawSpaceInvadersInvader);
-      (renderer as any).registerShape("player_bullet", drawSpaceInvadersBullet);
-      (renderer as any).registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
-      (renderer as any).registerShape("shield_block", drawSpaceInvadersShield);
-      (renderer as any).registerShape("particle", drawSpaceInvadersParticle);
+      renderer.registerShape("player_ship", drawSpaceInvadersPlayer);
+      renderer.registerShape("invader", drawSpaceInvadersInvader);
+      renderer.registerShape("player_bullet", drawSpaceInvadersBullet);
+      renderer.registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
+      renderer.registerShape("shield_block", drawSpaceInvadersShield);
+      renderer.registerShape("particle", drawSpaceInvadersParticle);
 
       // Register custom new VFX
-    (renderer as any).registerShape("shield_bubble", SharedVFX.EnergyShieldBubbleEffect);
-      (renderer as any).registerShape("shockwave", SharedVFX.DebrisShockwaveEffect);
-      (renderer as any).registerShape("thruster_flame", SharedVFX.ThrusterPlumeFlameEffect);
-      (renderer as any).registerShape("laser_beam", SharedVFX.LaserRailBeamEffect);
-      (renderer as any).registerShape("singularity", SharedVFX.SingularityVortexEffect);
-      (renderer as any).registerShape("comet_trail", SharedVFX.CometMotionTrailEffect);
-      (renderer as any).registerShape("hologram_glitch", SharedVFX.RGBHologramGlitchEffect);
-      (renderer as any).registerShape("floating_text", SharedVFX.FloatingTextScoreEffect);
-    } else if ((renderer as any).type === "skia") {
+      renderer.registerShape("shield_bubble", SharedVFX.EnergyShieldBubbleEffect);
+      renderer.registerShape("shockwave", SharedVFX.DebrisShockwaveEffect);
+      renderer.registerShape("thruster_flame", SharedVFX.ThrusterPlumeFlameEffect);
+      renderer.registerShape("laser_beam", SharedVFX.LaserRailBeamEffect);
+      renderer.registerShape("singularity", SharedVFX.SingularityVortexEffect);
+      renderer.registerShape("comet_trail", SharedVFX.CometMotionTrailEffect);
+      renderer.registerShape("hologram_glitch", SharedVFX.RGBHologramGlitchEffect);
+      renderer.registerShape("floating_text", SharedVFX.FloatingTextScoreEffect);
+    } else if (renderer.type === "skia") {
       const {
         drawSkiaSpaceInvadersPlayer,
         drawSkiaSpaceInvadersInvader,
@@ -336,22 +336,22 @@ export class SpaceInvadersGame
         drawSkiaSpaceInvadersShield,
         drawSkiaSpaceInvadersParticle
       } = require("./rendering/SpaceInvadersSkiaVisuals");
-      (renderer as any).registerShape("player_ship", drawSkiaSpaceInvadersPlayer);
-      (renderer as any).registerShape("invader", drawSkiaSpaceInvadersInvader);
-      (renderer as any).registerShape("player_bullet", drawSkiaSpaceInvadersBullet);
-      (renderer as any).registerShape("enemy_bullet", drawSkiaSpaceInvadersBullet);
-      (renderer as any).registerShape("shield_block", drawSkiaSpaceInvadersShield);
-      (renderer as any).registerShape("particle", drawSkiaSpaceInvadersParticle);
+      renderer.registerShape("player_ship", drawSkiaSpaceInvadersPlayer);
+      renderer.registerShape("invader", drawSkiaSpaceInvadersInvader);
+      renderer.registerShape("player_bullet", drawSkiaSpaceInvadersBullet);
+      renderer.registerShape("enemy_bullet", drawSkiaSpaceInvadersBullet);
+      renderer.registerShape("shield_block", drawSkiaSpaceInvadersShield);
+      renderer.registerShape("particle", drawSkiaSpaceInvadersParticle);
 
       // Register custom new VFX for Skia mode
-(renderer as any).registerShape("shield_bubble", SharedVFX.SkiaEnergyShieldBubbleEffect);
-      (renderer as any).registerShape("shockwave", SharedVFX.SkiaDebrisShockwaveEffect);
-      (renderer as any).registerShape("thruster_flame", SharedVFX.SkiaThrusterPlumeFlameEffect);
-      (renderer as any).registerShape("laser_beam", SharedVFX.SkiaLaserRailBeamEffect);
-      (renderer as any).registerShape("singularity", SharedVFX.SkiaSingularityVortexEffect);
-      (renderer as any).registerShape("comet_trail", SharedVFX.SkiaCometMotionTrailEffect);
-      (renderer as any).registerShape("hologram_glitch", SharedVFX.SkiaRGBHologramGlitchEffect);
-      (renderer as any).registerShape("floating_text", SharedVFX.SkiaFloatingTextScoreEffect);
+      renderer.registerShape("shield_bubble", SharedVFX.SkiaEnergyShieldBubbleEffect);
+      renderer.registerShape("shockwave", SharedVFX.SkiaDebrisShockwaveEffect);
+      renderer.registerShape("thruster_flame", SharedVFX.SkiaThrusterPlumeFlameEffect);
+      renderer.registerShape("laser_beam", SharedVFX.SkiaLaserRailBeamEffect);
+      renderer.registerShape("singularity", SharedVFX.SkiaSingularityVortexEffect);
+      renderer.registerShape("comet_trail", SharedVFX.SkiaCometMotionTrailEffect);
+      renderer.registerShape("hologram_glitch", SharedVFX.SkiaRGBHologramGlitchEffect);
+      renderer.registerShape("floating_text", SharedVFX.SkiaFloatingTextScoreEffect);
     }
   }
 

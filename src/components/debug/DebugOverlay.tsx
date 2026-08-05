@@ -37,7 +37,7 @@ export interface ColliderShapeInfo {
 }
 
 interface DebugOverlayProps {
-  game: BaseGame<any, any> | null;
+  game: BaseGame<any, any, any, any, any> | null;
   room?: any;
 }
 

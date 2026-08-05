@@ -317,28 +317,28 @@ export class AsteroidsGame
   /**
    * Registers game-specific rendering logic to the provided renderer.
    */
-  public initializeRenderer(renderer: Renderer<AsteroidsComponentRegistry>): void {
+  public initializeRenderer(renderer: Renderer<AsteroidsComponentRegistry, any>): void {
     if (this.isHeadless) return;
     initializeAsteroidsRenderer(renderer);
 
-    if ((renderer as any).type === "canvas") {
-    (renderer as any).registerShape("shield_bubble", SharedVFX.EnergyShieldBubbleEffect);
-      (renderer as any).registerShape("shockwave", SharedVFX.DebrisShockwaveEffect);
-      (renderer as any).registerShape("thruster_flame", SharedVFX.ThrusterPlumeFlameEffect);
-      (renderer as any).registerShape("laser_beam", SharedVFX.LaserRailBeamEffect);
-      (renderer as any).registerShape("singularity", SharedVFX.SingularityVortexEffect);
-      (renderer as any).registerShape("comet_trail", SharedVFX.CometMotionTrailEffect);
-      (renderer as any).registerShape("hologram_glitch", SharedVFX.RGBHologramGlitchEffect);
-      (renderer as any).registerShape("floating_text", SharedVFX.FloatingTextScoreEffect);
-    } else if ((renderer as any).type === "skia") {
-  (renderer as any).registerShape("shield_bubble", SharedVFX.SkiaEnergyShieldBubbleEffect);
-      (renderer as any).registerShape("shockwave", SharedVFX.SkiaDebrisShockwaveEffect);
-      (renderer as any).registerShape("thruster_flame", SharedVFX.SkiaThrusterPlumeFlameEffect);
-      (renderer as any).registerShape("laser_beam", SharedVFX.SkiaLaserRailBeamEffect);
-      (renderer as any).registerShape("singularity", SharedVFX.SkiaSingularityVortexEffect);
-      (renderer as any).registerShape("comet_trail", SharedVFX.SkiaCometMotionTrailEffect);
-      (renderer as any).registerShape("hologram_glitch", SharedVFX.SkiaRGBHologramGlitchEffect);
-      (renderer as any).registerShape("floating_text", SharedVFX.SkiaFloatingTextScoreEffect);
+    if (renderer.type === "canvas") {
+      renderer.registerShape("shield_bubble", SharedVFX.EnergyShieldBubbleEffect);
+      renderer.registerShape("shockwave", SharedVFX.DebrisShockwaveEffect);
+      renderer.registerShape("thruster_flame", SharedVFX.ThrusterPlumeFlameEffect);
+      renderer.registerShape("laser_beam", SharedVFX.LaserRailBeamEffect);
+      renderer.registerShape("singularity", SharedVFX.SingularityVortexEffect);
+      renderer.registerShape("comet_trail", SharedVFX.CometMotionTrailEffect);
+      renderer.registerShape("hologram_glitch", SharedVFX.RGBHologramGlitchEffect);
+      renderer.registerShape("floating_text", SharedVFX.FloatingTextScoreEffect);
+    } else if (renderer.type === "skia") {
+      renderer.registerShape("shield_bubble", SharedVFX.SkiaEnergyShieldBubbleEffect);
+      renderer.registerShape("shockwave", SharedVFX.SkiaDebrisShockwaveEffect);
+      renderer.registerShape("thruster_flame", SharedVFX.SkiaThrusterPlumeFlameEffect);
+      renderer.registerShape("laser_beam", SharedVFX.SkiaLaserRailBeamEffect);
+      renderer.registerShape("singularity", SharedVFX.SkiaSingularityVortexEffect);
+      renderer.registerShape("comet_trail", SharedVFX.SkiaCometMotionTrailEffect);
+      renderer.registerShape("hologram_glitch", SharedVFX.SkiaRGBHologramGlitchEffect);
+      renderer.registerShape("floating_text", SharedVFX.SkiaFloatingTextScoreEffect);
     }
   }
 

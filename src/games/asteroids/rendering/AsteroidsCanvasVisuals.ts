@@ -47,9 +47,9 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.moveTo(-size * 0.4, size * 0.4);
-      ctx.lineTo(0, size * 0.4 + flameLen);
-      ctx.lineTo(size * 0.4, size * 0.4);
+      ctx.moveTo(-size * 0.4, -size * 0.4);
+      ctx.lineTo(-(size * 0.4 + flameLen), 0);
+      ctx.lineTo(-size * 0.4, size * 0.4);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
@@ -61,19 +61,19 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     ctx.lineJoin = "round";
 
     ctx.beginPath();
-    ctx.moveTo(0, -size); // Nose pointing UP
-    ctx.lineTo(size * 0.7, size * 0.7); // Right back
-    ctx.lineTo(size * 0.3, size * 0.5); // Center back indent
-    ctx.lineTo(-size * 0.3, size * 0.5); // Center back indent
-    ctx.lineTo(-size * 0.7, size * 0.7); // Left back
+    ctx.moveTo(size, 0); // Nose pointing RIGHT (+X)
+    ctx.lineTo(-size * 0.7, size * 0.7); // Right back
+    ctx.lineTo(-size * 0.5, size * 0.3); // Center back indent
+    ctx.lineTo(-size * 0.5, -size * 0.3); // Center back indent
+    ctx.lineTo(-size * 0.7, -size * 0.7); // Left back
     ctx.closePath();
     ctx.stroke();
 
     // Inner detail (cockpit line)
     ctx.beginPath();
-    ctx.moveTo(0, -size * 0.3);
-    ctx.lineTo(size * 0.3, size * 0.3);
+    ctx.moveTo(size * 0.3, 0);
     ctx.lineTo(-size * 0.3, size * 0.3);
+    ctx.lineTo(-size * 0.3, -size * 0.3);
     ctx.closePath();
     ctx.stroke();
 

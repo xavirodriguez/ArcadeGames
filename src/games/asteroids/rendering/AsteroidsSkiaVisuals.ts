@@ -71,9 +71,9 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       paint.setAlphaf(opacity * 0.7);
 
       const flamePath = Skia.Path.Make();
-      flamePath.moveTo(-size * 0.4, size * 0.4);
-      flamePath.lineTo(0, size * 0.4 + flameLen);
-      flamePath.lineTo(size * 0.4, size * 0.4);
+      flamePath.moveTo(-size * 0.4, -size * 0.4);
+      flamePath.lineTo(-(size * 0.4 + flameLen), 0);
+      flamePath.lineTo(-size * 0.4, size * 0.4);
       flamePath.close();
       canvas.drawPath(flamePath, paint);
 
@@ -88,17 +88,17 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     let shipGeom = cachedShipPaths.get(render);
     if (!shipGeom) {
       const shipPath = Skia.Path.Make();
-      shipPath.moveTo(0, -size);
-      shipPath.lineTo(size * 0.7, size * 0.7);
-      shipPath.lineTo(size * 0.3, size * 0.5);
-      shipPath.lineTo(-size * 0.3, size * 0.5);
-      shipPath.lineTo(-size * 0.7, size * 0.7);
+      shipPath.moveTo(size, 0); // Nose pointing RIGHT (+X)
+      shipPath.lineTo(-size * 0.7, size * 0.7); // Right back
+      shipPath.lineTo(-size * 0.5, size * 0.3); // Center back indent
+      shipPath.lineTo(-size * 0.5, -size * 0.3); // Center back indent
+      shipPath.lineTo(-size * 0.7, -size * 0.7); // Left back
       shipPath.close();
 
       const cockpitPath = Skia.Path.Make();
-      cockpitPath.moveTo(0, -size * 0.3);
-      cockpitPath.lineTo(size * 0.3, size * 0.3);
+      cockpitPath.moveTo(size * 0.3, 0);
       cockpitPath.lineTo(-size * 0.3, size * 0.3);
+      cockpitPath.lineTo(-size * 0.3, -size * 0.3);
       cockpitPath.close();
 
       shipGeom = { ship: shipPath, cockpit: cockpitPath };

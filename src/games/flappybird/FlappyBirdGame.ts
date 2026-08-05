@@ -12,6 +12,7 @@ import {
   createGameState,
   createGround
 } from "./EntityFactory";
+import { registerMutatorHook } from "../../utils/MutatorRegistry";
 
 /**
  * Controlador principal del juego Flappy Bird.
@@ -461,19 +462,19 @@ export class FlappyBirdGame
     }
   }
 
-  public initializeRenderer(renderer: Renderer<any>): void {
-    if ((renderer as any).type === "canvas") {
+  public initializeRenderer(renderer: Renderer<any, any>): void {
+    if (renderer.type === "canvas") {
       const { drawFlappyBird, drawFlappyPipe, drawFlappyGround, scrollingBackgroundEffect } = require("./rendering/FlappyBirdCanvasVisuals");
-      (renderer as any).registerShape("bird", drawFlappyBird);
-      (renderer as any).registerShape("pipe", drawFlappyPipe);
-      (renderer as any).registerShape("ground", drawFlappyGround);
-      (renderer as any).registerBackgroundEffect("scrollingSky", scrollingBackgroundEffect);
-    } else if ((renderer as any).type === "skia") {
+      renderer.registerShape("bird", drawFlappyBird);
+      renderer.registerShape("pipe", drawFlappyPipe);
+      renderer.registerShape("ground", drawFlappyGround);
+      renderer.registerBackgroundEffect("scrollingSky", scrollingBackgroundEffect);
+    } else if (renderer.type === "skia") {
       const { drawSkiaFlappyBird, drawSkiaFlappyPipe, drawSkiaFlappyGround, scrollingSkiaBackgroundEffect } = require("./rendering/FlappyBirdSkiaVisuals");
-      (renderer as any).registerShape("bird", drawSkiaFlappyBird);
-      (renderer as any).registerShape("pipe", drawSkiaFlappyPipe);
-      (renderer as any).registerShape("ground", drawSkiaFlappyGround);
-      (renderer as any).registerBackgroundEffect("scrollingSky", scrollingSkiaBackgroundEffect);
+      renderer.registerShape("bird", drawSkiaFlappyBird);
+      renderer.registerShape("pipe", drawSkiaFlappyPipe);
+      renderer.registerShape("ground", drawSkiaFlappyGround);
+      renderer.registerBackgroundEffect("scrollingSky", scrollingSkiaBackgroundEffect);
     }
   }
 
@@ -512,3 +513,16 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
 }
+
+// ==========================================================================
+// GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
+// ==========================================================================
+
+registerMutatorHook("combo_head_start", (world) => {
+  const flappyState = world.getSingleton("FlappyState" as any);
+  if (flappyState) {
+    world.mutateSingleton("FlappyState" as any, (fs: any) => {
+      fs.comboMultiplier = 2;
+    });
+  }
+});

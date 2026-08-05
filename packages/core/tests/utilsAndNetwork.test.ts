@@ -101,7 +101,7 @@ describe("MultiplayerSystems", () => {
 
     const replicationTracker = {};
     const deltaSystem = new NetworkDeltaSystem(replicationTracker);
-    expect(deltaSystem.generateDelta({}, "session", 1, 0, new Set(), false)).toEqual({
+    expect(deltaSystem.generateDelta({} as any, "session", 1, 0, new Set(), false)).toEqual({
       kind: "delta",
       tick: 0,
       delta: {}
@@ -113,8 +113,8 @@ describe("MultiplayerSystems", () => {
 
     const mockWorld = {};
     const interestManager = new InterestManagerSystem();
-    expect(() => interestManager.update(mockWorld, 0.16)).not.toThrow();
-    expect(() => interestManager.onRegister(mockWorld)).not.toThrow();
+    expect(() => interestManager.update(mockWorld as any, 0.16)).not.toThrow();
+    expect(() => interestManager.onRegister(mockWorld as any)).not.toThrow();
     expect(() => interestManager.dispose()).not.toThrow();
   });
 

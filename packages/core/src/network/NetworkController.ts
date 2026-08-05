@@ -1,21 +1,27 @@
-import { World } from "../ecs/World";
+import { World, BlueprintRegistryMap } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
+import { EventRegistry } from "../events/EventBus";
 import { NetworkManager } from "./NetworkManager";
 import { NullTransport } from "./NullTransport";
 import { InputFrame, ServerUpdatePayload, DeltaSnapshotPayload, FullSnapshotPayload } from "./NetTypes";
+import { WorldSnapshot } from "../snapshots/WorldSnapshot";
 
 /**
  * Handles replication, prediction, and server updates for games.
  * @public
  */
-export class NetworkController<TComponents extends ComponentRegistry = ComponentRegistry> {
+export class NetworkController<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+> {
   public networkManager?: NetworkManager;
   public lastProcessedFullStateVersion = -1;
   public isMultiplayer = false;
-  private world: World<TComponents, any, any>;
+  private world: World<TComponents, TEvents, TBlueprints>;
   private runSimStep: (deltaTime: number, isResimulating: boolean) => void;
 
-  constructor(world: World<TComponents, any, any>, runSimStep?: (deltaTime: number, isResimulating: boolean) => void) {
+  constructor(world: World<TComponents, TEvents, TBlueprints>, runSimStep?: (deltaTime: number, isResimulating: boolean) => void) {
     this.world = world;
     this.runSimStep = runSimStep ?? ((dt) => world.update(dt));
   }
@@ -35,10 +41,10 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
         axes: {}
       } as any);
     }
-    this.world.mutateComponent(entityId, "Input" as any, (inputComp: any) => {
+    this.world.mutateComponent(entityId, "Input" as any, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
       inputComp.actions = new Set<string>(input.actions || []);
       inputComp.axes = { ...input.axes };
-    });
+    }) as any);
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
@@ -51,7 +57,7 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
     this.runSimulationStep(deltaTime, false);
 
     if (this.isMultiplayer && this.networkManager) {
-      const strategy = this.networkManager.getStrategy() as { recordPrediction?: (input: any, world: any) => void } | undefined;
+      const strategy = this.networkManager.getStrategy() as { recordPrediction?: (input: InputFrame, world: World<TComponents, TEvents, TBlueprints>) => void } | undefined;
       if (strategy && strategy.recordPrediction) {
         strategy.recordPrediction(input, this.world);
       }
@@ -91,11 +97,11 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
 
     if (!this.networkManager) return;
 
-    this.networkManager.processServerUpdate(serverTick, delta as any, localSessionId);
+    this.networkManager.processServerUpdate(serverTick, delta as WorldSnapshot, localSessionId);
 
     const eventBus = this.world.getEventBus();
-    if (eventBus && (delta as any).stateVersion !== undefined) {
-      eventBus.emit("net:ack_version" as any, { version: (delta as any).stateVersion, tick: serverTick } as any);
+    if (eventBus && (delta as Partial<WorldSnapshot>).stateVersion !== undefined) {
+      eventBus.emit("net:ack_version" as any, { version: (delta as Partial<WorldSnapshot>).stateVersion, tick: serverTick } as any);
     }
   }
 

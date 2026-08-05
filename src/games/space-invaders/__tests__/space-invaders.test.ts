@@ -5,7 +5,8 @@ import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateS
 import { ComboSystem } from "../../shared/arcade";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { createGameState } from "../EntityFactory";
-import { ParticlePool } from "../EntityPool";
+import { ParticlePool, EnemyBulletPool } from "../EntityPool";
+import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationSystem";
 
 describe("Space Invaders Combo Logic & Performance", () => {
   let world: World<SpaceInvadersComponentRegistry>;
@@ -403,6 +404,101 @@ describe("Space Invaders Combo Logic & Performance", () => {
       expect(gameState?.combo).toBe(1);
       expect(gameState?.multiplier).toBe(1);
       expect(gameState?.score).toBe(10);
+    });
+  });
+
+  describe("SpaceInvadersFormationSystem Deterministic RNG & Firing", () => {
+    let enemyBulletPool: EnemyBulletPool;
+    let formationSystem: SpaceInvadersFormationSystem;
+
+    beforeEach(() => {
+      enemyBulletPool = new EnemyBulletPool();
+      formationSystem = new SpaceInvadersFormationSystem(enemyBulletPool);
+    });
+
+    it("should update formation position and fire an enemy bullet when cooldown expires using gameplayRandom without throwing", () => {
+      // 1. Set up Config resource
+      const mockConfig = {
+        KEYS: { LEFT: "ArrowLeft", RIGHT: "ArrowRight", SHOOT: "Space" },
+        ENEMY_FIRE_INTERVAL_MIN: 100, // short intervals for testing
+        ENEMY_FIRE_INTERVAL_MAX: 200,
+        INVADER_ROWS: 5,
+        INVADER_COLS: 11,
+        INVADER_SPEED_BASE: 50,
+        INVADER_SPEED_MAX: 400,
+        INVADER_DESCENT_STEP: 20,
+      };
+      world.setResource("GameConfig" as any, mockConfig);
+      world.setResource("EnemyBulletPool" as any, enemyBulletPool);
+
+      // 2. Create the Formation entity
+      const formationEntity = world.createEntity();
+      world.addComponent(formationEntity, {
+        type: "Formation",
+        direction: 1,
+        stepDownPending: false,
+        speed: mockConfig.INVADER_SPEED_BASE,
+        descentStep: mockConfig.INVADER_DESCENT_STEP,
+        leftBound: 0,
+        rightBound: 0,
+        fireCooldownRemaining: 50, // 50ms cooldown remaining
+      } as any);
+
+      // 3. Create at least one Invader with Transform
+      const invaderEntity = world.createEntity();
+      world.addComponent(invaderEntity, {
+        type: "Invader",
+        row: 0,
+        col: 0,
+        points: 10,
+      } as any);
+      world.addComponent(invaderEntity, {
+        type: "Transform",
+        x: 100,
+        y: 100,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 100,
+        worldY: 100,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false,
+      } as any);
+
+      // 4. Register system under testing
+      world.addSystem(formationSystem, { phase: SystemPhase.Simulation });
+
+      // Unlock gameplayRandom for test execution (since it defaults to locked)
+      world.gameplayRandom.unlock();
+
+      // Ensure no bullet exists in the world/pool initially
+      const bulletsBefore = world.query("EnemyBullet" as any);
+      expect(bulletsBefore.length).toBe(0);
+
+      // Update the world by 16ms -> cooldown goes from 50 to 34, should not fire
+      world.update(16);
+      const formation = world.getComponent(formationEntity, "Formation" as any) as any;
+      expect(formation.fireCooldownRemaining).toBe(34);
+      expect(world.query("EnemyBullet" as any).length).toBe(0);
+
+      // Update the world by another 40ms -> cooldown goes below 0, should fire
+      world.update(40);
+
+      // Cooldown should be reset to a new random value between 100 and 200 (approx)
+      const formationAfter = world.getComponent(formationEntity, "Formation" as any) as any;
+      expect(formationAfter.fireCooldownRemaining).toBeGreaterThan(0);
+
+      // A bullet should have been spawned!
+      const bulletsAfter = world.query("EnemyBullet" as any);
+      expect(bulletsAfter.length).toBe(1);
+
+      // Verify bullet starts near shooter position
+      const bulletPos = world.getComponent(bulletsAfter[0], "Transform" as any) as any;
+      expect(bulletPos).toBeDefined();
+      expect(bulletPos.x).toBeCloseTo(100 + 16.54545, 3);
+      expect(bulletPos.y).toBe(115); // shooter y + 15
     });
   });
 });

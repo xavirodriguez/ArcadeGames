@@ -26,7 +26,6 @@ import { PongEntityFactory } from "./EntityFactory";
 import { NetworkController } from "./input/NetworkController";
 import { type PongState, type PongInput, type PongComponentRegistry } from "./types";
 import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
-import { drawPongBall, drawPongPaddle, drawPongBackground } from "./rendering/PongCanvasVisuals";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 
@@ -333,6 +332,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
   public initializeRenderer(renderer: Renderer<PongComponentRegistry>): void {
     if ((renderer as any).type === "canvas") {
+      const { drawPongBall, drawPongPaddle, drawPongBackground } = require("./rendering/PongCanvasVisuals");
       (renderer as any).registerShape("circle", drawPongBall); // Override default circle with spinning ball
       (renderer as any).registerShape("paddle", drawPongPaddle); // Glowing neon paddles
       (renderer as any).registerBackgroundEffect("pong_bg", drawPongBackground); // Custom grid grid background
@@ -342,6 +342,11 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
       (renderer as any).registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
       (renderer as any).registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
     } else if ((renderer as any).type === "skia") {
+      const { drawSkiaPongBall, drawSkiaPongPaddle, drawSkiaPongBackground } = require("./rendering/PongSkiaVisuals");
+      (renderer as any).registerShape("circle", drawSkiaPongBall);
+      (renderer as any).registerShape("paddle", drawSkiaPongPaddle);
+      (renderer as any).registerBackgroundEffect("pong_bg", drawSkiaPongBackground);
+
       // Register custom new VFX - Overlay CRT grid, screen glow, and glitching on the Pong board!
       (renderer as any).registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
       (renderer as any).registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);

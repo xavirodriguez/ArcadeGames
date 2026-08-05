@@ -16,10 +16,10 @@ export interface GameOptions<TState> {
 }
 
 // Constructor type - accepts any class that extends BaseGame
-type GameConstructor<TGame extends BaseGame<TState, TInput>, TState, TInput extends Record<string, any>> =
+type GameConstructor<TGame extends BaseGame<TState, TInput, any, any, any>, TState, TInput extends Record<string, any>> =
   new (config: GameConfig) => TGame;
 
-export interface UseGameResult<TGame extends BaseGame<TState, TInput>, TState, TInput extends Record<string, any>> {
+export interface UseGameResult<TGame extends BaseGame<TState, TInput, any, any, any>, TState, TInput extends Record<string, any>> {
   game: TGame | null;
   gameState: TState | null;
   isPaused: boolean;
@@ -45,7 +45,7 @@ export interface UseGameResult<TGame extends BaseGame<TState, TInput>, TState, T
  * 4. **Keep Awake**: Mantiene la pantalla encendida mientras el juego está activo.
  */
 export function useGame<
-  TGame extends BaseGame<TState, TInput>,
+  TGame extends BaseGame<TState, TInput, any, any, any>,
   TState,
   TInput extends Record<string, any>
 >(

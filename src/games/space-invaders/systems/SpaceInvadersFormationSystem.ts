@@ -109,7 +109,7 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
 
     if (nextCooldownRemaining <= 0) {
       shouldFire = true;
-      const rng = world.getResource<RandomService>("gameplay")!;
+      const rng = world.gameplayRandom;
       const nextCooldown = rng.nextRange(
         this.config.ENEMY_FIRE_INTERVAL_MIN,
         this.config.ENEMY_FIRE_INTERVAL_MAX
@@ -145,7 +145,7 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
 
     const activeColumns = Array.from(columns.values());
     if (activeColumns.length > 0) {
-      const rng = world.getResource<RandomService>("gameplay")!;
+      const rng = world.gameplayRandom;
       const shooter = activeColumns[rng.nextInt(0, activeColumns.length)];
       const shooterPos = world.getComponent(shooter.entity, "Transform");
       if (shooterPos) {

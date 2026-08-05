@@ -4,6 +4,7 @@ import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
 import unusedImports from "eslint-plugin-unused-imports";
+import pluginImport from "eslint-plugin-import";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default tseslint.config(
@@ -35,6 +36,7 @@ export default tseslint.config(
     plugins: {
       "react-hooks": pluginReactHooks,
       "unused-imports": unusedImports,
+      "import": pluginImport,
     },
     languageOptions: {
       globals: {
@@ -138,12 +140,23 @@ export default tseslint.config(
                 "💥 FRONTERA ROTA: El Core no puede depender de implementaciones de red específicas. Usa NetworkTransport.",
             },
             {
-              group: ["../../../src/games/*", "**/*Asteroid*", "**/*Pong*"],
+              group: ["**/src/games/**", "**/src/app/**", "**/*Asteroid*", "**/*Pong*"],
               message:
                 "💥 FRONTERA ROTA: El Core es agnóstico. No puede importar lógica específica de los juegos.",
             },
           ],
         },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='emit']",
+          message: "💥 INVARIANTE ROTA: Prohibido usar .emit() de forma síncrona en el core. Usa colas o el CommandBuffer."
+        },
+        {
+          selector: "CallExpression[callee.object.name='world'][callee.property.name=/(addComponent|removeComponent|createEntity|removeEntity)/]",
+          message: "💥 INVARIANTE ROTA: Mutación estructural directa. Utiliza WorldCommandBuffer."
+        }
       ],
     },
   },
@@ -230,7 +243,6 @@ export default tseslint.config(
       "unused-imports/no-unused-vars": "off",
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-require-imports": "off",
-      "no-restricted-imports": "off",
       "no-case-declarations": "off"
     }
   }

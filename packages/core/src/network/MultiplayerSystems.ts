@@ -1,6 +1,10 @@
 import { Packr } from "msgpackr";
 import { ServerUpdatePayload } from "./NetTypes";
 import { WorldSnapshot } from "../snapshots/WorldSnapshot";
+import { World } from "../ecs/World";
+import { System } from "../ecs/System";
+import { ComponentRegistry } from "../ecs/Component";
+import { EventRegistry } from "../events/EventBus";
 
 const packr = new Packr({
     useRecords: false,
@@ -19,7 +23,10 @@ export class ClientAckTracker {
 /** @public */
 export class NetworkDeltaSystem {
     constructor(tracker: ReplicationStateTracker) {}
-    public generateDelta(world: any, sessionId: string, sequence: number, baselineAck: number, interestIds: Set<number>, forceFull: boolean): ServerUpdatePayload {
+    public generateDelta<
+      TComponents extends ComponentRegistry = ComponentRegistry,
+      TEvents extends EventRegistry = EventRegistry
+    >(world: World<TComponents, TEvents, any>, sessionId: string, sequence: number, baselineAck: number, interestIds: Set<number>, forceFull: boolean): ServerUpdatePayload {
         return {
             kind: "delta",
             tick: 0,
@@ -42,11 +49,12 @@ export class BinaryCompression {
     }
 }
 
-import { System } from "../ecs/System";
-
 /** @public */
-export class InterestManagerSystem extends System<any, any> {
-    public update(world: any, deltaTime: number): void {}
-    public override onRegister(world: any): void {}
+export class InterestManagerSystem<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry
+> extends System<TComponents, TEvents> {
+    public update(world: World<TComponents, TEvents, any>, deltaTime: number): void {}
+    public override onRegister(world: World<TComponents, TEvents, any>): void {}
     public override dispose(): void {}
 }

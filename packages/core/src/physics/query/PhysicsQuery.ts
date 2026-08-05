@@ -1,16 +1,23 @@
-import { World } from "../../ecs/World";
+import { World, BlueprintRegistryMap } from "../../ecs/World";
 import { Entity } from "../../ecs/Entity";
-import { Shape, ShapeType } from "../shapes/Shapes";
+import { Shape, ShapeType, ConvexPolygonShape } from "../shapes/Shapes";
 import { NarrowPhase } from "../collision/NarrowPhase";
+import { ComponentRegistry } from "../../ecs/Component";
+import { EventRegistry } from "../../events/EventBus";
+import { TransformComponent, ColliderComponent } from "../../ecs/CoreComponents";
 
 /** @public */
 export class PhysicsQuery {
-  public static pointCast(world: World<any>, x: number, y: number): Entity[] {
+  public static pointCast<
+    TComponents extends ComponentRegistry = ComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number): Entity[] {
     const results: Entity[] = [];
-    const entities = world.query("Collider", "Transform");
+    const entities = world.query("Collider" as any, "Transform" as any);
     for (const entity of entities) {
-      const transform = world.getComponent(entity, "Transform") as any;
-      const collider = world.getComponent(entity, "Collider") as any;
+      const transform = world.getComponent(entity, "Transform" as any) as unknown as TransformComponent | undefined;
+      const collider = world.getComponent(entity, "Collider" as any) as unknown as ColliderComponent | undefined;
       if (!transform || !collider || !collider.enabled) continue;
 
       const worldX = transform.worldX ?? transform.x;
@@ -44,12 +51,12 @@ export class PhysicsQuery {
           }
         }
       } else if (shape.type === ShapeType.Polygon) {
-        const poly = shape as any;
+        const poly = shape as ConvexPolygonShape;
         if (poly.vertices) {
           const rot = transform.worldRotation ?? transform.rotation ?? 0;
           const cos = Math.cos(rot);
           const sin = Math.sin(rot);
-          const worldVerts = poly.vertices.map((v: any) => {
+          const worldVerts = poly.vertices.map((v) => {
             const rx = cos * v.x - sin * v.y;
             const ry = sin * v.x + cos * v.y;
             return { x: cx + rx, y: cy + ry };
@@ -71,12 +78,16 @@ export class PhysicsQuery {
     return results;
   }
 
-  public static shapeCast(world: World<any>, shape: Shape, x: number, y: number): Entity[] {
+  public static shapeCast<
+    TComponents extends ComponentRegistry = ComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, shape: Shape, x: number, y: number): Entity[] {
     const results: Entity[] = [];
-    const entities = world.query("Collider", "Transform");
+    const entities = world.query("Collider" as any, "Transform" as any);
     for (const entity of entities) {
-      const transform = world.getComponent(entity, "Transform") as any;
-      const collider = world.getComponent(entity, "Collider") as any;
+      const transform = world.getComponent(entity, "Transform" as any) as unknown as TransformComponent | undefined;
+      const collider = world.getComponent(entity, "Collider" as any) as unknown as ColliderComponent | undefined;
       if (!transform || !collider || !collider.enabled) continue;
 
       const worldX = transform.worldX ?? transform.x;

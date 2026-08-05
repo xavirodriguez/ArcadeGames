@@ -213,15 +213,15 @@ export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistr
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeCap(Skia.StrokeCap.Round);
 
-    // Laser glow line
+    // Laser glow line (aligned to +X direction/horizontally)
     paint.setColor(Skia.Color(colorStr));
     paint.setStrokeWidth(3);
-    canvas.drawLine(0, -length / 2, 0, length / 2, paint);
+    canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
 
     // White core line for brightness
     paint.setColor(Skia.Color("#ffffff"));
     paint.setStrokeWidth(1);
-    canvas.drawLine(0, -length / 2, 0, length / 2, paint);
+    canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
 
     canvas.restore();
   }

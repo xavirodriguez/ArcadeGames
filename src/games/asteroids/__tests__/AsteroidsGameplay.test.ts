@@ -29,6 +29,46 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
     game.destroy();
   });
 
+  describe("AsteroidInputSystem Shooting", () => {
+    it("should allow shooting multiple times with appropriate cooldown", () => {
+      // Create a player ship first
+      const shipEntity = createShip({ world, x: 100, y: 100 });
+      world.addComponent(shipEntity, { type: "LocalPlayer" });
+      world.addComponent(shipEntity, {
+          type: "Input",
+          actions: { shoot: true },
+          axes: {}
+      });
+      world.flush();
+
+      // Find the local player ship
+      const ships = world.query("LocalPlayer", "Ship", "Input");
+      expect(ships.length).toBe(1);
+
+      // Update once - should spawn a bullet
+      world.update(0.016);
+      world.flush();
+
+      let bullets = world.query("Bullet");
+      expect(bullets.length).toBe(1);
+
+      // Verify cooldown is set
+      let shipComp = world.getComponent(shipEntity, "Ship") as any;
+      expect(shipComp.shootCooldownRemaining).toBeGreaterThan(0.2);
+
+      // Update multiple times to decrement cooldown (0.25 seconds / 0.016 ~ 16 frames)
+      // Since shoot = true is held, it should automatically fire a second bullet once cooldown <= 0
+      for (let i = 0; i < 20; i++) {
+        world.update(0.016);
+        world.flush();
+      }
+
+      // Should have successfully spawned the second bullet automatically
+      bullets = world.query("Bullet");
+      expect(bullets.length).toBe(2);
+    });
+  });
+
   describe("computeShipPhysics", () => {
     it("should correctly rotate ship clockwise and counter-clockwise", () => {
       const transform = { rotation: 0 };

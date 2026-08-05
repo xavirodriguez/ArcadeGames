@@ -157,21 +157,21 @@ export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, Asteroid
 
     ctx.save();
 
-    // Laser glow line
+    // Laser glow line (aligned to +X direction/horizontally)
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
     ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(0, -length / 2);
-    ctx.lineTo(0, length / 2);
+    ctx.moveTo(-length / 2, 0);
+    ctx.lineTo(length / 2, 0);
     ctx.stroke();
 
     // White core line for brightness
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, -length / 2);
-    ctx.lineTo(0, length / 2);
+    ctx.moveTo(-length / 2, 0);
+    ctx.lineTo(length / 2, 0);
     ctx.stroke();
 
     ctx.restore();

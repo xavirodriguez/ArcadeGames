@@ -13,7 +13,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
   }
 
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, deltaTime: number): void {
-      const dtSec = deltaTime / 1000;
+      const dtSec = deltaTime; // deltaTime is already strictly in units of seconds (e.g. 0.016s)
       const config = world.getResource<AsteroidConfig>("GameConfig") || this.config;
 
       // Query local player entities

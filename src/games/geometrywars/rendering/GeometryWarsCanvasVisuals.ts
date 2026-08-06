@@ -355,6 +355,92 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
   }
 };
 
+/**
+ * Shape drawer for enemy seeker (neon diamond/star).
+ * @public
+ */
+export const drawEnemySeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 12;
+    const color = render.color ?? "#ff00ff";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -size);
+    ctx.lineTo(size / 2, 0);
+    ctx.lineTo(0, size);
+    ctx.lineTo(-size / 2, 0);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+/**
+ * Shape drawer for enemy evader (neon square).
+ * @public
+ */
+export const drawEnemyEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 12;
+    const color = render.color ?? "#00ff00";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.rect(-size / 2, -size / 2, size, size);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+/**
+ * Shape drawer for enemy fast seeker (neon arrow/triangle).
+ * @public
+ */
+export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 8;
+    const color = render.color ?? "#ff0000";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.moveTo(size, 0);
+    ctx.lineTo(-size, -size / 2);
+    ctx.lineTo(-size / 2, 0);
+    ctx.lineTo(-size, size / 2);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
 // ============================================================================
 // GEOMETRY WARS BACKGROUND NEON DEFORMING GRID EFFECT
 // ============================================================================

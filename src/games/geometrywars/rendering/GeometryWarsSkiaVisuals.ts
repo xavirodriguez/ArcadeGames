@@ -392,6 +392,107 @@ export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   }
 };
 
+/**
+ * Skia shape drawer for enemy seeker (neon diamond/star).
+ * @public
+ */
+export const drawSkiaEnemySeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 12;
+    const color = render.color ?? "#ff00ff";
+
+    const paint = getPaint();
+    canvas.save();
+
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(1.5);
+    paint.setColor(Skia.Color(color));
+
+    const path = Skia.Path.Make();
+    path.moveTo(0, -size);
+    path.lineTo(size / 2, 0);
+    path.lineTo(0, size);
+    path.lineTo(-size / 2, 0);
+    path.close();
+
+    canvas.drawPath(path, paint);
+    canvas.restore();
+  }
+};
+
+/**
+ * Skia shape drawer for enemy evader (neon square).
+ * @public
+ */
+export const drawSkiaEnemyEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 12;
+    const color = render.color ?? "#00ff00";
+
+    const paint = getPaint();
+    canvas.save();
+
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(1.5);
+    paint.setColor(Skia.Color(color));
+
+    canvas.drawRect(
+      Skia.XYWHRect(-size / 2, -size / 2, size, size),
+      paint
+    );
+    canvas.restore();
+  }
+};
+
+/**
+ * Skia shape drawer for enemy fast seeker (neon arrow/triangle).
+ * @public
+ */
+export const drawSkiaEnemyFastSeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 8;
+    const color = render.color ?? "#ff0000";
+
+    const paint = getPaint();
+    canvas.save();
+
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(1.5);
+    paint.setColor(Skia.Color(color));
+
+    const path = Skia.Path.Make();
+    path.moveTo(size, 0);
+    path.lineTo(-size, -size / 2);
+    path.lineTo(-size / 2, 0);
+    path.lineTo(-size, size / 2);
+    path.close();
+
+    canvas.drawPath(path, paint);
+    canvas.restore();
+  }
+};
+
 // ============================================================================
 // GEOMETRY WARS BACKGROUND NEON DEFORMING GRID EFFECT (SKIA)
 // ============================================================================

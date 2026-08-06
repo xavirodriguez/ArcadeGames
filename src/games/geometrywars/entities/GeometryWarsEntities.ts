@@ -202,6 +202,263 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
+  registry.register("seeker", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
+      w.addComponent(entity, {
+        type: "Transform",
+        x: args.x,
+        y: args.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: args.x,
+        worldY: args.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as TransformComponent);
+
+      w.addComponent(entity, {
+        type: "Velocity",
+        vx: 0,
+        vy: 0,
+        angularVelocity: 0
+      } as VelocityComponent);
+
+      w.addComponent(entity, {
+        type: "Render",
+        shape: "gw_seeker",
+        size: 12,
+        color: "#ff00ff",
+        visible: true,
+        opacity: 1,
+        order: 3,
+        rotation: 0,
+        angularVelocity: 0,
+        hitFlashFrames: 0
+      } as RenderComponent);
+
+      w.addComponent(entity, {
+        type: "Health",
+        current: 2,
+        max: 2,
+        invulnerableRemaining: 0
+      } as HealthComponent);
+
+      w.addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,
+        layer: CollisionLayers.ENEMY,
+        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
+        enabled: true,
+        isTrigger: false
+      } as ColliderComponent);
+
+      w.addComponent(entity, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as CollisionEventsComponent);
+
+      w.addComponent(entity, {
+        type: "Damage",
+        amount: 1,
+        category: "enemy_contact",
+        friendlyFire: false,
+        consumption: "none"
+      } as DamageComponent);
+
+      w.addComponent(entity, {
+        type: "Faction",
+        faction: "enemy",
+        value: "enemy"
+      } as FactionComponent);
+
+      w.addComponent(entity, {
+        type: "Steering",
+        mode: "seek",
+        targetFaction: "player",
+        maxSpeed: 120,
+        maxAcceleration: 80,
+        arrivalRadius: 10
+      } as any);
+    }
+  });
+
+  registry.register("evader", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
+      w.addComponent(entity, {
+        type: "Transform",
+        x: args.x,
+        y: args.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: args.x,
+        worldY: args.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as TransformComponent);
+
+      w.addComponent(entity, {
+        type: "Velocity",
+        vx: 0,
+        vy: 0,
+        angularVelocity: 0
+      } as VelocityComponent);
+
+      w.addComponent(entity, {
+        type: "Render",
+        shape: "gw_evader",
+        size: 12,
+        color: "#00ff00",
+        visible: true,
+        opacity: 1,
+        order: 3,
+        rotation: 0,
+        angularVelocity: 0,
+        hitFlashFrames: 0
+      } as RenderComponent);
+
+      w.addComponent(entity, {
+        type: "Health",
+        current: 1,
+        max: 1,
+        invulnerableRemaining: 0
+      } as HealthComponent);
+
+      w.addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,
+        layer: CollisionLayers.ENEMY,
+        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
+        enabled: true,
+        isTrigger: false
+      } as ColliderComponent);
+
+      w.addComponent(entity, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as CollisionEventsComponent);
+
+      w.addComponent(entity, {
+        type: "Damage",
+        amount: 1,
+        category: "enemy_contact",
+        friendlyFire: false,
+        consumption: "none"
+      } as DamageComponent);
+
+      w.addComponent(entity, {
+        type: "Faction",
+        faction: "enemy",
+        value: "enemy"
+      } as FactionComponent);
+
+      w.addComponent(entity, {
+        type: "Steering",
+        mode: "flee",
+        targetFaction: "player",
+        maxSpeed: 100,
+        maxAcceleration: 60
+      } as any);
+    }
+  });
+
+  registry.register("fast_seeker", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
+      w.addComponent(entity, {
+        type: "Transform",
+        x: args.x,
+        y: args.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: args.x,
+        worldY: args.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as TransformComponent);
+
+      w.addComponent(entity, {
+        type: "Velocity",
+        vx: 0,
+        vy: 0,
+        angularVelocity: 0
+      } as VelocityComponent);
+
+      w.addComponent(entity, {
+        type: "Render",
+        shape: "gw_fast_seeker",
+        size: 8,
+        color: "#ff0000",
+        visible: true,
+        opacity: 1,
+        order: 3,
+        rotation: 0,
+        angularVelocity: 0,
+        hitFlashFrames: 0
+      } as RenderComponent);
+
+      w.addComponent(entity, {
+        type: "Health",
+        current: 1,
+        max: 1,
+        invulnerableRemaining: 0
+      } as HealthComponent);
+
+      w.addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Circle, radius: 4 } as CircleShape,
+        layer: CollisionLayers.ENEMY,
+        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
+        enabled: true,
+        isTrigger: false
+      } as ColliderComponent);
+
+      w.addComponent(entity, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as CollisionEventsComponent);
+
+      w.addComponent(entity, {
+        type: "Damage",
+        amount: 1,
+        category: "enemy_contact",
+        friendlyFire: false,
+        consumption: "none"
+      } as DamageComponent);
+
+      w.addComponent(entity, {
+        type: "Faction",
+        faction: "enemy",
+        value: "enemy"
+      } as FactionComponent);
+
+      w.addComponent(entity, {
+        type: "Steering",
+        mode: "seek",
+        targetFaction: "player",
+        maxSpeed: 200,
+        maxAcceleration: 150,
+        arrivalRadius: 5
+      } as any);
+    }
+  });
+
   world.setResource("BlueprintRegistry", registry);
 }
 
@@ -210,6 +467,81 @@ export function registerGeometryWarsBlueprints(
  * @public
  */
 export class GeometryWarsEntityFactory {
+  public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("seeker")?.spawn(mockWorld, entity, { x, y });
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("seeker")?.spawn(world, entity, { x, y });
+    }
+    return entity;
+  }
+
+  public static createEvader(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("evader")?.spawn(mockWorld, entity, { x, y });
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("evader")?.spawn(world, entity, { x, y });
+    }
+    return entity;
+  }
+
+  public static createFastSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("fast_seeker")?.spawn(mockWorld, entity, { x, y });
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("fast_seeker")?.spawn(world, entity, { x, y });
+    }
+    return entity;
+  }
+
   public static createPlayer(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
     const isUpdating = world.isUpdating;
     const commands = world.getCommandBuffer();

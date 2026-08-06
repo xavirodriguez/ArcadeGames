@@ -6,11 +6,14 @@ import {
   CollisionSystem2D,
   TTLSystem,
   RenderUpdateSystem,
-  SystemPhase
+  SystemPhase,
+  SteeringSystem
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { CombatSystem } from "../../shared/combat/systems/CombatSystem";
+import { SpawnDirectorSystem } from "../../shared/spawn/systems/SpawnDirectorSystem";
+import { generateGeometryWarsWaves } from "../config/GeometryWarsWaves";
 import { registerGeometryWarsBlueprints, GeometryWarsEntityFactory } from "../entities/GeometryWarsEntities";
 import { GeometryWarsInputSystem } from "../systems/GeometryWarsInputSystem";
 
@@ -44,6 +47,8 @@ export class GeometryWarsGameScene extends Scene {
 
     // 3. Register systems
     this.gworld.addSystem(new GeometryWarsInputSystem(), { phase: SystemPhase.Simulation });
+    this.gworld.addSystem(new SteeringSystem(), { phase: SystemPhase.Simulation });
+    this.gworld.addSystem(new SpawnDirectorSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.gworld.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
@@ -54,6 +59,21 @@ export class GeometryWarsGameScene extends Scene {
     // 4. Initialize entities
     GeometryWarsEntityFactory.createGameState(this.gworld);
     GeometryWarsEntityFactory.createPlayer(this.gworld, this.config.WIDTH / 2, this.config.HEIGHT / 2);
+
+    // Initialize Wave definitions and SpawnDirector
+    const waves = generateGeometryWarsWaves(this.config.WIDTH, this.config.HEIGHT);
+    this.gworld.setResource("WaveDefinitions", waves);
+
+    const directorEntity = this.gworld.createEntity();
+    this.gworld.addComponent(directorEntity, {
+      type: "SpawnDirector",
+      waveIndex: 0,
+      cooldownRemaining: 0,
+      pendingSpawns: [],
+      waveElapsedTime: 0,
+      enemiesRemaining: 0,
+      status: "idle"
+    } as any);
   }
 
   public override onExit(): void {

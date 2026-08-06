@@ -21,7 +21,7 @@
 1. **Deterministic Execution**: Every mechanic, bullet spawn, and AI pattern must execute identically across frame rates and platforms. All gameplay-affecting randomness is strictly isolated to `world.gameplayRandom` to support replayability and netcode prediction.
 2. **Kinetic Game Feel (Juice)**: Fast-paced inputs must yield immediate visual, audio, and physical reactions (hit-flashes, screen-shaking, floating popup text).
 3. **Session-to-Session Hooks**: A robust, persistent meta-progression XP economy bridges short, intense, 2-minute arcade sessions with long-term completionist and tuning progression.
-4. **Modular Architecture**: Shared arcade behaviors (e.g., combos, particle effects, score multipliers) are codified as reusable ECS components and systems in `@tiny-aster/core` rather than monolithic per-game implementations.
+4. **Modular Architecture**: Shared arcade behaviors (e.g., combos, particle effects, score multipliers) are codified as reusable ECS components and systems in shared gameplay directories (`src/games/shared/`) rather than monolithic per-game implementations.
 
 ---
 
@@ -259,32 +259,41 @@ These specifications provide unambiguous guidelines for implementing core progre
 
 ---
 
-## ⚠️ Known Architecture Inconsistency to Flag
+## 📁 Codebase Architecture and Shared Modules
 
-### Combo System Duplication
-Currently, the codebase exhibits duplicated combo logic:
-1. **Generic Core**: `@tiny-aster/core` contains a generalized `ComboSystem` and `ComboComponent` at `packages/core/src/games/arcade/`.
-2. **Space Invaders local**: Space Invaders completely bypasses this core component, instead housing `combo`, `multiplier`, and `comboTimerRemaining` directly inside its local `GameStateComponent` and processing state updates natively in `SpaceInvadersCollisionSystem.ts` and `SpaceInvadersGameStateSystem.ts`.
+The project separates logic into three distinct architectural layers to ensure a clean, decoupled, and maintainable codebase:
 
-#### Proposed Unification Design
-Instead of games continuously reinventing custom combo systems, all games should transition to consuming the generic core system:
+1. **Core Engine (`packages/core/`)**:
+   - Platform-agnostic ECS engine internals (`World`, `Schedule`, `System`, `Entity`, `Component`).
+   - Fundamental physical and mathematical modules (Physics query, collision detection, movement).
+   - Core components like `Transform`, `Velocity`, `Render`, and `Health`.
+   - Free from game-specific configurations or platform-dependent frameworks (React Native, Skia, Colyseus).
 
-1. **Adopt Core Component**: Refactor each game's local state component to reference `ComboComponent` as a attached entity component:
-   ```typescript
-   export interface ComboComponent extends Component {
-     type: "Combo";
-     combo: number;
-     multiplier: number;
-     timerRemaining: number;
-     timerDuration: number;
-   }
-   ```
-2. **Attach to Player Entity**: Rather than pollution of global `GameState`, the combo is attached to the player's ship or bird. This allows multi-player independent combo multipliers.
-3. **Event-Driven Multiplier Increments**: When collisions or points are scored, dispatch a core event:
-   ```typescript
-   eventBus.emit("combo:increment", { entity: playerEntity, increment: 1 });
-   ```
-   The `ComboSystem` handles incrementing, updating timers, and ceiling thresholds (e.g. `MAX_MULTIPLIER`), maintaining single-responsibility and clean architectural boundaries.
+2. **Shared Gameplay Modules (`src/games/shared/`)**:
+   - Reusable arcade mechanisms shared across retro titles to prevent duplication.
+   - **Arcade (`src/games/shared/arcade/`)**: Unifies `ComboComponent` and `ComboSystem` (which was successfully migrated from core to shared), alongside generic `LootSystem` and `PowerUpSystem`.
+   - **Combat (`src/games/shared/combat/`)**: Implements generic `CombatSystem` along with `DamageComponent` and `FactionComponent`.
+   - **Spawn (`src/games/shared/spawn/`)**: Houses `SpawnDirectorSystem`, `SpawnDirectorComponent`, and `WaveMemberComponent` for sequential wave spawning.
+
+3. **Game-Specific Submodules (`src/games/[game-name]/`)**:
+   - Houses unique gameplay parameters, layout rendering, visual assets, scene workflows, and custom collision/interaction behaviors.
+   - Core titles include **Space Invaders**, **Asteroids**, **Pong**, and **Flappy Bird**.
+
+---
+
+## ⚠️ Architectural Decoupling & Decisions
+
+### 1. Unified Combo System
+The local combo variables inside Space Invaders' `GameStateComponent` have been deprecated. Both Space Invaders and Pong now leverage the shared `ComboSystem` and `ComboComponent` located at `src/games/shared/arcade/` as the single source of truth, avoiding the duplication initially flagged.
+
+### 2. Extensible Combat System
+The generic `CombatSystem` at `src/games/shared/combat/` processes health decrementing and hit/death events.
+- **Space Invaders Pilot**: Employs `CombatSystem` for player and boss hits. Game-specific visual feedback, screen shake, and boss HP synchronization are triggered via event listeners responding to deferred `combat:hit` and `combat:death` events.
+- **Asteroids Extension**: Integrates `CombatSystem` for player bullets hitting asteroids. Asteroid splitting/fragmentation and score incrementing are triggered via `combat:death` listeners, preserving custom physics/spawning while sharing the damage core.
+
+### 3. Centralized Spawn Director
+- **Space Invaders Migration**: Integrated `SpawnDirectorSystem` at `src/games/shared/spawn/` to drive normal levels and boss waves through sequential wave definitions. Game-specific state systems synchronize game levels directly from the director.
+- **Asteroids Postponement (Decision)**: Asteroid spawning is intrinsically non-sequential, randomly projecting asteroids away from the center in wrap-around boundaries. Integrating `SpawnDirectorSystem`'s linear wave queue would add unnecessary overhead and require game-specific exceptions for proximity checks. Therefore, Asteroids retains its simple procedural wave spawner inside `AsteroidGameStateSystem.ts`, postponing a director migration.
 
 ---
 

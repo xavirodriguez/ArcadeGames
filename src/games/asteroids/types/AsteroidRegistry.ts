@@ -1,5 +1,6 @@
 import { CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
 import { LootTableComponent, PowerUpComponent } from "../../shared/arcade";
+import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
 import {
   GameStateComponent,
   InputComponent,
@@ -19,6 +20,8 @@ export interface AsteroidsComponentRegistry extends CoreComponentRegistry {
   LocalPlayer: { type: "LocalPlayer" };
   RemotePlayer: { type: "RemotePlayer"; sessionId: string };
   PlayerScore: { type: "PlayerScore"; score: number };
+  Damage: DamageComponent;
+  Faction: FactionComponent;
 }
 
 /** @public */

@@ -16,6 +16,113 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     super();
   }
 
+  public override onRegister(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>): void {
+    const eventBus = world.getEventBus() as any;
+    if (eventBus) {
+      eventBus.on("combat:death", (event: any) => {
+        this.onCombatDeath(world, event);
+      });
+    }
+  }
+
+  private onCombatDeath(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, event: any): void {
+    const asteroid = event.entity;
+    const bullet = event.sourceEntity;
+
+    if (!world.hasComponent(asteroid, "Asteroid")) {
+      return;
+    }
+
+    const asteroidComp = world.getComponent(asteroid, "Asteroid");
+    const size = (asteroidComp?.size || "large") as "large" | "medium" | "small";
+
+    let points = 20;
+    if (size === "medium") points = 50;
+    else if (size === "small") points = 100;
+
+    let newScore = points;
+    world.mutateSingleton("GameState", (state) => {
+        state.score += points;
+        newScore = state.score;
+    });
+
+    // Score synchronization logic by owner
+    if (bullet !== undefined && world.hasComponent(bullet, "Bullet")) {
+      const bulletComp = world.getComponent(bullet, "Bullet");
+      const ownerId = bulletComp?.ownerId;
+      if (ownerId) {
+          let playerEntity: number | undefined;
+          const candidates = [...world.query("RemotePlayer"), ...world.query("LocalPlayer"), ...world.query("Ship")];
+          for (const ent of candidates) {
+              let sid: string | undefined;
+              const remote = world.getComponent(ent, "RemotePlayer");
+              if (remote && remote.sessionId) {
+                  sid = remote.sessionId;
+              }
+              if (!sid) {
+                  const ship = world.getComponent(ent, "Ship");
+                  if (ship && ship.sessionId) {
+                      sid = ship.sessionId;
+                  }
+              }
+              if (sid === ownerId) {
+                  playerEntity = ent;
+                  break;
+              }
+          }
+
+          if (playerEntity !== undefined) {
+              if (!world.hasComponent(playerEntity, "PlayerScore")) {
+                  world.getCommandBuffer().addComponent(playerEntity, {
+                      type: "PlayerScore",
+                      score: points
+                  });
+              } else {
+                  world.mutateComponent(playerEntity, "PlayerScore", (ps) => {
+                      ps.score = (ps.score || 0) + points;
+                  });
+              }
+          }
+      }
+    }
+
+    // Spawn particles
+    const asteroidTransform = world.getComponent(asteroid, "Transform");
+    const particlePool = world.getResource<any>("ParticlePool");
+    if (asteroidTransform && particlePool) {
+      const ax = asteroidTransform.x;
+      const ay = asteroidTransform.y;
+      const particleCount = size === "large" ? 24 : (size === "medium" ? 16 : 10);
+      const rng = world.gameplayRandom;
+      for (let i = 0; i < particleCount; i++) {
+        const angle = rng.next() * Math.PI * 2;
+        const speed = rng.nextRange(40, 150);
+        const px = ax + (rng.next() - 0.5) * 8;
+        const py = ay + (rng.next() - 0.5) * 8;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        const colors = ["#a78bfa", "#c084fc", "#e9d5ff", "#a1a1aa"];
+        const color = colors[rng.nextInt(0, colors.length)];
+        const pSize = rng.nextRange(1.5, 4.5);
+        const ttl = rng.nextRange(0.4, 0.9);
+        createParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
+      }
+    }
+
+    // Fragment asteroid
+    fragmentAsteroid(world, asteroid);
+
+    // Remove entity
+    world.getCommandBuffer().removeEntity(asteroid);
+
+    // Emit deferred events
+    const eventBus = world.getEventBus();
+    if (eventBus) {
+        eventBus.emitDeferred("asteroid:destroyed", { entity: asteroid, size });
+        eventBus.emitDeferred("score:changed", { newScore, delta: points });
+    }
+  }
+
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, _deltaTime: number): void {
     // Paso 4: Double-security collision resolution system
     const entities = world.query("CollisionEvents");
@@ -67,97 +174,15 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
 
             if (destroyedEntities.has(bullet) || destroyedEntities.has(asteroid)) continue;
 
-            const asteroidComp = world.getComponent(asteroid, "Asteroid");
-            const size = (asteroidComp?.size || "large") as "large" | "medium" | "small";
-
-            let points = 20;
-            if (size === "medium") points = 50;
-            else if (size === "small") points = 100;
-
-            let newScore = points;
-            world.mutateSingleton("GameState", (state) => {
-                state.score += points;
-                newScore = state.score;
-            });
-
-            // Score synchronization logic by owner
-            const bulletComp = world.getComponent(bullet, "Bullet");
-            const ownerId = bulletComp?.ownerId;
-            if (ownerId) {
-                let playerEntity: number | undefined;
-                const candidates = [...world.query("RemotePlayer"), ...world.query("LocalPlayer"), ...world.query("Ship")];
-                for (const ent of candidates) {
-                    let sid: string | undefined;
-                    const remote = world.getComponent(ent, "RemotePlayer");
-                    if (remote && remote.sessionId) {
-                        sid = remote.sessionId;
-                    }
-                    if (!sid) {
-                        const ship = world.getComponent(ent, "Ship");
-                        if (ship && ship.sessionId) {
-                            sid = ship.sessionId;
-                        }
-                    }
-                    if (sid === ownerId) {
-                        playerEntity = ent;
-                        break;
-                    }
-                }
-
-                if (playerEntity !== undefined) {
-                    if (!world.hasComponent(playerEntity, "PlayerScore")) {
-                        world.getCommandBuffer().addComponent(playerEntity, {
-                            type: "PlayerScore",
-                            score: points
-                        });
-                    } else {
-                        world.mutateComponent(playerEntity, "PlayerScore", (ps) => {
-                            ps.score = (ps.score || 0) + points;
-                        });
-                    }
-                }
+            // If CombatSystem has already processed this, it will have marked the asteroid as Dead
+            // or the bullet would be removed. Otherwise, we are running in direct/headless mode,
+            // so we manually trigger the combat death reaction to maintain 100% backward compatibility.
+            if (!world.hasComponent(asteroid, "Dead" as any)) {
+              this.onCombatDeath(world, { entity: asteroid, sourceEntity: bullet });
+              world.getCommandBuffer().removeEntity(bullet);
+              destroyedEntities.add(bullet);
+              destroyedEntities.add(asteroid);
             }
-
-            // ✅ PASO 1: Leer componentes y fragmentar ANTES de encolar la destrucción.
-            // fragmentAsteroid lee Transform y Velocity del asteroide padre síncronamente.
-            // createAsteroid internamente usa CommandBuffer si world.isUpdating === true,
-            // por lo que los hijos se crean de forma diferida y segura.
-            const asteroidTransform = world.getComponent(asteroid, "Transform");
-            const particlePool = world.getResource<any>("ParticlePool");
-            if (asteroidTransform && particlePool) {
-              const ax = asteroidTransform.x;
-              const ay = asteroidTransform.y;
-              const particleCount = size === "large" ? 24 : (size === "medium" ? 16 : 10);
-              const rng = world.gameplayRandom;
-              for (let i = 0; i < particleCount; i++) {
-                const angle = rng.next() * Math.PI * 2;
-                const speed = rng.nextRange(40, 150);
-                const px = ax + (rng.next() - 0.5) * 8;
-                const py = ay + (rng.next() - 0.5) * 8;
-                const vx = Math.cos(angle) * speed;
-                const vy = Math.sin(angle) * speed;
-                const colors = ["#a78bfa", "#c084fc", "#e9d5ff", "#a1a1aa"];
-                const color = colors[rng.nextInt(0, colors.length)];
-                const pSize = rng.nextRange(1.5, 4.5);
-                const ttl = rng.nextRange(0.4, 0.9);
-                createParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
-              }
-            }
-
-            fragmentAsteroid(world, asteroid);
-
-            // ✅ PASO 2: Encolar destrucción DESPUÉS de haber leído los datos del padre.
-            world.getCommandBuffer().removeEntity(bullet);
-            world.getCommandBuffer().removeEntity(asteroid);
-            destroyedEntities.add(bullet);
-            destroyedEntities.add(asteroid);
-
-            const eventBus = world.getEventBus();
-            if (eventBus) {
-                eventBus.emitDeferred("asteroid:destroyed", { entity: asteroid, size });
-                eventBus.emitDeferred("score:changed", { newScore, delta: points });
-            }
-
             continue;
         }
 
@@ -235,6 +260,5 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
       }
     }
   }
-  public onRegister(_world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>): void {}
   public dispose(): void {}
 }

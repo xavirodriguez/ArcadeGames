@@ -2,7 +2,7 @@ import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedI
 import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG } from "./types/SpaceInvadersTypes";
+import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
@@ -21,6 +21,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  */
 import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { FactionComponent } from "../shared/combat/components/CombatComponents";
 
 export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, any, any>> {
   player: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
@@ -114,6 +115,10 @@ export class SpaceInvadersGame
           max: config.PLAYER_INITIAL_LIVES,
           invulnerableRemaining: 0,
         } as HealthComponent);
+        world.addComponent(entity, {
+          type: "Faction",
+          faction: "player"
+        } as FactionComponent);
         world.addComponent(entity, {
           type: "Input",
           moveLeft: false,
@@ -231,6 +236,43 @@ export class SpaceInvadersGame
           timerRemaining: initialTimerRemaining,
           timerDuration: config.COMBO_TIMEOUT / 1000
         } as any);
+        world.addComponent(entity, {
+          type: "SpawnDirector",
+          waveIndex: 0,
+          cooldownRemaining: 0,
+          pendingSpawns: [],
+          waveElapsedTime: 0,
+          enemiesRemaining: 0,
+          status: "idle"
+        } as any);
+      }
+    });
+
+    this.blueprints.register("boss", {
+      spawn: (world, entity, args: { level: number }) => {
+        const hp = 50 + (args.level / 5) * 50;
+        world.addComponent(entity, { type: "Transform", x: GAME_CONFIG.SCREEN_WIDTH / 2, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: GAME_CONFIG.SCREEN_WIDTH / 2, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        world.addComponent(entity, { type: "Render", shape: "invader", size: 80, color: "#FF00FF", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
+        world.addComponent(entity, {
+          type: "Collider",
+          shape: { type: ShapeType.Circle, radius: 40 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
+          offsetX: 0,
+          offsetY: 0,
+          isTrigger: false,
+          enabled: true
+        } as ColliderComponent);
+        world.addComponent(entity, {
+          type: "CollisionEvents",
+          collisions: [],
+          activeTriggers: [],
+          triggersEntered: [],
+          triggersExited: []
+        } as CollisionEventsComponent);
+        world.addComponent(entity, { type: "Boss", hp, maxHp: hp, timer: 0, phase: 1 } as BossComponent);
+        world.addComponent(entity, { type: "Health", current: hp, max: hp } as HealthComponent);
+        world.addComponent(entity, { type: "Faction", faction: "enemy" } as FactionComponent);
       }
     });
 

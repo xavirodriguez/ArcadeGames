@@ -13,7 +13,8 @@ import {
   MutatorSystem,
   SystemPhase,
   ServerUpdatePayload,
-  HierarchySystem
+  HierarchySystem,
+  World
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
@@ -411,7 +412,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
 registerMutatorHook("faster_bullets", (genericWorld) => {
   const world = genericWorld as unknown as World<PongComponentRegistry>;
-  const config = world.getResource<Record<string, unknown>>("GameConfig");
+  const config = world.getResource<Record<string, any>>("GameConfig");
   if (config && typeof config.PADDLE_SPEED === "number") {
     const newConfig = { ...config };
     newConfig.PADDLE_SPEED = Math.round(newConfig.PADDLE_SPEED * 1.15);
@@ -424,7 +425,7 @@ registerMutatorHook("extra_life", (genericWorld) => {
   world.setResource("ExtraLifeScoreP1", 1);
   const pongState = world.getSingleton("PongState");
   if (pongState) {
-    world.mutateSingleton("PongState", (gs) => {
+    world.mutateSingleton("PongState", (gs: any) => {
       if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
         gs.scoreP1 = 1;
       }

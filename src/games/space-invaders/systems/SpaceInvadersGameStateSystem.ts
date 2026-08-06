@@ -12,19 +12,22 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
   }
 
   protected updateGameState(world: World<SpaceInvadersComponentRegistry>, gameState: GameStateComponent, deltaTime: number): void {
-    // 1. Count remaining invaders
+    // 1. Count remaining invaders and wave members
+    const activeMembers = world.query("WaveMember" as any);
     const invaders = world.query("Invader");
     world.mutateSingleton("GameState", (gs) => {
-        gs.invadersRemaining = invaders.length;
+        gs.invadersRemaining = activeMembers.length > 0 ? activeMembers.length : invaders.length;
     });
 
-    // 2. Handle level progression
-    const bosses = world.query("Boss");
-    if (gameState.invadersRemaining === 0 && bosses.length === 0) {
-      world.mutateSingleton("GameState", (gs) => {
-          gs.level++;
-      });
-      spawnInvaderWave(world, gameState.level);
+    // 2. Handle level progression driven by SpawnDirector waveIndex
+    const directorEntity = world.query("SpawnDirector" as any)[0];
+    if (directorEntity !== undefined) {
+      const director = world.getComponent(directorEntity, "SpawnDirector" as any) as any;
+      if (director) {
+        world.mutateSingleton("GameState", (gs) => {
+          gs.level = director.waveIndex + 1;
+        });
+      }
     }
 
     // 3. Update screen shake duration

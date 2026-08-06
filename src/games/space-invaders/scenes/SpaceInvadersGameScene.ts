@@ -22,6 +22,8 @@ import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionS
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
 import { SpaceInvadersRenderSystem } from "../systems/SpaceInvadersRenderSystem";
 import { InvulnerabilitySystem } from "../systems/InvulnerabilitySystem";
+import { CombatSystem } from "../../shared/combat/systems/CombatSystem";
+import { SpawnDirectorSystem } from "../../shared/spawn/systems/SpawnDirectorSystem";
 import { KamikazeSystem } from "../systems/KamikazeSystem";
 import { BossSystem } from "../systems/BossSystem";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "../EntityPool";
@@ -68,6 +70,54 @@ export class SpaceInvadersGameScene extends Scene {
     // Inject resources into the scene world
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });
+
+    // Generate procedural Wave Definitions
+    const waveDefs: any[] = [];
+    const maxLevels = 50;
+    const config = this.config || GAME_CONFIG;
+    const startX = config.INVADER_START_X;
+    const startY = config.INVADER_START_Y;
+    const spacingX = config.INVADER_SPACING_X;
+    const spacingY = config.INVADER_SPACING_Y;
+    const rows = config.INVADER_ROWS;
+    const cols = config.INVADER_COLS;
+
+    for (let lvl = 1; lvl <= maxLevels; lvl++) {
+      const isBoss = lvl % 5 === 0;
+      if (isBoss) {
+        waveDefs.push({
+          id: `level_${lvl}`,
+          cooldown: 2.0,
+          isBossWave: true,
+          spawns: [
+            { blueprintId: "boss", args: { level: lvl }, delay: 0.0 }
+          ]
+        });
+      } else {
+        const spawns: any[] = [];
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            spawns.push({
+              blueprintId: "invader",
+              args: {
+                x: startX + col * spacingX,
+                y: startY + row * spacingY,
+                row,
+                col
+              },
+              delay: 0.0
+            });
+          }
+        }
+        waveDefs.push({
+          id: `level_${lvl}`,
+          cooldown: 2.0,
+          spawns
+        });
+      }
+    }
+    this.world.setResource("WaveDefinitions", waveDefs);
+
     const eventBus = (this.game as unknown as { eventBus: EventBus }).eventBus;
     if (eventBus) {
       this.world.setResource("EventBus", eventBus);
@@ -95,7 +145,9 @@ export class SpaceInvadersGameScene extends Scene {
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new SpaceInvadersFormationSystem(this.enemyBulletPool), { phase: SystemPhase.Simulation });
     this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new SpawnDirectorSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new SpaceInvadersCollisionSystem(this.particlePool), { phase: SystemPhase.GameRules });
     this.world.addSystem(new KamikazeSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BossSystem(), { phase: SystemPhase.Simulation });
@@ -140,7 +192,6 @@ export class SpaceInvadersGameScene extends Scene {
     createGameState(this.world);
     createPlayer(this.world, GAME_CONFIG.SCREEN_CENTER_X, GAME_CONFIG.SCREEN_HEIGHT - 50);
     createFormationController(this.world);
-    spawnInvaderWave(this.world, 1);
     spawnShields(this.world);
   }
 

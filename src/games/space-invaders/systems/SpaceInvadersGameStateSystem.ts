@@ -58,15 +58,12 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         gameState.score = 0;
         gameState.level = 1;
         gameState.lives = 3;
-        gameState.combo = 0;
-        gameState.multiplier = 1;
-        gameState.comboTimerRemaining = 0;
     });
 
-    const comboEntities = w.query("Combo" as any);
+    const comboEntities = w.query("Combo");
     const comboEntity = comboEntities[0];
     if (comboEntity !== undefined) {
-      w.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+      w.mutateComponent(comboEntity, "Combo", (c) => {
         c.combo = 0;
         c.multiplier = 1;
         c.timerRemaining = 0;

@@ -105,24 +105,15 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       let nextCombo = 0;
       let nextMultiplier = 1;
 
-      const comboEntities = world.query("Combo" as any);
+      const comboEntities = world.query("Combo");
       const comboEntity = comboEntities[0];
       if (comboEntity !== undefined) {
-        world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+        world.mutateComponent(comboEntity, "Combo", (c) => {
           c.combo++;
           c.timerRemaining = this.config!.COMBO_TIMEOUT / 1000;
           c.multiplier = Math.min(this.config!.MAX_MULTIPLIER, 1 + Math.floor(c.combo / 5));
           nextCombo = c.combo;
           nextMultiplier = c.multiplier;
-        });
-      } else {
-        // Fallback for environments where Combo is not attached to GameState
-        world.mutateSingleton("GameState", (gs) => {
-          gs.combo++;
-          gs.comboTimerRemaining = this.config!.COMBO_TIMEOUT / 1000;
-          gs.multiplier = Math.min(this.config!.MAX_MULTIPLIER, 1 + Math.floor(gs.combo / 5));
-          nextCombo = gs.combo;
-          nextMultiplier = gs.multiplier;
         });
       }
 

@@ -421,9 +421,9 @@ registerMutatorHook("faster_bullets", (world: World) => {
 
 registerMutatorHook("extra_life", (world: World) => {
   world.setResource("ExtraLifeScoreP1", 1);
-  const pongState = world.getSingleton("PongState" as any);
+  const pongState = world.getSingleton("PongState");
   if (pongState) {
-    world.mutateSingleton("PongState" as any, (gs: any) => {
+    world.mutateSingleton("PongState", (gs) => {
       if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
         gs.scoreP1 = 1;
       }

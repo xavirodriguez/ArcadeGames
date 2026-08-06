@@ -532,7 +532,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
 registerMutatorHook("combo_head_start", (world: World) => {
   const flappyState = world.getSingleton("FlappyState" as any);
   if (flappyState) {
-    world.mutateSingleton("FlappyState" as any, (fs: any) => {
+    world.mutateSingleton("FlappyState", (fs) => {
       fs.comboMultiplier = 2;
     });
   }

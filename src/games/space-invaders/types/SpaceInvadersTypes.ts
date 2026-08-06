@@ -134,8 +134,11 @@ export interface GameStateComponent extends Component {
   level: number;
   invadersRemaining: number;
   isGameOver: boolean;
+  /** @deprecated Use ComboComponent inside ECS world. Still populated dynamically in getGameState() for backward compatibility. */
   combo: number;
+  /** @deprecated Use ComboComponent inside ECS world. Still populated dynamically in getGameState() for backward compatibility. */
   multiplier: number;
+  /** @deprecated Use ComboComponent inside ECS world. Still populated dynamically in getGameState() for backward compatibility. */
   comboTimerRemaining: number;
   highScoreCandidate?: number;
   screenShake?: { intensity: number; duration: number } | null;

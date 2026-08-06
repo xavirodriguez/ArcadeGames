@@ -13,6 +13,8 @@ import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { CombatSystem } from "../../shared/combat/systems/CombatSystem";
 import { registerGeometryWarsBlueprints, GeometryWarsEntityFactory } from "../entities/GeometryWarsEntities";
 import { GeometryWarsInputSystem } from "../systems/GeometryWarsInputSystem";
+import { WeaponSystem } from "../systems/WeaponSystem";
+import { GWBulletPool } from "../EntityPool";
 
 /**
  * Main gameplay scene for Geometry Wars.
@@ -20,11 +22,13 @@ import { GeometryWarsInputSystem } from "../systems/GeometryWarsInputSystem";
  */
 export class GeometryWarsGameScene extends Scene {
   private config: GeometryWarsConfig;
+  private bulletPool: GWBulletPool;
 
   constructor(config: GeometryWarsConfig) {
     const world = new World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>();
     super(world);
     this.config = config;
+    this.bulletPool = new GWBulletPool();
   }
 
   /**
@@ -38,12 +42,14 @@ export class GeometryWarsGameScene extends Scene {
     // 1. Inject resources
     this.gworld.setResource("GameConfig", this.config);
     this.gworld.setResource("ScreenConfig", { width: this.config.WIDTH, height: this.config.HEIGHT });
+    this.gworld.setResource("GWBulletPool", this.bulletPool);
 
     // 2. Register blueprints
     registerGeometryWarsBlueprints(this.gworld);
 
     // 3. Register systems
     this.gworld.addSystem(new GeometryWarsInputSystem(), { phase: SystemPhase.Simulation });
+    this.gworld.addSystem(new WeaponSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.gworld.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
@@ -57,6 +63,6 @@ export class GeometryWarsGameScene extends Scene {
   }
 
   public override onExit(): void {
-    // Scene cleanups
+    this.gworld.deleteResource("GWBulletPool");
   }
 }

@@ -36,6 +36,15 @@ export interface PlayerComponent extends Component {
 }
 
 /**
+ * WeaponComponent tracks weapon cooldowns and settings.
+ */
+export interface WeaponComponent extends Component {
+  type: "Weapon";
+  cooldownRemaining: number;
+  cooldownDuration: number;
+}
+
+/**
  * Registry containing all components used in Geometry Wars.
  * @public
  */
@@ -45,6 +54,7 @@ export interface GeometryWarsComponentRegistry extends CoreComponentRegistry {
   Player: PlayerComponent;
   Damage: DamageComponent;
   Faction: FactionComponent;
+  Weapon: WeaponComponent;
 }
 
 /**

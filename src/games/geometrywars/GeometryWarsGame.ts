@@ -97,13 +97,27 @@ export class GeometryWarsGame extends BaseGame<
 
   public initializeRenderer(renderer: Renderer<GeometryWarsComponentRegistry, any>): void {
     if (renderer.type === "canvas") {
-      const { drawPlayerShip, drawBullet } = require("./rendering/GeometryWarsCanvasVisuals");
+      const { drawPlayerShip, drawBullet, drawGeometryWarsBackground } = require("./rendering/GeometryWarsCanvasVisuals");
       renderer.registerShape("gw_player", drawPlayerShip);
       renderer.registerShape("gw_bullet", drawBullet);
+      renderer.registerBackgroundEffect("gw_background", drawGeometryWarsBackground);
+
+      // Register standard, high-fidelity shared visual filters from SharedVFX
+      const SharedVFX = require("../shared/rendering/SharedVFX");
+      renderer.registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
+      renderer.registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
+      renderer.registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
     } else if (renderer.type === "skia") {
-      const { drawSkiaPlayerShip, drawSkiaBullet } = require("./rendering/GeometryWarsSkiaVisuals");
+      const { drawSkiaPlayerShip, drawSkiaBullet, drawSkiaGeometryWarsBackground } = require("./rendering/GeometryWarsSkiaVisuals");
       renderer.registerShape("gw_player", drawSkiaPlayerShip);
       renderer.registerShape("gw_bullet", drawSkiaBullet);
+      renderer.registerBackgroundEffect("gw_background", drawSkiaGeometryWarsBackground);
+
+      // Register standard, high-fidelity shared Skia visual filters from SharedVFX
+      const SharedVFX = require("../shared/rendering/SharedVFX");
+      renderer.registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
+      renderer.registerBackgroundEffect("crt_glitch", SharedVFX.SkiaCRTGlitchShudderEffect);
+      renderer.registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);
     }
   }
 

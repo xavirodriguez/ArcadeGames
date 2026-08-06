@@ -517,9 +517,8 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
 // GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
 // ==========================================================================
 
-registerMutatorHook("combo_head_start", (genericWorld) => {
-  const world = genericWorld as unknown as World<FlappyBirdComponentRegistry>;
-  const flappyState = world.getSingleton("FlappyState");
+registerMutatorHook("combo_head_start", (world: World) => {
+  const flappyState = world.getSingleton("FlappyState" as any);
   if (flappyState) {
     world.mutateSingleton("FlappyState", (fs) => {
       fs.comboMultiplier = 2;

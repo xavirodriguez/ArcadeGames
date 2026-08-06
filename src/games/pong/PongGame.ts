@@ -13,7 +13,8 @@ import {
   MutatorSystem,
   SystemPhase,
   ServerUpdatePayload,
-  HierarchySystem
+  HierarchySystem,
+  World
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
@@ -21,7 +22,7 @@ import { ComboSystem } from "../shared/arcade";
 import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorRegistry";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 
-registerMutatorHook((world, mutatorId) => {
+registerMutatorHook((world: World, mutatorId: string) => {
   if (mutatorId === "extra_life") {
     if (world.getSingleton("PongState" as any)) {
       world.mutateSingleton("PongState" as any, (gs: any) => {
@@ -409,9 +410,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 // GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
 // ==========================================================================
 
-registerMutatorHook("faster_bullets", (genericWorld) => {
-  const world = genericWorld as unknown as World<PongComponentRegistry>;
-  const config = world.getResource<Record<string, unknown>>("GameConfig");
+registerMutatorHook("faster_bullets", (world: World) => {
+  const config = world.getResource<any>("GameConfig");
   if (config && typeof config.PADDLE_SPEED === "number") {
     const newConfig = { ...config };
     newConfig.PADDLE_SPEED = Math.round(newConfig.PADDLE_SPEED * 1.15);
@@ -419,8 +419,7 @@ registerMutatorHook("faster_bullets", (genericWorld) => {
   }
 });
 
-registerMutatorHook("extra_life", (genericWorld) => {
-  const world = genericWorld as unknown as World<PongComponentRegistry>;
+registerMutatorHook("extra_life", (world: World) => {
   world.setResource("ExtraLifeScoreP1", 1);
   const pongState = world.getSingleton("PongState");
   if (pongState) {

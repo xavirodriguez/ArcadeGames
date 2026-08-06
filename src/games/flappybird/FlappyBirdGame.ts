@@ -2,7 +2,7 @@ import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSys
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
 
-registerMutatorHook((world, mutatorId) => {
+registerMutatorHook((world: World, mutatorId: string) => {
   if (mutatorId === "combo_head_start") {
     const flappyState = world.getSingleton("FlappyState" as any);
     if (flappyState) {
@@ -24,7 +24,6 @@ import {
   createGameState,
   createGround
 } from "./EntityFactory";
-import { registerMutatorHook } from "../../utils/MutatorRegistry";
 
 /**
  * Controlador principal del juego Flappy Bird.
@@ -530,7 +529,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
 // GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
 // ==========================================================================
 
-registerMutatorHook("combo_head_start", (world) => {
+registerMutatorHook("combo_head_start", (world: World) => {
   const flappyState = world.getSingleton("FlappyState" as any);
   if (flappyState) {
     world.mutateSingleton("FlappyState" as any, (fs: any) => {

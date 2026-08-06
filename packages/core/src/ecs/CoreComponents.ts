@@ -335,6 +335,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Trail: TrailComponent;
   Sprite: SpriteComponent;
   Tag: import("./TagComponent").TagComponent;
+  Faction: import("../ai/FactionComponent").FactionComponent;
+  Steering: import("../ai/SteeringComponent").SteeringComponent;
 }
 
 export { Entity };

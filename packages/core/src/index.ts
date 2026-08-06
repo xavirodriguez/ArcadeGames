@@ -47,6 +47,11 @@ export * from "./assets/AssetLoader";
 export * from "./audio/IAudioPlayer";
 export * from "./audio/IHapticDevice";
 
+// AI
+export * from "./ai/FactionComponent";
+export * from "./ai/SteeringComponent";
+export * from "./ai/SteeringSystem";
+
 // Physics
 export * from "./physics/systems/MovementSystem";
 export * from "./physics/systems/FrictionSystem";

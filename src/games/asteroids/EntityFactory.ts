@@ -97,7 +97,8 @@ export function registerAsteroidsBlueprints(
       } as AsteroidsComponentRegistry["Ship"]);
       w.addComponent(entity, {
         type: "Faction",
-        faction: "player"
+        faction: "player",
+        value: "player"
       } as FactionComponent);
     }
   });
@@ -169,7 +170,8 @@ export function registerAsteroidsBlueprints(
       } as DamageComponent);
       w.addComponent(entity, {
         type: "Faction",
-        faction: "player"
+        faction: "player",
+        value: "player"
       } as FactionComponent);
     }
   });
@@ -255,7 +257,8 @@ export function registerAsteroidsBlueprints(
       } as HealthComponent);
       w.addComponent(entity, {
         type: "Faction",
-        faction: "enemy"
+        faction: "enemy",
+        value: "enemy"
       } as FactionComponent);
     }
   });

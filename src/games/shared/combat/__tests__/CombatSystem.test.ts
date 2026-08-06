@@ -164,11 +164,11 @@ describe("CombatSystem", () => {
 
     world.addComponent(attackerA, { type: "Transform", x: 0, y: 0 } as any);
     world.addComponent(attackerA, { type: "Damage", amount: 10 } as any);
-    world.addComponent(attackerA, { type: "Faction", faction: "player" } as any);
+    world.addComponent(attackerA, { type: "Faction", faction: "player", value: "player" } as any);
 
     world.addComponent(targetA, { type: "Transform", x: 0, y: 0 } as any);
     world.addComponent(targetA, { type: "Health", current: 50, max: 50 } as any);
-    world.addComponent(targetA, { type: "Faction", faction: "player" } as any);
+    world.addComponent(targetA, { type: "Faction", faction: "player", value: "player" } as any);
 
     world.addComponent(attackerA, {
       type: "CollisionEvents",
@@ -190,11 +190,11 @@ describe("CombatSystem", () => {
 
     world.addComponent(attackerB, { type: "Transform", x: 0, y: 0 } as any);
     world.addComponent(attackerB, { type: "Damage", amount: 10, friendlyFire: true } as any);
-    world.addComponent(attackerB, { type: "Faction", faction: "player" } as any);
+    world.addComponent(attackerB, { type: "Faction", faction: "player", value: "player" } as any);
 
     world.addComponent(targetB, { type: "Transform", x: 0, y: 0 } as any);
     world.addComponent(targetB, { type: "Health", current: 50, max: 50 } as any);
-    world.addComponent(targetB, { type: "Faction", faction: "player" } as any);
+    world.addComponent(targetB, { type: "Faction", faction: "player", value: "player" } as any);
 
     world.addComponent(attackerB, {
       type: "CollisionEvents",

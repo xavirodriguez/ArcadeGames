@@ -64,7 +64,7 @@ describe("Space Invaders Pilot Combat Integration", () => {
     world.addComponent(player, { type: "Transform", x: 100, y: 100 } as any);
     world.addComponent(player, { type: "Render", hitFlashFrames: 0, visible: true, opacity: 1, order: 0 } as any);
     world.addComponent(player, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 } as any);
-    world.addComponent(player, { type: "Faction", faction: "player" } as any);
+    world.addComponent(player, { type: "Faction", faction: "player", value: "player" } as any);
 
     // 3. Acquire enemy bullet from pool near player
     const bullet = enemyBulletPool.acquire(world, {
@@ -133,7 +133,7 @@ describe("Space Invaders Pilot Combat Integration", () => {
     world.addComponent(boss, { type: "Transform", x: 200, y: 100 } as any);
     world.addComponent(boss, { type: "Render", hitFlashFrames: 0, visible: true, opacity: 1, order: 0 } as any);
     world.addComponent(boss, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(boss, { type: "Faction", faction: "enemy" } as any);
+    world.addComponent(boss, { type: "Faction", faction: "enemy", value: "enemy" } as any);
 
     // 3. Acquire player bullet near boss
     const bullet = playerBulletPool.acquire(world, {

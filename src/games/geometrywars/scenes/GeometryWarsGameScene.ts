@@ -16,6 +16,8 @@ import { SpawnDirectorSystem } from "../../shared/spawn/systems/SpawnDirectorSys
 import { generateGeometryWarsWaves } from "../config/GeometryWarsWaves";
 import { registerGeometryWarsBlueprints, GeometryWarsEntityFactory } from "../entities/GeometryWarsEntities";
 import { GeometryWarsInputSystem } from "../systems/GeometryWarsInputSystem";
+import { WeaponSystem } from "../systems/WeaponSystem";
+import { GWBulletPool } from "../EntityPool";
 
 /**
  * Main gameplay scene for Geometry Wars.
@@ -23,11 +25,13 @@ import { GeometryWarsInputSystem } from "../systems/GeometryWarsInputSystem";
  */
 export class GeometryWarsGameScene extends Scene {
   private config: GeometryWarsConfig;
+  private bulletPool: GWBulletPool;
 
   constructor(config: GeometryWarsConfig) {
     const world = new World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>();
     super(world);
     this.config = config;
+    this.bulletPool = new GWBulletPool();
   }
 
   /**
@@ -41,6 +45,7 @@ export class GeometryWarsGameScene extends Scene {
     // 1. Inject resources
     this.gworld.setResource("GameConfig", this.config);
     this.gworld.setResource("ScreenConfig", { width: this.config.WIDTH, height: this.config.HEIGHT });
+    this.gworld.setResource("GWBulletPool", this.bulletPool);
 
     // 2. Register blueprints
     registerGeometryWarsBlueprints(this.gworld);
@@ -77,6 +82,6 @@ export class GeometryWarsGameScene extends Scene {
   }
 
   public override onExit(): void {
-    // Scene cleanups
+    this.gworld.deleteResource("GWBulletPool");
   }
 }

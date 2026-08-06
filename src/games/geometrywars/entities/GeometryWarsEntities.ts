@@ -12,7 +12,7 @@ import {
   CircleShape
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../../shared/types/CollisionLayers";
-import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
+import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { FactionComponent, DamageComponent } from "../../shared/combat/components/CombatComponents";
 
@@ -101,6 +101,12 @@ export function registerGeometryWarsBlueprints(
         aimY: 0,
         isFiring: false
       } as GeometryWarsComponentRegistry["Aim"]);
+
+      w.addComponent(entity, {
+        type: "Weapon",
+        cooldownRemaining: 0,
+        cooldownDuration: config?.PLAYER_FIRE_COOLDOWN ?? 0.12
+      } as WeaponComponent);
 
       w.addComponent(entity, {
         type: "Faction",

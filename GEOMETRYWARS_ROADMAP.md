@@ -216,10 +216,10 @@ Después de terminar:
 | -------------------------------- | --------- | ------------- | --------- | ------------------ |
 | Prerrequisito Combat             | COMPLETADA | pnpm exec jest src/games/shared/combat/ | Passing tests (7/7) | — |
 | Prerrequisito Spawn              | COMPLETADA | pnpm exec jest src/games/shared/spawn/  | Passing tests (2/2) | — |
-| 0. Esqueleto y contratos         | PENDIENTE | —             | —         | —                  |
-| 1. Input twin-stick              | PENDIENTE | —             | —         | —                  |
-| 2. Armas y proyectiles           | PENDIENTE | —             | —         | —                  |
-| 3. Broadphase                    | PENDIENTE | —             | —         | —                  |
+| 0. Esqueleto y contratos         | COMPLETADA | pnpm exec jest src/games/geometrywars   | Passing tests (1/1) | — |
+| 1. Input twin-stick              | COMPLETADA | pnpm exec jest src/games/geometrywars   | Passing tests (2/2) | — |
+| 2. Armas y proyectiles           | COMPLETADA | pnpm exec jest src/games/geometrywars   | Passing tests (3/3), GWBulletPool zero-allocation recycling | — |
+| 3. Broadphase                    | COMPLETADA | pnpm exec jest src/games/geometrywars   | 230x speed-up validation with 1000 entities vs O(N2) | — |
 | 4. Steering e IA                 | PENDIENTE | —             | —         | —                  |
 | 5. Oleadas geométricas           | PENDIENTE | —             | —         | —                  |
 | 6. Combat, combo y score         | PENDIENTE | —             | —         | —                  |

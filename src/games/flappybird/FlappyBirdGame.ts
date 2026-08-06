@@ -513,6 +513,8 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
 }
 
+import { registerMutatorHook } from "../../utils/MutatorRegistry";
+
 // ==========================================================================
 // GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
 // ==========================================================================
@@ -520,7 +522,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
 registerMutatorHook("combo_head_start", (world: World) => {
   const flappyState = world.getSingleton("FlappyState" as any);
   if (flappyState) {
-    world.mutateSingleton("FlappyState", (fs) => {
+    world.mutateSingleton("FlappyState" as any, (fs: any) => {
       fs.comboMultiplier = 2;
     });
   }

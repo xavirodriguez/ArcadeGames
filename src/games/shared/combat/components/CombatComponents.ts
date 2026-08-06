@@ -1,4 +1,4 @@
-import { Component } from "@tiny-aster/core";
+import { Component, FactionComponent as CoreFactionComponent } from "@tiny-aster/core";
 
 /**
  * Policy for how a DamageComponent is consumed after successfully dealing damage.
@@ -26,12 +26,11 @@ export interface DamageComponent extends Component {
 
 /**
  * Identifies the faction/group of an entity to prevent or manage friendly fire.
+ * Extends core FactionComponent to guarantee 100% compile-time compatibility.
  * @public
  */
-export interface FactionComponent extends Component {
+export interface FactionComponent extends CoreFactionComponent {
   type: "Faction";
   /** Faction ID or name (e.g., "player", "enemy", "neutral"). */
   faction: string;
-  /** Faction ID or name to satisfy core FactionComponent constraint. */
-  value: string;
 }

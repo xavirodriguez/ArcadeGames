@@ -22,7 +22,7 @@ import { ComboSystem } from "../shared/arcade";
 import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorRegistry";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 
-registerMutatorHook((world, mutatorId) => {
+registerMutatorHook((world: World, mutatorId: string) => {
   if (mutatorId === "extra_life") {
     if (world.getSingleton("PongState" as any)) {
       world.mutateSingleton("PongState" as any, (gs: any) => {
@@ -420,8 +420,7 @@ registerMutatorHook("faster_bullets", (genericWorld) => {
   }
 });
 
-registerMutatorHook("extra_life", (genericWorld) => {
-  const world = genericWorld as unknown as World<PongComponentRegistry>;
+registerMutatorHook("extra_life", (world: World) => {
   world.setResource("ExtraLifeScoreP1", 1);
   const pongState = world.getSingleton("PongState");
   if (pongState) {

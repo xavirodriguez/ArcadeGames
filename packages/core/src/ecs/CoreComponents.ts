@@ -46,6 +46,9 @@ export interface BoundaryComponent extends Component {
 /** @public */
 export interface TTLComponent extends Component {
   type: "TTL";
+  /**
+   * @deprecated Use {@link TTLComponent.remaining} instead.
+   */
   timeLeft: number;
   remaining: number;
   onCompleteEvent?: string;
@@ -121,9 +124,6 @@ export interface AnimationDefinition {
 /** @public */
 export interface AnimatorComponent extends Component {
   type: "Animator";
-  currentAnimation?: string;
-  frameIndex: number;
-  elapsedTime: number;
   isPlaying: boolean;
   animations: Record<string, AnimationDefinition>;
   current: string | null;
@@ -335,6 +335,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Trail: TrailComponent;
   Sprite: SpriteComponent;
   Tag: import("./TagComponent").TagComponent;
+  Faction: import("../ai/FactionComponent").FactionComponent;
+  Steering: import("../ai/SteeringComponent").SteeringComponent;
 }
 
 export { Entity };

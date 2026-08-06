@@ -46,6 +46,9 @@ export interface BoundaryComponent extends Component {
 /** @public */
 export interface TTLComponent extends Component {
   type: "TTL";
+  /**
+   * @deprecated Use {@link TTLComponent.remaining} instead.
+   */
   timeLeft: number;
   remaining: number;
   onCompleteEvent?: string;
@@ -121,9 +124,6 @@ export interface AnimationDefinition {
 /** @public */
 export interface AnimatorComponent extends Component {
   type: "Animator";
-  currentAnimation?: string;
-  frameIndex: number;
-  elapsedTime: number;
   isPlaying: boolean;
   animations: Record<string, AnimationDefinition>;
   current: string | null;

@@ -31,34 +31,48 @@ export interface MutatorComponentRegistry extends ComponentRegistry {
   };
 }
 
-export type SpecificMutatorHook = (world: World) => void;
-export type GenericMutatorHook = (world: World, mutatorId: string) => void;
+export type MutatorHookWithId = (world: World) => void;
+export type MutatorHookGeneric = (world: World, mutatorId: string) => void;
 
-const MUTATOR_HOOKS: Record<string, SpecificMutatorHook[]> = {};
-const mutatorHooks: GenericMutatorHook[] = [];
+const MUTATOR_HOOKS: Record<string, MutatorHookWithId[]> = {};
+const genericMutatorHooks: MutatorHookGeneric[] = [];
 
 /**
- * Registers a game-specific callback hook for a mutator.
- * Supports overloaded signatures:
- * - Specific mutator hook: registerMutatorHook(mutatorId: string, hook: (world: World) => void)
- * - Generic mutator hook: registerMutatorHook(hook: (world: World, mutatorId: string) => void)
+ * Registers a game-specific hook to run when a mutator is applied.
  */
-export function registerMutatorHook(mutatorId: string, hook: SpecificMutatorHook): void;
-export function registerMutatorHook(hook: GenericMutatorHook): void;
+export function registerMutatorHook(mutatorId: string, hook: MutatorHookWithId): void;
+export function registerMutatorHook(hook: MutatorHookGeneric): void;
 export function registerMutatorHook(
-  first: string | GenericMutatorHook,
-  second?: SpecificMutatorHook
+  arg1: string | MutatorHookGeneric,
+  arg2?: MutatorHookWithId
 ): void {
-  if (typeof first === "string") {
-    if (second) {
-      const mutatorId = first;
-      if (!MUTATOR_HOOKS[mutatorId]) {
-        MUTATOR_HOOKS[mutatorId] = [];
-      }
-      MUTATOR_HOOKS[mutatorId].push(second);
+  if (typeof arg1 === "string" && arg2) {
+    if (!MUTATOR_HOOKS[arg1]) {
+      MUTATOR_HOOKS[arg1] = [];
     }
-  } else if (typeof first === "function") {
-    mutatorHooks.push(first);
+    MUTATOR_HOOKS[arg1].push(arg2);
+  } else if (typeof arg1 === "function") {
+    genericMutatorHooks.push(arg1);
+  }
+}
+
+function runMutatorHooks(world: World, mutatorId: string): void {
+  for (const hook of genericMutatorHooks) {
+    try {
+      hook(world, mutatorId);
+    } catch (e) {
+      console.error(`Error in generic mutator hook for ${mutatorId}:`, e);
+    }
+  }
+  const specificHooks = MUTATOR_HOOKS[mutatorId];
+  if (specificHooks) {
+    for (const hook of specificHooks) {
+      try {
+        hook(world);
+      } catch (e) {
+        console.error(`Error in specific mutator hook for ${mutatorId}:`, e);
+      }
+    }
   }
 }
 
@@ -67,29 +81,6 @@ export function registerMutatorHook(
  */
 export function applyMutatorHooks(mutatorId: string, world: World): void {
   runMutatorHooks(world, mutatorId);
-}
-
-function runMutatorHooks(world: World, mutatorId: string): void {
-  // Run specific hooks for this mutatorId
-  const specific = MUTATOR_HOOKS[mutatorId];
-  if (specific) {
-    for (const hook of specific) {
-      try {
-        hook(world);
-      } catch (e) {
-        console.error(`Error in specific mutator hook for ${mutatorId}:`, e);
-      }
-    }
-  }
-
-  // Run generic hooks
-  for (const hook of mutatorHooks) {
-    try {
-      hook(world, mutatorId);
-    } catch (e) {
-      console.error(`Error in generic mutator hook for ${mutatorId}:`, e);
-    }
-  }
 }
 
 /**

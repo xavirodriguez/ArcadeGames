@@ -12,6 +12,7 @@ import {
   createGameState,
   createGround
 } from "./EntityFactory";
+import { registerMutatorHook } from "../../utils/MutatorRegistry";
 
 /**
  * Controlador principal del juego Flappy Bird.
@@ -520,7 +521,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
 registerMutatorHook("combo_head_start", (world: World) => {
   const flappyState = world.getSingleton("FlappyState" as any);
   if (flappyState) {
-    world.mutateSingleton("FlappyState", (fs) => {
+    world.mutateSingleton("FlappyState", (fs: any) => {
       fs.comboMultiplier = 2;
     });
   }

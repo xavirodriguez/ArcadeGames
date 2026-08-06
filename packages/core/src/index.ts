@@ -57,6 +57,7 @@ export * from "./physics/systems/MovementSystem";
 export * from "./physics/systems/FrictionSystem";
 export * from "./physics/systems/BoundarySystem";
 export * from "./physics/collision/CollisionSystems";
+export * from "./physics/collision/BroadPhase";
 export * from "./physics/collision/CollisionTypes";
 export * from "./physics/utils/PhysicsUtils";
 export * from "./physics/utils/ShipPhysics";

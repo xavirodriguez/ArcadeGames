@@ -117,7 +117,8 @@ export class SpaceInvadersGame
         } as HealthComponent);
         world.addComponent(entity, {
           type: "Faction",
-          faction: "player"
+          faction: "player",
+          value: "player"
         } as FactionComponent);
         world.addComponent(entity, {
           type: "Input",
@@ -272,7 +273,7 @@ export class SpaceInvadersGame
         } as CollisionEventsComponent);
         world.addComponent(entity, { type: "Boss", hp, maxHp: hp, timer: 0, phase: 1 } as BossComponent);
         world.addComponent(entity, { type: "Health", current: hp, max: hp } as HealthComponent);
-        world.addComponent(entity, { type: "Faction", faction: "enemy" } as FactionComponent);
+        world.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       }
     });
 

@@ -32,4 +32,6 @@ export interface FactionComponent extends Component {
   type: "Faction";
   /** Faction ID or name (e.g., "player", "enemy", "neutral"). */
   faction: string;
+  /** Faction ID or name to satisfy core FactionComponent constraint. */
+  value: string;
 }

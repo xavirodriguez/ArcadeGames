@@ -51,7 +51,7 @@ export class PlayerBulletPool extends ProjectilePool<any, ProjectileParams> {
           triggersExited: []
         } as CollisionEventsComponent,
         damage: { type: "Damage", amount: 1, category: "player_bullet", friendlyFire: false, consumption: "destroy-entity" } as DamageComponent,
-        faction: { type: "Faction", faction: "player" } as FactionComponent
+        faction: { type: "Faction", faction: "player", value: "player" } as FactionComponent
       }),
       reset: (data) => {
         data.position.x = 0;
@@ -117,7 +117,7 @@ export class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {
           triggersExited: []
         } as CollisionEventsComponent,
         damage: { type: "Damage", amount: 1, category: "enemy_bullet", friendlyFire: false, consumption: "destroy-entity" } as DamageComponent,
-        faction: { type: "Faction", faction: "enemy" } as FactionComponent
+        faction: { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent
       }),
       reset: (data) => {
         data.position.x = 0;

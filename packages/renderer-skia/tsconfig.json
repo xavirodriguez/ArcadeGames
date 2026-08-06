@@ -5,7 +5,11 @@
         "composite": false,
         "incremental": false,
         "skipLibCheck": true,
-        "noEmit": true
+        "noEmit": true,
+        "baseUrl": ".",
+        "paths": {
+            "@tiny-aster/core": ["../core/src/index.ts"]
+        }
     },
     "include": [
         "src/**/*"

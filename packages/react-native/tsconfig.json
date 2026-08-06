@@ -6,7 +6,13 @@
         "composite": false,
         "incremental": false,
         "skipLibCheck": true,
-        "noEmit": true
+        "noEmit": true,
+        "baseUrl": ".",
+        "paths": {
+            "@tiny-aster/core": ["../core/src/index.ts"],
+            "@tiny-aster/network-colyseus": ["../network-colyseus/src/index.ts"],
+            "@tiny-aster/network": ["../network/src/index.ts"]
+        }
     },
     "include": [
         "src/**/*"

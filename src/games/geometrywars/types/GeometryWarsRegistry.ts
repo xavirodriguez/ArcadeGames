@@ -1,5 +1,7 @@
 import { CoreComponentRegistry, Component, BlueprintRegistryMap } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
+import { SpawnDirectorComponent, WaveMemberComponent } from "../../shared/spawn/components/SpawnComponents";
+import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
 
 /**
  * State component containing overall score, lives, current wave, and game-over status.
@@ -55,6 +57,9 @@ export interface GeometryWarsComponentRegistry extends CoreComponentRegistry {
   Damage: DamageComponent;
   Faction: FactionComponent;
   Weapon: WeaponComponent;
+  SpawnDirector: SpawnDirectorComponent;
+  WaveMember: WaveMemberComponent;
+  Combo: ComboComponent;
 }
 
 /**

@@ -80,6 +80,14 @@ export class WeaponSystem extends System<GeometryWarsComponentRegistry> {
           GeometryWarsEntityFactory.createBullet(world, bx, by, vx, vy, rotation);
         }
 
+        // Play shoot SFX safely
+        if (!world.isReSimulating) {
+          const audio = world.getResource<any>("Audio") || (world as any).audio;
+          if (audio) {
+            audio.playSFX("shoot");
+          }
+        }
+
         // Reset cooldown
         world.mutateComponent(entity, "Weapon", (w) => {
           w.cooldownRemaining = weapon.cooldownDuration;

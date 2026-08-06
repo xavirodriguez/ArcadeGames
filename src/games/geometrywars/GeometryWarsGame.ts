@@ -44,10 +44,24 @@ export class GeometryWarsGame extends BaseGame<
     this.world.setResource("ScreenConfig", { width: this.config.WIDTH, height: this.config.HEIGHT });
     this.world.setResource("BlueprintRegistry", this.blueprints);
 
+    await this.onPreloadAssets();
+
     // 2. Initialize and transition to main gameplay scene
     this.currentScene = new GeometryWarsGameScene(this.config);
     const sceneManager = this.world.getResource<SceneManager>("SceneManager") || new SceneManager(this.world);
     sceneManager.transitionTo(this.currentScene);
+  }
+
+  private async onPreloadAssets(): Promise<void> {
+    try {
+      await Promise.all([
+        this.audio.loadSFX("shoot", "/audio/shoot.mp3"),
+        this.audio.loadSFX("explosion", "/audio/explosion.mp3"),
+        this.audio.loadSFX("explosion2", "/audio/explosion2.mp3"),
+      ]);
+    } catch (e) {
+      console.warn("[GeometryWars] Asset preloading failed.", e);
+    }
   }
 
   protected override async onInitializeEntities(): Promise<void> {
@@ -97,33 +111,21 @@ export class GeometryWarsGame extends BaseGame<
 
   public initializeRenderer(renderer: Renderer<GeometryWarsComponentRegistry, any>): void {
     if (renderer.type === "canvas") {
-      const { drawPlayerShip, drawBullet, drawEnemySeeker, drawEnemyEvader, drawEnemyFastSeeker, drawGeometryWarsBackground } = require("./rendering/GeometryWarsCanvasVisuals");
+      const { drawPlayerShip, drawBullet, drawChaser, drawEvader, drawGrunt, drawParticle } = require("./rendering/GeometryWarsCanvasVisuals");
       renderer.registerShape("gw_player", drawPlayerShip);
       renderer.registerShape("gw_bullet", drawBullet);
-      renderer.registerShape("gw_seeker", drawEnemySeeker);
-      renderer.registerShape("gw_evader", drawEnemyEvader);
-      renderer.registerShape("gw_fast_seeker", drawEnemyFastSeeker);
-      renderer.registerBackgroundEffect("gw_background", drawGeometryWarsBackground);
-
-      // Register standard, high-fidelity shared visual filters from SharedVFX
-      const SharedVFX = require("../shared/rendering/SharedVFX");
-      renderer.registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
-      renderer.registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
-      renderer.registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
+      renderer.registerShape("gw_chaser", drawChaser);
+      renderer.registerShape("gw_evader", drawEvader);
+      renderer.registerShape("gw_grunt", drawGrunt);
+      renderer.registerShape("gw_particle", drawParticle);
     } else if (renderer.type === "skia") {
-      const { drawSkiaPlayerShip, drawSkiaBullet, drawSkiaEnemySeeker, drawSkiaEnemyEvader, drawSkiaEnemyFastSeeker, drawSkiaGeometryWarsBackground } = require("./rendering/GeometryWarsSkiaVisuals");
+      const { drawSkiaPlayerShip, drawSkiaBullet, drawSkiaChaser, drawSkiaEvader, drawSkiaGrunt, drawSkiaParticle } = require("./rendering/GeometryWarsSkiaVisuals");
       renderer.registerShape("gw_player", drawSkiaPlayerShip);
       renderer.registerShape("gw_bullet", drawSkiaBullet);
-      renderer.registerShape("gw_seeker", drawSkiaEnemySeeker);
-      renderer.registerShape("gw_evader", drawSkiaEnemyEvader);
-      renderer.registerShape("gw_fast_seeker", drawSkiaEnemyFastSeeker);
-      renderer.registerBackgroundEffect("gw_background", drawSkiaGeometryWarsBackground);
-
-      // Register standard, high-fidelity shared Skia visual filters from SharedVFX
-      const SharedVFX = require("../shared/rendering/SharedVFX");
-      renderer.registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
-      renderer.registerBackgroundEffect("crt_glitch", SharedVFX.SkiaCRTGlitchShudderEffect);
-      renderer.registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);
+      renderer.registerShape("gw_chaser", drawSkiaChaser);
+      renderer.registerShape("gw_evader", drawSkiaEvader);
+      renderer.registerShape("gw_grunt", drawSkiaGrunt);
+      renderer.registerShape("gw_particle", drawSkiaParticle);
     }
   }
 

@@ -328,6 +328,115 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
 };
 
 /**
+ * Shape drawer for Particle (glow square).
+ * @public
+ */
+export const drawParticle: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 3;
+    const color = render.color ?? "#ffffff";
+
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = color;
+    ctx.fillRect(-size / 2, -size / 2, size, size);
+    ctx.restore();
+  }
+};
+
+/**
+ * Shape drawer for Chaser enemy (magenta diamond).
+ * @public
+ */
+export const drawChaser: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 14;
+    const color = render.color ?? "#ff00ff";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -size);
+    ctx.lineTo(size, 0);
+    ctx.lineTo(0, size);
+    ctx.lineTo(-size, 0);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+/**
+ * Shape drawer for Evader enemy (orange triangle / star).
+ * @public
+ */
+export const drawEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 14;
+    const color = render.color ?? "#ffaa00";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.moveTo(size, 0);
+    ctx.lineTo(-size / 2, -size / 2);
+    ctx.lineTo(-size / 2, size / 2);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+/**
+ * Shape drawer for Grunt enemy (cyan small triangle).
+ * @public
+ */
+export const drawGrunt: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 10;
+    const color = render.color ?? "#00ffff";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.moveTo(size, 0);
+    ctx.lineTo(-size, -size * 0.7);
+    ctx.lineTo(-size, size * 0.7);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+/**
  * Shape drawer for bullets.
  * @public
  */

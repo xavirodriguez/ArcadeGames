@@ -12,6 +12,8 @@ import {
   createGameState,
   createGround
 } from "./EntityFactory";
+import { registerMutatorHook } from "../../utils/MutatorRegistry";
+
 /**
  * Controlador principal del juego Flappy Bird.
  *

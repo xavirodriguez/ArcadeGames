@@ -410,8 +410,9 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 // GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
 // ==========================================================================
 
-registerMutatorHook("faster_bullets", (world: World) => {
-  const config = world.getResource<any>("GameConfig");
+registerMutatorHook("faster_bullets", (genericWorld) => {
+  const world = genericWorld as unknown as World<PongComponentRegistry>;
+  const config = world.getResource<Record<string, any>>("GameConfig");
   if (config && typeof config.PADDLE_SPEED === "number") {
     const newConfig = { ...config };
     newConfig.PADDLE_SPEED = Math.round(newConfig.PADDLE_SPEED * 1.15);
@@ -423,7 +424,7 @@ registerMutatorHook("extra_life", (world: World) => {
   world.setResource("ExtraLifeScoreP1", 1);
   const pongState = world.getSingleton("PongState");
   if (pongState) {
-    world.mutateSingleton("PongState", (gs) => {
+    world.mutateSingleton("PongState", (gs: any) => {
       if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
         gs.scoreP1 = 1;
       }

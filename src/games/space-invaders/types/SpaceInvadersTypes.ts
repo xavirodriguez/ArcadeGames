@@ -1,5 +1,7 @@
 import { Component, CoreComponentRegistry } from "@tiny-aster/core";
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
+import { SpawnDirectorComponent, WaveMemberComponent } from "../../shared/spawn/components/SpawnComponents";
 
 /**
  * Component for Boss entities.
@@ -49,6 +51,10 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   Kamikaze: KamikazeComponent;
   UIText: UITextComponent;
   Combo: ComboComponent;
+  Damage: DamageComponent;
+  Faction: FactionComponent;
+  SpawnDirector: SpawnDirectorComponent;
+  WaveMember: WaveMemberComponent;
 }
 
 /**

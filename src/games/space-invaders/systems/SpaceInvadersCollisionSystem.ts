@@ -26,6 +26,82 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     super();
   }
 
+  public override onRegister(world: World<SpaceInvadersComponentRegistry>): void {
+    if (!this.config) {
+      this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
+    }
+    const eventBus = world.getEventBus() as any;
+    if (eventBus) {
+      eventBus.on("combat:hit", (event: any) => {
+        this.onCombatHit(world, event);
+      });
+      eventBus.on("combat:death", (event: any) => {
+        this.onCombatDeath(world, event);
+      });
+    }
+  }
+
+  private onCombatHit(world: World<SpaceInvadersComponentRegistry>, event: any): void {
+    if (!this.config) {
+      this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
+    }
+    const target = event.targetEntity;
+    if (!target) return;
+
+    if (world.hasComponent(target, "Player")) {
+      world.mutateComponent(target, "Render", (render) => {
+        render.hitFlashFrames = 10;
+      });
+
+      world.mutateComponent(target, "Health", (health) => {
+        health.invulnerableRemaining = 1.5; // 1.5 seconds
+      });
+
+      const health = world.getComponent(target, "Health");
+      world.mutateSingleton("GameState", (gs) => {
+        if (health) {
+          gs.lives = health.current;
+        }
+        gs.screenShake = { intensity: 10, duration: 0.3 };
+        if (health && health.current <= 0) {
+          gs.isGameOver = true;
+        }
+      });
+    }
+
+    if (world.hasComponent(target, "Boss")) {
+      const bossComp = world.getComponent(target, "Boss");
+      if (bossComp) {
+        const health = world.getComponent(target, "Health");
+        const nextHp = health ? health.current : bossComp.hp - 1;
+
+        world.mutateComponent(target, "Boss", (b) => {
+          b.hp = nextHp;
+        });
+
+        world.mutateComponent(target, "Render", (render) => {
+          render.hitFlashFrames = 5;
+        });
+
+        const pos = world.getComponent(target, "Transform");
+        if (pos) {
+          this.createExplosion(world, pos.x, pos.y, "#FF00FF");
+        }
+
+        const gsEntity = world.query("GameState" as any)[0];
+        if (gsEntity !== undefined) {
+          world.mutateComponent(gsEntity, "GameState" as any, (gs: any) => {
+            gs.score += 100;
+          });
+        }
+      }
+    }
+  }
+
+  private onCombatDeath(world: World<SpaceInvadersComponentRegistry>, event: any): void {
+    // Handled dynamically by game logic and BossSystem
+  }
+
   public override update(world: World<SpaceInvadersComponentRegistry>, _deltaTime: number): void {
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
@@ -59,40 +135,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
     const bossBullet = this.matchPair(world, e1, e2, "PlayerBullet", "Boss");
     if (bossBullet) {
-      const { PlayerBullet: bullet, Boss: boss } = bossBullet;
-      const bossComp = world.getComponent(boss, "Boss");
-      const health = world.getComponent(boss, "Health");
-
-      if (bossComp) {
-        // Cálculos fuera de la mutación
-        const nextHp = bossComp.hp - 1;
-        const nextScore = gameState.score + 100;
-
-        world.mutateComponent(boss, "Boss", b => {
-            b.hp = nextHp;
-        });
-
-        world.mutateSingleton("GameState", gs => {
-            gs.score = nextScore;
-        });
-
-        if (health) {
-            world.mutateComponent(boss, "Health", h => {
-                h.current = nextHp;
-            });
-        }
-
-        world.mutateComponent(boss, "Render", r => {
-            r.hitFlashFrames = 5;
-        });
-
-        const pos = world.getComponent(boss, "Transform");
-        if (pos) {
-          this.createExplosion(world, pos.x, pos.y, "#FF00FF");
-        }
-      }
-
-      this.removeBulletSafely(world, bullet);
+      // Handled by CombatSystem & combat:hit reaction
       return;
     }
 
@@ -194,31 +237,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
     const enemyBulletPlayer = this.matchPair(world, e1, e2, "EnemyBullet", "Player");
     if (enemyBulletPlayer) {
-      const { EnemyBullet: bullet, Player: player } = enemyBulletPlayer;
-      const health = world.getComponent(player, "Health");
-      if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining <= 0) {
-        // Cálculos fuera
-        const nextHealth = health.current - 1;
-        const isGameOver = nextHealth <= 0;
-
-        world.mutateComponent(player, "Health", h => {
-            h.current = nextHealth;
-            h.invulnerableRemaining = 1500;
-        });
-
-        world.mutateComponent(player, "Render", render => {
-            render.hitFlashFrames = 10;
-        });
-
-        world.mutateSingleton("GameState", gs => {
-            gs.lives = nextHealth;
-            gs.screenShake = { intensity: 10, duration: 300 };
-            if (isGameOver) {
-                gs.isGameOver = true;
-            }
-        });
-      }
-      this.removeBulletSafely(world, bullet);
+      // Handled by CombatSystem & combat:hit reaction
       return;
     }
 

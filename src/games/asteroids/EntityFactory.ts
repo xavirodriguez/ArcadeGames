@@ -16,6 +16,7 @@ import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { ParticlePool } from "./EntityPool";
+import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
 
 /**
  * Registers ship, bullet, and asteroid blueprints.
@@ -94,6 +95,10 @@ export function registerAsteroidsBlueprints(
         sessionId: "",
         shootCooldownRemaining: 0
       } as AsteroidsComponentRegistry["Ship"]);
+      w.addComponent(entity, {
+        type: "Faction",
+        faction: "player"
+      } as FactionComponent);
     }
   });
 
@@ -155,6 +160,17 @@ export function registerAsteroidsBlueprints(
         triggersEntered: [],
         triggersExited: []
       } as CollisionEventsComponent);
+      w.addComponent(entity, {
+        type: "Damage",
+        amount: 1,
+        category: "player_bullet",
+        friendlyFire: false,
+        consumption: "destroy-entity"
+      } as DamageComponent);
+      w.addComponent(entity, {
+        type: "Faction",
+        faction: "player"
+      } as FactionComponent);
     }
   });
 
@@ -232,6 +248,15 @@ export function registerAsteroidsBlueprints(
         height: screen.height,
         mode: "wrap"
       } as BoundaryComponent);
+      w.addComponent(entity, {
+        type: "Health",
+        current: 1,
+        max: 1
+      } as HealthComponent);
+      w.addComponent(entity, {
+        type: "Faction",
+        faction: "enemy"
+      } as FactionComponent);
     }
   });
 

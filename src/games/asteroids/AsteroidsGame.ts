@@ -52,6 +52,7 @@ import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintM
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
 import { AsteroidCollisionSystem } from "./systems/AsteroidCollisionSystem";
+import { CombatSystem } from "../shared/combat/systems/CombatSystem";
 import { INITIAL_GAME_STATE } from "./types/AsteroidTypes";
 import { createShip, spawnAsteroidWave, registerAsteroidsBlueprints } from "./EntityFactory";
 import type { IAsteroidsGame } from "./types/GameInterfaces";
@@ -157,6 +158,7 @@ export class AsteroidsGame
     this.world.addSystem(new CCDSystem(), { phase: SystemPhase.Simulation, priority: -10 });
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new AsteroidCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });

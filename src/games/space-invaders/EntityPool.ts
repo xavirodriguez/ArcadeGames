@@ -4,6 +4,7 @@ import { Entity, Component, BoundaryComponent, TransformComponent, VelocityCompo
 import { SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG } from "./types/SpaceInvadersTypes";
 import { ProjectilePool, ProjectileComponents, ProjectileParams } from "@tiny-aster/core";
+import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
 
 interface InvaderBulletComponents extends Omit<ProjectileComponents, "collider"> {
   boundary: BoundaryComponent;
@@ -48,7 +49,9 @@ export class PlayerBulletPool extends ProjectilePool<any, ProjectileParams> {
           activeTriggers: [],
           triggersEntered: [],
           triggersExited: []
-        } as CollisionEventsComponent
+        } as CollisionEventsComponent,
+        damage: { type: "Damage", amount: 1, category: "player_bullet", friendlyFire: false, consumption: "destroy-entity" } as DamageComponent,
+        faction: { type: "Faction", faction: "player" } as FactionComponent
       }),
       reset: (data) => {
         data.position.x = 0;
@@ -112,7 +115,9 @@ export class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {
           activeTriggers: [],
           triggersEntered: [],
           triggersExited: []
-        } as CollisionEventsComponent
+        } as CollisionEventsComponent,
+        damage: { type: "Damage", amount: 1, category: "enemy_bullet", friendlyFire: false, consumption: "destroy-entity" } as DamageComponent,
+        faction: { type: "Faction", faction: "enemy" } as FactionComponent
       }),
       reset: (data) => {
         data.position.x = 0;

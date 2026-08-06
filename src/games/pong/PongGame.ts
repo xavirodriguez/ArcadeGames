@@ -10,6 +10,7 @@ import {
   CollisionSystem2D,
   ConfigService,
   Renderer,
+  RendererUtils,
   MutatorSystem,
   SystemPhase,
   ServerUpdatePayload,
@@ -351,27 +352,30 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   public initializeRenderer(renderer: Renderer<PongComponentRegistry, any>): void {
-    if (renderer.type === "canvas") {
-      const { drawPongBall, drawPongPaddle, drawPongBackground } = require("./rendering/PongCanvasVisuals");
-      renderer.registerShape("circle", drawPongBall); // Override default circle with spinning ball
-      renderer.registerShape("paddle", drawPongPaddle); // Glowing neon paddles
-      renderer.registerBackgroundEffect("pong_bg", drawPongBackground); // Custom grid grid background
+    RendererUtils.registerAssets(renderer, {
+      canvas: (r) => {
+        const { drawPongBall, drawPongPaddle, drawPongBackground } = require("./rendering/PongCanvasVisuals");
+        r.registerShape("circle", drawPongBall); // Override default circle with spinning ball
+        r.registerShape("paddle", drawPongPaddle); // Glowing neon paddles
+        r.registerBackgroundEffect("pong_bg", drawPongBackground); // Custom grid grid background
 
-      // Register standard fallback VFX too
-      renderer.registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
-      renderer.registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
-      renderer.registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
-    } else if (renderer.type === "skia") {
-      const { drawSkiaPongBall, drawSkiaPongPaddle, drawSkiaPongBackground } = require("./rendering/PongSkiaVisuals");
-      renderer.registerShape("circle", drawSkiaPongBall);
-      renderer.registerShape("paddle", drawSkiaPongPaddle);
-      renderer.registerBackgroundEffect("pong_bg", drawSkiaPongBackground);
+        // Register standard fallback VFX too
+        r.registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
+        r.registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
+        r.registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
+      },
+      skia: (r) => {
+        const { drawSkiaPongBall, drawSkiaPongPaddle, drawSkiaPongBackground } = require("./rendering/PongSkiaVisuals");
+        r.registerShape("circle", drawSkiaPongBall);
+        r.registerShape("paddle", drawSkiaPongPaddle);
+        r.registerBackgroundEffect("pong_bg", drawSkiaPongBackground);
 
-      // Register custom new VFX - Overlay CRT grid, screen glow, and glitching on the Pong board!
-      renderer.registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
-      renderer.registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);
-      renderer.registerBackgroundEffect("crt_glitch", SharedVFX.SkiaCRTGlitchShudderEffect);
-    }
+        // Register custom new VFX - Overlay CRT grid, screen glow, and glitching on the Pong board!
+        r.registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);
+        r.registerBackgroundEffect("border_glow", SharedVFX.SkiaScreenBorderGlowEffect);
+        r.registerBackgroundEffect("crt_glitch", SharedVFX.SkiaCRTGlitchShudderEffect);
+      }
+    });
   }
 
   public getGameState(): PongState {

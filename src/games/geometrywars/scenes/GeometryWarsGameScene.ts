@@ -14,6 +14,8 @@ import {
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { CombatSystem } from "../../shared/combat/systems/CombatSystem";
+import { SpawnDirectorSystem } from "../../shared/spawn/systems/SpawnDirectorSystem";
+import { generateGeometryWarsWaves } from "../config/GeometryWarsWaves";
 import { registerGeometryWarsBlueprints, GeometryWarsEntityFactory } from "../entities/GeometryWarsEntities";
 import { GeometryWarsInputSystem } from "../systems/GeometryWarsInputSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
@@ -151,6 +153,21 @@ export class GeometryWarsGameScene extends Scene {
     GeometryWarsEntityFactory.createGameState(this.gworld);
     GeometryWarsEntityFactory.createSpawnDirector(this.gworld);
     GeometryWarsEntityFactory.createPlayer(this.gworld, this.config.WIDTH / 2, this.config.HEIGHT / 2);
+
+    // Initialize Wave definitions and SpawnDirector
+    const waves = generateGeometryWarsWaves(this.config.WIDTH, this.config.HEIGHT);
+    this.gworld.setResource("WaveDefinitions", waves);
+
+    const directorEntity = this.gworld.createEntity();
+    this.gworld.addComponent(directorEntity, {
+      type: "SpawnDirector",
+      waveIndex: 0,
+      cooldownRemaining: 0,
+      pendingSpawns: [],
+      waveElapsedTime: 0,
+      enemiesRemaining: 0,
+      status: "idle"
+    } as any);
   }
 
   public override onExit(): void {

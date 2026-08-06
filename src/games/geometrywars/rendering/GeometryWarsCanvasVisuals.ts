@@ -1,5 +1,221 @@
-import { ShapeDrawer, TransformComponent } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, TransformComponent, World, Entity, RenderComponent } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
+
+// ============================================================================
+// ZERO-ALLOCATION FILE-LEVEL PRE-ALLOCATED VISUAL PARTICLE POOL
+// ============================================================================
+
+interface VisualParticle {
+  active: boolean;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  color: string;
+}
+
+const PARTICLE_POOL_SIZE = 250;
+const PARTICLE_POOL: VisualParticle[] = Array.from({ length: PARTICLE_POOL_SIZE }, () => ({
+  active: false,
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  life: 0,
+  maxLife: 0,
+  size: 0,
+  color: ""
+}));
+
+/**
+ * Spawns a custom particle from our zero-allocation pool.
+ */
+export function spawnVisualParticle(
+  x: number,
+  y: number,
+  vx: number,
+  vy: number,
+  maxLife: number,
+  size: number,
+  color: string
+): void {
+  for (let i = 0; i < PARTICLE_POOL.length; i++) {
+    const p = PARTICLE_POOL[i];
+    if (!p.active) {
+      p.active = true;
+      p.x = x;
+      p.y = y;
+      p.vx = vx;
+      p.vy = vy;
+      p.life = maxLife;
+      p.maxLife = maxLife;
+      p.size = size;
+      p.color = color;
+      break;
+    }
+  }
+}
+
+/**
+ * Updates active particles with friction and limits.
+ */
+function updateVisualParticles(dt: number = 0.016): void {
+  for (let i = 0; i < PARTICLE_POOL.length; i++) {
+    const p = PARTICLE_POOL[i];
+    if (p.active) {
+      p.life -= dt;
+      if (p.life <= 0) {
+        p.active = false;
+        continue;
+      }
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= 0.94; // friction
+      p.vy *= 0.94;
+    }
+  }
+}
+
+/**
+ * Draws all active particles with neon glow.
+ */
+function drawVisualParticles(ctx: CanvasRenderingContext2D): void {
+  ctx.save();
+  for (let i = 0; i < PARTICLE_POOL.length; i++) {
+    const p = PARTICLE_POOL[i];
+    if (!p.active) continue;
+
+    const ratio = p.life / p.maxLife;
+    ctx.globalAlpha = ratio;
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 8 * ratio;
+    ctx.shadowColor = p.color;
+
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  }
+  ctx.restore();
+}
+
+// ============================================================================
+// GRID DEFORMATION MATHEMATICS (ZERO FRAME ALLOCATION)
+// ============================================================================
+
+const BULLET_COORDS = Array.from({ length: 100 }, () => ({ x: 0, y: 0 }));
+const DISPLACED_COORD = { x: 0, y: 0 };
+
+/**
+ * Calculates real-time neon grid point displacement based on player and bullets coordinates.
+ */
+function getDisplacedPoint(
+  x: number,
+  y: number,
+  px: number,
+  py: number,
+  bulletCoords: typeof BULLET_COORDS,
+  bulletCount: number
+): { x: number; y: number } {
+  let dx = x;
+  let dy = y;
+
+  // 1. Player lens bulge deformation
+  const pdx = x - px;
+  const pdy = y - py;
+  const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+  if (pdist < 140 && pdist > 0.1) {
+    const factor = (140 - pdist) / 140;
+    const displacement = 20 * factor * factor;
+    dx += (pdx / pdist) * displacement;
+    dy += (pdy / pdist) * displacement;
+  }
+
+  // 2. Active bullets gravity ripple deformation
+  for (let i = 0; i < bulletCount; i++) {
+    const bx = bulletCoords[i].x;
+    const by = bulletCoords[i].y;
+    const bdx = x - bx;
+    const bdy = y - by;
+    const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
+    if (bdist < 60 && bdist > 0.1) {
+      const bFactor = (60 - bdist) / 60;
+      const bDisplacement = 12 * bFactor * bFactor;
+      dx += (bdx / bdist) * bDisplacement;
+      dy += (bdy / bdist) * bDisplacement;
+    }
+  }
+
+  DISPLACED_COORD.x = dx;
+  DISPLACED_COORD.y = dy;
+  return DISPLACED_COORD;
+}
+
+// ============================================================================
+// DECOUPLED BULLET DEATH & TRAIL MONITOR
+// ============================================================================
+
+const LAST_BULLETS_MAP = new Map<number, { x: number; y: number }>();
+const CURRENT_BULLETS_SET = new Set<number>();
+
+function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry>): void {
+  CURRENT_BULLETS_SET.clear();
+
+  // Find all active bullets in this frame
+  const entities = world.query("Transform", "Render");
+  for (const ent of entities) {
+    const render = world.getComponent(ent, "Render")!;
+    if (render.shape === "gw_bullet" && render.visible) {
+      CURRENT_BULLETS_SET.add(ent);
+      const transform = world.getComponent(ent, "Transform")!;
+      const bx = transform.worldX ?? transform.x;
+      const by = transform.worldY ?? transform.y;
+
+      LAST_BULLETS_MAP.set(ent, { x: bx, y: by });
+
+      // Spawn a continuous subtle neon yellow trail spark particle
+      if (world.tick % 2 === 0) {
+        spawnVisualParticle(
+          bx,
+          by,
+          (world.renderRandom.next() - 0.5) * 15,
+          (world.renderRandom.next() - 0.5) * 15,
+          0.3,
+          2.0,
+          "#ffff00"
+        );
+      }
+    }
+  }
+
+  // Find bullets that were removed (present in LAST_BULLETS_MAP but not in CURRENT_BULLETS_SET)
+  for (const [id, pos] of LAST_BULLETS_MAP.entries()) {
+    if (!CURRENT_BULLETS_SET.has(id)) {
+      // Bullet died/expired! Spawn a stunning splash explosion of neon particles
+      const sparkCount = 8 + world.renderRandom.nextInt(0, 4);
+      for (let s = 0; s < sparkCount; s++) {
+        const angle = world.renderRandom.next() * Math.PI * 2;
+        const speed = world.renderRandom.nextRange(40, 100);
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        spawnVisualParticle(
+          pos.x,
+          pos.y,
+          vx,
+          vy,
+          world.renderRandom.nextRange(0.4, 0.7),
+          world.renderRandom.nextRange(2.0, 3.5),
+          world.renderRandom.next() > 0.4 ? "#ffff00" : "#ff00ff"
+        );
+      }
+      LAST_BULLETS_MAP.delete(id);
+    }
+  }
+}
+
+// ============================================================================
+// HIGH-FIDELITY SHAPE DRAWERS
+// ============================================================================
 
 /**
  * Shape drawer for the Geometry Wars player ship (neon diamond/arrow).
@@ -13,14 +229,78 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
     const transform = world.getComponent(entity, "Transform") as TransformComponent;
     if (!transform) return;
 
+    const player = world.getComponent(entity, "Player");
+    if (!player) return;
+
     const size = render.size ?? 16;
     const color = render.color ?? "#00f0ff";
+    const x = transform.worldX ?? transform.x;
+    const y = transform.worldY ?? transform.y;
+
+    // Trigger thruster smoke/engine particles trailing behind on movement
+    const velocity = world.getComponent(entity, "Velocity");
+    if (velocity && (Math.abs(velocity.vx) > 10 || Math.abs(velocity.vy) > 10)) {
+      if (world.tick % 3 === 0) {
+        const angle = Math.atan2(velocity.vy, velocity.vx) + Math.PI; // opposite direction
+        const spreadAngle = angle + (world.renderRandom.next() - 0.5) * 0.4;
+        const pSpeed = world.renderRandom.nextRange(30, 80);
+        const pvx = Math.cos(spreadAngle) * pSpeed;
+        const pvy = Math.sin(spreadAngle) * pSpeed;
+        spawnVisualParticle(
+          x - Math.cos(angle) * 8,
+          y - Math.sin(angle) * 8,
+          pvx,
+          pvy,
+          world.renderRandom.nextRange(0.3, 0.6),
+          world.renderRandom.nextRange(2.5, 4.0),
+          "#00f0ff"
+        );
+      }
+    }
+
+    // Trigger Muzzle Flash Sparks based on hitFlashFrames set on firing
+    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
+      const aim = world.getComponent(entity, "Aim");
+      if (aim) {
+        const ax = aim.aimX;
+        const ay = aim.aimY;
+        const alen = Math.sqrt(ax * ax + ay * ay);
+        if (alen > 0.1) {
+          const nax = ax / alen;
+          const nay = ay / alen;
+          const noseX = x + nax * 12;
+          const noseY = y + nay * 12;
+
+          // Spawn muzzle flash sparks
+          for (let i = 0; i < 4; i++) {
+            const spreadAngle = Math.atan2(nay, nax) + (world.renderRandom.next() - 0.5) * 0.6;
+            const pSpeed = world.renderRandom.nextRange(80, 160);
+            spawnVisualParticle(
+              noseX,
+              noseY,
+              Math.cos(spreadAngle) * pSpeed,
+              Math.sin(spreadAngle) * pSpeed,
+              world.renderRandom.nextRange(0.15, 0.35),
+              world.renderRandom.nextRange(2.0, 3.5),
+              "#ffffff"
+            );
+          }
+        }
+      }
+    }
 
     ctx.save();
-    // Move to world location (the renderer rotates and moves the context to worldX, worldY, worldRotation automatically before calling draw, or we can use local coords. In Tiny Aster, standard Renderer handles global rotation/scale if configured, let's draw centered at (0,0))
+
+    // Invulnerability flashing blinking feedback
+    if (player.invulnRemaining > 0) {
+      if (Math.floor(world.tick / 4) % 2 === 0) {
+        ctx.globalAlpha = 0.3;
+      }
+    }
+
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 12;
     ctx.shadowColor = color;
 
     // Draw arrow/diamond shape
@@ -179,6 +459,177 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     ctx.moveTo(-size, 0);
     ctx.lineTo(size, 0);
     ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+/**
+ * Shape drawer for enemy seeker (neon diamond/star).
+ * @public
+ */
+export const drawEnemySeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 12;
+    const color = render.color ?? "#ff00ff";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -size);
+    ctx.lineTo(size / 2, 0);
+    ctx.lineTo(0, size);
+    ctx.lineTo(-size / 2, 0);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+/**
+ * Shape drawer for enemy evader (neon square).
+ * @public
+ */
+export const drawEnemyEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 12;
+    const color = render.color ?? "#00ff00";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.rect(-size / 2, -size / 2, size, size);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+/**
+ * Shape drawer for enemy fast seeker (neon arrow/triangle).
+ * @public
+ */
+export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const size = render.size ?? 8;
+    const color = render.color ?? "#ff0000";
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = color;
+
+    ctx.beginPath();
+    ctx.moveTo(size, 0);
+    ctx.lineTo(-size, -size / 2);
+    ctx.lineTo(-size / 2, 0);
+    ctx.lineTo(-size, size / 2);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+};
+
+// ============================================================================
+// GEOMETRY WARS BACKGROUND NEON DEFORMING GRID EFFECT
+// ============================================================================
+
+/**
+ * High-fidelity, deforming glowing neon blue background grid.
+ * @public
+ */
+export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  draw(ctx, world) {
+    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+    const { width, height } = screen;
+
+    // 1. Process visual particles updates and drawings
+    updateVisualParticles();
+    drawVisualParticles(ctx);
+
+    // 2. Monitor bullet states for trail and explosion spawns
+    monitorBulletsAndSpawnTrails(world);
+
+    // 3. Fetch Player coordinates for real-time grid displacement
+    let playerX = width / 2;
+    let playerY = height / 2;
+    const players = world.query("Player", "Transform");
+    if (players.length > 0) {
+      const transform = world.getComponent(players[0], "Transform")!;
+      playerX = transform.worldX ?? transform.x;
+      playerY = transform.worldY ?? transform.y;
+    }
+
+    // 4. Collect active bullets coordinates (up to 100) to displace the grid
+    let bulletCount = 0;
+    const entities = world.query("Transform", "Render");
+    for (const ent of entities) {
+      if (bulletCount >= 100) break;
+      const render = world.getComponent(ent, "Render")!;
+      if (render.shape === "gw_bullet" && render.visible) {
+        const trans = world.getComponent(ent, "Transform")!;
+        BULLET_COORDS[bulletCount].x = trans.worldX ?? trans.x;
+        BULLET_COORDS[bulletCount].y = trans.worldY ?? trans.y;
+        bulletCount++;
+      }
+    }
+
+    // 5. Draw Deforming Grid Lines
+    ctx.save();
+    ctx.strokeStyle = "rgba(0, 160, 255, 0.16)"; // Translucent neon blue
+    ctx.lineWidth = 0.8;
+
+    // Draw horizontal grid lines
+    for (let y = 0; y <= height; y += 40) {
+      ctx.beginPath();
+      let first = true;
+      for (let x = 0; x <= width; x += 25) {
+        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
+        if (first) {
+          ctx.moveTo(displaced.x, displaced.y);
+          first = false;
+        } else {
+          ctx.lineTo(displaced.x, displaced.y);
+        }
+      }
+      ctx.stroke();
+    }
+
+    // Draw vertical grid lines
+    for (let x = 0; x <= width; x += 40) {
+      ctx.beginPath();
+      let first = true;
+      for (let y = 0; y <= height; y += 25) {
+        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
+        if (first) {
+          ctx.moveTo(displaced.x, displaced.y);
+          first = false;
+        } else {
+          ctx.lineTo(displaced.x, displaced.y);
+        }
+      }
+      ctx.stroke();
+    }
 
     ctx.restore();
   }

@@ -4,7 +4,6 @@ export { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig"
 export { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "./types/GeometryWarsRegistry";
 export { registerGeometryWarsBlueprints, GeometryWarsEntityFactory } from "./entities/GeometryWarsEntities";
 export { WeaponSystem } from "./systems/WeaponSystem";
-export { GeometryWarsAISystem } from "./systems/GeometryWarsAISystem";
-export { GWBulletPool, GWParticlePool } from "./EntityPool";
+export { GWBulletPool } from "./EntityPool";
 export { drawPlayerShip, drawBullet } from "./rendering/GeometryWarsCanvasVisuals";
 export { drawSkiaPlayerShip, drawSkiaBullet } from "./rendering/GeometryWarsSkiaVisuals";

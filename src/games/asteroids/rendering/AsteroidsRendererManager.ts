@@ -2,6 +2,7 @@ import {
   World,
   ShapeDrawer,
   Renderer,
+  RendererUtils,
   TransformComponent,
   RenderComponent,
   ColliderComponent,
@@ -36,13 +37,16 @@ try {
 
 /** @public */
 export const initializeAsteroidsRenderer = (renderer: Renderer<AsteroidsComponentRegistry, any>) => {
-  if (renderer.type === "canvas") {
-    renderer.registerShape("player_ship", canvasDrawAsteroidsPlayerShip);
-    renderer.registerShape("asteroid", canvasDrawAsteroidsAsteroid);
-    renderer.registerShape("bullet", canvasDrawAsteroidsBullet);
-  } else if (renderer.type === "skia") {
-    renderer.registerShape("player_ship", skiaDrawAsteroidsPlayerShip);
-    renderer.registerShape("asteroid", skiaDrawAsteroidsAsteroid);
-    renderer.registerShape("bullet", skiaDrawAsteroidsBullet);
-  }
+  RendererUtils.registerAssets(renderer, {
+    canvas: (r) => {
+      r.registerShape("player_ship", canvasDrawAsteroidsPlayerShip);
+      r.registerShape("asteroid", canvasDrawAsteroidsAsteroid);
+      r.registerShape("bullet", canvasDrawAsteroidsBullet);
+    },
+    skia: (r) => {
+      r.registerShape("player_ship", skiaDrawAsteroidsPlayerShip);
+      r.registerShape("asteroid", skiaDrawAsteroidsAsteroid);
+      r.registerShape("bullet", skiaDrawAsteroidsBullet);
+    }
+  });
 };

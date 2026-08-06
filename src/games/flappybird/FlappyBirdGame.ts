@@ -514,6 +514,8 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
 }
 
+import { registerMutatorHook } from "../../utils/MutatorRegistry";
+
 // ==========================================================================
 // GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
 // ==========================================================================

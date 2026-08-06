@@ -97,7 +97,7 @@ export interface BeneficialMutator {
    * Transformation function that applies the mutator effect to a World.
    * @param world - The ECS world where the effect should be applied.
    */
-  apply: (world: World) => void;
+  apply: <T extends ComponentRegistry>(world: World<T>) => void;
 }
 
 /**
@@ -108,9 +108,9 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "faster_bullets",
     description: "Balas 10% más rápidas en todos los juegos",
     xpCost: 500,
-    apply: (genericWorld: World) => {
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
       const world = genericWorld as unknown as World<MutatorComponentRegistry>;
-      const config = world.getResource<any>("GameConfig");
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
       if (config) {
         const newConfig = { ...config };
         if (typeof newConfig.PLAYER_BULLET_SPEED === "number") {
@@ -128,9 +128,9 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "extra_life",
     description: "Empezar con 1 vida extra",
     xpCost: 800,
-    apply: (genericWorld: World) => {
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
       const world = genericWorld as unknown as World<MutatorComponentRegistry>;
-      const config = world.getResource<any>("GameConfig");
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
       if (config) {
         const newConfig = { ...config };
         if (typeof newConfig.PLAYER_INITIAL_LIVES === "number") {
@@ -139,10 +139,9 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         world.setResource("GameConfig", newConfig);
       }
 
-      world.setResource("ExtraLifeScoreP1", 1);
-
-      if (world.getSingleton("GameState" as any)) {
-        world.mutateSingleton("GameState" as any, (gs: any) => {
+      const gameState = world.getSingleton("GameState");
+      if (gameState) {
+        world.mutateSingleton("GameState", (gs) => {
           if (typeof gs.lives === "number") {
             gs.lives += 1;
           }
@@ -163,11 +162,11 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "combo_head_start",
     description: "Empezar con combo x2",
     xpCost: 300,
-    apply: (genericWorld: World) => {
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
       const world = genericWorld as unknown as World<MutatorComponentRegistry>;
       world.setResource("HasComboHeadStart", true);
 
-      const config = world.getResource<any>("GameConfig");
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
       const comboTimeout = config && typeof config.COMBO_TIMEOUT === "number"
         ? config.COMBO_TIMEOUT / 1000
         : 2.0;
@@ -197,7 +196,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "shield_pulse",
     description: "Escudo de 3 segundos al inicio de cada partida",
     xpCost: 1000,
-    apply: (genericWorld: World) => {
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
       const world = genericWorld as unknown as World<MutatorComponentRegistry>;
       world.setResource("HasShieldPulse", true);
 

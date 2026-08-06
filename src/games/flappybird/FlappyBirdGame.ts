@@ -1,17 +1,5 @@
 import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
-import { registerMutatorHook } from "../../utils/MutatorRegistry";
-
-registerMutatorHook((world, mutatorId) => {
-  if (mutatorId === "combo_head_start") {
-    const flappyState = world.getSingleton("FlappyState" as any);
-    if (flappyState) {
-      world.mutateSingleton("FlappyState" as any, (fs: any) => {
-        fs.comboMultiplier = 2;
-      });
-    }
-  }
-});
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
 import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";

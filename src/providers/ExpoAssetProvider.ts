@@ -36,14 +36,14 @@ export class ExpoAssetProvider implements IAssetProvider {
          await Font.loadAsync({ [path.split('/').pop()?.split('.')[0] || 'font']: path });
     } else {
         // Fallback for asset modules if path is passed as require() result
-        await Font.loadAsync(path as any);
+        await Font.loadAsync(path as unknown as Font.FontSource);
     }
   }
 
   /**
    * Generic loader for other asset types (e.g. JSON).
    */
-  async load(path: string): Promise<any> {
+  async load(path: string): Promise<unknown> {
     const asset = Asset.fromModule(path);
     await asset.downloadAsync();
     return asset;

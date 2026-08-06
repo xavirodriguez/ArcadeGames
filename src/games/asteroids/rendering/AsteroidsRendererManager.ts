@@ -35,15 +35,14 @@ try {
 // -------------------------------------------------------------
 
 /** @public */
-export const initializeAsteroidsRenderer = (renderer: Renderer<AsteroidsComponentRegistry>) => {
-  const r = renderer as any;
-  if (r.type === "canvas") {
-    r.registerShape("player_ship", canvasDrawAsteroidsPlayerShip);
-    r.registerShape("asteroid", canvasDrawAsteroidsAsteroid);
-    r.registerShape("bullet", canvasDrawAsteroidsBullet);
-  } else if (r.type === "skia") {
-    r.registerShape("player_ship", skiaDrawAsteroidsPlayerShip);
-    r.registerShape("asteroid", skiaDrawAsteroidsAsteroid);
-    r.registerShape("bullet", skiaDrawAsteroidsBullet);
+export const initializeAsteroidsRenderer = (renderer: Renderer<AsteroidsComponentRegistry, any>) => {
+  if (renderer.type === "canvas") {
+    renderer.registerShape("player_ship", canvasDrawAsteroidsPlayerShip);
+    renderer.registerShape("asteroid", canvasDrawAsteroidsAsteroid);
+    renderer.registerShape("bullet", canvasDrawAsteroidsBullet);
+  } else if (renderer.type === "skia") {
+    renderer.registerShape("player_ship", skiaDrawAsteroidsPlayerShip);
+    renderer.registerShape("asteroid", skiaDrawAsteroidsAsteroid);
+    renderer.registerShape("bullet", skiaDrawAsteroidsBullet);
   }
 };

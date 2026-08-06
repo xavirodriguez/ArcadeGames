@@ -6,6 +6,7 @@ import { INITIAL_GAME_STATE } from "../types/GameTypes";
 import type { GameStateComponent, InputState } from "../types/GameTypes";
 import { MutatorService } from "../services/MutatorService";
 import { ExpoAssetProvider } from "../providers/ExpoAssetProvider";
+import { Mutator } from "../config/MutatorConfig";
 
 const expoAssetProvider = new ExpoAssetProvider();
 
@@ -19,7 +20,7 @@ const expoAssetProvider = new ExpoAssetProvider();
  */
 
 export function useAsteroidsGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {
-  const [mutators, setMutators] = useState<any[] | null>(null);
+  const [mutators, setMutators] = useState<Mutator[] | null>(null);
 
   useEffect(() => {
     async function loadOptions() {

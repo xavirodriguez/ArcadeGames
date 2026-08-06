@@ -31,48 +31,51 @@ export interface MutatorComponentRegistry extends ComponentRegistry {
   };
 }
 
-export type MutatorHook = (world: World) => void;
-const MUTATOR_HOOKS: Record<string, MutatorHook[]> = {};
+export type SpecificMutatorHook = (world: World) => void;
+export type GenericMutatorHook = (world: World, mutatorId: string) => void;
+
+const SPECIFIC_MUTATOR_HOOKS: Record<string, SpecificMutatorHook[]> = {};
+const GENERIC_MUTATOR_HOOKS: GenericMutatorHook[] = [];
 
 /**
- * Registers a game-specific callback hook for a generic mutator.
+ * Overloaded function signatures for registerMutatorHook.
  */
-export function registerMutatorHook(mutatorId: string, hook: MutatorHook): void {
-  if (!MUTATOR_HOOKS[mutatorId]) {
-    MUTATOR_HOOKS[mutatorId] = [];
+export function registerMutatorHook(mutatorId: string, hook: SpecificMutatorHook): void;
+export function registerMutatorHook(hook: GenericMutatorHook): void;
+export function registerMutatorHook(first: string | GenericMutatorHook, second?: SpecificMutatorHook): void {
+  if (typeof first === "string" && second) {
+    if (!SPECIFIC_MUTATOR_HOOKS[first]) {
+      SPECIFIC_MUTATOR_HOOKS[first] = [];
+    }
+    SPECIFIC_MUTATOR_HOOKS[first].push(second);
+  } else if (typeof first === "function") {
+    GENERIC_MUTATOR_HOOKS.push(first);
   }
-  MUTATOR_HOOKS[mutatorId].push(hook);
 }
 
 /**
  * Applies all registered game-specific hooks for a mutator.
  */
 export function applyMutatorHooks(mutatorId: string, world: World): void {
-  const hooks = MUTATOR_HOOKS[mutatorId];
-  if (hooks) {
-    for (const hook of hooks) {
-      hook(world);
-    }
-  }
-}
-
-export type MutatorHook = (world: World, mutatorId: string) => void;
-
-const mutatorHooks: MutatorHook[] = [];
-
-/**
- * Registers a game-specific hook to run when a mutator is applied.
- */
-export function registerMutatorHook(hook: MutatorHook): void {
-  mutatorHooks.push(hook);
+  runMutatorHooks(world, mutatorId);
 }
 
 function runMutatorHooks(world: World, mutatorId: string): void {
-  for (const hook of mutatorHooks) {
+  const specific = SPECIFIC_MUTATOR_HOOKS[mutatorId];
+  if (specific) {
+    for (const hook of specific) {
+      try {
+        hook(world);
+      } catch (e) {
+        console.error(`Error in specific mutator hook for ${mutatorId}:`, e);
+      }
+    }
+  }
+  for (const hook of GENERIC_MUTATOR_HOOKS) {
     try {
       hook(world, mutatorId);
     } catch (e) {
-      console.error(`Error in mutator hook for ${mutatorId}:`, e);
+      console.error(`Error in generic mutator hook for ${mutatorId}:`, e);
     }
   }
 }
@@ -91,7 +94,7 @@ export interface BeneficialMutator {
    * Transformation function that applies the mutator effect to a World.
    * @param world - The ECS world where the effect should be applied.
    */
-  apply: (world: World) => void;
+  apply: <T extends ComponentRegistry>(world: World<T>) => void;
 }
 
 /**
@@ -102,9 +105,9 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "faster_bullets",
     description: "Balas 10% más rápidas en todos los juegos",
     xpCost: 500,
-    apply: (genericWorld: World) => {
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
       const world = genericWorld as unknown as World<MutatorComponentRegistry>;
-      const config = world.getResource<any>("GameConfig");
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
       if (config) {
         const newConfig = { ...config };
         if (typeof newConfig.PLAYER_BULLET_SPEED === "number") {
@@ -122,9 +125,9 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "extra_life",
     description: "Empezar con 1 vida extra",
     xpCost: 800,
-    apply: (genericWorld: World) => {
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
       const world = genericWorld as unknown as World<MutatorComponentRegistry>;
-      const config = world.getResource<any>("GameConfig");
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
       if (config) {
         const newConfig = { ...config };
         if (typeof newConfig.PLAYER_INITIAL_LIVES === "number") {
@@ -133,10 +136,9 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         world.setResource("GameConfig", newConfig);
       }
 
-      world.setResource("ExtraLifeScoreP1", 1);
-
-      if (world.getSingleton("GameState" as any)) {
-        world.mutateSingleton("GameState" as any, (gs: any) => {
+      const gameState = world.getSingleton("GameState");
+      if (gameState) {
+        world.mutateSingleton("GameState", (gs) => {
           if (typeof gs.lives === "number") {
             gs.lives += 1;
           }
@@ -157,11 +159,11 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "combo_head_start",
     description: "Empezar con combo x2",
     xpCost: 300,
-    apply: (genericWorld: World) => {
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
       const world = genericWorld as unknown as World<MutatorComponentRegistry>;
       world.setResource("HasComboHeadStart", true);
 
-      const config = world.getResource<any>("GameConfig");
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
       const comboTimeout = config && typeof config.COMBO_TIMEOUT === "number"
         ? config.COMBO_TIMEOUT / 1000
         : 2.0;
@@ -191,7 +193,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     id: "shield_pulse",
     description: "Escudo de 3 segundos al inicio de cada partida",
     xpCost: 1000,
-    apply: (genericWorld: World) => {
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
       const world = genericWorld as unknown as World<MutatorComponentRegistry>;
       world.setResource("HasShieldPulse", true);
 

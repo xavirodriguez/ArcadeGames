@@ -117,7 +117,7 @@ export default tseslint.config(
     files: ["packages/core/src/**/*.ts"],
     rules: {
       "no-console": "error",
-      "@typescript-eslint/no-explicit-any": "off", // Kept as warning for core internals to prevent breaking core library dynamic typing
+      "@typescript-eslint/no-explicit-any": "warn", // Kept as warning for core internals to prevent breaking core library dynamic typing
       "@typescript-eslint/no-require-imports": "error",
       // EL GUARDIÁN DE FRONTERAS:
       "no-restricted-imports": [
@@ -156,6 +156,14 @@ export default tseslint.config(
         {
           selector: "CallExpression[callee.object.name='world'][callee.property.name=/(addComponent|removeComponent|createEntity|removeEntity)/]",
           message: "💥 INVARIANTE ROTA: Mutación estructural directa. Utiliza WorldCommandBuffer."
+        },
+        {
+          selector: "CallExpression[callee.property.name='update'][callee.object.name=/scene|Scene/]",
+          message: "💥 DEPRECATED API: Calling Scene.update() is deprecated. Use Scene.onUpdate() instead."
+        },
+        {
+          selector: "CallExpression[callee.property.name='render'][callee.object.name=/scene|Scene/]",
+          message: "💥 DEPRECATED API: Calling Scene.render() is deprecated. Delegate rendering to Renderer.render instead."
         }
       ],
     },
@@ -226,9 +234,7 @@ export default tseslint.config(
       "src/games/asteroids/__tests__/**/*.ts",
       "src/games/asteroids/**/*.test.ts",
       "server/src/**/*.ts",
-      "src/**/*.tsx",
-      "src/hooks/**/*.ts",
-      "src/providers/**/*.ts"
+      "src/**/*.tsx"
     ],
     rules: {
       "@typescript-eslint/no-explicit-any": "off"

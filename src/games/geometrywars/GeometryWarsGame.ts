@@ -97,9 +97,12 @@ export class GeometryWarsGame extends BaseGame<
 
   public initializeRenderer(renderer: Renderer<GeometryWarsComponentRegistry, any>): void {
     if (renderer.type === "canvas") {
-      const { drawPlayerShip, drawBullet, drawGeometryWarsBackground } = require("./rendering/GeometryWarsCanvasVisuals");
+      const { drawPlayerShip, drawBullet, drawEnemySeeker, drawEnemyEvader, drawEnemyFastSeeker, drawGeometryWarsBackground } = require("./rendering/GeometryWarsCanvasVisuals");
       renderer.registerShape("gw_player", drawPlayerShip);
       renderer.registerShape("gw_bullet", drawBullet);
+      renderer.registerShape("gw_seeker", drawEnemySeeker);
+      renderer.registerShape("gw_evader", drawEnemyEvader);
+      renderer.registerShape("gw_fast_seeker", drawEnemyFastSeeker);
       renderer.registerBackgroundEffect("gw_background", drawGeometryWarsBackground);
 
       // Register standard, high-fidelity shared visual filters from SharedVFX
@@ -108,9 +111,12 @@ export class GeometryWarsGame extends BaseGame<
       renderer.registerBackgroundEffect("crt_glitch", SharedVFX.CRTGlitchShudderEffect);
       renderer.registerBackgroundEffect("border_glow", SharedVFX.ScreenBorderGlowEffect);
     } else if (renderer.type === "skia") {
-      const { drawSkiaPlayerShip, drawSkiaBullet, drawSkiaGeometryWarsBackground } = require("./rendering/GeometryWarsSkiaVisuals");
+      const { drawSkiaPlayerShip, drawSkiaBullet, drawSkiaEnemySeeker, drawSkiaEnemyEvader, drawSkiaEnemyFastSeeker, drawSkiaGeometryWarsBackground } = require("./rendering/GeometryWarsSkiaVisuals");
       renderer.registerShape("gw_player", drawSkiaPlayerShip);
       renderer.registerShape("gw_bullet", drawSkiaBullet);
+      renderer.registerShape("gw_seeker", drawSkiaEnemySeeker);
+      renderer.registerShape("gw_evader", drawSkiaEnemyEvader);
+      renderer.registerShape("gw_fast_seeker", drawSkiaEnemyFastSeeker);
       renderer.registerBackgroundEffect("gw_background", drawSkiaGeometryWarsBackground);
 
       // Register standard, high-fidelity shared Skia visual filters from SharedVFX

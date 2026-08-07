@@ -14,7 +14,6 @@ import {
   BoundarySystem,
   FrictionSystem,
   ScreenShakeSystem,
-  JoystickSystem,
   TTLSystem,
   InvulnerabilitySystem,
   CollisionSystem2D,

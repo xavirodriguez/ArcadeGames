@@ -4,7 +4,7 @@ import { Shape, ShapeType, ConvexPolygonShape } from "../shapes/Shapes";
 import { NarrowPhase } from "../collision/NarrowPhase";
 import { ComponentRegistry } from "../../ecs/Component";
 import { EventRegistry } from "../../events/EventBus";
-import { TransformComponent, ColliderComponent } from "../../ecs/CoreComponents";
+import { PhysicsTransformLike, ColliderLike } from "../PhysicsTypes";
 
 /** @public */
 export class PhysicsQuery {
@@ -14,10 +14,12 @@ export class PhysicsQuery {
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number): Entity[] {
     const results: Entity[] = [];
-    const entities = world.query("Collider" as any, "Transform" as any);
+    const colliderType = "Collider" as Extract<keyof TComponents, string>;
+    const transformType = "Transform" as Extract<keyof TComponents, string>;
+    const entities = world.query(colliderType, transformType);
     for (const entity of entities) {
-      const transform = world.getComponent(entity, "Transform" as any) as unknown as TransformComponent | undefined;
-      const collider = world.getComponent(entity, "Collider" as any) as unknown as ColliderComponent | undefined;
+      const transform = world.getComponent(entity, transformType) as unknown as PhysicsTransformLike | undefined;
+      const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;
       if (!transform || !collider || !collider.enabled) continue;
 
       const worldX = transform.worldX ?? transform.x;
@@ -84,10 +86,12 @@ export class PhysicsQuery {
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, shape: Shape, x: number, y: number): Entity[] {
     const results: Entity[] = [];
-    const entities = world.query("Collider" as any, "Transform" as any);
+    const colliderType = "Collider" as Extract<keyof TComponents, string>;
+    const transformType = "Transform" as Extract<keyof TComponents, string>;
+    const entities = world.query(colliderType, transformType);
     for (const entity of entities) {
-      const transform = world.getComponent(entity, "Transform" as any) as unknown as TransformComponent | undefined;
-      const collider = world.getComponent(entity, "Collider" as any) as unknown as ColliderComponent | undefined;
+      const transform = world.getComponent(entity, transformType) as unknown as PhysicsTransformLike | undefined;
+      const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;
       if (!transform || !collider || !collider.enabled) continue;
 
       const worldX = transform.worldX ?? transform.x;

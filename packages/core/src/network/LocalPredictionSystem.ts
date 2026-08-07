@@ -15,31 +15,30 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
 
     constructor(
         private networkManager: NetworkManager,
-        private simulateFn?: (world: World<TRegistry>, input: unknown, dt: number) => void,
-        private queryComponents: string[] = ["Transform", "LocalPlayer", "Velocity", "Input"],
-        private reconcileQueryComponents: string[] = ["Transform", "LocalPlayer", "Velocity"],
+        private simulateFn?: (world: World<TRegistry>, input: any, dt: number) => void,
+        private queryComponents: Extract<keyof TRegistry, string>[] = ["Transform", "LocalPlayer", "Velocity", "Input"] as any,
+        private reconcileQueryComponents: Extract<keyof TRegistry, string>[] = ["Transform", "LocalPlayer", "Velocity"] as any,
         private reconcileFn?: (world: World<TRegistry>, entity: number, input: any, dt: number) => void
     ) {
         super();
     }
 
     public update(world: World<TRegistry>, deltaTime: number): void {
-        const w = world as unknown as World<MultiplayerRegistry>;
         const dtSec = deltaTime;
 
-        const localQuery = w.query(...(this.queryComponents as any));
+        const localQuery = world.query(...(this.queryComponents as any));
         for (const entity of localQuery) {
-            const input     = w.getComponent(entity, "Input" as any);
-            const velocity  = w.getComponent(entity, "Velocity" as any);
-            const transform = w.getComponent(entity, "Transform" as any);
+            const input     = world.getComponent(entity, "Input" as Extract<keyof TRegistry, string>) as any;
+            const velocity  = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
+            const transform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
             if (!input || !velocity || !transform) continue;
 
             if (this.simulateFn) {
                 this.simulateFn(world, input, dtSec);
             }
 
-            const finalVelocity  = w.getComponent(entity, "Velocity" as any)! as any;
-            const finalTransform = w.getComponent(entity, "Transform" as any)! as any;
+            const finalVelocity  = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
+            const finalTransform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
 
             this.inputQueue.push({
                 tick: this.lastProcessedTick++,
@@ -61,8 +60,7 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
         serverTick: number,
         serverState: AuthoritativeServerState
     ): void {
-        const w = world as unknown as World<MultiplayerRegistry>;
-        const random = w.gameplayRandom;
+        const random = world.gameplayRandom;
         const wasLocked = random ? random.isLocked() : false;
 
         if (random) {
@@ -72,13 +70,13 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
         try {
             this.inputQueue = this.inputQueue.filter(i => i.tick > serverTick);
 
-            const localQuery = w.query(...(this.reconcileQueryComponents as any));
+            const localQuery = world.query(...(this.reconcileQueryComponents as any));
             for (const entity of localQuery) {
-                w.mutateComponent(entity, "Transform" as any, (t: any) => {
+                world.mutateComponent(entity, "Transform" as Extract<keyof TRegistry, string>, (t: any) => {
                     t.x = serverState.x;
                     t.y = serverState.y;
                 });
-                w.mutateComponent(entity, "Velocity" as any, (v: any) => {
+                world.mutateComponent(entity, "Velocity" as Extract<keyof TRegistry, string>, (v: any) => {
                     v.vx = serverState.vx;
                     v.vy = serverState.vy;
                 });
@@ -93,9 +91,9 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
                     if (this.reconcileFn) {
                         this.reconcileFn(world, entity, item.input, itemDtSec);
                     } else {
-                        const currentVelocity  = w.getComponent(entity, "Velocity" as any)! as any;
+                        const currentVelocity  = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
 
-                        w.mutateComponent(entity, "Transform" as any, (t: any) => {
+                        world.mutateComponent(entity, "Transform" as Extract<keyof TRegistry, string>, (t: any) => {
                             t.x += currentVelocity.vx * itemDtSec;
                             t.y += currentVelocity.vy * itemDtSec;
                         });

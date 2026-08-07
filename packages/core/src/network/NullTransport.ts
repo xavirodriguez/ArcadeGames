@@ -9,8 +9,8 @@ import { NetworkTransport } from "./NetworkTransport";
  * @public
  */
 export class NullTransport<
-  TServerEvents extends Record<string, any> = Record<string, any>,
-  TClientEvents extends Record<string, any> = Record<string, any>
+  TServerEvents extends Record<string, unknown> = Record<string, unknown>,
+  TClientEvents extends Record<string, unknown> = Record<string, unknown>
 > implements NetworkTransport<TServerEvents, TClientEvents> {
   public readonly isOffline = true;
   /**

@@ -32,7 +32,7 @@ export interface IGameLifecycleHooks {
  * Interface representing a runnable game.
  * @public
  */
-export interface IGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>> {
+export interface IGame<TState = unknown, TInput = unknown> {
   getWorld(): World<any, any, any>;
   getEventBus(): EventBus<any>;
   getGameLoop(): GameLoop;
@@ -47,6 +47,6 @@ export interface IGame<TState = unknown, TInput extends Record<string, any> = Re
   restart(seed?: number): Promise<void>;
   subscribe(callback: (state: TState) => void): () => void;
   isPausedState(): boolean;
-  getInputSystem(): IInputSystem<TInput>;
+  getInputSystem(): IInputSystem<TInput extends Record<string, any> ? TInput : any>;
   setInputState(input: Partial<TInput>): void;
 }

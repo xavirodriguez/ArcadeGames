@@ -9,7 +9,8 @@ import {
   SystemPhase,
   SteeringSystem,
   EventBus,
-  SceneManager
+  SceneManager,
+  Camera2DSystem
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
@@ -21,7 +22,6 @@ import { GeometryWarsInputSystem } from "../systems/GeometryWarsInputSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { GWBulletPool, GWParticlePool } from "../EntityPool";
 import { GeometryWarsAISystem } from "../systems/GeometryWarsAISystem";
-import { SpawnDirectorSystem } from "../../shared/spawn/systems/SpawnDirectorSystem";
 import { WaveDefinition, SpawnRequest } from "../../shared/spawn/components/SpawnComponents";
 import { ComboSystem } from "../../shared/arcade/systems/ComboSystem";
 import { GeometryWarsGameStateSystem } from "../systems/GeometryWarsGameStateSystem";
@@ -80,6 +80,7 @@ export class GeometryWarsGameScene extends Scene {
     this.gworld.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.gworld.addSystem(new GeometryWarsGameStateSystem(), { phase: SystemPhase.GameRules });
     this.gworld.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    this.gworld.addSystem(new Camera2DSystem() as any, { phase: SystemPhase.Presentation });
     this.gworld.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
 
     // 4. Set procedurally generated wave definitions
@@ -153,6 +154,18 @@ export class GeometryWarsGameScene extends Scene {
     GeometryWarsEntityFactory.createGameState(this.gworld);
     GeometryWarsEntityFactory.createSpawnDirector(this.gworld);
     GeometryWarsEntityFactory.createPlayer(this.gworld, this.config.WIDTH / 2, this.config.HEIGHT / 2);
+
+    // Initialize Camera Entity
+    const cameraEntity = this.gworld.createEntity();
+    this.gworld.addComponent(cameraEntity, {
+      type: "Camera2D",
+      zoom: 1.0,
+      targetX: this.config.WIDTH / 2,
+      targetY: this.config.HEIGHT / 2,
+      x: this.config.WIDTH / 2,
+      y: this.config.HEIGHT / 2,
+      isMain: true
+    } as any);
 
     // Initialize Wave definitions and SpawnDirector
     const waves = generateGeometryWarsWaves(this.config.WIDTH, this.config.HEIGHT);

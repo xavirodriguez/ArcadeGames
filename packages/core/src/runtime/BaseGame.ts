@@ -102,6 +102,12 @@ export abstract class BaseGame<
       : new SceneManager(this.world, this.eventBus as any);
     this.audio = config.audio || new NullAudioPlayer();
 
+    this.eventBus.on("PlaySFX" as any, (payload: any) => {
+      if (payload && payload.name) {
+        this.audio.playSFX(payload.name);
+      }
+    });
+
     this.registerInternalResources();
 
     // Subscribe loop to update
@@ -117,6 +123,7 @@ export abstract class BaseGame<
     this.world.setResource("BlueprintRegistry", this.blueprints);
     this.world.setResource("EventBus", this.eventBus);
     this.world.setResource("InputSystem", this.unifiedInput);
+    this.world.setResource("Audio" as any, this.audio);
   }
 
   /**

@@ -45,6 +45,7 @@ export * from "./runtime/IGame";
 // Assets & Audio
 export * from "./assets/AssetLoader";
 export * from "./audio/IAudioPlayer";
+export * from "./audio/WebAudioPlayer";
 export * from "./audio/IHapticDevice";
 
 // AI

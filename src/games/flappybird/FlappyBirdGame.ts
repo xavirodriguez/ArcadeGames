@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, WebAudioPlayer } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
@@ -41,13 +41,14 @@ export class FlappyBirdGame
   private config!: typeof FLAPPY_CONFIG;
   public isMultiplayer = false;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown> } = {}) {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, audio?: any } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     super({
       pauseKey: FLAPPY_CONFIG.KEYS.PAUSE,
       restartKey: FLAPPY_CONFIG.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
-      gameOptions: { ...config.gameOptions, seed }
+      gameOptions: { ...config.gameOptions, seed },
+      audio: config.audio || new WebAudioPlayer()
     });
     this.isMultiplayer = !!config.isMultiplayer;
   }
@@ -320,15 +321,18 @@ export class FlappyBirdGame
 
   private async onPreloadAssets(): Promise<void> {
     const audio = this.audio;
-    try {
-      await Promise.all([
-        audio.loadSFX("flap", "/audio/flap.mp3"),
-        audio.loadSFX("hit", "/audio/hit.mp3"),
-        audio.loadSFX("score", "/audio/score.mp3"),
-        audio.loadSFX("game_over", "/audio/game_over.mp3"),
-      ]);
-    } catch (e) {
-      console.warn("[FlappyBird] Asset preloading failed.", e);
+    const assets = [
+      { id: "flap", path: "/audio/flap.mp3" },
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "score", path: "/audio/score.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" },
+    ];
+    for (const asset of assets) {
+      try {
+        await audio.loadSFX(asset.id, asset.path);
+      } catch (e) {
+        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
+      }
     }
   }
 
@@ -513,8 +517,6 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
 }
-
-import { registerMutatorHook } from "../../utils/MutatorRegistry";
 
 // ==========================================================================
 // GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)

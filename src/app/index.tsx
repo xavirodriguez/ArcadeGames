@@ -14,7 +14,7 @@ import { LeaderboardOverlay } from "../components/LeaderboardOverlay";
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars";
   href: Href<string>;
 }
 
@@ -23,6 +23,7 @@ const GAMES: GameEntry[] = [
   { id: "space-invaders", key: "space_invaders", href: "/space-invaders" },
   { id: "flappybird", key: "flappybird", href: "/flappybird" },
   { id: "pong", key: "pong", href: "/pong" },
+  { id: "geometrywars", key: "geometrywars", href: "/geometrywars" },
 ];
 
 export default function HomeScreen() {

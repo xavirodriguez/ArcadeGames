@@ -21,7 +21,6 @@ import { GeometryWarsInputSystem } from "../systems/GeometryWarsInputSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { GWBulletPool, GWParticlePool } from "../EntityPool";
 import { GeometryWarsAISystem } from "../systems/GeometryWarsAISystem";
-import { SpawnDirectorSystem } from "../../shared/spawn/systems/SpawnDirectorSystem";
 import { WaveDefinition, SpawnRequest } from "../../shared/spawn/components/SpawnComponents";
 import { ComboSystem } from "../../shared/arcade/systems/ComboSystem";
 import { GeometryWarsGameStateSystem } from "../systems/GeometryWarsGameStateSystem";

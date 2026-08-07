@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -36,23 +36,62 @@ export class SpaceInvadersGame
   implements ISpaceInvadersGame {
 
   public isMultiplayer = false;
+  private isHeadless = false;
   private playerBulletPool!: PlayerBulletPool;
   private enemyBulletPool!: EnemyBulletPool;
   private particlePool!: ParticlePool;
   private networkManager!: NetworkManager;
   public readonly gameId = "space-invaders";
   private config!: SpaceInvadersConfig;
+  private network: NetworkController<SpaceInvadersComponentRegistry>;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown> } = {}) {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     const rawConfig = require("./config/space-invaders.json");
     super({
       pauseKey: rawConfig.KEYS.PAUSE,
       restartKey: rawConfig.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
+      headless: config.headless,
+      schedule: config.schedule,
       gameOptions: { ...config.gameOptions, seed }
     });
+    this.isHeadless = !!config.headless;
     this.isMultiplayer = !!config.isMultiplayer;
+    this.network = new NetworkController<SpaceInvadersComponentRegistry>(this.world);
+  }
+
+  public applyInputToEntity(entityId: number, input: InputFrame) {
+    const activeWorld = this.getWorld();
+    if (!activeWorld.hasComponent(entityId, "Input" as any)) {
+      activeWorld.addComponent(entityId, {
+        type: "Input",
+        actions: new Set<string>(),
+        axes: {}
+      } as any);
+    }
+    activeWorld.mutateComponent(entityId, "Input" as any, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
+      inputComp.actions = new Set<string>(input.actions || []);
+      inputComp.axes = { ...input.axes };
+    }) as any);
+  }
+
+  public runSimulationStep(deltaTime: number, isResimulating: boolean) {
+    const activeWorld = this.getWorld();
+    const random = activeWorld.gameplayRandom;
+    const wasLocked = random ? random.isLocked() : false;
+
+    if (random) {
+      random.unlock();
+    }
+
+    try {
+      activeWorld.update(deltaTime);
+    } finally {
+      if (random && wasLocked) {
+        random.lock();
+      }
+    }
   }
 
   protected override async onRegisterSystems(): Promise<void> {
@@ -68,7 +107,9 @@ export class SpaceInvadersGame
     this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
-    await this.onPreloadAssets();
+    if (!this.isHeadless) {
+      await this.onPreloadAssets();
+    }
 
     if (!this.playerBulletPool) this.playerBulletPool = new PlayerBulletPool();
     if (!this.enemyBulletPool) this.enemyBulletPool = new EnemyBulletPool();

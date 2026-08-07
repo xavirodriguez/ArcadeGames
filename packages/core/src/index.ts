@@ -53,6 +53,7 @@ export * from "./ai/SteeringComponent";
 export * from "./ai/SteeringSystem";
 
 // Physics
+export * from "./physics/PhysicsTypes";
 export * from "./physics/systems/MovementSystem";
 export * from "./physics/systems/FrictionSystem";
 export * from "./physics/systems/BoundarySystem";

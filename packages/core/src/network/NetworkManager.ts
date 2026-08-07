@@ -3,15 +3,21 @@ import { NetworkTransport } from "./NetworkTransport";
 import { NullTransport } from "./NullTransport";
 
 /**
- * Minimum subset of World methods needed by the replicator.
+ * Interface with exact ECS signatures for world mutations.
  * @public
  */
-export interface INetworkableWorld {
+export interface WorldLike {
   createEntity(): number;
   hasComponent(entity: number, type: string): boolean;
   mutateComponent(entity: number, type: string, updater: (existing: any) => void): boolean;
   addComponent(entity: number, component: any): void;
 }
+
+/**
+ * Minimum subset of World methods needed by the replicator.
+ * @public
+ */
+export type INetworkableWorld = WorldLike;
 
 /**
  * Interface representing a state replicator.
@@ -21,8 +27,8 @@ export interface IStateReplicator {
   getMappings(): Map<string, number>;
   getLocalId(serverId: string): number | undefined;
   removeMapping(serverId: string): void;
-  resolveEntity(serverId: string, world: INetworkableWorld, serverComponents?: Record<string, any>): number;
-  replicate(world: INetworkableWorld, snapshot: WorldSnapshot): void;
+  resolveEntity(serverId: string, world: WorldLike, serverComponents?: Record<string, any>): number;
+  replicate(world: WorldLike, snapshot: WorldSnapshot): void;
 }
 
 /**
@@ -44,7 +50,7 @@ export class NetworkReplicator implements IStateReplicator {
     this.serverToLocal.delete(serverId);
   }
 
-  public resolveEntity(serverId: string, world: INetworkableWorld, serverComponents: Record<string, any> = {}): number {
+  public resolveEntity(serverId: string, world: WorldLike, serverComponents: Record<string, any> = {}): number {
     let localId = this.serverToLocal.get(serverId);
     if (localId === undefined) {
       const newEntityId = world.createEntity();
@@ -70,7 +76,7 @@ export class NetworkReplicator implements IStateReplicator {
     return actualLocalId;
   }
 
-  public replicate(world: INetworkableWorld, snapshot: WorldSnapshot): void {
+  public replicate(world: WorldLike, snapshot: WorldSnapshot): void {
     if (!snapshot || !snapshot.entities) return;
 
     const componentData = reconstructComponentData(snapshot);

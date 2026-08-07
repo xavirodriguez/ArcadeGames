@@ -4,6 +4,20 @@ import { runLifecycleSync, runLifecycleAsync } from "../utils/LifecycleUtils";
 import { EventBus } from "../events/EventBus";
 
 /**
+ * Event registry contract for scene transitions and state events.
+ * @public
+ */
+export interface SceneEventRegistry extends Record<string, any> {
+  "scene:transition:start": { scene: Scene };
+  "scene:transition:progress": { progress: number };
+  "scene:transition:success": { scene: Scene };
+  "scene:transition:timeout": { scene: Scene; error: unknown };
+  "scene:transition:error": { scene: Scene; error: unknown };
+  "scene:error": { action: string; error: unknown };
+  "scene:warning": { message: string };
+}
+
+/**
  * Operational states for the Scene Manager.
  *
  * @public
@@ -45,7 +59,7 @@ export class SceneManager {
   private isProcessingTransition = false;
   private world: World;
   private transitionToken = 0;
-  private eventBus?: EventBus;
+  private eventBus?: EventBus<SceneEventRegistry>;
 
   /** Progress of the current transition from 0 to 1 */
   public transitionProgress = 0;
@@ -61,9 +75,9 @@ export class SceneManager {
    */
   public onWorldCreated?: (world: World) => void | Promise<void>;
 
-  constructor(world: World, eventBus?: EventBus) {
+  constructor(world: World, eventBus?: EventBus<SceneEventRegistry>) {
     this.world = world;
-    this.eventBus = eventBus ?? world.getResource<EventBus>("EventBus");
+    this.eventBus = eventBus ?? world.getResource<EventBus<SceneEventRegistry>>("EventBus");
   }
 
   /** Returns the currently active scene. */
@@ -138,12 +152,12 @@ export class SceneManager {
     return this.enqueueTransition(async () => {
       const eventBus = this.eventBus;
       if (eventBus) {
-        eventBus.emit("scene:transition:start" as any, { scene } as any);
+        eventBus.emit("scene:transition:start", { scene });
       }
 
       this.transitionProgress = 0;
       if (eventBus) {
-        eventBus.emit("scene:transition:progress" as any, { progress: 0 } as any);
+        eventBus.emit("scene:transition:progress", { progress: 0 });
       }
 
       const myToken = ++this.transitionToken;
@@ -170,7 +184,7 @@ export class SceneManager {
 
         this.transitionProgress = 0.3;
         if (eventBus) {
-          eventBus.emit("scene:transition:progress" as any, { progress: 0.3 } as any);
+          eventBus.emit("scene:transition:progress", { progress: 0.3 });
         }
 
         // 2. Load new scene
@@ -195,7 +209,7 @@ export class SceneManager {
 
           this.transitionProgress = 0.7;
           if (eventBus) {
-            eventBus.emit("scene:transition:progress" as any, { progress: 0.7 } as any);
+            eventBus.emit("scene:transition:progress", { progress: 0.7 });
           }
 
           await runLifecycleAsync(async () => {
@@ -221,23 +235,23 @@ export class SceneManager {
         this.transitionProgress = 1.0;
 
         if (eventBus) {
-          eventBus.emit("scene:transition:progress" as any, { progress: 1.0 } as any);
-          eventBus.emit("scene:transition:success" as any, { scene } as any);
+          eventBus.emit("scene:transition:progress", { progress: 1.0 });
+          eventBus.emit("scene:transition:success", { scene });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (myToken !== this.transitionToken) return;
 
         this.transitionToken++; // Obsolete this transition token to prevent any future/delayed execution
 
-        const isTimeout = error?.message === "Transition timed out";
+        const isTimeout = error instanceof Error && error.message === "Transition timed out";
 
         if (eventBus) {
           if (isTimeout) {
-            eventBus.emit("scene:transition:timeout" as any, { scene, error } as any);
+            eventBus.emit("scene:transition:timeout", { scene, error });
           } else {
-            eventBus.emit("scene:transition:error" as any, { scene, error } as any);
+            eventBus.emit("scene:transition:error", { scene, error });
           }
-          eventBus.emit("scene:error" as any, { action: "transition", error } as any);
+          eventBus.emit("scene:error", { action: "transition", error });
         }
 
         // Rollback
@@ -317,9 +331,9 @@ export class SceneManager {
         if (myToken !== this.transitionToken) return;
 
         this.transitionToken++; // Obsolete this token to prevent late execution
-        const eventBus = this.world.getResource<EventBus>("EventBus");
+        const eventBus = this.world.getResource<EventBus<SceneEventRegistry>>("EventBus");
         if (eventBus) {
-          eventBus.emit("scene:error" as any, { action: "push", error } as any);
+          eventBus.emit("scene:error", { action: "push", error });
         }
 
         // Rollback stack and scene properly
@@ -344,10 +358,10 @@ export class SceneManager {
    */
   public async pop(options?: { timeout?: number }): Promise<void> {
     return this.enqueueTransition(async () => {
-      const eventBus = this.world.getResource<EventBus>("EventBus");
+      const eventBus = this.world.getResource<EventBus<SceneEventRegistry>>("EventBus");
       if (this.sceneStack.length <= 1) {
         if (eventBus) {
-          eventBus.emit("scene:warning" as any, { message: "Cannot pop the last scene." } as any);
+          eventBus.emit("scene:warning", { message: "Cannot pop the last scene." });
         }
         return;
       }
@@ -400,7 +414,7 @@ export class SceneManager {
 
         this.transitionToken++; // Obsolete this token
         if (eventBus) {
-          eventBus.emit("scene:error" as any, { action: "pop", error } as any);
+          eventBus.emit("scene:error", { action: "pop", error });
         }
 
         // Rollback stack and scene properly

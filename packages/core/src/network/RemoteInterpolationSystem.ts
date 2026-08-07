@@ -13,20 +13,18 @@ export class RemoteInterpolationSystem<TRegistry extends MultiplayerRegistry = M
     constructor(
         private networkManager: NetworkManager,
         private smoothingFactor: number = 0.15,
-        private queryComponents: string[] = ["Transform", "RemotePlayer"]
+        private queryComponents: Extract<keyof TRegistry, string>[] = ["Transform", "RemotePlayer"] as any
     ) {
         super();
     }
 
     public update(world: World<TRegistry>, _deltaTime: number): void {
-        const w = world as unknown as World<MultiplayerRegistry>;
-
-        const remoteQuery = w.query(...(this.queryComponents as any));
+        const remoteQuery = world.query(...(this.queryComponents as any));
         for (const entity of remoteQuery) {
-            const remote = w.getComponent(entity, "RemotePlayer" as any) as any;
+            const remote = world.getComponent(entity, "RemotePlayer" as Extract<keyof TRegistry, string>) as any;
             if (remote && remote.targetX !== undefined && remote.targetY !== undefined) {
                 const alpha = 1 - Math.pow(1 - this.smoothingFactor, _deltaTime * 60);
-                w.mutateComponent(entity, "Transform" as any, (t: any) => {
+                world.mutateComponent(entity, "Transform" as Extract<keyof TRegistry, string>, (t: any) => {
                     t.x += (remote.targetX! - t.x) * alpha;
                     t.y += (remote.targetY! - t.y) * alpha;
                     if (remote.targetRotation !== undefined) {

@@ -16,12 +16,12 @@ import { ComponentCloner } from "./ComponentCloner";
 
 declare const __DEV__: boolean;
 
-if (typeof (globalThis as any).__DEV__ === "undefined") {
-  (globalThis as any).__DEV__ = process.env.NODE_ENV !== "production";
+if (typeof __DEV__ === "undefined") {
+  (globalThis as unknown as { __DEV__: boolean }).__DEV__ = process.env.NODE_ENV !== "production";
 }
 
-const isDev = typeof (globalThis as any).__DEV__ !== "undefined"
-  ? (globalThis as any).__DEV__
+const isDev = typeof __DEV__ !== "undefined"
+  ? __DEV__
   : (process.env.NODE_ENV !== "production");
 
 /**

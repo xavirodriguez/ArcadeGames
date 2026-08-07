@@ -5,7 +5,7 @@ import {
   SceneManager,
   World,
   Camera2DSystem,
-  TransformComponent
+  TransformComponent,
   WebAudioPlayer
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "./types/GeometryWarsRegistry";

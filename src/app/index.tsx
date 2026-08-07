@@ -15,7 +15,7 @@ import { LeaderboardOverlay } from "../components/LeaderboardOverlay";
 interface GameEntry {
   id: string;
   key: "asteroids" | "space_invaders" | "flappybird" | "pong";
-  href: Href<string>;
+  href: Href;
 }
 
 const GAMES: GameEntry[] = [
@@ -99,7 +99,7 @@ export default function HomeScreen() {
             <View key={game.id} style={styles.menuRow}>
               <TouchableOpacity
                 style={styles.menuButton}
-                onPress={() => router.push(game.href)}
+                onPress={() => router.push(game.href as any)}
               >
                 <Text style={styles.menuButtonText}>{t.menu[game.key]}</Text>
               </TouchableOpacity>

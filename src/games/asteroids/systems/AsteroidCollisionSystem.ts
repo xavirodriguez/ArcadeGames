@@ -101,7 +101,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
         const py = ay + (rng.next() - 0.5) * 8;
         const vx = Math.cos(angle) * speed;
         const vy = Math.sin(angle) * speed;
-        const colors = ["#a78bfa", "#c084fc", "#e9d5ff", "#a1a1aa"];
+        const colors = ["#ff66cc", "#ff9ee0", "#ffd6f0", "#ffffff"];
         const color = colors[rng.nextInt(0, colors.length)];
         const pSize = rng.nextRange(1.5, 4.5);
         const ttl = rng.nextRange(0.4, 0.9);

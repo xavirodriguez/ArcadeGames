@@ -36,7 +36,10 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
-    if (this.isMultiplayer) return;
+
+    const useNetwork = world.getResource("UseNetworkInputs") === true;
+    if (this.isMultiplayer && !useNetwork) return;
+
     const inputState = world.getSingleton("InputState");
     const entities = world.query("Player", "Input", "Transform", "Velocity");
 
@@ -52,8 +55,13 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
         let nextShoot = input.shoot;
         let nextShootCooldownRemaining = input.shootCooldownRemaining;
 
-        // Sync input component with manager
-        if (inputState) {
+        if (useNetwork) {
+          const axes = (input as any).axes || {};
+          const actions = (input as any).actions;
+          nextMoveLeft = (axes.moveX === -1);
+          nextMoveRight = (axes.moveX === 1);
+          nextShoot = (actions instanceof Set ? actions.has("shoot") : Array.isArray(actions) ? actions.includes("shoot") : false);
+        } else if (inputState) {
           nextMoveLeft = InputUtils.isPressed(inputState, "moveLeft");
           nextMoveRight = InputUtils.isPressed(inputState, "moveRight");
           nextShoot = InputUtils.isPressed(inputState, "shoot");

@@ -226,8 +226,8 @@ Después de terminar:
 | 7. Game feel, partículas y audio | COMPLETADA | pnpm exec jest src/games/geometrywars   | ParticlePool, explosion VFX & audio play (skipped on rollback) | — |
 | 8. Cámara                        | COMPLETADA | pnpm exec jest src/games/geometrywars | Smooth follow of player, camera clamping within world boundaries, screenToWorld aiming support | — |
 | 9. Canvas y Skia                 | COMPLETADA | pnpm exec jest src/games/geometrywars | Parity structural test (RendererParity.test.ts) covering visibility, opacity, layers, scales, rotation | — |
-| 10. HUD y ciclo de partida       | PENDIENTE | —             | —         | —                  |
-| 11. Vertical slice               | PENDIENTE | —             | —         | —                  |
+| 10. HUD y ciclo de partida       | COMPLETADA | pnpm exec jest src/games/geometrywars | Unified HUD with score, combo, wave, lives, bombs, pause/resume, game over and restart controls. | —                  |
+| 11. Vertical slice               | COMPLETADA | pnpm run typecheck:app && pnpm run typecheck:core | Complete twin-stick vertical slice integrated with WASD/mouse on Web and dual sticks on Mobile. | —                  |
 | 12. Networking cooperativo       | OPCIONAL  | —             | —         | —                  |
 
 Estados válidos:

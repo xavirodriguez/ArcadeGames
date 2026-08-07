@@ -5,7 +5,7 @@ import {
   SceneManager,
   World,
   Camera2DSystem,
-  TransformComponent
+  TransformComponent,
   WebAudioPlayer
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "./types/GeometryWarsRegistry";
@@ -153,7 +153,27 @@ export class GeometryWarsGame extends BaseGame<
     const sceneWorld = this.currentScene ? this.currentScene.getWorld() : this.world;
     const state = sceneWorld.getSingleton("GeometryWarsState");
     if (state) {
-      return { ...state };
+      let combo = 0;
+      let multiplier = 1;
+      let comboTimerRemaining = 0;
+
+      const comboEntities = sceneWorld.query("Combo" as any);
+      const comboEntity = comboEntities[0];
+      if (comboEntity !== undefined) {
+        const comboComp = sceneWorld.getComponent(comboEntity, "Combo" as any) as any;
+        if (comboComp) {
+          combo = comboComp.combo;
+          multiplier = comboComp.multiplier;
+          comboTimerRemaining = Math.max(0, comboComp.timerRemaining);
+        }
+      }
+
+      return {
+        ...state,
+        combo,
+        multiplier,
+        comboTimerRemaining
+      };
     }
     return {
       type: "GeometryWarsState",
@@ -162,7 +182,10 @@ export class GeometryWarsGame extends BaseGame<
       bombs: this.config.INITIAL_BOMBS,
       wave: 1,
       isGameOver: false,
-      gameTime: 0
+      gameTime: 0,
+      combo: 0,
+      multiplier: 1,
+      comboTimerRemaining: 0
     };
   }
 

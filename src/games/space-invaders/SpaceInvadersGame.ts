@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, WebAudioPlayer } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -43,14 +43,15 @@ export class SpaceInvadersGame
   public readonly gameId = "space-invaders";
   private config!: SpaceInvadersConfig;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown> } = {}) {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, audio?: any } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     const rawConfig = require("./config/space-invaders.json");
     super({
       pauseKey: rawConfig.KEYS.PAUSE,
       restartKey: rawConfig.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
-      gameOptions: { ...config.gameOptions, seed }
+      gameOptions: { ...config.gameOptions, seed },
+      audio: config.audio || new WebAudioPlayer()
     });
     this.isMultiplayer = !!config.isMultiplayer;
   }
@@ -334,15 +335,18 @@ export class SpaceInvadersGame
 
   private async onPreloadAssets(): Promise<void> {
     const audio = this.audio;
-    try {
-      await Promise.all([
-        audio.loadSFX("shoot", "/audio/shoot.mp3"),
-        audio.loadSFX("explosion", "/audio/explosion.mp3"),
-        audio.loadSFX("hit", "/audio/hit.mp3"),
-        audio.loadSFX("game_over", "/audio/game_over.mp3"),
-      ]);
-    } catch (e) {
-      console.warn("[SpaceInvaders] Asset preloading failed.", e);
+    const assets = [
+      { id: "shoot", path: "/audio/shoot.mp3" },
+      { id: "explosion", path: "/audio/explosion.mp3" },
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" },
+    ];
+    for (const asset of assets) {
+      try {
+        await audio.loadSFX(asset.id, asset.path);
+      } catch (e) {
+        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
+      }
     }
   }
 

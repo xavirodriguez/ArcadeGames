@@ -42,7 +42,8 @@ import {
   TTLComponent,
   BoundaryComponent,
   ShapeType,
-  CircleShape
+  CircleShape,
+  WebAudioPlayer
 } from "@tiny-aster/core";
 
 import { LootSystem, PowerUpSystem } from "../shared/arcade";
@@ -90,6 +91,9 @@ export class AsteroidsGame
   public set isMultiplayer(val: boolean) { this.network.isMultiplayer = val; }
 
   constructor(config: BaseGameConfig = {}) {
+    if (!config.audio) {
+      config.audio = new WebAudioPlayer();
+    }
     super(config);
     this.isHeadless = config.headless || false;
     this.network = new NetworkController<AsteroidsComponentRegistry>(this.world);
@@ -282,7 +286,7 @@ export class AsteroidsGame
         ]);
       }
     } catch (e) {
-      console.warn("[Asteroids] Asset preloading failed. Visuals or Audio may lag.", e);
+      console.error("[Audio] Failed to load asset ship_sprite:", e);
     }
   }
 

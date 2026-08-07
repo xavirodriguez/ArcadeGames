@@ -89,6 +89,22 @@ Architectural boundaries are not just documented — they're **enforced in CI** 
 - **TTL system** for automatic entity lifecycle management.
 - **Dual renderer strategy**: pluggable `CanvasRenderer` / Skia renderer, each implementing a common shape-drawer registration contract (`registerShape`, `registerBackgroundEffect`).
 - **Design-driven development**: gameplay loops, economy balance, and juice/feel systems are specified up front in [`GDD.md`](./GDD.md) before implementation — including moment-to-moment, session, and meta-progression loops per game.
+- **Integrated Audio System**: Low-latency browser audio playback via `WebAudioPlayer` (HTML5 `AudioContext` and `HTMLAudioElement` for SFX caching and BGM streaming), with a decoupled `PlaySFX` global event listener on `BaseGame`.
+
+### 🔊 Audio System
+
+The engine features a platform-agnostic audio system designed for a decouple-first architecture:
+1. **`IAudioPlayer` Contract**: `BaseGame` abstracts all audio operations behind `IAudioPlayer` (with `NullAudioPlayer` serving as a headless/testing/server fallback).
+2. **`WebAudioPlayer`**: High-performance browser implementation leveraging the Web Audio API (`AudioContext`) for low-latency SFX playback with spatial panning/attenuation and `HTMLAudioElement` for looping background music.
+3. **Decoupled Event-Driven Sound Triggering**: ECS systems do not need to call the audio player directly. Instead, they simply emit a `"PlaySFX"` event to the central `EventBus`:
+   ```typescript
+   eventBus.emit("PlaySFX" as any, { name: "hit" });
+   ```
+   A global listener registered in `BaseGame` intercepts these events and plays them on the configured audio player automatically.
+4. **Dependency Injection**: Game instances can accept any custom player via the constructor's `BaseGameConfig`, falling back to `WebAudioPlayer` on client platforms:
+   ```typescript
+   const game = new PongGame({ audio: new WebAudioPlayer() });
+   ```
 
 ## 🎮 Games included
 

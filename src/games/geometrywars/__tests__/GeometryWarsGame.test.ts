@@ -157,4 +157,35 @@ describe("GeometryWarsGame Headless Smoke Test", () => {
     expect(aimComp.aimX).not.toBe(300);
     expect(aimComp.aimY).not.toBe(300);
   });
+
+  it("should retrieve Combo component fields on-the-fly inside getGameState()", async () => {
+    const game = new GeometryWarsGame();
+    await (game as any).onRegisterSystems();
+    await (game as any).onInitializeEntities();
+
+    const sceneWorld = (game as any).currentScene.getWorld();
+
+    // 1. Verify initial combo values
+    let state = game.getGameState();
+    expect(state.combo).toBe(0);
+    expect(state.multiplier).toBe(1);
+    expect(state.comboTimerRemaining).toBe(0);
+
+    // 2. Mock some combo values inside the Combo component singleton
+    const comboEntities = sceneWorld.query("Combo" as any);
+    expect(comboEntities.length).toBeGreaterThan(0);
+    const comboEntity = comboEntities[0];
+
+    sceneWorld.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+      c.combo = 15;
+      c.multiplier = 2;
+      c.timerRemaining = 4.5;
+    });
+
+    // 3. Verify getGameState merges these values dynamically on-the-fly
+    state = game.getGameState();
+    expect(state.combo).toBe(15);
+    expect(state.multiplier).toBe(2);
+    expect(state.comboTimerRemaining).toBe(4.5);
+  });
 });

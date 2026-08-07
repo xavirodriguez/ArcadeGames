@@ -10,7 +10,9 @@ import {
   SteeringSystem,
   EventBus,
   SceneManager,
-  Camera2DSystem
+  Camera2DSystem,
+  ScreenShakeSystem,
+  JuiceSystem
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
@@ -81,6 +83,8 @@ export class GeometryWarsGameScene extends Scene {
     this.gworld.addSystem(new GeometryWarsGameStateSystem(), { phase: SystemPhase.GameRules });
     this.gworld.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new Camera2DSystem() as any, { phase: SystemPhase.Presentation });
+    this.gworld.addSystem(new JuiceSystem() as any, { phase: SystemPhase.Presentation });
+    this.gworld.addSystem(new ScreenShakeSystem() as any, { phase: SystemPhase.Presentation });
     this.gworld.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
 
     // 4. Set procedurally generated wave definitions
@@ -165,6 +169,15 @@ export class GeometryWarsGameScene extends Scene {
       x: this.config.WIDTH / 2,
       y: this.config.HEIGHT / 2,
       isMain: true
+    } as any);
+
+    // Initialize ScreenShake singleton entity
+    const shakeEntity = this.gworld.createEntity();
+    this.gworld.addComponent(shakeEntity, {
+      type: "ScreenShake",
+      intensity: 0,
+      duration: 0,
+      remaining: 0
     } as any);
 
     // Initialize Wave definitions and SpawnDirector

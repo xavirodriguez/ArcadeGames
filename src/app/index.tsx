@@ -100,7 +100,7 @@ export default function HomeScreen() {
             <View key={game.id} style={styles.menuRow}>
               <TouchableOpacity
                 style={styles.menuButton}
-                onPress={() => router.push(game.href)}
+                onPress={() => router.push(game.href as any)}
               >
                 <Text style={styles.menuButtonText}>{t.menu[game.key]}</Text>
               </TouchableOpacity>

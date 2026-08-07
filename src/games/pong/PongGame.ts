@@ -15,7 +15,8 @@ import {
   SystemPhase,
   ServerUpdatePayload,
   HierarchySystem,
-  World
+  World,
+  WebAudioPlayer
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
@@ -70,7 +71,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   private stallStartTime = 0;
   private isStalled = false;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode, assetProvider?: any } | PongMode = "local") {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode, assetProvider?: any, audio?: any } | PongMode = "local") {
     const isConfig = typeof config === "object" && config !== null;
     const mode = isConfig
       ? (config.gameOptions?.mode as PongMode || config.mode || "local")
@@ -78,12 +79,14 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     const isMultiplayer = isConfig ? config.isMultiplayer : false;
     const seed = isConfig ? (config.gameOptions?.seed as number || config.seed) : undefined;
     const assetProvider = isConfig ? (config as any).assetProvider : undefined;
+    const audio = isConfig ? (config as any).audio : undefined;
 
     super({
       pauseKey: "Escape",
       isMultiplayer,
       assetProvider,
-      gameOptions: { mode, seed, ...((isConfig && config.gameOptions) || {}) }
+      gameOptions: { mode, seed, ...((isConfig && config.gameOptions) || {}) },
+      audio: audio || new WebAudioPlayer()
     });
     this.assetLoader = new AssetLoader(assetProvider);
   }
@@ -348,7 +351,19 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   private async onPreloadAssets(): Promise<void> {
-    // Audio preloading moved to game logic or specific service if needed
+    const audio = this.audio;
+    const assets = [
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "score", path: "/audio/score.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" },
+    ];
+    for (const asset of assets) {
+      try {
+        await audio.loadSFX(asset.id, asset.path);
+      } catch (e) {
+        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
+      }
+    }
   }
 
   public initializeRenderer(renderer: Renderer<PongComponentRegistry, any>): void {

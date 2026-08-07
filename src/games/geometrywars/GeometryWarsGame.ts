@@ -6,6 +6,7 @@ import {
   World,
   Camera2DSystem,
   TransformComponent
+  WebAudioPlayer
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
@@ -26,12 +27,13 @@ export class GeometryWarsGame extends BaseGame<
   private config: GeometryWarsConfig;
   private currentScene!: GeometryWarsGameScene;
 
-  constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any } = {}) {
+  constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any } = {}) {
     super({
       pauseKey: "Escape",
       isMultiplayer: false,
       assetProvider: options.assetProvider,
-      gameOptions: options.gameOptions
+      gameOptions: options.gameOptions,
+      audio: options.audio || new WebAudioPlayer()
     });
 
     this.config = {
@@ -55,14 +57,18 @@ export class GeometryWarsGame extends BaseGame<
   }
 
   private async onPreloadAssets(): Promise<void> {
-    try {
-      await Promise.all([
-        this.audio.loadSFX("shoot", "/audio/shoot.mp3"),
-        this.audio.loadSFX("explosion", "/audio/explosion.mp3"),
-        this.audio.loadSFX("explosion2", "/audio/explosion2.mp3"),
-      ]);
-    } catch (e) {
-      console.warn("[GeometryWars] Asset preloading failed.", e);
+    const audio = this.audio;
+    const assets = [
+      { id: "shoot", path: "/audio/shoot.mp3" },
+      { id: "explosion", path: "/audio/explosion.mp3" },
+      { id: "explosion2", path: "/audio/explosion2.mp3" },
+    ];
+    for (const asset of assets) {
+      try {
+        await audio.loadSFX(asset.id, asset.path);
+      } catch (e) {
+        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
+      }
     }
   }
 

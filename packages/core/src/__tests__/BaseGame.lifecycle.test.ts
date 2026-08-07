@@ -297,4 +297,21 @@ describe("BaseGame lifecycle", () => {
       "onInitializeEntities"
     ]);
   });
+
+  test("PlaySFX events propagate and trigger audio.playSFX", () => {
+    const mockAudioPlayer = {
+      loadSFX: jest.fn(),
+      playSFX: jest.fn(),
+      playBGM: jest.fn(),
+      stopBGM: jest.fn(),
+      pauseBGM: jest.fn(),
+      setMasterVolume: jest.fn(),
+      setSFXVolume: jest.fn(),
+      setBGMVolume: jest.fn(),
+      playSpatialSFX: jest.fn()
+    };
+    const game = new TestGame({ audio: mockAudioPlayer });
+    game.getEventBus().emit("PlaySFX" as any, { name: "hit" });
+    expect(mockAudioPlayer.playSFX).toHaveBeenCalledWith("hit");
+  });
 });

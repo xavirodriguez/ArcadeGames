@@ -3,7 +3,9 @@ import {
   BaseGame,
   Renderer,
   SceneManager,
-  World
+  World,
+  Camera2DSystem,
+  TransformComponent
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
@@ -86,6 +88,7 @@ export class GeometryWarsGame extends BaseGame<
     aimX: number;
     aimY: number;
     fire: boolean;
+    mouseAbsolute?: boolean;
   }>): void {
     const sceneWorld = this.currentScene ? this.currentScene.getWorld() : this.world;
     const players = sceneWorld.query("Player");
@@ -101,8 +104,19 @@ export class GeometryWarsGame extends BaseGame<
 
       if (sceneWorld.hasComponent(player, "Aim")) {
         sceneWorld.mutateComponent(player, "Aim", (aim: any) => {
-          if (input.aimX !== undefined) aim.aimX = input.aimX;
-          if (input.aimY !== undefined) aim.aimY = input.aimY;
+          if (input.aimX !== undefined && input.aimY !== undefined) {
+            if (input.mouseAbsolute) {
+              const playerTransform = sceneWorld.getComponent(player, "Transform") as TransformComponent | undefined;
+              if (playerTransform) {
+                const worldMouse = Camera2DSystem.screenToWorld(sceneWorld, input.aimX, input.aimY);
+                aim.aimX = worldMouse.x - playerTransform.x;
+                aim.aimY = worldMouse.y - playerTransform.y;
+              }
+            } else {
+              aim.aimX = input.aimX;
+              aim.aimY = input.aimY;
+            }
+          }
           if (input.fire !== undefined) aim.isFiring = input.fire;
         });
       }

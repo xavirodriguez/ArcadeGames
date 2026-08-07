@@ -224,8 +224,8 @@ Después de terminar:
 | 5. Oleadas geométricas           | COMPLETADA | pnpm exec jest src/games/geometrywars   | SpawnDirector wave scheduling of Line, Ring, Spiral waves | — |
 | 6. Combat, combo y score         | COMPLETADA | pnpm exec jest src/games/geometrywars   | Combo component/system, multiplied scores, rollback safety | — |
 | 7. Game feel, partículas y audio | COMPLETADA | pnpm exec jest src/games/geometrywars   | ParticlePool, explosion VFX & audio play (skipped on rollback) | — |
-| 8. Cámara                        | PENDIENTE | —             | —         | —                  |
-| 9. Canvas y Skia                 | PENDIENTE | —             | —         | —                  |
+| 8. Cámara                        | COMPLETADA | pnpm exec jest src/games/geometrywars | Smooth follow of player, camera clamping within world boundaries, screenToWorld aiming support | — |
+| 9. Canvas y Skia                 | COMPLETADA | pnpm exec jest src/games/geometrywars | Parity structural test (RendererParity.test.ts) covering visibility, opacity, layers, scales, rotation | — |
 | 10. HUD y ciclo de partida       | PENDIENTE | —             | —         | —                  |
 | 11. Vertical slice               | PENDIENTE | —             | —         | —                  |
 | 12. Networking cooperativo       | OPCIONAL  | —             | —         | —                  |

@@ -214,20 +214,20 @@ Después de terminar:
 
 | Fase                             | Estado    | Quality gates | Evidencia | Riesgos pendientes |
 | -------------------------------- | --------- | ------------- | --------- | ------------------ |
-| Prerrequisito Combat             | COMPLETADA | pnpm exec jest src/games/shared/combat/ | Passing tests (7/7) | — |
-| Prerrequisito Spawn              | COMPLETADA | pnpm exec jest src/games/shared/spawn/  | Passing tests (2/2) | — |
-| 0. Esqueleto y contratos         | COMPLETADA | pnpm exec jest src/games/geometrywars   | Passing tests (1/1) | — |
-| 1. Input twin-stick              | COMPLETADA | pnpm exec jest src/games/geometrywars   | Passing tests (2/2) | — |
-| 2. Armas y proyectiles           | COMPLETADA | pnpm exec jest src/games/geometrywars   | Passing tests (3/3), GWBulletPool zero-allocation recycling | — |
-| 3. Broadphase                    | COMPLETADA | pnpm exec jest src/games/geometrywars   | 230x speed-up validation with 1000 entities vs O(N2) | — |
-| 4. Steering e IA                 | COMPLETADA | pnpm exec jest src/games/geometrywars   | Chaser, Evader, Grunt blueprints, SteeringSystem & AISystem | — |
-| 5. Oleadas geométricas           | COMPLETADA | pnpm exec jest src/games/geometrywars   | SpawnDirector wave scheduling of Line, Ring, Spiral waves | — |
-| 6. Combat, combo y score         | COMPLETADA | pnpm exec jest src/games/geometrywars   | Combo component/system, multiplied scores, rollback safety | — |
-| 7. Game feel, partículas y audio | COMPLETADA | pnpm exec jest src/games/geometrywars   | ParticlePool, explosion VFX & audio play (skipped on rollback) | — |
-| 8. Cámara                        | COMPLETADA | pnpm exec jest src/games/geometrywars | Smooth follow of player, camera clamping within world boundaries, screenToWorld aiming support | — |
-| 9. Canvas y Skia                 | COMPLETADA | pnpm exec jest src/games/geometrywars | Parity structural test (RendererParity.test.ts) covering visibility, opacity, layers, scales, rotation | — |
-| 10. HUD y ciclo de partida       | COMPLETADA | pnpm exec jest src/games/geometrywars | Unified HUD with score, combo, wave, lives, bombs, pause/resume, game over and restart controls. | —                  |
-| 11. Vertical slice               | COMPLETADA | pnpm run typecheck:app && pnpm run typecheck:core | Complete twin-stick vertical slice integrated with WASD/mouse on Web and dual sticks on Mobile. | —                  |
+| Prerrequisito Combat             | PENDIENTE | —             | —         | —                  |
+| Prerrequisito Spawn              | PENDIENTE | —             | —         | —                  |
+| 0. Esqueleto y contratos         | PENDIENTE | —             | —         | —                  |
+| 1. Input twin-stick              | PENDIENTE | —             | —         | —                  |
+| 2. Armas y proyectiles           | PENDIENTE | —             | —         | —                  |
+| 3. Broadphase                    | PENDIENTE | —             | —         | —                  |
+| 4. Steering e IA                 | PENDIENTE | —             | —         | —                  |
+| 5. Oleadas geométricas           | PENDIENTE | —             | —         | —                  |
+| 6. Combat, combo y score         | PENDIENTE | —             | —         | —                  |
+| 7. Game feel, partículas y audio | PENDIENTE | —             | —         | —                  |
+| 8. Cámara                        | PENDIENTE | —             | —         | —                  |
+| 9. Canvas y Skia                 | PENDIENTE | —             | —         | —                  |
+| 10. HUD y ciclo de partida       | PENDIENTE | —             | —         | —                  |
+| 11. Vertical slice               | PENDIENTE | —             | —         | —                  |
 | 12. Networking cooperativo       | OPCIONAL  | —             | —         | —                  |
 
 Estados válidos:
@@ -372,7 +372,7 @@ axes.aimY
 actions.includes("fire")
 ```
 
-Confirmar primero los nombres ya utilizados en el repositorio. Evitar crear sinónimos como `shoot` and `fire` simultáneamente.
+Confirmar primero los nombres ya utilizados en el repositorio. Evitar crear sinónimos como `shoot` y `fire` simultáneamente.
 
 ## `AimComponent`
 
@@ -658,7 +658,7 @@ Tests mínimos:
 * Un sonido por evento confirmado.
 * Disparo continuo limitado por política de voces.
 * Sin duplicados tras rollback.
-* El gameplay is idéntico con audio activado o desactivado.
+* El gameplay es idéntico con audio activado o desactivado.
 
 ---
 

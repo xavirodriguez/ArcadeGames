@@ -34,21 +34,23 @@ export class NetworkController<
   }
 
   public applyInputToEntity(entityId: number, input: InputFrame) {
-    if (!this.world.hasComponent(entityId, "Input" as any)) {
+    const inputType = "Input" as Extract<keyof TComponents, string>;
+    if (!this.world.hasComponent(entityId, inputType)) {
       this.world.addComponent(entityId, {
         type: "Input",
         actions: new Set<string>(),
         axes: {}
       } as any);
     }
-    this.world.mutateComponent(entityId, "Input" as any, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
+    this.world.mutateComponent(entityId, inputType, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
       inputComp.actions = new Set<string>(input.actions || []);
       inputComp.axes = { ...input.axes };
     }) as any);
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
-    const localPlayer = this.world.query("LocalPlayer" as any)[0];
+    const localPlayerType = "LocalPlayer" as Extract<keyof TComponents, string>;
+    const localPlayer = this.world.query(localPlayerType)[0];
     if (localPlayer !== undefined) {
       this.applyInputToEntity(localPlayer, input);
     }

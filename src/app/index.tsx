@@ -14,7 +14,7 @@ import { LeaderboardOverlay } from "../components/LeaderboardOverlay";
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars";
   href: Href<string>;
 }
 
@@ -23,6 +23,7 @@ const GAMES: GameEntry[] = [
   { id: "space-invaders", key: "space_invaders", href: "/space-invaders" },
   { id: "flappybird", key: "flappybird", href: "/flappybird" },
   { id: "pong", key: "pong", href: "/pong" },
+  { id: "geometrywars", key: "geometrywars", href: "/geometrywars" },
 ];
 
 export default function HomeScreen() {
@@ -99,7 +100,7 @@ export default function HomeScreen() {
             <View key={game.id} style={styles.menuRow}>
               <TouchableOpacity
                 style={styles.menuButton}
-                onPress={() => router.push(game.href)}
+                onPress={() => router.push(game.href as any)}
               >
                 <Text style={styles.menuButtonText}>{t.menu[game.key]}</Text>
               </TouchableOpacity>

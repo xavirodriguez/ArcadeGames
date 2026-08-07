@@ -2,13 +2,19 @@ import { World } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
 
 /**
+ * RenderContext represents the basic rendering target contexts.
+ * @public
+ */
+export type RenderContext = CanvasRenderingContext2D | any;
+
+/**
  * Interface for a generic renderer that can visualize the state of an ECS world.
  *
  * @typeParam TRegistry - The component registry used by the world.
  * @typeParam TContext - The specific rendering context (e.g., CanvasRenderingContext2D, Skia Canvas).
  * @public
  */
-export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistry, TContext = unknown> {
+export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistry, TContext = RenderContext> {
   readonly type: string;
   /**
    * Renders the current state of the world.
@@ -26,7 +32,7 @@ export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistr
  * Interface for drawing individual shapes or entities.
  * @public
  */
-export interface ShapeDrawer<TContext = unknown, TRegistry extends ComponentRegistry = ComponentRegistry> {
+export interface ShapeDrawer<TContext = RenderContext, TRegistry extends ComponentRegistry = ComponentRegistry> {
   /**
    * Draws a specific entity to the context.
    * @param context - The rendering context.
@@ -40,7 +46,7 @@ export interface ShapeDrawer<TContext = unknown, TRegistry extends ComponentRegi
  * Interface for drawing global screen effects.
  * @public
  */
-export interface EffectDrawer<TContext = unknown, TRegistry extends ComponentRegistry = ComponentRegistry> {
+export interface EffectDrawer<TContext = RenderContext, TRegistry extends ComponentRegistry = ComponentRegistry> {
   /**
    * Draws effects to the context.
    * @param context - The rendering context.

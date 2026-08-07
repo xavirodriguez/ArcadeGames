@@ -23,6 +23,8 @@ import { InputState } from "../../types/GameTypes";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
+import { RadialBackground } from "@/components/RadialBackground";
+import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 
 export default function AsteroidsScreen() {
   const { t } = useTranslation();
@@ -47,7 +49,6 @@ export default function AsteroidsScreen() {
         setIsMulti(false);
         setInitialSeed(dailySeed);
         setStarted(true);
-        // We'll call restartWithSeed once game is ready, or use the initial seed logic in StartScreen
       }
     }
   }, [params.seed, params.isDaily, started]);
@@ -160,8 +161,9 @@ export default function AsteroidsScreen() {
 
   if (!game || !isReady) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="white" />
+      <View style={sharedScreenStyles.container}>
+        <RadialBackground />
+        <ActivityIndicator size="large" color="#00f0ff" />
         <Text style={{ color: "white", marginTop: 20, fontFamily: "monospace", fontSize: 18 }}>
           Cargando motor físico...
         </Text>
@@ -172,9 +174,10 @@ export default function AsteroidsScreen() {
   return (
     <GameErrorBoundary gameId="asteroids">
     <SafeAreaProvider>
-      <View style={styles.container}>
+      <View style={sharedScreenStyles.container}>
+        <RadialBackground />
         <TouchableOpacity
-          style={styles.backButton}
+          style={sharedScreenStyles.backButton}
           onPress={() => {
             if (router.canGoBack()) {
               router.back();
@@ -183,12 +186,12 @@ export default function AsteroidsScreen() {
             }
           }}
         >
-          <Text style={styles.backButtonText}>← {t.common.menu}</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
 
         {isMulti && !connected && (
-            <View style={styles.overlay}>
-                <Text style={styles.overlayText}>{t.common.connecting}</Text>
+            <View style={sharedScreenStyles.overlay}>
+                <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
             </View>
         )}
 
@@ -250,7 +253,7 @@ export default function AsteroidsScreen() {
         <DebugOverlay game={game} room={room} />
 
         {showDailyResults && seed !== undefined && (
-          <View style={styles.overlay}>
+          <View style={sharedScreenStyles.overlay}>
             <DailyResultsOverlay
               gameId="asteroids"
               score={gameState.score}
@@ -291,9 +294,10 @@ const StartScreen: FC<{
   const { t } = useTranslation();
   return (
     <SafeAreaProvider>
-      <View style={styles.startScreen}>
+      <View style={sharedScreenStyles.startScreen}>
+        <RadialBackground />
         <TouchableOpacity
-          style={styles.backButton}
+          style={sharedScreenStyles.backButton}
           onPress={() => {
             if (router.canGoBack()) {
               router.back();
@@ -302,20 +306,20 @@ const StartScreen: FC<{
             }
           }}
         >
-          <Text style={styles.backButtonText}>← {t.common.menu}</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={sharedScreenStyles.title}>{title}</Text>
 
         <TextInput
-            style={styles.input}
+            style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
             placeholder={t.common.your_name}
-            placeholderTextColor="#666"
+            placeholderTextColor="#AAAAAA"
         />
 
-        <Text style={styles.instructions}>{instructions}</Text>
-        <Text style={styles.highScoreText}>{t.common.record}: {highScore}</Text>
+        <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
+        <Text style={sharedScreenStyles.highScoreText}>{t.common.record}: {highScore}</Text>
 
         {onStartDaily && <DailyChallengeBanner gameId="asteroids" onPlay={onStartDaily} />}
 
@@ -329,16 +333,16 @@ const StartScreen: FC<{
           />
         )}
 
-        <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.startButton} onPress={onStart}>
-                <Text style={styles.startButtonText}>{t.common.solo}</Text>
+        <View style={sharedScreenStyles.buttonRow}>
+            <TouchableOpacity style={sharedScreenStyles.startButton} onPress={onStart}>
+                <Text style={sharedScreenStyles.startButtonText}>{t.common.solo}</Text>
             </TouchableOpacity>
 
             {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
                 <>
                     <View style={{ width: 20 }} />
-                    <TouchableOpacity style={[styles.startButton, { backgroundColor: '#444' }]} onPress={onStartMulti}>
-                        <Text style={[styles.startButtonText, { color: 'white' }]}>
+                    <TouchableOpacity style={sharedScreenStyles.multiButton} onPress={onStartMulti}>
+                        <Text style={sharedScreenStyles.multiButtonText}>
                             {t.common.multi}
                         </Text>
                     </TouchableOpacity>
@@ -351,93 +355,6 @@ const StartScreen: FC<{
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "black",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  startScreen: {
-    flex: 1,
-    backgroundColor: "black",
-    alignItems: "center",
-    justifyContent: "center",
-    width: '100%',
-  },
-  title: {
-    fontSize: 48,
-    color: "white",
-    fontFamily: "monospace",
-    fontWeight: "bold",
-    marginBottom: 40,
-    textAlign: "center",
-  },
-  instructions: {
-    fontSize: 16,
-    color: "#CCCCCC",
-    fontFamily: "monospace",
-    marginBottom: 10,
-    textAlign: "center",
-    paddingHorizontal: 20,
-  },
-  highScoreText: {
-    fontSize: 20,
-    color: "#FFD700",
-    fontFamily: "monospace",
-    marginBottom: 40,
-  },
-  startButton: {
-    backgroundColor: "white",
-    paddingHorizontal: 30,
-    paddingVertical: 16,
-    borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-  },
-  input: {
-    backgroundColor: '#222',
-    color: 'white',
-    padding: 15,
-    borderRadius: 8,
-    width: 250,
-    marginBottom: 20,
-    fontFamily: 'monospace',
-    textAlign: 'center',
-    fontSize: 18,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  overlayText: {
-    color: 'white',
-    fontSize: 24,
-    fontFamily: 'monospace',
-  },
-  startButtonText: {
-    color: "black",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    zIndex: 100,
-    padding: 10,
-  },
-  backButtonText: {
-    color: "#AAAAAA",
-    fontSize: 16,
-    fontFamily: "monospace",
-  },
   controls: {
     ...StyleSheet.absoluteFillObject,
     flexDirection: "row",
@@ -457,3 +374,4 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   }
 });
+

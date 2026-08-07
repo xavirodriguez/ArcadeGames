@@ -5,6 +5,7 @@ export const en = {
     space_invaders: "SPACE INVADERS",
     flappybird: "FLAPPY BIRD",
     pong: "PONG",
+    geometrywars: "GEOMETRY WARS",
     level: "LEVEL",
   },
   daily: {

@@ -108,4 +108,84 @@ describe("GeometryWarsGame Headless Smoke Test", () => {
     expect(velComp.vx).toBeCloseTo(196.77, 1);
     expect(velComp.vy).toBeCloseTo(98.38, 1);
   });
+
+  it("should initialize the main Camera2D entity and smoothly follow the player with bounds clamping", async () => {
+    const game = new GeometryWarsGame();
+    await (game as any).onRegisterSystems();
+    await (game as any).onInitializeEntities();
+
+    const sceneWorld = (game as any).currentScene.getWorld();
+    const cameras = sceneWorld.query("Camera2D");
+    expect(cameras.length).toBe(1);
+
+    const camEntity = cameras[0];
+    const camera = sceneWorld.getComponent(camEntity, "Camera2D");
+    expect(camera).toBeDefined();
+    expect(camera.isMain).toBe(true);
+    expect(camera.zoom).toBe(1.0);
+
+    // Get initial position of camera
+    const initialCamX = camera.x;
+    const initialCamY = camera.y;
+
+    // Teleport the player
+    const player = sceneWorld.query("Player")[0];
+    sceneWorld.mutateComponent(player, "Transform", (t: any) => {
+      t.x = 100;
+      t.y = 100;
+    });
+
+    // Run camera update
+    game.update(0.016);
+
+    const updatedCamera = sceneWorld.getComponent(camEntity, "Camera2D");
+    // Camera should have smoothly moved towards the new target position
+    expect(updatedCamera.x).not.toBe(initialCamX);
+    expect(updatedCamera.y).not.toBe(initialCamY);
+
+    // Test mouse absolute aiming input with screenToWorld
+    game.setInputState({
+      aimX: 300,
+      aimY: 300,
+      fire: true,
+      mouseAbsolute: true
+    });
+
+    const aimComp = sceneWorld.getComponent(player, "Aim");
+    expect(aimComp.isFiring).toBe(true);
+    // aimX and aimY should be computed relative to player's position
+    expect(aimComp.aimX).not.toBe(300);
+    expect(aimComp.aimY).not.toBe(300);
+  });
+
+  it("should retrieve Combo component fields on-the-fly inside getGameState()", async () => {
+    const game = new GeometryWarsGame();
+    await (game as any).onRegisterSystems();
+    await (game as any).onInitializeEntities();
+
+    const sceneWorld = (game as any).currentScene.getWorld();
+
+    // 1. Verify initial combo values
+    let state = game.getGameState();
+    expect(state.combo).toBe(0);
+    expect(state.multiplier).toBe(1);
+    expect(state.comboTimerRemaining).toBe(0);
+
+    // 2. Mock some combo values inside the Combo component singleton
+    const comboEntities = sceneWorld.query("Combo" as any);
+    expect(comboEntities.length).toBeGreaterThan(0);
+    const comboEntity = comboEntities[0];
+
+    sceneWorld.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+      c.combo = 15;
+      c.multiplier = 2;
+      c.timerRemaining = 4.5;
+    });
+
+    // 3. Verify getGameState merges these values dynamically on-the-fly
+    state = game.getGameState();
+    expect(state.combo).toBe(15);
+    expect(state.multiplier).toBe(2);
+    expect(state.comboTimerRemaining).toBe(4.5);
+  });
 });

@@ -1,7 +1,7 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
 import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
-import { WorldSnapshot } from "./WorldSnapshot";
+import { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
 
 /**
  * Structure of Arrays (SoA) Restoration utility.
@@ -52,15 +52,15 @@ export class SnapshotRestoreSoA {
       world["componentIndex"].set(type, index);
       world["componentVersions"].set(type, versions);
 
-      const soaData = soaComponentData[type];
+      const soaData: SoAComponentBlock = soaComponentData[type];
       const keys = soaData.keys;
       const numKeys = keys.length;
       const entities = soaData.entities;
 
       let numEntities = 0;
       if (entities) {
-        if (typeof (entities as any).length === "number") {
-          numEntities = (entities as any).length;
+        if (typeof (entities as unknown as { length?: number }).length === "number") {
+          numEntities = (entities as unknown as { length: number }).length;
         } else {
           numEntities = Object.keys(entities).filter(k => !isNaN(Number(k))).length;
         }

@@ -1,7 +1,7 @@
-import { Renderer } from "./Renderer";
+import { Renderer, RenderContext } from "./Renderer";
 import { ComponentRegistry } from "../ecs/Component";
 
-export type RendererRegistrationCallback = (renderer: any) => void;
+export type RendererRegistrationCallback = (renderer: Renderer<any, RenderContext>) => void;
 
 export interface RendererRegistrationConfig {
   canvas?: RendererRegistrationCallback;

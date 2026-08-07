@@ -86,6 +86,18 @@ export type ComponentDataSnapshot = Record<string, Record<number, SerializedComp
 export type SerializedComponent = Record<string, unknown>;
 
 /**
+ * Core interface representing a single continuous block of SoA component fields.
+ * @public
+ */
+export interface SoAComponentBlock {
+  keys: string[];
+  entities: Int32Array | number[];
+  values: Float64Array | number[];
+  nonNumericValues?: unknown[];
+  booleanKeys?: string[];
+}
+
+/**
  * Structure of Arrays (SoA) layout for component storage inside snapshots.
  *
  * @remarks
@@ -93,7 +105,7 @@ export type SerializedComponent = Record<string, unknown>;
  * overhead and reduce GC pressure.
  * @public
  */
-export interface SoAComponentTypeData {
+export interface SoAComponentTypeData extends SoAComponentBlock {
   /**
    * Names of the serialized keys for this component type in a stable order.
    */

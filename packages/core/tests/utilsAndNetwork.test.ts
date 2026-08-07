@@ -354,16 +354,14 @@ describe("UnifiedInputSystem", () => {
   });
 });
 
-import { Camera2DSystem, JoystickSystem, FeedbackSystem } from "../src";
+import { Camera2DSystem, FeedbackSystem } from "../src";
 
-describe("Camera2DSystem & JoystickSystem", () => {
+describe("Camera2DSystem", () => {
   it("should cover simple update methods", () => {
     const world = new World<any>();
     const cameraSystem = new Camera2DSystem();
-    const joystickSystem = new JoystickSystem();
 
     expect(() => cameraSystem.update(world, 0.16)).not.toThrow();
-    expect(() => joystickSystem.update(world, 0.16)).not.toThrow();
   });
 });
 

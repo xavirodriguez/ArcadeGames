@@ -375,15 +375,18 @@ export class SpaceInvadersGame
 
   private async onPreloadAssets(): Promise<void> {
     const audio = this.audio;
-    try {
-      await Promise.all([
-        audio.loadSFX("shoot", "/audio/shoot.mp3"),
-        audio.loadSFX("explosion", "/audio/explosion.mp3"),
-        audio.loadSFX("hit", "/audio/hit.mp3"),
-        audio.loadSFX("game_over", "/audio/game_over.mp3"),
-      ]);
-    } catch (e) {
-      console.warn("[SpaceInvaders] Asset preloading failed.", e);
+    const assets = [
+      { id: "shoot", path: "/audio/shoot.mp3" },
+      { id: "explosion", path: "/audio/explosion.mp3" },
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" },
+    ];
+    for (const asset of assets) {
+      try {
+        await audio.loadSFX(asset.id, asset.path);
+      } catch (e) {
+        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
+      }
     }
   }
 

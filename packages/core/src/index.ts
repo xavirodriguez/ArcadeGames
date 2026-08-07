@@ -45,6 +45,7 @@ export * from "./runtime/IGame";
 // Assets & Audio
 export * from "./assets/AssetLoader";
 export * from "./audio/IAudioPlayer";
+export * from "./audio/WebAudioPlayer";
 export * from "./audio/IHapticDevice";
 
 // AI
@@ -53,6 +54,7 @@ export * from "./ai/SteeringComponent";
 export * from "./ai/SteeringSystem";
 
 // Physics
+export * from "./physics/PhysicsTypes";
 export * from "./physics/systems/MovementSystem";
 export * from "./physics/systems/FrictionSystem";
 export * from "./physics/systems/BoundarySystem";
@@ -85,7 +87,6 @@ export * from "./systems/SpatialPartitioningSystem";
 export * from "./systems/RenderUpdateSystem";
 export * from "./systems/TrailSystem";
 export * from "./systems/ParticleSystem";
-export * from "./systems/JoystickSystem";
 export * from "./systems/AnimationSystem";
 export * from "./systems/FeedbackSystem";
 export * from "./systems/HierarchySystem";

@@ -8,8 +8,8 @@
  * @public
  */
 export interface NetworkTransport<
-  TServerEvents extends Record<string, any> = Record<string, any>,
-  TClientEvents extends Record<string, any> = Record<string, any>
+  TServerEvents extends Record<string, unknown> = Record<string, unknown>,
+  TClientEvents extends Record<string, unknown> = Record<string, unknown>
 > {
     readonly isOffline: boolean;
     /**

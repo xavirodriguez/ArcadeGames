@@ -78,6 +78,13 @@ export class WebAudioPlayer implements IAudioPlayer {
       this.sfxCache.set(id, audioBuffer);
     } catch (e) {
       console.error(`[WebAudioPlayer] Failed to load/decode audio for "${id}" from "${url}":`, e);
+      // Fallback: cache a 1-second silent buffer so future playSFX calls don't try to play undefined or throw
+      try {
+        const dummyBuffer = this.ctx.createBuffer(1, this.ctx.sampleRate, this.ctx.sampleRate);
+        this.sfxCache.set(id, dummyBuffer);
+      } catch (dummyErr) {
+        console.error(`[WebAudioPlayer] Failed to create fallback dummy buffer for "${id}":`, dummyErr);
+      }
       throw e;
     }
   }

@@ -58,7 +58,13 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
     if (matchPipe) {
       // Activar coyote timer en lugar de game over inmediato
       world.mutateComponent(matchPipe["Bird"], "Bird", b => {
-        if (b.coyoteTimer <= 0) b.coyoteTimer = 0.05; // 50ms en segundos
+        if (b.coyoteTimer <= 0) {
+          b.coyoteTimer = 0.05; // 50ms en segundos
+          const eventBus = world.getResource<EventBus>("EventBus");
+          if (eventBus) {
+            eventBus.emit("PlaySFX" as any, { name: "hit" });
+          }
+        }
       });
       return;
     }
@@ -154,6 +160,12 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
       world.mutateSingleton("FlappyState", gs => {
           gs.isGameOver = true;
       });
+
+      const eventBus = world.getResource<EventBus>("EventBus");
+      if (eventBus) {
+        eventBus.emit("PlaySFX" as any, { name: "hit" });
+        eventBus.emit("PlaySFX" as any, { name: "game_over" });
+      }
 
       const birds = world.query("Bird");
       birds.forEach(birdEntity => {

@@ -58,7 +58,10 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
               }
           });
           const eventBus = world.getResource<EventBus>("EventBus");
-          if (eventBus) eventBus.emitDeferred("pipe:passed" as any, {} as any);
+          if (eventBus) {
+            eventBus.emitDeferred("pipe:passed" as any, {} as any);
+            eventBus.emit("PlaySFX" as any, { name: "score" });
+          }
         }
       }
     });

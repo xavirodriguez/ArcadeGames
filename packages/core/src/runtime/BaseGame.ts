@@ -104,6 +104,7 @@ export abstract class BaseGame<
 
     this.eventBus.on("PlaySFX" as any, (payload: any) => {
       if (payload && payload.name) {
+        // Automatically route global PlaySFX EventBus events to the configured audio player
         this.audio.playSFX(payload.name);
       }
     });

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useKeepAwake } from "./useKeepAwake";
 import { useGameServices } from "../providers/GameServicesProvider";
+import { WebAudioPlayer } from "@tiny-aster/core";
 import type { BaseGame, BaseGameConfig, IAssetProvider } from "@tiny-aster/core";
 
 export type GameConfig = BaseGameConfig & {
@@ -59,7 +60,8 @@ export function useGame<
     isMultiplayer,
     seed,
     gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) },
-    assetProvider: options.assetProvider
+    assetProvider: options.assetProvider,
+    audio: new WebAudioPlayer()
   }), [isMultiplayer, seed, gameOptions, options.assetProvider]);
 
   const [game, setGame] = useState<TGame | null>(null);

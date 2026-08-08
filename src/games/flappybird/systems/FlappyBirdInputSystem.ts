@@ -117,6 +117,11 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
           world.getCommandBuffer().addComponent(entity, { type: "HapticRequest", pattern: "selection" } as any);
           // Juice: Squash al aletear
           Juice.squash(world as any, entity, 1.2, 0.8, 50);
+
+          const eventBus = world.getResource<any>("EventBus");
+          if (eventBus) {
+            eventBus.emit("PlaySFX" as any, { name: "flap" });
+          }
         }
 
         // Apply gravity

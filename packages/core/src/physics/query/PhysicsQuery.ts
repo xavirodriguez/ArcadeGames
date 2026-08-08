@@ -6,8 +6,16 @@ import { ComponentRegistry } from "../../ecs/Component";
 import { EventRegistry } from "../../events/EventBus";
 import { PhysicsTransformLike, ColliderLike } from "../PhysicsTypes";
 
-/** @public */
+/**
+ * Utility for performing physics-based spatial queries on the ECS world.
+ * Enforces strong type-safety by parameterizing over the world's ComponentRegistry
+ * to avoid any implicit or explicit 'any' type assertions.
+ * @public
+ */
 export class PhysicsQuery {
+  /**
+   * Casts a point into the world and returns all entities that overlap with the point.
+   */
   public static pointCast<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
@@ -80,6 +88,9 @@ export class PhysicsQuery {
     return results;
   }
 
+  /**
+   * Casts a shape into the world and returns all entities that overlap with the shape.
+   */
   public static shapeCast<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,

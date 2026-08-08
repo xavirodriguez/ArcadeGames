@@ -1,6 +1,6 @@
 import { World, BlueprintRegistryMap } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
-import { EventRegistry } from "../events/EventBus";
+import { EventRegistry, CombinedEvents } from "../events/EventBus";
 import { NetworkManager } from "./NetworkManager";
 import { NullTransport } from "./NullTransport";
 import { InputFrame, ServerUpdatePayload, DeltaSnapshotPayload, FullSnapshotPayload } from "./NetTypes";
@@ -40,12 +40,12 @@ export class NetworkController<
         type: "Input",
         actions: new Set<string>(),
         axes: {}
-      } as any);
+      } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
     }
     this.world.mutateComponent(entityId, inputType, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
       inputComp.actions = new Set<string>(input.actions || []);
       inputComp.axes = { ...input.axes };
-    }) as any);
+    }) as unknown as (component: TComponents[Extract<keyof TComponents, string>]) => void);
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
@@ -102,8 +102,9 @@ export class NetworkController<
     this.networkManager.processServerUpdate(serverTick, delta as WorldSnapshot, localSessionId);
 
     const eventBus = this.world.getEventBus();
-    if (eventBus && (delta as Partial<WorldSnapshot>).stateVersion !== undefined) {
-      eventBus.emit("net:ack_version" as any, { version: (delta as Partial<WorldSnapshot>).stateVersion, tick: serverTick } as any);
+    const stateVersion = (delta as Partial<WorldSnapshot>).stateVersion;
+    if (eventBus && stateVersion !== undefined) {
+      eventBus.emit("net:ack_version", { version: stateVersion, tick: serverTick } as unknown as CombinedEvents<TEvents>["net:ack_version"]);
     }
   }
 

@@ -6,6 +6,7 @@ export interface CoreEvents {
   "engine:paused": { tick: number; timestamp: number };
   "engine:resumed": { tick: number; timestamp: number };
   "engine:destroyed": { timestamp: number };
+  "net:ack_version": { version: number; tick: number };
 }
 
 /** @public */

@@ -177,6 +177,19 @@ export class SpaceInvadersGame
           mode: "bounce"
         } as any);
 
+        const hasComboHeadStart = world.getResource("HasComboHeadStart") === true;
+        const initialCombo = hasComboHeadStart ? 5 : 0;
+        const initialMultiplier = hasComboHeadStart ? 2 : 1;
+        const initialTimerRemaining = hasComboHeadStart ? config.COMBO_TIMEOUT / 1000 : 0;
+
+        world.addComponent(entity, {
+          type: "Combo",
+          combo: initialCombo,
+          multiplier: initialMultiplier,
+          timerRemaining: initialTimerRemaining,
+          timerDuration: config.COMBO_TIMEOUT / 1000
+        } as any);
+
         createEmitter(world as any, {
           type: "spawn",
           x: args.x,
@@ -271,13 +284,6 @@ export class SpaceInvadersGame
           isGameOver: false,
           screenShake: null,
           kamikazesActive: 0,
-        } as any);
-        world.addComponent(entity, {
-          type: "Combo",
-          combo: initialCombo,
-          multiplier: initialMultiplier,
-          timerRemaining: initialTimerRemaining,
-          timerDuration: config.COMBO_TIMEOUT / 1000
         } as any);
         world.addComponent(entity, {
           type: "SpawnDirector",
@@ -665,4 +671,19 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public setInput(input: Partial<InputState>) {}
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
+  public enterGameplayFreeze(duration?: number): void {
+    this._world.setResource("GameplayFreeze", {
+      remaining: duration !== undefined ? duration : undefined
+    });
+  }
+  public exitGameplayFreeze(): void {
+    this._world.deleteResource("GameplayFreeze");
+  }
+  public isGameplayFrozen(): boolean {
+    return this._world.getResource("GameplayFreeze") !== undefined;
+  }
+  public getGameplayFreezeRemaining(): number | undefined {
+    const freeze = this._world.getResource<{ remaining?: number }>("GameplayFreeze");
+    return freeze ? freeze.remaining : undefined;
+  }
 }

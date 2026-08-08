@@ -278,6 +278,37 @@ export abstract class BaseGame<
   }
 
   /**
+   * Enters soft pause / gameplay freeze, with an optional duration in seconds.
+   */
+  public enterGameplayFreeze(duration?: number): void {
+    this.world.setResource("GameplayFreeze", {
+      remaining: duration !== undefined ? duration : undefined
+    });
+  }
+
+  /**
+   * Leaves soft pause / gameplay freeze.
+   */
+  public exitGameplayFreeze(): void {
+    this.world.deleteResource("GameplayFreeze");
+  }
+
+  /**
+   * Returns whether gameplay is currently frozen.
+   */
+  public isGameplayFrozen(): boolean {
+    return this.world.getResource("GameplayFreeze") !== undefined;
+  }
+
+  /**
+   * Returns the remaining time of the gameplay freeze, or undefined if infinite or not frozen.
+   */
+  public getGameplayFreezeRemaining(): number | undefined {
+    const freeze = this.world.getResource<{ remaining?: number }>("GameplayFreeze");
+    return freeze ? freeze.remaining : undefined;
+  }
+
+  /**
    * Returns the current lifecycle state of the game.
    */
   public getLifecycleState(): GameLifecycleState {

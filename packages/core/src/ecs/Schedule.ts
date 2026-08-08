@@ -133,11 +133,36 @@ export class Schedule<
       world.gameplayRandom.unlock();
     }
     try {
+      const freeze = world.getResource<{ remaining?: number }>("GameplayFreeze");
+
+      if (freeze && typeof freeze.remaining === "number") {
+        freeze.remaining = Math.max(0, freeze.remaining - deltaTime);
+        if (freeze.remaining <= 0) {
+          world.deleteResource("GameplayFreeze");
+        }
+      }
+
+      const isFrozen = world.getResource("GameplayFreeze") !== undefined;
+
       for (const phase of this.phases) {
+        if (isFrozen) {
+          // Bypassed entirely during freeze: Input, Collision, GameRules
+          if (phase === SystemPhase.Input || phase === SystemPhase.Collision || phase === SystemPhase.GameRules) {
+            continue;
+          }
+        }
+
         const phaseSystems = this.phasedSystems.get(phase);
         if (phaseSystems) {
           for (let i = 0; i < phaseSystems.length; i++) {
-            phaseSystems[i].system.update(world, deltaTime);
+            const sys = phaseSystems[i].system;
+            if (isFrozen && phase === SystemPhase.Simulation) {
+              const className = sys.constructor.name;
+              if (className !== "TTLSystem" && className !== "JuiceSystem") {
+                continue;
+              }
+            }
+            sys.update(world, deltaTime);
           }
         }
       }

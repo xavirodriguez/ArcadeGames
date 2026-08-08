@@ -450,4 +450,19 @@ export class NullAsteroidsGame implements IAsteroidsGame {
   public subscribe(_listener: unknown) { return () => {}; }
   public initializeRenderer() {}
   public setInputState(_input: Partial<InputState>) {}
+  public enterGameplayFreeze(duration?: number): void {
+    this._world.setResource("GameplayFreeze", {
+      remaining: duration !== undefined ? duration : undefined
+    });
+  }
+  public exitGameplayFreeze(): void {
+    this._world.deleteResource("GameplayFreeze");
+  }
+  public isGameplayFrozen(): boolean {
+    return this._world.getResource("GameplayFreeze") !== undefined;
+  }
+  public getGameplayFreezeRemaining(): number | undefined {
+    const freeze = this._world.getResource<{ remaining?: number }>("GameplayFreeze");
+    return freeze ? freeze.remaining : undefined;
+  }
 }

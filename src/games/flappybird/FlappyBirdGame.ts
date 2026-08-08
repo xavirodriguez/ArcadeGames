@@ -1,5 +1,6 @@
 import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, WebAudioPlayer } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
+import { ComboSystem } from "../shared/arcade";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
 import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";
@@ -117,6 +118,13 @@ export class FlappyBirdGame
           max: 1,
           invulnerableRemaining: 0,
         } as HealthComponent);
+        world.addComponent(entity, {
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: 2.0
+        } as any);
 
         createEmitter(world as any, {
           type: "spawn",
@@ -262,7 +270,6 @@ export class FlappyBirdGame
           highScore: 0,
           pipeSpawnTimer: 0,
           gameOverLogged: false,
-          comboMultiplier: 1,
         });
       }
     });
@@ -277,6 +284,7 @@ export class FlappyBirdGame
 
     this.world.addSystem(this.unifiedInput as unknown as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Input });
     this.world.addSystem(new InputBufferSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });
     this.world.addSystem(new FlappyBirdGlideSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
@@ -516,6 +524,21 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public subscribe(cb: (state: FlappyBirdState) => void) { return () => {}; }
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
+  public enterGameplayFreeze(duration?: number): void {
+    this._world.setResource("GameplayFreeze", {
+      remaining: duration !== undefined ? duration : undefined
+    });
+  }
+  public exitGameplayFreeze(): void {
+    this._world.deleteResource("GameplayFreeze");
+  }
+  public isGameplayFrozen(): boolean {
+    return this._world.getResource("GameplayFreeze") !== undefined;
+  }
+  public getGameplayFreezeRemaining(): number | undefined {
+    const freeze = this._world.getResource<{ remaining?: number }>("GameplayFreeze");
+    return freeze ? freeze.remaining : undefined;
+  }
 }
 
 // ==========================================================================
@@ -523,10 +546,12 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
 // ==========================================================================
 
 registerMutatorHook("combo_head_start", (world: World) => {
-  const flappyState = world.getSingleton("FlappyState" as any);
-  if (flappyState) {
-    world.mutateSingleton("FlappyState", (fs: any) => {
-      fs.comboMultiplier = 2;
+  const comboEntities = world.query("Combo" as any);
+  if (comboEntities.length > 0) {
+    world.mutateComponent(comboEntities[0], "Combo" as any, (c: any) => {
+      c.combo = 5;
+      c.multiplier = 2;
+      c.timerRemaining = 999999;
     });
   }
 });

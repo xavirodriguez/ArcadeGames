@@ -295,6 +295,29 @@ The generic `CombatSystem` at `src/games/shared/combat/` processes health decrem
 - **Space Invaders Migration**: Integrated `SpawnDirectorSystem` at `src/games/shared/spawn/` to drive normal levels and boss waves through sequential wave definitions. Game-specific state systems synchronize game levels directly from the director.
 - **Asteroids Postponement (Decision)**: Asteroid spawning is intrinsically non-sequential, randomly projecting asteroids away from the center in wrap-around boundaries. Integrating `SpawnDirectorSystem`'s linear wave queue would add unnecessary overhead and require game-specific exceptions for proximity checks. Therefore, Asteroids retains its simple procedural wave spawner inside `AsteroidGameStateSystem.ts`, postponing a director migration.
 
+### 4. Known Architecture Inconsistency & System Analysis (Fase 0 Audit)
+
+#### Combo State Fragmentation
+- **Space Invaders & Geometry Wars**: Fully leverage the shared `ComboComponent` and `ComboSystem` from `src/games/shared/arcade/`. In Space Invaders, legacy local fields `combo`, `multiplier`, and `comboTimerRemaining` in `GameStateComponent` are marked as `@deprecated`.
+- **Pong**: Registers `ComboSystem` and `Combo` component but keeps local `comboMultiplier` legacy field inside its `PongState` component and defaults to `1` without real-time increment on hitting paddles.
+- **Flappy Bird**: Strictly uses legacy `comboMultiplier` field inside its `FlappyBirdState` component (set to `2` during `"combo_head_start"` mutator), without registering or instantiating `ComboComponent` or `ComboSystem`.
+- **Asteroids**: Does not implement or use combo/multipliers at all.
+
+#### Pausa (Pause) & Score Freeze Architecture
+- **Total Pause (`BaseGame.pause()`)**: Pauses the main game loop entirely, freezing everything including UI interactions, particles, and visual effect transitions.
+- **Partial Pause (`IsPaused` Resource)**: Space Invaders and Asteroids set a World resource `"IsPaused"` to `true` during total pause, but no simulation systems query or respond to this resource.
+- **Score Freeze (`gs.scoreFreezeRemaining`)**: Pong implements a graceful score freeze countdown inside its `PongGameStateSystem`. When active, it resets/locks ball velocity to zero and skips score check steps for 1.2s to support scoring celebration feedback.
+
+#### Desambiguación de los 4 Sistemas de Mutador
+The repository contains four distinct mutator systems with unique contracts:
+1. **`BeneficialMutator` (`src/utils/MutatorRegistry.ts`)**: Applies a one-shot mutator effect directly to a `World` or `GameConfig` resource. Used for XP meta-progression shop upgrades (such as `"faster_bullets"`, `"extra_life"`).
+2. **`Mutator` (`src/config/MutatorConfig.ts`)**: A pure function `apply: (config: Record<string, unknown>) => Record<string, unknown>` that modifies config parameters. It is validated against `PhysicsSafetySchema` (via Zod) to enforce physical limits.
+3. **`MutatorService` (`src/services/MutatorService.ts`)**: Orchestrates selection and rotation of weekly mutators based on a session seed (`getWeeklyMutators`), acting as a selector rather than an engine-level mutator applier.
+4. **`MutatorSystem` (`packages/core/src/systems/MutatorSystem.ts`)**: An ECS `System` that processes continuous, tick-by-tick mutations on active entities containing specific components (`{ componentType, mutate() }`).
+
+#### StateMachineSystem Status
+- The core provides `StateMachineSystem` and `StateMachineComponent`, but they have **no active production usage or tests** in any of the retro games. It is considered an unvalidated design option.
+
 ---
 
 ## 🔒 Determinism Constraint

@@ -1,10 +1,12 @@
 import { Component, CoreComponentRegistry } from "@tiny-aster/core";
+import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
 
 export interface FlappyBirdComponentRegistry extends CoreComponentRegistry {
   FlappyInput: FlappyBirdInputComponent;
   Bird: BirdComponent;
   Pipe: PipeComponent;
   FlappyState: FlappyBirdState;
+  Combo: ComboComponent;
 }
 
 /**
@@ -58,7 +60,6 @@ export interface FlappyBirdState extends Component {
   highScore: number;
   pipeSpawnTimer: number;
   gameOverLogged: boolean;
-  comboMultiplier: number;
 }
 
 /**
@@ -71,7 +72,6 @@ export const INITIAL_FLAPPY_STATE: FlappyBirdState = Object.freeze({
   highScore: 0,
   pipeSpawnTimer: 0,
   gameOverLogged: false,
-  comboMultiplier: 1,
 });
 
 /**

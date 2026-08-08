@@ -6,6 +6,15 @@ import { EventRegistry } from "../events/EventBus";
  * Execution phases for systems within the World update loop.
  * @public
  */
+/**
+ * Resource shape for gameplay freeze / soft pause.
+ * @public
+ */
+export interface GameplayFreeze {
+  /** Optional countdown duration in seconds. */
+  remaining?: number;
+}
+
 export enum SystemPhase {
   /** Input processing and gathering. */
   Input = "Input",

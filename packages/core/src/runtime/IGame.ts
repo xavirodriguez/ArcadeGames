@@ -49,4 +49,8 @@ export interface IGame<TState = unknown, TInput = unknown> {
   isPausedState(): boolean;
   getInputSystem(): IInputSystem<TInput extends Record<string, any> ? TInput : any>;
   setInputState(input: Partial<TInput>): void;
+  enterGameplayFreeze(duration?: number): void;
+  exitGameplayFreeze(): void;
+  isGameplayFrozen(): boolean;
+  getGameplayFreezeRemaining(): number | undefined;
 }

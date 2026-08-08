@@ -395,7 +395,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
   public getGameState(): PongState {
     const state = this.world.getSingleton("PongState");
-    return state ? { ...state } : { type: "PongState", scoreP1: 0, scoreP2: 0, isGameOver: false, comboMultiplier: 1, gameOverLogged: false };
+    return state ? { ...state } : { type: "PongState", scoreP1: 0, scoreP2: 0, isGameOver: false, gameOverLogged: false };
   }
 
   public isGameOver(): boolean {

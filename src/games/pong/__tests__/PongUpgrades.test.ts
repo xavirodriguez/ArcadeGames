@@ -32,7 +32,6 @@ describe("Pong Systems & Mechanics Upgrade Tests", () => {
         scoreP1: 0,
         scoreP2: 0,
         isGameOver: false,
-        comboMultiplier: 1,
         gameOverLogged: false,
       } as any);
 

@@ -1,5 +1,5 @@
-import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry } from "@tiny-aster/core";
-import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
+import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry, EventBus } from "@tiny-aster/core";
+import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS } from "../../../utils/MutatorRegistry";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
 import { ComboSystem } from "../../shared/arcade";
@@ -39,6 +39,8 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
   beforeEach(() => {
     world = new World<SpaceInvadersComponentRegistry>();
+    const eventBus = new EventBus();
+    world.setResource("EventBus", eventBus);
 
     const blueprints = new BlueprintRegistry<SpaceInvadersComponentRegistry, any, any>();
     blueprints.register("state", {
@@ -139,6 +141,13 @@ describe("Space Invaders Combo Logic & Performance", () => {
     expect(gameState?.combo).toBe(0);
     expect(gameState?.multiplier).toBe(1);
     expect(gameState?.comboTimerRemaining).toBe(0);
+
+    // Verify GameState component itself does not store combo properties in ECS (single source of truth is Combo)
+    const rawGameState = world.getSingleton("GameState") as any;
+    expect(rawGameState).toBeDefined();
+    expect(rawGameState.combo).toBeUndefined();
+    expect(rawGameState.multiplier).toBeUndefined();
+    expect(rawGameState.comboTimerRemaining).toBeUndefined();
 
     // Verify Combo component exists in world and is attached to the GameState entity
     const comboEntities = world.query("Combo" as any);
@@ -514,6 +523,87 @@ describe("Space Invaders Combo Logic & Performance", () => {
       expect(bulletPos).toBeDefined();
       expect(bulletPos.x).toBeCloseTo(100 + 16.54545, 3);
       expect(bulletPos.y).toBe(115); // shooter y + 15
+    });
+  });
+
+  describe("Roguelite Dynamic Mutators & Curse Mutators", () => {
+    it("should generate deterministic choices when 'level:completed' is emitted, pause simulation, and apply on selection", () => {
+      createGameState(world);
+      const eventBus = world.getEventBus();
+
+      let pauseCalled = false;
+      const mockGame = {
+        pause: () => { pauseCalled = true; },
+        resume: () => { pauseCalled = false; },
+        getWorld: () => world
+      } as any;
+
+      // Clear existing systems to isolate testing on our state system and mockGame
+      world.schedule.clearSystems();
+      const testStateSys = new SpaceInvadersGameStateSystem(mockGame);
+      world.addSystem(testStateSys, { phase: SystemPhase.GameRules });
+
+      // Verify no RunMutatorChoices resource is set initially
+      expect(world.getResource("RunMutatorChoices")).toBeUndefined();
+
+      // Emit 'level:completed'
+      eventBus.emit("level:completed", { level: 1, nextLevel: 2 });
+
+      // Choices should be generated and pause should be called
+      const choicesRes = world.getResource<any>("RunMutatorChoices");
+      expect(choicesRes).toBeDefined();
+      expect(choicesRes.active).toBe(true);
+      expect(choicesRes.choices.length).toBe(3);
+      expect(pauseCalled).toBe(true);
+
+      // Verify deterministic generation: should be 2 beneficial and 1 negative mutator
+      const beneficialChoices = choicesRes.choices.filter((id: string) => BENEFICIAL_MUTATORS[id]);
+      const negativeChoices = choicesRes.choices.filter((id: string) => NEGATIVE_MUTATORS[id]);
+      expect(beneficialChoices.length).toBe(2);
+      expect(negativeChoices.length).toBe(1);
+
+      // Now choose a negative mutator, e.g. slower_bullets
+      const chosenMutatorId = "slower_bullets";
+
+      // Mock SpaceInvadersGame.selectRunMutator behavior
+      const selectRunMutator = (mutatorId: string) => {
+        const runMutators = world.getResource<any>("RunMutatorChoices");
+        if (runMutators && runMutators.active) {
+          if (BENEFICIAL_MUTATORS[mutatorId]) {
+            BENEFICIAL_MUTATORS[mutatorId].apply(world);
+          } else if (NEGATIVE_MUTATORS[mutatorId]) {
+            NEGATIVE_MUTATORS[mutatorId].apply(world);
+          }
+
+          const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
+          activeRun.push(mutatorId);
+          world.setResource("ActiveRunMutators", activeRun);
+
+          runMutators.active = false;
+          world.setResource("RunMutatorChoices", runMutators);
+
+          mockGame.resume();
+        }
+      };
+
+      // Set initial player bullet speed in config to verify mutation
+      world.setResource("GameConfig", { PLAYER_BULLET_SPEED: 500 });
+      world.setResource("ActiveRunMutators", []);
+
+      // Select mutator
+      selectRunMutator(chosenMutatorId);
+
+      // Check bullet speed is reduced by 15% (500 * 0.85 = 425)
+      const config = world.getResource<any>("GameConfig");
+      expect(config.PLAYER_BULLET_SPEED).toBe(425);
+
+      // Active list should contain slower_bullets
+      const activeRun = world.getResource<string[]>("ActiveRunMutators");
+      expect(activeRun).toContain("slower_bullets");
+
+      // Choices should be deactivated and game resumed
+      expect(world.getResource<any>("RunMutatorChoices").active).toBe(false);
+      expect(pauseCalled).toBe(false);
     });
   });
 });

@@ -2,4 +2,6 @@ export * from "./components/ComboComponent";
 export * from "./systems/ComboSystem";
 export * from "./systems/LootSystem";
 export * from "./systems/PowerUpSystem";
+export * from "./systems/DifficultyDirectorSystem";
+export * from "./systems/AchievementSystem";
 export * from "./types/ArcadeTypes";

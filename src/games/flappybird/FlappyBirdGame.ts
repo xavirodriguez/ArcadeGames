@@ -13,6 +13,7 @@ import {
   createGround
 } from "./EntityFactory";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
+import { AchievementSystem } from "../shared/arcade";
 
 /**
  * Controlador principal del juego Flappy Bird.
@@ -284,6 +285,7 @@ export class FlappyBirdGame
     this.world.addSystem(new CollisionSystem2D() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Collision });
     this.world.addSystem(new FlappyBirdCollisionSystem(this), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
+    this.world.addSystem(new AchievementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
     this.world.addSystem(new MutatorSystem(mutators) as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 

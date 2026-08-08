@@ -2,7 +2,7 @@ import { ShapeDrawer, EffectDrawer, World, TransformComponent } from "@tiny-aste
 import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
-import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
+import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
 
 // Instantiate the reusable, zero-allocation motion trail helper
 const ballMotionTrail = new CanvasMotionTrail(30);
@@ -25,26 +25,11 @@ export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRe
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
-    // 1. Fetch Combo component to dynamically shift trail length and color
+    // 1. Fetch Combo component to dynamically shift trail length and color using shared getComboReaction utility
     const comboComponent = world.getSingleton("Combo") as ComboComponent | undefined;
     const multiplier = comboComponent?.multiplier ?? 1;
 
-    let trailLength = 8;
-    let trailColor = "rgba(0, 255, 255, 0.4)"; // Default: Cyan
-    let trailColorInner = "rgba(255, 255, 255, 0.2)";
-    let ballColor = "#00FFFF";
-
-    if (multiplier === 2) {
-      trailLength = 16;
-      trailColor = "rgba(255, 0, 255, 0.5)"; // Pink/Magenta
-      trailColorInner = "rgba(255, 255, 255, 0.3)";
-      ballColor = "#FF00FF";
-    } else if (multiplier >= 3) {
-      trailLength = 24;
-      trailColor = "rgba(255, 215, 0, 0.6)"; // Gold
-      trailColorInner = "rgba(255, 255, 255, 0.4)";
-      ballColor = "#FFD700";
-    }
+    const { trailLength, trailColor, trailColorInner, mainColor: ballColor } = getComboReaction(multiplier);
 
     // 2. Update and draw trails using the generic zero-allocation motion trail tracker
     ballMotionTrail.update(entity, x, y, 4);

@@ -118,15 +118,22 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
 
       ctx.save();
 
+      const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
+      const visualOffset = world.getComponent(entity, visualOffsetType) as any;
+      const offsetX = visualOffset?.offsetX ?? 0;
+      const offsetY = visualOffset?.offsetY ?? 0;
+      const visualScaleX = visualOffset?.scaleX ?? 1;
+      const visualScaleY = visualOffset?.scaleY ?? 1;
+
       const x = transform.worldX ?? transform.x;
       const y = transform.worldY ?? transform.y;
       const rotation = (transform.worldRotation ?? transform.rotation ?? 0) + (render.rotation ?? 0);
       const scaleX = transform.worldScaleX ?? transform.scaleX ?? 1;
       const scaleY = transform.worldScaleY ?? transform.scaleY ?? 1;
 
-      ctx.translate(x, y);
+      ctx.translate(x + offsetX, y + offsetY);
       ctx.rotate(rotation);
-      ctx.scale(scaleX, scaleY);
+      ctx.scale(scaleX * visualScaleX, scaleY * visualScaleY);
       ctx.globalAlpha = render.opacity;
 
       const drawColor = render.color || "white";

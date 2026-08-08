@@ -9,6 +9,37 @@ import { Juice } from "@tiny-aster/core";
 export class BossSystem extends System<SpaceInvadersComponentRegistry> {
   private config?: SpaceInvadersConfig;
 
+  public override onRegister(world: World<SpaceInvadersComponentRegistry>): void {
+    const eventBus = world.getEventBus() as any;
+    if (eventBus) {
+      eventBus.on("si:kill", (event: { chain: number }) => {
+        if (world.isReSimulating) return;
+        const bosses = world.query("Boss");
+        for (const entity of bosses) {
+          world.mutateComponent(entity, "Boss", b => {
+            const currentFury = b.fury ?? 0;
+            if (event && event.chain >= 5) {
+              b.fury = Math.min(100, currentFury + 40);
+              b.furyDuration = 3.0; // 3 seconds of fury
+            }
+          });
+        }
+      });
+
+      eventBus.on("entity:destroyed", (event: { type: string }) => {
+        if (world.isReSimulating) return;
+        if (event && event.type === "Shield") {
+          const bosses = world.query("Boss");
+          for (const entity of bosses) {
+            world.mutateComponent(entity, "Boss", b => {
+              b.counterFirePending = true;
+            });
+          }
+        }
+      });
+    }
+  }
+
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
@@ -23,11 +54,24 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
 
       world.mutateComponent(entity, "Boss", b => {
           b.timer += deltaTime;
+
+          if (b.furyDuration && b.furyDuration > 0) {
+            b.furyDuration -= deltaTime;
+            if (b.furyDuration <= 0) {
+              b.fury = Math.max(0, (b.fury ?? 0) - 20);
+              if ((b.fury ?? 0) > 0) {
+                b.furyDuration = 1.0;
+              }
+            }
+          }
       });
 
-      // Simple side to side movement
+      const isFurious = (boss.fury ?? 0) > 50;
+      const speedMultiplier = isFurious ? 2.0 : 1.0;
+
+      // Side to side movement (with furious multiplier)
       world.mutateComponent(entity, "Transform", p => {
-          p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer / 1000) * 200;
+          p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer / 1000) * 200 * speedMultiplier;
           p.dirty = true;
       });
 
@@ -39,6 +83,27 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
           else b.phase = 1;
       });
 
+      // Counter firing reactive to shield destruction
+      if (boss.counterFirePending) {
+         createEmitter(world, {
+            type: "shoot",
+            x: pos.x,
+            y: pos.y + 40,
+            rate: 0,
+            burst: true,
+            count: 15,
+            color: ["#FF0000", "#FF00FF"],
+            size: [4, 8],
+            speed: [150, 250],
+            angle: [160, 200],
+            lifetime: [1.0, 1.5],
+            loop: false
+         });
+         world.mutateComponent(entity, "Boss", b => {
+            b.counterFirePending = false;
+         });
+      }
+
       // Shooting patterns
       if (Math.floor(boss.timer / 1000) % 2 === 0 && Math.floor((boss.timer - deltaTime) / 1000) % 2 !== 0) {
          // Burst effect when "shooting"
@@ -48,7 +113,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
             y: pos.y + 40,
             rate: 0,
             burst: true,
-            count: 10,
+            count: isFurious ? 20 : 10,
             color: ["#FF00FF", "#00FFFF"],
             size: [3, 6],
             speed: [100, 200],

@@ -194,3 +194,34 @@ export function drawProceduralGrid(
   ctx.fillRect(0, 0, 12, height); // Left edge
   ctx.fillRect(width - 12, 0, 12, height); // Right edge
 }
+
+/**
+ * Shared utility to calculate high-fidelity reactive color, trail lengths,
+ * and hues depending on the player's active combo multiplier.
+ * Generalizes the heat-shift effect across retro games.
+ */
+export function getComboReaction(multiplier: number): {
+  trailLength: number;
+  trailColor: string;
+  trailColorInner: string;
+  mainColor: string;
+} {
+  let trailLength = 8;
+  let trailColor = "rgba(0, 255, 255, 0.4)"; // Default: Cyan
+  let trailColorInner = "rgba(255, 255, 255, 0.2)";
+  let mainColor = "#00FFFF";
+
+  if (multiplier === 2) {
+    trailLength = 16;
+    trailColor = "rgba(255, 0, 255, 0.5)"; // Pink/Magenta
+    trailColorInner = "rgba(255, 255, 255, 0.3)";
+    mainColor = "#FF00FF";
+  } else if (multiplier >= 3) {
+    trailLength = 24;
+    trailColor = "rgba(255, 215, 0, 0.6)"; // Gold
+    trailColorInner = "rgba(255, 255, 255, 0.4)";
+    mainColor = "#FFD700";
+  }
+
+  return { trailLength, trailColor, trailColorInner, mainColor };
+}

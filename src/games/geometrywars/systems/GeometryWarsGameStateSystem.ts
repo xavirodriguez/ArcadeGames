@@ -1,4 +1,4 @@
-import { System, World, Entity } from "@tiny-aster/core";
+import { System, World, Entity, Juice } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
 import { GWParticlePool } from "../EntityPool";
@@ -56,6 +56,14 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
           s.isGameOver = true;
         }
       });
+
+      if (!world.isReSimulating) {
+        Juice.shake(world, 14, 0.5);
+        const audio = world.getResource<any>("Audio") || (world as any).audio;
+        if (audio) {
+          audio.playSFX("explosion2");
+        }
+      }
 
       // Reset combo on player hit/death
       const comboEntity = world.query("Combo" as any)[0];
@@ -124,6 +132,10 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
 
       // Game Feel effects on enemy death (skipped during rollback/resimulation)
       if (!world.isReSimulating) {
+        // Dynamic screen shake based on enemy rank/score
+        const shakeAmt = baseScore >= 150 ? 5 : baseScore >= 100 ? 3.5 : 2;
+        Juice.shake(world, shakeAmt, 0.15);
+
         // Play SFX
         const audio = world.getResource<any>("Audio") || (world as any).audio;
         if (audio) {

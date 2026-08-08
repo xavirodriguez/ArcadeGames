@@ -36,11 +36,13 @@ export class GeometryWarsGameScene extends Scene {
   private config: GeometryWarsConfig;
   private bulletPool: GWBulletPool;
   private particlePool: GWParticlePool;
+  private isHeadless: boolean;
 
-  constructor(config: GeometryWarsConfig) {
+  constructor(config: GeometryWarsConfig, isHeadless = false) {
     const world = new World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>();
     super(world);
     this.config = config;
+    this.isHeadless = isHeadless;
     this.bulletPool = new GWBulletPool();
     this.particlePool = new GWParticlePool();
   }
@@ -82,10 +84,13 @@ export class GeometryWarsGameScene extends Scene {
     this.gworld.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.gworld.addSystem(new GeometryWarsGameStateSystem(), { phase: SystemPhase.GameRules });
     this.gworld.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
-    this.gworld.addSystem(new Camera2DSystem() as any, { phase: SystemPhase.Presentation });
-    this.gworld.addSystem(new JuiceSystem() as any, { phase: SystemPhase.Presentation });
-    this.gworld.addSystem(new ScreenShakeSystem() as any, { phase: SystemPhase.Presentation });
-    this.gworld.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+
+    if (!this.isHeadless) {
+      this.gworld.addSystem(new Camera2DSystem() as any, { phase: SystemPhase.Presentation });
+      this.gworld.addSystem(new JuiceSystem() as any, { phase: SystemPhase.Presentation });
+      this.gworld.addSystem(new ScreenShakeSystem() as any, { phase: SystemPhase.Presentation });
+      this.gworld.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+    }
 
     // 4. Set procedurally generated wave definitions
     const rand = this.gworld.gameplayRandom;

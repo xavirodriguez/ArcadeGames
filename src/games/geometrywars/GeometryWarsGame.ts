@@ -16,6 +16,8 @@ import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
  * Main game class for Geometry Wars.
  * @public
  */
+import { NetworkManager, WorldSnapshot } from "@tiny-aster/core";
+
 export class GeometryWarsGame extends BaseGame<
   any, // GameState description returned to HUD
   any, // Input frame type mapping
@@ -26,15 +28,22 @@ export class GeometryWarsGame extends BaseGame<
   public readonly gameId = "geometrywars";
   private config: GeometryWarsConfig;
   private currentScene!: GeometryWarsGameScene;
+  private isHeadless = false;
+  public isMultiplayer = false;
+  private networkManager!: NetworkManager;
 
-  constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any } = {}) {
+  constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any; headless?: boolean; isMultiplayer?: boolean } = {}) {
     super({
       pauseKey: "Escape",
-      isMultiplayer: false,
+      isMultiplayer: options.isMultiplayer || false,
+      headless: options.headless || false,
       assetProvider: options.assetProvider,
       gameOptions: options.gameOptions,
       audio: options.audio || new WebAudioPlayer()
     });
+
+    this.isHeadless = options.headless || false;
+    this.isMultiplayer = options.isMultiplayer || false;
 
     this.config = {
       ...DEFAULT_CONFIG,
@@ -48,10 +57,12 @@ export class GeometryWarsGame extends BaseGame<
     this.world.setResource("ScreenConfig", { width: this.config.WIDTH, height: this.config.HEIGHT });
     this.world.setResource("BlueprintRegistry", this.blueprints);
 
-    await this.onPreloadAssets();
+    if (!this.isHeadless) {
+      await this.onPreloadAssets();
+    }
 
     // 2. Initialize and transition to main gameplay scene
-    this.currentScene = new GeometryWarsGameScene(this.config);
+    this.currentScene = new GeometryWarsGameScene(this.config, this.isHeadless);
     const sceneManager = this.world.getResource<SceneManager>("SceneManager") || new SceneManager(this.world);
     sceneManager.transitionTo(this.currentScene);
   }
@@ -82,6 +93,208 @@ export class GeometryWarsGame extends BaseGame<
     } else {
       this.world.update(dt);
     }
+  }
+
+  public setMultiplayerMode(active: boolean) {
+    this.isMultiplayer = active;
+  }
+
+  public applyInputToEntity(entityId: number, input: any) {
+    const activeWorld = this.getWorld();
+    if (!activeWorld.hasComponent(entityId, "Player")) {
+      return;
+    }
+    activeWorld.mutateComponent(entityId, "Player", (p: any) => {
+      if (input.axes?.moveX !== undefined) p.moveX = input.axes.moveX;
+      if (input.axes?.moveY !== undefined) p.moveY = input.axes.moveY;
+    });
+
+    if (activeWorld.hasComponent(entityId, "Aim")) {
+      activeWorld.mutateComponent(entityId, "Aim", (aim: any) => {
+        if (input.axes?.aimX !== undefined && input.axes?.aimY !== undefined) {
+          aim.aimX = input.axes.aimX;
+          aim.aimY = input.axes.aimY;
+        }
+        aim.isFiring = input.actions?.includes("fire") || false;
+      });
+    }
+  }
+
+  public runSimulationStep(deltaTime: number, isResimulating: boolean) {
+    const activeWorld = this.getWorld();
+    const random = activeWorld.gameplayRandom;
+    const wasLocked = random ? random.isLocked() : false;
+
+    if (random) {
+      random.unlock();
+    }
+
+    try {
+      activeWorld.update(deltaTime);
+    } finally {
+      if (random && wasLocked) {
+        random.lock();
+      }
+    }
+  }
+
+  public predictLocalPlayer(input: any, deltaTime: number) {
+    const localPlayer = this.getWorld().query("Player")[0];
+    if (localPlayer !== undefined) {
+      this.applyInputToEntity(localPlayer, input);
+    }
+    this.runSimulationStep(deltaTime, false);
+  }
+
+  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
+    if (!this.isMultiplayer || !state) return;
+
+    if (!this.networkManager) {
+      this.networkManager = NetworkManager.registerGame(this.gameId, this, {
+        strategy: 'snapshot',
+        interpolationDelay: 100
+      });
+    }
+
+    const world = this.getWorld();
+    const commands = world.getCommandBuffer();
+    const replicator = this.networkManager.getReplicator();
+
+    const currentServerEntities = new Set<string>();
+
+    if (state.players && typeof state.players === 'object') {
+      const players = state.players as Record<string, { x: number, y: number, alive: boolean, angle: number }>;
+      Object.entries(players).forEach(([sessionId, playerState]) => {
+        // Skip updating local player via snapshot to prevent jitter over local prediction, or let reconciliation handle it
+        if (localSessionId && sessionId === localSessionId) {
+          return;
+        }
+
+        const serverId = `player_${sessionId}`;
+        currentServerEntities.add(serverId);
+
+        const entity = replicator.resolveEntity(serverId, world);
+        if (!world.hasComponent(entity, "Transform")) {
+          commands.addComponent(entity, { type: "Player" } as any);
+          commands.addComponent(entity, { type: "Transform", x: playerState.x, y: playerState.y, rotation: playerState.angle, scaleX: 1, scaleY: 1, worldX: playerState.x, worldY: playerState.y, worldRotation: playerState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
+          commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: "#00f0ff", rotation: playerState.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
+          commands.addComponent(entity, { type: "Health", current: playerState.alive ? 1 : 0, max: 1 } as any);
+        }
+
+        world.mutateComponent(entity, "Transform", (t: any) => {
+          t.x = playerState.x;
+          t.y = playerState.y;
+          t.rotation = playerState.angle;
+        });
+
+        world.mutateComponent(entity, "Render", (render: any) => {
+          render.rotation = playerState.angle;
+          render.color = playerState.alive ? "#00f0ff" : "gray";
+        });
+      });
+    }
+
+    if (state.enemies && typeof state.enemies === 'object') {
+      const enemies = state.enemies as Record<string, { x: number, y: number, angle: number, type: string }>;
+      Object.entries(enemies).forEach(([id, enemyState]) => {
+        const serverId = `enemy_${id}`;
+        currentServerEntities.add(serverId);
+
+        const entity = replicator.resolveEntity(serverId, world);
+        if (!world.hasComponent(entity, "Transform")) {
+          commands.addComponent(entity, { type: "Transform", x: enemyState.x, y: enemyState.y, rotation: enemyState.angle, scaleX: 1, scaleY: 1, worldX: enemyState.x, worldY: enemyState.y, worldRotation: enemyState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
+          commands.addComponent(entity, { type: "Render", shape: enemyState.type || "gw_seeker", size: 12, color: "#ff00ff", rotation: enemyState.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
+        }
+
+        world.mutateComponent(entity, "Transform", (t: any) => {
+          t.x = enemyState.x;
+          t.y = enemyState.y;
+          t.rotation = enemyState.angle;
+        });
+      });
+    }
+
+    if (state.bullets && typeof state.bullets === 'object') {
+      const bullets = state.bullets as Record<string, { x: number, y: number, angle: number }>;
+      Object.entries(bullets).forEach(([id, bulletState]) => {
+        const serverId = `bullet_${id}`;
+        currentServerEntities.add(serverId);
+
+        const entity = replicator.resolveEntity(serverId, world);
+        if (!world.hasComponent(entity, "Transform")) {
+          commands.addComponent(entity, { type: "Transform", x: bulletState.x, y: bulletState.y, rotation: bulletState.angle, scaleX: 1, scaleY: 1, worldX: bulletState.x, worldY: bulletState.y, worldRotation: bulletState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
+          commands.addComponent(entity, { type: "Render", shape: "gw_bullet", size: 4, color: "#ffff00", rotation: bulletState.angle, visible: true, opacity: 1, order: 2, hitFlashFrames: 0, angularVelocity: 0 } as any);
+        }
+
+        world.mutateComponent(entity, "Transform", (t: any) => {
+          t.x = bulletState.x;
+          t.y = bulletState.y;
+          t.rotation = bulletState.angle;
+        });
+      });
+    }
+
+    // Sync with NetworkManager for interpolation
+    const snapshot: WorldSnapshot = {
+        tick: (state.tick as number) || 0,
+        entities: [],
+        componentData: { Transform: {} },
+        stateVersion: 0,
+        structureVersion: 0,
+        seed: 0,
+        nextEntityId: 0,
+        freeEntities: []
+    };
+
+    if (state.players) {
+        Object.entries(state.players).forEach(([sessionId, p]: [string, Record<string, unknown>]) => {
+            const entityId = replicator.getLocalId(`player_${sessionId}`);
+            if (entityId !== undefined) {
+                snapshot.entities.push(entityId);
+                snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: (p as any).y, rotation: (p as any).angle, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: (p as any).angle, worldScaleX: 1, worldScaleY: 1, dirty: false };
+            }
+        });
+    }
+    if (state.enemies) {
+        Object.entries(state.enemies).forEach(([id, p]: [string, Record<string, unknown>]) => {
+            const entityId = replicator.getLocalId(`enemy_${id}`);
+            if (entityId !== undefined) {
+                snapshot.entities.push(entityId);
+                snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: (p as any).y, rotation: (p as any).angle, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: (p as any).angle, worldScaleX: 1, worldScaleY: 1, dirty: false };
+            }
+        });
+    }
+    if (state.bullets) {
+        Object.entries(state.bullets).forEach(([id, p]: [string, Record<string, unknown>]) => {
+            const entityId = replicator.getLocalId(`bullet_${id}`);
+            if (entityId !== undefined) {
+                snapshot.entities.push(entityId);
+                snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: (p as any).y, rotation: (p as any).angle, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: (p as any).angle, worldScaleX: 1, worldScaleY: 1, dirty: false };
+            }
+        });
+    }
+
+    this.networkManager.processServerUpdate(snapshot.tick, snapshot);
+
+    // Cleanup removed entities
+    replicator.getMappings().forEach((entity: number, serverId: string) => {
+      if (!currentServerEntities.has(serverId)) {
+        commands.removeEntity(entity);
+        replicator.removeMapping(serverId);
+      }
+    });
+
+    if (!world.isUpdating) {
+        world.flush();
+    }
+  }
+
+  public getWorld(): World<GeometryWarsComponentRegistry> {
+    const scene = this.currentScene;
+    if (scene) {
+      return scene.getWorld() as World<GeometryWarsComponentRegistry>;
+    }
+    return this.world;
   }
 
   /**

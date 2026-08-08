@@ -97,6 +97,9 @@ export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {
         } as FactionComponent
       }),
       reset: (data) => {
+        if (Object.isFrozen(data.position)) {
+          data.position = { ...data.position };
+        }
         data.position.x = 0;
         data.position.y = 0;
         data.position.worldX = 0;
@@ -104,6 +107,22 @@ export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {
         data.position.dirty = true;
       },
       initializer: (data, p) => {
+        if (Object.isFrozen(data.position)) {
+          data.position = { ...data.position };
+        }
+        if (Object.isFrozen(data.velocity)) {
+          data.velocity = { ...data.velocity };
+        }
+        if (Object.isFrozen(data.render)) {
+          data.render = { ...data.render };
+        }
+        if (Object.isFrozen(data.collider)) {
+          data.collider = { ...data.collider };
+        }
+        if (Object.isFrozen(data.ttl)) {
+          data.ttl = { ...data.ttl };
+        }
+
         data.position.x = p.x;
         data.position.y = p.y;
         data.position.rotation = p.shape ? parseFloat(p.shape) : 0; // Use shape or params to pass rotation
@@ -204,6 +223,9 @@ export class GWParticlePool extends ProjectilePool<any, ProjectileParams> {
         } as CollisionEventsComponent
       }),
       reset: (data) => {
+        if (Object.isFrozen(data.position)) {
+          data.position = { ...data.position };
+        }
         data.position.x = 0;
         data.position.y = 0;
         data.position.worldX = 0;
@@ -211,6 +233,22 @@ export class GWParticlePool extends ProjectilePool<any, ProjectileParams> {
         data.position.dirty = true;
       },
       initializer: (data, p) => {
+        if (Object.isFrozen(data.position)) {
+          data.position = { ...data.position };
+        }
+        if (Object.isFrozen(data.velocity)) {
+          data.velocity = { ...data.velocity };
+        }
+        if (Object.isFrozen(data.render)) {
+          data.render = { ...data.render };
+        }
+        if (Object.isFrozen(data.collider)) {
+          data.collider = { ...data.collider };
+        }
+        if (Object.isFrozen(data.ttl)) {
+          data.ttl = { ...data.ttl };
+        }
+
         data.position.x = p.x;
         data.position.y = p.y;
         data.position.worldX = p.x;

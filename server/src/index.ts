@@ -6,6 +6,7 @@ import { AsteroidsRoom } from "./AsteroidsRoom";
 import { FlappyBirdRoom } from "./FlappyBirdRoom";
 import { PongRoom } from "./PongRoom";
 import { SpaceInvadersRoom } from "./SpaceInvadersRoom";
+import { GeometryWarsRoom } from "./GeometryWarsRoom";
 
 const port = Number(process.env.PORT || 2567);
 const app = express();
@@ -22,6 +23,7 @@ gameServer.define("asteroids", AsteroidsRoom as any);
 gameServer.define("flappybird", FlappyBirdRoom as any);
 gameServer.define("pong", PongRoom as any);
 gameServer.define("spaceinvaders", SpaceInvadersRoom as any);
+gameServer.define("geometrywars", GeometryWarsRoom as any);
 
 gameServer.listen(port);
 console.log(`Listening on ws://localhost:${port}`);

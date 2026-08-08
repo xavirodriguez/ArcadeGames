@@ -54,7 +54,7 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     for (const key in components) {
       const comp = components[key];
       if (comp.type === "Reclaimable") {
-        delete (comp as any)._released;
+        delete (comp as unknown as ReclaimableComponent & { _released?: boolean })._released;
       }
     }
 
@@ -139,7 +139,7 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     }
 
     if (allFound) {
-      const reclaimableComp = world.getMutableComponent(entity, "Reclaimable") as any;
+      const reclaimableComp = world.getMutableComponent(entity, "Reclaimable") as unknown as ReclaimableComponent & { _released?: boolean } | undefined;
       if (reclaimableComp) {
         reclaimableComp._released = true;
       }

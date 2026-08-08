@@ -1,41 +1,42 @@
 import { WorldSnapshot, ComponentDataSnapshot } from "../snapshots/WorldSnapshot";
 import { NetworkTransport } from "./NetworkTransport";
 import { NullTransport } from "./NullTransport";
+import { Component, ComponentRegistry } from "../ecs/Component";
 
 /**
  * Interface with exact ECS signatures for world mutations.
  * @public
  */
-export interface WorldLike {
+export interface WorldLike<TComponents extends ComponentRegistry = ComponentRegistry> {
   createEntity(): number;
   hasComponent(entity: number, type: string): boolean;
-  mutateComponent(entity: number, type: string, updater: (existing: any) => void): boolean;
-  addComponent(entity: number, component: any): void;
+  mutateComponent<K extends Extract<keyof TComponents, string>>(entity: number, type: K, updater: (existing: TComponents[K]) => void): boolean;
+  addComponent<K extends Extract<keyof TComponents, string>>(entity: number, component: TComponents[K]): void;
 }
 
 /**
  * Minimum subset of World methods needed by the replicator.
  * @public
  */
-export type INetworkableWorld = WorldLike;
+export type INetworkableWorld<TComponents extends ComponentRegistry = ComponentRegistry> = WorldLike<TComponents>;
 
 /**
  * Interface representing a state replicator.
  * @public
  */
-export interface IStateReplicator {
+export interface IStateReplicator<TComponents extends ComponentRegistry = ComponentRegistry> {
   getMappings(): Map<string, number>;
   getLocalId(serverId: string): number | undefined;
   removeMapping(serverId: string): void;
-  resolveEntity(serverId: string, world: WorldLike, serverComponents?: Record<string, any>): number;
-  replicate(world: WorldLike, snapshot: WorldSnapshot): void;
+  resolveEntity(serverId: string, world: WorldLike<TComponents>, serverComponents?: Record<string, Record<string, unknown>>): number;
+  replicate(world: WorldLike<TComponents>, snapshot: WorldSnapshot): void;
 }
 
 /**
  * Robust, modular implementation of state replication.
  * @public
  */
-export class NetworkReplicator implements IStateReplicator {
+export class NetworkReplicator<TComponents extends ComponentRegistry = ComponentRegistry> implements IStateReplicator<TComponents> {
   private serverToLocal = new Map<string, number>();
 
   public getMappings(): Map<string, number> {
@@ -50,7 +51,7 @@ export class NetworkReplicator implements IStateReplicator {
     this.serverToLocal.delete(serverId);
   }
 
-  public resolveEntity(serverId: string, world: WorldLike, serverComponents: Record<string, any> = {}): number {
+  public resolveEntity(serverId: string, world: WorldLike<TComponents>, serverComponents: Record<string, Record<string, unknown>> = {}): number {
     let localId = this.serverToLocal.get(serverId);
     if (localId === undefined) {
       const newEntityId = world.createEntity();
@@ -62,10 +63,11 @@ export class NetworkReplicator implements IStateReplicator {
 
     for (const [type, comp] of Object.entries(serverComponents)) {
       if (comp) {
-        const componentToSet = { ...comp, type };
-        if (world.hasComponent(actualLocalId, type)) {
-          world.mutateComponent(actualLocalId, type, (existing: any) => {
-            Object.assign(existing, componentToSet);
+        const componentToSet = { ...comp, type } as unknown as TComponents[Extract<keyof TComponents, string>];
+        const typeKey = type as Extract<keyof TComponents, string>;
+        if (world.hasComponent(actualLocalId, typeKey)) {
+          world.mutateComponent(actualLocalId, typeKey, (existing) => {
+            Object.assign(existing as any, componentToSet);
           });
         } else {
           world.addComponent(actualLocalId, componentToSet);
@@ -76,18 +78,18 @@ export class NetworkReplicator implements IStateReplicator {
     return actualLocalId;
   }
 
-  public replicate(world: WorldLike, snapshot: WorldSnapshot): void {
+  public replicate(world: WorldLike<TComponents>, snapshot: WorldSnapshot): void {
     if (!snapshot || !snapshot.entities) return;
 
     const componentData = reconstructComponentData(snapshot);
 
     for (const serverIdNum of snapshot.entities) {
       const serverId = String(serverIdNum);
-      const serverComponents: Record<string, any> = {};
+      const serverComponents: Record<string, Record<string, unknown>> = {};
 
       for (const [type, entityMap] of Object.entries(componentData)) {
         if (entityMap && entityMap[serverIdNum] !== undefined) {
-          serverComponents[type] = entityMap[serverIdNum];
+          serverComponents[type] = entityMap[serverIdNum] as Record<string, unknown>;
         }
       }
 
@@ -100,7 +102,20 @@ export class NetworkReplicator implements IStateReplicator {
  * Legacy class alias for backward compatibility.
  * @public
  */
-export class Replicator extends NetworkReplicator {}
+export class Replicator<TComponents extends ComponentRegistry = ComponentRegistry> extends NetworkReplicator<TComponents> {}
+
+/**
+ * Options for registering a game with the network manager.
+ * @public
+ */
+export interface RegisterGameOptions<
+  TServerEvents extends Record<string, any> = Record<string, any>,
+  TClientEvents extends Record<string, any> = Record<string, any>
+> {
+  transport?: NetworkTransport<TServerEvents, TClientEvents>;
+  world?: INetworkableWorld;
+  [key: string]: unknown;
+}
 
 /**
  * Coordinator for network synchronization, prediction, and state reconciliation.
@@ -111,8 +126,8 @@ export class NetworkManager<
   TClientEvents extends Record<string, any> = Record<string, any>
 > {
   private transport: NetworkTransport<TServerEvents, TClientEvents>;
-  private replicator: IStateReplicator = new NetworkReplicator();
-  public world?: INetworkableWorld;
+  private replicator: IStateReplicator<any> = new NetworkReplicator<any>();
+  public world?: INetworkableWorld<any>;
 
   constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>) {
     this.transport = transport || new NullTransport<TServerEvents, TClientEvents>();
@@ -121,7 +136,7 @@ export class NetworkManager<
   public static registerGame<
     TServer extends Record<string, any> = Record<string, any>,
     TClient extends Record<string, any> = Record<string, any>
-  >(_gameId: string, _game: unknown, options: any = {}): NetworkManager<TServer, TClient> {
+  >(_gameId: string, _game: unknown, options: RegisterGameOptions<TServer, TClient> = {}): NetworkManager<TServer, TClient> {
     const manager = new NetworkManager<TServer, TClient>(options.transport || new NullTransport<TServer, TClient>());
     if (options.world) {
       manager.world = options.world;

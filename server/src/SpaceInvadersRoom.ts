@@ -193,13 +193,13 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
     }
   }
 
-  async onLeave(client: Client, _code: number) {
+  async onLeave(client: Client, code: number) {
     try {
-      if (_code === CloseCode.CONSENTED) {
+      if (code === CloseCode.CONSENTED) {
         throw new Error("consented leave");
       }
       await this.allowReconnection(client, 10);
-    } catch (_err) {
+    } catch {
       const entity = this.playerEntities.get(client.sessionId);
       if (entity !== undefined) {
         this.world.getCommandBuffer().removeEntity(entity);

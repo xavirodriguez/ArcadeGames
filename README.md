@@ -96,6 +96,7 @@ Architectural boundaries are not just documented — they're **enforced in CI** 
 The engine features a platform-agnostic audio system designed for a decouple-first architecture:
 1. **`IAudioPlayer` Contract**: `BaseGame` abstracts all audio operations behind `IAudioPlayer` (with `NullAudioPlayer` serving as a headless/testing/server fallback).
 2. **`WebAudioPlayer`**: High-performance browser implementation leveraging the Web Audio API (`AudioContext`) for low-latency SFX playback with spatial panning/attenuation and `HTMLAudioElement` for looping background music.
+   - *Graceful Fallback*: Includes a mechanism that caches a silent dummy buffer if loading/decoding fails, avoiding potential errors on subsequent play calls.
 3. **Decoupled Event-Driven Sound Triggering**: ECS systems do not need to call the audio player directly. Instead, they simply emit a `"PlaySFX"` event to the central `EventBus`:
    ```typescript
    eventBus.emit("PlaySFX" as any, { name: "hit" });

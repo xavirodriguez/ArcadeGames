@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -45,7 +45,7 @@ export class SpaceInvadersGame
   private config!: SpaceInvadersConfig;
   private network: NetworkController<SpaceInvadersComponentRegistry>;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any } = {}) {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any, audio?: any } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     const rawConfig = require("./config/space-invaders.json");
     super({
@@ -54,7 +54,8 @@ export class SpaceInvadersGame
       isMultiplayer: config.isMultiplayer,
       headless: config.headless,
       schedule: config.schedule,
-      gameOptions: { ...config.gameOptions, seed }
+      gameOptions: { ...config.gameOptions, seed },
+      audio: config.audio || new WebAudioPlayer()
     });
     this.isHeadless = !!config.headless;
     this.isMultiplayer = !!config.isMultiplayer;

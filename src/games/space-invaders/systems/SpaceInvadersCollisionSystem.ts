@@ -65,6 +65,15 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         gs.screenShake = { intensity: 10, duration: 0.3 };
         if (health && health.current <= 0) {
           gs.isGameOver = true;
+          const eventBus = world.getResource<any>("EventBus");
+          if (eventBus) {
+            eventBus.emit("PlaySFX" as any, { name: "game_over" });
+          }
+        } else {
+          const eventBus = world.getResource<any>("EventBus");
+          if (eventBus) {
+            eventBus.emit("PlaySFX" as any, { name: "hit" });
+          }
         }
       });
     }
@@ -93,6 +102,11 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           world.mutateComponent(gsEntity, "GameState" as any, (gs: any) => {
             gs.score += 100;
           });
+        }
+
+        const eventBus = world.getResource<any>("EventBus");
+        if (eventBus) {
+          eventBus.emit("PlaySFX" as any, { name: "hit" });
         }
       }
     }
@@ -206,6 +220,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       if (eventBus) {
         eventBus.emitDeferred("si:kill", { chain: nextCombo });
         eventBus.emitDeferred("entity:destroyed", { entity: invader, type: "Invader" });
+        eventBus.emit("PlaySFX" as any, { name: "explosion" });
       }
 
       world.mutateComponent(invader, "Render", render => {

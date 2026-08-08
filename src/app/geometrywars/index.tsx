@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator, TextInput } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
@@ -8,10 +8,13 @@ import { GameErrorBoundary } from "@/src/components/GameErrorBoundary";
 import { useGeometryWarsGame } from "@/src/hooks/useGeometryWarsGame";
 import { useTranslation } from "@/src/hooks/useTranslation";
 import { VirtualJoystick } from "@/src/components/controls/VirtualJoystick";
+import { useMultiplayer } from "@tiny-aster/react-native";
 
 export default function GeometryWarsScreen() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
+  const [isMulti, setIsMulti] = useState(false);
+  const [playerName, setPlayerName] = useState("Player");
   const insets = useSafeAreaInsets();
 
   const {
@@ -24,7 +27,57 @@ export default function GeometryWarsScreen() {
     highScore,
     seed,
     restartWithSeed
-  } = useGeometryWarsGame(started, false);
+  } = useGeometryWarsGame(started, isMulti && started);
+
+  const { room, connected, serverState, sendInput, inputBufferRef } = useMultiplayer("geometrywars", playerName, isMulti && started);
+
+  useEffect(() => {
+    if (isMulti && connected && game) {
+      game.setMultiplayerMode(true);
+    }
+  }, [isMulti, connected, game]);
+
+  useEffect(() => {
+    if (isMulti && serverState && game) {
+        const sessionId = room?.sessionId;
+        const pendingInputs = inputBufferRef.current;
+
+        game.updateFromServer(serverState, sessionId);
+
+        // Re-apply pending inputs for reconciliation
+        if (sessionId && pendingInputs.length > 0) {
+            pendingInputs.forEach(frame => {
+                game.predictLocalPlayer(frame, 16.66);
+            });
+        }
+    }
+  }, [isMulti, serverState, game, room?.sessionId, inputBufferRef]);
+
+  const handleMultiplayerInput = useCallback((input: Partial<{
+    moveX: number;
+    moveY: number;
+    aimX: number;
+    aimY: number;
+    fire: boolean;
+    mouseAbsolute?: boolean;
+  }>) => {
+    if (isMulti && room) {
+      const frame = sendInput({
+        actions: input.fire ? ["fire"] : [],
+        axes: {
+          moveX: input.moveX ?? 0,
+          moveY: input.moveY ?? 0,
+          aimX: input.aimX ?? 0,
+          aimY: input.aimY ?? 0
+        }
+      });
+      if (frame) {
+        game?.predictLocalPlayer(frame, 16.66);
+      }
+    } else {
+      game?.setInputState(input);
+    }
+  }, [isMulti, room, sendInput, game]);
 
   // 1. Keyboard Controls for Web (WASD / Arrows)
   useEffect(() => {
@@ -50,7 +103,7 @@ export default function GeometryWarsScreen() {
       if (activeKeys.has("KeyW") || activeKeys.has("ArrowUp")) moveY -= 1;
       if (activeKeys.has("KeyS") || activeKeys.has("ArrowDown")) moveY += 1;
 
-      game.setInputState({ moveX, moveY });
+      handleMultiplayerInput({ moveX, moveY });
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -75,16 +128,16 @@ export default function GeometryWarsScreen() {
         const aimX = (e.clientX - rect.left) * scaleX;
         const aimY = (e.clientY - rect.top) * scaleY;
 
-        game.setInputState({ aimX, aimY, mouseAbsolute: true });
+        handleMultiplayerInput({ aimX, aimY, mouseAbsolute: true });
       }
     };
 
     const handlePointerDown = () => {
-      game.setInputState({ fire: true });
+      handleMultiplayerInput({ fire: true });
     };
 
     const handlePointerUp = () => {
-      game.setInputState({ fire: false });
+      handleMultiplayerInput({ fire: false });
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -123,11 +176,27 @@ export default function GeometryWarsScreen() {
               : "Left area touch: Move ship\nRight area touch: Aim & shoot"}
           </Text>
 
+          <TextInput
+            style={styles.input}
+            value={playerName}
+            onChangeText={setPlayerName}
+            placeholder={t.common.your_name || "Name"}
+            placeholderTextColor="#AAAAAA"
+          />
+
           <Text style={styles.highScoreText}>{t.common.record}: {highScore}</Text>
 
-          <TouchableOpacity style={styles.startButton} onPress={() => setStarted(true)}>
-            <Text style={styles.startButtonText}>{t.common.solo}</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.startButton} onPress={() => { setIsMulti(false); setStarted(true); }}>
+              <Text style={styles.startButtonText}>{t.common.solo}</Text>
+            </TouchableOpacity>
+
+            <View style={{ width: 20 }} />
+
+            <TouchableOpacity style={styles.multiButton} onPress={() => { setIsMulti(true); setStarted(true); }}>
+              <Text style={styles.multiButtonText}>{t.common.multi || "Multiplayer"}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaProvider>
     );
@@ -159,6 +228,12 @@ export default function GeometryWarsScreen() {
           >
             <Text style={styles.backButtonText}>← {t.common.menu}</Text>
           </TouchableOpacity>
+
+          {isMulti && !connected && (
+            <View style={styles.overlay}>
+              <Text style={styles.loadingText}>{t.common.connecting || "Connecting to server..."}</Text>
+            </View>
+          )}
 
           {/* Pause Button */}
           {!gameState.isGameOver && (
@@ -203,10 +278,10 @@ export default function GeometryWarsScreen() {
                   joystickId="movement_joystick"
                   type="movement"
                   onMove={(x, y) => {
-                    game.setInputState({ moveX: x, moveY: y });
+                    handleMultiplayerInput({ moveX: x, moveY: y });
                   }}
                   onRelease={() => {
-                    game.setInputState({ moveX: 0, moveY: 0 });
+                    handleMultiplayerInput({ moveX: 0, moveY: 0 });
                   }}
                 />
               </View>
@@ -217,10 +292,10 @@ export default function GeometryWarsScreen() {
                   onMove={(x, y) => {
                     const mag = Math.sqrt(x * x + y * y);
                     const isFiring = mag > 0.2;
-                    game.setInputState({ aimX: x, aimY: y, fire: isFiring });
+                    handleMultiplayerInput({ aimX: x, aimY: y, fire: isFiring });
                   }}
                   onRelease={() => {
-                    game.setInputState({ fire: false });
+                    handleMultiplayerInput({ fire: false });
                   }}
                 />
               </View>
@@ -260,6 +335,42 @@ export default function GeometryWarsScreen() {
 }
 
 const styles = StyleSheet.create({
+  input: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderWidth: 1,
+    borderColor: "#00FFFF",
+    color: "#FFFFFF",
+    fontFamily: "monospace",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    width: 250,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  multiButton: {
+    borderWidth: 2,
+    borderColor: "#FF00FF",
+    paddingHorizontal: 40,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    shadowColor: "#FF00FF",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+  },
+  multiButtonText: {
+    color: "#FF00FF",
+    fontSize: 20,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+  },
   container: {
     flex: 1,
     backgroundColor: "#000",

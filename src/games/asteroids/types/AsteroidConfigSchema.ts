@@ -16,7 +16,11 @@ export const AsteroidConfigSchema = BaseConfigSchema.extend({
   SHIP_ROTATION_SPEED: z.number().default(Math.PI), // Ship rotation speed (default PI rad/sec)
   BULLET_TTL: z.number().default(2.0),
   SHIP_SHOOT_COOLDOWN: z.number().default(0.25),
-  BULLET_SPEED: z.number().default(300)
+  BULLET_SPEED: z.number().default(300),
+  COMBO_TIMEOUT: z.number().default(2000),
+  MAX_MULTIPLIER: z.number().default(10),
+  HYPERSPACE_COOLDOWN: z.number().default(5.0),
+  HYPERSPACE_PREP_TIME: z.number().default(0.5)
 });
 
 /** @public */

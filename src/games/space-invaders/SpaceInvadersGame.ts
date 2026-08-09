@@ -65,17 +65,8 @@ export class SpaceInvadersGame
 
   public applyInputToEntity(entityId: number, input: InputFrame) {
     const activeWorld = this.getWorld();
-    if (!activeWorld.hasComponent(entityId, "Input" as any)) {
-      activeWorld.addComponent(entityId, {
-        type: "Input",
-        actions: new Set<string>(),
-        axes: {}
-      } as any);
-    }
-    activeWorld.mutateComponent(entityId, "Input" as any, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
-      inputComp.actions = new Set<string>(input.actions || []);
-      inputComp.axes = { ...input.axes };
-    }) as any);
+    const activeNetwork = new NetworkController<SpaceInvadersComponentRegistry>(activeWorld);
+    activeNetwork.applyInputToEntity(entityId, input);
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
@@ -641,6 +632,20 @@ export class SpaceInvadersGame
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
     const world = this.getWorld();
+
+    // Synchronize global GameState singleton on the client from server state
+    const gs = world.getSingleton("GameState");
+    if (gs) {
+      world.mutateSingleton("GameState", (currentGs) => {
+        if (state.score !== undefined) {
+          currentGs.score = Number(state.score);
+        }
+        if (state.gameOver !== undefined) {
+          currentGs.isGameOver = !!state.gameOver;
+        }
+      });
+    }
+
     const replicator = this.networkManager.getReplicator();
     const commands = world.getCommandBuffer();
 

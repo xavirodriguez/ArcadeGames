@@ -120,6 +120,7 @@ export * from "./utils/ComponentSetPool";
 export * from "./utils/PrefabPool";
 export * from "./utils/ProjectilePool";
 
+// Replay classes are not exported from index to avoid collision with network ReplaySystem
 // Replay
 export { ReplayRecorder as DeterministicReplayRecorder } from "./replay/ReplayRecorder";
 export { ReplayPlayer as DeterministicReplayPlayer } from "./replay/ReplayPlayer";

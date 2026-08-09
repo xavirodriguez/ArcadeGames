@@ -119,7 +119,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       ctx.save();
 
       const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
-      const visualOffset = world.getComponent(entity, visualOffsetType) as { offsetX?: number; offsetY?: number; scaleX?: number; scaleY?: number } | undefined;
+      const visualOffset = world.getComponent(entity, visualOffsetType) as unknown as { offsetX: number; offsetY: number; scaleX?: number; scaleY?: number } | undefined;
       const offsetX = visualOffset?.offsetX ?? 0;
       const offsetY = visualOffset?.offsetY ?? 0;
       const visualScaleX = visualOffset?.scaleX ?? 1;

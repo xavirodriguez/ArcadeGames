@@ -1,4 +1,6 @@
-import { World, System, SystemPhase, DeterministicReplayRecorder as ReplayRecorder, DeterministicReplayPlayer as ReplayPlayer, UnifiedInputSystem, GameplayFreeze } from "../src";
+import { World, System, SystemPhase, UnifiedInputSystem, GameplayFreeze } from "../src";
+import { ReplayRecorder } from "../src/replay/ReplayRecorder";
+import { ReplayPlayer } from "../src/replay/ReplayPlayer";
 
 interface PositionComponent {
   type: "Position";

@@ -191,6 +191,27 @@ export class SceneManager {
     this._onExitCalled = false;
   }
 
+  private _resolveDuration(options?: TransitionOptions): number {
+    const isHeadless =
+      this.world.getResource<any>("headless") === true ||
+      this.world.getResource<any>("GameConfig")?.headless === true ||
+      this.world.getResource<any>("GameConfig")?.isHeadless === true;
+
+    if (isHeadless) {
+      return 0; // Always force 0 for server/headless execution
+    }
+
+    if (options?.duration !== undefined) {
+      return options.duration; // Respect explicit duration in visual tests
+    }
+
+    if (isTestEnvironment()) {
+      return 0; // Default to 0 for other tests to run fast
+    }
+
+    return 300; // Default production transition
+  }
+
   /**
    * Realiza una transición a una nueva escena.
    * Limpia la pila actual y reemplaza la escena activa.
@@ -200,7 +221,7 @@ export class SceneManager {
    * @returns A promise that resolves when the transition is complete.
    */
   public async transitionTo(scene: Scene, options?: TransitionOptions): Promise<void> {
-    const duration = options?.duration !== undefined ? options.duration : (isTestEnvironment() ? 0 : 300);
+    const duration = this._resolveDuration(options);
 
     if (duration === 0) {
       return this.enqueueTransition(async () => {
@@ -437,7 +458,7 @@ export class SceneManager {
    * @returns A promise that resolves when the push operation is complete.
    */
   public async push(scene: Scene, options?: TransitionOptions): Promise<void> {
-    const duration = options?.duration !== undefined ? options.duration : (isTestEnvironment() ? 0 : 300);
+    const duration = this._resolveDuration(options);
 
     if (duration === 0) {
       return this.enqueueTransition(async () => {
@@ -613,7 +634,7 @@ export class SceneManager {
    * @returns A promise that resolves when the pop operation is complete.
    */
   public async pop(options?: TransitionOptions): Promise<void> {
-    const duration = options?.duration !== undefined ? options.duration : (isTestEnvironment() ? 0 : 300);
+    const duration = this._resolveDuration(options);
 
     if (duration === 0) {
       return this.enqueueTransition(async () => {

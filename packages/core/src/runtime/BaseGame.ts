@@ -126,6 +126,7 @@ export abstract class BaseGame<
     this.world.setResource("InputSystem", this.unifiedInput);
     this.world.setResource("Audio" as any, this.audio);
     this.world.setResource("SceneManager", this.sceneManager);
+    this.world.setResource("headless", this._config.headless);
   }
 
   /**

@@ -110,14 +110,30 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
               });
               world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 0.55 } as any);
             } else {
-              gs.scoreP2 += gs.comboMultiplier || 1;
+              let multiplier = 1;
+              const comboEntities = world.query("Combo" as any);
+              if (comboEntities.length > 0) {
+                const comboComp = world.getComponent(comboEntities[0], "Combo" as any) as any;
+                if (comboComp) {
+                  multiplier = comboComp.multiplier || 1;
+                }
+              }
+              gs.scoreP2 += multiplier;
               scorer = "p2";
               scored = true;
             }
           }
           // Ball passed right edge -> Player 1 scores
           else if (transform.x > this.config.WIDTH) {
-            gs.scoreP1 += gs.comboMultiplier || 1;
+            let multiplier = 1;
+            const comboEntities = world.query("Combo" as any);
+            if (comboEntities.length > 0) {
+              const comboComp = world.getComponent(comboEntities[0], "Combo" as any) as any;
+              if (comboComp) {
+                multiplier = comboComp.multiplier || 1;
+              }
+            }
+            gs.scoreP1 += multiplier;
             scorer = "p1";
             scored = true;
           }

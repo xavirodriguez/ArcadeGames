@@ -710,6 +710,11 @@ function assertResourceShape(name: string, value: unknown): void {
   if (value === undefined || value === null) return;
 
   switch (name) {
+    case "GameplayFreeze":
+      if (typeof value !== "object" || ( (value as any).remaining !== undefined && typeof (value as any).remaining !== "number" )) {
+        throw new Error(`[World] Resource "GameplayFreeze" does not match the expected shape { remaining?: number }.`);
+      }
+      break;
     case "EventBus":
       if (typeof (value as any).emit !== "function" || typeof (value as any).on !== "function") {
         throw new Error(`[World] Resource "EventBus" does not match the expected EventBus interface (must have emit and on methods).`);

@@ -12,6 +12,9 @@ export interface BossComponent extends Component {
   maxHp: number;
   timer: number;
   phase: number;
+  fury?: number;
+  furyDuration?: number;
+  counterFirePending?: boolean;
 }
 
 /**
@@ -140,16 +143,20 @@ export interface GameStateComponent extends Component {
   level: number;
   invadersRemaining: number;
   isGameOver: boolean;
-  /** @deprecated Use ComboComponent inside ECS world. Still populated dynamically in getGameState() for backward compatibility. */
-  combo: number;
-  /** @deprecated Use ComboComponent inside ECS world. Still populated dynamically in getGameState() for backward compatibility. */
-  multiplier: number;
-  /** @deprecated Use ComboComponent inside ECS world. Still populated dynamically in getGameState() for backward compatibility. */
-  comboTimerRemaining: number;
   highScoreCandidate?: number;
-  screenShake?: { intensity: number; duration: number } | null;
+  screenShake?: { intensity: number; duration: number; elapsed?: number; totalDuration?: number } | null;
   kamikazesActive: number;
   gameOverLogged?: boolean;
+  /** Populated dynamically in getGameState() for backward compatibility. */
+  combo?: number;
+  /** Populated dynamically in getGameState() for backward compatibility. */
+  multiplier?: number;
+  /** Populated dynamically in getGameState() for backward compatibility. */
+  comboTimerRemaining?: number;
+  /** Roguelite run mutator choices currently pending selection. */
+  runMutatorChoices?: string[] | null;
+  /** Roguelite active run mutator ids currently active in this run. */
+  activeRunMutators?: string[];
 }
 
 /**
@@ -162,9 +169,6 @@ export const INITIAL_GAME_STATE: GameStateComponent = Object.freeze({
   level: 0,
   invadersRemaining: 0,
   isGameOver: false,
-  combo: 0,
-  multiplier: 1,
-  comboTimerRemaining: 0,
   kamikazesActive: 0,
 });
 

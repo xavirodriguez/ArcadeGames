@@ -20,7 +20,7 @@ import {
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
-import { ComboSystem } from "../shared/arcade";
+import { ComboSystem, AchievementSystem } from "../shared/arcade";
 import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorRegistry";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 
@@ -291,6 +291,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new PongCollisionSystem(this.config), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.stateSystem, { phase: SystemPhase.GameRules });
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
     this.world.addSystem(new MutatorSystem(mutators as any), { phase: SystemPhase.Simulation });
 

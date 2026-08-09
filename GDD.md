@@ -284,7 +284,7 @@ The project separates logic into three distinct architectural layers to ensure a
 ## ⚠️ Architectural Decoupling & Decisions
 
 ### 1. Unified Combo System
-The local combo variables inside Space Invaders' `GameStateComponent` have been deprecated. Both Space Invaders and Pong now leverage the shared `ComboSystem` and `ComboComponent` located at `src/games/shared/arcade/` as the single source of truth, avoiding the duplication initially flagged.
+The local combo variables inside Space Invaders' `GameStateComponent` have been completely removed and deprecated. Both Space Invaders and Pong now leverage the shared `ComboSystem` and `ComboComponent` located at `src/games/shared/arcade/` as the single source of truth. All fallback routes and synchronizations in `SpaceInvadersCollisionSystem`, `MutatorRegistry`'s `combo_head_start` mutator, and `GameStateComponent` have been successfully cleaned up, ensuring an elegant and unified ECS design.
 
 ### 2. Extensible Combat System
 The generic `CombatSystem` at `src/games/shared/combat/` processes health decrementing and hit/death events.

@@ -181,14 +181,6 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         });
       }
 
-      const gameState = world.getSingleton("GameState");
-      if (gameState) {
-        world.mutateSingleton("GameState", (gs) => {
-          gs.combo = 5;
-          gs.multiplier = 2;
-          gs.comboTimerRemaining = comboTimeout;
-        });
-      }
       runMutatorHooks(world, "combo_head_start");
     }
   },
@@ -209,4 +201,71 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
       runMutatorHooks(world, "shield_pulse");
     }
   },
+};
+
+/**
+ * Collection of mutators that represent curses or risks, providing challenge in exchange for higher XP.
+ */
+export const NEGATIVE_MUTATORS: Record<string, BeneficialMutator> = {
+  "faster_enemies": {
+    id: "faster_enemies",
+    description: "Enemigos 15% más rápidos, pero +25% XP",
+    xpCost: 0,
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
+      const world = genericWorld as unknown as World<MutatorComponentRegistry>;
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.INVADER_SPEED === "number") {
+          newConfig.INVADER_SPEED = Math.round(newConfig.INVADER_SPEED * 1.15);
+        }
+        if (typeof newConfig.INVADER_SPEED_X === "number") {
+          newConfig.INVADER_SPEED_X = Math.round(newConfig.INVADER_SPEED_X * 1.15);
+        }
+        world.setResource("GameConfig", newConfig);
+      }
+      runMutatorHooks(world, "faster_enemies");
+    }
+  },
+  "fewer_lives": {
+    id: "fewer_lives",
+    description: "Empezar con 1 vida menos, pero +50% XP",
+    xpCost: 0,
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
+      const world = genericWorld as unknown as World<MutatorComponentRegistry>;
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_INITIAL_LIVES === "number" && newConfig.PLAYER_INITIAL_LIVES > 1) {
+          newConfig.PLAYER_INITIAL_LIVES -= 1;
+        }
+        world.setResource("GameConfig", newConfig);
+      }
+      const players = world.query("Player", "Health");
+      for (const player of players) {
+        world.mutateComponent(player, "Health", (h) => {
+          if (h.current > 1) h.current -= 1;
+          if (h.max > 1) h.max -= 1;
+        });
+      }
+      runMutatorHooks(world, "fewer_lives");
+    }
+  },
+  "slower_bullets": {
+    id: "slower_bullets",
+    description: "Tus balas son 15% más lentas, pero +30% XP",
+    xpCost: 0,
+    apply: <T extends ComponentRegistry>(genericWorld: World<T>) => {
+      const world = genericWorld as unknown as World<MutatorComponentRegistry>;
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.PLAYER_BULLET_SPEED === "number") {
+          newConfig.PLAYER_BULLET_SPEED = Math.round(newConfig.PLAYER_BULLET_SPEED * 0.85);
+        }
+        world.setResource("GameConfig", newConfig);
+      }
+      runMutatorHooks(world, "slower_bullets");
+    }
+  }
 };

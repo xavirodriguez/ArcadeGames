@@ -55,7 +55,12 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
         let nextShoot = input.shoot;
         let nextShootCooldownRemaining = input.shootCooldownRemaining;
 
-        if (useNetwork) {
+        const isReplay = world.getResource("IsReplayPlayback") === true;
+        if (isReplay) {
+          nextMoveLeft = input.moveLeft;
+          nextMoveRight = input.moveRight;
+          nextShoot = input.shoot;
+        } else if (useNetwork) {
           const axes = (input as any).axes || {};
           const actions = (input as any).actions;
           nextMoveLeft = (axes.moveX === -1);

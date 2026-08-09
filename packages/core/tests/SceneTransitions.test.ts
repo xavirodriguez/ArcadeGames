@@ -18,7 +18,9 @@ import {
   CurtainTransition,
   RetroGridTransition,
   DiagonalSweepTransition,
-  RadialWipeTransition
+  RadialWipeTransition,
+  CRTGlitchTransition,
+  DangerPulseTransition
 } from "../src/index";
 
 class TestScene extends Scene {
@@ -205,12 +207,16 @@ describe("Scene Transitions", () => {
     const grid = new RetroGridTransition();
     const diagonal = new DiagonalSweepTransition();
     const radial = new RadialWipeTransition();
+    const crt = new CRTGlitchTransition();
+    const danger = new DangerPulseTransition();
 
     expect(crossfade.drawsBothScenes).toBe(true);
     expect(curtain.drawsBothScenes).toBe(true);
     expect(grid.drawsBothScenes).toBe(true);
     expect(diagonal.drawsBothScenes).toBe(true);
     expect(radial.drawsBothScenes).toBe(true);
+    expect(crt.drawsBothScenes).toBe(true);
+    expect(danger.drawsBothScenes).toBe(false);
 
     const mockCanvas = {
       width: 800,
@@ -231,7 +237,10 @@ describe("Scene Transitions", () => {
       clearRect: jest.fn(),
       drawImage: jest.fn(),
       closePath: jest.fn(),
-      clip: jest.fn()
+      clip: jest.fn(),
+      createRadialGradient: jest.fn(() => ({
+        addColorStop: jest.fn()
+      }))
     };
 
     // Test render on each at various progress points
@@ -251,5 +260,7 @@ describe("Scene Transitions", () => {
     grid.render(mockCtx, 0.5, optionsWithOffscreen);
     diagonal.render(mockCtx, 0.5, optionsWithOffscreen);
     radial.render(mockCtx, 0.5, optionsWithOffscreen);
+    crt.render(mockCtx, 0.5, optionsWithOffscreen);
+    danger.render(mockCtx, 0.5, optionsWithOffscreen);
   });
 });

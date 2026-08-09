@@ -9,6 +9,8 @@ import { CurtainTransition } from "./CurtainTransition";
 import { RetroGridTransition } from "./RetroGridTransition";
 import { DiagonalSweepTransition } from "./DiagonalSweepTransition";
 import { RadialWipeTransition } from "./RadialWipeTransition";
+import { CRTGlitchTransition } from "./CRTGlitchTransition";
+import { DangerPulseTransition } from "./DangerPulseTransition";
 
 /**
  * Registry of all available default transition effects.
@@ -30,6 +32,8 @@ export const TransitionRegistry: Record<string, ITransitionEffect> = {
   grid: new RetroGridTransition(),
   diagonal: new DiagonalSweepTransition(),
   radial: new RadialWipeTransition(),
+  crt: new CRTGlitchTransition(),
+  danger: new DangerPulseTransition(),
 };
 
 /**

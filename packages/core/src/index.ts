@@ -39,6 +39,8 @@ export * from "./scenes/transitions/CurtainTransition";
 export * from "./scenes/transitions/RetroGridTransition";
 export * from "./scenes/transitions/DiagonalSweepTransition";
 export * from "./scenes/transitions/RadialWipeTransition";
+export * from "./scenes/transitions/CRTGlitchTransition";
+export * from "./scenes/transitions/DangerPulseTransition";
 export * from "./scenes/transitions/TransitionRegistry";
 
 // Events

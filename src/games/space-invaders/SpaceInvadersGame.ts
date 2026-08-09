@@ -65,17 +65,8 @@ export class SpaceInvadersGame
 
   public applyInputToEntity(entityId: number, input: InputFrame) {
     const activeWorld = this.getWorld();
-    if (!activeWorld.hasComponent(entityId, "Input" as any)) {
-      activeWorld.addComponent(entityId, {
-        type: "Input",
-        actions: new Set<string>(),
-        axes: {}
-      } as any);
-    }
-    activeWorld.mutateComponent(entityId, "Input" as any, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
-      inputComp.actions = new Set<string>(input.actions || []);
-      inputComp.axes = { ...input.axes };
-    }) as any);
+    const activeNetwork = new NetworkController<SpaceInvadersComponentRegistry>(activeWorld);
+    activeNetwork.applyInputToEntity(entityId, input);
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
@@ -111,6 +102,7 @@ export class SpaceInvadersGame
 
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });
+    this.world.setResource("IsHeadless", this.isHeadless);
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
     if (!this.isHeadless) {
@@ -279,6 +271,7 @@ export class SpaceInvadersGame
         const initialCombo = hasComboHeadStart ? 5 : 0;
         const initialMultiplier = hasComboHeadStart ? 2 : 1;
         const initialTimerRemaining = hasComboHeadStart ? config.COMBO_TIMEOUT / 1000 : 0;
+        const isHeadless = this.isHeadless;
 
         world.addComponent(entity, {
           type: "GameState",
@@ -289,7 +282,7 @@ export class SpaceInvadersGame
           isGameOver: false,
           screenShake: null,
           kamikazesActive: 0,
-          readyRemaining: 3.0,
+          readyRemaining: isHeadless ? 0.0 : 3.0,
           intermissionRemaining: 0,
           continueCountdownRemaining: 0,
           continuesRemaining: 3,
@@ -641,6 +634,20 @@ export class SpaceInvadersGame
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
     const world = this.getWorld();
+
+    // Synchronize global GameState singleton on the client from server state
+    const gs = world.getSingleton("GameState");
+    if (gs) {
+      world.mutateSingleton("GameState", (currentGs) => {
+        if (state.score !== undefined) {
+          currentGs.score = Number(state.score);
+        }
+        if (state.gameOver !== undefined) {
+          currentGs.isGameOver = !!state.gameOver;
+        }
+      });
+    }
+
     const replicator = this.networkManager.getReplicator();
     const commands = world.getCommandBuffer();
 

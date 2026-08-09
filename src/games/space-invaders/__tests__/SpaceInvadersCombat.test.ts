@@ -106,7 +106,7 @@ describe("Space Invaders Pilot Combat Integration", () => {
     // Check GameState lives is synchronized and screenshake applied
     const state = world.getComponent(stateEntity, "GameState" as any) as any;
     expect(state.lives).toBe(2);
-    expect(state.screenShake).toEqual({ intensity: 10, duration: 0.3 });
+    expect(state.screenShake).toEqual({ intensity: 10, duration: 0.3, elapsed: 0, totalDuration: 0.3 });
 
     // Check player bullet hit flash
     const render = world.getComponent(player, "Render");

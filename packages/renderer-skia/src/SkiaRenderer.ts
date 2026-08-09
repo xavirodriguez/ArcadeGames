@@ -104,7 +104,7 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
       canvas.save();
 
-      const visualOffset = world.getComponent(entity, visualOffsetType) as any;
+      const visualOffset = world.getComponent(entity, visualOffsetType) as unknown as { offsetX: number; offsetY: number; scaleX?: number; scaleY?: number } | undefined;
       const offsetX = visualOffset?.offsetX ?? 0;
       const offsetY = visualOffset?.offsetY ?? 0;
       const visualScaleX = visualOffset?.scaleX ?? 1;

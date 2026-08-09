@@ -54,13 +54,18 @@ export class Juice {
         world.addComponent(entity, { type: "Juice", active: true, animations: [] });
     }
     if (!world.hasComponent(entity, "VisualOffset")) {
-        world.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0 });
+        world.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0, scaleX: 1, scaleY: 1 } as any);
     }
+
+    const durationInSeconds = anim.duration / 1000;
+    const delayInSeconds = anim.delay ? anim.delay / 1000 : 0;
 
     world.mutateComponent(entity, "Juice", (juice: JuiceComponent) => {
         juice.animations.push({
             type: "animation",
             ...anim,
+            duration: durationInSeconds,
+            delay: delayInSeconds,
             elapsed: 0
         });
     });

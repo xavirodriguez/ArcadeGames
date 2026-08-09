@@ -23,8 +23,11 @@ import { useGameSession } from "@/hooks/useGameSession";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
+import { AttractModeController } from "../../games/shared/arcade/AttractModeController";
 
 export default function SpaceInvadersScreen() {
+  const [isAttractMode, setIsAttractMode] = useState(false);
+  const [idleTime, setIdleTime] = useState(0);
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
 
   // Parse daily challenge parameters from URL immediately
@@ -39,6 +42,58 @@ export default function SpaceInvadersScreen() {
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
 
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
+
+  // 1. Idle Activity tracking for Attract Mode
+  useEffect(() => {
+    if (started) {
+      setIdleTime(0);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setIdleTime((prev) => {
+        if (prev >= 9) {
+          clearInterval(timer);
+          setIsAttractMode(true);
+          setStarted(true);
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+
+    const resetIdle = () => setIdleTime(0);
+
+    if (Platform.OS === "web") {
+      window.addEventListener("mousemove", resetIdle);
+      window.addEventListener("keydown", resetIdle);
+    }
+
+    return () => {
+      clearInterval(timer);
+      if (Platform.OS === "web") {
+        window.removeEventListener("mousemove", resetIdle);
+        window.removeEventListener("keydown", resetIdle);
+      }
+    };
+  }, [started]);
+
+  // 2. Drive game via AttractModeController during Attract Mode
+  useEffect(() => {
+    if (isAttractMode && game) {
+      const controller = new AttractModeController(game);
+      controller.start();
+
+      const unsubscribe = game.getGameLoop().subscribeUpdate((dt) => {
+        controller.update(dt);
+      });
+
+      return () => {
+        unsubscribe();
+        controller.stop();
+      };
+    }
+  }, [isAttractMode, game]);
 
   const { room, connected, serverState, sendInput, inputBufferRef } = useMultiplayer("space-invaders", playerName, isMulti && started);
 
@@ -134,6 +189,20 @@ export default function SpaceInvadersScreen() {
     <SafeAreaProvider>
       <View style={sharedScreenStyles.container}>
         <RadialBackground />
+
+        {isAttractMode && (
+          <TouchableOpacity
+            style={styles.attractOverlay}
+            activeOpacity={1}
+            onPress={() => {
+              setIsAttractMode(false);
+              setStarted(false);
+            }}
+          >
+            <Text style={styles.attractTitle}>DEMO MODE</Text>
+            <Text style={styles.attractSubtitle}>TAP ANYWHERE TO PLAY</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={sharedScreenStyles.backButton}
           onPress={() => {
@@ -162,6 +231,9 @@ export default function SpaceInvadersScreen() {
           highScore={highScore}
           seed={seed}
           onSetSeed={restartWithSeed}
+          onContinue={() => {
+            game.getEventBus().emit("player:continue" as any, {});
+          }}
         />
         <CanvasRenderer
           world={() => game.getWorld()}
@@ -307,6 +379,33 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 40,
     paddingBottom: 40,
-  }
+  },
+  attractOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    zIndex: 2000,
+  },
+  attractTitle: {
+    color: "#00FFDD",
+    fontSize: 54,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    ...(Platform.OS === "web"
+      ? { textShadow: "0 0 15px rgba(0, 255, 221, 0.8)" }
+      : {
+          textShadowColor: "rgba(0, 255, 221, 0.8)",
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 15,
+        }),
+  },
+  attractSubtitle: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontFamily: "monospace",
+    marginTop: 20,
+    letterSpacing: 2,
+  },
 });
 

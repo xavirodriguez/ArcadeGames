@@ -46,6 +46,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
     }
     const gameState = world.getSingleton("GameState");
     if (!gameState || gameState.isGameOver) return;
+    if (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0) return;
 
     const bosses = world.query("Boss", "Transform", "Render");
     bosses.forEach(entity => {

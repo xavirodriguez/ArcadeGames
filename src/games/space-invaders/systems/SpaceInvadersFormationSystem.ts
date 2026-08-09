@@ -22,6 +22,10 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
+
+    const gameState = world.getSingleton("GameState");
+    if (gameState && (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) return;
+
     const formationEntities = world.query("Formation");
     if (formationEntities.length === 0) return;
 

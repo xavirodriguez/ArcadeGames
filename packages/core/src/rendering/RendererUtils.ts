@@ -1,13 +1,25 @@
 import { Renderer, RenderContext } from "./Renderer";
 import { ComponentRegistry } from "../ecs/Component";
 
+/**
+ * Callback function for registering renderer elements.
+ * @public
+ */
 export type RendererRegistrationCallback = (renderer: Renderer<any, RenderContext>) => void;
 
+/**
+ * Configuration for registration callbacks across different rendering pipelines.
+ * @public
+ */
 export interface RendererRegistrationConfig {
   canvas?: RendererRegistrationCallback;
   skia?: RendererRegistrationCallback;
 }
 
+/**
+ * Utility functions for managing different rendering implementations.
+ * @public
+ */
 export class RendererUtils {
   /**
    * Registra assets, formas y efectos basándose en el tipo de renderizador activo.

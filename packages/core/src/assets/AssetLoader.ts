@@ -1,11 +1,19 @@
 import { z } from "zod";
 
+/**
+ * Schema for specifying assets.
+ * @public
+ */
 export const AssetDescriptorSchema = z.object({
   id: z.string(),
   path: z.string(),
   type: z.enum(["image", "audio", "font", "texture", "json"])
 });
 
+/**
+ * Descriptor for a single asset to be loaded.
+ * @public
+ */
 export type AssetDescriptor = z.infer<typeof AssetDescriptorSchema>;
 
 /** @public */

@@ -18,6 +18,10 @@ export const InputFrameSchema = z.object({
   axes: z.record(z.string(), z.number())
 });
 
+/**
+ * Type of a single tick of user input.
+ * @public
+ */
 export type InputFrame = z.infer<typeof InputFrameSchema>;
 
 /**

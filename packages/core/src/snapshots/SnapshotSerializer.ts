@@ -98,7 +98,7 @@ export class SnapshotSerializer {
    * and returns their serialized state.
    *
    * @warning
-   * Subject to the same serialization limits as {@link snapshot}.
+   * Subject to the same serialization limits as {@link SnapshotSerializer.snapshot}.
    *
    * @param world - The world to snapshot.
    * @param sinceVersion - The state version to compare against.

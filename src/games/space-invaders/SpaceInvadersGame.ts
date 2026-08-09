@@ -102,6 +102,7 @@ export class SpaceInvadersGame
 
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });
+    this.world.setResource("IsHeadless", this.isHeadless);
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
     if (!this.isHeadless) {
@@ -270,6 +271,7 @@ export class SpaceInvadersGame
         const initialCombo = hasComboHeadStart ? 5 : 0;
         const initialMultiplier = hasComboHeadStart ? 2 : 1;
         const initialTimerRemaining = hasComboHeadStart ? config.COMBO_TIMEOUT / 1000 : 0;
+        const isHeadless = this.isHeadless;
 
         world.addComponent(entity, {
           type: "GameState",
@@ -280,7 +282,7 @@ export class SpaceInvadersGame
           isGameOver: false,
           screenShake: null,
           kamikazesActive: 0,
-          readyRemaining: 3.0,
+          readyRemaining: isHeadless ? 0.0 : 3.0,
           intermissionRemaining: 0,
           continueCountdownRemaining: 0,
           continuesRemaining: 3,

@@ -320,6 +320,29 @@ The repository contains four distinct mutator systems with unique contracts:
 
 ---
 
+## ⚡ Elección de Mutadores en Vivo entre Waves
+
+### Justificación de la Elección del Sistema de Mutación para Mutadores en Vivo
+Para el diseño e implementación de la futura funcionalidad de **"Elegir un Mutador en Vivo entre Waves"**, se ha seleccionado de forma unánime y explícita el sistema **`BeneficialMutator` (definido en `src/utils/MutatorRegistry.ts`)**.
+
+A continuación se detalla la justificación y los motivos técnicos por los cuales los otros tres sistemas quedan descartados para esta tarea:
+
+1. **BeneficialMutator (`src/utils/MutatorRegistry.ts`) [SELECCIONADO]**:
+   - **Mecánica de un solo disparo (One-shot)**: Posee la firma `apply: (world: World) => void`. Esto es perfecto para el momento en que un jugador escoge un mutador entre waves en vivo (por ejemplo, ganar instantáneamente +1 vida, recargar un escudo temporal de 3 segundos, u otorgar un combo inicial de inicio rápido).
+   - **Determinismo y Rollback**: Al aplicarse directamente sobre el `World` (escribiendo en recursos o mutando componentes de entidades activas), el estado resultante queda capturado de forma automática por `WorldSnapshot`, permitiendo la correcta predicción del cliente, reconciliación del servidor y soporte de resimulación/rollback sin desincronizar.
+   - **Extensibilidad en Runtime**: Puede ser invocado limpiamente en cualquier instante del ciclo de juego (por ejemplo, en un callback de transición de escena o al finalizar una wave), no estando restringido únicamente al arranque de sesión inicial.
+
+2. **Mutator (`src/config/MutatorConfig.ts`) [DESCARTADO]**:
+   - **Motivo**: Este sistema opera como una función pura sobre objetos de configuración planos (`apply: (cfg: Record<string, unknown>) => Record<string, unknown>`). Está diseñado para calibrar límites físicos estáticos globales (mediante Zod / `PhysicsSafetySchema`) antes de que se instancie el World. No tiene visibilidad ni acceso a las entidades ni recursos dinámicos del `World` en tiempo de ejecución de la partida, por lo que es inviable para mutaciones instantáneas o selectivas de gameplay.
+
+3. **MutatorService (`src/services/MutatorService.ts`) [DESCARTADO]**:
+   - **Motivo**: Actúa estrictamente como un selector y programador temporal de retos periódicos (ej. mutador semanal). No es un motor de ejecución, sino un orquestador para la rotación de semillas. No tiene el contrato necesario para aplicar cambios en vivo en el estado de una partida en curso.
+
+4. **MutatorSystem (`packages/core/src/systems/MutatorSystem.ts`) [DESCARTADO]**:
+   - **Motivo**: Es un `System` clásico de ECS que se ejecuta de manera continua en cada tick del loop (`update()`), mutando de manera persistente y por frames todos los componentes del tipo registrado. Su semántica no es la de "elegir y aplicar un mutador una sola vez", sino la de aplicar lógicas o fuerzas repetitivas a las entidades que poseen un determinado componente. Mantendrá su función exclusiva para simulación continua.
+
+---
+
 ## 🔒 Determinism Constraint
 
 To prevent desynchronizations and state variance, the following rules are strictly enforced:

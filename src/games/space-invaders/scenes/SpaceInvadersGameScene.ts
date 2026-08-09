@@ -191,6 +191,10 @@ export class SpaceInvadersGameScene extends Scene {
       BENEFICIAL_MUTATORS[bId].apply(this.world);
     }
 
+    const isHeadless = (this.game as any)._config?.headless === true;
+    console.log("ONENTER ISHEADLESS:", isHeadless, "CONFIG:", (this.game as any)._config);
+    this.world.setResource("IsHeadless", isHeadless);
+
     createGameState(this.world);
     createPlayer(this.world, GAME_CONFIG.SCREEN_CENTER_X, GAME_CONFIG.SCREEN_HEIGHT - 50);
     createFormationController(this.world);

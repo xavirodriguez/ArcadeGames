@@ -58,7 +58,7 @@ jobs:
         id: ast_linter
         run: |
           echo "## 🔍 AST Linter Results" >> $GITHUB_STEP_SUMMARY
-          pnpm exec ts-node scripts/ast-determinism-linter.ts >> $GITHUB_STEP_SUMMARY
+          pnpm exec tsx scripts/ast-determinism-linter.ts >> $GITHUB_STEP_SUMMARY
 
       - name: 3. Run Mutation Guards Unit Tests
         run: |

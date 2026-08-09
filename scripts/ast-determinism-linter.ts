@@ -218,6 +218,9 @@ violations.forEach(v => {
   summaryLines.push(`| ${icon} | \`${v.file}\` | ${v.line} | **${v.rule}** | ${v.message} |`);
 });
 
+// Write markdown summary to standard output so it gets appended to $GITHUB_STEP_SUMMARY
+summaryLines.forEach(line => console.log(line));
+
 if (errors.length > 0) {
   console.log("❌ Failing due to AST errors.");
   process.exit(1);

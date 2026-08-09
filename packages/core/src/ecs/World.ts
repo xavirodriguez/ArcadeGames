@@ -209,9 +209,7 @@ export class World<
    * Alias de conveniencia para obtener la lista ordenada de entidades activas.
    *
    * @remarks
-   * Delegación directa al getter `entities`.
-   *
-   * @see {@link World.entities}
+   * Delegación directa al getter {@link World.entities}.
    */
   public getAllEntities(): ReadonlyArray<Entity> {
     return this.entities;
@@ -250,7 +248,7 @@ export class World<
    * @precondition Ninguna.
    * @postcondition Devuelve un ID de entidad único y activo. `_structureVersion` se incrementa.
    * @invariant Los IDs de entidad activos son siempre enteros positivos únicos en el World.
-   * @throws {Error} Si se intenta invocar directamente durante la ejecución del update de sistemas (en desarrollo).
+   * @throws Error - Si se intenta invocar directamente durante la ejecución del update de sistemas (en desarrollo).
    * @sideEffect Invalida `cachedEntities` e incrementa `_structureVersion`.
    * @conceptualRisk [MEMORY] Si las entidades se crean de forma descontrolada sin liberar, el array de entidades libres o activas puede crecer ilimitadamente.
    *
@@ -281,7 +279,7 @@ export class World<
    * @precondition La entidad `entity` debe estar actualmente activa en el World.
    * @postcondition Todos los componentes asociados son destruidos y removidos de los índices. `_structureVersion` se incrementa.
    * @invariant Una entidad destruida no puede contener ningún componente ni figurar en consultas activas.
-   * @throws {Error} Si se intenta invocar directamente durante la actualización del World (en desarrollo).
+   * @throws Error - Si se intenta invocar directamente durante la actualización del World (en desarrollo).
    * @sideEffect Invalida `cachedEntities`, incrementa `_structureVersion`, limpia colecciones de la entidad y notifica a consultas.
    * @conceptualRisk [LIFECYCLE] Destruir una entidad directamente en mitad del frame puede causar excepciones en sistemas que aún no se han ejecutado si tenían referencias guardadas.
    *
@@ -330,7 +328,7 @@ export class World<
    * @precondition La entidad `entity` debe estar activa en el World.
    * @postcondition El componente queda registrado para la entidad. `_structureVersion` y `_stateVersion` se incrementan.
    * @invariant Cada entidad solo puede poseer una instancia de componente por cada tipo.
-   * @throws {Error} Si se intenta realizar una mutación estructural directa durante la actualización del World (en desarrollo).
+   * @throws Error - Si se intenta realizar una mutación estructural directa durante la actualización del World (en desarrollo).
    * @sideEffect Incrementa `_structureVersion`, `_stateVersion`, actualiza cachés de consultas y asigna versión del componente.
    * @conceptualRisk [LIFECYCLE] Adjuntar componentes directamente en el update loop puede invalidar iteradores activos si no se usa el Command Buffer.
    *
@@ -406,7 +404,7 @@ export class World<
    * Lee un componente de forma estrictamente de solo lectura.
    *
    * @remarks
-   * Es un alias de solo lectura para {@link getComponent}. En modo desarrollo, retorna un componente
+   * Es un alias de solo lectura para {@link World.getComponent}. En modo desarrollo, retorna un componente
    * congelado superficialmente para prevenir mutaciones en tiempo de ejecución.
    *
    * @param entity - La entidad para la que se lee el componente.
@@ -463,7 +461,7 @@ export class World<
    * @precondition La entidad `entity` debe estar activa y poseer el componente del tipo especificado.
    * @postcondition El componente es eliminado, liberando sus recursos internos. `_structureVersion` se incrementa.
    * @invariant La entidad deja de coincidir con cualquier consulta que exija dicho componente.
-   * @throws {Error} Si se intenta realizar una mutación estructural directa durante la actualización del World (en desarrollo).
+   * @throws Error - Si se intenta realizar una mutación estructural directa durante la actualización del World (en desarrollo).
    * @sideEffect Incrementa `_structureVersion` y actualiza índices de consultas.
    * @conceptualRisk [LIFECYCLE] La remoción directa durante la ejecución de sistemas puede causar fallos de puntero nulo o alterar iteradores en caliente.
    *
@@ -495,7 +493,7 @@ export class World<
    * @precondition El componente debe existir para la entidad especificada.
    * @postcondition El componente es modificado según la función `updater`, `_stateVersion` se incrementa en 1, y la versión del componente se actualiza.
    * @invariant La estructura del componente mutado se mantiene coherente con su tipo.
-   * @throws {TypeError} Si la función `updater` intenta modificar una propiedad de solo lectura y el componente no fue clonado correctamente.
+   * @throws TypeError - Si la función `updater` intenta modificar una propiedad de solo lectura y el componente no fue clonado correctamente.
    * @sideEffect Incrementa `_stateVersion` e invalida cachés de sincronización de red/snapshots.
    * @conceptualRisk [OWNERSHIP] Múltiples mutaciones en el mismo frame desde sistemas distintos pueden provocar inconsistencia temporal si no se sigue un orden estricto.
    *
@@ -594,7 +592,7 @@ export class World<
    * Manually advances the world's simulation tick.
    *
    * @remarks
-   * This is typically called automatically by {@link update}, but can be used
+   * This is typically called automatically by {@link World.update}, but can be used
    * manually in custom simulation loops or for re-simulation/rollback.
    */
   public advanceTick(): void {
@@ -681,7 +679,7 @@ export class World<
    * @precondition El `state` proporcionado debe ser un `WorldSnapshot` válido de la misma familia de simulación.
    * @postcondition El estado del World se reemplaza por el del snapshot. `_structureVersion` y `_stateVersion` se incrementan.
    * @invariant Todas las queries del World se actualizan automáticamente para coincidir con la nueva composición de entidades.
-   * @throws {Error} Si el formato del snapshot es incompatible o corrupto.
+   * @throws Error - Si el formato del snapshot es incompatible o corrupto.
    * @sideEffect Elimina entidades y componentes existentes, recrea la jerarquía de simulación.
    * @conceptualRisk [LIFECYCLE] Los recursos no serializables como texturas, buffers de audio o listeners externos no se restauran y deben ser gestionados de forma manual.
    *

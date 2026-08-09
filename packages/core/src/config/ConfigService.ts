@@ -2,6 +2,7 @@ import { z } from "zod";
 
 /**
  * Service for loading and validating game configuration schemas.
+ * @public
  */
 export class ConfigService {
   /**

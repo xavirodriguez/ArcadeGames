@@ -121,7 +121,7 @@ export * from "./utils/PrefabPool";
 export * from "./utils/ProjectilePool";
 
 // Replay
-export * from "./replay/ReplayRecorder";
-export * from "./replay/ReplayPlayer";
+export { ReplayRecorder as DeterministicReplayRecorder } from "./replay/ReplayRecorder";
+export { ReplayPlayer as DeterministicReplayPlayer } from "./replay/ReplayPlayer";
 
 export type { DeepReadonly } from "./ecs/Component";

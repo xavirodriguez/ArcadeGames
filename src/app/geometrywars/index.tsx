@@ -9,6 +9,7 @@ import { useGeometryWarsGame } from "@/src/hooks/useGeometryWarsGame";
 import { useTranslation } from "@/src/hooks/useTranslation";
 import { VirtualJoystick } from "@/src/components/controls/VirtualJoystick";
 import { useMultiplayer } from "@tiny-aster/react-native";
+import { useTouchDevice } from "@/src/hooks/useTouchDevice";
 
 export default function GeometryWarsScreen() {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ export default function GeometryWarsScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [playerName, setPlayerName] = useState("Player");
   const insets = useSafeAreaInsets();
+  const isTouchDevice = useTouchDevice();
 
   const {
     game,
@@ -171,9 +173,9 @@ export default function GeometryWarsScreen() {
           <Text style={styles.title}>GEOMETRY WARS</Text>
 
           <Text style={styles.instructions}>
-            {Platform.OS === "web"
-              ? "WASD / Arrows to Move\nMove Mouse to Aim\nLeft Click to Shoot"
-              : "Left area touch: Move ship\nRight area touch: Aim & shoot"}
+            {isTouchDevice
+              ? "Left area touch: Move ship\nRight area touch: Aim & shoot"
+              : "WASD / Arrows to Move\nMove Mouse to Aim\nLeft Click to Shoot"}
           </Text>
 
           <TextInput
@@ -271,7 +273,7 @@ export default function GeometryWarsScreen() {
           />
 
           {/* Touch sticks for mobile */}
-          {Platform.OS !== "web" && (
+          {(isTouchDevice || Platform.OS !== "web") && (
             <View style={styles.controls} pointerEvents="box-none">
               <View style={styles.leftControlArea} pointerEvents="box-none">
                 <VirtualJoystick

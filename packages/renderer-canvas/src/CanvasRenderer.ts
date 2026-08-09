@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState } from "@tiny-aster/core";
 import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
 
 /**
@@ -42,6 +42,41 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
   }
 
   public render(world: World<TRegistry>, ctx: CanvasRenderingContext2D): void {
+    const sceneManager = world.getResource<SceneManager>("SceneManager");
+    if (sceneManager) {
+      const state = sceneManager.getState();
+      if (state === SceneState.UNLOADING || state === SceneState.LOADING) {
+        const progress = sceneManager.transitionProgress;
+        const effect = sceneManager.getActiveTransitionEffect();
+        const options = sceneManager.getTransitionOptions();
+
+        if (progress <= 0.5) {
+          const oldScene = sceneManager.getTransitionOldScene();
+          if (oldScene) {
+            this.renderWorld(oldScene.getWorld(), ctx);
+          } else {
+            this.renderWorld(world, ctx);
+          }
+        } else {
+          const newScene = sceneManager.getTransitionNewScene();
+          if (newScene) {
+            this.renderWorld(newScene.getWorld(), ctx);
+          } else {
+            this.renderWorld(world, ctx);
+          }
+        }
+
+        if (effect) {
+          effect.render(ctx, progress, options);
+        }
+        return;
+      }
+    }
+
+    this.renderWorld(world, ctx);
+  }
+
+  private renderWorld(world: World<TRegistry>, ctx: CanvasRenderingContext2D): void {
     const canvas = ctx.canvas;
 
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");

@@ -28,6 +28,13 @@ export * from "./snapshots/SnapshotRestoreSoA";
 export * from "./ecs/ComponentCloner";
 export * from "./scenes/Scene";
 export * from "./scenes/SceneManager";
+export * from "./scenes/TransitionTypes";
+export * from "./scenes/transitions/FadeTransition";
+export * from "./scenes/transitions/IrisTransition";
+export * from "./scenes/transitions/DitherTransition";
+export * from "./scenes/transitions/PixelateTransition";
+export * from "./scenes/transitions/ScanlineWipeTransition";
+export * from "./scenes/transitions/TransitionRegistry";
 
 // Events
 export * from "./events/EventBus";

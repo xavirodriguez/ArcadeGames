@@ -5,6 +5,16 @@ import { EventBus } from "../events/EventBus";
 import { TransitionOptions, ITransitionEffect, getEasingFunction } from "./TransitionTypes";
 import { TransitionRegistry, resolveTransitionEffect } from "./transitions/TransitionRegistry";
 
+function isTestEnvironment(): boolean {
+  return (
+    typeof jest !== "undefined" ||
+    (typeof process !== "undefined" &&
+      process.env &&
+      (process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID !== undefined)) ||
+    (typeof describe === "function" && typeof it === "function")
+  );
+}
+
 /**
  * Event registry contract for scene transitions and state events.
  * @public
@@ -190,8 +200,7 @@ export class SceneManager {
    * @returns A promise that resolves when the transition is complete.
    */
   public async transitionTo(scene: Scene, options?: TransitionOptions): Promise<void> {
-    const isTest = typeof process !== "undefined" && process.env && process.env.NODE_ENV === "test";
-    const duration = options?.duration !== undefined ? options.duration : (isTest ? 0 : 300);
+    const duration = options?.duration !== undefined ? options.duration : (isTestEnvironment() ? 0 : 300);
 
     if (duration === 0) {
       return this.enqueueTransition(async () => {
@@ -428,8 +437,7 @@ export class SceneManager {
    * @returns A promise that resolves when the push operation is complete.
    */
   public async push(scene: Scene, options?: TransitionOptions): Promise<void> {
-    const isTest = typeof process !== "undefined" && process.env && process.env.NODE_ENV === "test";
-    const duration = options?.duration !== undefined ? options.duration : (isTest ? 0 : 300);
+    const duration = options?.duration !== undefined ? options.duration : (isTestEnvironment() ? 0 : 300);
 
     if (duration === 0) {
       return this.enqueueTransition(async () => {
@@ -605,8 +613,7 @@ export class SceneManager {
    * @returns A promise that resolves when the pop operation is complete.
    */
   public async pop(options?: TransitionOptions): Promise<void> {
-    const isTest = typeof process !== "undefined" && process.env && process.env.NODE_ENV === "test";
-    const duration = options?.duration !== undefined ? options.duration : (isTest ? 0 : 300);
+    const duration = options?.duration !== undefined ? options.duration : (isTestEnvironment() ? 0 : 300);
 
     if (duration === 0) {
       return this.enqueueTransition(async () => {

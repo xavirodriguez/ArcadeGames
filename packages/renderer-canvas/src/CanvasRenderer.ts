@@ -53,14 +53,14 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
         if (progress <= 0.5) {
           const oldScene = sceneManager.getTransitionOldScene();
           if (oldScene) {
-            this.renderWorld(oldScene.getWorld(), ctx);
+            this.renderWorld(oldScene.getWorld() as unknown as World<TRegistry>, ctx);
           } else {
             this.renderWorld(world, ctx);
           }
         } else {
           const newScene = sceneManager.getTransitionNewScene();
           if (newScene) {
-            this.renderWorld(newScene.getWorld(), ctx);
+            this.renderWorld(newScene.getWorld() as unknown as World<TRegistry>, ctx);
           } else {
             this.renderWorld(world, ctx);
           }

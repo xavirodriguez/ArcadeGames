@@ -5,6 +5,7 @@ import {
   ClientAckTracker,
   NetworkDeltaSystem,
   NetworkBudgetManager,
+  ReplicationStateTracker,
   BinaryCompression,
   InterestManagerSystem,
   NetworkReplicationUtils,
@@ -95,26 +96,27 @@ describe("MultiplayerSystems", () => {
   it("should cover stub classes in MultiplayerSystems", () => {
     const tracker = new ClientAckTracker();
     expect(() => tracker.recordAck("session", 1, 10)).not.toThrow();
-    expect(tracker.nextSequence("session")).toBe(0);
-    expect(tracker.getLastAckedSequence("session")).toBe(0);
-    expect(tracker.getIdleTime("session")).toBe(0);
+    expect(tracker.nextSequence("session")).toBe(1);
+    expect(tracker.getLastAckedSequence("session")).toBe(1);
+    expect(tracker.getIdleTime("session")).toBeLessThanOrEqual(50);
 
-    const replicationTracker = {};
+    const replicationTracker = new ReplicationStateTracker();
     const deltaSystem = new NetworkDeltaSystem(replicationTracker);
-    expect(deltaSystem.generateDelta({} as any, "session", 1, 0, new Set(), false)).toEqual({
-      kind: "delta",
-      tick: 0,
-      delta: {}
-    });
+    const mockWorld = {
+      snapshot: () => ({ tick: 0, entities: [], componentData: {} })
+    };
+    expect(deltaSystem.generateDelta(mockWorld as any, "session", 1, 0, new Set(), false).kind).toBe("full");
 
     const budgetManager = new NetworkBudgetManager();
     const interest = [{ id: 1 }];
     expect(budgetManager.prioritize("session", interest)).toBe(interest);
 
-    const mockWorld = {};
     const interestManager = new InterestManagerSystem();
-    expect(() => interestManager.update(mockWorld as any, 0.16)).not.toThrow();
-    expect(() => interestManager.onRegister(mockWorld as any)).not.toThrow();
+    const mockWorldForInterest = {
+      query: () => []
+    };
+    expect(() => interestManager.update(mockWorldForInterest as any, 0.16)).not.toThrow();
+    expect(() => interestManager.onRegister(mockWorldForInterest as any)).not.toThrow();
     expect(() => interestManager.dispose()).not.toThrow();
   });
 

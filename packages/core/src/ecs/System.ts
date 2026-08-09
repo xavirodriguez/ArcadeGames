@@ -34,7 +34,6 @@ export enum SystemPhase {
 export interface SystemConfig {
   phase?: SystemPhase | string;
   priority?: number;
-  group?: string;
 }
 
 /**

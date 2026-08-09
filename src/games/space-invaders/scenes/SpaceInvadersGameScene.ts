@@ -23,7 +23,6 @@ import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateS
 import { SpaceInvadersRenderSystem } from "../systems/SpaceInvadersRenderSystem";
 import { InvulnerabilitySystem } from "../systems/InvulnerabilitySystem";
 import { CombatSystem } from "../../shared/combat/systems/CombatSystem";
-import { WaveTransitionSystem } from "../systems/WaveTransitionSystem";
 import { SpawnDirectorSystem } from "../../shared/spawn/systems/SpawnDirectorSystem";
 import { KamikazeSystem } from "../systems/KamikazeSystem";
 import { BossSystem } from "../systems/BossSystem";
@@ -140,36 +139,33 @@ export class SpaceInvadersGameScene extends Scene {
     const inputSys = new SpaceInvadersInputSystem(this.playerBulletPool);
     if (this.game.isMultiplayer) inputSys.setMultiplayerMode(true);
 
-    this.world.addSystem(inputSys, { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform, group: "simulation" });
-    this.world.addSystem(new SpaceInvadersFormationSystem(this.enemyBulletPool), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new SpawnDirectorSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision, group: "simulation" });
-    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision, group: "simulation" });
-    this.world.addSystem(new SpaceInvadersCollisionSystem(this.particlePool), { phase: SystemPhase.GameRules, group: "simulation" });
-    this.world.addSystem(new KamikazeSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new BossSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new LootSystem() as any, { phase: SystemPhase.GameRules, group: "simulation" });
-    this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new SpaceInvadersGameStateSystem(this.game), { phase: SystemPhase.GameRules, group: "simulation" });
-    this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules, group: "simulation" });
-    this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
+    this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
+    this.world.addSystem(new SpaceInvadersFormationSystem(this.enemyBulletPool), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new SpawnDirectorSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new SpaceInvadersCollisionSystem(this.particlePool), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new KamikazeSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new BossSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new LootSystem() as any, { phase: SystemPhase.GameRules });
+    this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new SpaceInvadersGameStateSystem(this.game), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
     const mutators = (this.game as any)._config.gameOptions?.mutators || (this.game as any)._config.gameOptions?.activeMutators || [];
-    this.world.addSystem(new MutatorSystem(mutators), { phase: SystemPhase.Simulation, group: "simulation" });
-
-    // New WaveTransitionSystem
-    this.world.addSystem(new WaveTransitionSystem(), { phase: SystemPhase.Simulation, group: "transition" });
+    this.world.addSystem(new MutatorSystem(mutators), { phase: SystemPhase.Simulation });
 
     // Visual / Presentation Systems
-    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
-    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation, group: "presentation" }); // No trails
-    this.world.addSystem(new SpaceInvadersRenderSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
+    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation }); // No trails
+    this.world.addSystem(new SpaceInvadersRenderSystem(), { phase: SystemPhase.Presentation });
 
     // 2. Initial entities
     if (this.game.isMultiplayer) return; // Wait for server state

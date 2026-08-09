@@ -1,7 +1,7 @@
 import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
-import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry } from "../../utils/MutatorRegistry";
+import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS } from "../../utils/MutatorRegistry";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
@@ -530,80 +530,26 @@ export class SpaceInvadersGame
 
   public selectRunMutator(mutatorId: string): void {
     const world = this.getWorld();
-    const playerEntity = world.query("Player")[0];
-    if (playerEntity === undefined) return;
-
-    const draft = world.getComponent(playerEntity, "DraftState" as any) as any;
-    if (!draft) {
-      // For backward compatibility with the old test suite and old RunMutatorChoices trigger
-      const choices = world.getResource<{ choices: string[], active: boolean }>("RunMutatorChoices");
-      if (choices && choices.active) {
-        if (BENEFICIAL_MUTATORS[mutatorId]) {
-          BENEFICIAL_MUTATORS[mutatorId].apply(world, { playerId: `player_${playerEntity}`, targetEntity: playerEntity });
-        } else if (NEGATIVE_MUTATORS[mutatorId]) {
-          NEGATIVE_MUTATORS[mutatorId].apply(world, { playerId: `player_${playerEntity}`, targetEntity: playerEntity });
-        }
-
-        const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
-        activeRun.push(mutatorId);
-        world.setResource("ActiveRunMutators", activeRun);
-
-        choices.active = false;
-        world.setResource("RunMutatorChoices", choices);
-
-        this.resume();
+    const choices = world.getResource<{ choices: string[], active: boolean }>("RunMutatorChoices");
+    if (choices && choices.active) {
+      // Apply the mutator
+      if (BENEFICIAL_MUTATORS[mutatorId]) {
+        BENEFICIAL_MUTATORS[mutatorId].apply(world);
+      } else if (NEGATIVE_MUTATORS[mutatorId]) {
+        NEGATIVE_MUTATORS[mutatorId].apply(world);
       }
-      return;
-    }
 
-    // Validation: make sure the server/game validates against options actually offered to that player!
-    if (!draft.options.includes(mutatorId)) {
-      console.warn(`Jugador player_${playerEntity} seleccionó un mutador no ofrecido: ${mutatorId}`);
-      return;
-    }
-
-    // Apply the mutator with targetEntity context
-    const mutator = MutatorRegistry.get(mutatorId);
-    mutator.apply(world, { playerId: `player_${playerEntity}`, targetEntity: playerEntity });
-
-    // Mark as chosen and store selected ID
-    world.mutateComponent(playerEntity, "DraftState" as any, (ds: any) => {
-      ds.options = [];
-      ds.hasChosen = true;
-      ds.selectedMutatorId = mutatorId;
-    });
-
-    // Record in active mutators list
-    const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
-    if (!activeRun.includes(mutatorId)) {
+      // Add to list of active mutators for this run
+      const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
       activeRun.push(mutatorId);
-    }
-    world.setResource("ActiveRunMutators", activeRun);
+      world.setResource("ActiveRunMutators", activeRun);
 
-    // Resume phase ONLY when ALL active players have made their choice!
-    const allPlayers = world.query("Player");
-    const allPlayersReady = allPlayers.length > 0 && allPlayers.every(p => {
-      const d = world.getComponent(p, "DraftState" as any) as any;
-      return d && d.hasChosen;
-    });
+      // Deactivate choices
+      choices.active = false;
+      world.setResource("RunMutatorChoices", choices);
 
-    if (allPlayersReady) {
-      world.mutateSingleton("GameState", (gs: any) => {
-        gs.phase = "PLAYING";
-        // Also clean DraftState components from players to prepare for next wave
-        allPlayers.forEach(p => {
-          world.removeComponent(p, "DraftState" as any);
-        });
-      });
-
-      // Increment SpawnDirector's waveIndex to trigger next wave!
-      const directorEntity = world.query("SpawnDirector" as any)[0];
-      if (directorEntity !== undefined) {
-        world.mutateComponent(directorEntity, "SpawnDirector" as any, (d: any) => {
-          d.waveIndex++;
-          d.status = "idle";
-        });
-      }
+      // Resume simulation
+      this.resume();
     }
   }
 
@@ -630,16 +576,12 @@ export class SpaceInvadersGame
     const runChoices = world.getResource<{ choices: string[], active: boolean }>("RunMutatorChoices");
     const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
 
-    const playerEntity = world.query("Player")[0];
-    const draft = playerEntity !== undefined ? world.getComponent(playerEntity, "DraftState" as any) as any : null;
-    const choices = draft && !draft.hasChosen ? draft.options : (runChoices?.active ? runChoices.choices : null);
-
     return {
       ...state,
       combo,
       multiplier,
       comboTimerRemaining,
-      runMutatorChoices: choices,
+      runMutatorChoices: runChoices?.active ? runChoices.choices : null,
       activeRunMutators: activeRun
     };
   }

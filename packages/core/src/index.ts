@@ -28,6 +28,20 @@ export * from "./snapshots/SnapshotRestoreSoA";
 export * from "./ecs/ComponentCloner";
 export * from "./scenes/Scene";
 export * from "./scenes/SceneManager";
+export * from "./scenes/TransitionTypes";
+export * from "./scenes/transitions/FadeTransition";
+export * from "./scenes/transitions/IrisTransition";
+export * from "./scenes/transitions/DitherTransition";
+export * from "./scenes/transitions/PixelateTransition";
+export * from "./scenes/transitions/ScanlineWipeTransition";
+export * from "./scenes/transitions/CrossfadeTransition";
+export * from "./scenes/transitions/CurtainTransition";
+export * from "./scenes/transitions/RetroGridTransition";
+export * from "./scenes/transitions/DiagonalSweepTransition";
+export * from "./scenes/transitions/RadialWipeTransition";
+export * from "./scenes/transitions/CRTGlitchTransition";
+export * from "./scenes/transitions/DangerPulseTransition";
+export * from "./scenes/transitions/TransitionRegistry";
 
 // Events
 export * from "./events/EventBus";

@@ -7,7 +7,7 @@ import { IGame } from "@tiny-aster/core";
  * Translates pressed keys to abstract actions and routes them directly to
  * game.setInputState() using the React Bridge pattern.
  */
-export function useKeyboardControls(game: IGame | null, isReady: boolean) {
+export function useKeyboardControls(game: IGame | null, isReady: boolean, onInput?: (input: any) => void) {
   useEffect(() => {
     if (Platform.OS !== "web" || !game || !isReady) {
       return;
@@ -40,7 +40,7 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean) {
       const flap = activeKeys.has("Space") || activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
       const glide = activeKeys.has("Space") || activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
 
-      game.setInputState({
+      const inputPayload = {
         rotateLeft,
         rotateRight,
         moveLeft: rotateLeft,
@@ -50,7 +50,13 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean) {
         hyperspace,
         flap,
         glide,
-      });
+      };
+
+      if (onInput) {
+        onInput(inputPayload);
+      } else {
+        game.setInputState(inputPayload);
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);

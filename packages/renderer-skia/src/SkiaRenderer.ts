@@ -104,9 +104,11 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
       canvas.save();
 
-      const visualOffset = world.getComponent(entity, visualOffsetType) as VisualOffsetComponent | undefined;
+      const visualOffset = world.getComponent(entity, visualOffsetType) as any;
       const offsetX = visualOffset?.offsetX ?? 0;
       const offsetY = visualOffset?.offsetY ?? 0;
+      const visualScaleX = visualOffset?.scaleX ?? 1;
+      const visualScaleY = visualOffset?.scaleY ?? 1;
 
       const x = transform.worldX ?? transform.x;
       const y = transform.worldY ?? transform.y;
@@ -116,7 +118,7 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
       canvas.translate(x + offsetX, y + offsetY);
       canvas.rotate((rotation * 180) / Math.PI, 0, 0);
-      canvas.scale(scaleX, scaleY);
+      canvas.scale(scaleX * visualScaleX, scaleY * visualScaleY);
 
       this.paint.setColor(Skia.Color(render.color || "white"));
       this.paint.setAlphaf(render.opacity ?? 1);

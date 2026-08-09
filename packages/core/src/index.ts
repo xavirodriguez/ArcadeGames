@@ -106,6 +106,7 @@ export * from "./network/types";
 export * from "./network/MultiplayerSystems";
 export * from "./network/NetTypes";
 export * from "./network/NetworkController";
+export * from "./network/ReplaySystem";
 
 // Config
 export * from "./config/ConfigService";

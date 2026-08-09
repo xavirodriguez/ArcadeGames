@@ -13,4 +13,9 @@ export interface ISpaceInvadersGame extends IGame<GameStateComponent> {
   isPausedState(): boolean;
   isGameOver(): boolean;
   initializeRenderer(renderer: Renderer): void;
+  selectRunMutator(mutatorId: string): void;
+  startRecordingReplay(): void;
+  stopRecordingReplay(): string | null;
+  startPlaybackReplay(serialized: string): void;
+  stopPlaybackReplay(): void;
 }

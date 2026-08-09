@@ -14,7 +14,7 @@ import {
   HierarchySystem
 } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
-import { LootSystem, PowerUpSystem, ComboSystem } from "../../shared/arcade";
+import { LootSystem, PowerUpSystem, ComboSystem, DifficultyDirectorSystem, AchievementSystem } from "../../shared/arcade";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersInputSystem } from "../systems/SpaceInvadersInputSystem";
 import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationSystem";
@@ -156,6 +156,8 @@ export class SpaceInvadersGameScene extends Scene {
     this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new SpaceInvadersGameStateSystem(this.game), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
     const mutators = (this.game as any)._config.gameOptions?.mutators || (this.game as any)._config.gameOptions?.activeMutators || [];
     this.world.addSystem(new MutatorSystem(mutators), { phase: SystemPhase.Simulation });

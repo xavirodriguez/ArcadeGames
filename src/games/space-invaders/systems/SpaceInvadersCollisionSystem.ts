@@ -57,12 +57,15 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         health.invulnerableRemaining = 1.5; // 1.5 seconds
       });
 
+      // Apply Squash & Stretch to Player ship on hit
+      Juice.squash(world as any, target, 0.7, 1.4, 300);
+
       const health = world.getComponent(target, "Health");
       world.mutateSingleton("GameState", (gs) => {
         if (health) {
           gs.lives = health.current;
         }
-        gs.screenShake = { intensity: 10, duration: 0.3 };
+        gs.screenShake = { intensity: 10, duration: 0.3, elapsed: 0, totalDuration: 0.3 };
         if (health && health.current <= 0) {
           gs.isGameOver = true;
           const eventBus = world.getResource<any>("EventBus");
@@ -91,6 +94,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         world.mutateComponent(target, "Render", (render) => {
           render.hitFlashFrames = 5;
         });
+
+        // Apply Squash & Stretch to Boss on hit
+        Juice.squash(world as any, target, 1.2, 0.8, 200);
 
         const pos = world.getComponent(target, "Transform");
         if (pos) {

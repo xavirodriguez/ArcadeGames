@@ -409,10 +409,28 @@ export const spaceInvadersScreenShakeEffect: EffectDrawer<CanvasRenderingContext
   draw(ctx, world) {
     const gameState = world.getSingleton("GameState");
     if (gameState && gameState.screenShake && gameState.screenShake.duration > 0) {
-      const { intensity } = gameState.screenShake;
+      const { intensity, elapsed = 0, totalDuration = 0.3 } = gameState.screenShake as any;
+      const progress = elapsed / (totalDuration || 0.3);
+
+      // Attack-Sustain-Decay screen shake envelope
+      const attackTime = 0.1;
+      const sustainTime = 0.2;
+      const decayTime = 0.7;
+
+      let env = 1.0;
+      if (progress < attackTime) {
+        env = progress / attackTime;
+      } else if (progress < attackTime + sustainTime) {
+        env = 1.0;
+      } else {
+        const decayProgress = (progress - attackTime - sustainTime) / decayTime;
+        env = Math.max(0, 1.0 - decayProgress);
+      }
+
+      const currentIntensity = intensity * env;
       const renderRandom = world.renderRandom;
-      const dx = (renderRandom.next() - 0.5) * intensity;
-      const dy = (renderRandom.next() - 0.5) * intensity;
+      const dx = (renderRandom.next() - 0.5) * currentIntensity;
+      const dy = (renderRandom.next() - 0.5) * currentIntensity;
       ctx.translate(dx, dy);
     }
   }

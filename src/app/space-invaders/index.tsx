@@ -16,7 +16,7 @@ import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
 import { MutatorService } from "@/services/MutatorService";
 import { MutatorBadge } from "@/components/MutatorBadge";
 import { Mutator } from "@/config/MutatorConfig";
-import { SpaceInvadersGame } from "@/games/space-invaders";
+import { SpaceInvadersGame, InputState } from "@/games/space-invaders";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
@@ -39,10 +39,10 @@ export default function SpaceInvadersScreen() {
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
 
   // Activate keyboard controls for Web
-  useKeyboardControls(game, isReady);
+  useKeyboardControls(game, isReady, handleMultiplayerInput);
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
-  const { room, connected, serverState } = useMultiplayer("space-invaders", playerName, isMulti && started);
+  const { room, connected, serverState, sendInput, inputBufferRef } = useMultiplayer("space-invaders", playerName, isMulti && started);
 
   useEffect(() => {
     MutatorService.isMutatorModeEnabled().then(enabled => {
@@ -67,18 +67,31 @@ export default function SpaceInvadersScreen() {
 
   useEffect(() => {
     if (isMulti && serverState && game) {
-        (game as unknown as SpaceInvadersGame).updateFromServer(serverState);
-    }
-  }, [isMulti, serverState, game]);
+        const sessionId = room?.sessionId;
+        const pendingInputs = inputBufferRef.current;
 
-  const handleMultiplayerInput = useCallback((input: Record<string, boolean>) => {
+        (game as unknown as SpaceInvadersGame).updateFromServer(serverState, sessionId);
+
+        // Re-apply pending inputs for client-side reconciliation
+        if (sessionId && pendingInputs.length > 0) {
+            pendingInputs.forEach(frame => {
+                (game as unknown as SpaceInvadersGame).predictLocalPlayer(frame, 16.66);
+            });
+        }
+    }
+  }, [isMulti, serverState, game, room?.sessionId, inputBufferRef]);
+
+  const handleMultiplayerInput = useCallback((input: Partial<InputState>) => {
     if (isMulti && room) {
-        room.send("input", input);
+        const frame = sendInput(input as Record<string, boolean>);
+        if (frame) {
+            (game as unknown as SpaceInvadersGame)?.predictLocalPlayer(frame, 16.66);
+        }
     } else {
-        handleInput(input);
+        handleInput(input as Record<string, boolean>);
         game?.setInputState(input);
     }
-  }, [isMulti, room, handleInput, game]);
+  }, [isMulti, room, sendInput, game, handleInput]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });

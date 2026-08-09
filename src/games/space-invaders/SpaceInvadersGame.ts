@@ -1,6 +1,7 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
+import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS } from "../../utils/MutatorRegistry";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
@@ -75,6 +76,10 @@ export class SpaceInvadersGame
       inputComp.actions = new Set<string>(input.actions || []);
       inputComp.axes = { ...input.axes };
     }) as any);
+  }
+
+  public predictLocalPlayer(input: InputFrame, deltaTime: number) {
+    this.network.predictLocalPlayer(input, deltaTime);
   }
 
   public runSimulationStep(deltaTime: number, isResimulating: boolean) {
@@ -376,8 +381,82 @@ export class SpaceInvadersGame
     this.sceneManager?.destroy();
   }
 
+  private _recorder: ReplayRecorder | null = null;
+  private _player: ReplayPlayer | null = null;
+
+  public startRecordingReplay(): void {
+    this._recorder = new ReplayRecorder(this.getSeed());
+  }
+
+  public stopRecordingReplay(): string | null {
+    if (this._recorder) {
+      const serialized = this._recorder.serialize({ gameId: "space-invaders" });
+      this._recorder = null;
+      return serialized;
+    }
+    return null;
+  }
+
+  public startPlaybackReplay(serialized: string): void {
+    this._player = new ReplayPlayer(serialized);
+    const seed = this._player.getSeed();
+    this.getWorld().gameplayRandom.setSeed(seed);
+  }
+
+  public stopPlaybackReplay(): void {
+    this._player = null;
+  }
+
   public override update(dt: number): void {
+      const world = this.getWorld();
+
+      // 1. Playback recorded inputs if a replay is running
+      if (this._player) {
+        world.setResource("IsReplayPlayback", true);
+        const playerEntity = world.query("Player")[0];
+        if (playerEntity !== undefined) {
+          const tick = world.tick + 1; // Upcoming tick
+          const frame = (this._player as any).inputs.find((i: any) => i.tick === tick);
+          if (frame) {
+            if (!world.hasComponent(playerEntity, "Input")) {
+              world.addComponent(playerEntity, {
+                type: "Input",
+                moveLeft: false,
+                moveRight: false,
+                shoot: false,
+                shootCooldownRemaining: 0
+              } as any);
+            }
+            world.mutateComponent(playerEntity, "Input", (inputComp: any) => {
+              inputComp.moveLeft = frame.actions.includes("moveLeft");
+              inputComp.moveRight = frame.actions.includes("moveRight");
+              inputComp.shoot = frame.actions.includes("shoot");
+            });
+          }
+        }
+      } else {
+        world.deleteResource("IsReplayPlayback");
+      }
+
+      // 2. Perform the actual simulation update tick
       this.getWorld().update(dt);
+
+      // 3. Record inputs if recording is enabled
+      if (this._recorder) {
+        const playerEntity = world.query("Player")[0];
+        const inputComp = playerEntity !== undefined ? world.getComponent(playerEntity, "Input") as any : null;
+        const actions: string[] = [];
+        if (inputComp) {
+          if (inputComp.moveLeft) actions.push("moveLeft");
+          if (inputComp.moveRight) actions.push("moveRight");
+          if (inputComp.shoot) actions.push("shoot");
+        }
+        this._recorder.recordFrame({
+          tick: world.tick,
+          actions,
+          axes: {}
+        });
+      }
   }
 
   private async onPreloadAssets(): Promise<void> {
@@ -452,6 +531,31 @@ export class SpaceInvadersGame
     });
   }
 
+  public selectRunMutator(mutatorId: string): void {
+    const world = this.getWorld();
+    const choices = world.getResource<{ choices: string[], active: boolean }>("RunMutatorChoices");
+    if (choices && choices.active) {
+      // Apply the mutator
+      if (BENEFICIAL_MUTATORS[mutatorId]) {
+        BENEFICIAL_MUTATORS[mutatorId].apply(world);
+      } else if (NEGATIVE_MUTATORS[mutatorId]) {
+        NEGATIVE_MUTATORS[mutatorId].apply(world);
+      }
+
+      // Add to list of active mutators for this run
+      const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
+      activeRun.push(mutatorId);
+      world.setResource("ActiveRunMutators", activeRun);
+
+      // Deactivate choices
+      choices.active = false;
+      world.setResource("RunMutatorChoices", choices);
+
+      // Resume simulation
+      this.resume();
+    }
+  }
+
   public getGameState(): GameStateComponent {
     const world = this.getWorld();
     const state = world.getSingleton("GameState");
@@ -472,11 +576,16 @@ export class SpaceInvadersGame
       }
     }
 
+    const runChoices = world.getResource<{ choices: string[], active: boolean }>("RunMutatorChoices");
+    const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
+
     return {
       ...state,
       combo,
       multiplier,
-      comboTimerRemaining
+      comboTimerRemaining,
+      runMutatorChoices: runChoices?.active ? runChoices.choices : null,
+      activeRunMutators: activeRun
     };
   }
 
@@ -525,7 +634,7 @@ export class SpaceInvadersGame
     this.setInputState(input);
   }
 
-  public updateFromServer(state: Record<string, unknown>) {
+  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
     const world = this.getWorld();
     const replicator = this.networkManager.getReplicator();
@@ -557,6 +666,19 @@ export class SpaceInvadersGame
           commands.addComponent(entity, { type: "Player" } as any);
           commands.addComponent(entity, { type: "Transform", x: playerState.x, y: playerState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: playerState.x, worldY: playerState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
           commands.addComponent(entity, { type: "Render", shape: "player_ship", size: 20, color: "green", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as any);
+        }
+
+        if (sessionId === localSessionId && !world.hasComponent(entity, "LocalPlayer" as any)) {
+          commands.addComponent(entity, { type: "LocalPlayer" } as any);
+          if (!world.hasComponent(entity, "Input" as any)) {
+            commands.addComponent(entity, {
+              type: "Input",
+              moveLeft: false,
+              moveRight: false,
+              shoot: false,
+              shootCooldownRemaining: 0,
+            } as any);
+          }
         }
 
         snapshot.entities.push(entity);
@@ -607,7 +729,7 @@ export class SpaceInvadersGame
       });
     }
 
-    this.networkManager.processServerUpdate(snapshot.tick, snapshot);
+    this.networkManager.processServerUpdate(snapshot.tick, snapshot, localSessionId);
 
     // Cleanup removed entities
     replicator.getMappings().forEach((entity: number, serverId: string) => {
@@ -686,4 +808,9 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
     const freeze = this._world.getResource<{ remaining?: number }>("GameplayFreeze");
     return freeze ? freeze.remaining : undefined;
   }
+  public selectRunMutator(mutatorId: string) {}
+  public startRecordingReplay() {}
+  public stopRecordingReplay() { return null; }
+  public startPlaybackReplay(serialized: string) {}
+  public stopPlaybackReplay() {}
 }

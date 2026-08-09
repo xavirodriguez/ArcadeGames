@@ -38,8 +38,6 @@ export default function SpaceInvadersScreen() {
   const [isDaily, setIsDaily] = useState(isDailyFromParams);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
 
-  // Activate keyboard controls for Web
-  useKeyboardControls(game, isReady, handleMultiplayerInput);
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   const { room, connected, serverState, sendInput, inputBufferRef } = useMultiplayer("space-invaders", playerName, isMulti && started);
@@ -92,6 +90,9 @@ export default function SpaceInvadersScreen() {
         game?.setInputState(input);
     }
   }, [isMulti, room, sendInput, game, handleInput]);
+
+  // Activate keyboard controls for Web
+  useKeyboardControls(game, isReady, handleMultiplayerInput);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });

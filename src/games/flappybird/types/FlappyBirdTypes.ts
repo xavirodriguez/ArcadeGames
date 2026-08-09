@@ -60,6 +60,7 @@ export interface FlappyBirdState extends Component {
   highScore: number;
   pipeSpawnTimer: number;
   gameOverLogged: boolean;
+  comboMultiplier?: number;
 }
 
 /**

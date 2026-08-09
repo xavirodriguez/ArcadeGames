@@ -19,6 +19,9 @@
     "build": "pnpm exec tsup src/index.ts --format esm,cjs --dts --sourcemap --clean",
     "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
     "test": "pnpm exec jest",
+    "test:replays": "jest tests/Replay.test.ts tests/ReplaySystem.test.ts",
+    "test:snapshots": "jest tests/snapshots.test.ts",
+    "test:rollback": "jest tests/rollback.test.ts",
     "clean:artifacts": "[ -d src ] && find src -type f \\( -name \"*.js\" -o -name \"*.js.map\" \\) -delete || true"
   },
   "dependencies": {},

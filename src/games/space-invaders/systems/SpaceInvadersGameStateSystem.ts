@@ -30,8 +30,8 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           if (wasLocked) rng.unlock();
 
           try {
-            const beneficialKeys = Object.keys(BENEFICIAL_MUTATORS);
-            const negativeKeys = Object.keys(NEGATIVE_MUTATORS);
+            const beneficialKeys = Object.keys(BENEFICIAL_MUTATORS).sort();
+            const negativeKeys = Object.keys(NEGATIVE_MUTATORS).sort();
 
             // Deterministic shuffle helper using rng
             const shuffle = <T>(array: T[], r: { next: () => number }): T[] => {

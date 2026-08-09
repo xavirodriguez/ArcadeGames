@@ -40,16 +40,17 @@ export class ScreenShakeSystem extends System<CoreComponentRegistry> {
         const offsetY = (world.renderRandom.next() - 0.5) * 2 * activeIntensity;
 
         if (!world.hasComponent(mainCameraEntity, "VisualOffset")) {
-          world.addComponent(mainCameraEntity, {
+          world.commands.addComponent(mainCameraEntity, {
             type: "VisualOffset",
-            offsetX: 0,
-            offsetY: 0
+            offsetX: offsetX,
+            offsetY: offsetY
+          });
+        } else {
+          world.mutateComponent(mainCameraEntity, "VisualOffset", vo => {
+            vo.offsetX = offsetX;
+            vo.offsetY = offsetY;
           });
         }
-        world.mutateComponent(mainCameraEntity, "VisualOffset", vo => {
-          vo.offsetX = offsetX;
-          vo.offsetY = offsetY;
-        });
       } else {
         if (world.hasComponent(mainCameraEntity, "VisualOffset")) {
           world.mutateComponent(mainCameraEntity, "VisualOffset", vo => {

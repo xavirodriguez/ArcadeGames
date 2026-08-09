@@ -1,0 +1,147 @@
+name: ECS Core Sentinel
+
+on:
+  pull_request:
+    branches: [master, develop]
+    paths:
+      - 'packages/core/**'
+      - 'packages/network/**'
+      - 'scripts/**'
+      - '.github/workflows/ecs-sentinel.yml'
+  schedule:
+    # Ejecución diaria a las 04:00 UTC (Cron)
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Garantiza que globalThis.__DEV__ / process.env.NODE_ENV !== 'production'
+  # active las guardas checkUpdatingMutation en World.ts
+  NODE_ENV: development
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # FASE 1: Análisis Estático y Guardas de Runtime (Fast Fail - < 2 min)
+  # ---------------------------------------------------------------------------
+  static-and-mutation-guards:
+    name: 🛡️ Static Boundaries & Mutation Guards
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necesario para git diff contra la rama base
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 1. Check Core Package Boundaries
+        run: pnpm run check:core-boundaries
+
+      - name: 2. Run AST Determinism Linter (ts-morph)
+        id: ast_linter
+        run: |
+          echo "## 🔍 AST Linter Results" >> $GITHUB_STEP_SUMMARY
+          pnpm exec ts-node scripts/ast-determinism-linter.ts >> $GITHUB_STEP_SUMMARY
+
+      - name: 3. Run Mutation Guards Unit Tests
+        run: |
+          # Corre la suite de tests unitarios del core asegurando que NODE_ENV=development
+          # capture cualquier mutación directa prohibida durante world.isUpdating
+          pnpm --filter @tiny-aster/core test
+
+  # ---------------------------------------------------------------------------
+  # FASE 2: Pruebas de Determinismo y Simulaciones (Solo si FASE 1 pasa)
+  # ---------------------------------------------------------------------------
+  determinism-and-rollback:
+    name: ⚡ Determinism, Rollback & Binary Compression
+    needs: static-and-mutation-guards
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Core & Network Packages
+        run: pnpm --filter @tiny-aster/core --filter @tiny-aster/network build
+
+      - name: 1. Run Golden Replays Harness (AoS vs SoA)
+        run: |
+          # Ejecuta los replays del corpus golden para Asteroids, Pong, etc.
+          # y verifica equivalencia entre snapshots AoS y SoA
+          pnpm --filter @tiny-aster/core test:replays
+
+      - name: 2. Run Rollback & Resimulation Stability Tests
+        run: |
+          # Simula N ticks -> Snapshot -> Avanza M ticks -> Restore N -> Resimula M
+          pnpm --filter @tiny-aster/core test:rollback
+
+      - name: 3. Run BinaryCompression Roundtrip Verification
+        run: |
+          # Valida pack/unpack de snapshots SoA a nivel de TypedArray
+          pnpm --filter @tiny-aster/core test:snapshots
+
+  # ---------------------------------------------------------------------------
+  # FASE 3: Consolidación de Reporte y Publicación en PR / Summary
+  # ---------------------------------------------------------------------------
+  sentinel-report:
+    name: 📊 Sentinel Report Summary
+    needs: [static-and-mutation-guards, determinism-and-rollback]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Publish Workflow Status Summary
+        run: |
+          STATUS_PHASE1="${{ needs.static-and-mutation-guards.result }}"
+          STATUS_PHASE2="${{ needs.determinism-and-rollback.result }}"
+
+          if [ "$STATUS_PHASE1" = "success" ]; then
+            STATUS_TEXT1="✅ PASÓ"
+          else
+            STATUS_TEXT1="❌ FALLÓ"
+          fi
+
+          if [ "$STATUS_PHASE2" = "success" ]; then
+            STATUS_TEXT2="✅ PASÓ"
+          elif [ "$STATUS_PHASE2" = "skipped" ]; then
+            STATUS_TEXT2="⚠️ OMITIDO"
+          else
+            STATUS_TEXT2="❌ FALLÓ"
+          fi
+
+          echo "# 🤖 ECS Core Sentinel - Reporte de Verificación" >> $GITHUB_STEP_SUMMARY
+          echo "| Fase | Estado |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **1. Límites y AST Linter** | $STATUS_TEXT1 |" >> $GITHUB_STEP_SUMMARY
+          echo "| **2. Determinismo y Rollback** | $STATUS_TEXT2 |" >> $GITHUB_STEP_SUMMARY

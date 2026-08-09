@@ -125,6 +125,8 @@ export abstract class BaseGame<
     this.world.setResource("EventBus", this.eventBus);
     this.world.setResource("InputSystem", this.unifiedInput);
     this.world.setResource("Audio" as any, this.audio);
+    this.world.setResource("SceneManager", this.sceneManager);
+    this.world.setResource("headless", this._config.headless);
   }
 
   /**
@@ -383,10 +385,10 @@ export abstract class BaseGame<
 
     // Reset world and re-register resources
     this.world = new World<TComponents, TEvents, TBlueprints>(this._config.schedule);
-    this.registerInternalResources();
     this.sceneManager = this._config.sceneManagerFactory
       ? this._config.sceneManagerFactory(this.world, this.eventBus)
       : new SceneManager(this.world, this.eventBus as any);
+    this.registerInternalResources();
 
     // Re-register systems and initialize entities by running init()
     await this.init();

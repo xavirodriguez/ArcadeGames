@@ -64,7 +64,7 @@ export class GeometryWarsGame extends BaseGame<
     // 2. Initialize and transition to main gameplay scene
     this.currentScene = new GeometryWarsGameScene(this.config, this.isHeadless);
     const sceneManager = this.world.getResource<SceneManager>("SceneManager") || new SceneManager(this.world);
-    sceneManager.transitionTo(this.currentScene);
+    sceneManager.transitionTo(this.currentScene, { effect: "crt", duration: 400 });
   }
 
   private async onPreloadAssets(): Promise<void> {

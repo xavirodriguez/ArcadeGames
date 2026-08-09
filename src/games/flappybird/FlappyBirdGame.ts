@@ -494,7 +494,22 @@ export class FlappyBirdGame
 
   public getGameState(): FlappyBirdState {
     const state = this.getWorld().getSingleton("FlappyState");
-    return state ? { ...state } : INITIAL_FLAPPY_STATE;
+    const baseState = state ? { ...state } : { ...INITIAL_FLAPPY_STATE };
+
+    // Fetch dynamic combo multiplier
+    let comboMultiplier = 1;
+    const comboEntities = this.getWorld().query("Combo" as any);
+    if (comboEntities.length > 0) {
+      const comboComp = this.getWorld().getComponent(comboEntities[0], "Combo" as any) as any;
+      if (comboComp) {
+        comboMultiplier = comboComp.multiplier || 1;
+      }
+    }
+
+    return {
+      ...baseState,
+      comboMultiplier
+    };
   }
 
   public isGameOver(): boolean {

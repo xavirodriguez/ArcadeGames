@@ -23,9 +23,9 @@ export class Schedule<
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents, TEvents> = BlueprintRegistryMap<TComponents, TEvents>
 > {
-  private systems: { system: System<TComponents, TEvents>; phase: string; priority: number }[] = [];
+  private systems: { system: System<TComponents, TEvents>; phase: string; priority: number; group?: string }[] = [];
   private phases: string[];
-  private phasedSystems = new Map<string, { system: System<TComponents, TEvents>; phase: string; priority: number }[]>();
+  private phasedSystems = new Map<string, { system: System<TComponents, TEvents>; phase: string; priority: number; group?: string }[]>();
 
   /**
    * Crea una nueva instancia de la agenda de ejecución (Schedule).
@@ -74,7 +74,8 @@ export class Schedule<
     this.systems.push({
       system,
       phase: (config.phase as string) ?? SystemPhase.Simulation,
-      priority: config.priority ?? 0
+      priority: config.priority ?? 0,
+      group: config.group
     });
     system.onRegister(world);
     this.rebuildPhasedSystems();
@@ -144,6 +145,18 @@ export class Schedule<
 
       const isFrozen = world.getResource("GameplayFreeze") !== undefined;
 
+      const gameState = world.getSingleton("GameState" as any) as any;
+      let activeGroups = world.getResource<string[]>("ActiveGroups");
+      if (gameState && gameState.phase) {
+        if (gameState.phase === "PLAYING") {
+          activeGroups = ["simulation", "presentation"];
+        } else if (gameState.phase === "WAVE_TRANSITION") {
+          activeGroups = ["transition", "presentation"];
+        } else if (gameState.phase === "MUTATOR_DRAFT") {
+          activeGroups = ["draft", "presentation"];
+        }
+      }
+
       for (const phase of this.phases) {
         if (isFrozen) {
           // Bypassed entirely during freeze: Input, Collision, GameRules
@@ -155,12 +168,16 @@ export class Schedule<
         const phaseSystems = this.phasedSystems.get(phase);
         if (phaseSystems) {
           for (let i = 0; i < phaseSystems.length; i++) {
-            const sys = phaseSystems[i].system;
+            const sysRecord = phaseSystems[i];
+            const sys = sysRecord.system;
             if (isFrozen && phase === SystemPhase.Simulation) {
               const className = sys.constructor.name;
               if (className !== "TTLSystem" && className !== "JuiceSystem") {
                 continue;
               }
+            }
+            if (activeGroups && sysRecord.group && !activeGroups.includes(sysRecord.group)) {
+              continue;
             }
             sys.update(world, deltaTime);
           }

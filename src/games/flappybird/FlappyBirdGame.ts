@@ -36,7 +36,7 @@ export class FlappyBirdGame
   implements IFlappyBirdGame {
 
   private gameStateSystem!: FlappyBirdGameStateSystem;
-  private networkManager!: NetworkManager;
+  private networkManager!: NetworkManager<any>;
   public readonly gameId = "flappybird";
   private config!: typeof FLAPPY_CONFIG;
   public isMultiplayer = false;

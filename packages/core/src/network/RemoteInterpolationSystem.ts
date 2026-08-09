@@ -11,7 +11,7 @@ import { MultiplayerRegistry } from "./types";
  */
 export class RemoteInterpolationSystem<TRegistry extends MultiplayerRegistry = MultiplayerRegistry> extends System<TRegistry> {
     constructor(
-        private networkManager: NetworkManager,
+        private networkManager: NetworkManager<TRegistry>,
         private smoothingFactor: number = 0.15,
         private queryComponents: Extract<keyof TRegistry, string>[] = ["Transform", "RemotePlayer"] as any
     ) {

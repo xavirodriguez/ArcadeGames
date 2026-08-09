@@ -5,11 +5,11 @@ import { NetworkManager } from "../network/NetworkManager";
 
 describe("LocalPredictionSystem and RemoteInterpolationSystem customization", () => {
   let world: World<any, any, any>;
-  let manager: NetworkManager;
+  let manager: NetworkManager<any>;
 
   beforeEach(() => {
     world = new World();
-    manager = new NetworkManager();
+    manager = new NetworkManager<any>();
     world.setResource("EventBus", { emit: jest.fn(), on: jest.fn() });
   });
 

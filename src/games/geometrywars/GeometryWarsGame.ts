@@ -30,7 +30,7 @@ export class GeometryWarsGame extends BaseGame<
   private currentScene!: GeometryWarsGameScene;
   private isHeadless = false;
   public isMultiplayer = false;
-  private networkManager!: NetworkManager;
+  private networkManager!: NetworkManager<any>;
 
   constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any; headless?: boolean; isMultiplayer?: boolean } = {}) {
     super({

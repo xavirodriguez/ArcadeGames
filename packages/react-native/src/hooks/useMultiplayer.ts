@@ -226,6 +226,15 @@ export function useMultiplayer(roomName: string, playerName: string, active: boo
       }
     }
 
+    if (input.moveLeft !== undefined || input.moveRight !== undefined) {
+      const ml = input.moveLeft !== undefined ? input.moveLeft : persistentInputRef.current.axes["moveX"] === -1;
+      const mr = input.moveRight !== undefined ? input.moveRight : persistentInputRef.current.axes["moveX"] === 1;
+      let moveX = 0;
+      if (ml) moveX -= 1;
+      if (mr) moveX += 1;
+      persistentInputRef.current.axes["moveX"] = moveX;
+    }
+
     // Also support direct generic actions and axes parameters
     if (input.actions) {
       for (const action of input.actions) {

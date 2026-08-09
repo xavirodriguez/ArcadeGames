@@ -41,7 +41,7 @@ export class SpaceInvadersGame
   private playerBulletPool!: PlayerBulletPool;
   private enemyBulletPool!: EnemyBulletPool;
   private particlePool!: ParticlePool;
-  private networkManager!: NetworkManager;
+  private networkManager!: NetworkManager<any>;
   public readonly gameId = "space-invaders";
   private config!: SpaceInvadersConfig;
   private network: NetworkController<SpaceInvadersComponentRegistry>;

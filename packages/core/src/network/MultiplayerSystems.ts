@@ -21,12 +21,19 @@ export class ClientAckTracker {
     public getIdleTime(sessionId: string): number { return 0; }
 }
 /** @public */
-export class NetworkDeltaSystem {
+export class NetworkDeltaSystem<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry
+> {
     constructor(tracker: ReplicationStateTracker) {}
-    public generateDelta<
-      TComponents extends ComponentRegistry = ComponentRegistry,
-      TEvents extends EventRegistry = EventRegistry
-    >(world: World<TComponents, TEvents>, sessionId: string, sequence: number, baselineAck: number, interestIds: Set<number>, forceFull: boolean): ServerUpdatePayload {
+    public generateDelta(
+        world: World<TComponents, TEvents>,
+        sessionId: string,
+        sequence: number,
+        baselineAck: number,
+        interestIds: Set<number>,
+        forceFull: boolean
+    ): ServerUpdatePayload {
         return {
             kind: "delta",
             tick: 0,

@@ -71,11 +71,11 @@ export interface ComponentSetReleaseContext<
 }
 
 /** @public */
-export interface ReclaimableComponent extends Component {
+export interface ReclaimableComponent<TWorld extends World = World> extends Component {
   type: "Reclaimable";
   poolName: string;
   poolId: string;
-  onReclaim?: (context: ReleaseContext) => void;
+  onReclaim?: (context: ReleaseContext<TWorld>) => void;
 }
 
 /** @public */

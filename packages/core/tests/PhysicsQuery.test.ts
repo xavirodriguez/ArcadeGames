@@ -1,7 +1,7 @@
 import { World } from "../src/ecs/World";
 import { CoreComponentRegistry } from "../src/ecs/CoreComponents";
 import { PhysicsQuery } from "../src/physics/query/PhysicsQuery";
-import { ShapeType } from "../src/physics/shapes/Shapes";
+import { ShapeType, CircleShape } from "../src/physics/shapes/Shapes";
 import { SpatialPartitioningSystem } from "../src/systems/SpatialPartitioningSystem";
 
 describe("PhysicsQuery and SpatialPartitioningSystem Tests", () => {
@@ -69,7 +69,7 @@ describe("PhysicsQuery and SpatialPartitioningSystem Tests", () => {
     });
 
     // Test with overlapping shape
-    const castShape = { type: ShapeType.Circle, radius: 5 } as any;
+    const castShape: CircleShape = { type: ShapeType.Circle, radius: 5 };
     const matchesOverlap = PhysicsQuery.shapeCast(world, castShape, 112, 100);
     expect(matchesOverlap).toContain(entity);
 

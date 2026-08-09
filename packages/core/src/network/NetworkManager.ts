@@ -109,11 +109,12 @@ export class Replicator<TComponents extends ComponentRegistry = ComponentRegistr
  * @public
  */
 export interface RegisterGameOptions<
+  TComponents extends ComponentRegistry = ComponentRegistry,
   TServerEvents extends Record<string, any> = Record<string, any>,
   TClientEvents extends Record<string, any> = Record<string, any>
 > {
   transport?: NetworkTransport<TServerEvents, TClientEvents>;
-  world?: INetworkableWorld;
+  world?: INetworkableWorld<TComponents>;
   [key: string]: unknown;
 }
 
@@ -122,22 +123,24 @@ export interface RegisterGameOptions<
  * @public
  */
 export class NetworkManager<
+  TComponents extends ComponentRegistry = ComponentRegistry,
   TServerEvents extends Record<string, any> = Record<string, any>,
   TClientEvents extends Record<string, any> = Record<string, any>
 > {
   private transport: NetworkTransport<TServerEvents, TClientEvents>;
-  private replicator: IStateReplicator<any> = new NetworkReplicator<any>();
-  public world?: INetworkableWorld<any>;
+  private replicator: IStateReplicator<TComponents> = new NetworkReplicator<TComponents>();
+  public world?: INetworkableWorld<TComponents>;
 
   constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>) {
     this.transport = transport || new NullTransport<TServerEvents, TClientEvents>();
   }
 
   public static registerGame<
+    TComponents extends ComponentRegistry = ComponentRegistry,
     TServer extends Record<string, any> = Record<string, any>,
     TClient extends Record<string, any> = Record<string, any>
-  >(_gameId: string, _game: unknown, options: RegisterGameOptions<TServer, TClient> = {}): NetworkManager<TServer, TClient> {
-    const manager = new NetworkManager<TServer, TClient>(options.transport || new NullTransport<TServer, TClient>());
+  >(_gameId: string, _game: unknown, options: RegisterGameOptions<TComponents, TServer, TClient> = {}): NetworkManager<TComponents, TServer, TClient> {
+    const manager = new NetworkManager<TComponents, TServer, TClient>(options.transport || new NullTransport<TServer, TClient>());
     if (options.world) {
       manager.world = options.world;
     }
@@ -152,7 +155,7 @@ export class NetworkManager<
     this.transport = transport;
   }
 
-  public getReplicator(): IStateReplicator {
+  public getReplicator(): IStateReplicator<TComponents> {
     return this.replicator;
   }
 
@@ -173,7 +176,7 @@ export class NetworkManager<
   }
 
   public reset(): void {
-    this.replicator = new NetworkReplicator();
+    this.replicator = new NetworkReplicator<TComponents>();
   }
 }
 

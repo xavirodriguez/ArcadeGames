@@ -14,7 +14,7 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
     private lastProcessedTick = 0;
 
     constructor(
-        private networkManager: NetworkManager,
+        private networkManager: NetworkManager<TRegistry>,
         private simulateFn?: (world: World<TRegistry>, input: any, dt: number) => void,
         private queryComponents: Extract<keyof TRegistry, string>[] = ["Transform", "LocalPlayer", "Velocity", "Input"] as any,
         private reconcileQueryComponents: Extract<keyof TRegistry, string>[] = ["Transform", "LocalPlayer", "Velocity"] as any,

@@ -15,7 +15,7 @@ export class NetworkController<
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
-  public networkManager?: NetworkManager;
+  public networkManager?: NetworkManager<TComponents>;
   public lastProcessedFullStateVersion = -1;
   public isMultiplayer = false;
   private world: World<TComponents, TEvents, TBlueprints>;

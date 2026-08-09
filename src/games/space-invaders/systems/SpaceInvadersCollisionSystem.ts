@@ -3,6 +3,7 @@ import { System } from "@tiny-aster/core";
 import { Entity } from "@tiny-aster/core";
 import { EventBus } from "@tiny-aster/core";
 import { TransformComponent, HealthComponent, RenderComponent, TTLComponent } from "@tiny-aster/core";
+import { spawnScorePopup } from "../../shared/arcade/spawnScorePopup";
 import {
   GameStateComponent,
   InvaderComponent,
@@ -199,27 +200,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         this.createExplosion(world, explosionX, explosionY, "#FFFFFF");
 
         // Popup de combo flotante
-        const popup = world.reserveEntityId();
-        world.getCommandBuffer().createEntity(popup);
-        world.getCommandBuffer().addComponent(popup, { type: "Transform", x: explosionX, y: explosionY - 20, rotation: 0, scaleX: 1, scaleY: 1, worldX: explosionX, worldY: explosionY - 20, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.getCommandBuffer().addComponent(popup, {
-          type: "Render",
-          spriteId: "text",
-          color: "#FFFF00",
-          visible: true,
-          opacity: 1,
-          order: 100,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0,
-          data: { content: comboText }
-        } as unknown as RenderComponent);
-        world.getCommandBuffer().addComponent(popup, { type: "UIText", content: comboText, wordWrap: false, maxLines: 1 } as UITextComponent);
-        world.getCommandBuffer().addComponent(popup, { type: "TTL", timeLeft: 1000, remaining: 1000 } as TTLComponent);
-
-        // Side-effects like Juice are deferred naturally or can be applied here
-        Juice.add(world, popup, { property: "y", target: -40, duration: 1000, easing: "easeOut" });
-        Juice.add(world, popup, { property: "opacity", target: 0, duration: 1000, easing: "easeIn" });
+        spawnScorePopup(world, explosionX, explosionY, comboText, "#FFFF00");
       }
 
       const eventBus = world.getResource<EventBus>("EventBus");

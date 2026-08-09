@@ -70,6 +70,10 @@ interface MinimalGameState {
   lives?: number;
   level?: number;
   isGameOver: boolean;
+  readyRemaining?: number;
+  intermissionRemaining?: number;
+  continueCountdownRemaining?: number;
+  continuesRemaining?: number;
   [key: string]: any;
 }
 
@@ -88,6 +92,8 @@ interface GameUIProps {
   seed?: number;
   /** Callback to change/set the game seed. */
   onSetSeed?: (seed?: number) => void;
+  /** Callback to trigger a continue when out of lives. */
+  onContinue?: () => void;
 }
 
 /**
@@ -99,10 +105,11 @@ export const GameUI = React.memo(function GameUI({
   onPause,
   isPaused,
   highScore,
+  onContinue,
 }: GameUIProps) {
   const insets = useSafeAreaInsets();
   const [levelUpText, setLevelUpText] = useState<string | null>(null);
-  const showPauseButton = Platform.OS !== "web" && !gameState.isGameOver;
+  const showPauseButton = Platform.OS !== "web" && !gameState.isGameOver && !(gameState.continueCountdownRemaining && gameState.continueCountdownRemaining > 0);
 
   useEffect(() => {
     if (gameState.level && gameState.level > 1 && !gameState.isGameOver) {
@@ -112,10 +119,16 @@ export const GameUI = React.memo(function GameUI({
     }
   }, [gameState.level, gameState.isGameOver]);
 
+  const lives = gameState.lives ?? 0;
+  const readyRemaining = gameState.readyRemaining ?? 0;
+  const intermissionRemaining = gameState.intermissionRemaining ?? 0;
+  const continueCountdownRemaining = gameState.continueCountdownRemaining ?? 0;
+  const continuesRemaining = gameState.continuesRemaining ?? 0;
+
   return (
     <View style={styles.container}>
       <HUD
-        lives={gameState.lives ?? 0}
+        lives={lives}
         score={gameState.score}
         level={gameState.level ?? 1}
         highScore={highScore ?? 0}
@@ -129,6 +142,39 @@ export const GameUI = React.memo(function GameUI({
         />
       )}
       {levelUpText && <LevelUpOverlay text={levelUpText} />}
+
+      {/* Ready / Get Ready Overlay */}
+      {readyRemaining > 0 && (
+        <Animated.View entering={ZoomIn.duration(500)} exiting={FadeOut.duration(500)} style={styles.centerOverlay}>
+          <Text style={styles.readyTitle}>GET READY</Text>
+          <Text style={styles.readyTimer}>{Math.ceil(readyRemaining)}</Text>
+        </Animated.View>
+      )}
+
+      {/* Intermission Overlay */}
+      {intermissionRemaining > 0 && (
+        <Animated.View entering={BounceIn.duration(500)} exiting={FadeOut.duration(500)} style={styles.centerOverlay}>
+          <Text style={styles.intermissionTitle}>STAGE CLEARED!</Text>
+          <Text style={styles.intermissionSub}>PREPARING NEXT WAVE...</Text>
+        </Animated.View>
+      )}
+
+      {/* Continue Overlay */}
+      {continueCountdownRemaining > 0 && (
+        <Animated.View entering={FadeIn.duration(400)} style={styles.continueOverlay}>
+          <Text style={styles.continueText}>CONTINUE?</Text>
+          <Text style={styles.continueCountdown}>{Math.ceil(continueCountdownRemaining)}</Text>
+          <View style={styles.continueButtonRow}>
+            <TouchableOpacity style={styles.yesButton} onPress={onContinue}>
+              <Text style={styles.yesButtonText}>YES ({continuesRemaining} LEFT)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.noButton} onPress={onRestart}>
+              <Text style={styles.noButtonText}>NO</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
+
       {gameState.isGameOver && (
         <GameOverOverlay
           score={gameState.score}
@@ -159,7 +205,7 @@ const HUD: React.FC<{
       </Canvas>
     )}
     <View style={styles.hudContent}>
-      <Text style={styles.text}>Lives: {lives}</Text>
+      <Text style={styles.text}>Lives: {lives > 0 ? "🚀".repeat(lives) : "💀"}</Text>
       <Score score={score} />
       <Text style={styles.text}>HS: {highScore}</Text>
       <Text style={styles.text}>Level: {level}</Text>
@@ -374,5 +420,132 @@ const styles = StyleSheet.create({
           textShadowRadius: 20,
         }
     ),
+  },
+  centerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    pointerEvents: "none",
+  },
+  readyTitle: {
+    color: "#00FFDD",
+    fontSize: 54,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    ...(Platform.OS === "web"
+      ? { textShadow: "0 0 15px rgba(0, 255, 221, 0.8)" }
+      : {
+          textShadowColor: "rgba(0, 255, 221, 0.8)",
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 15,
+        }),
+  },
+  readyTimer: {
+    color: "#FFFFFF",
+    fontSize: 32,
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+  intermissionTitle: {
+    color: "#FFD700",
+    fontSize: 54,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    ...(Platform.OS === "web"
+      ? { textShadow: "0 0 15px rgba(255, 215, 0, 0.8)" }
+      : {
+          textShadowColor: "rgba(255, 215, 0, 0.8)",
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 15,
+        }),
+  },
+  intermissionSub: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontFamily: "monospace",
+    marginTop: 10,
+  },
+  continueOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    pointerEvents: "auto",
+  },
+  continueText: {
+    color: "#00FFDD",
+    fontSize: 48,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    marginBottom: 20,
+    ...(Platform.OS === "web"
+      ? { textShadow: "0 0 15px rgba(0, 255, 221, 0.8)" }
+      : {
+          textShadowColor: "rgba(0, 255, 221, 0.8)",
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 15,
+        }),
+  },
+  continueCountdown: {
+    color: "#FF0044",
+    fontSize: 72,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    marginBottom: 40,
+    ...(Platform.OS === "web"
+      ? { textShadow: "0 0 20px rgba(255, 0, 68, 0.8)" }
+      : {
+          textShadowColor: "rgba(255, 0, 68, 0.8)",
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 20,
+        }),
+  },
+  continueButtonRow: {
+    flexDirection: "row",
+    gap: 20,
+  },
+  yesButton: {
+    backgroundColor: "#00FFDD",
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 0 15px rgba(0, 255, 221, 0.8)' }
+      : {
+          shadowColor: "#00FFDD",
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.8,
+          shadowRadius: 15,
+        }
+    ),
+  },
+  yesButtonText: {
+    color: "#000000",
+    fontSize: 18,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+  },
+  noButton: {
+    backgroundColor: "#FF0044",
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 0 15px rgba(255, 0, 68, 0.8)' }
+      : {
+          shadowColor: "#FF0044",
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.8,
+          shadowRadius: 15,
+        }
+    ),
+  },
+  noButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
+    fontFamily: "monospace",
   },
 });

@@ -16,6 +16,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
     super.onRegister(world);
     const eventBus = world.getEventBus() as any;
     if (eventBus) {
+      // 1. Listen to level:completed
       eventBus.on("level:completed", (event: { level: number, nextLevel: number }) => {
         try {
           if (world.isReSimulating) return;
@@ -71,10 +72,70 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           console.error("ERROR IN EVENT LISTENER:", err);
         }
       });
+
+      // 2. Listen to spawn:wave_complete for Intermission / Stage Clear
+      eventBus.on("spawn:wave_complete", () => {
+        if (world.isReSimulating) return;
+        world.mutateSingleton("GameState", (gs) => {
+          gs.intermissionRemaining = 3.0; // 3 seconds intermission
+          eventBus.emit("stage:cleared", { level: gs.level });
+        });
+      });
+
+      // 3. Listen to player:continue
+      eventBus.on("player:continue", () => {
+        if (world.isReSimulating) return;
+        world.mutateSingleton("GameState", (gs) => {
+          gs.lives = 3;
+          gs.continueCountdownRemaining = 0;
+          gs.isGameOver = false;
+
+          // Restore player health & give temporary invulnerability
+          const playerEntities = world.query("Player", "Health");
+          playerEntities.forEach(entity => {
+            world.mutateComponent(entity, "Health", (h: any) => {
+              h.current = h.max;
+              h.invulnerableRemaining = 3.0; // 3 seconds invulnerability
+            });
+          });
+
+          // Play confirm sound
+          eventBus.emit("PlaySFX" as any, { name: "shoot" });
+        });
+      });
     }
   }
 
   protected updateGameState(world: World<SpaceInvadersComponentRegistry>, gameState: GameStateComponent, deltaTime: number): void {
+    // A. Handle ready countdown
+    if (gameState.readyRemaining > 0) {
+      world.mutateSingleton("GameState", (gs) => {
+        gs.readyRemaining = Math.max(0, gs.readyRemaining - deltaTime);
+      });
+    }
+
+    // B. Handle intermission countdown
+    if (gameState.intermissionRemaining > 0) {
+      world.mutateSingleton("GameState", (gs) => {
+        gs.intermissionRemaining = Math.max(0, gs.intermissionRemaining - deltaTime);
+      });
+    }
+
+    // C. Handle continue countdown
+    if (gameState.continueCountdownRemaining > 0) {
+      world.mutateSingleton("GameState", (gs) => {
+        gs.continueCountdownRemaining = Math.max(0, gs.continueCountdownRemaining - deltaTime);
+        if (gs.continueCountdownRemaining <= 0) {
+          // Time expired! Final game over!
+          gs.isGameOver = true;
+          const eventBus = world.getEventBus() as any;
+          if (eventBus) {
+            eventBus.emit("PlaySFX" as any, { name: "game_over" });
+          }
+        }
+      });
+    }
+
     // 1. Count remaining invaders and wave members
     const activeMembers = world.query("WaveMember" as any);
     const invaders = world.query("Invader");
@@ -101,6 +162,25 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
       }
     }
 
+    // D. Trigger Continue Countdown if player is out of lives but still has continues
+    if (gameState.lives <= 0 && !gameState.isGameOver && gameState.continueCountdownRemaining <= 0) {
+      if (gameState.continuesRemaining > 0) {
+        world.mutateSingleton("GameState", (gs) => {
+          gs.continuesRemaining--;
+          gs.continueCountdownRemaining = 9.0; // 9 seconds
+        });
+      } else {
+        // No continues left! Final game over
+        world.mutateSingleton("GameState", (gs) => {
+          gs.isGameOver = true;
+        });
+        const eventBus = world.getEventBus() as any;
+        if (eventBus) {
+          eventBus.emit("PlaySFX" as any, { name: "game_over" });
+        }
+      }
+    }
+
     // 3. Update screen shake duration
     if (gameState.screenShake) {
       world.mutateSingleton("GameState", (gs) => {
@@ -113,7 +193,6 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           }
       });
     }
-
   }
 
   protected getGameState(world: World<SpaceInvadersComponentRegistry>): GameStateComponent | undefined {
@@ -121,7 +200,8 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
   }
 
   protected evaluateGameOverCondition(state: GameStateComponent): boolean {
-    return state.isGameOver || state.lives <= 0;
+    // Only stop the loop when final isGameOver is set
+    return state.isGameOver;
   }
 
   public resetGameOverState(world?: World<SpaceInvadersComponentRegistry>): void {
@@ -133,6 +213,10 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         gameState.score = 0;
         gameState.level = 1;
         gameState.lives = 3;
+        gameState.readyRemaining = 3.0;
+        gameState.intermissionRemaining = 0;
+        gameState.continueCountdownRemaining = 0;
+        gameState.continuesRemaining = 3;
     });
 
     const comboEntities = w.query("Combo");

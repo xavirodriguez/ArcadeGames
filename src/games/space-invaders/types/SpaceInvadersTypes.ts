@@ -147,6 +147,10 @@ export interface GameStateComponent extends Component {
   screenShake?: { intensity: number; duration: number; elapsed?: number; totalDuration?: number } | null;
   kamikazesActive: number;
   gameOverLogged?: boolean;
+  readyRemaining: number;
+  intermissionRemaining: number;
+  continueCountdownRemaining: number;
+  continuesRemaining: number;
   /** Populated dynamically in getGameState() for backward compatibility. */
   combo?: number;
   /** Populated dynamically in getGameState() for backward compatibility. */
@@ -170,6 +174,10 @@ export const INITIAL_GAME_STATE: GameStateComponent = Object.freeze({
   invadersRemaining: 0,
   isGameOver: false,
   kamikazesActive: 0,
+  readyRemaining: 0,
+  intermissionRemaining: 0,
+  continueCountdownRemaining: 0,
+  continuesRemaining: 3,
 });
 
 /**

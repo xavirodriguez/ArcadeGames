@@ -289,6 +289,10 @@ export class SpaceInvadersGame
           isGameOver: false,
           screenShake: null,
           kamikazesActive: 0,
+          readyRemaining: 3.0,
+          intermissionRemaining: 0,
+          continueCountdownRemaining: 0,
+          continuesRemaining: 3,
         } as any);
         world.addComponent(entity, {
           type: "SpawnDirector",

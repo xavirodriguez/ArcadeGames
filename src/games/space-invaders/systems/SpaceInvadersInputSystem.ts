@@ -37,6 +37,21 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
 
+    const gameState = world.getSingleton("GameState");
+    if (gameState && (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) {
+      // Force velocity to 0 so player doesn't slide/drift
+      const entities = world.query("Player", "Velocity");
+      entities.forEach((entity) => {
+        const vel = world.getComponent(entity, "Velocity");
+        if (vel && vel.vx !== 0) {
+          world.mutateComponent(entity, "Velocity", v => {
+            v.vx = 0;
+          });
+        }
+      });
+      return;
+    }
+
     const useNetwork = world.getResource("UseNetworkInputs") === true;
     if (this.isMultiplayer && !useNetwork) return;
 

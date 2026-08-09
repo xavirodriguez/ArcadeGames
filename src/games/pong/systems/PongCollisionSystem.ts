@@ -66,26 +66,50 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
                 vel.vy = nextVy;
               });
 
+              // Apply physical hit-stop (60ms) to make paddle hit feel heavy and punchy
+              world.setResource("GameplayFreeze", { remaining: 0.06 });
+
               // Juice/ScreenShake effect
               Juice.shake(world, 4, 150);
               Juice.squash(world, ballEntity, 1.4, 0.7, 100);
 
-              // Particle feedback on hit location
+              // Apply paddle visual recoil and elastic squash & stretch
+              const recoilDir = paddleComp.side === "left" ? -12 : 12;
+              Juice.add(world, otherEntity, {
+                property: "x",
+                target: recoilDir,
+                duration: 60,
+                easing: "easeOut"
+              });
+              Juice.add(world, otherEntity, {
+                property: "x",
+                target: 0,
+                duration: 180,
+                delay: 60,
+                easing: "elasticOut"
+              });
+              Juice.squash(world, otherEntity, 0.7, 1.3, 200);
+
+              // Particle feedback on hit location with side-specific neon colors and inward-directed angles
               const ballTransform = world.getComponent(ballEntity, "Transform") as TransformComponent;
               if (ballTransform) {
+                const hitColor = paddleComp.side === "left" ? "#FF00FF" : "#00FFFF";
+                const hitAngle: [number, number] = paddleComp.side === "left" ? [-45, 45] : [135, 225];
+
                 const emitter = createEmitter(world, {
                   type: "hit",
                   x: ballTransform.x,
                   y: ballTransform.y,
                   rate: 0,
                   burst: true,
-                  count: 10,
-                  lifetime: [0.3, 0.3],
-                  speed: [150, 150],
-                  color: "white",
-                  size: [3, 3]
+                  count: 16,
+                  lifetime: [0.3, 0.5],
+                  speed: [100, 220],
+                  color: hitColor,
+                  size: [2, 5],
+                  angle: hitAngle
                 });
-                world.getCommandBuffer().addComponent(emitter, { type: "TTL", ttl: 350, timeLeft: 0.35, remaining: 0.35 } as any);
+                world.getCommandBuffer().addComponent(emitter, { type: "TTL", ttl: 500, timeLeft: 0.5, remaining: 0.5 } as any);
               }
 
               // Play hit audio

@@ -143,9 +143,9 @@ export default function PongScreen() {
         )}
 
         <View style={styles.scoreBoard}>
-            <Text style={styles.scoreText}>{gameState?.scoreP1 ?? 0}</Text>
-            <View style={{ width: 100 }} />
-            <Text style={styles.scoreText}>{gameState?.scoreP2 ?? 0}</Text>
+            <Text style={styles.scoreTextP1}>{gameState?.scoreP1 ?? 0}</Text>
+            <Text style={styles.scoreSeparator}>:</Text>
+            <Text style={styles.scoreTextP2}>{gameState?.scoreP2 ?? 0}</Text>
         </View>
 
         <CanvasRenderer
@@ -290,12 +290,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   title: {
-    fontSize: 48,
+    fontSize: 64,
     color: "white",
     fontFamily: "monospace",
     fontWeight: "bold",
     marginBottom: 40,
     textAlign: "center",
+    textShadowColor: '#00FFFF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 25,
+    letterSpacing: 8,
   },
   instructions: {
     fontSize: 16,
@@ -304,12 +308,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
     paddingHorizontal: 20,
+    textShadowColor: "rgba(255, 255, 255, 0.2)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   buttonRow: {
     flexDirection: 'row',
   },
   input: {
-    backgroundColor: '#222',
+    backgroundColor: '#111',
     color: 'white',
     padding: 15,
     borderRadius: 8,
@@ -318,30 +325,66 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     textAlign: 'center',
     fontSize: 18,
+    borderWidth: 1.5,
+    borderColor: '#333',
   },
   startButton: {
-    backgroundColor: "white",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: "white",
+    paddingHorizontal: 24,
+    paddingVertical: 14,
     borderRadius: 8,
-    minWidth: 100,
+    minWidth: 120,
     alignItems: 'center',
+    shadowColor: "white",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
   },
   startButtonText: {
-    color: "black",
+    color: "white",
     fontSize: 16,
     fontWeight: "bold",
+    fontFamily: "monospace",
+    textShadowColor: "white",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   scoreBoard: {
     position: 'absolute',
     top: 60,
     flexDirection: 'row',
     zIndex: 10,
+    alignItems: 'center',
   },
-  scoreText: {
-    color: 'white',
+  scoreTextP1: {
+    color: '#FF00FF',
+    fontSize: 54,
+    fontFamily: 'monospace',
+    fontWeight: 'bold',
+    textShadowColor: '#FF00FF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 15,
+  },
+  scoreTextP2: {
+    color: '#00FFFF',
+    fontSize: 54,
+    fontFamily: 'monospace',
+    fontWeight: 'bold',
+    textShadowColor: '#00FFFF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 15,
+  },
+  scoreSeparator: {
+    color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 48,
     fontFamily: 'monospace',
+    fontWeight: 'bold',
+    marginHorizontal: 30,
+    textShadowColor: 'rgba(255, 255, 255, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -384,5 +427,8 @@ const styles = StyleSheet.create({
     color: "#AAAAAA",
     fontSize: 16,
     fontFamily: "monospace",
+    textShadowColor: "#AAAAAA",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   }
 });

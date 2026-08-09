@@ -48,7 +48,41 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       if (state === SceneState.UNLOADING || state === SceneState.LOADING) {
         const progress = sceneManager.transitionProgress;
         const effect = sceneManager.getActiveTransitionEffect();
-        const options = sceneManager.getTransitionOptions();
+        let options = sceneManager.getTransitionOptions();
+
+        const drawsBoth = effect && (effect as unknown as Record<string, unknown>).drawsBothScenes === true;
+
+        if (drawsBoth) {
+          const oldScene = sceneManager.getTransitionOldScene();
+          const newScene = sceneManager.getTransitionNewScene();
+          if (newScene) {
+            this.renderWorld(newScene.getWorld() as unknown as World<TRegistry>, ctx);
+          } else {
+            this.renderWorld(world, ctx);
+          }
+          if (oldScene) {
+            // Render old scene onto offscreen canvas for the transition effect
+            const canvas = ctx.canvas;
+            if (canvas) {
+              // We need an offscreen canvas. We can get it via a simple dynamic creation helper
+              // or let's create a local offscreen canvas inside CanvasRenderer as a helper
+              const off = this.getOffscreen(canvas.width, canvas.height);
+              const octx = off.getContext("2d");
+              if (octx) {
+                octx.clearRect(0, 0, off.width, off.height);
+                this.renderWorld(oldScene.getWorld() as unknown as World<TRegistry>, octx);
+                if (!options) {
+                  options = {};
+                }
+                options = { ...options, offscreenCanvas: off };
+              }
+            }
+          }
+          if (effect) {
+            effect.render(ctx, progress, options);
+          }
+          return;
+        }
 
         if (progress <= 0.5) {
           const oldScene = sceneManager.getTransitionOldScene();
@@ -74,6 +108,22 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     }
 
     this.renderWorld(world, ctx);
+  }
+
+  private _offscreenCanvas: { width: number; height: number; getContext(type: "2d"): CanvasRenderingContext2D | null } | null = null;
+
+  private getOffscreen(width: number, height: number): { width: number; height: number; getContext(type: "2d"): CanvasRenderingContext2D | null } {
+    if (typeof document === "undefined") {
+      return { width, height, getContext: () => null };
+    }
+    if (!this._offscreenCanvas) {
+      this._offscreenCanvas = document.createElement("canvas") as unknown as { width: number; height: number; getContext(type: "2d"): CanvasRenderingContext2D | null };
+    }
+    if (this._offscreenCanvas.width !== width || this._offscreenCanvas.height !== height) {
+      this._offscreenCanvas.width = width;
+      this._offscreenCanvas.height = height;
+    }
+    return this._offscreenCanvas;
   }
 
   private renderWorld(world: World<TRegistry>, ctx: CanvasRenderingContext2D): void {

@@ -13,7 +13,12 @@ import {
   IrisTransition,
   DitherTransition,
   PixelateTransition,
-  ScanlineWipeTransition
+  ScanlineWipeTransition,
+  CrossfadeTransition,
+  CurtainTransition,
+  RetroGridTransition,
+  DiagonalSweepTransition,
+  RadialWipeTransition
 } from "../src/index";
 
 class TestScene extends Scene {
@@ -195,6 +200,17 @@ describe("Scene Transitions", () => {
     const dither = new DitherTransition();
     const scanline = new ScanlineWipeTransition();
     const pixelate = new PixelateTransition();
+    const crossfade = new CrossfadeTransition();
+    const curtain = new CurtainTransition();
+    const grid = new RetroGridTransition();
+    const diagonal = new DiagonalSweepTransition();
+    const radial = new RadialWipeTransition();
+
+    expect(crossfade.drawsBothScenes).toBe(true);
+    expect(curtain.drawsBothScenes).toBe(true);
+    expect(grid.drawsBothScenes).toBe(true);
+    expect(diagonal.drawsBothScenes).toBe(true);
+    expect(radial.drawsBothScenes).toBe(true);
 
     const mockCanvas = {
       width: 800,
@@ -213,7 +229,9 @@ describe("Scene Transitions", () => {
       lineTo: jest.fn(),
       stroke: jest.fn(),
       clearRect: jest.fn(),
-      drawImage: jest.fn()
+      drawImage: jest.fn(),
+      closePath: jest.fn(),
+      clip: jest.fn()
     };
 
     // Test render on each at various progress points
@@ -224,5 +242,14 @@ describe("Scene Transitions", () => {
     dither.render(mockCtx, 0.4);
     scanline.render(mockCtx, 0.8, { lineColor: "#ff00ff" });
     pixelate.render(mockCtx, 0.3); // Runs cleanly even if document/offscreen elements are absent
+
+    const mockOffscreen = { width: 800, height: 600 };
+    const optionsWithOffscreen = { offscreenCanvas: mockOffscreen };
+
+    crossfade.render(mockCtx, 0.5, optionsWithOffscreen);
+    curtain.render(mockCtx, 0.5, optionsWithOffscreen);
+    grid.render(mockCtx, 0.5, optionsWithOffscreen);
+    diagonal.render(mockCtx, 0.5, optionsWithOffscreen);
+    radial.render(mockCtx, 0.5, optionsWithOffscreen);
   });
 });

@@ -34,6 +34,11 @@ export * from "./scenes/transitions/IrisTransition";
 export * from "./scenes/transitions/DitherTransition";
 export * from "./scenes/transitions/PixelateTransition";
 export * from "./scenes/transitions/ScanlineWipeTransition";
+export * from "./scenes/transitions/CrossfadeTransition";
+export * from "./scenes/transitions/CurtainTransition";
+export * from "./scenes/transitions/RetroGridTransition";
+export * from "./scenes/transitions/DiagonalSweepTransition";
+export * from "./scenes/transitions/RadialWipeTransition";
 export * from "./scenes/transitions/TransitionRegistry";
 
 // Events

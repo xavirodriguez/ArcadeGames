@@ -764,6 +764,9 @@ export class SceneManager {
       const rawProgress = Math.min(1.0, this._transitionElapsed / duration);
       const easingFunc = getEasingFunction(this._transitionOptions?.easing);
 
+      const isDoubleScene = this._activeTransitionEffect && (this._activeTransitionEffect as any).drawsBothScenes === true;
+      const peakProgress = isDoubleScene ? 1.0 : 0.5;
+
       if (rawProgress < 0.5) {
         this.state = SceneState.UNLOADING;
         this.transitionProgress = easingFunc(rawProgress);
@@ -772,7 +775,7 @@ export class SceneManager {
         }
       } else {
         // 1. Dispatch onExit on the old scene exactly once at the peak of transition
-        if (!this._onExitCalled) {
+        if (rawProgress >= peakProgress && !this._onExitCalled) {
           this._onExitCalled = true;
           if (this._transitionOldScene) {
             const isPush = this._transitionOptions?.type === "push";

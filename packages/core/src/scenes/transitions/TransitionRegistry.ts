@@ -4,6 +4,11 @@ import { IrisTransition } from "./IrisTransition";
 import { DitherTransition } from "./DitherTransition";
 import { PixelateTransition } from "./PixelateTransition";
 import { ScanlineWipeTransition } from "./ScanlineWipeTransition";
+import { CrossfadeTransition } from "./CrossfadeTransition";
+import { CurtainTransition } from "./CurtainTransition";
+import { RetroGridTransition } from "./RetroGridTransition";
+import { DiagonalSweepTransition } from "./DiagonalSweepTransition";
+import { RadialWipeTransition } from "./RadialWipeTransition";
 
 /**
  * Registry of all available default transition effects.
@@ -20,6 +25,11 @@ export const TransitionRegistry: Record<string, ITransitionEffect> = {
   dither: new DitherTransition(),
   pixelate: new PixelateTransition(),
   scanline: new ScanlineWipeTransition(),
+  crossfade: new CrossfadeTransition(),
+  curtain: new CurtainTransition(),
+  grid: new RetroGridTransition(),
+  diagonal: new DiagonalSweepTransition(),
+  radial: new RadialWipeTransition(),
 };
 
 /**

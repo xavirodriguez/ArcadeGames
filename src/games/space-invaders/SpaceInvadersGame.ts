@@ -77,6 +77,10 @@ export class SpaceInvadersGame
     }) as any);
   }
 
+  public predictLocalPlayer(input: InputFrame, deltaTime: number) {
+    this.network.predictLocalPlayer(input, deltaTime);
+  }
+
   public runSimulationStep(deltaTime: number, isResimulating: boolean) {
     const activeWorld = this.getWorld();
     const random = activeWorld.gameplayRandom;
@@ -519,7 +523,7 @@ export class SpaceInvadersGame
     this.setInputState(input);
   }
 
-  public updateFromServer(state: Record<string, unknown>) {
+  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
     const world = this.getWorld();
     const replicator = this.networkManager.getReplicator();
@@ -551,6 +555,19 @@ export class SpaceInvadersGame
           commands.addComponent(entity, { type: "Player" } as any);
           commands.addComponent(entity, { type: "Transform", x: playerState.x, y: playerState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: playerState.x, worldY: playerState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
           commands.addComponent(entity, { type: "Render", shape: "player_ship", size: 20, color: "green", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as any);
+        }
+
+        if (sessionId === localSessionId && !world.hasComponent(entity, "LocalPlayer" as any)) {
+          commands.addComponent(entity, { type: "LocalPlayer" } as any);
+          if (!world.hasComponent(entity, "Input" as any)) {
+            commands.addComponent(entity, {
+              type: "Input",
+              moveLeft: false,
+              moveRight: false,
+              shoot: false,
+              shootCooldownRemaining: 0,
+            } as any);
+          }
         }
 
         snapshot.entities.push(entity);
@@ -601,7 +618,7 @@ export class SpaceInvadersGame
       });
     }
 
-    this.networkManager.processServerUpdate(snapshot.tick, snapshot);
+    this.networkManager.processServerUpdate(snapshot.tick, snapshot, localSessionId);
 
     // Cleanup removed entities
     replicator.getMappings().forEach((entity: number, serverId: string) => {

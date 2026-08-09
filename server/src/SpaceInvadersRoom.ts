@@ -54,6 +54,11 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
     this.world = this.gameSimulation.getWorld();
     this.world.setResource("UseNetworkInputs", true);
 
+    // Also set UseNetworkInputs on the base simulation world to prevent any race condition
+    if ((this.gameSimulation as any).world) {
+      (this.gameSimulation as any).world.setResource("UseNetworkInputs", true);
+    }
+
     this.setPatchRate(50);
     this.setSimulationInterval((dt: number) => this.update(dt));
 
@@ -171,6 +176,9 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
     const parsedOptions = JoinOptionsSchema.safeParse(options);
     const validOptions = parsedOptions.success ? parsedOptions.data : {};
 
+    this.world = this.gameSimulation.getWorld();
+    this.world.setResource("UseNetworkInputs", true);
+
     const player = new SpaceInvadersPlayer();
     player.sessionId = client.sessionId;
     player.name = validOptions.name || `Player ${client.sessionId}`;
@@ -194,6 +202,7 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
   }
 
   async onLeave(client: Client, code: number) {
+    this.world = this.gameSimulation.getWorld();
     try {
       if (code === CloseCode.CONSENTED) {
         throw new Error("consented leave");
@@ -214,6 +223,9 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
 
   update(_dt: number) {
     if (!this.state.gameStarted) return;
+    this.world = this.gameSimulation.getWorld();
+    this.world.setResource("UseNetworkInputs", true);
+
     this.state.serverTick++;
     this.state.lastProcessedTick = this.state.serverTick;
 
@@ -247,6 +259,7 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
   }
 
   private syncWorldToSchema() {
+    this.world = this.gameSimulation.getWorld();
     // 1. Sync Players
     this.playerEntities.forEach((entity, sessionId) => {
       const player = this.state.players.get(sessionId);

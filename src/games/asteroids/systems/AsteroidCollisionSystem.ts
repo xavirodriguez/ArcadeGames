@@ -2,6 +2,7 @@
 import { World, System } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { fragmentAsteroid, createParticle } from "../EntityFactory";
+import { spawnScorePopup } from "../../shared/arcade/spawnScorePopup";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -40,9 +41,26 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     if (size === "medium") points = 50;
     else if (size === "small") points = 100;
 
-    let newScore = points;
+    const config = world.getResource<any>("GameConfig") || {};
+    let nextCombo = 0;
+    let nextMultiplier = 1;
+
+    const comboEntities = world.query("Combo" as any);
+    const comboEntity = comboEntities[0];
+    if (comboEntity !== undefined) {
+      world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+        c.combo++;
+        c.timerRemaining = (config.COMBO_TIMEOUT ?? 2000) / 1000;
+        c.multiplier = Math.min(config.MAX_MULTIPLIER ?? 10, 1 + Math.floor(c.combo / 5));
+        nextCombo = c.combo;
+        nextMultiplier = c.multiplier;
+      });
+    }
+
+    const scoreGain = points * nextMultiplier;
+    let newScore = scoreGain;
     world.mutateSingleton("GameState", (state) => {
-        state.score += points;
+        state.score += scoreGain;
         newScore = state.score;
     });
 
@@ -75,19 +93,23 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
               if (!world.hasComponent(playerEntity, "PlayerScore")) {
                   world.getCommandBuffer().addComponent(playerEntity, {
                       type: "PlayerScore",
-                      score: points
+                      score: scoreGain
                   });
               } else {
                   world.mutateComponent(playerEntity, "PlayerScore", (ps) => {
-                      ps.score = (ps.score || 0) + points;
+                      ps.score = (ps.score || 0) + scoreGain;
                   });
               }
           }
       }
     }
 
-    // Spawn particles
     const asteroidTransform = world.getComponent(asteroid, "Transform");
+    if (asteroidTransform) {
+      spawnScorePopup(world, asteroidTransform.x, asteroidTransform.y, `x${nextMultiplier}`, "#FFFF00");
+    }
+
+    // Spawn particles
     const particlePool = world.getResource<any>("ParticlePool");
     if (asteroidTransform && particlePool) {
       const ax = asteroidTransform.x;
@@ -119,7 +141,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     const eventBus = world.getEventBus();
     if (eventBus) {
         eventBus.emitDeferred("asteroid:destroyed", { entity: asteroid, size });
-        eventBus.emitDeferred("score:changed", { newScore, delta: points });
+        eventBus.emitDeferred("score:changed", { newScore, delta: scoreGain });
     }
   }
 
@@ -209,6 +231,25 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
               state.isGameOver = true;
             }
           });
+
+          // Reset combo on player hit/life loss
+          if (world.hasComponent(ship, "Combo" as any)) {
+            world.mutateComponent(ship, "Combo" as any, (c: any) => {
+              c.combo = 0;
+              c.multiplier = 1;
+              c.timerRemaining = 0;
+            });
+          } else {
+            const comboEntities = world.query("Combo" as any);
+            const comboEntity = comboEntities[0];
+            if (comboEntity !== undefined) {
+              world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+                c.combo = 0;
+                c.multiplier = 1;
+                c.timerRemaining = 0;
+              });
+            }
+          }
 
           // Spawn particle explosion for player ship impact/death
           const shipTransform = world.getComponent(ship, "Transform");

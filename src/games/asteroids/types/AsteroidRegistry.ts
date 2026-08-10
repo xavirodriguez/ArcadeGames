@@ -1,5 +1,5 @@
 import { CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
-import { LootTableComponent, PowerUpComponent } from "../../shared/arcade";
+import { LootTableComponent, PowerUpComponent, ComboComponent } from "../../shared/arcade";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
 import {
   GameStateComponent,
@@ -11,11 +11,20 @@ import {
 export interface AsteroidsComponentRegistry extends CoreComponentRegistry {
   LootTable: LootTableComponent;
   PowerUp: PowerUpComponent;
+  Combo: ComboComponent;
   GameState: GameStateComponent;
   Input: InputComponent;
   Ufo: UfoComponent;
   Asteroid: { type: "Asteroid"; size: string };
-  Ship: { type: "Ship"; sessionId: string; shootCooldownRemaining: number };
+  Ship: {
+    type: "Ship";
+    sessionId: string;
+    shootCooldownRemaining: number;
+    hyperspaceCooldownRemaining?: number;
+    hyperspacePrepTime?: number;
+    hyperspacePreviewX?: number;
+    hyperspacePreviewY?: number;
+  };
   Bullet: { type: "Bullet"; ownerId?: string };
   LocalPlayer: { type: "LocalPlayer" };
   RemotePlayer: { type: "RemotePlayer"; sessionId: string };

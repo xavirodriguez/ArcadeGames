@@ -95,6 +95,18 @@ export function registerAsteroidsBlueprints(
         sessionId: "",
         shootCooldownRemaining: 0
       } as AsteroidsComponentRegistry["Ship"]);
+      const gameConfig = w.getResource<any>("GameConfig");
+      const hasComboHeadStart = w.getResource("HasComboHeadStart") === true;
+      const initialCombo = hasComboHeadStart ? 5 : 0;
+      const initialMultiplier = hasComboHeadStart ? 2 : 1;
+      const initialTimerRemaining = hasComboHeadStart ? (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000 : 0;
+      w.addComponent(entity, {
+        type: "Combo",
+        combo: initialCombo,
+        multiplier: initialMultiplier,
+        timerRemaining: initialTimerRemaining,
+        timerDuration: (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000
+      } as any);
       w.addComponent(entity, {
         type: "Faction",
         faction: "player",
@@ -173,6 +185,17 @@ export function registerAsteroidsBlueprints(
         faction: "player",
         value: "player"
       } as FactionComponent);
+
+      const gameConfig = w.getResource<any>("GameConfig");
+      if (gameConfig?.BULLET_BOUNDARY_BEHAVIOR === "bounce") {
+        const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+        w.addComponent(entity, {
+          type: "Boundary",
+          width: screen.width,
+          height: screen.height,
+          mode: "bounce"
+        } as BoundaryComponent);
+      }
     }
   });
 

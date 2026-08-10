@@ -208,7 +208,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     description: "Comienza la oleada con un multiplicador x2.",
     rarity: "COMMON",
     tags: ["utility", "combo"],
-    supportedGames: ["space-invaders", "pong", "flappy_bird"],
+    supportedGames: ["space-invaders", "pong", "flappy_bird", "asteroids"],
     xpCost: 300,
     canDraft: (world, context) => {
       const target = context?.targetEntity;
@@ -287,6 +287,49 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         }
       }
       runMutatorHooks(world, "shield_pulse");
+    }
+  },
+  "hyper_drift": {
+    id: "hyper_drift",
+    name: "Derrape Hiperespacial",
+    description: "Nave con 100% más potencia de propulsión y menor fricción para un control de deslizamiento de alta inercia.",
+    rarity: "RARE",
+    tags: ["physics", "movement"],
+    supportedGames: ["asteroids"],
+    xpCost: 600,
+    canDraft: (world, context) => true,
+    apply: (world, context) => {
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.SHIP_THRUST === "number") {
+          newConfig.SHIP_THRUST = Math.round(newConfig.SHIP_THRUST * 2.0);
+        }
+        if (typeof newConfig.FRICTION === "number") {
+          newConfig.FRICTION = 0.95; // Less friction for more drift
+        }
+        world.setResource("GameConfig", newConfig);
+      }
+      runMutatorHooks(world, "hyper_drift");
+    }
+  },
+  "bouncing_bullets": {
+    id: "bouncing_bullets",
+    name: "Balas Rebotantes",
+    description: "Tus proyectiles rebotan en los bordes de la pantalla.",
+    rarity: "EPIC",
+    tags: ["combat", "bullet"],
+    supportedGames: ["asteroids"],
+    xpCost: 700,
+    canDraft: (world, context) => true,
+    apply: (world, context) => {
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        newConfig.BULLET_BOUNDARY_BEHAVIOR = "bounce";
+        world.setResource("GameConfig", newConfig);
+      }
+      runMutatorHooks(world, "bouncing_bullets");
     }
   },
 };

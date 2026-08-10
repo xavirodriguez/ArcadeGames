@@ -46,7 +46,7 @@ import {
   WebAudioPlayer
 } from "@tiny-aster/core";
 
-import { LootSystem, PowerUpSystem } from "../shared/arcade";
+import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
@@ -171,6 +171,7 @@ export class AsteroidsGame
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new LootSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new PowerUpSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activeMutators = (this._config.gameOptions?.mutators as any[]) || [];
@@ -353,7 +354,29 @@ export class AsteroidsGame
 
   public getGameState(): GameStateComponent {
     const state = this.world.getSingleton("GameState");
-    return state ? { ...state } : INITIAL_GAME_STATE;
+    if (!state) return INITIAL_GAME_STATE;
+
+    let combo = 0;
+    let multiplier = 1;
+    let comboTimerRemaining = 0;
+
+    const comboEntities = this.world.query("Combo" as any);
+    const comboEntity = comboEntities[0];
+    if (comboEntity !== undefined) {
+      const comboComp = this.world.getComponent(comboEntity, "Combo" as any) as any;
+      if (comboComp) {
+        combo = comboComp.combo;
+        multiplier = comboComp.multiplier;
+        comboTimerRemaining = Math.max(0, comboComp.timerRemaining);
+      }
+    }
+
+    return {
+      ...state,
+      combo,
+      multiplier,
+      comboTimerRemaining
+    } as any;
   }
 
   public isGameOver(): boolean {

@@ -7,6 +7,9 @@ export interface GameStateComponent extends Component {
   level: number;
   lives: number;
   isGameOver: boolean;
+  combo?: number;
+  multiplier?: number;
+  comboTimerRemaining?: number;
 }
 
 /** @public */
@@ -26,6 +29,11 @@ export interface UfoComponent extends Component {
 export interface ShipComponent extends Component {
   type: "Ship";
   sessionId: string;
+  shootCooldownRemaining?: number;
+  hyperspaceCooldownRemaining?: number;
+  hyperspacePrepTime?: number;
+  hyperspacePreviewX?: number;
+  hyperspacePreviewY?: number;
 }
 
 /** @public */

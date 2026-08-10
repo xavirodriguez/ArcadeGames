@@ -33,6 +33,9 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
     it("should allow shooting multiple times with appropriate cooldown", () => {
       // Create a player ship first
       const shipEntity = createShip({ world, x: 100, y: 100 });
+      // Spawn a placeholder asteroid far away to prevent wave spawning
+      createAsteroid({ world, x: 700, y: 700, size: "large" });
+
       world.addComponent(shipEntity, { type: "LocalPlayer" });
       world.addComponent(shipEntity, {
           type: "Input",
@@ -252,6 +255,283 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const newAsteroids = world.query("Asteroid");
       // Initial asteroid count is 5. For level 2, it should spawn (5 + (2 - 1)) = 6 asteroids.
       expect(newAsteroids.length).toBe(6);
+    });
+  });
+
+  describe("Asteroids Combo System Logic", () => {
+    it("should initialize with 0 combo and 1x multiplier", () => {
+      const ship = createShip({ world, x: 500, y: 500 });
+      world.flush();
+
+      const comboComp = world.getComponent(ship, "Combo" as any) as any;
+      expect(comboComp).toBeDefined();
+      expect(comboComp.combo).toBe(0);
+      expect(comboComp.multiplier).toBe(1);
+
+      const state = game.getGameState();
+      expect(state.combo).toBe(0);
+      expect(state.multiplier).toBe(1);
+    });
+
+    it("should increment combo and multiply score on asteroid destruction", () => {
+      const ship = createShip({ world, x: 500, y: 500 });
+      const bullet = createBullet({ world, x: 100, y: 100, vx: 0, vy: 0, ownerId: "player" });
+      const asteroid = createAsteroid({ world, x: 100, y: 100, size: "small" }); // small worth 100 points
+      world.flush();
+
+      // Trigger bullet-asteroid collision
+      const eventsComp = world.getComponent(bullet, "CollisionEvents") as any;
+      eventsComp.collisions.push({
+        otherEntity: asteroid,
+        normalX: 0,
+        normalY: 0,
+        depth: 0,
+        contactPoints: []
+      });
+
+      world.update(0.016);
+      world.flush();
+
+      // Combo component should have combo = 1, multiplier = 1 (1 + floor(1/5) = 1)
+      const comboComp = world.getComponent(ship, "Combo" as any) as any;
+      expect(comboComp.combo).toBe(1);
+      expect(comboComp.multiplier).toBe(1);
+
+      // Score should have updated by points * multiplier (100 * 1 = 100)
+      const state = game.getGameState();
+      expect(state.score).toBe(100);
+      expect(state.combo).toBe(1);
+      expect(state.multiplier).toBe(1);
+    });
+
+    it("should cap multiplier at MAX_MULTIPLIER", () => {
+      const ship = createShip({ world, x: 500, y: 500 });
+      world.flush();
+
+      // Manually set combo to 50 (multiplier would be 1 + floor(50/5) = 11, capped at 10)
+      world.mutateComponent(ship, "Combo" as any, (c: any) => {
+        c.combo = 50;
+      });
+
+      const bullet = createBullet({ world, x: 100, y: 100, vx: 0, vy: 0, ownerId: "player" });
+      const asteroid = createAsteroid({ world, x: 100, y: 100, size: "small" }); // small worth 100 points
+      world.flush();
+
+      const eventsComp = world.getComponent(bullet, "CollisionEvents") as any;
+      eventsComp.collisions.push({
+        otherEntity: asteroid,
+        normalX: 0,
+        normalY: 0,
+        depth: 0,
+        contactPoints: []
+      });
+
+      world.update(0.016);
+      world.flush();
+
+      const comboComp = world.getComponent(ship, "Combo" as any) as any;
+      expect(comboComp.combo).toBe(51);
+      expect(comboComp.multiplier).toBe(10); // Capped at 10
+
+      // Score gained is 100 * 10 = 1000
+      const state = game.getGameState();
+      expect(state.score).toBe(1000);
+    });
+
+    it("should decay combo over time", () => {
+      const ship = createShip({ world, x: 500, y: 500 });
+      world.flush();
+
+      // Set some combo
+      world.mutateComponent(ship, "Combo" as any, (c: any) => {
+        c.combo = 10;
+        c.multiplier = 3;
+        c.timerRemaining = 0.05; // 50ms remaining
+      });
+
+      // Update world by 0.1s (greater than remaining 0.05s)
+      world.update(0.1);
+      world.flush();
+
+      const comboComp = world.getComponent(ship, "Combo" as any) as any;
+      expect(comboComp.combo).toBe(0);
+      expect(comboComp.multiplier).toBe(1);
+    });
+
+    it("should reset combo on life loss", () => {
+      const ship = createShip({ world, x: 100, y: 100 });
+      const asteroid = createAsteroid({ world, x: 100, y: 100, size: "large" });
+      world.flush();
+
+      // Set some combo on ship
+      world.mutateComponent(ship, "Combo" as any, (c: any) => {
+        c.combo = 15;
+        c.multiplier = 4;
+        c.timerRemaining = 2.0;
+      });
+
+      // Trigger ship-asteroid collision
+      const eventsComp = world.getComponent(ship, "CollisionEvents") as any;
+      eventsComp.collisions.push({
+        otherEntity: asteroid,
+        normalX: 0,
+        normalY: 0,
+        depth: 0,
+        contactPoints: []
+      });
+
+      world.update(0.016);
+      world.flush();
+
+      // Ship lives decremented, combo reset to 0
+      const state = game.getGameState();
+      expect(state.lives).toBe(2);
+      expect(state.combo).toBe(0);
+      expect(state.multiplier).toBe(1);
+
+      const comboComp = world.getComponent(ship, "Combo" as any) as any;
+      expect(comboComp.combo).toBe(0);
+      expect(comboComp.multiplier).toBe(1);
+    });
+  });
+
+  describe("Asteroids Redesigned Hyperspace Logic", () => {
+    it("should charge hyperspace while holding key and render a transient preview singularity", () => {
+      const ship = createShip({ world, x: 100, y: 100 });
+      world.addComponent(ship, { type: "LocalPlayer" });
+      world.addComponent(ship, {
+        type: "Input",
+        actions: { hyperspace: true },
+        axes: {}
+      } as any);
+      // Spawn a placeholder asteroid far away to prevent wave spawning
+      createAsteroid({ world, x: 700, y: 700, size: "large" });
+      world.flush();
+
+      // Update 1 frame to trigger preparation
+      world.update(0.016);
+      world.flush();
+
+      const shipComp = world.getComponent(ship, "Ship") as any;
+      expect(shipComp.hyperspacePrepTime).toBeCloseTo(0.5, 4); // 0.5 on start
+      expect(shipComp.hyperspacePreviewX).toBeDefined();
+      expect(shipComp.hyperspacePreviewY).toBeDefined();
+
+      // Verify that a visual preview entity has been created
+      const renders = world.query("Render");
+      const preview = renders.find(r => {
+        const rc = world.getComponent(r, "Render") as any;
+        return rc.shape === "singularity";
+      });
+      expect(preview).toBeDefined();
+
+      const previewTrans = world.getComponent(preview!, "Transform") as any;
+      expect(previewTrans.x).toBe(shipComp.hyperspacePreviewX);
+      expect(previewTrans.y).toBe(shipComp.hyperspacePreviewY);
+    });
+
+    it("should cancel hyperspace charging if key is released", () => {
+      const ship = createShip({ world, x: 100, y: 100 });
+      world.addComponent(ship, { type: "LocalPlayer" });
+      world.addComponent(ship, {
+        type: "Input",
+        actions: { hyperspace: true },
+        axes: {}
+      } as any);
+      createAsteroid({ world, x: 700, y: 700, size: "large" });
+      world.flush();
+
+      // Charge for 1 frame
+      world.update(0.016);
+      world.flush();
+
+      let shipComp = world.getComponent(ship, "Ship") as any;
+      expect(shipComp.hyperspacePrepTime).toBeGreaterThan(0);
+
+      // Release key
+      world.mutateComponent(ship, "Input", (inp: any) => {
+        inp.actions = {};
+      });
+
+      world.update(0.016);
+      world.flush();
+
+      shipComp = world.getComponent(ship, "Ship") as any;
+      expect(shipComp.hyperspacePrepTime).toBe(0);
+      expect(shipComp.hyperspacePreviewX).toBeUndefined();
+    });
+
+    it("should teleport ship and apply cooldown when charge completes", () => {
+      const ship = createShip({ world, x: 100, y: 100 });
+      world.addComponent(ship, { type: "LocalPlayer" });
+      world.addComponent(ship, {
+        type: "Input",
+        actions: { hyperspace: true },
+        axes: {}
+      } as any);
+      createAsteroid({ world, x: 700, y: 700, size: "large" });
+      world.flush();
+
+      // Charge for 1 frame to lock destination coordinates
+      world.update(0.016);
+      world.flush();
+
+      const shipComp = world.getComponent(ship, "Ship") as any;
+      const targetX = shipComp.hyperspacePreviewX;
+      const targetY = shipComp.hyperspacePreviewY;
+
+      // Charge remaining frames (~31 frames for 0.5s prep time)
+      for (let i = 0; i < 32; i++) {
+        world.update(0.016);
+        world.flush();
+      }
+
+      // Teleport complete! Transform matches destination, Velocity is zero, Cooldown is set
+      const transform = world.getComponent(ship, "Transform") as any;
+      expect(transform.x).toBe(targetX);
+      expect(transform.y).toBe(targetY);
+
+      const velocity = world.getComponent(ship, "Velocity") as any;
+      expect(velocity.vx).toBe(0);
+      expect(velocity.vy).toBe(0);
+
+      const updatedShipComp = world.getComponent(ship, "Ship") as any;
+      expect(updatedShipComp.hyperspaceCooldownRemaining).toBeGreaterThan(4.5);
+      expect(updatedShipComp.hyperspacePrepTime).toBe(0);
+    });
+  });
+
+  describe("Asteroids Meta beneficial mutators", () => {
+    it("should apply hyper_drift mutator: double thrust and set low friction", () => {
+      // Mock GameConfig resource
+      const initialConfig = { SHIP_THRUST: 150, FRICTION: 0.99 };
+      world.setResource("GameConfig", initialConfig);
+
+      const { BENEFICIAL_MUTATORS } = require("../../../utils/MutatorRegistry");
+      BENEFICIAL_MUTATORS.hyper_drift.apply(world);
+
+      const updatedConfig = world.getResource<any>("GameConfig");
+      expect(updatedConfig.SHIP_THRUST).toBe(300);
+      expect(updatedConfig.FRICTION).toBe(0.95);
+    });
+
+    it("should apply bouncing_bullets mutator and spawn bullets with bouncing boundaries", () => {
+      const initialConfig = { BULLET_BOUNDARY_BEHAVIOR: "wrap" };
+      world.setResource("GameConfig", initialConfig);
+
+      const { BENEFICIAL_MUTATORS } = require("../../../utils/MutatorRegistry");
+      BENEFICIAL_MUTATORS.bouncing_bullets.apply(world);
+
+      const updatedConfig = world.getResource<any>("GameConfig");
+      expect(updatedConfig.BULLET_BOUNDARY_BEHAVIOR).toBe("bounce");
+
+      // Spawn bullet, should have a Boundary component with mode = bounce
+      const bullet = createBullet({ world, x: 100, y: 100, vx: 50, vy: 50 });
+      world.flush();
+
+      const boundary = world.getComponent(bullet, "Boundary") as any;
+      expect(boundary).toBeDefined();
+      expect(boundary.mode).toBe("bounce");
     });
   });
 });

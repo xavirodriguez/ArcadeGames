@@ -840,6 +840,24 @@ export class SpaceInvadersGame
 }
 
 export class NullSpaceInvadersGame implements ISpaceInvadersGame {
+  public get tick() { return 0; }
+  public get state() { return this.getGameState(); }
+  public step(input: any) {}
+  public snapshot() {
+    return {
+      tick: 0,
+      entities: [],
+      componentData: {},
+      stateVersion: 0,
+      structureVersion: 0,
+      seed: 0,
+      nextEntityId: 0,
+      freeEntities: []
+    } as any;
+  }
+  public restore(snapshot: any) {}
+  public hash() { return "00000000"; }
+
   public isMultiplayer = false;
   public gameId = "space-invaders";
   private _world = new World<SpaceInvadersComponentRegistry>();

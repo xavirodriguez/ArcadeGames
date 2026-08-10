@@ -4,6 +4,9 @@ import { EventRegistry, EventBus } from "../events/EventBus";
 import { BlueprintRegistry } from "../ecs/BlueprintRegistry";
 import { IGame } from "./IGame";
 import { GameLoop } from "../loop/GameLoop";
+import { Simulation } from "./Simulation";
+import { CompactInputFrame } from "../input/InputFrame";
+import { WorldSnapshot } from "../snapshots/WorldSnapshot";
 import { InputSystem, IInputSystem } from "../input/InputSystem";
 import { UnifiedInputSystem } from "../input/UnifiedInputSystem";
 import { Schedule } from "../ecs/Schedule";
@@ -73,7 +76,60 @@ export abstract class BaseGame<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
-> implements IGame<TState, TInput> {
+> implements IGame<TState, TInput>, Simulation {
+  public get tick(): number {
+    return this.world.tick;
+  }
+
+  public get state(): any {
+    return this.getGameState();
+  }
+
+  public step(input: CompactInputFrame): void {
+    this.onApplyInputFrame(input);
+    this.world.update(1 / 60);
+  }
+
+  protected onApplyInputFrame(input: CompactInputFrame): void {
+    // Fallback/Default implementation. Subclasses can override to decode bitmasks.
+  }
+
+  public snapshot(): WorldSnapshot {
+    return this.world.snapshot();
+  }
+
+  public restore(snapshot: WorldSnapshot): void {
+    this.world.restore(snapshot);
+  }
+
+  public hash(): string {
+    const snap = this.snapshot();
+    const dataToHash = {
+      tick: snap.tick,
+      entities: snap.entities,
+      components: snap.isSoA ? snap.soaComponentData : snap.componentData,
+      seed: snap.seed,
+      rngState: snap.rngState
+    };
+
+    const str = JSON.stringify(dataToHash, (key, value) => {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        return Object.keys(value).sort().reduce((sorted: any, k) => {
+          sorted[k] = value[k];
+          return sorted;
+        }, {});
+      }
+      return value;
+    });
+
+    let hash = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      hash ^= str.charCodeAt(i);
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+  }
+
   public world: World<TComponents, TEvents, TBlueprints>;
   public eventBus: EventBus<TEvents>;
   public blueprints: BlueprintRegistry<TComponents, TBlueprints>;
@@ -101,6 +157,12 @@ export abstract class BaseGame<
       ? config.sceneManagerFactory(this.world, this.eventBus)
       : new SceneManager(this.world, this.eventBus as any);
     this.audio = config.audio || new NullAudioPlayer();
+
+    // Set the initial gameplay random seed from config/options
+    const initialSeed = (config.gameOptions?.seed as number) ?? config.seed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+    this.world.gameplayRandom.unlock();
+    this.world.gameplayRandom.setSeed(initialSeed);
+    this.world.gameplayRandom.lock();
 
     this.eventBus.on("PlaySFX" as any, (payload: any) => {
       if (payload && payload.name) {

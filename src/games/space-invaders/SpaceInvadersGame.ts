@@ -840,6 +840,24 @@ export class SpaceInvadersGame
 }
 
 export class NullSpaceInvadersGame implements ISpaceInvadersGame {
+  public get tick() { return 0; }
+  public get state() { return this.getGameState(); }
+  public step(input: any) {}
+  public snapshot() {
+    return {
+      tick: 0,
+      entities: [],
+      componentData: {},
+      stateVersion: 0,
+      structureVersion: 0,
+      seed: 0,
+      nextEntityId: 0,
+      freeEntities: []
+    } as any;
+  }
+  public restore(snapshot: any) {}
+  public hash() { return "00000000"; }
+
   public isMultiplayer = false;
   public gameId = "space-invaders";
   private _world = new World<SpaceInvadersComponentRegistry>();
@@ -883,3 +901,23 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public startPlaybackReplay(serialized: string) {}
   public stopPlaybackReplay() {}
 }
+
+export const SpaceInvadersDefinition = {
+  name: "space-invaders",
+  createSimulation: (seed: number) => {
+    const game = new SpaceInvadersGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: ["moveLeft", "moveRight", "shoot"]
+  },
+  assets: {
+    sprites: [],
+    sounds: [
+      { id: "shoot", path: "/audio/shoot.mp3" },
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "explosion", path: "/audio/explosion.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" }
+    ]
+  }
+};

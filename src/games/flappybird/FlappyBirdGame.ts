@@ -522,6 +522,24 @@ export class FlappyBirdGame
 }
 
 export class NullFlappyBirdGame implements IFlappyBirdGame {
+  public get tick() { return 0; }
+  public get state() { return this.getGameState(); }
+  public step(input: any) {}
+  public snapshot() {
+    return {
+      tick: 0,
+      entities: [],
+      componentData: {},
+      stateVersion: 0,
+      structureVersion: 0,
+      seed: 0,
+      nextEntityId: 0,
+      freeEntities: []
+    } as any;
+  }
+  public restore(snapshot: any) {}
+  public hash() { return "00000000"; }
+
   public isMultiplayer = false;
   public gameId = "flappybird";
   private _world = new World<FlappyBirdComponentRegistry>();
@@ -572,3 +590,23 @@ registerMutatorHook("combo_head_start", (world: World) => {
     });
   }
 });
+
+export const FlappyBirdDefinition = {
+  name: "flappybird",
+  createSimulation: (seed: number) => {
+    const game = new FlappyBirdGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: ["flap", "glide"]
+  },
+  assets: {
+    sprites: [],
+    sounds: [
+      { id: "flap", path: "/audio/flap.mp3" },
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "score", path: "/audio/score.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" }
+    ]
+  }
+};

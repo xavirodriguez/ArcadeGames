@@ -2,6 +2,7 @@ import { World } from "../ecs/World";
 import { EventBus } from "../events/EventBus";
 import { IInputSystem } from "../input/InputSystem";
 import { GameLoop } from "../loop/GameLoop";
+import { Simulation } from "./Simulation";
 
 /**
  * Interface representing game lifecycle hooks.
@@ -32,7 +33,7 @@ export interface IGameLifecycleHooks {
  * Interface representing a runnable game.
  * @public
  */
-export interface IGame<TState = unknown, TInput = unknown> {
+export interface IGame<TState = unknown, TInput = unknown> extends Simulation {
   getWorld(): World<any, any, any>;
   getEventBus(): EventBus<any>;
   getGameLoop(): GameLoop;

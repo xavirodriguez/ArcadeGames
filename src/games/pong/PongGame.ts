@@ -451,3 +451,18 @@ registerMutatorHook("extra_life", (world: World) => {
     });
   }
 });
+
+export const PongDefinition = {
+  name: "pong",
+  createSimulation: (seed: number) => {
+    const game = new PongGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: ["up", "down"]
+  },
+  assets: {
+    sprites: [],
+    sounds: []
+  }
+};

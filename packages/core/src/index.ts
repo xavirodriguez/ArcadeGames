@@ -25,6 +25,7 @@ export * from "./snapshots/WorldSnapshot";
 export * from "./snapshots/SnapshotSerializer";
 export * from "./snapshots/SnapshotSerializerSoA";
 export * from "./snapshots/SnapshotRestoreSoA";
+export * from "./snapshots/SnapshotBuffer";
 export * from "./ecs/ComponentCloner";
 export * from "./scenes/Scene";
 export * from "./scenes/SceneManager";
@@ -55,6 +56,15 @@ export * from "./loop/GameLoop";
 export * from "./loop/FrameScheduler";
 export * from "./runtime/BaseGame";
 export * from "./runtime/IGame";
+export * from "./runtime/Simulation";
+export * from "./runtime/GameDefinition";
+export * from "./runtime/GameSession";
+export * from "./runtime/ArcadeKernel";
+
+// Input
+export * from "./input/InputSystem";
+export * from "./input/UnifiedInputSystem";
+export * from "./input/InputFrame";
 
 // Assets & Audio
 export * from "./assets/AssetLoader";
@@ -89,6 +99,7 @@ export * from "./rendering/RendererUtils";
 export * from "./rendering/RenderTypes";
 export * from "./rendering/RenderSnapshot";
 export * from "./rendering/RenderCommandBuffer";
+export * from "./rendering/RenderPipeline";
 export * from "./rendering/Camera2D";
 
 // Systems
@@ -134,9 +145,13 @@ export * from "./utils/ComponentSetPool";
 export * from "./utils/PrefabPool";
 export * from "./utils/ProjectilePool";
 
-// Replay classes are not exported from index to avoid collision with network ReplaySystem
-// Replay
-export { ReplayRecorder as DeterministicReplayRecorder } from "./replay/ReplayRecorder";
-export { ReplayPlayer as DeterministicReplayPlayer } from "./replay/ReplayPlayer";
+// Deterministic Pure Replay System
+export { Replay } from "./replay/DeterministicReplay";
+export { DeterministicReplayRecorder } from "./replay/DeterministicReplay";
+export { DeterministicReplayPlayer } from "./replay/DeterministicReplay";
+export { DivergenceDetector } from "./replay/DivergenceDetector";
+export { RollbackSimulation } from "./network/RollbackSimulation";
+export { MultiplayerReconciler } from "./network/MultiplayerReconciler";
+export { InputValidator } from "./network/InputValidator";
 
 export type { DeepReadonly } from "./ecs/Component";

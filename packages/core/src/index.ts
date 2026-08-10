@@ -99,6 +99,7 @@ export * from "./rendering/RendererUtils";
 export * from "./rendering/RenderTypes";
 export * from "./rendering/RenderSnapshot";
 export * from "./rendering/RenderCommandBuffer";
+export * from "./rendering/RenderPipeline";
 export * from "./rendering/Camera2D";
 
 // Systems

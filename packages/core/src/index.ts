@@ -57,6 +57,9 @@ export * from "./loop/FrameScheduler";
 export * from "./runtime/BaseGame";
 export * from "./runtime/IGame";
 export * from "./runtime/Simulation";
+export * from "./runtime/GameDefinition";
+export * from "./runtime/GameSession";
+export * from "./runtime/ArcadeKernel";
 
 // Input
 export * from "./input/InputSystem";

@@ -507,3 +507,22 @@ export class NullAsteroidsGame implements IAsteroidsGame {
     return freeze ? freeze.remaining : undefined;
   }
 }
+
+/** @public */
+export const AsteroidsDefinition = {
+  name: "asteroids",
+  createSimulation: (seed: number) => {
+    const game = new AsteroidsGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: ["thrust", "left", "right", "fire", "hyperspace"]
+  },
+  assets: {
+    sprites: [],
+    sounds: [
+      { id: "shoot", path: "/audio/shoot.mp3" },
+      { id: "explosion", path: "/audio/explosion.mp3" }
+    ]
+  }
+};

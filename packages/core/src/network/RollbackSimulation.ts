@@ -30,7 +30,7 @@ export class RollbackSimulation {
     currentTick: number,
     inputsHistory: Map<number, CompactInputFrame>
   ): boolean {
-    // 1. Load the state snapshot at targetTick
+    // 1. Load the state snapshot at targetTick (representing state of tick T BEFORE step T is executed)
     const snapshot = this.rollbackBuffer.loadSnapshot(targetTick);
     if (!snapshot) {
       return false; // Snapshot has already fallen out of the sliding window
@@ -39,15 +39,18 @@ export class RollbackSimulation {
     // 2. Restore simulation to targetTick
     this.simulation.restore(snapshot);
 
-    // 3. Apply corrected input frame at targetTick
+    // Ensure the buffer is kept intact for targetTick
+    this.rollbackBuffer.saveSnapshot(targetTick, snapshot);
+
+    // 3. Apply corrected input frame at targetTick (advances simulation to targetTick + 1)
     this.simulation.step(correctedInput);
     inputsHistory.set(targetTick, correctedInput);
 
-    // Save the new corrected snapshot back to the circular buffer
-    this.rollbackBuffer.saveSnapshot(targetTick, this.simulation.snapshot());
-
     // 4. Fast-forward / Resimulate up to currentTick
     for (let t = targetTick + 1; t <= currentTick; t++) {
+      // Save state snapshot of tick t BEFORE executing its step
+      this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
+
       let input = inputsHistory.get(t);
       if (!input) {
         // Fallback in case input is missing: keep buttons empty, set correct tick
@@ -55,9 +58,6 @@ export class RollbackSimulation {
         inputsHistory.set(t, input);
       }
       this.simulation.step(input);
-
-      // Save each resimulated step back into the circular buffer
-      this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
     }
 
     return true;

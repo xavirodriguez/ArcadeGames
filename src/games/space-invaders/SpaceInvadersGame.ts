@@ -901,3 +901,23 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public startPlaybackReplay(serialized: string) {}
   public stopPlaybackReplay() {}
 }
+
+export const SpaceInvadersDefinition = {
+  name: "space-invaders",
+  createSimulation: (seed: number) => {
+    const game = new SpaceInvadersGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: ["moveLeft", "moveRight", "shoot"]
+  },
+  assets: {
+    sprites: [],
+    sounds: [
+      { id: "shoot", path: "/audio/shoot.mp3" },
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "explosion", path: "/audio/explosion.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" }
+    ]
+  }
+};

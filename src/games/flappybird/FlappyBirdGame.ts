@@ -590,3 +590,23 @@ registerMutatorHook("combo_head_start", (world: World) => {
     });
   }
 });
+
+export const FlappyBirdDefinition = {
+  name: "flappybird",
+  createSimulation: (seed: number) => {
+    const game = new FlappyBirdGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: ["flap", "glide"]
+  },
+  assets: {
+    sprites: [],
+    sounds: [
+      { id: "flap", path: "/audio/flap.mp3" },
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "score", path: "/audio/score.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" }
+    ]
+  }
+};

@@ -23,6 +23,14 @@ const InputFrameSchema = z.object({
   axes: z.record(z.string(), z.number())
 });
 
+/**
+ * Authoritative game room for the Space Invaders simulation.
+ *
+ * @remarks
+ * This room runs a headless version of the {@link SpaceInvadersGame} and manages
+ * authoritative state synchronization, input buffering, and player lifecycle.
+ * It coordinates connection/session state and translates ECS updates to Colyseus State.
+ */
 export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
   maxClients = 4;
   private inputBuffers = new Map<string, InputFrame[]>();

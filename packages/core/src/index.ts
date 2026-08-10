@@ -150,5 +150,7 @@ export { DeterministicReplayRecorder } from "./replay/DeterministicReplay";
 export { DeterministicReplayPlayer } from "./replay/DeterministicReplay";
 export { DivergenceDetector } from "./replay/DivergenceDetector";
 export { RollbackSimulation } from "./network/RollbackSimulation";
+export { MultiplayerReconciler } from "./network/MultiplayerReconciler";
+export { InputValidator } from "./network/InputValidator";
 
 export type { DeepReadonly } from "./ecs/Component";

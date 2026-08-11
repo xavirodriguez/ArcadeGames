@@ -6,6 +6,7 @@ export const es = {
     flappybird: "FLAPPY BIRD",
     pong: "PONG",
     geometrywars: "GEOMETRY WARS",
+    echorunner: "ECHO // RUNNER",
     level: "NIVEL",
   },
   daily: {

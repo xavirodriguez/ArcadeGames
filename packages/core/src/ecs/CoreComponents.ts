@@ -168,6 +168,16 @@ export interface ParticleEmitterComponent extends Component {
 }
 
 /** @public */
+export interface TileDefinition {
+  solid: boolean;
+  oneWay?: boolean;
+  friction?: number;
+  bounce?: number;
+  damage?: number;
+  kind?: "normal" | "ice" | "spike" | "bounce";
+}
+
+/** @public */
 export interface TilemapComponent extends Component {
   type: "Tilemap";
   data: number[][];
@@ -178,6 +188,51 @@ export interface TilemapComponent extends Component {
     minY: number;
     maxY: number;
   };
+  tileDefinitions?: Record<number, TileDefinition>;
+}
+
+/** @public */
+export interface PlatformerMovementConfigComponent extends Component {
+  type: "PlatformerMovementConfig";
+  acceleration: number;
+  maxSpeed: number;
+  deceleration: number;
+  airAcceleration: number;
+  airDeceleration: number;
+}
+
+/** @public */
+export interface PlatformerInputComponent extends Component {
+  type: "PlatformerInput";
+  moveDir: number; // -1, 0, 1
+  jumpPressed: boolean;
+  jumpHeld: boolean;
+  jumpReleased: boolean;
+}
+
+/** @public */
+export interface PlatformerGravityConfigComponent extends Component {
+  type: "PlatformerGravityConfig";
+  riseGravity: number;
+  fallGravity: number;
+  jumpVelocity: number;
+  minJumpVelocity: number; // For variable jump height (short hop)
+}
+
+/** @public */
+export interface PlatformerJumperComponent extends Component {
+  type: "PlatformerJumper";
+  coyoteTimer: number;
+  jumpBufferTimer: number;
+  coyoteTimeMax: number;
+  jumpBufferMax: number;
+}
+
+/** @public */
+export interface PlatformerGroundStateComponent extends Component {
+  type: "PlatformerGroundState";
+  isGrounded: boolean;
+  iceMultiplier?: number;
 }
 
 /** @public */
@@ -337,6 +392,11 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Tag: import("./TagComponent").TagComponent;
   Faction: import("../ai/FactionComponent").FactionComponent;
   Steering: import("../ai/SteeringComponent").SteeringComponent;
+  PlatformerMovementConfig: PlatformerMovementConfigComponent;
+  PlatformerInput: PlatformerInputComponent;
+  PlatformerGravityConfig: PlatformerGravityConfigComponent;
+  PlatformerJumper: PlatformerJumperComponent;
+  PlatformerGroundState: PlatformerGroundStateComponent;
 }
 
 export { Entity };

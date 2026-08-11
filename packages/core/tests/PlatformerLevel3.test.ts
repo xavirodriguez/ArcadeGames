@@ -445,7 +445,7 @@ describe("Platformer Level 3 - Content & Design Tests", () => {
 
       // 1. Run sensor system -> should detect player (distance 30 <= 100)
       sensorSys.update(world, 0.1);
-      let sensor = world.getComponent(enemy, "PlayerSensor")!;
+      const sensor = world.getComponent(enemy, "PlayerSensor")!;
       expect(sensor.detectedPlayerEntity).toBe(player);
 
       // 2. Update SM -> Patrol state transition to Alert because player is detected

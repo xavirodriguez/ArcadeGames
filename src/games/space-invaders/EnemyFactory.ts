@@ -2,7 +2,7 @@ import { World } from "@tiny-aster/core";
 import { Entity, Component } from "@tiny-aster/core";
 import { EnemyBlueprints } from "./config/EnemyBlueprints";
 import { EnemyTagComponent } from "./components/EnemyTagComponent";
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent, FactionComponent } from "@tiny-aster/core";
 
 /**
  * Interface for runtime overrides when creating an enemy.
@@ -177,6 +177,15 @@ export class EnemyFactory {
             type: "Tag",
             tags: [...blueprint.tags]
         } as TagComponent);
+    }
+
+    // 6b. Faction Component
+    if (blueprint.kind === 'invader' || blueprint.kind === 'ufo' || blueprint.kind === 'asteroid') {
+      add({
+        type: "Faction",
+        faction: "enemy",
+        value: "enemy"
+      } as FactionComponent);
     }
 
     // 7. Spatial Partitioning

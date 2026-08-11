@@ -84,6 +84,7 @@ export class SpaceInvadersGame
 
     try {
       activeWorld.update(deltaTime);
+      activeWorld.getEventBus()?.flushDeferred();
     } finally {
       if (random && wasLocked) {
         random.lock();
@@ -437,6 +438,7 @@ export class SpaceInvadersGame
 
       // 2. Perform the actual simulation update tick
       this.getWorld().update(dt);
+      this.getWorld().getEventBus()?.flushDeferred();
 
       // 3. Record inputs if recording is enabled
       if (this._recorder) {

@@ -431,6 +431,105 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   MovingPlatform: MovingPlatformComponent;
   Hitbox: HitboxComponent;
   Hurtbox: HurtboxComponent;
+  RespawnPoint: RespawnPointComponent;
+  Respawnable: RespawnableComponent;
+  Collectible: CollectibleComponent;
+  Enemy: EnemyComponent;
+  Patrol: PatrolComponent;
+  GroundDetector: GroundDetectorComponent;
+  PlayerSensor: PlayerSensorComponent;
+}
+
+/**
+ * Component representing a respawn point.
+ * @public
+ */
+export interface RespawnPointComponent extends Component {
+  type: "RespawnPoint";
+  x: number;
+  y: number;
+  checkpointId: string;
+}
+
+/**
+ * Component used to mark entities that can be destroyed and respawned.
+ * It stores original spawning blueprint name and arguments.
+ * @public
+ */
+export interface RespawnableComponent extends Component {
+  type: "Respawnable";
+  blueprintKey: string;
+  initialArgs: any;
+}
+
+/**
+ * Component representing a generic collectible.
+ * @public
+ */
+export interface CollectibleComponent extends Component {
+  type: "Collectible";
+  kind: string;
+  value: number;
+  persistent: boolean;
+  collectOnce: boolean;
+  id: string;
+}
+
+/**
+ * Component representing an enemy.
+ * @public
+ */
+export interface EnemyComponent extends Component {
+  type: "Enemy";
+  kind: "patrol" | "jumper" | "charger";
+}
+
+/**
+ * Component for enemies that patrol between horizontal coordinates.
+ * @public
+ */
+export interface PatrolComponent extends Component {
+  type: "Patrol";
+  startX: number;
+  endX: number;
+  direction: number; // -1 or 1
+  patrolSpeed: number;
+}
+
+/**
+ * Component for horizontal ground and wall detection.
+ * @public
+ */
+export interface GroundDetectorComponent extends Component {
+  type: "GroundDetector";
+  hasGroundAhead: boolean;
+  hasWallAhead: boolean;
+  sensorOffsetX: number;
+  sensorOffsetY: number;
+}
+
+/**
+ * Component for players or targeting sensors.
+ * @public
+ */
+export interface PlayerSensorComponent extends Component {
+  type: "PlayerSensor";
+  visionRange: number;
+  detectedPlayerEntity?: Entity;
+}
+
+/**
+ * Interface representing the global run state for platformer progression.
+ * @public
+ */
+export interface RunState {
+  attempt: number;
+  lives: number;
+  activeCheckpoint: string | null;
+  elapsedTime: number;
+  deaths: number;
+  collectedPermanentIds: string[];
+  collectedTemporalIds: string[];
 }
 
 export { Entity };

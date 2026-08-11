@@ -56,6 +56,25 @@ export class WorldCommandBuffer<
     });
   }
 
+  /**
+   * Schedules a pre-reserved entity ID to be spawned from a blueprint.
+   */
+  public spawnFromBlueprintForEntity<TId extends keyof TBlueprints & string>(
+    entity: number,
+    blueprintId: TId,
+    args: BlueprintArgs<TBlueprints, TId>
+  ): void {
+    this.commands.push({
+      execute: (world) => {
+        const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
+        const blueprint = registry?.get(blueprintId);
+        if (blueprint) {
+          blueprint.spawn(world, entity, args);
+        }
+      }
+    });
+  }
+
   public addComponent<K extends ComponentType<TComponents>>(
     entity: number,
     component: TComponents[K] & { type: K }

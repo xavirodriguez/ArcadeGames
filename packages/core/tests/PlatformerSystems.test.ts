@@ -6,6 +6,13 @@ import { TileCollisionSystem } from "../src/physics/systems/TileCollisionSystem"
 import { PlatformerCoyoteSystem } from "../src/systems/PlatformerCoyoteSystem";
 import { PhysicsIntegrateSystem } from "../src/physics/dynamics/PhysicsIntegrateSystem";
 import { EventBus } from "../src/events/EventBus";
+import { MovingPlatformSystem } from "../src/physics/systems/MovingPlatformSystem";
+import { PlatformCarrySystem } from "../src/physics/systems/PlatformCarrySystem";
+import { Camera2DSystem } from "../src/rendering/Camera2D";
+import { HitDetectionSystem } from "../src/systems/HitDetectionSystem";
+import { CollisionSystem2D } from "../src/physics/collision/CollisionSystems";
+import { HierarchySystem } from "../src/systems/HierarchySystem";
+import { ShapeType, BoxShape } from "../src/physics/shapes/Shapes";
 
 describe("Platformer Systems Tests", () => {
   let world: World<CoreComponentRegistry>;
@@ -560,6 +567,460 @@ describe("Platformer Systems Tests", () => {
       expect(ground.isGrounded).toBe(false);
       expect(jumper.jumpBufferTimer).toBe(0);
       expect(jumper.coyoteTimer).toBe(0);
+    });
+  });
+
+  describe("Hito 7 - Control Aéreo", () => {
+    it("should converge slower in the air than on the ground for the same deltaTime", () => {
+      const movementSystem = new PlatformerMovementSystem();
+
+      const config = {
+        type: "PlatformerMovementConfig",
+        acceleration: 1000,
+        maxSpeed: 200,
+        deceleration: 1000,
+        airAcceleration: 400,
+        airDeceleration: 400
+      };
+
+      const input = {
+        type: "PlatformerInput",
+        moveDir: 1, // Moving right
+        jumpPressed: false,
+        jumpHeld: false,
+        jumpReleased: false
+      };
+
+      // Entity A: Grounded player
+      const entityGround = world.createEntity();
+      world.addComponent(entityGround, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
+      world.addComponent(entityGround, { ...config } as any);
+      world.addComponent(entityGround, { ...input } as any);
+      world.addComponent(entityGround, { type: "PlatformerGroundState", isGrounded: true, iceMultiplier: 1.0 });
+
+      // Entity B: Airborne player
+      const entityAir = world.createEntity();
+      world.addComponent(entityAir, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
+      world.addComponent(entityAir, { ...config } as any);
+      world.addComponent(entityAir, { ...input } as any);
+      world.addComponent(entityAir, { type: "PlatformerGroundState", isGrounded: false });
+
+      // Run movement system for 0.1s
+      movementSystem.update(world, 0.1);
+
+      const velGround = world.getComponent(entityGround, "Velocity")!;
+      const velAir = world.getComponent(entityAir, "Velocity")!;
+
+      // On ground: accel is 1000 * 0.1s = 100 vx
+      expect(velGround.vx).toBe(100);
+      // In air: air accel is 400 * 0.1s = 40 vx (slower convergence!)
+      expect(velAir.vx).toBe(40);
+      expect(velAir.vx).toBeLessThan(velGround.vx);
+    });
+  });
+
+  describe("Hito 8 - Control del ápice ('hang time')", () => {
+    it("should reduce applied gravity near the jump peak (apex)", () => {
+      const gravitySystem = new PlatformerGravitySystem();
+
+      const config = {
+        type: "PlatformerGravityConfig",
+        riseGravity: 600,
+        fallGravity: 1000,
+        jumpVelocity: 300,
+        minJumpVelocity: 100,
+        apexThreshold: 50,
+        apexGravityMultiplier: 0.2
+      };
+
+      // Entity A: Far from apex (rising fast, vy = -150)
+      const entityFar = world.createEntity();
+      world.addComponent(entityFar, { type: "Velocity", vx: 0, vy: -150, angularVelocity: 0 });
+      world.addComponent(entityFar, { ...config } as any);
+
+      // Entity B: Near apex (rising slowly, vy = -20)
+      const entityNear = world.createEntity();
+      world.addComponent(entityNear, { type: "Velocity", vx: 0, vy: -20, angularVelocity: 0 });
+      world.addComponent(entityNear, { ...config } as any);
+
+      // Run gravity system for 0.1s
+      gravitySystem.update(world, 0.1);
+
+      const velFar = world.getComponent(entityFar, "Velocity")!;
+      const velNear = world.getComponent(entityNear, "Velocity")!;
+
+      // Far from apex change: riseGravity (600) * 0.1s = 60 -> vy becomes -150 + 60 = -90
+      expect(velFar.vy).toBe(-90);
+
+      // Near apex change: riseGravity (600) * apexGravityMultiplier (0.2) * 0.1s = 12 -> vy becomes -20 + 12 = -8
+      expect(velNear.vy).toBe(-8);
+
+      // Change in vy is smaller near apex
+      const deltaFar = Math.abs(velFar.vy - (-150));
+      const deltaNear = Math.abs(velNear.vy - (-20));
+      expect(deltaNear).toBeLessThan(deltaFar);
+    });
+  });
+
+  describe("Hito 9 - Plataformas Móviles y Carry", () => {
+    it("should move moving platform deterministically using sine wave pattern", () => {
+      const movingPlatformSystem = new MovingPlatformSystem();
+      const platform = world.createEntity();
+
+      world.addComponent(platform, {
+        type: "Transform",
+        x: 100,
+        y: 100,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 100,
+        worldY: 100,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+      world.addComponent(platform, {
+        type: "Velocity",
+        vx: 0,
+        vy: 0,
+        angularVelocity: 0
+      });
+      world.addComponent(platform, {
+        type: "MovingPlatform",
+        pattern: "sine",
+        startX: 100,
+        startY: 100,
+        amplitudeX: 50,
+        amplitudeY: 0,
+        frequency: 0.25, // 4s full period
+        elapsed: 0
+      });
+
+      // Update 1s (0.25 period, sin(pi/2) = 1) -> platform x should go to 100 + 50 = 150
+      movingPlatformSystem.update(world, 1.0);
+
+      const trans = world.getComponent(platform, "Transform")!;
+      expect(trans.x).toBeCloseTo(150);
+    });
+
+    it("should carry player displacement when grounded on moving platform, and stop when jumping off", () => {
+      const carrySystem = new PlatformCarrySystem();
+
+      const platform = world.createEntity();
+      world.addComponent(platform, {
+        type: "Transform",
+        x: 100,
+        y: 200,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 100,
+        worldY: 200,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+      world.addComponent(platform, { type: "Velocity", vx: 50, vy: 0, angularVelocity: 0 });
+      world.addComponent(platform, {
+        type: "Collider2D",
+        shape: { type: "aabb", halfWidth: 30, halfHeight: 10 },
+        layer: 2,
+        mask: 0xFFFF,
+        offsetX: 0,
+        offsetY: 0,
+        isTrigger: false,
+        enabled: true
+      });
+      world.addComponent(platform, {
+        type: "MovingPlatform",
+        pattern: "sine",
+        startX: 100,
+        startY: 200,
+        amplitudeX: 50,
+        amplitudeY: 0,
+        frequency: 0.25,
+        elapsed: 0
+      });
+
+      const player = world.createEntity();
+      // Position player just above platform. Player bottom edge is y + 15 = 190. Platform top is 200 - 10 = 190.
+      world.addComponent(player, {
+        type: "Transform",
+        x: 100,
+        y: 175,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 100,
+        worldY: 175,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+      world.addComponent(player, { type: "Velocity", vx: 0, vy: 10, angularVelocity: 0 });
+      world.addComponent(player, {
+        type: "Collider2D",
+        shape: { type: "aabb", halfWidth: 10, halfHeight: 15 },
+        layer: 1,
+        mask: 0xFFFF,
+        offsetX: 0,
+        offsetY: 0,
+        isTrigger: false,
+        enabled: true
+      });
+      world.addComponent(player, { type: "PlatformerGroundState", isGrounded: false });
+
+      // Update 1 frame to detect landing (dt = 0.1s, player was at 174 previously, falling. So landing check applies)
+      carrySystem.update(world, 0.1);
+
+      let playerGround = world.getComponent(player, "PlatformerGroundState")!;
+      let playerTrans = world.getComponent(player, "Transform")!;
+
+      expect(playerGround.isGrounded).toBe(true);
+      expect(playerGround.carrierEntity).toBe(platform);
+      // Snapped perfectly: platform top (190) - player halfHeight (15) = 175
+      expect(playerTrans.y).toBe(175);
+
+      // Another frame to check carry displacement: platform speed is 50. In 0.1s, platform moves 5.
+      carrySystem.update(world, 0.1);
+      playerTrans = world.getComponent(player, "Transform")!;
+      expect(playerTrans.x).toBe(105); // shifted!
+
+      // Jump off platform: set isGrounded = false, carrySystem should clear carrierEntity
+      world.mutateComponent(player, "PlatformerGroundState", (g) => {
+        g.isGrounded = false;
+      });
+      carrySystem.update(world, 0.1);
+      playerGround = world.getComponent(player, "PlatformerGroundState")!;
+      expect(playerGround.carrierEntity).toBeUndefined();
+    });
+  });
+
+  describe("Hito 10 - Cámara con look-ahead y deadzone vertical suavizada", () => {
+    it("should displace smoothly ahead in horizontal movement and respect vertical deadzone", () => {
+      const cameraSystem = new Camera2DSystem();
+
+      const screenConfig = { width: 800, height: 600 };
+      world.setResource("ScreenConfig", screenConfig);
+
+      const player = world.createEntity();
+      world.addComponent(player, { type: "Tag", tags: ["Player"] });
+      world.addComponent(player, {
+        type: "Transform",
+        x: 400,
+        y: 300,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 400,
+        worldY: 300,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+      // Player moving fast to the right
+      world.addComponent(player, { type: "Velocity", vx: 200, vy: 0, angularVelocity: 0 });
+
+      const camera = world.createEntity();
+      world.addComponent(camera, {
+        type: "Camera2D",
+        zoom: 1.0,
+        x: 0,
+        y: 0,
+        targetX: 0,
+        targetY: 0,
+        followEntity: player,
+        lookAheadX: 100,
+        smoothingX: 5.0,
+        smoothingY: 5.0,
+        verticalDeadzone: 50
+      });
+
+      // Update camera. Player is at 400 moving right. Target centerX = 400 + 100 = 500.
+      // Screen width is 800, so target top-left X = 500 - 400 = 100.
+      cameraSystem.update(world, 0.1);
+
+      let cam = world.getComponent(camera, "Camera2D")!;
+      // Expected target top-left X is 100. Smooth convergence from x=0:
+      // t = 1 - exp(-5 * 0.1) = 1 - exp(-0.5) = 1 - 0.6065 = 0.3935
+      // x should be around 0 + 100 * 0.3935 = 39.35
+      expect(cam.x).toBeCloseTo(39.35, 1);
+      // y target is centered (300 - 300 = 0), so it should stay at 0.
+      expect(cam.y).toBe(0);
+
+      // Now, test vertical deadzone. Player jumps slightly to y = 320.
+      // Camera center is cam.y + 300 = 300. Distance is 20 < deadzone (50).
+      // Camera y target shouldn't change from 0.
+      world.mutateComponent(player, "Transform", (t) => {
+        t.y = 320;
+      });
+      cameraSystem.update(world, 0.1);
+      cam = world.getComponent(camera, "Camera2D")!;
+      expect(cam.y).toBe(0); // within deadzone, no Y camera motion!
+
+      // Player jumps high to y = 400.
+      // Distance is 100 > deadzone (50). Excess is 50.
+      // Camera Y target moves to 50. Camera y should converge smoothly towards 50.
+      world.mutateComponent(player, "Transform", (t) => {
+        t.y = 400;
+      });
+      cameraSystem.update(world, 0.1);
+      cam = world.getComponent(camera, "Camera2D")!;
+      // Converges smoothly!
+      expect(cam.y).toBeGreaterThan(0);
+      expect(cam.y).toBeLessThan(50);
+    });
+  });
+
+  describe("Hito 11 - Hitbox / Hurtbox Separados", () => {
+    it("should process triggers between hitbox/hurtbox child entities and emit a single damage event", () => {
+      const collisionSystem = new CollisionSystem2D();
+      const hitDetectionSystem = new HitDetectionSystem();
+      const hierarchySystem = new HierarchySystem();
+
+      // Setup Collision Layers bitflags
+      const HITBOX_LAYER = 1 << 3;
+      const HURTBOX_LAYER = 1 << 4;
+
+      // Attacker Entity
+      const attacker = world.createEntity();
+      world.addComponent(attacker, {
+        type: "Transform",
+        x: 100,
+        y: 100,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 100,
+        worldY: 100,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      });
+
+      // Hitbox Child Entity
+      const hitbox = world.createEntity();
+      world.addComponent(hitbox, {
+        type: "Transform",
+        x: 10, // offset from parent
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 10,
+        worldY: 0,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true,
+        parentEntity: attacker
+      });
+      world.addComponent(hitbox, {
+        type: "Collider",
+        shape: { type: ShapeType.Box, width: 20, height: 20 } as BoxShape,
+        layer: HITBOX_LAYER,
+        mask: HURTBOX_LAYER,
+        enabled: true,
+        isTrigger: true
+      });
+      world.addComponent(hitbox, { type: "CollisionEvents", collisions: [], activeTriggers: [], triggersEntered: [], triggersExited: [] });
+      world.addComponent(hitbox, { type: "Hitbox", hitEntities: [] });
+
+      // Victim Entity
+      const victim = world.createEntity();
+      world.addComponent(victim, {
+        type: "Transform",
+        x: 125,
+        y: 100,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 125,
+        worldY: 100,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      });
+
+      // Hurtbox Child Entity
+      const hurtbox = world.createEntity();
+      world.addComponent(hurtbox, {
+        type: "Transform",
+        x: 0,
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 0,
+        worldY: 0,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true,
+        parentEntity: victim
+      });
+      world.addComponent(hurtbox, {
+        type: "Collider",
+        shape: { type: ShapeType.Box, width: 20, height: 20 } as BoxShape,
+        layer: HURTBOX_LAYER,
+        mask: HITBOX_LAYER,
+        enabled: true,
+        isTrigger: true
+      });
+      world.addComponent(hurtbox, { type: "CollisionEvents", collisions: [], activeTriggers: [], triggersEntered: [], triggersExited: [] });
+      world.addComponent(hurtbox, { type: "Hurtbox" });
+
+      // Run Hierarchy System to position child entities correctly
+      // Hitbox worldX should become: attacker.x (100) + offset.x (10) = 110.
+      // Hurtbox worldX should become: victim.x (125) + offset.x (0) = 125.
+      hierarchySystem.update(world, 0.1);
+
+      const hbTrans = world.getComponent(hitbox, "Transform")!;
+      expect(hbTrans.worldX).toBe(110);
+
+      // Listen for hitbox hit events
+      let hitEventsCount = 0;
+      let attackerId: any = null;
+      let victimId: any = null;
+
+      const eventBus = world.getEventBus();
+      eventBus.on("hitbox:hit" as any, (event: any) => {
+        hitEventsCount++;
+        attackerId = event.attacker;
+        victimId = event.victim;
+      });
+
+      // Run Collision System to detect trigger overlap between Hitbox (x=110, w=20) and Hurtbox (x=125, w=20)
+      collisionSystem.update(world, 0.1);
+
+      // Run Hit Detection System to process trigger events
+      hitDetectionSystem.update(world, 0.1);
+
+      expect(hitEventsCount).toBe(1);
+      expect(attackerId).toBe(attacker);
+      expect(victimId).toBe(victim);
+
+      // Run systems again - since the overlap persists, the hit shouldn't re-trigger (single-hit filter)
+      collisionSystem.update(world, 0.1);
+      hitDetectionSystem.update(world, 0.1);
+      expect(hitEventsCount).toBe(1); // Still exactly 1 hit event!
+
+      // Deactivate Hitbox by setting enabled = false
+      world.mutateComponent(hitbox, "Collider", (col) => {
+        col.enabled = false;
+      });
+
+      // Verify that after deactivation, it no longer triggers collisions/events
+      collisionSystem.update(world, 0.1);
+      hitDetectionSystem.update(world, 0.1);
+      expect(hitEventsCount).toBe(1); // No new hits
     });
   });
 });

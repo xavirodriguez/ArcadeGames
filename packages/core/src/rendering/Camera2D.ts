@@ -1,6 +1,12 @@
 import { System } from "../ecs/System";
 import { World } from "../ecs/World";
-import { CoreComponentRegistry, Camera2DComponent, VisualOffsetComponent } from "../ecs/CoreComponents";
+import {
+  CoreComponentRegistry,
+  Camera2DComponent,
+  VisualOffsetComponent,
+  TransformComponent,
+  VelocityComponent
+} from "../ecs/CoreComponents";
 
 /**
  * System that manages 2D camera transformations.
@@ -21,13 +27,6 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
     const worldWidth = gameConfig?.WIDTH ?? gameConfig?.worldWidth;
     const worldHeight = gameConfig?.HEIGHT ?? gameConfig?.worldHeight;
 
-    // Look for a player to follow automatically
-    const players = world.query("Player" as any);
-    let playerTransform: any = undefined;
-    if (players.length > 0) {
-      playerTransform = world.getComponent(players[0], "Transform" as any);
-    }
-
     for (let i = 0; i < cameras.length; i++) {
       const camEntity = cameras[i];
       const cam = world.getComponent(camEntity, "Camera2D") as Camera2DComponent | undefined;
@@ -35,20 +34,69 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
 
       const zoom = cam.zoom || 1;
 
-      world.mutateComponent(camEntity, "Camera2D", (mutableCam) => {
-        // Smoothly update target top-left position if following player
-        if (playerTransform) {
-          mutableCam.targetX = playerTransform.x - (screenWidth / 2) / zoom;
-          mutableCam.targetY = playerTransform.y - (screenHeight / 2) / zoom;
+      // Determine followed entity
+      let targetEntity = cam.followEntity;
+      if (targetEntity === undefined) {
+        const players = world.query("Player" as any);
+        if (players.length > 0) {
+          targetEntity = players[0];
         }
+      }
 
-        // Smooth follow using frame-rate independent lerp
-        const speed = 5; // smooth speed
-        const t = 1 - Math.exp(-speed * deltaTime);
-        mutableCam.x += (mutableCam.targetX - mutableCam.x) * t;
-        mutableCam.y += (mutableCam.targetY - mutableCam.y) * t;
+      if (targetEntity !== undefined && world.hasEntity(targetEntity)) {
+        const targetTransform = world.getComponent(targetEntity, "Transform") as TransformComponent | undefined;
+        const targetVelocity = world.getComponent(targetEntity, "Velocity") as VelocityComponent | undefined;
 
-        // Apply boundaries/limits if configured
+        if (targetTransform) {
+          world.mutateComponent(camEntity, "Camera2D", (mutableCam) => {
+            // Horizontal look-ahead offset
+            const sign = targetVelocity ? (targetVelocity.vx > 0.01 ? 1 : (targetVelocity.vx < -0.01 ? -1 : 0)) : 0;
+            const lookAheadOffset = sign * (mutableCam.lookAheadX ?? 0);
+
+            const camCenterX = mutableCam.x + (screenWidth / 2) / zoom;
+            const camCenterY = mutableCam.y + (screenHeight / 2) / zoom;
+
+            const desiredCenterX = targetTransform.x + lookAheadOffset;
+            let desiredCenterY = camCenterY;
+
+            // Vertical deadzone constraint
+            const verticalDeadzone = mutableCam.verticalDeadzone ?? 0;
+            const diffY = targetTransform.y - camCenterY;
+
+            if (Math.abs(diffY) > verticalDeadzone) {
+              const excess = diffY - Math.sign(diffY) * verticalDeadzone;
+              desiredCenterY = camCenterY + excess;
+            }
+
+            const desiredX = desiredCenterX - (screenWidth / 2) / zoom;
+            const desiredY = desiredCenterY - (screenHeight / 2) / zoom;
+
+            // Exponential smoothing factors
+            const smoothingX = mutableCam.smoothingX ?? 5;
+            const smoothingY = mutableCam.smoothingY ?? 5;
+
+            const tx = 1 - Math.exp(-smoothingX * deltaTime);
+            const ty = 1 - Math.exp(-smoothingY * deltaTime);
+
+            mutableCam.x += (desiredX - mutableCam.x) * tx;
+            mutableCam.y += (desiredY - mutableCam.y) * ty;
+
+            mutableCam.targetX = desiredX;
+            mutableCam.targetY = desiredY;
+          });
+        }
+      } else {
+        // Fallback or smooth towards manual targetX/targetY if no follow entity
+        world.mutateComponent(camEntity, "Camera2D", (mutableCam) => {
+          const speed = 5;
+          const t = 1 - Math.exp(-speed * deltaTime);
+          mutableCam.x += (mutableCam.targetX - mutableCam.x) * t;
+          mutableCam.y += (mutableCam.targetY - mutableCam.y) * t;
+        });
+      }
+
+      // Boundary clamping
+      world.mutateComponent(camEntity, "Camera2D", (mutableCam) => {
         const viewW = screenWidth / zoom;
         const viewH = screenHeight / zoom;
 

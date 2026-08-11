@@ -12,29 +12,31 @@ export class SpaceInvadersRenderSystem extends System<SpaceInvadersComponentRegi
       const health = world.getComponent(entity, "Health");
       if (!health) return;
 
+      const render = world.getComponent(entity, "Render");
+      if (!render) return;
+
       // Handle invulnerability blinking
       if (health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
         const remaining = health.invulnerableRemaining;
 
-        // Manejar parpadeo de Render
-        const render = world.getComponent(entity, "Render");
-        if (render) {
-          const newColor = (Math.floor(remaining / 100) % 2 === 0)
-            ? "transparent"
-            : "#00FF00";
+        // remaining is in seconds, convert to milliseconds to blink every 100ms
+        const remainingMs = remaining * 1000;
+        const visible = Math.floor(remainingMs / 100) % 2 !== 0;
 
-          // Regla extra: verificar si el color cambió antes de mutar
-          if (render.color !== newColor) {
-            world.mutateComponent(entity, "Render", r => {
-              r.color = newColor;
-            });
-          }
+        // extra rule: verify if fields changed before mutating to avoid unnecessary changes
+        if (render.visible !== visible) {
+          world.mutateComponent(entity, "Render", r => {
+            r.visible = visible;
+          });
         }
       } else {
-        const render = world.getComponent(entity, "Render");
+        if (!render.visible) {
+          world.mutateComponent(entity, "Render", r => {
+            r.visible = true;
+          });
+        }
         const defaultColor = "#00FF00";
-
-        if (render && render.shape === "player_ship" && render.color !== defaultColor) {
+        if (render.shape === "player_ship" && render.color !== defaultColor) {
           // Mutación segura mediante mutateComponent
           world.mutateComponent(entity, "Render", r => {
             r.color = defaultColor;

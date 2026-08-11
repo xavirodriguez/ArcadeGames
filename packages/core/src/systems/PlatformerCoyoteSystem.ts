@@ -26,7 +26,7 @@ export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreCo
 
       if (!groundState || !jumper || !gravityConfig || !vel) continue;
 
-      let isGrounded = groundState.isGrounded;
+      const isGrounded = groundState.isGrounded;
 
       // Update timers
       let nextCoyoteTimer = jumper.coyoteTimer;

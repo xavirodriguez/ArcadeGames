@@ -41,12 +41,14 @@ export class StateMachineSystem extends System<CoreComponentRegistry> {
 
       const stateDef = definition.states[sm.currentState];
 
+      let elapsedMs = 0;
       world.mutateComponent(entity, "StateMachine", (comp) => {
         comp.elapsedMs += deltaTime;
+        elapsedMs = comp.elapsedMs;
       });
 
       if (stateDef?.onUpdate) {
-        const nextState = stateDef.onUpdate(world, entity, sm.data, sm.elapsedMs);
+        const nextState = stateDef.onUpdate(world, entity, sm.data, elapsedMs);
         if (nextState && nextState !== sm.currentState) {
           this.transition(world, entity, nextState, definition);
         }

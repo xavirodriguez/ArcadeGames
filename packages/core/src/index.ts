@@ -161,4 +161,13 @@ export { RollbackSimulation } from "./network/RollbackSimulation";
 export { MultiplayerReconciler } from "./network/MultiplayerReconciler";
 export { InputValidator } from "./network/InputValidator";
 
+// Level 3 Systems
+export * from "./systems/CollectibleSystem";
+export * from "./systems/CheckpointSystem";
+export * from "./systems/DeathSystem";
+export * from "./systems/RespawnSystem";
+export * from "./systems/EnemySensorSystem";
+export * from "./systems/EnemyBehaviorRegistry";
+export * from "./systems/SegmentGenerator";
+
 export type { DeepReadonly } from "./ecs/Component";

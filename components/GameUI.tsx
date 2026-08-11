@@ -74,6 +74,9 @@ interface MinimalGameState {
   intermissionRemaining?: number;
   continueCountdownRemaining?: number;
   continuesRemaining?: number;
+  mode?: "deathmatch" | "story";
+  storyBeatText?: string;
+  chapterTitle?: string;
   [key: string]: any;
 }
 
@@ -146,7 +149,7 @@ export const GameUI = React.memo(function GameUI({
       {/* Ready / Get Ready Overlay */}
       {readyRemaining > 0 && (
         <Animated.View entering={ZoomIn.duration(500)} exiting={FadeOut.duration(500)} style={styles.centerOverlay}>
-          <Text style={styles.readyTitle}>GET READY</Text>
+          <Text style={styles.readyTitle}>{gameState.storyBeatText ?? "GET READY"}</Text>
           <Text style={styles.readyTimer}>{Math.ceil(readyRemaining)}</Text>
         </Animated.View>
       )}
@@ -154,8 +157,8 @@ export const GameUI = React.memo(function GameUI({
       {/* Intermission Overlay */}
       {intermissionRemaining > 0 && (
         <Animated.View entering={BounceIn.duration(500)} exiting={FadeOut.duration(500)} style={styles.centerOverlay}>
-          <Text style={styles.intermissionTitle}>STAGE CLEARED!</Text>
-          <Text style={styles.intermissionSub}>PREPARING NEXT WAVE...</Text>
+          <Text style={styles.intermissionTitle}>{gameState.chapterTitle ?? "STAGE CLEARED!"}</Text>
+          <Text style={styles.intermissionSub}>{gameState.storyBeatText ?? "PREPARING NEXT WAVE..."}</Text>
         </Animated.View>
       )}
 
@@ -180,6 +183,8 @@ export const GameUI = React.memo(function GameUI({
           score={gameState.score}
           highScore={highScore ?? 0}
           onRestart={onRestart}
+          mode={gameState.mode}
+          level={gameState.level}
         />
       )}
     </View>
@@ -262,38 +267,57 @@ const GameOverOverlay: React.FC<{
   score: number;
   highScore: number;
   onRestart?: () => void;
-}> = ({ score, highScore, onRestart }) => (
-  <Animated.View
-    entering={FadeIn.duration(500)}
-    style={styles.gameOverOverlay}
-  >
-    {Platform.OS !== "web" && Canvas && BackdropBlur && Fill && (
-      <Canvas style={StyleSheet.absoluteFill}>
-        <BackdropBlur blur={20}>
-            <Fill color="rgba(0, 0, 0, 0.6)" />
-        </BackdropBlur>
-      </Canvas>
-    )}
+  mode?: "deathmatch" | "story";
+  level?: number;
+}> = ({ score, highScore, onRestart, mode, level }) => {
+  let endingText = score >= highScore ? "¡NUEVO RÉCORD!" : `Récord actual: ${highScore}`;
+  if (mode === "story" && level !== undefined) {
+    if (level < 5) {
+      endingText = "Tu señal se apagó cerca del borde del Cinturón.";
+    } else if (level <= 10) {
+      endingText = "Escapaste con fragmentos de prueba... pero el enjambre sigue ahí fuera.";
+    } else {
+      if (score >= highScore) {
+        endingText = "NUEVO RÉCORD — Te convertiste en leyenda del Cinturón de Kepler.";
+      } else {
+        endingText = "Te convertiste en leyenda del Cinturón de Kepler.";
+      }
+    }
+  }
 
-    <Animated.Text
-      entering={ZoomIn.delay(300).duration(800)}
-      style={styles.gameOverText}
+  return (
+    <Animated.View
+      entering={FadeIn.duration(500)}
+      style={styles.gameOverOverlay}
     >
-      GAME OVER
-    </Animated.Text>
+      {Platform.OS !== "web" && Canvas && BackdropBlur && Fill && (
+        <Canvas style={StyleSheet.absoluteFill}>
+          <BackdropBlur blur={20}>
+              <Fill color="rgba(0, 0, 0, 0.6)" />
+          </BackdropBlur>
+        </Canvas>
+      )}
 
-    <Animated.View entering={SlideInDown.delay(600).duration(800)} style={{ alignItems: "center" }}>
-      <Text style={styles.finalScoreText}>Final Score: {score}</Text>
-      <Text style={styles.highScoreText}>
-        {score >= highScore ? "¡NUEVO RÉCORD!" : `Récord actual: ${highScore}`}
-      </Text>
+      <Animated.Text
+        entering={ZoomIn.delay(300).duration(800)}
+        style={styles.gameOverText}
+      >
+        GAME OVER
+      </Animated.Text>
 
-      <TouchableOpacity style={styles.restartButton} onPress={onRestart}>
-        <Text style={styles.restartButtonText}>RESTART</Text>
-      </TouchableOpacity>
+      <Animated.View entering={SlideInDown.delay(600).duration(800)} style={{ alignItems: "center" }}>
+        <Text style={styles.finalScoreText}>Final Score: {score}</Text>
+        <Text style={styles.highScoreText}>
+          {endingText}
+        </Text>
+
+        <TouchableOpacity style={styles.restartButton} onPress={onRestart}>
+          <Text style={styles.restartButtonText}>RESTART</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </Animated.View>
-  </Animated.View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

@@ -10,6 +10,11 @@ export interface GameStateComponent extends Component {
   combo?: number;
   multiplier?: number;
   comboTimerRemaining?: number;
+  mode?: "deathmatch" | "story";
+  readyRemaining?: number;
+  intermissionRemaining?: number;
+  storyBeatText?: string;
+  chapterTitle?: string;
 }
 
 /** @public */

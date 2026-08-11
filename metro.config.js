@@ -14,7 +14,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === 'ws') {
     return {
       type: 'sourceFile',
-      filePath: path.resolve(__dirname, 'src/utils/ws-mock.js'),
+      filePath: path.resolve(__dirname, 'src/utils/ws-mock.ts'),
     };
   }
   return context.resolveRequest(context, moduleName, platform);

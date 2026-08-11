@@ -371,7 +371,7 @@ export class SpaceInvadersGame
     sceneWorld.addSystem(new LocalPredictionSystem(this.networkManager, () => {}), { phase: SystemPhase.Input });
     sceneWorld.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });
 
-    await this.sceneManager.transitionTo(gameScene, { effect: "crt", duration: 300 });
+    this.sceneManager.transitionTo(gameScene, { effect: "crt", duration: 300 });
   }
 
   protected override async onBeforeRestart(): Promise<void> {

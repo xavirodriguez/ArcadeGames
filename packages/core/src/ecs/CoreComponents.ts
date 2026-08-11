@@ -170,7 +170,7 @@ export interface ParticleEmitterComponent extends Component {
 /** @public */
 export interface TileDefinition {
   solid: boolean;
-  oneWay?: boolean;
+  oneWay: boolean;
   friction?: number;
   bounce?: number;
   damage?: number;
@@ -217,6 +217,8 @@ export interface PlatformerGravityConfigComponent extends Component {
   fallGravity: number;
   jumpVelocity: number;
   minJumpVelocity: number; // For variable jump height (short hop)
+  apexThreshold?: number;
+  apexGravityMultiplier?: number;
 }
 
 /** @public */
@@ -233,6 +235,7 @@ export interface PlatformerGroundStateComponent extends Component {
   type: "PlatformerGroundState";
   isGrounded: boolean;
   iceMultiplier?: number;
+  carrierEntity?: Entity;
 }
 
 /** @public */
@@ -244,6 +247,34 @@ export interface Camera2DComponent extends Component {
   isMain?: boolean;
   x: number;
   y: number;
+  followEntity?: Entity;
+  lookAheadX?: number;
+  smoothingX?: number;
+  smoothingY?: number;
+  verticalDeadzone?: number;
+}
+
+/** @public */
+export interface MovingPlatformComponent extends Component {
+  type: "MovingPlatform";
+  pattern: "sine";
+  startX: number;
+  startY: number;
+  amplitudeX: number;
+  amplitudeY: number;
+  frequency: number;
+  elapsed: number;
+}
+
+/** @public */
+export interface HitboxComponent extends Component {
+  type: "Hitbox";
+  hitEntities?: Entity[];
+}
+
+/** @public */
+export interface HurtboxComponent extends Component {
+  type: "Hurtbox";
 }
 
 /** @public */
@@ -397,6 +428,9 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   PlatformerGravityConfig: PlatformerGravityConfigComponent;
   PlatformerJumper: PlatformerJumperComponent;
   PlatformerGroundState: PlatformerGroundStateComponent;
+  MovingPlatform: MovingPlatformComponent;
+  Hitbox: HitboxComponent;
+  Hurtbox: HurtboxComponent;
 }
 
 export { Entity };

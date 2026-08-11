@@ -33,7 +33,13 @@ export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreC
         // Let's just apply standard gravity so that collision system's push-out keeps them grounded.
       }
 
-      const gravity = vel.vy < 0 ? config.riseGravity : config.fallGravity;
+      let gravity = vel.vy < 0 ? config.riseGravity : config.fallGravity;
+
+      if (config.apexThreshold !== undefined && config.apexGravityMultiplier !== undefined) {
+        if (Math.abs(vel.vy) < config.apexThreshold) {
+          gravity *= config.apexGravityMultiplier;
+        }
+      }
 
       world.mutateComponent(entity, velocityType, (v: any) => {
         v.vy += gravity * deltaTime;

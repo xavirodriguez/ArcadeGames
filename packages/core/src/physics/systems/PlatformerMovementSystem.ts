@@ -6,6 +6,10 @@ import { Entity } from "../../ecs/Entity";
 
 /**
  * System that handles platformer horizontal movement with acceleration and deceleration.
+ *
+ * @remarks
+ * Dynamically switches between grounded acceleration/deceleration and airborne
+ * airAcceleration/airDeceleration values based on the entity's PlatformerGroundState.
  * @public
  */
 export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {

@@ -124,6 +124,10 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
 
           if (tileDef.solid) {
             if (tileDef.oneWay) {
+              // Hito 9: One-way platform logic
+              // Replicates standard platformer behavior: only collides when player
+              // is descending (moving down vertically) and their previous Y position
+              // was above the top edge of the tile.
               const prevPlayerBottom = prevY + offsetY + halfH;
               const isDescending = oldVy >= 0;
               const wasAbove = prevPlayerBottom <= tileTop + 1.0;

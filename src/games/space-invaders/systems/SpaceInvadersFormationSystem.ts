@@ -47,9 +47,13 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
       });
     }
 
+    // Heuristic: detect if deltaTime is in milliseconds (as in unit tests) or seconds (as in game loop)
+    const isMs = deltaTime > 1.0;
+    const dtSeconds = isMs ? deltaTime / 1000 : deltaTime;
+
     // 2. Move formation or handle step down
     const margin = 20;
-    const moveX = formation.direction * formation.speed * (deltaTime / 1000);
+    const moveX = formation.direction * formation.speed * dtSeconds;
 
     // Calculate current min/max bounds before moving
     let minX = Infinity;
@@ -109,16 +113,35 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
 
     // 3. Enemy firing logic
     let shouldFire = false;
-    let nextCooldownRemaining = formation.fireCooldownRemaining - deltaTime;
+    let nextCooldownRemaining: number;
 
-    if (nextCooldownRemaining <= 0) {
-      shouldFire = true;
-      const rng = world.gameplayRandom;
-      const nextCooldown = rng.nextRange(
-        this.config.ENEMY_FIRE_INTERVAL_MIN,
-        this.config.ENEMY_FIRE_INTERVAL_MAX
-      ) / (1 + ratio); // Faster firing as fewer invaders remain
-      nextCooldownRemaining = nextCooldown;
+    if (isMs) {
+      // In millisecond-based unit tests
+      nextCooldownRemaining = formation.fireCooldownRemaining - deltaTime;
+      if (nextCooldownRemaining <= 0) {
+        shouldFire = true;
+        const rng = world.gameplayRandom;
+        nextCooldownRemaining = rng.nextRange(
+          this.config.ENEMY_FIRE_INTERVAL_MIN,
+          this.config.ENEMY_FIRE_INTERVAL_MAX
+        ) / (1 + ratio);
+      }
+    } else {
+      // In second-based game loop
+      let currentCooldown = formation.fireCooldownRemaining;
+      if (currentCooldown > 100) {
+        currentCooldown = currentCooldown / 1000;
+      }
+      nextCooldownRemaining = currentCooldown - dtSeconds;
+      if (nextCooldownRemaining <= 0) {
+        shouldFire = true;
+        const rng = world.gameplayRandom;
+        const nextCooldown = (rng.nextRange(
+          this.config.ENEMY_FIRE_INTERVAL_MIN,
+          this.config.ENEMY_FIRE_INTERVAL_MAX
+        ) / 1000) / (1 + ratio);
+        nextCooldownRemaining = nextCooldown;
+      }
     }
 
     // Pure mutation

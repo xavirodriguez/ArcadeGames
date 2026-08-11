@@ -61,6 +61,7 @@ import { BulletPool, ParticlePool } from "./EntityPool";
 import { initializeAsteroidsRenderer } from "./rendering/AsteroidsRendererManager";
 import { AsteroidConfigSchema, AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { GameStateComponent, InputState } from "./types/AsteroidTypes";
+import { getStoryBeatForLevel } from "./story/StoryBeats";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -82,6 +83,7 @@ export class AsteroidsGame
   private config: AsteroidConfig;
   private resizeListener?: () => void;
   private isHeadless: boolean;
+  public mode: "deathmatch" | "story" = "deathmatch";
 
   public get networkManager(): NetworkManager<any> | undefined { return this.network.networkManager; }
   public set networkManager(val: NetworkManager<any> | undefined) { this.network.networkManager = val; }
@@ -96,6 +98,7 @@ export class AsteroidsGame
     }
     super(config);
     this.isHeadless = config.headless || false;
+    this.mode = (config.gameOptions as any)?.mode || "deathmatch";
     this.network = new NetworkController<AsteroidsComponentRegistry>(this.world);
     this.isMultiplayer = config.isMultiplayer || false;
     const rawConfig = require("./config/asteroids.json");
@@ -219,12 +222,17 @@ export class AsteroidsGame
     try {
         // Create GameState entity
         const gameStateEntity = this.world.createEntity();
+        const beat = this.mode === "story" ? getStoryBeatForLevel(1) : null;
         this.world.addComponent(gameStateEntity, {
             type: "GameState",
             score: 0,
             level: 1,
             lives: 3,
-            isGameOver: false
+            isGameOver: false,
+            mode: this.mode,
+            readyRemaining: this.mode === "story" ? 3.0 : 0,
+            intermissionRemaining: 0,
+            storyBeatText: beat ? beat.readyText : undefined
         } as GameStateComponent);
 
         // Create Player Ship

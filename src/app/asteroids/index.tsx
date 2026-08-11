@@ -34,8 +34,9 @@ export default function AsteroidsScreen() {
   const [isDaily, setIsDaily] = useState(false);
   const [playerName, setPlayerName] = useState("Player");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+  const [selectedMode, setSelectedMode] = useState<"deathmatch" | "story">("deathmatch");
 
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(started, isMulti && started, initialSeed);
+  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(started, isMulti && started, initialSeed, selectedMode);
 
   // Activate keyboard controls for Web
   useKeyboardControls(game, isReady);
@@ -155,6 +156,8 @@ export default function AsteroidsScreen() {
           setStarted(true);
         }}
         activeMutators={activeMutators}
+        selectedMode={selectedMode}
+        onModeChange={setSelectedMode}
       />
     );
   }
@@ -279,6 +282,8 @@ const StartScreen: FC<{
   onSeedChange?: (seed: number) => void;
   onStartDaily?: (seed: number) => void;
   activeMutators?: Mutator[];
+  selectedMode: "deathmatch" | "story";
+  onModeChange: (mode: "deathmatch" | "story") => void;
 }> = ({
   title,
   highScore,
@@ -290,6 +295,8 @@ const StartScreen: FC<{
   onSeedChange,
   onStartDaily,
   activeMutators = [],
+  selectedMode,
+  onModeChange,
 }) => {
   const { t } = useTranslation();
   return (
@@ -317,6 +324,42 @@ const StartScreen: FC<{
             placeholder={t.common.your_name}
             placeholderTextColor="#AAAAAA"
         />
+
+        {/* Mode Selector */}
+        <View style={{ flexDirection: "row", marginBottom: 20, gap: 10, width: "100%", justifyContent: "center" }}>
+          <TouchableOpacity
+            style={[
+              sharedScreenStyles.startButton,
+              {
+                backgroundColor: selectedMode === "deathmatch" ? "#00FFDD" : "rgba(0, 255, 221, 0.2)",
+                flex: 1,
+                maxWidth: 160,
+                paddingVertical: 12,
+              }
+            ]}
+            onPress={() => onModeChange("deathmatch")}
+          >
+            <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "deathmatch" ? "#000" : "#00FFDD", fontSize: 14 }]}>
+              DEATHMATCH
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              sharedScreenStyles.startButton,
+              {
+                backgroundColor: selectedMode === "story" ? "#00FFDD" : "rgba(0, 255, 221, 0.2)",
+                flex: 1,
+                maxWidth: 160,
+                paddingVertical: 12,
+              }
+            ]}
+            onPress={() => onModeChange("story")}
+          >
+            <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "story" ? "#000" : "#00FFDD", fontSize: 14 }]}>
+              MODO HISTORIA
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
         <Text style={sharedScreenStyles.highScoreText}>{t.common.record}: {highScore}</Text>

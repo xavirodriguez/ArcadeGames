@@ -13,6 +13,8 @@ import { spawnScorePopup } from "../../shared/arcade/spawnScorePopup";
  * @public
  */
 export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, AsteroidsEventRegistry> {
+  private processedDeaths = new Set<number>();
+
   constructor() {
     super();
   }
@@ -29,6 +31,11 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
   private onCombatDeath(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, event: any): void {
     const asteroid = event.entity;
     const bullet = event.sourceEntity;
+
+    if (this.processedDeaths.has(asteroid)) {
+      return;
+    }
+    this.processedDeaths.add(asteroid);
 
     if (!world.hasComponent(asteroid, "Asteroid")) {
       return;
@@ -146,6 +153,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
   }
 
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, _deltaTime: number): void {
+    this.processedDeaths.clear();
     // Paso 4: Double-security collision resolution system
     const entities = world.query("CollisionEvents");
     const destroyedEntities = new Set<number>();

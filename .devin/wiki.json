@@ -1,0 +1,340 @@
+{
+    "repo_notes": [
+        {
+            "content": "This repository is both a working game project and a learning project for studying video game architecture and software design. Documentation should not only describe what classes, packages, and systems exist, but also teach why the architecture uses them. When relevant, explain the software engineering or game development pattern being used, the problem it solves, alternatives that could have been used, trade-offs, and when the pattern would or would not be appropriate. Prefer explanations that start with the problem before introducing the solution. Use concrete examples from Asteroids, Pong, Flappy Bird, and Space Invaders. Important recurring concepts include Entity Component System, composition over inheritance, fixed timestep game loops, scheduling, command buffers, factories, object pools, state machines, observers/event buses, adapters, strategies, snapshots, client-side prediction, interpolation, rollback and server reconciliation."
+        },
+        {
+            "content": "The intended reader is a developer learning video game development while studying this codebase. Explanations should progressively connect implementation details to broader game-engine concepts. Where useful, include small conceptual examples, 'naive approach vs current architecture' comparisons, diagrams, execution flows, common mistakes, performance implications, and short exercises or questions the reader can investigate in the repository."
+        },
+        {
+            "content": "Patterns should not be presented as rules that must always be followed. Documentation should explain their costs and trade-offs and explicitly discuss simpler alternatives and cases where using the pattern would be overengineering."
+        }
+    ],
+    "pages": [
+        {
+            "title": "Project Overview",
+            "purpose": "High-level introduction to the Asteroides monorepo: what it is, its architecture, the four arcade games it ships, and how the client, core engine, and server relate. Links to all major child sections.",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Getting Started",
+            "purpose": "Step-by-step guide for setting up the development environment: prerequisites (Node 22, pnpm, Expo CLI, EAS CLI), cloning the repo, installing dependencies, configuring .env, running the Expo client, and starting the Colyseus server.",
+            "parent": "Project Overview",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Monorepo Structure",
+            "purpose": "Explains the Turborepo/pnpm workspace layout: root app (Expo), packages/core, packages/network, packages/network-colyseus, packages/react-native, packages/renderer-canvas, packages/renderer-skia, and the server directory. Describes how packages depend on each other.",
+            "parent": "Project Overview",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "TinyAster Core Engine (packages/core)",
+            "purpose": "Overview of the @tiny-aster/core package — the ECS engine that powers all four games. Introduces the World, Entity, Component, System, and Schedule primitives and links to child pages for each subsystem.",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "ECS Fundamentals",
+            "purpose": "Deep dive into the Entity Component System: Entity IDs, Component data contracts, the World container (createEntity, addComponent, query, mutateComponent), the WorldCommandBuffer for deferred mutations, BlueprintRegistry for prefab spawning, and the ComponentCloner.",
+            "parent": "TinyAster Core Engine (packages/core)",
+            "page_notes": [
+                {
+                    "content": "Treat this page as both reference documentation and an ECS tutorial. Begin by explaining the problem ECS is intended to solve and compare it with a traditional object-oriented hierarchy such as GameObject -> Ship/Enemy/Bullet. Explain composition over inheritance, separation of data and behavior, data-oriented implications, and the trade-offs introduced by ECS. Trace at least one concrete TinyAster entity through Entity -> Components -> Query -> System."
+                },
+                {
+                    "content": "Explain why WorldCommandBuffer exists instead of allowing every System to immediately mutate entity structure during iteration. Relate this to the Command/deferred mutation pattern and show what could go wrong without it."
+                }
+            ]
+        },
+        {
+            "title": "Schedule, Systems & Game Loop",
+            "purpose": "Explains how Systems are registered and executed in ordered phases (Input → Simulation → Transform → Collision → GameRules → Presentation) via the Schedule class, and how the fixed-timestep GameLoop drives the simulation tick. Covers FrameScheduler and the spiral-of-death mitigation strategy.",
+            "parent": "TinyAster Core Engine (packages/core)",
+            "page_notes": [
+                {
+                    "content": "Teach this page from first principles. Explain what a game loop is before documenting TinyAster's implementation. Compare variable timestep and fixed timestep and explain determinism, stability and the spiral-of-death problem."
+                },
+                {
+                    "content": "Explain why System execution order matters. Use a concrete example showing a bug that could happen if Collision runs before Transform or GameRules runs in the wrong phase. Explain Schedule as a dependency/order-management mechanism rather than only listing its API."
+                }
+            ]
+        },
+        {
+            "title": "Physics Subsystem",
+            "purpose": "Documents the two-phase collision pipeline (BroadPhase Sweep & Prune + NarrowPhase SAT), dynamics systems (PhysicsIntegrateSystem, PhysicsSolveSystem), movement/friction/boundary systems, shape definitions, PhysicsQuery, and ship-specific physics helpers.",
+            "parent": "TinyAster Core Engine (packages/core)",
+            "page_notes": [
+                {
+                    "content": "Teach the collision pipeline from first principles. Begin with the naive O(n²) approach of testing every collider against every other collider, then explain why TinyAster separates collision detection into Broad Phase and Narrow Phase. Explain Sweep & Prune and SAT conceptually before documenting their implementation."
+                },
+                {
+                    "content": "Trace one concrete collision from movement through PhysicsIntegrateSystem, broad-phase candidate generation, narrow-phase collision detection and PhysicsSolveSystem. Explain why detection and resolution are separate concerns."
+                },
+                {
+                    "content": "Discuss the trade-offs of the current physics architecture. Explain when a lightweight custom physics implementation is appropriate for arcade games and when integrating a full physics engine would be preferable."
+                }
+            ]
+        },
+        {
+            "title": "Rendering Pipeline",
+            "purpose": "Covers the abstract Renderer/ShapeDrawer/EffectDrawer interfaces, RenderTypes, RenderCommandBuffer, RenderSnapshot, and Camera2D. Explains how the engine decouples game logic from the concrete Canvas and Skia backends.",
+            "parent": "TinyAster Core Engine (packages/core)",
+            "page_notes": [
+                {
+                    "content": "Explain the architectural motivation for separating game simulation from rendering. Relate Renderer abstractions to Adapter/Strategy-style patterns and RenderCommandBuffer to the Command pattern. Compare this architecture with directly issuing Canvas or Skia calls from game Systems."
+                },
+                {
+                    "content": "Trace one visible game object from ECS state to final drawing. Explain what knowledge packages/core has about Canvas or Skia, and why keeping that knowledge out of core is valuable."
+                }
+            ]
+        },
+        {
+            "title": "Snapshots & Rollback",
+            "purpose": "Explains the WorldSnapshot format (AoS and SoA variants), SnapshotSerializer/SnapshotSerializerSoA, SnapshotRestore, and how snapshots are used for network reconciliation, rollback netcode, and replay recording.",
+            "parent": "TinyAster Core Engine (packages/core)",
+            "page_notes": [
+                {
+                    "content": "Explain snapshots first as a general game-engine technique before discussing networking. Relate WorldSnapshot to the Memento/Snapshot concept and explain why deterministic simulation makes snapshots substantially more useful."
+                },
+                {
+                    "content": "Build a conceptual timeline showing Tick 100 -> prediction -> authoritative server state -> mismatch -> restore snapshot -> replay inputs -> corrected Tick. Clearly distinguish snapshotting, rollback, prediction, reconciliation and replay because learners commonly confuse these concepts."
+                }
+            ]
+        },
+        {
+            "title": "Shared Utility Systems",
+            "purpose": "Documents the general-purpose systems bundled in packages/core/src/systems: JuiceSystem (visual tweening), ScreenShakeSystem, TTLSystem, InvulnerabilitySystem, SpatialCullingSystem, SpatialPartitioningSystem, TrailSystem, ParticleSystem, AnimationSystem, StateMachineSystem, HierarchySystem, MutatorSystem, and others. Also covers RandomService (seeded LCG), EventBus, ConfigService, and AssetLoader.",
+            "parent": "TinyAster Core Engine (packages/core)",
+            "page_notes": [
+                {
+                    "content": "Do not present this page as only a catalog of utility classes. Group systems by the game-development problem they solve: lifecycle, visual feedback/game feel, spatial optimization, behavior/state, hierarchy, randomness and communication. Identify reusable architectural patterns such as State Machine and Observer/EventBus where they genuinely apply."
+                }
+            ]
+        },
+        {
+            "title": "Network Layer",
+            "purpose": "Overview of the multiplayer networking architecture: the transport abstraction, NetworkManager, client-side prediction, remote interpolation, and the Colyseus integration. Links to child pages for the client-side and server-side network packages.",
+            "page_notes": [
+                {
+                    "content": "Teach the multiplayer architecture from the player's problem rather than from the classes. Begin with the fundamental issue: the server is authoritative but network latency makes waiting for the server feel unresponsive. Introduce prediction, reconciliation and interpolation as different solutions to different latency problems."
+                },
+                {
+                    "content": "Provide a conceptual end-to-end flow from local player input -> client prediction -> input transmission -> authoritative server simulation -> snapshot/state replication -> reconciliation -> remote interpolation. Clearly identify which parts run on client and server."
+                }
+            ]
+        },
+        {
+            "title": "Client-Side Prediction & Interpolation",
+            "purpose": "Details the rollback netcode implementation in packages/network: InputRingBuffer (circular buffer for O(1) tick lookup), PredictionBuffer, InputSerializer, RemoteInputPredictor, ReplayManager, and the InterpolationSystem. Explains how LocalPredictionSystem and RemoteInterpolationSystem integrate with the ECS.",
+            "parent": "Network Layer",
+            "page_notes": [
+                {
+                    "content": "Clearly distinguish client-side prediction, server reconciliation, rollback, replay and remote interpolation. These concepts are related but solve different problems and should not be presented as interchangeable."
+                },
+                {
+                    "content": "Use tick-based timelines to explain the algorithms. Include an example where the client predicts ticks 100-105, receives an authoritative state for tick 102, detects a mismatch, restores tick 102 and replays buffered inputs 103-105."
+                },
+                {
+                    "content": "Explain why InputRingBuffer and PredictionBuffer exist conceptually before documenting their APIs. Connect each data structure to the algorithmic problem it solves."
+                }
+            ]
+        },
+        {
+            "title": "Colyseus Transport & Server Rooms",
+            "purpose": "Documents the ColyseusTransport adapter (packages/network-colyseus), the four Colyseus Room implementations (AsteroidsRoom, FlappyBirdRoom, PongRoom, SpaceInvadersRoom), the server entry point, replication strategies (Legacy, Interest, Delta, Budget, Binary), DailyLeaderboardStore, and NetworkMetricsCollector.",
+            "parent": "Network Layer",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Game Implementations",
+            "purpose": "Overview of the four arcade games built on TinyAster. Each game follows the same pattern: a Game class extending BaseGame, an EntityFactory, game-specific Systems, a config JSON, and a rendering manager. Links to per-game child pages.",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Asteroids",
+            "purpose": "Documents AsteroidsGame (extends BaseGame, implements INetworkGame), EntityFactory (createShip, spawnAsteroidWave, createAsteroid), EntityPool (BulletPool, ParticlePool), AsteroidInputSystem, AsteroidCollisionSystem, AsteroidGameStateSystem, AsteroidConfigSchema, and the rendering manager. Covers multiplayer mode, headless server execution, and the setInputState bridge.",
+            "parent": "Game Implementations",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Space Invaders, Flappy Bird & Pong",
+            "purpose": "Documents the three additional game implementations: SpaceInvadersGame (EnemyFactory, scene-based wave management), FlappyBirdGame (gravity/pipe systems), and PongGame (paddle input, ball physics). Highlights how each game reuses core ECS systems and follows the same BaseGame lifecycle.",
+            "parent": "Game Implementations",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "React Native Client Application",
+            "purpose": "Overview of the Expo/React Native application layer: the expo-router file-based navigation, the GameEngine React wrapper, the dual-renderer support, and the service/hook layer. Links to child pages for UI components and services.",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "UI Components & Hooks",
+            "purpose": "Documents the React components in src/components (GameEngine wrapper, GameErrorBoundary, ComboDisplay, DailyChallengeCard, LeaderboardOverlay, PassportOverlay, HyperspaceButton, ShootButton, game-specific UIs) and the hooks in src/hooks (useAsteroidsGame, useFlappyBirdGame, usePongGame, useSpaceInvadersGame, useGameSession, useHighScore, useTouchDevice, useTranslation). Covers the @tiny-aster/react-native package hooks (useGame, useGameLoop, useWorld, useMultiplayer).",
+            "parent": "React Native Client Application",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Services & Providers",
+            "purpose": "Documents the application-level services in src/services: LeaderboardService (daily score submission/fetch), MutatorService (weekly mutator rotation via seeded LCG), PlayerProfileService, AudioSettingsService, DailyChallengeService, PersistenceService, I18nService, PaletteService, and ServerTimeService. Covers the GameServicesProvider React context and AudioServiceAdapter interface.",
+            "parent": "React Native Client Application",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Renderer Backends (Canvas & Skia)",
+            "purpose": "Compares the two concrete renderer implementations: packages/renderer-canvas (CanvasRenderer, CanvasShapeDrawers, CanvasSpriteDrawer) and packages/renderer-skia (SkiaRenderer, SkiaShapeDrawers, SkiaSpriteDrawer). Explains when each is used, how game-specific rendering is registered via initializeRenderer, and the RenderCommandBuffer pattern.",
+            "parent": "React Native Client Application",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Infrastructure & Tooling",
+            "purpose": "Overview of CI/CD pipelines, build tooling, testing strategy, and developer scripts. Links to child pages for CI workflows and testing.",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "CI/CD Pipelines",
+            "purpose": "Documents the three GitHub Actions workflows: ci.yml (build, lint, typecheck, test via Turborepo on push to master/develop), docs.yml (API reference generation with pnpm docs:build and artifact upload), and preview-update.yml (EAS OTA update to the preview channel on push to develop). Covers EAS build profiles defined in eas.json.",
+            "parent": "Infrastructure & Tooling",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Testing Strategy",
+            "purpose": "Explains the Jest configuration at the root and in packages/core, the test structure (packages/core/src/__tests__, packages/core/tests, per-game __tests__ directories), the BaseGame lifecycle tests, Schedule unit tests, and the ECS invariant checker scripts (check-ecs-invariants.sh, check-hardened-invariants.ts, check-core-boundaries.sh).",
+            "parent": "Infrastructure & Tooling",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Assets & Static Resources",
+            "purpose": "Catalogs all static assets: audio files (ambient_loop.wav, dark-atmosphere.wav, dm-minor.flac, explosion.mp3, explosion2.mp3, flap.mp3, game_over.mp3, hit.mp3, pad-chords.wav, shoot.mp3), fonts (SpaceMono-Regular.ttf), images (icon, adaptive-icon, splash, ship sprites, favicon), and the public/ directory used for web deployment. Explains AssetPaths.ts and the AssetLoader integration.",
+            "parent": "Infrastructure & Tooling",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Glossary",
+            "purpose": "Definitions of all codebase-specific terms, abbreviations, and domain concepts an onboarding engineer needs to know, with file/class pointers.",
+            "page_notes": [
+                {
+                    "content": ""
+                }
+            ]
+        },
+        {
+            "title": "Game Architecture Learning Guide",
+            "purpose": "Educational entry point for developers learning game development through TinyAster. Explain how to study the architecture progressively, connecting concrete code in the repository with general game-development and software-design concepts. Provide a recommended learning path from basic game loops and ECS concepts through rendering, physics and multiplayer architecture.",
+            "page_notes": [
+                {
+                    "content": "This page should be tutorial-oriented rather than a repository inventory. Explain which concepts should be learned first and why. Link concepts to the existing TinyAster pages and use Asteroids, Pong, Flappy Bird and Space Invaders as recurring examples."
+                }
+            ]
+        },
+        {
+            "title": "Design Patterns in TinyAster",
+            "purpose": "Teach the main software design and game architecture patterns present in TinyAster. Cover ECS/composition, Factory, Object Pool, Command, Observer/EventBus, State Machine, Strategy, Adapter, Snapshot/Memento and other patterns clearly demonstrated by the repository. For every pattern identify concrete classes or modules that implement or resemble it.",
+            "parent": "Game Architecture Learning Guide",
+            "page_notes": [
+                {
+                    "content": "Use Asteroids as a concrete case study of how multiple engine patterns collaborate to implement one game. Explicitly identify EntityFactory as a creation abstraction, BulletPool/ParticlePool as Object Pool examples, game-specific Systems as ECS behavior, and AsteroidGameStateSystem as an example of state/rule management."
+                },
+                {
+                    "content": "Trace one gameplay action end-to-end: player presses shoot -> input state changes -> ECS System processes input -> bullet is acquired/created -> movement occurs -> collision is detected -> game rules react -> rendering reflects the new state. Link each stage to the relevant architecture concept."
+                },
+                {
+                    "content": "Where useful, explain how a beginner might implement the same Asteroids feature without the abstraction and why TinyAster's architecture becomes useful as the game grows."
+                }
+            ]
+        },
+        {
+            "title": "Game Programming Patterns: Before and After",
+            "purpose": "Compare simple or naive implementations of common game-development problems with the architecture used by TinyAster. Examples should include inheritance vs ECS composition, immediate mutation vs command buffers, direct object creation vs factories and pools, variable timestep vs fixed timestep, direct subsystem calls vs events, and immediate rendering vs render commands.",
+            "parent": "Game Architecture Learning Guide",
+            "page_notes": [
+                {
+                    "content": "Use small conceptual pseudocode examples where useful. The purpose is to show what complexity motivates each abstraction. Explicitly discuss what additional complexity the TinyAster solution introduces and when the simpler approach would actually be preferable."
+                }
+            ]
+        },
+        {
+            "title": "Patterns Across the Four Games",
+            "purpose": "Compare how Asteroids, Pong, Flappy Bird and Space Invaders solve the same categories of problems using shared engine architecture. Compare input, movement, entities, spawning, collisions, game state, rendering and configuration, showing which systems are reusable and which remain game-specific.",
+            "parent": "Game Architecture Learning Guide",
+            "page_notes": [
+                {
+                    "content": "Prefer comparative tables and concrete code references. Highlight the distinction between reusable engine architecture and game-specific rules. Use this page to teach how abstractions emerge by comparing multiple games rather than by discussing abstractions in isolation."
+                }
+            ]
+        },
+        {
+            "title": "Architecture Exercises & Experiments",
+            "purpose": "Provide practical learning exercises that require modifying or inspecting TinyAster to understand game architecture. Exercises should cover ECS, systems and scheduling, fixed timestep, object pooling, state machines, physics, rendering abstraction, snapshots, prediction, interpolation and rollback.",
+            "parent": "Game Architecture Learning Guide",
+            "page_notes": [
+                {
+                    "content": "Exercises should be based on existing repository functionality rather than toy problems. Prefer experiments such as removing an abstraction, changing execution order, adding a component/system, disabling pooling, introducing artificial network latency, comparing renderers, or tracing a frame from input to presentation. For each exercise explain what concept it demonstrates and what the learner should observe."
+                }
+            ]
+        }
+    ]
+}

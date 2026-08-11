@@ -16,6 +16,9 @@ import { EventBus, EventRegistry } from "../events/EventBus";
  */
 export class TTLSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) {
+      return;
+    }
     const entities = world.query("TTL");
 
     for (const entity of entities) {

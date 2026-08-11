@@ -207,7 +207,9 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
             // If CombatSystem has already processed this, it will have marked the asteroid as Dead
             // or the bullet would be removed. Otherwise, we are running in direct/headless mode,
             // so we manually trigger the combat death reaction to maintain 100% backward compatibility.
-            if (!world.hasComponent(asteroid, "Dead" as any)) {
+            const health = world.getComponent(asteroid, "Health" as any) as any;
+            const isDeadPending = health && health.current <= 0;
+            if (!world.hasComponent(asteroid, "Dead" as any) && !isDeadPending) {
               this.onCombatDeath(world, { entity: asteroid, sourceEntity: bullet });
               world.getCommandBuffer().removeEntity(bullet);
               destroyedEntities.add(bullet);

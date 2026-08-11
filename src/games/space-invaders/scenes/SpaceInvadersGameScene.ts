@@ -196,7 +196,6 @@ export class SpaceInvadersGameScene extends Scene {
     }
 
     const isHeadless = (this.game as any)._config?.headless === true;
-    console.log("ONENTER ISHEADLESS:", isHeadless, "CONFIG:", (this.game as any)._config);
     this.world.setResource("IsHeadless", isHeadless);
 
     createGameState(this.world);

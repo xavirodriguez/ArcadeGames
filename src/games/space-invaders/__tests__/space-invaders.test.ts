@@ -1,5 +1,6 @@
 import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry, EventBus } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS } from "../../../utils/MutatorRegistry";
+import { CombatSystem } from "../../shared/combat/systems/CombatSystem";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
 import { ComboSystem } from "../../shared/arcade";
@@ -129,6 +130,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
     } as any;
     gameStateSystem = new SpaceInvadersGameStateSystem(mockGame);
 
+    world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     world.addSystem(collisionSystem, { phase: SystemPhase.GameRules });
     world.addSystem(gameStateSystem, { phase: SystemPhase.GameRules });
     world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
@@ -172,10 +174,15 @@ describe("Space Invaders Combo Logic & Performance", () => {
     world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 });
     world.addComponent(invader, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
     world.addComponent(invader, { type: "Render", shape: "invader", size: 20, color: "#FFF", visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0, rotation: 0 });
+    world.addComponent(invader, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 });
+    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" });
 
     // Create player bullet
     const bullet = world.createEntity();
     world.addComponent(bullet, { type: "PlayerBullet" });
+    world.addComponent(bullet, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
+    world.addComponent(bullet, { type: "Damage", amount: 1, category: "player_bullet", friendlyFire: false, consumption: "destroy-entity" });
+    world.addComponent(bullet, { type: "Faction", faction: "player", value: "player" });
 
     // Add CollisionEvents to both invader and bullet to trigger handling
     const events: CollisionEventsComponent = {
@@ -198,6 +205,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
     // Run collision update
     world.update(0.016);
+    world.getEventBus()?.flushDeferred();
 
     const gameState = getGameState(world);
     expect(gameState?.combo).toBe(1);
@@ -218,9 +226,14 @@ describe("Space Invaders Combo Logic & Performance", () => {
       world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 });
       world.addComponent(invader, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
       world.addComponent(invader, { type: "Render", shape: "invader", size: 20, color: "#FFF", visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0, rotation: 0 });
+      world.addComponent(invader, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 });
+      world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" });
 
       const bullet = world.createEntity();
       world.addComponent(bullet, { type: "PlayerBullet" });
+      world.addComponent(bullet, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
+      world.addComponent(bullet, { type: "Damage", amount: 1, category: "player_bullet", friendlyFire: false, consumption: "destroy-entity" });
+      world.addComponent(bullet, { type: "Faction", faction: "player", value: "player" });
 
       const events: CollisionEventsComponent = {
         type: "CollisionEvents",
@@ -241,6 +254,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
       world.addComponent(bullet, bulletEvents);
 
       world.update(0.016);
+      world.getEventBus()?.flushDeferred();
     };
 
     // Kill 1
@@ -347,10 +361,15 @@ describe("Space Invaders Combo Logic & Performance", () => {
       world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 });
       world.addComponent(invader, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
       world.addComponent(invader, { type: "Render", shape: "invader", size: 20, color: "#FFF", visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0, rotation: 0 });
+      world.addComponent(invader, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 });
+      world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" });
 
       // Create player bullet
       const bullet = world.createEntity();
       world.addComponent(bullet, { type: "PlayerBullet" });
+      world.addComponent(bullet, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
+      world.addComponent(bullet, { type: "Damage", amount: 1, category: "player_bullet", friendlyFire: false, consumption: "destroy-entity" });
+      world.addComponent(bullet, { type: "Faction", faction: "player", value: "player" });
 
       // Add CollisionEvents to trigger handling
       const events: CollisionEventsComponent = {
@@ -373,6 +392,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
       // Run update
       world.update(0.016);
+      world.getEventBus()?.flushDeferred();
 
       const gameState = getGameState(world);
       // Original points is 10. Multiplier was 2 (initial) but the kill increments combo to 6.
@@ -396,10 +416,15 @@ describe("Space Invaders Combo Logic & Performance", () => {
       world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 });
       world.addComponent(invader, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
       world.addComponent(invader, { type: "Render", shape: "invader", size: 20, color: "#FFF", visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0, rotation: 0 });
+      world.addComponent(invader, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 });
+      world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" });
 
       // Create player bullet
       const bullet = world.createEntity();
       world.addComponent(bullet, { type: "PlayerBullet" });
+      world.addComponent(bullet, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
+      world.addComponent(bullet, { type: "Damage", amount: 1, category: "player_bullet", friendlyFire: false, consumption: "destroy-entity" });
+      world.addComponent(bullet, { type: "Faction", faction: "player", value: "player" });
 
       // Add CollisionEvents to trigger handling
       const events: CollisionEventsComponent = {
@@ -422,6 +447,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
 
       // Run update
       world.update(0.016);
+      world.getEventBus()?.flushDeferred();
 
       const gameState = getGameState(world);
       // Normal: combo = 1, multiplier = 1, score gain = 10 * 1 = 10.

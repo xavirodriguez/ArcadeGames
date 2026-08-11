@@ -29,6 +29,7 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
 
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.isReSimulating) return;
+    if (world.getResource("IsPaused") === true) return;
 
     const emitters = world.query("ParticleEmitter");
 

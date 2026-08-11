@@ -17,6 +17,9 @@ export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry = CoreCo
   }
 
   public update(world: World<TRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) {
+      return;
+    }
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
     let candidatesList = this.candidateEntities !== null ? this.candidateEntities : (resourceCandidates !== undefined ? resourceCandidates : null);
 

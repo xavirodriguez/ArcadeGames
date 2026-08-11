@@ -10,6 +10,7 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
 export class TrailSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.isReSimulating) return;
+    if (world.getResource("IsPaused") === true) return;
 
     const trailEntities = world.query("Transform", "Trail");
     for (const entity of trailEntities) {

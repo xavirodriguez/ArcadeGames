@@ -283,6 +283,10 @@ export function registerAsteroidsBlueprints(
         faction: "enemy",
         value: "enemy"
       } as FactionComponent);
+      w.addComponent(entity, {
+        type: "LootTable",
+        tableId: "default"
+      } as any);
     }
   });
 

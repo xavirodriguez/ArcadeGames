@@ -19,6 +19,9 @@ import {
   CollisionSystem2D,
   CCDSystem,
   FeedbackSystem,
+  TrailSystem,
+  ParticleSystem,
+  AnimationSystem,
   InputFrame,
   Renderer,
   RendererUtils,
@@ -46,7 +49,7 @@ import {
   WebAudioPlayer
 } from "@tiny-aster/core";
 
-import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
+import { LootSystem, PowerUpSystem, ComboSystem, DifficultyDirectorSystem, AchievementSystem } from "../shared/arcade";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
@@ -113,6 +116,102 @@ export class AsteroidsGame
     this.config = mutators.reduce((cfg, m) => m.apply(cfg), { ...baseConfig } as any);
 
     this.world.setResource("GameConfig", this.config);
+    this.world.setResource("PowerUpEffects", {
+      speed_boost: {
+        apply(w: World<any>, player: number) {
+          if (w.hasComponent(player, "Velocity" as any)) {
+            w.mutateComponent(player, "Velocity" as any, (v: any) => {
+              v.vx *= 1.5;
+              v.vy *= 1.5;
+            });
+          }
+        }
+      },
+      shield: {
+        apply(w: World<any>, player: number) {
+          if (!w.hasComponent(player, "Invulnerable" as any)) {
+            w.getCommandBuffer().addComponent(player, {
+              type: "Invulnerable",
+              remaining: 5.0
+            } as any);
+          } else {
+            w.mutateComponent(player, "Invulnerable" as any, (inv: any) => {
+              inv.remaining = Math.max(inv.remaining, 5.0);
+            });
+          }
+        }
+      },
+      extra_life: {
+        apply(w: World<any>, player: number) {
+          w.mutateSingleton("GameState" as any, (state: any) => {
+            state.lives = Math.min(5, state.lives + 1);
+          });
+        }
+      },
+      score_multiplier: {
+        apply(w: World<any>, player: number) {
+          w.mutateSingleton("GameState" as any, (state: any) => {
+            state.score += 500;
+          });
+        }
+      }
+    });
+
+    this.eventBus.on("loot:spawn" as any, (event: any) => {
+      const entity = this.world.reserveEntityId();
+      this.world.getCommandBuffer().createEntity(entity);
+      this.world.getCommandBuffer().addComponent(entity, {
+        type: "Transform",
+        x: event.x,
+        y: event.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: event.x,
+        worldY: event.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as any);
+      this.world.getCommandBuffer().addComponent(entity, {
+        type: "Render",
+        shape: "shield_bubble",
+        size: 15,
+        color: event.lootType === "shield" ? "#00f0ff" : (event.lootType === "speed_boost" ? "#ff5d00" : "#ffd700"),
+        visible: true,
+        opacity: 1,
+        order: 5,
+        rotation: 0,
+        angularVelocity: 1.0,
+        hitFlashFrames: 0
+      } as any);
+      this.world.getCommandBuffer().addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
+        layer: CollisionLayers.ENEMY,
+        mask: CollisionLayers.PLAYER,
+        enabled: true,
+        isTrigger: true
+      } as any);
+      this.world.getCommandBuffer().addComponent(entity, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as any);
+      this.world.getCommandBuffer().addComponent(entity, {
+        type: "PowerUp",
+        powerUpType: event.lootType
+      } as any);
+      this.world.getCommandBuffer().addComponent(entity, {
+        type: "TTL",
+        remaining: 10.0,
+        timeLeft: 10.0
+      } as any);
+    });
+
     this.updateScreenConfig();
 
     if (typeof window !== "undefined") {
@@ -172,6 +271,8 @@ export class AsteroidsGame
     this.world.addSystem(new LootSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new PowerUpSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activeMutators = (this._config.gameOptions?.mutators as any[]) || [];
@@ -182,6 +283,9 @@ export class AsteroidsGame
       this.world.addSystem(new FeedbackSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+      this.world.addSystem(new TrailSystem(), { phase: SystemPhase.Presentation });
+      this.world.addSystem(new ParticleSystem(this.particlePool as any), { phase: SystemPhase.Presentation });
+      this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
     }
 
     if (this.networkManager) {
@@ -242,6 +346,10 @@ export class AsteroidsGame
             actions: {},
             axes: {}
         });
+
+        // Note: The "Combo" component is already successfully instantiated and attached
+        // to the ship entity via the "ship" blueprint in registerAsteroidsBlueprints (EntityFactory.ts).
+        // This ensures the ComboSystem has a target to process and update during gameplay.
 
         // Spawn first wave
         spawnAsteroidWave(this.world, 1);

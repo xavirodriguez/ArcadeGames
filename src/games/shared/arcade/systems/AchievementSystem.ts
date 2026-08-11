@@ -24,6 +24,7 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
   ];
 
   private invadersKilled = 0;
+  private asteroidsDestroyed = 0;
   private pipesPassed = 0;
 
   public override onRegister(world: World<TComponents>): void {
@@ -57,6 +58,24 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
           this.invadersKilled++;
           if (this.invadersKilled >= 50) {
             this.unlock(world, "invader_slayer");
+          }
+        }
+      });
+
+      // Listen to asteroid:destroyed from Asteroids
+      eventBus.on("asteroid:destroyed", () => {
+        if (world.isReSimulating) return;
+        this.asteroidsDestroyed++;
+        if (this.asteroidsDestroyed >= 50) {
+          this.unlock(world, "invader_slayer");
+        }
+
+        // Check if player has achieved a combo >= 10
+        const combos = world.query("Combo" as any);
+        for (const entity of combos) {
+          const c = world.getComponent(entity, "Combo" as any) as any;
+          if (c && c.combo >= 10) {
+            this.unlock(world, "combo_king");
           }
         }
       });

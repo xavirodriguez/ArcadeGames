@@ -19,24 +19,43 @@ export class CombatSystem<
     const entitiesWithEvents = world.query("CollisionEvents" as any);
     const destroyedEntities = new Set<number>();
 
-    // Step 1: Iterate over collision pairs
+    // Step 1: Iterate over collision pairs (both physical collisions and trigger entry overlaps)
     for (const entityA of entitiesWithEvents) {
       const colComp = world.getComponent(entityA, "CollisionEvents" as any) as any;
       if (!colComp) continue;
 
-      for (const collision of colComp.collisions) {
-        const entityB = collision.otherEntity;
+      // Process physical collisions
+      if (colComp.collisions) {
+        for (const collision of colComp.collisions) {
+          const entityB = collision.otherEntity;
 
-        // Double Security A: Process each pair exactly once
-        if (entityA >= entityB) continue;
+          // Double Security A: Process each pair exactly once
+          if (entityA >= entityB) continue;
 
-        // Double Security B: Ensure both entities still exist and aren't already queued for destruction
-        if (!this.entityExists(world, entityA) || !this.entityExists(world, entityB)) continue;
-        if (destroyedEntities.has(entityA) || destroyedEntities.has(entityB)) continue;
+          // Double Security B: Ensure both entities still exist and aren't already queued for destruction
+          if (!this.entityExists(world, entityA) || !this.entityExists(world, entityB)) continue;
+          if (destroyedEntities.has(entityA) || destroyedEntities.has(entityB)) continue;
 
-        // Resolve damage in both directions (A damages B, and B damages A)
-        this.resolveDamageDirection(world, entityA, entityB, destroyedEntities);
-        this.resolveDamageDirection(world, entityB, entityA, destroyedEntities);
+          // Resolve damage in both directions (A damages B, and B damages A)
+          this.resolveDamageDirection(world, entityA, entityB, destroyedEntities);
+          this.resolveDamageDirection(world, entityB, entityA, destroyedEntities);
+        }
+      }
+
+      // Process trigger entry overlaps (e.g. for trigger-based projectiles or bullet/enemy overlaps)
+      if (colComp.triggersEntered) {
+        for (const entityB of colComp.triggersEntered) {
+          // Double Security A: Process each pair exactly once
+          if (entityA >= entityB) continue;
+
+          // Double Security B: Ensure both entities still exist and aren't already queued for destruction
+          if (!this.entityExists(world, entityA) || !this.entityExists(world, entityB)) continue;
+          if (destroyedEntities.has(entityA) || destroyedEntities.has(entityB)) continue;
+
+          // Resolve damage in both directions (A damages B, and B damages A)
+          this.resolveDamageDirection(world, entityA, entityB, destroyedEntities);
+          this.resolveDamageDirection(world, entityB, entityA, destroyedEntities);
+        }
       }
     }
   }

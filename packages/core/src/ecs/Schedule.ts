@@ -183,6 +183,12 @@ export class Schedule<
           }
         }
       }
+
+      // Flush deferred events so they are processed in the current tick
+      const eventBus = world.getEventBus ? world.getEventBus() : null;
+      if (eventBus && typeof eventBus.flushDeferred === "function") {
+        eventBus.flushDeferred();
+      }
     } finally {
       world.isUpdating = false;
       if (world.gameplayRandom) {

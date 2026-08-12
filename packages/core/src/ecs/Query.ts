@@ -68,9 +68,20 @@ export class Query<_TComponents extends ComponentRegistry> {
    */
   public getEntities(): ReadonlyArray<Entity> {
     if (this.isDirty) {
-      this.sortedEntities = Array.from(this.entities).sort((a, b) => a - b);
       if (isDev) {
+        // In development, keep freezing the array to prevent silent/accidental mutations.
+        this.sortedEntities = Array.from(this.entities).sort((a, b) => a - b);
         Object.freeze(this.sortedEntities);
+      } else {
+        // In production, reuse the existing array structure to avoid garbage collection overhead.
+        const arr: Entity[] = (this as any)._sortedEntitiesArray || [];
+        arr.length = 0;
+        for (const entity of this.entities) {
+          arr.push(entity);
+        }
+        arr.sort((a, b) => a - b);
+        (this as any)._sortedEntitiesArray = arr;
+        this.sortedEntities = arr;
       }
       this.isDirty = false;
     }

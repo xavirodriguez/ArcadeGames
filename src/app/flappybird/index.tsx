@@ -24,8 +24,10 @@ import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function FlappyBirdScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
   const [playerName, setPlayerName] = useState("Jugador");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();

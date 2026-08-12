@@ -240,11 +240,11 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
     // Spawn tilemap
     const tilemapEntity = this.world.createEntity();
-    this.blueprints.spawn(this.world, "tilemap", tilemapEntity, { data, tileDefinitions });
+    this.blueprints.get("tilemap")?.spawn(this.world, tilemapEntity, { data, tileDefinitions });
 
     // Spawn player
     const playerEntity = this.world.createEntity();
-    this.blueprints.spawn(this.world, "player", playerEntity, { x: 100, y: 100 });
+    this.blueprints.get("player")?.spawn(this.world, playerEntity, { x: 100, y: 100 });
   }
 
   public override update(dt: number): void {

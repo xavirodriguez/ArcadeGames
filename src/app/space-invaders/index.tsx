@@ -24,8 +24,11 @@ import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { AttractModeController } from "../../games/shared/arcade/AttractModeController";
+import { useTranslation } from "@/hooks/useTranslation";
+import { hapticSelection } from "@/utils/haptics";
 
 export default function SpaceInvadersScreen() {
+  const { t } = useTranslation();
   const [isAttractMode, setIsAttractMode] = useState(false);
   const [idleTime, setIdleTime] = useState(0);
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
@@ -163,15 +166,21 @@ export default function SpaceInvadersScreen() {
         title="SPACE INVADERS"
         highScore={highScore}
         onStart={() => {
+          hapticSelection();
           setIsMulti(false);
           setStarted(true);
         }}
-        onStartMulti={() => { setIsMulti(true); setStarted(true); }}
+        onStartMulti={() => {
+          hapticSelection();
+          setIsMulti(true);
+          setStarted(true);
+        }}
         playerName={playerName}
         onPlayerNameChange={setPlayerName}
-        instructions={Platform.OS === "web" ? "←→ Mover  Espacio Disparar" : "Controles táctiles"}
+        instructions={Platform.OS === "web" ? t["space-invaders"].instructions : t.common.touch_controls}
         onSeedChange={setInitialSeed}
         onStartDaily={(dailySeed) => {
+          hapticSelection();
           setInitialSeed(dailySeed);
           setIsDaily(true);
           setIsMulti(false);
@@ -206,6 +215,7 @@ export default function SpaceInvadersScreen() {
         <TouchableOpacity
           style={sharedScreenStyles.backButton}
           onPress={() => {
+            hapticSelection();
             if (router.canGoBack()) {
               router.back();
             } else {
@@ -213,12 +223,12 @@ export default function SpaceInvadersScreen() {
             }
           }}
         >
-          <Text style={sharedScreenStyles.backButtonText}>← MENÚ</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
 
         {isMulti && !connected && (
             <View style={sharedScreenStyles.overlay}>
-                <Text style={sharedScreenStyles.overlayText}>Conectando...</Text>
+                <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
             </View>
         )}
 
@@ -309,6 +319,7 @@ const StartScreen: FC<{
   onStartDaily,
   activeMutators = [],
 }) => {
+  const { t } = useTranslation();
   return (
     <SafeAreaProvider>
       <View style={sharedScreenStyles.startScreen}>
@@ -316,6 +327,7 @@ const StartScreen: FC<{
         <TouchableOpacity
           style={sharedScreenStyles.backButton}
           onPress={() => {
+            hapticSelection();
             if (router.canGoBack()) {
               router.back();
             } else {
@@ -323,20 +335,26 @@ const StartScreen: FC<{
             }
           }}
         >
-          <Text style={sharedScreenStyles.backButtonText}>← MENÚ</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
+        <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
+          {t.accessibility.player_name_label.toUpperCase()}
+        </Text>
         <TextInput
             style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
-            placeholder="Tu nombre"
+            placeholder={t.common.your_name}
             placeholderTextColor="#AAAAAA"
+            accessibilityLabel={t.accessibility.player_name_label}
+            accessibilityLabelledBy="playerNameLabel"
+            accessibilityHint={t.accessibility.player_name_hint}
         />
 
         <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
-        <Text style={sharedScreenStyles.highScoreText}>Récord: {highScore}</Text>
+        <Text style={sharedScreenStyles.highScoreText}>{t.common.record}: {highScore}</Text>
 
         {onStartDaily && <DailyChallengeBanner gameId="space-invaders" onPlay={onStartDaily} />}
 
@@ -352,7 +370,7 @@ const StartScreen: FC<{
 
         <View style={sharedScreenStyles.buttonRow}>
             <TouchableOpacity style={sharedScreenStyles.startButton} onPress={onStart}>
-                <Text style={sharedScreenStyles.startButtonText}>SOLO</Text>
+                <Text style={sharedScreenStyles.startButtonText}>{t.common.solo}</Text>
             </TouchableOpacity>
 
             {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
@@ -360,7 +378,7 @@ const StartScreen: FC<{
                     <View style={{ width: 20 }} />
                     <TouchableOpacity style={sharedScreenStyles.multiButton} onPress={onStartMulti}>
                         <Text style={sharedScreenStyles.multiButtonText}>
-                            MULTI
+                            {t.common.multi}
                         </Text>
                     </TouchableOpacity>
                 </>

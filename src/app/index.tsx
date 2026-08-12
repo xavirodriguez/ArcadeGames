@@ -11,6 +11,7 @@ import { useGameServices } from "@tiny-aster/react-native";
 import { PassportOverlay } from "../components/PassportOverlay";
 import { DailyChallengeCard } from "../components/DailyChallengeCard";
 import { LeaderboardOverlay } from "../components/LeaderboardOverlay";
+import { hapticSelection } from "../utils/haptics";
 
 interface GameEntry {
   id: string;
@@ -83,16 +84,43 @@ export default function HomeScreen() {
 
           <View style={styles.headerRow}>
             {profile && (
-              <TouchableOpacity style={styles.profileSummary} onPress={() => setShowPassport(true)}>
+              <TouchableOpacity
+                style={styles.profileSummary}
+                onPress={() => {
+                  hapticSelection();
+                  setShowPassport(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.accessibility.profile_summary}
+                accessibilityHint={t.accessibility.profile_summary_hint}
+              >
                 <Text style={styles.profileText}>{profile.displayName} - {t.menu.level} {profile.level}</Text>
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity style={styles.muteButton} onPress={toggleMute}>
+            <TouchableOpacity
+              style={styles.muteButton}
+              onPress={() => {
+                hapticSelection();
+                toggleMute();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={isMuted ? t.accessibility.mute_button_off : t.accessibility.mute_button_on}
+              accessibilityHint={t.accessibility.mute_button_hint}
+            >
               <Text style={styles.muteButtonText}>{isMuted ? "🔇" : "🔊"}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.langButton} onPress={toggleLanguage}>
+            <TouchableOpacity
+              style={styles.langButton}
+              onPress={() => {
+                hapticSelection();
+                toggleLanguage();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.accessibility.language_button}
+              accessibilityHint={t.accessibility.language_button_hint}
+            >
               <Text style={styles.langButtonText}>{locale.toUpperCase()}</Text>
             </TouchableOpacity>
           </View>
@@ -101,13 +129,24 @@ export default function HomeScreen() {
             <View key={game.id} style={styles.menuRow}>
               <TouchableOpacity
                 style={styles.menuButton}
-                onPress={() => router.push(game.href as any)}
+                onPress={() => {
+                  hapticSelection();
+                  router.push(game.href as any);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.menu[game.key]}
               >
                 <Text style={styles.menuButtonText}>{t.menu[game.key]}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.rankButton}
-                onPress={() => setShowLeaderboard(game.id)}
+                onPress={() => {
+                  hapticSelection();
+                  setShowLeaderboard(game.id);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.accessibility.leaderboard_button.replace("{game}", t.menu[game.key])}
+                accessibilityHint={t.accessibility.leaderboard_button_hint}
               >
                 <Text style={styles.rankButtonText}>🏆</Text>
               </TouchableOpacity>

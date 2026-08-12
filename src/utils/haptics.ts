@@ -45,3 +45,15 @@ export function hapticThrust(active: boolean): void {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 }
+
+/**
+ * Trigger a light selection haptic feedback for UI interactions.
+ */
+export function hapticSelection(): void {
+  if (Platform.OS === "web") return;
+  try {
+    Haptics.selectionAsync();
+  } catch (_e) {
+    // Fail-silent
+  }
+}

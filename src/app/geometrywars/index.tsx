@@ -10,6 +10,8 @@ import { useTranslation } from "@/src/hooks/useTranslation";
 import { VirtualJoystick } from "@/src/components/controls/VirtualJoystick";
 import { useMultiplayer } from "@tiny-aster/react-native";
 import { useTouchDevice } from "@/src/hooks/useTouchDevice";
+import { hapticSelection } from "@/src/utils/haptics";
+import { sharedScreenStyles } from "@/src/styles/SharedGameScreenStyles";
 
 export default function GeometryWarsScreen() {
   const { t } = useTranslation();
@@ -160,6 +162,7 @@ export default function GeometryWarsScreen() {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => {
+              hapticSelection();
               if (router.canGoBack()) {
                 router.back();
               } else {
@@ -182,7 +185,7 @@ export default function GeometryWarsScreen() {
             {t.common.your_name || "Name"}
           </Text>
           <TextInput
-            style={styles.input}
+            style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={setPlayerName}
             placeholder={t.common.your_name || "Name"}
@@ -194,13 +197,13 @@ export default function GeometryWarsScreen() {
           <Text style={styles.highScoreText}>{t.common.record}: {highScore}</Text>
 
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.startButton} onPress={() => { setIsMulti(false); setStarted(true); }}>
+            <TouchableOpacity style={styles.startButton} onPress={() => { hapticSelection(); setIsMulti(false); setStarted(true); }}>
               <Text style={styles.startButtonText}>{t.common.solo}</Text>
             </TouchableOpacity>
 
             <View style={{ width: 20 }} />
 
-            <TouchableOpacity style={styles.multiButton} onPress={() => { setIsMulti(true); setStarted(true); }}>
+            <TouchableOpacity style={styles.multiButton} onPress={() => { hapticSelection(); setIsMulti(true); setStarted(true); }}>
               <Text style={styles.multiButtonText}>{t.common.multi || "Multiplayer"}</Text>
             </TouchableOpacity>
           </View>
@@ -226,6 +229,7 @@ export default function GeometryWarsScreen() {
           <TouchableOpacity
             style={[styles.backButton, { top: Math.max(insets.top, 20) }]}
             onPress={() => {
+              hapticSelection();
               if (router.canGoBack()) {
                 router.back();
               } else {

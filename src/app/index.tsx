@@ -11,6 +11,7 @@ import { useGameServices } from "@tiny-aster/react-native";
 import { PassportOverlay } from "../components/PassportOverlay";
 import { DailyChallengeCard } from "../components/DailyChallengeCard";
 import { LeaderboardOverlay } from "../components/LeaderboardOverlay";
+import { hapticSelection } from "../utils/haptics";
 
 interface GameEntry {
   id: string;

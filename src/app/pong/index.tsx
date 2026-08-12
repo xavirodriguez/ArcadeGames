@@ -16,8 +16,12 @@ import { Mutator } from "@/config/MutatorConfig";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
+import { useTranslation } from "@/hooks/useTranslation";
+import { hapticSelection } from "../../utils/haptics";
+import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 
 export default function PongScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
   const [playerName, setPlayerName] = useState("Jugador");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
@@ -84,6 +88,7 @@ export default function PongScreen() {
       <StartScreen
         title="PONG"
         onStart={(selectedMode) => {
+          hapticSelection();
           setMode(selectedMode);
           if (initialSeed !== undefined) {
             restart(initialSeed);
@@ -92,10 +97,11 @@ export default function PongScreen() {
         }}
         playerName={playerName}
         onPlayerNameChange={setPlayerName}
-        instructions={Platform.OS === "web" ? "P1: W/S  P2: Flechas" : "Modo Local"}
+        instructions={Platform.OS === "web" ? t.pong.instructions : t.pong.local_mode}
         initialSeed={initialSeed}
         onSeedChange={setInitialSeed}
         onStartDaily={(dailySeed) => {
+          hapticSelection();
           setInitialSeed(dailySeed);
           setIsDaily(true);
           setMode("ai");
@@ -126,6 +132,7 @@ export default function PongScreen() {
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
+            hapticSelection();
             if (router.canGoBack()) {
               router.back();
             } else {
@@ -133,12 +140,12 @@ export default function PongScreen() {
             }
           }}
         >
-          <Text style={styles.backButtonText}>← MENÚ</Text>
+          <Text style={styles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
 
         {isMulti && !connected && (
             <View style={styles.multiOverlay}>
-                <Text style={styles.overlayText}>Conectando...</Text>
+                <Text style={styles.overlayText}>{t.common.connecting}</Text>
             </View>
         )}
 
@@ -166,9 +173,17 @@ export default function PongScreen() {
 
         {gameState?.isGameOver && !isDaily && (
             <View style={styles.overlay}>
-                <Text style={styles.overlayText}>FIN DEL JUEGO</Text>
-                <TouchableOpacity style={styles.restartButton} onPress={() => game.restart()}>
-                    <Text style={styles.restartButtonText}>REINTENTAR</Text>
+                <Text style={styles.overlayText}>{t.common.game_over}</Text>
+                <TouchableOpacity
+                  style={styles.restartButton}
+                  onPress={() => {
+                    hapticSelection();
+                    game.restart();
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.common.retry}
+                >
+                    <Text style={styles.restartButtonText}>{t.common.retry}</Text>
                 </TouchableOpacity>
             </View>
         )}
@@ -210,12 +225,14 @@ const StartScreen: FC<{
   onStartDaily,
   activeMutators = [],
 }) => {
+  const { t } = useTranslation();
   return (
     <SafeAreaProvider>
-      <View style={styles.startScreen}>
+      <View style={sharedScreenStyles.startScreen}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={sharedScreenStyles.backButton}
           onPress={() => {
+            hapticSelection();
             if (router.canGoBack()) {
               router.back();
             } else {
@@ -223,15 +240,15 @@ const StartScreen: FC<{
             }
           }}
         >
-          <Text style={styles.backButtonText}>← MENÚ</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={sharedScreenStyles.title}>{title}</Text>
 
         <Text style={styles.inputLabel} nativeID="playerNameLabel">
           Tu nombre
         </Text>
         <TextInput
-            style={styles.input}
+            style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
             placeholder="Tu nombre"
@@ -240,7 +257,7 @@ const StartScreen: FC<{
             accessibilityLabelledBy="playerNameLabel"
         />
 
-        <Text style={styles.instructions}>{instructions}</Text>
+        <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
 
         {onStartDaily && <DailyChallengeBanner gameId="pong" onPlay={onStartDaily} />}
 
@@ -254,21 +271,21 @@ const StartScreen: FC<{
           />
         )}
 
-        <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.startButton} onPress={() => onStart("local")}>
-                <Text style={styles.startButtonText}>LOCAL</Text>
+        <View style={sharedScreenStyles.buttonRow}>
+            <TouchableOpacity style={sharedScreenStyles.startButton} onPress={() => onStart("local")}>
+                <Text style={sharedScreenStyles.startButtonText}>{t.accessibility.local_p1}</Text>
             </TouchableOpacity>
             <View style={{ width: 10 }} />
-            <TouchableOpacity style={styles.startButton} onPress={() => onStart("ai")}>
-                <Text style={styles.startButtonText}>VS AI</Text>
+            <TouchableOpacity style={sharedScreenStyles.startButton} onPress={() => onStart("ai")}>
+                <Text style={sharedScreenStyles.startButtonText}>{t.pong.vs_ai}</Text>
             </TouchableOpacity>
 
             {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
                 <>
                     <View style={{ width: 10 }} />
-                    <TouchableOpacity style={[styles.startButton, { backgroundColor: '#444' }]} onPress={() => onStart("online")}>
-                        <Text style={[styles.startButtonText, { color: 'white' }]}>
-                            MULTI
+                    <TouchableOpacity style={sharedScreenStyles.multiButton} onPress={() => onStart("online")}>
+                        <Text style={sharedScreenStyles.multiButtonText}>
+                            {t.common.multi}
                         </Text>
                     </TouchableOpacity>
                 </>

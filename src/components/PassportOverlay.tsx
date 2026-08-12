@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Switch } from 're
 import { PlayerProfile } from '../services/PlayerProfileService';
 import { LEVEL_THRESHOLDS } from '../config/PassportConfig';
 import { useGameServices } from "@tiny-aster/react-native";
+import { useTranslation } from '../hooks/useTranslation';
+import { hapticSelection } from '../utils/haptics';
 
 interface PassportOverlayProps {
   profile: PlayerProfile;
@@ -10,6 +12,7 @@ interface PassportOverlayProps {
 }
 
 export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClose }) => {
+  const { t } = useTranslation();
   const nextLevelXP = LEVEL_THRESHOLDS[profile.level] || profile.xp;
   const prevLevelXP = LEVEL_THRESHOLDS[profile.level - 1] || 0;
   const progress = Math.min(1, (profile.xp - prevLevelXP) / (nextLevelXP - prevLevelXP));
@@ -125,11 +128,16 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontWeight: 'bold',
   },
+  closeTouchArea: {
+    padding: 10,
+    margin: -10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   closeButton: {
     color: 'white',
     fontSize: 24,
     fontFamily: 'monospace',
-    padding: 5,
   },
   content: {
     flex: 1,

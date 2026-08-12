@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { LeaderboardService } from '../services/LeaderboardService';
+import { useTranslation } from '../hooks/useTranslation';
+import { hapticSelection } from '../utils/haptics';
 
 interface LeaderboardEntry {
   playerId: string;
@@ -14,6 +16,7 @@ interface LeaderboardOverlayProps {
 }
 
 export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, onClose }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [scores, setScores] = useState<LeaderboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +38,9 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
   useEffect(() => {
     fetchScores();
   }, [fetchScores]);
+
+  const sanitizedGameKey = gameId.replace('-', '_');
+  const gameNameLocal = (t.menu as any)[sanitizedGameKey] || gameId.toUpperCase();
 
   return (
     <View style={styles.container}>
@@ -137,6 +143,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'monospace',
     fontWeight: 'bold',
+  },
+  closeTouchArea: {
+    padding: 10,
+    margin: -10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   closeButton: {
     color: 'white',

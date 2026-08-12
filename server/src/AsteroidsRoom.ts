@@ -79,10 +79,16 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
 
   private spawnAsteroids(count: number) {
     const gameplayRandom = this.world.gameplayRandom;
-    for (let i = 0; i < count; i++) {
-        const x = gameplayRandom.nextRange(0, this.state.gameWidth);
-        const y = gameplayRandom.nextRange(0, this.state.gameHeight);
-        createAsteroid({ world: this.world, x, y, size: "large" });
+    const wasLocked = gameplayRandom.isLocked();
+    if (wasLocked) gameplayRandom.unlock();
+    try {
+        for (let i = 0; i < count; i++) {
+            const x = gameplayRandom.nextRange(0, this.state.gameWidth);
+            const y = gameplayRandom.nextRange(0, this.state.gameHeight);
+            createAsteroid({ world: this.world, x, y, size: "large" });
+        }
+    } finally {
+        if (wasLocked) gameplayRandom.lock();
     }
   }
 
@@ -202,8 +208,16 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
     const player = new Player();
     player.sessionId = client.sessionId;
     player.name = validOptions.name || `Player ${this.nextPlayerNumber++}`;
-    player.x = gameplayRandom.nextRange(100, 700);
-    player.y = gameplayRandom.nextRange(100, 500);
+
+    const wasLocked = gameplayRandom.isLocked();
+    if (wasLocked) gameplayRandom.unlock();
+    try {
+        player.x = gameplayRandom.nextRange(100, 700);
+        player.y = gameplayRandom.nextRange(100, 500);
+    } finally {
+        if (wasLocked) gameplayRandom.lock();
+    }
+
     player.angle = 0;
     player.score = 0;
     player.lives = 3;
@@ -236,6 +250,12 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
       this.inputBuffers.delete(client.sessionId);
       this.clientAcks.delete(client.sessionId);
       this.newClients.delete(client.sessionId);
+
+      const entity = this.playerEntities.get(client.sessionId);
+      if (entity !== undefined) {
+        this.world.getCommandBuffer().removeEntity(entity);
+        this.playerEntities.delete(client.sessionId);
+      }
     }
   }
 

@@ -56,6 +56,7 @@ export default function HomeScreen() {
   }, []);
 
   const toggleMute = async () => {
+    hapticSelection();
     if (services) {
       await services.toggleMute();
     } else {
@@ -86,7 +87,10 @@ export default function HomeScreen() {
             {profile && (
               <TouchableOpacity
                 style={styles.profileSummary}
-                onPress={() => setShowPassport(true)}
+                onPress={() => {
+                  hapticSelection();
+                  setShowPassport(true);
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={`Open Passport. Player name is ${profile.displayName}, Level ${profile.level}`}
                 accessibilityHint="Shows player achievements, stats, and audio settings"
@@ -108,7 +112,10 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={styles.langButton}
-              onPress={toggleLanguage}
+              onPress={() => {
+                hapticSelection();
+                toggleLanguage();
+              }}
               accessibilityRole="button"
               accessibilityLabel={`Change language. Current language is ${locale === 'es' ? 'Spanish' : 'English'}`}
               accessibilityHint="Switches interface language between English and Spanish"
@@ -121,7 +128,10 @@ export default function HomeScreen() {
             <View key={game.id} style={styles.menuRow}>
               <TouchableOpacity
                 style={styles.menuButton}
-                onPress={() => router.push(game.href as any)}
+                onPress={() => {
+                  hapticSelection();
+                  router.push(game.href as any);
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={`Play ${t.menu[game.key]}`}
                 accessibilityHint={`Launches the ${t.menu[game.key]} game start screen`}
@@ -130,7 +140,10 @@ export default function HomeScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.rankButton}
-                onPress={() => setShowLeaderboard(game.id)}
+                onPress={() => {
+                  hapticSelection();
+                  setShowLeaderboard(game.id);
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={`View ${t.menu[game.key]} leaderboard`}
                 accessibilityHint={`Opens the daily high score rankings for ${t.menu[game.key]}`}

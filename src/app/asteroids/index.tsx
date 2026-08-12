@@ -25,6 +25,7 @@ import { useGameSession } from "@/hooks/useGameSession";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
+import { hapticSelection } from "@/utils/haptics";
 
 export default function AsteroidsScreen() {
   const { t } = useTranslation();
@@ -182,12 +183,16 @@ export default function AsteroidsScreen() {
         <TouchableOpacity
           style={sharedScreenStyles.backButton}
           onPress={() => {
+            hapticSelection();
             if (router.canGoBack()) {
               router.back();
             } else {
               router.replace("/");
             }
           }}
+          accessibilityRole="button"
+          accessibilityLabel={t.common.back}
+          accessibilityHint="Regresa a la pantalla principal"
         >
           <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
@@ -306,19 +311,23 @@ const StartScreen: FC<{
         <TouchableOpacity
           style={sharedScreenStyles.backButton}
           onPress={() => {
+            hapticSelection();
             if (router.canGoBack()) {
               router.back();
             } else {
               router.replace("/");
             }
           }}
+          accessibilityRole="button"
+          accessibilityLabel={t.common.back}
+          accessibilityHint="Regresa a la pantalla principal"
         >
           <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
         <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
-          {t.common.your_name}
+          {t.accessibility.player_name_label}
         </Text>
         <TextInput
             style={sharedScreenStyles.input}
@@ -326,7 +335,7 @@ const StartScreen: FC<{
             onChangeText={onPlayerNameChange}
             placeholder={t.common.your_name}
             placeholderTextColor="#AAAAAA"
-            accessibilityLabel="Nombre del jugador"
+            accessibilityLabel={t.accessibility.player_name_label}
             accessibilityLabelledBy="playerNameLabel"
         />
 
@@ -342,7 +351,14 @@ const StartScreen: FC<{
                 paddingVertical: 12,
               }
             ]}
-            onPress={() => onModeChange("deathmatch")}
+            onPress={() => {
+              hapticSelection();
+              onModeChange("deathmatch");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Modo Deathmatch"
+            accessibilityState={{ selected: selectedMode === "deathmatch" }}
+            accessibilityHint="Selecciona el modo infinito clásico de Asteroids"
           >
             <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "deathmatch" ? "#000" : "#00FFDD", fontSize: 14 }]}>
               DEATHMATCH
@@ -358,7 +374,14 @@ const StartScreen: FC<{
                 paddingVertical: 12,
               }
             ]}
-            onPress={() => onModeChange("story")}
+            onPress={() => {
+              hapticSelection();
+              onModeChange("story");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Modo Historia"
+            accessibilityState={{ selected: selectedMode === "story" }}
+            accessibilityHint="Selecciona la campaña narrativa Kepler's Ghost"
           >
             <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "story" ? "#000" : "#00FFDD", fontSize: 14 }]}>
               MODO HISTORIA
@@ -382,14 +405,32 @@ const StartScreen: FC<{
         )}
 
         <View style={sharedScreenStyles.buttonRow}>
-            <TouchableOpacity style={sharedScreenStyles.startButton} onPress={onStart}>
+            <TouchableOpacity
+              style={sharedScreenStyles.startButton}
+              onPress={() => {
+                hapticSelection();
+                onStart();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.solo}
+              accessibilityHint="Inicia una partida individual en el modo seleccionado"
+            >
                 <Text style={sharedScreenStyles.startButtonText}>{t.common.solo}</Text>
             </TouchableOpacity>
 
             {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
                 <>
                     <View style={{ width: 20 }} />
-                    <TouchableOpacity style={sharedScreenStyles.multiButton} onPress={onStartMulti}>
+                    <TouchableOpacity
+                      style={sharedScreenStyles.multiButton}
+                      onPress={() => {
+                        hapticSelection();
+                        onStartMulti();
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.common.multi}
+                      accessibilityHint="Inicia una sesión multijugador en línea"
+                    >
                         <Text style={sharedScreenStyles.multiButtonText}>
                             {t.common.multi}
                         </Text>

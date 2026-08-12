@@ -48,7 +48,10 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
         <View style={styles.header}>
           <Text style={styles.title} accessibilityRole="header">RANKING {gameId.toUpperCase()}</Text>
           <TouchableOpacity
-            onPress={onClose}
+            onPress={() => {
+              hapticSelection();
+              onClose();
+            }}
             accessibilityRole="button"
             accessibilityLabel="Close leaderboard overlay"
             accessibilityHint="Returns to the home screen menu"
@@ -66,7 +69,10 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
-              onPress={fetchScores}
+              onPress={() => {
+                hapticSelection();
+                fetchScores();
+              }}
               accessibilityRole="button"
               accessibilityLabel="Reintentar cargar ranking"
               accessibilityHint="Vuelve a intentar cargar la lista de puntuaciones"

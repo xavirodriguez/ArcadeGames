@@ -139,6 +139,9 @@ export default function PongScreen() {
               router.replace("/");
             }
           }}
+          accessibilityRole="button"
+          accessibilityLabel={t.common.back}
+          accessibilityHint="Regresa a la pantalla principal"
         >
           <Text style={styles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
@@ -245,15 +248,15 @@ const StartScreen: FC<{
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
         <Text style={styles.inputLabel} nativeID="playerNameLabel">
-          Tu nombre
+          {t.accessibility.player_name_label}
         </Text>
         <TextInput
             style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
-            placeholder="Tu nombre"
-            placeholderTextColor="#666"
-            accessibilityLabel="Nombre del jugador"
+            placeholder={t.common.your_name}
+            placeholderTextColor="#AAAAAA"
+            accessibilityLabel={t.accessibility.player_name_label}
             accessibilityLabelledBy="playerNameLabel"
         />
 
@@ -272,18 +275,36 @@ const StartScreen: FC<{
         )}
 
         <View style={sharedScreenStyles.buttonRow}>
-            <TouchableOpacity style={sharedScreenStyles.startButton} onPress={() => onStart("local")}>
+            <TouchableOpacity
+              style={sharedScreenStyles.startButton}
+              onPress={() => onStart("local")}
+              accessibilityRole="button"
+              accessibilityLabel={`${t.accessibility.local_p1} - Modo Local`}
+              accessibilityHint="Inicia una partida local de dos jugadores en la misma pantalla"
+            >
                 <Text style={sharedScreenStyles.startButtonText}>{t.accessibility.local_p1}</Text>
             </TouchableOpacity>
             <View style={{ width: 10 }} />
-            <TouchableOpacity style={sharedScreenStyles.startButton} onPress={() => onStart("ai")}>
+            <TouchableOpacity
+              style={sharedScreenStyles.startButton}
+              onPress={() => onStart("ai")}
+              accessibilityRole="button"
+              accessibilityLabel={t.pong.vs_ai}
+              accessibilityHint="Inicia una partida individual contra la inteligencia artificial"
+            >
                 <Text style={sharedScreenStyles.startButtonText}>{t.pong.vs_ai}</Text>
             </TouchableOpacity>
 
             {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
                 <>
                     <View style={{ width: 10 }} />
-                    <TouchableOpacity style={sharedScreenStyles.multiButton} onPress={() => onStart("online")}>
+                    <TouchableOpacity
+                      style={sharedScreenStyles.multiButton}
+                      onPress={() => onStart("online")}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.common.multi}
+                      accessibilityHint="Busca una partida multijugador competitiva en línea"
+                    >
                         <Text style={sharedScreenStyles.multiButtonText}>
                             {t.common.multi}
                         </Text>

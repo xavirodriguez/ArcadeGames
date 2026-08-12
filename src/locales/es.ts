@@ -74,5 +74,13 @@ export const es = {
       name: "Nave Enana",
       description: "Tu nave es la mitad de grande pero mucho más ágil.",
     },
+  },
+  story: {
+    chapter_1_title: "Capítulo 1: Silencio en el Cinturón",
+    chapter_1_fragment_1: "Log #01 — Ing. Okonkwo: 'La carga del Sector 4 no era mineral... estaba viva.'",
+    chapter_1_fragment_2: "Log #02 — Cmdt. Reyes: 'Señal de auxilio emitida. Frecuencia bloqueada por polvo ionizado.'",
+    chapter_1_fragment_3: "Log #05: 'La tripulación del módulo A no respondió al protocolo de evacuación.'",
+    chapter_2_title: "Capítulo 2: El Enjambre Despierta",
+    boss_defeated: "¡Sistemas de contención de drones Helios superados con éxito!",
   }
 };

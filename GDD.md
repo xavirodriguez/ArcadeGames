@@ -356,3 +356,24 @@ To prevent desynchronizations and state variance, the following rules are strict
      const speedVariance = rng.nextFloat() * 50 - 25; // Safe and deterministic
      ```
    - Visual-only effects (such as particles or screen shakes) can utilize `world.renderRandom` safely without impacting the gameplay simulation path.
+
+---
+
+## 📖 Part 5: Narrative & Story Mode Infrastructure
+
+To support a deeply immersive "Story Mode" while preserving game loop determinism and maximizing reusability of engine and game systems, a reusable narrative infrastructure is introduced.
+
+### 1. Componentized Story Beats & Director (`StoryBeatComponent` & `StoryDirectorSystem`)
+- **StoryBeatComponent**: Codifies narrative triggers directly in the ECS, tracking whether a specific story checkpoint/beat has fired.
+- **StoryDirectorSystem**: Executes in the `GameRules` phase to listen for system-emitted gameplay events (`level:completed`, `spawn:wave_complete`, and `CollectiblePickedUp`). Upon meeting a beat's condition, it deterministically updates the component's state and emits a `"story:beat_reached"` event, safely decoupling story logic from the core loops.
+
+### 2. Standardized Dialogue Typing (`DialogueBoxComponent`)
+- **DialogueBoxComponent**: Manages the lines queue, custom character-per-second typing animation speed, typing progress, and input-based dialogue advancing.
+- **React HUD Rendering Integration**: Extends `GameUI.tsx` to detect active dialogue states, rendering a styled, neon-gilded retro comms dialogue overlay equipped with a typewriter effect and a blinking prompt indication to advance lines.
+
+### 3. Reusable Cutscene Scenes (`CutsceneScene`)
+- Extends the core `Scene` architecture to stack and unstack cutscenes inside the `SceneManager` using pre-implemented transition overlays (`FadeTransition`, `IrisTransition`, `CRTScanlines`, etc.).
+- Broadcasts transition start, progress, and success events on the EventBus and utilizes completion callbacks to resume gameplay seamlessly.
+
+### 4. Deterministic Narrative Decisions (`RunStoryChoices`)
+- Reuses the active `IsPaused` and seed-aware randomized selection mechanics to spawn 3 deterministic dialogue/story path choices when a level completes. Player selections are processed to affect which subsequent `StoryBeatComponent` instances get triggered, enabling narrative branches.

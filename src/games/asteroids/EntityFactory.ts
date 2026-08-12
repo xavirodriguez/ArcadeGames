@@ -287,6 +287,16 @@ export function registerAsteroidsBlueprints(
         type: "LootTable",
         tableId: "default"
       } as any);
+
+      // Attach Collectible component directly
+      w.addComponent(entity, {
+        type: "Collectible",
+        kind: "story_fragment",
+        value: 1,
+        persistent: true,
+        collectOnce: true,
+        id: `asteroid_fragment_${args.size}_${args.x}_${args.y}`
+      } as any);
     }
   });
 

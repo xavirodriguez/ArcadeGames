@@ -22,6 +22,8 @@ export const PlayerProfileSchema = z.object({
     totalPlaytimeTicks: z.number().int()
   }),
   unlockedAchievements: z.array(z.string()).default([]), // For Phase P2
+  storyChapterUnlocked: z.number().int().default(1),
+  storyFragmentsCollected: z.array(z.string()).default([]),
 });
 
 export type PlayerProfile = z.infer<typeof PlayerProfileSchema>;
@@ -76,7 +78,9 @@ export class PlayerProfileService {
         pongSetsWon: 0,
         totalPlaytimeTicks: 0
       },
-      unlockedAchievements: []
+      unlockedAchievements: [],
+      storyChapterUnlocked: 1,
+      storyFragmentsCollected: []
     };
     await this.saveProfile();
     return this.profile!;

@@ -74,5 +74,13 @@ export const en = {
       name: "Tiny Ship",
       description: "Your ship is half the size but much more agile.",
     },
+  },
+  story: {
+    chapter_1_title: "Chapter 1: Silence in the Belt",
+    chapter_1_fragment_1: "Log #01 — Ing. Okonkwo: 'The cargo of Sector 4 wasn't ore... it was alive.'",
+    chapter_1_fragment_2: "Log #02 — Cmdt. Reyes: 'Distress signal sent. Frequency blocked by ionized dust.'",
+    chapter_1_fragment_3: "Log #05: 'The crew of module A did not respond to the evacuation protocol.'",
+    chapter_2_title: "Chapter 2: The Swarm Awakens",
+    boss_defeated: "Helios drone containment systems successfully breached!",
   }
 };

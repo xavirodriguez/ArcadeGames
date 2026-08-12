@@ -104,7 +104,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
    * @precondition `entities` debe ser un array de IDs de entidades válidas.
    * @postcondition Retorna un nuevo array filtrado con las entidades visibles.
    */
-  public static filterInViewport(world: World, entities: Entity[], margin: number = 100): Entity[] {
+  public static filterInViewport(world: World, entities: ReadonlyArray<Entity>, margin: number = 100): Entity[] {
     return entities.filter((entity) => this.isEntityInViewport(world, entity, margin));
   }
 

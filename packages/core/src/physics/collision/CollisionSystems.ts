@@ -146,29 +146,34 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
     const w = world as unknown as World<CoreComponentRegistry>;
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
     const candidatesInput = candidatesOverride !== undefined ? candidatesOverride : this.candidateEntities;
-    let candidatesList = candidatesInput !== null ? candidatesInput : (resourceCandidates !== undefined ? resourceCandidates : null);
+    let candidatesList: ReadonlyArray<Entity> | null = candidatesInput !== null ? candidatesInput : (resourceCandidates !== undefined ? resourceCandidates : null);
 
     if (candidatesList === null && world.getResource("SpatialCullingEnabled") === true) {
       const margin = world.getResource<number>("SpatialCullingMargin") ?? 100;
       const entities = w.query("Transform", "Collider");
-      candidatesList = SpatialCullingSystem.filterInViewport(world, [...entities], margin);
+      candidatesList = SpatialCullingSystem.filterInViewport(world, entities, margin);
     }
 
-    let query: Entity[];
+    let query: ReadonlyArray<Entity>;
     if (candidatesList !== null) {
-      query = [];
-      for (const entity of candidatesList) {
+      const tempQuery: Entity[] = [];
+      const len = candidatesList.length;
+      for (let i = 0; i < len; i++) {
+        const entity = candidatesList[i];
         if (w.hasComponent(entity, "Transform") && w.hasComponent(entity, "Collider")) {
-          query.push(entity);
+          tempQuery.push(entity);
         }
       }
+      query = tempQuery;
     } else {
-      query = [...w.query("Transform", "Collider")];
+      query = w.query("Transform", "Collider");
     }
     const currentFramePairs = new Set<string>();
 
     const eventQuery = w.query("CollisionEvents");
-    for (const entity of eventQuery) {
+    const eqLen = eventQuery.length;
+    for (let i = 0; i < eqLen; i++) {
+      const entity = eventQuery[i];
       w.mutateComponent(entity, "CollisionEvents", (component) => {
         component.collisions.length = 0;
         component.triggersEntered.length = 0;
@@ -176,7 +181,7 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
       });
     }
 
-    const broadPhasePairs = BroadPhase.sweepAndPrune([...query], w);
+    const broadPhasePairs = BroadPhase.sweepAndPrune(query, w);
 
     for (const [entityA, entityB] of broadPhasePairs) {
       const colA = w.getComponent(entityA, "Collider")!;

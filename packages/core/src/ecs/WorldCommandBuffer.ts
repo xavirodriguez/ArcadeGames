@@ -36,6 +36,7 @@ export class WorldCommandBuffer<
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
   private commands: Command<TComponents, TEvents, TBlueprints>[] = [];
+  private commandsPool: Command<TComponents, TEvents, TBlueprints>[] = [];
 
   /**
    * Schedules an entity to be spawned from a blueprint.
@@ -103,11 +104,18 @@ export class WorldCommandBuffer<
    * Executes all buffered commands on the provided world.
    */
   public flush(world: World<TComponents, TEvents, TBlueprints>): void {
-    const commands = [...this.commands];
-    this.commands = [];
-    for (const command of commands) {
-      command.execute(world);
+    const len = this.commands.length;
+    if (len === 0) return;
+
+    // Zero-allocation commands swap. Queued commands during execution are cleanly routed to the next flush.
+    const temp = this.commands;
+    this.commands = this.commandsPool;
+    this.commandsPool = temp;
+
+    for (let i = 0; i < len; i++) {
+      temp[i].execute(world);
     }
+    temp.length = 0;
   }
 
   /**

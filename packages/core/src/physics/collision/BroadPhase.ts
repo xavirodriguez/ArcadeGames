@@ -78,15 +78,13 @@ export class BroadPhase {
 
   /**
    * Implementation of the Sweep and Prune algorithm (1D) designed to reduce per-frame
-   * allocations by reusing an internal object pool for entity bounds.
+   * allocations by reusing an internal object pool for entity bounds and sorting in-place.
    *
    * @remarks
-   * While this implementation minimizes per-entity object creation, it still performs
-   * temporary allocations during sorting and when returning the result pairs.
+   * Performs zero object or array allocations during the sorting stage.
    */
-  static sweepAndPrune(entities: Entity[], world: World<CoreComponentRegistry>): Array<[Entity, Entity]> {
+  static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry>): Array<[Entity, Entity]> {
     // Re-use or expand boundsPool to minimize object allocation overhead.
-    // Note: slice(), sort(), and the result array still perform temporary allocations.
     const count = entities.length;
     for (let i = 0; i < count; i++) {
       const entity = entities[i];
@@ -111,17 +109,29 @@ export class BroadPhase {
       }
     }
 
-    // Sort only the active portion of the pool
-    const activeBounds = boundsPool.slice(0, count);
-    activeBounds.sort((a, b) => a.minX - b.minX);
+    // Allocation-free in-place Shell Sort on the active region of boundsPool.
+    // Extremely fast and stable for nearly-sorted coordinates typical of moving physics bodies.
+    let gap = Math.floor(count / 2);
+    while (gap > 0) {
+      for (let i = gap; i < count; i++) {
+        const temp = boundsPool[i];
+        let j = i;
+        while (j >= gap && boundsPool[j - gap].minX > temp.minX) {
+          boundsPool[j] = boundsPool[j - gap];
+          j -= gap;
+        }
+        boundsPool[j] = temp;
+      }
+      gap = Math.floor(gap / 2);
+    }
 
     const pairs: Array<[Entity, Entity]> = [];
     for (let i = 0; i < count; i++) {
-      const a = activeBounds[i];
+      const a = boundsPool[i];
       if (a.entity === 0) continue; // Skip invalid
 
       for (let j = i + 1; j < count; j++) {
-        const b = activeBounds[j];
+        const b = boundsPool[j];
         if (b.minX > a.maxX) break;
         if (a.minY <= b.maxY && b.minY <= a.maxY) {
           pairs.push([a.entity, b.entity]);

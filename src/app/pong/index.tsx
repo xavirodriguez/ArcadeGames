@@ -244,18 +244,17 @@ const StartScreen: FC<{
         </TouchableOpacity>
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
-        <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
-          {t.accessibility.player_name_label.toUpperCase()}
+        <Text style={styles.inputLabel} nativeID="playerNameLabel">
+          Tu nombre
         </Text>
         <TextInput
             style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
-            placeholder={t.common.your_name}
-            placeholderTextColor="#AAAAAA"
-            accessibilityLabel={t.accessibility.player_name_label}
+            placeholder="Tu nombre"
+            placeholderTextColor="#666"
+            accessibilityLabel="Nombre del jugador"
             accessibilityLabelledBy="playerNameLabel"
-            accessibilityHint={t.accessibility.player_name_hint}
         />
 
         <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
@@ -304,6 +303,84 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+  },
+  startScreen: {
+    flex: 1,
+    backgroundColor: "black",
+    alignItems: "center",
+    justifyContent: "center",
+    width: '100%',
+  },
+  title: {
+    fontSize: 64,
+    color: "white",
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    marginBottom: 40,
+    textAlign: "center",
+    textShadowColor: '#00FFFF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 25,
+    letterSpacing: 8,
+  },
+  instructions: {
+    fontSize: 16,
+    color: "#CCCCCC",
+    fontFamily: "monospace",
+    marginBottom: 10,
+    textAlign: "center",
+    paddingHorizontal: 20,
+    textShadowColor: "rgba(255, 255, 255, 0.2)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+  },
+  inputLabel: {
+    color: '#00FFFF',
+    fontFamily: 'monospace',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
+  input: {
+    backgroundColor: '#111',
+    color: 'white',
+    padding: 15,
+    borderRadius: 8,
+    width: 250,
+    marginBottom: 20,
+    fontFamily: 'monospace',
+    textAlign: 'center',
+    fontSize: 18,
+    borderWidth: 1.5,
+    borderColor: '#333',
+  },
+  startButton: {
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: "white",
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 8,
+    minWidth: 120,
+    alignItems: 'center',
+    shadowColor: "white",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+  },
+  startButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    textShadowColor: "white",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   scoreBoard: {
     position: 'absolute',

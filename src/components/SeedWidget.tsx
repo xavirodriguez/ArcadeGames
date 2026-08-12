@@ -26,8 +26,16 @@ export const SeedWidget: React.FC<SeedWidgetProps> = ({ seed, onSeedEnter, style
         placeholder="SEED"
         placeholderTextColor="#666"
         keyboardType="numeric"
+        accessibilityLabel="Semilla de simulación (Seed)"
+        accessibilityHint="Introduce un valor numérico para fijar el generador de números aleatorios"
       />
-      <TouchableOpacity style={styles.button} onPress={handleApply}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleApply}
+        accessibilityRole="button"
+        accessibilityLabel="Aplicar Semilla"
+        accessibilityHint="Fija la semilla introducida y reinicia la configuración del juego"
+      >
         <Text style={styles.buttonText}>APLICAR SEED</Text>
       </TouchableOpacity>
     </View>

@@ -86,13 +86,10 @@ export default function HomeScreen() {
             {profile && (
               <TouchableOpacity
                 style={styles.profileSummary}
-                onPress={() => {
-                  hapticSelection();
-                  setShowPassport(true);
-                }}
+                onPress={() => setShowPassport(true)}
                 accessibilityRole="button"
-                accessibilityLabel={t.accessibility.profile_summary}
-                accessibilityHint={t.accessibility.profile_summary_hint}
+                accessibilityLabel={`Open Passport. Player name is ${profile.displayName}, Level ${profile.level}`}
+                accessibilityHint="Shows player achievements, stats, and audio settings"
               >
                 <Text style={styles.profileText}>{profile.displayName} - {t.menu.level} {profile.level}</Text>
               </TouchableOpacity>
@@ -100,26 +97,21 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={styles.muteButton}
-              onPress={() => {
-                hapticSelection();
-                toggleMute();
-              }}
+              onPress={toggleMute}
               accessibilityRole="button"
-              accessibilityLabel={isMuted ? t.accessibility.mute_button_off : t.accessibility.mute_button_on}
-              accessibilityHint={t.accessibility.mute_button_hint}
+              accessibilityLabel={isMuted ? "Unmute audio" : "Mute audio"}
+              accessibilityState={{ checked: !isMuted }}
+              accessibilityHint="Toggles game sound effects and music on or off"
             >
               <Text style={styles.muteButtonText}>{isMuted ? "🔇" : "🔊"}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.langButton}
-              onPress={() => {
-                hapticSelection();
-                toggleLanguage();
-              }}
+              onPress={toggleLanguage}
               accessibilityRole="button"
-              accessibilityLabel={t.accessibility.language_button}
-              accessibilityHint={t.accessibility.language_button_hint}
+              accessibilityLabel={`Change language. Current language is ${locale === 'es' ? 'Spanish' : 'English'}`}
+              accessibilityHint="Switches interface language between English and Spanish"
             >
               <Text style={styles.langButtonText}>{locale.toUpperCase()}</Text>
             </TouchableOpacity>
@@ -129,24 +121,19 @@ export default function HomeScreen() {
             <View key={game.id} style={styles.menuRow}>
               <TouchableOpacity
                 style={styles.menuButton}
-                onPress={() => {
-                  hapticSelection();
-                  router.push(game.href as any);
-                }}
+                onPress={() => router.push(game.href as any)}
                 accessibilityRole="button"
-                accessibilityLabel={t.menu[game.key]}
+                accessibilityLabel={`Play ${t.menu[game.key]}`}
+                accessibilityHint={`Launches the ${t.menu[game.key]} game start screen`}
               >
                 <Text style={styles.menuButtonText}>{t.menu[game.key]}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.rankButton}
-                onPress={() => {
-                  hapticSelection();
-                  setShowLeaderboard(game.id);
-                }}
+                onPress={() => setShowLeaderboard(game.id)}
                 accessibilityRole="button"
-                accessibilityLabel={t.accessibility.leaderboard_button.replace("{game}", t.menu[game.key])}
-                accessibilityHint={t.accessibility.leaderboard_button_hint}
+                accessibilityLabel={`View ${t.menu[game.key]} leaderboard`}
+                accessibilityHint={`Opens the daily high score rankings for ${t.menu[game.key]}`}
               >
                 <Text style={styles.rankButtonText}>🏆</Text>
               </TouchableOpacity>

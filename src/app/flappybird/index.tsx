@@ -270,7 +270,7 @@ const StartScreen: FC<{
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
         <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
-          {t.accessibility.player_name_label.toUpperCase()}
+          Tu nombre
         </Text>
         <TextInput
             style={sharedScreenStyles.input}
@@ -278,9 +278,8 @@ const StartScreen: FC<{
             onChangeText={onPlayerNameChange}
             placeholder={t.common.your_name}
             placeholderTextColor="#AAAAAA"
-            accessibilityLabel={t.accessibility.player_name_label}
+            accessibilityLabel="Nombre del jugador"
             accessibilityLabelledBy="playerNameLabel"
-            accessibilityHint={t.accessibility.player_name_hint}
         />
 
         <Text style={sharedScreenStyles.instructions}>{instructions}</Text>

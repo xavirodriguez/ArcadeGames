@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { LeaderboardService } from '../services/LeaderboardService';
 import { useTranslation } from '../hooks/useTranslation';
@@ -21,47 +21,59 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
   const [scores, setScores] = useState<LeaderboardEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchScores = async () => {
-      try {
-        const dateKey = new Date().toISOString().split('T')[0].replace(/-/g, '');
-        const data = await LeaderboardService.fetchDailyLeaderboard(gameId, dateKey);
-        setScores(data as LeaderboardEntry[]);
-      } catch (_e) {
-        setError("No se pudo cargar el ranking");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchScores();
+  const fetchScores = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const dateKey = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      const data = await LeaderboardService.fetchDailyLeaderboard(gameId, dateKey);
+      setScores(data as LeaderboardEntry[]);
+    } catch (_e) {
+      setError("No se pudo cargar el ranking");
+    } finally {
+      setLoading(false);
+    }
   }, [gameId]);
+
+  useEffect(() => {
+    fetchScores();
+  }, [fetchScores]);
 
   const sanitizedGameKey = gameId.replace('-', '_');
   const gameNameLocal = (t.menu as any)[sanitizedGameKey] || gameId.toUpperCase();
 
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
+      <View style={styles.card} accessibilityViewIsModal={true}>
         <View style={styles.header}>
-          <Text style={styles.title}>{gameNameLocal} {t.accessibility.lead_header_suffix}</Text>
+          <Text style={styles.title} accessibilityRole="header">RANKING {gameId.toUpperCase()}</Text>
           <TouchableOpacity
-            onPress={() => {
-              hapticSelection();
-              onClose();
-            }}
+            onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel={t.accessibility.close_button}
-            accessibilityHint={t.accessibility.close_button_hint}
-            style={styles.closeTouchArea}
+            accessibilityLabel="Close leaderboard overlay"
+            accessibilityHint="Returns to the home screen menu"
           >
-            <Text style={styles.closeButton}>✕</Text>
+            <Text style={styles.closeButton}>X</Text>
           </TouchableOpacity>
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="white" />
+          <View style={styles.loadingContainer} accessibilityLabel="Cargando ranking diario" accessibilityState={{ busy: true }}>
+            <ActivityIndicator size="large" color="white" />
+          </View>
         ) : error ? (
-          <Text style={styles.errorText}>{error}</Text>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={fetchScores}
+              accessibilityRole="button"
+              accessibilityLabel="Reintentar cargar ranking"
+              accessibilityHint="Vuelve a intentar cargar la lista de puntuaciones"
+            >
+              <Text style={styles.retryButtonText}>REINTENTAR</Text>
+            </TouchableOpacity>
+          </View>
         ) : scores.length === 0 ? (
           <Text style={styles.emptyText}>Sin puntuaciones hoy</Text>
         ) : (
@@ -81,6 +93,29 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryButton: {
+    marginTop: 15,
+    backgroundColor: '#FFD700',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'black',
+    fontFamily: 'monospace',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
   container: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.8)',

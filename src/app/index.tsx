@@ -83,16 +83,35 @@ export default function HomeScreen() {
 
           <View style={styles.headerRow}>
             {profile && (
-              <TouchableOpacity style={styles.profileSummary} onPress={() => setShowPassport(true)}>
+              <TouchableOpacity
+                style={styles.profileSummary}
+                onPress={() => setShowPassport(true)}
+                accessibilityRole="button"
+                accessibilityLabel={`Open Passport. Player name is ${profile.displayName}, Level ${profile.level}`}
+                accessibilityHint="Shows player achievements, stats, and audio settings"
+              >
                 <Text style={styles.profileText}>{profile.displayName} - {t.menu.level} {profile.level}</Text>
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity style={styles.muteButton} onPress={toggleMute}>
+            <TouchableOpacity
+              style={styles.muteButton}
+              onPress={toggleMute}
+              accessibilityRole="button"
+              accessibilityLabel={isMuted ? "Unmute audio" : "Mute audio"}
+              accessibilityState={{ checked: !isMuted }}
+              accessibilityHint="Toggles game sound effects and music on or off"
+            >
               <Text style={styles.muteButtonText}>{isMuted ? "🔇" : "🔊"}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.langButton} onPress={toggleLanguage}>
+            <TouchableOpacity
+              style={styles.langButton}
+              onPress={toggleLanguage}
+              accessibilityRole="button"
+              accessibilityLabel={`Change language. Current language is ${locale === 'es' ? 'Spanish' : 'English'}`}
+              accessibilityHint="Switches interface language between English and Spanish"
+            >
               <Text style={styles.langButtonText}>{locale.toUpperCase()}</Text>
             </TouchableOpacity>
           </View>
@@ -102,12 +121,18 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={styles.menuButton}
                 onPress={() => router.push(game.href as any)}
+                accessibilityRole="button"
+                accessibilityLabel={`Play ${t.menu[game.key]}`}
+                accessibilityHint={`Launches the ${t.menu[game.key]} game start screen`}
               >
                 <Text style={styles.menuButtonText}>{t.menu[game.key]}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.rankButton}
                 onPress={() => setShowLeaderboard(game.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`View ${t.menu[game.key]} leaderboard`}
+                accessibilityHint={`Opens the daily high score rankings for ${t.menu[game.key]}`}
               >
                 <Text style={styles.rankButtonText}>🏆</Text>
               </TouchableOpacity>

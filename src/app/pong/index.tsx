@@ -227,12 +227,17 @@ const StartScreen: FC<{
         </TouchableOpacity>
         <Text style={styles.title}>{title}</Text>
 
+        <Text style={styles.inputLabel} nativeID="playerNameLabel">
+          Tu nombre
+        </Text>
         <TextInput
             style={styles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
             placeholder="Tu nombre"
             placeholderTextColor="#666"
+            accessibilityLabel="Nombre del jugador"
+            accessibilityLabelledBy="playerNameLabel"
         />
 
         <Text style={styles.instructions}>{instructions}</Text>
@@ -314,6 +319,15 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
+  },
+  inputLabel: {
+    color: '#00FFFF',
+    fontFamily: 'monospace',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+    textTransform: 'uppercase',
   },
   input: {
     backgroundColor: '#111',

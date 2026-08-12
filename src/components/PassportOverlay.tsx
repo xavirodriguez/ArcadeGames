@@ -19,10 +19,15 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
 
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
+      <View style={styles.card} accessibilityViewIsModal={true}>
         <View style={styles.header}>
-          <Text style={styles.title}>PASAPORTE ARCADE</Text>
-          <TouchableOpacity onPress={onClose}>
+          <Text style={styles.title} accessibilityRole="header">PASAPORTE ARCADE</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close passport overlay"
+            accessibilityHint="Returns to the home screen menu"
+          >
             <Text style={styles.closeButton}>X</Text>
           </TouchableOpacity>
         </View>
@@ -66,12 +71,15 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
           <View style={styles.settingsSection}>
             <Text style={styles.sectionTitle}>AJUSTES</Text>
             <View style={styles.settingRow}>
-                <Text style={styles.settingLabel}>SILENCIAR AUDIO</Text>
+                <Text style={styles.settingLabel} nativeID="muteAudioLabel">SILENCIAR AUDIO</Text>
                 <Switch
                     value={isMuted}
                     onValueChange={(val) => {
                         services?.setMuted(val);
                     }}
+                    accessibilityLabel="Silenciar audio"
+                    accessibilityLabelledBy="muteAudioLabel"
+                    accessibilityHint="Silencia todos los efectos de sonido y música de los juegos"
                 />
             </View>
           </View>

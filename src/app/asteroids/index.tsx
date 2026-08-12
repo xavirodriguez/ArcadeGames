@@ -317,12 +317,17 @@ const StartScreen: FC<{
         </TouchableOpacity>
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
+        <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
+          {t.common.your_name}
+        </Text>
         <TextInput
             style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
             placeholder={t.common.your_name}
             placeholderTextColor="#AAAAAA"
+            accessibilityLabel="Nombre del jugador"
+            accessibilityLabelledBy="playerNameLabel"
         />
 
         {/* Mode Selector */}

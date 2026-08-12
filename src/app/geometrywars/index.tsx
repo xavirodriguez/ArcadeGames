@@ -178,12 +178,17 @@ export default function GeometryWarsScreen() {
               : "WASD / Arrows to Move\nMove Mouse to Aim\nLeft Click to Shoot"}
           </Text>
 
+          <Text style={styles.inputLabel} nativeID="playerNameLabel">
+            {t.common.your_name || "Name"}
+          </Text>
           <TextInput
             style={styles.input}
             value={playerName}
             onChangeText={setPlayerName}
             placeholder={t.common.your_name || "Name"}
             placeholderTextColor="#AAAAAA"
+            accessibilityLabel="Nombre del jugador"
+            accessibilityLabelledBy="playerNameLabel"
           />
 
           <Text style={styles.highScoreText}>{t.common.record}: {highScore}</Text>
@@ -337,6 +342,15 @@ export default function GeometryWarsScreen() {
 }
 
 const styles = StyleSheet.create({
+  inputLabel: {
+    color: '#00FFFF',
+    fontFamily: "monospace",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 8,
+    textAlign: "center",
+    textTransform: "uppercase",
+  },
   input: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderWidth: 1,

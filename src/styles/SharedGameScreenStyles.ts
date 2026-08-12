@@ -98,6 +98,15 @@ export const sharedScreenStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  inputLabel: {
+    color: NeonColors.primaryCyan,
+    fontFamily: "monospace",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 8,
+    textAlign: "center",
+    textTransform: "uppercase",
+  },
   input: {
     backgroundColor: NeonColors.inputBg,
     color: NeonColors.white,

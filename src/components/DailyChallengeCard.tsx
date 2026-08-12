@@ -34,8 +34,16 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
 
   const mutators = MutatorService.getActiveMutatorsForGame(gameId);
 
+  const accessibleLabel = `Desafío Diario: Jugar ${gameId.replace('-', ' ')}. ${played ? `Ya jugado. Puntuación de hoy: ${score ?? 0}. Presiona para mejorar tu puntuación.` : "No jugado aún. ¡Presiona para jugar ahora!"}`;
+
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePlay}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={handlePlay}
+      accessibilityRole="button"
+      accessibilityLabel={accessibleLabel}
+      accessibilityHint="Inicia el juego del desafío diario con modificadores activos especiales"
+    >
       <View style={styles.header}>
         <Text style={styles.title}>{t.daily.title}</Text>
         {played && <View style={styles.playedBadge}><Text style={styles.playedText}>{t.daily.played}</Text></View>}

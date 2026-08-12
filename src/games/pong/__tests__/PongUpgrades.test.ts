@@ -113,4 +113,68 @@ describe("Pong Systems & Mechanics Upgrade Tests", () => {
       expect(inputComboX3).toBeDefined();
     });
   });
+
+  describe("4. Axis-specific Boundary Regression Test", () => {
+    it("should allow the ball to cross the left/right screen boundaries without bouncing, triggering scoring", async () => {
+      const game = new PongGame();
+      await (game as any).onRegisterSystems();
+      await (game as any).onInitializeEntities();
+
+      const gameWorld = game.getWorld();
+      const balls = gameWorld.query("Ball");
+      expect(balls.length).toBeGreaterThan(0);
+      const ball = balls[0];
+
+      // Verify the ball's Boundary component has bounceX: false and bounceY: true
+      const b = gameWorld.getComponent(ball, "Boundary") as any;
+      expect(b).toBeDefined();
+      expect(b.bounceX).toBe(false);
+      expect(b.bounceY).toBe(true);
+
+      // Position ball past the right boundary (WIDTH = 800)
+      gameWorld.mutateComponent(ball, "Transform", (t: TransformComponent) => {
+        t.x = 810;
+        t.y = 300;
+      });
+
+      // Update simulation. BoundarySystem runs first (in Simulation phase) but should NOT bounce or clamp X
+      // since bounceX is false. Then PongGameStateSystem (in GameRules phase) should register the score.
+      game.update(0.016);
+
+      // Check that P1 scored because the ball crossed the right boundary
+      const state = gameWorld.getSingleton("PongState" as any) as any;
+      expect(state.scoreP1).toBe(1);
+      expect(state.scoreFreezeRemaining).toBe(1.2);
+    });
+
+    it("should still bounce correctly in the Y axis (vertical boundaries)", async () => {
+      const game = new PongGame();
+      await (game as any).onRegisterSystems();
+      await (game as any).onInitializeEntities();
+
+      const gameWorld = game.getWorld();
+      const balls = gameWorld.query("Ball");
+      expect(balls.length).toBeGreaterThan(0);
+      const ball = balls[0];
+
+      // Set initial position and downward velocity (vy > 0)
+      gameWorld.mutateComponent(ball, "Transform", (t: TransformComponent) => {
+        t.x = 400;
+        t.y = 610; // past the bottom boundary (HEIGHT = 600)
+      });
+      gameWorld.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
+        v.vx = 100;
+        v.vy = 200;
+      });
+
+      // Update simulation. BoundarySystem should bounce the ball on Y axis (y clamp to 600, vy flip to negative)
+      game.update(0.016);
+
+      const transform = gameWorld.getComponent(ball, "Transform") as TransformComponent;
+      const velocity = gameWorld.getComponent(ball, "Velocity") as VelocityComponent;
+
+      expect(transform.y).toBe(600);
+      expect(velocity.vy).toBeLessThan(0); // inverted velocity
+    });
+  });
 });

@@ -156,7 +156,9 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
           type: "Boundary",
           width: config.WIDTH,
           height: config.HEIGHT,
-          mode: "bounce"
+          mode: "bounce",
+          bounceX: false,
+          bounceY: true
         } as any);
         world.addComponent(entity, {
           type: "CollisionEvents",

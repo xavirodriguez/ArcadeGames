@@ -41,6 +41,14 @@ export interface BoundaryComponent extends Component {
   width: number;
   height: number;
   mode: "wrap" | "bounce" | "destroy";
+  /**
+   * Whether to bounce on the X axis when mode is "bounce". Defaults to true.
+   */
+  bounceX?: boolean;
+  /**
+   * Whether to bounce on the Y axis when mode is "bounce". Defaults to true.
+   */
+  bounceY?: boolean;
 }
 
 /** @public */

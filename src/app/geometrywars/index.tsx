@@ -169,6 +169,9 @@ export default function GeometryWarsScreen() {
                 router.replace("/");
               }
             }}
+            accessibilityRole="button"
+            accessibilityLabel={t.common.back}
+            accessibilityHint="Regresa a la pantalla principal"
           >
             <Text style={styles.backButtonText}>← {t.common.menu}</Text>
           </TouchableOpacity>
@@ -182,28 +185,40 @@ export default function GeometryWarsScreen() {
           </Text>
 
           <Text style={styles.inputLabel} nativeID="playerNameLabel">
-            {t.common.your_name || "Name"}
+            {t.accessibility.player_name_label}
           </Text>
           <TextInput
             style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={setPlayerName}
-            placeholder={t.common.your_name || "Name"}
+            placeholder={t.common.your_name}
             placeholderTextColor="#AAAAAA"
-            accessibilityLabel="Nombre del jugador"
+            accessibilityLabel={t.accessibility.player_name_label}
             accessibilityLabelledBy="playerNameLabel"
           />
 
           <Text style={styles.highScoreText}>{t.common.record}: {highScore}</Text>
 
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.startButton} onPress={() => { hapticSelection(); setIsMulti(false); setStarted(true); }}>
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={() => { hapticSelection(); setIsMulti(false); setStarted(true); }}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.solo}
+              accessibilityHint="Inicia una partida individual de Geometry Wars"
+            >
               <Text style={styles.startButtonText}>{t.common.solo}</Text>
             </TouchableOpacity>
 
             <View style={{ width: 20 }} />
 
-            <TouchableOpacity style={styles.multiButton} onPress={() => { hapticSelection(); setIsMulti(true); setStarted(true); }}>
+            <TouchableOpacity
+              style={styles.multiButton}
+              onPress={() => { hapticSelection(); setIsMulti(true); setStarted(true); }}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.multi}
+              accessibilityHint="Inicia una sesión multijugador en línea"
+            >
               <Text style={styles.multiButtonText}>{t.common.multi || "Multiplayer"}</Text>
             </TouchableOpacity>
           </View>

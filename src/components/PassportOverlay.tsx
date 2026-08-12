@@ -26,7 +26,10 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
         <View style={styles.header}>
           <Text style={styles.title} accessibilityRole="header">PASAPORTE ARCADE</Text>
           <TouchableOpacity
-            onPress={onClose}
+            onPress={() => {
+              hapticSelection();
+              onClose();
+            }}
             accessibilityRole="button"
             accessibilityLabel="Close passport overlay"
             accessibilityHint="Returns to the home screen menu"
@@ -78,6 +81,7 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
                 <Switch
                     value={isMuted}
                     onValueChange={(val) => {
+                        hapticSelection();
                         services?.setMuted(val);
                     }}
                     accessibilityLabel="Silenciar audio"

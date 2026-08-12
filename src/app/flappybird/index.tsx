@@ -24,8 +24,10 @@ import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function FlappyBirdScreen() {
+  const { t } = useTranslation();
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
   const [playerName, setPlayerName] = useState("Jugador");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
@@ -156,6 +158,9 @@ export default function FlappyBirdScreen() {
               router.replace("/");
             }
           }}
+          accessibilityRole="button"
+          accessibilityLabel={t.common.back}
+          accessibilityHint="Regresa a la pantalla principal"
         >
           <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
@@ -270,7 +275,7 @@ const StartScreen: FC<{
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
         <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
-          Tu nombre
+          {t.accessibility.player_name_label}
         </Text>
         <TextInput
             style={sharedScreenStyles.input}
@@ -278,7 +283,7 @@ const StartScreen: FC<{
             onChangeText={onPlayerNameChange}
             placeholder={t.common.your_name}
             placeholderTextColor="#AAAAAA"
-            accessibilityLabel="Nombre del jugador"
+            accessibilityLabel={t.accessibility.player_name_label}
             accessibilityLabelledBy="playerNameLabel"
         />
 
@@ -298,14 +303,32 @@ const StartScreen: FC<{
         )}
 
         <View style={sharedScreenStyles.buttonRow}>
-            <TouchableOpacity style={sharedScreenStyles.startButton} onPress={onStart}>
+            <TouchableOpacity
+              style={sharedScreenStyles.startButton}
+              onPress={() => {
+                hapticSelection();
+                onStart();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.solo}
+              accessibilityHint="Inicia una partida individual de Flappy Bird"
+            >
                 <Text style={sharedScreenStyles.startButtonText}>{t.common.solo}</Text>
             </TouchableOpacity>
 
             {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
                 <>
                     <View style={{ width: 20 }} />
-                    <TouchableOpacity style={sharedScreenStyles.multiButton} onPress={onStartMulti}>
+                    <TouchableOpacity
+                      style={sharedScreenStyles.multiButton}
+                      onPress={() => {
+                        hapticSelection();
+                        onStartMulti();
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t.common.multi}
+                      accessibilityHint="Inicia una sesión multijugador en línea"
+                    >
                         <Text style={sharedScreenStyles.multiButtonText}>
                             {t.common.multi}
                         </Text>

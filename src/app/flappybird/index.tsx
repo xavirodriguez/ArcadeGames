@@ -23,6 +23,7 @@ import { useGameSession } from "@/hooks/useGameSession";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
+import { hapticSelection } from "../../utils/haptics";
 
 export default function FlappyBirdScreen() {
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
@@ -110,18 +111,24 @@ export default function FlappyBirdScreen() {
         title="FLAPPY BIRD"
         highScore={highScore}
         onStart={() => {
+          hapticSelection();
           if (initialSeed !== undefined) {
             restartWithSeed(initialSeed);
           }
           setIsMulti(false);
           setStarted(true);
         }}
-        onStartMulti={() => { setIsMulti(true); setStarted(true); }}
+        onStartMulti={() => {
+          hapticSelection();
+          setIsMulti(true);
+          setStarted(true);
+        }}
         playerName={playerName}
         onPlayerNameChange={setPlayerName}
-        instructions={Platform.OS === "web" ? "Espacio saltar" : "Tocar pantalla para saltar"}
+        instructions={Platform.OS === "web" ? t.flappybird.instructions : t.flappybird.touch_instructions}
         onSeedChange={setInitialSeed}
         onStartDaily={(dailySeed) => {
+          hapticSelection();
           restartWithSeed(dailySeed);
           setIsDaily(true);
           setIsMulti(false);
@@ -142,6 +149,7 @@ export default function FlappyBirdScreen() {
         <TouchableOpacity
           style={sharedScreenStyles.backButton}
           onPress={() => {
+            hapticSelection();
             if (router.canGoBack()) {
               router.back();
             } else {
@@ -149,12 +157,12 @@ export default function FlappyBirdScreen() {
             }
           }}
         >
-          <Text style={sharedScreenStyles.backButtonText}>← MENÚ</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
 
         {isMulti && !connected && (
             <View style={sharedScreenStyles.overlay}>
-                <Text style={sharedScreenStyles.overlayText}>Conectando...</Text>
+                <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
             </View>
         )}
 
@@ -241,6 +249,7 @@ const StartScreen: FC<{
   onStartDaily,
   activeMutators = [],
 }) => {
+  const { t } = useTranslation();
   return (
     <SafeAreaProvider>
       <View style={sharedScreenStyles.startScreen}>
@@ -248,6 +257,7 @@ const StartScreen: FC<{
         <TouchableOpacity
           style={sharedScreenStyles.backButton}
           onPress={() => {
+            hapticSelection();
             if (router.canGoBack()) {
               router.back();
             } else {
@@ -255,20 +265,26 @@ const StartScreen: FC<{
             }
           }}
         >
-          <Text style={sharedScreenStyles.backButtonText}>← MENÚ</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
+        <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
+          {t.accessibility.player_name_label.toUpperCase()}
+        </Text>
         <TextInput
             style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
-            placeholder="Tu nombre"
+            placeholder={t.common.your_name}
             placeholderTextColor="#AAAAAA"
+            accessibilityLabel={t.accessibility.player_name_label}
+            accessibilityLabelledBy="playerNameLabel"
+            accessibilityHint={t.accessibility.player_name_hint}
         />
 
         <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
-        <Text style={sharedScreenStyles.highScoreText}>Récord: {highScore}</Text>
+        <Text style={sharedScreenStyles.highScoreText}>{t.common.record}: {highScore}</Text>
 
         {onStartDaily && <DailyChallengeBanner gameId="flappybird" onPlay={onStartDaily} />}
 
@@ -284,7 +300,7 @@ const StartScreen: FC<{
 
         <View style={sharedScreenStyles.buttonRow}>
             <TouchableOpacity style={sharedScreenStyles.startButton} onPress={onStart}>
-                <Text style={sharedScreenStyles.startButtonText}>SOLO</Text>
+                <Text style={sharedScreenStyles.startButtonText}>{t.common.solo}</Text>
             </TouchableOpacity>
 
             {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
@@ -292,7 +308,7 @@ const StartScreen: FC<{
                     <View style={{ width: 20 }} />
                     <TouchableOpacity style={sharedScreenStyles.multiButton} onPress={onStartMulti}>
                         <Text style={sharedScreenStyles.multiButtonText}>
-                            MULTI
+                            {t.common.multi}
                         </Text>
                     </TouchableOpacity>
                 </>

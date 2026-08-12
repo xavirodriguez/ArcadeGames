@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Switch } from 're
 import { PlayerProfile } from '../services/PlayerProfileService';
 import { LEVEL_THRESHOLDS } from '../config/PassportConfig';
 import { useGameServices } from "@tiny-aster/react-native";
+import { useTranslation } from '../hooks/useTranslation';
+import { hapticSelection } from '../utils/haptics';
 
 interface PassportOverlayProps {
   profile: PlayerProfile;
@@ -10,6 +12,7 @@ interface PassportOverlayProps {
 }
 
 export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClose }) => {
+  const { t } = useTranslation();
   const nextLevelXP = LEVEL_THRESHOLDS[profile.level] || profile.xp;
   const prevLevelXP = LEVEL_THRESHOLDS[profile.level - 1] || 0;
   const progress = Math.min(1, (profile.xp - prevLevelXP) / (nextLevelXP - prevLevelXP));
@@ -21,9 +24,18 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
     <View style={styles.container}>
       <View style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.title}>PASAPORTE ARCADE</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.closeButton}>X</Text>
+          <Text style={styles.title}>{t.accessibility.profile_summary.toUpperCase()}</Text>
+          <TouchableOpacity
+            onPress={() => {
+              hapticSelection();
+              onClose();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t.accessibility.close_button}
+            accessibilityHint={t.accessibility.close_button_hint}
+            style={styles.closeTouchArea}
+          >
+            <Text style={styles.closeButton}>✕</Text>
           </TouchableOpacity>
         </View>
 
@@ -117,11 +129,16 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontWeight: 'bold',
   },
+  closeTouchArea: {
+    padding: 10,
+    margin: -10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   closeButton: {
     color: 'white',
     fontSize: 24,
     fontFamily: 'monospace',
-    padding: 5,
   },
   content: {
     flex: 1,

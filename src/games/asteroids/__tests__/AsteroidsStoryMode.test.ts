@@ -83,23 +83,56 @@ describe("Asteroids Story Mode Tests", () => {
 
   it("should return alternative story ending strings correctly", () => {
     // Level < 5
-    expect(getStoryEnding(1, 100, 1000)).toBe("Tu señal se apagó cerca del borde del Cinturón.");
-    expect(getStoryEnding(4, 450, 1000)).toBe("Tu señal se apagó cerca del borde del Cinturón.");
+    expect(getStoryEnding(1, 100, 1000)).toBe(
+      "Tu señal se apagó en el cinturón Kepler-791. Helios Extractive borró todo registro de la ODISEA-7: el secreto murió contigo."
+    );
+    expect(getStoryEnding(4, 450, 1000)).toBe(
+      "Tu señal se apagó en el cinturón Kepler-791. Helios Extractive borró todo registro de la ODISEA-7: el secreto murió contigo."
+    );
 
     // Level 5-10
     expect(getStoryEnding(5, 1200, 1000)).toBe(
-      "Escapaste con fragmentos de prueba... pero el enjambre sigue ahí fuera."
+      "La caja negra fue transmitida... pero los drones de Helios interceptaron tu escape a un paso de la Tierra."
     );
     expect(getStoryEnding(10, 5000, 10000)).toBe(
-      "Escapaste con fragmentos de prueba... pero el enjambre sigue ahí fuera."
+      "La caja negra fue transmitida... pero los drones de Helios interceptaron tu escape a un paso de la Tierra."
     );
 
     // Level > 10
     expect(getStoryEnding(11, 20000, 10000)).toBe(
-      "NUEVO RÉCORD — Te convertiste en leyenda del Cinturón de Kepler."
+      "NUEVO RÉCORD — Te convertiste en el Fantasma de Kepler. La señal llegó a la Tierra: la verdad sobre Helios Extractive, expuesta."
     );
     expect(getStoryEnding(15, 5000, 10000)).toBe(
-      "Te convertiste en leyenda del Cinturón de Kepler."
+      "Te fusionaste por completo con el enjambre. Tu eco, y el de todos los que vinieron antes, seguirá orbitando para siempre los radares de Helios."
     );
+  });
+
+  it("should spawn a log popup on destroying a large asteroid in story mode (10% chance)", () => {
+    // Force gameplayRandom.next to return a value < 0.1 so the 10% chance triggers
+    const originalNext = world.gameplayRandom.next;
+    world.gameplayRandom.next = () => 0.05;
+
+    // Create a large asteroid
+    const entity = world.createEntity();
+    world.addComponent(entity, { type: "Asteroid", size: "large" });
+    world.addComponent(entity, { type: "Transform", x: 100, y: 100 });
+
+    // Trigger combat:death via the event listener in AsteroidCollisionSystem
+    const eventBus = world.getEventBus() as any;
+    eventBus.emit("combat:death", { entity, sourceEntity: undefined });
+
+    // Flush command buffer to commit entity creations
+    world.getCommandBuffer().flush(world);
+
+    // Verify a popup was spawned
+    const textEntities = world.query("UIText" as any);
+    expect(textEntities.length).toBeGreaterThan(0);
+
+    // The UIText content should be one of the Chapter 1 logs because we are at level 1
+    const popupComp = world.getComponent(textEntities[0], "UIText" as any) as any;
+    expect(popupComp.content).toContain("Log #");
+
+    // Restore original random next function
+    world.gameplayRandom.next = originalNext;
   });
 });

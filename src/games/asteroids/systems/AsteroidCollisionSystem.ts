@@ -3,6 +3,7 @@ import { World, System } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { fragmentAsteroid, createParticle } from "../EntityFactory";
 import { spawnScorePopup } from "../../shared/arcade/spawnScorePopup";
+import { getLogsForLevel } from "../story/StoryBeats";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -113,6 +114,19 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
 
     const asteroidTransform = world.getComponent(asteroid, "Transform");
     if (asteroidTransform) {
+      const gameState = world.getSingleton("GameState");
+      const isStory = gameState?.mode === "story";
+      const level = gameState?.level ?? 1;
+
+      if (isStory && size === "large" && world.gameplayRandom.next() < 0.1) {
+        const logs = getLogsForLevel(level);
+        if (logs && logs.length > 0) {
+          const logIndex = world.gameplayRandom.nextInt(0, logs.length);
+          const logText = logs[logIndex];
+          spawnScorePopup(world, asteroidTransform.x, asteroidTransform.y - 20, logText, "#00FFDD");
+        }
+      }
+
       spawnScorePopup(world, asteroidTransform.x, asteroidTransform.y, `x${nextMultiplier}`, "#FFFF00");
     }
 

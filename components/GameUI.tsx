@@ -273,14 +273,14 @@ const GameOverOverlay: React.FC<{
   let endingText = score >= highScore ? "¡NUEVO RÉCORD!" : `Récord actual: ${highScore}`;
   if (mode === "story" && level !== undefined) {
     if (level < 5) {
-      endingText = "Tu señal se apagó cerca del borde del Cinturón.";
+      endingText = "Tu señal se apagó en el cinturón Kepler-791. Helios Extractive borró todo registro de la ODISEA-7: el secreto murió contigo.";
     } else if (level <= 10) {
-      endingText = "Escapaste con fragmentos de prueba... pero el enjambre sigue ahí fuera.";
+      endingText = "La caja negra fue transmitida... pero los drones de Helios interceptaron tu escape a un paso de la Tierra.";
     } else {
       if (score >= highScore) {
-        endingText = "NUEVO RÉCORD — Te convertiste en leyenda del Cinturón de Kepler.";
+        endingText = "NUEVO RÉCORD — Te convertiste en el Fantasma de Kepler. La señal llegó a la Tierra: la verdad sobre Helios Extractive, expuesta.";
       } else {
-        endingText = "Te convertiste en leyenda del Cinturón de Kepler.";
+        endingText = "Te fusionaste por completo con el enjambre. Tu eco, y el de todos los que vinieron antes, seguirá orbitando para siempre los radares de Helios.";
       }
     }
   }

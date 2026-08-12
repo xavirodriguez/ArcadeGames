@@ -21,11 +21,14 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
     { id: "combo_king", name: "Rey del Combo", description: "Alcanza un combo x10", unlocked: false },
     { id: "invader_slayer", name: "Aniquilador", description: "Destruye 50 invasores", unlocked: false },
     { id: "flappy_pro", name: "As de las Alturas", description: "Pasa 10 tuberías en Flappy Bird", unlocked: false },
+    { id: "story_boss_defeated", name: "Héroe de la Galaxia", description: "Derrotar al primer Boss narrativo", unlocked: false },
+    { id: "story_all_fragments_c1", name: "Historiador", description: "Recolectar todos los fragmentos del Capítulo 1", unlocked: false }
   ];
 
   private invadersKilled = 0;
   private asteroidsDestroyed = 0;
   private pipesPassed = 0;
+  private collectedFragments: string[] = [];
 
   public override onRegister(world: World<TComponents>): void {
     const eventBus = world.getEventBus() as any;
@@ -86,6 +89,27 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
         this.pipesPassed++;
         if (this.pipesPassed >= 10) {
           this.unlock(world, "flappy_pro");
+        }
+      });
+
+      // 4. Listen to story:beat_reached
+      eventBus.on("story:beat_reached", (event: any) => {
+        if (world.isReSimulating) return;
+        if (event && event.beatId === "boss_defeated") {
+          this.unlock(world, "story_boss_defeated");
+        }
+      });
+
+      // 5. Listen to CollectiblePickedUp
+      eventBus.on("CollectiblePickedUp", (event: any) => {
+        if (world.isReSimulating) return;
+        if (event && event.collectible && event.collectible.kind === "story_fragment") {
+          if (!this.collectedFragments.includes(event.collectible.id)) {
+            this.collectedFragments.push(event.collectible.id);
+          }
+          if (this.collectedFragments.length >= 3) {
+            this.unlock(world, "story_all_fragments_c1");
+          }
         }
       });
     }

@@ -110,6 +110,10 @@ interface MinimalGameState {
   mode?: "deathmatch" | "story";
   storyBeatText?: string;
   chapterTitle?: string;
+  dialogueLines?: string[];
+  activeDialogueIndex?: number;
+  dialogueText?: string;
+  isDialogueActive?: boolean;
   [key: string]: any;
 }
 
@@ -122,6 +126,8 @@ interface GameUIProps {
   seed?: number;
   onSetSeed?: (seed?: number) => void;
   onContinue?: () => void;
+  /** Callback to advance dialogue. */
+  onAdvanceDialogue?: () => void;
 }
 
 const formatScore = (score: number) => String(Math.max(0, score)).padStart(8, "0");
@@ -134,6 +140,7 @@ export const GameUI = React.memo(function GameUI({
   isPaused,
   highScore,
   onContinue,
+  onAdvanceDialogue,
 }: GameUIProps) {
   const insets = useSafeAreaInsets();
   const [levelUpText, setLevelUpText] = useState<string | null>(null);
@@ -222,6 +229,17 @@ export const GameUI = React.memo(function GameUI({
           mode={gameState.mode}
           level={gameState.level}
         />
+      )}
+
+      {/* Dialogue Overlay */}
+      {gameState.isDialogueActive && gameState.dialogueText && (
+        <Animated.View entering={SlideInDown.duration(400)} exiting={FadeOut.duration(300)} style={styles.dialogueOverlay}>
+          <TouchableOpacity activeOpacity={0.9} style={styles.dialogueBox} onPress={onAdvanceDialogue}>
+            <Text style={styles.dialogueSpeaker}>ODISEA-7 COMMS</Text>
+            <Text style={styles.dialogueContent}>{gameState.dialogueText}</Text>
+            <Text style={styles.dialoguePrompt}>CLICK TO ADVANCE ▼</Text>
+          </TouchableOpacity>
+        </Animated.View>
       )}
     </View>
   );
@@ -1473,5 +1491,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "900",
     letterSpacing: 1.6,
+  },
+  dialogueOverlay: {
+    position: "absolute",
+    bottom: 40,
+    left: 20,
+    right: 20,
+    alignItems: "center",
+    zIndex: 1002,
+  },
+  dialogueBox: {
+    backgroundColor: "rgba(0, 0, 0, 0.9)",
+    borderColor: "#00FFDD",
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 16,
+    width: "100%",
+    maxWidth: 600,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 0 15px rgba(0, 255, 221, 0.4)' }
+      : {
+          shadowColor: "#00FFDD",
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.4,
+          shadowRadius: 15,
+        }
+    ),
+  },
+  dialogueSpeaker: {
+    color: "#00FFDD",
+    fontFamily: "monospace",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  dialogueContent: {
+    color: "#FFFFFF",
+    fontFamily: "monospace",
+    fontSize: 16,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  dialoguePrompt: {
+    color: "#FFD700",
+    fontFamily: "monospace",
+    fontSize: 12,
+    textAlign: "right",
+    fontWeight: "bold",
   },
 });

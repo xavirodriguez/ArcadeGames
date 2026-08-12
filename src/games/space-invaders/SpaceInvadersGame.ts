@@ -1,7 +1,7 @@
 import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
-import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry } from "../../utils/MutatorRegistry";
+import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
@@ -219,6 +219,16 @@ export class SpaceInvadersGame
             { type: "speed", chance: 0.05, config: { value: 1.5, duration: 5000 } },
             { type: "triple_shot", chance: 0.05, config: { duration: 8000 } }
           ]
+        } as any);
+
+        // Attach Collectible component directly
+        world.addComponent(entity, {
+          type: "Collectible",
+          kind: "story_fragment",
+          value: 1,
+          persistent: true,
+          collectOnce: true,
+          id: `invader_fragment_${args.row}_${args.col}`
         } as any);
       }
     });
@@ -636,13 +646,27 @@ export class SpaceInvadersGame
     const draft = playerEntity !== undefined ? world.getComponent(playerEntity, "DraftState" as any) as any : null;
     const choices = draft && !draft.hasChosen ? draft.options : (runChoices?.active ? runChoices.choices : null);
 
+    let isDialogueActive = false;
+    let dialogueText = "";
+    const dialogueBoxEntities = world.query("DialogueBox" as any);
+    if (dialogueBoxEntities.length > 0) {
+      const dialogueBox = world.getComponent(dialogueBoxEntities[0], "DialogueBox" as any) as any;
+      if (dialogueBox) {
+        isDialogueActive = true;
+        const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];
+        dialogueText = currentLineKey || "";
+      }
+    }
+
     return {
       ...state,
       combo,
       multiplier,
       comboTimerRemaining,
       runMutatorChoices: choices,
-      activeRunMutators: activeRun
+      activeRunMutators: activeRun,
+      isDialogueActive,
+      dialogueText
     };
   }
 
@@ -923,3 +947,10 @@ export const SpaceInvadersDefinition = {
     ]
   }
 };
+
+registerMutatorHook("story_fragment", (world: World) => {
+  const eventBus = world.getEventBus();
+  if (eventBus) {
+    eventBus.emit("story:beat_reached" as any, { beatId: "space_invaders_story_beat", dialogueReference: "story.chapter_1_fragment_3" });
+  }
+});

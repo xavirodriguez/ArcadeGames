@@ -65,6 +65,7 @@ import { initializeAsteroidsRenderer } from "./rendering/AsteroidsRendererManage
 import { AsteroidConfigSchema, AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { GameStateComponent, InputState } from "./types/AsteroidTypes";
 import { getStoryBeatForLevel } from "./story/StoryBeats";
+import { registerMutatorHook } from "../../utils/MutatorRegistry";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -487,11 +488,25 @@ export class AsteroidsGame
       }
     }
 
+    let isDialogueActive = false;
+    let dialogueText = "";
+    const dialogueBoxEntities = this.world.query("DialogueBox" as any);
+    if (dialogueBoxEntities.length > 0) {
+      const dialogueBox = this.world.getComponent(dialogueBoxEntities[0], "DialogueBox" as any) as any;
+      if (dialogueBox) {
+        isDialogueActive = true;
+        const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];
+        dialogueText = currentLineKey || "";
+      }
+    }
+
     return {
       ...state,
       combo,
       multiplier,
-      comboTimerRemaining
+      comboTimerRemaining,
+      isDialogueActive,
+      dialogueText
     } as any;
   }
 
@@ -642,3 +657,10 @@ export const AsteroidsDefinition = {
     ]
   }
 };
+
+registerMutatorHook("story_fragment", (world: World) => {
+  const eventBus = world.getEventBus();
+  if (eventBus) {
+    eventBus.emit("story:beat_reached" as any, { beatId: "asteroids_story_beat", dialogueReference: "story.chapter_1_fragment_1" });
+  }
+});

@@ -11,7 +11,8 @@ export enum ArcadeState {
   MENU = "MENU",
   PLAYING = "PLAYING",
   PAUSED = "PAUSED",
-  GAME_OVER = "GAME_OVER"
+  GAME_OVER = "GAME_OVER",
+  STORY = "STORY"
 }
 
 /**
@@ -21,10 +22,11 @@ const VALID_TRANSITIONS: Record<ArcadeState, Set<ArcadeState>> = {
   [ArcadeState.BOOT]: new Set([ArcadeState.LOADING]),
   [ArcadeState.LOADING]: new Set([ArcadeState.TITLE, ArcadeState.MENU]),
   [ArcadeState.TITLE]: new Set([ArcadeState.MENU, ArcadeState.PLAYING]),
-  [ArcadeState.MENU]: new Set([ArcadeState.PLAYING, ArcadeState.LOADING]),
-  [ArcadeState.PLAYING]: new Set([ArcadeState.PAUSED, ArcadeState.GAME_OVER, ArcadeState.MENU]),
+  [ArcadeState.MENU]: new Set([ArcadeState.PLAYING, ArcadeState.LOADING, ArcadeState.STORY]),
+  [ArcadeState.PLAYING]: new Set([ArcadeState.PAUSED, ArcadeState.GAME_OVER, ArcadeState.MENU, ArcadeState.STORY]),
   [ArcadeState.PAUSED]: new Set([ArcadeState.PLAYING, ArcadeState.MENU, ArcadeState.GAME_OVER]),
-  [ArcadeState.GAME_OVER]: new Set([ArcadeState.PLAYING, ArcadeState.MENU, ArcadeState.TITLE])
+  [ArcadeState.GAME_OVER]: new Set([ArcadeState.PLAYING, ArcadeState.MENU, ArcadeState.TITLE]),
+  [ArcadeState.STORY]: new Set([ArcadeState.PLAYING, ArcadeState.MENU])
 };
 
 /**

@@ -161,6 +161,8 @@ export interface GameStateComponent extends Component {
   runMutatorChoices?: string[] | null;
   /** Roguelite active run mutator ids currently active in this run. */
   activeRunMutators?: string[];
+  isDialogueActive?: boolean;
+  dialogueText?: string;
 }
 
 /**

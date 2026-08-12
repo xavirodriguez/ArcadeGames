@@ -15,6 +15,8 @@ export interface GameStateComponent extends Component {
   intermissionRemaining?: number;
   storyBeatText?: string;
   chapterTitle?: string;
+  isDialogueActive?: boolean;
+  dialogueText?: string;
 }
 
 /** @public */

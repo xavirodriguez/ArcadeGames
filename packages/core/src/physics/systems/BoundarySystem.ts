@@ -44,19 +44,26 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
             world.getCommandBuffer().removeEntity(entity);
           }
         } else if (b.mode === "bounce") {
-          if (t.x < 0) {
-            t.x = 0;
-            this.reverseVelocity(world, entity, "x");
-          } else if (t.x > b.width) {
-            t.x = b.width;
-            this.reverseVelocity(world, entity, "x");
+          const bounceX = b.bounceX !== false;
+          const bounceY = b.bounceY !== false;
+
+          if (bounceX) {
+            if (t.x < 0) {
+              t.x = 0;
+              this.reverseVelocity(world, entity, "x");
+            } else if (t.x > b.width) {
+              t.x = b.width;
+              this.reverseVelocity(world, entity, "x");
+            }
           }
-          if (t.y < 0) {
-            t.y = 0;
-            this.reverseVelocity(world, entity, "y");
-          } else if (t.y > b.height) {
-            t.y = b.height;
-            this.reverseVelocity(world, entity, "y");
+          if (bounceY) {
+            if (t.y < 0) {
+              t.y = 0;
+              this.reverseVelocity(world, entity, "y");
+            } else if (t.y > b.height) {
+              t.y = b.height;
+              this.reverseVelocity(world, entity, "y");
+            }
           }
         }
       });

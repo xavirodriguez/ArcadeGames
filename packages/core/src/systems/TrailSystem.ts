@@ -13,10 +13,13 @@ export class TrailSystem extends System<CoreComponentRegistry> {
     if (world.getResource("IsPaused") === true) return;
 
     const trailEntities = world.query("Transform", "Trail");
-    for (const entity of trailEntities) {
+    const len = trailEntities.length;
+    for (let i = 0; i < len; i++) {
+        const entity = trailEntities[i];
         const transform = world.getComponent(entity, "Transform")!;
+        const trail = world.getMutableComponent(entity, "Trail");
 
-        world.mutateComponent(entity, "Trail", trail => {
+        if (trail) {
             trail.currentIndex = (trail.currentIndex + 1) % trail.maxLength;
             const point = trail.points[trail.currentIndex];
             if (point) {
@@ -26,7 +29,7 @@ export class TrailSystem extends System<CoreComponentRegistry> {
             if (trail.count < trail.maxLength) {
                 trail.count++;
             }
-        });
+        }
     }
   }
 }

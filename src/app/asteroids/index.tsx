@@ -26,6 +26,16 @@ import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "@/utils/haptics";
+import { colors } from "../../theme";
+import {
+  GameScreen,
+  GameTitle,
+  GameInstructions,
+  PlayerNameInput,
+  HighScoreText,
+  BackButton,
+  NeonButton,
+} from "../../components/ui";
 
 export default function AsteroidsScreen() {
   const { t } = useTranslation();
@@ -167,8 +177,8 @@ export default function AsteroidsScreen() {
     return (
       <View style={sharedScreenStyles.container}>
         <RadialBackground />
-        <ActivityIndicator size="large" color="#00f0ff" />
-        <Text style={{ color: "white", marginTop: 20, fontFamily: "monospace", fontSize: 18 }}>
+        <ActivityIndicator size="large" color={colors.cyan} />
+        <Text style={styles.loadingText}>
           Cargando motor físico...
         </Text>
       </View>
@@ -250,7 +260,7 @@ export default function AsteroidsScreen() {
                 onPressIn={handleHyperspacePress}
                 onPressOut={handleHyperspaceRelease}
             />
-            <View style={{ height: 20 }} />
+            <View style={styles.spacer20} />
             <ShootButton
                 onPressIn={handleShootPress}
                 onPressOut={handleShootRelease}
@@ -305,141 +315,113 @@ const StartScreen: FC<{
 }) => {
   const { t } = useTranslation();
   return (
-    <SafeAreaProvider>
-      <View style={sharedScreenStyles.startScreen}>
-        <RadialBackground />
+    <GameScreen>
+      <BackButton label={t.common.menu} />
+      <GameTitle glowColor={colors.cyan}>{title}</GameTitle>
+
+      <PlayerNameInput
+        label={t.accessibility.player_name_label}
+        value={playerName}
+        onChangeText={onPlayerNameChange}
+        placeholder={t.common.your_name}
+      />
+
+      {/* Mode Selector */}
+      <View style={styles.modeSelector}>
         <TouchableOpacity
-          style={sharedScreenStyles.backButton}
+          style={[
+            sharedScreenStyles.startButton,
+            {
+              backgroundColor: selectedMode === "deathmatch" ? colors.cyan : "rgba(0, 240, 255, 0.2)",
+              flex: 1,
+              maxWidth: 160,
+              paddingVertical: 12,
+            }
+          ]}
           onPress={() => {
             hapticSelection();
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
+            onModeChange("deathmatch");
           }}
           accessibilityRole="button"
-          accessibilityLabel={t.common.back}
-          accessibilityHint="Regresa a la pantalla principal"
+          accessibilityLabel="Modo Deathmatch"
+          accessibilityState={{ selected: selectedMode === "deathmatch" }}
+          accessibilityHint="Selecciona el modo infinito clásico de Asteroids"
         >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
+          <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "deathmatch" ? "#000" : colors.cyan, fontSize: 14 }]}>
+            DEATHMATCH
+          </Text>
         </TouchableOpacity>
-        <Text style={sharedScreenStyles.title}>{title}</Text>
+        <TouchableOpacity
+          style={[
+            sharedScreenStyles.startButton,
+            {
+              backgroundColor: selectedMode === "story" ? colors.cyan : "rgba(0, 240, 255, 0.2)",
+              flex: 1,
+              maxWidth: 160,
+              paddingVertical: 12,
+            }
+          ]}
+          onPress={() => {
+            hapticSelection();
+            onModeChange("story");
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Modo Historia"
+          accessibilityState={{ selected: selectedMode === "story" }}
+          accessibilityHint="Selecciona la campaña narrativa Kepler's Ghost"
+        >
+          <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "story" ? "#000" : colors.cyan, fontSize: 14 }]}>
+            MODO HISTORIA
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
-          {t.accessibility.player_name_label}
-        </Text>
-        <TextInput
-            style={sharedScreenStyles.input}
-            value={playerName}
-            onChangeText={onPlayerNameChange}
-            placeholder={t.common.your_name}
-            placeholderTextColor="#AAAAAA"
-            accessibilityLabel={t.accessibility.player_name_label}
-            accessibilityLabelledBy="playerNameLabel"
+      <GameInstructions>{instructions}</GameInstructions>
+      <HighScoreText label={t.common.record} score={highScore} />
+
+      {onStartDaily && <DailyChallengeBanner gameId="asteroids" onPlay={onStartDaily} />}
+
+      <MutatorBadge mutators={activeMutators} />
+
+      {onSeedChange && (
+        <SeedWidget
+          seed={0}
+          onSeedEnter={onSeedChange}
+          style={styles.seedWidget}
         />
+      )}
 
-        {/* Mode Selector */}
-        <View style={{ flexDirection: "row", marginBottom: 20, gap: 10, width: "100%", justifyContent: "center" }}>
-          <TouchableOpacity
-            style={[
-              sharedScreenStyles.startButton,
-              {
-                backgroundColor: selectedMode === "deathmatch" ? "#00FFDD" : "rgba(0, 255, 221, 0.2)",
-                flex: 1,
-                maxWidth: 160,
-                paddingVertical: 12,
-              }
-            ]}
-            onPress={() => {
-              hapticSelection();
-              onModeChange("deathmatch");
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Modo Deathmatch"
-            accessibilityState={{ selected: selectedMode === "deathmatch" }}
-            accessibilityHint="Selecciona el modo infinito clásico de Asteroids"
-          >
-            <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "deathmatch" ? "#000" : "#00FFDD", fontSize: 14 }]}>
-              DEATHMATCH
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              sharedScreenStyles.startButton,
-              {
-                backgroundColor: selectedMode === "story" ? "#00FFDD" : "rgba(0, 255, 221, 0.2)",
-                flex: 1,
-                maxWidth: 160,
-                paddingVertical: 12,
-              }
-            ]}
-            onPress={() => {
-              hapticSelection();
-              onModeChange("story");
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Modo Historia"
-            accessibilityState={{ selected: selectedMode === "story" }}
-            accessibilityHint="Selecciona la campaña narrativa Kepler's Ghost"
-          >
-            <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "story" ? "#000" : "#00FFDD", fontSize: 14 }]}>
-              MODO HISTORIA
-            </Text>
-          </TouchableOpacity>
-        </View>
+      <View style={sharedScreenStyles.buttonRow}>
+        <NeonButton
+          variant="white"
+          onPress={() => {
+            hapticSelection();
+            onStart();
+          }}
+          accessibilityLabel={t.common.solo}
+          accessibilityHint="Inicia una partida individual en el modo seleccionado"
+        >
+          {t.common.solo}
+        </NeonButton>
 
-        <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
-        <Text style={sharedScreenStyles.highScoreText}>{t.common.record}: {highScore}</Text>
-
-        {onStartDaily && <DailyChallengeBanner gameId="asteroids" onPlay={onStartDaily} />}
-
-        <MutatorBadge mutators={activeMutators} />
-
-        {onSeedChange && (
-          <SeedWidget
-            seed={0}
-            onSeedEnter={onSeedChange}
-            style={{ marginBottom: 30 }}
-          />
-        )}
-
-        <View style={sharedScreenStyles.buttonRow}>
-            <TouchableOpacity
-              style={sharedScreenStyles.startButton}
+        {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
+          <>
+            <View style={{ width: 20 }} />
+            <NeonButton
+              variant="cyan"
               onPress={() => {
                 hapticSelection();
-                onStart();
+                onStartMulti();
               }}
-              accessibilityRole="button"
-              accessibilityLabel={t.common.solo}
-              accessibilityHint="Inicia una partida individual en el modo seleccionado"
+              accessibilityLabel={t.common.multi}
+              accessibilityHint="Inicia una sesión multijugador en línea"
             >
-                <Text style={sharedScreenStyles.startButtonText}>{t.common.solo}</Text>
-            </TouchableOpacity>
-
-            {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
-                <>
-                    <View style={{ width: 20 }} />
-                    <TouchableOpacity
-                      style={sharedScreenStyles.multiButton}
-                      onPress={() => {
-                        hapticSelection();
-                        onStartMulti();
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t.common.multi}
-                      accessibilityHint="Inicia una sesión multijugador en línea"
-                    >
-                        <Text style={sharedScreenStyles.multiButtonText}>
-                            {t.common.multi}
-                        </Text>
-                    </TouchableOpacity>
-                </>
-            )}
-        </View>
+              {t.common.multi}
+            </NeonButton>
+          </>
+        )}
       </View>
-    </SafeAreaProvider>
+    </GameScreen>
   );
 };
 
@@ -461,6 +443,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 40,
     paddingRight: 20,
-  }
+  },
+  loadingText: {
+    color: colors.white,
+    marginTop: 20,
+    fontFamily: "monospace",
+    fontSize: 18,
+  },
+  spacer20: {
+    height: 20,
+  },
+  modeSelector: {
+    flexDirection: "row",
+    marginBottom: 20,
+    gap: 10,
+    width: "100%",
+    justifyContent: "center",
+  },
+  seedWidget: {
+    marginBottom: 30,
+  },
 });
 

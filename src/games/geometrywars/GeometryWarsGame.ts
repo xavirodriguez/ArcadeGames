@@ -11,6 +11,7 @@ import {
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, GeometryWarsStateComponent, GeometryWarsInput, GeometryWarsBlueprintRegistry } from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
+import { colors } from "../../theme/colors";
 
 /**
  * Main game class for Geometry Wars.
@@ -177,7 +178,7 @@ export class GeometryWarsGame extends BaseGame<
         if (!world.hasComponent(entity, "Transform")) {
           commands.addComponent(entity, { type: "Player" } as any);
           commands.addComponent(entity, { type: "Transform", x: playerState.x, y: playerState.y, rotation: playerState.angle, scaleX: 1, scaleY: 1, worldX: playerState.x, worldY: playerState.y, worldRotation: playerState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: "#00f0ff", rotation: playerState.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
+          commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: colors.cyan, rotation: playerState.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
           commands.addComponent(entity, { type: "Health", current: playerState.alive ? 1 : 0, max: 1 } as any);
         }
 
@@ -189,7 +190,7 @@ export class GeometryWarsGame extends BaseGame<
 
         world.mutateComponent(entity, "Render", (render: any) => {
           render.rotation = playerState.angle;
-          render.color = playerState.alive ? "#00f0ff" : "gray";
+          render.color = playerState.alive ? colors.cyan : "gray";
         });
       });
     }
@@ -203,7 +204,7 @@ export class GeometryWarsGame extends BaseGame<
         const entity = replicator.resolveEntity(serverId, world);
         if (!world.hasComponent(entity, "Transform")) {
           commands.addComponent(entity, { type: "Transform", x: enemyState.x, y: enemyState.y, rotation: enemyState.angle, scaleX: 1, scaleY: 1, worldX: enemyState.x, worldY: enemyState.y, worldRotation: enemyState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: enemyState.type || "gw_seeker", size: 12, color: "#ff00ff", rotation: enemyState.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
+          commands.addComponent(entity, { type: "Render", shape: enemyState.type || "gw_seeker", size: 12, color: colors.pink, rotation: enemyState.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
         }
 
         world.mutateComponent(entity, "Transform", (t: any) => {
@@ -223,7 +224,7 @@ export class GeometryWarsGame extends BaseGame<
         const entity = replicator.resolveEntity(serverId, world);
         if (!world.hasComponent(entity, "Transform")) {
           commands.addComponent(entity, { type: "Transform", x: bulletState.x, y: bulletState.y, rotation: bulletState.angle, scaleX: 1, scaleY: 1, worldX: bulletState.x, worldY: bulletState.y, worldRotation: bulletState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: "gw_bullet", size: 4, color: "#ffff00", rotation: bulletState.angle, visible: true, opacity: 1, order: 2, hitFlashFrames: 0, angularVelocity: 0 } as any);
+          commands.addComponent(entity, { type: "Render", shape: "gw_bullet", size: 4, color: colors.gold, rotation: bulletState.angle, visible: true, opacity: 1, order: 2, hitFlashFrames: 0, angularVelocity: 0 } as any);
         }
 
         world.mutateComponent(entity, "Transform", (t: any) => {

@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { DailyChallengeService } from '../services/DailyChallengeService';
 import { MutatorService } from '../services/MutatorService';
 import { useTranslation } from '../hooks/useTranslation';
+import { colors, spacing, typography } from '../theme';
+import { hapticSelection } from '../utils/haptics';
 
 interface DailyChallengeCardProps {
   onPlay: (gameId: string, seed: number) => void;
@@ -28,6 +30,7 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
   }, []);
 
   const handlePlay = () => {
+    hapticSelection();
     const seed = DailyChallengeService.getDailySeed(gameId);
     onPlay(gameId, seed);
   };
@@ -70,60 +73,60 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: colors.gold,
     borderRadius: 12,
-    padding: 16,
+    padding: spacing.lg,
     width: 300,
-    marginTop: 30,
+    marginTop: spacing.xxxl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   title: {
-    color: '#FFD700',
-    fontSize: 18,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
+    color: colors.gold,
+    fontSize: typography.sizes.lg,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
   },
   playedBadge: {
-    backgroundColor: '#00FF00',
+    backgroundColor: colors.green,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   playedText: {
-    color: 'black',
+    color: colors.background,
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: typography.weights.bold,
   },
   gameName: {
-    color: 'white',
-    fontSize: 22,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
-    marginBottom: 4,
+    color: colors.white,
+    fontSize: typography.sizes.xxl,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
+    marginBottom: spacing.xs,
   },
   mutatorText: {
-    color: '#AAA',
-    fontSize: 12,
-    fontFamily: 'monospace',
-    marginBottom: 8,
+    color: colors.textSecondary,
+    fontSize: typography.sizes.xs,
+    fontFamily: typography.game,
+    marginBottom: spacing.sm,
   },
   scoreText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'monospace',
-    marginBottom: 8,
+    color: colors.white,
+    fontSize: typography.sizes.md,
+    fontFamily: typography.game,
+    marginBottom: spacing.sm,
   },
   cta: {
-    color: 'white',
-    fontSize: 14,
-    fontFamily: 'monospace',
+    color: colors.white,
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.game,
     textAlign: 'right',
     textDecorationLine: 'underline',
   }

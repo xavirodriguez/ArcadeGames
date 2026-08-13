@@ -12,6 +12,7 @@ import { PassportOverlay } from "../components/PassportOverlay";
 import { DailyChallengeCard } from "../components/DailyChallengeCard";
 import { LeaderboardOverlay } from "../components/LeaderboardOverlay";
 import { hapticSelection } from "../utils/haptics";
+import { colors, spacing, typography, effects, neonTextGlow } from "../theme";
 
 interface GameEntry {
   id: string;
@@ -162,6 +163,7 @@ export default function HomeScreen() {
           <PassportOverlay
             profile={profile}
             onClose={() => {
+                hapticSelection();
                 setShowPassport(false);
                 PlayerProfileService.getProfile().then(setProfile);
             }}
@@ -171,7 +173,10 @@ export default function HomeScreen() {
         {showLeaderboard && (
           <LeaderboardOverlay
             gameId={showLeaderboard}
-            onClose={() => setShowLeaderboard(null)}
+            onClose={() => {
+                hapticSelection();
+                setShowLeaderboard(null);
+            }}
           />
         )}
       </View>
@@ -182,109 +187,111 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   menuContainer: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: colors.background,
   },
   scrollContent: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 60,
+    paddingVertical: spacing.xxxxl,
   },
   title: {
-    fontSize: 48,
-    color: "white",
-    fontFamily: "monospace",
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: typography.sizes.title,
+    color: colors.white,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
+    marginBottom: spacing.xl,
     textAlign: "center",
+    ...neonTextGlow(colors.cyan, 16),
   },
   profileSummary: {
-    backgroundColor: '#222',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
     borderRadius: 20,
-    marginBottom: 30,
+    marginBottom: spacing.xxxl,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.border,
   },
   profileText: {
-    color: '#FFD700',
-    fontFamily: 'monospace',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: colors.gold,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: spacing.xxxl,
   },
   muteButton: {
-    backgroundColor: '#222',
-    padding: 10,
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
     borderRadius: 20,
-    marginLeft: 10,
+    marginLeft: spacing.sm,
     width: 44,
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.border,
   },
   muteButtonText: {
-    fontSize: 20,
+    fontSize: typography.sizes.xl,
   },
   langButton: {
-    backgroundColor: '#222',
-    padding: 10,
+    backgroundColor: colors.surface,
+    padding: spacing.sm,
     borderRadius: 20,
-    marginLeft: 10,
+    marginLeft: spacing.sm,
     width: 44,
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.border,
   },
   langButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
+    color: colors.white,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
   },
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: spacing.xl,
     width: 360,
     justifyContent: 'center',
   },
   menuButton: {
     backgroundColor: "transparent",
     borderWidth: 2,
-    borderColor: "white",
-    paddingHorizontal: 40,
-    paddingVertical: 16,
+    borderColor: colors.cyan,
+    paddingHorizontal: spacing.xxxxl,
+    paddingVertical: spacing.lg,
     borderRadius: 8,
     width: 280,
     alignItems: "center",
+    ...effects.cyanGlow,
   },
   rankButton: {
-    marginLeft: 10,
-    backgroundColor: '#222',
+    marginLeft: spacing.sm,
+    backgroundColor: colors.surface,
     width: 60,
     height: 60,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.border,
   },
   rankButtonText: {
-    fontSize: 24,
+    fontSize: typography.sizes.xxl,
   },
   menuButtonText: {
-    color: "white",
-    fontSize: 20,
-    fontWeight: "bold",
-    fontFamily: "monospace",
+    color: colors.cyan,
+    fontSize: typography.sizes.xl,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
   },
 });

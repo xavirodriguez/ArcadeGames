@@ -1,19 +1,43 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useEchoRunnerGame } from "@/hooks/useEchoRunnerGame";
 import { useTouchDevice } from "@/hooks/useTouchDevice";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
-import { WebAudioPlayer } from "@tiny-aster/core";
+import { hapticSelection } from "@/utils/haptics";
+import { colors, spacing, typography, effects } from "../../theme";
+import {
+  GameScreen,
+  BackButton,
+  GameTitle,
+  GameInstructions,
+  PlayerNameInput,
+  HighScoreText,
+  NeonButton,
+} from "../../components/ui";
 
 export default function EchoRunnerScreen() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
+  const [playerName, setPlayerName] = useState("");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+
+  // Sync player name from profile
+  useEffect(() => {
+    PlayerProfileService.getProfile().then((p) => {
+      setPlayerName(p.displayName);
+    });
+  }, []);
+
+  const handlePlayerNameChange = (name: string) => {
+    setPlayerName(name);
+    PlayerProfileService.updateDisplayName(name);
+  };
   const isTouchDevice = useTouchDevice();
 
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
@@ -87,31 +111,38 @@ export default function EchoRunnerScreen() {
 
   if (!started) {
     return (
-      <SafeAreaProvider>
-        <View style={sharedScreenStyles.startScreen}>
-          <RadialBackground />
-          <TouchableOpacity
-            style={sharedScreenStyles.backButton}
-            onPress={() => router.replace("/")}
-          >
-            <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-          </TouchableOpacity>
+      <GameScreen>
+        <BackButton label={t.common.menu} />
 
-          <Text style={[sharedScreenStyles.title, styles.neonTitle]}>ECHO // RUNNER</Text>
+        <GameTitle glowColor={colors.pink}>ECHO // RUNNER</GameTitle>
 
-          <Text style={sharedScreenStyles.instructions}>
-            {Platform.OS === "web"
-              ? "A/D o Flechas: Mover  |  W o Espacio: Saltar  |  F o J: Pulse (Ataque)"
-              : t.common.touch_controls}
-          </Text>
+        <PlayerNameInput
+          label={t.accessibility.player_name_label}
+          value={playerName}
+          onChangeText={handlePlayerNameChange}
+          placeholder={t.common.your_name}
+        />
 
-          <Text style={sharedScreenStyles.highScoreText}>Record: {highScore}</Text>
+        <GameInstructions>
+          {Platform.OS === "web"
+            ? t.echorunner.instructions
+            : t.common.touch_controls}
+        </GameInstructions>
 
-          <TouchableOpacity style={[sharedScreenStyles.startButton, styles.neonButton]} onPress={() => setStarted(true)}>
-            <Text style={sharedScreenStyles.startButtonText}>INICIAR ARCHIVO</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaProvider>
+        <HighScoreText label={t.common.record} score={highScore} />
+
+        <NeonButton
+          variant="pink"
+          onPress={() => {
+            hapticSelection();
+            setStarted(true);
+          }}
+          accessibilityLabel={t.echorunner.start_file}
+          accessibilityHint="Inicia una nueva simulación de Echo Runner"
+        >
+          {t.echorunner.start_file}
+        </NeonButton>
+      </GameScreen>
     );
   }
 
@@ -119,9 +150,9 @@ export default function EchoRunnerScreen() {
     return (
       <View style={sharedScreenStyles.container}>
         <RadialBackground />
-        <ActivityIndicator size="large" color="#00f0ff" />
-        <Text style={{ color: "white", marginTop: 20, fontFamily: "monospace", fontSize: 18 }}>
-          Sincronizando Archivos de Memoria...
+        <ActivityIndicator size="large" color={colors.cyan} />
+        <Text style={styles.loadingText}>
+          {t.echorunner.syncing_files}
         </Text>
       </View>
     );
@@ -133,29 +164,24 @@ export default function EchoRunnerScreen() {
         <RadialBackground />
 
         {/* Back to menu */}
-        <TouchableOpacity
-          style={sharedScreenStyles.backButton}
-          onPress={() => router.replace("/")}
-        >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-        </TouchableOpacity>
+        <BackButton label={t.common.menu} />
 
         {/* Gorgeous Neon HUD */}
         <View style={styles.hudContainer}>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>INTENTO</Text>
+            <Text style={styles.hudLabel}>{t.echorunner.attempts}</Text>
             <Text style={styles.hudValue}>{gameState.attempts.toString().padStart(2, "0")}</Text>
           </View>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>FRAGMENTOS</Text>
+            <Text style={styles.hudLabel}>{t.echorunner.fragments}</Text>
             <Text style={[styles.hudValue, styles.violetGlow]}>◆ {gameState.fragments}</Text>
           </View>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>NUCLEOS</Text>
+            <Text style={styles.hudLabel}>{t.echorunner.cores}</Text>
             <Text style={[styles.hudValue, styles.goldGlow]}>◉ {gameState.cores}</Text>
           </View>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>CRONO</Text>
+            <Text style={styles.hudLabel}>{t.echorunner.chrono}</Text>
             <Text style={styles.hudValue}>{formatTime(gameState.elapsedTime)}</Text>
           </View>
         </View>
@@ -174,15 +200,25 @@ export default function EchoRunnerScreen() {
             <View style={styles.dpad} pointerEvents="box-none">
               <TouchableOpacity
                 style={styles.touchButton}
-                onPressIn={() => handleTouchLeft(true)}
+                onPressIn={() => {
+                  hapticSelection();
+                  handleTouchLeft(true);
+                }}
                 onPressOut={() => handleTouchLeft(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Mover izquierda"
               >
                 <Text style={styles.touchButtonText}>◀</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.touchButton}
-                onPressIn={() => handleTouchRight(true)}
+                onPressIn={() => {
+                  hapticSelection();
+                  handleTouchRight(true);
+                }}
                 onPressOut={() => handleTouchRight(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Mover derecha"
               >
                 <Text style={styles.touchButtonText}>▶</Text>
               </TouchableOpacity>
@@ -192,14 +228,24 @@ export default function EchoRunnerScreen() {
             <View style={styles.actions} pointerEvents="box-none">
               <TouchableOpacity
                 style={[styles.touchButton, styles.pulseButton]}
-                onPressIn={handleTouchPulse}
+                onPressIn={() => {
+                  hapticSelection();
+                  handleTouchPulse();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Ataque de pulso"
               >
                 <Text style={styles.touchButtonText}>PULSE</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.touchButton, styles.jumpButton]}
-                onPressIn={() => handleTouchJump(true)}
+                onPressIn={() => {
+                  hapticSelection();
+                  handleTouchJump(true);
+                }}
                 onPressOut={() => handleTouchJump(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Saltar"
               >
                 <Text style={styles.touchButtonText}>JUMP</Text>
               </TouchableOpacity>
@@ -210,17 +256,23 @@ export default function EchoRunnerScreen() {
         {/* Level Complete / Game Over Screen */}
         {gameState.isGameOver && (
           <View style={styles.gameOverOverlay}>
-            <Text style={styles.gameOverTitle}>ARCHIVO RESTAURADO</Text>
-            <Text style={styles.gameOverSubtitle}>Has completado la megaestructura "The Archive"!</Text>
-            <Text style={styles.gameOverStat}>Intentos Totales: {gameState.attempts}</Text>
-            <Text style={styles.gameOverStat}>Muertes: {gameState.deaths}</Text>
-            <Text style={styles.gameOverStat}>Tiempo Transcurrido: {formatTime(gameState.elapsedTime)}</Text>
+            <Text style={styles.gameOverTitle}>{t.echorunner.archive_restored}</Text>
+            <Text style={styles.gameOverSubtitle}>{t.echorunner.archive_restored_sub}</Text>
+            <Text style={styles.gameOverStat}>{t.echorunner.total_attempts}: {gameState.attempts}</Text>
+            <Text style={styles.gameOverStat}>{t.echorunner.deaths}: {gameState.deaths}</Text>
+            <Text style={styles.gameOverStat}>{t.echorunner.elapsed_time}: {formatTime(gameState.elapsedTime)}</Text>
 
             <TouchableOpacity
               style={styles.menuButton}
-              onPress={() => router.replace("/")}
+              onPress={() => {
+                hapticSelection();
+                router.replace("/");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.echorunner.return_repo}
+              accessibilityHint="Regresa al menú principal del repositorio"
             >
-              <Text style={styles.menuButtonText}>VOLVER AL REPOSITORIO</Text>
+              <Text style={styles.menuButtonText}>{t.echorunner.return_repo}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -230,19 +282,11 @@ export default function EchoRunnerScreen() {
 }
 
 const styles = StyleSheet.create({
-  neonTitle: {
-    color: "#00f0ff",
-    textShadowColor: "#00f0ff",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 15,
-  },
-  neonButton: {
-    borderColor: "#ff007f",
-    borderWidth: 2,
-    shadowColor: "#ff007f",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
+  loadingText: {
+    color: colors.white,
+    marginTop: spacing.xl,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.lg,
   },
   hudContainer: {
     position: "absolute",
@@ -252,7 +296,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     backgroundColor: "rgba(10, 10, 20, 0.75)",
-    padding: 12,
+    padding: spacing.md,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#1e293b",
@@ -262,18 +306,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   hudLabel: {
-    color: "rgba(255, 255, 255, 0.4)",
+    color: colors.textMuted,
     fontSize: 10,
-    fontFamily: "monospace",
+    fontFamily: typography.game,
     letterSpacing: 1,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   hudValue: {
-    color: "#00f0ff",
-    fontSize: 16,
-    fontWeight: "bold",
-    fontFamily: "monospace",
-    textShadowColor: "#00f0ff",
+    color: colors.cyan,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
+    textShadowColor: colors.cyan,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 4,
   },
@@ -282,8 +326,8 @@ const styles = StyleSheet.create({
     textShadowColor: "#c084fc",
   },
   goldGlow: {
-    color: "#f59e0b",
-    textShadowColor: "#f59e0b",
+    color: colors.gold,
+    textShadowColor: colors.gold,
   },
   touchControlsContainer: {
     position: "absolute",
@@ -312,21 +356,21 @@ const styles = StyleSheet.create({
     borderRadius: 35,
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: 8,
+    marginHorizontal: spacing.sm,
   },
   touchButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-    fontFamily: "monospace",
+    color: colors.white,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
   },
   jumpButton: {
-    borderColor: "#00f0ff",
+    borderColor: colors.cyan,
     width: 75,
     height: 75,
   },
   pulseButton: {
-    borderColor: "#ff007f",
+    borderColor: colors.pink,
     width: 70,
     height: 70,
   },
@@ -336,49 +380,46 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 20,
-    padding: 30,
+    padding: spacing.xxxl,
   },
   gameOverTitle: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#00f0ff",
-    fontFamily: "monospace",
-    textShadowColor: "#00f0ff",
+    fontSize: typography.sizes.title,
+    fontWeight: typography.weights.bold,
+    color: colors.cyan,
+    fontFamily: typography.game,
+    textShadowColor: colors.cyan,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 15,
-    marginBottom: 10,
+    marginBottom: spacing.sm,
     textAlign: "center",
   },
   gameOverSubtitle: {
-    fontSize: 16,
-    color: "#94a3b8",
-    fontFamily: "monospace",
+    fontSize: typography.sizes.md,
+    color: colors.textSecondary,
+    fontFamily: typography.game,
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: spacing.xxxxl,
   },
   gameOverStat: {
-    fontSize: 16,
-    color: "white",
-    fontFamily: "monospace",
-    marginBottom: 12,
+    fontSize: typography.sizes.md,
+    color: colors.white,
+    fontFamily: typography.game,
+    marginBottom: spacing.md,
   },
   menuButton: {
     backgroundColor: "transparent",
     borderWidth: 2,
-    borderColor: "#ff007f",
-    paddingHorizontal: 30,
+    borderColor: colors.pink,
+    paddingHorizontal: spacing.xxxl,
     paddingVertical: 14,
     borderRadius: 8,
-    marginTop: 40,
-    shadowColor: "#ff007f",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
+    marginTop: spacing.xxxxl,
+    ...effects.pinkGlow,
   },
   menuButtonText: {
-    color: "#ff007f",
-    fontSize: 16,
-    fontWeight: "bold",
-    fontFamily: "monospace",
+    color: colors.pink,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
   }
 });

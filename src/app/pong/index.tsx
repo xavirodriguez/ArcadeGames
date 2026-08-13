@@ -1,5 +1,6 @@
 import { useState, useEffect, FC } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
@@ -32,8 +33,20 @@ import {
 export default function PongScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
-  const [playerName, setPlayerName] = useState("Jugador");
+  const [playerName, setPlayerName] = useState("");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+
+  // Sync player name from profile
+  useEffect(() => {
+    PlayerProfileService.getProfile().then((p) => {
+      setPlayerName(p.displayName);
+    });
+  }, []);
+
+  const handlePlayerNameChange = (name: string) => {
+    setPlayerName(name);
+    PlayerProfileService.updateDisplayName(name);
+  };
   const [started, setStarted] = useState(false);
   const [mode, setMode] = useState<"local" | "ai" | "online">("local");
   const [isDaily, setIsDaily] = useState(false);
@@ -105,7 +118,7 @@ export default function PongScreen() {
           setStarted(true);
         }}
         playerName={playerName}
-        onPlayerNameChange={setPlayerName}
+        onPlayerNameChange={handlePlayerNameChange}
         instructions={Platform.OS === "web" ? t.pong.instructions : t.pong.local_mode}
         initialSeed={initialSeed}
         onSeedChange={setInitialSeed}

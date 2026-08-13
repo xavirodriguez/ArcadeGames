@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, FC } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, TextInput } from "react-native";
+import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
@@ -39,8 +40,20 @@ import {
 export default function FlappyBirdScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
-  const [playerName, setPlayerName] = useState("Jugador");
+  const [playerName, setPlayerName] = useState("");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+
+  // Sync player name from profile
+  useEffect(() => {
+    PlayerProfileService.getProfile().then((p) => {
+      setPlayerName(p.displayName);
+    });
+  }, []);
+
+  const handlePlayerNameChange = (name: string) => {
+    setPlayerName(name);
+    PlayerProfileService.updateDisplayName(name);
+  };
   const [started, setStarted] = useState(false);
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
@@ -136,7 +149,7 @@ export default function FlappyBirdScreen() {
           setStarted(true);
         }}
         playerName={playerName}
-        onPlayerNameChange={setPlayerName}
+        onPlayerNameChange={handlePlayerNameChange}
         instructions={Platform.OS === "web" ? (t?.flappybird?.instructions || "Space to jump") : (t?.flappybird?.touch_instructions || "Touch screen to jump")}
         onSeedChange={setInitialSeed}
         onStartDaily={(dailySeed) => {

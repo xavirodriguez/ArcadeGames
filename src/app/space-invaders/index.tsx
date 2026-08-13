@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, FC } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { ComboDisplay } from "@/components/ComboDisplay";
@@ -40,8 +41,20 @@ export default function SpaceInvadersScreen() {
   const { t } = useTranslation();
   const [isAttractMode, setIsAttractMode] = useState(false);
   const [idleTime, setIdleTime] = useState(0);
-  const [playerName, setPlayerName] = useState("Jugador");
+  const [playerName, setPlayerName] = useState("");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+
+  // Sync player name from profile
+  useEffect(() => {
+    PlayerProfileService.getProfile().then((p) => {
+      setPlayerName(p.displayName);
+    });
+  }, []);
+
+  const handlePlayerNameChange = (name: string) => {
+    setPlayerName(name);
+    PlayerProfileService.updateDisplayName(name);
+  };
   const [started, setStarted] = useState(false);
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
@@ -179,7 +192,7 @@ export default function SpaceInvadersScreen() {
           setStarted(true);
         }}
         playerName={playerName}
-        onPlayerNameChange={setPlayerName}
+        onPlayerNameChange={handlePlayerNameChange}
         instructions={Platform.OS === "web" ? t["space-invaders"].instructions : t.common.touch_controls}
         onSeedChange={setInitialSeed}
         onStartDaily={(dailySeed) => {

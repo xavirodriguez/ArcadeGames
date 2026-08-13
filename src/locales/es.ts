@@ -45,6 +45,21 @@ export const es = {
   "space-invaders": {
     instructions: "←→ Mover  Espacio Disparar",
   },
+  echorunner: {
+    instructions: "A/D o Flechas: Mover  |  W o Espacio: Saltar  |  F o J: Pulse (Ataque)",
+    start_file: "INICIAR ARCHIVO",
+    attempts: "INTENTO",
+    fragments: "FRAGMENTOS",
+    cores: "NUCLEOS",
+    chrono: "CRONO",
+    archive_restored: "ARCHIVO RESTAURADO",
+    archive_restored_sub: "¡Has completado la megaestructura 'The Archive'!",
+    total_attempts: "Intentos Totales",
+    deaths: "Muertes",
+    elapsed_time: "Tiempo Transcurrido",
+    return_repo: "VOLVER AL REPOSITORIO",
+    syncing_files: "Sincronizando Archivos de Memoria...",
+  },
   mutators: {
     heavy_gravity: {
       name: "Gravedad Pesada",

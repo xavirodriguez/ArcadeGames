@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
+import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { ComboDisplay } from "@/src/components/ComboDisplay";
@@ -26,7 +27,19 @@ export default function GeometryWarsScreen() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
   const [isMulti, setIsMulti] = useState(false);
-  const [playerName, setPlayerName] = useState("Player");
+  const [playerName, setPlayerName] = useState("");
+
+  // Sync player name from profile
+  useEffect(() => {
+    PlayerProfileService.getProfile().then((p) => {
+      setPlayerName(p.displayName);
+    });
+  }, []);
+
+  const handlePlayerNameChange = (name: string) => {
+    setPlayerName(name);
+    PlayerProfileService.updateDisplayName(name);
+  };
   const insets = useSafeAreaInsets();
   const isTouchDevice = useTouchDevice();
 
@@ -180,7 +193,7 @@ export default function GeometryWarsScreen() {
         <PlayerNameInput
           label={t.accessibility.player_name_label}
           value={playerName}
-          onChangeText={setPlayerName}
+          onChangeText={handlePlayerNameChange}
           placeholder={t.common.your_name}
         />
 

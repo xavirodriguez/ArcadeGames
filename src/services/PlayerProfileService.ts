@@ -163,6 +163,12 @@ export class PlayerProfileService {
     }
   }
 
+  public static async updateDisplayName(name: string): Promise<void> {
+    const profile = await this.getProfile();
+    profile.displayName = name.slice(0, 20);
+    await this.saveProfile();
+  }
+
   public static async saveProfile(): Promise<void> {
     if (this.profile) {
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(this.profile));

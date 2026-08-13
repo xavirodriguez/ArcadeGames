@@ -45,6 +45,21 @@ export const en = {
   "space-invaders": {
     instructions: "←→ Move  Space to Shoot",
   },
+  echorunner: {
+    instructions: "A/D or Arrows: Move  |  W or Space: Jump  |  F or J: Pulse (Attack)",
+    start_file: "START FILE",
+    attempts: "ATTEMPTS",
+    fragments: "FRAGMENTS",
+    cores: "CORES",
+    chrono: "CHRONO",
+    archive_restored: "ARCHIVE RESTORED",
+    archive_restored_sub: "You have completed the 'The Archive' megastructure!",
+    total_attempts: "Total Attempts",
+    deaths: "Deaths",
+    elapsed_time: "Elapsed Time",
+    return_repo: "RETURN TO REPOSITORY",
+    syncing_files: "Synchronizing Memory Files...",
+  },
   mutators: {
     heavy_gravity: {
       name: "Heavy Gravity",

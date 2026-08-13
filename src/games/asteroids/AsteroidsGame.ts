@@ -101,7 +101,7 @@ export class AsteroidsGame
       config.audio = new WebAudioPlayer();
     }
     super(config);
-    this.isHeadless = config.headless || false;
+    this.isHeadless = config.headless !== undefined ? config.headless : (typeof window === "undefined");
     this.mode = (config.gameOptions as any)?.mode || "deathmatch";
     this.network = new NetworkController<AsteroidsComponentRegistry>(this.world);
     this.isMultiplayer = config.isMultiplayer || false;
@@ -639,24 +639,7 @@ export class NullAsteroidsGame implements IAsteroidsGame {
   }
 }
 
-/** @public */
-export const AsteroidsDefinition = {
-  name: "asteroids",
-  createSimulation: (seed: number) => {
-    const game = new AsteroidsGame({ gameOptions: { seed } });
-    return game;
-  },
-  inputSchema: {
-    actions: ["thrust", "left", "right", "fire", "hyperspace"]
-  },
-  assets: {
-    sprites: [],
-    sounds: [
-      { id: "shoot", path: "/audio/shoot.mp3" },
-      { id: "explosion", path: "/audio/explosion.mp3" }
-    ]
-  }
-};
+export { AsteroidsDefinition } from "./AsteroidsDefinition";
 
 registerMutatorHook("story_fragment", (world: World) => {
   const eventBus = world.getEventBus();

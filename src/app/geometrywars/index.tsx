@@ -160,7 +160,7 @@ export default function GeometryWarsScreen() {
       <SafeAreaProvider>
         <View style={styles.startScreen}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={sharedScreenStyles.backButton}
             onPress={() => {
               hapticSelection();
               if (router.canGoBack()) {
@@ -173,7 +173,7 @@ export default function GeometryWarsScreen() {
             accessibilityLabel={t.common.back}
             accessibilityHint="Regresa a la pantalla principal"
           >
-            <Text style={styles.backButtonText}>← {t.common.menu}</Text>
+            <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
           </TouchableOpacity>
 
           <Text style={styles.title}>GEOMETRY WARS</Text>
@@ -242,7 +242,7 @@ export default function GeometryWarsScreen() {
         <View style={styles.container}>
           {/* Back button */}
           <TouchableOpacity
-            style={[styles.backButton, { top: Math.max(insets.top, 20) }]}
+            style={[sharedScreenStyles.backButton, { top: Math.max(insets.top, 20) }]}
             onPress={() => {
               hapticSelection();
               if (router.canGoBack()) {
@@ -252,7 +252,7 @@ export default function GeometryWarsScreen() {
               }
             }}
           >
-            <Text style={styles.backButtonText}>← {t.common.menu}</Text>
+            <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
           </TouchableOpacity>
 
           {isMulti && !connected && (
@@ -463,17 +463,6 @@ const styles = StyleSheet.create({
     color: "#00FFFF",
     fontSize: 20,
     fontWeight: "bold",
-    fontFamily: "monospace",
-  },
-  backButton: {
-    position: "absolute",
-    left: 20,
-    zIndex: 100,
-    padding: 10,
-  },
-  backButtonText: {
-    color: "#AAAAAA",
-    fontSize: 16,
     fontFamily: "monospace",
   },
   pauseButton: {

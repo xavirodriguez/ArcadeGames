@@ -70,6 +70,50 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       bullets = world.query("Bullet");
       expect(bullets.length).toBe(2);
     });
+
+    it("should align bullet rotation with ship rotation even if ship has non-zero velocity", () => {
+      // Create ship and set its rotation and velocity
+      const shipEntity = createShip({ world, x: 100, y: 100 });
+      world.addComponent(shipEntity, { type: "LocalPlayer" });
+      world.addComponent(shipEntity, {
+          type: "Input",
+          actions: { shoot: true },
+          axes: {}
+      });
+
+      world.mutateComponent(shipEntity, "Transform", (t: any) => {
+        t.rotation = Math.PI / 4; // 45 degrees
+      });
+      world.mutateComponent(shipEntity, "Velocity", (v: any) => {
+        v.vx = 200; // Ship is moving fast horizontally
+        v.vy = 0;
+      });
+
+      world.flush();
+
+      // Clear shoot cooldown
+      world.mutateComponent(shipEntity, "Ship", (s: any) => {
+        s.shootCooldownRemaining = 0;
+      });
+
+      // Update once - should spawn a bullet
+      world.update(0.016);
+      world.flush();
+
+      const bullets = world.query("Bullet");
+      expect(bullets.length).toBe(1);
+
+      const bulletTransform = world.getComponent(bullets[0], "Transform") as any;
+      expect(bulletTransform.rotation).toBeCloseTo(Math.PI / 4, 5); // Must match transform.rotation (45 deg)
+
+      // Calculate what atan2(vy, vx) would have been:
+      // bullet vx = velocity.vx + cos(rotation) * bulletSpeed = 200 + cos(PI/4) * 300 = 200 + 212.13 = 412.13
+      // bullet vy = velocity.vy + sin(rotation) * bulletSpeed = 0 + sin(PI/4) * 300 = 212.13
+      // atan2(212.13, 412.13) = 0.474 rad (approx 27 degrees), not 45 degrees!
+      const bulletVelocity = world.getComponent(bullets[0], "Velocity") as any;
+      const expectedAtan2 = Math.atan2(bulletVelocity.vy, bulletVelocity.vx);
+      expect(bulletTransform.rotation).not.toBeCloseTo(expectedAtan2, 3);
+    });
   });
 
   describe("computeShipPhysics", () => {

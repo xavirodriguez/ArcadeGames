@@ -589,9 +589,6 @@ export class World<
     updater: (component: TComponents[K]) => void
   ): boolean {
     if (!this.isAlive(entity)) {
-      if (isDev) {
-        throw new Error(`Cannot mutate component ${String(type)} on entity ${entity}: entity is not alive.`);
-      }
       return false;
     }
     const component = this.getMutableComponent(entity, type);

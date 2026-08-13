@@ -43,10 +43,8 @@ describe("Generational Handles and ECS Versioning Integration Tests", () => {
         world.removeComponent(a, "Transform");
       }).toThrow(/Cannot remove component.*entity is not alive/);
 
-      // Attempting mutateComponent using the destroyed handle must throw
-      expect(() => {
-        world.mutateComponent(a, "Transform", (t) => { t.x = 100; });
-      }).toThrow(/Cannot mutate component.*entity is not alive/);
+      // Attempting mutateComponent using the destroyed handle must return false gracefully
+      expect(world.mutateComponent(a, "Transform", (t) => { t.x = 100; })).toBe(false);
 
       // Attempting removeEntity using the destroyed handle must throw
       expect(() => {

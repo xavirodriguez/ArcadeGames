@@ -1,5 +1,6 @@
 import { ShapeDrawer, EffectDrawer, TransformComponent, World, Entity, RenderComponent } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
+import { colors } from "../../../theme/colors";
 
 // ============================================================================
 // ZERO-ALLOCATION FILE-LEVEL PRE-ALLOCATED VISUAL PARTICLE POOL
@@ -182,7 +183,7 @@ function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry
           (world.renderRandom.next() - 0.5) * 15,
           0.3,
           2.0,
-          "#ffff00"
+          colors.gold
         );
       }
     }
@@ -205,7 +206,7 @@ function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry
           vy,
           world.renderRandom.nextRange(0.4, 0.7),
           world.renderRandom.nextRange(2.0, 3.5),
-          world.renderRandom.next() > 0.4 ? "#ffff00" : "#ff00ff"
+          world.renderRandom.next() > 0.4 ? colors.gold : colors.pink
         );
       }
       LAST_BULLETS_MAP.delete(id);
@@ -233,7 +234,7 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
     if (!player) return;
 
     const size = render.size ?? 16;
-    const color = render.color ?? "#00f0ff";
+    const color = render.color ?? colors.cyan;
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
@@ -253,7 +254,7 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
           pvy,
           world.renderRandom.nextRange(0.3, 0.6),
           world.renderRandom.nextRange(2.5, 4.0),
-          "#00f0ff"
+          colors.cyan
         );
       }
     }
@@ -282,7 +283,7 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
               Math.sin(spreadAngle) * pSpeed,
               world.renderRandom.nextRange(0.15, 0.35),
               world.renderRandom.nextRange(2.0, 3.5),
-              "#ffffff"
+              colors.white
             );
           }
         }
@@ -314,7 +315,7 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
 
     // Hot inner core
     ctx.shadowBlur = 0;
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.moveTo(size * 0.4, 0);
     ctx.lineTo(-size * 0.2, -size * 0.2);
@@ -337,7 +338,7 @@ export const drawParticle: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCom
     if (!render || !render.visible) return;
 
     const size = render.size ?? 3;
-    const color = render.color ?? "#ffffff";
+    const color = render.color ?? colors.white;
 
     ctx.save();
     ctx.fillStyle = color;
@@ -358,7 +359,7 @@ export const drawChaser: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     if (!render || !render.visible) return;
 
     const size = render.size ?? 14;
-    const color = render.color ?? "#ff00ff";
+    const color = render.color ?? colors.pink;
 
     ctx.save();
     ctx.strokeStyle = color;
@@ -417,7 +418,7 @@ export const drawGrunt: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompon
     if (!render || !render.visible) return;
 
     const size = render.size ?? 10;
-    const color = render.color ?? "#00ffff";
+    const color = render.color ?? colors.cyan;
 
     ctx.save();
     ctx.strokeStyle = color;
@@ -446,7 +447,7 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     if (!render || !render.visible) return;
 
     const size = render.size ?? 4;
-    const color = render.color ?? "#ffff00";
+    const color = render.color ?? colors.gold;
 
     ctx.save();
     ctx.strokeStyle = color;
@@ -474,7 +475,7 @@ export const drawEnemySeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWars
     if (!render || !render.visible) return;
 
     const size = render.size ?? 12;
-    const color = render.color ?? "#ff00ff";
+    const color = render.color ?? colors.pink;
 
     ctx.save();
     ctx.strokeStyle = color;
@@ -504,7 +505,7 @@ export const drawEnemyEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWars
     if (!render || !render.visible) return;
 
     const size = render.size ?? 12;
-    const color = render.color ?? "#00ff00";
+    const color = render.color ?? colors.green;
 
     ctx.save();
     ctx.strokeStyle = color;
@@ -530,7 +531,7 @@ export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, Geometry
     if (!render || !render.visible) return;
 
     const size = render.size ?? 8;
-    const color = render.color ?? "#ff0000";
+    const color = render.color ?? colors.pink;
 
     ctx.save();
     ctx.strokeStyle = color;

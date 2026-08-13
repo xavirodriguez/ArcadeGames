@@ -26,6 +26,15 @@ import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
 import { useTranslation } from "../../hooks/useTranslation";
 import { colors } from "../../theme";
+import {
+  GameScreen,
+  GameTitle,
+  GameInstructions,
+  PlayerNameInput,
+  HighScoreText,
+  BackButton,
+  NeonButton,
+} from "../../components/ui";
 
 export default function FlappyBirdScreen() {
   const { t } = useTranslation();
@@ -257,88 +266,63 @@ const StartScreen: FC<{
 }) => {
   const { t } = useTranslation();
   return (
-    <SafeAreaProvider>
-      <View style={sharedScreenStyles.startScreen}>
-        <RadialBackground />
-        <TouchableOpacity
-          style={sharedScreenStyles.backButton}
+    <GameScreen>
+      <BackButton label={t?.common?.menu || "Menu"} />
+      <GameTitle glowColor={colors.cyan}>{title}</GameTitle>
+
+      <PlayerNameInput
+        label={t?.accessibility?.player_name_label || "Player Name"}
+        value={playerName}
+        onChangeText={onPlayerNameChange}
+        placeholder={t?.common?.your_name || "Your name"}
+      />
+
+      <GameInstructions>{instructions}</GameInstructions>
+      <HighScoreText label={t?.common?.record || "Record"} score={highScore} />
+
+      {onStartDaily && <DailyChallengeBanner gameId="flappybird" onPlay={onStartDaily} />}
+
+      <MutatorBadge mutators={activeMutators} />
+
+      {onSeedChange && (
+        <SeedWidget
+          seed={0}
+          onSeedEnter={onSeedChange}
+          style={{ marginBottom: 30 }}
+        />
+      )}
+
+      <View style={sharedScreenStyles.buttonRow}>
+        <NeonButton
+          variant="white"
           onPress={() => {
             hapticSelection();
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
+            onStart();
           }}
+          accessibilityLabel={t?.common?.solo || "Solo"}
+          accessibilityHint="Inicia una partida individual de Flappy Bird"
         >
-          <Text style={sharedScreenStyles.backButtonText}>← {t?.common?.menu || "Menu"}</Text>
-        </TouchableOpacity>
-        <Text style={sharedScreenStyles.title}>{title}</Text>
+          {t?.common?.solo || "Solo"}
+        </NeonButton>
 
-        <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
-          {t?.accessibility?.player_name_label || "Player Name"}
-        </Text>
-        <TextInput
-            style={sharedScreenStyles.input}
-            value={playerName}
-            onChangeText={onPlayerNameChange}
-            placeholder={t?.common?.your_name || "Your name"}
-            placeholderTextColor={colors.textMuted}
-            accessibilityLabel={t?.accessibility?.player_name_label || "Player Name"}
-            accessibilityLabelledBy="playerNameLabel"
-        />
-
-        <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
-        <Text style={sharedScreenStyles.highScoreText}>{(t?.common?.record || "Record")}: {highScore}</Text>
-
-        {onStartDaily && <DailyChallengeBanner gameId="flappybird" onPlay={onStartDaily} />}
-
-        <MutatorBadge mutators={activeMutators} />
-
-        {onSeedChange && (
-          <SeedWidget
-            seed={0}
-            onSeedEnter={onSeedChange}
-            style={{ marginBottom: 30 }}
-          />
-        )}
-
-        <View style={sharedScreenStyles.buttonRow}>
-            <TouchableOpacity
-              style={sharedScreenStyles.startButton}
+        {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
+          <>
+            <View style={{ width: 20 }} />
+            <NeonButton
+              variant="cyan"
               onPress={() => {
                 hapticSelection();
-                onStart();
+                onStartMulti();
               }}
-              accessibilityRole="button"
-              accessibilityLabel={t?.common?.solo || "Solo"}
-              accessibilityHint="Inicia una partida individual de Flappy Bird"
+              accessibilityLabel={t?.common?.multi || "Multi"}
+              accessibilityHint="Inicia una sesión multijugador en línea"
             >
-                <Text style={sharedScreenStyles.startButtonText}>{t?.common?.solo || "Solo"}</Text>
-            </TouchableOpacity>
-
-            {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
-                <>
-                    <View style={{ width: 20 }} />
-                    <TouchableOpacity
-                      style={sharedScreenStyles.multiButton}
-                      onPress={() => {
-                        hapticSelection();
-                        onStartMulti();
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t?.common?.multi || "Multi"}
-                      accessibilityHint="Inicia una sesión multijugador en línea"
-                    >
-                        <Text style={sharedScreenStyles.multiButtonText}>
-                            {t?.common?.multi || "Multi"}
-                        </Text>
-                    </TouchableOpacity>
-                </>
-            )}
-        </View>
+              {t?.common?.multi || "Multi"}
+            </NeonButton>
+          </>
+        )}
       </View>
-    </SafeAreaProvider>
+    </GameScreen>
   );
 };
 

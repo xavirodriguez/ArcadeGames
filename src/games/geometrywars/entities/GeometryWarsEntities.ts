@@ -14,6 +14,7 @@ import {
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
+import { colors } from "../../../theme/colors";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { FactionComponent, DamageComponent } from "../../shared/combat/components/CombatComponents";
 import { SpawnDirectorComponent } from "../../shared/spawn/components/SpawnComponents";
@@ -57,7 +58,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_player",
         size: 16,
-        color: "#00f0ff",
+        color: colors.cyan,
         visible: true,
         opacity: 1,
         order: 1,
@@ -156,7 +157,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_bullet",
         size: 4,
-        color: "#ffff00",
+        color: colors.gold,
         visible: true,
         opacity: 1,
         order: 2,
@@ -232,7 +233,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_chaser",
         size: 14,
-        color: "#ff00ff",
+        color: colors.pink,
         visible: true,
         opacity: 1,
         order: 1,
@@ -384,7 +385,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_grunt",
         size: 10,
-        color: "#00ffff",
+        color: colors.cyan,
         visible: true,
         opacity: 1,
         order: 1,
@@ -489,7 +490,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_seeker",
         size: 12,
-        color: "#ff00ff",
+        color: colors.pink,
         visible: true,
         opacity: 1,
         order: 3,
@@ -575,7 +576,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_evader",
         size: 12,
-        color: "#00ff00",
+        color: colors.green,
         visible: true,
         opacity: 1,
         order: 3,
@@ -660,7 +661,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_fast_seeker",
         size: 8,
-        color: "#ff0000",
+        color: colors.pink,
         visible: true,
         opacity: 1,
         order: 3,

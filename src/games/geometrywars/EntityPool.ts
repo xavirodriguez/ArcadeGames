@@ -13,6 +13,7 @@ import {
   ProjectileParams
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { colors } from "../../theme/colors";
 import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
 
 /**
@@ -48,7 +49,7 @@ export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {
           type: "Render",
           shape: "gw_bullet",
           size: 4,
-          color: "#ffff00",
+          color: colors.gold,
           rotation: 0,
           visible: true,
           opacity: 1,
@@ -186,7 +187,7 @@ export class GWParticlePool extends ProjectilePool<any, ProjectileParams> {
           type: "Render",
           shape: "gw_particle",
           size: 3,
-          color: "#ffffff",
+          color: colors.white,
           rotation: 0,
           visible: true,
           opacity: 1,

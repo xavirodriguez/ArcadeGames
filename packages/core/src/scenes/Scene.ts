@@ -1,4 +1,5 @@
-import { World } from "../ecs/World";
+import { World, BlueprintRegistryMap } from "../ecs/World";
+import { EventRegistry } from "../events/EventBus";
 import type { ComponentRegistry } from "../ecs/Component";
 import type { CoreComponentRegistry } from "../ecs/CoreComponents";
 
@@ -32,9 +33,9 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
    * Each scene is designed to possess a unique World instance unless
    * explicitly shared.
    */
-  protected world: World<TComponents, any, any>;
+  protected world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>;
 
-  constructor(world: World<TComponents, any, any>) {
+  constructor(world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>) {
     this.world = world;
   }
 
@@ -52,7 +53,7 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
    * @conceptualRisk [ASYNC_INIT] If logic is asynchronous, ensure systems are
    * fully registered before the first update tick to avoid null references.
    */
-  public onEnter(_world: World<TComponents, any, any>): void | Promise<void> {}
+  public onEnter(_world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>): void | Promise<void> {}
 
   /**
    * Executed when the scene is no longer the active scene.
@@ -62,7 +63,7 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
    * @remarks
    * Recommended to release heavy resources, cancel timers, or unregister global listeners here.
    */
-  public onExit(_world: World<TComponents, any, any>): void | Promise<void> {}
+  public onExit(_world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>): void | Promise<void> {}
 
   /**
    * Executed when the engine is paused while this scene is active.
@@ -77,7 +78,7 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
   /**
    * Hook for scene-specific asynchronous initialization (loading assets, etc).
    */
-  public async init(_world: World<TComponents, any, any>): Promise<void> {}
+  public async init(_world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>): Promise<void> {}
 
   /**
    * Hook for restarting the scene state.
@@ -99,7 +100,7 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
    * By default, delegates the update to `world.update(dt)`. Scenes may override
    * this to add orchestration logic before or after system execution.
    */
-  public onUpdate(dt: number, world: World<TComponents, any, any>): void {
+  public onUpdate(dt: number, world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>): void {
     world.update(dt);
   }
 
@@ -112,7 +113,7 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
   /**
    * Returns the ECS World of this scene.
    */
-  public getWorld(): World<TComponents, any, any> {
+  public getWorld(): World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>> {
     return this.world;
   }
 

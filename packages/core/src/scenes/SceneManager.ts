@@ -1,9 +1,9 @@
-import { World } from "../ecs/World";
+import { World, BlueprintRegistryMap } from "../ecs/World";
 import { Scene } from "./Scene";
 import type { ComponentRegistry } from "../ecs/Component";
 import type { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { runLifecycleSync, runLifecycleAsync } from "../utils/LifecycleUtils";
-import { EventBus } from "../events/EventBus";
+import { EventBus, EventRegistry } from "../events/EventBus";
 import { TransitionOptions, ITransitionEffect, getEasingFunction } from "./TransitionTypes";
 import { TransitionRegistry, resolveTransitionEffect } from "./transitions/TransitionRegistry";
 
@@ -22,11 +22,11 @@ function isTestEnvironment(): boolean {
  * @public
  */
 export interface SceneEventRegistry extends Record<string, any> {
-  "scene:transition:start": { scene: Scene<any> };
+  "scene:transition:start": { scene: Scene<ComponentRegistry> };
   "scene:transition:progress": { progress: number };
-  "scene:transition:success": { scene: Scene<any> };
-  "scene:transition:timeout": { scene: Scene<any>; error: unknown };
-  "scene:transition:error": { scene: Scene<any>; error: unknown };
+  "scene:transition:success": { scene: Scene<ComponentRegistry> };
+  "scene:transition:timeout": { scene: Scene<ComponentRegistry>; error: unknown };
+  "scene:transition:error": { scene: Scene<ComponentRegistry>; error: unknown };
   "scene:error": { action: string; error: unknown };
   "scene:warning": { message: string };
 }
@@ -71,7 +71,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   private state: SceneState = SceneState.IDLE;
   private transitionQueue: (() => Promise<void>)[] = [];
   private isProcessingTransition = false;
-  private world: World<TComponents, any, any>;
+  private world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>;
   private transitionToken = 0;
   private eventBus?: EventBus<SceneEventRegistry>;
 
@@ -100,9 +100,9 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
    * @remarks
    * Useful for registering global engine systems on fresh world instances.
    */
-  public onWorldCreated?: (world: World<TComponents, any, any>) => void | Promise<void>;
+  public onWorldCreated?: (world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>) => void | Promise<void>;
 
-  constructor(world: World<TComponents, any, any>, eventBus?: EventBus<SceneEventRegistry>) {
+  constructor(world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>, eventBus?: EventBus<SceneEventRegistry>) {
     this.world = world;
     this.eventBus = eventBus ?? world.getResource<EventBus<SceneEventRegistry>>("EventBus");
   }

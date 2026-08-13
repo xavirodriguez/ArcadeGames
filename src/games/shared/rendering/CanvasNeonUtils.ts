@@ -3,6 +3,8 @@
  * Reusable, high-fidelity, zero-allocation retro cyber-neon rendering utilities for HTML5 Canvas.
  */
 
+import { colors } from "../../../theme/colors";
+
 export interface TrailPoint {
   x: number;
   y: number;
@@ -134,7 +136,7 @@ export function drawNeonShape(
 
   // 3. Draw bright white core
   ctx.shadowBlur = 0;
-  ctx.fillStyle = "#FFFFFF";
+  ctx.fillStyle = colors.white;
   ctx.beginPath();
   drawCore(ctx);
   ctx.fill();
@@ -156,13 +158,13 @@ export function drawProceduralGrid(
   ctx.save();
 
   // 1. Solid deep space dark background
-  ctx.fillStyle = "#0A0A0F";
+  ctx.fillStyle = colors.background;
   ctx.fillRect(0, 0, width, height);
 
   // 2. Scrolling cyber-neon grid lines
   const scrollOffset = (tick * scrollSpeed) % gridSize;
 
-  ctx.strokeStyle = "rgba(0, 255, 255, 0.04)";
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.04)";
   ctx.lineWidth = 1.0;
 
   for (let x = 0; x < width; x += gridSize) {
@@ -207,20 +209,20 @@ export function getComboReaction(multiplier: number): {
   mainColor: string;
 } {
   let trailLength = 8;
-  let trailColor = "rgba(0, 255, 255, 0.4)"; // Default: Cyan
+  let trailColor = "rgba(0, 240, 255, 0.4)"; // Default: Cyan
   let trailColorInner = "rgba(255, 255, 255, 0.2)";
-  let mainColor = "#00FFFF";
+  let mainColor: string = colors.cyan;
 
   if (multiplier === 2) {
     trailLength = 16;
-    trailColor = "rgba(255, 0, 255, 0.5)"; // Pink/Magenta
+    trailColor = "rgba(255, 0, 85, 0.5)"; // Pink/Magenta (colors.pink)
     trailColorInner = "rgba(255, 255, 255, 0.3)";
-    mainColor = "#FF00FF";
+    mainColor = colors.pink;
   } else if (multiplier >= 3) {
     trailLength = 24;
-    trailColor = "rgba(255, 215, 0, 0.6)"; // Gold
+    trailColor = "rgba(255, 215, 0, 0.6)"; // Gold (colors.gold)
     trailColorInner = "rgba(255, 255, 255, 0.4)";
-    mainColor = "#FFD700";
+    mainColor = colors.gold;
   }
 
   return { trailLength, trailColor, trailColorInner, mainColor };

@@ -3,6 +3,7 @@ import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
 import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
+import { colors } from "../../../theme/colors";
 
 // Instantiate the reusable, zero-allocation motion trail helper
 const ballMotionTrail = new CanvasMotionTrail(30);
@@ -55,7 +56,7 @@ export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRe
 
     // Swirling lines
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = "#FFFFFF";
+    ctx.strokeStyle = colors.white;
     ctx.lineWidth = 1.5;
 
     ctx.beginPath();
@@ -66,7 +67,7 @@ export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRe
     ctx.stroke();
 
     // Hot inner core
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);
     ctx.fill();
@@ -93,8 +94,8 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
     const h = config.PADDLE_HEIGHT;
 
     const isLeft = paddle.side === "left";
-    const color = isLeft ? "#FF00FF" : "#00FFFF";
-    const glowAlphaColor = isLeft ? "rgba(255, 0, 255, 0.15)" : "rgba(0, 255, 255, 0.15)";
+    const color = isLeft ? colors.pink : colors.cyan;
+    const glowAlphaColor = isLeft ? "rgba(255, 0, 85, 0.15)" : "rgba(0, 240, 255, 0.15)";
 
     drawNeonShape(
       ctx,
@@ -141,8 +142,8 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
 
     // Add Pong-specific decorative overlay (Neon Center Divider)
     ctx.save();
-    ctx.strokeStyle = "rgba(255, 0, 255, 0.3)";
-    ctx.shadowColor = "#FF00FF";
+    ctx.strokeStyle = "rgba(255, 0, 85, 0.3)";
+    ctx.shadowColor = colors.pink;
     ctx.shadowBlur = 8;
     ctx.lineWidth = 3.0;
     ctx.setLineDash([10, 15]);
@@ -168,7 +169,7 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
     if (state && state.scoreFreezeRemaining !== undefined && state.scoreFreezeRemaining > 0) {
       ctx.save();
       const text = state.lastScorer === "p1" ? "P1 SCORES!" : "P2 SCORES!";
-      const neonColor = state.lastScorer === "p1" ? "#FF00FF" : "#00FFFF";
+      const neonColor = state.lastScorer === "p1" ? colors.pink : colors.cyan;
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -184,7 +185,7 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
 
       // White inner text
       ctx.shadowBlur = 0;
-      ctx.fillStyle = "#FFFFFF";
+      ctx.fillStyle = colors.white;
       ctx.fillText(text, width / 2, height / 2);
 
       ctx.restore();
@@ -193,8 +194,8 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
     // Draw the glowing neon shield barrier behind Player 1 if shield_pulse is active
     if (state && state.shieldPulseRemaining !== undefined && state.shieldPulseRemaining > 0) {
       ctx.save();
-      ctx.strokeStyle = "#00FFFF";
-      ctx.shadowColor = "#00FFFF";
+      ctx.strokeStyle = colors.cyan;
+      ctx.shadowColor = colors.cyan;
       ctx.shadowBlur = 15;
       ctx.lineWidth = 4.0;
       ctx.globalAlpha = 0.4 + 0.3 * Math.sin(world.tick / 5);

@@ -2,6 +2,7 @@ import { ShapeDrawer, EffectDrawer, World, TransformComponent } from "@tiny-aste
 import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { colors } from "../../../theme/colors";
 
 let Skia: any = null;
 try {
@@ -134,20 +135,20 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
     const multiplier = comboComponent?.multiplier ?? 1;
 
     let trailLength = 8;
-    let trailColor = "rgba(0, 255, 255, 0.4)"; // Default: Cyan
+    let trailColor = "rgba(0, 240, 255, 0.4)"; // Default: colors.cyan with alpha
     let trailColorInner = "rgba(255, 255, 255, 0.2)";
-    let ballColor = "#00FFFF";
+    let ballColor: string = colors.cyan;
 
     if (multiplier === 2) {
       trailLength = 16;
-      trailColor = "rgba(255, 0, 255, 0.5)"; // Pink/Magenta
+      trailColor = "rgba(255, 0, 85, 0.5)"; // colors.pink with alpha
       trailColorInner = "rgba(255, 255, 255, 0.3)";
-      ballColor = "#FF00FF";
+      ballColor = colors.pink;
     } else if (multiplier >= 3) {
       trailLength = 24;
-      trailColor = "rgba(255, 215, 0, 0.6)"; // Gold
+      trailColor = "rgba(255, 215, 0, 0.6)"; // colors.gold with alpha
       trailColorInner = "rgba(255, 255, 255, 0.4)";
-      ballColor = "#FFD700";
+      ballColor = colors.gold;
     }
 
     const paint = getPaint();
@@ -172,7 +173,7 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
     canvas.drawCircle(0, 0, size, paint);
 
     // Swirling lines path
-    paint.setColor(Skia.Color("#FFFFFF"));
+    paint.setColor(Skia.Color(colors.white));
     paint.setStrokeWidth(1.5);
     const swirlPath = Skia.Path.Make();
     swirlPath.moveTo(0, -size);
@@ -184,7 +185,7 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
     // Hot inner core
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FFFFFF"));
+    paint.setColor(Skia.Color(colors.white));
     canvas.drawCircle(0, 0, size * 0.4, paint);
 
     canvas.restore();
@@ -210,8 +211,8 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
     const h = config.PADDLE_HEIGHT;
 
     const isLeft = paddle.side === "left";
-    const color = isLeft ? "#FF00FF" : "#00FFFF";
-    const glowAlphaColor = isLeft ? "rgba(255, 0, 255, 0.15)" : "rgba(0, 255, 255, 0.15)";
+    const color = isLeft ? colors.pink : colors.cyan;
+    const glowAlphaColor = isLeft ? "rgba(255, 0, 85, 0.15)" : "rgba(0, 240, 255, 0.15)";
 
     const paint = getPaint();
 
@@ -243,7 +244,7 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
     // 3. Draw bright white core
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FFFFFF"));
+    paint.setColor(Skia.Color(colors.white));
     const coreW = w * 0.4;
     const coreH = h * 0.9;
     canvas.drawRoundRect(
@@ -271,7 +272,7 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
 
     // 1. Solid deep space dark background
     paint.reset();
-    paint.setColor(Skia.Color("#0A0A0F"));
+    paint.setColor(Skia.Color(colors.background));
     canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     // 2. Scrolling cyber-neon grid lines
@@ -280,7 +281,7 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 255, 255, 0.04)"));
+    paint.setColor(Skia.Color("rgba(0, 240, 255, 0.04)"));
     paint.setStrokeWidth(1.0);
 
     for (let x = 0; x < width; x += gridSize) {
@@ -295,7 +296,7 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
     canvas.save();
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(255, 0, 255, 0.3)"));
+    paint.setColor(Skia.Color("rgba(255, 0, 85, 0.3)"));
     paint.setStrokeWidth(3.0);
 
     // Draw dashed center divider line
@@ -319,7 +320,7 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
       canvas.save();
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#00FFFF"));
+      paint.setColor(Skia.Color(colors.cyan));
       paint.setStrokeWidth(4.0);
       paint.setAlphaf((0.4 + 0.3 * Math.sin(world.tick / 5)) * 0.6);
 
@@ -335,7 +336,7 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
     if (state && state.scoreFreezeRemaining !== undefined && state.scoreFreezeRemaining > 0) {
       canvas.save();
       const text = state.lastScorer === "p1" ? "P1 SCORES!" : "P2 SCORES!";
-      const neonColor = state.lastScorer === "p1" ? "#FF00FF" : "#00FFFF";
+      const neonColor = state.lastScorer === "p1" ? colors.pink : colors.cyan;
 
       // Since drawing rich complex text on raw Skia canvas without a pre-loaded custom font can crash in some runtimes,
       // we draw a beautiful, pulsing neon bounding indicator box in the center representing the goal freeze frame!
@@ -357,7 +358,7 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("#FFFFFF"));
+      paint.setColor(Skia.Color(colors.white));
       paint.setAlphaf(0.8);
       canvas.drawCircle(width / 2 - gw * 0.25, height / 2, 4, paint);
       canvas.drawCircle(width / 2, height / 2, 4, paint);

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, TextInput } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { router, useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { ComboDisplay } from "@/components/ComboDisplay";
 import { SpaceInvadersUI } from "@/components/SpaceInvadersUI";
@@ -26,22 +25,26 @@ import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { AttractModeController } from "../../games/shared/arcade/AttractModeController";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
+import { colors, neonTextGlow } from "../../theme";
+import {
+  GameScreen,
+  GameTitle,
+  GameInstructions,
+  PlayerNameInput,
+  HighScoreText,
+  BackButton,
+  NeonButton,
+} from "../../components/ui";
 
 export default function SpaceInvadersScreen() {
   const { t } = useTranslation();
   const [isAttractMode, setIsAttractMode] = useState(false);
   const [idleTime, setIdleTime] = useState(0);
-  const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
-
-  // Parse daily challenge parameters from URL immediately
-  const paramSeed = params.seed ? parseInt(params.seed, 10) : undefined;
-  const isDailyFromParams = params.isDaily === "true" && paramSeed !== undefined && !isNaN(paramSeed);
-
   const [playerName, setPlayerName] = useState("Jugador");
-  const [initialSeed, setInitialSeed] = useState<number | undefined>(isDailyFromParams ? paramSeed : undefined);
-  const [started, setStarted] = useState(isDailyFromParams);
+  const [initialSeed, setInitialSeed] = useState<number | undefined>();
+  const [started, setStarted] = useState(false);
   const [isMulti, setIsMulti] = useState(false);
-  const [isDaily, setIsDaily] = useState(isDailyFromParams);
+  const [isDaily, setIsDaily] = useState(false);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
 
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
@@ -212,22 +215,7 @@ export default function SpaceInvadersScreen() {
             <Text style={styles.attractSubtitle}>TAP ANYWHERE TO PLAY</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity
-          style={sharedScreenStyles.backButton}
-          onPress={() => {
-            hapticSelection();
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t.common.back}
-          accessibilityHint="Regresa a la pantalla principal"
-        >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-        </TouchableOpacity>
+        <BackButton label={t.common.menu} />
 
         {isMulti && !connected && (
             <View style={sharedScreenStyles.overlay}>
@@ -324,88 +312,63 @@ const StartScreen: FC<{
 }) => {
   const { t } = useTranslation();
   return (
-    <SafeAreaProvider>
-      <View style={sharedScreenStyles.startScreen}>
-        <RadialBackground />
-        <TouchableOpacity
-          style={sharedScreenStyles.backButton}
-          onPress={() => {
-            hapticSelection();
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-        >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-        </TouchableOpacity>
-        <Text style={sharedScreenStyles.title}>{title}</Text>
+    <GameScreen>
+      <BackButton label={t.common.menu} />
+      <GameTitle glowColor={colors.cyan}>{title}</GameTitle>
 
-        <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
-          {t.accessibility.player_name_label}
-        </Text>
-        <TextInput
-            style={sharedScreenStyles.input}
-            value={playerName}
-            onChangeText={onPlayerNameChange}
-            placeholder={t.common.your_name}
-            placeholderTextColor="#AAAAAA"
-            accessibilityLabel={t.accessibility.player_name_label}
-            accessibilityLabelledBy="playerNameLabel"
+      <PlayerNameInput
+        label={t.accessibility.player_name_label}
+        value={playerName}
+        onChangeText={onPlayerNameChange}
+        placeholder={t.common.your_name}
+      />
+
+      <GameInstructions>{instructions}</GameInstructions>
+      <HighScoreText label={t.common.record} score={highScore} />
+
+      {onStartDaily && <DailyChallengeBanner gameId="space-invaders" onPlay={onStartDaily} />}
+
+      <MutatorBadge mutators={activeMutators} />
+
+      {onSeedChange && (
+        <SeedWidget
+          seed={0}
+          onSeedEnter={onSeedChange}
+          style={{ marginBottom: 30 }}
         />
+      )}
 
-        <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
-        <Text style={sharedScreenStyles.highScoreText}>{t.common.record}: {highScore}</Text>
+      <View style={sharedScreenStyles.buttonRow}>
+          <NeonButton
+            variant="white"
+            onPress={() => {
+              hapticSelection();
+              onStart();
+            }}
+            accessibilityLabel={t.common.solo}
+            accessibilityHint="Inicia una partida individual de Space Invaders"
+          >
+              {t.common.solo}
+          </NeonButton>
 
-        {onStartDaily && <DailyChallengeBanner gameId="space-invaders" onPlay={onStartDaily} />}
-
-        <MutatorBadge mutators={activeMutators} />
-
-        {onSeedChange && (
-          <SeedWidget
-            seed={0}
-            onSeedEnter={onSeedChange}
-            style={{ marginBottom: 30 }}
-          />
-        )}
-
-        <View style={sharedScreenStyles.buttonRow}>
-            <TouchableOpacity
-              style={sharedScreenStyles.startButton}
-              onPress={() => {
-                hapticSelection();
-                onStart();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t.common.solo}
-              accessibilityHint="Inicia una partida individual de Space Invaders"
-            >
-                <Text style={sharedScreenStyles.startButtonText}>{t.common.solo}</Text>
-            </TouchableOpacity>
-
-            {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
-                <>
-                    <View style={{ width: 20 }} />
-                    <TouchableOpacity
-                      style={sharedScreenStyles.multiButton}
-                      onPress={() => {
-                        hapticSelection();
-                        onStartMulti();
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={t.common.multi}
-                      accessibilityHint="Inicia una sesión multijugador en línea"
-                    >
-                        <Text style={sharedScreenStyles.multiButtonText}>
-                            {t.common.multi}
-                        </Text>
-                    </TouchableOpacity>
-                </>
-            )}
-        </View>
+          {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
+              <>
+                  <View style={{ width: 20 }} />
+                  <NeonButton
+                    variant="cyan"
+                    onPress={() => {
+                      hapticSelection();
+                      onStartMulti();
+                    }}
+                    accessibilityLabel={t.common.multi}
+                    accessibilityHint="Inicia una sesión multijugador en línea"
+                  >
+                      {t.common.multi}
+                  </NeonButton>
+              </>
+          )}
       </View>
-    </SafeAreaProvider>
+    </GameScreen>
   );
 };
 
@@ -426,24 +389,17 @@ const styles = StyleSheet.create({
     zIndex: 2000,
   },
   attractTitle: {
-    color: "#00FFDD",
+    color: colors.cyan,
     fontSize: 54,
     fontWeight: "bold",
     fontFamily: "monospace",
-    ...(Platform.OS === "web"
-      ? { textShadow: "0 0 15px rgba(0, 255, 221, 0.8)" }
-      : {
-          textShadowColor: "rgba(0, 255, 221, 0.8)",
-          textShadowOffset: { width: 0, height: 0 },
-          textShadowRadius: 15,
-        }),
+    ...neonTextGlow(colors.cyan, 15),
   },
   attractSubtitle: {
-    color: "#FFFFFF",
+    color: colors.white,
     fontSize: 20,
     fontFamily: "monospace",
     marginTop: 20,
     letterSpacing: 2,
   },
 });
-

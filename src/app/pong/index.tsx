@@ -1,5 +1,5 @@
 import { useState, useEffect, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, TextInput } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
@@ -19,6 +19,15 @@ import { useGameSession } from "@/hooks/useGameSession";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "../../utils/haptics";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
+import { colors } from "../../theme";
+import {
+  GameScreen,
+  GameTitle,
+  GameInstructions,
+  NeonButton,
+  BackButton,
+  PlayerNameInput,
+} from "../../components/ui";
 
 export default function PongScreen() {
   const { t } = useTranslation();
@@ -129,22 +138,7 @@ export default function PongScreen() {
     <GameErrorBoundary gameId="pong">
     <SafeAreaProvider>
       <View style={styles.container}>
-        <TouchableOpacity
-          style={sharedScreenStyles.backButton}
-          onPress={() => {
-            hapticSelection();
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t.common.back}
-          accessibilityHint="Regresa a la pantalla principal"
-        >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-        </TouchableOpacity>
+        <BackButton label={t.common.menu} />
 
         {isMulti && !connected && (
             <View style={styles.multiOverlay}>
@@ -230,242 +224,141 @@ const StartScreen: FC<{
 }) => {
   const { t } = useTranslation();
   return (
-    <SafeAreaProvider>
-      <View style={sharedScreenStyles.startScreen}>
-        <TouchableOpacity
-          style={sharedScreenStyles.backButton}
-          onPress={() => {
-            hapticSelection();
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-        >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-        </TouchableOpacity>
-        <Text style={sharedScreenStyles.title}>{title}</Text>
+    <GameScreen>
+      <BackButton label={t.common.menu} />
+      <GameTitle glowColor={colors.cyan}>{title}</GameTitle>
 
-        <Text style={styles.inputLabel} nativeID="playerNameLabel">
-          {t.accessibility.player_name_label}
-        </Text>
-        <TextInput
-            style={sharedScreenStyles.input}
-            value={playerName}
-            onChangeText={onPlayerNameChange}
-            placeholder={t.common.your_name}
-            placeholderTextColor="#AAAAAA"
-            accessibilityLabel={t.accessibility.player_name_label}
-            accessibilityLabelledBy="playerNameLabel"
+      <PlayerNameInput
+        label={t.accessibility.player_name_label}
+        value={playerName}
+        onChangeText={onPlayerNameChange}
+        placeholder={t.common.your_name}
+      />
+
+      <GameInstructions>{instructions}</GameInstructions>
+
+      {onStartDaily && <DailyChallengeBanner gameId="pong" onPlay={onStartDaily} />}
+
+      <MutatorBadge mutators={activeMutators} />
+
+      {onSeedChange && (
+        <SeedWidget
+          seed={initialSeed || 0}
+          onSeedEnter={onSeedChange}
+          style={{ marginBottom: 30 }}
         />
+      )}
 
-        <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
+      <View style={sharedScreenStyles.buttonRow}>
+          <NeonButton
+            variant="white"
+            bordered
+            onPress={() => onStart("local")}
+            accessibilityLabel={`${t.accessibility.local_p1} - Modo Local`}
+            accessibilityHint="Inicia una partida local de dos jugadores en la misma pantalla"
+          >
+              {t.accessibility.local_p1}
+          </NeonButton>
+          <View style={{ width: 10 }} />
+          <NeonButton
+            variant="white"
+            bordered
+            onPress={() => onStart("ai")}
+            accessibilityLabel={t.pong.vs_ai}
+            accessibilityHint="Inicia una partida individual contra la inteligencia artificial"
+          >
+              {t.pong.vs_ai}
+          </NeonButton>
 
-        {onStartDaily && <DailyChallengeBanner gameId="pong" onPlay={onStartDaily} />}
-
-        <MutatorBadge mutators={activeMutators} />
-
-        {onSeedChange && (
-          <SeedWidget
-            seed={initialSeed || 0}
-            onSeedEnter={onSeedChange}
-            style={{ marginBottom: 30 }}
-          />
-        )}
-
-        <View style={sharedScreenStyles.buttonRow}>
-            <TouchableOpacity
-              style={sharedScreenStyles.startButton}
-              onPress={() => onStart("local")}
-              accessibilityRole="button"
-              accessibilityLabel={`${t.accessibility.local_p1} - Modo Local`}
-              accessibilityHint="Inicia una partida local de dos jugadores en la misma pantalla"
-            >
-                <Text style={sharedScreenStyles.startButtonText}>{t.accessibility.local_p1}</Text>
-            </TouchableOpacity>
-            <View style={{ width: 10 }} />
-            <TouchableOpacity
-              style={sharedScreenStyles.startButton}
-              onPress={() => onStart("ai")}
-              accessibilityRole="button"
-              accessibilityLabel={t.pong.vs_ai}
-              accessibilityHint="Inicia una partida individual contra la inteligencia artificial"
-            >
-                <Text style={sharedScreenStyles.startButtonText}>{t.pong.vs_ai}</Text>
-            </TouchableOpacity>
-
-            {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
-                <>
-                    <View style={{ width: 10 }} />
-                    <TouchableOpacity
-                      style={sharedScreenStyles.multiButton}
-                      onPress={() => onStart("online")}
-                      accessibilityRole="button"
-                      accessibilityLabel={t.common.multi}
-                      accessibilityHint="Busca una partida multijugador competitiva en línea"
-                    >
-                        <Text style={sharedScreenStyles.multiButtonText}>
-                            {t.common.multi}
-                        </Text>
-                    </TouchableOpacity>
-                </>
-            )}
-        </View>
+          {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
+              <>
+                  <View style={{ width: 10 }} />
+                  <NeonButton
+                    variant="cyan"
+                    onPress={() => onStart("online")}
+                    accessibilityLabel={t.common.multi}
+                    accessibilityHint="Busca una partida multijugador competitiva en línea"
+                  >
+                      {t.common.multi}
+                  </NeonButton>
+              </>
+          )}
       </View>
-    </SafeAreaProvider>
+    </GameScreen>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
   },
-  startScreen: {
-    flex: 1,
-    backgroundColor: "black",
-    alignItems: "center",
-    justifyContent: "center",
-    width: '100%',
-  },
-  title: {
-    fontSize: 64,
-    color: "white",
-    fontFamily: "monospace",
-    fontWeight: "bold",
-    marginBottom: 40,
-    textAlign: "center",
-    textShadowColor: '#00FFFF',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 25,
-    letterSpacing: 8,
-  },
-  instructions: {
-    fontSize: 16,
-    color: "#CCCCCC",
-    fontFamily: "monospace",
-    marginBottom: 10,
-    textAlign: "center",
-    paddingHorizontal: 20,
-    textShadowColor: "rgba(255, 255, 255, 0.2)",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-  },
-  inputLabel: {
-    color: '#00FFFF',
-    fontFamily: 'monospace',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-  },
-  input: {
-    backgroundColor: '#111',
-    color: 'white',
-    padding: 15,
-    borderRadius: 8,
-    width: 250,
-    marginBottom: 20,
-    fontFamily: 'monospace',
-    textAlign: 'center',
-    fontSize: 18,
-    borderWidth: 1.5,
-    borderColor: '#333',
-  },
-  startButton: {
-    backgroundColor: "transparent",
-    borderWidth: 2,
-    borderColor: "white",
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-    shadowColor: "white",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-  },
-  startButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-    fontFamily: "monospace",
-    textShadowColor: "white",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-  },
   scoreBoard: {
-    position: 'absolute',
+    position: "absolute",
     top: 60,
-    flexDirection: 'row',
+    flexDirection: "row",
     zIndex: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   scoreTextP1: {
-    color: '#FF00FF',
+    color: colors.pink,
     fontSize: 54,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
-    textShadowColor: '#FF00FF',
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    textShadowColor: colors.pink,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 15,
   },
   scoreTextP2: {
-    color: '#00FFFF',
+    color: colors.cyan,
     fontSize: 54,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
-    textShadowColor: '#00FFFF',
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    textShadowColor: colors.cyan,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 15,
   },
   scoreSeparator: {
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: "rgba(255, 255, 255, 0.4)",
     fontSize: 48,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
+    fontFamily: "monospace",
+    fontWeight: "bold",
     marginHorizontal: 30,
-    textShadowColor: 'rgba(255, 255, 255, 0.4)',
+    textShadowColor: "rgba(255, 255, 255, 0.4)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.overlay,
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 100,
   },
   multiOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1000,
   },
   overlayText: {
-    color: 'white',
+    color: colors.white,
     fontSize: 32,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     marginBottom: 20,
   },
   restartButton: {
-    backgroundColor: "white",
+    backgroundColor: colors.white,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
   },
   restartButtonText: {
-    color: "black",
+    color: colors.background,
     fontWeight: "bold",
   }
 });

@@ -25,6 +25,7 @@ import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
 import { useTranslation } from "../../hooks/useTranslation";
+import { colors } from "../../theme";
 
 export default function FlappyBirdScreen() {
   const { t } = useTranslation();
@@ -90,7 +91,7 @@ export default function FlappyBirdScreen() {
     }
   }, [isMulti, serverState, game]);
 
-  const handleMultiplayerInput = useCallback((input: Partial<FlappyBirdInput>) => {
+  const handleInputState = useCallback((input: Partial<FlappyBirdInput>) => {
     if (isMulti && room) {
         if (input.flap) room.send("flap");
     } else {
@@ -100,12 +101,12 @@ export default function FlappyBirdScreen() {
   }, [isMulti, room, handleInput, game]);
 
   const handleShootPress = useCallback(() => {
-    handleMultiplayerInput({ flap: true, glide: true });
-  }, [handleMultiplayerInput]);
+    handleInputState({ flap: true, glide: true });
+  }, [handleInputState]);
 
   const handleShootRelease = useCallback(() => {
-    handleMultiplayerInput({ flap: false, glide: false });
-  }, [handleMultiplayerInput]);
+    handleInputState({ flap: false, glide: false });
+  }, [handleInputState]);
 
   if (!started) {
     return (
@@ -194,13 +195,13 @@ export default function FlappyBirdScreen() {
               type="movement"
               onMove={(x, y) => {
                 const flap = y < -0.25;
-                handleMultiplayerInput({
+                handleInputState({
                   flap,
                   glide: flap,
                 });
               }}
               onRelease={() => {
-                handleMultiplayerInput({
+                handleInputState({
                   flap: false,
                   glide: false,
                 });
@@ -282,7 +283,7 @@ const StartScreen: FC<{
             value={playerName}
             onChangeText={onPlayerNameChange}
             placeholder={t?.common?.your_name || "Your name"}
-            placeholderTextColor="#AAAAAA"
+            placeholderTextColor={colors.textMuted}
             accessibilityLabel={t?.accessibility?.player_name_label || "Player Name"}
             accessibilityLabelledBy="playerNameLabel"
         />
@@ -351,4 +352,3 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   }
 });
-

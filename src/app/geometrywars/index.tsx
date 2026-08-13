@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator, TextInput } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { ComboDisplay } from "@/src/components/ComboDisplay";
 import { GameErrorBoundary } from "@/src/components/GameErrorBoundary";
@@ -12,6 +11,16 @@ import { useMultiplayer } from "@tiny-aster/react-native";
 import { useTouchDevice } from "@/src/hooks/useTouchDevice";
 import { hapticSelection } from "@/src/utils/haptics";
 import { sharedScreenStyles } from "@/src/styles/SharedGameScreenStyles";
+import { colors, effects } from "../../theme";
+import {
+  GameScreen,
+  GameTitle,
+  GameInstructions,
+  PlayerNameInput,
+  HighScoreText,
+  BackButton,
+  NeonButton,
+} from "../../components/ui";
 
 export default function GeometryWarsScreen() {
   const { t } = useTranslation();
@@ -157,80 +166,57 @@ export default function GeometryWarsScreen() {
 
   if (!started) {
     return (
-      <SafeAreaProvider>
-        <View style={styles.startScreen}>
-          <TouchableOpacity
-            style={sharedScreenStyles.backButton}
-            onPress={() => {
-              hapticSelection();
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/");
-              }
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t.common.back}
-            accessibilityHint="Regresa a la pantalla principal"
+      <GameScreen>
+        <BackButton label={t.common.menu} />
+
+        <GameTitle glowColor={colors.cyan}>GEOMETRY WARS</GameTitle>
+
+        <GameInstructions>
+          {isTouchDevice
+            ? "Left area touch: Move ship\nRight area touch: Aim & shoot"
+            : "WASD / Arrows to Move\nMove Mouse to Aim\nLeft Click to Shoot"}
+        </GameInstructions>
+
+        <PlayerNameInput
+          label={t.accessibility.player_name_label}
+          value={playerName}
+          onChangeText={setPlayerName}
+          placeholder={t.common.your_name}
+        />
+
+        <HighScoreText label={t.common.record} score={highScore} />
+
+        <View style={styles.buttonRow}>
+          <NeonButton
+            variant="cyan"
+            bordered
+            onPress={() => { hapticSelection(); setIsMulti(false); setStarted(true); }}
+            accessibilityLabel={t.common.solo}
+            accessibilityHint="Inicia una partida individual de Geometry Wars"
           >
-            <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-          </TouchableOpacity>
+            {t.common.solo}
+          </NeonButton>
 
-          <Text style={styles.title}>GEOMETRY WARS</Text>
+          <View style={{ width: 20 }} />
 
-          <Text style={styles.instructions}>
-            {isTouchDevice
-              ? "Left area touch: Move ship\nRight area touch: Aim & shoot"
-              : "WASD / Arrows to Move\nMove Mouse to Aim\nLeft Click to Shoot"}
-          </Text>
-
-          <Text style={styles.inputLabel} nativeID="playerNameLabel">
-            {t.accessibility.player_name_label}
-          </Text>
-          <TextInput
-            style={sharedScreenStyles.input}
-            value={playerName}
-            onChangeText={setPlayerName}
-            placeholder={t.common.your_name}
-            placeholderTextColor="#AAAAAA"
-            accessibilityLabel={t.accessibility.player_name_label}
-            accessibilityLabelledBy="playerNameLabel"
-          />
-
-          <Text style={styles.highScoreText}>{t.common.record}: {highScore}</Text>
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.startButton}
-              onPress={() => { hapticSelection(); setIsMulti(false); setStarted(true); }}
-              accessibilityRole="button"
-              accessibilityLabel={t.common.solo}
-              accessibilityHint="Inicia una partida individual de Geometry Wars"
-            >
-              <Text style={styles.startButtonText}>{t.common.solo}</Text>
-            </TouchableOpacity>
-
-            <View style={{ width: 20 }} />
-
-            <TouchableOpacity
-              style={styles.multiButton}
-              onPress={() => { hapticSelection(); setIsMulti(true); setStarted(true); }}
-              accessibilityRole="button"
-              accessibilityLabel={t.common.multi}
-              accessibilityHint="Inicia una sesión multijugador en línea"
-            >
-              <Text style={styles.multiButtonText}>{t.common.multi || "Multiplayer"}</Text>
-            </TouchableOpacity>
-          </View>
+          <NeonButton
+            variant="pink"
+            bordered
+            onPress={() => { hapticSelection(); setIsMulti(true); setStarted(true); }}
+            accessibilityLabel={t.common.multi}
+            accessibilityHint="Inicia una sesión multijugador en línea"
+          >
+            {t.common.multi || "Multiplayer"}
+          </NeonButton>
         </View>
-      </SafeAreaProvider>
+      </GameScreen>
     );
   }
 
   if (!game || !isReady) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#00FFFF" />
+        <ActivityIndicator size="large" color={colors.cyan} />
         <Text style={styles.loadingText}>Loading ECS simulation...</Text>
       </View>
     );
@@ -241,19 +227,7 @@ export default function GeometryWarsScreen() {
       <SafeAreaProvider>
         <View style={styles.container}>
           {/* Back button */}
-          <TouchableOpacity
-            style={[sharedScreenStyles.backButton, { top: Math.max(insets.top, 20) }]}
-            onPress={() => {
-              hapticSelection();
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/");
-              }
-            }}
-          >
-            <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-          </TouchableOpacity>
+          <BackButton label={t.common.menu} style={{ top: Math.max(insets.top, 20) }} />
 
           {isMulti && !connected && (
             <View style={styles.overlay}>
@@ -347,10 +321,10 @@ export default function GeometryWarsScreen() {
                 {gameState.score >= highScore ? "NEW RECORD!" : `Best: ${highScore}`}
               </Text>
               <TouchableOpacity
-                style={[styles.overlayButton, { backgroundColor: "#00FFFF" }]}
+                style={[styles.overlayButton, { backgroundColor: colors.cyan }]}
                 onPress={() => game.restart()}
               >
-                <Text style={[styles.overlayButtonText, { color: "#000" }]}>RESTART</Text>
+                <Text style={[styles.overlayButtonText, { color: colors.background }]}>RESTART</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -361,109 +335,15 @@ export default function GeometryWarsScreen() {
 }
 
 const styles = StyleSheet.create({
-  inputLabel: {
-    color: '#00FFFF',
-    fontFamily: "monospace",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
-    textTransform: "uppercase",
-  },
-  input: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderWidth: 1,
-    borderColor: "#00FFFF",
-    color: "#FFFFFF",
-    fontFamily: "monospace",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    width: 250,
-    textAlign: "center",
-    marginBottom: 20,
-  },
   buttonRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  multiButton: {
-    borderWidth: 2,
-    borderColor: "#FF00FF",
-    paddingHorizontal: 40,
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    shadowColor: "#FF00FF",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-  },
-  multiButtonText: {
-    color: "#FF00FF",
-    fontSize: 20,
-    fontWeight: "bold",
-    fontFamily: "monospace",
-  },
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
     position: "relative",
-  },
-  startScreen: {
-    flex: 1,
-    backgroundColor: "#000",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  title: {
-    fontSize: 48,
-    color: "#00FFFF",
-    fontFamily: "monospace",
-    fontWeight: "bold",
-    marginBottom: 40,
-    textAlign: "center",
-    textShadowColor: "rgba(0, 255, 255, 0.8)",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
-  },
-  instructions: {
-    fontSize: 16,
-    color: "#CCCCCC",
-    fontFamily: "monospace",
-    lineHeight: 24,
-    marginBottom: 30,
-    textAlign: "center",
-    paddingHorizontal: 20,
-  },
-  highScoreText: {
-    fontSize: 20,
-    color: "#FFD700",
-    fontFamily: "monospace",
-    marginBottom: 40,
-    textShadowColor: "rgba(255, 215, 0, 0.5)",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
-  },
-  startButton: {
-    borderWidth: 2,
-    borderColor: "#00FFFF",
-    paddingHorizontal: 40,
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    shadowColor: "#00FFFF",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-  },
-  startButtonText: {
-    color: "#00FFFF",
-    fontSize: 20,
-    fontWeight: "bold",
-    fontFamily: "monospace",
   },
   pauseButton: {
     position: "absolute",
@@ -472,25 +352,25 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#00FFFF",
+    borderColor: colors.cyan,
     backgroundColor: "rgba(0, 255, 255, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 101,
   },
   pauseButtonText: {
-    color: "#00FFFF",
+    color: colors.cyan,
     fontSize: 18,
     fontWeight: "bold",
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
   },
   loadingText: {
-    color: "#00FFFF",
+    color: colors.cyan,
     marginTop: 20,
     fontFamily: "monospace",
     fontSize: 18,
@@ -521,22 +401,22 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   hudText: {
-    color: "#FFFFFF",
+    color: colors.white,
     fontSize: 16,
     fontFamily: "monospace",
     fontWeight: "bold",
-    textShadowColor: "rgba(0, 255, 255, 0.8)",
+    textShadowColor: colors.cyan,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 6,
   },
   hudSubText: {
-    color: "#888888",
+    color: colors.textMuted,
     fontSize: 12,
     fontFamily: "monospace",
     marginTop: 2,
   },
   scoreText: {
-    color: "#00FFFF",
+    color: colors.cyan,
     fontSize: 20,
   },
   controls: {
@@ -556,57 +436,54 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.8)",
+    backgroundColor: colors.overlay,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,
   },
   overlayTitle: {
     fontSize: 48,
-    color: "#00FFFF",
+    color: colors.cyan,
     fontFamily: "monospace",
     fontWeight: "bold",
     marginBottom: 40,
-    textShadowColor: "rgba(0, 255, 255, 0.8)",
+    textShadowColor: colors.cyan,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
   },
   gameOverTitle: {
     fontSize: 54,
-    color: "#FF0055",
+    color: colors.pink,
     fontFamily: "monospace",
     fontWeight: "bold",
     marginBottom: 20,
-    textShadowColor: "rgba(255, 0, 85, 0.8)",
+    textShadowColor: colors.pink,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
   },
   finalScoreText: {
     fontSize: 24,
-    color: "#FFFFFF",
+    color: colors.white,
     fontFamily: "monospace",
     marginBottom: 10,
   },
   bestScoreText: {
     fontSize: 18,
-    color: "#FFD700",
+    color: colors.gold,
     fontFamily: "monospace",
     marginBottom: 40,
   },
   overlayButton: {
     borderWidth: 2,
-    borderColor: "#00FFFF",
+    borderColor: colors.cyan,
     paddingHorizontal: 40,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: "center",
-    shadowColor: "#00FFFF",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
+    ...effects.cyanGlow,
   },
   overlayButtonText: {
-    color: "#00FFFF",
+    color: colors.cyan,
     fontSize: 20,
     fontWeight: "bold",
     fontFamily: "monospace",

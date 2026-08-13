@@ -15,7 +15,7 @@ export function useTranslation() {
     return I18nService.subscribe(setLocale);
   }, []);
 
-  const t = translations[locale];
+  const t = translations[locale] || translations["en"] || en;
 
   return {
     t,

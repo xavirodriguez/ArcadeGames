@@ -24,7 +24,7 @@ import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export default function FlappyBirdScreen() {
   const { t } = useTranslation();
@@ -127,7 +127,7 @@ export default function FlappyBirdScreen() {
         }}
         playerName={playerName}
         onPlayerNameChange={setPlayerName}
-        instructions={Platform.OS === "web" ? t.flappybird.instructions : t.flappybird.touch_instructions}
+        instructions={Platform.OS === "web" ? (t?.flappybird?.instructions || "Space to jump") : (t?.flappybird?.touch_instructions || "Touch screen to jump")}
         onSeedChange={setInitialSeed}
         onStartDaily={(dailySeed) => {
           hapticSelection();
@@ -159,15 +159,15 @@ export default function FlappyBirdScreen() {
             }
           }}
           accessibilityRole="button"
-          accessibilityLabel={t.common.back}
+          accessibilityLabel={t?.common?.back || "Back"}
           accessibilityHint="Regresa a la pantalla principal"
         >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t?.common?.menu || "Menu"}</Text>
         </TouchableOpacity>
 
         {isMulti && !connected && (
             <View style={sharedScreenStyles.overlay}>
-                <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
+                <Text style={sharedScreenStyles.overlayText}>{t?.common?.connecting || "Connecting..."}</Text>
             </View>
         )}
 
@@ -270,25 +270,25 @@ const StartScreen: FC<{
             }
           }}
         >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t?.common?.menu || "Menu"}</Text>
         </TouchableOpacity>
         <Text style={sharedScreenStyles.title}>{title}</Text>
 
         <Text style={sharedScreenStyles.inputLabel} nativeID="playerNameLabel">
-          {t.accessibility.player_name_label}
+          {t?.accessibility?.player_name_label || "Player Name"}
         </Text>
         <TextInput
             style={sharedScreenStyles.input}
             value={playerName}
             onChangeText={onPlayerNameChange}
-            placeholder={t.common.your_name}
+            placeholder={t?.common?.your_name || "Your name"}
             placeholderTextColor="#AAAAAA"
-            accessibilityLabel={t.accessibility.player_name_label}
+            accessibilityLabel={t?.accessibility?.player_name_label || "Player Name"}
             accessibilityLabelledBy="playerNameLabel"
         />
 
         <Text style={sharedScreenStyles.instructions}>{instructions}</Text>
-        <Text style={sharedScreenStyles.highScoreText}>{t.common.record}: {highScore}</Text>
+        <Text style={sharedScreenStyles.highScoreText}>{(t?.common?.record || "Record")}: {highScore}</Text>
 
         {onStartDaily && <DailyChallengeBanner gameId="flappybird" onPlay={onStartDaily} />}
 
@@ -310,10 +310,10 @@ const StartScreen: FC<{
                 onStart();
               }}
               accessibilityRole="button"
-              accessibilityLabel={t.common.solo}
+              accessibilityLabel={t?.common?.solo || "Solo"}
               accessibilityHint="Inicia una partida individual de Flappy Bird"
             >
-                <Text style={sharedScreenStyles.startButtonText}>{t.common.solo}</Text>
+                <Text style={sharedScreenStyles.startButtonText}>{t?.common?.solo || "Solo"}</Text>
             </TouchableOpacity>
 
             {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
@@ -326,11 +326,11 @@ const StartScreen: FC<{
                         onStartMulti();
                       }}
                       accessibilityRole="button"
-                      accessibilityLabel={t.common.multi}
+                      accessibilityLabel={t?.common?.multi || "Multi"}
                       accessibilityHint="Inicia una sesión multijugador en línea"
                     >
                         <Text style={sharedScreenStyles.multiButtonText}>
-                            {t.common.multi}
+                            {t?.common?.multi || "Multi"}
                         </Text>
                     </TouchableOpacity>
                 </>

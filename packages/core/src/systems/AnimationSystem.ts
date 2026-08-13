@@ -7,37 +7,37 @@ import { EventRegistry } from "../events/EventBus";
 export class AnimationSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const entities = world.query("Animator");
+    const len = entities.length;
 
-    for (const entity of entities) {
-      const animator = world.getComponent(entity, "Animator")!;
-      if (!animator.current) continue;
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
+      const animator = world.getMutableComponent(entity, "Animator");
+      if (!animator || !animator.current) continue;
 
       const anim = animator.animations[animator.current];
       if (!anim) continue;
 
-      world.mutateComponent(entity, "Animator", a => {
-        a.elapsed += deltaTime;
-        
-        const frameTime = 1 / anim.frameRate;
-        if (a.elapsed >= frameTime) {
-          a.elapsed = 0;
-          a.frame++;
+      animator.elapsed += deltaTime;
 
-          if (a.frame >= anim.frames.length) {
-            if (anim.loop) {
-              a.frame = 0;
-            } else {
-              a.frame = anim.frames.length - 1;
-              if (anim.onCompleteEvent) {
-                const bus = world.getEventBus();
-                if (bus) {
-                  bus.emitDeferred(anim.onCompleteEvent as string & keyof EventRegistry, { entity } as never);
-                }
+      const frameTime = 1 / anim.frameRate;
+      if (animator.elapsed >= frameTime) {
+        animator.elapsed = 0;
+        animator.frame++;
+
+        if (animator.frame >= anim.frames.length) {
+          if (anim.loop) {
+            animator.frame = 0;
+          } else {
+            animator.frame = anim.frames.length - 1;
+            if (anim.onCompleteEvent) {
+              const bus = world.getEventBus();
+              if (bus) {
+                bus.emitDeferred(anim.onCompleteEvent as string & keyof EventRegistry, { entity } as never);
               }
             }
           }
         }
-      });
+      }
     }
   }
 }

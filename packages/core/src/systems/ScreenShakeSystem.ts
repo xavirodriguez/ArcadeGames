@@ -8,25 +8,30 @@ export class ScreenShakeSystem extends System<CoreComponentRegistry> {
     if (world.isReSimulating) return;
 
     const entities = world.query("ScreenShake");
+    const len = entities.length;
     let activeIntensity = 0;
 
-    for (const entity of entities) {
-      world.mutateComponent(entity, "ScreenShake", shake => {
-        shake.remaining -= deltaTime;
-        if (shake.remaining <= 0) {
-          shake.remaining = 0;
-          shake.intensity = 0;
-        } else {
-          if (shake.intensity > activeIntensity) {
-            activeIntensity = shake.intensity;
-          }
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
+      const shake = world.getMutableComponent(entity, "ScreenShake");
+      if (!shake) continue;
+
+      shake.remaining -= deltaTime;
+      if (shake.remaining <= 0) {
+        shake.remaining = 0;
+        shake.intensity = 0;
+      } else {
+        if (shake.intensity > activeIntensity) {
+          activeIntensity = shake.intensity;
         }
-      });
+      }
     }
 
     const cameras = world.query("Camera2D");
     let mainCameraEntity: number | undefined;
-    for (const camEnt of cameras) {
+    const camLen = cameras.length;
+    for (let i = 0; i < camLen; i++) {
+      const camEnt = cameras[i];
       const cam = world.getComponent(camEnt, "Camera2D");
       if (cam?.isMain) {
         mainCameraEntity = camEnt;
@@ -46,17 +51,19 @@ export class ScreenShakeSystem extends System<CoreComponentRegistry> {
             offsetY: offsetY
           });
         } else {
-          world.mutateComponent(mainCameraEntity, "VisualOffset", vo => {
+          const vo = world.getMutableComponent(mainCameraEntity, "VisualOffset");
+          if (vo) {
             vo.offsetX = offsetX;
             vo.offsetY = offsetY;
-          });
+          }
         }
       } else {
         if (world.hasComponent(mainCameraEntity, "VisualOffset")) {
-          world.mutateComponent(mainCameraEntity, "VisualOffset", vo => {
+          const vo = world.getMutableComponent(mainCameraEntity, "VisualOffset");
+          if (vo) {
             vo.offsetX = 0;
             vo.offsetY = 0;
-          });
+          }
         }
       }
     }

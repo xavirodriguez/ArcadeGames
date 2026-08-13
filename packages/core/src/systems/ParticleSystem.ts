@@ -32,15 +32,16 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
     if (world.getResource("IsPaused") === true) return;
 
     const emitters = world.query("ParticleEmitter");
+    const len = emitters.length;
 
-    for (let i = 0; i < emitters.length; i++) {
+    for (let i = 0; i < len; i++) {
       const entity = emitters[i];
 
       const node = world.getComponent(entity, "SpatialNode");
       if (node && node.active === false) continue;
 
-      const emitter = world.getComponent(entity, "ParticleEmitter")!;
-      if (!emitter.active) continue;
+      const emitter = world.getMutableComponent(entity, "ParticleEmitter");
+      if (!emitter || !emitter.active) continue;
 
       const config = emitter.config;
 
@@ -49,25 +50,19 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
           this.spawnParticle(world, config);
         }
         if (!config.loop && config.rate === 0) {
-            world.mutateComponent(entity, "ParticleEmitter", e => {
-                e.active = false;
-            });
+          emitter.active = false;
         }
       }
 
       if (config.rate > 0) {
-          world.mutateComponent(entity, "ParticleEmitter", e => {
-              e.elapsed += deltaTime;
-              const particlesToSpawn = Math.floor(e.elapsed * config.rate);
-              for (let j = 0; j < particlesToSpawn; j++) {
-                this.spawnParticle(world, config);
-              }
-              e.elapsed %= (1 / config.rate);
-          });
+        emitter.elapsed += deltaTime;
+        const particlesToSpawn = Math.floor(emitter.elapsed * config.rate);
+        for (let j = 0; j < particlesToSpawn; j++) {
+          this.spawnParticle(world, config);
+        }
+        emitter.elapsed %= (1 / config.rate);
       } else {
-          world.mutateComponent(entity, "ParticleEmitter", e => {
-              e.elapsed += deltaTime;
-          });
+        emitter.elapsed += deltaTime;
       }
     }
   }

@@ -39,6 +39,7 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   private onTriggerExitCallbacks: TriggerCallback<TRegistry>[] = [];
   private activePairs = new Set<string>();
   private candidateEntities: Entity[] | null = null;
+  private tempQuery: Entity[] = [];
 
   /**
    * Registra un callback que se disparará al detectarse una colisión física.
@@ -156,15 +157,15 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
 
     let query: ReadonlyArray<Entity>;
     if (candidatesList !== null) {
-      const tempQuery: Entity[] = [];
+      this.tempQuery.length = 0;
       const len = candidatesList.length;
       for (let i = 0; i < len; i++) {
         const entity = candidatesList[i];
         if (w.hasComponent(entity, "Transform") && w.hasComponent(entity, "Collider")) {
-          tempQuery.push(entity);
+          this.tempQuery.push(entity);
         }
       }
-      query = tempQuery;
+      query = this.tempQuery;
     } else {
       query = w.query("Transform", "Collider");
     }
@@ -174,16 +175,19 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
     const eqLen = eventQuery.length;
     for (let i = 0; i < eqLen; i++) {
       const entity = eventQuery[i];
-      w.mutateComponent(entity, "CollisionEvents", (component) => {
+      const component = w.getMutableComponent(entity, "CollisionEvents");
+      if (component) {
         component.collisions.length = 0;
         component.triggersEntered.length = 0;
         component.triggersExited.length = 0;
-      });
+      }
     }
 
     const broadPhasePairs = BroadPhase.sweepAndPrune(query, w);
 
-    for (const [entityA, entityB] of broadPhasePairs) {
+    const bpLen = broadPhasePairs.length;
+    for (let i = 0; i < bpLen; i++) {
+      const [entityA, entityB] = broadPhasePairs[i];
       const colA = w.getComponent(entityA, "Collider")!;
       const colB = w.getComponent(entityB, "Collider")!;
 
@@ -270,7 +274,8 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
    * @postcondition Añade el registro de colisión aplicando opcionalmente inversión de normal física.
    */
   private addCollisionToComponent(world: World<CoreComponentRegistry>, entity: Entity, other: Entity, manifold: CollisionManifold, flipNormal: boolean): void {
-    world.mutateComponent(entity, "CollisionEvents", (eComp) => {
+    const eComp = world.getMutableComponent(entity, "CollisionEvents");
+    if (eComp) {
       eComp.collisions.push({
         otherEntity: other,
         normalX: flipNormal ? -manifold.normalX : manifold.normalX,
@@ -278,7 +283,7 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
         depth: manifold.depth,
         contactPoints: manifold.contactPoints
       });
-    });
+    }
   }
 
   /**
@@ -299,15 +304,19 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
    * @postcondition Modifica las listas `triggersEntered`, `triggersExited` o `activeTriggers` del componente de forma segura.
    */
   private addTriggerToComponent(world: World<CoreComponentRegistry>, entity: Entity, other: Entity, phase: "enter" | "exit"): void {
-    world.mutateComponent(entity, "CollisionEvents", (eComp) => {
+    const eComp = world.getMutableComponent(entity, "CollisionEvents");
+    if (eComp) {
       if (phase === "enter") {
         eComp.triggersEntered.push(other);
         if (!eComp.activeTriggers.includes(other)) eComp.activeTriggers.push(other);
       } else {
         eComp.triggersExited.push(other);
-        eComp.activeTriggers = eComp.activeTriggers.filter((id: number) => id !== other);
+        const idx = eComp.activeTriggers.indexOf(other);
+        if (idx !== -1) {
+          eComp.activeTriggers.splice(idx, 1);
+        }
       }
-    });
+    }
   }
 }
 
@@ -315,7 +324,7 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
  * Sistema CCD (Continuous Collision Detection) para detectar colisiones físicas a alta velocidad.
  *
  * @remarks
- * Resuelve el efecto "tunneling" (atravesar paredes u obstáculos entre frames) proyectando rayos (raycasting)
+ * Resolviendo el efecto "tunneling" (atravesar paredes u obstáculos entre frames) proyectando rayos (raycasting)
  * continuos entre la posición actual y la proyectada por la velocidad del objeto rápido.
  *
  * @precondition Las entidades rápidas candidatas deben poseer los componentes `Transform`, `Velocity` y `Collider`.
@@ -323,6 +332,8 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
  */
 export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
   private candidateEntities: Entity[] | null = null;
+  private _cachedQueryArray: Entity[] = [];
+  private _cachedCollidablesArray: Entity[] = [];
 
   /**
    * Establece de forma manual las entidades candidatas para la verificación CCD.
@@ -350,27 +361,32 @@ export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRe
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
     const candidatesList = this.candidateEntities !== null ? this.candidateEntities : (resourceCandidates !== undefined ? resourceCandidates : null);
 
-    let query: Entity[];
-    let collidables: Entity[];
+    let query: ReadonlyArray<Entity>;
+    let collidables: ReadonlyArray<Entity>;
     if (candidatesList !== null) {
-      query = [];
-      collidables = [];
-      for (const entity of candidatesList) {
+      this._cachedQueryArray.length = 0;
+      this._cachedCollidablesArray.length = 0;
+      for (let i = 0; i < candidatesList.length; i++) {
+        const entity = candidatesList[i];
         const hasTransform = w.hasComponent(entity, "Transform");
         const hasCollider = w.hasComponent(entity, "Collider");
         if (hasTransform && hasCollider) {
-          collidables.push(entity);
+          this._cachedCollidablesArray.push(entity);
           if (w.hasComponent(entity, "Velocity")) {
-            query.push(entity);
+            this._cachedQueryArray.push(entity);
           }
         }
       }
+      query = this._cachedQueryArray;
+      collidables = this._cachedCollidablesArray;
     } else {
-      query = [...w.query("Transform", "Velocity", "Collider")];
-      collidables = [...w.query("Transform", "Collider")];
+      query = w.query("Transform", "Velocity", "Collider");
+      collidables = w.query("Transform", "Collider");
     }
 
-    for (const entity of query) {
+    const qLen = query.length;
+    for (let i = 0; i < qLen; i++) {
+      const entity = query[i];
       const trans = w.getComponent(entity, "Transform")!;
       const vel = w.getComponent(entity, "Velocity")!;
       const col = w.getComponent(entity, "Collider")!;
@@ -382,7 +398,9 @@ export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRe
       const p1x = p0x + vel.vx * deltaTime;
       const p1y = p0y + vel.vy * deltaTime;
 
-      for (const other of collidables) {
+      const cLen = collidables.length;
+      for (let j = 0; j < cLen; j++) {
+        const other = collidables[j];
         if (entity === other) continue;
         const otherCol = w.getComponent(other, "Collider")!;
         if (!otherCol.enabled || otherCol.isTrigger) continue;
@@ -418,7 +436,7 @@ export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRe
   }
 
   /**
-   * Determina matemática si un segmento de línea intercepta un círculo en el plano 2D.
+   * Determina matemáticamente si un segmento de línea intercepta un círculo en el plano 2D.
    *
    * @precondition Parámetros coordenados válidos y radio mayor a cero.
    * @postcondition Retorna true si hay intersección en algún punto del trayecto proyectado.
@@ -477,11 +495,13 @@ export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRe
    * @postcondition Registra un evento de colisión estático sin profundidad detallada en el manifold.
    */
   private notifyCollision(world: World<CoreComponentRegistry>, entityA: Entity, entityB: Entity): void {
-     world.mutateComponent(entityA, "CollisionEvents", (comp) => {
-        comp.collisions.push({ otherEntity: entityB, normalX: 0, normalY: 0, depth: 0, contactPoints: [] });
-     });
-     world.mutateComponent(entityB, "CollisionEvents", (comp) => {
-        comp.collisions.push({ otherEntity: entityA, normalX: 0, normalY: 0, depth: 0, contactPoints: [] });
-     });
+     const compA = world.getMutableComponent(entityA, "CollisionEvents");
+     if (compA) {
+        compA.collisions.push({ otherEntity: entityB, normalX: 0, normalY: 0, depth: 0, contactPoints: [] });
+     }
+     const compB = world.getMutableComponent(entityB, "CollisionEvents");
+     if (compB) {
+        compB.collisions.push({ otherEntity: entityA, normalX: 0, normalY: 0, depth: 0, contactPoints: [] });
+     }
   }
 }

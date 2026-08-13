@@ -26,6 +26,7 @@ export interface BaseWorldSnapshot {
   entities: number[];
   nextEntityId: number;
   freeEntities: number[];
+  generations?: number[];
   structureVersion: number;
   stateVersion: number;
   seed: number;

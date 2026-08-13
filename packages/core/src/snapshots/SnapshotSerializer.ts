@@ -82,6 +82,7 @@ export class SnapshotSerializer {
       componentData,
       nextEntityId: internal.nextEntityId,
       freeEntities: [...internal.freeEntities],
+      generations: (world as any).generations ? Array.from((world as any).generations) : [],
       structureVersion: world.structureVersion,
       stateVersion: world.stateVersion,
       seed: world.gameplayRandom.getSeed(),

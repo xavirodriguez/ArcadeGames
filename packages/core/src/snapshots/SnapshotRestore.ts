@@ -34,6 +34,11 @@ export class SnapshotRestore {
     world["activeEntities"] = new Set(state.entities);
     world["nextEntityId"] = state.nextEntityId;
     world["freeEntities"] = [...state.freeEntities];
+    if (state.generations) {
+      (world as any).generations = Array.from(state.generations);
+    } else {
+      (world as any).generations = [];
+    }
     world["_structureVersion"] = state.structureVersion;
     world["_stateVersion"] = state.stateVersion;
     world["_tick"] = state.tick;

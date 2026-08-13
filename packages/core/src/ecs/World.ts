@@ -1,6 +1,6 @@
 import { ComponentRegistry, ComponentType, DeepReadonly } from "./Component";
 import type { CoreComponentRegistry } from "./CoreComponents";
-import { Entity } from "./Entity";
+import { Entity, packEntity, unpackEntityIndex, unpackEntityGeneration } from "./Entity";
 import { EventRegistry, EventBus } from "../events/EventBus";
 import { Query } from "./Query";
 import { System, SystemConfig } from "./System";
@@ -59,6 +59,12 @@ export class World<
 > {
   private activeEntities = new Set<Entity>();
   private cachedEntities: ReadonlyArray<Entity> | null = null;
+
+  /**
+   * Internal slot generations tracker.
+   * @internal
+   */
+  public generations: number[] = [];
 
   /**
    * Indicates if the world is currently executing its update loop.
@@ -125,7 +131,7 @@ export class World<
   /** @internal */
   private nextEntityId = 1;
   /** @internal */
-  private freeEntities: Entity[] = [];
+  private freeEntities: number[] = [];
   /** @internal */
   private resources = new Map<string, unknown>();
   /** @internal */
@@ -252,6 +258,22 @@ export class World<
     }
   }
 
+  private markStateChanged(): void {
+    this._stateVersion++;
+  }
+
+  private markStructureChanged(): void {
+    this._structureVersion++;
+    this._stateVersion++;
+  }
+
+  /**
+   * Checks if the entity is currently alive/active.
+   */
+  public isAlive(entity: Entity): boolean {
+    return this.activeEntities.has(entity);
+  }
+
   /**
    * Crea una nueva entidad o recicla un identificador previamente liberado.
    *
@@ -270,17 +292,35 @@ export class World<
   createEntity(): Entity {
     this.checkUpdatingMutation("createEntity");
     const id = this.freeEntities.length > 0 ? this.freeEntities.pop()! : this.nextEntityId++;
-    this.activeEntities.add(id);
+    if (this.generations[id] === undefined) {
+      this.generations[id] = 1;
+    }
+    const entity = packEntity(id, this.generations[id]);
+    this.activeEntities.add(entity);
     this.cachedEntities = null;
-    this._structureVersion++;
-    return id;
+    this.markStructureChanged();
+    return entity;
   }
 
   /**
    * Reserves an entity ID without activating it.
    */
   reserveEntityId(): Entity {
-    return this.nextEntityId++;
+    const id = this.freeEntities.length > 0 ? this.freeEntities.pop()! : this.nextEntityId++;
+    if (this.generations[id] === undefined) {
+      this.generations[id] = 1;
+    }
+    return packEntity(id, this.generations[id]);
+  }
+
+  /**
+   * Activates a pre-reserved entity ID.
+   */
+  public activateEntity(entity: Entity): void {
+    this.checkUpdatingMutation("activateEntity");
+    this.activeEntities.add(entity);
+    this.cachedEntities = null;
+    this.markStructureChanged();
   }
 
   /**
@@ -300,26 +340,38 @@ export class World<
    */
   removeEntity(entity: Entity): void {
     this.checkUpdatingMutation("removeEntity");
+    if (!this.isAlive(entity)) {
+      if (isDev) {
+        throw new Error(`Cannot remove entity ${entity}: entity is not alive.`);
+      }
+      return;
+    }
     if (this.activeEntities.delete(entity)) {
-      this.freeEntities.push(entity);
+      const index = unpackEntityIndex(entity);
+      const generation = unpackEntityGeneration(entity);
+      const nextGen = (generation % 4095) + 1;
+      this.generations[index] = nextGen;
+      this.freeEntities.push(index);
+
       this.entityComponentSets.delete(entity);
       this.componentMaps.forEach(map => map.delete(entity));
       this.componentIndex.forEach(set => set.delete(entity));
       this.componentVersions.forEach(map => map.delete(entity));
       this.queries.forEach(query => query.remove(entity));
       this.cachedEntities = null;
-      this._structureVersion++;
+      this.markStructureChanged();
     }
   }
 
   public hasEntity(entity: Entity): boolean {
-    return this.activeEntities.has(entity);
+    return this.isAlive(entity);
   }
 
   public clear(): void {
     this.activeEntities.forEach(e => this.removeEntity(e));
     this.freeEntities = [];
     this.nextEntityId = 1;
+    this.generations = [];
     this.resources.clear();
     this._tick = 0;
     this._stateVersion = 0;
@@ -350,6 +402,12 @@ export class World<
    */
   addComponent<K extends ComponentType<TComponents>>(entity: Entity, component: TComponents[K] & { type: K }): void {
     this.checkUpdatingMutation("addComponent", component.type as string);
+    if (!this.isAlive(entity)) {
+      if (isDev) {
+        throw new Error(`Cannot add component ${component.type} to entity ${entity}: entity is not alive.`);
+      }
+      return;
+    }
     const type = component.type as string;
     if (!this.componentMaps.has(type)) {
       this.componentMaps.set(type, new Map());
@@ -369,14 +427,16 @@ export class World<
 
     if (isNew) {
       this.notifyQueries(entity, componentSet, type);
-      this._structureVersion++;
+      this.markStructureChanged();
+    } else {
+      this.markStateChanged();
     }
 
-    this._stateVersion++;
     this.updateComponentVersion(entity, type);
   }
 
   public hasComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): boolean {
+    if (!this.isAlive(entity)) return false;
     return this.componentIndex.get(type as string)?.has(entity) ?? false;
   }
 
@@ -403,6 +463,7 @@ export class World<
     entity: Entity,
     type: K
   ): TComponents[K] | undefined {
+    if (!this.isAlive(entity)) return undefined;
     const component = this.componentMaps
       .get(type as string)
       ?.get(entity) as TComponents[K] | undefined;
@@ -453,13 +514,14 @@ export class World<
    * @returns La referencia mutable del componente o `undefined`.
    */
   getMutableComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): TComponents[K] | undefined {
+    if (!this.isAlive(entity)) return undefined;
     let component = this.componentMaps.get(type as string)?.get(entity) as TComponents[K] | undefined;
     if (component) {
       if (Object.isFrozen(component)) {
         component = ComponentCloner.cloneComponent(component);
         this.componentMaps.get(type as string)!.set(entity, component);
       }
-      this._stateVersion++;
+      this.markStateChanged();
       this.updateComponentVersion(entity, type as string);
     }
     return component;
@@ -483,6 +545,12 @@ export class World<
    */
   removeComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): void {
     this.checkUpdatingMutation("removeComponent", type as string);
+    if (!this.isAlive(entity)) {
+      if (isDev) {
+        throw new Error(`Cannot remove component ${String(type)} from entity ${entity}: entity is not alive.`);
+      }
+      return;
+    }
     const map = this.componentMaps.get(type as string);
     if (map && map.delete(entity)) {
       this.componentIndex.get(type as string)?.delete(entity);
@@ -492,7 +560,7 @@ export class World<
         set.delete(type as string);
         this.notifyQueries(entity, set, type as string);
       }
-      this._structureVersion++;
+      this.markStructureChanged();
     }
   }
 
@@ -520,6 +588,12 @@ export class World<
     type: K,
     updater: (component: TComponents[K]) => void
   ): boolean {
+    if (!this.isAlive(entity)) {
+      if (isDev) {
+        throw new Error(`Cannot mutate component ${String(type)} on entity ${entity}: entity is not alive.`);
+      }
+      return false;
+    }
     const component = this.getMutableComponent(entity, type);
     if (!component) return false;
     updater(component);

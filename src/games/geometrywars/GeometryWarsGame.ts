@@ -8,7 +8,7 @@ import {
   TransformComponent,
   WebAudioPlayer
 } from "@tiny-aster/core";
-import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "./types/GeometryWarsRegistry";
+import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, GeometryWarsStateComponent, GeometryWarsInput, GeometryWarsBlueprintRegistry } from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 
@@ -19,11 +19,11 @@ import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { NetworkManager, WorldSnapshot } from "@tiny-aster/core";
 
 export class GeometryWarsGame extends BaseGame<
-  any, // GameState description returned to HUD
-  any, // Input frame type mapping
+  GeometryWarsStateComponent, // GameState description returned to HUD
+  GeometryWarsInput, // Input frame type mapping
   GeometryWarsComponentRegistry,
   GeometryWarsEventRegistry,
-  any
+  GeometryWarsBlueprintRegistry
 > {
   public readonly gameId = "geometrywars";
   private config: GeometryWarsConfig;

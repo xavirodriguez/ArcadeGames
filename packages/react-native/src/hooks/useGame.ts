@@ -18,7 +18,7 @@ export interface GameOptions<TState> {
 
 // Constructor type - accepts any class that extends BaseGame
 type GameConstructor<TGame extends BaseGame<TState, TInput, any, any, any>, TState, TInput extends Record<string, any>> =
-  new (config: GameConfig) => TGame;
+  new (config: any) => TGame;
 
 export interface UseGameResult<TGame extends BaseGame<TState, TInput, any, any, any>, TState, TInput extends Record<string, any>> {
   game: TGame | null;

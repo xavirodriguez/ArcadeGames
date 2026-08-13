@@ -1,5 +1,6 @@
 import { Component, CoreComponentRegistry } from "@tiny-aster/core";
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { LootTableComponent, PowerUpComponent } from "../../shared/arcade";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
 import { SpawnDirectorComponent, WaveMemberComponent } from "../../shared/spawn/components/SpawnComponents";
 
@@ -58,6 +59,8 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   Faction: FactionComponent;
   SpawnDirector: SpawnDirectorComponent;
   WaveMember: WaveMemberComponent;
+  LootTable: LootTableComponent;
+  PowerUp: PowerUpComponent;
 }
 
 /**

@@ -1,5 +1,7 @@
 import { World } from "../ecs/World";
 import { Scene } from "./Scene";
+import type { ComponentRegistry } from "../ecs/Component";
+import type { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { runLifecycleSync, runLifecycleAsync } from "../utils/LifecycleUtils";
 import { EventBus } from "../events/EventBus";
 import { TransitionOptions, ITransitionEffect, getEasingFunction } from "./TransitionTypes";
@@ -20,11 +22,11 @@ function isTestEnvironment(): boolean {
  * @public
  */
 export interface SceneEventRegistry extends Record<string, any> {
-  "scene:transition:start": { scene: Scene };
+  "scene:transition:start": { scene: Scene<any> };
   "scene:transition:progress": { progress: number };
-  "scene:transition:success": { scene: Scene };
-  "scene:transition:timeout": { scene: Scene; error: unknown };
-  "scene:transition:error": { scene: Scene; error: unknown };
+  "scene:transition:success": { scene: Scene<any> };
+  "scene:transition:timeout": { scene: Scene<any>; error: unknown };
+  "scene:transition:error": { scene: Scene<any>; error: unknown };
   "scene:error": { action: string; error: unknown };
   "scene:warning": { message: string };
 }
@@ -63,19 +65,19 @@ export enum SceneState {
  *
  * @public
  */
-export class SceneManager {
-  private sceneStack: Scene[] = [];
-  private currentScene: Scene | null = null;
+export class SceneManager<TComponents extends ComponentRegistry = CoreComponentRegistry> {
+  private sceneStack: Scene<TComponents>[] = [];
+  private currentScene: Scene<TComponents> | null = null;
   private state: SceneState = SceneState.IDLE;
   private transitionQueue: (() => Promise<void>)[] = [];
   private isProcessingTransition = false;
-  private world: World;
+  private world: World<TComponents, any, any>;
   private transitionToken = 0;
   private eventBus?: EventBus<SceneEventRegistry>;
 
   // Transition state tracking properties
-  private _transitionOldScene: Scene | null = null;
-  private _transitionNewScene: Scene | null = null;
+  private _transitionOldScene: Scene<TComponents> | null = null;
+  private _transitionNewScene: Scene<TComponents> | null = null;
   private _transitionOptions?: TransitionOptions;
   private _activeTransitionEffect: ITransitionEffect | null = null;
   private _transitionElapsed = 0;
@@ -98,15 +100,15 @@ export class SceneManager {
    * @remarks
    * Useful for registering global engine systems on fresh world instances.
    */
-  public onWorldCreated?: (world: World) => void | Promise<void>;
+  public onWorldCreated?: (world: World<TComponents, any, any>) => void | Promise<void>;
 
-  constructor(world: World, eventBus?: EventBus<SceneEventRegistry>) {
+  constructor(world: World<TComponents, any, any>, eventBus?: EventBus<SceneEventRegistry>) {
     this.world = world;
     this.eventBus = eventBus ?? world.getResource<EventBus<SceneEventRegistry>>("EventBus");
   }
 
   /** Returns the currently active scene. */
-  public getCurrentScene(): Scene | null {
+  public getCurrentScene(): Scene<TComponents> | null {
     return this.currentScene;
   }
 
@@ -126,12 +128,12 @@ export class SceneManager {
   }
 
   /** Returns the outgoing scene during transition. */
-  public getTransitionOldScene(): Scene | null {
+  public getTransitionOldScene(): Scene<TComponents> | null {
     return this._transitionOldScene;
   }
 
   /** Returns the incoming scene during transition. */
-  public getTransitionNewScene(): Scene | null {
+  public getTransitionNewScene(): Scene<TComponents> | null {
     return this._transitionNewScene;
   }
 
@@ -220,7 +222,7 @@ export class SceneManager {
    * @param options - Opciones de configuración para la transición.
    * @returns A promise that resolves when the transition is complete.
    */
-  public async transitionTo(scene: Scene, options?: TransitionOptions): Promise<void> {
+  public async transitionTo(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void> {
     const duration = this._resolveDuration(options);
 
     if (duration === 0) {
@@ -246,10 +248,7 @@ export class SceneManager {
             this.state = SceneState.UNLOADING;
             const oldSceneRef = this.currentScene;
             await runLifecycleAsync(async () => {
-              const sceneAsAny = oldSceneRef as unknown as Record<string, unknown>;
-              if (typeof sceneAsAny.onExit === "function") {
-                await (sceneAsAny.onExit as (w: World) => Promise<void>)(oldSceneRef.getWorld());
-              }
+              await oldSceneRef.onExit(oldSceneRef.getWorld());
             });
           }
 
@@ -284,10 +283,7 @@ export class SceneManager {
             }
 
             await runLifecycleAsync(async () => {
-              const sceneAsAny = scene as unknown as Record<string, unknown>;
-              if (typeof sceneAsAny.onEnter === "function") {
-                await (sceneAsAny.onEnter as (w: World) => Promise<void>)(scene.getWorld());
-              }
+              await scene.onEnter(scene.getWorld());
             });
           })();
 
@@ -391,10 +387,7 @@ export class SceneManager {
           if (myToken !== this.transitionToken) return;
 
           await runLifecycleAsync(async () => {
-            const sceneAsAny = scene as unknown as Record<string, unknown>;
-            if (typeof sceneAsAny.onEnter === "function") {
-              await (sceneAsAny.onEnter as (w: World) => Promise<void>)(scene.getWorld());
-            }
+            await scene.onEnter(scene.getWorld());
           });
         })().then(() => {
           onEnterResolved = true;
@@ -457,7 +450,7 @@ export class SceneManager {
    * @param options - Visual transition configurations.
    * @returns A promise that resolves when the push operation is complete.
    */
-  public async push(scene: Scene, options?: TransitionOptions): Promise<void> {
+  public async push(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void> {
     const duration = this._resolveDuration(options);
 
     if (duration === 0) {
@@ -492,10 +485,7 @@ export class SceneManager {
             if (myToken !== this.transitionToken) return;
 
             await runLifecycleAsync(async () => {
-              const sceneAsAny = scene as unknown as Record<string, unknown>;
-              if (typeof sceneAsAny.onEnter === "function") {
-                await (sceneAsAny.onEnter as (w: World) => Promise<void>)(scene.getWorld());
-              }
+              await scene.onEnter(scene.getWorld());
             });
           })();
 
@@ -573,10 +563,7 @@ export class SceneManager {
           if (myToken !== this.transitionToken) return;
 
           await runLifecycleAsync(async () => {
-            const sceneAsAny = scene as unknown as Record<string, unknown>;
-            if (typeof sceneAsAny.onEnter === "function") {
-              await (sceneAsAny.onEnter as (w: World) => Promise<void>)(scene.getWorld());
-            }
+            await scene.onEnter(scene.getWorld());
           });
         })().then(() => {
           onEnterResolved = true;
@@ -665,10 +652,7 @@ export class SceneManager {
 
           const unloadPromise = (async () => {
             await runLifecycleAsync(async () => {
-              const sceneAsAny = poppedScene as unknown as Record<string, unknown>;
-              if (typeof sceneAsAny.onExit === "function") {
-                await (sceneAsAny.onExit as (w: World) => Promise<void>)(poppedScene.getWorld());
-              }
+              await poppedScene.onExit(poppedScene.getWorld());
             });
           })();
 
@@ -803,10 +787,7 @@ export class SceneManager {
             if (!isPush) {
               const oldSceneRef = this._transitionOldScene;
               runLifecycleAsync(async () => {
-                const sceneAsAny = oldSceneRef as unknown as Record<string, unknown>;
-                if (typeof sceneAsAny.onExit === "function") {
-                  await (sceneAsAny.onExit as (w: World) => Promise<void>)(oldSceneRef.getWorld());
-                }
+                await oldSceneRef.onExit(oldSceneRef.getWorld());
               });
             }
           }

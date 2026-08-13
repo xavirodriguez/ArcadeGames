@@ -57,7 +57,7 @@ export interface BaseGameConfig<
   /** Optional custom input system injection */
   inputSystem?: IInputSystem<TInput>;
   /** Optional custom scene manager factory */
-  sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager;
+  sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
 }
 
 /**
@@ -139,7 +139,7 @@ export abstract class BaseGame<
   private lifecycleState: GameLifecycleState = GameLifecycleState.UNINITIALIZED;
   private isPaused = false;
 
-  public sceneManager: SceneManager;
+  public sceneManager: SceneManager<TComponents>;
   public audio: IAudioPlayer;
 
   constructor(config: BaseGameConfig<TComponents, TEvents, TInput> = {}) {
@@ -155,7 +155,7 @@ export abstract class BaseGame<
     this.unifiedInput = config.inputSystem || new UnifiedInputSystem();
     this.sceneManager = config.sceneManagerFactory
       ? config.sceneManagerFactory(this.world, this.eventBus)
-      : new SceneManager(this.world, this.eventBus as any);
+      : new SceneManager<TComponents>(this.world, this.eventBus as any);
     this.audio = config.audio || new NullAudioPlayer();
 
     // Set the initial gameplay random seed from config/options
@@ -449,7 +449,7 @@ export abstract class BaseGame<
     this.world = new World<TComponents, TEvents, TBlueprints>(this._config.schedule);
     this.sceneManager = this._config.sceneManagerFactory
       ? this._config.sceneManagerFactory(this.world, this.eventBus)
-      : new SceneManager(this.world, this.eventBus as any);
+      : new SceneManager<TComponents>(this.world, this.eventBus as any);
     this.registerInternalResources();
 
     // Re-register systems and initialize entities by running init()

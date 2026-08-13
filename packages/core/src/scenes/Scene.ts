@@ -1,4 +1,6 @@
 import { World } from "../ecs/World";
+import type { ComponentRegistry } from "../ecs/Component";
+import type { CoreComponentRegistry } from "../ecs/CoreComponents";
 
 /**
  * Abstract base class for all game scenes.
@@ -22,7 +24,7 @@ import { World } from "../ecs/World";
  *
  * @public
  */
-export abstract class Scene {
+export abstract class Scene<TComponents extends ComponentRegistry = CoreComponentRegistry> {
   /**
    * The ECS world associated with this scene.
    *
@@ -30,9 +32,9 @@ export abstract class Scene {
    * Each scene is designed to possess a unique World instance unless
    * explicitly shared.
    */
-  protected world: World;
+  protected world: World<TComponents, any, any>;
 
-  constructor(world: World) {
+  constructor(world: World<TComponents, any, any>) {
     this.world = world;
   }
 
@@ -50,7 +52,7 @@ export abstract class Scene {
    * @conceptualRisk [ASYNC_INIT] If logic is asynchronous, ensure systems are
    * fully registered before the first update tick to avoid null references.
    */
-  public onEnter(_world: World): void | Promise<void> {}
+  public onEnter(_world: World<TComponents, any, any>): void | Promise<void> {}
 
   /**
    * Executed when the scene is no longer the active scene.
@@ -60,7 +62,7 @@ export abstract class Scene {
    * @remarks
    * Recommended to release heavy resources, cancel timers, or unregister global listeners here.
    */
-  public onExit(_world: World): void | Promise<void> {}
+  public onExit(_world: World<TComponents, any, any>): void | Promise<void> {}
 
   /**
    * Executed when the engine is paused while this scene is active.
@@ -75,7 +77,7 @@ export abstract class Scene {
   /**
    * Hook for scene-specific asynchronous initialization (loading assets, etc).
    */
-  public async init(_world: World): Promise<void> {}
+  public async init(_world: World<TComponents, any, any>): Promise<void> {}
 
   /**
    * Hook for restarting the scene state.
@@ -97,7 +99,7 @@ export abstract class Scene {
    * By default, delegates the update to `world.update(dt)`. Scenes may override
    * this to add orchestration logic before or after system execution.
    */
-  public onUpdate(dt: number, world: World): void {
+  public onUpdate(dt: number, world: World<TComponents, any, any>): void {
     world.update(dt);
   }
 
@@ -110,7 +112,7 @@ export abstract class Scene {
   /**
    * Returns the ECS World of this scene.
    */
-  public getWorld(): World {
+  public getWorld(): World<TComponents, any, any> {
     return this.world;
   }
 

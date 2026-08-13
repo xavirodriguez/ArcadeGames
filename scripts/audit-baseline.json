@@ -1,0 +1,290 @@
+{
+  "totalAny": 220,
+  "totalUnknown": 143,
+  "files": {
+    "packages/core/src/ai/SteeringSystem.ts": {
+      "anyCount": 12,
+      "unknownCount": 0
+    },
+    "packages/core/src/assets/AssetLoader.ts": {
+      "anyCount": 0,
+      "unknownCount": 6
+    },
+    "packages/core/src/audio/IAudioPlayer.ts": {
+      "anyCount": 0,
+      "unknownCount": 6
+    },
+    "packages/core/src/audio/WebAudioPlayer.ts": {
+      "anyCount": 1,
+      "unknownCount": 3
+    },
+    "packages/core/src/config/ConfigService.ts": {
+      "anyCount": 0,
+      "unknownCount": 3
+    },
+    "packages/core/src/ecs/BlueprintRegistry.ts": {
+      "anyCount": 0,
+      "unknownCount": 1
+    },
+    "packages/core/src/ecs/Component.ts": {
+      "anyCount": 0,
+      "unknownCount": 3
+    },
+    "packages/core/src/ecs/ComponentCloner.ts": {
+      "anyCount": 0,
+      "unknownCount": 4
+    },
+    "packages/core/src/ecs/CoreComponents.ts": {
+      "anyCount": 1,
+      "unknownCount": 1
+    },
+    "packages/core/src/ecs/Query.ts": {
+      "anyCount": 4,
+      "unknownCount": 0
+    },
+    "packages/core/src/ecs/Schedule.ts": {
+      "anyCount": 2,
+      "unknownCount": 0
+    },
+    "packages/core/src/ecs/World.ts": {
+      "anyCount": 11,
+      "unknownCount": 7
+    },
+    "packages/core/src/ecs/WorldCommandBuffer.ts": {
+      "anyCount": 0,
+      "unknownCount": 1
+    },
+    "packages/core/src/events/EventBus.ts": {
+      "anyCount": 0,
+      "unknownCount": 8
+    },
+    "packages/core/src/input/InputSystem.ts": {
+      "anyCount": 2,
+      "unknownCount": 0
+    },
+    "packages/core/src/loop/FrameScheduler.ts": {
+      "anyCount": 0,
+      "unknownCount": 5
+    },
+    "packages/core/src/loop/GameLoop.ts": {
+      "anyCount": 2,
+      "unknownCount": 1
+    },
+    "packages/core/src/network/LocalPredictionSystem.ts": {
+      "anyCount": 15,
+      "unknownCount": 1
+    },
+    "packages/core/src/network/MultiplayerSystems.ts": {
+      "anyCount": 4,
+      "unknownCount": 0
+    },
+    "packages/core/src/network/NetworkController.ts": {
+      "anyCount": 0,
+      "unknownCount": 3
+    },
+    "packages/core/src/network/NetworkManager.ts": {
+      "anyCount": 25,
+      "unknownCount": 10
+    },
+    "packages/core/src/network/NetworkTransport.ts": {
+      "anyCount": 0,
+      "unknownCount": 4
+    },
+    "packages/core/src/network/NullTransport.ts": {
+      "anyCount": 0,
+      "unknownCount": 4
+    },
+    "packages/core/src/network/RemoteInterpolationSystem.ts": {
+      "anyCount": 4,
+      "unknownCount": 0
+    },
+    "packages/core/src/network/ReplaySystem.ts": {
+      "anyCount": 2,
+      "unknownCount": 1
+    },
+    "packages/core/src/rendering/Camera2D.ts": {
+      "anyCount": 4,
+      "unknownCount": 0
+    },
+    "packages/core/src/rendering/Renderer.ts": {
+      "anyCount": 3,
+      "unknownCount": 0
+    },
+    "packages/core/src/rendering/RendererUtils.ts": {
+      "anyCount": 3,
+      "unknownCount": 0
+    },
+    "packages/core/src/rendering/RenderTypes.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/replay/ReplayPlayer.ts": {
+      "anyCount": 3,
+      "unknownCount": 0
+    },
+    "packages/core/src/replay/ReplayRecorder.ts": {
+      "anyCount": 3,
+      "unknownCount": 2
+    },
+    "packages/core/src/runtime/ArcadeKernel.ts": {
+      "anyCount": 3,
+      "unknownCount": 1
+    },
+    "packages/core/src/runtime/BaseGame.ts": {
+      "anyCount": 16,
+      "unknownCount": 2
+    },
+    "packages/core/src/runtime/GameSession.ts": {
+      "anyCount": 2,
+      "unknownCount": 0
+    },
+    "packages/core/src/runtime/IGame.ts": {
+      "anyCount": 6,
+      "unknownCount": 2
+    },
+    "packages/core/src/runtime/Simulation.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/scenes/CutsceneScene.ts": {
+      "anyCount": 3,
+      "unknownCount": 0
+    },
+    "packages/core/src/scenes/SceneManager.ts": {
+      "anyCount": 19,
+      "unknownCount": 18
+    },
+    "packages/core/src/scenes/TransitionTypes.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/snapshots/SnapshotRestore.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/snapshots/SnapshotRestoreSoA.ts": {
+      "anyCount": 3,
+      "unknownCount": 2
+    },
+    "packages/core/src/snapshots/SnapshotSerializer.ts": {
+      "anyCount": 0,
+      "unknownCount": 7
+    },
+    "packages/core/src/snapshots/SnapshotSerializerSoA.ts": {
+      "anyCount": 1,
+      "unknownCount": 4
+    },
+    "packages/core/src/snapshots/WorldSnapshot.ts": {
+      "anyCount": 1,
+      "unknownCount": 5
+    },
+    "packages/core/src/systems/AbstractHierarchySystem.ts": {
+      "anyCount": 0,
+      "unknownCount": 3
+    },
+    "packages/core/src/systems/BaseGameStateSystem.ts": {
+      "anyCount": 0,
+      "unknownCount": 4
+    },
+    "packages/core/src/systems/CheckpointSystem.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/systems/CollectibleSystem.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/systems/DeathSystem.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/systems/HitDetectionSystem.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/systems/InvulnerabilitySystem.ts": {
+      "anyCount": 4,
+      "unknownCount": 0
+    },
+    "packages/core/src/systems/JuiceSystem.ts": {
+      "anyCount": 0,
+      "unknownCount": 4
+    },
+    "packages/core/src/systems/PlatformerCoyoteSystem.ts": {
+      "anyCount": 7,
+      "unknownCount": 0
+    },
+    "packages/core/src/systems/RespawnSystem.ts": {
+      "anyCount": 3,
+      "unknownCount": 0
+    },
+    "packages/core/src/systems/SegmentGenerator.ts": {
+      "anyCount": 5,
+      "unknownCount": 0
+    },
+    "packages/core/src/systems/StateMachineSystem.ts": {
+      "anyCount": 0,
+      "unknownCount": 3
+    },
+    "packages/core/src/ui/UIFactory.ts": {
+      "anyCount": 0,
+      "unknownCount": 1
+    },
+    "packages/core/src/utils/ComponentSetPool.ts": {
+      "anyCount": 0,
+      "unknownCount": 4
+    },
+    "packages/core/src/utils/Juice.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/physics/collision/BroadPhase.ts": {
+      "anyCount": 0,
+      "unknownCount": 2
+    },
+    "packages/core/src/physics/collision/CollisionSystems.ts": {
+      "anyCount": 0,
+      "unknownCount": 2
+    },
+    "packages/core/src/physics/dynamics/PhysicsIntegrateSystem.ts": {
+      "anyCount": 6,
+      "unknownCount": 0
+    },
+    "packages/core/src/physics/query/PhysicsQuery.ts": {
+      "anyCount": 0,
+      "unknownCount": 4
+    },
+    "packages/core/src/physics/systems/BoundarySystem.ts": {
+      "anyCount": 1,
+      "unknownCount": 0
+    },
+    "packages/core/src/physics/systems/PlatformCarrySystem.ts": {
+      "anyCount": 3,
+      "unknownCount": 0
+    },
+    "packages/core/src/physics/systems/PlatformerGravitySystem.ts": {
+      "anyCount": 4,
+      "unknownCount": 0
+    },
+    "packages/core/src/physics/systems/PlatformerMovementSystem.ts": {
+      "anyCount": 5,
+      "unknownCount": 0
+    },
+    "packages/core/src/physics/systems/TileCollisionSystem.ts": {
+      "anyCount": 11,
+      "unknownCount": 0
+    },
+    "packages/core/src/physics/utils/ShipPhysics.ts": {
+      "anyCount": 2,
+      "unknownCount": 0
+    },
+    "packages/core/src/scenes/transitions/PixelateTransition.ts": {
+      "anyCount": 5,
+      "unknownCount": 0
+    },
+    "packages/core/src/ui/debug/DebugSystem.ts": {
+      "anyCount": 0,
+      "unknownCount": 1
+    }
+  }
+}

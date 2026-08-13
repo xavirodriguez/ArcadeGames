@@ -42,7 +42,7 @@ import { ISpaceInvadersGame } from "../types/GameInterfaces";
 /**
  * Main gameplay scene for Space Invaders.
  */
-export class SpaceInvadersGameScene extends Scene {
+export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry> {
   private game: ISpaceInvadersGame;
   private playerBulletPool: PlayerBulletPool;
   private enemyBulletPool: EnemyBulletPool;

@@ -33,7 +33,10 @@ export interface IGameLifecycleHooks {
  * Interface representing a runnable game.
  * @public
  */
-export interface IGame<TState = unknown, TInput = unknown> extends Simulation {
+export interface IGame<
+  TState = unknown,
+  TInput extends Record<string, any> = Record<string, any>
+> extends Simulation {
   getWorld(): World<any, any, any>;
   getEventBus(): EventBus<any>;
   getGameLoop(): GameLoop;
@@ -48,7 +51,7 @@ export interface IGame<TState = unknown, TInput = unknown> extends Simulation {
   restart(seed?: number): Promise<void>;
   subscribe(callback: (state: TState) => void): () => void;
   isPausedState(): boolean;
-  getInputSystem(): IInputSystem<TInput extends Record<string, any> ? TInput : any>;
+  getInputSystem(): IInputSystem<TInput>;
   setInputState(input: Partial<TInput>): void;
   enterGameplayFreeze(duration?: number): void;
   exitGameplayFreeze(): void;

@@ -1,4 +1,5 @@
 import { ComponentRegistry, ComponentType, DeepReadonly } from "./Component";
+import type { CoreComponentRegistry } from "./CoreComponents";
 import { Entity } from "./Entity";
 import { EventRegistry, EventBus } from "../events/EventBus";
 import { Query } from "./Query";
@@ -52,7 +53,7 @@ export type BlueprintRegistryMap<
  * @public
  */
 export class World<
-  TComponents extends ComponentRegistry = ComponentRegistry,
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {

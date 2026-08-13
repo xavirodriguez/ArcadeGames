@@ -46,6 +46,14 @@ export interface WeaponComponent extends Component {
   cooldownDuration: number;
 }
 
+export interface GeometryWarsInput extends Record<string, any> {
+  moveX: number;
+  moveY: number;
+  aimX: number;
+  aimY: number;
+  bomb: boolean;
+}
+
 /**
  * Registry containing all components used in Geometry Wars.
  * @public

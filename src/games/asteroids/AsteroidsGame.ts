@@ -96,7 +96,7 @@ export class AsteroidsGame
   public get isMultiplayer(): boolean { return this.network.isMultiplayer; }
   public set isMultiplayer(val: boolean) { this.network.isMultiplayer = val; }
 
-  constructor(config: BaseGameConfig = {}) {
+  constructor(config: BaseGameConfig<AsteroidsComponentRegistry, AsteroidsEventRegistry, InputState> = {}) {
     if (!config.audio) {
       config.audio = new WebAudioPlayer();
     }

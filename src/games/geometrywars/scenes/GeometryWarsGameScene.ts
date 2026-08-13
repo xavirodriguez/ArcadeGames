@@ -32,7 +32,7 @@ import { GeometryWarsGameStateSystem } from "../systems/GeometryWarsGameStateSys
  * Main gameplay scene for Geometry Wars.
  * @public
  */
-export class GeometryWarsGameScene extends Scene {
+export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> {
   private config: GeometryWarsConfig;
   private bulletPool: GWBulletPool;
   private particlePool: GWParticlePool;

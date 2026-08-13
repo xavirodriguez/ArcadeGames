@@ -66,7 +66,7 @@ export type RenderCommand =
   | { type: RenderCommandType.DrawCircle | "DrawCircle"; data: DrawCirclePayload }
   | { type: RenderCommandType.DrawLine | "DrawLine"; data: DrawLinePayload }
   | { type: RenderCommandType.DrawText | "DrawText"; data: DrawTextPayload }
-  | { type: string; data: any };
+  | { type: string; data: Record<string, unknown> | unknown };
 
 /** @public */
 export interface RenderCommandBuffer {

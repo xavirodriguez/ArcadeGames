@@ -1,5 +1,5 @@
 import { RenderPipeline } from "../src/rendering/RenderPipeline";
-import { RenderCommandType } from "../src/rendering/RenderTypes";
+import { RenderCommandType, DrawCirclePayload } from "../src/rendering/RenderTypes";
 
 describe("RenderPipeline Double Buffering Pattern", () => {
   it("should write to back buffer, swap cleanly to active buffer, and clear the writing buffer", () => {
@@ -25,7 +25,7 @@ describe("RenderPipeline Double Buffering Pattern", () => {
 
     // The command is now active for rendering
     expect(pipeline.getActiveBuffer().getCommands().length).toBe(1);
-    expect(pipeline.getActiveBuffer().getCommands()[0].data.color).toBe("red");
+    expect((pipeline.getActiveBuffer().getCommands()[0].data as DrawCirclePayload).color).toBe("red");
 
     // The new back buffer has been cleared for the next write cycle
     expect(pipeline.getBackBuffer().getCommands().length).toBe(0);

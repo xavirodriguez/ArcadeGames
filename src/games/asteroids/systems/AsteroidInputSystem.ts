@@ -90,6 +90,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   y: transform.y,
                   vx,
                   vy,
+                  rotation: transform.rotation,
                   ownerId: "player"
               });
 

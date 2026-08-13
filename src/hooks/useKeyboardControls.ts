@@ -19,16 +19,21 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
     const handleKeyDown = (e: KeyboardEvent) => {
       if (activeKeys.has(e.code)) return; // Prevent repeated triggers
       activeKeys.add(e.code);
-      updateGameInput();
+      updateGameInput([e.code]);
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
       if (!activeKeys.has(e.code)) return;
       activeKeys.delete(e.code);
-      updateGameInput();
+      updateGameInput([e.code]);
     };
 
-    const updateGameInput = () => {
+    const handleBlur = () => {
+      activeKeys.clear();
+      updateGameInput(); // Empty args triggers a full reset payload
+    };
+
+    const updateGameInput = (affectedKeys?: string[]) => {
       // Map across various games:
       // Asteroids/SpaceInvaders use rotateLeft/moveLeft, rotateRight/moveRight, thrust, shoot, hyperspace
       // Flappy Bird uses flap, glide
@@ -40,7 +45,7 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
       const flap = activeKeys.has("Space") || activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
       const glide = activeKeys.has("Space") || activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
 
-      const inputPayload = {
+      const fullPayload = {
         rotateLeft,
         rotateRight,
         moveLeft: rotateLeft,
@@ -52,19 +57,55 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         glide,
       };
 
-      if (onInput) {
-        onInput(inputPayload);
-      } else {
-        game.setInputState(inputPayload);
+      let inputPayload: Partial<typeof fullPayload> = fullPayload;
+
+      if (affectedKeys) {
+        // Only include actions affected by the keys that changed
+        const affectedActions = new Set<keyof typeof fullPayload>();
+        const keyMap: Record<string, (keyof typeof fullPayload)[]> = {
+          ArrowLeft: ["rotateLeft", "moveLeft"],
+          KeyA: ["rotateLeft", "moveLeft"],
+          ArrowRight: ["rotateRight", "moveRight"],
+          KeyD: ["rotateRight", "moveRight"],
+          ArrowUp: ["thrust", "flap", "glide"],
+          KeyW: ["thrust", "flap", "glide"],
+          Space: ["shoot", "flap", "glide"],
+          ShiftLeft: ["hyperspace"],
+          KeyH: ["hyperspace"],
+        };
+
+        for (const code of affectedKeys) {
+          const actions = keyMap[code];
+          if (actions) {
+            actions.forEach(act => affectedActions.add(act));
+          }
+        }
+
+        if (affectedActions.size > 0) {
+          inputPayload = {};
+          affectedActions.forEach(act => {
+            (inputPayload as any)[act] = fullPayload[act];
+          });
+        }
+      }
+
+      if (Object.keys(inputPayload).length > 0) {
+        if (onInput) {
+          onInput(inputPayload);
+        } else {
+          game.setInputState(inputPayload);
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
 
       // Clean up input state on unmount
       game.setInputState({

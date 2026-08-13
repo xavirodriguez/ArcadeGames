@@ -42,4 +42,35 @@ describe("SpaceInvadersGame Headless Mode", () => {
 
     game.destroy();
   });
+
+  it("should transition scenes and spawn invaders in non-headless mode after ready countdown", async () => {
+    const game = new SpaceInvadersGame({
+      headless: false,
+      isMultiplayer: false,
+      gameOptions: { seed: 1234 }
+    });
+
+    await game.init();
+    expect(game.getLifecycleState()).toBe(GameLifecycleState.RUNNING);
+
+    // Advancing 3.2 seconds should complete the ready countdown (3s) and trigger spawning.
+    // In non-headless mode, we pass seconds to update() in real game loop.
+    const dtSec = 0.01666;
+    const totalTicks = Math.ceil(3.2 / dtSec);
+
+    for (let i = 0; i < totalTicks; i++) {
+      game.update(dtSec);
+    }
+
+    // Now the scene transition should have completed, onEnter executed, and readyRemaining reached 0.
+    // Let's verify that the active world has Invader entities!
+    const activeWorld = game.getWorld();
+    const invaders = activeWorld.query("Invader");
+    expect(invaders.length).toBeGreaterThan(0);
+
+    const players = activeWorld.query("Player");
+    expect(players.length).toBe(1);
+
+    game.destroy();
+  });
 });

@@ -130,7 +130,7 @@ export default function PongScreen() {
     <SafeAreaProvider>
       <View style={styles.container}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={sharedScreenStyles.backButton}
           onPress={() => {
             hapticSelection();
             if (router.canGoBack()) {
@@ -143,7 +143,7 @@ export default function PongScreen() {
           accessibilityLabel={t.common.back}
           accessibilityHint="Regresa a la pantalla principal"
         >
-          <Text style={styles.backButtonText}>← {t.common.menu}</Text>
+          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
         </TouchableOpacity>
 
         {isMulti && !connected && (
@@ -467,20 +467,5 @@ const styles = StyleSheet.create({
   restartButtonText: {
     color: "black",
     fontWeight: "bold",
-  },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    zIndex: 100,
-    padding: 10,
-  },
-  backButtonText: {
-    color: "#AAAAAA",
-    fontSize: 16,
-    fontFamily: "monospace",
-    textShadowColor: "#AAAAAA",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
   }
 });

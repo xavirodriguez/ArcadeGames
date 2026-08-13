@@ -112,7 +112,7 @@ export function VirtualJoystick({
         onMove(normX, normY);
       }
     })
-    .onEnd(() => {
+    .onFinalize(() => {
       knobX.value = withSpring(0, { damping: 20, stiffness: 300 });
       knobY.value = withSpring(0, { damping: 20, stiffness: 300 });
       visualOpacity.value = withTiming(0, { duration: 250 }, () => {

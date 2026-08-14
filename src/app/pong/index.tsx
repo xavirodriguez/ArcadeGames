@@ -105,6 +105,24 @@ export default function PongScreen() {
     gameState: gameState ?? { isGameOver: false },
   });
 
+  // Web keyboard controls for restarting on Game Over
+  useEffect(() => {
+    if (Platform.OS !== "web" || !game || !isReady) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (gameState?.isGameOver && !isDaily && (e.code === "KeyR" || e.code === "Enter")) {
+        e.preventDefault();
+        hapticSelection();
+        game.restart();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+    };
+  }, [game, isReady, gameState?.isGameOver, isDaily]);
+
   if (!started) {
     return (
       <StartScreen
@@ -191,7 +209,8 @@ export default function PongScreen() {
                     game.restart();
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel={t.common.retry}
+                  accessibilityLabel={t.accessibility.restart_game_label}
+                  accessibilityHint={t.accessibility.restart_game_hint}
                 >
                     <Text style={styles.restartButtonText}>{t.common.retry}</Text>
                 </TouchableOpacity>

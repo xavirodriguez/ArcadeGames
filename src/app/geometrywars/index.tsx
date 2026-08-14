@@ -141,6 +141,32 @@ export default function GeometryWarsScreen() {
     };
   }, [game, isReady]);
 
+  // Web keyboard controls for Pause (Escape/P) and Restart (R/Enter)
+  useEffect(() => {
+    if (Platform.OS !== "web" || !game || !isReady) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Escape" || e.code === "KeyP") {
+        if (!gameState.isGameOver) {
+          e.preventDefault();
+          hapticSelection();
+          togglePause();
+        }
+      }
+
+      if (gameState.isGameOver && (e.code === "KeyR" || e.code === "Enter")) {
+        e.preventDefault();
+        hapticSelection();
+        game.restart();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+    };
+  }, [game, isReady, gameState.isGameOver, togglePause]);
+
   // 2. Mouse / Pointer Controls for Web (Absolute cursor aiming, click to shoot)
   useEffect(() => {
     if (Platform.OS !== "web" || !game || !isReady) return;
@@ -252,7 +278,14 @@ export default function GeometryWarsScreen() {
           {!gameState.isGameOver && (
             <TouchableOpacity
               style={[styles.pauseButton, { top: Math.max(insets.top, 20) }]}
-              onPress={togglePause}
+              onPress={() => {
+                hapticSelection();
+                togglePause();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={isPaused ? t.accessibility.resume_game_label : t.accessibility.pause_game_label}
+              accessibilityState={{ selected: isPaused }}
+              accessibilityHint={t.accessibility.pause_button_hint}
             >
               <Text style={styles.pauseButtonText}>{isPaused ? "▶" : "II"}</Text>
             </TouchableOpacity>
@@ -319,7 +352,16 @@ export default function GeometryWarsScreen() {
           {isPaused && !gameState.isGameOver && (
             <View style={styles.overlay}>
               <Text style={styles.overlayTitle}>PAUSED</Text>
-              <TouchableOpacity style={styles.overlayButton} onPress={togglePause}>
+              <TouchableOpacity
+                style={styles.overlayButton}
+                onPress={() => {
+                  hapticSelection();
+                  togglePause();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.accessibility.resume_game_label}
+                accessibilityHint={t.accessibility.resume_button_hint}
+              >
                 <Text style={styles.overlayButtonText}>RESUME</Text>
               </TouchableOpacity>
             </View>
@@ -335,7 +377,13 @@ export default function GeometryWarsScreen() {
               </Text>
               <TouchableOpacity
                 style={[styles.overlayButton, { backgroundColor: colors.cyan }]}
-                onPress={() => game.restart()}
+                onPress={() => {
+                  hapticSelection();
+                  game.restart();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.accessibility.restart_game_label}
+                accessibilityHint={t.accessibility.restart_game_hint}
               >
                 <Text style={[styles.overlayButtonText, { color: colors.background }]}>RESTART</Text>
               </TouchableOpacity>

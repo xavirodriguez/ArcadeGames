@@ -4,16 +4,33 @@ import { World } from "../ecs/World";
 import { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
 
 /**
- * Structure of Arrays (SoA) Restoration utility.
+ * Structure of Arrays (SoA) restoration utility.
  *
  * @remarks
- * Restores world component state from structured SoA snapshots, rebuilding
- * internal ECS maps and index indices with high performance.
+ * Reconstructs the complete state of an ECS World from a highly packed {@link SoAWorldSnapshot}.
+ * It unpacks flat Float64 and Int32 buffers back into internal ECS entity-component map registries,
+ * completely rebuilding query indexes and component version records.
+ *
+ * While it recreates component objects during restoration, it does so efficiently, processing indices
+ * sequentially to minimize layout cache misses in the JS engine.
+ *
  * @public
  */
 export class SnapshotRestoreSoA {
   /**
    * Restores the world state from a highly packed SoA snapshot.
+   *
+   * @remarks
+   * Decodes flat arrays of entity slot IDs, values, and optional non-numeric objects.
+   * It reconstructs each entity's component record dynamically, converting float values back
+   * to booleans or integers based on metadata, and triggers a full query index rebuild.
+   *
+   * @warning
+   * **Throws on AoS layout**: Expects an SoA snapshot (`state.isSoA` is true). If provided with a classic
+   * AoS snapshot, it will throw an error. Use {@link SnapshotRestore.restore} instead.
+   *
+   * @param world - The active ECS World instance to restore.
+   * @param state - The source SoA world snapshot.
    */
   public static restore<TComponents extends ComponentRegistry>(
     world: World<TComponents>,

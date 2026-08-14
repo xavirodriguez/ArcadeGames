@@ -105,7 +105,34 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
    * @postcondition Retorna un nuevo array filtrado con las entidades visibles.
    */
   public static filterInViewport(world: World, entities: ReadonlyArray<Entity>, margin: number = 100): Entity[] {
-    return entities.filter((entity) => this.isEntityInViewport(world, entity, margin));
+    const viewport = this.getViewport(world);
+    const minX = viewport.minX - margin;
+    const minY = viewport.minY - margin;
+    const maxX = viewport.maxX + margin;
+    const maxY = viewport.maxY + margin;
+
+    // Zero-allocation viewport filtering avoids calling getViewport inside filter loop
+    return entities.filter((entity) => {
+      // Exclude check for players/important tags to ensure they are never culled
+      const isLocalPlayer = world.hasComponent(entity, "LocalPlayer") || world.hasComponent(entity, "Player");
+
+      const tagComponent = world.getComponent(entity, "Tag") as TagComponent | undefined;
+      const isTagPlayer = tagComponent && (
+        (tagComponent.tags as string[] | undefined)?.includes("LocalPlayer") ||
+        (tagComponent.tags as string[] | undefined)?.includes("Player")
+      );
+
+      if (isLocalPlayer || isTagPlayer) {
+        return true;
+      }
+
+      const trans = world.getComponent(entity, "Transform") as TransformComponent | undefined;
+      if (!trans) return false;
+      const x = trans.worldX ?? trans.x;
+      const y = trans.worldY ?? trans.y;
+
+      return x >= minX && x <= maxX && y >= minY && y <= maxY;
+    });
   }
 
   /**

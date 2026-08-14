@@ -29,7 +29,7 @@ export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry = CoreCo
     if (candidatesList === null && world.getResource("SpatialCullingEnabled") === true) {
       const margin = world.getResource<number>("SpatialCullingMargin") ?? 100;
       const entities = world.query(transformType, velocityType);
-      candidatesList = SpatialCullingSystem.filterInViewport(world as any, [...entities], margin);
+      candidatesList = SpatialCullingSystem.filterInViewport(world as any, entities, margin);
     }
 
     if (candidatesList !== null) {
@@ -39,28 +39,33 @@ export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry = CoreCo
         const t = world.getComponent(entity, transformType) as any;
         if (!t) continue;
 
-        world.mutateComponent(entity, transformType, (trans: any) => {
+        // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
+        const trans = world.getMutableComponent(entity, transformType) as any;
+        if (trans) {
           trans.x += v.vx * deltaTime;
           trans.y += v.vy * deltaTime;
           if (v.angularVelocity) {
             trans.rotation += v.angularVelocity * deltaTime;
           }
           trans.dirty = true;
-        });
+        }
       }
     } else {
       const entities = world.query(transformType, velocityType);
       for (const entity of entities) {
         const v = world.getComponent(entity, velocityType) as any;
         if (!v) continue;
-        world.mutateComponent(entity, transformType, (t: any) => {
+
+        // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
+        const t = world.getMutableComponent(entity, transformType) as any;
+        if (t) {
           t.x += v.vx * deltaTime;
           t.y += v.vy * deltaTime;
           if (v.angularVelocity) {
             t.rotation += v.angularVelocity * deltaTime;
           }
           t.dirty = true;
-        });
+        }
       }
     }
   }

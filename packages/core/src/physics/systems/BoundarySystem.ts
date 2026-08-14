@@ -18,62 +18,84 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
     let entities = world.query("Transform", "Boundary");
     if (world.getResource("SpatialCullingEnabled") === true) {
       const margin = world.getResource<number>("SpatialCullingMargin") ?? 100;
-      entities = SpatialCullingSystem.filterInViewport(world, [...entities], margin);
+      entities = SpatialCullingSystem.filterInViewport(world, entities, margin);
     }
     for (const entity of entities) {
       const b = world.getComponent(entity, "Boundary")!;
-      world.mutateComponent(entity, "Transform", (t) => {
-        if (b.mode === "wrap") {
-          if (t.x < 0) t.x = b.width;
-          if (t.x > b.width) t.x = 0;
-          if (t.y < 0) t.y = b.height;
-          if (t.y > b.height) t.y = 0;
-        } else if (b.mode === "destroy") {
-          if (t.x < 0 || t.x > b.width || t.y < 0 || t.y > b.height) {
-            const reclaimable = world.getComponent(entity, "Reclaimable");
-            if (reclaimable) {
-              if (typeof reclaimable.onReclaim === "function") {
-                reclaimable.onReclaim({ world, entity });
-              } else {
-                const pool = world.getResource<any>(reclaimable.poolId);
-                if (pool && typeof pool.release === "function") {
-                  pool.release({ world, entity });
-                }
+      const t = world.getComponent(entity, "Transform")!;
+
+      // Safe for determinism/rollback. By fetching read-only Transform first, we keep stateVersion updates and callback allocations to exactly zero for all entities that are safely in bounds.
+      if (b.mode === "wrap") {
+        if (t.x < 0 || t.x > b.width || t.y < 0 || t.y > b.height) {
+          const mt = world.getMutableComponent(entity, "Transform");
+          if (mt) {
+            if (mt.x < 0) mt.x = b.width;
+            if (mt.x > b.width) mt.x = 0;
+            if (mt.y < 0) mt.y = b.height;
+            if (mt.y > b.height) mt.y = 0;
+          }
+        }
+      } else if (b.mode === "destroy") {
+        if (t.x < 0 || t.x > b.width || t.y < 0 || t.y > b.height) {
+          const reclaimable = world.getComponent(entity, "Reclaimable");
+          if (reclaimable) {
+            if (typeof reclaimable.onReclaim === "function") {
+              reclaimable.onReclaim({ world, entity });
+            } else {
+              const pool = world.getResource<any>(reclaimable.poolId);
+              if (pool && typeof pool.release === "function") {
+                pool.release({ world, entity });
               }
             }
-            world.getCommandBuffer().removeEntity(entity);
           }
-        } else if (b.mode === "bounce") {
-          const bounceX = b.bounceX !== false;
-          const bounceY = b.bounceY !== false;
+          world.getCommandBuffer().removeEntity(entity);
+        }
+      } else if (b.mode === "bounce") {
+        const bounceX = b.bounceX !== false;
+        const bounceY = b.bounceY !== false;
+        let needsX = false;
+        let needsY = false;
 
-          if (bounceX) {
-            if (t.x < 0) {
-              t.x = 0;
-              this.reverseVelocity(world, entity, "x");
-            } else if (t.x > b.width) {
-              t.x = b.width;
-              this.reverseVelocity(world, entity, "x");
+        if (bounceX && (t.x < 0 || t.x > b.width)) {
+          needsX = true;
+        }
+        if (bounceY && (t.y < 0 || t.y > b.height)) {
+          needsY = true;
+        }
+
+        if (needsX || needsY) {
+          const mt = world.getMutableComponent(entity, "Transform");
+          if (mt) {
+            if (needsX) {
+              if (mt.x < 0) {
+                mt.x = 0;
+                this.reverseVelocity(world, entity, "x");
+              } else if (mt.x > b.width) {
+                mt.x = b.width;
+                this.reverseVelocity(world, entity, "x");
+              }
             }
-          }
-          if (bounceY) {
-            if (t.y < 0) {
-              t.y = 0;
-              this.reverseVelocity(world, entity, "y");
-            } else if (t.y > b.height) {
-              t.y = b.height;
-              this.reverseVelocity(world, entity, "y");
+            if (needsY) {
+              if (mt.y < 0) {
+                mt.y = 0;
+                this.reverseVelocity(world, entity, "y");
+              } else if (mt.y > b.height) {
+                mt.y = b.height;
+                this.reverseVelocity(world, entity, "y");
+              }
             }
           }
         }
-      });
+      }
     }
   }
 
   private reverseVelocity(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y"): void {
-    world.mutateComponent(entity, "Velocity", (v) => {
+    // Safe for determinism/rollback. Avoids per-tick callback allocations.
+    const v = world.getMutableComponent(entity, "Velocity");
+    if (v) {
       if (axis === "x") v.vx *= -1;
       else v.vy *= -1;
-    });
+    }
   }
 }

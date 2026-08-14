@@ -40,9 +40,11 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
       const node = world.getComponent(entity, "SpatialNode");
       if (node && node.active === false) continue;
 
-      const emitter = world.getMutableComponent(entity, "ParticleEmitter");
-      if (!emitter || !emitter.active) continue;
+      const emitterCheck = world.getComponent(entity, "ParticleEmitter");
+      if (!emitterCheck || !emitterCheck.active) continue;
 
+      // Safe for determinism/rollback. Fetch mutable component only when we are actually going to mutate active emitter state, avoiding stateVersion updates for resting/inactive emitters.
+      const emitter = world.getMutableComponent(entity, "ParticleEmitter")!;
       const config = emitter.config;
 
       if (emitter.elapsed === 0 && config.burst) {

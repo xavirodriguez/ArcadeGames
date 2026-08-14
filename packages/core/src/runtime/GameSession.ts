@@ -38,6 +38,14 @@ export class GameSession {
 
     this.recorder = new DeterministicReplayRecorder(gameDefinition.name, seed);
     this.recorder.captureInitialState(this.simulation);
+
+    // Ensure that if the simulation has a legacy game loop, we disable its automatic ticker
+    if (this.simulation && typeof (this.simulation as any).getGameLoop === "function") {
+      const loop = (this.simulation as any).getGameLoop();
+      if (loop && typeof loop.stopInternalLoop === "function") {
+        loop.stopInternalLoop();
+      }
+    }
   }
 
   /**

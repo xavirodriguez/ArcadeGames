@@ -17,14 +17,6 @@ class LifecycleTestGame extends BaseGame<TestState, any> {
     super({
       gameOptions: { seed }
     });
-    this.loop = {
-      start: jest.fn(),
-      stop: jest.fn(),
-      pause: jest.fn(),
-      resume: jest.fn(),
-      subscribeUpdate: jest.fn(),
-      subscribeRender: jest.fn()
-    } as any;
   }
 
   public override update(dt: number): void {
@@ -131,5 +123,13 @@ describe("Unified Lifecycle Integration - Pausa y Fin de Juego", () => {
     session.playTick({ t: 1, b: 0 });
 
     expect(session.kernel.getState()).toBe(ArcadeState.GAME_OVER);
+  });
+
+  it("should automatically disable legacy auto loop and switch to manual mode when inside GameSession", () => {
+    const session = new GameSession(mockLifecycleDefinition, 42);
+    const simulation = session.simulation as LifecycleTestGame;
+
+    // The simulation's loop should be set to manual automatically by GameSession
+    expect(simulation.getGameLoop().manual).toBe(true);
   });
 });

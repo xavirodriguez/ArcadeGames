@@ -61,6 +61,8 @@ export interface BaseGameConfig<
   sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
   /** Optional ArcadeKernel state machine injection */
   arcadeKernel?: ArcadeKernel;
+  /** Disables the automatic loop ticker, delegating ticking to an external driver (like GameSession). */
+  manualLoop?: boolean;
 }
 
 /**
@@ -142,6 +144,8 @@ export abstract class BaseGame<
   private lifecycleState: GameLifecycleState = GameLifecycleState.UNINITIALIZED;
   private isPaused = false;
   public readonly kernel: ArcadeKernel;
+  private boundStateChangedListener?: () => void;
+  private boundGameOverListener?: () => void;
 
   public sceneManager: SceneManager<TComponents>;
   public audio: IAudioPlayer;
@@ -155,7 +159,7 @@ export abstract class BaseGame<
     this.loop = new GameLoop({
       step: 1 / 60,
       maxDelta: 0.25,
-      manual: config.isMultiplayer
+      manual: config.isMultiplayer || config.manualLoop || false
     });
     this.unifiedInput = config.inputSystem || new UnifiedInputSystem();
     this.sceneManager = config.sceneManagerFactory
@@ -199,8 +203,18 @@ export abstract class BaseGame<
   }
 
   private registerEventBusListeners(): void {
-    // Subscribe to arcade state changes to sync pause/resume
-    this.eventBus.on("arcade:state_changed" as any, (data: any) => {
+    // Unsubscribe existing listeners if they exist to prevent duplicates
+    if (this.boundStateChangedListener) {
+      this.boundStateChangedListener();
+      this.boundStateChangedListener = undefined;
+    }
+    if (this.boundGameOverListener) {
+      this.boundGameOverListener();
+      this.boundGameOverListener = undefined;
+    }
+
+    // Subscribe and store unsubscribe functions
+    this.boundStateChangedListener = this.eventBus.on("arcade:state_changed" as any, (data: any) => {
       if (data.to === ArcadeState.PAUSED && !this.isPaused) {
         this.pause();
       } else if (data.to === ArcadeState.PLAYING && this.isPaused) {
@@ -209,7 +223,7 @@ export abstract class BaseGame<
     });
 
     // Subscribe to game over events to transition the kernel
-    this.eventBus.on("game:over" as any, (payload: any) => {
+    this.boundGameOverListener = this.eventBus.on("game:over" as any, (payload: any) => {
       if (this.kernel.getState() === ArcadeState.PLAYING) {
         this.kernel.transitionTo(ArcadeState.GAME_OVER, { score: (payload?.state as any)?.score });
       }

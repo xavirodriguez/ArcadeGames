@@ -247,6 +247,8 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     e2: Entity,
     destroyedEntities: Set<number>
   ): void {
+    if (destroyedEntities.has(e1) || destroyedEntities.has(e2)) return;
+
     // Helper to check if entity exists and is active
     const hasEntity = (entity: number): boolean => {
       if (typeof (world as any).hasEntity === "function") {
@@ -278,12 +280,12 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const bullet = (bulletShield as Record<string, Entity>).PlayerBullet || (bulletShield as Record<string, Entity>).EnemyBullet;
       const shield = (bulletShield as Record<string, Entity>).Shield;
 
-      if (hasEntity(shield)) {
+      if (hasEntity(shield) && !destroyedEntities.has(shield)) {
         this.damageShield(world, shield, destroyedEntities);
       }
-      if (hasEntity(bullet)) {
-        this.removeBulletSafely(world, bullet);
+      if (hasEntity(bullet) && !destroyedEntities.has(bullet)) {
         destroyedEntities.add(bullet);
+        this.removeBulletSafely(world, bullet);
       }
       return;
     }
@@ -317,6 +319,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     shieldEntity: number,
     destroyedEntities: Set<number>
   ): void {
+    if (destroyedEntities.has(shieldEntity)) return;
     if (!world.hasComponent(shieldEntity, "Shield")) return;
     const shield = world.getComponent(shieldEntity, "Shield");
     if (!shield) return;

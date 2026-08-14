@@ -24,7 +24,7 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
     }
 
     const gameState = world.getSingleton("GameState");
-    if (gameState && (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) return;
+    if (gameState && (gameState.isGameOver || gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) return;
 
     const formationEntities = world.query("Formation");
     if (formationEntities.length === 0) return;

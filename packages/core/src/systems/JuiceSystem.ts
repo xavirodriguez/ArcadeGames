@@ -12,9 +12,11 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
 
         for (let i = 0; i < len; i++) {
             const entity = juiceEntities[i];
-            const j = world.getMutableComponent(entity, "Juice");
-            if (!j || j.animations.length === 0) continue;
+            const jCheck = world.getComponent(entity, "Juice");
+            if (!jCheck || jCheck.animations.length === 0) continue;
 
+            // Safe for determinism/rollback. Fetch mutable Juice only when there are active animations to update, keeping stateVersion resting-state overhead to exactly zero.
+            const j = world.getMutableComponent(entity, "Juice")!;
             const offset = world.getComponent(entity, "VisualOffset");
             const render = world.getComponent(entity, "Render");
 

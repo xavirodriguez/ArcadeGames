@@ -13,9 +13,11 @@ export class ScreenShakeSystem extends System<CoreComponentRegistry> {
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
-      const shake = world.getMutableComponent(entity, "ScreenShake");
-      if (!shake) continue;
+      const shakeCheck = world.getComponent(entity, "ScreenShake");
+      if (!shakeCheck || shakeCheck.remaining <= 0) continue;
 
+      // Safe for determinism/rollback. Only retrieve and update mutable ScreenShake if remaining time is greater than 0, avoiding stateVersion updates on finished shakes.
+      const shake = world.getMutableComponent(entity, "ScreenShake")!;
       shake.remaining -= deltaTime;
       if (shake.remaining <= 0) {
         shake.remaining = 0;
@@ -59,10 +61,14 @@ export class ScreenShakeSystem extends System<CoreComponentRegistry> {
         }
       } else {
         if (world.hasComponent(mainCameraEntity, "VisualOffset")) {
-          const vo = world.getMutableComponent(mainCameraEntity, "VisualOffset");
-          if (vo) {
-            vo.offsetX = 0;
-            vo.offsetY = 0;
+          const vo = world.getComponent(mainCameraEntity, "VisualOffset");
+          // Safe for determinism/rollback. Only clear offset to 0 if they are not already 0, avoiding per-tick stateVersion increments of the main camera.
+          if (vo && (vo.offsetX !== 0 || vo.offsetY !== 0)) {
+            const mutableVo = world.getMutableComponent(mainCameraEntity, "VisualOffset");
+            if (mutableVo) {
+              mutableVo.offsetX = 0;
+              mutableVo.offsetY = 0;
+            }
           }
         }
       }

@@ -31,27 +31,32 @@ export class FrictionSystem extends System<CoreComponentRegistry> {
         const v = world.getComponent(entity, "Velocity");
         if (!v) continue;
 
-        world.mutateComponent(entity, "Velocity", (vel) => {
+        // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
+        const vel = world.getMutableComponent(entity, "Velocity");
+        if (vel) {
           const factor = Math.exp(-f.value * deltaTime);
           vel.vx *= factor;
           vel.vy *= factor;
           if (vel.angularVelocity) {
             vel.angularVelocity *= factor;
           }
-        });
+        }
       }
     } else {
       const entities = world.query("Velocity", "Friction");
       for (const entity of entities) {
         const f = world.getComponent(entity, "Friction")!;
-        world.mutateComponent(entity, "Velocity", (v) => {
+
+        // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
+        const v = world.getMutableComponent(entity, "Velocity");
+        if (v) {
           const factor = Math.exp(-f.value * deltaTime);
           v.vx *= factor;
           v.vy *= factor;
           if (v.angularVelocity) {
             v.angularVelocity *= factor;
           }
-        });
+        }
       }
     }
   }

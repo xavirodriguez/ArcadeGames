@@ -11,11 +11,13 @@ export class AnimationSystem extends System<CoreComponentRegistry> {
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
-      const animator = world.getMutableComponent(entity, "Animator");
-      if (!animator || !animator.current) continue;
+      const animCheck = world.getComponent(entity, "Animator");
+      if (!animCheck || !animCheck.current || !animCheck.animations[animCheck.current]) continue;
 
+      // Safe for determinism/rollback. Fetch mutable Animator only when a valid animation is currently playing, avoiding stateVersion updates on idle/inactive animators.
+      const animator = world.getMutableComponent(entity, "Animator")!;
+      if (!animator.current) continue;
       const anim = animator.animations[animator.current];
-      if (!anim) continue;
 
       animator.elapsed += deltaTime;
 

@@ -175,11 +175,16 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
     const eqLen = eventQuery.length;
     for (let i = 0; i < eqLen; i++) {
       const entity = eventQuery[i];
-      const component = w.getMutableComponent(entity, "CollisionEvents");
-      if (component) {
-        component.collisions.length = 0;
-        component.triggersEntered.length = 0;
-        component.triggersExited.length = 0;
+      const component = w.getComponent(entity, "CollisionEvents");
+
+      // Safe for determinism/rollback. Only fetch the mutable component and increment stateVersion if there's actually data to clear. Bypassing getMutableComponent on resting empty entities prevents massive stateVersion & serialization overhead.
+      if (component && (component.collisions.length > 0 || component.triggersEntered.length > 0 || component.triggersExited.length > 0)) {
+        const mutable = w.getMutableComponent(entity, "CollisionEvents");
+        if (mutable) {
+          mutable.collisions.length = 0;
+          mutable.triggersEntered.length = 0;
+          mutable.triggersExited.length = 0;
+        }
       }
     }
 

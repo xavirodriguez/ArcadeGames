@@ -14,29 +14,40 @@ interface InternalWorldAccess<_TComponents extends ComponentRegistry> {
   freeEntities: number[];
 }
 
-/** @public */
+/**
+ * Classical Array of Structures (AoS) Serializer.
+ *
+ * @remarks
+ * This class captures the entire ECS World state into an Array of Structures (AoS) layout,
+ * where components are grouped by entity ID inside nested record maps.
+ *
+ * While highly inspectable and great for development or sparse incremental updates, AoS serialization
+ * relies on deep object copying and allocates extensive temporary hashes, leading to garbage
+ * collection (GC) overhead in high-frequency update loops.
+ *
+ * @public
+ */
 export class SnapshotSerializer {
   /**
-   * Captures the current serializable state of the world.
+   * Captures the current serializable state of the world in an AoS layout.
    *
    * @remarks
-   * This method captures entities and their components. It is designed to help reduce
-   * allocations when a `target` is provided, but still performs deep cloning
-   * of component data.
+   * Iterates over all active entities and their associated components, cloning each field deeply
+   * using `ComponentCloner.cloneComponent` to ensure complete isolation.
    *
    * @warning
-   * **Serialization limits**: This operation is intended to capture only serializable properties
-   * (primitive values, plain objects/arrays). Functions, circular references, and complex
-   * class instances without a custom cloning path (like Map, Set, or custom classes)
-   * may be skipped, partially captured, or result in incomplete state restoration.
+   * **Serialization boundaries**: Only plain JS objects, arrays, and primitive values are supported.
+   * - Functions and class methods are discarded.
+   * - Circular references will trigger infinite loops or serialization exceptions.
+   * - Native handles (like Canvas contexts, Skia objects, or Audio nodes) must be re-initialized manually on restore.
    *
-   * **Performance & Memory**: This operation is computationally expensive and is expected to
-   * increase GC pressure due to deep cloning. Frequent use in performance-critical paths
-   * (e.g., every frame) should be carefully considered against the frame budget.
+   * **Performance characteristics**: Due to deep cloning of components and map allocation, this function
+   * introduces O(E * C) allocation complexity, where E is the active entity count and C is the component count.
+   * In tight frame budgets, consider using the highly optimized SoA alternative: {@link SnapshotSerializerSoA}.
    *
-   * @param world - The world to snapshot.
-   * @param target - Optional snapshot object to reuse.
-   * @returns A snapshot of the world's entities, components, and RNG state.
+   * @param world - The ECS World simulation container to capture.
+   * @param target - An optional pre-existing AoSWorldSnapshot instance to partially reuse, mitigating allocation overhead.
+   * @returns A fully populated, isolated AoSWorldSnapshot instance.
    */
   public static snapshot<TComponents extends ComponentRegistry>(
     world: World<TComponents>,

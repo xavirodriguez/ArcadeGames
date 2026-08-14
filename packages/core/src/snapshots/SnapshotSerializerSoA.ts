@@ -15,16 +15,29 @@ interface InternalWorldAccess<_TComponents extends ComponentRegistry> {
 }
 
 /**
- * Structure of Arrays (SoA) Serializer for high performance snapshots.
+ * High-performance Structure of Arrays (SoA) Serializer.
  *
  * @remarks
- * serializes world component state into continuous TypedArrays (Float64Array and Int32Array)
- * to avoid allocations of thousands of separate object and key-value maps.
+ * Serializes the ECS world component state into flat, continuous TypedArrays (`Float64Array` and `Int32Array`).
+ * By grouping properties continuously by type instead of allocating individual key-value dictionaries for each entity,
+ * SoA serialization eliminates thousands of intermediate object allocations.
+ *
+ * This reduces Garbage Collection (GC) pressure and CPU time to near-zero, enabling high-frequency snapshotting
+ * (e.g., every single tick) within the game loop's tight frame budget, which is vital for rollback netcode.
+ *
  * @public
  */
 export class SnapshotSerializerSoA {
   /**
-   * Captures the world state in a highly packed, allocation-free Structure of Arrays layout.
+   * Captures the world state in a highly packed, low-allocation Structure of Arrays layout.
+   *
+   * @remarks
+   * Maps components into stable alphabetical key schemas and packs numerical and boolean fields directly
+   * into a flat `Float64Array`. Any non-numeric fields (e.g. nested objects or strings) are placed in a parallel
+   * nullable array and deeply cloned to prevent memory leaks or state bleeding.
+   *
+   * @param world - The active ECS World instance to serialize.
+   * @returns A high-performance SoAWorldSnapshot instance containing flat buffers.
    */
   public static snapshot<TComponents extends ComponentRegistry>(
     world: World<TComponents>

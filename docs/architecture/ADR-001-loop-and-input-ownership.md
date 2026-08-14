@@ -17,11 +17,14 @@ Durante esta fase de transición, existe un riesgo severo de "Doble Dueño" (Dou
 ### 1. Conservación Temporal de la Propiedad en `BaseGame`
 Para garantizar una migración con "zero-downtime" y bajo riesgo, la lógica interna del juego no se reescribirá. Durante la Fase 1, `BaseGame` retiene la propiedad principal del loop de tiempo real y de la captura y ruteo de inputs (a través del puente `setInputState`).
 
-### 2. Introducción de "Shadow Mode" (Modo Sombra) para `ArcadeKernel`
-El `ArcadeKernel` operará de forma pasiva en **Shadow Mode** (Modo Sombra). Esto implica que:
-- El `ArcadeKernel` escuchará de manera reactiva los eventos y ticks generados por el motor legacy (`BaseGame`).
-- No forzará cambios de estado de juego (`PLAYING -> PAUSED`, etc.) ni de ciclo de vida de forma autónoma.
-- Registrará y verificará de forma pasiva los frames y hashes en tiempo real para validar la paridad del determinismo.
+### 2. Promoción de "Shadow Mode" a "Active Mode" (Modo Activo)
+Inicialmente, el `ArcadeKernel` operó de forma pasiva en **Shadow Mode** (Modo Sombra). Tras confirmar la paridad determinista mediante tests de equivalencia bit a bit (`AsteroidsMigration.test.ts`), el `ArcadeKernel` y `GameSession` han sido promovidos a **Active Mode** (Modo Activo).
+
+Esto implica que:
+- **Desmantelamiento del Loop Legacy:** Cuando el juego es instanciado y gestionado por una `GameSession`, el game loop interno y automático de `BaseGame` se detiene por completo (`loop.stopInternalLoop()`).
+- **Control Centralizado:** La `GameSession` asume el rol del motor principal de ejecución física paso-a-paso, invocando `.step()` de manera secuencial y determinista.
+- **Sincronización Bidireccional de Pausa:** Las transiciones de estado del kernel (`PLAYING ⇄ PAUSED`) se sincronizan directamente con el recurso global `IsPaused` y el bucle físico del juego, logrando una gestión de pausa unificada y robusta.
+- **Transición Automática de Fin de Juego:** Cuando la simulación termina, el sistema de juego emite un evento `game:over` que transiciona de forma automática el `ArcadeKernel` de `PLAYING` a `GAME_OVER`.
 
 ### 3. Encapsulamiento Mediante Wrapper (`AsteroidsDefinition`)
 La conexión con el nuevo runtime se realiza a través del adaptador `AsteroidsDefinition` que implementa la interfaz `GameDefinition`. En su método `createSimulation`, instancia `AsteroidsGame` encapsulando la asincronía del método `init()` (la inicialización de assets y pools) mediante su carga y resolución síncrona/espera asíncrona controlada antes del primer tick en el flujo de `GameSession`.

@@ -13,6 +13,7 @@ import { Schedule } from "../ecs/Schedule";
 import { SceneManager } from "../scenes/SceneManager";
 import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
 import { IAssetProvider } from "../assets/AssetLoader";
+import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
 
 /**
  * Representation of the game lifecycle states.
@@ -58,6 +59,10 @@ export interface BaseGameConfig<
   inputSystem?: IInputSystem<TInput>;
   /** Optional custom scene manager factory */
   sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
+  /** Optional ArcadeKernel state machine injection */
+  arcadeKernel?: ArcadeKernel;
+  /** Disables the automatic loop ticker, delegating ticking to an external driver (like GameSession). */
+  manualLoop?: boolean;
 }
 
 /**
@@ -138,6 +143,9 @@ export abstract class BaseGame<
   protected _config: BaseGameConfig<TComponents, TEvents, TInput>;
   private lifecycleState: GameLifecycleState = GameLifecycleState.UNINITIALIZED;
   private isPaused = false;
+  public readonly kernel: ArcadeKernel;
+  private boundStateChangedListener?: () => void;
+  private boundGameOverListener?: () => void;
 
   public sceneManager: SceneManager<TComponents>;
   public audio: IAudioPlayer;
@@ -146,11 +154,12 @@ export abstract class BaseGame<
     this._config = config;
     this.world = new World<TComponents, TEvents, TBlueprints>(config.schedule);
     this.eventBus = new EventBus<TEvents>();
+    this.kernel = config.arcadeKernel ?? new ArcadeKernel(this.eventBus as any);
     this.blueprints = new BlueprintRegistry<TComponents, TBlueprints>();
     this.loop = new GameLoop({
       step: 1 / 60,
       maxDelta: 0.25,
-      manual: config.isMultiplayer
+      manual: config.isMultiplayer || config.manualLoop || false
     });
     this.unifiedInput = config.inputSystem || new UnifiedInputSystem();
     this.sceneManager = config.sceneManagerFactory
@@ -172,6 +181,7 @@ export abstract class BaseGame<
     });
 
     this.registerInternalResources();
+    this.registerEventBusListeners();
 
     // Subscribe loop to update
     this.loop.subscribeUpdate((dt) => {
@@ -189,6 +199,35 @@ export abstract class BaseGame<
     this.world.setResource("Audio" as any, this.audio);
     this.world.setResource("SceneManager", this.sceneManager);
     this.world.setResource("headless", this._config.headless);
+    this.world.setResource("ArcadeKernel", this.kernel);
+  }
+
+  private registerEventBusListeners(): void {
+    // Unsubscribe existing listeners if they exist to prevent duplicates
+    if (this.boundStateChangedListener) {
+      this.boundStateChangedListener();
+      this.boundStateChangedListener = undefined;
+    }
+    if (this.boundGameOverListener) {
+      this.boundGameOverListener();
+      this.boundGameOverListener = undefined;
+    }
+
+    // Subscribe and store unsubscribe functions
+    this.boundStateChangedListener = this.eventBus.on("arcade:state_changed" as any, (data: any) => {
+      if (data.to === ArcadeState.PAUSED && !this.isPaused) {
+        this.pause();
+      } else if (data.to === ArcadeState.PLAYING && this.isPaused) {
+        this.resume();
+      }
+    });
+
+    // Subscribe to game over events to transition the kernel
+    this.boundGameOverListener = this.eventBus.on("game:over" as any, (payload: any) => {
+      if (this.kernel.getState() === ArcadeState.PLAYING) {
+        this.kernel.transitionTo(ArcadeState.GAME_OVER, { score: (payload?.state as any)?.score });
+      }
+    });
   }
 
   /**
@@ -312,6 +351,12 @@ export abstract class BaseGame<
     if (this.isPaused) return;
     this.isPaused = true;
     this.lifecycleState = GameLifecycleState.PAUSED;
+    this.world.setResource("IsPaused", true);
+
+    if (this.kernel.getState() === ArcadeState.PLAYING) {
+      this.kernel.transitionTo(ArcadeState.PAUSED);
+    }
+
     this.loop.pause();
   }
 
@@ -331,6 +376,12 @@ export abstract class BaseGame<
     if (!this.isPaused) return;
     this.isPaused = false;
     this.lifecycleState = GameLifecycleState.RUNNING;
+    this.world.setResource("IsPaused", false);
+
+    if (this.kernel.getState() === ArcadeState.PAUSED) {
+      this.kernel.transitionTo(ArcadeState.PLAYING);
+    }
+
     this.loop.resume();
   }
 
@@ -451,6 +502,7 @@ export abstract class BaseGame<
       ? this._config.sceneManagerFactory(this.world, this.eventBus)
       : new SceneManager<TComponents>(this.world, this.eventBus as any);
     this.registerInternalResources();
+    this.registerEventBusListeners();
 
     // Re-register systems and initialize entities by running init()
     await this.init();

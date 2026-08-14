@@ -6,7 +6,7 @@ import { z } from "zod";
  */
 export const AssetDescriptorSchema = z.object({
   id: z.string(),
-  path: z.string(),
+  path: z.any(),
   type: z.enum(["image", "audio", "font", "texture", "json"])
 });
 

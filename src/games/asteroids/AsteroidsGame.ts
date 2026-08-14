@@ -400,7 +400,7 @@ export class AsteroidsGame
     try {
       if (loader) {
         await loader.load([
-          { id: "ship_sprite", type: "image", path: "/assets/ship.png" }
+          { id: "ship_sprite", type: "image", path: require("../../../assets/ship.png") }
         ]);
       }
     } catch (e) {

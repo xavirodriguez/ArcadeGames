@@ -10,7 +10,8 @@ import {
   ShapeType,
   BoundaryComponent,
   BlueprintRegistry,
-  CircleShape
+  CircleShape,
+  SpriteComponent
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
@@ -32,6 +33,9 @@ export function registerAsteroidsBlueprints(
   registry.register("ship", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
       const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      const gameConfig = w.getResource<any>("GameConfig");
+      const useSprites = gameConfig?.USE_SPRITES !== false;
+
       w.addComponent(entity, {
         type: "Transform",
         x: args.x,
@@ -54,16 +58,25 @@ export function registerAsteroidsBlueprints(
       } as VelocityComponent);
       w.addComponent(entity, {
         type: "Render",
-        shape: "player_ship",
+        shape: useSprites ? "sprite" : "player_ship",
         size: 15,
         color: "#00f0ff",
         visible: true,
         opacity: 1,
         order: 1,
-        rotation: 0,
+        rotation: useSprites ? Math.PI / 2 : 0,
         angularVelocity: 0,
         hitFlashFrames: 0
       } as RenderComponent);
+
+      if (useSprites) {
+        w.addComponent(entity, {
+          type: "Sprite",
+          assetKey: "ship_sprite",
+          anchor: { x: 0.5, y: 0.5 }
+        } as SpriteComponent);
+      }
+
       w.addComponent(entity, {
         type: "Health",
         current: 3,
@@ -95,7 +108,6 @@ export function registerAsteroidsBlueprints(
         sessionId: "",
         shootCooldownRemaining: 0
       } as AsteroidsComponentRegistry["Ship"]);
-      const gameConfig = w.getResource<any>("GameConfig");
       const hasComboHeadStart = w.getResource("HasComboHeadStart") === true;
       const initialCombo = hasComboHeadStart ? 5 : 0;
       const initialMultiplier = hasComboHeadStart ? 2 : 1;

@@ -1,6 +1,6 @@
 {
-  "totalAny": 219,
-  "totalUnknown": 130,
+  "totalAny": 237,
+  "totalUnknown": 129,
   "files": {
     "packages/core/src/ai/SteeringSystem.ts": {
       "anyCount": 12,
@@ -49,10 +49,6 @@
     "packages/core/src/ecs/World.ts": {
       "anyCount": 11,
       "unknownCount": 7
-    },
-    "packages/core/src/ecs/WorldCommandBuffer.ts": {
-      "anyCount": 0,
-      "unknownCount": 1
     },
     "packages/core/src/events/EventBus.ts": {
       "anyCount": 0,
@@ -131,11 +127,11 @@
       "unknownCount": 1
     },
     "packages/core/src/runtime/BaseGame.ts": {
-      "anyCount": 16,
+      "anyCount": 22,
       "unknownCount": 2
     },
     "packages/core/src/runtime/GameSession.ts": {
-      "anyCount": 2,
+      "anyCount": 6,
       "unknownCount": 0
     },
     "packages/core/src/runtime/IGame.ts": {
@@ -159,19 +155,19 @@
       "unknownCount": 0
     },
     "packages/core/src/snapshots/SnapshotRestore.ts": {
-      "anyCount": 1,
+      "anyCount": 3,
       "unknownCount": 0
     },
     "packages/core/src/snapshots/SnapshotRestoreSoA.ts": {
-      "anyCount": 3,
+      "anyCount": 5,
       "unknownCount": 2
     },
     "packages/core/src/snapshots/SnapshotSerializer.ts": {
-      "anyCount": 0,
+      "anyCount": 2,
       "unknownCount": 7
     },
     "packages/core/src/snapshots/SnapshotSerializerSoA.ts": {
-      "anyCount": 1,
+      "anyCount": 3,
       "unknownCount": 4
     },
     "packages/core/src/snapshots/WorldSnapshot.ts": {

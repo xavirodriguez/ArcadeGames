@@ -1,6 +1,7 @@
 import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent } from "@tiny-aster/core";
 import { SkCanvas, SkPaint, Skia } from "@shopify/react-native-skia";
 import { SkiaCircleDrawer, SkiaBoxDrawer } from "./SkiaShapeDrawers";
+import { SkiaSpriteDrawer } from "./SkiaSpriteDrawer";
 
 /**
  * Skia renderer implementation for TinyAster using @shopify/react-native-skia.
@@ -17,6 +18,9 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
     this.paint = Skia.Paint();
 
     // Populate default shape drawers
+    if (!this.shapeDrawers.has("sprite")) {
+      this.shapeDrawers.set("sprite", new SkiaSpriteDrawer<TRegistry>(this.paint));
+    }
     if (!this.shapeDrawers.has("Circle")) {
       this.shapeDrawers.set("Circle", new SkiaCircleDrawer(this.paint));
     }

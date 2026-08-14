@@ -2,6 +2,7 @@ import { GameDefinition } from "./GameDefinition";
 import { Simulation } from "./Simulation";
 import { CompactInputFrame } from "../input/InputFrame";
 import { DeterministicReplayRecorder } from "../replay/DeterministicReplay";
+import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
 
 /**
  * Orchestrates a live, active gameplay session of a GameDefinition.
@@ -17,15 +18,23 @@ export class GameSession {
   public readonly gameDefinition: GameDefinition;
   public readonly seed: number;
   public readonly simulation: Simulation;
+  public readonly kernel: ArcadeKernel;
   private recorder: DeterministicReplayRecorder;
   private inputHistory: CompactInputFrame[] = [];
 
-  constructor(gameDefinition: GameDefinition, seed: number, playerId = "local-player", sessionId = "session-1") {
+  constructor(
+    gameDefinition: GameDefinition,
+    seed: number,
+    playerId = "local-player",
+    sessionId = "session-1",
+    kernel?: ArcadeKernel
+  ) {
     this.id = sessionId;
     this.playerId = playerId;
     this.gameDefinition = gameDefinition;
     this.seed = seed;
     this.simulation = gameDefinition.createSimulation(seed);
+    this.kernel = kernel ?? (this.simulation as any).kernel ?? new ArcadeKernel();
 
     this.recorder = new DeterministicReplayRecorder(gameDefinition.name, seed);
     this.recorder.captureInitialState(this.simulation);
@@ -42,7 +51,15 @@ export class GameSession {
     this.recorder.recordFrame(input);
     this.inputHistory.push({ ...input });
 
-    // 3. Broadcast events that occurred this frame (as pure side-effects, e.g. for audio/visual presentation)
+    // 3. Transition to GAME_OVER if simulation is over and kernel is in PLAYING
+    const isGameOverFn = (this.simulation as any).isGameOver;
+    if (typeof isGameOverFn === "function" && isGameOverFn.call(this.simulation)) {
+      if (this.kernel.getState() === ArcadeState.PLAYING) {
+        this.kernel.transitionTo(ArcadeState.GAME_OVER);
+      }
+    }
+
+    // 4. Broadcast events that occurred this frame (as pure side-effects, e.g. for audio/visual presentation)
     const eventBus = (this.simulation as any).eventBus;
     if (eventBus && typeof eventBus.emit === "function") {
       eventBus.emit("session:tick" as any, { tick: this.simulation.tick, state: this.simulation.state });

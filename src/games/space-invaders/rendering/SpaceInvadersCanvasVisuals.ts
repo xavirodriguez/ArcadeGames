@@ -1,5 +1,6 @@
 import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { colors } from "../../../theme/colors";
 
 /**
  * Visuals for the player ship.
@@ -14,14 +15,14 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 40 } = render;
-    let { color = "#00FF00" } = render;
+    let { color = colors.green } = render;
 
     // Apply hit flash
     if (render.hitFlashFrames && render.hitFlashFrames > 0) {
       if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
         ctx.globalAlpha = 0.3;
       }
-      color = "white";
+      color = colors.white;
     }
 
     ctx.save();
@@ -41,7 +42,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     const plumeLength = (size / 2.2) * flicker;
 
     // Outer plasma flame
-    ctx.fillStyle = "#FF3C00";
+    ctx.fillStyle = colors.orangeDark;
     ctx.beginPath();
     ctx.moveTo(-size / 5, size / 4);
     ctx.lineTo(size / 5, size / 4);
@@ -50,7 +51,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.fill();
 
     // Inner hotter core flame
-    ctx.fillStyle = "#FFCC00";
+    ctx.fillStyle = colors.gold;
     ctx.beginPath();
     ctx.moveTo(-size / 8, size / 4);
     ctx.lineTo(size / 8, size / 4);
@@ -76,7 +77,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.fill();
 
     // Neon Wingtips / Cannons
-    ctx.strokeStyle = "#00FFFF";
+    ctx.strokeStyle = colors.cyan;
     ctx.lineWidth = 2;
     ctx.beginPath();
     // Left Cannon
@@ -88,12 +89,12 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.stroke();
 
     // Cannons white cores
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = colors.white;
     ctx.fillRect(-size / 3 - 1, -size / 3, 2, size / 4);
     ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);
 
     // High-energy cockpit glass canopy (Cyan)
-    ctx.fillStyle = "#00FFFF";
+    ctx.fillStyle = colors.cyan;
     ctx.beginPath();
     ctx.moveTo(0, -size / 3);
     ctx.lineTo(size / 6, -size / 10);
@@ -104,7 +105,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.fill();
 
     // Inner bright white cockpit reflection
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.moveTo(-size / 12, -size / 5);
     ctx.lineTo(0, -size / 4);
@@ -122,10 +123,10 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
       const radius = size * 0.72 * shieldPulse;
 
       ctx.save();
-      ctx.strokeStyle = "#00F0FF";
+      ctx.strokeStyle = colors.cyan;
       ctx.lineWidth = 3;
       ctx.globalAlpha = shieldAlpha;
-      ctx.shadowColor = "#00F0FF";
+      ctx.shadowColor = colors.cyan;
       ctx.shadowBlur = 12;
 
       ctx.beginPath();
@@ -137,7 +138,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
       ctx.fill();
 
       // Inner electric ring
-      ctx.strokeStyle = "#0096FF";
+      ctx.strokeStyle = colors.blue;
       ctx.lineWidth = 1.5;
       ctx.shadowBlur = 0;
       ctx.beginPath();
@@ -163,25 +164,25 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 15 } = render;
-    let { color = "white" } = render;
+    let { color = colors.white } = render;
 
     // Apply hit flash
     if (render.hitFlashFrames && render.hitFlashFrames > 0) {
       if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
         ctx.globalAlpha = 0.3;
       }
-      color = "white";
+      color = colors.white;
     } else {
       // Assign gorgeous row-based/rank-based colors
       const invaderComp = world.getComponent(entity, "Invader");
       if (invaderComp) {
         const row = invaderComp.row;
         if (row === 0) {
-          color = "#FF0088"; // Row 0 (Commanders): Hot Magenta
+          color = colors.magentaHot; // Row 0 (Commanders): Hot Magenta
         } else if (row <= 2) {
-          color = "#00FFDD"; // Rows 1-2 (Scouts): Electric Cyan
+          color = colors.cyan; // Rows 1-2 (Scouts): Electric Cyan
         } else {
-          color = "#FFCC00"; // Rows 3-4 (Grunts): Cyber Gold
+          color = colors.gold; // Rows 3-4 (Grunts): Cyber Gold
         }
       }
     }
@@ -224,8 +225,8 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
 
     // Glowing alien cyber-cores/eyes (Dynamic glowing orange/red center)
     const eyePulse = 0.5 + 0.5 * Math.abs(Math.sin(tick / 6));
-    ctx.fillStyle = "#FF2200";
-    ctx.shadowColor = "#FF2200";
+    ctx.fillStyle = colors.redHot;
+    ctx.shadowColor = colors.redHot;
     ctx.shadowBlur = 6 * eyePulse;
     ctx.fillRect(-s * 2, -s * 2, s, s);
     ctx.fillRect(s, -s * 2, s, s);
@@ -249,8 +250,8 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
 
-    const glowColor = isPlayerBullet ? "#00FFFF" : "#FF1E00";
-    const coreColor = "#FFFFFF";
+    const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;
+    const coreColor = colors.white;
 
     ctx.save();
 
@@ -293,14 +294,14 @@ export const drawSpaceInvadersShield: ShapeDrawer<CanvasRenderingContext2D, Spac
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 15 } = render;
-    let { color = "#00FF00" } = render;
+    let { color = colors.green } = render;
 
     // Apply hit flash
     if (render.hitFlashFrames && render.hitFlashFrames > 0) {
       if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
         ctx.globalAlpha = 0.3;
       }
-      color = "white";
+      color = colors.white;
     }
 
     const shield = world.getComponent(entity, "Shield");
@@ -371,13 +372,13 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
     let particleColor = color;
     if (color === "white") {
       if (progress < 0.2) {
-        particleColor = "#FFFFFF"; // Hot white
+        particleColor = colors.white; // Hot white
       } else if (progress < 0.45) {
-        particleColor = "#FFFF33"; // Yellow flare
+        particleColor = colors.yellow; // Yellow flare
       } else if (progress < 0.7) {
-        particleColor = "#FF6C00"; // Dissipating Orange
+        particleColor = colors.orange; // Dissipating Orange
       } else {
-        particleColor = "#FF1A00"; // Red ember
+        particleColor = colors.red; // Red ember
       }
     }
 

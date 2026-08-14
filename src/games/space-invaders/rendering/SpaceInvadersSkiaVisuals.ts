@@ -1,5 +1,6 @@
 import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, TransformComponent } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { colors } from "../../../theme/colors";
 
 let Skia: any = null;
 try {
@@ -33,7 +34,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     if (!render) return;
 
     const size = render.size || 40;
-    let colorStr = render.color || "#00FF00";
+    let colorStr = render.color || colors.green;
 
     canvas.save();
 
@@ -44,7 +45,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
       if ((render.hitFlashFrames >> 1) % 2 === 0) {
         opacity = 0.3;
       }
-      colorStr = "#FFFFFF";
+      colorStr = colors.white;
     }
 
     // 1. Dynamic tilt/lean based on horizontal velocity
@@ -67,7 +68,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
     // Outer plasma flame
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FF3C00"));
+    paint.setColor(Skia.Color(colors.orangeDark));
     paint.setAlphaf(opacity * 0.8);
     const outerFlame = Skia.Path.Make();
     outerFlame.moveTo(-size / 5, size / 4);
@@ -77,7 +78,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     canvas.drawPath(outerFlame, paint);
 
     // Inner hotter core flame
-    paint.setColor(Skia.Color("#FFCC00"));
+    paint.setColor(Skia.Color(colors.gold));
     paint.setAlphaf(opacity);
     const innerFlame = Skia.Path.Make();
     innerFlame.moveTo(-size / 8, size / 4);
@@ -132,23 +133,23 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
     // Neon Wingtips / Cannons
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#00FFFF"));
+    paint.setColor(Skia.Color(colors.cyan));
     paint.setStrokeWidth(2);
     canvas.drawLine(-size / 3, size / 6, -size / 3, -size / 3, paint);
     canvas.drawLine(size / 3, size / 6, size / 3, -size / 3, paint);
 
     // Cannons white cores
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FFFFFF"));
+    paint.setColor(Skia.Color(colors.white));
     canvas.drawRect(Skia.XYWHRect(-size / 3 - 1, -size / 3, 2, size / 4), paint);
     canvas.drawRect(Skia.XYWHRect(size / 3 - 1, -size / 3, 2, size / 4), paint);
 
     // High-energy cockpit glass canopy (Cyan)
-    paint.setColor(Skia.Color("#00FFFF"));
+    paint.setColor(Skia.Color(colors.cyan));
     canvas.drawPath(paths.cockpit, paint);
 
     // Inner bright white cockpit reflection
-    paint.setColor(Skia.Color("#FFFFFF"));
+    paint.setColor(Skia.Color(colors.white));
     canvas.drawPath(paths.reflection, paint);
 
     canvas.restore();
@@ -172,13 +173,13 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
       // Outer ring
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#00F0FF"));
+      paint.setColor(Skia.Color(colors.cyan));
       paint.setStrokeWidth(3);
       paint.setAlphaf(shieldAlpha);
       canvas.drawCircle(0, 0, radius, paint);
 
       // Inner electric ring
-      paint.setColor(Skia.Color("#0096FF"));
+      paint.setColor(Skia.Color(colors.blue));
       paint.setStrokeWidth(1.5);
       paint.setAlphaf(shieldAlpha * 0.6);
       canvas.drawCircle(0, 0, radius * 0.82, paint);
@@ -199,7 +200,7 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     if (!render) return;
 
     const size = render.size || 15;
-    let colorStr = render.color || "#FFFFFF";
+    let colorStr = render.color || colors.white;
     let opacity = render.opacity ?? 1.0;
 
     // Apply hit flash
@@ -207,18 +208,18 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
       if ((render.hitFlashFrames >> 1) % 2 === 0) {
         opacity = 0.3;
       }
-      colorStr = "#FFFFFF";
+      colorStr = colors.white;
     } else {
       // Assign gorgeous row-based/rank-based colors
       const invaderComp = world.getComponent(entity, "Invader");
       if (invaderComp) {
         const row = invaderComp.row;
         if (row === 0) {
-          colorStr = "#FF0088"; // Hot Magenta
+          colorStr = colors.magentaHot; // Hot Magenta
         } else if (row <= 2) {
-          colorStr = "#00FFDD"; // Electric Cyan
+          colorStr = colors.cyan; // Electric Cyan
         } else {
-          colorStr = "#FFCC00"; // Cyber Gold
+          colorStr = colors.gold; // Cyber Gold
         }
       }
     }
@@ -261,7 +262,7 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
 
     // Glowing alien cyber-cores/eyes (Dynamic glowing orange/red center)
     const eyePulse = 0.5 + 0.5 * Math.abs(Math.sin(tick / 6));
-    paint.setColor(Skia.Color("#FF2200"));
+    paint.setColor(Skia.Color(colors.redHot));
     paint.setAlphaf(opacity * eyePulse);
     canvas.drawRect(Skia.XYWHRect(-s * 2, -s * 2, s, s), paint);
     canvas.drawRect(Skia.XYWHRect(s, -s * 2, s, s), paint);
@@ -281,8 +282,8 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
     const size = render.size || 4;
     const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
 
-    const glowColor = isPlayerBullet ? "#00FFFF" : "#FF1E00";
-    const coreColor = "#FFFFFF";
+    const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;
+    const coreColor = colors.white;
 
     canvas.save();
 
@@ -326,7 +327,7 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
     if (!render) return;
 
     const size = render.size || 15;
-    let colorStr = render.color || "#00FF00";
+    let colorStr = render.color || colors.green;
     let opacity = render.opacity ?? 1.0;
 
     // Apply hit flash
@@ -334,7 +335,7 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
       if ((render.hitFlashFrames >> 1) % 2 === 0) {
         opacity = 0.3;
       }
-      colorStr = "#FFFFFF";
+      colorStr = colors.white;
     }
 
     const shield = world.getComponent(entity, "Shield");
@@ -404,7 +405,7 @@ export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersCompon
     if (!render) return;
 
     const size = render.size || 2;
-    const colorStr = render.color || "#FFFFFF";
+    const colorStr = render.color || colors.white;
 
     const ttl = world.getComponent(entity, "TTL") as any;
     let progress = 0.5;
@@ -416,15 +417,15 @@ export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersCompon
 
     // Zero-allocation heat-dissipation color shifting
     let particleColor = colorStr;
-    if (colorStr === "white" || colorStr === "#FFFFFF") {
+    if (colorStr === "white" || colorStr === colors.white) {
       if (progress < 0.2) {
-        particleColor = "#FFFFFF"; // Hot white
+        particleColor = colors.white; // Hot white
       } else if (progress < 0.45) {
-        particleColor = "#FFFF33"; // Yellow flare
+        particleColor = colors.yellow; // Yellow flare
       } else if (progress < 0.7) {
-        particleColor = "#FF6C00"; // Dissipating Orange
+        particleColor = colors.orange; // Dissipating Orange
       } else {
-        particleColor = "#FF1A00"; // Red ember
+        particleColor = colors.red; // Red ember
       }
     }
 

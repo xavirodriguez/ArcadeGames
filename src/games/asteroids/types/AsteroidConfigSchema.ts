@@ -3,6 +3,7 @@ import { BaseConfigSchema } from "@tiny-aster/core";
 
 /** @public */
 export const AsteroidConfigSchema = BaseConfigSchema.extend({
+  USE_SPRITES: z.boolean().default(true),
   SCREEN_WIDTH: z.number().default(800),
   SCREEN_HEIGHT: z.number().default(600),
   SCREEN_CENTER_X: z.number().default(400),

@@ -1,5 +1,6 @@
 import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState } from "@tiny-aster/core";
 import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
+import { CanvasSpriteDrawer } from "./CanvasSpriteDrawer";
 
 /**
  * Basic 2D Canvas renderer.
@@ -13,6 +14,9 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     private readonly shapeDrawers: Map<string, ShapeDrawer<CanvasRenderingContext2D, TRegistry>> = new Map()
   ) {
     // Pre-populate default shape drawers if not already present
+    if (!this.shapeDrawers.has("sprite")) {
+      this.shapeDrawers.set("sprite", new CanvasSpriteDrawer<TRegistry>());
+    }
     if (!this.shapeDrawers.has("Circle")) {
       this.shapeDrawers.set("Circle", new CanvasCircleDrawer());
     }

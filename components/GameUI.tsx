@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { hapticSelection } from "../src/utils/haptics";
+import { useTranslation } from "../src/hooks/useTranslation";
 import Animated, {
   BounceIn,
   FadeIn,
@@ -142,6 +144,7 @@ export const GameUI = React.memo(function GameUI({
   onContinue,
   onAdvanceDialogue,
 }: GameUIProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [levelUpText, setLevelUpText] = useState<string | null>(null);
 
@@ -157,6 +160,77 @@ export const GameUI = React.memo(function GameUI({
       return () => clearTimeout(timer);
     }
   }, [gameState.level, gameState.isGameOver]);
+
+  // Global keyboard listeners for Web UI interactions
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. Pause/Resume behavior
+      if (e.code === "Escape" || e.code === "KeyP") {
+        const isContinuing = gameState.continueCountdownRemaining && gameState.continueCountdownRemaining > 0;
+        if (onPause && !gameState.isGameOver && !isContinuing) {
+          e.preventDefault();
+          hapticSelection();
+          onPause();
+        }
+      }
+
+      // 2. Restart behavior when Game Over is active
+      if (gameState.isGameOver) {
+        if (e.code === "KeyR" || e.code === "Enter") {
+          if (onRestart) {
+            e.preventDefault();
+            hapticSelection();
+            onRestart();
+          }
+        }
+      }
+
+      // 3. Reconnect / Abort behavior when emergency continue is active
+      const continueCountdownRemaining = gameState.continueCountdownRemaining ?? 0;
+      if (continueCountdownRemaining > 0) {
+        if (e.code === "Enter") {
+          if (onContinue) {
+            e.preventDefault();
+            hapticSelection();
+            onContinue();
+          }
+        } else if (e.code === "Escape" || e.code === "KeyA") {
+          if (onRestart) {
+            e.preventDefault();
+            hapticSelection();
+            onRestart(); // Abort
+          }
+        }
+      }
+
+      // 4. Dialogue advance behavior
+      if (gameState.isDialogueActive && gameState.dialogueText) {
+        if (e.code === "Space" || e.code === "Enter") {
+          if (onAdvanceDialogue) {
+            e.preventDefault();
+            hapticSelection();
+            onAdvanceDialogue();
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    gameState.isGameOver,
+    gameState.continueCountdownRemaining,
+    gameState.isDialogueActive,
+    gameState.dialogueText,
+    onPause,
+    onRestart,
+    onContinue,
+    onAdvanceDialogue,
+  ]);
 
   const lives = gameState.lives ?? 0;
   const level = gameState.level ?? 1;
@@ -211,10 +285,30 @@ export const GameUI = React.memo(function GameUI({
             {Math.ceil(continueCountdownRemaining)}
           </Text>
           <View style={styles.continueButtonRow}>
-            <TouchableOpacity style={styles.yesButton} onPress={onContinue} activeOpacity={0.75}>
+            <TouchableOpacity
+              style={styles.yesButton}
+              onPress={() => {
+                hapticSelection();
+                if (onContinue) onContinue();
+              }}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={t.accessibility.reconnect_pilot_label.replace("{credits}", String(continuesRemaining))}
+              accessibilityHint={t.accessibility.reconnect_pilot_hint}
+            >
               <Text style={styles.yesButtonText}>RECONNECT // {continuesRemaining}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.noButton} onPress={onRestart} activeOpacity={0.75}>
+            <TouchableOpacity
+              style={styles.noButton}
+              onPress={() => {
+                hapticSelection();
+                if (onRestart) onRestart();
+              }}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={t.accessibility.abort_mission_label}
+              accessibilityHint={t.accessibility.abort_mission_hint}
+            >
               <Text style={styles.noButtonText}>ABORT</Text>
             </TouchableOpacity>
           </View>
@@ -234,7 +328,17 @@ export const GameUI = React.memo(function GameUI({
       {/* Dialogue Overlay */}
       {gameState.isDialogueActive && gameState.dialogueText && (
         <Animated.View entering={SlideInDown.duration(400)} exiting={FadeOut.duration(300)} style={styles.dialogueOverlay}>
-          <TouchableOpacity activeOpacity={0.9} style={styles.dialogueBox} onPress={onAdvanceDialogue}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.dialogueBox}
+            onPress={() => {
+              hapticSelection();
+              if (onAdvanceDialogue) onAdvanceDialogue();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t.accessibility.dialogue_comms_label.replace("{text}", gameState.dialogueText)}
+            accessibilityHint={t.accessibility.dialogue_comms_hint}
+          >
             <Text style={styles.dialogueSpeaker}>ODISEA-7 COMMS</Text>
             <Text style={styles.dialogueContent}>{gameState.dialogueText}</Text>
             <Text style={styles.dialoguePrompt}>CLICK TO ADVANCE ▼</Text>
@@ -252,60 +356,90 @@ const HUD: React.FC<{
   highScore: number;
   paddingTop: number;
   reservePauseSpace: boolean;
-}> = ({ lives, score, level, highScore, paddingTop, reservePauseSpace }) => (
-  <Animated.View entering={FadeIn.duration(650)} style={[styles.topBar, { paddingTop }]}>
-    {Platform.OS !== "web" && Canvas && BackdropBlur && Fill && (
-      <Canvas style={StyleSheet.absoluteFill}>
-        <BackdropBlur blur={8} clip={{ x: 0, y: 0, width: 2000, height: 120 }}>
-          <Fill color="rgba(0, 0, 0, 0.28)" />
-        </BackdropBlur>
-      </Canvas>
-    )}
+}> = ({ lives, score, level, highScore, paddingTop, reservePauseSpace }) => {
+  const { t } = useTranslation();
+  return (
+    <Animated.View entering={FadeIn.duration(650)} style={[styles.topBar, { paddingTop }]}>
+      {Platform.OS !== "web" && Canvas && BackdropBlur && Fill && (
+        <Canvas style={StyleSheet.absoluteFill}>
+          <BackdropBlur blur={8} clip={{ x: 0, y: 0, width: 2000, height: 120 }}>
+            <Fill color="rgba(0, 0, 0, 0.28)" />
+          </BackdropBlur>
+        </Canvas>
+      )}
 
-    <View style={[styles.hudContent, reservePauseSpace && styles.hudContentWithPause]}>
-      <HudPanel style={styles.hudLeftPanel} accent="system" moduleCode="LIFE//01">
-        <Text style={styles.hudKicker}>ODISEA-7</Text>
-        <View style={styles.lifeRow}>
-          {lives > 0 ? (
-            Array.from({ length: lives }).map((_, index) => (
-              <ShipLifeIcon key={`life-${index}`} />
-            ))
-          ) : (
-            <Text style={styles.signalLostMini}>SIGNAL LOST</Text>
-          )}
-        </View>
-        <Text style={styles.hudMicro}>PILOT LINK // ACTIVE</Text>
-      </HudPanel>
-
-      <HudPanel style={styles.hudScorePanel} accent="system" moduleCode="SCR//02">
-        <Text style={styles.hudLabel}>MISSION SCORE</Text>
-        <Score score={score} />
-        <Text style={styles.hudMicro}>RECORD {formatScore(highScore)}</Text>
-      </HudPanel>
-
-      <HudPanel style={styles.hudRightPanel} accent="warning" moduleCode="NAV//03">
-        <Text style={styles.hudLabel}>KEPLER-791</Text>
-        <Text style={styles.sectorValue}>SECTOR {formatLevel(level)}</Text>
-        <View style={styles.threatRow}>
-          <Text style={styles.hudMicro}>THREAT</Text>
-          <View style={styles.threatBars}>
-            <View style={styles.threatBarOn} />
-            <View style={styles.threatBarOn} />
-            <View style={styles.threatBarOn} />
-            <View style={styles.threatBarOff} />
+      <View style={[styles.hudContent, reservePauseSpace && styles.hudContentWithPause]}>
+        <HudPanel
+          style={styles.hudLeftPanel}
+          accent="system"
+          moduleCode="LIFE//01"
+          accessibilityRole="header"
+          accessibilityLabel={t.accessibility.lives_remaining_label.replace("{lives}", String(lives))}
+        >
+          <Text style={styles.hudKicker}>ODISEA-7</Text>
+          <View style={styles.lifeRow}>
+            {lives > 0 ? (
+              Array.from({ length: lives }).map((_, index) => (
+                <ShipLifeIcon key={`life-${index}`} />
+              ))
+            ) : (
+              <Text style={styles.signalLostMini}>SIGNAL LOST</Text>
+            )}
           </View>
-        </View>
-      </HudPanel>
-    </View>
-  </Animated.View>
-);
+          <Text style={styles.hudMicro}>PILOT LINK // ACTIVE</Text>
+        </HudPanel>
+
+        <HudPanel
+          style={styles.hudScorePanel}
+          accent="system"
+          moduleCode="SCR//02"
+          accessibilityRole="header"
+          accessibilityLabel={t.accessibility.current_score_label.replace("{score}", String(score)).replace("{highScore}", String(highScore))}
+        >
+          <Text style={styles.hudLabel}>MISSION SCORE</Text>
+          <Score score={score} />
+          <Text style={styles.hudMicro}>RECORD {formatScore(highScore)}</Text>
+        </HudPanel>
+
+        <HudPanel
+          style={styles.hudRightPanel}
+          accent="warning"
+          moduleCode="NAV//03"
+          accessibilityRole="header"
+          accessibilityLabel={t.accessibility.sector_threat_label.replace("{level}", formatLevel(level))}
+        >
+          <Text style={styles.hudLabel}>KEPLER-791</Text>
+          <Text style={styles.sectorValue}>SECTOR {formatLevel(level)}</Text>
+          <View style={styles.threatRow}>
+            <Text style={styles.hudMicro}>THREAT</Text>
+            <View style={styles.threatBars}>
+              <View style={styles.threatBarOn} />
+              <View style={styles.threatBarOn} />
+              <View style={styles.threatBarOn} />
+              <View style={styles.threatBarOff} />
+            </View>
+          </View>
+        </HudPanel>
+      </View>
+    </Animated.View>
+  );
+};
 
 const HudPanel: React.FC<{
   children: React.ReactNode;
   style?: import("react-native").StyleProp<import("react-native").ViewStyle>;
   accent?: "system" | "warning" | "success" | "danger";
   moduleCode?: string;
-}> = ({ children, style, accent = "system", moduleCode }) => {
+  accessibilityRole?: import("react-native").AccessibilityRole;
+  accessibilityLabel?: string;
+}> = ({
+  children,
+  style,
+  accent = "system",
+  moduleCode,
+  accessibilityRole,
+  accessibilityLabel,
+}) => {
   const accentColor =
     accent === "warning"
       ? COLORS.warning
@@ -316,7 +450,11 @@ const HudPanel: React.FC<{
           : COLORS.system;
 
   return (
-    <View style={[styles.hudPanel, style]}>
+    <View
+      style={[styles.hudPanel, style]}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
+    >
       <TechnicalCorners color={accentColor} compact />
       <View style={[styles.panelAccentTop, { backgroundColor: accentColor }]} />
       <View style={[styles.panelAccentBottom, { backgroundColor: accentColor }]} />
@@ -419,16 +557,28 @@ const PauseButton: React.FC<{
   onPress?: () => void;
   isPaused?: boolean;
   paddingTop: number;
-}> = ({ onPress, isPaused, paddingTop }) => (
-  <TouchableOpacity
-    style={[styles.pauseButton, { top: paddingTop }]}
-    onPress={onPress}
-    activeOpacity={0.72}
-  >
-    <Text style={styles.pauseButtonMeta}>SYS</Text>
-    <Text style={styles.pauseButtonText}>{isPaused ? ">" : "II"}</Text>
-  </TouchableOpacity>
-);
+}> = ({ onPress, isPaused, paddingTop }) => {
+  const { t } = useTranslation();
+  const handlePress = () => {
+    hapticSelection();
+    if (onPress) onPress();
+  };
+
+  return (
+    <TouchableOpacity
+      style={[styles.pauseButton, { top: paddingTop }]}
+      onPress={handlePress}
+      activeOpacity={0.72}
+      accessibilityRole="button"
+      accessibilityLabel={isPaused ? t.accessibility.resume_game_label : t.accessibility.pause_game_label}
+      accessibilityState={{ selected: !!isPaused }}
+      accessibilityHint={t.accessibility.pause_button_hint}
+    >
+      <Text style={styles.pauseButtonMeta}>SYS</Text>
+      <Text style={styles.pauseButtonText}>{isPaused ? ">" : "II"}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const ReadyOverlay: React.FC<{
   remaining: number;

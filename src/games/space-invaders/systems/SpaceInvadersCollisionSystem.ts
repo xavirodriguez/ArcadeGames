@@ -362,6 +362,15 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
   }
 
   private removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: Entity): void {
+    if (typeof (world as any).isAlive === "function" && !(world as any).isAlive(bullet)) {
+      return;
+    }
+    if (typeof (world as any).hasEntity === "function" && !(world as any).hasEntity(bullet)) {
+      return;
+    }
+    if (!world.hasComponent(bullet, "Transform")) {
+      return;
+    }
     const reclaimable = world.getComponent(bullet, "Reclaimable");
     if (reclaimable) {
       if (typeof reclaimable.onReclaim === "function") {

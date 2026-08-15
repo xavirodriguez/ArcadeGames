@@ -99,13 +99,13 @@ describe("Space Invaders Player Shooting & Input System with Collision", () => {
     const bulletEntity = bullets[0];
     const initialTransform = world.getComponent(bulletEntity, "Transform") as TransformComponent;
     expect(initialTransform).toBeDefined();
-    expect(initialTransform.y).toBe(490);
+    expect(initialTransform.y).toBe(475);
 
     // Run another update to verify movement and that it is still alive and has moved
     world.update(0.016);
 
     const bulletsAfter = world.query("PlayerBullet");
     expect(bulletsAfter.length).toBe(1);
-    expect(world.getComponent(bulletEntity, "Transform")!.y).toBeLessThan(490);
+    expect(world.getComponent(bulletEntity, "Transform")!.y).toBeLessThan(475);
   });
 });

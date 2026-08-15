@@ -277,7 +277,7 @@ const StartScreen: FC<{
         <SeedWidget
           seed={initialSeed || 0}
           onSeedEnter={onSeedChange}
-          style={{ marginBottom: 30 }}
+          style={styles.seedWidget}
         />
       )}
 
@@ -291,7 +291,7 @@ const StartScreen: FC<{
           >
               {t.accessibility.local_p1}
           </NeonButton>
-          <View style={{ width: 10 }} />
+          <View style={styles.spacerHorizontal10} />
           <NeonButton
             variant="white"
             bordered
@@ -304,7 +304,7 @@ const StartScreen: FC<{
 
           {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
               <>
-                  <View style={{ width: 10 }} />
+                  <View style={styles.spacerHorizontal10} />
                   <NeonButton
                     variant="cyan"
                     onPress={() => onStart("online")}
@@ -392,5 +392,11 @@ const styles = StyleSheet.create({
   restartButtonText: {
     color: colors.background,
     fontWeight: "bold",
-  }
+  },
+  seedWidget: {
+    marginBottom: 30,
+  },
+  spacerHorizontal10: {
+    width: 10,
+  },
 });

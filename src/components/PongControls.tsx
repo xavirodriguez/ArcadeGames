@@ -107,4 +107,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 32,
   },
+  spacerVertical20: {
+    height: 20,
+  },
 });

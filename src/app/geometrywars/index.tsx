@@ -236,7 +236,7 @@ export default function GeometryWarsScreen() {
             {t.common.solo}
           </NeonButton>
 
-          <View style={{ width: 20 }} />
+          <View style={styles.spacerHorizontal20} />
 
           <NeonButton
             variant="pink"
@@ -548,5 +548,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     fontFamily: "monospace",
+  },
+  spacerHorizontal20: {
+    width: 20,
   },
 });

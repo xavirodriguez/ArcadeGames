@@ -301,7 +301,7 @@ const StartScreen: FC<{
         <SeedWidget
           seed={0}
           onSeedEnter={onSeedChange}
-          style={{ marginBottom: 30 }}
+          style={styles.seedWidget}
         />
       )}
 
@@ -320,7 +320,7 @@ const StartScreen: FC<{
 
         {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
           <>
-            <View style={{ width: 20 }} />
+            <View style={styles.spacerHorizontal20} />
             <NeonButton
               variant="cyan"
               onPress={() => {
@@ -347,5 +347,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 40,
     paddingBottom: 40,
-  }
+  },
+  seedWidget: {
+    marginBottom: 30,
+  },
+  spacerHorizontal20: {
+    width: 20,
+  },
 });

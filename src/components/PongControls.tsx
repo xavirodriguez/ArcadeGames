@@ -26,7 +26,7 @@ export const PongControls: React.FC<PongControlsProps> = ({
         >
           <Text style={styles.text}>▲</Text>
         </TouchableOpacity>
-        <View style={{ height: 20 }} />
+        <View style={styles.spacerVertical20} />
         <TouchableOpacity
           style={styles.button}
           onPressIn={() => onP1Down(true)}
@@ -45,7 +45,7 @@ export const PongControls: React.FC<PongControlsProps> = ({
           >
             <Text style={styles.text}>▲</Text>
           </TouchableOpacity>
-          <View style={{ height: 20 }} />
+          <View style={styles.spacerVertical20} />
           <TouchableOpacity
             style={styles.button}
             onPressIn={() => onP2Down(true)}
@@ -82,5 +82,8 @@ const styles = StyleSheet.create({
   text: {
     color: "white",
     fontSize: 32,
+  },
+  spacerVertical20: {
+    height: 20,
   },
 });

@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { World, Component } from "@tiny-aster/core";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export type JoystickType = "movement" | "rotation";
 
@@ -44,6 +45,10 @@ export interface VirtualJoystickProps {
   world?: World;
   /** Optional style for the touchable container. */
   containerStyle?: StyleProp<ViewStyle>;
+  /** Optional accessibility label override. */
+  accessibilityLabel?: string;
+  /** Optional accessibility hint override. */
+  accessibilityHint?: string;
   /** Optional callback for movement. */
   onMove?: (x: number, y: number) => void;
   /** Optional callback for release. */
@@ -69,9 +74,12 @@ export function VirtualJoystick({
   showBackgroundRing = true,
   world,
   containerStyle,
+  accessibilityLabel,
+  accessibilityHint,
   onMove,
   onRelease,
 }: VirtualJoystickProps) {
+  const { t } = useTranslation();
   const BASE_RADIUS = size;
   const KNOB_RADIUS = knobSize;
   const MAX_OFFSET = BASE_RADIUS - KNOB_RADIUS;
@@ -139,9 +147,27 @@ export function VirtualJoystick({
     backgroundColor: activeColor,
   }));
 
+  const defaultLabel =
+    type === "rotation"
+      ? t?.accessibility?.joystick_rotation_label || "Rotation joystick"
+      : t?.accessibility?.joystick_movement_label || "Movement joystick";
+
+  const defaultHint =
+    type === "rotation"
+      ? t?.accessibility?.joystick_rotation_hint || "Drag to aim or rotate"
+      : t?.accessibility?.joystick_movement_hint || "Drag to steer or move in direction";
+
+  const label = accessibilityLabel || defaultLabel;
+  const hint = accessibilityHint || defaultHint;
+
   return (
     <GestureDetector gesture={pan}>
-      <View style={[styles.container, containerStyle]}>
+      <View
+        accessibilityRole="adjustable"
+        accessibilityLabel={label}
+        accessibilityHint={hint}
+        style={[styles.container, containerStyle]}
+      >
         <Animated.View
           style={[
             styles.base,

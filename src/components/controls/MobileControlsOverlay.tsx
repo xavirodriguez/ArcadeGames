@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Platform, StyleSheet, View } from "react-native";
+import { useTranslation } from "../../hooks/useTranslation";
 import { VirtualJoystick } from "./VirtualJoystick";
 import { ActionButton } from "./ActionButton";
 export interface MobileInputAdapter {
@@ -80,11 +81,14 @@ function MobileControlsOverlayInner({
     }
   }, [discreteMapping]);
 
+  const { t } = useTranslation();
+
   return (
     <View style={styles.overlay} pointerEvents="box-none">
       {/* Left zone — joystick */}
       <View style={styles.leftZone}>
         <VirtualJoystick
+          type="movement"
           onMove={handleJoystickMove}
           onRelease={handleJoystickRelease}
         />
@@ -94,12 +98,16 @@ function MobileControlsOverlayInner({
       <View style={styles.rightZone}>
         <ActionButton
           label="🔥"
+          accessibilityLabel={t?.accessibility?.shoot_button_label || "Fire weapon"}
+          accessibilityHint={t?.accessibility?.shoot_button_hint || "Fires primary weapon"}
           onPressIn={() => adapterRef.current.setShoot(true)}
           onPressOut={() => adapterRef.current.setShoot(false)}
           color="rgba(255,80,80,0.25)"
         />
         <ActionButton
           label="⚡"
+          accessibilityLabel={t?.accessibility?.hyperspace_button_label || "Hyperspace jump"}
+          accessibilityHint={t?.accessibility?.hyperspace_button_hint || "Teleports ship to a random location"}
           onPressIn={() => adapterRef.current.setHyperspace(true)}
           onPressOut={() => adapterRef.current.setHyperspace(false)}
           color="rgba(80,80,255,0.25)"

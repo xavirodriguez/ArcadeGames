@@ -1,5 +1,7 @@
 import React from "react";
-import { StyleSheet, View, TouchableOpacity, Text } from "react-native";
+import { StyleSheet, View, Pressable, Text } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
+import { hapticSelection } from "../utils/haptics";
 
 interface PongControlsProps {
   onP1Up: (pressed: boolean) => void;
@@ -16,43 +18,62 @@ export const PongControls: React.FC<PongControlsProps> = ({
   onP2Down,
   showP2Controls = false,
 }) => {
+  const { t } = useTranslation();
+
+  const handlePressIn = (action: () => void) => {
+    hapticSelection();
+    action();
+  };
+
   return (
     <View style={styles.container} pointerEvents="box-none">
       <View style={styles.side} pointerEvents="box-none">
-        <TouchableOpacity
-          style={styles.button}
-          onPressIn={() => onP1Up(true)}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t?.accessibility?.pong_p1_up || "Player 1 Move Up"}
+          accessibilityHint={t?.accessibility?.pong_p1_up_hint || "Moves Player 1 paddle upwards"}
+          style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+          onPressIn={() => handlePressIn(() => onP1Up(true))}
           onPressOut={() => onP1Up(false)}
         >
           <Text style={styles.text}>▲</Text>
-        </TouchableOpacity>
-        <View style={styles.spacerVertical20} />
-        <TouchableOpacity
-          style={styles.button}
-          onPressIn={() => onP1Down(true)}
+        </Pressable>
+        <View style={{ height: 20 }} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t?.accessibility?.pong_p1_down || "Player 1 Move Down"}
+          accessibilityHint={t?.accessibility?.pong_p1_down_hint || "Moves Player 1 paddle downwards"}
+          style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+          onPressIn={() => handlePressIn(() => onP1Down(true))}
           onPressOut={() => onP1Down(false)}
         >
           <Text style={styles.text}>▼</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {showP2Controls && (
         <View style={styles.side} pointerEvents="box-none">
-          <TouchableOpacity
-            style={styles.button}
-            onPressIn={() => onP2Up(true)}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t?.accessibility?.pong_p2_up || "Player 2 Move Up"}
+            accessibilityHint={t?.accessibility?.pong_p2_up_hint || "Moves Player 2 paddle upwards"}
+            style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+            onPressIn={() => handlePressIn(() => onP2Up(true))}
             onPressOut={() => onP2Up(false)}
           >
             <Text style={styles.text}>▲</Text>
-          </TouchableOpacity>
-          <View style={styles.spacerVertical20} />
-          <TouchableOpacity
-            style={styles.button}
-            onPressIn={() => onP2Down(true)}
+          </Pressable>
+          <View style={{ height: 20 }} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t?.accessibility?.pong_p2_down || "Player 2 Move Down"}
+            accessibilityHint={t?.accessibility?.pong_p2_down_hint || "Moves Player 2 paddle downwards"}
+            style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+            onPressIn={() => handlePressIn(() => onP2Down(true))}
             onPressOut={() => onP2Down(false)}
           >
             <Text style={styles.text}>▼</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
     </View>
@@ -78,6 +99,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "white",
+  },
+  pressed: {
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
   },
   text: {
     color: "white",

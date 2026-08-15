@@ -51,6 +51,8 @@ import {
 } from "@tiny-aster/core";
 
 import { LootSystem, PowerUpSystem, ComboSystem, DifficultyDirectorSystem, AchievementSystem } from "../shared/arcade";
+import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
+import { StoryRuntime } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
@@ -284,6 +286,13 @@ export class AsteroidsGame
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
+
+    if (this.mode === "story") {
+      const storyRuntime = new StoryRuntime(asteroidsStoryGraph);
+      this.world.setResource("StoryRuntime", storyRuntime);
+      this.world.addSystem(new StoryDirectorSystem(storyRuntime), { phase: SystemPhase.GameRules });
+      this.world.addSystem(new DialogueSystem(), { phase: SystemPhase.Simulation });
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activeMutators = (this._config.gameOptions?.mutators as any[]) || [];

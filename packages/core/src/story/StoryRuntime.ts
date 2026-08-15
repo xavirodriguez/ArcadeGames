@@ -54,7 +54,7 @@ export class StoryRuntime {
     this.eventBus = eventBus;
 
     // Standard story & gameplay event hooks
-    const listenEvents = [
+    const listenEvents = new Set<string>([
       "level:completed",
       "spawn:wave_complete",
       "CollectiblePickedUp",
@@ -62,8 +62,22 @@ export class StoryRuntime {
       "story:choice_selected",
       "story:objective_completed",
       "dialogue:completed",
-      "cutscene:completed"
-    ];
+      "cutscene:completed",
+      "rock:destroyed",
+      "enemy:destroyed"
+    ]);
+
+    if (this.graph) {
+      for (const node of Object.values(this.graph.nodes)) {
+        if (node.transitions) {
+          for (const t of node.transitions) {
+            if (t.condition?.type === "event" && t.condition.key) {
+              listenEvents.add(t.condition.key);
+            }
+          }
+        }
+      }
+    }
 
     for (const eventName of listenEvents) {
       eventBus.on(eventName as any, (payload: any) => {
@@ -108,6 +122,18 @@ export class StoryRuntime {
     // Emit node custom event if configured
     if (node.emitEvent && this.eventBus) {
       this.eventBus.emit(node.emitEvent.name as any, node.emitEvent.payload || {});
+    }
+
+    // Emit scene change event if node specifies sceneToLoad
+    if (node.sceneToLoad || node.meta?.sceneToLoad) {
+      const sceneToLoad = node.sceneToLoad || node.meta?.sceneToLoad;
+      if (this.eventBus) {
+        this.eventBus.emit("story:scene_change" as any, {
+          sceneToLoad,
+          nodeId: node.id,
+          node
+        });
+      }
     }
 
     // Emit story:node_changed event
@@ -291,24 +317,29 @@ export class StoryRuntime {
   }
 
   private checkObjectiveProgress(eventName: string, payload: any): void {
+    if (eventName.startsWith("story:") || eventName.startsWith("dialogue:") || eventName.startsWith("scene:")) {
+      return;
+    }
+
     for (const objId in this.state.objectives) {
       const obj = this.state.objectives[objId];
       if (obj.completed) continue;
 
-      if (
-        eventName === "level:completed" ||
-        eventName === "spawn:wave_complete" ||
-        eventName === "CollectiblePickedUp"
-      ) {
-        obj.currentCount += 1;
-        if (obj.currentCount >= obj.targetCount) {
-          obj.completed = true;
-          if (this.eventBus) {
-            this.eventBus.emit("story:objective_completed" as any, {
-              objectiveId: obj.id,
-              objective: obj
-            });
-          }
+      const increment =
+        typeof payload?.amount === "number"
+          ? payload.amount
+          : typeof payload?.increment === "number"
+          ? payload.increment
+          : 1;
+
+      obj.currentCount += increment;
+      if (obj.currentCount >= obj.targetCount) {
+        obj.completed = true;
+        if (this.eventBus) {
+          this.eventBus.emit("story:objective_completed" as any, {
+            objectiveId: obj.id,
+            objective: obj
+          });
         }
       }
     }

@@ -24,7 +24,10 @@ export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
 
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     const entities = world.query("Transform", "SpatialNode");
-    for (const entity of entities) {
+    const len = entities.length;
+
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
       const transform = world.getComponent(entity, "Transform")!;
       const worldX = transform.worldX ?? transform.x;
       const worldY = transform.worldY ?? transform.y;
@@ -32,11 +35,18 @@ export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
       const gridX = Math.floor(worldX / this.cellSize);
       const gridY = Math.floor(worldY / this.cellSize);
 
-      world.mutateComponent(entity, "SpatialNode", node => {
+      const nodeCheck = world.getComponent(entity, "SpatialNode");
+      if (nodeCheck && nodeCheck.gridX === gridX && nodeCheck.gridY === gridY && nodeCheck.active === true) {
+        continue;
+      }
+
+      // Safe for determinism/rollback. Fetch mutable SpatialNode only when grid cell coordinates or active state actually change, avoiding stateVersion updates when stationary.
+      const node = world.getMutableComponent(entity, "SpatialNode");
+      if (node) {
         node.gridX = gridX;
         node.gridY = gridY;
         node.active = true;
-      });
+      }
     }
   }
 }

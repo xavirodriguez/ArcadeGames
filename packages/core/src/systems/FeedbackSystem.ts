@@ -16,7 +16,12 @@ export class FeedbackSystem extends System<CoreComponentRegistry> {
     if (world.isReSimulating) return;
 
     const entities = world.query("HapticRequest");
-    for (const entity of entities) {
+    const len = entities.length;
+    // Safe for determinism/rollback. Early exit when no haptic feedback requests exist, skipping loop setup and lookups.
+    if (len === 0) return;
+
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
       const haptic = world.getComponent(entity, "HapticRequest");
       if (haptic) {
         if (haptic.pattern) {

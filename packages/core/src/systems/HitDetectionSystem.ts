@@ -1,7 +1,6 @@
 import { World } from "../ecs/World";
 import { System } from "../ecs/System";
 import { CoreComponentRegistry, TransformComponent } from "../ecs/CoreComponents";
-import { Entity } from "../ecs/Entity";
 
 /**
  * System that detects triggers between Hitboxes and Hurtboxes, filtering multiple hits.
@@ -10,61 +9,94 @@ import { Entity } from "../ecs/Entity";
 export class HitDetectionSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     const hitboxes = world.query("CollisionEvents", "Hitbox");
+    const len = hitboxes.length;
+    if (len === 0) return;
 
-    for (let i = 0; i < hitboxes.length; i++) {
+    for (let i = 0; i < len; i++) {
       const hitboxEntity = hitboxes[i];
       const hitbox = world.getComponent(hitboxEntity, "Hitbox")!;
       const events = world.getComponent(hitboxEntity, "CollisionEvents")!;
 
-      const activeTriggers = events.activeTriggers ?? [];
-      const colPairs = events.collisions.map((c) => c.otherEntity) ?? [];
-      const allActive = [...activeTriggers, ...colPairs];
+      const activeTriggers = events.activeTriggers;
+      const collisions = events.collisions;
 
-      // Safe initialization of hit entities tracking
-      const hitEntities = hitbox.hitEntities ?? [];
+      let activeHurtboxCount = 0;
 
-      for (let j = 0; j < allActive.length; j++) {
-        const otherEntity = allActive[j];
-        if (!world.hasEntity(otherEntity)) continue;
+      if (activeTriggers) {
+        const trigLen = activeTriggers.length;
+        for (let j = 0; j < trigLen; j++) {
+          const otherEntity = activeTriggers[j];
+          if (!world.hasEntity(otherEntity)) continue;
 
-        // Check if the other entity is a Hurtbox
-        if (world.hasComponent(otherEntity, "Hurtbox")) {
-          // Verify if this victim has already been hit during this activation
-          if (hitEntities.includes(otherEntity)) {
-            continue;
-          }
+          if (world.hasComponent(otherEntity, "Hurtbox")) {
+            activeHurtboxCount++;
+            const currentHitEntities = world.getComponent(hitboxEntity, "Hitbox")?.hitEntities ?? [];
+            if (!currentHitEntities.includes(otherEntity)) {
+              // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocation while updating hitEntities list.
+              const hb = world.getMutableComponent(hitboxEntity, "Hitbox");
+              if (hb) {
+                if (!hb.hitEntities) hb.hitEntities = [];
+                hb.hitEntities.push(otherEntity);
+              }
 
-          // Mark as hit
-          world.mutateComponent(hitboxEntity, "Hitbox", (hb) => {
-            if (!hb.hitEntities) hb.hitEntities = [];
-            hb.hitEntities.push(otherEntity);
-          });
+              const hitboxTrans = world.getComponent(hitboxEntity, "Transform") as TransformComponent | undefined;
+              const hurtboxTrans = world.getComponent(otherEntity, "Transform") as TransformComponent | undefined;
 
-          // Fetch parents to resolve the actual attacker and victim characters
-          const hitboxTrans = world.getComponent(hitboxEntity, "Transform") as TransformComponent | undefined;
-          const hurtboxTrans = world.getComponent(otherEntity, "Transform") as TransformComponent | undefined;
-
-          const attacker = hitboxTrans?.parentEntity;
-          const victim = hurtboxTrans?.parentEntity;
-
-          const eventBus = world.getEventBus();
-          if (eventBus) {
-            eventBus.emit("hitbox:hit" as any, {
-              hitboxEntity,
-              hurtboxEntity: otherEntity,
-              attacker,
-              victim
-            });
+              const eventBus = world.getEventBus();
+              if (eventBus) {
+                eventBus.emit("hitbox:hit" as any, {
+                  hitboxEntity,
+                  hurtboxEntity: otherEntity,
+                  attacker: hitboxTrans?.parentEntity,
+                  victim: hurtboxTrans?.parentEntity
+                });
+              }
+            }
           }
         }
       }
 
-      // Auto-reset when the hitbox is no longer overlapping any active hurtbox triggers/collisions
-      const hurtboxActive = allActive.filter((ent) => world.hasEntity(ent) && world.hasComponent(ent, "Hurtbox"));
-      if (hurtboxActive.length === 0 && hitEntities.length > 0) {
-        world.mutateComponent(hitboxEntity, "Hitbox", (hb) => {
+      if (collisions) {
+        const colLen = collisions.length;
+        for (let j = 0; j < colLen; j++) {
+          const otherEntity = collisions[j].otherEntity;
+          if (!world.hasEntity(otherEntity)) continue;
+
+          if (world.hasComponent(otherEntity, "Hurtbox")) {
+            activeHurtboxCount++;
+            const currentHitEntities = world.getComponent(hitboxEntity, "Hitbox")?.hitEntities ?? [];
+            if (!currentHitEntities.includes(otherEntity)) {
+              // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocation while updating hitEntities list.
+              const hb = world.getMutableComponent(hitboxEntity, "Hitbox");
+              if (hb) {
+                if (!hb.hitEntities) hb.hitEntities = [];
+                hb.hitEntities.push(otherEntity);
+              }
+
+              const hitboxTrans = world.getComponent(hitboxEntity, "Transform") as TransformComponent | undefined;
+              const hurtboxTrans = world.getComponent(otherEntity, "Transform") as TransformComponent | undefined;
+
+              const eventBus = world.getEventBus();
+              if (eventBus) {
+                eventBus.emit("hitbox:hit" as any, {
+                  hitboxEntity,
+                  hurtboxEntity: otherEntity,
+                  attacker: hitboxTrans?.parentEntity,
+                  victim: hurtboxTrans?.parentEntity
+                });
+              }
+            }
+          }
+        }
+      }
+
+      const currentHitEntities = world.getComponent(hitboxEntity, "Hitbox")?.hitEntities;
+      if (activeHurtboxCount === 0 && currentHitEntities && currentHitEntities.length > 0) {
+        // Safe for determinism/rollback. Fetch mutable Hitbox component directly without closure allocation to reset hitEntities list.
+        const hb = world.getMutableComponent(hitboxEntity, "Hitbox");
+        if (hb) {
           hb.hitEntities = [];
-        });
+        }
       }
     }
   }

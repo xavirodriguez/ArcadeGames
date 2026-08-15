@@ -196,7 +196,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
     if (!metrics) {
       return (
         <View style={styles.tabContent}>
-          <ActivityIndicator size="small" color="#00ff00" style={{ marginVertical: 20 }} />
+          <ActivityIndicator size="small" color="#00ff00" style={styles.loadingSpinner} />
           <Text style={[styles.statLabel, { textAlign: 'center' }]}>
             Conectando con el endpoint de telemetría de Colyseus...
           </Text>
@@ -874,6 +874,9 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     color: '#fff',
     fontSize: 14,
+  },
+  loadingSpinner: {
+    marginVertical: 20,
   },
   exportButton: {
     backgroundColor: '#00ff00',

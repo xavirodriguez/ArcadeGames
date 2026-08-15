@@ -419,7 +419,7 @@ const StartScreen: FC<{
 
         {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
           <>
-            <View style={{ width: 20 }} />
+            <View style={styles.spacerHorizontal20} />
             <NeonButton
               variant="cyan"
               onPress={() => {
@@ -475,6 +475,9 @@ const styles = StyleSheet.create({
   },
   seedWidget: {
     marginBottom: 30,
+  },
+  spacerHorizontal20: {
+    width: 20,
   },
 });
 

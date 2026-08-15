@@ -1255,7 +1255,12 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
 
     // Check level complete (Core collected)
     if (runState && runState.collectedPermanentIds.includes("archive_core_1")) {
-      this.gameOver = true;
+      if (!this.gameOver) {
+        this.gameOver = true;
+        this.eventBus.emit("game:over" as any, {
+          state: this.getGameState()
+        });
+      }
     }
 
     this.world.update(dt);

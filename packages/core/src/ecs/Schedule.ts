@@ -5,17 +5,23 @@ import { World, BlueprintRegistryMap } from "./World";
 import { RandomService } from "../utils/RandomService";
 
 /**
- * Orquesta y ejecuta los sistemas registrados del ECS de forma secuencial y ordenada por fases.
+ * Orchestrates and executes registered ECS systems sequentially grouped by phases and sorted by priority.
  *
  * @remarks
- * Administra el ciclo de vida de los sistemas durante la simulación de ticks,
- * agrupándolos y ejecutándolos según fases predefinidas (Input, Simulation, Transform, Collision, etc.)
- * y prioridades de ejecución específicas.
+ * The `Schedule` manages system execution order across pre-defined phases:
+ * 1. `Input`
+ * 2. `Simulation`
+ * 3. `Transform`
+ * 4. `Collision`
+ * 5. `GameRules`
+ * 6. `Presentation`
  *
- * @precondition Los sistemas agregados deben cumplir con el contrato de la clase `System`.
- * @postcondition Ejecuta las actualizaciones secuenciales de todos los sistemas y vacía los cambios diferidos en el World (`flush()`).
- * @invariant La lista de sistemas registrados se mantiene constante a menos que se invoque explicitamente a `clearSystems()`.
- * @conceptualRisk [LIFECYCLE] Invocar `update` simultáneamente o con un World destruido manipulará referencias inválidas u obsoletas de entidades.
+ * **Execution Invariants & Lifecycle Guarantees**:
+ * - **Deterministic RNG Locking**: `world.gameplayRandom` is unlocked before running system updates and re-locked immediately upon phase completion to prevent non-deterministic random state mutations outside ticks.
+ * - **Structural Command Buffer Invariant**: Marks `world.isUpdating = true` while invoking system updates. Any entity creation, destruction, or component addition/removal during update loops is deferred via `WorldCommandBuffer`.
+ * - **Deferred Flush Trigger**: Calls `eventBus.flushDeferred()` and `world.flush()` at the end of each tick step to process buffered events and commit deferred structural changes safely.
+ * - **Soft Pause / Gameplay Freeze Filter**: Handles `GameplayFreeze` resources, pausing `Input`, `Collision`, and `GameRules` phases while allowing select visual or presentation systems (`TTLSystem`, `JuiceSystem`) to continue updating.
+ *
  * @public
  */
 export class Schedule<
@@ -28,9 +34,9 @@ export class Schedule<
   private phasedSystems = new Map<string, { system: System<TComponents, TEvents>; phase: string; priority: number; group?: string }[]>();
 
   /**
-   * Crea una nueva instancia de la agenda de ejecución (Schedule).
+   * Initializes a new system execution schedule.
    *
-   * @param phases - Lista personalizada de fases de ejecución ordenadas de forma secuencial.
+   * @param phases - Optional custom ordered sequence of execution phases. Defaults to standard engine phases (`Input` -\> `Simulation` -\> `Transform` -\> `Collision` -\> `GameRules` -\> `Presentation`).
    */
   constructor(phases?: string[]) {
     this.phases = phases ?? [
@@ -55,16 +61,11 @@ export class Schedule<
   }
 
   /**
-   * Registra un sistema en el Schedule y gatilla su callback `onRegister`.
+   * Registers a system into the schedule and triggers its `onRegister` hook.
    *
-   * @precondition El sistema no debe estar nulo y el World debe ser una instancia activa y válida.
-   * @postcondition El sistema se añade internamente de acuerdo a su fase y prioridad, y su callback `onRegister` es ejecutado.
-   * @throws Ninguno.
-   * @sideEffect Muta la lista de sistemas internos e invoca código externo mediante `system.onRegister`.
-   *
-   * @param system - El sistema a registrar.
-   * @param config - Configuración de fase y prioridad del sistema.
-   * @param world - El World de la simulación en donde se registra el sistema.
+   * @param system - The system instance to register.
+   * @param config - Registration options specifying phase, priority, and optional group tag.
+   * @param world - The target simulation `World`.
    */
   public addSystem(
     system: System<TComponents, TEvents>,
@@ -82,25 +83,19 @@ export class Schedule<
   }
 
   /**
-   * Obtiene todos los sistemas registrados actualmente en esta agenda de ejecución.
+   * Returns all systems currently registered in this schedule.
    *
-   * @precondition Ninguna.
-   * @postcondition Retorna una lista con todos los objetos de tipo `System` registrados.
-   * @returns Un array de sistemas.
+   * @returns Array of registered `System` instances.
    */
   public getSystems(): System<TComponents, TEvents>[] {
     return this.systems.map(s => s.system);
   }
 
   /**
-   * Dispone y elimina todos los sistemas de forma limpia.
+   * Disposes and unregisters all systems.
    *
    * @remarks
-   * Llama al callback `dispose()` o `destroy()` de cada sistema registrado antes de vaciar la colección interna.
-   *
-   * @precondition Ninguna.
-   * @postcondition La agenda de sistemas queda vacía y sin referencias de sistemas.
-   * @sideEffect Llama a `dispose()` en cada sistema y borra el contenido de `systems`.
+   * Invokes the `dispose()` hook on every registered system before clearing the internal collections.
    */
   public clearSystems(): void {
     this.systems.forEach(s => s.system.dispose());
@@ -109,21 +104,10 @@ export class Schedule<
   }
 
   /**
-   * Ejecuta la actualización periódica de todos los sistemas de acuerdo a su orden de fase y prioridad.
+   * Executes one update step across all registered phases and systems in sequential order.
    *
-   * @remarks
-   * Desbloquea y bloquea los generadores pseudo-aleatorios del World (`RandomService`) de forma segura,
-   * controla que las mutaciones estructurales se almacenen en buffer activando la bandera `world.isUpdating = true`,
-   * y finalmente vacía la cola de comandos diferidos del World mediante `world.flush()`.
-   *
-   * @precondition El World debe estar activo y no destruido.
-   * @postcondition Todos los sistemas ejecutan su lógica periódica secuencialmente y se vacían los comandos estructurales de entidades pendientes en el World.
-   * @invariant El estado de actualización `world.isUpdating` se restaura de forma segura a `false` al finalizar la ejecución, incluso si ocurre un error.
-   * @throws Propaga cualquier error surgido durante el ciclo de actualización de un sistema individual.
-   * @sideEffect Cambia banderas internas de bloqueo del World, muta componentes y entidades, e invoca `flush()` al final.
-   *
-   * @param world - El World sobre el cual operar.
-   * @param deltaTime - El paso de tiempo desde el último frame o tick.
+   * @param world - The target simulation `World`.
+   * @param deltaTime - Fixed time delta for this tick in seconds.
    */
   public update(
     world: World<TComponents, TEvents, TBlueprints>,

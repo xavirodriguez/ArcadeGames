@@ -41,15 +41,16 @@ export interface GameLoopConfig {
  * A platform-agnostic game loop implementation using a fixed-timestep accumulator.
  *
  * @remarks
- * This loop is designed to support a consistent internal simulation frequency
- * (fixed timestep target) independent of the rendering framerate.
+ * The `GameLoop` decouples internal physics/simulation updates from rendering frame rates using a fixed-timestep accumulator.
  *
- * @warning
- * **Spiral of Death Mitigation**: Under heavy load, if the simulation (update) takes longer
- * than the available frame time, the loop will clamp `deltaTime` to `maxDelta`.
- * In such cases, the simulation will not catch up with real-time, resulting in a "slow-motion"
- * effect relative to the wall clock. This is intended to prevent unrecoverable lag accumulation
- * (spiral of death), but it means the simulation tick count will fall behind real-time.
+ * **Key Architectural Modes & Lifecycle Rules**:
+ * - **Automatic Mode (`manual: false`)**: Uses a {@link FrameScheduler} (e.g. `browserFrameScheduler` or `requestAnimationFrame`) to continuously run `tick()`.
+ * - **Manual Mode (`manual: true`)**: Allows external drivers (such as React Native Reanimated or custom tickers) to call `tick()` directly.
+ * - **Watchdog Protection**: In manual mode, a watchdog timer monitors tick intervals. If no `tick()` is received within `watchdogTimeout` ms (default 5000ms), `onWatchdogTimeout` fires to alert of driver stalls.
+ * - **Spiral of Death Mitigation**: Clamps `deltaTime` to `maxDelta` (default 0.25s) to avoid unrecoverable simulation lag cascades under heavy loads.
+ * - **Delta Units**: Update callbacks receive delta time strictly in seconds (e.g. `1/60 ~ 0.01667`).
+ * - **Render Interpolation**: Render callbacks receive an `alpha` factor (`0.0 <= alpha < 1.0`) representing fractional leftover time in the accumulator for sub-frame visual interpolation.
+ *
  * @public
  */
 export class GameLoop {

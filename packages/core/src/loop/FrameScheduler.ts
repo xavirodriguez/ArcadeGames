@@ -2,8 +2,8 @@
  * Interface for scheduling frames and retrieving high-resolution time.
  *
  * @remarks
- * Decouples the GameLoop from browser-specific APIs like requestAnimationFrame
- * and performance.now, allowing it to run in headless or custom environments.
+ * Decouples {@link GameLoop} from platform-specific timing APIs like `requestAnimationFrame`
+ * and `performance.now`, enabling execution across browser, React Native, server-side Node.js, and test environments.
  * @public
  */
 export interface FrameScheduler {

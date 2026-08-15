@@ -30,25 +30,41 @@ export enum SystemPhase {
   Presentation = "Presentation"
 }
 
-/** @public */
+/**
+ * Configuration options for system registration within a {@link Schedule}.
+ * @public
+ */
 export interface SystemConfig {
+  /**
+   * Execution phase in which this system should run.
+   * Defaults to `SystemPhase.Simulation`.
+   */
   phase?: SystemPhase | string;
+  /**
+   * Priority within the assigned phase.
+   * Systems with higher numerical priority values execute first.
+   */
   priority?: number;
+  /**
+   * Optional group tag used for phase-based or context-based system filtering
+   * (e.g., active group subsets during transitions or wave states).
+   */
   group?: string;
 }
 
 /**
- * Base class for all systems.
+ * Base abstract class for all ECS simulation systems.
  *
  * @remarks
- * Systems implement the logic that operates on entities and components.
- * They are executed by the {@link World} during its update loop.
+ * Systems encapsulate behavior and logic, operating directly on entities and components
+ * matched by queries within the {@link World}. They are organized and executed sequentially
+ * by a {@link Schedule} ordered by phase and priority.
  *
- * Systems should ideally be stateless or only maintain limited auxiliary
- * state (like caches or coordination flags) that can be safely discarded or recomputed.
- * Core simulation state should be stored in components within the {@link World} to support
- * features like snapshots, rollback, and replication. Systems that maintain internal
- * simulation state may break these features if that state is not serializable.
+ * **Statelessness Invariant**: Core simulation state must reside exclusively within components
+ * in the `World`. Systems should remain stateless or only maintain transient, recomputable
+ * helper state (such as query caches or scratch buffers). Storing mutable gameplay state
+ * directly on system properties breaks snapshot capture, state serialization, and rollback netcode.
+ *
  * @public
  */
 export abstract class System<
@@ -56,20 +72,22 @@ export abstract class System<
   TEvents extends EventRegistry = EventRegistry
 > {
   /**
-   * Main update logic for the system.
+   * Executes the system's logic for a single tick step.
    *
-   * @param world - The world instance being updated.
-   * @param deltaTime - Time elapsed since the last update.
+   * @param world - The active `World` instance containing entities and components.
+   * @param deltaTime - Fixed time step in seconds (e.g., `1 / 60`).
    */
   public abstract update(world: World<TComponents, TEvents>, deltaTime: number): void;
 
   /**
-   * Called when the system is registered with a world.
+   * Lifecycle hook invoked immediately when the system is added to a `Schedule` or registered with a `World`.
+   *
+   * @param world - The `World` instance the system is being attached to.
    */
   public onRegister(_world: World<TComponents, TEvents>): void {}
 
   /**
-   * Called when the system is removed or the world is cleared.
+   * Lifecycle hook invoked when the system is being removed or when the containing `Schedule` is cleared.
    */
   public dispose(): void {}
 }

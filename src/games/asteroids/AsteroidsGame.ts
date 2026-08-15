@@ -46,7 +46,8 @@ import {
   BoundaryComponent,
   ShapeType,
   CircleShape,
-  WebAudioPlayer
+  WebAudioPlayer,
+  WebAssetProvider
 } from "@tiny-aster/core";
 
 import { LootSystem, PowerUpSystem, ComboSystem, DifficultyDirectorSystem, AchievementSystem } from "../shared/arcade";
@@ -226,7 +227,13 @@ export class AsteroidsGame
     if (!this.bulletPool) this.bulletPool = new BulletPool();
     if (!this.particlePool) this.particlePool = new ParticlePool();
     if (!this.assetLoader) {
-      this.assetLoader = new AssetLoader(this._config.assetProvider);
+      const provider = this._config.assetProvider || (typeof window !== "undefined" ? new WebAssetProvider() : undefined);
+      this.assetLoader = new AssetLoader(provider);
+    } else if (!this.assetLoader.hasProvider()) {
+      const provider = this._config.assetProvider || (typeof window !== "undefined" ? new WebAssetProvider() : undefined);
+      if (provider) {
+        this.assetLoader.setProvider(provider);
+      }
     }
 
     if (!this.isHeadless) {

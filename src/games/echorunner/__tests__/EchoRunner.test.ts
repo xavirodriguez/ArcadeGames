@@ -89,6 +89,29 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(health.invulnerableRemaining).toBeGreaterThan(0);
   });
 
+  it("should emit game:over event and transition ArcadeKernel to GAME_OVER when core is collected", () => {
+    // Transition ArcadeKernel from BOOT -> LOADING -> TITLE -> MENU -> PLAYING
+    game.kernel.transitionTo("LOADING" as any);
+    game.kernel.transitionTo("MENU" as any);
+    game.kernel.transitionTo("PLAYING" as any);
+
+    const runState = world.getResource<any>("RunState");
+    expect(runState).toBeDefined();
+
+    const gameOverListener = jest.fn();
+    game.getEventBus().on("game:over" as any, gameOverListener);
+
+    // Simulate archive core collection
+    runState.collectedPermanentIds.push("archive_core_1");
+
+    // Advance simulation
+    game.update(0.016);
+
+    expect(game.isGameOver()).toBe(true);
+    expect(gameOverListener).toHaveBeenCalledTimes(1);
+    expect(game.kernel.getState()).toBe("GAME_OVER");
+  });
+
   it("should initialize renderer with valid shape and background drawers and render a frame without errors", () => {
     const renderer = new CanvasRenderer();
     expect(() => game.initializeRenderer(renderer as any)).not.toThrow();

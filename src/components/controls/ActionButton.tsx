@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { StyleSheet, Text, Pressable, type PressableProps } from "react-native";
+import { hapticSelection } from "../../utils/haptics";
 
 export interface ActionButtonProps {
   label: string;
@@ -7,6 +8,8 @@ export interface ActionButtonProps {
   onPressOut: () => void;
   size?: number;
   color?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 /**
@@ -20,9 +23,14 @@ export function ActionButton({
   onPressOut,
   size = 56,
   color = "rgba(255,255,255,0.15)",
+  accessibilityLabel,
+  accessibilityHint,
 }: ActionButtonProps) {
   const handlePressIn = useCallback<NonNullable<PressableProps["onPressIn"]>>(
-    () => onPressIn(),
+    () => {
+      hapticSelection();
+      onPressIn();
+    },
     [onPressIn]
   );
   const handlePressOut = useCallback<NonNullable<PressableProps["onPressOut"]>>(
@@ -32,6 +40,9 @@ export function ActionButton({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || label}
+      accessibilityHint={accessibilityHint}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={({ pressed }) => [

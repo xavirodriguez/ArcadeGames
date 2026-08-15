@@ -1,18 +1,40 @@
 import { StyleSheet, Pressable, Text } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
+import { hapticSelection } from "../utils/haptics";
 
 export interface HyperspaceButtonProps {
   onPressIn: () => void;
   onPressOut: () => void;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 /**
  * Pure UI component for Hyperspace action.
  * Smaller than ShootButton, semi-transparent cyan tint.
  */
-export function HyperspaceButton({ onPressIn, onPressOut }: HyperspaceButtonProps) {
+export function HyperspaceButton({
+  onPressIn,
+  onPressOut,
+  accessibilityLabel,
+  accessibilityHint,
+}: HyperspaceButtonProps) {
+  const { t } = useTranslation();
+
+  const handlePressIn = () => {
+    hapticSelection();
+    onPressIn();
+  };
+
+  const label = accessibilityLabel || t?.accessibility?.hyperspace_button_label || "Hyperspace jump";
+  const hint = accessibilityHint || t?.accessibility?.hyperspace_button_hint || "Teleports ship to a random location";
+
   return (
     <Pressable
-      onPressIn={onPressIn}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      onPressIn={handlePressIn}
       onPressOut={onPressOut}
       style={({ pressed }) => [
         styles.button,
@@ -23,7 +45,7 @@ export function HyperspaceButton({ onPressIn, onPressOut }: HyperspaceButtonProp
         },
       ]}
     >
-        <Text style={styles.label}>H</Text>
+      <Text style={styles.label}>H</Text>
     </Pressable>
   );
 }

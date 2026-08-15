@@ -29,23 +29,26 @@ export interface StateDefinition {
 export class StateMachineSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const entities = world.query("StateMachine");
+    const len = entities.length;
 
-    for (const entity of entities) {
-      const sm = world.getComponent(entity, "StateMachine");
-      if (!sm) continue;
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
+      const smCheck = world.getComponent(entity, "StateMachine");
+      if (!smCheck) continue;
 
       const registry = world.getResource<Record<string, StateMachineDefinition>>("StateMachineRegistry");
-      const definition = registry ? registry[sm.machineId] : undefined;
+      const definition = registry ? registry[smCheck.machineId] : undefined;
 
       if (!definition) continue;
 
-      const stateDef = definition.states[sm.currentState];
+      const stateDef = definition.states[smCheck.currentState];
 
-      let elapsedMs = 0;
-      world.mutateComponent(entity, "StateMachine", (comp) => {
-        comp.elapsedMs += deltaTime;
-        elapsedMs = comp.elapsedMs;
-      });
+      // Safe for determinism/rollback. Direct getMutableComponent avoids per-tick closure allocations while triggering identical stateVersion updates.
+      const sm = world.getMutableComponent(entity, "StateMachine");
+      if (!sm) continue;
+
+      sm.elapsedMs += deltaTime;
+      const elapsedMs = sm.elapsedMs;
 
       if (stateDef?.onUpdate) {
         const nextState = stateDef.onUpdate(world, entity, sm.data, elapsedMs);
@@ -57,21 +60,25 @@ export class StateMachineSystem extends System<CoreComponentRegistry> {
   }
 
   private transition(world: World<CoreComponentRegistry>, entity: number, nextState: string, definition: StateMachineDefinition): void {
-    const sm = world.getComponent(entity, "StateMachine")!;
-    const oldStateDef = definition.states[sm.currentState];
+    const smCheck = world.getComponent(entity, "StateMachine");
+    if (!smCheck) return;
+
+    const oldStateDef = definition.states[smCheck.currentState];
     const newStateDef = definition.states[nextState];
 
     if (oldStateDef?.onExit) {
-      oldStateDef.onExit(world, entity, sm.data);
+      oldStateDef.onExit(world, entity, smCheck.data);
     }
 
-    world.mutateComponent(entity, "StateMachine", (comp) => {
-      comp.previousState = comp.currentState;
-      comp.currentState = nextState;
-      comp.elapsedMs = 0;
-    });
+    // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocations while maintaining deterministic state updates.
+    const sm = world.getMutableComponent(entity, "StateMachine");
+    if (sm) {
+      sm.previousState = sm.currentState;
+      sm.currentState = nextState;
+      sm.elapsedMs = 0;
+    }
 
-    if (newStateDef?.onEnter) {
+    if (newStateDef?.onEnter && sm) {
       newStateDef.onEnter(world, entity, sm.data);
     }
   }

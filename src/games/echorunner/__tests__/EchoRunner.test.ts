@@ -1,4 +1,5 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { CanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { EchoRunnerGame } from "../EchoRunnerGame";
 
 describe("Echo Runner Game Simulation Tests", () => {
@@ -86,5 +87,36 @@ describe("Echo Runner Game Simulation Tests", () => {
     // Player should now be invulnerable
     const health = world.getComponent(playerEntity, "Health")!;
     expect(health.invulnerableRemaining).toBeGreaterThan(0);
+  });
+
+  it("should initialize renderer with valid shape and background drawers and render a frame without errors", () => {
+    const renderer = new CanvasRenderer();
+    expect(() => game.initializeRenderer(renderer as any)).not.toThrow();
+
+    // Create a dummy 2D canvas context for testing rendering
+    const dummyCtx = {
+      canvas: { width: 800, height: 600 },
+      clearRect: jest.fn(),
+      save: jest.fn(),
+      restore: jest.fn(),
+      translate: jest.fn(),
+      rotate: jest.fn(),
+      scale: jest.fn(),
+      beginPath: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      stroke: jest.fn(),
+      fill: jest.fn(),
+      fillRect: jest.fn(),
+      strokeRect: jest.fn(),
+      arc: jest.fn(),
+      ellipse: jest.fn(),
+      closePath: jest.fn(),
+      createLinearGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
+      createRadialGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
+      roundRect: jest.fn(),
+    } as unknown as CanvasRenderingContext2D;
+
+    expect(() => renderer.render(world, dummyCtx)).not.toThrow();
   });
 });

@@ -19,6 +19,9 @@ import {
   JuiceSystem,
   ScreenShakeSystem,
   RenderUpdateSystem,
+  Camera2DSystem,
+  TilemapRenderSystem,
+  Renderer,
   TransformComponent,
   VelocityComponent,
   Collider2DComponent,
@@ -865,6 +868,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     this.world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });
 
     // Presentation Systems
+    this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new TilemapRenderSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
@@ -1293,46 +1298,40 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     }
   }
 
-  public initializeRenderer(renderer: any): void {
-    renderer.registerBackgroundEffect("echo_bg", (ctx: CanvasRenderingContext2D, width: number, height: number, elapsed: number) => {
-      drawEchoBackground(ctx, width, height, elapsed);
-    });
+  public initializeRenderer(renderer: Renderer<any, any>): void {
+    if (renderer.type === "canvas") {
+      const {
+        drawEchoBackground,
+        drawEchoPlayer,
+        drawMemoryFragment,
+        drawMemoryCore,
+        drawCheckpointNode,
+        drawPulseAttack,
+        drawSentinel,
+        drawHopper,
+        drawWatcher,
+        drawCharger
+      } = require("./rendering/EchoRunnerCanvasVisuals");
 
-    renderer.registerShape("player", (ctx: CanvasRenderingContext2D, trans: any, render: any, world: any, ent: any) => {
-      drawEchoPlayer(ctx, trans, render, world, ent);
-    });
+      renderer.registerBackgroundEffect("echo_bg", drawEchoBackground);
+      renderer.registerShape("player", drawEchoPlayer);
+      renderer.registerShape("fragment", drawMemoryFragment);
+      renderer.registerShape("core", drawMemoryCore);
+      renderer.registerShape("node", drawCheckpointNode);
+      renderer.registerShape("pulse_attack", drawPulseAttack);
+      renderer.registerShape("sentinel", drawSentinel);
+      renderer.registerShape("hopper", drawHopper);
+      renderer.registerShape("watcher", drawWatcher);
+      renderer.registerShape("charger", drawCharger);
+    } else if (renderer.type === "skia") {
+      const {
+        drawSkiaEchoBackground,
+        drawSkiaEchoPlayer
+      } = require("./rendering/EchoRunnerSkiaVisuals");
 
-    renderer.registerShape("fragment", (ctx: CanvasRenderingContext2D, trans: any, render: any) => {
-      drawMemoryFragment(ctx, trans, render);
-    });
-
-    renderer.registerShape("core", (ctx: CanvasRenderingContext2D, trans: any, render: any) => {
-      drawMemoryCore(ctx, trans, render);
-    });
-
-    renderer.registerShape("node", (ctx: CanvasRenderingContext2D, trans: any, render: any, world: any, ent: any) => {
-      drawCheckpointNode(ctx, trans, render, world, ent);
-    });
-
-    renderer.registerShape("pulse_attack", (ctx: CanvasRenderingContext2D, trans: any, render: any) => {
-      drawPulseAttack(ctx, trans, render);
-    });
-
-    renderer.registerShape("sentinel", (ctx: CanvasRenderingContext2D, trans: any, render: any, world: any, ent: any) => {
-      drawSentinel(ctx, trans, render, world, ent);
-    });
-
-    renderer.registerShape("hopper", (ctx: CanvasRenderingContext2D, trans: any, render: any, world: any, ent: any) => {
-      drawHopper(ctx, trans, render, world, ent);
-    });
-
-    renderer.registerShape("watcher", (ctx: CanvasRenderingContext2D, trans: any, render: any, world: any, ent: any) => {
-      drawWatcher(ctx, trans, render, world, ent);
-    });
-
-    renderer.registerShape("charger", (ctx: CanvasRenderingContext2D, trans: any, render: any, world: any, ent: any) => {
-      drawCharger(ctx, trans, render, world, ent);
-    });
+      renderer.registerBackgroundEffect("echo_bg", drawSkiaEchoBackground);
+      renderer.registerShape("player", drawSkiaEchoPlayer);
+    }
   }
 
   public getGameState(): EchoRunnerGameState {

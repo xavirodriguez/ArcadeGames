@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#1e293b",
+    borderColor: colors.borderDark,
     zIndex: 10,
   },
   hudItem: {
@@ -322,8 +322,8 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   violetGlow: {
-    color: "#c084fc",
-    textShadowColor: "#c084fc",
+    color: colors.violet,
+    textShadowColor: colors.violet,
   },
   goldGlow: {
     color: colors.gold,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   touchButton: {
     backgroundColor: "rgba(30, 41, 59, 0.7)",
     borderWidth: 1.5,
-    borderColor: "#475569",
+    borderColor: colors.borderLight,
     width: 65,
     height: 65,
     borderRadius: 35,

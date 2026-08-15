@@ -1,5 +1,6 @@
 import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
+import { colors } from "../../../theme/colors";
 
 let Skia: any = null;
 try {
@@ -29,7 +30,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     if (!render) return;
 
     const size = render.size || 15;
-    let colorStr = render.color || "#00f0ff"; // Glowing cyan default
+    let colorStr = render.color || colors.cyan; // Glowing cyan default
 
     canvas.save();
 
@@ -40,7 +41,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       if ((render.hitFlashFrames >> 1) % 2 === 0) {
         opacity = 0.3;
       }
-      colorStr = "#ffffff";
+      colorStr = colors.white;
     }
 
     // Invulnerability Pulse
@@ -67,7 +68,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       const flameLen = size * 1.5 * flicker;
 
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("#ffcc00")); // Neon yellow core
+      paint.setColor(Skia.Color(colors.gold)); // Neon yellow core
       paint.setAlphaf(opacity * 0.7);
 
       const flamePath = Skia.Path.Make();
@@ -78,7 +79,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       canvas.drawPath(flamePath, paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#ff4500")); // Neon orange outline
+      paint.setColor(Skia.Color(colors.orangeDark)); // Neon orange outline
       paint.setStrokeWidth(2);
       paint.setAlphaf(opacity);
       canvas.drawPath(flamePath, paint);
@@ -137,7 +138,7 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
       radius = render.size / 2;
     }
 
-    let colorStr = render.color || "#ff66cc"; // Neon pink default
+    let colorStr = render.color || colors.pink; // Neon pink default
     canvas.save();
 
     let opacity = 1.0;
@@ -145,7 +146,7 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
       if ((render.hitFlashFrames >> 1) % 2 === 0) {
         opacity = 0.3;
       }
-      colorStr = "#ffffff";
+      colorStr = colors.white;
     }
 
     const paint = getPaint();
@@ -202,7 +203,7 @@ export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistr
     if (!render) return;
 
     const size = render.size || 2;
-    const colorStr = render.color || "#00ff66"; // Glowing laser green
+    const colorStr = render.color || colors.green; // Glowing laser green
     const length = size * 4;
 
     canvas.save();
@@ -219,7 +220,7 @@ export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistr
     canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
 
     // White core line for brightness
-    paint.setColor(Skia.Color("#ffffff"));
+    paint.setColor(Skia.Color(colors.white));
     paint.setStrokeWidth(1);
     canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
 

@@ -1,6 +1,7 @@
 import { ShapeDrawer, ShapeType, CircleShape } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
+import { colors } from "../../../theme/colors";
 
 /**
  * Procedural player ship shape drawer for HTML5 Canvas.
@@ -12,7 +13,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     if (!render) return;
 
     const size = render.size || 15;
-    let baseColor = render.color || "#00f0ff";
+    let baseColor = render.color || colors.cyan;
     const tick = Math.floor(Date.now() / 40);
 
     ctx.save();
@@ -23,7 +24,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       if ((render.hitFlashFrames! >> 1) % 2 === 0) {
         ctx.globalAlpha = 0.3;
       }
-      baseColor = "#ffffff";
+      baseColor = colors.white;
     }
 
     // Invulnerability Pulse
@@ -49,9 +50,9 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       const flicker = 1.0 + 0.3 * (renderRandom.next() - 0.5);
       const flameLen = size * 1.5 * flicker;
 
-      ctx.strokeStyle = "#ff4500";
-      ctx.fillStyle = "#ffcc00";
-      ctx.shadowColor = "#ff4500";
+      ctx.strokeStyle = colors.orangeDark;
+      ctx.fillStyle = colors.gold;
+      ctx.shadowColor = colors.orangeDark;
       ctx.shadowBlur = 10;
       ctx.lineWidth = 2;
 
@@ -90,8 +91,8 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 
     // Apply intense white hit flash glow if hit flashing (R11)
     if (isHitFlashing) {
-      ctx.strokeStyle = "#ffffff";
-      ctx.shadowColor = "#ffffff";
+      ctx.strokeStyle = colors.white;
+      ctx.shadowColor = colors.white;
       ctx.shadowBlur = 20;
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -126,7 +127,7 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
       radius = render.size / 2;
     }
 
-    let color = render.color || "#ff66cc"; // Neon pink default (R9)
+    let color = render.color || colors.pink; // Neon pink default (R9)
     ctx.save();
 
     const isHitFlashing = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
@@ -134,11 +135,11 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
       if ((render.hitFlashFrames! >> 1) % 2 === 0) {
         ctx.globalAlpha = 0.3;
       }
-      color = "#ffffff";
+      color = colors.white;
     }
 
     ctx.strokeStyle = color;
-    ctx.shadowColor = isHitFlashing ? "#ffffff" : color;
+    ctx.shadowColor = isHitFlashing ? colors.white : color;
     ctx.shadowBlur = isHitFlashing ? 20 : 10;
     ctx.lineWidth = 2;
     ctx.lineJoin = "round";
@@ -170,7 +171,7 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
     ctx.closePath();
 
     // Body fill (R9)
-    ctx.fillStyle = isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 102, 204, 0.12)";
+    ctx.fillStyle = isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 0, 85, 0.12)";
     ctx.fill();
     ctx.stroke();
 
@@ -188,7 +189,7 @@ export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, Asteroid
     if (!render) return;
 
     const size = render.size || 2;
-    const color = render.color || "#00ff66"; // Glowing laser green
+    const color = render.color || colors.green; // Glowing laser green
     const length = size * 4;
 
     ctx.save();
@@ -206,7 +207,7 @@ export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, Asteroid
 
     // White core line for brightness
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = "#ffffff";
+    ctx.strokeStyle = colors.white;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(-length / 2, 0);

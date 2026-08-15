@@ -360,7 +360,7 @@ const StartScreen: FC<{
           accessibilityState={{ selected: selectedMode === "deathmatch" }}
           accessibilityHint="Selecciona el modo infinito clásico de Asteroids"
         >
-          <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "deathmatch" ? "#000" : colors.cyan, fontSize: 14 }]}>
+          <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "deathmatch" ? "black" : colors.cyan, fontSize: 14 }]}>
             DEATHMATCH
           </Text>
         </TouchableOpacity>
@@ -383,7 +383,7 @@ const StartScreen: FC<{
           accessibilityState={{ selected: selectedMode === "story" }}
           accessibilityHint="Selecciona la campaña narrativa Kepler's Ghost"
         >
-          <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "story" ? "#000" : colors.cyan, fontSize: 14 }]}>
+          <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "story" ? "black" : colors.cyan, fontSize: 14 }]}>
             MODO HISTORIA
           </Text>
         </TouchableOpacity>

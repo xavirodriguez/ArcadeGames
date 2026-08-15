@@ -1,7 +1,8 @@
 import { Renderer, TransformComponent, RenderComponent, World } from "@tiny-aster/core";
+import { colors } from "../../../theme/colors";
 
 export function drawEchoBackground(ctx: CanvasRenderingContext2D, width: number, height: number, elapsed: number): void {
-  ctx.fillStyle = "#0a0a14";
+  ctx.fillStyle = colors.backgroundDark;
   ctx.fillRect(0, 0, width, height);
 
   // Digital matrix background lines
@@ -27,7 +28,7 @@ export function drawEchoBackground(ctx: CanvasRenderingContext2D, width: number,
   }
 
   // Draw some ambient technological circuits/particles
-  ctx.fillStyle = "rgba(255, 0, 255, 0.08)";
+  ctx.fillStyle = "rgba(255, 0, 85, 0.08)";
   for (let i = 0; i < 5; i++) {
     const px = ((i * 173 + elapsed * 5) % width);
     const py = ((i * 291 + elapsed * 8) % height);
@@ -66,12 +67,12 @@ export function drawEchoPlayer(
   ctx.fill();
 
   // Pulse glow effect
-  ctx.shadowColor = "#00f0ff";
+  ctx.shadowColor = colors.cyan;
   ctx.shadowBlur = 10;
 
   // Main metallic body
-  ctx.fillStyle = "#e0e6ed";
-  ctx.strokeStyle = "#00f0ff";
+  ctx.fillStyle = colors.textSecondary;
+  ctx.strokeStyle = colors.cyan;
   ctx.lineWidth = 2;
 
   // Head
@@ -82,28 +83,28 @@ export function drawEchoPlayer(
   ctx.stroke();
 
   // Glow visor (eye)
-  ctx.shadowColor = "#ff007f";
-  ctx.fillStyle = "#ff007f";
+  ctx.shadowColor = colors.pink;
+  ctx.fillStyle = colors.pink;
   ctx.beginPath();
   ctx.ellipse(0, -size * 0.45, size * 0.2, size * 0.06, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.shadowColor = "#00f0ff";
+  ctx.shadowColor = colors.cyan;
   // Torso
-  ctx.fillStyle = "#1e293b";
+  ctx.fillStyle = colors.borderDark;
   ctx.beginPath();
   ctx.roundRect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6, 4);
   ctx.fill();
   ctx.stroke();
 
   // Energy Core (chest glow)
-  ctx.fillStyle = "#00f0ff";
+  ctx.fillStyle = colors.cyan;
   ctx.beginPath();
   ctx.arc(0, size * 0.1, size * 0.12, 0, Math.PI * 2);
   ctx.fill();
 
   // Legs/thruster base
-  ctx.fillStyle = "#0f172a";
+  ctx.fillStyle = colors.backgroundSlate;
   ctx.beginPath();
   ctx.arc(-size * 0.15, size * 0.5, size * 0.08, 0, Math.PI * 2);
   ctx.arc(size * 0.15, size * 0.5, size * 0.08, 0, Math.PI * 2);
@@ -125,12 +126,12 @@ export function drawMemoryFragment(
   ctx.translate(transform.worldX, transform.worldY + hoverOffset);
   ctx.rotate(elapsed * 1.5);
 
-  ctx.shadowColor = "#a855f7";
+  ctx.shadowColor = colors.purple;
   ctx.shadowBlur = 8;
 
   // Draw glowing diamond
   ctx.fillStyle = "rgba(168, 85, 247, 0.4)";
-  ctx.strokeStyle = "#c084fc";
+  ctx.strokeStyle = colors.violet;
   ctx.lineWidth = 2;
 
   ctx.beginPath();
@@ -143,7 +144,7 @@ export function drawMemoryFragment(
   ctx.stroke();
 
   // Inner core
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = colors.white;
   ctx.beginPath();
   ctx.moveTo(0, -size * 0.25);
   ctx.lineTo(size * 0.18, 0);
@@ -168,7 +169,7 @@ export function drawMemoryCore(
   ctx.translate(transform.worldX, transform.worldY + hoverOffset);
 
   // Glow
-  ctx.shadowColor = "#f59e0b";
+  ctx.shadowColor = colors.amber;
   ctx.shadowBlur = 15;
 
   // Orbiting ring 1
@@ -185,9 +186,9 @@ export function drawMemoryCore(
 
   // Main Sphere
   const gradient = ctx.createRadialGradient(0, 0, 2, 0, 0, size * 0.5);
-  gradient.addColorStop(0, "#ffffff");
-  gradient.addColorStop(0.3, "#fef08a");
-  gradient.addColorStop(1, "#f59e0b");
+  gradient.addColorStop(0, colors.white);
+  gradient.addColorStop(0.3, colors.yellow);
+  gradient.addColorStop(1, colors.amber);
 
   ctx.fillStyle = gradient;
   ctx.beginPath();
@@ -212,27 +213,27 @@ export function drawCheckpointNode(
   ctx.save();
   ctx.translate(transform.worldX, transform.worldY);
 
-  ctx.shadowColor = isActive ? "#22c55e" : "#ef4444";
+  ctx.shadowColor = isActive ? colors.green : colors.red;
   ctx.shadowBlur = 10;
 
   // Base
-  ctx.fillStyle = "#334155";
-  ctx.strokeStyle = "#475569";
+  ctx.fillStyle = colors.slate;
+  ctx.strokeStyle = colors.borderLight;
   ctx.lineWidth = 2;
   ctx.fillRect(-size * 0.4, size * 0.3, size * 0.8, size * 0.2);
   ctx.strokeRect(-size * 0.4, size * 0.3, size * 0.8, size * 0.2);
 
   // Pillar
-  ctx.fillStyle = "#1e293b";
+  ctx.fillStyle = colors.borderDark;
   ctx.fillRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8);
   ctx.strokeRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8);
 
   // Screen
-  ctx.fillStyle = isActive ? "#15803d" : "#991b1b";
+  ctx.fillStyle = isActive ? colors.green : colors.red; // Green vs Red
   ctx.fillRect(-size * 0.18, -size * 0.4, size * 0.36, size * 0.35);
 
   // Core/Data symbol
-  ctx.fillStyle = isActive ? "#4ade80" : "#f87171";
+  ctx.fillStyle = isActive ? colors.green : colors.red;
   ctx.beginPath();
   if (isActive) {
     ctx.arc(0, -size * 0.22, size * 0.08, 0, Math.PI * 2);
@@ -254,7 +255,7 @@ export function drawPulseAttack(
   ctx.translate(transform.worldX, transform.worldY);
   ctx.rotate(transform.worldRotation);
 
-  ctx.shadowColor = "#00f0ff";
+  ctx.shadowColor = colors.cyan;
   ctx.shadowBlur = 12;
 
   // Radial shockwave arc ahead
@@ -289,12 +290,12 @@ export function drawSentinel(
 
   // Alert blinking
   const isAlert = state === "Alert" || state === "Windup";
-  const glowColor = isAlert ? "#f97316" : (state === "Attack" ? "#ef4444" : "#a855f7");
+  const glowColor = isAlert ? colors.orange : (state === "Attack" ? colors.red : colors.purple);
   ctx.shadowColor = glowColor;
   ctx.shadowBlur = 8;
 
   // Outer casing
-  ctx.fillStyle = "#1e293b";
+  ctx.fillStyle = colors.borderDark;
   ctx.strokeStyle = glowColor;
   ctx.lineWidth = 2;
 
@@ -304,13 +305,13 @@ export function drawSentinel(
   ctx.stroke();
 
   // Sensor Eye
-  ctx.fillStyle = isAlert && Math.floor(Date.now() / 80) % 2 === 0 ? "#ffffff" : glowColor;
+  ctx.fillStyle = isAlert && Math.floor(Date.now() / 80) % 2 === 0 ? colors.white : glowColor;
   ctx.beginPath();
   ctx.arc(0, -size * 0.05, size * 0.15, 0, Math.PI * 2);
   ctx.fill();
 
   // Anti-grav hover spikes/prongs
-  ctx.strokeStyle = "#475569";
+  ctx.strokeStyle = colors.borderLight;
   ctx.beginPath();
   ctx.moveTo(-size * 0.45, size * 0.1);
   ctx.lineTo(-size * 0.6, size * 0.3);
@@ -335,11 +336,11 @@ export function drawHopper(
   ctx.save();
   ctx.translate(transform.worldX, transform.worldY);
 
-  const glowColor = state === "Attack" ? "#00f0ff" : "#22c55e";
+  const glowColor = state === "Attack" ? colors.cyan : colors.green;
   ctx.shadowColor = glowColor;
   ctx.shadowBlur = 8;
 
-  ctx.fillStyle = "#334155";
+  ctx.fillStyle = colors.slate;
   ctx.strokeStyle = glowColor;
   ctx.lineWidth = 2;
 
@@ -389,12 +390,12 @@ export function drawWatcher(
   ctx.save();
   ctx.translate(transform.worldX, transform.worldY);
 
-  ctx.shadowColor = "#3b82f6";
+  ctx.shadowColor = colors.blue;
   ctx.shadowBlur = 10;
 
   // Mount turret bracket
-  ctx.fillStyle = "#1e293b";
-  ctx.strokeStyle = "#3b82f6";
+  ctx.fillStyle = colors.borderDark;
+  ctx.strokeStyle = colors.blue;
   ctx.lineWidth = 2;
 
   ctx.beginPath();
@@ -403,7 +404,7 @@ export function drawWatcher(
   ctx.stroke();
 
   // Lens sphere
-  ctx.fillStyle = "#0f172a";
+  ctx.fillStyle = colors.backgroundSlate;
   ctx.beginPath();
   ctx.arc(0, -size * 0.05, size * 0.32, 0, Math.PI * 2);
   ctx.fill();
@@ -415,7 +416,7 @@ export function drawWatcher(
   ctx.arc(0, -size * 0.05, size * 0.18, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = "#60a5fa";
+  ctx.fillStyle = colors.blueLight;
   ctx.beginPath();
   ctx.arc(0, -size * 0.05, size * 0.08, 0, Math.PI * 2);
   ctx.fill();
@@ -438,11 +439,11 @@ export function drawCharger(
   ctx.translate(transform.worldX, transform.worldY);
 
   const isStunned = state === "Recovery" || state === "Stunned";
-  const glowColor = isStunned ? "#f59e0b" : "#ef4444";
+  const glowColor = isStunned ? colors.amber : colors.red;
   ctx.shadowColor = glowColor;
   ctx.shadowBlur = 12;
 
-  ctx.fillStyle = "#0f172a";
+  ctx.fillStyle = colors.backgroundSlate;
   ctx.strokeStyle = glowColor;
   ctx.lineWidth = 2;
 
@@ -464,7 +465,7 @@ export function drawCharger(
   // Stunned indicator (spinning stars)
   if (isStunned) {
     const elapsed = Date.now() / 200;
-    ctx.strokeStyle = "#fbbf24";
+    ctx.strokeStyle = colors.yellow;
     ctx.lineWidth = 1.5;
     for (let i = 0; i < 3; i++) {
       const angle = elapsed + (i * Math.PI * 2) / 3;

@@ -18,10 +18,26 @@ export function spawnScorePopup(
   text: string,
   color: string = "#FFFF00"
 ): Entity {
-  const popup = world.reserveEntityId();
-  world.getCommandBuffer().createEntity(popup);
+  const isUpdating = world.isUpdating;
+  const commands = world.getCommandBuffer();
 
-  world.getCommandBuffer().addComponent(popup, {
+  let popup: Entity;
+  if (isUpdating) {
+    popup = world.reserveEntityId();
+    commands.createEntity(popup);
+  } else {
+    popup = world.createEntity();
+  }
+
+  const addComp = (comp: any) => {
+    if (isUpdating) {
+      commands.addComponent(popup, comp);
+    } else {
+      world.addComponent(popup, comp);
+    }
+  };
+
+  addComp({
     type: "Transform",
     x,
     y: y - 20,
@@ -36,7 +52,7 @@ export function spawnScorePopup(
     dirty: false
   } as TransformComponent);
 
-  world.getCommandBuffer().addComponent(popup, {
+  addComp({
     type: "Render",
     spriteId: "text",
     shape: "floating_text",
@@ -51,22 +67,35 @@ export function spawnScorePopup(
   } as unknown as RenderComponent);
 
   // If the game registry supports UIText, we also attach it
-  world.getCommandBuffer().addComponent(popup, {
+  addComp({
     type: "UIText",
     content: text,
     wordWrap: false,
     maxLines: 1
   } as any);
 
-  world.getCommandBuffer().addComponent(popup, {
+  addComp({
     type: "TTL",
     timeLeft: 1000,
     remaining: 1000
   } as TTLComponent);
 
-  // Defer Juice side-effects or apply them directly toCommandBuffer/world
-  Juice.add(world, popup, { property: "y", target: -40, duration: 1000, easing: "easeOut" });
-  Juice.add(world, popup, { property: "opacity", target: 0, duration: 1000, easing: "easeIn" });
+  addComp({
+    type: "Juice",
+    active: true,
+    animations: [
+      { type: "animation", property: "y", target: -40, duration: 1.0, delay: 0, elapsed: 0, easing: "easeOut" },
+      { type: "animation", property: "opacity", target: 0, duration: 1.0, delay: 0, elapsed: 0, easing: "easeIn" }
+    ]
+  });
+
+  addComp({
+    type: "VisualOffset",
+    offsetX: 0,
+    offsetY: 0,
+    scaleX: 1,
+    scaleY: 1
+  });
 
   return popup;
 }

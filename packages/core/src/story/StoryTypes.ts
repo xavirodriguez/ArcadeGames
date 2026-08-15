@@ -81,6 +81,12 @@ export interface StoryNode {
   id: string;
   type: StoryNodeType;
   title?: string;
+  /** Optional target scene identifier to load when entering this node */
+  sceneToLoad?: string;
+  /** Optional end/terminal node flag to prevent false-positive dead end warnings in validator */
+  isEndNode?: boolean;
+  /** Generic metadata container for node payload */
+  meta?: Record<string, any>;
   /** Specific node data payload depending on node type */
   dialogue?: Dialogue;
   cutscene?: Cutscene;

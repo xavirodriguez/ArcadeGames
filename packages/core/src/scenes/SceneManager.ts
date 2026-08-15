@@ -6,6 +6,7 @@ import { runLifecycleSync, runLifecycleAsync } from "../utils/LifecycleUtils";
 import { EventBus, EventRegistry } from "../events/EventBus";
 import { TransitionOptions, ITransitionEffect, getEasingFunction } from "./TransitionTypes";
 import { TransitionRegistry, resolveTransitionEffect } from "./transitions/TransitionRegistry";
+import type { StoryRuntime } from "../story/StoryRuntime";
 
 function isTestEnvironment(): boolean {
   return (
@@ -892,6 +893,32 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       this.currentScene.onRestartCleanup();
       await this.transitionTo(this.currentScene);
     }
+  }
+
+  /**
+   * Binds a StoryRuntime instance and a scene factory to enable data-driven scene switches.
+   * Preserves StoryRuntime state across scene transitions.
+   *
+   * @param runtime - Active StoryRuntime instance.
+   * @param sceneFactory - Factory function creating a Scene for a given scene identifier.
+   */
+  public bindStoryRuntime(
+    runtime: StoryRuntime,
+    sceneFactory: (sceneName: string) => Scene<TComponents>
+  ): void {
+    if (!this.eventBus) return;
+
+    this.eventBus.on("story:scene_change" as any, async (payload: { sceneToLoad: string }) => {
+      if (!payload || !payload.sceneToLoad) return;
+      const newScene = sceneFactory(payload.sceneToLoad);
+      if (newScene) {
+        const newWorld = newScene.getWorld();
+        newWorld.setResource("StoryRuntime", runtime);
+        runtime.bindWorld(newWorld as any);
+
+        await this.transitionTo(newScene);
+      }
+    });
   }
 
   /**

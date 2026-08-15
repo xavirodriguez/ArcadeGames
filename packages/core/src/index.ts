@@ -167,6 +167,8 @@ export { InputValidator } from "./network/InputValidator";
 // Story Domain Engine
 export * from "./story/StoryTypes";
 export * from "./story/StoryRuntime";
+export * from "./story/StoryGraphValidator";
+export * from "./story/MultiGameTestCampaign";
 
 // Level 3 Systems
 export * from "./systems/CollectibleSystem";

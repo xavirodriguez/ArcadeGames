@@ -70,6 +70,7 @@ export * from "./input/InputFrame";
 
 // Assets & Audio
 export * from "./assets/AssetLoader";
+export * from "./assets/WebAssetProvider";
 export * from "./audio/IAudioPlayer";
 export * from "./audio/WebAudioPlayer";
 export * from "./audio/IHapticDevice";

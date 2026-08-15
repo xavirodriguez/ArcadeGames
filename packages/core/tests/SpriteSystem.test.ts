@@ -1,4 +1,4 @@
-import { World, AssetLoader, SpriteComponent } from "../src/index";
+import { World, AssetLoader, SpriteComponent, WebAssetProvider, RenderComponent } from "../src/index";
 
 class FakeAssetProvider {
   async loadImage(path: string) {
@@ -147,5 +147,40 @@ describe("Sprite Integration and Drawers System", () => {
     expect(params.sh).toBe(20);
     expect(params.dx).toBe(-0);
     expect(params.dy).toBe(-0);
+  });
+
+  it("should verify WebAssetProvider loads mock image in node/test environments", async () => {
+    const webProvider = new WebAssetProvider();
+    const loader = new AssetLoader(webProvider);
+    await loader.load([{ id: "ship_sprite", path: "assets/ship.png", type: "image" }]);
+
+    const asset = loader.get("ship_sprite");
+    expect(asset).toBeDefined();
+  });
+
+  it("should resolve shape 'sprite' on an entity equipped with Render and Sprite components", () => {
+    const entity = world.createEntity();
+    world.addComponent(entity, {
+      type: "Render",
+      shape: "sprite",
+      visible: true,
+      opacity: 1,
+      order: 1,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    } as RenderComponent);
+    world.addComponent(entity, {
+      type: "Sprite",
+      assetKey: "ship_sprite",
+      anchor: { x: 0.5, y: 0.5 }
+    } as SpriteComponent);
+
+    const render = world.getComponent(entity, "Render") as RenderComponent;
+    const sprite = world.getComponent(entity, "Sprite") as SpriteComponent;
+
+    expect(render.shape).toBe("sprite");
+    expect(sprite.assetKey).toBe("ship_sprite");
+    expect(sprite.anchor).toEqual({ x: 0.5, y: 0.5 });
   });
 });

@@ -164,6 +164,10 @@ export { RollbackSimulation } from "./network/RollbackSimulation";
 export { MultiplayerReconciler } from "./network/MultiplayerReconciler";
 export { InputValidator } from "./network/InputValidator";
 
+// Story Domain Engine
+export * from "./story/StoryTypes";
+export * from "./story/StoryRuntime";
+
 // Level 3 Systems
 export * from "./systems/CollectibleSystem";
 export * from "./systems/CheckpointSystem";

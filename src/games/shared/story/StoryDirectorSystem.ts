@@ -1,8 +1,9 @@
-import { System, World, ComponentRegistry } from "@tiny-aster/core";
+import { System, World, ComponentRegistry, StoryRuntime } from "@tiny-aster/core";
 import { StoryBeatComponent } from "./StoryBeatComponent";
 
 /**
- * StoryDirectorSystem orchestrates the firing of story beats based on events.
+ * StoryDirectorSystem orchestrates the firing of story beats based on events,
+ * seamlessly integrating with StoryRuntime while maintaining legacy StoryBeatComponent support.
  * @public
  */
 export class StoryDirectorSystem<
@@ -10,12 +11,25 @@ export class StoryDirectorSystem<
   TEvents extends Record<string, any> = Record<string, any>
 > extends System<TComponents, TEvents> {
 
-  constructor() {
+  private storyRuntime?: StoryRuntime;
+
+  constructor(storyRuntime?: StoryRuntime) {
     super();
+    this.storyRuntime = storyRuntime;
   }
 
   public override onRegister(world: World<TComponents, TEvents>): void {
     const eventBus = world.getEventBus();
+
+    // Check if StoryRuntime is stored as resource in World
+    if (!this.storyRuntime) {
+      this.storyRuntime = world.getResource<StoryRuntime>("StoryRuntime");
+    }
+
+    if (this.storyRuntime) {
+      this.storyRuntime.bindWorld(world as any);
+    }
+
     if (!eventBus) return;
 
     // Listen to "level:completed"
@@ -45,13 +59,7 @@ export class StoryDirectorSystem<
       if (!beat || beat.isTriggered) continue;
 
       if (beat.conditionTrigger === trigger) {
-        // Specific checks per trigger
         let shouldTrigger = true;
-
-        if (trigger === "level:completed") {
-          // Check if it matches a specific level if needed, but for simplicity, match any
-          // or allow dialogueReference / beatId to act as specific level checks
-        }
 
         if (shouldTrigger) {
           world.mutateComponent(entity, "StoryBeat" as any, (b: any) => {

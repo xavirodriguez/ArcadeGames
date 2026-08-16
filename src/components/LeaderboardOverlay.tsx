@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, ScrollView, ActivityIndicator
 import { LeaderboardService } from '../services/LeaderboardService';
 import { useTranslation } from '../hooks/useTranslation';
 import { hapticSelection } from '../utils/haptics';
+import { colors, spacing, typography } from '../theme';
 
 interface LeaderboardEntry {
   playerId: string;
@@ -29,7 +30,7 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
       const data = await LeaderboardService.fetchDailyLeaderboard(gameId, dateKey);
       setScores(data as LeaderboardEntry[]);
     } catch (_e) {
-      setError("No se pudo cargar el ranking");
+      setError(t?.accessibility?.leaderboard_error || "Could not load leaderboard rankings");
     } finally {
       setLoading(false);
     }
@@ -68,13 +69,14 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
 
         {loading ? (
           <View style={styles.loadingContainer} accessibilityLabel="Loading daily leaderboard" accessibilityState={{ busy: true }}>
-            <ActivityIndicator size="large" color="white" />
+            <ActivityIndicator size="large" color={colors.white} />
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
+              activeOpacity={0.8}
               onPress={() => {
                 hapticSelection();
                 fetchScores();
@@ -87,7 +89,7 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
             </TouchableOpacity>
           </View>
         ) : scores.length === 0 ? (
-          <Text style={styles.emptyText}>Sin puntuaciones hoy</Text>
+          <Text style={styles.emptyText}>{t?.accessibility?.leaderboard_empty || "No scores recorded today"}</Text>
         ) : (
           <ScrollView style={styles.content}>
             {scores.map((s, i) => (
@@ -111,20 +113,20 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
 
 const styles = StyleSheet.create({
   loadingContainer: {
-    padding: 20,
+    padding: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorContainer: {
-    padding: 20,
+    padding: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   retryButton: {
-    marginTop: 15,
-    backgroundColor: '#FFD700',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    marginTop: spacing.md,
+    backgroundColor: colors.gold,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
     borderRadius: 8,
     minHeight: 44,
     minWidth: 120,
@@ -132,14 +134,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   retryButtonText: {
-    color: 'black',
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
-    fontSize: 14,
+    color: colors.background,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
+    fontSize: typography.sizes.sm,
   },
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 3000,
@@ -147,38 +149,38 @@ const styles = StyleSheet.create({
   card: {
     width: '85%',
     maxHeight: '70%',
-    backgroundColor: '#000',
+    backgroundColor: colors.background,
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: colors.gold,
     borderRadius: 12,
-    padding: 20,
+    padding: spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   title: {
-    color: '#FFD700',
-    fontSize: 20,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
+    color: colors.gold,
+    fontSize: typography.sizes.xl,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
     flex: 1,
   },
   closeTouchArea: {
-    padding: 10,
-    margin: -10,
+    padding: spacing.sm,
+    margin: -spacing.sm,
     minWidth: 44,
     minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButton: {
-    color: 'white',
-    fontSize: 20,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
+    color: colors.white,
+    fontSize: typography.sizes.xl,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
   },
   content: {
     flex: 1,
@@ -186,33 +188,33 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#222',
+    borderBottomColor: colors.surface,
   },
   rank: {
-    color: '#666',
+    color: colors.textMuted,
     width: 30,
-    fontFamily: 'monospace',
+    fontFamily: typography.game,
   },
   name: {
-    color: 'white',
+    color: colors.white,
     flex: 1,
-    fontFamily: 'monospace',
+    fontFamily: typography.game,
   },
   score: {
-    color: '#FFD700',
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
+    color: colors.gold,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
   },
   errorText: {
-    color: 'red',
+    color: colors.red,
     textAlign: 'center',
-    fontFamily: 'monospace',
+    fontFamily: typography.game,
   },
   emptyText: {
-    color: '#666',
+    color: colors.textMuted,
     textAlign: 'center',
-    fontFamily: 'monospace',
+    fontFamily: typography.game,
   }
 });

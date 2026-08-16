@@ -17,7 +17,7 @@ describe('LeaderboardOverlay Structure & Interface', () => {
     expect(typeof LeaderboardOverlay).toBe('function');
   });
 
-  it('interacts with LeaderboardService', async () => {
+  it('interacts with LeaderboardService and accepts props', async () => {
     (LeaderboardService.fetchDailyLeaderboard as jest.Mock).mockResolvedValue([
       { playerId: 'player123', score: 5000, displayName: 'AcePilot' },
     ]);
@@ -25,5 +25,9 @@ describe('LeaderboardOverlay Structure & Interface', () => {
     const overlayProps = { gameId: 'asteroids', onClose: jest.fn() };
     expect(overlayProps.gameId).toBe('asteroids');
     expect(typeof overlayProps.onClose).toBe('function');
+
+    const element = React.createElement(LeaderboardOverlay, overlayProps);
+    expect(element).toBeTruthy();
+    expect(element.type).toBe(LeaderboardOverlay);
   });
 });

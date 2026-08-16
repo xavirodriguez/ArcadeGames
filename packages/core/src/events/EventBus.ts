@@ -7,6 +7,28 @@ export interface CoreEvents {
   "engine:resumed": { tick: number; timestamp: number };
   "engine:destroyed": { timestamp: number };
   "net:ack_version": { version: number; tick: number };
+  "PlaySFX": { name: string };
+  "PlayerDied": { playerEntity: number };
+  "PlayerRespawned": { playerEntity: number; checkpointEntity?: number; x?: number; y?: number };
+  "CheckpointActivated": { checkpointEntity: number; checkpointId?: string; activatorEntity?: number; playerEntity?: number; x?: number; y?: number };
+  "CollectiblePickedUp": { collectibleEntity: number; collectorEntity?: number; playerEntity?: number; collectible?: unknown; type?: string; value?: number };
+  "hitbox:hit": { hitboxEntity: number; hurtboxEntity: number; attacker?: number; victim?: number };
+  "spike:hit": { entity: number };
+  "game:over": { state?: unknown; score?: number; level?: number };
+  "session:tick": { tick: number; state: unknown };
+  "arcade:state_changed": { from: string; to: string; context?: unknown; [key: string]: unknown };
+  "cutscene:started": { lines: unknown[] };
+  "cutscene:line_advanced": { index: number; line: unknown };
+  "cutscene:completed": Record<string, never> | Record<string, unknown>;
+  "story:scene_change": { sceneToLoad: string; nodeId: string; node: unknown };
+  "story:node_changed": { graphId: string; currentNodeId: string; previousNodeId: string | null; node: unknown };
+  "story:beat_reached": { beatId: string; dialogueReference?: string; payload?: unknown };
+  "story:choice_selected": { choiceId: string; nodeId: string; targetNodeId: string };
+  "story:objective_completed": { objectiveId: string; objective: unknown };
+  "dialogue:completed": Record<string, never> | Record<string, unknown>;
+  "dialogue:line_advanced": { index: number; line: unknown };
+  "level:completed": { level: number; nextLevel?: number };
+  "spawn:wave_complete": Record<string, never> | Record<string, unknown>;
 }
 
 /** @public */

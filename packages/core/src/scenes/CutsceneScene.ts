@@ -22,7 +22,7 @@ export class CutsceneScene extends Scene {
     this.currentIndex = 0;
     const eventBus = world.getEventBus();
     if (eventBus) {
-      eventBus.emit("cutscene:started" as any, { lines: this.lines });
+      eventBus.emit("cutscene:started", { lines: this.lines });
     }
   }
 
@@ -37,7 +37,7 @@ export class CutsceneScene extends Scene {
     } else {
       const eventBus = this.world.getEventBus();
       if (eventBus) {
-        eventBus.emit("cutscene:line_advanced" as any, { index: this.currentIndex, line: this.getCurrentLine() });
+        eventBus.emit("cutscene:line_advanced", { index: this.currentIndex, line: this.getCurrentLine() });
       }
     }
   }
@@ -48,7 +48,7 @@ export class CutsceneScene extends Scene {
   public complete(): void {
     const eventBus = this.world.getEventBus();
     if (eventBus) {
-      eventBus.emit("cutscene:completed" as any, {});
+      eventBus.emit("cutscene:completed", {});
     }
     if (this.onCompleteCallback) {
       this.onCompleteCallback();

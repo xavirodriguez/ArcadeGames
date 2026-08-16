@@ -88,7 +88,7 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
 
         const eventBus = world.getEventBus();
         if (eventBus) {
-          eventBus.emit("CheckpointActivated" as any, {
+          eventBus.emit("CheckpointActivated", {
             checkpointEntity,
             checkpointId: checkpoint.checkpointId,
             playerEntity: triggeredBy,

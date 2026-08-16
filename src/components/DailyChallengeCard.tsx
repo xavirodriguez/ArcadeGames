@@ -37,11 +37,18 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
 
   const mutators = MutatorService.getActiveMutatorsForGame(gameId);
 
-  const accessibleLabel = `Desafío Diario: Jugar ${gameId.replace('-', ' ')}. ${played ? `Ya jugado. Puntuación de hoy: ${score ?? 0}. Presiona para mejorar tu puntuación.` : "No jugado aún. ¡Presiona para jugar ahora!"}`;
+  const sanitizedGameKey = gameId.replace('-', '_');
+  const gameTitle = (t?.menu as any)?.[sanitizedGameKey] || gameId.replace('-', ' ').toUpperCase();
+  const accessibleLabel = `${t.daily.title}: ${gameTitle}. ${
+    played
+      ? `${t.daily.played}. ${t.daily.your_score}: ${score ?? 0}. ${t.daily.improve_score}`
+      : t.daily.play_now
+  }`;
 
   return (
     <TouchableOpacity
       style={styles.card}
+      activeOpacity={0.8}
       onPress={handlePlay}
       accessibilityRole="button"
       accessibilityLabel={accessibleLabel}

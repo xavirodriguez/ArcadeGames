@@ -89,13 +89,14 @@ export default function HomeScreen() {
             {profile && (
               <TouchableOpacity
                 style={styles.profileSummary}
+                activeOpacity={0.8}
                 onPress={() => {
                   hapticSelection();
                   setShowPassport(true);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={`Open Passport. Player name is ${profile.displayName}, Level ${profile.level}`}
-                accessibilityHint="Shows player achievements, stats, and audio settings"
+                accessibilityLabel={`${t?.accessibility?.profile_summary || "Player profile passport"}. ${profile.displayName}, ${t.menu.level} ${profile.level}`}
+                accessibilityHint={t?.accessibility?.profile_summary_hint || "Opens your arcade achievements and stats"}
               >
                 <Text style={styles.profileText}>{profile.displayName} - {t.menu.level} {profile.level}</Text>
               </TouchableOpacity>
@@ -103,24 +104,26 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={styles.muteButton}
+              activeOpacity={0.8}
               onPress={toggleMute}
               accessibilityRole="button"
-              accessibilityLabel={isMuted ? "Unmute audio" : "Mute audio"}
+              accessibilityLabel={isMuted ? (t?.accessibility?.mute_button_off || "Unmute audio") : (t?.accessibility?.mute_button_on || "Mute audio")}
               accessibilityState={{ checked: !isMuted }}
-              accessibilityHint="Toggles game sound effects and music on or off"
+              accessibilityHint={t?.accessibility?.mute_button_hint || "Toggles audio sound"}
             >
               <Text style={styles.muteButtonText}>{isMuted ? "🔇" : "🔊"}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.langButton}
+              activeOpacity={0.8}
               onPress={() => {
                 hapticSelection();
                 toggleLanguage();
               }}
               accessibilityRole="button"
-              accessibilityLabel={`Change language. Current language is ${locale === 'es' ? 'Spanish' : 'English'}`}
-              accessibilityHint="Switches interface language between English and Spanish"
+              accessibilityLabel={t?.accessibility?.language_button || "Change language"}
+              accessibilityHint={t?.accessibility?.language_button_hint || "Toggles language between English and Spanish"}
             >
               <Text style={styles.langButtonText}>{locale.toUpperCase()}</Text>
             </TouchableOpacity>
@@ -130,25 +133,27 @@ export default function HomeScreen() {
             <View key={game.id} style={styles.menuRow}>
               <TouchableOpacity
                 style={styles.menuButton}
+                activeOpacity={0.8}
                 onPress={() => {
                   hapticSelection();
                   router.push(game.href as any);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={`Play ${t.menu[game.key]}`}
+                accessibilityLabel={`${t.menu[game.key]}`}
                 accessibilityHint={`Launches the ${t.menu[game.key]} game start screen`}
               >
                 <Text style={styles.menuButtonText}>{t.menu[game.key]}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.rankButton}
+                activeOpacity={0.8}
                 onPress={() => {
                   hapticSelection();
                   setShowLeaderboard(game.id);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={`View ${t.menu[game.key]} leaderboard`}
-                accessibilityHint={`Opens the daily high score rankings for ${t.menu[game.key]}`}
+                accessibilityLabel={(t?.accessibility?.leaderboard_button || "View leaderboard for {game}").replace("{game}", t.menu[game.key])}
+                accessibilityHint={t?.accessibility?.leaderboard_button_hint || "Opens the daily ranking of scores"}
               >
                 <Text style={styles.rankButtonText}>🏆</Text>
               </TouchableOpacity>

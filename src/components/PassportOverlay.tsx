@@ -5,6 +5,7 @@ import { LEVEL_THRESHOLDS } from '../config/PassportConfig';
 import { useGameServices } from "@tiny-aster/react-native";
 import { useTranslation } from '../hooks/useTranslation';
 import { hapticSelection } from '../utils/haptics';
+import { colors, spacing, typography } from '../theme';
 
 interface PassportOverlayProps {
   profile: PlayerProfile;
@@ -31,9 +32,12 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
     <View style={styles.container}>
       <View style={styles.card} accessibilityViewIsModal={true}>
         <View style={styles.header}>
-          <Text style={styles.title} accessibilityRole="header">ARCADE PASSPORT</Text>
+          <Text style={styles.title} accessibilityRole="header">
+            {t?.accessibility?.passport_title || "ARCADE PASSPORT"}
+          </Text>
           <TouchableOpacity
             style={styles.closeTouchArea}
+            activeOpacity={0.8}
             onPress={() => {
               hapticSelection();
               onClose();
@@ -68,24 +72,36 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
           </View>
 
           <View style={styles.statsSection}>
-            <Text style={styles.sectionTitle} accessibilityRole="header">STATISTICS</Text>
-            <StatRow label="Asteroids Destroyed" value={profile.stats.asteroidsDestroyed} />
-            <StatRow label="Pipes Passed" value={profile.stats.pipesPassed} />
-            <StatRow label="Invaders Destroyed" value={profile.stats.siKills} />
-            <StatRow label="Pong Sets Won" value={profile.stats.pongSetsWon} />
-            <StatRow label="Playtime Ticks" value={profile.stats.totalPlaytimeTicks} />
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              {t?.accessibility?.passport_stats || "STATISTICS"}
+            </Text>
+            <StatRow label={t?.accessibility?.stat_asteroids || "Asteroids Destroyed"} value={profile.stats.asteroidsDestroyed} />
+            <StatRow label={t?.accessibility?.stat_pipes || "Pipes Passed"} value={profile.stats.pipesPassed} />
+            <StatRow label={t?.accessibility?.stat_invaders || "Invaders Destroyed"} value={profile.stats.siKills} />
+            <StatRow label={t?.accessibility?.stat_pong || "Pong Sets Won"} value={profile.stats.pongSetsWon} />
+            <StatRow label={t?.accessibility?.stat_playtime || "Playtime Ticks"} value={profile.stats.totalPlaytimeTicks} />
           </View>
 
           <View style={styles.unlocksSection}>
-            <Text style={styles.sectionTitle} accessibilityRole="header">UNLOCKS</Text>
-            <Text style={styles.unlockText}>Palettes: {profile.unlockedPalettes.length}</Text>
-            <Text style={styles.unlockText}>Trails: {profile.unlockedTrails.length}</Text>
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              {t?.accessibility?.passport_unlocks || "UNLOCKS"}
+            </Text>
+            <Text style={styles.unlockText}>
+              {t?.accessibility?.palettes_unlocked || "Palettes"}: {profile.unlockedPalettes.length}
+            </Text>
+            <Text style={styles.unlockText}>
+              {t?.accessibility?.trails_unlocked || "Trails"}: {profile.unlockedTrails.length}
+            </Text>
           </View>
 
           <View style={styles.settingsSection}>
-            <Text style={styles.sectionTitle} accessibilityRole="header">SETTINGS</Text>
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              {t?.accessibility?.passport_settings || "SETTINGS"}
+            </Text>
             <View style={styles.settingRow}>
-                <Text style={styles.settingLabel} nativeID="muteAudioLabel">MUTE AUDIO</Text>
+                <Text style={styles.settingLabel} nativeID="muteAudioLabel">
+                  {t?.accessibility?.passport_mute || "MUTE AUDIO"}
+                </Text>
                 <Switch
                     value={isMuted}
                     onValueChange={(val) => {
@@ -114,7 +130,7 @@ const StatRow: React.FC<{ label: string; value: number }> = ({ label, value }) =
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 2000,
@@ -122,154 +138,154 @@ const styles = StyleSheet.create({
   card: {
     width: '90%',
     maxHeight: '80%',
-    backgroundColor: '#111',
+    backgroundColor: colors.backgroundDark,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: colors.white,
     borderRadius: 16,
-    padding: 20,
+    padding: spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   title: {
-    color: 'white',
-    fontSize: 24,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
+    color: colors.white,
+    fontSize: typography.sizes.xxl,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
   },
   closeTouchArea: {
-    padding: 10,
-    margin: -10,
+    padding: spacing.sm,
+    margin: -spacing.sm,
     minWidth: 44,
     minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButton: {
-    color: 'white',
-    fontSize: 24,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
+    color: colors.white,
+    fontSize: typography.sizes.xxl,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
   },
   content: {
     flex: 1,
   },
   profileSection: {
-    marginBottom: 20,
+    marginBottom: spacing.xl,
     alignItems: 'center',
   },
   playerName: {
-    color: 'white',
-    fontSize: 28,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
+    color: colors.white,
+    fontSize: typography.sizes.title,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
   },
   playerId: {
-    color: '#666',
-    fontSize: 12,
-    fontFamily: 'monospace',
+    color: colors.textMuted,
+    fontSize: typography.sizes.xs,
+    fontFamily: typography.game,
   },
   levelSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#222',
-    padding: 15,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
     borderRadius: 12,
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   levelBadge: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'white',
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: spacing.lg,
   },
   levelText: {
-    color: 'black',
-    fontSize: 32,
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
+    color: colors.background,
+    fontSize: typography.sizes.title,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
   },
   xpInfo: {
     flex: 1,
   },
   xpLabel: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'monospace',
-    marginBottom: 8,
+    color: colors.white,
+    fontSize: typography.sizes.md,
+    fontFamily: typography.game,
+    marginBottom: spacing.xs,
   },
   progressBarContainer: {
     height: 12,
-    backgroundColor: '#444',
+    backgroundColor: colors.borderDark,
     borderRadius: 6,
     overflow: 'hidden',
-    marginBottom: 5,
+    marginBottom: spacing.xs,
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#00FF00',
+    backgroundColor: colors.green,
   },
   xpSublabel: {
-    color: '#AAA',
-    fontSize: 10,
-    fontFamily: 'monospace',
+    color: colors.textMuted,
+    fontSize: typography.sizes.xs,
+    fontFamily: typography.game,
   },
   statsSection: {
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   sectionTitle: {
-    color: '#FFD700',
-    fontSize: 18,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
-    marginBottom: 10,
+    color: colors.gold,
+    fontSize: typography.sizes.lg,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
+    marginBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    paddingBottom: 5,
+    borderBottomColor: colors.border,
+    paddingBottom: spacing.xs,
   },
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: spacing.xs,
   },
   statLabel: {
-    color: '#CCC',
-    fontSize: 14,
-    fontFamily: 'monospace',
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.game,
   },
   statValue: {
-    color: 'white',
-    fontSize: 14,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
+    color: colors.white,
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
   },
   unlocksSection: {
-      marginBottom: 10,
+    marginBottom: spacing.md,
   },
   unlockText: {
-      color: '#CCC',
-      fontSize: 14,
-      fontFamily: 'monospace',
-      marginBottom: 5,
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.game,
+    marginBottom: spacing.xs,
   },
   settingsSection: {
-      marginBottom: 30,
+    marginBottom: spacing.xxxl,
   },
   settingRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
   },
   settingLabel: {
-      color: 'white',
-      fontFamily: 'monospace',
-      fontSize: 16,
+    color: colors.white,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.md,
   }
 });

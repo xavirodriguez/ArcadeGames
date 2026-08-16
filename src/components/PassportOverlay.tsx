@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { PlayerProfile } from '../services/PlayerProfileService';
 import { LEVEL_THRESHOLDS } from '../config/PassportConfig';
@@ -20,31 +20,39 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
   const services = useGameServices();
   const isMuted = services?.isMuted ?? false;
 
+  const closeBtnLabel = t?.accessibility?.close_button || "Close";
+  const closeBtnHint = t?.accessibility?.close_button_hint || "Closes the current window";
+  const muteLabel = isMuted
+    ? (t?.accessibility?.mute_button_off || "Unmute audio")
+    : (t?.accessibility?.mute_button_on || "Mute audio");
+  const muteHint = t?.accessibility?.mute_button_hint || "Toggles audio sound";
+
   return (
     <View style={styles.container}>
       <View style={styles.card} accessibilityViewIsModal={true}>
         <View style={styles.header}>
-          <Text style={styles.title} accessibilityRole="header">PASAPORTE ARCADE</Text>
+          <Text style={styles.title} accessibilityRole="header">ARCADE PASSPORT</Text>
           <TouchableOpacity
+            style={styles.closeTouchArea}
             onPress={() => {
               hapticSelection();
               onClose();
             }}
             accessibilityRole="button"
-            accessibilityLabel="Close passport overlay"
-            accessibilityHint="Returns to the home screen menu"
+            accessibilityLabel={closeBtnLabel}
+            accessibilityHint={closeBtnHint}
           >
-            <Text style={styles.closeButton}>X</Text>
+            <Text style={styles.closeButton}>✕</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content}>
-          <View style={styles.profileSection}>
+          <View style={styles.profileSection} accessibilityRole="header" accessibilityLabel={`Pilot ${profile.displayName}, ID ${profile.playerId.slice(0, 8)}`}>
             <Text style={styles.playerName}>{profile.displayName}</Text>
             <Text style={styles.playerId}>ID: {profile.playerId.slice(0, 8)}</Text>
           </View>
 
-          <View style={styles.levelSection}>
+          <View style={styles.levelSection} accessibilityRole="text" accessibilityLabel={`Level ${profile.level}, total experience ${profile.xp}`}>
             <View style={styles.levelBadge}>
               <Text style={styles.levelText}>{profile.level}</Text>
             </View>
@@ -54,39 +62,39 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
                 <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
               </View>
               <Text style={styles.xpSublabel}>
-                {profile.xp - prevLevelXP} / {nextLevelXP - prevLevelXP} para nivel {profile.level + 1}
+                {profile.xp - prevLevelXP} / {nextLevelXP - prevLevelXP} for level {profile.level + 1}
               </Text>
             </View>
           </View>
 
           <View style={styles.statsSection}>
-            <Text style={styles.sectionTitle}>ESTADÍSTICAS</Text>
-            <StatRow label="Asteroides Destruidos" value={profile.stats.asteroidsDestroyed} />
-            <StatRow label="Tuberías Pasadas" value={profile.stats.pipesPassed} />
-            <StatRow label="Invasores Eliminados" value={profile.stats.siKills} />
-            <StatRow label="Sets Pong Ganados" value={profile.stats.pongSetsWon} />
-            <StatRow label="Ticks Jugados" value={profile.stats.totalPlaytimeTicks} />
+            <Text style={styles.sectionTitle} accessibilityRole="header">STATISTICS</Text>
+            <StatRow label="Asteroids Destroyed" value={profile.stats.asteroidsDestroyed} />
+            <StatRow label="Pipes Passed" value={profile.stats.pipesPassed} />
+            <StatRow label="Invaders Destroyed" value={profile.stats.siKills} />
+            <StatRow label="Pong Sets Won" value={profile.stats.pongSetsWon} />
+            <StatRow label="Playtime Ticks" value={profile.stats.totalPlaytimeTicks} />
           </View>
 
           <View style={styles.unlocksSection}>
-            <Text style={styles.sectionTitle}>DESBLOQUEOS</Text>
-            <Text style={styles.unlockText}>Paletas: {profile.unlockedPalettes.length}</Text>
-            <Text style={styles.unlockText}>Estelas: {profile.unlockedTrails.length}</Text>
+            <Text style={styles.sectionTitle} accessibilityRole="header">UNLOCKS</Text>
+            <Text style={styles.unlockText}>Palettes: {profile.unlockedPalettes.length}</Text>
+            <Text style={styles.unlockText}>Trails: {profile.unlockedTrails.length}</Text>
           </View>
 
           <View style={styles.settingsSection}>
-            <Text style={styles.sectionTitle}>AJUSTES</Text>
+            <Text style={styles.sectionTitle} accessibilityRole="header">SETTINGS</Text>
             <View style={styles.settingRow}>
-                <Text style={styles.settingLabel} nativeID="muteAudioLabel">SILENCIAR AUDIO</Text>
+                <Text style={styles.settingLabel} nativeID="muteAudioLabel">MUTE AUDIO</Text>
                 <Switch
                     value={isMuted}
                     onValueChange={(val) => {
                         hapticSelection();
                         services?.setMuted(val);
                     }}
-                    accessibilityLabel="Silenciar audio"
+                    accessibilityLabel={muteLabel}
                     accessibilityLabelledBy="muteAudioLabel"
-                    accessibilityHint="Silencia todos los efectos de sonido y música de los juegos"
+                    accessibilityHint={muteHint}
                 />
             </View>
           </View>
@@ -97,7 +105,7 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
 };
 
 const StatRow: React.FC<{ label: string; value: number }> = ({ label, value }) => (
-  <View style={styles.statRow}>
+  <View style={styles.statRow} accessibilityRole="text" accessibilityLabel={`${label}: ${value}`}>
     <Text style={styles.statLabel}>{label}</Text>
     <Text style={styles.statValue}>{value}</Text>
   </View>
@@ -135,6 +143,8 @@ const styles = StyleSheet.create({
   closeTouchArea: {
     padding: 10,
     margin: -10,
+    minWidth: 44,
+    minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -142,6 +152,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 24,
     fontFamily: 'monospace',
+    fontWeight: 'bold',
   },
   content: {
     flex: 1,

@@ -40,28 +40,34 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
   }, [fetchScores]);
 
   const sanitizedGameKey = gameId.replace('-', '_');
-  const gameNameLocal = (t.menu as any)[sanitizedGameKey] || gameId.toUpperCase();
+  const gameNameLocal = (t?.menu as any)?.[sanitizedGameKey] || gameId.toUpperCase();
+  const headerSuffix = t?.accessibility?.lead_header_suffix || "RANKING";
+  const closeBtnLabel = t?.accessibility?.close_button || "Close";
+  const closeBtnHint = t?.accessibility?.close_button_hint || "Closes the leaderboard window";
 
   return (
     <View style={styles.container}>
       <View style={styles.card} accessibilityViewIsModal={true}>
         <View style={styles.header}>
-          <Text style={styles.title} accessibilityRole="header">RANKING {gameId.toUpperCase()}</Text>
+          <Text style={styles.title} accessibilityRole="header">
+            {headerSuffix} {gameNameLocal.toUpperCase()}
+          </Text>
           <TouchableOpacity
+            style={styles.closeTouchArea}
             onPress={() => {
               hapticSelection();
               onClose();
             }}
             accessibilityRole="button"
-            accessibilityLabel="Close leaderboard overlay"
-            accessibilityHint="Returns to the home screen menu"
+            accessibilityLabel={closeBtnLabel}
+            accessibilityHint={closeBtnHint}
           >
-            <Text style={styles.closeButton}>X</Text>
+            <Text style={styles.closeButton}>✕</Text>
           </TouchableOpacity>
         </View>
 
         {loading ? (
-          <View style={styles.loadingContainer} accessibilityLabel="Cargando ranking diario" accessibilityState={{ busy: true }}>
+          <View style={styles.loadingContainer} accessibilityLabel="Loading daily leaderboard" accessibilityState={{ busy: true }}>
             <ActivityIndicator size="large" color="white" />
           </View>
         ) : error ? (
@@ -74,10 +80,10 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
                 fetchScores();
               }}
               accessibilityRole="button"
-              accessibilityLabel="Reintentar cargar ranking"
-              accessibilityHint="Vuelve a intentar cargar la lista de puntuaciones"
+              accessibilityLabel={t?.common?.retry || "RETRY"}
+              accessibilityHint="Retries loading the daily leaderboard"
             >
-              <Text style={styles.retryButtonText}>REINTENTAR</Text>
+              <Text style={styles.retryButtonText}>{t?.common?.retry || "RETRY"}</Text>
             </TouchableOpacity>
           </View>
         ) : scores.length === 0 ? (
@@ -85,7 +91,12 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
         ) : (
           <ScrollView style={styles.content}>
             {scores.map((s, i) => (
-              <View key={i} style={styles.row}>
+              <View
+                key={i}
+                style={styles.row}
+                accessibilityRole="text"
+                accessibilityLabel={`Rank ${i + 1}, ${s.displayName || s.playerId.slice(0, 8)}, score ${s.score}`}
+              >
                 <Text style={styles.rank}>{i + 1}.</Text>
                 <Text style={styles.name}>{s.displayName || s.playerId.slice(0, 8)}</Text>
                 <Text style={styles.score}>{s.score}</Text>
@@ -112,9 +123,13 @@ const styles = StyleSheet.create({
   retryButton: {
     marginTop: 15,
     backgroundColor: '#FFD700',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 8,
+    minHeight: 44,
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   retryButtonText: {
     color: 'black',
@@ -149,10 +164,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'monospace',
     fontWeight: 'bold',
+    flex: 1,
   },
   closeTouchArea: {
     padding: 10,
     margin: -10,
+    minWidth: 44,
+    minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -160,6 +178,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 20,
     fontFamily: 'monospace',
+    fontWeight: 'bold',
   },
   content: {
     flex: 1,

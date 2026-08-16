@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet, TextInputProps } from "react-native";
 import { colors, typography, spacing, radius } from "@/theme";
 
@@ -13,20 +13,36 @@ export const PlayerNameInput: React.FC<PlayerNameInputProps> = ({
   value,
   onChangeText,
   style,
+  onFocus,
+  onBlur,
   ...props
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
     <View style={styles.container}>
       <Text style={styles.label} nativeID="playerNameLabel">
         {label}
       </Text>
       <TextInput
-        style={[styles.input, style]}
+        style={[
+          styles.input,
+          isFocused && styles.inputFocused,
+          style,
+        ]}
         value={value}
         onChangeText={onChangeText}
         placeholderTextColor={colors.textMuted}
         accessibilityLabel={label}
         accessibilityLabelledBy="playerNameLabel"
+        onFocus={(e) => {
+          setIsFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setIsFocused(false);
+          onBlur?.(e);
+        }}
         {...props}
       />
     </View>
@@ -58,5 +74,13 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     borderWidth: 1,
     borderColor: "rgba(0, 240, 255, 0.2)",
+  },
+  inputFocused: {
+    borderColor: colors.cyan,
+    shadowColor: colors.cyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4,
   },
 });

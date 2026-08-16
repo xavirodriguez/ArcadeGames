@@ -29,15 +29,26 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
 
       let collectedBy: Entity | null = null;
 
-      // Check if player overlaps this collectible
+      // Safe for determinism/rollback. Sequential indexed loops replace array spreading/mapping [...activeTriggers, ...collisions.map()], eliminating per-tick heap allocations while evaluating identical overlap conditions.
       // 1. Check if collectible has CollisionEvents
       if (world.hasComponent(collEntity, "CollisionEvents")) {
         const events = world.getComponent(collEntity, "CollisionEvents")!;
-        const overlaps = [...(events.activeTriggers ?? []), ...(events.collisions?.map(c => c.otherEntity) ?? [])];
-        for (const other of overlaps) {
-          if (players.includes(other)) {
-            collectedBy = other;
-            break;
+        if (events.activeTriggers) {
+          for (let j = 0; j < events.activeTriggers.length; j++) {
+            const other = events.activeTriggers[j];
+            if (players.includes(other)) {
+              collectedBy = other;
+              break;
+            }
+          }
+        }
+        if (!collectedBy && events.collisions) {
+          for (let j = 0; j < events.collisions.length; j++) {
+            const other = events.collisions[j].otherEntity;
+            if (players.includes(other)) {
+              collectedBy = other;
+              break;
+            }
           }
         }
       }
@@ -48,8 +59,24 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
           const playerEntity = players[p];
           if (world.hasComponent(playerEntity, "CollisionEvents")) {
             const events = world.getComponent(playerEntity, "CollisionEvents")!;
-            const overlaps = [...(events.activeTriggers ?? []), ...(events.collisions?.map(c => c.otherEntity) ?? [])];
-            if (overlaps.includes(collEntity)) {
+            let found = false;
+            if (events.activeTriggers) {
+              for (let j = 0; j < events.activeTriggers.length; j++) {
+                if (events.activeTriggers[j] === collEntity) {
+                  found = true;
+                  break;
+                }
+              }
+            }
+            if (!found && events.collisions) {
+              for (let j = 0; j < events.collisions.length; j++) {
+                if (events.collisions[j].otherEntity === collEntity) {
+                  found = true;
+                  break;
+                }
+              }
+            }
+            if (found) {
               collectedBy = playerEntity;
               break;
             }

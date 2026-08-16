@@ -91,20 +91,31 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
 
         let landedPlatform: Entity | undefined = undefined;
 
+        // Safe for determinism/rollback. Sequential indexed loops replace array spreading/mapping [...activeTriggers, ...colPairs], eliminating per-character per-tick heap allocations while evaluating identical contact entities.
         // Try detecting landing through CollisionEvents (triggers or physical contacts) if available
         const collisionEvents = world.getComponent(charEntity, "CollisionEvents" as any) as any;
         if (collisionEvents) {
-          const activeTriggers = collisionEvents.activeTriggers ?? [];
-          const colPairs = (collisionEvents.collisions ?? []).map((c: any) => c.otherEntity);
-          const allContacts = [...activeTriggers, ...colPairs];
-
-          for (let j = 0; j < allContacts.length; j++) {
-            const contactEntity = allContacts[j];
-            if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
-              const platVel = world.getComponent(contactEntity, "Velocity")!;
-              if (charVel.vy >= platVel.vy) {
-                landedPlatform = contactEntity;
-                break;
+          if (collisionEvents.activeTriggers) {
+            for (let j = 0; j < collisionEvents.activeTriggers.length; j++) {
+              const contactEntity = collisionEvents.activeTriggers[j];
+              if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
+                const platVel = world.getComponent(contactEntity, "Velocity")!;
+                if (charVel.vy >= platVel.vy) {
+                  landedPlatform = contactEntity;
+                  break;
+                }
+              }
+            }
+          }
+          if (landedPlatform === undefined && collisionEvents.collisions) {
+            for (let j = 0; j < collisionEvents.collisions.length; j++) {
+              const contactEntity = collisionEvents.collisions[j].otherEntity;
+              if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
+                const platVel = world.getComponent(contactEntity, "Velocity")!;
+                if (charVel.vy >= platVel.vy) {
+                  landedPlatform = contactEntity;
+                  break;
+                }
               }
             }
           }

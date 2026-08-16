@@ -27,15 +27,26 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
 
       let triggeredBy: Entity | null = null;
 
-      // Check if player overlaps this checkpoint
+      // Safe for determinism/rollback. Sequential indexed loops replace array spreading/mapping [...activeTriggers, ...collisions.map()], eliminating per-tick heap allocations while evaluating identical overlap conditions.
       // 1. Check if checkpoint has CollisionEvents
       if (world.hasComponent(checkpointEntity, "CollisionEvents")) {
         const events = world.getComponent(checkpointEntity, "CollisionEvents")!;
-        const overlaps = [...(events.activeTriggers ?? []), ...(events.collisions?.map(c => c.otherEntity) ?? [])];
-        for (const other of overlaps) {
-          if (players.includes(other)) {
-            triggeredBy = other;
-            break;
+        if (events.activeTriggers) {
+          for (let j = 0; j < events.activeTriggers.length; j++) {
+            const other = events.activeTriggers[j];
+            if (players.includes(other)) {
+              triggeredBy = other;
+              break;
+            }
+          }
+        }
+        if (!triggeredBy && events.collisions) {
+          for (let j = 0; j < events.collisions.length; j++) {
+            const other = events.collisions[j].otherEntity;
+            if (players.includes(other)) {
+              triggeredBy = other;
+              break;
+            }
           }
         }
       }
@@ -46,8 +57,24 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
           const playerEntity = players[p];
           if (world.hasComponent(playerEntity, "CollisionEvents")) {
             const events = world.getComponent(playerEntity, "CollisionEvents")!;
-            const overlaps = [...(events.activeTriggers ?? []), ...(events.collisions?.map(c => c.otherEntity) ?? [])];
-            if (overlaps.includes(checkpointEntity)) {
+            let found = false;
+            if (events.activeTriggers) {
+              for (let j = 0; j < events.activeTriggers.length; j++) {
+                if (events.activeTriggers[j] === checkpointEntity) {
+                  found = true;
+                  break;
+                }
+              }
+            }
+            if (!found && events.collisions) {
+              for (let j = 0; j < events.collisions.length; j++) {
+                if (events.collisions[j].otherEntity === checkpointEntity) {
+                  found = true;
+                  break;
+                }
+              }
+            }
+            if (found) {
               triggeredBy = playerEntity;
               break;
             }

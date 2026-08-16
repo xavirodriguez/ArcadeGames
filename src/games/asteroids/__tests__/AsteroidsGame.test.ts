@@ -57,7 +57,7 @@ describe("AsteroidsGame Network & Prediction Tests", () => {
     const world = game.getWorld();
     const eventBus = world.getEventBus();
     const ackSpy = jest.fn();
-    eventBus.on("net:ack_version" as any, ackSpy);
+    eventBus.on("net:ack_version", ackSpy);
 
     const payload: ServerUpdatePayload = {
       kind: "delta",

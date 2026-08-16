@@ -52,11 +52,11 @@ describe("Multi-Game Vertical Slice Campaign Integration Tests", () => {
     const nodeChanges: string[] = [];
     const sceneSwitches: string[] = [];
 
-    eventBus.on("story:node_changed" as any, (e: any) => {
+    eventBus.on("story:node_changed", (e: any) => {
       nodeChanges.push(e.currentNodeId);
     });
 
-    eventBus.on("story:scene_change" as any, (e: any) => {
+    eventBus.on("story:scene_change", (e: any) => {
       sceneSwitches.push(e.sceneToLoad);
     });
 
@@ -67,7 +67,7 @@ describe("Multi-Game Vertical Slice Campaign Integration Tests", () => {
     expect(runtime.getCurrentNode()?.dialogue?.lines[0].textKey).toBe("story.test.intro_cutscene");
 
     // 2. Complete intro cutscene dialogue -> Transitions to Node 2 (Asteroids stage)
-    eventBus.emit("dialogue:completed" as any, {});
+    eventBus.emit("dialogue:completed", {});
 
     // Allow async scene switch promise to resolve
     await new Promise(r => setTimeout(r, 10));
@@ -81,7 +81,7 @@ describe("Multi-Game Vertical Slice Campaign Integration Tests", () => {
 
     // 3. Simulate destroying 5 rocks in gameplay
     for (let i = 1; i <= 5; i++) {
-      eventBus.emit("rock:destroyed" as any, { amount: 1 });
+      eventBus.emit("rock:destroyed", { amount: 1 });
     }
 
     // Story runtime should automatically advance to Node 3 (Victory dialogue)
@@ -95,7 +95,7 @@ describe("Multi-Game Vertical Slice Campaign Integration Tests", () => {
     expect(objective.currentCount).toBe(5);
 
     // 4. Complete victory dialogue -> Transitions directly to Node 4 (Space Invaders stage)
-    eventBus.emit("dialogue:completed" as any, {});
+    eventBus.emit("dialogue:completed", {});
 
     await new Promise(r => setTimeout(r, 10));
 

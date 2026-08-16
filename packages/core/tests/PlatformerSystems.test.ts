@@ -370,7 +370,7 @@ describe("Platformer Systems Tests", () => {
 
       const eventBus = world.getEventBus();
       let eventPayload: any = null;
-      eventBus.on("spike:hit" as any, (payload) => {
+      eventBus.on("spike:hit", (payload) => {
         eventPayload = payload;
       });
 
@@ -991,7 +991,7 @@ describe("Platformer Systems Tests", () => {
       let victimId: any = null;
 
       const eventBus = world.getEventBus();
-      eventBus.on("hitbox:hit" as any, (event: any) => {
+      eventBus.on("hitbox:hit", (event: any) => {
         hitEventsCount++;
         attackerId = event.attacker;
         victimId = event.victim;

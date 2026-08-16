@@ -339,7 +339,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         const stalledDuration = Date.now() - this.stallStartTime;
         if (stalledDuration > 3000) {
           console.warn(`[PongGame] Simulation stalled: Waiting for server inputs for ${stalledDuration}ms`);
-          this.eventBus.emit("simulation:stalled" as any, { duration: stalledDuration } as any);
+          this.eventBus.emit("simulation:stalled", { duration: stalledDuration });
         }
       }
       return;
@@ -347,7 +347,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
     if (this.isStalled) {
       this.isStalled = false;
-      this.eventBus.emit("simulation:unstalled" as any, {} as any);
+      this.eventBus.emit("simulation:unstalled", {});
     }
 
     this.world.update(dt);

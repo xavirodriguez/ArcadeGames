@@ -3,7 +3,7 @@ import { World } from "../ecs/World";
 import { Entity } from "../ecs/Entity";
 import { IHierarchicalComponent, CoreComponentRegistry } from "../ecs/CoreComponents";
 import { ComponentRegistry, ComponentType } from "../ecs/Component";
-import { EventRegistry } from "../events/EventBus";
+import { EventRegistry, EventBus } from "../events/EventBus";
 
 /** @public */
 export abstract class AbstractHierarchySystem<
@@ -34,7 +34,7 @@ export abstract class AbstractHierarchySystem<
         if (stage === 'enter') {
           if (visited.has(entity)) continue;
           if (processing.has(entity)) {
-            const eventBus = world.getEventBus() as unknown as { emit: (event: string, payload: unknown) => void } | undefined;
+            const eventBus = world.getEventBus() as EventBus | undefined;
             if (eventBus) {
               eventBus.emit("hierarchy:warning", { message: `Circular dependency detected at entity ${entity}.` });
             }

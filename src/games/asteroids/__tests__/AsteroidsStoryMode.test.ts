@@ -118,7 +118,7 @@ describe("Asteroids Story Mode Tests", () => {
     world.addComponent(entity, { type: "Transform", x: 100, y: 100 });
 
     // Trigger combat:death via the event listener in AsteroidCollisionSystem
-    const eventBus = world.getEventBus() as any;
+    const eventBus = world.getEventBus();
     eventBus.emit("combat:death", { entity, sourceEntity: undefined });
 
     // Flush command buffer to commit entity creations

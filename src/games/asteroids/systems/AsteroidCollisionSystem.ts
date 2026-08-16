@@ -21,7 +21,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
   }
 
   public override onRegister(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>): void {
-    const eventBus = world.getEventBus() as any;
+    const eventBus = world.getEventBus();
     if (eventBus) {
       eventBus.on("combat:death", (event: any) => {
         this.onCombatDeath(world, event);

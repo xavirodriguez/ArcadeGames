@@ -55,7 +55,7 @@ describe("GameSession orchestrator", () => {
 
     const emitted: any[] = [];
     const eventBus = (session.simulation as any).eventBus;
-    eventBus.on("session:tick" as any, (data: any) => {
+    eventBus.on("session:tick", (data: any) => {
       emitted.push(data);
     });
 

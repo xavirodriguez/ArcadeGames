@@ -32,13 +32,13 @@ describe("Story Mode Infrastructure Tests", () => {
 
       // 2. Track emitted events
       let emittedEvent: any = null;
-      eventBus.on("story:beat_reached" as any, (event: any) => {
+      eventBus.on("story:beat_reached", (event: any) => {
         emittedEvent = event;
       });
 
       // 3. Register and trigger
       world.update(0.016);
-      eventBus.emit("level:completed" as any, { level: 1 });
+      eventBus.emit("level:completed", { level: 1 });
 
       // Verify triggered
       expect(emittedEvent).toBeDefined();
@@ -64,13 +64,13 @@ describe("Story Mode Infrastructure Tests", () => {
 
       // 2. Track emitted events
       let emittedEvent: any = null;
-      eventBus.on("story:beat_reached" as any, (event: any) => {
+      eventBus.on("story:beat_reached", (event: any) => {
         emittedEvent = event;
       });
 
       // 3. Register and trigger PickUp
       world.update(0.016);
-      eventBus.emit("CollectiblePickedUp" as any, {
+      eventBus.emit("CollectiblePickedUp", {
         collectible: { kind: "story_fragment", id: "fragment_1" }
       });
 
@@ -93,9 +93,9 @@ describe("Story Mode Infrastructure Tests", () => {
       let lineAdvancedEvent: any = null;
       let completedEvent = false;
 
-      eventBus.on("cutscene:started" as any, () => { startedEvent = true; });
-      eventBus.on("cutscene:line_advanced" as any, (e: any) => { lineAdvancedEvent = e; });
-      eventBus.on("cutscene:completed" as any, () => { completedEvent = true; });
+      eventBus.on("cutscene:started", () => { startedEvent = true; });
+      eventBus.on("cutscene:line_advanced", (e: any) => { lineAdvancedEvent = e; });
+      eventBus.on("cutscene:completed", () => { completedEvent = true; });
 
       const lines = ["line1", "line2", "line3"];
       let completedCallbackCalled = false;

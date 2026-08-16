@@ -1,5 +1,5 @@
 import { World, BaseGame, BaseGameStateSystem } from "@tiny-aster/core";
-import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { GameStateComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry } from "../types/SpaceInvadersTypes";
 import { spawnInvaderWave } from "../EntityFactory";
 import { ISpaceInvadersGame } from "../types/GameInterfaces";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS } from "../../../utils/MutatorRegistry";
@@ -7,17 +7,17 @@ import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS } from "../../../utils/MutatorRe
 /**
  * System that manages the overall game state, level progression, and game over.
  */
-export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateComponent, SpaceInvadersComponentRegistry> {
+export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry> {
   constructor(private game: ISpaceInvadersGame) {
     super("GameState");
   }
 
-  public override onRegister(world: World<SpaceInvadersComponentRegistry>): void {
+  public override onRegister(world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>): void {
     super.onRegister(world);
-    const eventBus = world.getEventBus() as any;
+    const eventBus = world.getEventBus();
     if (eventBus) {
       // 1. Listen to level:completed
-      eventBus.on("level:completed", (event: { level: number, nextLevel: number }) => {
+      eventBus.on("level:completed", (event) => {
         try {
           if (world.isReSimulating) return;
 
@@ -100,7 +100,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           });
 
           // Play confirm sound
-          eventBus.emit("PlaySFX" as any, { name: "shoot" });
+          eventBus.emit("PlaySFX", { name: "shoot" });
         });
       });
     }
@@ -128,9 +128,9 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         if (gs.continueCountdownRemaining <= 0) {
           // Time expired! Final game over!
           gs.isGameOver = true;
-          const eventBus = world.getEventBus() as any;
+          const eventBus = world.getEventBus();
           if (eventBus) {
-            eventBus.emit("PlaySFX" as any, { name: "game_over" });
+            eventBus.emit("PlaySFX", { name: "game_over" });
           }
         }
       });
@@ -153,7 +153,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           if (gs.level < nextLevel) {
             const oldLevel = gs.level;
             gs.level = nextLevel;
-            const eventBus = world.getEventBus() as any;
+            const eventBus = world.getEventBus();
             if (eventBus) {
               eventBus.emit("level:completed", { level: oldLevel, nextLevel: gs.level });
             }
@@ -174,9 +174,9 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         world.mutateSingleton("GameState", (gs) => {
           gs.isGameOver = true;
         });
-        const eventBus = world.getEventBus() as any;
+        const eventBus = world.getEventBus();
         if (eventBus) {
-          eventBus.emit("PlaySFX" as any, { name: "game_over" });
+          eventBus.emit("PlaySFX", { name: "game_over" });
         }
       }
     }

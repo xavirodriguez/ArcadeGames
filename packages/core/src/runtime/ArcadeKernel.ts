@@ -67,7 +67,7 @@ export class ArcadeKernel {
     const previousState = this.currentState;
     this.currentState = nextState;
 
-    this.eventBus.emit("arcade:state_changed" as any, {
+    this.eventBus.emit("arcade:state_changed", {
       from: previousState,
       to: nextState,
       ...payload

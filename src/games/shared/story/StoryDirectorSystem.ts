@@ -1,4 +1,4 @@
-import { System, World, ComponentRegistry, StoryRuntime } from "@tiny-aster/core";
+import { System, World, ComponentRegistry, EventBus, StoryRuntime } from "@tiny-aster/core";
 import { StoryBeatComponent } from "./StoryBeatComponent";
 
 /**
@@ -33,17 +33,17 @@ export class StoryDirectorSystem<
     if (!eventBus) return;
 
     // Listen to "level:completed"
-    eventBus.on("level:completed" as any, (event: any) => {
+    eventBus.on("level:completed", (event: any) => {
       this.evaluateBeats(world, "level:completed", event);
     });
 
     // Listen to "spawn:wave_complete"
-    eventBus.on("spawn:wave_complete" as any, (event: any) => {
+    eventBus.on("spawn:wave_complete", (event: any) => {
       this.evaluateBeats(world, "spawn:wave_complete", event);
     });
 
     // Listen to "CollectiblePickedUp"
-    eventBus.on("CollectiblePickedUp" as any, (event: any) => {
+    eventBus.on("CollectiblePickedUp", (event: any) => {
       if (event && event.collectible && event.collectible.kind === "story_fragment") {
         this.evaluateBeats(world, "collectible:picked", event);
       }
@@ -52,7 +52,7 @@ export class StoryDirectorSystem<
 
   private evaluateBeats(world: World<TComponents, TEvents>, trigger: string, eventPayload: any): void {
     const beats = world.query("StoryBeat" as any);
-    const eventBus = world.getEventBus();
+    const eventBus = world.getEventBus() as EventBus;
 
     for (const entity of beats) {
       const beat = world.getComponent(entity, "StoryBeat" as any) as any as StoryBeatComponent;
@@ -67,7 +67,7 @@ export class StoryDirectorSystem<
           });
 
           if (eventBus) {
-            eventBus.emit("story:beat_reached" as any, {
+            eventBus.emit("story:beat_reached", {
               beatId: beat.beatId,
               dialogueReference: beat.dialogueReference,
               payload: eventPayload

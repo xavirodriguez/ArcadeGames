@@ -108,7 +108,7 @@ export class CombatSystem<
       h.current = nextHealth;
     });
 
-    const eventBus = world.getEventBus() as any;
+    const eventBus = world.getEventBus() as EventBus;
 
     // Emit combat:hit deferred event
     if (eventBus) {

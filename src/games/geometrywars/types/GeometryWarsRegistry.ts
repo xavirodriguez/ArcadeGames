@@ -1,4 +1,4 @@
-import { CoreComponentRegistry, Component, BlueprintRegistryMap } from "@tiny-aster/core";
+import { CoreComponentRegistry, CoreEvents, Component, BlueprintRegistryMap } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
 import { SpawnDirectorComponent, WaveMemberComponent } from "../../shared/spawn/components/SpawnComponents";
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
@@ -74,7 +74,7 @@ export interface GeometryWarsComponentRegistry extends CoreComponentRegistry {
  * Event Registry for Geometry Wars.
  * @public
  */
-export interface GeometryWarsEventRegistry extends Record<string, any> {
+export interface GeometryWarsEventRegistry extends CoreEvents, Record<string, unknown> {
   "combat:hit": {
     targetEntity: number;
     sourceEntity: number;
@@ -87,6 +87,8 @@ export interface GeometryWarsEventRegistry extends Record<string, any> {
     sourceEntity: number;
     category?: string;
   };
+  "spawn:wave_complete": { wave?: number };
+  "enemy:destroyed": { entity: number };
 }
 
 /**

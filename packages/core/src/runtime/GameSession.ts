@@ -68,9 +68,9 @@ export class GameSession {
     }
 
     // 4. Broadcast events that occurred this frame (as pure side-effects, e.g. for audio/visual presentation)
-    const eventBus = (this.simulation as any).eventBus;
+    const eventBus = (this.simulation as any).eventBus || (typeof (this.simulation as any).getEventBus === "function" ? (this.simulation as any).getEventBus() : undefined);
     if (eventBus && typeof eventBus.emit === "function") {
-      eventBus.emit("session:tick" as any, { tick: this.simulation.tick, state: this.simulation.state });
+      eventBus.emit("session:tick", { tick: this.simulation.tick, state: this.simulation.state });
     }
   }
 

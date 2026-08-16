@@ -33,7 +33,7 @@ export default function CYOAScreen() {
     runtimeRef.current = runtime;
 
     // Listen for custom story events like torch acquisition
-    eventBus.on("adventure:torch_acquired" as any, () => {
+    eventBus.on("adventure:torch_acquired", () => {
       runtime.setFlag("has_torch", true);
       setHasTorch(true);
     });

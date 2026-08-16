@@ -1,4 +1,6 @@
-import { Component } from "@tiny-aster/core";
+import { Component, CoreEvents } from "@tiny-aster/core";
+
+export interface EchoRunnerEventRegistry extends CoreEvents, Record<string, unknown> {}
 
 export interface EchoRunnerInput {
   moveLeft: boolean;

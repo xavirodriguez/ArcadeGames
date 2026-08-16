@@ -311,7 +311,7 @@ describe("BaseGame lifecycle", () => {
       playSpatialSFX: jest.fn()
     };
     const game = new TestGame({ audio: mockAudioPlayer });
-    game.getEventBus().emit("PlaySFX" as any, { name: "hit" });
+    game.getEventBus().emit("PlaySFX", { name: "hit" });
     expect(mockAudioPlayer.playSFX).toHaveBeenCalledWith("hit");
   });
 });

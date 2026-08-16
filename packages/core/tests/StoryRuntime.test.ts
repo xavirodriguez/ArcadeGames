@@ -89,18 +89,18 @@ describe("StoryRuntime & StoryGraph Engine Tests", () => {
     runtime.bindWorld(world);
 
     let emittedNode: string | null = null;
-    eventBus.on("story:node_changed" as any, (event: any) => {
+    eventBus.on("story:node_changed", (event: any) => {
       emittedNode = event.currentNodeId;
     });
 
     // Simulate completion of dialogue
-    eventBus.emit("dialogue:completed" as any, {});
+    eventBus.emit("dialogue:completed", {});
 
     expect(runtime.getCurrentNode()?.id).toBe("node_gameplay_lvl1");
     expect(emittedNode).toBe("node_gameplay_lvl1");
 
     // Simulate level completion event
-    eventBus.emit("level:completed" as any, { level: 1 });
+    eventBus.emit("level:completed", { level: 1 });
 
     expect(runtime.getCurrentNode()?.id).toBe("node_choice_1");
     expect(emittedNode).toBe("node_choice_1");
@@ -114,7 +114,7 @@ describe("StoryRuntime & StoryGraph Engine Tests", () => {
     runtime.navigateToNode("node_choice_1");
 
     let choiceEmitted = false;
-    eventBus.on("story:choice_selected" as any, (e: any) => {
+    eventBus.on("story:choice_selected", (e: any) => {
       if (e.choiceId === "choice_b") choiceEmitted = true;
     });
 

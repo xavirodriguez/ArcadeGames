@@ -109,9 +109,9 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
             // Estructural: fuera de mutación
             createPlayerBullet(world, pos.x, pos.y - 25, this.bulletPool);
             nextShootCooldownRemaining = this.config!.PLAYER_SHOOT_COOLDOWN / 1000;
-            const eventBus = world.getResource<any>("EventBus");
+            const eventBus = world.getEventBus();
             if (eventBus) {
-              eventBus.emit("PlaySFX" as any, { name: "shoot" });
+              eventBus.emit("PlaySFX", { name: "shoot" });
             }
           }
         }

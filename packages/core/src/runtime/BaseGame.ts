@@ -154,7 +154,7 @@ export abstract class BaseGame<
     this._config = config;
     this.world = new World<TComponents, TEvents, TBlueprints>(config.schedule);
     this.eventBus = new EventBus<TEvents>();
-    this.kernel = config.arcadeKernel ?? new ArcadeKernel(this.eventBus as any);
+    this.kernel = config.arcadeKernel ?? new ArcadeKernel(this.eventBus);
     this.blueprints = new BlueprintRegistry<TComponents, TBlueprints>();
     this.loop = new GameLoop({
       step: 1 / 60,
@@ -164,7 +164,7 @@ export abstract class BaseGame<
     this.unifiedInput = config.inputSystem || new UnifiedInputSystem();
     this.sceneManager = config.sceneManagerFactory
       ? config.sceneManagerFactory(this.world, this.eventBus)
-      : new SceneManager<TComponents>(this.world, this.eventBus as any);
+      : new SceneManager<TComponents>(this.world, this.eventBus);
     this.audio = config.audio || new NullAudioPlayer();
 
     // Set the initial gameplay random seed from config/options
@@ -173,7 +173,7 @@ export abstract class BaseGame<
     this.world.gameplayRandom.setSeed(initialSeed);
     this.world.gameplayRandom.lock();
 
-    this.eventBus.on("PlaySFX" as any, (payload: any) => {
+    this.eventBus.on("PlaySFX", (payload) => {
       if (payload && payload.name) {
         // Automatically route global PlaySFX EventBus events to the configured audio player
         this.audio.playSFX(payload.name);
@@ -214,7 +214,7 @@ export abstract class BaseGame<
     }
 
     // Subscribe and store unsubscribe functions
-    this.boundStateChangedListener = this.eventBus.on("arcade:state_changed" as any, (data: any) => {
+    this.boundStateChangedListener = this.eventBus.on("arcade:state_changed", (data) => {
       if (data.to === ArcadeState.PAUSED && !this.isPaused) {
         this.pause();
       } else if (data.to === ArcadeState.PLAYING && this.isPaused) {
@@ -223,7 +223,7 @@ export abstract class BaseGame<
     });
 
     // Subscribe to game over events to transition the kernel
-    this.boundGameOverListener = this.eventBus.on("game:over" as any, (payload: any) => {
+    this.boundGameOverListener = this.eventBus.on("game:over", (payload) => {
       if (this.kernel.getState() === ArcadeState.PLAYING) {
         this.kernel.transitionTo(ArcadeState.GAME_OVER, { score: (payload?.state as any)?.score });
       }
@@ -500,7 +500,7 @@ export abstract class BaseGame<
     this.world = new World<TComponents, TEvents, TBlueprints>(this._config.schedule);
     this.sceneManager = this._config.sceneManagerFactory
       ? this._config.sceneManagerFactory(this.world, this.eventBus)
-      : new SceneManager<TComponents>(this.world, this.eventBus as any);
+      : new SceneManager<TComponents>(this.world, this.eventBus);
     this.registerInternalResources();
     this.registerEventBusListeners();
 

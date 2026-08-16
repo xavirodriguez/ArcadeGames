@@ -55,7 +55,7 @@ describe("The Cave Adventure CYOA Story Mechanics", () => {
     expect(scene.getCurrentNode()?.id).toBe("campsite");
 
     // Listen for custom torch acquired event and mutate runtime state
-    eventBus.on("adventure:torch_acquired" as any, () => {
+    eventBus.on("adventure:torch_acquired", () => {
       runtime.setFlag("has_torch", true);
     });
 

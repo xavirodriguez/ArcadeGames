@@ -64,7 +64,7 @@ export function registerAsteroidsBlueprints(
         visible: true,
         opacity: 1,
         order: 1,
-        rotation: useSprites ? Math.PI / 2 : 0,
+        rotation: 0,
         angularVelocity: 0,
         hitFlashFrames: 0
       } as RenderComponent);

@@ -106,7 +106,7 @@ export class StoryRuntime {
     }
 
     for (const eventName of listenEvents) {
-      eventBus.on(eventName as any, (payload: any) => {
+      eventBus.on(eventName as unknown as keyof import("../events/EventBus").CombinedEvents<import("../events/EventBus").EventRegistry> & string, (payload: any) => {
         this.handleEvent(eventName, payload);
       });
     }

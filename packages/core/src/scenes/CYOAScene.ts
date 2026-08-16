@@ -45,11 +45,12 @@ export class CYOAScene extends Scene {
 
     const eventBus = world.getEventBus();
     if (eventBus) {
-      eventBus.on("story:node_changed" as any, (event: any) => {
-        if (event?.node) {
-          this.currentNode = event.node;
+      eventBus.on("story:node_changed", (event) => {
+        const node = (event as any)?.node;
+        if (node) {
+          this.currentNode = node;
           if (this.onNodeChangedCallback) {
-            this.onNodeChangedCallback(event.node);
+            this.onNodeChangedCallback(node);
           }
         }
       });

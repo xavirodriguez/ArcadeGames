@@ -120,7 +120,7 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
 
           const eventBus = world.getResource<any>("EventBus");
           if (eventBus) {
-            eventBus.emit("PlaySFX" as any, { name: "flap" });
+            eventBus.emit("PlaySFX", { name: "flap" });
           }
         }
 

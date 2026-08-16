@@ -161,8 +161,8 @@ describe("Refactoring Tests: EventBus & SceneManager", () => {
       const startSpy = jest.fn();
       const successSpy = jest.fn();
 
-      eventBus.on("scene:transition:start" as any, startSpy);
-      eventBus.on("scene:transition:success" as any, successSpy);
+      eventBus.on("scene:transition:start", startSpy);
+      eventBus.on("scene:transition:success", successSpy);
 
       await manager.transitionTo(sceneA);
 
@@ -181,7 +181,7 @@ describe("Refactoring Tests: EventBus & SceneManager", () => {
       const sceneB = new MockScene(new World(), "SceneB", 100); // 100ms delay in onEnter
 
       const timeoutSpy = jest.fn();
-      eventBus.on("scene:transition:timeout" as any, timeoutSpy);
+      eventBus.on("scene:transition:timeout", timeoutSpy);
 
       // Transition with 20ms timeout
       await expect(manager.transitionTo(sceneB, { timeout: 20 })).rejects.toThrow("Transition timed out");
@@ -242,7 +242,7 @@ describe("Refactoring Tests: EventBus & SceneManager", () => {
       const sceneB = new MockScene(new World(), "SceneB", 100); // 100ms delay in onEnter
 
       const errorSpy = jest.fn();
-      eventBus.on("scene:error" as any, errorSpy);
+      eventBus.on("scene:error", errorSpy);
 
       // Push with 20ms timeout
       await expect(manager.push(sceneB, { timeout: 20 })).rejects.toThrow("Push transition timed out");
@@ -269,7 +269,7 @@ describe("Refactoring Tests: EventBus & SceneManager", () => {
       };
 
       const errorSpy = jest.fn();
-      eventBus.on("scene:error" as any, errorSpy);
+      eventBus.on("scene:error", errorSpy);
 
       // Pop with 20ms timeout
       await expect(manager.pop({ timeout: 20 })).rejects.toThrow("Pop transition timed out");

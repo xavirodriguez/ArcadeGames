@@ -956,6 +956,6 @@ export const SpaceInvadersDefinition = {
 registerMutatorHook("story_fragment", (world: World) => {
   const eventBus = world.getEventBus();
   if (eventBus) {
-    eventBus.emit("story:beat_reached" as any, { beatId: "space_invaders_story_beat", dialogueReference: "story.chapter_1_fragment_3" });
+    eventBus.emit("story:beat_reached", { beatId: "space_invaders_story_beat", dialogueReference: "story.chapter_1_fragment_3" });
   }
 });

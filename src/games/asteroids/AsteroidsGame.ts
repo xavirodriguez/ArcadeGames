@@ -164,7 +164,7 @@ export class AsteroidsGame
       }
     });
 
-    this.eventBus.on("loot:spawn" as any, (event: any) => {
+    this.eventBus.on("loot:spawn", (event: any) => {
       const entity = this.world.reserveEntityId();
       this.world.getCommandBuffer().createEntity(entity);
       this.world.getCommandBuffer().addComponent(entity, {
@@ -660,6 +660,6 @@ export { AsteroidsDefinition } from "./AsteroidsDefinition";
 registerMutatorHook("story_fragment", (world: World) => {
   const eventBus = world.getEventBus();
   if (eventBus) {
-    eventBus.emit("story:beat_reached" as any, { beatId: "asteroids_story_beat", dialogueReference: "story.chapter_1_fragment_1" });
+    eventBus.emit("story:beat_reached", { beatId: "asteroids_story_beat", dialogueReference: "story.chapter_1_fragment_1" });
   }
 });

@@ -8,7 +8,7 @@ describe("ArcadeKernel State Machine", () => {
 
     const emitted: any[] = [];
     const eventBus = (kernel as any).eventBus as EventBus<any>;
-    eventBus.on("arcade:state_changed" as any, (data: any) => {
+    eventBus.on("arcade:state_changed", (data: any) => {
       emitted.push(data);
     });
 

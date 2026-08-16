@@ -99,7 +99,7 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(runState).toBeDefined();
 
     const gameOverListener = jest.fn();
-    game.getEventBus().on("game:over" as any, gameOverListener);
+    game.getEventBus().on("game:over", gameOverListener);
 
     // Simulate archive core collection
     runState.collectedPermanentIds.push("archive_core_1");

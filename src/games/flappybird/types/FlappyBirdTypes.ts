@@ -1,4 +1,9 @@
-import { Component, CoreComponentRegistry } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
+
+export interface FlappyBirdEventRegistry extends CoreEvents, Record<string, unknown> {
+  "flappy:near_miss": { points: number };
+  "pipe:passed": Record<string, unknown>;
+}
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
 
 export interface FlappyBirdComponentRegistry extends CoreComponentRegistry {

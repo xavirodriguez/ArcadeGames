@@ -46,7 +46,7 @@ export class LootSystem extends System<CoreComponentRegistry & { LootTable: Loot
           if (selectedType && selectedType !== "none") {
             const eventBus = world.getEventBus();
             if (eventBus) {
-              eventBus.emit("loot:spawn" as any, {
+              eventBus.emit("loot:spawn", {
                 x: transform.x,
                 y: transform.y,
                 lootType: selectedType

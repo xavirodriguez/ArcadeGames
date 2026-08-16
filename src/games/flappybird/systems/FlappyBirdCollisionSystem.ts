@@ -62,7 +62,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
           b.coyoteTimer = 0.05; // 50ms en segundos
           const eventBus = world.getResource<EventBus>("EventBus");
           if (eventBus) {
-            eventBus.emit("PlaySFX" as any, { name: "hit" });
+            eventBus.emit("PlaySFX", { name: "hit" });
           }
         }
       });
@@ -131,7 +131,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
              });
 
              const eventBus = world.getResource<EventBus>("EventBus");
-             if (eventBus) eventBus.emitDeferred("flappy:near_miss" as any, { points: 50 } as any);
+             if (eventBus) eventBus.emitDeferred("flappy:near_miss", { points: 50 });
 
              Juice.shake(world, 2, 100);
              createEmitter(world, {
@@ -163,8 +163,8 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
 
       const eventBus = world.getResource<EventBus>("EventBus");
       if (eventBus) {
-        eventBus.emit("PlaySFX" as any, { name: "hit" });
-        eventBus.emit("PlaySFX" as any, { name: "game_over" });
+        eventBus.emit("PlaySFX", { name: "hit" });
+        eventBus.emit("PlaySFX", { name: "game_over" });
       }
 
       const birds = world.query("Bird");

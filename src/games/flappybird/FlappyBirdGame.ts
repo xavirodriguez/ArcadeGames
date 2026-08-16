@@ -594,7 +594,7 @@ registerMutatorHook("combo_head_start", (world: World) => {
 registerMutatorHook("story_fragment", (world: World) => {
   const eventBus = world.getEventBus();
   if (eventBus) {
-    eventBus.emit("story:beat_reached" as any, { beatId: "flappybird_story_beat", dialogueReference: "story.chapter_1_fragment_2" });
+    eventBus.emit("story:beat_reached", { beatId: "flappybird_story_beat", dialogueReference: "story.chapter_1_fragment_2" });
   }
 });
 

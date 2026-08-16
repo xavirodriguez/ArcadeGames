@@ -1,7 +1,7 @@
 import { World } from "../ecs/World";
 import { System } from "../ecs/System";
 import { ComponentRegistry } from "../ecs/Component";
-import { EventRegistry, CombinedEvents } from "../events/EventBus";
+import { EventRegistry, EventBus } from "../events/EventBus";
 
 /** @public */
 export abstract class BaseGameStateSystem<
@@ -30,8 +30,7 @@ export abstract class BaseGameStateSystem<
 
     if (this.evaluateGameOverCondition(gameState)) {
       gameStateObj.isGameOver = true;
-      const eventBus = world.getEventBus();
-      eventBus.emit("game:over", { state: gameState } as CombinedEvents<TEvents>["game:over"]);
+      (world.getEventBus() as EventBus).emit("game:over", { state: gameState });
     }
   }
 

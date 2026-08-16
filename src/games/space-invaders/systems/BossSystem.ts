@@ -1,16 +1,16 @@
 import { System, World, HealthComponent, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent } from "@tiny-aster/core";
-import { GameStateComponent, BossComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
+import { GameStateComponent, BossComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { FactionComponent } from "../../shared/combat/components/CombatComponents";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { createEmitter } from "@tiny-aster/core";
 import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { Juice } from "@tiny-aster/core";
 
-export class BossSystem extends System<SpaceInvadersComponentRegistry> {
+export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry> {
   private config?: SpaceInvadersConfig;
 
-  public override onRegister(world: World<SpaceInvadersComponentRegistry>): void {
-    const eventBus = world.getEventBus() as any;
+  public override onRegister(world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>): void {
+    const eventBus = world.getEventBus();
     if (eventBus) {
       eventBus.on("si:kill", (event: { chain: number }) => {
         if (world.isReSimulating) return;
@@ -153,8 +153,8 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry> {
         gs.score += 5000;
     });
 
-    const eventBus = world.getResource<EventBus>("EventBus");
-    if (eventBus) eventBus.emitDeferred("si:boss_defeated" as any, {} as any);
+    const eventBus = world.getEventBus();
+    if (eventBus) eventBus.emitDeferred("si:boss_defeated", {});
 
     world.getCommandBuffer().removeEntity(entity);
   }

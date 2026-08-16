@@ -1,4 +1,4 @@
-import { System, World, ComponentRegistry } from "@tiny-aster/core";
+import { System, World, ComponentRegistry, EventBus } from "@tiny-aster/core";
 import { DialogueBoxComponent } from "./DialogueBoxComponent";
 
 /**
@@ -12,7 +12,7 @@ export class DialogueSystem<
 
   public update(world: World<TComponents, TEvents>, deltaTime: number): void {
     const dialogs = world.query("DialogueBox" as any);
-    const eventBus = world.getEventBus();
+    const eventBus = world.getEventBus() as EventBus;
 
     for (const entity of dialogs) {
       const dialogue = world.getComponent(entity, "DialogueBox" as any) as any as DialogueBoxComponent;
@@ -23,7 +23,7 @@ export class DialogueSystem<
         // No lines left or empty lines, close dialogue box
         world.getCommandBuffer().removeComponent(entity, "DialogueBox" as any);
         if (eventBus) {
-          eventBus.emit("dialogue:completed" as any, {});
+          eventBus.emit("dialogue:completed", {});
         }
         continue;
       }
@@ -54,7 +54,7 @@ export class DialogueSystem<
           if (nextIndex >= dialogue.lines.length) {
             world.getCommandBuffer().removeComponent(entity, "DialogueBox" as any);
             if (eventBus) {
-              eventBus.emit("dialogue:completed" as any, {});
+              eventBus.emit("dialogue:completed", {});
             }
           } else {
             world.mutateComponent(entity, "DialogueBox" as any, (d: any) => {
@@ -63,7 +63,7 @@ export class DialogueSystem<
               d.isLineFinished = false;
             });
             if (eventBus) {
-              eventBus.emit("dialogue:line_advanced" as any, { index: nextIndex, line: dialogue.lines[nextIndex] });
+              eventBus.emit("dialogue:line_advanced", { index: nextIndex, line: dialogue.lines[nextIndex] });
             }
           }
         }

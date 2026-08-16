@@ -1,4 +1,4 @@
-import { System, World, Entity, ComponentRegistry } from "@tiny-aster/core";
+import { System, World, Entity, ComponentRegistry, EventBus } from "@tiny-aster/core";
 import { SpawnDirectorComponent, WaveDefinition, SpawnRequest, WaveMemberComponent } from "../components/SpawnComponents";
 
 /**
@@ -50,7 +50,7 @@ export class SpawnDirectorSystem<
         }));
         enemiesRemaining = 0;
 
-        const eventBus = world.getEventBus() as any;
+        const eventBus = world.getEventBus() as EventBus;
         if (eventBus) {
           eventBus.emitDeferred("spawn:wave_start", {
             waveIndex,
@@ -127,7 +127,7 @@ export class SpawnDirectorSystem<
         const currentWave = waveDefinitions[waveIndex];
         cooldownRemaining = currentWave?.cooldown ?? 0;
 
-        const eventBus = world.getEventBus() as any;
+        const eventBus = world.getEventBus() as EventBus;
         if (eventBus) {
           eventBus.emitDeferred("spawn:wave_complete", {
             waveIndex,

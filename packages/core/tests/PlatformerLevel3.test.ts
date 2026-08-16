@@ -150,7 +150,7 @@ describe("Platformer Level 3 - Content & Design Tests", () => {
       });
 
       let eventPayload: any = null;
-      eventBus.on("CheckpointActivated" as any, (payload) => {
+      eventBus.on("CheckpointActivated", (payload) => {
         eventPayload = payload;
       });
 
@@ -188,7 +188,7 @@ describe("Platformer Level 3 - Content & Design Tests", () => {
       });
 
       let diedPayload: any = null;
-      eventBus.on("PlayerDied" as any, (payload) => {
+      eventBus.on("PlayerDied", (payload) => {
         diedPayload = payload;
       });
 

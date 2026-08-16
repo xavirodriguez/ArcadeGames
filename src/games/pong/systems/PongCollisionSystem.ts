@@ -114,7 +114,7 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
 
               // Play hit audio
               const eventBus = world.getEventBus();
-              eventBus.emit("PlaySFX" as any, { name: "hit" });
+              eventBus.emit("PlaySFX", { name: "hit" });
             }
           }
         }

@@ -1,4 +1,7 @@
 /** @public */
+import type { Entity } from "../ecs/Entity";
+
+/** @public */
 export type EventRegistry = Record<string, unknown>;
 
 /** @public */
@@ -7,28 +10,62 @@ export interface CoreEvents {
   "engine:resumed": { tick: number; timestamp: number };
   "engine:destroyed": { timestamp: number };
   "net:ack_version": { version: number; tick: number };
+
+  // Achievements
+  "achievement:unlocked": { achievement: unknown; [key: string]: unknown };
+
+  // Tests & Subsystems
+  "rock:destroyed": { amount?: number; [key: string]: unknown };
+
+  // Audio / Visual SFX
   "PlaySFX": { name: string };
-  "PlayerDied": { playerEntity: number };
-  "PlayerRespawned": { playerEntity: number; checkpointEntity?: number; x?: number; y?: number };
-  "CheckpointActivated": { checkpointEntity: number; checkpointId?: string; activatorEntity?: number; playerEntity?: number; x?: number; y?: number };
-  "CollectiblePickedUp": { collectibleEntity: number; collectorEntity?: number; playerEntity?: number; collectible?: unknown; type?: string; value?: number };
-  "hitbox:hit": { hitboxEntity: number; hurtboxEntity: number; attacker?: number; victim?: number };
-  "spike:hit": { entity: number };
-  "game:over": { state?: unknown; score?: number; level?: number };
+
+  // Core Gameplay & Collision Events
+  "si:kill": { chain: number; [key: string]: unknown };
+  "entity:destroyed": { type: string; entity?: Entity; [key: string]: unknown };
+  "PlayerDied": { playerEntity?: Entity; [key: string]: unknown };
+  "PlayerRespawned": { playerEntity: Entity; x: number; y: number };
+  "game:over": { state?: unknown; score?: number; level?: number; [key: string]: unknown };
+  "spike:hit": { entity: Entity };
+  "hitbox:hit": { attacker?: Entity; defender?: Entity; damage?: number; [key: string]: unknown };
+  "CheckpointActivated": { checkpointEntity: Entity; playerEntity: Entity; checkpointId?: string; x?: number; y?: number; position?: { x: number; y: number }; [key: string]: unknown };
+  "CollectiblePickedUp": { collectibleEntity?: Entity; playerEntity?: Entity; value?: number; collectibleType?: string; [key: string]: unknown };
+  "loot:spawn": { x: number; y: number; lootType?: string; [key: string]: unknown };
+  "spawn:wave_start": { waveIndex?: number; waveId?: string; isBossWave?: boolean; [key: string]: unknown };
+  "spawn:wave_complete": { wave?: number; [key: string]: unknown };
+  "hierarchy:warning": { message: string };
+  "simulation:stalled": { duration: number };
+  "simulation:unstalled": Record<string, unknown>;
+  "player:continue": Record<string, unknown>;
+
+  // Cutscenes & Scenes
+  "cutscene:started": { lines: string[] };
+  "cutscene:line_advanced": { index: number; line: string };
+  "cutscene:completed": Record<string, unknown>;
+  "scene:transition:start": { scene: unknown };
+  "scene:transition:progress": { progress: number };
+  "scene:transition:success": { scene: unknown };
+  "scene:transition:timeout": { scene: unknown; error?: unknown };
+  "scene:transition:error": { scene: unknown; error?: unknown };
+  "scene:error": { action: string; error?: unknown };
+  "scene:warning": { message: string };
+
+  // Narrative & Story Systems
+  "story:scene_change": { sceneToLoad: string; [key: string]: unknown };
+  "story:node_changed": { graphId?: string; currentNodeId?: string; previousNodeId?: string | null; node?: unknown; nodeId?: string; title?: string; text?: string; choices?: unknown[]; [key: string]: unknown };
+  "story:beat_reached": { beatId: string; dialogueReference?: string; payload?: unknown; [key: string]: unknown };
+  "story:choice_selected": { choiceId: string; targetNodeId: string; nodeId?: string; [key: string]: unknown };
+  "story:objective_completed": { objectiveId: string; objective?: unknown; [key: string]: unknown };
+  "dialogue:completed": Record<string, unknown>;
+  "dialogue:line_advanced": { index: number; line: string };
+  "level:completed": { level: number; nextLevel?: number; [key: string]: unknown };
+
+  // Narrative CYOA & Adventure Hooks
+  "adventure:torch_acquired": Record<string, unknown>;
+
+  // Kernel & Session Lifecycle
+  "arcade:state_changed": { from: string; to: string };
   "session:tick": { tick: number; state: unknown };
-  "arcade:state_changed": { from: string; to: string; context?: unknown; [key: string]: unknown };
-  "cutscene:started": { lines: unknown[] };
-  "cutscene:line_advanced": { index: number; line: unknown };
-  "cutscene:completed": Record<string, never> | Record<string, unknown>;
-  "story:scene_change": { sceneToLoad: string; nodeId: string; node: unknown };
-  "story:node_changed": { graphId: string; currentNodeId: string; previousNodeId: string | null; node: unknown };
-  "story:beat_reached": { beatId: string; dialogueReference?: string; payload?: unknown };
-  "story:choice_selected": { choiceId: string; nodeId: string; targetNodeId: string };
-  "story:objective_completed": { objectiveId: string; objective: unknown };
-  "dialogue:completed": Record<string, never> | Record<string, unknown>;
-  "dialogue:line_advanced": { index: number; line: unknown };
-  "level:completed": { level: number; nextLevel?: number };
-  "spawn:wave_complete": Record<string, never> | Record<string, unknown>;
 }
 
 /** @public */

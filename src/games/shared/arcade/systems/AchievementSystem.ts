@@ -1,4 +1,4 @@
-import { System, World, ComponentRegistry } from "@tiny-aster/core";
+import { System, World, ComponentRegistry, EventBus } from "@tiny-aster/core";
 import { PersistenceService } from "../../../../services/PersistenceService";
 
 /**
@@ -31,7 +31,7 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
   private collectedFragments: string[] = [];
 
   public override onRegister(world: World<TComponents>): void {
-    const eventBus = world.getEventBus() as any;
+    const eventBus = world.getEventBus() as EventBus;
     if (eventBus) {
       // Load saved achievements from persistence
       PersistenceService.load<Record<string, boolean>>("unlocked_achievements", {}).then((stored) => {
@@ -132,7 +132,7 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
       });
 
       // Notify the world / presentation layers
-      const eventBus = world.getEventBus() as any;
+      const eventBus = world.getEventBus() as EventBus;
       if (eventBus) {
         eventBus.emit("achievement:unlocked", { achievement });
       }

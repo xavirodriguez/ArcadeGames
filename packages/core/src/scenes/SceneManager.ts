@@ -908,7 +908,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   ): void {
     if (!this.eventBus) return;
 
-    this.eventBus.on("story:scene_change" as any, async (payload: { sceneToLoad: string }) => {
+    this.eventBus.on("story:scene_change", async (payload: { sceneToLoad: string }) => {
       if (!payload || !payload.sceneToLoad) return;
       const newScene = sceneFactory(payload.sceneToLoad);
       if (newScene) {

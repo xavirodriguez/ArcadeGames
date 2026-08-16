@@ -879,7 +879,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     // Listen to Hit Detection events
     const eventBus = this.world.getEventBus();
     if (eventBus) {
-      eventBus.on("hitbox:hit" as any, (event: any) => {
+      eventBus.on("hitbox:hit", (event: any) => {
         const victim = event.victim;
         const attacker = event.attacker;
 
@@ -915,12 +915,12 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
       });
 
       // Listen for collectible pickup to play score sound
-      eventBus.on("CollectiblePickedUp" as any, () => {
+      eventBus.on("CollectiblePickedUp", () => {
         this.audio.playSFX("score");
       });
 
       // Listen for player died to play game over/death sound
-      eventBus.on("PlayerDied" as any, () => {
+      eventBus.on("PlayerDied", () => {
         this.audio.playSFX("game_over");
       });
     }
@@ -1257,7 +1257,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     if (runState && runState.collectedPermanentIds.includes("archive_core_1")) {
       if (!this.gameOver) {
         this.gameOver = true;
-        this.eventBus.emit("game:over" as any, {
+        this.eventBus.emit("game:over", {
           state: this.getGameState()
         });
       }

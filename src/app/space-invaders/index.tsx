@@ -246,7 +246,7 @@ export default function SpaceInvadersScreen() {
           seed={seed}
           onSetSeed={restartWithSeed}
           onContinue={() => {
-            game.getEventBus().emit("player:continue" as any, {});
+            game.getEventBus().emit("player:continue", {});
           }}
         />
         <CanvasRenderer

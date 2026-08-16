@@ -34,7 +34,7 @@ class LifecycleTestGame extends BaseGame<TestState, any> {
   public triggerGameOver(score: number): void {
     this.customGameOver = true;
     this.customScore = score;
-    this.eventBus.emit("game:over" as any, { state: this.getGameState() });
+    this.eventBus.emit("game:over", { state: this.getGameState() });
   }
 }
 

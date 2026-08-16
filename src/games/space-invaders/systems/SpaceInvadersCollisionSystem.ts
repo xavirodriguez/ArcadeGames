@@ -11,6 +11,7 @@ import {
   BossComponent,
   UITextComponent,
   SpaceInvadersComponentRegistry,
+  SpaceInvadersEventRegistry,
   GAME_CONFIG
 } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
@@ -20,18 +21,18 @@ import { createParticle } from "../EntityFactory";
 /**
  * System that handles all game collisions by reacting to events from CollisionSystem2D.
  */
-export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentRegistry> {
+export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry> {
   private config?: SpaceInvadersConfig;
 
   constructor(private _particlePool: ParticlePool) {
     super();
   }
 
-  public override onRegister(world: World<SpaceInvadersComponentRegistry>): void {
+  public override onRegister(world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>): void {
     if (!this.config) {
       this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
-    const eventBus = world.getEventBus() as any;
+    const eventBus = world.getEventBus();
     if (eventBus) {
       eventBus.on("combat:hit", (event: any) => {
         this.onCombatHit(world, event);
@@ -69,14 +70,14 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         gs.screenShake = { intensity: 10, duration: 0.3, elapsed: 0, totalDuration: 0.3 };
         if (health && health.current <= 0) {
           gs.isGameOver = true;
-          const eventBus = world.getResource<any>("EventBus");
+            const eventBus = world.getEventBus();
           if (eventBus) {
-            eventBus.emit("PlaySFX" as any, { name: "game_over" });
+              eventBus.emit("PlaySFX", { name: "game_over" });
           }
         } else {
-          const eventBus = world.getResource<any>("EventBus");
+            const eventBus = world.getEventBus();
           if (eventBus) {
-            eventBus.emit("PlaySFX" as any, { name: "hit" });
+              eventBus.emit("PlaySFX", { name: "hit" });
           }
         }
       });
@@ -111,9 +112,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           });
         }
 
-        const eventBus = world.getResource<any>("EventBus");
+        const eventBus = world.getEventBus();
         if (eventBus) {
-          eventBus.emit("PlaySFX" as any, { name: "hit" });
+          eventBus.emit("PlaySFX", { name: "hit" });
         }
       }
     }
@@ -122,9 +123,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       world.mutateComponent(target, "Render", (render) => {
         render.hitFlashFrames = 4;
       });
-      const eventBus = world.getResource<any>("EventBus");
+      const eventBus = world.getEventBus();
       if (eventBus) {
-        eventBus.emit("PlaySFX" as any, { name: "hit" });
+        eventBus.emit("PlaySFX", { name: "hit" });
       }
     }
   }
@@ -175,11 +176,11 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           spawnScorePopup(world, explosionX, explosionY, comboText, "#FFFF00");
         }
 
-        const eventBus = world.getResource<EventBus>("EventBus");
+        const eventBus = world.getEventBus();
         if (eventBus) {
           eventBus.emitDeferred("si:kill", { chain: nextCombo });
           eventBus.emitDeferred("entity:destroyed", { entity: target, type: "Invader" });
-          eventBus.emit("PlaySFX" as any, { name: "explosion" });
+          eventBus.emit("PlaySFX", { name: "explosion" });
         }
 
         const hasKami = world.hasComponent(target, 'Kamikaze');

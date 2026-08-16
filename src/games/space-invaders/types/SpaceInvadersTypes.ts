@@ -1,4 +1,15 @@
-import { Component, CoreComponentRegistry } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
+
+/**
+ * Event registry mapping for Space Invaders.
+ * @public
+ */
+export interface SpaceInvadersEventRegistry extends CoreEvents, Record<string, unknown> {
+  "si:boss_defeated": Record<string, unknown>;
+  "stage:cleared": { level: number };
+  "si:kill": { chain: number };
+  "entity:destroyed": { entity: number; type: string };
+}
 import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
 import { LootTableComponent, PowerUpComponent } from "../../shared/arcade";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";

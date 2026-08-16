@@ -10,8 +10,20 @@ import {
 } from "./StoryTypes";
 
 /**
- * StoryRuntime orchestrates narrative progression based on a data-driven StoryGraph.
- * Operates deterministically with world.gameplayRandom and communicates via EventBus.
+ * StoryRuntime orchestrates narrative progression based on a data-driven `StoryGraph`.
+ *
+ * @remarks
+ * Acts as the stateful runtime engine for campaign narrative flow across arcade games.
+ * Operates deterministically with `world.gameplayRandom` when available and communicates
+ * asynchronously with decoupled UI and game systems via `EventBus`.
+ *
+ * Emits key lifecycle events:
+ * - `story:node_changed` when transitioning to a new node.
+ * - `story:scene_change` when entering a node configured with `sceneToLoad`.
+ * - `story:choice_selected` when a player picks a narrative choice option.
+ * - `story:objective_completed` when an active objective counter reaches target.
+ * - `story:beat_reached` for backwards compatibility with legacy dialogue/cutscene listeners.
+ *
  * @public
  */
 export class StoryRuntime {
@@ -20,6 +32,11 @@ export class StoryRuntime {
   private world?: World;
   private eventBus?: EventBus;
 
+  /**
+   * Constructs a new `StoryRuntime` instance.
+   *
+   * @param graph - Optional initial `StoryGraph` asset to load on initialization.
+   */
   constructor(graph?: StoryGraph) {
     this.state = {
       graphId: graph?.id || null,
@@ -37,7 +54,9 @@ export class StoryRuntime {
   }
 
   /**
-   * Binds the runtime to a World and its EventBus.
+   * Binds the runtime to an active ECS `World` container and extracts its `EventBus`.
+   *
+   * @param world - The ECS world hosting narrative event listeners and seed-based RNG.
    */
   public bindWorld(world: World): void {
     this.world = world;
@@ -49,6 +68,13 @@ export class StoryRuntime {
 
   /**
    * Binds event bus listeners for gameplay narrative triggers.
+   *
+   * @remarks
+   * Automatically inspects all node transition conditions in the active graph and registers
+   * listeners for any event key conditions specified. Also binds standard built-in gameplay hooks
+   * such as `level:completed`, `spawn:wave_complete`, and `CollectiblePickedUp`.
+   *
+   * @param eventBus - The central `EventBus` instance used for inter-system narrative signals.
    */
   public bindEventBus(eventBus: EventBus): void {
     this.eventBus = eventBus;
@@ -87,7 +113,10 @@ export class StoryRuntime {
   }
 
   /**
-   * Loads a new StoryGraph into the runtime and sets entry node if not started.
+   * Loads a new `StoryGraph` asset into the runtime and sets entry node if configured.
+   *
+   * @param graph - The narrative graph asset definition.
+   * @param startAtEntry - Whether to automatically navigate to `graph.entryNodeId` on load (defaults to `true`).
    */
   public loadGraph(graph: StoryGraph, startAtEntry: boolean = true): void {
     this.graph = graph;
@@ -99,7 +128,10 @@ export class StoryRuntime {
   }
 
   /**
-   * Navigates to a specific node in the active graph.
+   * Navigates directly to a specific node in the active graph.
+   *
+   * @param nodeId - Target string identifier of node to execute.
+   * @returns `true` if navigation succeeded, `false` if target node does not exist in graph.
    */
   public navigateToNode(nodeId: string): boolean {
     if (!this.graph || !this.graph.nodes[nodeId]) {
@@ -159,7 +191,13 @@ export class StoryRuntime {
   }
 
   /**
-   * Evaluates and steps through eligible transitions out of current node.
+   * Evaluates and steps through eligible outgoing transitions from the current node.
+   *
+   * @remarks
+   * Outgoing transitions are sorted by priority weight (highest priority evaluated first).
+   * The first transition whose `condition` evaluates to `true` is taken immediately.
+   *
+   * @returns `true` if an outgoing transition was triggered and executed, `false` otherwise.
    */
   public evaluateTransitions(): boolean {
     const currentNode = this.getCurrentNode();
@@ -181,7 +219,15 @@ export class StoryRuntime {
   }
 
   /**
-   * Handles incoming event notifications and advances graph state accordingly.
+   * Handles incoming gameplay event notifications and advances narrative state accordingly.
+   *
+   * @remarks
+   * Briefly sets a transient flag `event:<eventName>` in runtime state during evaluation,
+   * updates active objective target counters, and triggers transition checks before clearing
+   * the transient event flag.
+   *
+   * @param eventName - Name of the event received via `EventBus`.
+   * @param payload - Data payload associated with the event notification.
    */
   public handleEvent(eventName: string, payload: any): void {
     // 1. Set transient event flag
@@ -198,7 +244,10 @@ export class StoryRuntime {
   }
 
   /**
-   * Selects a narrative choice option.
+   * Processes player decision during a 'choice' node execution.
+   *
+   * @param choiceId - Target choice ID selected by the user.
+   * @returns `true` if choice was valid, condition passed, and transition occurred; `false` otherwise.
    */
   public selectChoice(choiceId: string): boolean {
     const node = this.getCurrentNode();
@@ -229,7 +278,19 @@ export class StoryRuntime {
   }
 
   /**
-   * Evaluates a StoryCondition deterministically.
+   * Evaluates a `StoryCondition` predicate against active state deterministically.
+   *
+   * @remarks
+   * Evaluates condition types:
+   * - `event`: Checks transient `event:<key>` flag.
+   * - `flag`: Evaluates boolean state flag.
+   * - `variable`: Compares state variable value using relational operator.
+   * - `choice`: Checks whether choice ID exists in `state.selectedChoices`.
+   * - `objective`: Checks whether specified objective is completed.
+   * - `random`: Evaluates probability using `world.gameplayRandom` or fallback `Math.random`.
+   *
+   * @param condition - Condition predicate descriptor to evaluate.
+   * @returns Boolean truth result of evaluation.
    */
   public evaluateCondition(condition: StoryCondition): boolean {
     switch (condition.type) {
@@ -269,7 +330,10 @@ export class StoryRuntime {
   }
 
   /**
-   * Sets a narrative state flag.
+   * Sets a narrative state boolean flag and re-evaluates outgoing node transitions.
+   *
+   * @param key - Flag name identifier.
+   * @param value - Boolean flag value (defaults to `true`).
    */
   public setFlag(key: string, value: boolean = true): void {
     this.state.flags[key] = value;
@@ -277,7 +341,10 @@ export class StoryRuntime {
   }
 
   /**
-   * Sets a narrative state variable.
+   * Sets a narrative state variable value and re-evaluates outgoing node transitions.
+   *
+   * @param key - Variable name identifier.
+   * @param value - Value to assign (number, string, or boolean).
    */
   public setVariable(key: string, value: any): void {
     this.state.variables[key] = value;
@@ -285,14 +352,18 @@ export class StoryRuntime {
   }
 
   /**
-   * Gets current state snapshot.
+   * Captures a deep serialized snapshot clone of the current runtime `StoryState`.
+   *
+   * @returns Deep copy of active `StoryState`.
    */
   public getState(): StoryState {
     return JSON.parse(JSON.stringify(this.state));
   }
 
   /**
-   * Restores state from snapshot.
+   * Restores runtime state from a deep `StoryState` snapshot.
+   *
+   * @param state - State snapshot object to restore.
    */
   public setState(state: StoryState): void {
     this.state = JSON.parse(JSON.stringify(state));
@@ -302,7 +373,9 @@ export class StoryRuntime {
   }
 
   /**
-   * Gets currently active StoryNode.
+   * Retrieves the currently active `StoryNode` from the loaded graph.
+   *
+   * @returns Active `StoryNode` instance, or `null` if no graph is loaded or active node is unset.
    */
   public getCurrentNode(): StoryNode | null {
     if (!this.graph || !this.state.currentNodeId) return null;
@@ -310,7 +383,9 @@ export class StoryRuntime {
   }
 
   /**
-   * Gets currently active graph.
+   * Retrieves the currently loaded `StoryGraph` asset.
+   *
+   * @returns Active `StoryGraph`, or `null` if no graph is loaded.
    */
   public getGraph(): StoryGraph | null {
     return this.graph;

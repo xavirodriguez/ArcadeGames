@@ -1,21 +1,24 @@
 import { StoryGraph, StoryCondition } from "./StoryTypes";
 
 /**
- * Validation options for StoryGraph analysis.
+ * Validation options supplied to `StoryGraphValidator`.
+ *
  * @public
  */
 export interface StoryGraphValidationOptions {
-  /** Optional list of declared variable keys in initial state schema */
+  /** Optional list of declared variable keys in initial state schema. */
   declaredVariables?: string[];
-  /** Optional list of declared flag keys in initial state schema */
+  /** Optional list of declared flag keys in initial state schema. */
   declaredFlags?: string[];
 }
 
 /**
- * Error or warning descriptor produced by StoryGraphValidator.
+ * Error or warning descriptor produced by `StoryGraphValidator`.
+ *
  * @public
  */
 export interface StoryGraphValidationError {
+  /** Categorical code describing the validation issue type. */
   type:
     | "orphan_node"
     | "broken_transition"
@@ -23,31 +26,49 @@ export interface StoryGraphValidationError {
     | "undeclared_variable"
     | "undeclared_flag"
     | "invalid_entry_node";
+  /** Severity level (`error` blocks graph loading, `warning` highlights potential dead ends or unreachable content). */
   severity: "error" | "warning";
+  /** ID of the node where the issue was detected. */
   nodeId?: string;
+  /** ID of the missing target node if transition is broken. */
   targetNodeId?: string;
+  /** Variable or flag key name if undeclared. */
   variableKey?: string;
+  /** Human-readable explanation of the validation defect. */
   message: string;
 }
 
 /**
- * Result structure returned by StoryGraphValidator.
+ * Result structure returned by `StoryGraphValidator`.
+ *
  * @public
  */
 export interface StoryGraphValidationResult {
+  /** True if zero errors were discovered during graph validation. */
   valid: boolean;
+  /** List of critical structural errors that prevent graph execution. */
   errors: StoryGraphValidationError[];
+  /** List of non-critical warnings (e.g. unreachable orphan nodes or dead ends). */
   warnings: StoryGraphValidationError[];
 }
 
 /**
- * Static linter utility for pure StoryGraph narrative structures.
- * Performs build-time and load-time validation without altering runtime state or RNG seeds.
+ * Static linter utility for pure `StoryGraph` narrative structures.
+ *
+ * @remarks
+ * Performs compile-time and load-time static analysis on narrative graph assets without mutating runtime state.
+ * Detects structural issues such as invalid entry nodes, broken transitions, orphan nodes, unmarked dead ends,
+ * and undeclared state variables or flags.
+ *
  * @public
  */
 export class StoryGraphValidator {
   /**
-   * Validates a pure StoryGraph dataset and returns errors and warnings.
+   * Validates a pure `StoryGraph` asset against structural invariants.
+   *
+   * @param graph - The narrative `StoryGraph` asset definition to validate.
+   * @param options - Optional declared state variables and flags schema for undeclared key checking.
+   * @returns Validation result containing validity status, error list, and warning list.
    */
   public static validate(
     graph: StoryGraph,

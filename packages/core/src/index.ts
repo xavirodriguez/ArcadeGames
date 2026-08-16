@@ -30,6 +30,7 @@ export * from "./snapshots/SnapshotBuffer";
 export * from "./ecs/ComponentCloner";
 export * from "./scenes/Scene";
 export * from "./scenes/CutsceneScene";
+export * from "./scenes/CYOAScene";
 export * from "./scenes/SceneManager";
 export * from "./scenes/TransitionTypes";
 export * from "./scenes/transitions/FadeTransition";

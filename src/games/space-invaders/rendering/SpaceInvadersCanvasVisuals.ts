@@ -93,6 +93,29 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.fillRect(-size / 3 - 1, -size / 3, 2, size / 4);
     ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);
 
+    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
+    const input = world.getComponent(entity, "Input") as any;
+    const isShooting = Boolean(input && input.actions && input.actions["shoot"]);
+    if (isShooting) {
+      const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
+      ctx.fillStyle = "#00FFFF";
+      ctx.shadowColor = "#00FFFF";
+      ctx.shadowBlur = 10;
+
+      // Left Cannon Muzzle Flash
+      ctx.beginPath();
+      ctx.arc(-size / 3, -size / 3 - 2, flashSize, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Right Cannon Muzzle Flash
+      ctx.beginPath();
+      ctx.arc(size / 3, -size / 3 - 2, flashSize, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
+    }
+
     // High-energy cockpit glass canopy (Cyan)
     ctx.fillStyle = colors.cyan;
     ctx.beginPath();

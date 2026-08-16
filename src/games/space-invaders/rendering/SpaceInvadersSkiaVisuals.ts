@@ -144,6 +144,16 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     canvas.drawRect(Skia.XYWHRect(-size / 3 - 1, -size / 3, 2, size / 4), paint);
     canvas.drawRect(Skia.XYWHRect(size / 3 - 1, -size / 3, 2, size / 4), paint);
 
+    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
+    const input = world.getComponent(entity, "Input") as any;
+    const isShooting = Boolean(input && input.actions && input.actions["shoot"]);
+    if (isShooting) {
+      const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
+      paint.setColor(Skia.Color("#00FFFF"));
+      canvas.drawCircle(-size / 3, -size / 3 - 2, flashSize, paint);
+      canvas.drawCircle(size / 3, -size / 3 - 2, flashSize, paint);
+    }
+
     // High-energy cockpit glass canopy (Cyan)
     paint.setColor(Skia.Color(colors.cyan));
     canvas.drawPath(paths.cockpit, paint);

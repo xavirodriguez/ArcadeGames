@@ -62,6 +62,17 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
+
+      // Lingering Hot Plasma Exhaust Sparks
+      ctx.fillStyle = "#ffffff";
+      for (let i = 0; i < 3; i++) {
+        const sparkOffset = flameLen + renderRandom.nextRange(2, 8);
+        const sparkY = renderRandom.nextRange(-size * 0.2, size * 0.2);
+        const sparkRadius = renderRandom.nextRange(1, 2);
+        ctx.beginPath();
+        ctx.arc(-(size * 0.4 + sparkOffset), sparkY, sparkRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     // Neon Ship Body via drawNeonShape pattern (R7 & R11)

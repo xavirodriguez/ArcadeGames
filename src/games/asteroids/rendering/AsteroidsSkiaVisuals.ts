@@ -82,6 +82,17 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       paint.setStrokeWidth(2);
       paint.setAlphaf(opacity);
       canvas.drawPath(flamePath, paint);
+
+      // Lingering Hot Plasma Exhaust Sparks
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("#ffffff"));
+      paint.setAlphaf(opacity);
+      for (let i = 0; i < 3; i++) {
+        const sparkOffset = flameLen + renderRandom.nextRange(2, 8);
+        const sparkY = renderRandom.nextRange(-size * 0.2, size * 0.2);
+        const sparkRadius = renderRandom.nextRange(1, 2);
+        canvas.drawCircle(-(size * 0.4 + sparkOffset), sparkY, sparkRadius, paint);
+      }
     }
 
     // Retrieve or pre-build static ship paths

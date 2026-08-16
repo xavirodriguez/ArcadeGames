@@ -3,20 +3,28 @@ import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle } from "react-
 import { router } from "expo-router";
 import { colors, typography, spacing, radius } from "@/theme";
 import { hapticSelection } from "@/utils/haptics";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface BackButtonProps {
   label?: string;
   onPress?: () => void;
   accessibilityHint?: string;
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 export const BackButton: React.FC<BackButtonProps> = ({
-  label = "Menu",
+  label,
   onPress,
-  accessibilityHint = "Regresa a la pantalla principal",
+  accessibilityHint,
+  accessibilityLabel,
   style,
 }) => {
+  const { t } = useTranslation();
+  const displayLabel = label || t?.common?.menu || "Menu";
+  const defaultHint = t?.accessibility?.close_button_hint || "Returns to the previous screen";
+  const defaultLabel = `${t?.common?.back || "Back"} - ${displayLabel}`;
+
   const handlePress = () => {
     hapticSelection();
     if (onPress) {
@@ -35,10 +43,10 @@ export const BackButton: React.FC<BackButtonProps> = ({
       style={[styles.backButton, style]}
       onPress={handlePress}
       accessibilityRole="button"
-      accessibilityLabel={`Atrás - ${label}`}
-      accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel || defaultLabel}
+      accessibilityHint={accessibilityHint || defaultHint}
     >
-      <Text style={styles.backButtonText}>← {label}</Text>
+      <Text style={styles.backButtonText}>← {displayLabel}</Text>
     </TouchableOpacity>
   );
 };

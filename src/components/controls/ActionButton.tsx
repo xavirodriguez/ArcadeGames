@@ -10,12 +10,13 @@ export interface ActionButtonProps {
   color?: string;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  disabled?: boolean;
 }
 
 /**
  * Reusable action button for mobile controls.
- * Uses Pressable for reliable onPressIn/onPressOut on Android.
- * No ECS knowledge.
+ * Uses Pressable for reliable onPressIn/onPressOut on Android & Web.
+ * Minimum size enforced to at least 48px touch target.
  */
 export function ActionButton({
   label,
@@ -25,33 +26,43 @@ export function ActionButton({
   color = "rgba(255,255,255,0.15)",
   accessibilityLabel,
   accessibilityHint,
+  disabled = false,
 }: ActionButtonProps) {
   const handlePressIn = useCallback<NonNullable<PressableProps["onPressIn"]>>(
     () => {
+      if (disabled) return;
       hapticSelection();
       onPressIn();
     },
-    [onPressIn]
+    [disabled, onPressIn]
   );
   const handlePressOut = useCallback<NonNullable<PressableProps["onPressOut"]>>(
-    () => onPressOut(),
-    [onPressOut]
+    () => {
+      if (disabled) return;
+      onPressOut();
+    },
+    [disabled, onPressOut]
   );
+
+  const finalSize = Math.max(48, size);
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || label}
       accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={({ pressed }) => [
         styles.button,
-        { width: size, height: size, borderRadius: size / 2, backgroundColor: color },
-        pressed && styles.pressed,
+        { width: finalSize, height: finalSize, borderRadius: finalSize / 2, backgroundColor: color },
+        pressed && !disabled && styles.pressed,
+        disabled && styles.disabled,
       ]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, disabled && styles.disabledLabel]}>{label}</Text>
     </Pressable>
   );
 }
@@ -62,13 +73,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 2,
     borderColor: "rgba(255,255,255,0.4)",
+    minWidth: 48,
+    minHeight: 48,
   },
   pressed: {
     backgroundColor: "rgba(255,255,255,0.35)",
+    borderColor: "rgba(255,255,255,0.8)",
+  },
+  disabled: {
+    opacity: 0.5,
+    borderColor: "rgba(255,255,255,0.2)",
   },
   label: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
+  },
+  disabledLabel: {
+    color: "rgba(255,255,255,0.4)",
   },
 });

@@ -30,7 +30,8 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
         respawnY = playerStart.y;
       }
 
-      if (runState && runState.activeCheckpoint) {
+      // Safe for determinism/rollback. Executing query("RespawnPoint") only when activeCheckpoint is present gates redundant query work when no active checkpoint exists.
+      if (runState?.activeCheckpoint) {
         const checkpoints = world.query("RespawnPoint");
         for (let j = 0; j < checkpoints.length; j++) {
           const cpEnt = checkpoints[j];

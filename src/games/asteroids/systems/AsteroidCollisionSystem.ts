@@ -78,24 +78,30 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
       const ownerId = bulletComp?.ownerId;
       if (ownerId) {
           let playerEntity: number | undefined;
-          const candidates = [...world.query("RemotePlayer"), ...world.query("LocalPlayer"), ...world.query("Ship")];
-          for (const ent of candidates) {
+          // Safe for determinism/rollback. Sequential query iteration replaces array spreading [...world.query("RemotePlayer"), ...], avoiding array allocations while searching for matching player entity.
+          const findMatchingCandidate = (queryType: "RemotePlayer" | "LocalPlayer" | "Ship"): number | undefined => {
+            const list = world.query(queryType);
+            for (let i = 0; i < list.length; i++) {
+              const ent = list[i];
               let sid: string | undefined;
               const remote = world.getComponent(ent, "RemotePlayer");
               if (remote && remote.sessionId) {
-                  sid = remote.sessionId;
+                sid = remote.sessionId;
               }
               if (!sid) {
-                  const ship = world.getComponent(ent, "Ship");
-                  if (ship && ship.sessionId) {
-                      sid = ship.sessionId;
-                  }
+                const ship = world.getComponent(ent, "Ship");
+                if (ship && ship.sessionId) {
+                  sid = ship.sessionId;
+                }
               }
               if (sid === ownerId) {
-                  playerEntity = ent;
-                  break;
+                return ent;
               }
-          }
+            }
+            return undefined;
+          };
+
+          playerEntity = findMatchingCandidate("RemotePlayer") ?? findMatchingCandidate("LocalPlayer") ?? findMatchingCandidate("Ship");
 
           if (playerEntity !== undefined) {
               if (!world.hasComponent(playerEntity, "PlayerScore")) {

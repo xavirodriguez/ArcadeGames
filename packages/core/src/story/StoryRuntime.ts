@@ -160,7 +160,7 @@ export class StoryRuntime {
     if (node.sceneToLoad || node.meta?.sceneToLoad) {
       const sceneToLoad = node.sceneToLoad || node.meta?.sceneToLoad;
       if (this.eventBus) {
-        this.eventBus.emit("story:scene_change" as any, {
+        this.eventBus.emit("story:scene_change", {
           sceneToLoad,
           nodeId: node.id,
           node
@@ -170,7 +170,7 @@ export class StoryRuntime {
 
     // Emit story:node_changed event
     if (this.eventBus) {
-      this.eventBus.emit("story:node_changed" as any, {
+      this.eventBus.emit("story:node_changed", {
         graphId: this.graph.id,
         currentNodeId: nodeId,
         previousNodeId,
@@ -179,7 +179,7 @@ export class StoryRuntime {
 
       // Maintain backwards compatibility with story:beat_reached
       if (node.type === "dialogue" || node.type === "cutscene") {
-        this.eventBus.emit("story:beat_reached" as any, {
+        this.eventBus.emit("story:beat_reached", {
           beatId: nodeId,
           dialogueReference: node.dialogue?.lines[0]?.textKey || nodeId,
           payload: { node }
@@ -267,7 +267,7 @@ export class StoryRuntime {
     this.state.selectedChoices.push(choiceId);
 
     if (this.eventBus) {
-      this.eventBus.emit("story:choice_selected" as any, {
+      this.eventBus.emit("story:choice_selected", {
         choiceId,
         nodeId: node.id,
         targetNodeId: choice.targetNodeId
@@ -411,7 +411,7 @@ export class StoryRuntime {
       if (obj.currentCount >= obj.targetCount) {
         obj.completed = true;
         if (this.eventBus) {
-          this.eventBus.emit("story:objective_completed" as any, {
+          this.eventBus.emit("story:objective_completed", {
             objectiveId: obj.id,
             objective: obj
           });

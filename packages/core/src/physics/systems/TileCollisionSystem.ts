@@ -208,7 +208,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     }
     const eventBus = world.getEventBus();
     if (eventBus) {
-      eventBus.emit("spike:hit" as any, { entity });
+      eventBus.emit("spike:hit", { entity });
     }
   }
 }

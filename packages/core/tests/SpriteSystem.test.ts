@@ -158,6 +158,23 @@ describe("Sprite Integration and Drawers System", () => {
     expect(asset).toBeDefined();
   });
 
+  it("should verify WebAssetProvider extracts URIs from objects with uri, localUri, src, or default fields", async () => {
+    const webProvider = new WebAssetProvider();
+    const loader = new AssetLoader(webProvider);
+
+    await loader.load([
+      { id: "asset_uri", path: { uri: "assets/ship1.png" }, type: "image" },
+      { id: "asset_localUri", path: { localUri: "assets/ship2.png" }, type: "image" },
+      { id: "asset_src", path: { src: "assets/ship3.png" }, type: "image" },
+      { id: "asset_default", path: { default: "assets/ship4.png" }, type: "image" }
+    ]);
+
+    expect(loader.get("asset_uri")).toBeDefined();
+    expect(loader.get("asset_localUri")).toBeDefined();
+    expect(loader.get("asset_src")).toBeDefined();
+    expect(loader.get("asset_default")).toBeDefined();
+  });
+
   it("should resolve shape 'sprite' on an entity equipped with Render and Sprite components", () => {
     const entity = world.createEntity();
     world.addComponent(entity, {

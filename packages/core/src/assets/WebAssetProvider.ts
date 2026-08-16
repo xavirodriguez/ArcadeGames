@@ -21,8 +21,14 @@ export class WebAssetProvider implements IAssetProvider {
 
       if (typeof path === "string") {
         img.src = path;
-      } else if (path && typeof path === "object" && "default" in path) {
-        img.src = (path as { default: string }).default;
+      } else if (path && typeof path === "object") {
+        const obj = path as Record<string, unknown>;
+        const uri = obj.uri || obj.localUri || obj.src || obj.default;
+        if (typeof uri === "string") {
+          img.src = uri;
+        } else {
+          img.src = String(path);
+        }
       } else {
         img.src = String(path);
       }

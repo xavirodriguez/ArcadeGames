@@ -2,7 +2,11 @@ import { StoryGraph } from "./StoryTypes";
 
 /**
  * Multi-Game Vertical Slice Campaign Data Definition.
- * Data-driven flow spanning Asteroids and Space Invaders scenes.
+ *
+ * @remarks
+ * Serves as a canonical test fixture and example story graph demonstrating data-driven narrative flow
+ * across multiple game stages (Asteroids and Space Invaders) with cutscenes, objectives, and transitions.
+ *
  * @public
  */
 export const MultiGameTestCampaign: StoryGraph = {

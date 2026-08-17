@@ -16,63 +16,84 @@ import { IAssetProvider } from "../assets/AssetLoader";
 import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
 
 /**
- * Representation of the game lifecycle states.
+ * Enumeration of lifecycle execution states for a `BaseGame` instance.
  * @public
  */
 export enum GameLifecycleState {
+  /** Uninitialized game instance before `init()` execution. */
   UNINITIALIZED = "UNINITIALIZED",
+  /** Initialization completed and ready to run. */
   READY = "READY",
+  /** Active running state with game loop ticker running. */
   RUNNING = "RUNNING",
+  /** Paused state with game loop paused. */
   PAUSED = "PAUSED",
+  /** Game loop stopped. */
   STOPPED = "STOPPED",
+  /** All systems destroyed and event handlers cleared. */
   DESTROYED = "DESTROYED",
+  /** Initialization timed out or threw an unhandled error. */
   ERROR = "ERROR"
 }
 
-/** @public */
+/**
+ * Configuration options for initializing a `BaseGame` instance.
+ *
+ * @typeParam TComponents - Component registry type.
+ * @typeParam TEvents - Event registry type.
+ * @typeParam TInput - Input action dictionary type.
+ *
+ * @public
+ */
 export interface BaseGameConfig<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TInput extends Record<string, any> = Record<string, any>
 > {
-  /** [KeyboardEvent.code] Key to toggle pause. */
+  /** Key code to toggle pause state (e.g. `"KeyP"`). */
   pauseKey?: string;
-  /** [KeyboardEvent.code] Key to restart the game. */
+  /** Key code to trigger restart (e.g. `"KeyR"`). */
   restartKey?: string;
-  /** Enables multiplayer-specific synchronization logic. */
+  /** Enables multiplayer-specific synchronization logic and manual ticking. */
   isMultiplayer?: boolean;
-  /** Global game options, including the initial simulation seed. */
+  /** Global game options map, including optional initial random seed. */
   gameOptions?: Record<string, unknown>;
-  /** Runs the game without visual systems or asset loading. Suitable for server-side execution. */
+  /** Runs the game headlessly without loading visual/audio assets. Ideal for server-side environments. */
   headless?: boolean;
-  /** Optional schedule injection */
+  /** Optional custom `Schedule` instance for execution phase ordering. */
   schedule?: Schedule<TComponents, TEvents>;
-  /** Initial simulation seed (for backward compatibility). */
+  /** Initial gameplay seed (for backward compatibility). */
   seed?: number;
-  /** Optional audio player injection */
+  /** Optional audio player injection implementing `IAudioPlayer`. Defaults to `NullAudioPlayer`. */
   audio?: IAudioPlayer;
-  /** Optional asset provider injection */
+  /** Optional asset provider injection implementing `IAssetProvider`. */
   assetProvider?: IAssetProvider;
-  /** Timeout for game initialization in milliseconds. Defaults to 10000. */
+  /** Timeout for `init()` execution in milliseconds. Defaults to 10000ms. */
   initTimeout?: number;
-  /** Optional custom input system injection */
+  /** Optional custom input system instance implementing `IInputSystem<TInput>`. Defaults to `UnifiedInputSystem`. */
   inputSystem?: IInputSystem<TInput>;
-  /** Optional custom scene manager factory */
+  /** Factory callback to construct a custom `SceneManager` instance. */
   sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
-  /** Optional ArcadeKernel state machine injection */
+  /** Optional `ArcadeKernel` state machine instance. Defaults to a new `ArcadeKernel`. */
   arcadeKernel?: ArcadeKernel;
-  /** Disables the automatic loop ticker, delegating ticking to an external driver (like GameSession). */
+  /** Disables the automatic loop ticker when true, delegating frame updates to an external driver (such as `GameSession`). */
   manualLoop?: boolean;
 }
 
 /**
- * Base class for game implementations using the TinyAster engine.
+ * Abstract base class for all game implementations built on the TinyAster ECS engine.
+ *
+ * @remarks
+ * `BaseGame` provides a template-method lifecycle (`init`, `start`, `pause`, `resume`, `restart`, `destroy`),
+ * manages central resources (`World`, `EventBus`, `SceneManager`, `ArcadeKernel`, `IAudioPlayer`), and implements
+ * snapshot hash calculation and step execution required by `Simulation` and `IGame`.
  *
  * @typeParam TState - The representation of the game state.
- * @typeParam TInput - The representation of the input state.
+ * @typeParam TInput - The representation of the input dictionary.
  * @typeParam TComponents - The registry of components available in this game.
  * @typeParam TEvents - The registry of events that can be emitted.
  * @typeParam TBlueprints - The registry of blueprints that can be spawned.
+ *
  * @public
  */
 export abstract class BaseGame<
@@ -82,31 +103,58 @@ export abstract class BaseGame<
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > implements IGame<TState, TInput>, Simulation {
+  /** Current simulation tick from the underlying ECS `World`. */
   public get tick(): number {
     return this.world.tick;
   }
 
+  /** High-level game state representation. */
   public get state(): any {
     return this.getGameState();
   }
 
+  /**
+   * Advances the game simulation by exactly one step (1/60th second) with the given input frame.
+   *
+   * @param input - Compact input frame containing tick number and action bitmasks.
+   */
   public step(input: CompactInputFrame): void {
     this.onApplyInputFrame(input);
     this.world.update(1 / 60);
   }
 
+  /**
+   * Internal hook for decoding compact input bitmasks into input system actions.
+   *
+   * @param input - Compact input frame to process.
+   */
   protected onApplyInputFrame(input: CompactInputFrame): void {
     // Fallback/Default implementation. Subclasses can override to decode bitmasks.
   }
 
+  /**
+   * Captures a serializable `WorldSnapshot` of the current ECS state.
+   *
+   * @returns `WorldSnapshot` instance.
+   */
   public snapshot(): WorldSnapshot {
     return this.world.snapshot();
   }
 
+  /**
+   * Restores the game simulation state from a `WorldSnapshot`.
+   *
+   * @param snapshot - The snapshot to restore.
+   */
   public restore(snapshot: WorldSnapshot): void {
     this.world.restore(snapshot);
   }
 
+  /**
+   * Computes a deterministic hexadecimal FNV-1a hash of the current simulation state.
+   *
+   * @returns 8-character hex hash string.
+   */
   public hash(): string {
     const snap = this.snapshot();
     const dataToHash = {
@@ -135,21 +183,32 @@ export abstract class BaseGame<
     return (hash >>> 0).toString(16).padStart(8, '0');
   }
 
+  /** The primary ECS `World` container. */
   public world: World<TComponents, TEvents, TBlueprints>;
+  /** Central `EventBus` for typed event dispatching. */
   public eventBus: EventBus<TEvents>;
+  /** Blueprint registry for entity creation and prefab spawning. */
   public blueprints: BlueprintRegistry<TComponents, TBlueprints>;
   protected loop: GameLoop;
   protected unifiedInput: IInputSystem<TInput>;
   protected _config: BaseGameConfig<TComponents, TEvents, TInput>;
   private lifecycleState: GameLifecycleState = GameLifecycleState.UNINITIALIZED;
   private isPaused = false;
+  /** High-level state machine kernel for flow and session transition management. */
   public readonly kernel: ArcadeKernel;
   private boundStateChangedListener?: () => void;
   private boundGameOverListener?: () => void;
 
+  /** Scene manager for data-driven scene lifecycle and narrative transitions. */
   public sceneManager: SceneManager<TComponents>;
+  /** Platform-agnostic audio player instance. */
   public audio: IAudioPlayer;
 
+  /**
+   * Constructs a `BaseGame` instance.
+   *
+   * @param config - Game configuration options.
+   */
   constructor(config: BaseGameConfig<TComponents, TEvents, TInput> = {}) {
     this._config = config;
     this.world = new World<TComponents, TEvents, TBlueprints>(config.schedule);
@@ -231,43 +290,54 @@ export abstract class BaseGame<
   }
 
   /**
-   * Returns the world instance.
+   * Returns the primary ECS `World` container instance.
+   *
+   * @returns The `World` instance.
    */
   getWorld(): World<TComponents, TEvents, TBlueprints> {
     return this.world;
   }
 
   /**
-   * Returns the event bus instance.
+   * Returns the `EventBus` instance used for typed event emissions.
+   *
+   * @returns The `EventBus` instance.
    */
   getEventBus(): EventBus<TEvents> {
     return this.eventBus;
   }
 
   /**
-   * Returns the input system instance.
+   * Returns the `IInputSystem` instance managing local player input state.
+   *
+   * @returns The input system instance.
    */
   getInputSystem(): IInputSystem<TInput> {
     return this.unifiedInput;
   }
 
   /**
-   * Returns the game loop instance.
+   * Returns the underlying `GameLoop` instance.
+   *
+   * @returns The `GameLoop` instance.
    */
   public getGameLoop(): GameLoop {
     return this.loop;
   }
 
   /**
-   * Returns the last encountered error from the game loop, if any.
+   * Returns the last error caught by the game loop ticker, or `null` if none occurred.
+   *
+   * @returns The last `Error` or `null`.
    */
   public getLastError(): Error | null {
     return this.loop.getLastError();
   }
 
   /**
-   * Subscribes to critical loop exception events.
-   * @param callback - Callback invoked when an error is caught in the game loop.
+   * Subscribes a listener to unhandled exceptions encountered during game loop execution.
+   *
+   * @param callback - Function invoked when an exception occurs.
    * @returns Unsubscribe function.
    */
   public subscribeError(callback: (err: Error) => void): () => void {
@@ -275,8 +345,18 @@ export abstract class BaseGame<
   }
 
   /**
-   * Called during game initialization.
-   * Runs the Template Method cycle: registers systems, initializes entities, and starts the game loop.
+   * Asynchronously initializes the game instance using the Template Method pattern.
+   *
+   * @remarks
+   * Sequence of execution:
+   * 1. Invokes `onRegisterSystems()` hook to populate system schedules.
+   * 2. Invokes `onInitializeEntities()` hook to populate initial entities and scenes.
+   * 3. Transitions lifecycle state to `READY` and triggers `start()`.
+   *
+   * If execution exceeds `initTimeout`, the operation rejects and sets lifecycle state to `ERROR`.
+   * If destroyed during initialization, startup sequence aborts gracefully.
+   *
+   * @throws Error - If initialization times out or an unhandled exception occurs in hooks.
    */
   public async init(): Promise<void> {
     if (this.lifecycleState !== GameLifecycleState.UNINITIALIZED) {
@@ -321,7 +401,7 @@ export abstract class BaseGame<
   }
 
   /**
-   * Starts the game loop.
+   * Starts game loop execution if in `READY` or `STOPPED` state.
    */
   public start(): void {
     if (
@@ -335,17 +415,11 @@ export abstract class BaseGame<
   }
 
   /**
-   * Pausa de forma idempotente la ejecución del bucle de juego.
+   * Idempotently pauses game loop execution and sets the `IsPaused` world resource to `true`.
    *
    * @remarks
-   * Diseñado para evitar que se dupliquen las detenciones o se desincronice el acumulador de delta temporal.
-   *
-   * @precondition El juego debe estar en estado `RUNNING`.
-   * @postcondition El juego cambia a estado `PAUSED` y detiene el ticker del GameLoop.
-   * @invariant El estado `isPaused` coincide exactamente con `lifecycleState === GameLifecycleState.PAUSED`.
-   * @throws Ninguno.
-   * @sideEffect Altera el estado del `GameLoop` y el ciclo de vida del juego.
-   * @conceptualRisk [LIFECYCLE] Detener el GameLoop abruptamente puede pausar la simulación pero no congela necesariamente callbacks externos o efectos de renderizado asíncronos.
+   * Prevents duplicate ticker pauses or delta accumulator desynchronization.
+   * Synchronizes `kernel` state to `ArcadeState.PAUSED` if currently in `ArcadeState.PLAYING`.
    */
   public pause(): void {
     if (this.isPaused) return;
@@ -361,16 +435,11 @@ export abstract class BaseGame<
   }
 
   /**
-   * Reanuda de forma idempotente la ejecución del bucle de juego si estaba pausado.
+   * Idempotently resumes game loop execution if currently paused and clears the `IsPaused` world resource.
    *
    * @remarks
-   * Diseñado para mitigar saltos temporales extremos al restaurar la acumulación de deltas físicos.
-   *
-   * @precondition El juego debe estar actualmente en estado `PAUSED`.
-   * @postcondition El juego vuelve a estado `RUNNING` y reanuda el ticker del GameLoop.
-   * @invariant El estado `isPaused` pasa a ser `false`.
-   * @throws Ninguno.
-   * @sideEffect Altera el estado del `GameLoop` y el ciclo de vida.
+   * Mitigates extreme delta time spikes upon resuming physical simulation ticks.
+   * Synchronizes `kernel` state to `ArcadeState.PLAYING` if currently in `ArcadeState.PAUSED`.
    */
   public resume(): void {
     if (!this.isPaused) return;
@@ -386,14 +455,18 @@ export abstract class BaseGame<
   }
 
   /**
-   * Returns whether the game is currently paused.
+   * Returns whether the game loop is currently in a paused state.
+   *
+   * @returns `true` if paused, `false` otherwise.
    */
   public isPausedState(): boolean {
     return this.isPaused;
   }
 
   /**
-   * Enters soft pause / gameplay freeze, with an optional duration in seconds.
+   * Enters soft pause / gameplay freeze state, setting the `GameplayFreeze` world resource.
+   *
+   * @param duration - Optional freeze duration in seconds. If omitted, freeze persists until manually exited.
    */
   public enterGameplayFreeze(duration?: number): void {
     this.world.setResource("GameplayFreeze", {
@@ -402,21 +475,25 @@ export abstract class BaseGame<
   }
 
   /**
-   * Leaves soft pause / gameplay freeze.
+   * Exits soft pause / gameplay freeze state, deleting the `GameplayFreeze` world resource.
    */
   public exitGameplayFreeze(): void {
     this.world.deleteResource("GameplayFreeze");
   }
 
   /**
-   * Returns whether gameplay is currently frozen.
+   * Returns whether gameplay simulation is currently frozen.
+   *
+   * @returns `true` if frozen, `false` otherwise.
    */
   public isGameplayFrozen(): boolean {
     return this.world.getResource("GameplayFreeze") !== undefined;
   }
 
   /**
-   * Returns the remaining time of the gameplay freeze, or undefined if infinite or not frozen.
+   * Returns remaining gameplay freeze duration in seconds, or `undefined` if not frozen or infinite.
+   *
+   * @returns Remaining freeze duration in seconds or `undefined`.
    */
   public getGameplayFreezeRemaining(): number | undefined {
     const freeze = this.world.getResource<{ remaining?: number }>("GameplayFreeze");
@@ -424,14 +501,16 @@ export abstract class BaseGame<
   }
 
   /**
-   * Returns the current lifecycle state of the game.
+   * Returns the current `GameLifecycleState` of the game instance.
+   *
+   * @returns Current lifecycle state enum value.
    */
   public getLifecycleState(): GameLifecycleState {
     return this.lifecycleState;
   }
 
   /**
-   * Stops the game loop and transitions to STOPPED state.
+   * Stops game loop ticker execution and sets lifecycle state to `STOPPED`.
    */
   public stop(): void {
     if (this.lifecycleState !== GameLifecycleState.RUNNING && this.lifecycleState !== GameLifecycleState.PAUSED) return;
@@ -440,18 +519,11 @@ export abstract class BaseGame<
   }
 
   /**
-   * Detiene el bucle de juego y libera de forma exhaustiva todos los recursos registrados.
+   * Stops the game loop ticker and thoroughly releases registered systems, schedules, and event bus handlers.
    *
    * @remarks
-   * Realiza la limpieza de sistemas en el World, vacía los handlers suscritos al `EventBus` y
-   * desecha el sistema de inputs.
-   *
-   * @precondition Ninguna.
-   * @postcondition El juego queda en estado `DESTROYED`, los sistemas del World y listeners se limpian.
-   * @invariant El World queda huérfano de sistemas de procesamiento activos tras este paso.
-   * @throws Ninguno.
-   * @sideEffect Invoca el método `dispose` de los sistemas y limpia el `EventBus`.
-   * @conceptualRisk [LIFECYCLE] Llamar a cualquier operación que consulte o modifique el estado del World tras `destroy` resultará en operaciones sobre datos obsoletos u huerfanos.
+   * Postcondition: Lifecycle state becomes `DESTROYED`. System dispose callbacks are executed, schedule is cleared,
+   * and input system resources are released.
    */
   public destroy(): void {
     this.lifecycleState = GameLifecycleState.DESTROYED;
@@ -466,20 +538,16 @@ export abstract class BaseGame<
   }
 
   /**
-   * Reinicia de forma asíncrona la partida completa restableciendo el World, sistemas e inicializadores.
+   * Asynchronously restarts the entire game session by tearing down the current world and re-executing `init()`.
    *
    * @remarks
-   * Invoca `destroy()`, limpia el `EventBus` para evitar acumulación de listeners duplicados ante reinicios múltiples,
-   * y reconstruye de cero la simulación instanciando un nuevo `World`.
+   * Sequence:
+   * 1. Invokes `onBeforeRestart()` lifecycle hook.
+   * 2. Calls `destroy()` and clears the `EventBus` to prevent duplicate handler accumulations.
+   * 3. Instantiates a fresh `World` and `SceneManager`.
+   * 4. Re-executes `init()` to re-register systems and initialize initial entities.
    *
-   * @precondition Ninguna.
-   * @postcondition El juego vuelve a arrancar de forma limpia en estado `RUNNING` con el estado físico y lógicas re-registradas.
-   * @invariant El contador de listeners en el `EventBus` tras el reinicio es exactamente idéntico al del primer arranque de la aplicación.
-   * @throws Ninguno.
-   * @sideEffect Crea un nuevo `World`, recrea el `SceneManager` y vuelve a llamar a la secuencia de registro e inicialización.
-   * @conceptualRisk [MEMORY] Objetos externos que retengan referencias directas al World anterior no se actualizarán al nuevo World, provocando fugas de memoria o desincronizaciones.
-   *
-   * @param seed - Semilla opcional para inicializar el generador de números pseudoaleatorios del nuevo World.
+   * @param seed - Optional random seed override for the new simulation instance.
    */
   public async restart(seed?: number): Promise<void> {
     if (seed !== undefined) {
@@ -509,8 +577,10 @@ export abstract class BaseGame<
   }
 
   /**
-   * Subscribes to state updates.
-   * Note: For now, we use the loop's render subscription to notify the state.
+   * Subscribes a listener function to receive state updates on render ticks.
+   *
+   * @param cb - Callback function receiving current game state.
+   * @returns Unsubscribe function.
    */
   public subscribe(cb: (state: TState) => void): () => void {
     return this.loop.subscribeRender(() => {
@@ -519,74 +589,55 @@ export abstract class BaseGame<
   }
 
   /**
-   * Updates the game simulation.
+   * Updates game systems for a single tick duration `dt`. Subclasses must implement gameplay logic here.
+   *
+   * @param dt - Delta time in seconds.
    */
   public abstract update(dt: number): void;
 
   /**
-   * Hook for subclasses to register their ECS systems.
-   * Called during `init()`. This is the first lifecycle hook executed during game startup.
-   *
-   * @remarks
-   * Invocation order:
-   * 1. `init()` is called.
-   * 2. `onRegisterSystems()` is executed (systems are registered here).
-   * 3. `onInitializeEntities()` is executed.
+   * Template method hook for subclasses to register ECS systems. Executed during `init()`.
    */
   protected async onRegisterSystems(): Promise<void> {
     // Overridden by subclasses to register systems
   }
 
   /**
-   * Hook for subclasses to initialize entities.
-   * Called during `init()` after systems have been successfully registered.
-   *
-   * @remarks
-   * Invocation order:
-   * 1. `init()` is called.
-   * 2. `onRegisterSystems()` is executed.
-   * 3. `onInitializeEntities()` is executed (entities are spawned here).
+   * Template method hook for subclasses to initialize initial entities and scenes. Executed during `init()`.
    */
   protected async onInitializeEntities(): Promise<void> {
     // Overridden by subclasses to initialize entities
   }
 
   /**
-   * Hook for subclasses to execute cleanup or custom logic before restarting.
-   * Called at the very beginning of the `restart()` method.
-   *
-   * @remarks
-   * Invocation order:
-   * 1. `restart()` is called.
-   * 2. `onBeforeRestart()` is executed (cleanup/save high-level stats).
-   * 3. Current world and event handlers are destroyed.
-   * 4. A new World is instantiated.
-   * 5. `init()` is called (triggering `onRegisterSystems()` and `onInitializeEntities()` again).
+   * Template method hook for subclasses to execute teardown or persistence logic prior to restarting.
+   * Executed at the beginning of `restart()`.
    */
   protected async onBeforeRestart(): Promise<void> {
     // Overridden by subclasses if needed
   }
 
   /**
-   * Returns a representation of the current game state.
+   * Returns a representation of the current game state payload.
    */
   public abstract getGameState(): TState;
 
   /**
-   * Returns the seed used for the game session.
+   * Returns the random seed used to initialize the game world simulation.
    */
   public getSeed(): number {
     return (this._config.gameOptions?.seed as number) ?? 0;
   }
 
   /**
-   * Returns whether the game has ended.
+   * Returns whether the game has reached a terminal game-over state.
    */
   public abstract isGameOver(): boolean;
 
   /**
-   * Decoupled Input Bridge: Sets the state of the local player inputs in the ECS World.
-   * Can be overridden by subclasses to write directly to entity components.
+   * Decoupled input bridge to set local action overrides in the unified input system.
+   *
+   * @param input - Partial map of action names to boolean pressed states.
    */
   public setInputState(input: Partial<TInput>): void {
     if (this.unifiedInput) {
@@ -597,7 +648,11 @@ export abstract class BaseGame<
   }
 
   /**
-   * Helper to handle deferred or immediate entity creation and component attachment.
+   * Helper to instantiate a new entity and return an attachment function for components,
+   * automatically using deferred command buffer allocation if called during system update ticks.
+   *
+   * @param deferred - Force deferred creation via command buffer.
+   * @returns Object containing reserved `entity` ID and `add` helper function.
    */
   protected createBaseEntity(deferred?: boolean): { entity: Entity; add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & { type: K }) => void } {
     const isUpdating = this.world.isUpdating;

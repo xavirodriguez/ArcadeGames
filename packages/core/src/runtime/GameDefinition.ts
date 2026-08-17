@@ -1,45 +1,57 @@
 import { Simulation } from "./Simulation";
 
 /**
- * Representation of asset requirements for a game.
+ * Declares the asset requirements for a game definition prior to simulation startup.
  * @public
  */
 export interface AssetManifest {
+  /** Sprite image descriptors required by the game's rendering systems. */
   sprites?: { id: string; path: string }[];
+  /** Audio clip descriptors required by the game's sound systems. */
   sounds?: { id: string; path: string }[];
 }
 
 /**
- * Declares the logical actions and axes of a game's input scheme.
+ * Declares the logical input action names and directional axes of a game's control scheme.
  * @public
  */
 export interface InputSchema {
+  /** Discrete action trigger names (e.g., `["shoot", "hyperspace", "pause"]`). */
   actions: string[];
+  /** Continuous or directional input axis names (e.g., `["moveX", "moveY"]`). */
   axes?: string[];
 }
 
 /**
- * Standard interface for declaring a game completely decoupled from presentation.
+ * Standard contract for defining a game decoupled from presentation and engine adapters.
+ *
+ * @remarks
+ * A `GameDefinition` provides metadata, input configuration, asset requirements, and a factory method
+ * (`createSimulation`) for instantiating pure simulation instances.
+ *
  * @public
  */
 export interface GameDefinition {
   /**
-   * Unique name of the game (e.g. "asteroids").
+   * Unique name of the game (e.g., `"asteroids"`).
    */
   readonly name: string;
 
   /**
-   * Factory method to create a new simulation instance with the given seed.
+   * Factory method to instantiate a new, deterministic simulation instance initialized with the given seed.
+   *
+   * @param seed - The random seed used to initialize deterministic simulation behavior.
+   * @returns A fresh `Simulation` instance.
    */
   createSimulation(seed: number): Simulation;
 
   /**
-   * Declared input schema for the game.
+   * Declared input schema for the game's logical inputs.
    */
   readonly inputSchema: InputSchema;
 
   /**
-   * Required assets manifest for loading.
+   * Required assets manifest for preloading.
    */
   readonly assets: AssetManifest;
 }

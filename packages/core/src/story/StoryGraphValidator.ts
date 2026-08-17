@@ -1,4 +1,4 @@
-import { StoryGraph, StoryCondition } from "./StoryTypes";
+import { StoryGraph, StoryCondition, StoryEffect } from "./StoryTypes";
 
 /**
  * Validation options supplied to `StoryGraphValidator`.
@@ -136,10 +136,39 @@ export class StoryGraphValidator {
       }
     };
 
+    const inspectEffects = (effects: StoryEffect[] | undefined, nodeId: string) => {
+      if (!effects) return;
+      for (const effect of effects) {
+        if (effect.type === "setVariable" || effect.type === "incrementVariable") {
+          if (options?.declaredVariables && !options.declaredVariables.includes(effect.key)) {
+            errors.push({
+              type: "undeclared_variable",
+              severity: "error",
+              nodeId,
+              variableKey: effect.key,
+              message: `Effect in node '${nodeId}' references undeclared variable '${effect.key}'.`
+            });
+          }
+        } else if (effect.type === "setFlag") {
+          if (options?.declaredFlags && !options.declaredFlags.includes(effect.key)) {
+            warnings.push({
+              type: "undeclared_flag",
+              severity: "warning",
+              nodeId,
+              variableKey: effect.key,
+              message: `Effect in node '${nodeId}' references undeclared flag '${effect.key}'.`
+            });
+          }
+        }
+      }
+    };
+
     // 2. Inspect all nodes for broken transitions, choices, dead ends, and condition variables
     for (const nodeId in graph.nodes) {
       const node = graph.nodes[nodeId];
       let hasOutgoing = false;
+
+      inspectEffects(node.effects, nodeId);
 
       // Check transitions
       if (node.transitions && node.transitions.length > 0) {
@@ -174,6 +203,7 @@ export class StoryGraphValidator {
             });
           }
           inspectCondition(choice.condition, nodeId);
+          inspectEffects(choice.effects, nodeId);
         }
       }
 

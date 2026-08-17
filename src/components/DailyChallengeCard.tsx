@@ -39,10 +39,10 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
 
   const sanitizedGameKey = gameId.replace('-', '_');
   const gameTitle = (t?.menu as any)?.[sanitizedGameKey] || gameId.replace('-', ' ').toUpperCase();
-  const accessibleLabel = `${t.daily.title}: ${gameTitle}. ${
+  const accessibleLabel = `${t?.daily?.title || 'Daily Challenge'}: ${gameTitle}. ${
     played
-      ? `${t.daily.played}. ${t.daily.your_score}: ${score ?? 0}. ${t.daily.improve_score}`
-      : t.daily.play_now
+      ? `${t?.daily?.played || 'Played'}. ${t?.daily?.your_score || 'Your Score'}: ${score ?? 0}. ${t?.daily?.improve_score || 'Improve score'}`
+      : t?.daily?.play_now || 'Play now'
   }`;
 
   return (
@@ -52,28 +52,34 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
       onPress={handlePlay}
       accessibilityRole="button"
       accessibilityLabel={accessibleLabel}
-      accessibilityHint="Inicia el juego del desafío diario con modificadores activos especiales"
+      accessibilityHint="Starts daily challenge with special active mutators"
     >
       <View style={styles.header}>
-        <Text style={styles.title}>{t.daily.title}</Text>
-        {played && <View style={styles.playedBadge}><Text style={styles.playedText}>{t.daily.played}</Text></View>}
+        <Text style={styles.title}>{t?.daily?.title || "DAILY CHALLENGE"}</Text>
+        {played && (
+          <View style={styles.playedBadge}>
+            <Text style={styles.playedText}>{t?.daily?.played || "PLAYED"}</Text>
+          </View>
+        )}
       </View>
 
-      <Text style={styles.gameName}>{gameId.replace('-', '_').toUpperCase()}</Text>
+      <Text style={styles.gameName}>{gameTitle.toUpperCase()}</Text>
 
       {mutators.length > 0 && (
-          <Text style={styles.mutatorText}>{t.daily.mutator}: {t.mutators[mutators[0].id as keyof typeof t.mutators]?.name || mutators[0].name}</Text>
+        <Text style={styles.mutatorText}>
+          {t?.daily?.mutator || "Mutator"}: {t?.mutators?.[mutators[0].id as keyof typeof t.mutators]?.name || mutators[0].name}
+        </Text>
       )}
 
       {score !== null && (
-        <Text style={styles.scoreText}>{t.daily.your_score}: {score}</Text>
+        <Text style={styles.scoreText}>
+          {t?.daily?.your_score || "Your Score"}: {score}
+        </Text>
       )}
 
-      {!played ? (
-        <Text style={styles.cta}>{t.daily.play_now}</Text>
-      ) : (
-        <Text style={styles.cta}>{t.daily.improve_score}</Text>
-      )}
+      <Text style={styles.cta}>
+        {!played ? (t?.daily?.play_now || "Play now!") : (t?.daily?.improve_score || "Improve score")}
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -87,6 +93,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     width: 300,
     marginTop: spacing.xxxl,
+    minHeight: 120,
   },
   header: {
     flexDirection: 'row',
@@ -102,7 +109,7 @@ const styles = StyleSheet.create({
   },
   playedBadge: {
     backgroundColor: colors.green,
-    paddingHorizontal: 6,
+    paddingHorizontal: spacing.xs,
     paddingVertical: 2,
     borderRadius: 4,
   },
@@ -110,6 +117,7 @@ const styles = StyleSheet.create({
     color: colors.background,
     fontSize: 10,
     fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
   },
   gameName: {
     color: colors.white,
@@ -136,5 +144,5 @@ const styles = StyleSheet.create({
     fontFamily: typography.game,
     textAlign: 'right',
     textDecorationLine: 'underline',
-  }
+  },
 });

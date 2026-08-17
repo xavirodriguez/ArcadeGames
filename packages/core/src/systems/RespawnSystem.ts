@@ -10,6 +10,9 @@ import { Entity } from "../ecs/Entity";
  * @public
  */
 export class RespawnSystem extends System<CoreComponentRegistry> {
+  // Safe for determinism/rollback. Internal buffer reused across player respawns to avoid array allocations during entity respawn reconstruction.
+  private itemsToRespawnBuffer: { blueprintKey: string; initialArgs: any }[] = [];
+
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     const runState = world.getResource<RunState>("RunState");
     const deadPlayers = world.query("PlatformerInput", "Transform", "Dead");
@@ -47,8 +50,8 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
       // 2. Rebuild the segment state deterministically
       const respawnables = world.query("Respawnable");
 
-      // Extract details before removing them
-      const itemsToRespawn: { blueprintKey: string; initialArgs: any }[] = [];
+      // Extract details before removing them into pre-allocated buffer
+      this.itemsToRespawnBuffer.length = 0;
       for (let j = 0; j < respawnables.length; j++) {
         const respEntity = respawnables[j];
         const respComp = world.getComponent(respEntity, "Respawnable")!;
@@ -64,7 +67,7 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
         }
 
         if (!skip) {
-          itemsToRespawn.push({
+          this.itemsToRespawnBuffer.push({
             blueprintKey: respComp.blueprintKey,
             initialArgs: respComp.initialArgs
           });
@@ -74,7 +77,7 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
       }
 
       // Re-spawn them fresh
-      for (const item of itemsToRespawn) {
+      for (const item of this.itemsToRespawnBuffer) {
         const newEntity = world.reserveEntityId();
         world.commands.createEntity(newEntity);
         world.commands.spawnFromBlueprintForEntity(newEntity, item.blueprintKey as any, item.initialArgs);
@@ -86,24 +89,27 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
       }
 
       // 3. Reset player status
-      world.mutateComponent(playerEntity, "Transform", (trans) => {
+      const trans = world.getMutableComponent(playerEntity, "Transform");
+      if (trans) {
         trans.x = respawnX;
         trans.y = respawnY;
         trans.worldX = respawnX;
         trans.worldY = respawnY;
-      });
+      }
 
       if (world.hasComponent(playerEntity, "Velocity")) {
-        world.mutateComponent(playerEntity, "Velocity", (vel) => {
+        const vel = world.getMutableComponent(playerEntity, "Velocity");
+        if (vel) {
           vel.vx = 0;
           vel.vy = 0;
-        });
+        }
       }
 
       if (world.hasComponent(playerEntity, "Health")) {
-        world.mutateComponent(playerEntity, "Health", (health) => {
+        const health = world.getMutableComponent(playerEntity, "Health");
+        if (health) {
           health.current = health.max;
-        });
+        }
       }
 
       // Clear the Dead component/tag

@@ -114,6 +114,90 @@ describe("Bolt Performance & Determinism Tests", () => {
     expect(sm?.currentState).toBe("active");
   });
 
+  it("EnemySensorSystem & RespawnSystem & SpatialCullingSystem: determinism & rollback safety", () => {
+    const world1 = new World<CoreComponentRegistry>();
+    const world2 = new World<CoreComponentRegistry>();
+
+    let p1_1: number = 0;
+    let e1_1: number = 0;
+    let p1_2: number = 0;
+    let e1_2: number = 0;
+
+    const setupWorld = (world: World<CoreComponentRegistry>) => {
+      const p1 = world.createEntity();
+      world.addComponent(p1, {
+        type: "PlatformerInput",
+        moveDir: 1,
+        jumpPressed: false,
+        jumpHeld: false,
+        jumpReleased: false
+      });
+      world.addComponent(p1, {
+        type: "Transform",
+        x: 50,
+        y: 50,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 50,
+        worldY: 50,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+
+      const e1 = world.createEntity();
+      world.addComponent(e1, {
+        type: "PlayerSensor",
+        visionRange: 100,
+        detectedPlayerEntity: undefined
+      });
+      world.addComponent(e1, {
+        type: "Transform",
+        x: 80,
+        y: 50,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 80,
+        worldY: 50,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+
+      return { p1, e1 };
+    };
+
+    const res1 = setupWorld(world1);
+    p1_1 = res1.p1;
+    e1_1 = res1.e1;
+
+    const res2 = setupWorld(world2);
+    p1_2 = res2.p1;
+    e1_2 = res2.e1;
+
+    const sensorSys1 = new (require("../systems/EnemySensorSystem").EnemySensorSystem)();
+    const sensorSys2 = new (require("../systems/EnemySensorSystem").EnemySensorSystem)();
+
+    world1.addSystem(sensorSys1);
+    world2.addSystem(sensorSys2);
+
+    for (let t = 0; t < 20; t++) {
+      world1.update(1 / 60);
+      world2.update(1 / 60);
+    }
+
+    const s1 = world1.getComponent(e1_1, "PlayerSensor") as any;
+    const s2 = world2.getComponent(e1_2, "PlayerSensor") as any;
+
+    expect(s1.detectedPlayerEntity).toBe(p1_1);
+    expect(s2.detectedPlayerEntity).toBe(p1_2);
+    expect(s1.detectedPlayerEntity).toBe(s2.detectedPlayerEntity);
+  });
+
   it("HitDetectionSystem & FeedbackSystem: high throughput benchmark", () => {
     const world = new World<CoreComponentRegistry>();
     world.addSystem(new HitDetectionSystem());

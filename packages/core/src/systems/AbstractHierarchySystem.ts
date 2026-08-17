@@ -12,14 +12,25 @@ export abstract class AbstractHierarchySystem<
 > extends System<TComponents, TEvents> {
   protected wasDirty = new Set<Entity>();
 
+  // Safe for determinism/rollback. Internal structures reused across ticks to eliminate per-tick object allocations during hierarchy traversal.
+  private orderBuffer: Entity[] = [];
+  private visitedSet = new Set<Entity>();
+  private processingSet = new Set<Entity>();
+  private traversalStack: { entity: Entity; stage: 'enter' | 'exit' }[] = [];
+
   protected getProcessingOrder(world: World<TComponents, TEvents>, componentType: ComponentType<TComponents>): Entity[] {
     const entities = world.query(componentType);
     if (entities.length === 0) return [];
 
-    const order: Entity[] = [];
-    const visited = new Set<Entity>();
-    const processing = new Set<Entity>();
-    const stack: { entity: Entity; stage: 'enter' | 'exit' }[] = [];
+    this.orderBuffer.length = 0;
+    this.visitedSet.clear();
+    this.processingSet.clear();
+    this.traversalStack.length = 0;
+
+    const order = this.orderBuffer;
+    const visited = this.visitedSet;
+    const processing = this.processingSet;
+    const stack = this.traversalStack;
 
     for (let i = 0; i < entities.length; i++) {
       const startEntity = entities[i];

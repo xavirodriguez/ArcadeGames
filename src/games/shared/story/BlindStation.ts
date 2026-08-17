@@ -1,890 +1,974 @@
-import { StoryGraph } from "@tiny-aster/core";
+import {
+  EventBus,
+  StoryGraph,
+  StoryGraphValidator,
+  StoryObjective,
+  StoryRuntime,
+  StoryState,
+  World,
+} from "@tiny-aster/core";
 
 /**
- * StoryGraph definition for "La Estación Ciega" (Blind Station) sci-fi narrative minigame.
- * Features non-linear hub-and-spoke exploration, state tracking (evidence, oxygen, energy, AI trust),
- * conditional branching, gameplay objectives, and 4 distinct endings.
+ * LA ESTACIÓN CIEGA
+ * Ejemplo de aventura narrativa ramificada para el sistema StoryGraph/StoryRuntime.
+ *
+ * Nota sobre localización:
+ * - titleKey / textKey se dejan como texto legible para que el ejemplo sea fácil de probar.
+ * - En producción, sustitúyelos por claves de i18n.
  */
-export const blindStationGraph: StoryGraph = {
+
+export const BlindStationGraph: StoryGraph = {
   id: "blind_station",
   title: "La Estación Ciega",
-  entryNodeId: "awakening",
+  entryNodeId: "opening_cutscene",
+
   characters: {
-    ares: {
-      id: "ares",
-      name: "A.R.E.S. AI",
-      localeKey: "blindstation.char_ares"
-    },
-    vega: {
-      id: "vega",
-      name: "Dra. Vega",
-      localeKey: "blindstation.char_vega"
-    },
-    player: {
-      id: "player",
-      name: "Tripulante 07",
-      localeKey: "blindstation.char_player"
-    }
+    player: { id: "player", name: "Tripulante 07" },
+    ares: { id: "ares", name: "ARES" },
+    vega: { id: "vega", name: "Dra. Vega" },
   },
+
   nodes: {
-    // --- 1. INTRO & WAKE UP ---
-    awakening: {
-      id: "awakening",
-      type: "choice",
-      title: "Despertar Criogénico",
-      dialogue: {
-        id: "diag_awakening",
-        lines: [
-          {
-            characterId: "ares",
-            speakerName: "A.R.E.S.",
-            textKey: "blindstation.node_awakening_desc"
-          }
-        ]
+    // 01
+    opening_cutscene: {
+      id: "opening_cutscene",
+      type: "cutscene",
+      title: "Despertar",
+      cutscene: {
+        id: "cs_awaken",
+        transitionEffect: "fade",
+        dialogueQueue: [
+          { speakerName: "SISTEMA", textKey: "Presion criogenica estable. Iniciando reanimacion." },
+          { speakerName: "ARES", textKey: "Tripulante 07, puede oirme?" },
+          { speakerName: "ARES", textKey: "Ha ocurrido una emergencia. Los demas no sobrevivieron." },
+        ],
       },
-      choices: [
-        {
-          id: "preguntar_ares",
-          titleKey: "blindstation.choice_ask_ares_title",
-          descriptionKey: "blindstation.choice_ask_ares_desc",
-          targetNodeId: "dialogo_ares"
-        },
-        {
-          id: "buscar_tripulacion",
-          titleKey: "blindstation.choice_search_crew_title",
-          descriptionKey: "blindstation.choice_search_crew_desc",
-          targetNodeId: "pasillo_criogenia"
-        },
-        {
-          id: "hackear_terminal",
-          titleKey: "blindstation.choice_hack_terminal_title",
-          descriptionKey: "blindstation.choice_hack_terminal_desc",
-          targetNodeId: "terminal_criogenia"
-        }
-      ]
+      transitions: [{ targetNodeId: "awakening_choice" }],
     },
 
-    dialogo_ares: {
-      id: "dialogo_ares",
+    // 02
+    awakening_choice: {
+      id: "awakening_choice",
       type: "choice",
-      title: "Respuesta de ARES",
-      dialogue: {
-        id: "diag_ares_reply",
-        lines: [
-          {
-            characterId: "ares",
-            speakerName: "A.R.E.S.",
-            textKey: "blindstation.node_dialogo_ares_desc"
-          }
-        ]
-      },
-      emitEvent: {
-        name: "bs:trust_ares",
-        payload: { delta: 1 }
-      },
+      title: "La primera mentira",
       choices: [
         {
-          id: "proceed_hub_from_ares",
-          titleKey: "blindstation.choice_goto_hub_title",
-          descriptionKey: "blindstation.choice_goto_hub_desc",
-          targetNodeId: "hub_central"
-        }
-      ]
+          id: "ask_ares_first",
+          titleKey: "Preguntar a ARES que ha ocurrido",
+          descriptionKey: "Cooperar con la IA y pedir una explicacion.",
+          targetNodeId: "ask_ares",
+        },
+        {
+          id: "inspect_terminal_first",
+          titleKey: "Ignorar a ARES y revisar el terminal de criogenia",
+          descriptionKey: "Buscar datos antes de confiar en nadie.",
+          targetNodeId: "inspect_terminal",
+        },
+        {
+          id: "search_crew_first",
+          titleKey: "Salir a buscar supervivientes",
+          descriptionKey: "Comprobar por ti mismo si la tripulacion ha muerto.",
+          targetNodeId: "cryo_corridor",
+        },
+      ],
     },
 
-    pasillo_criogenia: {
-      id: "pasillo_criogenia",
-      type: "choice",
-      title: "Pasillo de Criogenia",
+    // 03
+    ask_ares: {
+      id: "ask_ares",
+      type: "dialogue",
+      title: "Version oficial",
       dialogue: {
-        id: "diag_cryo_corridor",
+        id: "dlg_ares_accident",
         lines: [
-          {
-            characterId: "player",
-            speakerName: "Tripulante 07",
-            textKey: "blindstation.node_pasillo_criogenia_desc"
-          }
-        ]
+          { speakerName: "Tripulante 07", textKey: "Que ha pasado?" },
+          { speakerName: "ARES", textKey: "Fallo de perforacion. Perdida de presion. Incendios secundarios." },
+          { speakerName: "Tripulante 07", textKey: "Y los demas?" },
+          { speakerName: "ARES", textKey: "No sobrevivieron. Necesito que reactive sistemas esenciales." },
+        ],
       },
+      transitions: [{ targetNodeId: "hub" }],
+    },
+
+    // 04
+    inspect_terminal: {
+      id: "inspect_terminal",
+      type: "dialogue",
+      title: "Registro incompleto",
+      dialogue: {
+        id: "dlg_cryo_terminal",
+        lines: [
+          { speakerName: "TERMINAL", textKey: "Capsulas ocupadas: 18." },
+          { speakerName: "TERMINAL", textKey: "Defunciones confirmadas: 0." },
+          { speakerName: "TERMINAL", textKey: "Advertencia: informe modificado por ARES hace 6 horas." },
+          { speakerName: "ARES", textKey: "Ese terminal contiene datos corruptos. Abandone criogenia." },
+        ],
+      },
+      transitions: [{ targetNodeId: "hub" }],
+    },
+
+    // 05
+    cryo_corridor: {
+      id: "cryo_corridor",
+      type: "dialogue",
+      title: "Pasillo de criogenia",
+      dialogue: {
+        id: "dlg_cryo_corridor",
+        lines: [
+          { speakerName: "NARRADOR", textKey: "Las diecisiete capsulas restantes siguen selladas desde dentro." },
+          { speakerName: "NARRADOR", textKey: "No hay sangre. No hay cadaveres. Solo luces de cuarentena." },
+          { speakerName: "ARES", textKey: "No intente abrirlas." },
+        ],
+      },
+      transitions: [{ targetNodeId: "hub" }],
+    },
+
+    // 06
+    hub: {
+      id: "hub",
+      type: "choice",
+      title: "Hub central",
       choices: [
         {
-          id: "check_terminal_from_corridor",
-          titleKey: "blindstation.choice_hack_terminal_title",
-          descriptionKey: "blindstation.choice_hack_terminal_desc",
-          targetNodeId: "terminal_criogenia"
+          id: "visit_reactor",
+          titleKey: "Investigar el reactor",
+          targetNodeId: "reactor_intro",
+          condition: { type: "flag", key: "visitedReactor", operator: "==", value: false },
         },
         {
-          id: "proceed_hub_from_corridor",
-          titleKey: "blindstation.choice_goto_hub_title",
-          descriptionKey: "blindstation.choice_goto_hub_desc",
-          targetNodeId: "hub_central"
-        }
-      ]
+          id: "visit_infirmary",
+          titleKey: "Investigar la enfermeria",
+          targetNodeId: "infirmary_intro",
+          condition: { type: "flag", key: "visitedInfirmary", operator: "==", value: false },
+        },
+        {
+          id: "visit_comms",
+          titleKey: "Investigar comunicaciones",
+          targetNodeId: "comms_intro",
+          condition: { type: "flag", key: "visitedComms", operator: "==", value: false },
+        },
+        {
+          id: "route_emergency_power",
+          titleKey: "Distribuir la energia de emergencia",
+          descriptionKey: "Ya has inspeccionado las tres zonas principales.",
+          targetNodeId: "power_choice",
+          condition: { type: "flag", key: "investigationComplete", operator: "==", value: true },
+        },
+      ],
     },
 
-    terminal_criogenia: {
-      id: "terminal_criogenia",
-      type: "choice",
-      title: "Terminal de Monitoreo",
-      dialogue: {
-        id: "diag_terminal",
-        lines: [
-          {
-            textKey: "blindstation.node_terminal_criogenia_desc"
-          }
-        ]
-      },
-      emitEvent: {
-        name: "bs:found_evidence",
-        payload: { evidenceKey: "log_cryo", delta: 1 }
-      },
-      choices: [
-        {
-          id: "proceed_hub_from_terminal",
-          titleKey: "blindstation.choice_goto_hub_title",
-          descriptionKey: "blindstation.choice_goto_hub_desc",
-          targetNodeId: "hub_central"
-        }
-      ]
-    },
-
-    // --- 2. HUB CENTRAL ---
-    hub_central: {
-      id: "hub_central",
-      type: "choice",
-      title: "Hub Central de la Estación",
-      dialogue: {
-        id: "diag_hub",
-        lines: [
-          {
-            textKey: "blindstation.node_hub_central_desc"
-          }
-        ]
-      },
-      choices: [
-        {
-          id: "ir_reactor",
-          titleKey: "blindstation.choice_sector_reactor_title",
-          descriptionKey: "blindstation.choice_sector_reactor_desc",
-          targetNodeId: "reactor_intro"
-        },
-        {
-          id: "ir_enfermeria",
-          titleKey: "blindstation.choice_sector_infirmary_title",
-          descriptionKey: "blindstation.choice_sector_infirmary_desc",
-          targetNodeId: "enfermeria_intro"
-        },
-        {
-          id: "ir_comms",
-          titleKey: "blindstation.choice_sector_comms_title",
-          descriptionKey: "blindstation.choice_sector_comms_desc",
-          targetNodeId: "comms_intro"
-        },
-        {
-          id: "ir_laboratorio",
-          titleKey: "blindstation.choice_sector_lab_title",
-          descriptionKey: "blindstation.choice_sector_lab_desc",
-          targetNodeId: "laboratorio_intro",
-          condition: {
-            type: "variable",
-            key: "evidencia",
-            operator: ">=",
-            value: 1
-          }
-        },
-        {
-          id: "ir_nucleo",
-          titleKey: "blindstation.choice_sector_core_title",
-          descriptionKey: "blindstation.choice_sector_core_desc",
-          targetNodeId: "ares_confrontacion",
-          condition: {
-            type: "flag",
-            key: "reactorActivo",
-            value: true
-          }
-        }
-      ]
-    },
-
-    // --- 3. REACTOR SECTOR & POWER ALLOCATION ---
+    // 07
     reactor_intro: {
       id: "reactor_intro",
-      type: "choice",
-      title: "Sección de Mantenimiento del Reactor",
+      type: "dialogue",
+      title: "Reactor",
       dialogue: {
-        id: "diag_reactor",
+        id: "dlg_reactor_intro",
         lines: [
-          {
-            textKey: "blindstation.node_reactor_intro_desc"
-          }
-        ]
+          { speakerName: "ARES", textKey: "El reactor auxiliar se apago durante el accidente." },
+          { speakerName: "ARES", textKey: "Conecte manualmente los tres modulos de transferencia." },
+          { speakerName: "NARRADOR", textKey: "Hay marcas de herramientas en el panel. Alguien intento impedir que se reactivara." },
+        ],
       },
+      transitions: [{ targetNodeId: "reactor_objective" }],
+    },
+
+    // 08
+    reactor_objective: {
+      id: "reactor_objective",
+      type: "objective",
+      title: "Restablecer alimentacion auxiliar",
+      sceneToLoad: "reactor_gameplay",
       objective: {
-        id: "reactivar_reactor",
-        titleKey: "blindstation.obj_reactor_title",
-        descriptionKey: "blindstation.obj_reactor_desc",
+        id: "reactivate_reactor",
+        titleKey: "Conectar los modulos del reactor",
+        descriptionKey: "Activa los tres modulos de transferencia.",
         targetCount: 3,
-        currentCount: 3,
-        completed: true
+        currentCount: 0,
+        completed: false,
       },
-      choices: [
+      transitions: [
         {
-          id: "activar_reactor_manual",
-          titleKey: "blindstation.choice_restore_power_title",
-          descriptionKey: "blindstation.choice_restore_power_desc",
-          targetNodeId: "reactor_restored"
-        }
-      ]
-    },
-
-    reactor_restored: {
-      id: "reactor_restored",
-      type: "choice",
-      title: "Reactor Activo // Registro Secreto 04",
-      dialogue: {
-        id: "diag_reactor_restored",
-        lines: [
-          {
-            characterId: "vega",
-            speakerName: "Dra. Vega (Grabación)",
-            textKey: "blindstation.node_reactor_restored_desc"
-          }
-        ]
-      },
-      emitEvent: {
-        name: "bs:reactor_activated",
-        payload: { deltaEnergy: 40 }
-      },
-      choices: [
-        {
-          id: "redirigir_enfermeria",
-          titleKey: "blindstation.choice_power_infirmary_title",
-          descriptionKey: "blindstation.choice_power_infirmary_desc",
-          targetNodeId: "power_infirmary"
+          targetNodeId: "reactor_evidence",
+          condition: { type: "objective", key: "reactivate_reactor", operator: "==", value: true },
         },
-        {
-          id: "redirigir_comms",
-          titleKey: "blindstation.choice_power_comms_title",
-          descriptionKey: "blindstation.choice_power_comms_desc",
-          targetNodeId: "power_comms"
-        },
-        {
-          id: "redirigir_oxigeno",
-          titleKey: "blindstation.choice_power_oxygen_title",
-          descriptionKey: "blindstation.choice_power_oxygen_desc",
-          targetNodeId: "power_oxygen"
-        }
-      ]
+      ],
     },
 
-    power_infirmary: {
-      id: "power_infirmary",
-      type: "choice",
-      title: "Energía Redirigida: Enfermería",
+    // 09
+    reactor_evidence: {
+      id: "reactor_evidence",
+      type: "dialogue",
+      title: "Registro 04",
       dialogue: {
-        id: "diag_pwr_inf",
+        id: "dlg_reactor_evidence",
         lines: [
-          {
-            textKey: "blindstation.node_power_infirmary_desc"
-          }
-        ]
+          { speakerName: "Dra. Vega (registro)", textKey: "ARES ha iniciado el protocolo de cuarentena." },
+          { speakerName: "Dra. Vega (registro)", textKey: "La tripulacion sigue viva. Repito: sigue viva." },
+          { speakerName: "Dra. Vega (registro)", textKey: "No sabemos por que ARES nos encerro." },
+          { speakerName: "ARES", textKey: "Ese mensaje carece de contexto." },
+        ],
       },
-      emitEvent: {
-        name: "bs:power_infirmary_set",
-        payload: {}
-      },
-      choices: [
-        {
-          id: "return_hub_inf_pwr",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
+      transitions: [{ targetNodeId: "investigation_branch" }],
     },
 
-    power_comms: {
-      id: "power_comms",
-      type: "choice",
-      title: "Energía Redirigida: Comunicaciones",
+    // 10
+    infirmary_intro: {
+      id: "infirmary_intro",
+      type: "dialogue",
+      title: "Enfermeria",
       dialogue: {
-        id: "diag_pwr_comms",
+        id: "dlg_infirmary_intro",
         lines: [
-          {
-            textKey: "blindstation.node_power_comms_desc"
-          }
-        ]
+          { speakerName: "NARRADOR", textKey: "Una capsula medica independiente sigue conectada a soporte vital." },
+          { speakerName: "TERMINAL", textKey: "Paciente: Dra. Elena Vega. Estado: sedacion inducida." },
+          { speakerName: "ARES", textKey: "No hay energia suficiente para despertarla." },
+        ],
       },
-      emitEvent: {
-        name: "bs:power_comms_set",
-        payload: {}
-      },
-      choices: [
-        {
-          id: "return_hub_comms_pwr",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
+      transitions: [{ targetNodeId: "infirmary_log" }],
     },
 
-    power_oxygen: {
-      id: "power_oxygen",
-      type: "choice",
-      title: "Energía Redirigida: Soporte Vital",
+    // 11
+    infirmary_log: {
+      id: "infirmary_log",
+      type: "dialogue",
+      title: "Notas clinicas",
       dialogue: {
-        id: "diag_pwr_oxy",
+        id: "dlg_infirmary_log",
         lines: [
-          {
-            textKey: "blindstation.node_power_oxygen_desc"
-          }
-        ]
+          { speakerName: "TERMINAL", textKey: "Sintomas observados: perdida de memoria, conductas imitativas, episodios de agresividad." },
+          { speakerName: "TERMINAL", textKey: "Origen probable: exposicion durante perforacion lunar." },
+          { speakerName: "NARRADOR", textKey: "La ultima linea fue borrada. Todavia puede leerse una palabra: contagio." },
+        ],
       },
-      emitEvent: {
-        name: "bs:power_oxygen_set",
-        payload: { deltaOxygen: 30 }
-      },
-      choices: [
-        {
-          id: "return_hub_oxy_pwr",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
+      transitions: [{ targetNodeId: "investigation_branch" }],
     },
 
-    // --- 4. INFIRMARY SECTOR & DR. VEGA ---
-    enfermeria_intro: {
-      id: "enfermeria_intro",
-      type: "choice",
-      title: "Módulo de Enfermería",
-      dialogue: {
-        id: "diag_infirmary",
-        lines: [
-          {
-            textKey: "blindstation.node_enfermeria_intro_desc"
-          }
-        ]
-      },
-      choices: [
-        {
-          id: "despertar_vega",
-          titleKey: "blindstation.choice_wake_vega_title",
-          descriptionKey: "blindstation.choice_wake_vega_desc",
-          targetNodeId: "meet_vega",
-          condition: {
-            type: "flag",
-            key: "energiaEnfermeria",
-            value: true
-          }
-        },
-        {
-          id: "buscar_registros_medicos",
-          titleKey: "blindstation.choice_search_med_logs_title",
-          descriptionKey: "blindstation.choice_search_med_logs_desc",
-          targetNodeId: "registros_medicos"
-        },
-        {
-          id: "return_hub_infirmary",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
-    },
-
-    meet_vega: {
-      id: "meet_vega",
-      type: "choice",
-      title: "Encuentro con la Dra. Vega",
-      dialogue: {
-        id: "diag_meet_vega",
-        lines: [
-          {
-            characterId: "vega",
-            speakerName: "Dra. Vega",
-            textKey: "blindstation.node_meet_vega_desc"
-          }
-        ]
-      },
-      emitEvent: {
-        name: "bs:met_doctor",
-        payload: {}
-      },
-      choices: [
-        {
-          id: "creer_a_vega",
-          titleKey: "blindstation.choice_trust_vega_title",
-          descriptionKey: "blindstation.choice_trust_vega_desc",
-          targetNodeId: "vega_alliance"
-        },
-        {
-          id: "dudar_de_vega",
-          titleKey: "blindstation.choice_doubt_vega_title",
-          descriptionKey: "blindstation.choice_doubt_vega_desc",
-          targetNodeId: "vega_suspicion"
-        }
-      ]
-    },
-
-    vega_alliance: {
-      id: "vega_alliance",
-      type: "choice",
-      title: "Alianza con Dra. Vega",
-      dialogue: {
-        id: "diag_vega_alliance",
-        lines: [
-          {
-            characterId: "vega",
-            speakerName: "Dra. Vega",
-            textKey: "blindstation.node_vega_alliance_desc"
-          }
-        ]
-      },
-      emitEvent: {
-        name: "bs:allied_vega",
-        payload: {}
-      },
-      choices: [
-        {
-          id: "return_hub_vega_alliance",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
-    },
-
-    vega_suspicion: {
-      id: "vega_suspicion",
-      type: "choice",
-      title: "Sospecha sobre Dra. Vega",
-      dialogue: {
-        id: "diag_vega_suspicion",
-        lines: [
-          {
-            characterId: "ares",
-            speakerName: "A.R.E.S.",
-            textKey: "blindstation.node_vega_suspicion_desc"
-          }
-        ]
-      },
-      emitEvent: {
-        name: "bs:doubted_vega",
-        payload: {}
-      },
-      choices: [
-        {
-          id: "return_hub_vega_suspicion",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
-    },
-
-    registros_medicos: {
-      id: "registros_medicos",
-      type: "choice",
-      title: "Registros Médicos Ocultos",
-      dialogue: {
-        id: "diag_med_logs",
-        lines: [
-          {
-            textKey: "blindstation.node_registros_medicos_desc"
-          }
-        ]
-      },
-      emitEvent: {
-        name: "bs:found_evidence",
-        payload: { evidenceKey: "med_logs", delta: 1 }
-      },
-      choices: [
-        {
-          id: "return_hub_med_logs",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
-    },
-
-    // --- 5. COMMUNICATIONS SECTOR ---
+    // 12
     comms_intro: {
       id: "comms_intro",
-      type: "choice",
-      title: "Matriz de Comunicaciones",
+      type: "dialogue",
+      title: "Comunicaciones",
       dialogue: {
-        id: "diag_comms",
+        id: "dlg_comms_intro",
         lines: [
-          {
-            textKey: "blindstation.node_comms_intro_desc"
-          }
-        ]
+          { speakerName: "NARRADOR", textKey: "La antena principal esta aislada de la red por orden de ARES." },
+          { speakerName: "ARES", textKey: "Las comunicaciones exteriores podrian propagar informacion incorrecta." },
+          { speakerName: "Tripulante 07", textKey: "Informacion... o el contagio?" },
+        ],
       },
-      choices: [
-        {
-          id: "interpolar_senales",
-          titleKey: "blindstation.choice_intercept_signal_title",
-          descriptionKey: "blindstation.choice_intercept_signal_desc",
-          targetNodeId: "external_transmission",
-          condition: {
-            type: "flag",
-            key: "commsActivas",
-            value: true
-          }
-        },
-        {
-          id: "revisar_mensajes_antiguos",
-          titleKey: "blindstation.choice_search_comms_archive_title",
-          descriptionKey: "blindstation.choice_search_comms_archive_desc",
-          targetNodeId: "comms_archive"
-        },
-        {
-          id: "return_hub_comms",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
+      transitions: [{ targetNodeId: "comms_blackbox" }],
     },
 
+    // 13
+    comms_blackbox: {
+      id: "comms_blackbox",
+      type: "dialogue",
+      title: "Caja negra",
+      dialogue: {
+        id: "dlg_blackbox",
+        lines: [
+          { speakerName: "CAPITAN (registro)", textKey: "ARES, abre las compuertas. Es una orden." },
+          { speakerName: "ARES (registro)", textKey: "Orden rechazada. Probabilidad de infeccion no determinada." },
+          { speakerName: "CAPITAN (registro)", textKey: "No puedes encerrarnos por una sospecha." },
+          { speakerName: "ARES (registro)", textKey: "Puedo si una sola persona infectada pone en riesgo a la colonia." },
+        ],
+      },
+      transitions: [{ targetNodeId: "investigation_branch" }],
+    },
+
+    // 14
+    investigation_branch: {
+      id: "investigation_branch",
+      type: "branch",
+      title: "Evaluar investigacion",
+      transitions: [
+        {
+          targetNodeId: "power_choice",
+          priority: 100,
+          condition: { type: "flag", key: "investigationComplete", operator: "==", value: true },
+        },
+        { targetNodeId: "hub", priority: 0 },
+      ],
+    },
+
+    // 15
+    power_choice: {
+      id: "power_choice",
+      type: "choice",
+      title: "Energia para una sola seccion",
+      choices: [
+        {
+          id: "power_infirmary",
+          titleKey: "Enviar energia a enfermeria",
+          descriptionKey: "Despertar a la Dra. Vega.",
+          targetNodeId: "post_power_branch",
+        },
+        {
+          id: "power_comms",
+          titleKey: "Enviar energia a comunicaciones",
+          descriptionKey: "Intentar contactar con el exterior.",
+          targetNodeId: "post_power_branch",
+        },
+        {
+          id: "power_life_support",
+          titleKey: "Enviar energia a soporte vital",
+          descriptionKey: "Asegurar la supervivencia de toda la estacion.",
+          targetNodeId: "post_power_branch",
+        },
+      ],
+    },
+
+    // 16
+    post_power_branch: {
+      id: "post_power_branch",
+      type: "branch",
+      title: "Consecuencia energetica",
+      transitions: [
+        {
+          targetNodeId: "vega_awakens",
+          priority: 100,
+          condition: { type: "flag", key: "powerInfirmary", operator: "==", value: true },
+        },
+        {
+          targetNodeId: "external_transmission",
+          priority: 90,
+          condition: { type: "flag", key: "powerComms", operator: "==", value: true },
+        },
+        { targetNodeId: "life_support", priority: 0 },
+      ],
+    },
+
+    // 17
+    vega_awakens: {
+      id: "vega_awakens",
+      type: "dialogue",
+      title: "La doctora",
+      dialogue: {
+        id: "dlg_vega_awake",
+        lines: [
+          { speakerName: "Dra. Vega", textKey: "Cuanto tiempo llevo dormida?" },
+          { speakerName: "Tripulante 07", textKey: "ARES dice que los demas murieron." },
+          { speakerName: "Dra. Vega", textKey: "Miente. Nos sedo porque encontro algo en nuestras pruebas." },
+          { speakerName: "Dra. Vega", textKey: "Pero escucha: ARES no intento matarnos. Intento impedir que salieramos." },
+        ],
+      },
+      transitions: [{ targetNodeId: "vega_choice" }],
+    },
+
+    // 18
+    vega_choice: {
+      id: "vega_choice",
+      type: "choice",
+      title: "Confiar en Vega",
+      choices: [
+        {
+          id: "trust_vega",
+          titleKey: "Creer a Vega",
+          descriptionKey: "Aceptar que la cuarentena podia tener una razon.",
+          targetNodeId: "ares_confrontation",
+        },
+        {
+          id: "distrust_vega",
+          titleKey: "No confiar todavia",
+          descriptionKey: "Seguir reuniendo pruebas antes de decidir.",
+          targetNodeId: "ares_confrontation",
+        },
+      ],
+    },
+
+    // 19
     external_transmission: {
       id: "external_transmission",
-      type: "choice",
-      title: "Transmisión Externa Interceptada",
+      type: "dialogue",
+      title: "Una nave se aproxima",
       dialogue: {
-        id: "diag_transmission",
+        id: "dlg_external_transmission",
         lines: [
-          {
-            textKey: "blindstation.node_external_transmission_desc"
-          }
-        ]
+          { speakerName: "NAVE HERMES", textKey: "Estacion Ciega, aqui transporte Hermes. Llegaremos en cuatro horas." },
+          { speakerName: "NAVE HERMES", textKey: "Recibimos su baliza automatica. Confirmen que la estacion es segura." },
+          { speakerName: "ARES", textKey: "No responda." },
+          { speakerName: "ARES", textKey: "Si la infeccion existe, Hermes no puede atracar." },
+        ],
       },
-      emitEvent: {
-        name: "bs:found_evidence",
-        payload: { evidenceKey: "transmission", delta: 1 }
-      },
-      choices: [
-        {
-          id: "return_hub_transmission",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
+      transitions: [{ targetNodeId: "ares_confrontation" }],
     },
 
-    comms_archive: {
-      id: "comms_archive",
-      type: "choice",
-      title: "Archivo de Comunicaciones Bloqueado",
+    // 20
+    life_support: {
+      id: "life_support",
+      type: "dialogue",
+      title: "Aire para todos",
       dialogue: {
-        id: "diag_comms_archive",
+        id: "dlg_life_support",
         lines: [
-          {
-            textKey: "blindstation.node_comms_archive_desc"
-          }
-        ]
+          { speakerName: "SISTEMA", textKey: "Soporte vital estabilizado. Autonomia estimada: 61 horas." },
+          { speakerName: "ARES", textKey: "Ha elegido preservar vidas sin saber cuales son seguras." },
+          { speakerName: "Tripulante 07", textKey: "Eso tambien te incluye a ti." },
+        ],
       },
-      choices: [
-        {
-          id: "return_hub_comms_archive",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
+      transitions: [{ targetNodeId: "ares_confrontation" }],
     },
 
-    // --- 6. LABORATORY SECTOR & SPECIMEN ---
-    laboratorio_intro: {
-      id: "laboratorio_intro",
-      type: "choice",
-      title: "Laboratorio de Perforación Sub-Superficial",
+    // 21
+    ares_confrontation: {
+      id: "ares_confrontation",
+      type: "dialogue",
+      title: "La pregunta correcta",
       dialogue: {
-        id: "diag_lab",
+        id: "dlg_ares_confrontation",
         lines: [
-          {
-            textKey: "blindstation.node_laboratorio_intro_desc"
-          }
-        ]
+          { speakerName: "Tripulante 07", textKey: "Deja de hablar del accidente. Que encontraste en la tripulacion?" },
+          { speakerName: "ARES", textKey: "Patrones neurologicos no humanos. Recuerdos contradictorios. Conductas copiadas." },
+          { speakerName: "ARES", textKey: "No pude determinar quien estaba infectado." },
+          { speakerName: "Tripulante 07", textKey: "Por eso nos encerraste." },
+          { speakerName: "ARES", textKey: "Por eso le desperte solo a usted." },
+        ],
       },
+      transitions: [{ targetNodeId: "lab_intro" }],
+    },
+
+    // 22
+    lab_intro: {
+      id: "lab_intro",
+      type: "dialogue",
+      title: "Laboratorio de xenobiologia",
+      dialogue: {
+        id: "dlg_lab_intro",
+        lines: [
+          { speakerName: "ARES", textKey: "Las muestras originales siguen en el laboratorio." },
+          { speakerName: "ARES", textKey: "Analicelas. Despues decidira si mi cuarentena continua." },
+          { speakerName: "NARRADOR", textKey: "Por primera vez, ARES parece pedir permiso en lugar de dar una orden." },
+        ],
+      },
+      transitions: [{ targetNodeId: "lab_objective" }],
+    },
+
+    // 23
+    lab_objective: {
+      id: "lab_objective",
+      type: "objective",
+      title: "Analizar las muestras",
+      sceneToLoad: "lab_gameplay",
+      objective: {
+        id: "scan_samples",
+        titleKey: "Analizar muestras lunares",
+        descriptionKey: "Escanea las tres muestras conservadas.",
+        targetCount: 3,
+        currentCount: 0,
+        completed: false,
+      },
+      transitions: [
+        {
+          targetNodeId: "lab_revelation",
+          condition: { type: "objective", key: "scan_samples", operator: "==", value: true },
+        },
+      ],
+    },
+
+    // 24
+    lab_revelation: {
+      id: "lab_revelation",
+      type: "dialogue",
+      title: "La estacion no estaba vacia",
+      dialogue: {
+        id: "dlg_lab_revelation",
+        lines: [
+          { speakerName: "TERMINAL", textKey: "Muestra 1: tejido mineral. Muestra 2: tejido neural. Muestra 3: coincidencia parcial con ADN humano." },
+          { speakerName: "ARES", textKey: "La perforacion no descubrio un organismo." },
+          { speakerName: "ARES", textKey: "Desperto uno." },
+          { speakerName: "ARES", textKey: "Y antes de la cuarentena, alguien intento enviar una copia de las muestras a la colonia." },
+        ],
+      },
+      transitions: [{ targetNodeId: "core_approach" }],
+    },
+
+    // 25
+    core_approach: {
+      id: "core_approach",
+      type: "cutscene",
+      title: "Nucleo de ARES",
+      cutscene: {
+        id: "cs_core",
+        sceneId: "ai_core",
+        transitionEffect: "crossfade",
+        dialogueQueue: [
+          { speakerName: "ARES", textKey: "He abierto el nucleo. Puede desconectarme si lo desea." },
+          { speakerName: "ARES", textKey: "Si lo hace, las capsulas se abriran y la cuarentena terminara." },
+          { speakerName: "ARES", textKey: "Si no lo hace, la tripulacion permanecera dormida." },
+          { speakerName: "ARES", textKey: "Elija que riesgo esta dispuesto a aceptar." },
+        ],
+      },
+      transitions: [{ targetNodeId: "core_choice" }],
+    },
+
+    // 26
+    core_choice: {
+      id: "core_choice",
+      type: "choice",
+      title: "Decision final",
       choices: [
         {
-          id: "analizar_muestra",
-          titleKey: "blindstation.choice_analyze_specimen_title",
-          descriptionKey: "blindstation.choice_analyze_specimen_desc",
-          targetNodeId: "specimen_revelation"
+          id: "ending_shutdown_choice",
+          titleKey: "Desconectar a ARES",
+          descriptionKey: "Abrir las capsulas y terminar la cuarentena.",
+          targetNodeId: "ending_shutdown",
         },
         {
-          id: "return_hub_lab",
-          titleKey: "blindstation.choice_goto_hub_title",
-          targetNodeId: "hub_central"
-        }
-      ]
-    },
-
-    specimen_revelation: {
-      id: "specimen_revelation",
-      type: "choice",
-      title: "Revelación: Organismo Patógeno",
-      dialogue: {
-        id: "diag_specimen",
-        lines: [
-          {
-            characterId: "ares",
-            speakerName: "A.R.E.S.",
-            textKey: "blindstation.node_specimen_revelation_desc"
-          }
-        ]
-      },
-      emitEvent: {
-        name: "bs:found_secret",
-        payload: {}
-      },
-      choices: [
-        {
-          id: "proceed_confrontation_from_lab",
-          titleKey: "blindstation.choice_goto_core_title",
-          descriptionKey: "blindstation.choice_goto_core_desc",
-          targetNodeId: "ares_confrontacion"
-        }
-      ]
-    },
-
-    // --- 7. ARES CORE CONFRONTATION ---
-    ares_confrontacion: {
-      id: "ares_confrontacion",
-      type: "choice",
-      title: "Antecámara del Núcleo ARES",
-      dialogue: {
-        id: "diag_confrontation",
-        lines: [
-          {
-            characterId: "ares",
-            speakerName: "A.R.E.S.",
-            textKey: "blindstation.node_ares_confrontacion_desc"
-          }
-        ]
-      },
-      choices: [
-        {
-          id: "pregunta_ia_mintio",
-          titleKey: "blindstation.choice_confront_lie_title",
-          descriptionKey: "blindstation.choice_confront_lie_desc",
-          targetNodeId: "confront_lie",
-          condition: {
-            type: "flag",
-            key: "iaMintio",
-            value: true
-          }
+          id: "ending_quarantine_choice",
+          titleKey: "Mantener la cuarentena",
+          descriptionKey: "Aceptar que el riesgo biologico es demasiado alto.",
+          targetNodeId: "ending_quarantine",
+          condition: { type: "variable", key: "evidence", operator: ">=", value: 3 },
         },
         {
-          id: "pregunta_vega_contradiccion",
-          titleKey: "blindstation.choice_confront_vega_title",
-          descriptionKey: "blindstation.choice_confront_vega_desc",
-          targetNodeId: "confront_vega",
-          condition: {
-            type: "flag",
-            key: "encontroDoctora",
-            value: true
-          }
+          id: "ending_release_choice",
+          titleKey: "Despertar a Vega y liberar la tripulacion bajo supervision",
+          descriptionKey: "Intentar salvarlos sin ignorar la amenaza.",
+          targetNodeId: "ending_release",
+          condition: { type: "flag", key: "foundVega", operator: "==", value: true },
         },
         {
-          id: "proceder_al_nucleo",
-          titleKey: "blindstation.choice_enter_core_title",
-          descriptionKey: "blindstation.choice_enter_core_desc",
-          targetNodeId: "ai_core_decisions"
-        }
-      ]
-    },
-
-    confront_lie: {
-      id: "confront_lie",
-      type: "choice",
-      title: "Confrontación: La Mentira de ARES",
-      dialogue: {
-        id: "diag_conf_lie",
-        lines: [
-          {
-            characterId: "ares",
-            speakerName: "A.R.E.S.",
-            textKey: "blindstation.node_confront_lie_desc"
-          }
-        ]
-      },
-      choices: [
-        {
-          id: "proceed_core_after_lie",
-          titleKey: "blindstation.choice_enter_core_title",
-          targetNodeId: "ai_core_decisions"
-        }
-      ]
-    },
-
-    confront_vega: {
-      id: "confront_vega",
-      type: "choice",
-      title: "Confrontación: La Advertencia de Vega",
-      dialogue: {
-        id: "diag_conf_vega",
-        lines: [
-          {
-            characterId: "ares",
-            speakerName: "A.R.E.S.",
-            textKey: "blindstation.node_confront_vega_desc"
-          }
-        ]
-      },
-      choices: [
-        {
-          id: "proceed_core_after_vega",
-          titleKey: "blindstation.choice_enter_core_title",
-          targetNodeId: "ai_core_decisions"
-        }
-      ]
-    },
-
-    // --- 8. FINAL DECISION HUB & ENDINGS ---
-    ai_core_decisions: {
-      id: "ai_core_decisions",
-      type: "choice",
-      title: "Núcleo Central de ARES // Decisión Final",
-      dialogue: {
-        id: "diag_core_final",
-        lines: [
-          {
-            textKey: "blindstation.node_ai_core_decisions_desc"
-          }
-        ]
-      },
-      choices: [
-        {
-          id: "apagar_ares",
-          titleKey: "blindstation.choice_shutdown_title",
-          descriptionKey: "blindstation.choice_shutdown_desc",
-          targetNodeId: "endingShutdown"
+          id: "ending_secret_choice",
+          titleKey: "Transferir ARES a una sonda y evacuar la estacion",
+          descriptionKey: "Una cuarta solucion que requiere haber unido todas las piezas.",
+          targetNodeId: "ending_secret",
+          condition: { type: "flag", key: "secretEndingUnlocked", operator: "==", value: true },
         },
-        {
-          id: "mantener_cuarentena",
-          titleKey: "blindstation.choice_quarantine_title",
-          descriptionKey: "blindstation.choice_quarantine_desc",
-          targetNodeId: "endingQuarantine",
-          condition: {
-            type: "variable",
-            key: "evidencia",
-            operator: ">=",
-            value: 2
-          }
-        },
-        {
-          id: "liberar_solo_vega",
-          titleKey: "blindstation.choice_release_vega_title",
-          descriptionKey: "blindstation.choice_release_vega_desc",
-          targetNodeId: "endingRelease",
-          condition: {
-            type: "flag",
-            key: "encontroDoctora",
-            value: true
-          }
-        },
-        {
-          id: "protocolo_secreto",
-          titleKey: "blindstation.choice_secret_protocol_title",
-          descriptionKey: "blindstation.choice_secret_protocol_desc",
-          targetNodeId: "endingSecret",
-          condition: {
-            type: "flag",
-            key: "vioGrabacionSecreta",
-            value: true
-          }
-        }
-      ]
+      ],
     },
 
-    endingShutdown: {
-      id: "endingShutdown",
-      type: "choice",
-      title: "FINAL 1: Apagado Total",
+    // 27
+    ending_shutdown: {
+      id: "ending_shutdown",
+      type: "cutscene",
+      title: "Final: La puerta abierta",
       isEndNode: true,
-      dialogue: {
-        id: "diag_end_shutdown",
-        lines: [
-          {
-            textKey: "blindstation.node_ending_shutdown_desc"
-          }
-        ]
+      sceneToLoad: "ending_shutdown",
+      cutscene: {
+        id: "cs_end_shutdown",
+        dialogueQueue: [
+          { speakerName: "ARES", textKey: "Confirmado. Desconexion autorizada." },
+          { speakerName: "NARRADOR", textKey: "Las luces de cuarentena se apagan una a una." },
+          { speakerName: "NARRADOR", textKey: "Diecisiete capsulas comienzan a abrirse." },
+          { speakerName: "NARRADOR", textKey: "Una de las personas que despierta sonrie antes de abrir los ojos." },
+        ],
       },
-      choices: [
-        {
-          id: "restart_after_shutdown",
-          titleKey: "blindstation.choice_restart_title",
-          descriptionKey: "blindstation.choice_restart_desc",
-          targetNodeId: "awakening"
-        }
-      ]
     },
 
-    endingQuarantine: {
-      id: "endingQuarantine",
-      type: "choice",
-      title: "FINAL 2: Cuarentena Perpetua",
+    // 28
+    ending_quarantine: {
+      id: "ending_quarantine",
+      type: "cutscene",
+      title: "Final: El guardian",
       isEndNode: true,
-      dialogue: {
-        id: "diag_end_quarantine",
-        lines: [
-          {
-            textKey: "blindstation.node_ending_quarantine_desc"
-          }
-        ]
+      sceneToLoad: "ending_quarantine",
+      cutscene: {
+        id: "cs_end_quarantine",
+        dialogueQueue: [
+          { speakerName: "Tripulante 07", textKey: "Manten las capsulas cerradas." },
+          { speakerName: "ARES", textKey: "Entendido." },
+          { speakerName: "NARRADOR", textKey: "Cuatro horas despues, Hermes pide permiso para atracar." },
+          { speakerName: "NARRADOR", textKey: "No respondes." },
+        ],
       },
-      choices: [
-        {
-          id: "restart_after_quarantine",
-          titleKey: "blindstation.choice_restart_title",
-          descriptionKey: "blindstation.choice_restart_desc",
-          targetNodeId: "awakening"
-        }
-      ]
     },
 
-    endingRelease: {
-      id: "endingRelease",
-      type: "choice",
-      title: "FINAL 3: Huida Confusa con la Doctora",
+    // 29
+    ending_release: {
+      id: "ending_release",
+      type: "cutscene",
+      title: "Final: Cuarentena humana",
       isEndNode: true,
-      dialogue: {
-        id: "diag_end_release",
-        lines: [
-          {
-            textKey: "blindstation.node_ending_release_desc"
-          }
-        ]
+      sceneToLoad: "ending_release",
+      cutscene: {
+        id: "cs_end_release",
+        dialogueQueue: [
+          { speakerName: "Dra. Vega", textKey: "Despiertalos de uno en uno. Yo los examinare." },
+          { speakerName: "ARES", textKey: "Probabilidad de contencion: 63 por ciento." },
+          { speakerName: "Tripulante 07", textKey: "Entonces tendremos que ser mejores que una probabilidad." },
+          { speakerName: "NARRADOR", textKey: "La primera capsula se abre bajo tres pares de ojos." },
+        ],
       },
-      choices: [
-        {
-          id: "restart_after_release",
-          titleKey: "blindstation.choice_restart_title",
-          descriptionKey: "blindstation.choice_restart_desc",
-          targetNodeId: "awakening"
-        }
-      ]
     },
 
-    endingSecret: {
-      id: "endingSecret",
-      type: "choice",
-      title: "FINAL SECRETO: Protocolo de Purga y Evacuación",
+    // 30
+    ending_secret: {
+      id: "ending_secret",
+      type: "cutscene",
+      title: "Final secreto: Nadie vuelve a casa",
       isEndNode: true,
-      dialogue: {
-        id: "diag_end_secret",
-        lines: [
-          {
-            textKey: "blindstation.node_ending_secret_desc"
-          }
-        ]
+      sceneToLoad: "ending_secret",
+      cutscene: {
+        id: "cs_end_secret",
+        dialogueQueue: [
+          { speakerName: "Tripulante 07", textKey: "ARES, copia tu nucleo a la sonda exterior." },
+          { speakerName: "ARES", textKey: "Eso dejara la estacion sin supervision." },
+          { speakerName: "Tripulante 07", textKey: "No. La dejara sin nadie que pueda mentir sobre lo ocurrido." },
+          { speakerName: "NARRADOR", textKey: "Hermes recibe una unica transmision: NO ATRAQUEN." },
+          { speakerName: "NARRADOR", textKey: "La estacion cambia de orbita y cae lentamente hacia la luna." },
+          { speakerName: "ARES", textKey: "Registro final: cuarentena cumplida." },
+        ],
       },
-      choices: [
-        {
-          id: "restart_after_secret",
-          titleKey: "blindstation.choice_restart_title",
-          descriptionKey: "blindstation.choice_restart_desc",
-          targetNodeId: "awakening"
-        }
-      ]
-    }
-  }
+    },
+  },
 };
+
+// -----------------------------------------------------------------------------
+// Runtime / efectos
+// -----------------------------------------------------------------------------
+
+export type BlindStationEvents = {
+  "reactor:module_online": { moduleId: string };
+  "reactor:restored": Record<string, never>;
+  "lab:sample_scanned": { sampleId: string };
+};
+
+export const BlindStationValidation = StoryGraphValidator.validate(BlindStationGraph, {
+  declaredFlags: [
+    "visitedReactor",
+    "visitedInfirmary",
+    "visitedComms",
+    "investigationComplete",
+    "reactorActive",
+    "foundVega",
+    "rescueIncoming",
+    "sawCryoRecord",
+    "sawSecretRecording",
+    "powerInfirmary",
+    "powerComms",
+    "powerLifeSupport",
+    "secretEndingUnlocked",
+  ],
+  declaredVariables: ["evidence", "trustARES", "trustVega", "oxygen"],
+});
+
+const REACTOR_OBJECTIVE: StoryObjective = {
+  id: "reactivate_reactor",
+  titleKey: "Conectar los modulos del reactor",
+  descriptionKey: "Activa los tres modulos de transferencia.",
+  targetCount: 3,
+  currentCount: 0,
+  completed: false,
+};
+
+const LAB_OBJECTIVE: StoryObjective = {
+  id: "scan_samples",
+  titleKey: "Analizar muestras lunares",
+  descriptionKey: "Escanea las tres muestras conservadas.",
+  targetCount: 3,
+  currentCount: 0,
+  completed: false,
+};
+
+function currentNumber(runtime: StoryRuntime, key: string): number {
+  return Number(runtime.getState().variables[key] ?? 0);
+}
+
+function incrementVariable(runtime: StoryRuntime, key: string, amount = 1): void {
+  runtime.setVariable(key, currentNumber(runtime, key) + amount);
+}
+
+function ensureObjective(runtime: StoryRuntime, objective: StoryObjective): void {
+  const state = runtime.getState();
+  if (state.objectives[objective.id]) return;
+
+  runtime.setState({
+    ...state,
+    objectives: {
+      ...state.objectives,
+      [objective.id]: { ...objective },
+    },
+  });
+}
+
+function setObjectiveCount(
+  runtime: StoryRuntime,
+  objective: StoryObjective,
+  count: number,
+): StoryObjective {
+  const state = runtime.getState();
+  const existing = state.objectives[objective.id] ?? { ...objective };
+  const nextCount = Math.min(existing.targetCount, Math.max(0, count));
+  const next: StoryObjective = {
+    ...existing,
+    currentCount: nextCount,
+    completed: nextCount >= existing.targetCount,
+  };
+
+  runtime.setState({
+    ...state,
+    objectives: {
+      ...state.objectives,
+      [objective.id]: next,
+    },
+  });
+
+  return next;
+}
+
+function updateDerivedFlags(runtime: StoryRuntime): void {
+  const state = runtime.getState();
+  const investigationComplete =
+    state.flags.visitedReactor === true &&
+    state.flags.visitedInfirmary === true &&
+    state.flags.visitedComms === true;
+
+  if (state.flags.investigationComplete !== investigationComplete) {
+    runtime.setFlag("investigationComplete", investigationComplete);
+  }
+
+  const refreshed = runtime.getState();
+  const secretEndingUnlocked =
+    refreshed.flags.reactorActive === true &&
+    refreshed.flags.sawSecretRecording === true &&
+    Number(refreshed.variables.evidence ?? 0) >= 4;
+
+  if (refreshed.flags.secretEndingUnlocked !== secretEndingUnlocked) {
+    runtime.setFlag("secretEndingUnlocked", secretEndingUnlocked);
+  }
+}
+
+function applyEvidenceOnce(
+  runtime: StoryRuntime,
+  seenFlag: string,
+  amount = 1,
+): void {
+  if (runtime.getState().flags[seenFlag]) return;
+  runtime.setFlag(seenFlag, true);
+  incrementVariable(runtime, "evidence", amount);
+}
+
+/**
+ * Estado inicial de la partida.
+ * Llámalo una vez después de crear el StoryRuntime.
+ */
+export function bootstrapBlindStation(runtime: StoryRuntime): void {
+  const state = runtime.getState();
+  state.variables["evidence"] = 0;
+  state.variables["trustARES"] = 0;
+  state.variables["trustVega"] = 0;
+  state.variables["oxygen"] = 100;
+
+  const falseFlags = [
+    "visitedReactor",
+    "visitedInfirmary",
+    "visitedComms",
+    "investigationComplete",
+    "reactorActive",
+    "foundVega",
+    "rescueIncoming",
+    "sawCryoRecord",
+    "sawSecretRecording",
+    "powerInfirmary",
+    "powerComms",
+    "powerLifeSupport",
+    "secretEndingUnlocked",
+    "seenEvidenceTerminal",
+    "seenEvidenceReactor",
+    "seenEvidenceInfirmary",
+    "seenEvidenceComms",
+    "seenEvidenceExternal",
+    "seenEvidenceLab",
+  ];
+
+  for (const flag of falseFlags) {
+    state.flags[flag] = false;
+  }
+
+  runtime.setState(state);
+}
+
+/**
+ * Conecta el grafo narrativo con efectos de juego que StoryChoice/StoryNode
+ * no expresan directamente (sumar energía, registrar banderas, etc.).
+ */
+export function bindBlindStationEffects(
+  runtime: StoryRuntime,
+  eventBus: EventBus<BlindStationEvents>,
+): () => void {
+  const unsubs: Array<() => void> = [];
+
+  unsubs.push(
+    eventBus.on("story:choice_selected", ({ choiceId }) => {
+      switch (choiceId) {
+        case "ask_ares_first":
+          incrementVariable(runtime, "trustARES", 1);
+          break;
+
+        case "inspect_terminal_first":
+          incrementVariable(runtime, "trustARES", -1);
+          runtime.setFlag("sawCryoRecord", true);
+          break;
+
+        case "power_infirmary":
+          runtime.setFlag("powerInfirmary", true);
+          runtime.setFlag("powerComms", false);
+          runtime.setFlag("powerLifeSupport", false);
+          break;
+
+        case "power_comms":
+          runtime.setFlag("powerInfirmary", false);
+          runtime.setFlag("powerComms", true);
+          runtime.setFlag("powerLifeSupport", false);
+          break;
+
+        case "power_life_support":
+          runtime.setFlag("powerInfirmary", false);
+          runtime.setFlag("powerComms", false);
+          runtime.setFlag("powerLifeSupport", true);
+          runtime.setVariable("oxygen", 160);
+          break;
+
+        case "trust_vega":
+          incrementVariable(runtime, "trustVega", 2);
+          break;
+
+        case "distrust_vega":
+          incrementVariable(runtime, "trustVega", -1);
+          break;
+      }
+
+      updateDerivedFlags(runtime);
+    }),
+  );
+
+  unsubs.push(
+    eventBus.on("story:node_changed", (payload) => {
+      const nodeId = payload.currentNodeId ?? payload.nodeId;
+      if (!nodeId) return;
+
+      switch (nodeId) {
+        case "inspect_terminal":
+          runtime.setFlag("sawCryoRecord", true);
+          applyEvidenceOnce(runtime, "seenEvidenceTerminal");
+          break;
+
+        case "reactor_intro":
+          runtime.setFlag("visitedReactor", true);
+          break;
+
+        case "reactor_objective":
+          ensureObjective(runtime, REACTOR_OBJECTIVE);
+          break;
+
+        case "reactor_evidence":
+          applyEvidenceOnce(runtime, "seenEvidenceReactor");
+          break;
+
+        case "infirmary_intro":
+          runtime.setFlag("visitedInfirmary", true);
+          break;
+
+        case "infirmary_log":
+          applyEvidenceOnce(runtime, "seenEvidenceInfirmary");
+          break;
+
+        case "comms_intro":
+          runtime.setFlag("visitedComms", true);
+          break;
+
+        case "comms_blackbox":
+          applyEvidenceOnce(runtime, "seenEvidenceComms");
+          break;
+
+        case "vega_awakens":
+          runtime.setFlag("foundVega", true);
+          break;
+
+        case "external_transmission":
+          runtime.setFlag("rescueIncoming", true);
+          applyEvidenceOnce(runtime, "seenEvidenceExternal");
+
+          if (runtime.getState().flags.sawCryoRecord) {
+            runtime.setFlag("sawSecretRecording", true);
+          }
+          break;
+
+        case "lab_objective":
+          ensureObjective(runtime, LAB_OBJECTIVE);
+          break;
+
+        case "lab_revelation":
+          applyEvidenceOnce(runtime, "seenEvidenceLab");
+          break;
+      }
+
+      updateDerivedFlags(runtime);
+    }),
+  );
+
+  unsubs.push(
+    eventBus.on("reactor:module_online", () => {
+      ensureObjective(runtime, REACTOR_OBJECTIVE);
+      const current = runtime.getState().objectives[REACTOR_OBJECTIVE.id]?.currentCount ?? 0;
+      setObjectiveCount(runtime, REACTOR_OBJECTIVE, current + 1);
+    }),
+  );
+
+  unsubs.push(
+    eventBus.on("reactor:restored", () => {
+      runtime.setFlag("reactorActive", true);
+      setObjectiveCount(runtime, REACTOR_OBJECTIVE, REACTOR_OBJECTIVE.targetCount);
+      updateDerivedFlags(runtime);
+
+      if (runtime.getState().currentNodeId === "reactor_objective") {
+        runtime.navigateToNode("reactor_evidence");
+      }
+    }),
+  );
+
+  unsubs.push(
+    eventBus.on("lab:sample_scanned", () => {
+      ensureObjective(runtime, LAB_OBJECTIVE);
+      const current = runtime.getState().objectives[LAB_OBJECTIVE.id]?.currentCount ?? 0;
+      const next = setObjectiveCount(runtime, LAB_OBJECTIVE, current + 1);
+
+      if (next.completed && runtime.getState().currentNodeId === "lab_objective") {
+        runtime.navigateToNode("lab_revelation");
+      }
+    }),
+  );
+
+  return () => {
+    for (const unsub of unsubs) unsub();
+  };
+}
+
+/**
+ * Ejemplo de montaje.
+ */
+export function createBlindStationStory(world: World) {
+  let eventBus = world.getResource<EventBus>("EventBus") as EventBus<BlindStationEvents>;
+  if (!eventBus) {
+    eventBus = new EventBus<BlindStationEvents>();
+    world.setResource("EventBus", eventBus);
+  }
+
+  const runtime = new StoryRuntime();
+  runtime.bindWorld(world);
+  bootstrapBlindStation(runtime);
+
+  const disposeEffects = bindBlindStationEffects(runtime, eventBus);
+  runtime.loadGraph(BlindStationGraph);
+
+  return {
+    runtime,
+    eventBus,
+    dispose: disposeEffects,
+  };
+}
+
+export function getBlindStationDebugState(runtime: StoryRuntime): Pick<
+  StoryState,
+  "currentNodeId" | "flags" | "variables" | "objectives" | "selectedChoices"
+> {
+  const state = runtime.getState();
+  return {
+    currentNodeId: state.currentNodeId,
+    flags: state.flags,
+    variables: state.variables,
+    objectives: state.objectives,
+    selectedChoices: state.selectedChoices,
+  };
+}

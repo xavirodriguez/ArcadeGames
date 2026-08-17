@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { World, EventBus, StoryRuntime, CYOAScene, ArcadeKernel, ArcadeState } from "@tiny-aster/core";
-import { blindStationGraph } from "../../games/shared/story/BlindStation";
+import { World, StoryRuntime, CYOAScene, ArcadeKernel, ArcadeState } from "@tiny-aster/core";
+import { createBlindStationStory, BlindStationGraph } from "../../games/shared/story/BlindStation";
 import { useTranslation } from "../../hooks/useTranslation";
 import { GameScreen } from "../../components/ui/GameScreen";
 import { BackButton } from "../../components/ui/BackButton";
@@ -18,8 +18,7 @@ export default function BlindStationScreen() {
   // Dynamic game state variables for UI status indicators
   const [evidence, setEvidence] = useState<number>(0);
   const [oxygen, setOxygen] = useState<number>(100);
-  const [energy, setEnergy] = useState<number>(30);
-  const [confianzaIA, setConfianzaIA] = useState<number>(0);
+  const [trustARES, setTrustARES] = useState<number>(0);
   const [flags, setFlags] = useState<Record<string, boolean>>({});
 
   const sceneRef = useRef<CYOAScene | null>(null);
@@ -27,86 +26,22 @@ export default function BlindStationScreen() {
 
   const refreshState = (runtime: StoryRuntime) => {
     const st = runtime.getState();
-    setEvidence((st.variables["evidencia"] as number) || 0);
-    setOxygen((st.variables["oxigeno"] as number) || 100);
-    setEnergy((st.variables["energia"] as number) || 30);
-    setConfianzaIA((st.variables["confianzaIA"] as number) || 0);
+    setEvidence((st.variables["evidence"] as number) || 0);
+    setOxygen((st.variables["oxygen"] as number) || 100);
+    setTrustARES((st.variables["trustARES"] as number) || 0);
     setFlags({ ...st.flags });
   };
 
   useEffect(() => {
     const world = new World();
-    const eventBus = new EventBus();
-    world.setResource("EventBus", eventBus);
+
+    const { runtime, eventBus } = createBlindStationStory(world);
+    runtimeRef.current = runtime;
 
     const kernel = new ArcadeKernel(eventBus);
     kernel.transitionTo(ArcadeState.LOADING);
     kernel.transitionTo(ArcadeState.MENU);
     kernel.transitionTo(ArcadeState.STORY);
-
-    const runtime = new StoryRuntime(blindStationGraph);
-    runtime.setVariable("evidencia", 0);
-    runtime.setVariable("oxigeno", 100);
-    runtime.setVariable("energia", 30);
-    runtime.setVariable("confianzaIA", 0);
-    runtimeRef.current = runtime;
-
-    // Listen to gameplay/story events dispatched from BlindStation graph
-    eventBus.on("bs:found_evidence", (data: any) => {
-      const currentEv = (runtime.getState().variables["evidencia"] as number) || 0;
-      runtime.setVariable("evidencia", currentEv + (data?.delta || 1));
-      runtime.setFlag("iaMintio", true);
-      refreshState(runtime);
-    });
-
-    eventBus.on("bs:trust_ares", (data: any) => {
-      const currentTrust = (runtime.getState().variables["confianzaIA"] as number) || 0;
-      runtime.setVariable("confianzaIA", currentTrust + (data?.delta || 1));
-      refreshState(runtime);
-    });
-
-    eventBus.on("bs:reactor_activated", (data: any) => {
-      runtime.setFlag("reactorActivo", true);
-      runtime.setFlag("vioGrabacionSecreta", true);
-      runtime.setFlag("iaMintio", true);
-      const currentE = (runtime.getState().variables["energia"] as number) || 30;
-      runtime.setVariable("energia", currentE + (data?.deltaEnergy || 40));
-      refreshState(runtime);
-    });
-
-    eventBus.on("bs:power_infirmary_set", () => {
-      runtime.setFlag("energiaEnfermeria", true);
-      refreshState(runtime);
-    });
-
-    eventBus.on("bs:power_comms_set", () => {
-      runtime.setFlag("commsActivas", true);
-      refreshState(runtime);
-    });
-
-    eventBus.on("bs:power_oxygen_set", (data: any) => {
-      const currentO = (runtime.getState().variables["oxigeno"] as number) || 100;
-      runtime.setVariable("oxigeno", currentO + (data?.deltaOxygen || 30));
-      refreshState(runtime);
-    });
-
-    eventBus.on("bs:met_doctor", () => {
-      runtime.setFlag("encontroDoctora", true);
-      runtime.setFlag("sabeQueTripulacionVive", true);
-      refreshState(runtime);
-    });
-
-    eventBus.on("bs:allied_vega", () => {
-      const currentEv = (runtime.getState().variables["evidencia"] as number) || 0;
-      runtime.setVariable("evidencia", currentEv + 1);
-      refreshState(runtime);
-    });
-
-    eventBus.on("bs:found_secret", () => {
-      const currentEv = (runtime.getState().variables["evidencia"] as number) || 0;
-      runtime.setVariable("evidencia", currentEv + 2);
-      refreshState(runtime);
-    });
 
     const scene = new CYOAScene(world, runtime, (node) => {
       setNodeId(node.id);
@@ -130,10 +65,19 @@ export default function BlindStationScreen() {
     hapticSelection();
     if (sceneRef.current) {
       sceneRef.current.selectChoice(choiceId);
-      setNodeId(sceneRef.current.getCurrentNode()?.id || null);
       if (runtimeRef.current) {
+        setNodeId(sceneRef.current.getCurrentNode()?.id || null);
         refreshState(runtimeRef.current);
       }
+    }
+  };
+
+  const handleAdvanceStory = () => {
+    hapticSelection();
+    if (runtimeRef.current && sceneRef.current) {
+      runtimeRef.current.evaluateTransitions();
+      setNodeId(sceneRef.current.getCurrentNode()?.id || null);
+      refreshState(runtimeRef.current);
     }
   };
 
@@ -142,10 +86,10 @@ export default function BlindStationScreen() {
     if (sceneRef.current) {
       sceneRef.current.restart();
       if (runtimeRef.current) {
-        runtimeRef.current.setVariable("evidencia", 0);
-        runtimeRef.current.setVariable("oxigeno", 100);
-        runtimeRef.current.setVariable("energia", 30);
-        runtimeRef.current.setVariable("confianzaIA", 0);
+        runtimeRef.current.setVariable("evidence", 0);
+        runtimeRef.current.setVariable("oxygen", 100);
+        runtimeRef.current.setVariable("trustARES", 0);
+        runtimeRef.current.setVariable("trustVega", 0);
       }
       setNodeId(sceneRef.current.getCurrentNode()?.id || null);
       if (runtimeRef.current) {
@@ -168,9 +112,19 @@ export default function BlindStationScreen() {
     return key;
   };
 
-  const titleText = currentNode?.title || getLocalizedText("blindstation.title");
-  const dialogueKey = currentNode?.dialogue?.lines?.[0]?.textKey;
-  const descriptionText = getLocalizedText(dialogueKey);
+  const titleText = currentNode?.title || BlindStationGraph.title;
+
+  // Extract display text & speaker for dialogue, cutscene, or choices
+  let dialogueBody = "";
+  if (currentNode?.dialogue?.lines?.length) {
+    dialogueBody = currentNode.dialogue.lines
+      .map((l) => `${l.speakerName ? l.speakerName + ": " : ""}${getLocalizedText(l.textKey)}`)
+      .join("\n\n");
+  } else if (currentNode?.cutscene?.dialogueQueue?.length) {
+    dialogueBody = currentNode.cutscene.dialogueQueue
+      .map((l) => `${l.speakerName ? l.speakerName + ": " : ""}${getLocalizedText(l.textKey)}`)
+      .join("\n\n");
+  }
 
   const bsDict = (t as any)?.blindstation || {};
 
@@ -192,8 +146,8 @@ export default function BlindStationScreen() {
           <Text style={styles.statusValue}>{oxygen}%</Text>
         </View>
         <View style={styles.statusBadge}>
-          <Text style={styles.statusLabel}>{bsDict.status_energy || "ENERGY"}:</Text>
-          <Text style={styles.statusValue}>{energy}%</Text>
+          <Text style={styles.statusLabel}>{bsDict.status_trust || "ARES TRUST"}:</Text>
+          <Text style={styles.statusValue}>{trustARES}</Text>
         </View>
         <View style={styles.statusBadge}>
           <Text style={styles.statusLabel}>{bsDict.status_evidence || "EVIDENCE"}:</Text>
@@ -204,17 +158,27 @@ export default function BlindStationScreen() {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.card}>
           <Text style={styles.nodeTitle}>{titleText}</Text>
-          <Text style={styles.descriptionText}>{descriptionText}</Text>
+          {dialogueBody ? <Text style={styles.descriptionText}>{dialogueBody}</Text> : null}
 
-          {flags.iaMintio && (
-            <View style={styles.alertBadge}>
-              <Text style={styles.alertText}>⚠️ ALERT: ARES Misdirection Detected</Text>
+          {currentNode?.objective && (
+            <View style={styles.objectiveBox}>
+              <Text style={styles.objectiveTitle}>🎯 {getLocalizedText(currentNode.objective.titleKey)}</Text>
+              <Text style={styles.objectiveDesc}>{getLocalizedText(currentNode.objective.descriptionKey)}</Text>
+              <Text style={styles.objectiveProgress}>
+                Progress: {currentNode.objective.currentCount} / {currentNode.objective.targetCount}
+              </Text>
             </View>
           )}
 
-          {flags.encontroDoctora && (
+          {flags.sawCryoRecord && (
+            <View style={styles.alertBadge}>
+              <Text style={styles.alertText}>⚠️ ALERT: Pod seals manually overridden</Text>
+            </View>
+          )}
+
+          {flags.foundVega && (
             <View style={styles.infoBadge}>
-              <Text style={styles.infoText}>🩺 Crew Stasis Active (Dr. Vega Unlocked)</Text>
+              <Text style={styles.infoText}>🩺 Crew Stasis Active (Dr. Vega Awake)</Text>
             </View>
           )}
         </View>
@@ -238,6 +202,18 @@ export default function BlindStationScreen() {
               </TouchableOpacity>
             );
           })}
+
+          {!availableChoices.length && currentNode?.transitions?.length && !currentNode?.isEndNode && (
+            <NeonButton
+              variant="cyan"
+              onPress={handleAdvanceStory}
+              style={styles.restartButton}
+              accessibilityLabel="Continue"
+              accessibilityHint="Advances to the next node"
+            >
+              CONTINUE ➔
+            </NeonButton>
+          )}
 
           {currentNode?.isEndNode && (
             <NeonButton
@@ -332,6 +308,33 @@ const styles = StyleSheet.create({
     fontFamily: typography.game,
     fontSize: typography.sizes.md,
     lineHeight: 24,
+  },
+  objectiveBox: {
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    backgroundColor: "rgba(0, 240, 255, 0.1)",
+    borderWidth: 1,
+    borderColor: colors.cyan,
+    borderRadius: 8,
+  },
+  objectiveTitle: {
+    color: colors.cyan,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    marginBottom: spacing.xs,
+  },
+  objectiveDesc: {
+    color: colors.textSecondary,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.xs,
+    marginBottom: spacing.xs,
+  },
+  objectiveProgress: {
+    color: colors.gold,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
   },
   alertBadge: {
     marginTop: spacing.lg,

@@ -147,7 +147,7 @@ export class StoryRuntime {
     }
 
     // Initialize node objectives if present
-    if (node.objective) {
+    if (node.objective && !this.state.objectives[node.objective.id]) {
       this.state.objectives[node.objective.id] = { ...node.objective };
     }
 
@@ -336,6 +336,7 @@ export class StoryRuntime {
    * @param value - Boolean flag value (defaults to `true`).
    */
   public setFlag(key: string, value: boolean = true): void {
+    if (this.state.flags[key] === value) return;
     this.state.flags[key] = value;
     this.evaluateTransitions();
   }
@@ -347,6 +348,7 @@ export class StoryRuntime {
    * @param value - Value to assign (number, string, or boolean).
    */
   public setVariable(key: string, value: any): void {
+    if (this.state.variables[key] === value) return;
     this.state.variables[key] = value;
     this.evaluateTransitions();
   }

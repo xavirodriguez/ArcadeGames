@@ -16,6 +16,48 @@
 export type StoryNodeType = "dialogue" | "cutscene" | "gameplay" | "choice" | "objective" | "branch";
 
 /**
+ * Declarative narrative effect applied deterministically during story execution.
+ *
+ * @public
+ */
+export type StoryEffect =
+  | {
+      type: "setFlag";
+      key: string;
+      value: boolean;
+    }
+  | {
+      type: "setVariable";
+      key: string;
+      value: number | string | boolean;
+    }
+  | {
+      type: "incrementVariable";
+      key: string;
+      amount: number;
+    }
+  | {
+      type: "discoverEvidence";
+      evidenceId: string;
+    }
+  | {
+      type: "completeObjective";
+      objectiveId: string;
+    }
+  | {
+      type: "emitEvent";
+      event: string;
+      payload?: Record<string, number | string | boolean>;
+    };
+
+/**
+ * Rewind behavior classification for narrative choices.
+ *
+ * @public
+ */
+export type RewindPolicy = "normal" | "checkpoint-only" | "permanent";
+
+/**
  * Character metadata descriptor involved in narrative dialogue sequences.
  *
  * @public
@@ -92,17 +134,11 @@ export type StoryConditionType =
   | "variable"
   | "choice"
   | "objective"
+  | "evidence"
   | "random";
 
 /**
  * Predicate condition evaluated by `StoryRuntime` to determine transition eligibility.
- *
- * @remarks
- * Conditions compare active narrative `StoryState` (flags, variables, choices, objectives, transient events)
- * or deterministic probability thresholds (`chance`).
- *
- * Operators available for string and numeric comparisons include standard equality (`==`, `!=`),
- * numeric relational operators (`\>`, `\>=`, `<`, `<=`), and array membership (`contains`).
  *
  * @public
  */
@@ -149,6 +185,10 @@ export interface StoryChoice {
   targetNodeId: string;
   /** Optional condition required for this choice to be visible/selectable. */
   condition?: StoryCondition;
+  /** Declarative narrative effects executed when this choice is selected. */
+  effects?: StoryEffect[];
+  /** Rewind policy governing checkpoint restore behavior for this choice. */
+  rewindPolicy?: RewindPolicy;
 }
 
 /**
@@ -174,11 +214,6 @@ export interface StoryObjective {
 /**
  * Node payload structure in a `StoryGraph`.
  *
- * @remarks
- * Represents a single narrative step or state machine vertex in the story engine.
- * Node execution emits events on `EventBus` (`story:node_changed`, `story:scene_change`)
- * and triggers transitions when conditions are met.
- *
  * @public
  */
 export interface StoryNode {
@@ -192,6 +227,8 @@ export interface StoryNode {
   sceneToLoad?: string;
   /** Marks this node as a valid terminal leaf node to suppress orphan/dead-end linter warnings. */
   isEndNode?: boolean;
+  /** Marks this node as a checkpoint location for save state restore and rewind. */
+  checkpoint?: boolean;
   /** Generic key-value store for custom gameplay metadata or extended runtime parameters. */
   meta?: Record<string, any>;
   /** Dialogue payload if node type is 'dialogue'. */
@@ -202,6 +239,8 @@ export interface StoryNode {
   choices?: StoryChoice[];
   /** Objective tracking data if node type is 'objective'. */
   objective?: StoryObjective;
+  /** Declarative narrative effects executed upon entering this node. */
+  effects?: StoryEffect[];
   /** Custom event payload automatically dispatched via `EventBus` upon entering this node. */
   emitEvent?: {
     name: string;
@@ -230,11 +269,212 @@ export interface StoryGraph {
 }
 
 /**
- * Mutable state snapshot managed by `StoryRuntime`.
+ * Evidence item definition for narrative investigation systems.
  *
- * @remarks
- * Contains active graph progress, flags, variables, objective progress, and choice history.
- * Easily serializable for persistence or state rollback across game sessions.
+ * @public
+ */
+export interface EvidenceDefinition {
+  /** Unique evidence string identifier. */
+  id: string;
+  /** Title localization key or display string. */
+  titleKey: string;
+  /** Optional description localization key or display string. */
+  descriptionKey?: string;
+  /** Categorical tag (e.g. 'log', 'sample', 'audio'). */
+  category?: string;
+  /** Searchable classification tags. */
+  tags?: string[];
+}
+
+/**
+ * Rule governing deduction formulation from discovered evidence.
+ *
+ * @public
+ */
+export interface DeductionRule {
+  /** Unique deduction rule identifier. */
+  id: string;
+  /** Required list of evidence IDs required to draw this deduction. */
+  requires: readonly string[];
+  /** Resulting evidence ID produced by this deduction. */
+  resultEvidenceId: string;
+  /** Optional question prompt ID guiding active deduction UI framing. */
+  questionId?: string;
+  /** Title key or text for deduction summary. */
+  titleKey?: string;
+  /** Description key or text for deduction explanation. */
+  descriptionKey?: string;
+  /** Optional declarative effects executed upon successfully completing deduction. */
+  effects?: readonly StoryEffect[];
+}
+
+/**
+ * Story package metadata manifest declaring format and version specifications.
+ *
+ * @public
+ */
+export interface StoryManifest {
+  /** Story package string identifier. */
+  id: string;
+  /** Human readable title of the narrative package. */
+  title: string;
+  /** Concrete story content version string (e.g., '1.4.0'). */
+  contentVersion: string;
+  /** Format schema technical version (e.g., 1, 2, 3). */
+  schemaVersion: number;
+  /** Entry graph ID loaded by default. */
+  entryGraph: string;
+}
+
+/**
+ * Complete versioned narrative content package structure.
+ *
+ * @public
+ */
+export interface StoryPackage {
+  /** Package metadata manifest. */
+  manifest: StoryManifest;
+  /** Dictionary of story graphs included in package. */
+  graphs: Record<string, StoryGraph>;
+  /** Character registry definitions. */
+  characters?: Record<string, StoryCharacter>;
+  /** Discovered evidence definitions. */
+  evidence?: Record<string, EvidenceDefinition>;
+  /** Deduction rules mapping evidence to new insights. */
+  deductions?: Record<string, DeductionRule>;
+}
+
+/**
+ * Specific memory item retained by a character regarding player interactions.
+ *
+ * @public
+ */
+export interface CharacterMemory {
+  /** Unique memory ID. */
+  id: string;
+  /** Target character ID who remembers this event. */
+  characterId: string;
+  /** Type of interaction or event remembered. */
+  type: "playerChoice" | "event" | "lie" | "promise" | "betrayal" | "assistance";
+  /** Associated reference identifier (choice ID, evidence ID, or event name). */
+  referenceId: string;
+  /** Importance weight multiplier. */
+  weight?: number;
+  /** Timestamp when memory was created. */
+  timestamp?: number;
+}
+
+/**
+ * Multi-dimensional relationship metric tracking character disposition.
+ *
+ * @public
+ */
+export interface RelationshipState {
+  /** Level of trust (e.g. -10 to 10 or 0 to 100). */
+  trust: number;
+  /** Level of fear. */
+  fear: number;
+  /** Level of respect. */
+  respect: number;
+  /** Level of suspicion. */
+  suspicion: number;
+}
+
+/**
+ * Serialized snapshot representing a complete save state of the narrative universe.
+ *
+ * @public
+ */
+export interface NarrativeSaveGame {
+  /** Save file format schema version. */
+  readonly saveVersion: number;
+  /** Story content version active when save was recorded. */
+  readonly contentVersion: string;
+  /** Narrative runtime state snapshot. */
+  readonly story: StoryState;
+  /** List of discovered evidence IDs. */
+  readonly evidence?: string[];
+  /** Map of character relationship states. */
+  readonly relationships?: Record<string, RelationshipState>;
+  /** List of character memories. */
+  readonly memories?: CharacterMemory[];
+  /** ISO timestamp string when save was created. */
+  readonly timestamp: string;
+  /** Optional checkpoint node ID associated with this save. */
+  readonly checkpointId?: string;
+}
+
+/**
+ * Individual narrative lifecycle event recorded in causal timeline.
+ *
+ * @public
+ */
+export interface NarrativeEvent {
+  /** Unique narrative event identifier. */
+  readonly id: string;
+  /** High precision epoch timestamp. */
+  readonly timestamp: number;
+  /** Monotonic tick step index. */
+  readonly step: number;
+  /** Event classification type. */
+  readonly type: string;
+  /** Display title for event summary. */
+  readonly title: string;
+  /** List of antecedent event IDs that directly caused this event. */
+  readonly causedBy?: readonly string[];
+  /** List of consequent event IDs produced by this event. */
+  readonly consequences?: readonly string[];
+  /** Additional event metadata. */
+  readonly payload?: Record<string, any>;
+}
+
+/**
+ * Presentation context supplied to `NarrativePresenter` adapters.
+ *
+ * @public
+ */
+export interface NarrativePresentationContext {
+  /** Currently active narrative node. */
+  node: StoryNode;
+  /** Current runtime state. */
+  state: StoryState;
+  /** Registered characters dictionary. */
+  characters?: Record<string, StoryCharacter>;
+  /** Currently available choices. */
+  availableChoices?: StoryChoice[];
+}
+
+/**
+ * Uniform presentation view model constructed by `NarrativePresenter` implementations.
+ *
+ * @public
+ */
+export interface NarrativePresentationModel {
+  /** Presenter style discriminator (e.g. 'cyoa', 'terminal', 'visual_novel'). */
+  style: string;
+  /** Main narrative headline / title. */
+  title: string;
+  /** Primary body text or dialogue text. */
+  body: string;
+  /** Speaker metadata if applicable. */
+  speaker?: {
+    name: string;
+    avatarUrl?: string;
+    emotion?: string;
+  };
+  /** Formatted choice option items. */
+  choices: Array<{
+    id: string;
+    label: string;
+    description?: string;
+    enabled: boolean;
+  }>;
+  /** Visual theme or background effect metadata. */
+  themeMeta?: Record<string, any>;
+}
+
+/**
+ * Mutable state snapshot managed by `StoryRuntime`.
  *
  * @public
  */
@@ -251,6 +491,8 @@ export interface StoryState {
   selectedChoices: string[];
   /** Active objective progress lookup indexed by objective ID. */
   objectives: Record<string, StoryObjective>;
+  /** Discovered evidence ID set. */
+  evidence?: string[];
   /** Visited node history sequence for graph trajectory tracking. */
   history: string[];
 }

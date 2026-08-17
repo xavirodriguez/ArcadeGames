@@ -6,7 +6,7 @@ import {
   StoryState,
   StoryCondition,
   StoryChoice,
-  StoryObjective
+  StoryEffect
 } from "./StoryTypes";
 
 /**
@@ -22,6 +22,7 @@ import {
  * - `story:scene_change` when entering a node configured with `sceneToLoad`.
  * - `story:choice_selected` when a player picks a narrative choice option.
  * - `story:objective_completed` when an active objective counter reaches target.
+ * - `story:evidence_discovered` when evidence is acquired via narrative effects.
  * - `story:beat_reached` for backwards compatibility with legacy dialogue/cutscene listeners.
  *
  * @public
@@ -45,6 +46,7 @@ export class StoryRuntime {
       variables: {},
       selectedChoices: [],
       objectives: {},
+      evidence: [],
       history: []
     };
 
@@ -87,6 +89,7 @@ export class StoryRuntime {
       "story:beat_reached",
       "story:choice_selected",
       "story:objective_completed",
+      "story:evidence_discovered",
       "dialogue:completed",
       "cutscene:completed",
       "rock:destroyed",
@@ -128,6 +131,91 @@ export class StoryRuntime {
   }
 
   /**
+   * Executes a single declarative `StoryEffect`.
+   *
+   * @param effect - Declarative effect descriptor to execute.
+   */
+  public applyEffect(effect: StoryEffect): void {
+    switch (effect.type) {
+      case "setFlag":
+        this.setFlag(effect.key, effect.value);
+        break;
+
+      case "setVariable":
+        this.setVariable(effect.key, effect.value);
+        break;
+
+      case "incrementVariable": {
+        const current = typeof this.state.variables[effect.key] === "number"
+          ? (this.state.variables[effect.key] as number)
+          : 0;
+        this.setVariable(effect.key, current + effect.amount);
+        break;
+      }
+
+      case "discoverEvidence": {
+        if (!this.state.evidence) {
+          this.state.evidence = [];
+        }
+        if (!this.state.evidence.includes(effect.evidenceId)) {
+          this.state.evidence.push(effect.evidenceId);
+        }
+        this.state.flags[`evidence:${effect.evidenceId}`] = true;
+        if (this.eventBus) {
+          this.eventBus.emit("story:evidence_discovered" as any, {
+            evidenceId: effect.evidenceId
+          });
+        }
+        this.evaluateTransitions();
+        break;
+      }
+
+      case "completeObjective": {
+        const obj = this.state.objectives[effect.objectiveId];
+        if (obj) {
+          obj.completed = true;
+          obj.currentCount = obj.targetCount;
+        } else {
+          this.state.objectives[effect.objectiveId] = {
+            id: effect.objectiveId,
+            titleKey: effect.objectiveId,
+            targetCount: 1,
+            currentCount: 1,
+            completed: true
+          };
+        }
+        if (this.eventBus) {
+          this.eventBus.emit("story:objective_completed", {
+            objectiveId: effect.objectiveId,
+            objective: this.state.objectives[effect.objectiveId]
+          });
+        }
+        this.evaluateTransitions();
+        break;
+      }
+
+      case "emitEvent": {
+        if (this.eventBus) {
+          this.eventBus.emit(effect.event as any, effect.payload || {});
+        }
+        break;
+      }
+    }
+  }
+
+  /**
+   * Sequentially executes a pipeline of declarative `StoryEffect` commands.
+   *
+   * @param effects - Array of declarative effect objects.
+   */
+  public applyEffects(effects?: readonly StoryEffect[]): void {
+    if (!effects || effects.length === 0) return;
+    for (const effect of effects) {
+      this.applyEffect(effect);
+    }
+  }
+
+  /**
    * Navigates directly to a specific node in the active graph.
    *
    * @param nodeId - Target string identifier of node to execute.
@@ -149,6 +237,11 @@ export class StoryRuntime {
     // Initialize node objectives if present
     if (node.objective && !this.state.objectives[node.objective.id]) {
       this.state.objectives[node.objective.id] = { ...node.objective };
+    }
+
+    // Apply declarative node entry effects if defined
+    if (node.effects) {
+      this.applyEffects(node.effects);
     }
 
     // Emit node custom event if configured
@@ -266,6 +359,11 @@ export class StoryRuntime {
 
     this.state.selectedChoices.push(choiceId);
 
+    // Apply declarative choice effects if defined
+    if (choice.effects) {
+      this.applyEffects(choice.effects);
+    }
+
     if (this.eventBus) {
       this.eventBus.emit("story:choice_selected", {
         choiceId,
@@ -287,6 +385,7 @@ export class StoryRuntime {
    * - `variable`: Compares state variable value using relational operator.
    * - `choice`: Checks whether choice ID exists in `state.selectedChoices`.
    * - `objective`: Checks whether specified objective is completed.
+   * - `evidence`: Checks whether evidence ID exists in `state.evidence`.
    * - `random`: Evaluates probability using `world.gameplayRandom` or fallback `Math.random`.
    *
    * @param condition - Condition predicate descriptor to evaluate.
@@ -316,6 +415,10 @@ export class StoryRuntime {
         if (!condition.key) return false;
         const obj = this.state.objectives[condition.key];
         return obj ? obj.completed : false;
+
+      case "evidence":
+        if (!condition.key) return false;
+        return !!(this.state.evidence && this.state.evidence.includes(condition.key));
 
       case "random":
         const threshold = condition.chance ?? 0.5;
@@ -354,6 +457,24 @@ export class StoryRuntime {
   }
 
   /**
+   * Discovers evidence by ID and emits discovery notification event.
+   *
+   * @param evidenceId - Unique string identifier of evidence unlocked.
+   */
+  public discoverEvidence(evidenceId: string): void {
+    this.applyEffect({ type: "discoverEvidence", evidenceId });
+  }
+
+  /**
+   * Retrieves list of all discovered evidence IDs in current runtime session.
+   *
+   * @returns Array of discovered evidence string identifiers.
+   */
+  public getDiscoveredEvidence(): string[] {
+    return [...(this.state.evidence || [])];
+  }
+
+  /**
    * Captures a deep serialized snapshot clone of the current runtime `StoryState`.
    *
    * @returns Deep copy of active `StoryState`.
@@ -369,6 +490,9 @@ export class StoryRuntime {
    */
   public setState(state: StoryState): void {
     this.state = JSON.parse(JSON.stringify(state));
+    if (!this.state.evidence) {
+      this.state.evidence = [];
+    }
     if (this.state.currentNodeId) {
       this.navigateToNode(this.state.currentNodeId);
     }

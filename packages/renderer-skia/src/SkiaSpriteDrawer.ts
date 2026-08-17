@@ -101,12 +101,22 @@ export class SkiaSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreComp
     const imgAsRecord = img as unknown as { width?: unknown; height?: unknown };
     if (sprite.srcRect) {
       const { x, y, w, h } = sprite.srcRect;
+      if (w <= 0 || h <= 0) {
+        this.paint.setColorFilter(null);
+        canvas.restore();
+        return;
+      }
       const src = Skia.XYWHRect(x, y, w, h);
       const dest = Skia.XYWHRect(-w * anchorX, -h * anchorY, w, h);
       canvas.drawImageRect(img, src, dest, this.paint);
     } else {
       const w = typeof imgAsRecord.width === "function" ? (imgAsRecord.width as () => number)() : ((imgAsRecord.width as number) || 0);
       const h = typeof imgAsRecord.height === "function" ? (imgAsRecord.height as () => number)() : ((imgAsRecord.height as number) || 0);
+      if (w <= 0 || h <= 0) {
+        this.paint.setColorFilter(null);
+        canvas.restore();
+        return;
+      }
       const dest = Skia.XYWHRect(-w * anchorX, -h * anchorY, w, h);
       const src = Skia.XYWHRect(0, 0, w, h);
       canvas.drawImageRect(img, src, dest, this.paint);

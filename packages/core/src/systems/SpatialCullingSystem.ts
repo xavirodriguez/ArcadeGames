@@ -30,6 +30,8 @@ import { Entity } from "../ecs/Entity";
 export class SpatialCullingSystem extends System<CoreComponentRegistry> {
   private margin: number;
   private enabled: boolean;
+  // Safe for determinism/rollback. Internal array reused across ticks to avoid allocating a new array per frame when storing candidate entities.
+  private candidateBuffer: Entity[] = [];
 
   /**
    * Returns the viewport bounding box based on Camera2D or screen configuration.
@@ -206,9 +208,9 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     const maxX = viewX + screenWidth + this.margin;
     const maxY = viewY + screenHeight + this.margin;
 
-    // 5. Filter entities
+    // 5. Filter entities into pre-allocated buffer
     const allEntities = world.query("Transform");
-    const candidates: Entity[] = [];
+    this.candidateBuffer.length = 0;
 
     for (const entity of allEntities) {
       // Exclude check for players/important tags to ensure they are never culled
@@ -221,7 +223,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
       );
 
       if (isLocalPlayer || isTagPlayer) {
-        candidates.push(entity);
+        this.candidateBuffer.push(entity);
         continue;
       }
 
@@ -231,12 +233,12 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
       const y = trans.worldY ?? trans.y;
 
       if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
-        candidates.push(entity);
+        this.candidateBuffer.push(entity);
       }
     }
 
     // 6. Save the list of active simulation candidate entities
-    // SpatialCullingSystem verified and consolidated
-    world.setResource("SpatialCullingCandidates", candidates);
+    // Safe for determinism/rollback. Shallow copy prevents downstream systems/callers from mutating internal candidateBuffer or having it cleared on the next tick.
+    world.setResource("SpatialCullingCandidates", [...this.candidateBuffer]);
   }
 }

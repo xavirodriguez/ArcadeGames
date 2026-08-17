@@ -21,18 +21,19 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
   public override update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
     // Decrementar coyote timer y disparar game over si expiró
     const birds = world.query("Bird");
-    for (const bird of birds) {
-      const b = world.getComponent(bird, "Bird")!;
-      if (b.coyoteTimer > 0) {
-        world.mutateComponent(bird, "Bird", bc => {
-          const res = bc.coyoteTimer - deltaTime;
-          bc.coyoteTimer = res < 0.001 ? 0 : res;
-        });
-        // Releer el componente tras la mutación
-        const updated = world.getComponent(bird, "Bird")!;
-        if (updated.coyoteTimer === 0) {
-          this.triggerGameOver(world);
-          return;
+    for (let i = 0; i < birds.length; i++) {
+      const bird = birds[i];
+      const b = world.getComponent(bird, "Bird");
+      if (b && b.coyoteTimer > 0) {
+        // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocation and redundant component re-fetching.
+        const mutableBird = world.getMutableComponent(bird, "Bird");
+        if (mutableBird) {
+          const res = mutableBird.coyoteTimer - deltaTime;
+          mutableBird.coyoteTimer = res < 0.001 ? 0 : res;
+          if (mutableBird.coyoteTimer === 0) {
+            this.triggerGameOver(world);
+            return;
+          }
         }
       }
     }
@@ -57,15 +58,15 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
     const matchPipe = this.matchPair(world, entityA, entityB, "Bird", "Pipe");
     if (matchPipe) {
       // Activar coyote timer en lugar de game over inmediato
-      world.mutateComponent(matchPipe["Bird"], "Bird", b => {
-        if (b.coyoteTimer <= 0) {
-          b.coyoteTimer = 0.05; // 50ms en segundos
-          const eventBus = world.getResource<EventBus>("EventBus");
-          if (eventBus) {
-            eventBus.emit("PlaySFX", { name: "hit" });
-          }
+      // Safe for determinism/rollback. Direct getMutableComponent avoids callback allocation.
+      const birdComp = world.getMutableComponent(matchPipe["Bird"], "Bird");
+      if (birdComp && birdComp.coyoteTimer <= 0) {
+        birdComp.coyoteTimer = 0.05; // 50ms en segundos
+        const eventBus = world.getResource<EventBus>("EventBus");
+        if (eventBus) {
+          eventBus.emit("PlaySFX", { name: "hit" });
         }
-      });
+      }
       return;
     }
     // Ground collision es instantánea (sin coyote time)

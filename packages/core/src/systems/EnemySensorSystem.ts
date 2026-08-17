@@ -20,7 +20,8 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
       const trans = world.getComponent(entity, "Transform")!;
 
       let detected: number | undefined;
-      let minDistance = Infinity;
+      let minDistanceSq = Infinity;
+      const visionRangeSq = sensor.visionRange * sensor.visionRange;
 
       for (let p = 0; p < players.length; p++) {
         const playerEntity = players[p];
@@ -28,17 +29,20 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
 
         const dx = playerTrans.x - trans.x;
         const dy = playerTrans.y - trans.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const distSq = dx * dx + dy * dy;
 
-        if (dist <= sensor.visionRange && dist < minDistance) {
-          minDistance = dist;
+        // Safe for determinism/rollback. Using squared distance avoids Math.sqrt on every player-sensor pair while preserving exact detection logic.
+        if (distSq <= visionRangeSq && distSq < minDistanceSq) {
+          minDistanceSq = distSq;
           detected = playerEntity;
         }
       }
 
-      world.mutateComponent(entity, "PlayerSensor", (s) => {
-        s.detectedPlayerEntity = detected;
-      });
+      // Safe for determinism/rollback. Direct getMutableComponent avoids callback/closure allocation.
+      const mutableSensor = world.getMutableComponent(entity, "PlayerSensor");
+      if (mutableSensor) {
+        mutableSensor.detectedPlayerEntity = detected;
+      }
     }
 
     // 2. Update GroundDetectors
@@ -96,10 +100,12 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
         const hasWallAhead = isSolidAt(wallCheckX, wallCheckY);
         const hasGroundAhead = isSolidAt(groundCheckX, groundCheckY);
 
-        world.mutateComponent(entity, "GroundDetector", (gd) => {
-          gd.hasWallAhead = hasWallAhead;
-          gd.hasGroundAhead = hasGroundAhead;
-        });
+        // Safe for determinism/rollback. Direct getMutableComponent avoids callback/closure allocation.
+        const mutableGd = world.getMutableComponent(entity, "GroundDetector");
+        if (mutableGd) {
+          mutableGd.hasWallAhead = hasWallAhead;
+          mutableGd.hasGroundAhead = hasGroundAhead;
+        }
       }
     }
   }

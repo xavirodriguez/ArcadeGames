@@ -192,7 +192,7 @@ export class EventBus<TEvents extends EventRegistry = EventRegistry> {
   }
 
   /**
-   * Queues an event to be processed later during {@link EventBus.flushDeferred}.
+   * Queues an event to be processed later during `EventBus.flushDeferred`.
    */
   emitDeferred<K extends keyof CombinedEvents<TEvents> & string>(
     event: K,

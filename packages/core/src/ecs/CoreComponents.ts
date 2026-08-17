@@ -55,7 +55,7 @@ export interface BoundaryComponent extends Component {
 export interface TTLComponent extends Component {
   type: "TTL";
   /**
-   * @deprecated Use {@link TTLComponent.remaining} instead.
+   * @deprecated Use `TTLComponent.remaining` instead.
    */
   timeLeft: number;
   remaining: number;

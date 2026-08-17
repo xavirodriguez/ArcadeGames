@@ -43,7 +43,7 @@ export class SnapshotSerializer {
    *
    * **Performance characteristics**: Due to deep cloning of components and map allocation, this function
    * introduces O(E * C) allocation complexity, where E is the active entity count and C is the component count.
-   * In tight frame budgets, consider using the highly optimized SoA alternative: {@link SnapshotSerializerSoA}.
+   * In tight frame budgets, consider using the highly optimized SoA alternative: `SnapshotSerializerSoA`.
    *
    * @param world - The ECS World simulation container to capture.
    * @param target - An optional pre-existing AoSWorldSnapshot instance to partially reuse, mitigating allocation overhead.
@@ -110,7 +110,7 @@ export class SnapshotSerializer {
    * and returns their serialized state.
    *
    * @warning
-   * Subject to the same serialization limits as {@link SnapshotSerializer.snapshot}.
+   * Subject to the same serialization limits as `SnapshotSerializer.snapshot`.
    *
    * @param world - The world to snapshot.
    * @param sinceVersion - The state version to compare against.

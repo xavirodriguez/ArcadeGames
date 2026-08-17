@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { StyleSheet, View, TextInput, TouchableOpacity, Text, ViewStyle } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
+import { hapticSelection } from "../utils/haptics";
+import { colors, spacing, typography } from "../theme";
 
 interface SeedWidgetProps {
   seed: number;
@@ -8,33 +11,44 @@ interface SeedWidgetProps {
 }
 
 export const SeedWidget: React.FC<SeedWidgetProps> = ({ seed, onSeedEnter, style }) => {
+  const { t } = useTranslation();
   const [value, setValue] = useState(seed.toString());
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleApply = () => {
     const num = parseInt(value, 10);
     if (!isNaN(num)) {
+      hapticSelection();
       onSeedEnter(num);
     }
   };
 
+  const seedLabel = "Simulation Seed";
+  const seedHint = "Enter a numeric seed value to deterministic random generation";
+  const applyLabel = "Apply Seed";
+  const applyHint = "Sets the seed and resets game configuration";
+
   return (
     <View style={[styles.container, style]}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, isFocused && styles.inputFocused]}
         value={value}
         onChangeText={setValue}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         placeholder="SEED"
-        placeholderTextColor="#666"
+        placeholderTextColor={colors.textMuted}
         keyboardType="numeric"
-        accessibilityLabel="Semilla de simulación (Seed)"
-        accessibilityHint="Introduce un valor numérico para fijar el generador de números aleatorios"
+        accessibilityLabel={seedLabel}
+        accessibilityHint={seedHint}
       />
       <TouchableOpacity
         style={styles.button}
         onPress={handleApply}
+        activeOpacity={0.8}
         accessibilityRole="button"
-        accessibilityLabel="Aplicar Semilla"
-        accessibilityHint="Fija la semilla introducida y reinicia la configuración del juego"
+        accessibilityLabel={applyLabel}
+        accessibilityHint={applyHint}
       >
         <Text style={styles.buttonText}>APLICAR SEED</Text>
       </TouchableOpacity>
@@ -48,24 +62,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   input: {
-    backgroundColor: "#222",
-    color: "white",
-    padding: 10,
+    backgroundColor: colors.surface,
+    color: colors.white,
+    padding: spacing.sm,
     borderRadius: 8,
     width: 100,
-    marginRight: 10,
-    fontFamily: "monospace",
+    marginRight: spacing.sm,
+    fontFamily: typography.game,
     textAlign: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    minHeight: 44,
+  },
+  inputFocused: {
+    borderColor: colors.cyan,
   },
   button: {
-    backgroundColor: "#444",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    backgroundColor: colors.borderDark,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: 8,
+    minHeight: 44,
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
-    color: "white",
-    fontFamily: "monospace",
-    fontWeight: "bold",
+    color: colors.white,
+    fontFamily: typography.game,
+    fontWeight: typography.weights.bold,
+    fontSize: typography.sizes.xs,
   },
 });

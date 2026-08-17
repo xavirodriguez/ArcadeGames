@@ -34,11 +34,24 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
     } finally {
       setLoading(false);
     }
-  }, [gameId]);
+  }, [gameId, t]);
 
   useEffect(() => {
     fetchScores();
   }, [fetchScores]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.addEventListener) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          hapticSelection();
+          onClose();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [onClose]);
 
   const sanitizedGameKey = gameId.replace('-', '_');
   const gameNameLocal = (t?.menu as any)?.[sanitizedGameKey] || gameId.toUpperCase();

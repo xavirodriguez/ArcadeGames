@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { PlayerProfile } from '../services/PlayerProfileService';
 import { LEVEL_THRESHOLDS } from '../config/PassportConfig';
@@ -20,6 +20,19 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
 
   const services = useGameServices();
   const isMuted = services?.isMuted ?? false;
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.addEventListener) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          hapticSelection();
+          onClose();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [onClose]);
 
   const closeBtnLabel = t?.accessibility?.close_button || "Close";
   const closeBtnHint = t?.accessibility?.close_button_hint || "Closes the current window";

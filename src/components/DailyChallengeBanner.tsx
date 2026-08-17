@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { DailyChallengeService } from "../services/DailyChallengeService";
+import { useTranslation } from "../hooks/useTranslation";
+import { hapticSelection } from "../utils/haptics";
+import { colors, spacing, typography } from "../theme";
 
 interface DailyChallengeBannerProps {
   gameId: string;
@@ -8,6 +11,7 @@ interface DailyChallengeBannerProps {
 }
 
 export const DailyChallengeBanner: React.FC<DailyChallengeBannerProps> = ({ gameId, onPlay }) => {
+  const { t } = useTranslation();
   const [seed, setSeed] = useState<number | null>(null);
   const [hasPlayed, setHasPlayed] = useState(false);
 
@@ -23,11 +27,26 @@ export const DailyChallengeBanner: React.FC<DailyChallengeBannerProps> = ({ game
 
   if (seed === null || hasPlayed) return null;
 
+  const handlePlay = () => {
+    hapticSelection();
+    onPlay(seed);
+  };
+
+  const titleText = t?.daily?.title ? `${t.daily.title}!` : "DAILY CHALLENGE AVAILABLE!";
+  const playText = t?.daily?.play_now ? t.daily.play_now.toUpperCase() : "PLAY NOW";
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>¡DESAFÍO DIARIO DISPONIBLE!</Text>
-      <TouchableOpacity style={styles.button} onPress={() => onPlay(seed)}>
-        <Text style={styles.buttonText}>JUGAR AHORA</Text>
+    <View style={styles.container} accessibilityRole="summary">
+      <Text style={styles.title}>{titleText}</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handlePlay}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={`${titleText}. ${playText}`}
+        accessibilityHint="Starts the daily challenge for this game"
+      >
+        <Text style={styles.buttonText}>{playText}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -35,29 +54,35 @@ export const DailyChallengeBanner: React.FC<DailyChallengeBannerProps> = ({ game
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFD700",
-    padding: 15,
+    backgroundColor: colors.gold,
+    padding: spacing.md,
     borderRadius: 8,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: spacing.lg,
     width: "80%",
   },
   title: {
-    color: "black",
-    fontWeight: "bold",
-    fontFamily: "monospace",
-    marginBottom: 10,
+    color: colors.background,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
+    marginBottom: spacing.sm,
     textAlign: "center",
+    fontSize: typography.sizes.sm,
   },
   button: {
-    backgroundColor: "black",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 5,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: 6,
+    minHeight: 44,
+    minWidth: 120,
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
-    color: "#FFD700",
-    fontWeight: "bold",
-    fontFamily: "monospace",
+    color: colors.gold,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.xs,
   },
 });

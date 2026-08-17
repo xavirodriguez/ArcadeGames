@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { EvidenceEdgeViewModel, EvidenceNodeViewModel } from '../../types/evidence';
 import { EvidenceBoard } from './EvidenceBoard';
 
@@ -19,53 +19,14 @@ export const InvestigationDrawer: React.FC<InvestigationDrawerProps> = ({
   selectedNodeId,
   onSelectNode,
 }) => {
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-  const modalRef = useRef<HTMLDivElement | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-
   useEffect(() => {
-    if (isOpen) {
-      previousFocusRef.current = document.activeElement as HTMLElement | null;
-
-      // Focus close button on open
-      setTimeout(() => {
-        closeButtonRef.current?.focus();
-      }, 50);
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          onClose();
-          return;
-        }
-
-        // Focus trap inside modal
-        if (e.key === 'Tab' && modalRef.current) {
-          const focusables = modalRef.current.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-          );
-          if (focusables.length === 0) return;
-
-          const first = focusables[0];
-          const last = focusables[focusables.length - 1];
-
-          if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault();
-            last.focus();
-          } else if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-      };
-
-      window.addEventListener('keydown', handleKeyDown);
-      return () => {
-        window.removeEventListener('keydown', handleKeyDown);
-        if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
-          previousFocusRef.current.focus();
-        }
-      };
-    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -79,10 +40,7 @@ export const InvestigationDrawer: React.FC<InvestigationDrawerProps> = ({
       aria-modal="true"
       aria-label="Panel de Investigación"
     >
-      <div
-        ref={modalRef}
-        className="w-full md:w-4/5 lg:w-3/4 h-full bg-slate-900 border-l border-slate-800 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
-      >
+      <div className="w-full md:w-4/5 lg:w-3/4 h-full bg-slate-900 border-l border-slate-800 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
           <div className="flex items-center gap-3">
@@ -92,7 +50,6 @@ export const InvestigationDrawer: React.FC<InvestigationDrawerProps> = ({
             </h2>
           </div>
           <button
-            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400"

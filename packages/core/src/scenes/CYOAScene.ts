@@ -76,7 +76,7 @@ export class CYOAScene extends Scene {
    * Retrieves the current active `StoryNode` rendered by this scene.
    */
   public getCurrentNode(): StoryNode | null {
-    return this.currentNode || this.runtime.getCurrentNode();
+    return this.runtime.getCurrentNode() || this.currentNode;
   }
 
   /**

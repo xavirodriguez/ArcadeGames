@@ -20,10 +20,19 @@ const mockStereoPannerNode = {
   connect: jest.fn()
 };
 
+const mockCreateBuffer = jest.fn().mockImplementation((channels, length, sampleRate) => ({
+  duration: length / sampleRate,
+  length,
+  sampleRate,
+  numberOfChannels: channels
+}));
+
 class MockAudioContext {
   public state = "suspended";
   public currentTime = 10;
+  public sampleRate = 44100;
   public destination = {};
+  public onstatechange: (() => void) | null = null;
 
   public resume = jest.fn().mockImplementation(async () => {
     this.state = "running";
@@ -36,6 +45,7 @@ class MockAudioContext {
   public createGain = jest.fn().mockReturnValue(mockGainNode);
   public createBufferSource = jest.fn().mockReturnValue(mockSourceNode);
   public createStereoPanner = jest.fn().mockReturnValue(mockStereoPannerNode);
+  public createBuffer = mockCreateBuffer;
 }
 
 const mockPlay = jest.fn().mockResolvedValue(undefined);
@@ -89,6 +99,7 @@ describe("WebAudioPlayer", () => {
     const mockArrayBuffer = new ArrayBuffer(8);
     ((global as any).fetch as jest.Mock).mockResolvedValue({
       ok: true,
+      headers: { get: () => "audio/mpeg" },
       arrayBuffer: async () => mockArrayBuffer
     });
 
@@ -98,10 +109,45 @@ describe("WebAudioPlayer", () => {
     expect((global as any).fetch).toHaveBeenCalledWith("/audio/flap.mp3");
   });
 
+  test("loadSFX handles HTML 404 fallback responses safely with dummy buffer", async () => {
+    ((global as any).fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      headers: { get: (h: string) => (h === "content-type" ? "text/html; charset=utf-8" : null) },
+      arrayBuffer: async () => new ArrayBuffer(100)
+    });
+
+    const player = new WebAudioPlayer();
+    await expect(player.loadSFX("pulse", "/audio/shoot.mp3")).resolves.not.toThrow();
+
+    // Verify playSFX works with fallback dummy buffer without throwing
+    player.playSFX("pulse");
+    expect(mockSourceStart).toHaveBeenCalled();
+  });
+
+  test("loadSFX handles decoding failure safely with dummy buffer", async () => {
+    const mockArrayBuffer = new ArrayBuffer(8);
+    ((global as any).fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      headers: { get: () => "audio/mpeg" },
+      arrayBuffer: async () => mockArrayBuffer
+    });
+
+    const player = new WebAudioPlayer();
+    // Simulate decodeAudioData rejecting/throwing
+    const ctx = (player as any).ctx;
+    ctx.decodeAudioData.mockRejectedValueOnce(new Error("WebAudio decode error"));
+
+    await expect(player.loadSFX("bad_sound", "/audio/corrupt.mp3")).resolves.not.toThrow();
+
+    player.playSFX("bad_sound");
+    expect(mockSourceStart).toHaveBeenCalled();
+  });
+
   test("playSFX resumes context and starts buffer source play", async () => {
     const mockArrayBuffer = new ArrayBuffer(8);
     ((global as any).fetch as jest.Mock).mockResolvedValue({
       ok: true,
+      headers: { get: () => "audio/mpeg" },
       arrayBuffer: async () => mockArrayBuffer
     });
 
@@ -140,6 +186,7 @@ describe("WebAudioPlayer", () => {
     const mockArrayBuffer = new ArrayBuffer(8);
     ((global as any).fetch as jest.Mock).mockResolvedValue({
       ok: true,
+      headers: { get: () => "audio/mpeg" },
       arrayBuffer: async () => mockArrayBuffer
     });
 

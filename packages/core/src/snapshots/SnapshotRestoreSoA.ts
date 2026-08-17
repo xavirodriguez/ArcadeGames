@@ -7,7 +7,7 @@ import { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
  * Structure of Arrays (SoA) restoration utility.
  *
  * @remarks
- * Reconstructs the complete state of an ECS World from a highly packed {@link SoAWorldSnapshot}.
+ * Reconstructs the complete state of an ECS World from a highly packed `SoAWorldSnapshot`.
  * It unpacks flat Float64 and Int32 buffers back into internal ECS entity-component map registries,
  * completely rebuilding query indexes and component version records.
  *
@@ -27,7 +27,7 @@ export class SnapshotRestoreSoA {
    *
    * @warning
    * **Throws on AoS layout**: Expects an SoA snapshot (`state.isSoA` is true). If provided with a classic
-   * AoS snapshot, it will throw an error. Use {@link SnapshotRestore.restore} instead.
+   * AoS snapshot, it will throw an error. Use `SnapshotRestore.restore` instead.
    *
    * @param world - The active ECS World instance to restore.
    * @param state - The source SoA world snapshot.

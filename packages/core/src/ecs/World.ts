@@ -228,7 +228,7 @@ export class World<
    * Alias de conveniencia para obtener la lista ordenada de entidades activas.
    *
    * @remarks
-   * Delegación directa al getter {@link World.entities}.
+   * Delegación directa al getter `World.entities`.
    */
   public getAllEntities(): ReadonlyArray<Entity> {
     return this.entities;
@@ -247,7 +247,7 @@ export class World<
    * **Structural Change**: Direct entity creation during world update may disrupt
    * active iterations in systems that are not using stable queries. To help maintain
    * simulation stability and avoid inconsistent state during a frame, it is recommended
-   * to use {@link WorldCommandBuffer} to defer creation until the end of the update.
+   * to use `WorldCommandBuffer` to defer creation until the end of the update.
    */
   private checkUpdatingMutation(opName: string, type?: string): void {
     if (isDev && this.isUpdating) {
@@ -478,7 +478,7 @@ export class World<
    * Lee un componente de forma estrictamente de solo lectura.
    *
    * @remarks
-   * Es un alias de solo lectura para {@link World.getComponent}. En modo desarrollo, retorna un componente
+   * Es un alias de solo lectura para `World.getComponent`. En modo desarrollo, retorna un componente
    * congelado superficialmente para prevenir mutaciones en tiempo de ejecución.
    *
    * @param entity - La entidad para la que se lee el componente.
@@ -639,8 +639,8 @@ export class World<
    * @param deltaTime - Time elapsed since the last update in seconds.
    *
    * @remarks
-   * Systems are executed following the order of {@link SystemPhase} and their priority
-   * within each phase. After all phases, the {@link WorldCommandBuffer} is flushed.
+   * Systems are executed following the order of `SystemPhase` and their priority
+   * within each phase. After all phases, the `WorldCommandBuffer` is flushed.
    *
    * This method is synchronous. The core update loop is designed for synchronous execution;
    * asynchronous side effects (like `await`) within systems should be avoided in core logic
@@ -649,7 +649,7 @@ export class World<
    * @warning
    * **Structural changes during iteration**: Direct structural changes (like adding/removing
    * components or entities) during this call may disrupt active iterations in systems
-   * that do not use stable queries. It is recommended to use {@link WorldCommandBuffer}
+   * that do not use stable queries. It is recommended to use `WorldCommandBuffer`
    * to defer these changes until the end of the update to help preserve simulation stability.
    */
   update(deltaTime: number): void {
@@ -676,7 +676,7 @@ export class World<
    * Manually advances the world's simulation tick.
    *
    * @remarks
-   * This is typically called automatically by {@link World.update}, but can be used
+   * This is typically called automatically by `World.update`, but can be used
    * manually in custom simulation loops or for re-simulation/rollback.
    */
   public advanceTick(): void {

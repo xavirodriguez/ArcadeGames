@@ -26,8 +26,8 @@ export interface Command<
  *
  * @warning
  * **Deferred execution**: Commands are not executed immediately. Changes will only
- * be reflected in the world state after {@link WorldCommandBuffer.flush} is
- * called (typically at the end of the {@link World.update} cycle).
+ * be reflected in the world state after `WorldCommandBuffer.flush` is
+ * called (typically at the end of the `World.update` cycle).
  * @public
  */
 export class WorldCommandBuffer<
@@ -122,7 +122,7 @@ export class WorldCommandBuffer<
    * Schedules a specific entity ID to be activated in the world.
    *
    * @remarks
-   * This is useful when an ID has been pre-reserved via {@link World.reserveEntityId}.
+   * This is useful when an ID has been pre-reserved via `World.reserveEntityId`.
    */
   public createEntity(entity: number): void {
     this.commands.push({

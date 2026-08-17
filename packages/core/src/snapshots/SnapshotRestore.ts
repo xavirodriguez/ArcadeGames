@@ -7,7 +7,7 @@ import { WorldSnapshot } from "./WorldSnapshot";
  * Classical Array of Structures (AoS) restoration utility.
  *
  * @remarks
- * Restores the complete state of an ECS World from an {@link AoSWorldSnapshot} instance.
+ * Restores the complete state of an ECS World from an `AoSWorldSnapshot` instance.
  * It clears all existing entities and components, reinstates the snapshot data,
  * and completely rebuilds query indexes and structural caches to ensure consistency.
  *
@@ -19,13 +19,13 @@ export class SnapshotRestore {
    *
    * @remarks
    * Performs deep reconstruction of the component map structures. After restoring the
-   * primitive and structural properties, it invokes {@link Query.rebuild} on all active world
+   * primitive and structural properties, it invokes `Query.rebuild` on all active world
    * queries to guarantee that system iterations continue correctly.
    *
    * @warning
    * - **Throws on SoA layout**: This class only handles classic AoS snapshots. If the snapshot
    *   is formatted as a Structure of Arrays (`state.isSoA` is true), this method will throw an exception.
-   *   Use {@link SnapshotRestoreSoA.restore} for SoA snapshots instead.
+   *   Use `SnapshotRestoreSoA.restore` for SoA snapshots instead.
    * - **Entity references**: Destroys any pre-existing entities not present in the snapshot. Any external
    *   systems or UI components caching entity IDs should refresh their references after restoration.
    *

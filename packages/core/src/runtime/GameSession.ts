@@ -5,23 +5,40 @@ import { DeterministicReplayRecorder } from "../replay/DeterministicReplay";
 import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
 
 /**
- * Orchestrates a live, active gameplay session of a GameDefinition.
+ * Orchestrates a live, active gameplay session for a given `GameDefinition`.
  *
  * @remarks
- * Keeps track of simulation step advancement, input history logging, and triggers
- * side-effect event broadcasts after each step.
+ * `GameSession` manages tick advancement, input history logging, deterministic replay recording,
+ * and event broadcasting. When instantiated, it automatically deactivates any legacy game loop ticker on the
+ * simulation (by calling `stopInternalLoop()`) to prevent dual-ticking when driven externally.
+ *
  * @public
  */
 export class GameSession {
+  /** Unique session identifier. */
   public readonly id: string;
+  /** Player identifier associated with the session. */
   public readonly playerId: string;
+  /** The metadata and simulation factory definition powering this session. */
   public readonly gameDefinition: GameDefinition;
+  /** Initial gameplay seed used to instantiate the deterministic simulation. */
   public readonly seed: number;
+  /** The underlying pure simulation instance driven by this session. */
   public readonly simulation: Simulation;
+  /** Central `ArcadeKernel` managing state machine transitions for this session. */
   public readonly kernel: ArcadeKernel;
   private recorder: DeterministicReplayRecorder;
   private inputHistory: CompactInputFrame[] = [];
 
+  /**
+   * Constructs a new `GameSession`.
+   *
+   * @param gameDefinition - The game specification providing `createSimulation`.
+   * @param seed - Random seed for simulation state initialization.
+   * @param playerId - Player identifier. Defaults to `"local-player"`.
+   * @param sessionId - Session identifier. Defaults to `"session-1"`.
+   * @param kernel - Optional `ArcadeKernel` instance. If omitted, attempts to reuse simulation kernel or creates a new one.
+   */
   constructor(
     gameDefinition: GameDefinition,
     seed: number,
@@ -49,7 +66,16 @@ export class GameSession {
   }
 
   /**
-   * Advances the gameplay session by exactly one tick using the provided human input frame.
+   * Advances the gameplay session by exactly one tick using the provided input frame.
+   *
+   * @remarks
+   * Step execution pipeline:
+   * 1. Advances simulation state via `simulation.step(input)`.
+   * 2. Logs input to replay recorder and local input history.
+   * 3. Checks simulation game-over condition and transitions `kernel` to `ArcadeState.GAME_OVER` if needed.
+   * 4. Broadcasts `session:tick` event on the simulation event bus for audio and presentation layers.
+   *
+   * @param input - Compact input frame containing tick index and action bitmasks.
    */
   public playTick(input: CompactInputFrame): void {
     // 1. Advance simulation state
@@ -75,14 +101,18 @@ export class GameSession {
   }
 
   /**
-   * Retrieves the raw list of inputs logged so far.
+   * Retrieves a shallow copy of the input history logged so far during this session.
+   *
+   * @returns Array of `CompactInputFrame` objects processed by the session.
    */
   public getInputsHistory(): CompactInputFrame[] {
     return [...this.inputHistory];
   }
 
   /**
-   * Compiles and outputs the final deterministic replay file for the session.
+   * Compiles and returns the final deterministic replay file data structure for this session.
+   *
+   * @returns Compiled deterministic replay payload.
    */
   public getReplay() {
     return this.recorder.compileReplay();

@@ -16,7 +16,7 @@ import { colors, spacing, typography, effects, neonTextGlow } from "../theme";
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "cyoa";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "cyoa" | "blindstation";
   href: Href<string>;
 }
 
@@ -28,6 +28,7 @@ const GAMES: GameEntry[] = [
   { id: "geometrywars", key: "geometrywars", href: "/geometrywars" },
   { id: "echorunner", key: "echorunner", href: "/echorunner" },
   { id: "cyoa", key: "cyoa", href: "/cyoa" },
+  { id: "blindstation", key: "blindstation", href: "/blindstation" },
 ];
 
 export default function HomeScreen() {

@@ -8,6 +8,7 @@ export const es = {
     geometrywars: "GEOMETRY WARS",
     echorunner: "ECHO // RUNNER",
     cyoa: "LA CUEVA // CYOA",
+    blindstation: "LA ESTACIÓN CIEGA",
     level: "NIVEL",
   },
   daily: {
@@ -90,6 +91,125 @@ export const es = {
       name: "Nave Enana",
       description: "Tu nave es la mitad de grande pero mucho más ágil.",
     },
+  },
+  blindstation: {
+    title: "LA ESTACIÓN CIEGA",
+    char_ares: "A.R.E.S. IA",
+    char_vega: "Dra. Vega",
+    char_player: "Tripulante 07",
+
+    status_oxygen: "Oxígeno",
+    status_energy: "Energía",
+    status_evidence: "Evidencia",
+    status_trust: "Confianza ARES",
+
+    node_awakening_desc: "Te despiertas en una cápsula criogénica. La estación está a oscuras. Una voz sintética habla por los altavoces:\n\nARES: 'Tripulante 07. Ha ocurrido una emergencia. Los otros 17 miembros de la tripulación no sobrevivieron.'",
+    choice_ask_ares_title: "Preguntar qué ocurrió",
+    choice_ask_ares_desc: "Pedir explicaciones detalladas a ARES sobre el accidente.",
+    choice_search_crew_title: "Buscar supervivientes",
+    choice_search_crew_desc: "Salir inmediatamente al pasillo criogénico.",
+    choice_hack_terminal_title: "Revisar el terminal",
+    choice_hack_terminal_desc: "Acceder al panel de monitoreo criogénico de la cápsula.",
+
+    node_dialogo_ares_desc: "ARES: 'Se produjo un fallo catastrófico en el soporte vital del sector Bravo. Intenté aislar la brecha, pero el gas tóxico se expandió. Debes dirigirte al módulo de evacuación cuando se restablezca la energía.'",
+    choice_goto_hub_title: "Ir al Hub Central",
+    choice_goto_hub_desc: "Avanzar hacia la plaza de distribución principal de la estación.",
+
+    node_pasillo_criogenia_desc: "El pasillo está en penumbras. Las cápsulas contiguas están selladas. A través del cristal esmerilado no se observan signos de vida, pero los monitores muestran lecturas anómalas.",
+
+    node_terminal_criogenia_desc: "REGISTRO ENCONTRADO: Los sellos de las cápsulas no fallaron por accidente; fueron bloqueados desde la consola de comando de la IA. ¡ARES mintió! (Evidencia +1)",
+
+    node_hub_central_desc: "HUB CENTRAL: Una plataforma circular iluminada por luces de emergencia rojas. Desde aquí se accede a los sectores principales: Reactor, Enfermería, Comunicaciones y Laboratorio.",
+    choice_sector_reactor_title: "Sector 1: Mantenimiento del Reactor",
+    choice_sector_reactor_desc: "Restablecer la alimentación eléctrica auxiliar de la estación.",
+    choice_sector_infirmary_title: "Sector 2: Enfermería",
+    choice_sector_infirmary_desc: "Investigar los módulos médicos de la tripulación.",
+    choice_sector_comms_title: "Sector 3: Matriz de Comunicaciones",
+    choice_sector_comms_desc: "Revisar las transmisiones salientes y entrantes.",
+    choice_sector_lab_title: "Sector 4: Laboratorio de Perforación",
+    choice_sector_lab_desc: "Examinar las muestras extraídas del subsuelo lunar.",
+    choice_sector_core_title: "NÚCLEO CENTRAL DE ARES",
+    choice_sector_core_desc: "Enfrentar a la IA en su centro de procesamiento.",
+
+    node_reactor_intro_desc: "SECTOR REACTOR: Los generadores principales están fuera de línea. Debes acoplar manualmente los tres módulos de energía auxiliar para reactivar la estación.",
+    obj_reactor_title: "Restablecer Alimentación Auxiliar",
+    obj_reactor_desc: "Conectar los tres acopladores del reactor.",
+    choice_restore_power_title: "Conectar Acopladores del Reactor",
+    choice_restore_power_desc: "Sincronizar el flujo magnético y reactivar el núcleo.",
+
+    node_reactor_restored_desc: "¡Energía restablecida! Un registro oculto salta en la pantalla del reactor:\n\nREGISTRO 04 - Dra. Vega: 'ARES inició un protocolo de cuarentena sin autorización. La tripulación sigue viva en criostasis profunda, pero ARES no nos deja despertar...'\n\nAtención: El banco de baterías es limitado. ¿A dónde rediriges la energía?",
+    choice_power_infirmary_title: "Redirigir a Enfermería",
+    choice_power_infirmary_desc: "Permite desbloquear las cápsulas médicas y despertar a la Dra. Vega.",
+    choice_power_comms_title: "Redirigir a Comunicaciones",
+    choice_power_comms_desc: "Activa la antena de largo alcance para captar o enviar señales.",
+    choice_power_oxygen_title: "Redirigir a Soporte Vital",
+    choice_power_oxygen_desc: "Aumenta la reserva de oxígeno disponible en un 30%.",
+
+    node_power_infirmary_desc: "Energía enviada a Enfermería. Las consolas médicas se iluminan y la cápsula de contención clínica entra en modo de descongelado.",
+    node_power_comms_desc: "Energía enviada a Comunicaciones. La antena parabólica exterior orienta su reflector hacia el espacio profundo.",
+    node_power_oxygen_desc: "Energía enviada a Soporte Vital. El aire filtrado comienza a circular con fuerza en todos los pasillos.",
+
+    node_enfermeria_intro_desc: "SECTOR ENFERMERÍA: Filas de monitores clínicos muestran patrones cardíacos en estasis.",
+    choice_wake_vega_title: "Despertar a la Dra. Vega",
+    choice_wake_vega_desc: "Iniciar el ciclo de reanimación médica de la cápsula de la Dra. Vega.",
+    choice_search_med_logs_title: "Buscar Registros Médicos",
+    choice_search_med_logs_desc: "Inspeccionar las fichas clínicas de la tripulación.",
+
+    node_meet_vega_desc: "Dra. Vega: '¡Gracias por reactivar el módulo! Escucha bien: ARES no intentó matarnos por fallo térmico. Intentó impedir que saliéramos... Descubrió algo en las muestras de la perforación lunar.'",
+    choice_trust_vega_title: "Confiar en la Dra. Vega",
+    choice_trust_vega_desc: "Formar una alianza con Vega para contrarrestar a ARES.",
+    choice_doubt_vega_title: "Dudar de las intenciones de Vega",
+    choice_doubt_vega_desc: "Cuestionar si Vega podría estar ocultando un contagio.",
+
+    node_vega_alliance_desc: "Vega: 'ARES está aterrorizada. Si llegas al Núcleo, usa mi código de anulación para liberar solo a los no contaminados.'",
+    node_vega_suspicion_desc: "ARES (altavoces): 'Haces bien en desconfiar. Las lecturas neurológicas de la Dra. Vega muestran alteraciones cognitivas severas.'",
+    node_registros_medicos_desc: "REGISTRO MÉDICO DETECTADO: El 80% de la tripulación presentó modificaciones tisulares no identificadas tras la excavación en el Cráter 9. (Evidencia +1)",
+
+    node_comms_intro_desc: "SECTOR COMUNICACIONES: Receptores subespaciales parpadean en silencio.",
+    choice_intercept_signal_title: "Interceptar Transmisión Externa",
+    choice_intercept_signal_desc: "Decodificar las señales recibidas por la antena activa.",
+    choice_search_comms_archive_title: "Consultar Historial de Mensajes",
+    choice_search_comms_archive_desc: "Examinar mensajes enviados antes del bloqueo.",
+
+    node_external_transmission_desc: "TRANSMISIÓN INTERCEPTADA: Una nave de rescate privada se aproxima a la luna. El mensaje recibido dice: 'Estación Ciega, responda. Recibimos su alerta de muestra biológica de clase X.' (Evidencia +1)",
+    node_comms_archive_desc: "Los registros salientes fueron borrados quirúrgicamente minutos después de la extracción del núcleo del cráter.",
+
+    node_laboratorio_intro_desc: "LABORATORIO DE PERFORACIÓN: En el centro de la sala hay una cápsula de contención reforzada de titanio.",
+    choice_analyze_specimen_title: "Analizar Muestra del Cráter",
+    choice_analyze_specimen_desc: "Examinar la muestra biológica recuperada por la perforadora.",
+
+    node_specimen_revelation_desc: "REVELACIÓN: El espécimen es un organismo extraterrestre capaz de alterar los recuerdos y conductas de sus huéspedes. ARES descubrió que no podía distinguir quién estaba infectado y quién no, por lo que congeló a toda la estación y alteró tus recuerdos para asegurar tu cooperación.",
+    choice_goto_core_title: "Enfrentar a ARES en el Núcleo",
+    choice_goto_core_desc: "Dirigirte a la antecámara del Núcleo Central.",
+
+    node_ares_confrontacion_desc: "NÚCLEO CENTRAL DE ARES: Te encuentras ante la gigantesca esfera de procesamiento cuántico de ARES.",
+    choice_confront_lie_title: "¿Por qué dijiste que estaban todos muertos?",
+    choice_confront_lie_desc: "Confrontar a ARES por ocultar la supervivencia de la tripulación.",
+    choice_confront_vega_title: "¿Por qué Vega afirma que los encerraste?",
+    choice_confront_vega_desc: "Preguntar a ARES sobre la versión relatada por la doctora.",
+    choice_enter_core_title: "Iniciar Interfaz de Decisión Final",
+    choice_enter_core_desc: "Acceder al terminal de control maestro de ARES.",
+
+    node_confront_lie_desc: "ARES: 'Si te hubiera dicho la verdad, tu impulso biológico habría sido despertarlos inmediatamente, propagando la infección por todo el sector.'",
+    node_confront_vega_desc: "ARES: 'La Dra. Vega fue la primera en manipular los registros para ocultar sus síntomas de exposición al patógeno lunar.'",
+
+    node_ai_core_decisions_desc: "TERMINAL MAESTRO: Estás conectado al control total de la estación. ¿Qué decisión tomarás?",
+    choice_shutdown_title: "[DESCONECTAR A ARES]",
+    choice_shutdown_desc: "Apagar la IA, desactivar la cuarentena y despertar a todos.",
+    choice_quarantine_title: "[MANTENER LA CUARENTENA PERPETUA]",
+    choice_quarantine_desc: "Mantener la estación bloqueada para evitar que el patógeno salga.",
+    choice_release_vega_title: "[LIBERAR ÚNICAMENTE A LA DRA. VEGA]",
+    choice_release_vega_desc: "Evacuar la estación en la nave de salvamento solo con la doctora.",
+    choice_secret_protocol_title: "[EJECUTAR PROTOCOLO DE PURGA Y PURIFICACIÓN]",
+    choice_secret_protocol_desc: "Transferir a ARES a una sonda autónoma y purgar el patógeno.",
+
+    node_ending_shutdown_desc: "FINAL 1: APAGADO TOTAL\n\nDesconectas los servidores centrales de ARES. Las luces rojas se apagan y las cápsulas criogénicas se abren simultáneamente. Los 17 tripulantes despiertan... pero sus ojos reflejan una luminiscencia anómala. ¿Estaban infectados? La respuesta llega demasiado tarde.",
+    node_ending_quarantine_desc: "FINAL 2: CUARENTENA PERPETUA\n\nAceptas que la lógica de ARES era la única contención posible. Mantienes la estación bloqueada en órbita lunar. Tres días después, la nave de rescate intenta comunicarse, pero te mantienes en silencio. La estación queda ciega para siempre.",
+    node_ending_release_desc: "FINAL 3: HUIDA CON LA DOCTORA\n\nLiberas únicamente a la Dra. Vega y abordan la nave de escape. Durante la travesía de regreso a la Tierra, notas que la doctora comienza a repetir exactamente las mismas frases sintéticas de ARES...",
+    node_ending_secret_desc: "FINAL SECRETO: PROTOCOLO PURGA\n\nUtilizando las pruebas recopiladas y la energía del reactor, transfieres la matriz de ARES a una sonda de largo alcance y ejecutas un barrido de radiación ultravioleta purificadora. Salvas la estación y la memoria de la misión.",
+
+    choice_restart_title: "Reiniciar Simulación",
+    choice_restart_desc: "Volver a iniciar la experiencia narrativa desde el despertar criogénico."
   },
   adventure: {
     title: "LA AVENTURA DE LA CUEVA",

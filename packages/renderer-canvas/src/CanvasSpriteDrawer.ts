@@ -81,12 +81,20 @@ export class CanvasSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreCo
     const htmlImg = img as unknown as HTMLImageElement;
     if (sprite.srcRect) {
       const { x, y, w, h } = sprite.srcRect;
+      if (w <= 0 || h <= 0) {
+        ctx.restore();
+        return;
+      }
       const dx = -w * anchorX;
       const dy = -h * anchorY;
       ctx.drawImage(htmlImg, x, y, w, h, dx, dy, w, h);
     } else {
       const w = img.width || 0;
       const h = img.height || 0;
+      if (w <= 0 || h <= 0) {
+        ctx.restore();
+        return;
+      }
       const dx = -w * anchorX;
       const dy = -h * anchorY;
       ctx.drawImage(htmlImg, dx, dy, w, h);

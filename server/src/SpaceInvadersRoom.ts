@@ -89,10 +89,12 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
       const filteredActions = frame.actions.filter(a => allowedActions.includes(a));
 
       const sanitizedAxes: Record<string, number> = {};
-      if (frame.axes.moveX !== undefined) {
-        const val = Number(frame.axes.moveX);
-        if (!isNaN(val)) {
-          sanitizedAxes.moveX = Math.max(-1, Math.min(1, val));
+      if (frame.axes) {
+        for (const [key, rawVal] of Object.entries(frame.axes)) {
+          const val = Number(rawVal);
+          if (!isNaN(val) && isFinite(val)) {
+            sanitizedAxes[key] = Math.max(-1, Math.min(1, val));
+          }
         }
       }
 

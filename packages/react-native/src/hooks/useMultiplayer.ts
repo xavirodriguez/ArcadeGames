@@ -90,14 +90,21 @@ export function useMultiplayer(roomName: string, playerName: string, active: boo
          */
         joinedRoom.onMessage("sync_tick", (data: { serverTick: number, timestamp: number }) => {
             const now = Date.now();
-            const rtt = now - data.timestamp;
+            const rawRtt = now - (data?.timestamp ?? now);
+            // Sanitize RTT against negative values, NaN, or extreme clock skew spikes
+            const rtt = (!isNaN(rawRtt) && isFinite(rawRtt) && rawRtt >= 0 && rawRtt <= 10000) ? rawRtt : 50;
+
             // 16.66ms is the duration of a 60fps frame.
             const FRAME_DURATION = 16.66;
             // Buffer of 2 frames to account for jitter.
             const TICK_BUFFER = 2;
 
-            localTickRef.current = data.serverTick + Math.ceil((rtt / 2) / FRAME_DURATION) + TICK_BUFFER;
-            console.log(`Synced tick: server=${data.serverTick}, local=${localTickRef.current}, rtt=${rtt}`);
+            const validServerTick = typeof data?.serverTick === "number" && !isNaN(data.serverTick) ? data.serverTick : serverTickRef.current;
+            const targetLocalTick = validServerTick + Math.ceil((rtt / 2) / FRAME_DURATION) + TICK_BUFFER;
+
+            // Prevent local tick from jumping backwards if packets arrive out of order
+            localTickRef.current = Math.max(localTickRef.current, targetLocalTick);
+            console.log(`Synced tick: server=${validServerTick}, local=${localTickRef.current}, rtt=${rtt}`);
         });
 
         /**

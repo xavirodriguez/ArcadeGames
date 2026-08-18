@@ -40,6 +40,7 @@ export function ShootButton({
       accessibilityHint={hint}
       accessibilityState={{ disabled }}
       disabled={disabled}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       onPressIn={handlePressIn}
       onPressOut={onPressOut}
       style={({ pressed }) => [
@@ -51,6 +52,7 @@ export function ShootButton({
             : pressed
             ? "rgba(255, 80, 80, 0.7)"
             : "rgba(255, 80, 80, 0.4)",
+          transform: [{ scale: pressed && !disabled ? 0.94 : 1 }],
         },
       ]}
     >

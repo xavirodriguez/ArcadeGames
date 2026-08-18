@@ -569,6 +569,7 @@ const PauseButton: React.FC<{
       style={[styles.pauseButton, { top: paddingTop }]}
       onPress={handlePress}
       activeOpacity={0.72}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       accessibilityRole="button"
       accessibilityLabel={isPaused ? t.accessibility.resume_game_label : t.accessibility.pause_game_label}
       accessibilityState={{ selected: !!isPaused }}

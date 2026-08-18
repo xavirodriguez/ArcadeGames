@@ -282,6 +282,8 @@ export default function GeometryWarsScreen() {
                 hapticSelection();
                 togglePause();
               }}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityRole="button"
               accessibilityLabel={isPaused ? t.accessibility.resume_game_label : t.accessibility.pause_game_label}
               accessibilityState={{ selected: isPaused }}
@@ -293,15 +295,27 @@ export default function GeometryWarsScreen() {
 
           {/* Neon Retro HUD */}
           <View style={[styles.hud, { paddingTop: Math.max(insets.top, 16) }]} pointerEvents="none">
-            <View style={styles.hudLeft}>
+            <View
+              style={styles.hudLeft}
+              accessibilityRole="header"
+              accessibilityLabel={`Lives remaining: ${gameState.lives}, Bombs: ${gameState.bombs}`}
+            >
               <Text style={styles.hudText}>LIVES: {gameState.lives}</Text>
               <Text style={styles.hudText}>BOMBS: {gameState.bombs}</Text>
             </View>
-            <View style={styles.hudCenter}>
+            <View
+              style={styles.hudCenter}
+              accessibilityRole="header"
+              accessibilityLabel={`Score: ${gameState.score}, High Score: ${highScore}`}
+            >
               <Text style={[styles.hudText, styles.scoreText]}>SCORE: {gameState.score}</Text>
               <Text style={styles.hudSubText}>HIGH SCORE: {highScore}</Text>
             </View>
-            <View style={styles.hudRight}>
+            <View
+              style={styles.hudRight}
+              accessibilityRole="header"
+              accessibilityLabel={`Wave: ${gameState.wave}`}
+            >
               <Text style={styles.hudText}>WAVE: {gameState.wave}</Text>
             </View>
           </View>

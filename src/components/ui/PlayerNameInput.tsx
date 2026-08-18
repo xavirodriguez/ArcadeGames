@@ -1,23 +1,29 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet, TextInputProps } from "react-native";
 import { colors, typography, spacing, radius } from "@/theme";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PlayerNameInputProps extends Omit<TextInputProps, "placeholderTextColor"> {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
+  accessibilityHint?: string;
 }
 
 export const PlayerNameInput: React.FC<PlayerNameInputProps> = ({
   label,
   value,
   onChangeText,
+  accessibilityHint,
   style,
   onFocus,
   onBlur,
   ...props
 }) => {
+  const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
+
+  const defaultHint = accessibilityHint || t?.accessibility?.player_name_hint || "Enter your pilot or player name for high scores";
 
   return (
     <View style={styles.container}>
@@ -35,6 +41,11 @@ export const PlayerNameInput: React.FC<PlayerNameInputProps> = ({
         placeholderTextColor={colors.textMuted}
         accessibilityLabel={label}
         accessibilityLabelledBy="playerNameLabel"
+        accessibilityHint={defaultHint}
+        autoCorrect={false}
+        autoCapitalize="words"
+        returnKeyType="done"
+        maxLength={16}
         onFocus={(e) => {
           setIsFocused(true);
           onFocus?.(e);
@@ -72,15 +83,16 @@ const styles = StyleSheet.create({
     fontFamily: typography.game,
     textAlign: "center",
     fontSize: typography.sizes.lg,
-    borderWidth: 1,
-    borderColor: "rgba(0, 240, 255, 0.2)",
+    borderWidth: 1.5,
+    borderColor: "rgba(0, 240, 255, 0.3)",
   },
   inputFocused: {
     borderColor: colors.cyan,
+    borderWidth: 2,
     shadowColor: colors.cyan,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
+    elevation: 6,
   },
 });

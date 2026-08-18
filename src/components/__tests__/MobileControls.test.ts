@@ -1,4 +1,3 @@
-import React from "react";
 import { ShootButton } from "../ShootButton";
 import { HyperspaceButton } from "../HyperspaceButton";
 import { ActionButton } from "../controls/ActionButton";

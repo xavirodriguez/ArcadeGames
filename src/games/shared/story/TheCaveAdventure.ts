@@ -54,7 +54,14 @@ export const caveAdventureGraph: StoryGraph = {
           id: "choice_take_torch",
           titleKey: "adventure.take_torch_title",
           descriptionKey: "adventure.take_torch_desc",
-          targetNodeId: "take_torch_node"
+          targetNodeId: "take_torch_node",
+          effects: [
+            {
+              type: "setFlag",
+              key: "has_torch",
+              value: true
+            }
+          ]
         }
       ]
     },
@@ -70,6 +77,13 @@ export const caveAdventureGraph: StoryGraph = {
           }
         ]
       },
+      effects: [
+        {
+          type: "setFlag",
+          key: "has_torch",
+          value: true
+        }
+      ],
       emitEvent: {
         name: "adventure:torch_acquired",
         payload: { has_torch: true }

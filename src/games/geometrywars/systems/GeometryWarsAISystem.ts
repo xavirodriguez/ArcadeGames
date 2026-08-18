@@ -21,7 +21,9 @@ export class GeometryWarsAISystem extends System<GeometryWarsComponentRegistry> 
     const py = playerTransform.worldY ?? playerTransform.y;
 
     const steerables = world.query("Steering", "Transform");
-    for (const entity of steerables) {
+    const len = steerables.length;
+    for (let i = 0; i < len; i++) {
+      const entity = steerables[i];
       // Find out if this is an evader by checking its render shape or color/settings
       const render = world.getComponent(entity, "Render");
       if (!render || render.shape !== "gw_evader") continue;
@@ -35,14 +37,16 @@ export class GeometryWarsAISystem extends System<GeometryWarsComponentRegistry> 
       const dx = ex - px;
       const dy = ey - py;
       const dist = Math.hypot(dx, dy);
+      const targetMode = dist < 180 ? "flee" : "seek";
 
-      world.mutateComponent(entity, "Steering", (s) => {
-        if (dist < 180) {
-          s.mode = "flee";
-        } else {
-          s.mode = "seek";
+      const steering = world.getComponent(entity, "Steering");
+      if (steering && steering.mode !== targetMode) {
+        // Safe for determinism/rollback. Only fetch mutable Steering component when mode actually changes, preventing redundant stateVersion increments and callback allocations.
+        const mutableSteering = world.getMutableComponent(entity, "Steering");
+        if (mutableSteering) {
+          mutableSteering.mode = targetMode;
         }
-      });
+      }
     }
   }
 }

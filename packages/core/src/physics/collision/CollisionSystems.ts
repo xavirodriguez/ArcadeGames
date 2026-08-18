@@ -231,7 +231,10 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
 
     this.activePairs.forEach(pairId => {
       if (!currentFramePairs.has(pairId)) {
-        const [idA, idB] = pairId.split(",").map(Number);
+        // Safe for determinism/rollback. Parsing substring numbers directly avoids string split and array map heap allocations on trigger exit events.
+        const commaIdx = pairId.indexOf(",");
+        const idA = Number(pairId.substring(0, commaIdx));
+        const idB = Number(pairId.substring(commaIdx + 1));
         this.onTriggerExitCallbacks.forEach(cb => cb(world, idA, idB));
         this.notifyTriggerEvent(w, idA, idB, "exit");
       }

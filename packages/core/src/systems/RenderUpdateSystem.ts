@@ -20,18 +20,26 @@ export class RenderUpdateSystem extends System<CoreComponentRegistry> {
 
     // Update procedural rotation for Render component
     const renderEntities = world.query("Render");
-    for (const entity of renderEntities) {
-        const render = world.getComponent(entity, "Render")!;
-        if (render.angularVelocity && render.angularVelocity !== 0) {
-            world.mutateComponent(entity, "Render", r => {
-                r.rotation += r.angularVelocity * deltaTime;
-            });
-        }
+    const len = renderEntities.length;
+    for (let i = 0; i < len; i++) {
+        const entity = renderEntities[i];
+        const render = world.getComponent(entity, "Render");
+        if (!render) continue;
 
-        if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-            world.mutateComponent(entity, "Render", r => {
-                r.hitFlashFrames = r.hitFlashFrames - 1;
-            });
+        const needsRot = render.angularVelocity !== undefined && render.angularVelocity !== 0;
+        const needsFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+
+        if (needsRot || needsFlash) {
+            // Safe for determinism/rollback. Fetching mutable component directly avoids per-tick callback closures while preserving stateVersion increments only on actual render mutations.
+            const mutable = world.getMutableComponent(entity, "Render");
+            if (mutable) {
+                if (needsRot) {
+                    mutable.rotation += mutable.angularVelocity! * deltaTime;
+                }
+                if (needsFlash) {
+                    mutable.hitFlashFrames = mutable.hitFlashFrames! - 1;
+                }
+            }
         }
     }
   }

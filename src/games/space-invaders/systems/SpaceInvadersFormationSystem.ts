@@ -55,10 +55,13 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
     const margin = 20;
     const moveX = formation.direction * formation.speed * dtSeconds;
 
-    // Calculate current min/max bounds before moving
+    // Safe for determinism/rollback. Sequential indexed loops replace for..of iterators to avoid per-tick iterator allocations.
     let minX = Infinity;
     let maxX = -Infinity;
-    for (const entity of invaders) {
+    const invCount = invaders.length;
+
+    for (let i = 0; i < invCount; i++) {
+      const entity = invaders[i];
       const pos = world.getComponent(entity, "Transform");
       if (!pos) continue;
       if (pos.x < minX) minX = pos.x;
@@ -78,14 +81,16 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
       const descentStep = formation.descentStep;
 
       // Movimiento vertical inmediato (estructuralmente distribuido)
-      for (const entity of invaders) {
+      for (let i = 0; i < invCount; i++) {
+        const entity = invaders[i];
         const pos = world.getComponent(entity, "Transform");
         if (pos) {
           const nextY = pos.y + descentStep;
-          world.mutateComponent(entity, "Transform", t => {
+          const t = world.getMutableComponent(entity, "Transform");
+          if (t) {
             t.y = nextY;
             t.dirty = true;
-          });
+          }
         }
       }
 
@@ -99,14 +104,16 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
         invaderCount: invaders.length,
       });
     } else {
-      for (const entity of invaders) {
+      for (let i = 0; i < invCount; i++) {
+        const entity = invaders[i];
         const pos = world.getComponent(entity, "Transform");
         if (pos) {
           const nextX = pos.x + moveX;
-          world.mutateComponent(entity, "Transform", t => {
+          const t = world.getMutableComponent(entity, "Transform");
+          if (t) {
             t.x = nextX;
             t.dirty = true;
-          });
+          }
         }
       }
     }
@@ -158,8 +165,10 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
   private fireFromFormation(world: World<SpaceInvadersComponentRegistry>, invaderEntities: ReadonlyArray<number>): void {
     // Group invaders by column and pick the bottom one
     const columns: Map<number, { entity: number, y: number }> = new Map();
+    const len = invaderEntities.length;
 
-    invaderEntities.forEach(entity => {
+    for (let i = 0; i < len; i++) {
+      const entity = invaderEntities[i];
       const invader = world.getComponent(entity, "Invader");
       const pos = world.getComponent(entity, "Transform");
       if (invader && pos) {
@@ -168,15 +177,29 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
           columns.set(invader.col, { entity, y: pos.y });
         }
       }
-    });
+    }
 
-    const activeColumns = Array.from(columns.values());
-    if (activeColumns.length > 0) {
+    const colSize = columns.size;
+    if (colSize > 0) {
       const rng = world.gameplayRandom;
-      const shooter = activeColumns[rng.nextInt(0, activeColumns.length)];
-      const shooterPos = world.getComponent(shooter.entity, "Transform");
-      if (shooterPos) {
-        createEnemyBullet(world, shooterPos.x, shooterPos.y + 15, this.enemyBulletPool);
+      const targetIndex = rng.nextInt(0, colSize);
+      let currentIndex = 0;
+      let selectedShooter: { entity: number, y: number } | undefined;
+
+      // Safe for determinism/rollback. Iterating map values directly avoids Array.from(columns.values()) heap allocations on firing ticks.
+      for (const colShooter of columns.values()) {
+        if (currentIndex === targetIndex) {
+          selectedShooter = colShooter;
+          break;
+        }
+        currentIndex++;
+      }
+
+      if (selectedShooter) {
+        const shooterPos = world.getComponent(selectedShooter.entity, "Transform");
+        if (shooterPos) {
+          createEnemyBullet(world, shooterPos.x, shooterPos.y + 15, this.enemyBulletPool);
+        }
       }
     }
   }

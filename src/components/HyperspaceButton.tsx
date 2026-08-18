@@ -12,7 +12,7 @@ export interface HyperspaceButtonProps {
 
 /**
  * Pure UI component for Hyperspace action.
- * Smaller than ShootButton, minimum 48x48px target (56x56), semi-transparent cyan tint.
+ * Minimum 56x56px touch target with hitSlop padding, semi-transparent cyan tint.
  */
 export function HyperspaceButton({
   onPressIn,
@@ -39,6 +39,7 @@ export function HyperspaceButton({
       accessibilityHint={hint}
       accessibilityState={{ disabled }}
       disabled={disabled}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       onPressIn={handlePressIn}
       onPressOut={onPressOut}
       style={({ pressed }) => [
@@ -50,6 +51,7 @@ export function HyperspaceButton({
             : pressed
             ? "rgba(0, 255, 255, 0.7)"
             : "rgba(0, 255, 255, 0.3)",
+          transform: [{ scale: pressed && !disabled ? 0.94 : 1 }],
         },
       ]}
     >

@@ -22,8 +22,8 @@ export const BackButton: React.FC<BackButtonProps> = ({
 }) => {
   const { t } = useTranslation();
   const displayLabel = label || t?.common?.menu || "Menu";
-  const defaultHint = t?.accessibility?.close_button_hint || "Returns to the previous screen";
-  const defaultLabel = `${t?.common?.back || "Back"} - ${displayLabel}`;
+  const defaultHint = accessibilityHint || t?.accessibility?.close_button_hint || "Returns to the previous screen";
+  const defaultLabel = accessibilityLabel || `${t?.common?.back || "Back"} - ${displayLabel}`;
 
   const handlePress = () => {
     hapticSelection();
@@ -42,9 +42,11 @@ export const BackButton: React.FC<BackButtonProps> = ({
     <TouchableOpacity
       style={[styles.backButton, style]}
       onPress={handlePress}
+      activeOpacity={0.7}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel || defaultLabel}
-      accessibilityHint={accessibilityHint || defaultHint}
+      accessibilityLabel={defaultLabel}
+      accessibilityHint={defaultHint}
     >
       <Text style={styles.backButtonText}>← {displayLabel}</Text>
     </TouchableOpacity>
@@ -60,11 +62,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: radius.round,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.cyan,
     backgroundColor: "rgba(0, 240, 255, 0.15)",
     minHeight: 44,
-    minWidth: 80,
+    minWidth: 88,
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",

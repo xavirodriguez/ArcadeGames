@@ -1,6 +1,9 @@
 import { StoryPackage, StoryGraph, StoryChoice, StoryNode } from "./StoryTypes";
 
-/** Current active story schema version in engine core. */
+/**
+ * Current active story schema version in engine core.
+ * @public
+ */
 export const CURRENT_STORY_SCHEMA_VERSION = 3;
 
 /**

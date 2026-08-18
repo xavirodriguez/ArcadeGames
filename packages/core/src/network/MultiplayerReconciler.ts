@@ -63,19 +63,32 @@ export class MultiplayerReconciler {
     this.rollbackBuffer.saveSnapshot(serverTick, serverSnapshot);
 
     // 3. Rollback resimulator: we fast-forward by stepping inputs starting from serverTick up to currentLocalTick.
-    for (let t = serverTick; t <= currentLocalTick; t++) {
-      // Save state snapshot of tick t BEFORE executing its step
-      this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
+    const world = (this.simulation as any).world ?? (this.simulation as any).getWorld?.();
+    const prevIsReSimulating = world ? world.isReSimulating : false;
 
-      let input = this.inputsHistory.get(t);
-      if (!input) {
-        input = { t, b: 0 };
-        this.inputsHistory.set(t, input);
+    if (world) {
+      world.isReSimulating = true;
+    }
+
+    try {
+      for (let t = serverTick; t <= currentLocalTick; t++) {
+        // Save state snapshot of tick t BEFORE executing its step
+        this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
+
+        let input = this.inputsHistory.get(t);
+        if (!input) {
+          input = { t, b: 0 };
+          this.inputsHistory.set(t, input);
+        }
+        this.simulation.step(input);
+
+        // Re-log the corrected state hashes for all resimulated ticks
+        this.localHashes.set(t + 1, this.simulation.hash());
       }
-      this.simulation.step(input);
-
-      // Re-log the corrected state hashes for all resimulated ticks
-      this.localHashes.set(t + 1, this.simulation.hash());
+    } finally {
+      if (world) {
+        world.isReSimulating = prevIsReSimulating;
+      }
     }
 
     return true;

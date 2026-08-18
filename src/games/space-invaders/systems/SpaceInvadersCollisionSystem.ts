@@ -71,12 +71,12 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         if (health && health.current <= 0) {
           gs.isGameOver = true;
             const eventBus = world.getEventBus();
-          if (eventBus) {
+          if (eventBus && !world.isReSimulating) {
               eventBus.emit("PlaySFX", { name: "game_over" });
           }
         } else {
             const eventBus = world.getEventBus();
-          if (eventBus) {
+          if (eventBus && !world.isReSimulating) {
               eventBus.emit("PlaySFX", { name: "hit" });
           }
         }
@@ -113,7 +113,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         }
 
         const eventBus = world.getEventBus();
-        if (eventBus) {
+        if (eventBus && !world.isReSimulating) {
           eventBus.emit("PlaySFX", { name: "hit" });
         }
       }
@@ -124,7 +124,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         render.hitFlashFrames = 4;
       });
       const eventBus = world.getEventBus();
-      if (eventBus) {
+      if (eventBus && !world.isReSimulating) {
         eventBus.emit("PlaySFX", { name: "hit" });
       }
     }
@@ -180,7 +180,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         if (eventBus) {
           eventBus.emitDeferred("si:kill", { chain: nextCombo });
           eventBus.emitDeferred("entity:destroyed", { entity: target, type: "Invader" });
-          eventBus.emit("PlaySFX", { name: "explosion" });
+          if (!world.isReSimulating) {
+            eventBus.emit("PlaySFX", { name: "explosion" });
+          }
         }
 
         const hasKami = world.hasComponent(target, 'Kamikaze');

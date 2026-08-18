@@ -47,17 +47,30 @@ export class RollbackSimulation {
     inputsHistory.set(targetTick, correctedInput);
 
     // 4. Fast-forward / Resimulate up to currentTick
-    for (let t = targetTick + 1; t <= currentTick; t++) {
-      // Save state snapshot of tick t BEFORE executing its step
-      this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
+    const world = (this.simulation as any).world ?? (this.simulation as any).getWorld?.();
+    const prevIsReSimulating = world ? world.isReSimulating : false;
 
-      let input = inputsHistory.get(t);
-      if (!input) {
-        // Fallback in case input is missing: keep buttons empty, set correct tick
-        input = { t, b: 0 };
-        inputsHistory.set(t, input);
+    if (world) {
+      world.isReSimulating = true;
+    }
+
+    try {
+      for (let t = targetTick + 1; t <= currentTick; t++) {
+        // Save state snapshot of tick t BEFORE executing its step
+        this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
+
+        let input = inputsHistory.get(t);
+        if (!input) {
+          // Fallback in case input is missing: keep buttons empty, set correct tick
+          input = { t, b: 0 };
+          inputsHistory.set(t, input);
+        }
+        this.simulation.step(input);
       }
-      this.simulation.step(input);
+    } finally {
+      if (world) {
+        world.isReSimulating = prevIsReSimulating;
+      }
     }
 
     return true;

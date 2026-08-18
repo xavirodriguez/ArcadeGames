@@ -117,8 +117,17 @@ export class ComponentSetPool<T extends Record<string, Component>> {
     const { world, entity, container } = context;
 
     if (!this.activeEntities.has(entity)) {
-      this.handleInvalidRelease(entity);
-      return;
+      const reclaimable = world && typeof world.getComponent === "function"
+        ? (world.getComponent(entity, "Reclaimable" as any) as any)
+        : undefined;
+
+      if (reclaimable && !reclaimable._released && typeof world.isAlive === "function" && world.isAlive(entity)) {
+        // Entity was restored from snapshot during resimulation/rollback
+        this.activeEntities.add(entity);
+      } else {
+        this.handleInvalidRelease(entity);
+        return;
+      }
     }
 
     this.activeEntities.delete(entity);

@@ -1,13 +1,11 @@
 import { z } from "zod";
 import { BaseConfigSchema } from "@tiny-aster/core";
+import { ComboConfigSchema, ScreenDimensionsSchema } from "../../shared/arcade/types/ArcadeConfigSchema";
 
 /** @public */
 export const AsteroidConfigSchema = BaseConfigSchema.extend({
   USE_SPRITES: z.boolean().default(true),
-  SCREEN_WIDTH: z.number().default(800),
-  SCREEN_HEIGHT: z.number().default(600),
-  SCREEN_CENTER_X: z.number().default(400),
-  SCREEN_CENTER_Y: z.number().default(300),
+  ...ScreenDimensionsSchema.shape,
   INITIAL_ASTEROID_COUNT: z.number().default(5),
   TRAIL_MAX_LENGTH: z.number().default(10),
   // Paso 2: Ship physical parameters extracted and unified
@@ -18,8 +16,7 @@ export const AsteroidConfigSchema = BaseConfigSchema.extend({
   BULLET_TTL: z.number().default(2.0),
   SHIP_SHOOT_COOLDOWN: z.number().default(0.25),
   BULLET_SPEED: z.number().default(300),
-  COMBO_TIMEOUT: z.number().default(2000),
-  MAX_MULTIPLIER: z.number().default(10),
+  ...ComboConfigSchema.shape,
   HYPERSPACE_COOLDOWN: z.number().default(5.0),
   HYPERSPACE_PREP_TIME: z.number().default(0.5)
 });

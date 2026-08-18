@@ -18,6 +18,7 @@ import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/Aste
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { ParticlePool } from "./EntityPool";
 import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
+import { createSharedParticle } from "../shared/rendering/SharedVFX";
 
 /**
  * Registers ship, bullet, and asteroid blueprints.
@@ -581,5 +582,5 @@ export function createParticle(
   size = 3,
   ttl = 0.8
 ): number {
-  return pool.acquire(world, { x, y, dx, dy, size, color, ttl });
+  return createSharedParticle(world, x, y, dx, dy, color, pool, size, ttl);
 }

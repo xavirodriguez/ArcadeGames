@@ -1,17 +1,12 @@
 import { z } from "zod";
 import { BaseConfigSchema } from "@tiny-aster/core";
+import { ComboConfigSchema, StandardControlKeysSchema } from "../../shared/arcade/types/ArcadeConfigSchema";
 
 /**
  * Space Invaders specific configuration schema.
  */
 export const SpaceInvadersConfigSchema = BaseConfigSchema.extend({
-  KEYS: z.object({
-    LEFT: z.string(),
-    RIGHT: z.string(),
-    SHOOT: z.string(),
-    PAUSE: z.string(),
-    RESTART: z.string(),
-  }),
+  KEYS: StandardControlKeysSchema,
   PLAYER_SPEED: z.number(),
   PLAYER_INITIAL_LIVES: z.number(),
   PLAYER_SHOOT_COOLDOWN: z.number(),
@@ -44,8 +39,7 @@ export const SpaceInvadersConfigSchema = BaseConfigSchema.extend({
   SHIELD_SEGMENT_HP: z.number(),
   PARTICLE_COUNT: z.number(),
   PARTICLE_TTL_BASE: z.number(),
-  COMBO_TIMEOUT: z.number(),
-  MAX_MULTIPLIER: z.number(),
+  ...ComboConfigSchema.shape,
 });
 
 export type SpaceInvadersConfig = z.infer<typeof SpaceInvadersConfigSchema>;

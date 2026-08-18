@@ -5,5 +5,7 @@ export * from "./systems/PowerUpSystem";
 export * from "./systems/DifficultyDirectorSystem";
 export * from "./systems/AchievementSystem";
 export * from "./types/ArcadeTypes";
+export * from "./types/ArcadeConfigSchema";
 export * from "./spawnScorePopup";
 export * from "./AttractModeController";
+export * from "./ParticlePool";

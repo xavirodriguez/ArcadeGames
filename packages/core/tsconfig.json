@@ -13,7 +13,12 @@
         "outDir": "./dist", // STOP CONTAMINATION: Output directory configured to "./dist" for compiled artifacts
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@tiny-aster/core": ["./src/index.ts"],
+            "@tiny-aster/core/*": ["./src/*"]
+        }
     },
     "include": [
         "src/**/*.ts"

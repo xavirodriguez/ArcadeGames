@@ -200,6 +200,11 @@ export class StoryRuntime {
         }
         break;
       }
+
+      case "navigateToNode": {
+        this.navigateToNode(effect.nodeId);
+        break;
+      }
     }
   }
 

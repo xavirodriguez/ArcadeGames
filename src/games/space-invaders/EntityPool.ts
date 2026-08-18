@@ -5,6 +5,7 @@ import { SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG } from "./types/SpaceInvadersTypes";
 import { ProjectilePool, ProjectileComponents, ProjectileParams } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
+import { SharedParticlePool } from "../shared/arcade/ParticlePool";
 
 /**
  * Standardized Player Bullet Pool for Space Invaders.
@@ -147,40 +148,13 @@ export class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {
 /**
  * Standardized Particle Pool for Space Invaders.
  */
-export class ParticlePool extends ProjectilePool<any, ProjectileParams> {
+export class ParticlePool extends SharedParticlePool {
   constructor() {
     super({
-      factory: () => ({
-        position: { type: "Transform", x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: 0, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent,
-        velocity: { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent,
-        render: { type: "Render", shape: "particle", size: 0, color: "", rotation: 0, visible: true, opacity: 1, order: 15, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent,
-        collider: {
-            type: "Collider",
-            shape: { type: ShapeType.Circle, radius: 0 } as CircleShape,
-            layer: 0, mask: 0, offsetX: 0, offsetY: 0, isTrigger: true, enabled: false
-        } as ColliderComponent,
-        ttl: { type: "TTL", remaining: 0, timeLeft: 0 },
-        reclaimable: { type: "Reclaimable", poolId: "ParticlePool", poolName: "ParticlePool" } as ReclaimableComponent
-      }),
-      reset: (data) => {
-        data.position = { type: "Transform", x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: 0, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
-        data.velocity = { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 };
-        data.render = { type: "Render", shape: "particle", size: 0, color: "", rotation: 0, visible: true, opacity: 1, order: 15, hitFlashFrames: 0, angularVelocity: 0 };
-        data.ttl = { type: "TTL", remaining: 0, timeLeft: 0 };
-      },
-      initializer: (data, p) => {
-        data.position.x = p.x;
-        data.position.y = p.y;
-        data.position.worldX = p.x;
-        data.position.worldY = p.y;
-        data.position.dirty = true;
-        data.velocity.vx = p.dx;
-        data.velocity.vy = p.dy;
-        data.render.size = p.size;
-        data.render.color = p.color;
-        data.ttl.remaining = p.ttl;
-        data.ttl.timeLeft = p.ttl;
-      }
+      poolId: "ParticlePool",
+      shape: "particle",
+      order: 15,
+      isTrigger: true
     });
   }
 }

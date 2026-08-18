@@ -5,6 +5,7 @@ import { GAME_CONFIG, SpaceInvadersComponentRegistry } from "./types/SpaceInvade
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { createEmitter } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { createSharedParticle } from "../shared/rendering/SharedVFX";
 import { Collider2DComponent, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent } from "@tiny-aster/core";
 import { LootTableComponent } from "../shared/arcade";
 import {
@@ -230,5 +231,5 @@ export function spawnShields(world: World<any>, deferred?: boolean): void {
  */
 export function createParticle(world: World<any>, x: number, y: number, dx: number, dy: number, color: string, pool: ParticlePool): Entity {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-  return pool.acquire(world, { x, y, dx, dy, size: 2, color, ttl: config.PARTICLE_TTL_BASE });
+  return createSharedParticle(world, x, y, dx, dy, color, pool, 2, config.PARTICLE_TTL_BASE);
 }

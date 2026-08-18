@@ -320,6 +320,24 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
   }
 };
 
+/**
+ * Shared particle creation helper for pooling and zero-allocation particle instantiation.
+ * @public
+ */
+export function createSharedParticle(
+  world: World<any, any, any>,
+  x: number,
+  y: number,
+  dx: number,
+  dy: number,
+  color: string,
+  pool: { acquire: (world: World<any, any, any>, params: any) => number },
+  size = 3,
+  ttl = 0.8
+): number {
+  return pool.acquire(world, { x, y, dx, dy, size, color, ttl });
+}
+
 // -------------------------------------------------------------
 // 2. ScrollingStarfieldEffect (Canvas & Skia)
 // -------------------------------------------------------------

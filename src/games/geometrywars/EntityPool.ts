@@ -15,6 +15,7 @@ import {
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { colors } from "../../theme/colors";
 import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
+import { SharedParticlePool } from "../shared/arcade/ParticlePool";
 
 /**
  * Standardized GWBulletPool for Geometry Wars.
@@ -156,119 +157,16 @@ export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {
 
 /**
  * Standardized GWParticlePool for Geometry Wars.
- * Extends the engine's ProjectilePool to leverage high-performance entity reuse.
+ * Extends SharedParticlePool for cross-game consistency.
  * @public
  */
-export class GWParticlePool extends ProjectilePool<any, ProjectileParams> {
+export class GWParticlePool extends SharedParticlePool {
   constructor() {
     super({
-      factory: () => ({
-        position: {
-          type: "Transform",
-          x: 0,
-          y: 0,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: 0,
-          worldY: 0,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent,
-        velocity: {
-          type: "Velocity",
-          vx: 0,
-          vy: 0,
-          angularVelocity: 0
-        } as VelocityComponent,
-        render: {
-          type: "Render",
-          shape: "gw_particle",
-          size: 3,
-          color: colors.white,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 3,
-          hitFlashFrames: 0,
-          angularVelocity: 0
-        } as RenderComponent,
-        collider: {
-          type: "Collider",
-          shape: { type: ShapeType.Circle, radius: 1 } as CircleShape,
-          layer: 0,
-          mask: 0,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: true,
-          enabled: false
-        } as ColliderComponent,
-        ttl: {
-          type: "TTL",
-          remaining: 0,
-          timeLeft: 0
-        },
-        reclaimable: {
-          type: "Reclaimable",
-          poolId: "GWParticlePool",
-          poolName: "GWParticlePool"
-        } as ReclaimableComponent,
-        collisionEvents: {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent
-      }),
-      reset: (data) => {
-        if (Object.isFrozen(data.position)) {
-          data.position = { ...data.position };
-        }
-        data.position.x = 0;
-        data.position.y = 0;
-        data.position.worldX = 0;
-        data.position.worldY = 0;
-        data.position.dirty = true;
-      },
-      initializer: (data, p) => {
-        if (Object.isFrozen(data.position)) {
-          data.position = { ...data.position };
-        }
-        if (Object.isFrozen(data.velocity)) {
-          data.velocity = { ...data.velocity };
-        }
-        if (Object.isFrozen(data.render)) {
-          data.render = { ...data.render };
-        }
-        if (Object.isFrozen(data.collider)) {
-          data.collider = { ...data.collider };
-        }
-        if (Object.isFrozen(data.ttl)) {
-          data.ttl = { ...data.ttl };
-        }
-
-        data.position.x = p.x;
-        data.position.y = p.y;
-        data.position.worldX = p.x;
-        data.position.worldY = p.y;
-        data.position.dirty = true;
-
-        data.velocity.vx = p.dx;
-        data.velocity.vy = p.dy;
-
-        data.render.size = p.size;
-        data.render.color = p.color;
-
-        data.ttl.remaining = p.ttl;
-        data.ttl.timeLeft = p.ttl;
-      }
+      poolId: "GWParticlePool",
+      shape: "gw_particle",
+      order: 3,
+      isTrigger: true
     });
-  }
-
-  public acquireParticle(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {
-    return this.acquire(world, { x, y, dx, dy, size, color, ttl });
   }
 }

@@ -66,7 +66,7 @@ export class TerminalPresenter implements NarrativePresenter {
   public buildViewModel(context: NarrativePresentationContext): NarrativePresentationModel {
     const { node, availableChoices = [] } = context;
 
-    let terminalLines: string[] = [];
+    const terminalLines: string[] = [];
     terminalLines.push(`> SYSTEM NODE: ${node.id.toUpperCase()}`);
     terminalLines.push(`> TYPE: ${node.type.toUpperCase()}`);
     terminalLines.push("----------------------------------------");

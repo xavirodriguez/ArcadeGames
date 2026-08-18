@@ -1,23 +1,106 @@
-import { MiniGameModifierResolver } from "../MiniGameModifierResolver";
-import { OutcomeRuleEngine } from "../OutcomeRuleEngine";
-import { StoryEffectApplier } from "../StoryEffectApplier";
-import { ArcadeOrchestrator } from "../ArcadeOrchestrator";
-import { StoryRuntime } from "../StoryRuntime";
-import { StoryGraph, StoryEffect } from "../StoryTypes";
 import {
+  MiniGameModifierResolver,
+  OutcomeRuleEngine,
+  StoryEffectApplier,
+  ArcadeOrchestrator,
+  StoryRuntime,
+  StoryGraph,
   StoryRuntimeSnapshot,
   MiniGameResult,
+  StoryEffect,
   MiniGameModifier,
   MiniGameEncounter
-} from "../ArcadeIntegrationTypes";
-import {
-  escapeRoute01Encounter
-} from "../../../../../src/games/asteroids/story/EscapeRouteEncounter";
+} from "../src";
 
-describe("Narrative ↔ Arcade Integration Test Suite", () => {
+describe("Narrative ↔ Arcade Core Integration Test Suite", () => {
   let resolver: MiniGameModifierResolver;
   let ruleEngine: OutcomeRuleEngine;
   let effectApplier: StoryEffectApplier;
+
+  const mockEncounter: MiniGameEncounter = {
+    id: "test_encounter_01",
+    gameId: "test_game",
+    baseConfig: {
+      difficulty: "normal",
+      timeLimitMs: 60000,
+      targetScore: 1000
+    },
+    modifierRules: [
+      {
+        id: "power_rule",
+        condition: (snapshot: StoryRuntimeSnapshot) => {
+          const power = typeof snapshot.variables.power === "number" ? snapshot.variables.power : 100;
+          return power < 50;
+        },
+        modifier: {
+          id: "low_power_penalty",
+          targetProperty: "speedMultiplier",
+          value: 0.5
+        }
+      },
+      {
+        id: "radar_rule",
+        condition: (snapshot: StoryRuntimeSnapshot) => !!snapshot.flags.radarUnlocked,
+        modifier: {
+          id: "radar_assist",
+          targetProperty: "radarAssist",
+          value: true
+        }
+      }
+    ],
+    outcomeRules: [
+      {
+        id: "rule_success",
+        priority: 10,
+        condition: {
+          field: "completed",
+          operator: "==",
+          value: true
+        },
+        effects: [
+          {
+            type: "setFlag",
+            key: "missionAccomplished",
+            value: true
+          }
+        ]
+      },
+      {
+        id: "rule_damage",
+        priority: 20,
+        condition: {
+          metric: "damageTaken",
+          operator: ">=",
+          value: 5
+        },
+        effects: [
+          {
+            type: "incrementVariable",
+            key: "health",
+            amount: -25
+          },
+          {
+            type: "setFlag",
+            key: "hullDamaged",
+            value: true
+          }
+        ]
+      },
+      {
+        id: "rule_secret",
+        priority: 30,
+        condition: {
+          secret: "secret_data_chip"
+        },
+        effects: [
+          {
+            type: "discoverEvidence",
+            evidenceId: "secret_data_chip"
+          }
+        ]
+      }
+    ]
+  };
 
   beforeEach(() => {
     resolver = new MiniGameModifierResolver();
@@ -26,43 +109,43 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
   });
 
   describe("1. MiniGameModifierResolver", () => {
-    it("derives modifiers correctly from StoryRuntimeSnapshot (reactor power & navigation data)", () => {
-      const snapshotLowPower: StoryRuntimeSnapshot = {
+    it("derives domain-specific modifiers correctly from StoryRuntimeSnapshot without narrative leaks", () => {
+      const snapshot: StoryRuntimeSnapshot = {
         graphId: "test_graph",
         currentNodeId: "node_01",
-        flags: { navigationData: true },
-        variables: { reactorPower: 30 },
+        flags: { radarUnlocked: true },
+        variables: { power: 30 },
         selectedChoices: [],
         objectives: {},
         evidence: [],
         history: ["node_01"]
       };
 
-      const modifiers = resolver.resolve(snapshotLowPower, escapeRoute01Encounter);
+      const modifiers = resolver.resolve(snapshot, mockEncounter);
       expect(modifiers).toHaveLength(2);
 
-      const shieldMod = modifiers.find((m: MiniGameModifier) => m.targetProperty === "shieldMultiplier");
-      expect(shieldMod).toBeDefined();
-      expect(shieldMod?.value).toBe(0.5);
+      const speedMod = modifiers.find((m: MiniGameModifier) => m.targetProperty === "speedMultiplier");
+      expect(speedMod).toBeDefined();
+      expect(speedMod?.value).toBe(0.5);
 
-      const navMod = modifiers.find((m: MiniGameModifier) => m.targetProperty === "navigationAssist");
-      expect(navMod).toBeDefined();
-      expect(navMod?.value).toBe(true);
+      const radarMod = modifiers.find((m: MiniGameModifier) => m.targetProperty === "radarAssist");
+      expect(radarMod).toBeDefined();
+      expect(radarMod?.value).toBe(true);
     });
 
     it("returns no modifiers when snapshot conditions do not trigger rules", () => {
-      const snapshotNormal: StoryRuntimeSnapshot = {
+      const snapshot: StoryRuntimeSnapshot = {
         graphId: "test_graph",
         currentNodeId: "node_01",
         flags: {},
-        variables: { reactorPower: 100 },
+        variables: { power: 100 },
         selectedChoices: [],
         objectives: {},
         evidence: [],
         history: ["node_01"]
       };
 
-      const modifiers = resolver.resolve(snapshotNormal, escapeRoute01Encounter);
+      const modifiers = resolver.resolve(snapshot, mockEncounter);
       expect(modifiers).toHaveLength(0);
     });
   });
@@ -71,23 +154,23 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
     it("handles simple success outcome rule", () => {
       const resultSuccess: MiniGameResult = {
         runId: "run_123",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 1500,
         completed: true,
         durationMs: 45000,
-        metrics: { collisions: 2 },
+        metrics: { damageTaken: 2 },
         secretsFound: []
       };
 
-      const effects = ruleEngine.evaluate(resultSuccess, escapeRoute01Encounter.outcomeRules);
+      const effects = ruleEngine.evaluate(resultSuccess, mockEncounter.outcomeRules);
       expect(effects).toContainEqual({
         type: "setFlag",
-        key: "escapedDebrisField",
+        key: "missionAccomplished",
         value: true
       });
       expect(effects).not.toContainEqual({
         type: "setFlag",
-        key: "escapeShipDamaged",
+        key: "hullDamaged",
         value: true
       });
     });
@@ -95,54 +178,49 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
     it("handles failure without triggering success rules", () => {
       const resultFailure: MiniGameResult = {
         runId: "run_123",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 200,
         completed: false,
         durationMs: 12000,
-        metrics: { collisions: 1 },
+        metrics: { damageTaken: 1 },
         secretsFound: []
       };
 
-      const effects = ruleEngine.evaluate(resultFailure, escapeRoute01Encounter.outcomeRules);
+      const effects = ruleEngine.evaluate(resultFailure, mockEncounter.outcomeRules);
       expect(effects).toHaveLength(0);
     });
 
-    it("evaluates multiple rules simultaneously (cumulative A + B + C effects)", () => {
+    it("evaluates multiple rules simultaneously (cumulative effects)", () => {
       const resultAll: MiniGameResult = {
         runId: "run_123",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 2000,
         completed: true,
         durationMs: 50000,
-        metrics: { collisions: 6 },
-        secretsFound: ["black_box_fragment"]
+        metrics: { damageTaken: 6 },
+        secretsFound: ["secret_data_chip"]
       };
 
-      const effects = ruleEngine.evaluate(resultAll, escapeRoute01Encounter.outcomeRules);
+      const effects = ruleEngine.evaluate(resultAll, mockEncounter.outcomeRules);
 
-      // Rule A effect
       expect(effects).toContainEqual({
         type: "setFlag",
-        key: "escapedDebrisField",
+        key: "missionAccomplished",
         value: true
       });
-
-      // Rule B effects
       expect(effects).toContainEqual({
         type: "incrementVariable",
-        key: "oxygen",
+        key: "health",
         amount: -25
       });
       expect(effects).toContainEqual({
         type: "setFlag",
-        key: "escapeShipDamaged",
+        key: "hullDamaged",
         value: true
       });
-
-      // Rule C effect
       expect(effects).toContainEqual({
         type: "discoverEvidence",
-        evidenceId: "black_box_fragment"
+        evidenceId: "secret_data_chip"
       });
     });
 
@@ -164,7 +242,7 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
       const result: MiniGameResult = {
         runId: "run_1",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 100,
         completed: true,
         durationMs: 1000,
@@ -196,7 +274,7 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
       const result: MiniGameResult = {
         runId: "run_1",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 100,
         completed: true,
         durationMs: 1000,
@@ -218,12 +296,12 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
             { field: "completed" as const, operator: "==" as const, value: true },
             {
               any: [
-                { metric: "collisions", operator: "<" as const, value: 3 },
+                { metric: "damageTaken", operator: "<" as const, value: 3 },
                 { secret: "golden_key" }
               ]
             },
             {
-              not: { metric: "collisions", operator: ">=" as const, value: 10 }
+              not: { metric: "damageTaken", operator: ">=" as const, value: 10 }
             }
           ]
         },
@@ -232,11 +310,11 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
       const matchingResult: MiniGameResult = {
         runId: "run_1",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 500,
         completed: true,
         durationMs: 1000,
-        metrics: { collisions: 1 },
+        metrics: { damageTaken: 1 },
         secretsFound: []
       };
 
@@ -244,11 +322,11 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
       const nonMatchingResult: MiniGameResult = {
         runId: "run_1",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 500,
         completed: true,
         durationMs: 1000,
-        metrics: { collisions: 15 },
+        metrics: { damageTaken: 15 },
         secretsFound: []
       };
 
@@ -265,7 +343,7 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
       const result: MiniGameResult = {
         runId: "run_1",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 100,
         completed: true,
         durationMs: 1000,
@@ -279,12 +357,12 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
     it("handles secret found and secret not found checks", () => {
       const resultWithSecret: MiniGameResult = {
         runId: "run_1",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 100,
         completed: true,
         durationMs: 1000,
         metrics: {},
-        secretsFound: ["black_box_fragment"]
+        secretsFound: ["secret_data_chip"]
       };
 
       const resultWithoutSecret: MiniGameResult = {
@@ -292,8 +370,8 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
         secretsFound: []
       };
 
-      const effectsWith = ruleEngine.evaluate(resultWithSecret, escapeRoute01Encounter.outcomeRules);
-      const effectsWithout = ruleEngine.evaluate(resultWithoutSecret, escapeRoute01Encounter.outcomeRules);
+      const effectsWith = ruleEngine.evaluate(resultWithSecret, mockEncounter.outcomeRules);
+      const effectsWithout = ruleEngine.evaluate(resultWithoutSecret, mockEncounter.outcomeRules);
 
       expect(effectsWith.some((e: StoryEffect) => e.type === "discoverEvidence")).toBe(true);
       expect(effectsWithout.some((e: StoryEffect) => e.type === "discoverEvidence")).toBe(false);
@@ -374,21 +452,21 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
     it("prevents starting two active runs simultaneously", () => {
       const snapshot = runtime.getState();
-      orchestrator.startRun(escapeRoute01Encounter, snapshot);
+      orchestrator.startRun(mockEncounter, snapshot);
 
       expect(() => {
-        orchestrator.startRun(escapeRoute01Encounter, snapshot);
+        orchestrator.startRun(mockEncounter, snapshot);
       }).toThrow();
     });
 
     it("ignores results with invalid / mismatched runId", () => {
       const snapshot = runtime.getState();
-      orchestrator.startRun(escapeRoute01Encounter, snapshot);
+      orchestrator.startRun(mockEncounter, snapshot);
       orchestrator.notifyPlaying();
 
       const invalidResult: MiniGameResult = {
         runId: "wrong_run_id",
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 1000,
         completed: true,
         durationMs: 30000,
@@ -403,12 +481,12 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
     it("guarantees a run result is only resolved once", () => {
       const snapshot = runtime.getState();
-      const context = orchestrator.startRun(escapeRoute01Encounter, snapshot);
+      const context = orchestrator.startRun(mockEncounter, snapshot);
       orchestrator.notifyPlaying();
 
       const validResult: MiniGameResult = {
         runId: context.runId,
-        gameId: "asteroids",
+        gameId: "test_game",
         score: 1000,
         completed: true,
         durationMs: 30000,
@@ -425,7 +503,7 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
     it("supports abort during execution", () => {
       const snapshot = runtime.getState();
-      orchestrator.startRun(escapeRoute01Encounter, snapshot);
+      orchestrator.startRun(mockEncounter, snapshot);
       orchestrator.notifyPlaying();
 
       orchestrator.abort("user_cancelled");
@@ -434,7 +512,7 @@ describe("Narrative ↔ Arcade Integration Test Suite", () => {
 
     it("supports reporting loading or execution error", () => {
       const snapshot = runtime.getState();
-      orchestrator.startRun(escapeRoute01Encounter, snapshot);
+      orchestrator.startRun(mockEncounter, snapshot);
 
       orchestrator.reportError("Failed to load textures");
       expect(orchestrator.getState()).toBe("failed");

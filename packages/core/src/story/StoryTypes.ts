@@ -48,6 +48,10 @@ export type StoryEffect =
       type: "emitEvent";
       event: string;
       payload?: Record<string, number | string | boolean>;
+    }
+  | {
+      type: "navigateToNode";
+      nodeId: string;
     };
 
 /**

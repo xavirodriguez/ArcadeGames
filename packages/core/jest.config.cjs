@@ -3,6 +3,8 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   moduleNameMapper: {
+    '^@tiny-aster/core$': '<rootDir>/src/index.ts',
+    '^@tiny-aster/core/(.*)$': '<rootDir>/src/$1',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {

@@ -24,22 +24,26 @@ export class WeaponSystem extends System<GeometryWarsComponentRegistry> {
     const pool = world.getResource<GWBulletPool>("GWBulletPool");
 
     const shooters = world.query("Weapon", "Aim", "Transform");
-    for (const entity of shooters) {
+    const count = shooters.length;
+
+    for (let i = 0; i < count; i++) {
+      const entity = shooters[i];
       const weapon = world.getComponent(entity, "Weapon");
       const aim = world.getComponent(entity, "Aim");
       const transform = world.getComponent(entity, "Transform");
 
       if (!weapon || !aim || !transform) continue;
 
+      // Safe for determinism/rollback. Fetch mutable component directly to avoid callback closure allocations.
+      const mutWeapon = world.getMutableComponent(entity, "Weapon");
+      if (!mutWeapon) continue;
+
       // 1. Decrement cooldown
-      let nextCooldown = weapon.cooldownRemaining;
+      let nextCooldown = mutWeapon.cooldownRemaining;
       if (nextCooldown > 0) {
         nextCooldown -= deltaTime;
         if (nextCooldown < 0) nextCooldown = 0;
-
-        world.mutateComponent(entity, "Weapon", (w) => {
-          w.cooldownRemaining = nextCooldown;
-        });
+        mutWeapon.cooldownRemaining = nextCooldown;
       }
 
       // 2. Read pointing direction
@@ -47,14 +51,17 @@ export class WeaponSystem extends System<GeometryWarsComponentRegistry> {
       const aimY = aim.aimY;
       const len = Math.sqrt(aimX * aimX + aimY * aimY);
 
-      // Apply rotation to player ship transform if they are actively aiming
+      // Apply rotation to player ship transform if they are actively aiming and angle changed
       if (len > deadzone) {
         const aimAngle = Math.atan2(aimY, aimX);
-        world.mutateComponent(entity, "Transform", (t) => {
-          t.rotation = aimAngle;
-          t.worldRotation = aimAngle;
-          t.dirty = true;
-        });
+        if (transform.rotation !== aimAngle) {
+          const mutTransform = world.getMutableComponent(entity, "Transform");
+          if (mutTransform) {
+            mutTransform.rotation = aimAngle;
+            mutTransform.worldRotation = aimAngle;
+            mutTransform.dirty = true;
+          }
+        }
       }
 
       // 3. Process shooting
@@ -89,9 +96,7 @@ export class WeaponSystem extends System<GeometryWarsComponentRegistry> {
         }
 
         // Reset cooldown
-        world.mutateComponent(entity, "Weapon", (w) => {
-          w.cooldownRemaining = weapon.cooldownDuration;
-        });
+        mutWeapon.cooldownRemaining = mutWeapon.cooldownDuration;
       }
     }
   }

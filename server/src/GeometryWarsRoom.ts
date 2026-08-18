@@ -78,22 +78,24 @@ export class GeometryWarsRoom extends Room<GeometryWarsState> {
       const filteredActions = frame.actions.filter(a => allowedActions.includes(a));
 
       const sanitizedAxes: Record<string, number> = {};
-      ["moveX", "moveY"].forEach(axis => {
-        if (frame.axes[axis] !== undefined) {
-          const val = Number(frame.axes[axis]);
-          if (!isNaN(val)) {
-            sanitizedAxes[axis] = Math.max(-1, Math.min(1, val));
+      if (frame.axes) {
+        ["moveX", "moveY"].forEach(axis => {
+          if (frame.axes[axis] !== undefined) {
+            const val = Number(frame.axes[axis]);
+            if (!isNaN(val) && isFinite(val)) {
+              sanitizedAxes[axis] = Math.max(-1, Math.min(1, val));
+            }
           }
-        }
-      });
-      ["aimX", "aimY"].forEach(axis => {
-        if (frame.axes[axis] !== undefined) {
-          const val = Number(frame.axes[axis]);
-          if (!isNaN(val)) {
-            sanitizedAxes[axis] = val;
+        });
+        ["aimX", "aimY"].forEach(axis => {
+          if (frame.axes[axis] !== undefined) {
+            const val = Number(frame.axes[axis]);
+            if (!isNaN(val) && isFinite(val)) {
+              sanitizedAxes[axis] = Math.max(-1, Math.min(1, val));
+            }
           }
-        }
-      });
+        });
+      }
 
       const sanitizedFrame: InputFrame = {
         protocolVersion: frame.protocolVersion || 1,

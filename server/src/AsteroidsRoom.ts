@@ -160,8 +160,45 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
         return;
       }
       const validFrame = parsedFrame.data as unknown as InputFrame;
+
+      // Bounds check against tick manipulation or negative ticks
+      if (validFrame.tick < 0 || validFrame.tick > this.state.serverTick + 1000) {
+        return;
+      }
+
+      // Action & Axis sanitization
+      const allowedActions = ["thrust", "rotateLeft", "rotateRight", "shoot", "hyperspace"];
+      const filteredActions = validFrame.actions.filter(a => allowedActions.includes(a));
+
+      const sanitizedAxes: Record<string, number> = {};
+      if (validFrame.axes) {
+        for (const [key, rawVal] of Object.entries(validFrame.axes)) {
+          const val = Number(rawVal);
+          if (!isNaN(val) && isFinite(val)) {
+            sanitizedAxes[key] = Math.max(-1, Math.min(1, val));
+          }
+        }
+      }
+
+      const sanitizedFrame: InputFrame = {
+        protocolVersion: validFrame.protocolVersion || 1,
+        tick: validFrame.tick,
+        timestamp: validFrame.timestamp || Date.now(),
+        actions: filteredActions,
+        axes: sanitizedAxes
+      };
+
       const buffer = this.inputBuffers.get(client.sessionId) || [];
-      buffer.push(validFrame);
+      // Prevent duplicate ticks
+      if (buffer.some(f => f.tick === sanitizedFrame.tick)) {
+        return;
+      }
+
+      buffer.push(sanitizedFrame);
+      // Cap input buffer size to prevent memory bloat
+      if (buffer.length > 120) {
+        buffer.shift();
+      }
       this.inputBuffers.set(client.sessionId, buffer);
     });
 
@@ -235,17 +272,17 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
   }
 
   async onLeave(client: Client, _code: number) {
-    const player = this.state.players.get(client.sessionId);
-    if (player && player.score > 0) {
-        const dateKey = getDateKey();
-        console.log(`[AsteroidsRoom] Recording authoritative score for ${player.name}: ${player.score}`);
-        leaderboardStore.addScore("asteroids", dateKey, player.sessionId, player.score, player.name, true);
-    }
-
     try {
       if (_code === CloseCode.CONSENTED) throw new Error("consented leave");
       await this.allowReconnection(client, 10);
     } catch (_err) {
+      const player = this.state.players.get(client.sessionId);
+      if (player && player.score > 0) {
+          const dateKey = getDateKey();
+          console.log(`[AsteroidsRoom] Recording authoritative score for ${player.name}: ${player.score}`);
+          leaderboardStore.addScore("asteroids", dateKey, player.sessionId, player.score, player.name, true);
+      }
+
       this.state.players.delete(client.sessionId);
       this.inputBuffers.delete(client.sessionId);
       this.clientAcks.delete(client.sessionId);

@@ -322,5 +322,9 @@ export const es = {
     stat_playtime: "Ticks de Juego",
     palettes_unlocked: "Paletas",
     trails_unlocked: "Estelas",
+    seed_input_label: "Semilla de simulación",
+    seed_input_hint: "Ingresa un valor numérico de semilla para generación determinista",
+    seed_apply_label: "Aplicar semilla",
+    seed_apply_hint: "Aplica la semilla y reinicia la configuración del juego",
   }
 };

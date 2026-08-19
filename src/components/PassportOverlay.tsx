@@ -75,7 +75,12 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
             </View>
             <View style={styles.xpInfo}>
               <Text style={styles.xpLabel}>XP TOTAL: {profile.xp}</Text>
-              <View style={styles.progressBarContainer}>
+              <View
+                style={styles.progressBarContainer}
+                accessibilityRole="progressbar"
+                accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}
+                accessibilityLabel={`Level progress: ${Math.round(progress * 100)}%`}
+              >
                 <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
               </View>
               <Text style={styles.xpSublabel}>

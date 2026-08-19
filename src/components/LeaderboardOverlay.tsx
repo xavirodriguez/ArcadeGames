@@ -81,11 +81,11 @@ export const LeaderboardOverlay: React.FC<LeaderboardOverlayProps> = ({ gameId, 
         </View>
 
         {loading ? (
-          <View style={styles.loadingContainer} accessibilityLabel="Loading daily leaderboard" accessibilityState={{ busy: true }}>
+          <View style={styles.loadingContainer} accessibilityLabel="Loading daily leaderboard" accessibilityState={{ busy: true }} accessibilityLiveRegion="polite">
             <ActivityIndicator size="large" color={colors.white} />
           </View>
         ) : error ? (
-          <View style={styles.errorContainer}>
+          <View style={styles.errorContainer} accessibilityLiveRegion="assertive">
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}

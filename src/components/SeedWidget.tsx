@@ -23,10 +23,10 @@ export const SeedWidget: React.FC<SeedWidgetProps> = ({ seed, onSeedEnter, style
     }
   };
 
-  const seedLabel = "Simulation Seed";
-  const seedHint = "Enter a numeric seed value to deterministic random generation";
-  const applyLabel = "Apply Seed";
-  const applyHint = "Sets the seed and resets game configuration";
+  const seedLabel = t?.accessibility?.seed_input_label || "Simulation Seed";
+  const seedHint = t?.accessibility?.seed_input_hint || "Enter a numeric seed value for deterministic generation";
+  const applyLabel = t?.accessibility?.seed_apply_label || "Apply seed";
+  const applyHint = t?.accessibility?.seed_apply_hint || "Applies the seed and resets game configuration";
 
   return (
     <View style={[styles.container, style]}>
@@ -36,6 +36,8 @@ export const SeedWidget: React.FC<SeedWidgetProps> = ({ seed, onSeedEnter, style
         onChangeText={setValue}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
+        onSubmitEditing={handleApply}
+        returnKeyType="done"
         placeholder="SEED"
         placeholderTextColor={colors.textMuted}
         keyboardType="numeric"

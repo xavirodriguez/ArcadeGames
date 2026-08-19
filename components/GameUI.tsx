@@ -594,6 +594,8 @@ const ReadyOverlay: React.FC<{
       exiting={FadeOut.duration(350)}
       style={styles.centerOverlay}
       pointerEvents="none"
+      accessibilityLiveRegion="polite"
+      accessibilityLabel={`Sector ${formatLevel(level)} ${message ?? "HOSTILES INBOUND"}. Ready in ${countdown} seconds`}
     >
       <View style={styles.cinematicLetterboxTop} />
       <View style={styles.cinematicLetterboxBottom} />
@@ -662,6 +664,8 @@ const IntermissionOverlay: React.FC<{
       exiting={FadeOut.duration(350)}
       style={styles.centerOverlay}
       pointerEvents="none"
+      accessibilityLiveRegion="polite"
+      accessibilityLabel={`${title ?? "SECTOR CLEARED"}. Next sector ${formatLevel(nextSector)} in ${countdown} seconds`}
     >
       <View style={styles.cinematicLetterboxTop} />
       <View style={styles.cinematicLetterboxBottom} />
@@ -727,6 +731,7 @@ const GameOverOverlay: React.FC<{
   mode?: "deathmatch" | "story";
   level?: number;
 }> = ({ score, highScore, onRestart, mode, level }) => {
+  const { t } = useTranslation();
   const isNewRecord = score >= highScore;
   let endingText = isNewRecord ? "MISSION RECORD OVERRIDDEN." : `ARCHIVE RECORD: ${formatScore(highScore)}`;
 
@@ -746,8 +751,13 @@ const GameOverOverlay: React.FC<{
     }
   }
 
+  const handleRestart = () => {
+    hapticSelection();
+    if (onRestart) onRestart();
+  };
+
   return (
-    <Animated.View entering={FadeIn.duration(450)} style={styles.gameOverOverlay}>
+    <Animated.View entering={FadeIn.duration(450)} style={styles.gameOverOverlay} accessibilityViewIsModal={true}>
       {Platform.OS !== "web" && Canvas && BackdropBlur && Fill && (
         <Canvas style={StyleSheet.absoluteFill}>
           <BackdropBlur blur={18}>
@@ -761,9 +771,10 @@ const GameOverOverlay: React.FC<{
       <Animated.View
         entering={SlideInDown.delay(120).duration(520)}
         style={styles.gameOverTerminal}
+        accessibilityViewIsModal={true}
       >
         <View style={styles.gameOverHeaderRow}>
-          <Text style={styles.gameOverSystemLabel}>ODISEA-7 // FLIGHT RECORDER</Text>
+          <Text style={styles.gameOverSystemLabel} accessibilityRole="header">ODISEA-7 // FLIGHT RECORDER</Text>
           <Text style={styles.gameOverErrorCode}>ERR.SIG-07</Text>
         </View>
 
@@ -798,7 +809,14 @@ const GameOverOverlay: React.FC<{
           <Text style={styles.transmissionText}>{endingText}</Text>
         </View>
 
-        <TouchableOpacity style={styles.restartButton} onPress={onRestart} activeOpacity={0.72}>
+        <TouchableOpacity
+          style={styles.restartButton}
+          onPress={handleRestart}
+          activeOpacity={0.72}
+          accessibilityRole="button"
+          accessibilityLabel={t?.accessibility?.restart_game_label || "Restart game"}
+          accessibilityHint={t?.accessibility?.restart_game_hint || "Restarts the game"}
+        >
           <View style={styles.restartAccent} />
           <Text style={styles.restartButtonMeta}>MISSION CONTROL</Text>
           <Text style={styles.restartButtonText}>REINITIALIZE MISSION</Text>

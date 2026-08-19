@@ -84,7 +84,7 @@ export default function HomeScreen() {
     <SafeAreaProvider>
       <View style={styles.menuContainer}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.title}>{t.menu.title}</Text>
+          <Text style={styles.title} accessibilityRole="header">{t.menu.title}</Text>
 
           <View style={styles.headerRow}>
             {profile && (
@@ -267,7 +267,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: spacing.xl,
-    width: 360,
+    width: '100%',
+    maxWidth: 360,
+    paddingHorizontal: spacing.md,
     justifyContent: 'center',
   },
   menuButton: {

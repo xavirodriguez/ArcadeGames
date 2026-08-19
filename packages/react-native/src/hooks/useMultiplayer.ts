@@ -99,7 +99,9 @@ export function useMultiplayer(roomName: string, playerName: string, active: boo
             // Buffer of 2 frames to account for jitter.
             const TICK_BUFFER = 2;
 
-            const validServerTick = typeof data?.serverTick === "number" && !isNaN(data.serverTick) ? data.serverTick : serverTickRef.current;
+            const validServerTick = typeof data?.serverTick === "number" && !isNaN(data.serverTick) && isFinite(data.serverTick) && data.serverTick >= 0
+              ? data.serverTick
+              : serverTickRef.current;
             const targetLocalTick = validServerTick + Math.ceil((rtt / 2) / FRAME_DURATION) + TICK_BUFFER;
 
             // Prevent local tick from jumping backwards if packets arrive out of order

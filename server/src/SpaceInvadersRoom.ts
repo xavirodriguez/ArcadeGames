@@ -98,10 +98,16 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
         }
       }
 
+      const protocolVer = typeof frame.protocolVersion === "number" && !isNaN(frame.protocolVersion) && frame.protocolVersion > 0
+        ? frame.protocolVersion
+        : 1;
+
       const sanitizedFrame: InputFrame = {
-        protocolVersion: frame.protocolVersion || 1,
+        protocolVersion: protocolVer,
         tick: frame.tick,
-        timestamp: frame.timestamp || Date.now(),
+        timestamp: (typeof frame.timestamp === "number" && !isNaN(frame.timestamp) && frame.timestamp > 0)
+          ? frame.timestamp
+          : Date.now(),
         actions: filteredActions,
         axes: sanitizedAxes
       };
@@ -127,7 +133,7 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
       client.send("sync_tick", {
         protocolVersion: this.state.protocolVersion,
         serverTick: this.state.serverTick,
-        timestamp: (data?.timestamp && data.timestamp > 0) ? data.timestamp : Date.now()
+        timestamp: (typeof data?.timestamp === "number" && !isNaN(data.timestamp) && isFinite(data.timestamp) && data.timestamp > 0) ? data.timestamp : Date.now()
       });
     });
 

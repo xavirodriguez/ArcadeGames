@@ -180,10 +180,16 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
         }
       }
 
+      const protocolVer = typeof validFrame.protocolVersion === "number" && !isNaN(validFrame.protocolVersion) && validFrame.protocolVersion > 0
+        ? validFrame.protocolVersion
+        : 1;
+
       const sanitizedFrame: InputFrame = {
-        protocolVersion: validFrame.protocolVersion || 1,
+        protocolVersion: protocolVer,
         tick: validFrame.tick,
-        timestamp: validFrame.timestamp || Date.now(),
+        timestamp: (typeof validFrame.timestamp === "number" && !isNaN(validFrame.timestamp) && validFrame.timestamp > 0)
+          ? validFrame.timestamp
+          : Date.now(),
         actions: filteredActions,
         axes: sanitizedAxes
       };
@@ -212,7 +218,7 @@ export class AsteroidsRoom extends Room<AsteroidsState> {
       client.send("sync_tick", {
         protocolVersion: this.state.protocolVersion,
         serverTick: this.state.serverTick,
-        timestamp: (data?.timestamp && data.timestamp > 0) ? data.timestamp : Date.now()
+        timestamp: (typeof data?.timestamp === "number" && !isNaN(data.timestamp) && isFinite(data.timestamp) && data.timestamp > 0) ? data.timestamp : Date.now()
       });
     });
 

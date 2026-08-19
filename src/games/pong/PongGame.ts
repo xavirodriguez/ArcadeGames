@@ -15,6 +15,7 @@ import {
   SystemPhase,
   ServerUpdatePayload,
   HierarchySystem,
+  TTLSystem,
   World,
   WebAudioPlayer
 } from "@tiny-aster/core";
@@ -287,6 +288,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new PongVelocityGuardrailSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
 
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
 

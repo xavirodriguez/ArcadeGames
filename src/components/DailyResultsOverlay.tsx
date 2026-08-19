@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useCallback } from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
 import { hapticSelection } from "../utils/haptics";
@@ -19,10 +19,23 @@ export const DailyResultsOverlay: React.FC<DailyResultsOverlayProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     hapticSelection();
     onClose();
-  };
+  }, [onClose]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.addEventListener) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          handleClose();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [handleClose]);
 
   const sanitizedGameKey = gameId.replace("-", "_");
   const gameNameLocal = (t?.menu as any)?.[sanitizedGameKey] || gameId.toUpperCase();
@@ -31,7 +44,7 @@ export const DailyResultsOverlay: React.FC<DailyResultsOverlayProps> = ({
 
   return (
     <View style={styles.overlay} accessibilityViewIsModal={true}>
-      <View style={styles.container}>
+      <View style={styles.container} accessibilityViewIsModal={true}>
         <Text style={styles.title} accessibilityRole="header">
           {dailyResultsTitle}
         </Text>

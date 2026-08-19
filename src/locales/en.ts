@@ -322,5 +322,9 @@ export const en = {
     stat_playtime: "Playtime Ticks",
     palettes_unlocked: "Palettes",
     trails_unlocked: "Trails",
+    seed_input_label: "Simulation Seed",
+    seed_input_hint: "Enter a numeric seed value for deterministic generation",
+    seed_apply_label: "Apply seed",
+    seed_apply_hint: "Applies the seed and resets game configuration",
   }
 };

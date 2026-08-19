@@ -13,6 +13,7 @@ import {
   PlatformerGravitySystem,
   TileCollisionSystem,
   PlatformerCoyoteSystem,
+  TTLSystem,
   TransformComponent,
   VelocityComponent,
   Collider2DComponent,
@@ -190,6 +191,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
     this.world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
   }

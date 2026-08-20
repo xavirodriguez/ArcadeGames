@@ -764,9 +764,9 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
    */
   public update(deltaTime: number): void {
     if (this.state === SceneState.UNLOADING || this.state === SceneState.LOADING) {
-      const durationMs = this._transitionOptions?.duration ?? 300;
-      const duration = durationMs > 1.0 ? durationMs / 1000 : durationMs;
-      this._transitionElapsed += deltaTime;
+      const duration = this._transitionOptions?.duration ?? 300;
+      const dtMs = deltaTime > 1.0 ? deltaTime : deltaTime * 1000;
+      this._transitionElapsed += dtMs;
 
       const rawProgress = duration > 0 ? Math.min(1.0, this._transitionElapsed / duration) : 1.0;
       const easingFunc = getEasingFunction(this._transitionOptions?.easing);

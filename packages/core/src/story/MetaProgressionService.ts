@@ -1,5 +1,7 @@
 /**
  * Version identifier for MetaProgression save schema.
+ *
+ * @public
  */
 export const META_SAVE_VERSION = 1;
 
@@ -42,7 +44,9 @@ export interface IMetaStorageProvider {
 }
 
 /**
- * Fallback in-memory storage provider.
+ * Fallback in-memory storage provider for meta progression state.
+ *
+ * @public
  */
 export class MemoryStorageProvider implements IMetaStorageProvider {
   private store = new Map<string, string>();
@@ -58,6 +62,8 @@ export class MemoryStorageProvider implements IMetaStorageProvider {
 
 /**
  * Default initial MetaProgressionState.
+ *
+ * @public
  */
 export const DEFAULT_META_PROGRESSION_STATE: MetaProgressionState = {
   saveVersion: META_SAVE_VERSION,

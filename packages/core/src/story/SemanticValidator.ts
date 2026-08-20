@@ -1,6 +1,11 @@
 import { MiniGameEncounterDSL } from "./EncounterDSLSchema";
 import { StoryGraph } from "./StoryTypes";
 
+/**
+ * Represents a semantic validation error or warning detected during encounter linting.
+ *
+ * @public
+ */
 export interface SemanticValidationError {
   readonly severity: "error" | "warning";
   readonly code: string;
@@ -8,6 +13,11 @@ export interface SemanticValidationError {
   readonly path?: string;
 }
 
+/**
+ * Context specifications used by SemanticValidator for cross-referencing encounter declarations.
+ *
+ * @public
+ */
 export interface SemanticValidationContext {
   readonly knownGameIds?: ReadonlyArray<string>;
   readonly existingEncounterIds?: ReadonlyArray<string>;

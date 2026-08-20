@@ -765,9 +765,10 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   public update(deltaTime: number): void {
     if (this.state === SceneState.UNLOADING || this.state === SceneState.LOADING) {
       const duration = this._transitionOptions?.duration ?? 300;
-      this._transitionElapsed += deltaTime;
+      const dtMs = deltaTime > 1.0 ? deltaTime : deltaTime * 1000;
+      this._transitionElapsed += dtMs;
 
-      const rawProgress = Math.min(1.0, this._transitionElapsed / duration);
+      const rawProgress = duration > 0 ? Math.min(1.0, this._transitionElapsed / duration) : 1.0;
       const easingFunc = getEasingFunction(this._transitionOptions?.easing);
 
       const isDoubleScene = this._activeTransitionEffect && (this._activeTransitionEffect as any).drawsBothScenes === true;

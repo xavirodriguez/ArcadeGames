@@ -28,6 +28,33 @@ describe("BlindStation StoryGraph", () => {
     const debugState = getBlindStationDebugState(runtime);
     expect(debugState.variables.evidence).toBe(0);
     expect(debugState.variables.oxygen).toBe(100);
+    expect(debugState.variables.assertiveness).toBe(0);
+    expect(debugState.variables.empathyStyle).toBe(0);
+  });
+
+  it("mutates assertiveness and empathyStyle variables when relevant choices are selected", () => {
+    const world = new World();
+    const { runtime } = createBlindStationStory(world);
+    const scene = new CYOAScene(world, runtime);
+    scene.onEnter(world);
+
+    // Initial values
+    expect(runtime.getState().variables.assertiveness).toBe(0);
+    expect(runtime.getState().variables.empathyStyle).toBe(0);
+
+    // Select "inspect_terminal_first" choice -> assertiveness += 1
+    scene.selectChoice("inspect_terminal_first");
+    expect(runtime.getState().variables.assertiveness).toBe(1);
+
+    // Navigate to power_choice and select "power_comms" -> assertiveness += 1
+    runtime.navigateToNode("power_choice");
+    scene.selectChoice("power_comms");
+    expect(runtime.getState().variables.assertiveness).toBe(2);
+
+    // Navigate to vega_choice and select "trust_vega" -> empathyStyle += 1
+    runtime.navigateToNode("vega_choice");
+    scene.selectChoice("trust_vega");
+    expect(runtime.getState().variables.empathyStyle).toBe(1);
   });
 
   it("tracks investigation progress and unlocks power distribution choice when all 3 sectors visited", () => {

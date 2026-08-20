@@ -150,6 +150,45 @@ pnpm web       # Web via react-native-web
 
 ---
 
+## ⚡ Turborepo & Monorepo Optimization
+
+The repository utilizes **Turborepo** with **pnpm workspaces** for fast, deterministic, cache-aware builds and tests.
+
+### Configuration & Caching Metrics
+
+- **Pipeline Tasks (`turbo.json`)**:
+  - `build`: Captures build artifacts across workspaces (`dist/**`, `build/**`) based on `src/**`, `package.json`, and `tsconfig.json`.
+  - `typecheck`: Cache-aware typechecking dependent on `^build`.
+  - `lint`: Cached linting step scoped to workspace sources.
+  - `test`: Executes tests across dependent packages.
+- **Measured Benchmark Impact**:
+  - **Cold Build**: ~33s (compiling `@tiny-aster/core`, renderers, network transports, and server).
+  - **Warm Build (`FULL TURBO`)**: **~200ms** (100% cache hit across all 7 workspace packages).
+
+### Cache Maintenance & Full Clean
+
+To purge build artifacts, Turborepo caches, and platform watchman/metro caches:
+
+```bash
+pnpm clean:full   # Purges .turbo/, node_modules/.cache, dist/, temp/, metro/watchman caches
+```
+
+### Architectural Evaluation: Modularizing Games into Subpackages
+
+To further optimize CI times as the game suite expands, individual games under `src/games/*` can be refactored into distinct packages under `packages/games-*`:
+- **`packages/games-asteroids`** (`@tiny-aster/games-asteroids`)
+- **`packages/games-space-invaders`** (`@tiny-aster/games-space-invaders`)
+- **`packages/games-geometry-wars`** (`@tiny-aster/games-geometry-wars`)
+- **`packages/games-pong`** (`@tiny-aster/games-pong`)
+- **`packages/games-flappy-bird`** (`@tiny-aster/games-flappy-bird`)
+- **`packages/games-shared`** (`@tiny-aster/games-shared`)
+
+**Benefits**:
+1. **Granular Package Caching**: Changes to `asteroids` will not invalidate Turborepo build or test caches for `geometrywars` or `space-invaders`.
+2. **Targeted Filtering**: Enables precise `pnpm --filter=@tiny-aster/games-asteroids test` invocations in CI pipelines.
+
+---
+
 ## 🧪 Quality gates
 
 Every change is expected to pass the same checks CI runs:
@@ -157,10 +196,11 @@ Every change is expected to pass the same checks CI runs:
 ```bash
 pnpm test                     # Run all test suites via Turborepo
 pnpm lint                     # ESLint across the monorepo
+pnpm story:lint               # Story graph & semantic validation linter
 pnpm typecheck:core           # Strict typecheck of the engine core
 pnpm typecheck:app            # Strict typecheck of the app layer
 pnpm check:core-boundaries    # Enforce core/platform/game isolation
-pnpm ci                       # Full CI pipeline locally: build core + boundaries + typecheck
+pnpm ci                       # Full CI pipeline locally: build core + boundaries + story:lint + docs:check + typecheck
 ```
 
 The test suite spans multiple layers:

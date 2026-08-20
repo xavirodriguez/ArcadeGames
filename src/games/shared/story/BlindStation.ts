@@ -640,7 +640,7 @@ export const BlindStationValidation = StoryGraphValidator.validate(BlindStationG
     "powerLifeSupport",
     "secretEndingUnlocked",
   ],
-  declaredVariables: ["evidence", "trustARES", "trustVega", "oxygen"],
+  declaredVariables: ["evidence", "trustARES", "trustVega", "oxygen", "assertiveness", "empathyStyle"],
 });
 
 const REACTOR_OBJECTIVE: StoryObjective = {
@@ -749,6 +749,8 @@ export function bootstrapBlindStation(runtime: StoryRuntime): void {
   state.variables["trustARES"] = 0;
   state.variables["trustVega"] = 0;
   state.variables["oxygen"] = 100;
+  state.variables["assertiveness"] = 0;
+  state.variables["empathyStyle"] = 0;
 
   const falseFlags = [
     "visitedReactor",
@@ -794,23 +796,31 @@ export function bindBlindStationEffects(
       switch (choiceId) {
         case "ask_ares_first":
           incrementVariable(runtime, "trustARES", 1);
+          incrementVariable(runtime, "empathyStyle", 1);
           break;
 
         case "inspect_terminal_first":
           incrementVariable(runtime, "trustARES", -1);
+          incrementVariable(runtime, "assertiveness", 1);
           runtime.setFlag("sawCryoRecord", true);
+          break;
+
+        case "search_crew_first":
+          incrementVariable(runtime, "assertiveness", 2);
           break;
 
         case "power_infirmary":
           runtime.setFlag("powerInfirmary", true);
           runtime.setFlag("powerComms", false);
           runtime.setFlag("powerLifeSupport", false);
+          incrementVariable(runtime, "empathyStyle", 1);
           break;
 
         case "power_comms":
           runtime.setFlag("powerInfirmary", false);
           runtime.setFlag("powerComms", true);
           runtime.setFlag("powerLifeSupport", false);
+          incrementVariable(runtime, "assertiveness", 1);
           break;
 
         case "power_life_support":
@@ -818,14 +828,17 @@ export function bindBlindStationEffects(
           runtime.setFlag("powerComms", false);
           runtime.setFlag("powerLifeSupport", true);
           runtime.setVariable("oxygen", 160);
+          incrementVariable(runtime, "empathyStyle", 2);
           break;
 
         case "trust_vega":
           incrementVariable(runtime, "trustVega", 2);
+          incrementVariable(runtime, "empathyStyle", 1);
           break;
 
         case "distrust_vega":
           incrementVariable(runtime, "trustVega", -1);
+          incrementVariable(runtime, "assertiveness", 1);
           break;
       }
 

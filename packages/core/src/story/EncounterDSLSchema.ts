@@ -2,11 +2,19 @@ import { z } from "zod";
 
 /**
  * Current technical schema version for Encounter DSL.
+ *
+ * @public
  */
 export const DSL_SCHEMA_VERSION = 1;
 
 /**
- * Zod schema for StoryEffect.
+ * Zod schema validating declarative narrative side-effects triggered by encounter outcomes or choices.
+ *
+ * @remarks
+ * Supports setting flags, modifying variables, discovering evidence, completing objectives,
+ * emitting custom events, or navigating to narrative graph nodes.
+ *
+ * @public
  */
 export const StoryEffectSchema = z.discriminatedUnion("type", [
   z.object({
@@ -44,7 +52,12 @@ export const StoryEffectSchema = z.discriminatedUnion("type", [
 ]);
 
 /**
- * Zod schema for OutcomeCondition (recursive).
+ * Recursive Zod schema for evaluating gameplay performance metrics and secrets against declarative conditions.
+ *
+ * @remarks
+ * Evaluates fields (such as score, duration, completion), custom game metrics, or logical boolean compositions (`all`, `any`, `not`).
+ *
+ * @public
  */
 export const OutcomeConditionSchema: z.ZodType<any> = z.lazy(() =>
   z.union([
@@ -74,7 +87,9 @@ export const OutcomeConditionSchema: z.ZodType<any> = z.lazy(() =>
 );
 
 /**
- * Zod schema for MiniGameOutcomeRule.
+ * Zod schema defining a prioritized outcome rule that maps gameplay conditions to narrative effects.
+ *
+ * @public
  */
 export const MiniGameOutcomeRuleSchema = z.object({
   id: z.string().min(1),
@@ -85,7 +100,9 @@ export const MiniGameOutcomeRuleSchema = z.object({
 });
 
 /**
- * Zod schema for MiniGameModifier.
+ * Zod schema for runtime game parameters adjusted dynamically by narrative state.
+ *
+ * @public
  */
 export const MiniGameModifierSchema = z.object({
   id: z.string().min(1),
@@ -96,7 +113,9 @@ export const MiniGameModifierSchema = z.object({
 });
 
 /**
- * Zod schema for Declarative ModifierRule.
+ * Zod schema for conditional rules applying game modifiers based on active story flags or variables.
+ *
+ * @public
  */
 export const MiniGameModifierRuleSchema = z.object({
   id: z.string().min(1),
@@ -112,7 +131,9 @@ export const MiniGameModifierRuleSchema = z.object({
 });
 
 /**
- * Zod schema for MiniGameConfig.
+ * Zod schema for baseline minigame configuration parameters.
+ *
+ * @public
  */
 export const MiniGameConfigSchema = z.object({
   difficulty: z.string().optional(),
@@ -122,7 +143,9 @@ export const MiniGameConfigSchema = z.object({
 });
 
 /**
- * Zod schema for complete declarative MiniGameEncounter DSL asset.
+ * Zod schema validating a complete declarative MiniGameEncounter DSL asset.
+ *
+ * @public
  */
 export const MiniGameEncounterSchema = z.object({
   schemaVersion: z.number().default(DSL_SCHEMA_VERSION),
@@ -135,4 +158,9 @@ export const MiniGameEncounterSchema = z.object({
   meta: z.record(z.string(), z.unknown()).optional()
 });
 
+/**
+ * Inferred TypeScript type for complete declarative MiniGameEncounter DSL.
+ *
+ * @public
+ */
 export type MiniGameEncounterDSL = z.infer<typeof MiniGameEncounterSchema>;

@@ -85,13 +85,32 @@ export class MetaProgressionService {
   private state: MetaProgressionState;
   private readonly storageKey = "tiny_aster_meta_progression_v1";
   private readonly storage: IMetaStorageProvider;
+  private autoSave: boolean;
 
   constructor(
     initialState: MetaProgressionState = DEFAULT_META_PROGRESSION_STATE,
-    storage?: IMetaStorageProvider
+    storage?: IMetaStorageProvider,
+    autoSave: boolean = true
   ) {
     this.storage = storage ?? new MemoryStorageProvider();
-    this.state = this.migrate(initialState);
+    this.autoSave = autoSave;
+    this.state = MetaProgressionService.migrateState(initialState);
+  }
+
+  /**
+   * Toggles automatic I/O persistence on state mutations.
+   *
+   * @param autoSave - Whether mutations automatically trigger `saveToStorage`.
+   */
+  public setAutoSave(autoSave: boolean): void {
+    this.autoSave = autoSave;
+  }
+
+  /**
+   * Returns active autoSave status.
+   */
+  public isAutoSaveEnabled(): boolean {
+    return this.autoSave;
   }
 
   /**
@@ -102,6 +121,15 @@ export class MetaProgressionService {
   }
 
   /**
+   * Directly replaces in-memory state without performing storage I/O.
+   *
+   * @param state - The MetaProgressionState to load into memory.
+   */
+  public loadState(state: MetaProgressionState): void {
+    this.state = MetaProgressionService.migrateState(state);
+  }
+
+  /**
    * Loads state from storage adapter.
    */
   public async loadFromStorage(): Promise<MetaProgressionState> {
@@ -109,7 +137,7 @@ export class MetaProgressionService {
       const raw = await this.storage.getItem(this.storageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
-        this.state = this.migrate(parsed);
+        this.state = MetaProgressionService.migrateState(parsed);
       }
     } catch {
       // Fallback on current state if load fails
@@ -129,7 +157,8 @@ export class MetaProgressionService {
   }
 
   /**
-   * Records a completed run and ending for New Game+ progression and auto-saves.
+   * Records a completed run and ending for New Game+ progression.
+   * Performs auto-save only if `autoSave` is enabled.
    */
   public async recordRunCompletion(endingId: string): Promise<void> {
     const completedRuns = this.state.completedRuns + 1;
@@ -143,11 +172,14 @@ export class MetaProgressionService {
       completedEndings
     };
 
-    await this.saveToStorage();
+    if (this.autoSave) {
+      await this.saveToStorage();
+    }
   }
 
   /**
-   * Unlocks meta evidence that persists across story runs and auto-saves.
+   * Unlocks meta evidence that persists across story runs.
+   * Performs auto-save only if `autoSave` is enabled.
    */
   public async discoverMetaEvidence(metaEvidence: MetaEvidence): Promise<void> {
     if (this.state.discoveredMetaEvidence.some((e) => e.id === metaEvidence.id)) {
@@ -159,7 +191,9 @@ export class MetaProgressionService {
       discoveredMetaEvidence: [...this.state.discoveredMetaEvidence, metaEvidence]
     };
 
-    await this.saveToStorage();
+    if (this.autoSave) {
+      await this.saveToStorage();
+    }
   }
 
   /**
@@ -170,9 +204,9 @@ export class MetaProgressionService {
   }
 
   /**
-   * Migration pipeline for MetaProgression saves.
+   * Pure migration pipeline for MetaProgression save objects.
    */
-  public migrate(rawState: unknown): MetaProgressionState {
+  public static migrateState(rawState: unknown): MetaProgressionState {
     if (!rawState || typeof rawState !== "object") {
       return DEFAULT_META_PROGRESSION_STATE;
     }
@@ -192,5 +226,12 @@ export class MetaProgressionService {
     }
 
     return current as unknown as MetaProgressionState;
+  }
+
+  /**
+   * Instance migration method delegating to static `migrateState`.
+   */
+  public migrate(rawState: unknown): MetaProgressionState {
+    return MetaProgressionService.migrateState(rawState);
   }
 }

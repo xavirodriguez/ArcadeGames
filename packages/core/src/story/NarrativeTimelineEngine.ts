@@ -102,4 +102,29 @@ export class NarrativeTimelineEngine {
   public getFormattedTimeline(): string[] {
     return this.events.map((e) => `[Step ${e.step}] ${e.type}: ${e.title}`);
   }
+
+  /**
+   * Truncates timeline events recorded after targetEventId, restoring the event history.
+   *
+   * @param targetEventId - Target event ID up to which events are retained (or null to reset).
+   */
+  public truncateAfter(targetEventId: string | null): void {
+    if (!targetEventId) {
+      this.events = [];
+      this.eventIndex.clear();
+      this.stepCounter = 0;
+      return;
+    }
+
+    const targetIndex = this.events.findIndex((e) => e.id === targetEventId);
+    if (targetIndex === -1) return;
+
+    const keptEvents = this.events.slice(0, targetIndex + 1);
+    this.events = keptEvents;
+    this.eventIndex.clear();
+    for (const e of keptEvents) {
+      this.eventIndex.set(e.id, e);
+    }
+    this.stepCounter = keptEvents.length > 0 ? keptEvents[keptEvents.length - 1].step : 0;
+  }
 }

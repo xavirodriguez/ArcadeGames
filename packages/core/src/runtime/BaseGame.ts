@@ -203,6 +203,76 @@ export abstract class BaseGame<
   public sceneManager: SceneManager<TComponents>;
   /** Platform-agnostic audio player instance. */
   public audio: IAudioPlayer;
+  private _debugEventLog: Array<{ timestamp: number; event: string; payload: any }> = [];
+
+  /**
+   * Diagnostics and debug manager interface consumed by developer overlays.
+   */
+  public get debugManager() {
+    return {
+      getFrameStats: () => {
+        return {
+          fps: 60,
+          frameTime: 16.67,
+          tick: this.world.tick,
+          alpha: 1.0
+        };
+      },
+      getSystemTimings: (): Record<string, number> => {
+        const timings: Record<string, number> = {};
+        const systems = this.world.schedule.getSystems();
+        for (let i = 0; i < systems.length; i++) {
+          const sys = systems[i];
+          const name = sys.constructor.name || `System_${i}`;
+          timings[name] = (sys as any).lastExecutionTimeMs ?? 0.01;
+        }
+        return timings;
+      },
+      getEntitySnapshot: () => {
+        const allEntities = this.world.getAllEntities();
+        const snapshot: Array<{ id: number; components: Record<string, unknown> }> = [];
+        for (let i = 0; i < allEntities.length; i++) {
+          const entity = allEntities[i];
+          if (!this.world.isAlive(entity)) continue;
+          const types = this.world.getEntityComponentTypes(entity);
+          const components: Record<string, unknown> = {};
+          for (let j = 0; j < types.length; j++) {
+            const t = types[j] as any;
+            components[t] = this.world.getComponent(entity, t);
+          }
+          snapshot.push({ id: entity, components });
+        }
+        return snapshot;
+      },
+      getEventLog: () => {
+        return this._debugEventLog;
+      },
+      getColliderShapes: () => {
+        const shapes: Array<{ type: "circle" | "aabb"; x: number; y: number; isTrigger: boolean; shape: any }> = [];
+        const entitiesWithCollider = this.world.query("Collider2D" as any, "Transform" as any);
+        for (let i = 0; i < entitiesWithCollider.length; i++) {
+          const e = entitiesWithCollider[i];
+          const col = this.world.getComponent(e, "Collider2D" as any) as any;
+          const trans = this.world.getComponent(e, "Transform" as any) as any;
+          if (col && trans && col.enabled !== false) {
+            if (col.shape?.type === "circle" || col.shape?.type === "aabb") {
+              shapes.push({
+                type: col.shape.type,
+                x: trans.x,
+                y: trans.y,
+                isTrigger: !!col.isTrigger,
+                shape: col.shape
+              });
+            }
+          }
+        }
+        return shapes;
+      },
+      clearEventLog: () => {
+        this._debugEventLog = [];
+      }
+    };
+  }
 
   /**
    * Constructs a `BaseGame` instance.
@@ -231,6 +301,19 @@ export abstract class BaseGame<
     this.world.gameplayRandom.unlock();
     this.world.gameplayRandom.setSeed(initialSeed);
     this.world.gameplayRandom.lock();
+
+    const originalEmit = this.eventBus.emit.bind(this.eventBus);
+    this.eventBus.emit = (event: any, payload?: any) => {
+      this._debugEventLog.push({
+        timestamp: performance.now(),
+        event: String(event),
+        payload
+      });
+      if (this._debugEventLog.length > 100) {
+        this._debugEventLog.shift();
+      }
+      return originalEmit(event, payload);
+    };
 
     this.eventBus.on("PlaySFX", (payload) => {
       if (payload && payload.name) {

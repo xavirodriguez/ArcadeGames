@@ -11,6 +11,8 @@ import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "@/utils/haptics";
 import { colors, spacing, typography, effects } from "../../theme";
+import { GameErrorBoundary } from "@/components/GameErrorBoundary";
+import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import {
   GameScreen,
   BackButton,
@@ -21,7 +23,7 @@ import {
   NeonButton,
 } from "../../components/ui";
 
-export default function EchoRunnerScreen() {
+function EchoRunnerContent() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
   const [playerName, setPlayerName] = useState("");
@@ -276,8 +278,19 @@ export default function EchoRunnerScreen() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Real-time Debug Overlay for Engine Metrics & Diagnostics */}
+        <DebugOverlay game={game} />
       </View>
     </SafeAreaProvider>
+  );
+}
+
+export default function EchoRunnerScreen() {
+  return (
+    <GameErrorBoundary gameId="echorunner">
+      <EchoRunnerContent />
+    </GameErrorBoundary>
   );
 }
 

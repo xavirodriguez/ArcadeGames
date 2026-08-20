@@ -142,4 +142,11 @@ describe("Echo Runner Game Simulation Tests", () => {
 
     expect(() => renderer.render(world, dummyCtx)).not.toThrow();
   });
+
+  it("should throw a descriptive error when required player blueprint is missing during entity initialization", async () => {
+    const badGame = new EchoRunnerGame({ seed: 12345 });
+    // Intentionally bypass blueprint registration or clear blueprints
+    (badGame as any).blueprints.blueprints.clear();
+    await expect((badGame as any).onInitializeEntities()).rejects.toThrow("[EchoRunnerGame]");
+  });
 });

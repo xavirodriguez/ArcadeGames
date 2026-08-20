@@ -108,6 +108,7 @@ export function useGame<
     } catch (err) {
       console.error("Failed to construct game instance:", err);
       setIsReady(false);
+      setError(err instanceof Error ? err : new Error(String(err)));
       return;
     }
     setIsReady(false);

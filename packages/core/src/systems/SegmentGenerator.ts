@@ -200,7 +200,12 @@ export class SegmentGenerator {
     tileSize: number,
     tileDefinitions: any
   ): void {
+    const registry = world.getResource<any>("BlueprintRegistry");
+
     // 1. Spawn Tilemap
+    if (registry && !registry.has("tilemap")) {
+      console.warn("[SegmentGenerator] Blueprint 'tilemap' is not registered in BlueprintRegistry.");
+    }
     world.commands.spawnFromBlueprint("tilemap" as any, {
       data: plan.globalTilemap,
       tileDefinitions
@@ -209,6 +214,11 @@ export class SegmentGenerator {
     // 2. Spawn other elements
     for (const inst of plan.segments) {
       for (const sp of inst.spawnPoints) {
+        if (registry && !registry.has(sp.type)) {
+          console.warn(`[SegmentGenerator] Blueprint '${sp.type}' is not registered. Skipping spawn point at tile (${sp.x}, ${sp.y}) in segment '${inst.templateId}'.`);
+          continue;
+        }
+
         // Calculate global pixel coordinates
         const globalPixelX = (inst.offsetX + sp.x) * tileSize + tileSize / 2;
         const globalPixelY = (inst.offsetY + sp.y) * tileSize + tileSize / 2;
@@ -219,14 +229,18 @@ export class SegmentGenerator {
           ...(sp.args ?? {})
         };
 
-        const entity = world.reserveEntityId();
-        world.commands.createEntity(entity);
-        world.commands.spawnFromBlueprintForEntity(entity, sp.type as any, args);
-        world.commands.addComponent(entity, {
-          type: "Respawnable",
-          blueprintKey: sp.type,
-          initialArgs: args
-        });
+        try {
+          const entity = world.reserveEntityId();
+          world.commands.createEntity(entity);
+          world.commands.spawnFromBlueprintForEntity(entity, sp.type as any, args);
+          world.commands.addComponent(entity, {
+            type: "Respawnable",
+            blueprintKey: sp.type,
+            initialArgs: args
+          });
+        } catch (err) {
+          console.error(`[SegmentGenerator] Failed to schedule blueprint '${sp.type}':`, err);
+        }
       }
     }
   }

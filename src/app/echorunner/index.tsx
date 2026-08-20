@@ -12,6 +12,7 @@ import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "@/utils/haptics";
 import { colors, spacing, typography, effects } from "../../theme";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
+import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import {
   GameScreen,
   BackButton,
@@ -277,6 +278,9 @@ function EchoRunnerContent() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Real-time Debug Overlay for Engine Metrics & Diagnostics */}
+        <DebugOverlay game={game} />
       </View>
     </SafeAreaProvider>
   );

@@ -12,3 +12,11 @@
 
 - **Lock Restoration Discipline**:
   When accessing `gameplayRandom` on simulation worlds, methods like `unlock()` return `this` (truthy), so checking `wasLocked` before unlocking is essential.
+
+## Iteration Pass 2 - Multi-room Input Sanitization & Local Tick Recovery Hardening
+
+### Key Findings & Insights
+- **Input Axis Clamping & Bounds Protection**:
+  Ensured `SpaceInvadersRoom` and `GeometryWarsRoom` clamp all input axis coordinates within `[-1.0, 1.0]` using `Math.max(-1, Math.min(1, val))` for every axis entry, matching `AsteroidsRoom`.
+- **Safe Fallback for `localTickRef`**:
+  In `useMultiplayer.ts`, sanitized `localTickRef.current` calculation against `NaN`/negative values by falling back to `serverTickRef.current` rather than `0` if invalid state is detected, preventing client input frames from being rejected by room tick validation mid-session.

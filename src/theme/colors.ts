@@ -1,3 +1,20 @@
+export const COLORS = {
+  // Semantic roles by state
+  success: '#00FF41',     // Arcade green
+  error: '#FF315B',       // Game Over red
+  warning: '#FFB800',     // Record amber
+  info: '#00FFFF',        // Info cyan
+
+  // Structural roles
+  ink: '#000000',
+  bgDark: '#0A0E27',
+  bgPanel: 'rgba(10, 14, 39, 0.85)',
+
+  // Neon / glow accents
+  neonCyan: '#00FFFF',
+  neonPurple: '#FF00FF',
+} as const;
+
 export const colors = {
   background: "#06060c",
   backgroundDark: "#0a0a14",

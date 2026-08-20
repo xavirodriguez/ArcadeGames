@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import { colors } from "./colors";
+import { createNeonGlow } from "../styles/Glow";
 
 export function neonTextGlow(color: string, radius = 15) {
   if (Platform.OS === "web") {
@@ -19,54 +20,9 @@ export function neonTextGlow(color: string, radius = 15) {
 }
 
 export const effects = {
-  cyanGlow: {
-    shadowColor: colors.cyan,
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  pinkGlow: {
-    shadowColor: colors.pink,
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  greenGlow: {
-    shadowColor: colors.green,
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  goldGlow: {
-    shadowColor: colors.gold,
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  whiteGlow: {
-    shadowColor: colors.white,
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 12,
-    elevation: 8,
-  },
+  cyanGlow: createNeonGlow(colors.cyan, 1),
+  pinkGlow: createNeonGlow(colors.pink, 1),
+  greenGlow: createNeonGlow(colors.green, 1),
+  goldGlow: createNeonGlow(colors.gold, 1),
+  whiteGlow: createNeonGlow(colors.white, 0.8),
 };

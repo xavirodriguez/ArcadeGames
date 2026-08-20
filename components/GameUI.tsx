@@ -3,6 +3,7 @@ import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hapticSelection } from "../src/utils/haptics";
 import { useTranslation } from "../src/hooks/useTranslation";
+import { GameOverNarrative } from "../src/components/GameOverNarrative";
 import Animated, {
   BounceIn,
   FadeIn,
@@ -731,7 +732,6 @@ const GameOverOverlay: React.FC<{
   mode?: "deathmatch" | "story";
   level?: number;
 }> = ({ score, highScore, onRestart, mode, level }) => {
-  const { t } = useTranslation();
   const isNewRecord = score >= highScore;
   let endingText = isNewRecord ? "MISSION RECORD OVERRIDDEN." : `ARCHIVE RECORD: ${formatScore(highScore)}`;
 
@@ -751,78 +751,17 @@ const GameOverOverlay: React.FC<{
     }
   }
 
-  const handleRestart = () => {
-    hapticSelection();
-    if (onRestart) onRestart();
-  };
-
   return (
-    <Animated.View entering={FadeIn.duration(450)} style={styles.gameOverOverlay} accessibilityViewIsModal={true}>
-      {Platform.OS !== "web" && Canvas && BackdropBlur && Fill && (
-        <Canvas style={StyleSheet.absoluteFill}>
-          <BackdropBlur blur={18}>
-            <Fill color="rgba(0, 0, 0, 0.68)" />
-          </BackdropBlur>
-        </Canvas>
-      )}
-
-      <View style={styles.gameOverNoiseLine} />
-
-      <Animated.View
-        entering={SlideInDown.delay(120).duration(520)}
-        style={styles.gameOverTerminal}
-        accessibilityViewIsModal={true}
-      >
-        <View style={styles.gameOverHeaderRow}>
-          <Text style={styles.gameOverSystemLabel} accessibilityRole="header">ODISEA-7 // FLIGHT RECORDER</Text>
-          <Text style={styles.gameOverErrorCode}>ERR.SIG-07</Text>
-        </View>
-
-        <View style={styles.gameOverDivider} />
-
-        <Animated.Text
-          entering={ZoomIn.delay(180).duration(480)}
-          style={styles.signalLostTitle}
-        >
-          SIGNAL LOST
-        </Animated.Text>
-        <Text style={styles.gameOverSubhead}>CONNECTION TERMINATED // KEPLER-791</Text>
-
-        <View style={styles.gameOverStatsRow}>
-          <View style={styles.gameOverStatBlock}>
-            <Text style={styles.gameOverStatLabel}>LAST SCORE</Text>
-            <Text style={styles.gameOverStatValue}>{formatScore(score)}</Text>
-          </View>
-          <View style={styles.gameOverStatSeparator} />
-          <View style={styles.gameOverStatBlock}>
-            <Text style={styles.gameOverStatLabel}>ARCHIVE RECORD</Text>
-            <Text style={[styles.gameOverStatValue, isNewRecord && styles.newRecordValue]}>
-              {formatScore(Math.max(score, highScore))}
-            </Text>
-          </View>
-        </View>
-
-        {isNewRecord && <Text style={styles.newRecordFlag}>// NEW ARCHIVE RECORD //</Text>}
-
-        <View style={styles.transmissionBox}>
-          <Text style={styles.transmissionLabel}>FINAL TRANSMISSION</Text>
-          <Text style={styles.transmissionText}>{endingText}</Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.restartButton}
-          onPress={handleRestart}
-          activeOpacity={0.72}
-          accessibilityRole="button"
-          accessibilityLabel={t?.accessibility?.restart_game_label || "Restart game"}
-          accessibilityHint={t?.accessibility?.restart_game_hint || "Restarts the game"}
-        >
-          <View style={styles.restartAccent} />
-          <Text style={styles.restartButtonMeta}>MISSION CONTROL</Text>
-          <Text style={styles.restartButtonText}>REINITIALIZE MISSION</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    </Animated.View>
+    <GameOverNarrative
+      gameTitle="ODISEA-7"
+      errorCode="ERR.SIG-07"
+      message={endingText}
+      score={score}
+      highScore={highScore}
+      newRecord={isNewRecord}
+      onRestart={onRestart}
+      subhead="CONNECTION TERMINATED // KEPLER-791"
+    />
   );
 };
 

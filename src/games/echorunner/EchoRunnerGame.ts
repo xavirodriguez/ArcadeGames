@@ -927,13 +927,14 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    const tileDefinitions = {
-      1: { solid: true, kind: "normal" as const },
-      2: { solid: true, kind: "ice" as const },
-      3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
-      4: { solid: true, kind: "spike" as const },
-      5: { solid: true, oneWay: true, kind: "normal" as const }
-    };
+    try {
+      const tileDefinitions = {
+        1: { solid: true, kind: "normal" as const },
+        2: { solid: true, kind: "ice" as const },
+        3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
+        4: { solid: true, kind: "spike" as const },
+        5: { solid: true, oneWay: true, kind: "normal" as const }
+      };
 
     // Design 10 handcrafted beautiful, engaging segments
     const templates: SegmentTemplate[] = [
@@ -1227,6 +1228,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     const playerBp = this.blueprints.get("player");
     if (playerBp) {
       playerBp.spawn(this.world as any, playerEntity, { x: 100, y: 350 });
+    } else {
+      throw new Error("[EchoRunnerGame] Blueprint 'player' is not registered.");
     }
 
     // Spawn Main Follow Camera centered on player
@@ -1245,6 +1248,10 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
       smoothingY: 6.0,
       verticalDeadzone: 45
     });
+    } catch (err) {
+      console.error("[EchoRunnerGame] Failed to initialize entities:", err);
+      throw err instanceof Error ? err : new Error(`[EchoRunnerGame] Initialization error: ${String(err)}`);
+    }
   }
 
   public override update(dt: number): void {

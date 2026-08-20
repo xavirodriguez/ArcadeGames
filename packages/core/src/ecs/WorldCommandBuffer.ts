@@ -51,7 +51,14 @@ export class WorldCommandBuffer<
         const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
         const blueprint = registry?.get(blueprintId);
         if (blueprint) {
-          blueprint.spawn(world, entity, args);
+          try {
+            blueprint.spawn(world, entity, args);
+          } catch (err) {
+            console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}':`, err);
+            throw err;
+          }
+        } else {
+          console.warn(`[WorldCommandBuffer] Blueprint '${blueprintId}' not found in registry.`);
         }
       }
     });
@@ -70,7 +77,14 @@ export class WorldCommandBuffer<
         const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
         const blueprint = registry?.get(blueprintId);
         if (blueprint) {
-          blueprint.spawn(world, entity, args);
+          try {
+            blueprint.spawn(world, entity, args);
+          } catch (err) {
+            console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}' for entity ${entity}:`, err);
+            throw err;
+          }
+        } else {
+          console.warn(`[WorldCommandBuffer] Blueprint '${blueprintId}' not found in registry.`);
         }
       }
     });

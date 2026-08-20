@@ -264,7 +264,17 @@ export function useMultiplayer(roomName: string, playerName: string, active: boo
         });
     }
 
-    localTickRef.current++;
+    const rawLocalTick = localTickRef.current;
+    const currentServerTick = serverTickRef.current;
+    const fallbackTick = (typeof currentServerTick === "number" && !isNaN(currentServerTick) && isFinite(currentServerTick) && currentServerTick >= 0)
+      ? currentServerTick
+      : 0;
+
+    const sanitizedLocalTick = (typeof rawLocalTick === "number" && !isNaN(rawLocalTick) && isFinite(rawLocalTick) && rawLocalTick >= 0)
+      ? Math.floor(rawLocalTick)
+      : fallbackTick;
+
+    localTickRef.current = sanitizedLocalTick + 1;
     const merged = persistentInputRef.current;
 
     const frame: InputFrame = {

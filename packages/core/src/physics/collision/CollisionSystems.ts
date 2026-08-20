@@ -38,6 +38,7 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   private onTriggerEnterCallbacks: TriggerCallback<TRegistry>[] = [];
   private onTriggerExitCallbacks: TriggerCallback<TRegistry>[] = [];
   private activePairs = new Set<string>();
+  private currentFramePairs = new Set<string>();
   private candidateEntities: Entity[] | null = null;
   private tempQuery: Entity[] = [];
 
@@ -169,7 +170,8 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
     } else {
       query = w.query("Transform", "Collider");
     }
-    const currentFramePairs = new Set<string>();
+    // Safe for determinism/rollback. Reusing instance Set avoids per-tick heap allocations during physics updates.
+    this.currentFramePairs.clear();
 
     const eventQuery = w.query("CollisionEvents");
     const eqLen = eventQuery.length;
@@ -215,7 +217,7 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
 
       if (manifold.colliding) {
         const pairId = this.getPairId(entityA, entityB);
-        currentFramePairs.add(pairId);
+        this.currentFramePairs.add(pairId);
 
         if (colA.isTrigger || colB.isTrigger) {
           if (!this.activePairs.has(pairId)) {
@@ -229,8 +231,9 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
       }
     }
 
-    this.activePairs.forEach(pairId => {
-      if (!currentFramePairs.has(pairId)) {
+    // Safe for determinism/rollback. Direct Set iteration avoids callback closure allocations.
+    for (const pairId of this.activePairs) {
+      if (!this.currentFramePairs.has(pairId)) {
         // Safe for determinism/rollback. Parsing substring numbers directly avoids string split and array map heap allocations on trigger exit events.
         const commaIdx = pairId.indexOf(",");
         const idA = Number(pairId.substring(0, commaIdx));
@@ -238,10 +241,12 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
         this.onTriggerExitCallbacks.forEach(cb => cb(world, idA, idB));
         this.notifyTriggerEvent(w, idA, idB, "exit");
       }
-    });
+    }
 
     this.activePairs.clear();
-    currentFramePairs.forEach(pair => this.activePairs.add(pair));
+    for (const pair of this.currentFramePairs) {
+      this.activePairs.add(pair);
+    }
   }
 
   /**

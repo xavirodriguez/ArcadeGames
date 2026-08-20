@@ -20,7 +20,10 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
       const margin = world.getResource<number>("SpatialCullingMargin") ?? 100;
       entities = SpatialCullingSystem.filterInViewport(world, entities, margin);
     }
-    for (const entity of entities) {
+    // Safe for determinism/rollback. Sequential indexed loop replaces for..of iterator to eliminate per-tick iterator allocations.
+    const len = entities.length;
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
       const b = world.getComponent(entity, "Boundary")!;
       const t = world.getComponent(entity, "Transform")!;
 

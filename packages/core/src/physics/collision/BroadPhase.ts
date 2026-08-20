@@ -17,6 +17,7 @@ interface EntityBounds {
 }
 
 const boundsPool: EntityBounds[] = [];
+const pairsPool: Array<[Entity, Entity]> = [];
 
 /** @public */
 export class BroadPhase {
@@ -125,7 +126,8 @@ export class BroadPhase {
       gap = Math.floor(gap / 2);
     }
 
-    const pairs: Array<[Entity, Entity]> = [];
+    // Safe for determinism/rollback. Reusing a static pairs buffer and updating tuple elements in place eliminates per-tick pair allocations during broadphase collision checks.
+    let pairIndex = 0;
     for (let i = 0; i < count; i++) {
       const a = boundsPool[i];
       if (a.entity === 0) continue; // Skip invalid
@@ -134,10 +136,19 @@ export class BroadPhase {
         const b = boundsPool[j];
         if (b.minX > a.maxX) break;
         if (a.minY <= b.maxY && b.minY <= a.maxY) {
-          pairs.push([a.entity, b.entity]);
+          let pair = pairsPool[pairIndex];
+          if (!pair) {
+            pair = [a.entity, b.entity];
+            pairsPool[pairIndex] = pair;
+          } else {
+            pair[0] = a.entity;
+            pair[1] = b.entity;
+          }
+          pairIndex++;
         }
       }
     }
-    return pairs;
+    pairsPool.length = pairIndex;
+    return pairsPool;
   }
 }

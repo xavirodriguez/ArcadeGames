@@ -12,6 +12,8 @@ import { RandomService } from "@tiny-aster/core";
 export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentRegistry> {
   private enemyBulletPool: EnemyBulletPool;
   private config?: SpaceInvadersConfig;
+  private columnShooters: Map<number, { entity: number; y: number }> = new Map();
+  private shooterPool: Array<{ entity: number; y: number }> = [];
 
   constructor(enemyBulletPool: EnemyBulletPool) {
     super();
@@ -163,31 +165,44 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
   }
 
   private fireFromFormation(world: World<SpaceInvadersComponentRegistry>, invaderEntities: ReadonlyArray<number>): void {
-    // Group invaders by column and pick the bottom one
-    const columns: Map<number, { entity: number, y: number }> = new Map();
+    // Safe for determinism/rollback. Reusing instance Map and pooled shooter slots eliminates per-fire-tick Map and object allocations.
+    this.columnShooters.clear();
     const len = invaderEntities.length;
+    let poolIndex = 0;
 
     for (let i = 0; i < len; i++) {
       const entity = invaderEntities[i];
       const invader = world.getComponent(entity, "Invader");
       const pos = world.getComponent(entity, "Transform");
       if (invader && pos) {
-        const existing = columns.get(invader.col);
-        if (!existing || pos.y > existing.y) {
-          columns.set(invader.col, { entity, y: pos.y });
+        const existing = this.columnShooters.get(invader.col);
+        if (!existing) {
+          let slot = this.shooterPool[poolIndex];
+          if (!slot) {
+            slot = { entity, y: pos.y };
+            this.shooterPool[poolIndex] = slot;
+          } else {
+            slot.entity = entity;
+            slot.y = pos.y;
+          }
+          poolIndex++;
+          this.columnShooters.set(invader.col, slot);
+        } else if (pos.y > existing.y) {
+          existing.entity = entity;
+          existing.y = pos.y;
         }
       }
     }
 
-    const colSize = columns.size;
+    const colSize = this.columnShooters.size;
     if (colSize > 0) {
       const rng = world.gameplayRandom;
       const targetIndex = rng.nextInt(0, colSize);
       let currentIndex = 0;
-      let selectedShooter: { entity: number, y: number } | undefined;
+      let selectedShooter: { entity: number; y: number } | undefined;
 
-      // Safe for determinism/rollback. Iterating map values directly avoids Array.from(columns.values()) heap allocations on firing ticks.
-      for (const colShooter of columns.values()) {
+      // Safe for determinism/rollback. Iterating map values directly avoids Array.from() heap allocations on firing ticks.
+      for (const colShooter of this.columnShooters.values()) {
         if (currentIndex === targetIndex) {
           selectedShooter = colShooter;
           break;

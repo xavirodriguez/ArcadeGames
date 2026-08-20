@@ -15,6 +15,7 @@ import { getLogsForLevel } from "../story/StoryBeats";
  */
 export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, AsteroidsEventRegistry> {
   private processedDeaths = new Set<number>();
+  private destroyedEntities = new Set<number>();
 
   constructor() {
     super();
@@ -174,12 +175,15 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
 
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, _deltaTime: number): void {
     this.processedDeaths.clear();
+    // Safe for determinism/rollback. Reusing instance Set avoids per-tick heap allocations during collision updates.
+    this.destroyedEntities.clear();
     // Paso 4: Double-security collision resolution system
     const entities = world.query("CollisionEvents");
-    const destroyedEntities = new Set<number>();
+    const len = entities.length;
 
-    // 1. Iterate over collision pairs
-    for (const entityA of entities) {
+    // 1. Iterate over collision pairs with zero-allocation indexed loop
+    for (let i = 0; i < len; i++) {
+      const entityA = entities[i];
       const colComp = world.getComponent(entityA, "CollisionEvents");
       if (!colComp) {
         continue;
@@ -206,7 +210,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
         }
 
         // Ensure we don't process if either entity was already destroyed in this system update
-        if (destroyedEntities.has(entityA) || destroyedEntities.has(entityB)) {
+        if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) {
           continue;
         }
 
@@ -222,7 +226,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
             const bullet   = isBulletA ? entityA : entityB;
             const asteroid = isBulletA ? entityB : entityA;
 
-            if (destroyedEntities.has(bullet) || destroyedEntities.has(asteroid)) continue;
+            if (this.destroyedEntities.has(bullet) || this.destroyedEntities.has(asteroid)) continue;
 
             // If CombatSystem has already processed this, it will have marked the asteroid as Dead
             // or the bullet would be removed. Otherwise, we are running in direct/headless mode,
@@ -232,8 +236,8 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
             if (!world.hasComponent(asteroid, "Dead" as any) && !isDeadPending) {
               this.onCombatDeath(world, { entity: asteroid, sourceEntity: bullet });
               world.getCommandBuffer().removeEntity(bullet);
-              destroyedEntities.add(bullet);
-              destroyedEntities.add(asteroid);
+              this.destroyedEntities.add(bullet);
+              this.destroyedEntities.add(asteroid);
             }
             continue;
         }
@@ -243,7 +247,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           const ship = isShipA ? entityA : entityB;
           const asteroid = isShipA ? entityB : entityA;
 
-          if (destroyedEntities.has(ship) || destroyedEntities.has(asteroid)) {
+          if (this.destroyedEntities.has(ship) || this.destroyedEntities.has(asteroid)) {
             continue;
           }
 
@@ -319,7 +323,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           } else {
             // Modificaciones Diferidas: TODA eliminación debe hacerse con world.getCommandBuffer().removeEntity(entity)
             world.getCommandBuffer().removeEntity(ship);
-            destroyedEntities.add(ship);
+            this.destroyedEntities.add(ship);
           }
 
           // Eventos Diferidos: Todo evento debe emitirse con eventBus.emitDeferred()

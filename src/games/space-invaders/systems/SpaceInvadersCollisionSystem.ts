@@ -23,6 +23,8 @@ import { createParticle } from "../EntityFactory";
  */
 export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry> {
   private config?: SpaceInvadersConfig;
+  private destroyedEntities = new Set<number>();
+  private pairResult: { [key: string]: Entity } = {};
 
   constructor(private _particlePool: ParticlePool) {
     super();
@@ -206,7 +208,8 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     if (!gameState || gameState.isGameOver) return;
 
     const entitiesWithEvents = world.query("CollisionEvents");
-    const destroyedEntities = new Set<number>();
+    // Safe for determinism/rollback. Reusing instance Set avoids per-tick heap allocations during collision resolution.
+    this.destroyedEntities.clear();
 
     // Helper to check if entity exists and is active
     const hasEntity = (entity: number): boolean => {
@@ -216,7 +219,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       return world.hasComponent(entity, "Transform");
     };
 
-    for (const entityA of entitiesWithEvents) {
+    const len = entitiesWithEvents.length;
+    for (let i = 0; i < len; i++) {
+      const entityA = entitiesWithEvents[i];
       const eventsComp = world.getComponent(entityA, "CollisionEvents");
       if (!eventsComp) continue;
 
@@ -230,9 +235,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         if (!hasEntity(entityA) || !hasEntity(entityB)) continue;
 
         // Double Security C: Ensure they haven't already been destroyed in this update step
-        if (destroyedEntities.has(entityA) || destroyedEntities.has(entityB)) continue;
+        if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
 
-        this.handleCollision(world, entityA, entityB, destroyedEntities);
+        this.handleCollision(world, entityA, entityB, this.destroyedEntities);
 
         // Re-check game over state after each collision
         const currentGS = world.getSingleton("GameState");
@@ -391,8 +396,10 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
   private checkInvadersBottom(world: World<SpaceInvadersComponentRegistry>, _gameState: GameStateComponent): void {
     const invaders = world.query("Invader", "Transform");
     const limit = GAME_CONFIG.SCREEN_HEIGHT - 100;
+    const len = invaders.length;
 
-    for (const invader of invaders) {
+    for (let i = 0; i < len; i++) {
+      const invader = invaders[i];
       const pos = world.getComponent(invader, "Transform");
       if (pos && pos.y > limit) {
         world.mutateSingleton("GameState", gs => {
@@ -410,12 +417,25 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     type1: T1,
     type2: T2
   ): Record<T1 | T2, Entity> | undefined {
+    // Safe for determinism/rollback. Reusing static pair object and clearing stale keys avoids object literal allocations per pair check while preventing property pollution.
     if (world.hasComponent(entityA, type1) && world.hasComponent(entityB, type2)) {
-      return { [type1]: entityA, [type2]: entityB } as Record<T1 | T2, Entity>;
+      this.clearPairResult();
+      this.pairResult[type1 as string] = entityA;
+      this.pairResult[type2 as string] = entityB;
+      return this.pairResult as Record<T1 | T2, Entity>;
     }
     if (world.hasComponent(entityB, type1) && world.hasComponent(entityA, type2)) {
-      return { [type1]: entityB, [type2]: entityA } as Record<T1 | T2, Entity>;
+      this.clearPairResult();
+      this.pairResult[type1 as string] = entityB;
+      this.pairResult[type2 as string] = entityA;
+      return this.pairResult as Record<T1 | T2, Entity>;
     }
     return undefined;
+  }
+
+  private clearPairResult(): void {
+    for (const key in this.pairResult) {
+      delete this.pairResult[key];
+    }
   }
 }

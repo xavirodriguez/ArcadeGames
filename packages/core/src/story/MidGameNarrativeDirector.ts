@@ -1,9 +1,11 @@
-import { StoryRuntimeSnapshot } from "./ArcadeIntegrationTypes";
+import { MiniGameResult, StoryRuntimeSnapshot } from "./ArcadeIntegrationTypes";
 import {
   GameplayEvent,
   MidGameDirectorRule,
   NarrativeCue
 } from "./NarrativeDirectorTypes";
+import { EventBus } from "../events/EventBus";
+import { StoryRuntime } from "./StoryRuntime";
 
 /**
  * MidGameNarrativeDirector evaluates gameplay events against narrative snapshot state to produce narrative cues.
@@ -70,6 +72,65 @@ export class MidGameNarrativeDirector {
     }
 
     return null;
+  }
+
+  /**
+   * Binds EventBus and StoryRuntime to intercept minigame game:over events,
+   * updating story runtime state before returning to narrative flow.
+   *
+   * @param eventBus - EventBus instance.
+   * @param runtime - Target StoryRuntime instance.
+   */
+  public bindEventBus(eventBus: EventBus, runtime: StoryRuntime): void {
+    eventBus.on("game:over", (payload: unknown) => {
+      if (payload && typeof payload === "object") {
+        this.processMiniGameResult(payload as MiniGameResult, runtime);
+      }
+    });
+  }
+
+  /**
+   * Processes a minigame execution result, updates performance state variables on StoryRuntime,
+   * and triggers transition evaluations.
+   *
+   * @param result - Completed MiniGameResult payload.
+   * @param runtime - Active StoryRuntime instance.
+   * @returns Performance classification string.
+   */
+  public processMiniGameResult(
+    result: MiniGameResult,
+    runtime: StoryRuntime
+  ): "perfect" | "good" | "poor" {
+    const score = typeof result?.score === "number" ? result.score : 0;
+    const completed = !!result?.completed;
+
+    let performance: "perfect" | "good" | "poor" = "good";
+    if (!completed || score < 500) {
+      performance = "poor";
+    } else if (score >= 2000) {
+      performance = "perfect";
+    }
+
+    runtime.setVariable("lastMinigameScore", score);
+    runtime.setVariable("lastMinigameCompleted", completed);
+    runtime.setVariable("playerPerformance", performance);
+
+    const snapshot = runtime.getState();
+    const event: GameplayEvent = {
+      id: `result_${result.runId || Date.now()}`,
+      name: "game:over",
+      timestamp: Date.now(),
+      payload: { score, completed, performance }
+    };
+
+    const cue = this.evaluateEvent(event, snapshot);
+    if (cue && cue.payload && typeof cue.payload.navigateToNode === "string") {
+      runtime.navigateToNode(cue.payload.navigateToNode);
+    } else {
+      runtime.evaluateTransitions();
+    }
+
+    return performance;
   }
 
   /**

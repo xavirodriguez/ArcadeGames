@@ -8,6 +8,9 @@ import {
   StoryChoice,
   StoryEffect
 } from "./StoryTypes";
+import { RelationshipEngine } from "./RelationshipEngine";
+import { DeductionEngine } from "./DeductionEngine";
+import { NarrativeTimelineEngine } from "./NarrativeTimelineEngine";
 
 /**
  * StoryRuntime orchestrates narrative progression based on a data-driven `StoryGraph`.
@@ -32,6 +35,11 @@ export class StoryRuntime {
   private state: StoryState;
   private world?: World;
   private eventBus?: EventBus;
+  private relationshipEngine?: RelationshipEngine;
+  private deductionEngine?: DeductionEngine;
+  private timelineEngine?: NarrativeTimelineEngine;
+  private lastRecordedEventId: string | null = null;
+  private checkpoints: Map<string, { state: StoryState; lastEventId: string | null }> = new Map();
 
   /**
    * Constructs a new `StoryRuntime` instance.
@@ -53,6 +61,90 @@ export class StoryRuntime {
     if (graph) {
       this.loadGraph(graph);
     }
+  }
+
+  /**
+   * Binds a `RelationshipEngine` instance to track character dispositions and memories.
+   *
+   * @param engine - RelationshipEngine instance.
+   */
+  public bindRelationshipEngine(engine: RelationshipEngine): void {
+    this.relationshipEngine = engine;
+  }
+
+  /**
+   * Retrieves bound `RelationshipEngine` instance.
+   */
+  public getRelationshipEngine(): RelationshipEngine | undefined {
+    return this.relationshipEngine;
+  }
+
+  /**
+   * Binds a `DeductionEngine` instance to evaluate automated evidence conclusions.
+   *
+   * @param engine - DeductionEngine instance.
+   */
+  public bindDeductionEngine(engine: DeductionEngine): void {
+    this.deductionEngine = engine;
+    engine.bindRuntime(this);
+  }
+
+  /**
+   * Retrieves bound `DeductionEngine` instance.
+   */
+  public getDeductionEngine(): DeductionEngine | undefined {
+    return this.deductionEngine;
+  }
+
+  /**
+   * Binds a `NarrativeTimelineEngine` instance to record causal narrative events.
+   *
+   * @param engine - NarrativeTimelineEngine instance.
+   */
+  public bindTimelineEngine(engine: NarrativeTimelineEngine): void {
+    this.timelineEngine = engine;
+  }
+
+  /**
+   * Retrieves bound `NarrativeTimelineEngine` instance.
+   */
+  public getTimelineEngine(): NarrativeTimelineEngine | undefined {
+    return this.timelineEngine;
+  }
+
+  /**
+   * Retrieves list of all recorded checkpoint node IDs.
+   */
+  public getCheckpoints(): string[] {
+    return Array.from(this.checkpoints.keys());
+  }
+
+  /**
+   * Rewinds narrative state to a previously saved checkpoint node snapshot.
+   *
+   * @param targetNodeId - Checkpoint node ID to restore.
+   * @returns `true` if rewind succeeded, `false` if target checkpoint is invalid or permanent policy prevents rewind.
+   */
+  public rewind(targetNodeId: string): boolean {
+    const checkpointData = this.checkpoints.get(targetNodeId);
+    if (!checkpointData) {
+      return false;
+    }
+
+    const currentNode = this.getCurrentNode();
+    if (currentNode?.meta?.rewindPolicy === "permanent") {
+      return false;
+    }
+
+    this.state = JSON.parse(JSON.stringify(checkpointData.state));
+    this.lastRecordedEventId = checkpointData.lastEventId;
+
+    if (this.timelineEngine) {
+      this.timelineEngine.truncateAfter(this.lastRecordedEventId);
+    }
+
+    this.navigateToNode(targetNodeId);
+    return true;
   }
 
   /**
@@ -154,19 +246,7 @@ export class StoryRuntime {
       }
 
       case "discoverEvidence": {
-        if (!this.state.evidence) {
-          this.state.evidence = [];
-        }
-        if (!this.state.evidence.includes(effect.evidenceId)) {
-          this.state.evidence.push(effect.evidenceId);
-        }
-        this.state.flags[`evidence:${effect.evidenceId}`] = true;
-        if (this.eventBus) {
-          this.eventBus.emit("story:evidence_discovered" as any, {
-            evidenceId: effect.evidenceId
-          });
-        }
-        this.evaluateTransitions();
+        this.discoverEvidence(effect.evidenceId);
         break;
       }
 
@@ -197,6 +277,31 @@ export class StoryRuntime {
       case "emitEvent": {
         if (this.eventBus) {
           this.eventBus.emit(effect.event as any, effect.payload || {});
+        }
+        if (this.relationshipEngine) {
+          if (effect.event === "betrayal" || effect.event === "relationship:betrayal") {
+            const charId = (effect.payload?.characterId as string) || "unknown";
+            this.relationshipEngine.modifyRelationship(charId, { trust: -5, suspicion: 5 });
+            this.relationshipEngine.addMemory({
+              characterId: charId,
+              type: "betrayal",
+              referenceId: (effect.payload?.referenceId as string) || "betrayal_event"
+            });
+          } else if (effect.event === "relationship:memory") {
+            const charId = (effect.payload?.characterId as string) || "unknown";
+            const rawType = effect.payload?.type;
+            const validTypes = ["playerChoice", "event", "lie", "promise", "betrayal", "assistance"] as const;
+            const memType =
+              typeof rawType === "string" && (validTypes as readonly string[]).includes(rawType)
+                ? (rawType as typeof validTypes[number])
+                : "event";
+            const refId = (effect.payload?.referenceId as string) || "memory_event";
+            this.relationshipEngine.addMemory({
+              characterId: charId,
+              type: memType,
+              referenceId: refId
+            });
+          }
         }
         break;
       }
@@ -244,6 +349,25 @@ export class StoryRuntime {
       this.state.objectives[node.objective.id] = { ...node.objective };
     }
 
+    // Capture checkpoint state snapshot BEFORE node entry effects execute
+    if (node.checkpoint) {
+      this.checkpoints.set(nodeId, {
+        state: JSON.parse(JSON.stringify(this.state)),
+        lastEventId: this.lastRecordedEventId
+      });
+    }
+
+    // Record NodeEntered event on NarrativeTimelineEngine if bound
+    if (this.timelineEngine) {
+      const recorded = this.timelineEngine.recordEvent({
+        type: "NodeEntered",
+        title: `Entered node '${node.title || nodeId}'`,
+        causedBy: this.lastRecordedEventId ? [this.lastRecordedEventId] : [],
+        payload: { nodeId, type: node.type }
+      });
+      this.lastRecordedEventId = recorded.id;
+    }
+
     // Apply declarative node entry effects if defined
     if (node.effects) {
       this.applyEffects(node.effects);
@@ -252,6 +376,14 @@ export class StoryRuntime {
     // Emit node custom event if configured
     if (node.emitEvent && this.eventBus) {
       this.eventBus.emit(node.emitEvent.name as any, node.emitEvent.payload || {});
+    }
+
+    // Invisible branch node handling: auto-evaluate transitions immediately without UI pause
+    if (node.type === "branch") {
+      const transitioned = this.evaluateTransitions();
+      if (transitioned && this.state.currentNodeId !== nodeId) {
+        return true;
+      }
     }
 
     // Emit scene change event if node specifies sceneToLoad
@@ -299,17 +431,32 @@ export class StoryRuntime {
    */
   public evaluateTransitions(): boolean {
     const currentNode = this.getCurrentNode();
-    if (!currentNode || !currentNode.transitions || currentNode.transitions.length === 0) {
+    if (!currentNode) {
       return false;
     }
 
-    const sortedTransitions = [...currentNode.transitions].sort(
-      (a, b) => (b.priority || 0) - (a.priority || 0)
-    );
+    // 1. Evaluate explicit outgoing transitions sorted by priority
+    if (currentNode.transitions && currentNode.transitions.length > 0) {
+      const sortedTransitions = [...currentNode.transitions].sort(
+        (a, b) => (b.priority || 0) - (a.priority || 0)
+      );
 
-    for (const transition of sortedTransitions) {
-      if (!transition.condition || this.evaluateCondition(transition.condition)) {
-        return this.navigateToNode(transition.targetNodeId);
+      for (const transition of sortedTransitions) {
+        if (!transition.condition || this.evaluateCondition(transition.condition)) {
+          return this.navigateToNode(transition.targetNodeId);
+        }
+      }
+    }
+
+    // 2. Fallback for branch nodes defined with choices instead of explicit transitions
+    if (currentNode.type === "branch" && currentNode.choices && currentNode.choices.length > 0) {
+      for (const choice of currentNode.choices) {
+        if (!choice.condition || this.evaluateCondition(choice.condition)) {
+          if (choice.effects) {
+            this.applyEffects(choice.effects);
+          }
+          return this.navigateToNode(choice.targetNodeId);
+        }
       }
     }
 
@@ -363,6 +510,17 @@ export class StoryRuntime {
     }
 
     this.state.selectedChoices.push(choiceId);
+
+    // Record ChoiceSelected event on NarrativeTimelineEngine if bound
+    if (this.timelineEngine) {
+      const recorded = this.timelineEngine.recordEvent({
+        type: "ChoiceSelected",
+        title: `Selected choice '${choice.titleKey || choiceId}'`,
+        causedBy: this.lastRecordedEventId ? [this.lastRecordedEventId] : [],
+        payload: { choiceId, nodeId: node.id, targetNodeId: choice.targetNodeId }
+      });
+      this.lastRecordedEventId = recorded.id;
+    }
 
     // Apply declarative choice effects if defined
     if (choice.effects) {
@@ -458,6 +616,22 @@ export class StoryRuntime {
   public setVariable(key: string, value: any): void {
     if (this.state.variables[key] === value) return;
     this.state.variables[key] = value;
+
+    if (key === "evidence" && typeof value === "string") {
+      this.discoverEvidence(value);
+    } else if (key.startsWith("evidence:") && value === true) {
+      this.discoverEvidence(key.slice(9));
+    } else if ((key.startsWith("relationship:") || key.startsWith("rel:")) && this.relationshipEngine) {
+      const parts = key.split(":");
+      if (parts.length >= 3) {
+        const charId = parts[1];
+        const metric = parts[2] as "trust" | "fear" | "respect" | "suspicion";
+        if (["trust", "fear", "respect", "suspicion"].includes(metric)) {
+          this.relationshipEngine.modifyRelationship(charId, { [metric]: Number(value) });
+        }
+      }
+    }
+
     this.evaluateTransitions();
   }
 
@@ -467,7 +641,23 @@ export class StoryRuntime {
    * @param evidenceId - Unique string identifier of evidence unlocked.
    */
   public discoverEvidence(evidenceId: string): void {
-    this.applyEffect({ type: "discoverEvidence", evidenceId });
+    if (!this.state.evidence) {
+      this.state.evidence = [];
+    }
+    const isNew = !this.state.evidence.includes(evidenceId);
+    if (isNew) {
+      this.state.evidence.push(evidenceId);
+      this.state.flags[`evidence:${evidenceId}`] = true;
+      if (this.eventBus) {
+        this.eventBus.emit("story:evidence_discovered" as any, {
+          evidenceId
+        });
+      }
+      if (this.deductionEngine) {
+        this.deductionEngine.discoverEvidence(evidenceId);
+      }
+      this.evaluateTransitions();
+    }
   }
 
   /**

@@ -60,6 +60,8 @@ export class PlayerBulletPool extends ProjectilePool<any, ProjectileParams> {
         data.velocity.vy = p.dy;
         data.render.size = p.size;
         data.render.color = p.color;
+        data.render.visible = true;
+        data.render.opacity = 1;
         if (data.collider.shape.type === ShapeType.Circle) {
           (data.collider.shape as CircleShape).radius = p.size;
         }
@@ -129,6 +131,8 @@ export class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {
         data.velocity.vy = p.dy;
         data.render.size = p.size;
         data.render.color = p.color;
+        data.render.visible = true;
+        data.render.opacity = 1;
         if (data.collider.shape.type === ShapeType.Circle) {
           (data.collider.shape as CircleShape).radius = p.size;
         }

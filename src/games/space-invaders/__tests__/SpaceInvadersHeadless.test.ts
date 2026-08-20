@@ -53,10 +53,10 @@ describe("SpaceInvadersGame Headless Mode", () => {
     await game.init();
     expect(game.getLifecycleState()).toBe(GameLifecycleState.RUNNING);
 
-    // Advancing 3.2 seconds should complete the ready countdown (3s) and trigger spawning.
+    // Advancing 3.6 seconds completes the transition (0.3s) and ready countdown (3.0s) to trigger spawning.
     // In non-headless mode, we pass seconds to update() in real game loop.
     const dtSec = 0.01666;
-    const totalTicks = Math.ceil(3.2 / dtSec);
+    const totalTicks = Math.ceil(3.6 / dtSec);
 
     for (let i = 0; i < totalTicks; i++) {
       game.update(dtSec);

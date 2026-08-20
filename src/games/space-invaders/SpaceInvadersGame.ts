@@ -416,11 +416,6 @@ export class SpaceInvadersGame
   }
 
   public override update(dt: number): void {
-      if (this.sceneManager) {
-        const dtMs = dt > 1.0 ? dt : dt * 1000;
-        this.sceneManager.update(dtMs);
-      }
-
       const world = this.getWorld();
 
       // 1. Playback recorded inputs if a replay is running
@@ -452,8 +447,12 @@ export class SpaceInvadersGame
       }
 
       // 2. Perform the actual simulation update tick
-      this.getWorld().update(dt);
-      this.getWorld().getEventBus()?.flushDeferred();
+      if (this.sceneManager) {
+        this.sceneManager.update(dt);
+      } else {
+        world.update(dt);
+      }
+      world.getEventBus()?.flushDeferred();
 
       // 3. Record inputs if recording is enabled
       if (this._recorder) {

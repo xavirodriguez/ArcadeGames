@@ -8,10 +8,13 @@ import {
   StoryNode,
   StoryChoice,
   CampaignGameResolver,
+  GameDefinitionRegistry,
   CampaignSaveManager,
-  MetaProgressionService
+  MetaProgressionService,
+  ArcadeKernel,
+  ArcadeState
 } from "@tiny-aster/core";
-import { registerDefaultCampaignGames } from "@/src/services/CampaignGameRegistryService";
+import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { CanvasRenderer } from "./CanvasRenderer";
 
 export interface CampaignScreenProps {
@@ -25,19 +28,26 @@ export interface CampaignScreenProps {
   metaService?: MetaProgressionService;
   /** Optional CampaignSaveManager instance override. */
   saveManager?: CampaignSaveManager;
+  /** Optional shared ArcadeKernel instance for global state transition orchestration. */
+  arcadeKernel?: ArcadeKernel;
   /** Callback fired when campaign runtime encounters an error. */
   onError?: (error: Error) => void;
 }
 
+/**
+ * Orchestrator component managing multi-game campaign flow, narrative runtime state,
+ * and game definition resolution over the unified engine architecture.
+ */
 export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   graph,
   slotId = "default_slot",
   defaultGameId = "echorunner",
   metaService: customMetaService,
   saveManager: customSaveManager,
+  arcadeKernel: customArcadeKernel,
   onError
 }) => {
-  // Ensure default campaign games are registered on mount
+  // Ensure default campaign games and game definitions are registered on mount
   useEffect(() => {
     registerDefaultCampaignGames();
   }, []);
@@ -45,6 +55,11 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const eventBusRef = useRef<EventBus | null>(null);
   if (!eventBusRef.current) {
     eventBusRef.current = new EventBus();
+  }
+
+  const sharedKernelRef = useRef<ArcadeKernel | null>(null);
+  if (!sharedKernelRef.current) {
+    sharedKernelRef.current = customArcadeKernel ?? new ArcadeKernel(eventBusRef.current);
   }
 
   const runtimeRef = useRef<StoryRuntime | null>(null);
@@ -71,7 +86,16 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const currentGameRef = useRef<BaseGame | null>(null);
   currentGameRef.current = activeGame;
 
-  // Game switching helper
+  /**
+   * Switches the active minigame by resolving the target gameId via GameDefinitionRegistry
+   * and instantiating the BaseGame simulation instance.
+   *
+   * @remarks
+   * Direct `BaseGame` simulation instantiation via `definition.createSimulation(seed)` + `.init()` is chosen
+   * because it allows `BaseGame`'s internal high-performance game loop (`GameLoop`) to drive physical simulation ticks
+   * and Canvas updates natively in React Native, while maintaining seed-based determinism.
+   * `GameSession` is reserved for headless execution, replay recording, and server-side step ticking.
+   */
   const switchGame = useCallback(async (gameId: string) => {
     setIsLoading(true);
     setStatusMessage(`Loading minigame (${gameId})...`);
@@ -82,11 +106,39 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         setActiveGame(null);
       }
 
-      const newGame = CampaignGameResolver.resolveGame(gameId);
+      let newGame: BaseGame;
+      const normalizedId = GameDefinitionRegistry.normalizeId(gameId);
+
+      if (GameDefinitionRegistry.has(normalizedId)) {
+        const definition = GameDefinitionRegistry.resolve(normalizedId);
+        const seed = Math.floor(Math.random() * 0xFFFFFFFF);
+        // Create pure simulation instance passing seed and shared campaign kernel
+        newGame = definition.createSimulation(seed) as BaseGame;
+      } else {
+        // Fallback to legacy CampaignGameResolver if not found in GameDefinitionRegistry
+        newGame = CampaignGameResolver.resolveGame(gameId, { arcadeKernel: sharedKernelRef.current });
+      }
+
       await newGame.init();
 
+      if (sharedKernelRef.current && sharedKernelRef.current.getState() !== ArcadeState.PLAYING) {
+        try {
+          if (sharedKernelRef.current.getState() === ArcadeState.BOOT) {
+            sharedKernelRef.current.transitionTo(ArcadeState.LOADING);
+          }
+          if (sharedKernelRef.current.getState() === ArcadeState.LOADING) {
+            sharedKernelRef.current.transitionTo(ArcadeState.MENU);
+          }
+          if (sharedKernelRef.current.getState() === ArcadeState.MENU) {
+            sharedKernelRef.current.transitionTo(ArcadeState.PLAYING);
+          }
+        } catch (e) {
+          // Suppress invalid transition errors if kernel is already managed externally
+        }
+      }
+
       setActiveGame(newGame);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[CampaignScreen] Failed to switch game:", err);
       if (onError) {
         onError(err instanceof Error ? err : new Error(String(err)));
@@ -105,9 +157,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     runtime.bindEventBus(eventBus);
 
     // Update React UI on node changes
-    const unsubNode = eventBus.on("story:node_changed", (data: any) => {
+    const unsubNode = eventBus.on("story:node_changed", (data: { node?: unknown }) => {
       if (!isSubscribed) return;
-      const node: StoryNode | undefined = data.node;
+      const node = data.node as StoryNode | undefined;
       if (node) {
         setCurrentNode(node);
         setAvailableChoices(node.choices || []);
@@ -115,9 +167,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     });
 
     // Handle scene / gameplay change requests from story runtime
-    const unsubScene = eventBus.on("story:scene_change", (data: any) => {
+    const unsubScene = eventBus.on("story:scene_change", (data: { sceneToLoad?: unknown; gameId?: unknown }) => {
       if (!isSubscribed) return;
-      const targetGameId = data.sceneToLoad || data.gameId;
+      const targetGameId = (data.sceneToLoad || data.gameId) as string | undefined;
       if (targetGameId) {
         switchGame(targetGameId);
       }
@@ -172,7 +224,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         metaServiceRef.current!
       );
       setStatusMessage("Campaign Saved Successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[CampaignScreen] Save failed:", err);
       if (onError) {
         onError(err instanceof Error ? err : new Error(String(err)));
@@ -201,7 +253,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         }
         setStatusMessage("Campaign Loaded Successfully!");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[CampaignScreen] Load failed:", err);
       if (onError) {
         onError(err instanceof Error ? err : new Error(String(err)));

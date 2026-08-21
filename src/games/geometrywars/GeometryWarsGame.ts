@@ -6,7 +6,8 @@ import {
   World,
   Camera2DSystem,
   TransformComponent,
-  WebAudioPlayer
+  WebAudioPlayer,
+  GameDefinition
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, GeometryWarsStateComponent, GeometryWarsInput, GeometryWarsBlueprintRegistry } from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
@@ -434,3 +435,28 @@ export class GeometryWarsGame extends BaseGame<
     return state?.isGameOver ?? false;
   }
 }
+
+export const GeometryWarsDefinition: GameDefinition = {
+  name: "geometrywars",
+  createSimulation: (seed: number) => {
+    const game = new GeometryWarsGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: [
+      "moveUp",
+      "moveDown",
+      "moveLeft",
+      "moveRight",
+      "shootUp",
+      "shootDown",
+      "shootLeft",
+      "shootRight",
+      "bomb"
+    ]
+  },
+  assets: {
+    sprites: [],
+    sounds: []
+  }
+};

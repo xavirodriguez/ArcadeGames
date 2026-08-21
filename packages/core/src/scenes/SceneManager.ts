@@ -900,6 +900,8 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
    * Binds a StoryRuntime instance and a scene factory to enable data-driven scene switches.
    * Preserves StoryRuntime state across scene transitions.
    *
+   * @deprecated Use `CampaignScreen` and `GameDefinitionRegistry` for orchestrating multi-game campaign transitions instead.
+   *
    * @param runtime - Active StoryRuntime instance.
    * @param sceneFactory - Factory function creating a Scene for a given scene identifier.
    */

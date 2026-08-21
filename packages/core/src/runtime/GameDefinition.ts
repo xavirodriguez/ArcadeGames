@@ -1,6 +1,19 @@
 import { Simulation } from "./Simulation";
 
 /**
+ * Canonical game identifier union for registered minigames.
+ * @public
+ */
+export type GameId =
+  | "asteroids"
+  | "echorunner"
+  | "space-invaders"
+  | "flappybird"
+  | "pong"
+  | "geometrywars"
+  | "platformer";
+
+/**
  * Declares the asset requirements for a game definition prior to simulation startup.
  * @public
  */
@@ -35,7 +48,7 @@ export interface GameDefinition {
   /**
    * Unique name of the game (e.g., `"asteroids"`).
    */
-  readonly name: string;
+  readonly name: GameId | string;
 
   /**
    * Factory method to instantiate a new, deterministic simulation instance initialized with the given seed.

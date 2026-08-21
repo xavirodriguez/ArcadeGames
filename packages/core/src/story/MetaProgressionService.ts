@@ -235,3 +235,14 @@ export class MetaProgressionService {
     return MetaProgressionService.migrateState(rawState);
   }
 }
+
+/**
+ * Pure migration pipeline function for MetaProgression save objects without I/O side effects.
+ *
+ * @param rawState - Raw JSON or un-migrated MetaProgressionState object.
+ * @returns Fully migrated MetaProgressionState object.
+ * @public
+ */
+export function migrateMetaProgressionState(rawState: unknown): MetaProgressionState {
+  return MetaProgressionService.migrateState(rawState);
+}

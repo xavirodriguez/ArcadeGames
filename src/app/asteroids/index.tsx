@@ -23,6 +23,7 @@ import { Mutator } from "@/config/MutatorConfig";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { InputState } from "../../types/GameTypes";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
+import { GameStateComponent } from "@/games/asteroids/types/AsteroidTypes";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
@@ -147,7 +148,7 @@ export default function AsteroidsScreen() {
       <GameThemeProvider gameKey="asteroids">
         <StartScreen
           title={t.menu.asteroids}
-          highScore={highScore}
+          highScore={highScore ?? 0}
           onStart={() => {
             if (initialSeed !== undefined) {
               restartWithSeed(initialSeed);
@@ -195,8 +196,8 @@ export default function AsteroidsScreen() {
           game={game}
           gameState={gameState}
           isPaused={isPaused}
-          highScore={highScore}
-          seed={seed}
+          highScore={highScore ?? 0}
+          seed={seed ?? 0}
           restartWithSeed={restartWithSeed}
           isMulti={isMulti}
           room={room}
@@ -213,6 +214,26 @@ export default function AsteroidsScreen() {
       </SafeAreaProvider>
     </GameErrorBoundary>
   );
+}
+
+interface AsteroidsGameContentProps {
+  game: AsteroidsGame;
+  gameState: GameStateComponent | null;
+  isPaused: boolean;
+  highScore: number;
+  seed: number;
+  restartWithSeed: (newSeed?: number) => void;
+  isMulti: boolean;
+  room: { send: (type: string, data?: unknown) => void } | null;
+  connected: boolean;
+  togglePause: () => void;
+  handleMultiplayerInput: (input: Partial<InputState>) => void;
+  handleShootPress: () => void;
+  handleShootRelease: () => void;
+  handleHyperspacePress: () => void;
+  handleHyperspaceRelease: () => void;
+  showDailyResults: boolean;
+  setShowDailyResults: (show: boolean) => void;
 }
 
 function AsteroidsGameContent({
@@ -233,7 +254,7 @@ function AsteroidsGameContent({
   handleHyperspaceRelease,
   showDailyResults,
   setShowDailyResults,
-}: any) {
+}: AsteroidsGameContentProps) {
   const { t } = useTranslation();
   const kernel = game.kernel;
   const eventBus = game.getEventBus();
@@ -276,7 +297,7 @@ function AsteroidsGameContent({
             isActive={true}
           />
           <GameUI
-            gameState={gameState}
+            gameState={gameState as any}
             onRestart={() => (isMulti ? room?.send("start_game") : game.restart())}
             onPause={() => togglePause()}
             isPaused={isPaused}
@@ -342,7 +363,7 @@ function AsteroidsGameContent({
             <View style={sharedScreenStyles.overlay}>
               <DailyResultsOverlay
                 gameId="asteroids"
-                score={gameState.score}
+                score={gameState?.score || 0}
                 seed={seed}
                 onClose={() => setShowDailyResults(false)}
               />

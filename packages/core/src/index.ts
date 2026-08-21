@@ -61,6 +61,7 @@ export * from "./runtime/BaseGame";
 export * from "./runtime/IGame";
 export * from "./runtime/Simulation";
 export * from "./runtime/GameDefinition";
+export * from "./runtime/GameDefinitionRegistry";
 export * from "./runtime/GameSession";
 export * from "./runtime/ArcadeKernel";
 

@@ -71,7 +71,7 @@ export const MultiGameTestCampaign: StoryGraph = {
       id: "node_4_space_invaders",
       type: "gameplay",
       title: "Space Invaders Stage",
-      sceneToLoad: "space_invaders",
+      sceneToLoad: "space-invaders",
       isEndNode: true
     }
   }

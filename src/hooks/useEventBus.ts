@@ -1,17 +1,19 @@
 import { useContext } from 'react';
 import type { EventBus } from '@tiny-aster/core';
-import { ArcadeContext } from '../context/ArcadeContext';
+import { GameThemeContext } from '@/context/GameThemeContext';
 
 /**
- * Access the EventBus from the current ArcadeContext or explicit override.
+ * Access the EventBus from the current game context or direct game reference.
  */
-export function useEventBus(overrideEventBus?: EventBus): EventBus {
-  const ctx = useContext(ArcadeContext);
-  const bus = overrideEventBus ?? ctx?.eventBus;
+export function useEventBus(game?: any | null): EventBus {
+  const context = useContext(GameThemeContext);
+  const bus = game?.getEventBus() ?? context?.eventBus ?? context?.game?.getEventBus();
+
   if (!bus) {
     throw new Error(
-      'useEventBus: No EventBus found in ArcadeContext or passed as override.'
+      'useEventBus: EventBus not found. Ensure a BaseGame instance or GameThemeProvider with EventBus is provided.'
     );
   }
+
   return bus;
 }

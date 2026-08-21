@@ -1,17 +1,19 @@
 import { useContext } from 'react';
 import type { ArcadeKernel } from '@tiny-aster/core';
-import { ArcadeContext } from '../context/ArcadeContext';
+import { GameThemeContext } from '@/context/GameThemeContext';
 
 /**
- * Access the ArcadeKernel from the current ArcadeContext or explicit override.
+ * Access the ArcadeKernel from the current game context or direct game reference.
  */
-export function useArcadeKernel(overrideKernel?: ArcadeKernel): ArcadeKernel {
-  const ctx = useContext(ArcadeContext);
-  const kernel = overrideKernel ?? ctx?.kernel;
+export function useArcadeKernel(game?: any | null): ArcadeKernel {
+  const context = useContext(GameThemeContext);
+  const kernel = game?.kernel ?? context?.kernel ?? context?.game?.kernel;
+
   if (!kernel) {
     throw new Error(
-      'useArcadeKernel: No ArcadeKernel found in ArcadeContext or passed as override.'
+      'useArcadeKernel: ArcadeKernel not found. Ensure a BaseGame instance or GameThemeProvider with ArcadeKernel is provided.'
     );
   }
+
   return kernel;
 }

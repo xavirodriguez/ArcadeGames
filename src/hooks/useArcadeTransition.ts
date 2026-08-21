@@ -11,7 +11,7 @@ import { ArcadeState } from '@tiny-aster/core';
  * - Retorna SharedValues para Reanimated
  * - Unsubscribe en cleanup
  */
-export function useArcadeTransition(kernel: ArcadeKernel, eventBus: EventBus) {
+export function useArcadeTransition(kernel: ArcadeKernel | null, eventBus: EventBus | null) {
   const menuOpacity = useSharedValue(1);
   const menuTranslateX = useSharedValue(0);
   const canvasOpacity = useSharedValue(0);
@@ -20,9 +20,10 @@ export function useArcadeTransition(kernel: ArcadeKernel, eventBus: EventBus) {
   const gameOverPanelTranslateY = useSharedValue(100);
 
   useEffect(() => {
-    if (!eventBus) return;
+    if (!eventBus) {
+      return;
+    }
 
-    // eventBus.on returns () => void directly
     const unsubscribe = eventBus.on('arcade:state_changed', (data: any) => {
       const { from, to } = data;
 
@@ -37,7 +38,6 @@ export function useArcadeTransition(kernel: ArcadeKernel, eventBus: EventBus) {
           easing: Easing.out(Easing.quad)
         });
 
-        // Canvas entra con delay, sin setTimeout
         canvasOpacity.value = withSequence(
           withDelay(50, withTiming(1, {
             duration: 150,

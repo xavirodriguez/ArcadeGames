@@ -13,6 +13,14 @@ import { Entity } from "../../ecs/Entity";
  * @public
  */
 export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+  /**
+   * Processes horizontal platformer movement acceleration and deceleration for active entities.
+   *
+   * @param world - Simulation world instance.
+   * @param deltaTime - Elapsed frame duration in seconds.
+   *
+   * @sideEffect Mutates `Velocity` components on active platformer entities.
+   */
   public update(world: World<TRegistry>, deltaTime: number): void {
     const inputType = "PlatformerInput" as Extract<keyof TRegistry, string>;
     const configType = "PlatformerMovementConfig" as Extract<keyof TRegistry, string>;

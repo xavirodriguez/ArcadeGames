@@ -1,6 +1,16 @@
 /**
- * Pure function to compute ship physics consistently across client-side prediction,
- * server simulation, and singleplayer/multiplayer gameplay.
+ * Pure function computing ship rotation, thrust acceleration, and friction.
+ *
+ * @remarks
+ * Shared across client-side prediction, authoritative server simulation, and singleplayer gameplay
+ * to guarantee 100% deterministic ship movement dynamics across network rollbacks.
+ *
+ * @param transform - Object containing current rotation in radians.
+ * @param velocity - Object containing current velocity components (`vx`, `vy`).
+ * @param input - Player input frame payload containing actions, axes, or explicit directional flags.
+ * @param config - Ship physics configuration constants (`SHIP_THRUST`, `SHIP_ROTATION_SPEED`, `SHIP_FRICTION`).
+ * @param deltaTimeSec - Frame duration in seconds.
+ * @returns Updated velocity (`vx`, `vy`) and rotation state in radians normalized to [-PI, PI].
  *
  * @public
  */

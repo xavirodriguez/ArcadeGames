@@ -5,10 +5,24 @@ import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
 
 /**
- * System that applies asymmetrical gravity based on whether the entity is rising or falling.
+ * Platformer gravity system applying asymmetrical jump gravity dynamics.
+ *
+ * @remarks
+ * Applies distinct gravity factors depending on whether the entity is rising (negative Y velocity)
+ * or falling (positive Y velocity), enabling satisfying platformer jump feel (e.g. snappy falling,
+ * low-gravity jump apex, floaty jump arc).
+ *
  * @public
  */
 export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+  /**
+   * Applies asymmetrical jump gravity to entities possessing `PlatformerGravityConfig` and `Velocity`.
+   *
+   * @param world - Simulation world instance.
+   * @param deltaTime - Elapsed frame duration in seconds.
+   *
+   * @sideEffect Mutates `Velocity` components on active entities.
+   */
   public update(world: World<TRegistry>, deltaTime: number): void {
     const configType = "PlatformerGravityConfig" as Extract<keyof TRegistry, string>;
     const velocityType = "Velocity" as Extract<keyof TRegistry, string>;

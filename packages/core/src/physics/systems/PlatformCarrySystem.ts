@@ -4,14 +4,24 @@ import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
 
 /**
- * System that manages players landing on and being carried by moving platforms.
+ * System managing characters landing on and being dynamically carried by moving platforms.
  *
  * @remarks
  * Integrates non-disruptively with standard `CollisionEvents` to detect landing,
  * and maintains a robust mathematical fallback for axis-aligned bounding box (AABB) overlap.
+ * Automatically detaches entities when jumping or walking off platform edges.
+ *
  * @public
  */
 export class PlatformCarrySystem extends System<CoreComponentRegistry> {
+  /**
+   * Updates platform attachment, displacement transfer, and detachment logic for characters.
+   *
+   * @param world - Simulation world instance.
+   * @param deltaTime - Frame elapsed time in seconds.
+   *
+   * @sideEffect Mutates `Transform`, `Velocity`, and `PlatformerGroundState` components.
+   */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const characters = world.query("Transform", "Velocity", "Collider2D", "PlatformerGroundState");
     const platforms = world.query("Transform", "Velocity", "Collider2D", "MovingPlatform");

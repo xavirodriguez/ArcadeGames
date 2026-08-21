@@ -1,4 +1,4 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, RenderComponent, TTLComponent } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils } from "@tiny-aster/core";
 // Dynamically import Skia safely to support Node-based Jest tests without throwing
 let Skia: any = null;
 try {
@@ -319,6 +319,34 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
     canvas.restore();
   }
 };
+
+/**
+ * Registers all shared VFX shape drawers to a Renderer instance for both Canvas and Skia backends.
+ */
+export function registerSharedVFX(renderer: Renderer<any, any>): void {
+  RendererUtils.registerAssets(renderer, {
+    canvas: (r) => {
+      r.registerShape("shield_bubble", EnergyShieldBubbleEffect);
+      r.registerShape("shockwave", DebrisShockwaveEffect);
+      r.registerShape("thruster_flame", ThrusterPlumeFlameEffect);
+      r.registerShape("laser_beam", LaserRailBeamEffect);
+      r.registerShape("singularity", SingularityVortexEffect);
+      r.registerShape("comet_trail", CometMotionTrailEffect);
+      r.registerShape("hologram_glitch", RGBHologramGlitchEffect);
+      r.registerShape("floating_text", FloatingTextScoreEffect);
+    },
+    skia: (r) => {
+      r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect);
+      r.registerShape("shockwave", SkiaDebrisShockwaveEffect);
+      r.registerShape("thruster_flame", SkiaThrusterPlumeFlameEffect);
+      r.registerShape("laser_beam", SkiaLaserRailBeamEffect);
+      r.registerShape("singularity", SkiaSingularityVortexEffect);
+      r.registerShape("comet_trail", SkiaCometMotionTrailEffect);
+      r.registerShape("hologram_glitch", SkiaRGBHologramGlitchEffect);
+      r.registerShape("floating_text", SkiaFloatingTextScoreEffect);
+    }
+  });
+}
 
 /**
  * Shared particle creation helper for pooling and zero-allocation particle instantiation.

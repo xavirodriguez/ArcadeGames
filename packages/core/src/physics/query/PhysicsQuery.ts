@@ -14,7 +14,12 @@ import { PhysicsTransformLike, ColliderLike } from "../PhysicsTypes";
  */
 export class PhysicsQuery {
   /**
-   * Casts a point into the world and returns all entities that overlap with the point.
+   * Casts a point into the world and returns all entities whose collider intersects the point.
+   *
+   * @param world - Simulation world instance.
+   * @param x - Target world-space X coordinate.
+   * @param y - Target world-space Y coordinate.
+   * @returns Array of entity IDs overlapping the query point.
    */
   public static pointCast<
     TComponents extends ComponentRegistry = ComponentRegistry,
@@ -89,7 +94,13 @@ export class PhysicsQuery {
   }
 
   /**
-   * Casts a shape into the world and returns all entities that overlap with the shape.
+   * Casts a primitive geometry shape into the world and returns all entities overlapping the shape.
+   *
+   * @param world - Simulation world instance.
+   * @param shape - Query shape geometry (Circle, Box, or Convex Polygon).
+   * @param x - World-space position X of the query shape center.
+   * @param y - World-space position Y of the query shape center.
+   * @returns Array of entity IDs overlapping the query shape.
    */
   public static shapeCast<
     TComponents extends ComponentRegistry = ComponentRegistry,

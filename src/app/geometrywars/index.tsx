@@ -193,8 +193,8 @@ export default function GeometryWarsScreen() {
 
         <GameInstructions>
           {isTouchDevice
-            ? "Left area touch: Move ship\nRight area touch: Aim & shoot"
-            : "WASD / Arrows to Move\nMove Mouse to Aim\nLeft Click to Shoot"}
+            ? (t.geometrywars?.instructions_touch || "Área táctil izquierda: Mover nave\nÁrea táctil derecha: Apuntar y disparar")
+            : (t.geometrywars?.instructions_keyboard || "WASD / Flechas para Moverse\nMover Mouse para Apuntar\nClic Izquierdo para Disparar")}
         </GameInstructions>
 
         <PlayerNameInput
@@ -212,7 +212,7 @@ export default function GeometryWarsScreen() {
             bordered
             onPress={() => { hapticSelection(); setIsMulti(false); setStarted(true); }}
             accessibilityLabel={t.common.solo}
-            accessibilityHint="Inicia una partida individual de Geometry Wars"
+            accessibilityHint={t.geometrywars?.solo_hint || "Inicia una partida individual de Geometry Wars"}
           >
             {t.common.solo}
           </NeonButton>
@@ -224,9 +224,9 @@ export default function GeometryWarsScreen() {
             bordered
             onPress={() => { hapticSelection(); setIsMulti(true); setStarted(true); }}
             accessibilityLabel={t.common.multi}
-            accessibilityHint="Inicia una sesión multijugador en línea"
+            accessibilityHint={t.geometrywars?.multi_hint || "Inicia una sesión multijugador en línea"}
           >
-            {t.common.multi || "Multiplayer"}
+            {t.common.multi}
           </NeonButton>
         </View>
       </GameScreen>
@@ -235,12 +235,23 @@ export default function GeometryWarsScreen() {
 
   if (!game || !isReady) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.loadingContainer} accessibilityLiveRegion="polite">
         <ActivityIndicator size="large" color={colors.cyan} />
-        <Text style={styles.loadingText}>Loading ECS simulation...</Text>
+        <Text style={styles.loadingText}>{t.geometrywars?.loading_ecs || "Cargando simulación ECS..."}</Text>
       </View>
     );
   }
+
+  const livesLabel = (t.accessibility?.gw_lives_label || "Lives remaining: {lives}, Bombs available: {bombs}")
+    .replace("{lives}", String(gameState.lives))
+    .replace("{bombs}", String(gameState.bombs));
+
+  const scoreLabel = (t.accessibility?.gw_score_label || "Current score: {score}, High score: {highScore}")
+    .replace("{score}", String(gameState.score))
+    .replace("{highScore}", String(highScore));
+
+  const waveLabel = (t.accessibility?.gw_wave_label || "Current wave: {wave}")
+    .replace("{wave}", String(gameState.wave));
 
   return (
     <GameErrorBoundary gameId="geometrywars">
@@ -250,8 +261,9 @@ export default function GeometryWarsScreen() {
           <BackButton label={t.common.menu} style={{ top: Math.max(insets.top, 20) }} />
 
           {isMulti && !connected && (
-            <View style={styles.overlay}>
-              <Text style={styles.loadingText}>{t.common.connecting || "Connecting to server..."}</Text>
+            <View style={styles.overlay} accessibilityLiveRegion="polite">
+              <ActivityIndicator size="small" color={colors.cyan} style={{ marginBottom: 12 }} />
+              <Text style={styles.loadingText}>{t.common.connecting}</Text>
             </View>
           )}
 
@@ -264,7 +276,7 @@ export default function GeometryWarsScreen() {
                 togglePause();
               }}
               activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole="button"
               accessibilityLabel={isPaused ? t.accessibility.resume_game_label : t.accessibility.pause_game_label}
               accessibilityState={{ selected: isPaused }}
@@ -279,25 +291,25 @@ export default function GeometryWarsScreen() {
             <View
               style={styles.hudLeft}
               accessibilityRole="header"
-              accessibilityLabel={`Lives remaining: ${gameState.lives}, Bombs: ${gameState.bombs}`}
+              accessibilityLabel={livesLabel}
             >
-              <Text style={styles.hudText}>LIVES: {gameState.lives}</Text>
-              <Text style={styles.hudText}>BOMBS: {gameState.bombs}</Text>
+              <Text style={styles.hudText}>{t.geometrywars?.lives || "LIVES"}: {gameState.lives}</Text>
+              <Text style={styles.hudText}>{t.geometrywars?.bombs || "BOMBS"}: {gameState.bombs}</Text>
             </View>
             <View
               style={styles.hudCenter}
               accessibilityRole="header"
-              accessibilityLabel={`Score: ${gameState.score}, High Score: ${highScore}`}
+              accessibilityLabel={scoreLabel}
             >
-              <Text style={[styles.hudText, styles.scoreText]}>SCORE: {gameState.score}</Text>
-              <Text style={styles.hudSubText}>HIGH SCORE: {highScore}</Text>
+              <Text style={[styles.hudText, styles.scoreText]}>{t.geometrywars?.score || "SCORE"}: {gameState.score}</Text>
+              <Text style={styles.hudSubText}>{t.geometrywars?.high_score || "HIGH SCORE"}: {highScore}</Text>
             </View>
             <View
               style={styles.hudRight}
               accessibilityRole="header"
-              accessibilityLabel={`Wave: ${gameState.wave}`}
+              accessibilityLabel={waveLabel}
             >
-              <Text style={styles.hudText}>WAVE: {gameState.wave}</Text>
+              <Text style={styles.hudText}>{t.geometrywars?.wave || "WAVE"}: {gameState.wave}</Text>
             </View>
           </View>
 
@@ -346,9 +358,10 @@ export default function GeometryWarsScreen() {
           {/* Pause overlay */}
           {isPaused && !gameState.isGameOver && (
             <View style={styles.overlay}>
-              <Text style={styles.overlayTitle}>PAUSED</Text>
+              <Text style={styles.overlayTitle}>{t.geometrywars?.paused || "PAUSED"}</Text>
               <TouchableOpacity
                 style={styles.overlayButton}
+                activeOpacity={0.8}
                 onPress={() => {
                   hapticSelection();
                   togglePause();
@@ -357,7 +370,7 @@ export default function GeometryWarsScreen() {
                 accessibilityLabel={t.accessibility.resume_game_label}
                 accessibilityHint={t.accessibility.resume_button_hint}
               >
-                <Text style={styles.overlayButtonText}>RESUME</Text>
+                <Text style={styles.overlayButtonText}>{t.geometrywars?.resume || "RESUME"}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -365,13 +378,18 @@ export default function GeometryWarsScreen() {
           {/* Game Over overlay */}
           {gameState.isGameOver && (
             <View style={styles.overlay}>
-              <Text style={styles.gameOverTitle}>GAME OVER</Text>
-              <Text style={styles.finalScoreText}>Final Score: {gameState.score}</Text>
+              <Text style={styles.gameOverTitle}>{t.common.game_over}</Text>
+              <Text style={styles.finalScoreText}>
+                {t.geometrywars?.final_score || "Final Score"}: {gameState.score}
+              </Text>
               <Text style={styles.bestScoreText}>
-                {gameState.score >= highScore ? "NEW RECORD!" : `Best: ${highScore}`}
+                {gameState.score >= highScore
+                  ? (t.geometrywars?.new_record || "NEW RECORD!")
+                  : `${t.geometrywars?.best_score || "Best"}: ${highScore}`}
               </Text>
               <TouchableOpacity
                 style={[styles.overlayButton, { backgroundColor: colors.cyan }]}
+                activeOpacity={0.8}
                 onPress={() => {
                   hapticSelection();
                   game.restart();
@@ -380,7 +398,9 @@ export default function GeometryWarsScreen() {
                 accessibilityLabel={t.accessibility.restart_game_label}
                 accessibilityHint={t.accessibility.restart_game_hint}
               >
-                <Text style={[styles.overlayButtonText, { color: colors.background }]}>RESTART</Text>
+                <Text style={[styles.overlayButtonText, { color: colors.background }]}>
+                  {t.geometrywars?.restart || "RESTART"}
+                </Text>
               </TouchableOpacity>
             </View>
           )}

@@ -64,15 +64,29 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
 
     private applyValue(world: World<CoreComponentRegistry>, entity: number, prop: string, value: number): void {
         if (prop === "scaleX" || prop === "scaleY" || prop === "x" || prop === "y") {
-            const o = world.getMutableComponent(entity, "VisualOffset");
-            if (o) {
-                const key = (prop === "x" || prop === "y") ? (prop === "x" ? "offsetX" : "offsetY") : prop;
-                (o as unknown as Record<string, number>)[key] = value;
+            const key = (prop === "x" || prop === "y") ? (prop === "x" ? "offsetX" : "offsetY") : prop;
+            const currentOffset = world.getComponent(entity, "VisualOffset");
+            if (currentOffset) {
+                const currentVal = (currentOffset as unknown as Record<string, number>)[key] ?? 0;
+                // Safe for determinism/rollback. Gate mutable access on actual value change to prevent unnecessary stateVersion increments.
+                if (Math.abs(currentVal - value) > 0.0001) {
+                    const o = world.getMutableComponent(entity, "VisualOffset");
+                    if (o) {
+                        (o as unknown as Record<string, number>)[key] = value;
+                    }
+                }
             }
         } else if (prop === "opacity" || prop === "rotation") {
-            const r = world.getMutableComponent(entity, "Render");
-            if (r) {
-                (r as unknown as Record<string, number>)[prop] = value;
+            const currentRender = world.getComponent(entity, "Render");
+            if (currentRender) {
+                const currentVal = (currentRender as unknown as Record<string, number>)[prop] ?? 0;
+                // Safe for determinism/rollback. Gate mutable access on actual value change to prevent unnecessary stateVersion increments.
+                if (Math.abs(currentVal - value) > 0.0001) {
+                    const r = world.getMutableComponent(entity, "Render");
+                    if (r) {
+                        (r as unknown as Record<string, number>)[prop] = value;
+                    }
+                }
             }
         }
     }

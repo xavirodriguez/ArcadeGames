@@ -238,7 +238,16 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     }
 
     // 6. Save the list of active simulation candidate entities
-    // Safe for determinism/rollback. Shallow copy prevents downstream systems/callers from mutating internal candidateBuffer or having it cleared on the next tick.
-    world.setResource("SpatialCullingCandidates", [...this.candidateBuffer]);
+    // Safe for determinism/rollback. Reusing a pooled resource array prevents creating a new array allocation every tick.
+    let candidatesResource = world.getResource<Entity[]>("SpatialCullingCandidates");
+    if (!candidatesResource) {
+      candidatesResource = [];
+    }
+    candidatesResource.length = 0;
+    const bufferLen = this.candidateBuffer.length;
+    for (let i = 0; i < bufferLen; i++) {
+      candidatesResource.push(this.candidateBuffer[i]);
+    }
+    world.setResource("SpatialCullingCandidates", candidatesResource);
   }
 }

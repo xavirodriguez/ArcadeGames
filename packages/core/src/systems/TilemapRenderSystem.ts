@@ -13,15 +13,24 @@ export class TilemapRenderSystem extends System<CoreComponentRegistry> {
 
     for (const entity of tilemaps) {
         const tilemap = world.getComponent(entity, "Tilemap")!;
-        
-        world.mutateComponent(entity, "Tilemap", t => {
-            t.visibleRange = {
-                minX: Math.floor(viewport.minX / tilemap.tileSize),
-                minY: Math.floor(viewport.minY / tilemap.tileSize),
-                maxX: Math.ceil(viewport.maxX / tilemap.tileSize),
-                maxY: Math.ceil(viewport.maxY / tilemap.tileSize)
-            };
-        });
+        const minX = Math.floor(viewport.minX / tilemap.tileSize);
+        const minY = Math.floor(viewport.minY / tilemap.tileSize);
+        const maxX = Math.ceil(viewport.maxX / tilemap.tileSize);
+        const maxY = Math.ceil(viewport.maxY / tilemap.tileSize);
+
+        // Safe for determinism/rollback. Compare calculated visibleRange against current visibleRange before mutating to avoid unnecessary stateVersion bumps on unchanged camera ticks.
+        const currentRange = tilemap.visibleRange;
+        if (
+            !currentRange ||
+            currentRange.minX !== minX ||
+            currentRange.minY !== minY ||
+            currentRange.maxX !== maxX ||
+            currentRange.maxY !== maxY
+        ) {
+            world.mutateComponent(entity, "Tilemap", t => {
+                t.visibleRange = { minX, minY, maxX, maxY };
+            });
+        }
     }
   }
 }

@@ -13,6 +13,8 @@ import { type BallComponent, type PongComponentRegistry } from "../types";
 
 export class PongCollisionSystem extends System<PongComponentRegistry> {
   private config: PongConfig;
+  // Safe for determinism/rollback. Reusable Set avoids per-tick heap allocations during collision checks.
+  private processedPairs = new Set<string>();
 
   constructor(config: PongConfig) {
     super();
@@ -21,7 +23,7 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
 
   public override update(world: World<PongComponentRegistry>, deltaTime: number): void {
     const entities = world.query("CollisionEvents");
-    const processedPairs = new Set<string>();
+    this.processedPairs.clear();
 
     for (const entityA of entities) {
       const colComp = world.getComponent(entityA, "CollisionEvents");
@@ -30,8 +32,8 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
       for (const col of colComp.collisions) {
         const entityB = col.otherEntity;
         const pairId = entityA < entityB ? `${entityA},${entityB}` : `${entityB},${entityA}`;
-        if (processedPairs.has(pairId)) continue;
-        processedPairs.add(pairId);
+        if (this.processedPairs.has(pairId)) continue;
+        this.processedPairs.add(pairId);
 
         const isBallA = world.hasComponent(entityA, "Ball" as any);
         const isBallB = world.hasComponent(entityB, "Ball" as any);

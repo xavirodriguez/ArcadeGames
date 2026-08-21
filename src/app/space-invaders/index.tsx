@@ -9,7 +9,7 @@ import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
 import { ShootButton } from "../../components/ShootButton";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useSpaceInvadersGame } from "@/hooks/useSpaceInvadersGame";
-import { useMultiplayer } from "@tiny-aster/react-native";
+import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
 import { SeedWidget } from "@/components/SeedWidget";
 import { DailyChallengeBanner } from "@/components/DailyChallengeBanner";
 import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
@@ -114,7 +114,12 @@ export default function SpaceInvadersScreen() {
     }
   }, [isAttractMode, game]);
 
-  const { room, connected, serverState, sendInput, inputBufferRef } = useMultiplayer("space-invaders", playerName, isMulti && started);
+  const { room, connected, handleMultiplayerInput: sendNetInput } = useMultiplayerGame<SpaceInvadersGame, InputState>({
+    game,
+    roomName: "space-invaders",
+    playerName,
+    active: isMulti && started,
+  });
 
   useEffect(() => {
     MutatorService.isMutatorModeEnabled().then(enabled => {
@@ -131,39 +136,14 @@ export default function SpaceInvadersScreen() {
     gameState: gameState ?? { isGameOver: false },
   });
 
-  useEffect(() => {
-    if (isMulti && connected && game) {
-      (game as unknown as SpaceInvadersGame).setMultiplayerMode(true);
-    }
-  }, [isMulti, connected, game]);
-
-  useEffect(() => {
-    if (isMulti && serverState && game) {
-        const sessionId = room?.sessionId;
-        const pendingInputs = inputBufferRef.current;
-
-        (game as unknown as SpaceInvadersGame).updateFromServer(serverState, sessionId);
-
-        // Re-apply pending inputs for client-side reconciliation
-        if (sessionId && pendingInputs.length > 0) {
-            pendingInputs.forEach(frame => {
-                (game as unknown as SpaceInvadersGame).predictLocalPlayer(frame, 16.66);
-            });
-        }
-    }
-  }, [isMulti, serverState, game, room?.sessionId, inputBufferRef]);
-
   const handleMultiplayerInput = useCallback((input: Partial<InputState>) => {
     if (isMulti && room) {
-        const frame = sendInput(input as Record<string, boolean>);
-        if (frame) {
-            (game as unknown as SpaceInvadersGame)?.predictLocalPlayer(frame, 16.66);
-        }
+      sendNetInput(input);
     } else {
-        handleInput(input as Record<string, boolean>);
-        game?.setInputState(input);
+      handleInput(input);
+      game?.setInputState(input);
     }
-  }, [isMulti, room, sendInput, game, handleInput]);
+  }, [isMulti, room, sendNetInput, handleInput, game]);
 
   // Activate keyboard controls for Web
   useKeyboardControls(game, isReady, handleMultiplayerInput);

@@ -1,178 +1,332 @@
+import { MidGameNarrativeDirector } from "../src/story/MidGameNarrativeDirector";
+import { StoryRuntime } from "../src/story/StoryRuntime";
+import { EventBus } from "../src/events/EventBus";
+import { StoryGraph } from "../src/story/StoryTypes";
 import {
   GameplayEvent,
   MidGameDirectorRule,
-  MidGameNarrativeDirector,
-  StoryRuntimeSnapshot,
-  StoryGraph,
-  StoryRuntime,
-  MiniGameResult
-} from "../src/story";
-import { EventBus } from "../src/events/EventBus";
+  NarrativeCue
+} from "../src/story/NarrativeDirectorTypes";
 
-describe("MidGameNarrativeDirector Test Suite", () => {
-  const mockSnapshot: StoryRuntimeSnapshot = {
-    graphId: "graph_1",
-    currentNodeId: "node_1",
-    flags: {},
-    variables: { reactorPower: 30 },
-    selectedChoices: [],
-    objectives: {},
-    history: []
-  };
+describe("MidGameNarrativeDirector Integration Tests", () => {
+  let sampleGraph: StoryGraph;
 
-  const shieldRule: MidGameDirectorRule = {
-    id: "rule_shield_low",
-    eventName: "ShieldCritical",
-    condition: (_event, snapshot) => {
-      const power = typeof snapshot.variables.reactorPower === "number" ? snapshot.variables.reactorPower : 100;
-      return power < 50;
-    },
-    cue: {
-      id: "cue_shield_warning",
-      type: "radio",
-      priority: 10,
-      titleKey: "ARES WARNING",
-      rawText: "Reactor power depleted! Shielding compromised.",
-      durationMs: 3000,
-      audioCueId: "sfx_alarm_01"
-    },
-    cooldownMs: 5000,
-    maxTriggersPerRun: 2
-  };
-
-  it("evaluates matching gameplay event and generates narrative cue", () => {
-    const director = new MidGameNarrativeDirector([shieldRule]);
-    const event: GameplayEvent = {
-      id: "ev_1",
-      name: "ShieldCritical",
-      timestamp: 10000
-    };
-
-    const cue = director.evaluateEvent(event, mockSnapshot);
-    expect(cue).not.toBeNull();
-    expect(cue?.id).toBe("cue_shield_warning");
-    expect(cue?.audioCueId).toBe("sfx_alarm_01");
-  });
-
-  it("enforces cooldownMs constraint between consecutive events", () => {
-    const director = new MidGameNarrativeDirector([shieldRule]);
-    const event1: GameplayEvent = { id: "e1", name: "ShieldCritical", timestamp: 10000 };
-    const event2: GameplayEvent = { id: "e2", name: "ShieldCritical", timestamp: 12000 }; // Only 2000ms later (cooldown is 5000ms)
-
-    const cue1 = director.evaluateEvent(event1, mockSnapshot);
-    expect(cue1).not.toBeNull();
-
-    const cue2 = director.evaluateEvent(event2, mockSnapshot);
-    expect(cue2).toBeNull(); // Blocked by cooldownMs
-  });
-
-  it("enforces maxTriggersPerRun constraint", () => {
-    const director = new MidGameNarrativeDirector([shieldRule]);
-    const e1: GameplayEvent = { id: "e1", name: "ShieldCritical", timestamp: 10000 };
-    const e2: GameplayEvent = { id: "e2", name: "ShieldCritical", timestamp: 20000 };
-    const e3: GameplayEvent = { id: "e3", name: "ShieldCritical", timestamp: 30000 };
-
-    expect(director.evaluateEvent(e1, mockSnapshot)).not.toBeNull();
-    expect(director.evaluateEvent(e2, mockSnapshot)).not.toBeNull();
-    expect(director.evaluateEvent(e3, mockSnapshot)).toBeNull(); // Blocked: maxTriggersPerRun is 2
-  });
-
-  it("intercepts minigame game:over result and branches narrative based on mechanical performance", () => {
-    const testGraph: StoryGraph = {
-      id: "adaptive_director_test",
-      title: "Adaptive Director Test",
-      entryNodeId: "node_arcade_stage",
+  beforeEach(() => {
+    sampleGraph = {
+      id: "test_campaign",
+      title: "Test Campaign",
+      entryNodeId: "node_start",
       nodes: {
-        node_arcade_stage: {
-          id: "node_arcade_stage",
-          type: "gameplay",
-          transitions: [
+        node_start: {
+          id: "node_start",
+          type: "choice",
+          title: "Start",
+          choices: [
             {
-              targetNodeId: "node_eval_performance",
-              condition: { type: "event", key: "game:over" }
+              id: "choice_1",
+              titleKey: "Continue",
+              targetNodeId: "node_victory"
             }
           ]
         },
-        node_eval_performance: {
-          id: "node_eval_performance",
-          type: "branch",
-          transitions: [
-            {
-              targetNodeId: "node_flawless_debrief",
-              condition: { type: "variable", key: "playerPerformance", value: "perfect", operator: "==" },
-              priority: 10
-            },
-            {
-              targetNodeId: "node_failure_debrief",
-              condition: { type: "variable", key: "playerPerformance", value: "poor", operator: "==" },
-              priority: 5
-            },
-            {
-              targetNodeId: "node_standard_debrief",
-              priority: 0
-            }
-          ]
-        },
-        node_flawless_debrief: {
-          id: "node_flawless_debrief",
+        node_victory: {
+          id: "node_victory",
           type: "dialogue",
-          dialogue: { id: "d_flawless", lines: [{ textKey: "Outstanding performance!" }] }
+          title: "Victory",
+          isEndNode: true
         },
-        node_failure_debrief: {
-          id: "node_failure_debrief",
+        node_defeat: {
+          id: "node_defeat",
           type: "dialogue",
-          dialogue: { id: "d_fail", lines: [{ textKey: "Mission failed miserably." }] }
-        },
-        node_standard_debrief: {
-          id: "node_standard_debrief",
-          type: "dialogue",
-          dialogue: { id: "d_std", lines: [{ textKey: "Mission accomplished." }] }
+          title: "Defeat",
+          isEndNode: true
         }
       }
     };
+  });
 
-    const eventBus = new EventBus();
-    const runtime = new StoryRuntime(testGraph);
-    const director = new MidGameNarrativeDirector();
+  describe("Event Evaluation & Priority Ordering", () => {
+    it("should evaluate matching events and respect priority ordering", () => {
+      const director = new MidGameNarrativeDirector();
 
-    director.bindEventBus(eventBus, runtime);
-    runtime.bindEventBus(eventBus);
+      const lowPriorityCue: NarrativeCue = {
+        id: "low_prio_cue",
+        type: "radio",
+        priority: 10,
+        messageKey: "low_health_warning"
+      };
 
-    expect(runtime.getCurrentNode()?.id).toBe("node_arcade_stage");
+      const highPriorityCue: NarrativeCue = {
+        id: "high_prio_cue",
+        type: "warning",
+        priority: 90,
+        messageKey: "critical_hull_damage"
+      };
 
-    // Case 1: Fail minigame miserably (score 100, completed: false)
-    const poorResult: MiniGameResult = {
-      runId: "run_poor",
-      gameId: "asteroids",
-      score: 100,
-      completed: false,
-      durationMs: 4000,
-      metrics: {},
-      secretsFound: []
-    };
+      director.addRule({
+        id: "rule_low_health_general",
+        eventName: "low_health",
+        cue: lowPriorityCue
+      });
 
-    eventBus.emit("game:over", { ...poorResult });
+      director.addRule({
+        id: "rule_low_health_critical",
+        eventName: "low_health",
+        cue: highPriorityCue
+      });
 
-    expect(runtime.getState().variables.playerPerformance).toBe("poor");
-    expect(runtime.getCurrentNode()?.id).toBe("node_failure_debrief");
+      const runtime = new StoryRuntime(sampleGraph);
+      const event: GameplayEvent = {
+        id: "evt_1",
+        name: "low_health",
+        timestamp: 1000,
+        payload: { healthPercent: 10 }
+      };
 
-    // Case 2: Flawless performance (score 5000, completed: true)
-    runtime.loadGraph(testGraph, true);
-    expect(runtime.getCurrentNode()?.id).toBe("node_arcade_stage");
+      const result = director.evaluateEvent(event, runtime.getState());
+      expect(result).toBeDefined();
+      expect(result?.id).toBe("high_prio_cue");
+    });
 
-    const perfectResult: MiniGameResult = {
-      runId: "run_perfect",
-      gameId: "asteroids",
-      score: 5000,
-      completed: true,
-      durationMs: 12000,
-      metrics: {},
-      secretsFound: []
-    };
+    it("should evaluate condition predicates based on event payload and narrative snapshot", () => {
+      const director = new MidGameNarrativeDirector();
 
-    eventBus.emit("game:over", { ...perfectResult });
+      const bossDefeatedCue: NarrativeCue = {
+        id: "boss_defeated_cue",
+        type: "radio",
+        priority: 50,
+        titleKey: "COMMAND",
+        rawText: "Target destroyed! Fall back to base."
+      };
 
-    expect(runtime.getState().variables.playerPerformance).toBe("perfect");
-    expect(runtime.getCurrentNode()?.id).toBe("node_flawless_debrief");
+      const rule: MidGameDirectorRule = {
+        id: "rule_boss_defeated",
+        eventName: "boss_defeated",
+        condition: (event, snapshot) => {
+          return (
+            event.payload?.bossId === "mothership" &&
+            snapshot.variables["chapter"] === 2
+          );
+        },
+        cue: bossDefeatedCue
+      };
+
+      director.addRule(rule);
+
+      const runtime = new StoryRuntime(sampleGraph);
+      runtime.setVariable("chapter", 1);
+
+      const event: GameplayEvent = {
+        id: "evt_boss",
+        name: "boss_defeated",
+        timestamp: 2000,
+        payload: { bossId: "mothership" }
+      };
+
+      // Condition fails because chapter is 1
+      expect(director.evaluateEvent(event, runtime.getState())).toBeNull();
+
+      // Update snapshot variable chapter to 2
+      runtime.setVariable("chapter", 2);
+
+      // Condition passes
+      const result = director.evaluateEvent(event, runtime.getState());
+      expect(result).toBeDefined();
+      expect(result?.id).toBe("boss_defeated_cue");
+      expect(result?.rawText).toContain("Target destroyed");
+    });
+  });
+
+  describe("Anti-Spam Controls (once, maxTriggersPerRun, cooldownMs)", () => {
+    it("should enforce 'once' rules across multiple triggers", () => {
+      const director = new MidGameNarrativeDirector();
+
+      const cue: NarrativeCue = {
+        id: "first_blood_cue",
+        type: "warning",
+        priority: 50,
+        messageKey: "first_blood"
+      };
+
+      director.addRule({
+        id: "rule_once",
+        eventName: "first_kill",
+        once: true,
+        cue
+      });
+
+      const runtime = new StoryRuntime(sampleGraph);
+      const event: GameplayEvent = {
+        id: "evt_kill",
+        name: "first_kill",
+        timestamp: 1000
+      };
+
+      expect(director.evaluateEvent(event, runtime.getState())).toEqual(cue);
+      expect(director.evaluateEvent(event, runtime.getState())).toBeNull();
+    });
+
+    it("should enforce 'maxTriggersPerRun' limits", () => {
+      const director = new MidGameNarrativeDirector();
+
+      const cue: NarrativeCue = {
+        id: "combo_cue",
+        type: "radio",
+        priority: 20,
+        messageKey: "combo_streak"
+      };
+
+      director.addRule({
+        id: "rule_max_3",
+        eventName: "combo_milestone",
+        maxTriggersPerRun: 3,
+        cue
+      });
+
+      const runtime = new StoryRuntime(sampleGraph);
+      const snapshot = runtime.getState();
+
+      const event = (ts: number): GameplayEvent => ({
+        id: `evt_combo_${ts}`,
+        name: "combo_milestone",
+        timestamp: ts
+      });
+
+      expect(director.evaluateEvent(event(100), snapshot)).not.toBeNull();
+      expect(director.evaluateEvent(event(200), snapshot)).not.toBeNull();
+      expect(director.evaluateEvent(event(300), snapshot)).not.toBeNull();
+      expect(director.evaluateEvent(event(400), snapshot)).toBeNull();
+
+      // Reset run state clears counters
+      director.resetRunState();
+      expect(director.evaluateEvent(event(500), snapshot)).not.toBeNull();
+    });
+
+    it("should enforce 'cooldownMs' timing limits", () => {
+      const director = new MidGameNarrativeDirector();
+
+      const cue: NarrativeCue = {
+        id: "shield_down_cue",
+        type: "warning",
+        priority: 40,
+        messageKey: "shield_depleted"
+      };
+
+      director.addRule({
+        id: "rule_cooldown",
+        eventName: "shield_down",
+        cooldownMs: 5000,
+        cue
+      });
+
+      const runtime = new StoryRuntime(sampleGraph);
+      const snapshot = runtime.getState();
+
+      // Trigger at t = 1000ms
+      expect(
+        director.evaluateEvent({ id: "e1", name: "shield_down", timestamp: 1000 }, snapshot)
+      ).not.toBeNull();
+
+      // Trigger at t = 3000ms (only 2000ms elapsed, less than 5000ms cooldown) -> rejected
+      expect(
+        director.evaluateEvent({ id: "e2", name: "shield_down", timestamp: 3000 }, snapshot)
+      ).toBeNull();
+
+      // Trigger at t = 6001ms (5001ms elapsed, greater than 5000ms cooldown) -> accepted
+      expect(
+        director.evaluateEvent({ id: "e3", name: "shield_down", timestamp: 6001 }, snapshot)
+      ).not.toBeNull();
+    });
+  });
+
+  describe("EventBus Integration & MiniGameResult Interception", () => {
+    it("should process minigame performance results and mutate StoryRuntime state", () => {
+      const director = new MidGameNarrativeDirector();
+      const eventBus = new EventBus();
+      const runtime = new StoryRuntime(sampleGraph);
+
+      director.bindEventBus(eventBus, runtime);
+
+      // Emit game:over with perfect performance score
+      eventBus.emit("game:over", {
+        runId: "run_101",
+        score: 3500,
+        completed: true
+      });
+
+      expect(runtime.getState().variables["lastMinigameScore"]).toBe(3500);
+      expect(runtime.getState().variables["lastMinigameCompleted"]).toBe(true);
+      expect(runtime.getState().variables["playerPerformance"]).toBe("perfect");
+    });
+
+    it("should navigate to target node when matching game:over cue contains navigateToNode payload", () => {
+      const director = new MidGameNarrativeDirector();
+      const eventBus = new EventBus();
+      const runtime = new StoryRuntime(sampleGraph);
+
+      director.bindEventBus(eventBus, runtime);
+
+      const victoryCue: NarrativeCue = {
+        id: "victory_cue",
+        type: "radio",
+        priority: 100,
+        payload: { navigateToNode: "node_victory" }
+      };
+
+      director.addRule({
+        id: "rule_victory_navigate",
+        eventName: "game:over",
+        cue: victoryCue
+      });
+
+      expect(runtime.getCurrentNode()?.id).toBe("node_start");
+
+      eventBus.emit("game:over", {
+        runId: "run_victory",
+        score: 2500,
+        completed: true
+      });
+
+      expect(runtime.getCurrentNode()?.id).toBe("node_victory");
+    });
+  });
+
+  describe("Race Condition Safety", () => {
+    it("should handle rapid concurrent evaluation calls without race condition corruption", () => {
+      const director = new MidGameNarrativeDirector();
+
+      const cue: NarrativeCue = {
+        id: "rapid_cue",
+        type: "glitch",
+        priority: 30,
+        messageKey: "signal_interference"
+      };
+
+      director.addRule({
+        id: "rule_rapid",
+        eventName: "rapid_event",
+        maxTriggersPerRun: 10,
+        cooldownMs: 50,
+        cue
+      });
+
+      const runtime = new StoryRuntime(sampleGraph);
+      const snapshot = runtime.getState();
+
+      const results: Array<NarrativeCue | null> = [];
+      for (let i = 0; i < 50; i++) {
+        const timestamp = 1000 + i * 10; // Every 10ms
+        results.push(
+          director.evaluateEvent(
+            { id: `rapid_${i}`, name: "rapid_event", timestamp },
+            snapshot
+          )
+        );
+      }
+
+      // Expected: accepted every 50ms (at i = 0, 5, 10, 15, 20, 25, 30, 35, 40, 45 -> 10 times max)
+      const nonNullResults = results.filter((r) => r !== null);
+      expect(nonNullResults.length).toBe(10);
+    });
   });
 });

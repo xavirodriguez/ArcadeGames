@@ -8,11 +8,34 @@ import { EventBus } from "../events/EventBus";
 import { StoryRuntime } from "./StoryRuntime";
 
 /**
- * MidGameNarrativeDirector evaluates gameplay events against narrative snapshot state to produce narrative cues.
+ * Central narrative director that intercepts in-game simulation events and translates them
+ * into prioritized narrative cues (`NarrativeCue`) based on active narrative state.
  *
  * @remarks
- * Decouples arcade game engines from UI narrative rendering. Implements anti-spam features:
- * cooldownMs, once, maxTriggersPerRun, priority ordering, and interruptPolicy.
+ * ### Responsibility
+ * The `MidGameNarrativeDirector` acts as an intelligent intermediary between arcade minigame
+ * engine simulations and the narrative overlay system. Rather than hardcoding narrative logic
+ * inside gameplay systems (e.g., player health or collision loops), minigames emit generic
+ * `GameplayEvent` instances (such as `"low_health"`, `"boss_defeated"`, or `"score_threshold"`).
+ * The director evaluates these events against registered declarative rules (`MidGameDirectorRule`),
+ * taking into account read-only narrative snapshots (`StoryRuntimeSnapshot`).
+ *
+ * ### Lifecycle
+ * 1. **Configuration**: Rules are registered via constructor or `addRule()`.
+ * 2. **Evaluation**: On each gameplay event trigger, `evaluateEvent()` filters rules matching the
+ *    event name, sorts them by priority descending, and enforces anti-spam constraints
+ *    (`once`, `maxTriggersPerRun`, `cooldownMs`, and custom `condition` predicates).
+ * 3. **Interception**: When bound to an `EventBus` via `bindEventBus()`, it listens for `"game:over"`
+ *    events, updates performance variables (`lastMinigameScore`, `playerPerformance`), and
+ *    automatically navigates or evaluates transitions on the `StoryRuntime`.
+ * 4. **Reset**: When restarting or starting a new run, `resetRunState()` clears all per-run anti-spam
+ *    counters and timestamp caches.
+ *
+ * ### UI Integration & `NarrativeCueOverlay`
+ * Returned `NarrativeCue` payloads are designed for consumption by decoupled UI layers, such as
+ * `NarrativeCueOverlay`. When a rule matches, the returned cue is broadcast (e.g., via `EventBus`)
+ * to `NarrativeCueOverlay`, which renders high-priority radio messages, visual distortion/glitch
+ * overlays, warning banners, or triggers contextual audio cues (`audioCueId`).
  *
  * @public
  */
@@ -50,7 +73,7 @@ export class MidGameNarrativeDirector {
     for (const rule of matchingRules) {
       const ruleId = rule.id;
       const count = this.triggerCounts.get(ruleId) || 0;
-      const lastTime = this.lastTriggerTime.get(ruleId) || 0;
+      const lastTime = this.lastTriggerTime.get(ruleId);
 
       // 1. Check once constraint
       if (rule.once && count >= 1) continue;
@@ -59,7 +82,7 @@ export class MidGameNarrativeDirector {
       if (rule.maxTriggersPerRun !== undefined && count >= rule.maxTriggersPerRun) continue;
 
       // 3. Check cooldownMs constraint
-      if (rule.cooldownMs && event.timestamp - lastTime < rule.cooldownMs) continue;
+      if (rule.cooldownMs && lastTime !== undefined && event.timestamp - lastTime < rule.cooldownMs) continue;
 
       // 4. Check condition predicate
       if (rule.condition && !rule.condition(event, snapshot)) continue;

@@ -17,7 +17,7 @@ import { colors } from "../../theme/colors";
  * Main game class for Geometry Wars.
  * @public
  */
-import { NetworkManager, WorldSnapshot } from "@tiny-aster/core";
+import { NetworkManager, WorldSnapshot, InputFrame } from "@tiny-aster/core";
 
 export class GeometryWarsGame extends BaseGame<
   GeometryWarsStateComponent, // GameState description returned to HUD
@@ -100,7 +100,7 @@ export class GeometryWarsGame extends BaseGame<
     this.isMultiplayer = active;
   }
 
-  public applyInputToEntity(entityId: number, input: any) {
+  public applyInputToEntity(entityId: number, input: InputFrame) {
     const activeWorld = this.getWorld();
     if (!activeWorld.hasComponent(entityId, "Player")) {
       return;
@@ -139,7 +139,7 @@ export class GeometryWarsGame extends BaseGame<
     }
   }
 
-  public predictLocalPlayer(input: any, deltaTime: number) {
+  public predictLocalPlayer(input: InputFrame, deltaTime: number) {
     const localPlayer = this.getWorld().query("Player")[0];
     if (localPlayer !== undefined) {
       this.applyInputToEntity(localPlayer, input);

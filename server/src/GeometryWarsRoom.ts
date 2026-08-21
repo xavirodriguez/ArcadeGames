@@ -1,42 +1,25 @@
-import { Room as ColyseusRoom, type Client, CloseCode } from "@colyseus/core";
+import { type Client } from "@colyseus/core";
 import { GeometryWarsState, GeometryWarsPlayer, GeometryWarsEnemy, GeometryWarsBullet } from "./schema/GeometryWarsState";
 import { z } from "zod";
-import { InputFrame } from "./NetTypes";
-import { World } from "@tiny-aster/core";
 import { GeometryWarsGame } from "../../src/games/geometrywars/GeometryWarsGame";
-
-const Room = ColyseusRoom as any as { new <T extends object = any>(): ColyseusRoom<{ state: T }> };
+import { BaseRoom } from "./BaseRoom";
 
 const RoomOptionsSchema = z.object({
   seed: z.number().int().optional()
 });
 
-const JoinOptionsSchema = z.object({
-  name: z.string().max(32).optional()
-});
-
-const InputFrameSchema = z.object({
-  protocolVersion: z.number().optional(),
-  tick: z.number().int().nonnegative(),
-  timestamp: z.number().optional(),
-  actions: z.array(z.string()),
-  axes: z.record(z.string(), z.number())
-});
-
-export class GeometryWarsRoom extends Room<GeometryWarsState> {
+export class GeometryWarsRoom extends BaseRoom<GeometryWarsState> {
   maxClients = 4;
-  private inputBuffers = new Map<string, InputFrame[]>();
-  private clientAcks = new Map<string, number>();
-  private newClients = new Set<string>();
-  private playerEntities = new Map<string, number>();
-  private gameSimulation!: GeometryWarsGame;
-  private world!: World<any, any, any>;
-  private fixedTimeStep = 0.01666;
 
-  async onCreate(options: any) {
+  public update(dt: number) {
+    this.tick(dt);
+  }
+
+  protected async setupSimulation(options: any): Promise<{ world: any; gameSimulation: any }> {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const validOptions = parsedOptions.success ? parsedOptions.data : {};
 
+    this.fixedTimeStep = 0.01666;
     this.setState(new GeometryWarsState());
     this.state.seed = validOptions.seed || Math.floor(Math.random() * 0xFFFFFFFF);
     this.state.gameWidth = 800;
@@ -48,93 +31,20 @@ export class GeometryWarsRoom extends Room<GeometryWarsState> {
     this.state.wave = 1;
     this.state.bombs = 3;
 
-    this.gameSimulation = new GeometryWarsGame({
+    const gameSimulation = new GeometryWarsGame({
       headless: true,
       isMultiplayer: true,
       gameOptions: { seed: this.state.seed }
     });
-    await this.gameSimulation.init();
-    this.world = this.gameSimulation.getWorld();
+    await gameSimulation.init();
+    const world = gameSimulation.getWorld();
 
-    this.setPatchRate(50);
-    this.setSimulationInterval((dt: number) => this.update(dt));
+    return { world, gameSimulation };
+  }
 
-    this.onMessage("input", (client: Client, message: any) => {
-      const parsedFrame = InputFrameSchema.safeParse(message);
-      if (!parsedFrame.success) {
-        console.warn(`[GeometryWarsRoom] Malformed input frame from ${client.sessionId}`);
-        return;
-      }
-
-      const frame = parsedFrame.data as unknown as InputFrame;
-
-      // Protection against malformed/overflow bounds
-      if (frame.tick < 0 || frame.tick > this.state.serverTick + 1000) {
-        return;
-      }
-
-      // Action/axes sanitization checks
-      const allowedActions = ["fire", "bomb"];
-      const filteredActions = frame.actions.filter(a => allowedActions.includes(a));
-
-      const sanitizedAxes: Record<string, number> = {};
-      if (frame.axes) {
-        ["moveX", "moveY"].forEach(axis => {
-          if (frame.axes[axis] !== undefined) {
-            const val = Number(frame.axes[axis]);
-            if (!isNaN(val) && isFinite(val)) {
-              sanitizedAxes[axis] = Math.max(-1, Math.min(1, val));
-            }
-          }
-        });
-        ["aimX", "aimY"].forEach(axis => {
-          if (frame.axes[axis] !== undefined) {
-            const val = Number(frame.axes[axis]);
-            if (!isNaN(val) && isFinite(val)) {
-              sanitizedAxes[axis] = Math.max(-1, Math.min(1, val));
-            }
-          }
-        });
-      }
-
-      const protocolVer = typeof frame.protocolVersion === "number" && !isNaN(frame.protocolVersion) && frame.protocolVersion > 0
-        ? frame.protocolVersion
-        : 1;
-
-      const sanitizedFrame: InputFrame = {
-        protocolVersion: protocolVer,
-        tick: frame.tick,
-        timestamp: (typeof frame.timestamp === "number" && !isNaN(frame.timestamp) && frame.timestamp > 0)
-          ? frame.timestamp
-          : Date.now(),
-        actions: filteredActions,
-        axes: sanitizedAxes
-      };
-
-      const buffer = this.inputBuffers.get(client.sessionId) || [];
-      // Prevent duplicate ticks or extreme spam
-      if (buffer.some(f => f.tick === sanitizedFrame.tick)) {
-        return;
-      }
-
-      buffer.push(sanitizedFrame);
-      // Cap buffer size
-      if (buffer.length > 120) {
-        buffer.shift();
-      }
-      this.inputBuffers.set(client.sessionId, buffer);
-    });
-
-    this.onMessage("sync_tick", (client: Client, data: any) => {
-      if (data?.lastAckedVersion !== undefined) {
-        this.clientAcks.set(client.sessionId, data.lastAckedVersion);
-      }
-      client.send("sync_tick", {
-        protocolVersion: this.state.protocolVersion,
-        serverTick: this.state.serverTick,
-        timestamp: (typeof data?.timestamp === "number" && !isNaN(data.timestamp) && isFinite(data.timestamp) && data.timestamp > 0) ? data.timestamp : Date.now()
-      });
-    });
+  async onCreate(options: any): Promise<void> {
+    await super.onCreate(options);
+    this.allowedActions = ["fire", "bomb"];
 
     this.onMessage("start_game", () => {
       if (this.state.gameStarted) return;
@@ -142,11 +52,7 @@ export class GeometryWarsRoom extends Room<GeometryWarsState> {
     });
   }
 
-  onJoin(client: Client, options: any) {
-    const parsedOptions = JoinOptionsSchema.safeParse(options);
-    const validOptions = parsedOptions.success ? parsedOptions.data : {};
-
-    // Remove any default singleplayer player entity to avoid leftovers
+  protected spawnPlayer(client: Client, validOptions: any): number {
     const defaultPlayers = this.world.query("Player");
     for (const p of defaultPlayers) {
       this.world.getCommandBuffer().removeEntity(p);
@@ -166,75 +72,27 @@ export class GeometryWarsRoom extends Room<GeometryWarsState> {
     player.score = 0;
 
     this.state.players.set(client.sessionId, player);
-    this.newClients.add(client.sessionId);
-    this.inputBuffers.set(client.sessionId, []);
 
-    // Spawn player entity in the ECS world and map it
     const entity = this.world.createEntity();
-    this.playerEntities.set(client.sessionId, entity);
 
-    const blueprints = this.world.getResource<any>("BlueprintRegistry");
+    const blueprints = this.world.getResource("BlueprintRegistry");
     const playerBlueprint = blueprints?.get("player");
     if (playerBlueprint) {
       playerBlueprint.spawn(this.world, entity, { x: player.x, y: player.y });
     } else {
       console.error("[GeometryWarsRoom] Player blueprint not found!");
     }
+
+    return entity;
   }
 
-  async onLeave(client: Client, code: number) {
-    try {
-      if (code === CloseCode.CONSENTED) {
-        throw new Error("consented leave");
-      }
-      await this.allowReconnection(client, 10);
-    } catch {
-      const entity = this.playerEntities.get(client.sessionId);
-      if (entity !== undefined) {
-        this.world.getCommandBuffer().removeEntity(entity);
-        this.playerEntities.delete(client.sessionId);
-      }
-      this.state.players.delete(client.sessionId);
-      this.inputBuffers.delete(client.sessionId);
-      this.clientAcks.delete(client.sessionId);
-      this.newClients.delete(client.sessionId);
+  protected despawnPlayer(_client: Client, entity?: number): void {
+    if (entity !== undefined) {
+      this.world.getCommandBuffer().removeEntity(entity);
     }
   }
 
-  update(_dt: number) {
-    if (!this.state.gameStarted) return;
-    this.state.serverTick++;
-
-    // Apply client inputs to players
-    this.state.players.forEach((player, sessionId) => {
-      const entity = this.playerEntities.get(sessionId);
-      if (entity === undefined) return;
-
-      const buffer = this.inputBuffers.get(sessionId);
-      if (buffer) {
-        const frame = buffer.find(f => f.tick === this.state.serverTick);
-        if (frame) {
-          this.gameSimulation.applyInputToEntity(entity, frame);
-        }
-      }
-    });
-
-    // Step simulation
-    this.gameSimulation.runSimulationStep(this.fixedTimeStep, false);
-
-    // Sync state to schema
-    this.syncWorldToSchema();
-
-    // Clean up processed inputs
-    this.state.players.forEach((player, sessionId) => {
-      const buffer = this.inputBuffers.get(sessionId);
-      if (buffer) {
-        this.inputBuffers.set(sessionId, buffer.filter(f => f.tick > this.state.serverTick));
-      }
-    });
-  }
-
-  private syncWorldToSchema() {
+  protected syncWorldToSchema(): void {
     // 1. Sync Players
     this.playerEntities.forEach((entity, sessionId) => {
       const player = this.state.players.get(sessionId);
@@ -262,7 +120,7 @@ export class GeometryWarsRoom extends Room<GeometryWarsState> {
     // 2. Sync Enemies
     const enemyEntities = this.world.query("Faction", "Transform");
     const currentEnemyIds = new Set<string>();
-    enemyEntities.forEach(entity => {
+    enemyEntities.forEach((entity: number) => {
       const factionComp = this.world.getMutableComponent(entity, "Faction");
       if (factionComp && factionComp.faction === "enemy") {
         const id = entity.toString();
@@ -292,7 +150,7 @@ export class GeometryWarsRoom extends Room<GeometryWarsState> {
     // 3. Sync Bullets
     const currentBulletIds = new Set<string>();
     const renderEntities = this.world.query("Transform", "Render");
-    renderEntities.forEach(entity => {
+    renderEntities.forEach((entity: number) => {
       const render = this.world.getMutableComponent(entity, "Render")!;
       if (render.shape === "gw_bullet") {
         const id = entity.toString();
@@ -324,16 +182,6 @@ export class GeometryWarsRoom extends Room<GeometryWarsState> {
       this.state.gameOver = gameState.isGameOver;
       this.state.wave = gameState.wave;
       this.state.bombs = gameState.bombs;
-    }
-  }
-
-  onDispose() {
-    this.playerEntities.clear();
-    this.inputBuffers.clear();
-    this.clientAcks.clear();
-    this.newClients.clear();
-    if (this.gameSimulation) {
-      this.gameSimulation.destroy();
     }
   }
 }

@@ -1,31 +1,25 @@
-import { Room, Client } from "@colyseus/core";
+import { Client } from "@colyseus/core";
 import { Schema, type } from "@colyseus/schema";
-import { z } from "zod";
+import { BaseRoom } from "./BaseRoom";
 
-const RoomOptionsSchema = z.object({
-  seed: z.number().int().optional()
-});
-
-const JoinOptionsSchema = z.object({
-  name: z.string().max(32).optional()
-});
-
-class PongState extends Schema {
-  @type("number") ballX: number;
-  @type("number") ballY: number;
+export class PongState extends Schema {
+  @type("number") ballX: number = 0;
+  @type("number") ballY: number = 0;
 }
 
-export class PongRoom extends (Room as any) {
-  onCreate(options: any) {
-    const parsedOptions = RoomOptionsSchema.safeParse(options);
-    const _validOptions = parsedOptions.success ? parsedOptions.data : {};
-
+export class PongRoom extends BaseRoom<PongState> {
+  protected setupSimulation(_options: unknown): void {
     this.setState(new PongState());
-    this.onMessage("move", (client: Client, data: any) => {});
   }
-  onJoin(client: Client, options: any) {
-    const parsedOptions = JoinOptionsSchema.safeParse(options);
-    const _validOptions = parsedOptions.success ? parsedOptions.data : {};
+
+  async onCreate(options: unknown): Promise<void> {
+    await super.onCreate(options);
+    this.onMessage("move", (_client: Client, _data: any) => {});
   }
-  onLeave(client: Client) {}
+
+  protected spawnPlayer(_client: Client, _validOptions: unknown): void {}
+
+  protected despawnPlayer(_client: Client, _entity?: number): void {}
+
+  protected syncWorldToSchema(): void {}
 }

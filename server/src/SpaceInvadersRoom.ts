@@ -1,47 +1,21 @@
-import { Room as ColyseusRoom, type Client, CloseCode } from "@colyseus/core";
+import { type Client } from "@colyseus/core";
 import { SpaceInvadersState, SpaceInvadersPlayer, SpaceInvaderEntity, SpaceInvadersBulletEntity } from "./schema/SpaceInvadersState";
 import { z } from "zod";
-import { InputFrame } from "./NetTypes";
-import { World } from "@tiny-aster/core";
 import { SpaceInvadersGame } from "../../src/games/space-invaders/SpaceInvadersGame";
-
-const Room = ColyseusRoom as any as { new <T extends object = any>(): ColyseusRoom<{ state: T }> };
+import { BaseRoom } from "./BaseRoom";
 
 const RoomOptionsSchema = z.object({
   seed: z.number().int().optional()
 });
 
-const JoinOptionsSchema = z.object({
-  name: z.string().max(32).optional()
-});
-
-const InputFrameSchema = z.object({
-  protocolVersion: z.number().optional(),
-  tick: z.number().int().nonnegative(),
-  timestamp: z.number().optional(),
-  actions: z.array(z.string()),
-  axes: z.record(z.string(), z.number())
-});
-
-/**
- * Authoritative game room for the Space Invaders simulation.
- *
- * @remarks
- * This room runs a headless version of the {@link SpaceInvadersGame} and manages
- * authoritative state synchronization, input buffering, and player lifecycle.
- * It coordinates connection/session state and translates ECS updates to Colyseus State.
- */
-export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
+export class SpaceInvadersRoom extends BaseRoom<SpaceInvadersState> {
   maxClients = 4;
-  private inputBuffers = new Map<string, InputFrame[]>();
-  private clientAcks = new Map<string, number>();
-  private newClients = new Set<string>();
-  private playerEntities = new Map<string, number>();
-  private gameSimulation!: SpaceInvadersGame;
-  private world!: World<any, any, any>;
-  private fixedTimeStep = 16.66;
 
-  async onCreate(options: any) {
+  public update(dt: number) {
+    this.tick(dt);
+  }
+
+  protected async setupSimulation(options: any): Promise<{ world: any; gameSimulation: any }> {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const validOptions = parsedOptions.success ? parsedOptions.data : {};
 
@@ -53,95 +27,30 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
     this.state.gameOver = false;
     this.state.serverTick = 0;
 
-    this.gameSimulation = new SpaceInvadersGame({
+    const gameSimulation = new SpaceInvadersGame({
       headless: true,
       isMultiplayer: true,
       gameOptions: { seed: this.state.seed }
     });
-    await this.gameSimulation.init();
-    this.world = this.gameSimulation.getWorld();
-    this.world.setResource("UseNetworkInputs", true);
+    await gameSimulation.init();
+    const world = gameSimulation.getWorld();
+    world.setResource("UseNetworkInputs", true);
 
-    // Also set UseNetworkInputs on the base simulation world to prevent any race condition
-    if ((this.gameSimulation as any).world) {
-      (this.gameSimulation as any).world.setResource("UseNetworkInputs", true);
+    if ((gameSimulation as any).world) {
+      (gameSimulation as any).world.setResource("UseNetworkInputs", true);
     }
 
-    this.setPatchRate(50);
-    this.setSimulationInterval((dt: number) => this.update(dt));
+    return { world, gameSimulation };
+  }
 
-    this.onMessage("input", (client: Client, message: any) => {
-      const parsedFrame = InputFrameSchema.safeParse(message);
-      if (!parsedFrame.success) {
-        console.warn(`[SpaceInvadersRoom] Malformed input frame from ${client.sessionId}`);
-        return;
-      }
-
-      const frame = parsedFrame.data as unknown as InputFrame;
-
-      // Protection against malformed/overflow bounds
-      if (frame.tick < 0 || frame.tick > this.state.serverTick + 1000) {
-        return;
-      }
-
-      // Action/axes sanitization checks
-      const allowedActions = ["shoot"];
-      const filteredActions = frame.actions.filter(a => allowedActions.includes(a));
-
-      const sanitizedAxes: Record<string, number> = {};
-      if (frame.axes) {
-        for (const [key, rawVal] of Object.entries(frame.axes)) {
-          const val = Number(rawVal);
-          if (!isNaN(val) && isFinite(val)) {
-            sanitizedAxes[key] = Math.max(-1, Math.min(1, val));
-          }
-        }
-      }
-
-      const protocolVer = typeof frame.protocolVersion === "number" && !isNaN(frame.protocolVersion) && frame.protocolVersion > 0
-        ? frame.protocolVersion
-        : 1;
-
-      const sanitizedFrame: InputFrame = {
-        protocolVersion: protocolVer,
-        tick: frame.tick,
-        timestamp: (typeof frame.timestamp === "number" && !isNaN(frame.timestamp) && frame.timestamp > 0)
-          ? frame.timestamp
-          : Date.now(),
-        actions: filteredActions,
-        axes: sanitizedAxes
-      };
-
-      const buffer = this.inputBuffers.get(client.sessionId) || [];
-      // Prevent duplicate ticks or extreme spam
-      if (buffer.some(f => f.tick === sanitizedFrame.tick)) {
-        return;
-      }
-
-      buffer.push(sanitizedFrame);
-      // Cap buffer size
-      if (buffer.length > 120) {
-        buffer.shift();
-      }
-      this.inputBuffers.set(client.sessionId, buffer);
-    });
-
-    this.onMessage("sync_tick", (client: Client, data: any) => {
-      if (data?.lastAckedVersion !== undefined) {
-        this.clientAcks.set(client.sessionId, data.lastAckedVersion);
-      }
-      client.send("sync_tick", {
-        protocolVersion: this.state.protocolVersion,
-        serverTick: this.state.serverTick,
-        timestamp: (typeof data?.timestamp === "number" && !isNaN(data.timestamp) && isFinite(data.timestamp) && data.timestamp > 0) ? data.timestamp : Date.now()
-      });
-    });
+  async onCreate(options: any): Promise<void> {
+    await super.onCreate(options);
+    this.allowedActions = ["shoot"];
 
     this.onMessage("start_game", () => {
       if (this.state.gameStarted) return;
       this.state.gameStarted = true;
 
-      // Spawn initial server-side authoritative state, formation, and shields
       const stateBlueprint = this.gameSimulation.blueprints.get("state");
       if (stateBlueprint) {
         stateBlueprint.spawn(this.world, this.world.createEntity(), {});
@@ -150,8 +59,8 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
       if (formationBlueprint) {
         formationBlueprint.spawn(this.world, this.world.createEntity(), {});
       }
-      // Procedurally spawn shields using shield blueprint
-      const config = this.world.getResource<any>("GameConfig") || {
+
+      const config = this.world.getResource("GameConfig") || {
         SHIELD_COUNT: 4,
         SHIELD_SEGMENTS_X: 5,
         SHIELD_SEGMENTS_Y: 3,
@@ -188,10 +97,7 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
     });
   }
 
-  onJoin(client: Client, options: any) {
-    const parsedOptions = JoinOptionsSchema.safeParse(options);
-    const validOptions = parsedOptions.success ? parsedOptions.data : {};
-
+  protected spawnPlayer(client: Client, validOptions: any): number {
     this.world = this.gameSimulation.getWorld();
     this.world.setResource("UseNetworkInputs", true);
 
@@ -204,79 +110,34 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
     player.score = 0;
 
     this.state.players.set(client.sessionId, player);
-    this.newClients.add(client.sessionId);
-    this.inputBuffers.set(client.sessionId, []);
 
-    // Spawn player entity in the ECS world and map it
     const entity = this.world.createEntity();
-    this.playerEntities.set(client.sessionId, entity);
 
     const playerBlueprint = this.gameSimulation.blueprints.get("player");
     if (playerBlueprint) {
       playerBlueprint.spawn(this.world, entity, { x: player.x, y: player.y });
     }
+
+    return entity;
   }
 
-  async onLeave(client: Client, code: number) {
+  protected despawnPlayer(_client: Client, entity?: number): void {
     this.world = this.gameSimulation.getWorld();
-    try {
-      if (code === CloseCode.CONSENTED) {
-        throw new Error("consented leave");
-      }
-      await this.allowReconnection(client, 10);
-    } catch {
-      const entity = this.playerEntities.get(client.sessionId);
-      if (entity !== undefined) {
-        this.world.getCommandBuffer().removeEntity(entity);
-        this.playerEntities.delete(client.sessionId);
-      }
-      this.state.players.delete(client.sessionId);
-      this.inputBuffers.delete(client.sessionId);
-      this.clientAcks.delete(client.sessionId);
-      this.newClients.delete(client.sessionId);
+    if (entity !== undefined) {
+      this.world.getCommandBuffer().removeEntity(entity);
     }
   }
 
-  update(_dt: number) {
+  protected override tick(dt: number): void {
     if (!this.state.gameStarted) return;
     this.world = this.gameSimulation.getWorld();
     this.world.setResource("UseNetworkInputs", true);
-
-    this.state.serverTick++;
-    this.state.lastProcessedTick = this.state.serverTick;
-
-    // Apply client inputs to players
-    this.state.players.forEach((player, sessionId) => {
-      const entity = this.playerEntities.get(sessionId);
-      if (entity === undefined) return;
-
-      const buffer = this.inputBuffers.get(sessionId);
-      if (buffer) {
-        const frame = buffer.find(f => f.tick === this.state.serverTick);
-        if (frame) {
-          this.gameSimulation.applyInputToEntity(entity, frame);
-        }
-      }
-    });
-
-    // Step simulation
-    this.gameSimulation.runSimulationStep(this.fixedTimeStep, false);
-
-    // Sync state to schema
-    this.syncWorldToSchema();
-
-    // Clean up processed inputs
-    this.state.players.forEach((player, sessionId) => {
-      const buffer = this.inputBuffers.get(sessionId);
-      if (buffer) {
-        this.inputBuffers.set(sessionId, buffer.filter(f => f.tick > this.state.serverTick));
-      }
-    });
+    super.tick(dt);
   }
 
-  private syncWorldToSchema() {
+  protected syncWorldToSchema(): void {
     this.world = this.gameSimulation.getWorld();
-    // 1. Sync Players
+
     this.playerEntities.forEach((entity, sessionId) => {
       const player = this.state.players.get(sessionId);
       if (!player) return;
@@ -293,10 +154,9 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
       }
     });
 
-    // 2. Sync Invaders
     const invaderEntities = this.world.query("Invader", "Transform");
     const currentInvaderIds = new Set<string>();
-    invaderEntities.forEach(entity => {
+    invaderEntities.forEach((entity: number) => {
       const id = entity.toString();
       currentInvaderIds.add(id);
       const pos = this.world.getComponent(entity, "Transform")!;
@@ -309,7 +169,7 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
       }
       invader.x = pos.x;
       invader.y = pos.y;
-      invader.alive = true; // Active invaders are alive
+      invader.alive = true;
     });
 
     this.state.invaders.forEach((_, id) => {
@@ -318,7 +178,6 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
       }
     });
 
-    // 3. Sync Bullets (Both player and enemy bullets)
     const playerBulletEntities = this.world.query("PlayerBullet", "Transform");
     const enemyBulletEntities = this.world.query("EnemyBullet", "Transform");
     const currentBulletIds = new Set<string>();
@@ -339,8 +198,8 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
       bullet.ownerId = ownerId;
     };
 
-    playerBulletEntities.forEach(entity => syncBullet(entity, "player"));
-    enemyBulletEntities.forEach(entity => syncBullet(entity, "enemy"));
+    playerBulletEntities.forEach((entity: number) => syncBullet(entity, "player"));
+    enemyBulletEntities.forEach((entity: number) => syncBullet(entity, "enemy"));
 
     this.state.bullets.forEach((_, id) => {
       if (!currentBulletIds.has(id)) {
@@ -348,21 +207,10 @@ export class SpaceInvadersRoom extends Room<SpaceInvadersState> {
       }
     });
 
-    // 4. Sync Global Game State (Score, GameOver, Started)
     const gameState = this.world.getSingleton("GameState");
     if (gameState) {
       this.state.score = gameState.score;
       this.state.gameOver = gameState.isGameOver;
-    }
-  }
-
-  onDispose() {
-    this.playerEntities.clear();
-    this.inputBuffers.clear();
-    this.clientAcks.clear();
-    this.newClients.clear();
-    if (this.gameSimulation) {
-      this.gameSimulation.destroy();
     }
   }
 }

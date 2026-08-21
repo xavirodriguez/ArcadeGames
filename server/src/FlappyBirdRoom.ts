@@ -1,44 +1,33 @@
-import { Room, Client } from "@colyseus/core";
+import { Client } from "@colyseus/core";
 import { Schema, type, MapSchema } from "@colyseus/schema";
-import { z } from "zod";
+import { BaseRoom } from "./BaseRoom";
 
-const RoomOptionsSchema = z.object({
-  seed: z.number().int().optional()
-});
-
-const JoinOptionsSchema = z.object({
-  name: z.string().max(32).optional()
-});
-
-class Bird extends Schema {
-  @type("number") x: number;
-  @type("number") y: number;
+export class Bird extends Schema {
+  @type("number") x: number = 0;
+  @type("number") y: number = 0;
 }
 
-class FlappyState extends Schema {
+export class FlappyState extends Schema {
   @type({ map: Bird }) birds = new MapSchema<Bird>();
 }
 
-export class FlappyBirdRoom extends (Room as any) {
-  private random: any;
-
-  onCreate(options: any) {
-    const parsedOptions = RoomOptionsSchema.safeParse(options);
-    const _validOptions = parsedOptions.success ? parsedOptions.data : {};
-
+export class FlappyBirdRoom extends BaseRoom<FlappyState> {
+  protected setupSimulation(_options: unknown): void {
     this.setState(new FlappyState());
-    this.setSimulationInterval((dt: number) => {});
-    this.onMessage("jump", (client: Client) => {});
   }
 
-  onJoin(client: Client, options: any) {
-    const parsedOptions = JoinOptionsSchema.safeParse(options);
-    const _validOptions = parsedOptions.success ? parsedOptions.data : {};
+  async onCreate(options: unknown): Promise<void> {
+    await super.onCreate(options);
+    this.onMessage("jump", (_client: Client) => {});
+  }
 
+  protected spawnPlayer(client: Client, _validOptions: unknown): void {
     this.state.birds.set(client.sessionId, new Bird());
   }
 
-  onLeave(client: Client) {
+  protected despawnPlayer(client: Client, _entity?: number): void {
     this.state.birds.delete(client.sessionId);
   }
+
+  protected syncWorldToSchema(): void {}
 }

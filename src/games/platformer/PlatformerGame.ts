@@ -1,5 +1,6 @@
 import {
   BaseGame,
+  GameDefinition,
   World,
   SystemPhase,
   BlueprintDefinition,
@@ -283,3 +284,18 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     return this.gameOver;
   }
 }
+
+export const PlatformerDefinition: GameDefinition = {
+  name: "platformer",
+  createSimulation: (seed: number) => {
+    const game = new PlatformerGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: ["moveLeft", "moveRight", "jump"]
+  },
+  assets: {
+    sprites: [],
+    sounds: []
+  }
+};

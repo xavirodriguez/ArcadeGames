@@ -221,8 +221,31 @@ function resetManifold(): CollisionManifold {
   };
 }
 
-/** @public */
+/**
+ * Narrowphase collision testing engine implementing Separating Axis Theorem (SAT).
+ *
+ * @remarks
+ * Evaluates exact geometric intersections between pairs of convex shapes (Circles, Boxes, and Convex Polygons).
+ * Calculates Minimum Translation Vectors (MTV), normal directions, penetration depths, and contact points.
+ *
+ * Pre-condition: Polygon shapes must be convex and vertices specified in order.
+ *
+ * @public
+ */
 export class NarrowPhase {
+  /**
+   * Tests collision between two shapes in 2D world space.
+   *
+   * @param shapeA - First geometry shape definition.
+   * @param ax - World position X of shape A.
+   * @param ay - World position Y of shape A.
+   * @param ar - World rotation in radians of shape A.
+   * @param shapeB - Second geometry shape definition.
+   * @param bx - World position X of shape B.
+   * @param by - World position Y of shape B.
+   * @param br - World rotation in radians of shape B.
+   * @returns Detailed collision manifold indicating collision flag, depth, normals, and contact points.
+   */
   public static test(
     shapeA: Shape, ax: number, ay: number, ar: number,
     shapeB: Shape, bx: number, by: number, br: number

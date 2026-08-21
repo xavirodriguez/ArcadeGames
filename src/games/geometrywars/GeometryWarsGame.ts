@@ -6,7 +6,8 @@ import {
   World,
   Camera2DSystem,
   TransformComponent,
-  WebAudioPlayer
+  WebAudioPlayer,
+  GameDefinition
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, GeometryWarsStateComponent, GeometryWarsInput, GeometryWarsBlueprintRegistry } from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
@@ -17,7 +18,7 @@ import { colors } from "../../theme/colors";
  * Main game class for Geometry Wars.
  * @public
  */
-import { NetworkManager, WorldSnapshot } from "@tiny-aster/core";
+import { NetworkManager, WorldSnapshot, InputFrame } from "@tiny-aster/core";
 
 export class GeometryWarsGame extends BaseGame<
   GeometryWarsStateComponent, // GameState description returned to HUD
@@ -100,7 +101,7 @@ export class GeometryWarsGame extends BaseGame<
     this.isMultiplayer = active;
   }
 
-  public applyInputToEntity(entityId: number, input: any) {
+  public applyInputToEntity(entityId: number, input: InputFrame) {
     const activeWorld = this.getWorld();
     if (!activeWorld.hasComponent(entityId, "Player")) {
       return;
@@ -139,7 +140,7 @@ export class GeometryWarsGame extends BaseGame<
     }
   }
 
-  public predictLocalPlayer(input: any, deltaTime: number) {
+  public predictLocalPlayer(input: InputFrame, deltaTime: number) {
     const localPlayer = this.getWorld().query("Player")[0];
     if (localPlayer !== undefined) {
       this.applyInputToEntity(localPlayer, input);
@@ -434,3 +435,28 @@ export class GeometryWarsGame extends BaseGame<
     return state?.isGameOver ?? false;
   }
 }
+
+export const GeometryWarsDefinition: GameDefinition = {
+  name: "geometrywars",
+  createSimulation: (seed: number) => {
+    const game = new GeometryWarsGame({ gameOptions: { seed } });
+    return game;
+  },
+  inputSchema: {
+    actions: [
+      "moveUp",
+      "moveDown",
+      "moveLeft",
+      "moveRight",
+      "shootUp",
+      "shootDown",
+      "shootLeft",
+      "shootRight",
+      "bomb"
+    ]
+  },
+  assets: {
+    sprites: [],
+    sounds: []
+  }
+};

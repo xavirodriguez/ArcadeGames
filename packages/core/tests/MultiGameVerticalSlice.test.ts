@@ -100,11 +100,11 @@ describe("Multi-Game Vertical Slice Campaign Integration Tests", () => {
     await new Promise(r => setTimeout(r, 10));
 
     expect(runtime.getCurrentNode()?.id).toBe("node_4_space_invaders");
-    expect(sceneSwitches).toContain("space_invaders");
+    expect(sceneSwitches).toContain("space-invaders");
 
     const newScene = sceneManager.getCurrentScene() as MockGameScene;
     expect(newScene).toBeDefined();
-    expect(newScene.sceneName).toBe("space_invaders");
+    expect(newScene.sceneName).toBe("space-invaders");
 
     // 5. Verify entire history and state persistence across minigames
     const state = runtime.getState();

@@ -8,7 +8,8 @@ import { GameErrorBoundary } from "@/src/components/GameErrorBoundary";
 import { useGeometryWarsGame } from "@/src/hooks/useGeometryWarsGame";
 import { useTranslation } from "@/src/hooks/useTranslation";
 import { VirtualJoystick } from "@/src/components/controls/VirtualJoystick";
-import { useMultiplayer } from "@tiny-aster/react-native";
+import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
+import { GeometryWarsGame } from "@/games/geometrywars/GeometryWarsGame";
 import { useTouchDevice } from "@/src/hooks/useTouchDevice";
 import { hapticSelection } from "@/src/utils/haptics";
 import { sharedScreenStyles } from "@/src/styles/SharedGameScreenStyles";
@@ -55,29 +56,12 @@ export default function GeometryWarsScreen() {
     restartWithSeed
   } = useGeometryWarsGame(started, isMulti && started);
 
-  const { room, connected, serverState, sendInput, inputBufferRef } = useMultiplayer("geometrywars", playerName, isMulti && started);
-
-  useEffect(() => {
-    if (isMulti && connected && game) {
-      game.setMultiplayerMode(true);
-    }
-  }, [isMulti, connected, game]);
-
-  useEffect(() => {
-    if (isMulti && serverState && game) {
-        const sessionId = room?.sessionId;
-        const pendingInputs = inputBufferRef.current;
-
-        game.updateFromServer(serverState, sessionId);
-
-        // Re-apply pending inputs for reconciliation
-        if (sessionId && pendingInputs.length > 0) {
-            pendingInputs.forEach(frame => {
-                game.predictLocalPlayer(frame, 16.66);
-            });
-        }
-    }
-  }, [isMulti, serverState, game, room?.sessionId, inputBufferRef]);
+  const { room, connected, handleMultiplayerInput: sendNetInput } = useMultiplayerGame<GeometryWarsGame, Record<string, unknown>>({
+    game,
+    roomName: "geometrywars",
+    playerName,
+    active: isMulti && started,
+  });
 
   const handleMultiplayerInput = useCallback((input: Partial<{
     moveX: number;
@@ -88,7 +72,7 @@ export default function GeometryWarsScreen() {
     mouseAbsolute?: boolean;
   }>) => {
     if (isMulti && room) {
-      const frame = sendInput({
+      sendNetInput({
         actions: input.fire ? ["fire"] : [],
         axes: {
           moveX: input.moveX ?? 0,
@@ -97,13 +81,10 @@ export default function GeometryWarsScreen() {
           aimY: input.aimY ?? 0
         }
       });
-      if (frame) {
-        game?.predictLocalPlayer(frame, 16.66);
-      }
     } else {
       game?.setInputState(input);
     }
-  }, [isMulti, room, sendInput, game]);
+  }, [isMulti, room, sendNetInput, game]);
 
   // 1. Keyboard Controls for Web (WASD / Arrows)
   useEffect(() => {

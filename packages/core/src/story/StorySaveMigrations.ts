@@ -1,9 +1,13 @@
 import { NarrativeSaveGame, StoryState } from "./StoryTypes";
 
 /**
- * Migration pipeline for converting legacy narrative player save data into standard `NarrativeSaveGame` structures.
+ * Migration pipeline for converting legacy narrative player save game state into standard `NarrativeSaveGame` structures.
  *
  * @remarks
+ * **Semantic Distinction:**
+ * - `StoryMigrations`: Handles narrative package/content schema migrations (`StoryPackage` and `StoryGraph` definition versions).
+ * - `StorySaveMigrations`: Handles player save file migrations (`NarrativeSaveGame` and runtime `StoryState` progress snapshots).
+ *
  * Safely normalizes raw JSON payloads, legacy unnested `StoryState` objects, missing fields,
  * and partial state maps without altering user progress or game variable semantics.
  *

@@ -4,16 +4,25 @@ import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
 
 /**
- * System that enforces world boundaries on entities.
+ * System enforcing screen or rectangular world spatial boundaries on entities.
  *
  * @remarks
- * Supports different boundary modes:
- * - `wrap`: Teleports the entity to the opposite side of the boundary.
- * - `destroy`: Schedules the entity for removal via the {@link WorldCommandBuffer}.
- * - `bounce`: Reverses velocity when hitting a boundary.
+ * Supports three distinct boundary handling modes configured via the `Boundary` component:
+ * - `wrap`: Teleports the entity to the opposite edge when leaving bounds (e.g., Asteroids screen wrap).
+ * - `destroy`: Removes out-of-bounds entities via `WorldCommandBuffer` or recycles them via `Reclaimable` object pools.
+ * - `bounce`: Reverses velocity vectors along breached boundary axes (e.g., Pong ball bouncing off walls).
+ *
  * @public
  */
 export class BoundarySystem extends System<CoreComponentRegistry> {
+  /**
+   * Enforces rectangular spatial boundaries on active entities.
+   *
+   * @param world - Simulation world instance.
+   * @param _deltaTime - Elapsed frame duration in seconds.
+   *
+   * @sideEffect Mutates `Transform` or `Velocity` components, or schedules entity destruction via command buffer.
+   */
   update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     let entities = world.query("Transform", "Boundary");
     if (world.getResource("SpatialCullingEnabled") === true) {

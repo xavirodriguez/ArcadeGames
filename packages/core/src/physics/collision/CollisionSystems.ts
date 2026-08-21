@@ -10,27 +10,39 @@ import { ShapeType } from "../shapes/Shapes";
 import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
 
 /**
- * Firma del callback invocado al ocurrir una colisión física entre dos entidades.
+ * Signature for a callback invoked when a physical collision occurs between two entities.
+ *
+ * @param world - The ECS world instance.
+ * @param entityA - The first entity involved in the collision.
+ * @param entityB - The second entity involved in the collision.
+ * @param manifold - Detailed collision manifold describing contact normal, penetration depth, and contact points.
  * @public
  */
 export type CollisionCallback<TRegistry extends ComponentRegistry = CoreComponentRegistry> = (world: World<TRegistry>, entityA: Entity, entityB: Entity, manifold: CollisionManifold) => void;
 
 /**
- * Firma del callback invocado al entrar o salir un trigger entre dos entidades.
+ * Signature for a callback invoked when a trigger boundary is entered or exited between two entities.
+ *
+ * @param world - The ECS world instance.
+ * @param entityA - The first entity involved in the trigger event.
+ * @param entityB - The second entity involved in the trigger event.
  * @public
  */
 export type TriggerCallback<TRegistry extends ComponentRegistry = CoreComponentRegistry> = (world: World<TRegistry>, entityA: Entity, entityB: Entity) => void;
 
 /**
- * Sistema de colisiones 2D que gestiona la detección e informe de colisiones físicas y triggers.
+ * 2D Collision detection system managing physical collisions and trigger area events.
  *
  * @remarks
- * Este sistema utiliza un enfoque de dos fases (BroadPhase Sweep & Prune y NarrowPhase SAT/Detección precisa)
- * y soporta el filtrado de entidades mediante Spatial Culling para optimizar el rendimiento.
+ * Uses a two-phase pipeline:
+ * 1. BroadPhase: Sweep and Prune algorithm (1D bounding box sorting along the X-axis).
+ * 2. NarrowPhase: Separating Axis Theorem (SAT) for precise convex polygon, box, and circle manifold calculation.
  *
- * @precondition Las entidades deben poseer los componentes `Transform` y `Collider` para ser procesadas.
- * @invariant Las listas de callbacks activos se mantienen consistentes durante la actualización del sistema.
- * @conceptualRisk [GC_PRESSURE] La creación constante de Sets y filtrados de arrays en cada tick puede elevar las asignaciones si no se gestionan correctamente los candidatos de culling.
+ * Supports optional spatial culling candidate overrides to minimize comparison counts.
+ * Emits events via registered callbacks and populates the `CollisionEvents` component on colliding entities.
+ *
+ * @precondition Entities must possess both `Transform` and `Collider` components to participate in collision detection.
+ * @invariant Active collision pair tracking remains consistent frame-over-frame to correctly trigger enter/exit callbacks.
  * @public
  */
 export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
@@ -43,15 +55,12 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   private tempQuery: Entity[] = [];
 
   /**
-   * Registra un callback que se disparará al detectarse una colisión física.
+   * Registers a callback invoked whenever a physical collision is detected.
    *
-   * @precondition El callback provisto debe ser una función válida.
-   * @postcondition El callback se añade a la lista interna y se retorna una función de des-registro.
-   * @throws Ninguno.
-   * @sideEffect Muta la lista interna de callbacks de colisión.
+   * @param callback - Function receiving the world, colliding entities, and collision manifold.
+   * @returns Cleanup function to unregister the callback.
    *
-   * @param callback - La función que recibirá el evento de colisión física.
-   * @returns Función para des-registrar el callback.
+   * @sideEffect Appends the callback to the internal listener list.
    */
   public onCollision(callback: CollisionCallback<TRegistry>): () => void {
     this.onCollisionCallbacks.push(callback);
@@ -61,15 +70,12 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   }
 
   /**
-   * Registra un callback que se disparará cuando una entidad entre en el área de un trigger.
+   * Registers a callback invoked when an entity enters a trigger zone.
    *
-   * @precondition El callback provisto debe ser una función válida.
-   * @postcondition El callback se añade a la lista interna y se retorna una función de des-registro.
-   * @throws Ninguno.
-   * @sideEffect Muta la lista interna de callbacks de entrada de trigger.
+   * @param callback - Function receiving the world and participating entities.
+   * @returns Cleanup function to unregister the callback.
    *
-   * @param callback - La función que recibirá el evento de entrada al trigger.
-   * @returns Función para des-registrar el callback.
+   * @sideEffect Appends the callback to the internal trigger-enter listener list.
    */
   public onTriggerEnter(callback: TriggerCallback<TRegistry>): () => void {
     this.onTriggerEnterCallbacks.push(callback);
@@ -79,15 +85,12 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   }
 
   /**
-   * Registra un callback que se disparará cuando una entidad salga del área de un trigger.
+   * Registers a callback invoked when an entity exits a trigger zone.
    *
-   * @precondition El callback provisto debe ser una función válida.
-   * @postcondition El callback se añade a la lista interna y se retorna una función de des-registro.
-   * @throws Ninguno.
-   * @sideEffect Muta la lista interna de callbacks de salida de trigger.
+   * @param callback - Function receiving the world and participating entities.
+   * @returns Cleanup function to unregister the callback.
    *
-   * @param callback - La función que recibirá el evento de salida del trigger.
-   * @returns Función para des-registrar el callback.
+   * @sideEffect Appends the callback to the internal trigger-exit listener list.
    */
   public onTriggerExit(callback: TriggerCallback<TRegistry>): () => void {
     this.onTriggerExitCallbacks.push(callback);
@@ -97,12 +100,9 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   }
 
   /**
-   * Limpia todos los callbacks registrados y el estado de pares activos.
+   * Clears all registered collision and trigger callbacks and active collision pairs.
    *
-   * @precondition Ninguna.
-   * @postcondition El sistema queda en un estado limpio sin listeners ni referencias de colisión.
-   * @throws Ninguno.
-   * @sideEffect Vacía las listas de callbacks y limpia el set de pares de colisión activos.
+   * @sideEffect Empties all callback arrays and clears active tracking sets.
    */
   public override dispose(): void {
     this.onCollisionCallbacks = [];
@@ -112,36 +112,28 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   }
 
   /**
-   * Establece de forma manual un subconjunto de entidades candidatas para la detección de colisiones.
+   * Manually sets a filtered subset of candidate entities for broadphase collision processing.
    *
-   * @precondition `entities` debe ser un array de IDs de entidades válidas o `null`.
-   * @postcondition El sistema limitará la BroadPhase a este subconjunto si está definido.
-   * @throws Ninguno.
-   * @sideEffect Muta la referencia `candidateEntities`.
+   * @param entities - Array of entity IDs to consider for collision, or `null` to query all matching world entities.
    *
-   * @param entities - Lista de entidades candidatas o null para usar todas las del World.
+   * @sideEffect Updates internal `candidateEntities` reference.
    */
   public setCandidates(entities: Entity[] | null): void {
     this.candidateEntities = entities;
   }
 
   /**
-   * Ejecuta el ciclo de actualización para la detección e informe de colisiones y triggers.
+   * Executes one tick of collision detection and resolution.
    *
    * @remarks
-   * Realiza un Sweep & Prune sobre las entidades candidatas (filtradas por Spatial Culling si corresponde),
-   * calcula los manifolds precisos en NarrowPhase y emite los eventos correspondientes a través de callbacks
-   * y mutaciones en el componente `CollisionEvents` de las entidades involucradas.
+   * Performs broadphase Sweep & Prune, narrowphase SAT manifold checks, fires registered callbacks,
+   * and populates the `CollisionEvents` component for participating entities.
    *
-   * @precondition El World de simulación debe estar inicializado y activo.
-   * @postcondition Se actualizan los componentes `CollisionEvents` de las entidades y se notifican los callbacks de colisión y trigger.
-   * @invariant La consistencia de la lista de pares de colisiones activos se mantiene de forma incremental cuadro a cuadro.
-   * @throws Ninguno.
-   * @sideEffect Muta los componentes `CollisionEvents` de las entidades colisionadas.
+   * @param world - Simulation ECS world.
+   * @param _deltaTime - Frame elapsed time in seconds.
+   * @param candidatesOverride - Optional candidate entity list to override default spatial culling.
    *
-   * @param world - El World de la simulación.
-   * @param _deltaTime - El paso de tiempo de la simulación (no utilizado directamente en la fase estática).
-   * @param candidatesOverride - Lista opcional para anular las entidades candidatas por defecto.
+   * @sideEffect Mutates `CollisionEvents` components on colliding entities and invokes registered callbacks.
    */
   public update(world: World<TRegistry>, _deltaTime: number, candidatesOverride?: Entity[]): void {
     // Cast to access core components reliably while maintaining generic TRegistry if needed by subclasses
@@ -250,30 +242,36 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   }
 
   /**
-   * Determina si dos capas de colisión deben interactuar según sus máscaras de colisión.
+   * Evaluates bitwise layer and mask filtering to determine whether two entities should collide.
    *
-   * @precondition Los valores de layer y mask deben ser enteros que representen bits flags.
-   * @postcondition Retorna true si ambas entidades se seleccionan mutuamente en sus máscaras de colisión.
+   * @param layerA - Collision layer bitmask of entity A.
+   * @param maskB - Collision mask bitmask of entity B.
+   * @param layerB - Collision layer bitmask of entity B.
+   * @param maskA - Collision mask bitmask of entity A.
+   * @returns `true` if bitwise AND operation between layer and mask is non-zero in both directions.
    */
   private shouldCollide(layerA: number, maskB: number, layerB: number, maskA: number): boolean {
     return (layerA & maskB) !== 0 && (layerB & maskA) !== 0;
   }
 
   /**
-   * Genera un identificador único determinista para un par de entidades.
+   * Generates a deterministic, order-independent string identifier for a pair of entities.
    *
-   * @precondition `a` y `b` deben ser IDs numéricos válidos.
-   * @postcondition Retorna una clave de string en formato 'menor,mayor'.
+   * @param a - Entity ID A.
+   * @param b - Entity ID B.
+   * @returns String formatted as `'min(a,b),max(a,b)'`.
    */
   private getPairId(a: Entity, b: Entity): string {
     return a < b ? `${a},${b}` : `${b},${a}`;
   }
 
   /**
-   * Notifica a los componentes `CollisionEvents` de ambas entidades la ocurrencia de una colisión física.
+   * Adds collision details to the `CollisionEvents` component of both entities involved in a collision.
    *
-   * @precondition Ambas entidades deben poseer el componente `CollisionEvents`.
-   * @postcondition Los detalles del contacto y penetración de la colisión se añaden a ambos componentes.
+   * @param world - Simulation world.
+   * @param a - First entity.
+   * @param b - Second entity.
+   * @param manifold - Collision manifold.
    */
   private notifyCollisionEvent(world: World<CoreComponentRegistry>, a: Entity, b: Entity, manifold: CollisionManifold): void {
     this.addCollisionToComponent(world, a, b, manifold, false);
@@ -281,10 +279,13 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   }
 
   /**
-   * Helper privado para mutar el componente `CollisionEvents` de una entidad individual.
+   * Appends a collision entry to an entity's `CollisionEvents` component, optionally inverting normal vectors.
    *
-   * @precondition El componente `CollisionEvents` debe estar presente en `entity`.
-   * @postcondition Añade el registro de colisión aplicando opcionalmente inversión de normal física.
+   * @param world - Simulation world.
+   * @param entity - Target entity whose component is mutated.
+   * @param other - Corresponding entity in the collision pair.
+   * @param manifold - Collision manifold.
+   * @param flipNormal - Whether to invert collision normal directions for entity B.
    */
   private addCollisionToComponent(world: World<CoreComponentRegistry>, entity: Entity, other: Entity, manifold: CollisionManifold, flipNormal: boolean): void {
     const eComp = world.getMutableComponent(entity, "CollisionEvents");
@@ -300,10 +301,12 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   }
 
   /**
-   * Notifica a los componentes `CollisionEvents` de ambas entidades la entrada o salida de un trigger.
+   * Updates `CollisionEvents` trigger lists on both entities involved in a trigger event.
    *
-   * @precondition Ambas entidades deben poseer el componente `CollisionEvents`.
-   * @postcondition Registra los triggers correspondientes en el componente de cada entidad.
+   * @param world - Simulation world.
+   * @param a - First entity.
+   * @param b - Second entity.
+   * @param phase - Trigger event phase (`"enter"` or `"exit"`).
    */
   private notifyTriggerEvent(world: World<CoreComponentRegistry>, a: Entity, b: Entity, phase: "enter" | "exit"): void {
     this.addTriggerToComponent(world, a, b, phase);
@@ -311,10 +314,12 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
   }
 
   /**
-   * Helper privado para añadir o remover registros en las listas de triggers del componente `CollisionEvents`.
+   * Mutates `triggersEntered`, `triggersExited`, or `activeTriggers` lists in an entity's `CollisionEvents` component.
    *
-   * @precondition La entidad provista debe poseer el componente `CollisionEvents`.
-   * @postcondition Modifica las listas `triggersEntered`, `triggersExited` o `activeTriggers` del componente de forma segura.
+   * @param world - Simulation world.
+   * @param entity - Target entity.
+   * @param other - Corresponding trigger entity.
+   * @param phase - Trigger event phase (`"enter"` or `"exit"`).
    */
   private addTriggerToComponent(world: World<CoreComponentRegistry>, entity: Entity, other: Entity, phase: "enter" | "exit"): void {
     const eComp = world.getMutableComponent(entity, "CollisionEvents");
@@ -334,13 +339,13 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
 }
 
 /**
- * Sistema CCD (Continuous Collision Detection) para detectar colisiones físicas a alta velocidad.
+ * Continuous Collision Detection (CCD) system to prevent high-speed projectiles from tunneling through colliders.
  *
  * @remarks
- * Resolviendo el efecto "tunneling" (atravesar paredes u obstáculos entre frames) proyectando rayos (raycasting)
- * continuos entre la posición actual y la proyectada por la velocidad del objeto rápido.
+ * Solves bullet tunneling by casting rays along projected entity trajectories (`position` to `position + velocity * deltaTime`).
+ * Evaluates line segment intersections with circle and AABB box colliders.
  *
- * @precondition Las entidades rápidas candidatas deben poseer los componentes `Transform`, `Velocity` y `Collider`.
+ * @precondition Fast-moving entities require `Transform`, `Velocity`, and `Collider` components.
  * @public
  */
 export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
@@ -349,25 +354,21 @@ export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRe
   private _cachedCollidablesArray: Entity[] = [];
 
   /**
-   * Establece de forma manual las entidades candidatas para la verificación CCD.
+   * Sets a candidate entity filter for continuous collision detection checks.
    *
-   * @precondition `entities` debe ser un array de IDs de entidad o `null`.
-   * @postcondition El sistema CCD limitará la búsqueda a este array si está definido.
+   * @param entities - Candidate entity IDs, or `null` to evaluate all matching world entities.
    */
   public setCandidates(entities: Entity[] | null): void {
     this.candidateEntities = entities;
   }
 
   /**
-   * Ejecuta la detección continua de colisiones físicas mediante barrido lineal de rayos.
+   * Evaluates continuous collision detection via raycasting for fast-moving entities.
    *
-   * @precondition El World de la simulación debe estar inicializado y activo.
-   * @postcondition Añade eventos de colisión en el componente `CollisionEvents` si se intersecta la trayectoria con un obstáculo físico.
-   * @throws Ninguno.
-   * @sideEffect Muta el componente `CollisionEvents` de la entidad que colisiona.
+   * @param world - Simulation world.
+   * @param deltaTime - Elapsed frame time in seconds.
    *
-   * @param world - El World de la simulación.
-   * @param deltaTime - El paso de tiempo del tick actual.
+   * @sideEffect Appends collision events to `CollisionEvents` components when ray intersection occurs.
    */
   public update(world: World<TRegistry>, deltaTime: number): void {
     const w = world as unknown as World<CoreComponentRegistry>;
@@ -439,20 +440,29 @@ export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRe
   }
 
   /**
-   * Evalúa la interacción entre dos capas y máscaras de colisión.
+   * Evaluates bitwise layer and mask filtering to determine whether two entities should collide.
    *
-   * @precondition Valores enteros que representen bits flags de capas de física.
-   * @postcondition Retorna true si las máscaras y capas permiten la colisión mutua.
+   * @param layerA - Layer bitmask of entity A.
+   * @param maskB - Mask bitmask of entity B.
+   * @param layerB - Layer bitmask of entity B.
+   * @param maskA - Mask bitmask of entity A.
+   * @returns `true` if collision is permitted in both directions.
    */
   private shouldCollide(layerA: number, maskB: number, layerB: number, maskA: number): boolean {
     return (layerA & maskB) !== 0 && (layerB & maskA) !== 0;
   }
 
   /**
-   * Determina matemáticamente si un segmento de línea intercepta un círculo en el plano 2D.
+   * Calculates ray segment intersection with a circle shape in 2D space.
    *
-   * @precondition Parámetros coordenados válidos y radio mayor a cero.
-   * @postcondition Retorna true si hay intersección en algún punto del trayecto proyectado.
+   * @param p0x - Ray start position X.
+   * @param p0y - Ray start position Y.
+   * @param p1x - Ray end position X.
+   * @param p1y - Ray end position Y.
+   * @param cx - Circle center X.
+   * @param cy - Circle center Y.
+   * @param radius - Circle radius.
+   * @returns `true` if the ray segment intersects the circle.
    */
   private rayIntersectsCircle(p0x: number, p0y: number, p1x: number, p1y: number, cx: number, cy: number, radius: number): boolean {
     const dx = p1x - p0x;
@@ -468,10 +478,17 @@ export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRe
   }
 
   /**
-   * Determina matemáticamente si un segmento de línea intercepta una caja alineada con los ejes (AABB).
+   * Calculates ray segment intersection with an Axis-Aligned Bounding Box (AABB) in 2D space.
    *
-   * @precondition Parámetros coordenados válidos y dimensiones de caja positivas.
-   * @postcondition Retorna true si la trayectoria del rayo corta alguna cara de la caja en el tick actual.
+   * @param p0x - Ray start position X.
+   * @param p0y - Ray start position Y.
+   * @param p1x - Ray end position X.
+   * @param p1y - Ray end position Y.
+   * @param bx - Box center X.
+   * @param by - Box center Y.
+   * @param width - Box width.
+   * @param height - Box height.
+   * @returns `true` if the ray segment cuts through the box.
    */
   private rayIntersectsBox(p0x: number, p0y: number, p1x: number, p1y: number, bx: number, by: number, width: number, height: number): boolean {
     const halfW = width / 2;
@@ -502,10 +519,11 @@ export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRe
   }
 
   /**
-   * Agrega el registro de colisión CCD al componente `CollisionEvents` de la entidad de origen.
+   * Appends CCD raycast collision entries to `CollisionEvents` components on both participating entities.
    *
-   * @precondition La entidad de origen debe poseer el componente `CollisionEvents`.
-   * @postcondition Registra un evento de colisión estático sin profundidad detallada en el manifold.
+   * @param world - Simulation world.
+   * @param entityA - Fast-moving source entity.
+   * @param entityB - Intersected entity.
    */
   private notifyCollision(world: World<CoreComponentRegistry>, entityA: Entity, entityB: Entity): void {
      const compA = world.getMutableComponent(entityA, "CollisionEvents");

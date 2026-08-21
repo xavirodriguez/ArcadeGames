@@ -1,11 +1,12 @@
 import { StoryEffect, StoryObjective } from "./StoryTypes";
+import { GameId } from "../runtime/GameDefinition";
 
 /**
- * Identifier for minigame types registered in the system (e.g. "asteroids", "space_invaders").
+ * Identifier for minigame types registered in the system (e.g. "asteroids", "space-invaders").
  *
  * @public
  */
-export type MiniGameId = string;
+export type MiniGameId = GameId | string;
 
 /**
  * Difficulty level setting for minigame execution.

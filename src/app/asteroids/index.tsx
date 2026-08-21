@@ -8,7 +8,8 @@ import { ComboDisplay } from "@/components/ComboDisplay";
 import { GameUI } from "@/components/GameUI";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useAsteroidsGame } from "@/hooks/useAsteroidsGame";
-import { useMultiplayer } from "@tiny-aster/react-native";
+import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
+import { AsteroidsGame } from "@/games/asteroids/AsteroidsGame";
 import { useTranslation } from "@/hooks/useTranslation";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
 import { ShootButton } from "../../components/ShootButton";
@@ -22,12 +23,18 @@ import { Mutator } from "@/config/MutatorConfig";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { InputState } from "../../types/GameTypes";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
+import { GameStateComponent } from "@/games/asteroids/types/AsteroidTypes";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "@/utils/haptics";
 import { colors } from "../../theme";
+import { ArcadeProvider } from "@/context/ArcadeProvider";
+import { GameThemeProvider } from "@/context/GameThemeProvider";
+import { useArcadeTransition } from "@/hooks/useArcadeTransition";
+import { TransitionOverlay } from "@/components/TransitionOverlay";
+import { ScorePulse } from "@/components/ScorePulse";
 import {
   GameScreen,
   GameTitle,
@@ -37,11 +44,6 @@ import {
   BackButton,
   NeonButton,
 } from "../../components/ui";
-
-import { GameThemeProvider } from "./GameThemeProvider";
-import { useArcadeTransition } from "@/hooks/useArcadeTransition";
-import { TransitionOverlay } from "@/components/TransitionOverlay";
-import { ScorePulse } from "@/components/ScorePulse";
 
 export default function AsteroidsScreen() {
   const { t } = useTranslation();
@@ -92,7 +94,12 @@ export default function AsteroidsScreen() {
 
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
-  const { room, connected, serverState, sendInput, inputBufferRef } = useMultiplayer("asteroids", playerName, isMulti && started);
+  const { room, connected, handleMultiplayerInput: sendNetInput } = useMultiplayerGame<AsteroidsGame, InputState>({
+    game,
+    roomName: "asteroids",
+    playerName,
+    active: isMulti && started,
+  });
 
   useEffect(() => {
     MutatorService.isMutatorModeEnabled().then(enabled => {
@@ -109,41 +116,16 @@ export default function AsteroidsScreen() {
     gameState,
   });
 
-  useEffect(() => {
-    if (isMulti && connected && game) {
-      game.setMultiplayerMode(true);
-    }
-  }, [isMulti, connected, game]);
-
-  useEffect(() => {
-    if (isMulti && serverState && game) {
-        const sessionId = room?.sessionId;
-        const pendingInputs = inputBufferRef.current;
-
-        game.updateFromServer(serverState, sessionId);
-
-        // Re-apply pending inputs for reconciliation
-        if (sessionId && pendingInputs.length > 0) {
-            pendingInputs.forEach(frame => {
-                game.predictLocalPlayer(frame, 16.66);
-            });
-        }
-    }
-  }, [isMulti, serverState, game, room?.sessionId, inputBufferRef]);
-
   const handleMultiplayerInput = useCallback((input: Partial<InputState>) => {
     if (isMulti && room) {
-        const frame = sendInput(input as Record<string, boolean>);
-        if (frame) {
-            game?.predictLocalPlayer(frame, 16.66);
-        }
+      sendNetInput(input);
     } else {
-        handleInput(input);
+      handleInput(input);
 
-        // Task 3: Decoupled Integration with ECS world for touch controls via Input Bridge
-        game?.setInputState(input);
+      // Task 3: Decoupled Integration with ECS world for touch controls via Input Bridge
+      game?.setInputState(input);
     }
-  }, [isMulti, room, sendInput, game, handleInput]);
+  }, [isMulti, room, sendNetInput, game, handleInput]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });
@@ -163,10 +145,10 @@ export default function AsteroidsScreen() {
 
   if (!started) {
     return (
-      <GameThemeProvider gameKey="asteroids" game={game}>
+      <GameThemeProvider gameKey="asteroids">
         <StartScreen
           title={t.menu.asteroids}
-          highScore={highScore}
+          highScore={highScore ?? 0}
           onStart={() => {
             if (initialSeed !== undefined) {
               restartWithSeed(initialSeed);
@@ -195,7 +177,7 @@ export default function AsteroidsScreen() {
 
   if (!game || !isReady) {
     return (
-      <GameThemeProvider gameKey="asteroids" game={game}>
+      <GameThemeProvider gameKey="asteroids">
         <View style={sharedScreenStyles.container}>
           <RadialBackground />
           <ActivityIndicator size="large" color={colors.cyan} />
@@ -208,75 +190,79 @@ export default function AsteroidsScreen() {
   }
 
   return (
-    <GameThemeProvider gameKey="asteroids" game={game}>
-      <AsteroidsActiveGame
-        game={game}
-        gameState={gameState}
-        isMulti={isMulti}
-        connected={connected}
-        room={room}
-        showDailyResults={showDailyResults}
-        seed={seed}
-        setShowDailyResults={setShowDailyResults}
-        togglePause={togglePause}
-        isPaused={isPaused}
-        highScore={highScore}
-        restartWithSeed={restartWithSeed}
-        handleHyperspacePress={handleHyperspacePress}
-        handleHyperspaceRelease={handleHyperspaceRelease}
-        handleShootPress={handleShootPress}
-        handleShootRelease={handleShootRelease}
-        handleMultiplayerInput={handleMultiplayerInput}
-        t={t}
-      />
-    </GameThemeProvider>
+    <GameErrorBoundary gameId="asteroids">
+      <SafeAreaProvider>
+        <AsteroidsGameContent
+          game={game}
+          gameState={gameState}
+          isPaused={isPaused}
+          highScore={highScore ?? 0}
+          seed={seed ?? 0}
+          restartWithSeed={restartWithSeed}
+          isMulti={isMulti}
+          room={room}
+          connected={connected}
+          togglePause={togglePause}
+          handleMultiplayerInput={handleMultiplayerInput}
+          handleShootPress={handleShootPress}
+          handleShootRelease={handleShootRelease}
+          handleHyperspacePress={handleHyperspacePress}
+          handleHyperspaceRelease={handleHyperspaceRelease}
+          showDailyResults={showDailyResults}
+          setShowDailyResults={setShowDailyResults}
+        />
+      </SafeAreaProvider>
+    </GameErrorBoundary>
   );
 }
 
-const AsteroidsActiveGame: FC<{
-  game: any;
-  gameState: any;
-  isMulti: boolean;
-  connected: boolean;
-  room: any;
-  showDailyResults: boolean;
-  seed?: number;
-  setShowDailyResults: (val: boolean) => void;
-  togglePause: () => void;
+interface AsteroidsGameContentProps {
+  game: AsteroidsGame;
+  gameState: GameStateComponent | null;
   isPaused: boolean;
   highScore: number;
-  restartWithSeed: (seed?: number) => void;
-  handleHyperspacePress: () => void;
-  handleHyperspaceRelease: () => void;
+  seed: number;
+  restartWithSeed: (newSeed?: number) => void;
+  isMulti: boolean;
+  room: { send: (type: string, data?: unknown) => void } | null;
+  connected: boolean;
+  togglePause: () => void;
+  handleMultiplayerInput: (input: Partial<InputState>) => void;
   handleShootPress: () => void;
   handleShootRelease: () => void;
-  handleMultiplayerInput: (input: Partial<InputState>) => void;
-  t: any;
-}> = ({
+  handleHyperspacePress: () => void;
+  handleHyperspaceRelease: () => void;
+  showDailyResults: boolean;
+  setShowDailyResults: (show: boolean) => void;
+}
+
+function AsteroidsGameContent({
   game,
   gameState,
-  isMulti,
-  connected,
-  room,
-  showDailyResults,
-  seed,
-  setShowDailyResults,
-  togglePause,
   isPaused,
   highScore,
+  seed,
   restartWithSeed,
-  handleHyperspacePress,
-  handleHyperspaceRelease,
+  isMulti,
+  room,
+  connected,
+  togglePause,
+  handleMultiplayerInput,
   handleShootPress,
   handleShootRelease,
-  handleMultiplayerInput,
-  t,
-}) => {
-  const { canvasBlur, pauseOverlayOpacity } = useArcadeTransition(game?.kernel, game?.getEventBus());
+  handleHyperspacePress,
+  handleHyperspaceRelease,
+  showDailyResults,
+  setShowDailyResults,
+}: AsteroidsGameContentProps) {
+  const { t } = useTranslation();
+  const kernel = game.kernel;
+  const eventBus = game.getEventBus();
+  const { canvasBlur, pauseOverlayOpacity } = useArcadeTransition(kernel, eventBus);
 
   return (
-    <GameErrorBoundary gameId="asteroids">
-      <SafeAreaProvider>
+    <ArcadeProvider kernel={kernel} eventBus={eventBus}>
+      <GameThemeProvider gameKey="asteroids">
         <View style={sharedScreenStyles.container}>
           <RadialBackground />
           <TouchableOpacity
@@ -297,19 +283,22 @@ const AsteroidsActiveGame: FC<{
           </TouchableOpacity>
 
           {isMulti && !connected && (
-              <View style={sharedScreenStyles.overlay}>
-                  <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
-              </View>
+            <View style={sharedScreenStyles.overlay}>
+              <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
+            </View>
           )}
 
-          <View style={styles.scorePulseHeader}>
-            <ScorePulse score={gameState.score} />
-          </View>
-
-          <ComboDisplay multiplier={(gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier || (gameState as { comboMultiplier?: number; multiplier?: number })?.multiplier || 1} isActive={true} />
+          <ComboDisplay
+            multiplier={
+              (gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier ||
+              (gameState as { comboMultiplier?: number; multiplier?: number })?.multiplier ||
+              1
+            }
+            isActive={true}
+          />
           <GameUI
-            gameState={gameState}
-            onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
+            gameState={gameState as any}
+            onRestart={() => (isMulti ? room?.send("start_game") : game.restart())}
             onPause={() => togglePause()}
             isPaused={isPaused}
             highScore={highScore}
@@ -322,7 +311,12 @@ const AsteroidsActiveGame: FC<{
             onInitialize={(renderer) => game.initializeRenderer(renderer)}
           />
 
-          <TransitionOverlay blurRadius={canvasBlur} overlayOpacity={pauseOverlayOpacity} />
+          <TransitionOverlay
+            blurRadius={canvasBlur}
+            overlayOpacity={pauseOverlayOpacity}
+          >
+            {/* Transition/Pause Overlay */}
+          </TransitionOverlay>
 
           <View style={styles.controls} pointerEvents="box-none">
             <View style={styles.leftControlArea} pointerEvents="box-none">
@@ -352,13 +346,13 @@ const AsteroidsActiveGame: FC<{
             </View>
             <View style={styles.rightControlArea} pointerEvents="box-none">
               <HyperspaceButton
-                  onPressIn={handleHyperspacePress}
-                  onPressOut={handleHyperspaceRelease}
+                onPressIn={handleHyperspacePress}
+                onPressOut={handleHyperspaceRelease}
               />
               <View style={styles.spacer20} />
               <ShootButton
-                  onPressIn={handleShootPress}
-                  onPressOut={handleShootRelease}
+                onPressIn={handleShootPress}
+                onPressOut={handleShootRelease}
               />
             </View>
           </View>
@@ -369,17 +363,17 @@ const AsteroidsActiveGame: FC<{
             <View style={sharedScreenStyles.overlay}>
               <DailyResultsOverlay
                 gameId="asteroids"
-                score={gameState.score}
+                score={gameState?.score || 0}
                 seed={seed}
                 onClose={() => setShowDailyResults(false)}
               />
             </View>
           )}
         </View>
-      </SafeAreaProvider>
-    </GameErrorBoundary>
+      </GameThemeProvider>
+    </ArcadeProvider>
   );
-};
+}
 
 const StartScreen: FC<{
   title: string;

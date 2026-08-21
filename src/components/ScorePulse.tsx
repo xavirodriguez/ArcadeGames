@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -19,16 +19,16 @@ interface ScorePulseProps {
  * - Scale: 1.0 → 1.15 → 1.0
  * - Glow: 12 → 20 → 12
  * - Sin setTimeout (todo en withSequence)
- * - Usa useRef para evitar re-renders innecesarios
  */
 export function ScorePulse({ score, fontSize = 32 }: ScorePulseProps) {
-  const prevScoreRef = useRef(score);
+  const [prevScore, setPrevScore] = useState(score);
 
   const scoreScale = useSharedValue(1);
   const scoreGlowRadius = useSharedValue(12);
 
   useEffect(() => {
-    if (score > prevScoreRef.current) {
+    if (score > prevScore) {
+      // Scale: 1.0 → 1.15 → 1.0 (sin setTimeout)
       scoreScale.value = withSequence(
         withTiming(1.15, {
           duration: 100,
@@ -40,6 +40,7 @@ export function ScorePulse({ score, fontSize = 32 }: ScorePulseProps) {
         })
       );
 
+      // Glow: 12 → 20 → 12
       scoreGlowRadius.value = withSequence(
         withTiming(20, {
           duration: 100,
@@ -51,9 +52,9 @@ export function ScorePulse({ score, fontSize = 32 }: ScorePulseProps) {
         })
       );
 
-      prevScoreRef.current = score;
+      setPrevScore(score);
     }
-  }, [score, scoreScale, scoreGlowRadius]);
+  }, [score, prevScore, scoreScale, scoreGlowRadius]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scoreScale.value }],

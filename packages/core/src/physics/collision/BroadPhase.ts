@@ -19,8 +19,24 @@ interface EntityBounds {
 const boundsPool: EntityBounds[] = [];
 const pairsPool: Array<[Entity, Entity]> = [];
 
-/** @public */
+/**
+ * Broadphase collision detection module utilizing 1D Sweep and Prune.
+ *
+ * @remarks
+ * Filters out non-overlapping entity pairs prior to expensive narrowphase SAT calculations.
+ * Employs zero-allocation object pools (`boundsPool` and `pairsPool`) and in-place Shell sort
+ * on the X-axis to eliminate runtime heap allocations during tick processing.
+ *
+ * @public
+ */
 export class BroadPhase {
+  /**
+   * Computes the world-space Axis-Aligned Bounding Box (AABB) for a entity collider.
+   *
+   * @param transform - World transform component defining position, scale, and rotation.
+   * @param collider - Collider component containing shape geometry and offsets.
+   * @returns Computed world-space AABB bounds.
+   */
   static getShapeBounds(transform: Readonly<TransformComponent>, collider: Readonly<ColliderComponent>): AABB {
     const worldX = transform.worldX ?? transform.x;
     const worldY = transform.worldY ?? transform.y;
@@ -78,11 +94,16 @@ export class BroadPhase {
   }
 
   /**
-   * Implementation of the Sweep and Prune algorithm (1D) designed to reduce per-frame
-   * allocations by reusing an internal object pool for entity bounds and sorting in-place.
+   * Executes 1D Sweep and Prune on candidate entities along the X-axis.
    *
    * @remarks
-   * Performs zero object or array allocations during the sorting stage.
+   * Performs zero runtime object or array allocations by mutating static pre-allocated pools.
+ * Shell sort operates in-place on bounds sorted by `minX`, providing fast O(n log n) to O(n)
+   * performance for temporally coherent physics bodies.
+   *
+   * @param entities - List of candidate entities to evaluate.
+   * @param world - Simulation world instance.
+   * @returns Array of candidate overlapping entity ID pairs.
    */
   static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry>): Array<[Entity, Entity]> {
     // Re-use or expand boundsPool to minimize object allocation overhead.

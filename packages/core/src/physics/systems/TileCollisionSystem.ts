@@ -5,11 +5,24 @@ import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
 
 /**
- * System that handles tile-based collisions for entities with a Collider2D (AABB) and tag "TileCollider".
- * Resolves horizontal and vertical axes separately against a Tilemap entity.
+ * System resolving tilemap grid collisions for platformer entities.
+ *
+ * @remarks
+ * Performs separate axis resolution (X axis followed by Y axis) against a `Tilemap` grid.
+ * Supports specialized tile behaviors including one-way platforms, ice friction modifiers,
+ * bounce surfaces, and spike hazard damage.
+ *
  * @public
  */
 export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+  /**
+   * Resolves entity collisions against active tilemap grid boundaries and updates ground states.
+   *
+   * @param world - Simulation world instance.
+   * @param deltaTime - Elapsed frame time in seconds.
+   *
+   * @sideEffect Mutates `Transform`, `Velocity`, `Health`, and `PlatformerGroundState` components.
+   */
   public update(world: World<TRegistry>, deltaTime: number): void {
     const tilemapEntities = world.query("Tilemap" as Extract<keyof TRegistry, string>);
     if (tilemapEntities.length === 0) return;

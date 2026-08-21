@@ -3,10 +3,23 @@ import { System } from "../../ecs/System";
 import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 
 /**
- * System that controls the autonomous movement of moving platforms.
+ * System controlling the autonomous motion trajectories of moving platforms.
+ *
+ * @remarks
+ * Evaluates movement patterns (e.g., trigonometric sine oscillation) to update platform position and velocity vectors.
+ * Synchronizes computed platform velocity so passenger entities can be carried dynamically by `PlatformCarrySystem`.
+ *
  * @public
  */
 export class MovingPlatformSystem extends System<CoreComponentRegistry> {
+  /**
+   * Updates autonomous moving platform positions and velocity vectors.
+   *
+   * @param world - Simulation world instance.
+   * @param deltaTime - Frame elapsed time in seconds.
+   *
+   * @sideEffect Mutates `MovingPlatform`, `Transform`, and `Velocity` components on platform entities.
+   */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const entities = world.query("Transform", "Velocity", "MovingPlatform");
 

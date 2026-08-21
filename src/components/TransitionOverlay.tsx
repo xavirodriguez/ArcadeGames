@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
@@ -7,7 +7,7 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-// Cargar Skia condicionalmente
+// Cargar Skia condicionalmente (Pattern de GameUI.tsx)
 let Canvas: any = null;
 let BackdropBlur: any = null;
 let Fill: any = null;
@@ -35,7 +35,7 @@ interface TransitionOverlayProps {
  * Maneja:
  * - Blur dinámico (pausa/game-over)
  * - Opacity animada
- * - pointerEvents reactivo
+ * - pointerEvents reactivo (NO stuck en "none")
  * - Cross-platform (skip blur en web)
  */
 export function TransitionOverlay({
@@ -61,7 +61,10 @@ export function TransitionOverlay({
       animatedProps={animatedViewProps}
       style={[
         StyleSheet.absoluteFill,
-        styles.container,
+        {
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
         overlayStyle,
       ]}
     >
@@ -79,11 +82,3 @@ export function TransitionOverlay({
     </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 100,
-  },
-});

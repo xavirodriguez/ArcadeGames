@@ -1,6 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { GameKey } from '@/theme/gameAccents';
-import type { EventBus, ArcadeKernel } from '@tiny-aster/core';
+import type { GameKey } from '../theme/gameAccents';
 
 export interface GameThemeContextType {
   gameKey: GameKey;
@@ -9,9 +8,6 @@ export interface GameThemeContextType {
     secondary: string;
     accent: string;
   };
-  game?: any | null;
-  eventBus?: EventBus | null;
-  kernel?: ArcadeKernel | null;
 }
 
 export const GameThemeContext = createContext<GameThemeContextType | null>(null);

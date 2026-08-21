@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
-import { useGameTheme } from '@/context/GameThemeContext';
+import { useGameTheme } from '../context/GameThemeContext';
 
 interface ScoreDisplayProps {
   score: number;
@@ -11,7 +11,7 @@ interface ScoreDisplayProps {
 /**
  * Score con monospace + color dinámico del tema del juego.
  *
- * - fontFamily: Space Mono (o fallback Courier New / monospace)
+ * - fontFamily: Space Mono (o fallback Courier New/monospace)
  * - Padded con zeros a la izquierda
  * - Color + glow del tema actual
  */
@@ -41,7 +41,7 @@ export function ScoreDisplay({
 
 const styles = StyleSheet.create({
   score: {
-    fontFamily: 'monospace',
+    fontFamily: 'Space Mono',
     fontWeight: '700',
     letterSpacing: 2,
     textShadowRadius: 12,

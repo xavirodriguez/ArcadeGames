@@ -28,6 +28,10 @@ import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "@/utils/haptics";
 import { colors } from "../../theme";
+import { ArcadeProvider } from "@/context/ArcadeProvider";
+import { GameThemeProvider } from "@/context/GameThemeProvider";
+import { useArcadeTransition } from "@/hooks/useArcadeTransition";
+import { TransitionOverlay } from "@/components/TransitionOverlay";
 import {
   GameScreen,
   GameTitle,
@@ -208,75 +212,59 @@ export default function AsteroidsScreen() {
   }
 
   return (
-    <GameThemeProvider gameKey="asteroids" game={game}>
-      <AsteroidsActiveGame
-        game={game}
-        gameState={gameState}
-        isMulti={isMulti}
-        connected={connected}
-        room={room}
-        showDailyResults={showDailyResults}
-        seed={seed}
-        setShowDailyResults={setShowDailyResults}
-        togglePause={togglePause}
-        isPaused={isPaused}
-        highScore={highScore}
-        restartWithSeed={restartWithSeed}
-        handleHyperspacePress={handleHyperspacePress}
-        handleHyperspaceRelease={handleHyperspaceRelease}
-        handleShootPress={handleShootPress}
-        handleShootRelease={handleShootRelease}
-        handleMultiplayerInput={handleMultiplayerInput}
-        t={t}
-      />
-    </GameThemeProvider>
+    <GameErrorBoundary gameId="asteroids">
+      <SafeAreaProvider>
+        <AsteroidsGameContent
+          game={game}
+          gameState={gameState}
+          isPaused={isPaused}
+          highScore={highScore}
+          seed={seed}
+          restartWithSeed={restartWithSeed}
+          isMulti={isMulti}
+          room={room}
+          connected={connected}
+          togglePause={togglePause}
+          handleMultiplayerInput={handleMultiplayerInput}
+          handleShootPress={handleShootPress}
+          handleShootRelease={handleShootRelease}
+          handleHyperspacePress={handleHyperspacePress}
+          handleHyperspaceRelease={handleHyperspaceRelease}
+          showDailyResults={showDailyResults}
+          setShowDailyResults={setShowDailyResults}
+        />
+      </SafeAreaProvider>
+    </GameErrorBoundary>
   );
 }
 
-const AsteroidsActiveGame: FC<{
-  game: any;
-  gameState: any;
-  isMulti: boolean;
-  connected: boolean;
-  room: any;
-  showDailyResults: boolean;
-  seed?: number;
-  setShowDailyResults: (val: boolean) => void;
-  togglePause: () => void;
-  isPaused: boolean;
-  highScore: number;
-  restartWithSeed: (seed?: number) => void;
-  handleHyperspacePress: () => void;
-  handleHyperspaceRelease: () => void;
-  handleShootPress: () => void;
-  handleShootRelease: () => void;
-  handleMultiplayerInput: (input: Partial<InputState>) => void;
-  t: any;
-}> = ({
+function AsteroidsGameContent({
   game,
   gameState,
-  isMulti,
-  connected,
-  room,
-  showDailyResults,
-  seed,
-  setShowDailyResults,
-  togglePause,
   isPaused,
   highScore,
+  seed,
   restartWithSeed,
-  handleHyperspacePress,
-  handleHyperspaceRelease,
+  isMulti,
+  room,
+  connected,
+  togglePause,
+  handleMultiplayerInput,
   handleShootPress,
   handleShootRelease,
-  handleMultiplayerInput,
-  t,
-}) => {
-  const { canvasBlur, pauseOverlayOpacity } = useArcadeTransition(game?.kernel, game?.getEventBus());
+  handleHyperspacePress,
+  handleHyperspaceRelease,
+  showDailyResults,
+  setShowDailyResults,
+}: any) {
+  const { t } = useTranslation();
+  const kernel = game.kernel;
+  const eventBus = game.getEventBus();
+  const { canvasBlur, pauseOverlayOpacity } = useArcadeTransition(kernel, eventBus);
 
   return (
-    <GameErrorBoundary gameId="asteroids">
-      <SafeAreaProvider>
+    <ArcadeProvider kernel={kernel} eventBus={eventBus}>
+      <GameThemeProvider gameKey="asteroids">
         <View style={sharedScreenStyles.container}>
           <RadialBackground />
           <TouchableOpacity
@@ -297,19 +285,22 @@ const AsteroidsActiveGame: FC<{
           </TouchableOpacity>
 
           {isMulti && !connected && (
-              <View style={sharedScreenStyles.overlay}>
-                  <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
-              </View>
+            <View style={sharedScreenStyles.overlay}>
+              <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
+            </View>
           )}
 
-          <View style={styles.scorePulseHeader}>
-            <ScorePulse score={gameState.score} />
-          </View>
-
-          <ComboDisplay multiplier={(gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier || (gameState as { comboMultiplier?: number; multiplier?: number })?.multiplier || 1} isActive={true} />
+          <ComboDisplay
+            multiplier={
+              (gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier ||
+              (gameState as { comboMultiplier?: number; multiplier?: number })?.multiplier ||
+              1
+            }
+            isActive={true}
+          />
           <GameUI
             gameState={gameState}
-            onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
+            onRestart={() => (isMulti ? room?.send("start_game") : game.restart())}
             onPause={() => togglePause()}
             isPaused={isPaused}
             highScore={highScore}
@@ -322,7 +313,12 @@ const AsteroidsActiveGame: FC<{
             onInitialize={(renderer) => game.initializeRenderer(renderer)}
           />
 
-          <TransitionOverlay blurRadius={canvasBlur} overlayOpacity={pauseOverlayOpacity} />
+          <TransitionOverlay
+            blurRadius={canvasBlur}
+            overlayOpacity={pauseOverlayOpacity}
+          >
+            {/* Transition/Pause Overlay */}
+          </TransitionOverlay>
 
           <View style={styles.controls} pointerEvents="box-none">
             <View style={styles.leftControlArea} pointerEvents="box-none">
@@ -352,13 +348,13 @@ const AsteroidsActiveGame: FC<{
             </View>
             <View style={styles.rightControlArea} pointerEvents="box-none">
               <HyperspaceButton
-                  onPressIn={handleHyperspacePress}
-                  onPressOut={handleHyperspaceRelease}
+                onPressIn={handleHyperspacePress}
+                onPressOut={handleHyperspaceRelease}
               />
               <View style={styles.spacer20} />
               <ShootButton
-                  onPressIn={handleShootPress}
-                  onPressOut={handleShootRelease}
+                onPressIn={handleShootPress}
+                onPressOut={handleShootRelease}
               />
             </View>
           </View>
@@ -376,8 +372,8 @@ const AsteroidsActiveGame: FC<{
             </View>
           )}
         </View>
-      </SafeAreaProvider>
-    </GameErrorBoundary>
+      </GameThemeProvider>
+    </ArcadeProvider>
   );
 };
 

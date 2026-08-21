@@ -28,6 +28,10 @@ import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "@/utils/haptics";
 import { colors } from "../../theme";
+import { ArcadeProvider } from "@/context/ArcadeProvider";
+import { GameThemeProvider } from "@/context/GameThemeProvider";
+import { useArcadeTransition } from "@/hooks/useArcadeTransition";
+import { TransitionOverlay } from "@/components/TransitionOverlay";
 import {
   GameScreen,
   GameTitle,
@@ -200,102 +204,167 @@ export default function AsteroidsScreen() {
 
   return (
     <GameErrorBoundary gameId="asteroids">
-    <SafeAreaProvider>
-      <View style={sharedScreenStyles.container}>
-        <RadialBackground />
-        <TouchableOpacity
-          style={sharedScreenStyles.backButton}
-          onPress={() => {
-            hapticSelection();
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t.common.back}
-          accessibilityHint="Regresa a la pantalla principal"
-        >
-          <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-        </TouchableOpacity>
-
-        {isMulti && !connected && (
-            <View style={sharedScreenStyles.overlay}>
-                <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
-            </View>
-        )}
-
-        <ComboDisplay multiplier={(gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier || (gameState as { comboMultiplier?: number; multiplier?: number })?.multiplier || 1} isActive={true} />
-        <GameUI
+      <SafeAreaProvider>
+        <AsteroidsGameContent
+          game={game}
           gameState={gameState}
-          onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
-          onPause={() => togglePause()}
           isPaused={isPaused}
           highScore={highScore}
           seed={seed}
-          onSetSeed={restartWithSeed}
+          restartWithSeed={restartWithSeed}
+          isMulti={isMulti}
+          room={room}
+          connected={connected}
+          togglePause={togglePause}
+          handleMultiplayerInput={handleMultiplayerInput}
+          handleShootPress={handleShootPress}
+          handleShootRelease={handleShootRelease}
+          handleHyperspacePress={handleHyperspacePress}
+          handleHyperspaceRelease={handleHyperspaceRelease}
+          showDailyResults={showDailyResults}
+          setShowDailyResults={setShowDailyResults}
         />
-        <CanvasRenderer
-          world={game.getWorld()}
-          gameLoop={game.getGameLoop()}
-          onInitialize={(renderer) => game.initializeRenderer(renderer)}
-        />
+      </SafeAreaProvider>
+    </GameErrorBoundary>
+  );
+}
 
-        <View style={styles.controls} pointerEvents="box-none">
-          <View style={styles.leftControlArea} pointerEvents="box-none">
-            <VirtualJoystick
-              joystickId="movement_joystick"
-              type="movement"
-              onMove={(x, y) => {
-                const rotateLeft = x < -0.25;
-                const rotateRight = x > 0.25;
-                const thrust = y < -0.25;
-                handleMultiplayerInput({
-                  rotateLeft,
-                  rotateRight,
-                  thrust,
-                  rotationAmount: x,
-                });
-              }}
-              onRelease={() => {
-                handleMultiplayerInput({
-                  rotateLeft: false,
-                  rotateRight: false,
-                  thrust: false,
-                  rotationAmount: 0,
-                });
-              }}
-            />
-          </View>
-          <View style={styles.rightControlArea} pointerEvents="box-none">
-            <HyperspaceButton
+function AsteroidsGameContent({
+  game,
+  gameState,
+  isPaused,
+  highScore,
+  seed,
+  restartWithSeed,
+  isMulti,
+  room,
+  connected,
+  togglePause,
+  handleMultiplayerInput,
+  handleShootPress,
+  handleShootRelease,
+  handleHyperspacePress,
+  handleHyperspaceRelease,
+  showDailyResults,
+  setShowDailyResults,
+}: any) {
+  const { t } = useTranslation();
+  const kernel = game.kernel;
+  const eventBus = game.getEventBus();
+  const { canvasBlur, pauseOverlayOpacity } = useArcadeTransition(kernel, eventBus);
+
+  return (
+    <ArcadeProvider kernel={kernel} eventBus={eventBus}>
+      <GameThemeProvider gameKey="asteroids">
+        <View style={sharedScreenStyles.container}>
+          <RadialBackground />
+          <TouchableOpacity
+            style={sharedScreenStyles.backButton}
+            onPress={() => {
+              hapticSelection();
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/");
+              }
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t.common.back}
+            accessibilityHint="Regresa a la pantalla principal"
+          >
+            <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
+          </TouchableOpacity>
+
+          {isMulti && !connected && (
+            <View style={sharedScreenStyles.overlay}>
+              <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
+            </View>
+          )}
+
+          <ComboDisplay
+            multiplier={
+              (gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier ||
+              (gameState as { comboMultiplier?: number; multiplier?: number })?.multiplier ||
+              1
+            }
+            isActive={true}
+          />
+          <GameUI
+            gameState={gameState}
+            onRestart={() => (isMulti ? room?.send("start_game") : game.restart())}
+            onPause={() => togglePause()}
+            isPaused={isPaused}
+            highScore={highScore}
+            seed={seed}
+            onSetSeed={restartWithSeed}
+          />
+          <CanvasRenderer
+            world={game.getWorld()}
+            gameLoop={game.getGameLoop()}
+            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+          />
+
+          <TransitionOverlay
+            blurRadius={canvasBlur}
+            overlayOpacity={pauseOverlayOpacity}
+          >
+            {/* Transition/Pause Overlay */}
+          </TransitionOverlay>
+
+          <View style={styles.controls} pointerEvents="box-none">
+            <View style={styles.leftControlArea} pointerEvents="box-none">
+              <VirtualJoystick
+                joystickId="movement_joystick"
+                type="movement"
+                onMove={(x, y) => {
+                  const rotateLeft = x < -0.25;
+                  const rotateRight = x > 0.25;
+                  const thrust = y < -0.25;
+                  handleMultiplayerInput({
+                    rotateLeft,
+                    rotateRight,
+                    thrust,
+                    rotationAmount: x,
+                  });
+                }}
+                onRelease={() => {
+                  handleMultiplayerInput({
+                    rotateLeft: false,
+                    rotateRight: false,
+                    thrust: false,
+                    rotationAmount: 0,
+                  });
+                }}
+              />
+            </View>
+            <View style={styles.rightControlArea} pointerEvents="box-none">
+              <HyperspaceButton
                 onPressIn={handleHyperspacePress}
                 onPressOut={handleHyperspaceRelease}
-            />
-            <View style={styles.spacer20} />
-            <ShootButton
+              />
+              <View style={styles.spacer20} />
+              <ShootButton
                 onPressIn={handleShootPress}
                 onPressOut={handleShootRelease}
-            />
+              />
+            </View>
           </View>
+
+          <DebugOverlay game={game} room={room} />
+
+          {showDailyResults && seed !== undefined && (
+            <View style={sharedScreenStyles.overlay}>
+              <DailyResultsOverlay
+                gameId="asteroids"
+                score={gameState.score}
+                seed={seed}
+                onClose={() => setShowDailyResults(false)}
+              />
+            </View>
+          )}
         </View>
-
-        <DebugOverlay game={game} room={room} />
-
-        {showDailyResults && seed !== undefined && (
-          <View style={sharedScreenStyles.overlay}>
-            <DailyResultsOverlay
-              gameId="asteroids"
-              score={gameState.score}
-              seed={seed}
-              onClose={() => setShowDailyResults(false)}
-            />
-          </View>
-        )}
-      </View>
-    </SafeAreaProvider>
-    </GameErrorBoundary>
+      </GameThemeProvider>
+    </ArcadeProvider>
   );
 }
 
@@ -480,4 +549,3 @@ const styles = StyleSheet.create({
     width: 20,
   },
 });
-

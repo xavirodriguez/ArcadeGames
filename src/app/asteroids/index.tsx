@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, TextInput, ActivityIndicator } from "react-native";
+import { useState, useEffect, useCallback, FC } from "react";
+import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { router, useLocalSearchParams } from "expo-router";
@@ -41,6 +41,11 @@ import {
   BackButton,
   NeonButton,
 } from "../../components/ui";
+
+import { GameThemeProvider } from "./GameThemeProvider";
+import { useArcadeTransition } from "@/hooks/useArcadeTransition";
+import { TransitionOverlay } from "@/components/TransitionOverlay";
+import { ScorePulse } from "@/components/ScorePulse";
 
 export default function AsteroidsScreen() {
   const { t } = useTranslation();
@@ -162,43 +167,47 @@ export default function AsteroidsScreen() {
 
   if (!started) {
     return (
-      <StartScreen
-        title={t.menu.asteroids}
-        highScore={highScore}
-        onStart={() => {
-          if (initialSeed !== undefined) {
-            restartWithSeed(initialSeed);
-          }
-          setIsMulti(false);
-          setStarted(true);
-        }}
-        onStartMulti={() => { setIsMulti(true); setStarted(true); }}
-        playerName={playerName}
-        onPlayerNameChange={handlePlayerNameChange}
-        instructions={Platform.OS === "web" ? t.asteroids.instructions : t.common.touch_controls}
-        onSeedChange={setInitialSeed}
-        onStartDaily={(dailySeed) => {
-          restartWithSeed(dailySeed);
-          setIsDaily(true);
-          setIsMulti(false);
-          setStarted(true);
-        }}
-        activeMutators={activeMutators}
-        selectedMode={selectedMode}
-        onModeChange={setSelectedMode}
-      />
+      <GameThemeProvider gameKey="asteroids" game={game}>
+        <StartScreen
+          title={t.menu.asteroids}
+          highScore={highScore}
+          onStart={() => {
+            if (initialSeed !== undefined) {
+              restartWithSeed(initialSeed);
+            }
+            setIsMulti(false);
+            setStarted(true);
+          }}
+          onStartMulti={() => { setIsMulti(true); setStarted(true); }}
+          playerName={playerName}
+          onPlayerNameChange={handlePlayerNameChange}
+          instructions={Platform.OS === "web" ? t.asteroids.instructions : t.common.touch_controls}
+          onSeedChange={setInitialSeed}
+          onStartDaily={(dailySeed) => {
+            restartWithSeed(dailySeed);
+            setIsDaily(true);
+            setIsMulti(false);
+            setStarted(true);
+          }}
+          activeMutators={activeMutators}
+          selectedMode={selectedMode}
+          onModeChange={setSelectedMode}
+        />
+      </GameThemeProvider>
     );
   }
 
   if (!game || !isReady) {
     return (
-      <View style={sharedScreenStyles.container}>
-        <RadialBackground />
-        <ActivityIndicator size="large" color={colors.cyan} />
-        <Text style={styles.loadingText}>
-          Cargando motor físico...
-        </Text>
-      </View>
+      <GameThemeProvider gameKey="asteroids" game={game}>
+        <View style={sharedScreenStyles.container}>
+          <RadialBackground />
+          <ActivityIndicator size="large" color={colors.cyan} />
+          <Text style={styles.loadingText}>
+            Cargando motor físico...
+          </Text>
+        </View>
+      </GameThemeProvider>
     );
   }
 
@@ -366,7 +375,7 @@ function AsteroidsGameContent({
       </GameThemeProvider>
     </ArcadeProvider>
   );
-}
+};
 
 const StartScreen: FC<{
   title: string;
@@ -508,6 +517,12 @@ const StartScreen: FC<{
 };
 
 const styles = StyleSheet.create({
+  scorePulseHeader: {
+    position: "absolute",
+    top: 50,
+    alignSelf: "center",
+    zIndex: 15,
+  },
   controls: {
     ...StyleSheet.absoluteFillObject,
     flexDirection: "row",

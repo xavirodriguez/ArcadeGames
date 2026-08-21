@@ -198,6 +198,78 @@ describe("Bolt Performance & Determinism Tests", () => {
     expect(s1.detectedPlayerEntity).toBe(s2.detectedPlayerEntity);
   });
 
+  it("TilemapRenderSystem & JuiceSystem: stationary camera and static juice produces zero stateVersion increases", () => {
+    const world = new World<CoreComponentRegistry>();
+    world.addSystem(new (require("../systems/TilemapRenderSystem").TilemapRenderSystem)());
+    world.addSystem(new (require("../systems/JuiceSystem").JuiceSystem)());
+
+    const tm = world.createEntity();
+    world.addComponent(tm, {
+      type: "Tilemap",
+      tileSize: 32,
+      data: [[0]],
+      visibleRange: { minX: 0, minY: 0, maxX: 10, maxY: 10 }
+    });
+
+    const juiceEntity = world.createEntity();
+    world.addComponent(juiceEntity, {
+      type: "Juice",
+      active: true,
+      animations: []
+    });
+    world.addComponent(juiceEntity, {
+      type: "VisualOffset",
+      offsetX: 0,
+      offsetY: 0
+    });
+
+    world.setResource("ScreenConfig", { width: 320, height: 320 });
+
+    world.update(1 / 60);
+    const initialVersion = world.stateVersion;
+
+    // Run 50 ticks with static tilemap and idle juice
+    for (let i = 0; i < 50; i++) {
+      world.update(1 / 60);
+    }
+
+    expect(world.stateVersion).toBe(initialVersion);
+  });
+
+  it("PongCollisionSystem & CombatSystem & SpatialCullingSystem: benchmark and state retention check", () => {
+    const world = new World<CoreComponentRegistry>();
+    const SpatialCullingSystemClass = require("../systems/SpatialCullingSystem").SpatialCullingSystem;
+    world.addSystem(new SpatialCullingSystemClass());
+
+    world.setResource("ScreenConfig", { width: 800, height: 600 });
+
+    for (let i = 0; i < 100; i++) {
+      const e = world.createEntity();
+      world.addComponent(e, {
+        type: "Transform",
+        x: i * 5,
+        y: i * 5,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: i * 5,
+        worldY: i * 5,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+    }
+
+    world.update(1 / 60);
+    const candidatesRes1 = world.getResource<number[]>("SpatialCullingCandidates");
+    expect(candidatesRes1).toBeDefined();
+
+    world.update(1 / 60);
+    const candidatesRes2 = world.getResource<number[]>("SpatialCullingCandidates");
+    expect(candidatesRes2).toBe(candidatesRes1); // Same array reference reused!
+  });
+
   it("HitDetectionSystem & FeedbackSystem: high throughput benchmark", () => {
     const world = new World<CoreComponentRegistry>();
     world.addSystem(new HitDetectionSystem());

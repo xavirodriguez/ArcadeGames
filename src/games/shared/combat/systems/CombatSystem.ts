@@ -10,6 +10,8 @@ export class CombatSystem<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends Record<string, any> = Record<string, any>
 > extends System<TComponents, TEvents> {
+  // Safe for determinism/rollback. Reusable Set avoids per-tick heap allocations during combat resolution.
+  private destroyedEntities = new Set<number>();
 
   constructor() {
     super();
@@ -17,7 +19,7 @@ export class CombatSystem<
 
   public update(world: World<TComponents, TEvents>, _deltaTime: number): void {
     const entitiesWithEvents = world.query("CollisionEvents" as any);
-    const destroyedEntities = new Set<number>();
+    this.destroyedEntities.clear();
 
     // Step 1: Iterate over collision pairs (both physical collisions and trigger entry overlaps)
     for (const entityA of entitiesWithEvents) {
@@ -34,11 +36,11 @@ export class CombatSystem<
 
           // Double Security B: Ensure both entities still exist and aren't already queued for destruction
           if (!this.entityExists(world, entityA) || !this.entityExists(world, entityB)) continue;
-          if (destroyedEntities.has(entityA) || destroyedEntities.has(entityB)) continue;
+          if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
 
           // Resolve damage in both directions (A damages B, and B damages A)
-          this.resolveDamageDirection(world, entityA, entityB, destroyedEntities);
-          this.resolveDamageDirection(world, entityB, entityA, destroyedEntities);
+          this.resolveDamageDirection(world, entityA, entityB, this.destroyedEntities);
+          this.resolveDamageDirection(world, entityB, entityA, this.destroyedEntities);
         }
       }
 
@@ -50,11 +52,11 @@ export class CombatSystem<
 
           // Double Security B: Ensure both entities still exist and aren't already queued for destruction
           if (!this.entityExists(world, entityA) || !this.entityExists(world, entityB)) continue;
-          if (destroyedEntities.has(entityA) || destroyedEntities.has(entityB)) continue;
+          if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
 
           // Resolve damage in both directions (A damages B, and B damages A)
-          this.resolveDamageDirection(world, entityA, entityB, destroyedEntities);
-          this.resolveDamageDirection(world, entityB, entityA, destroyedEntities);
+          this.resolveDamageDirection(world, entityA, entityB, this.destroyedEntities);
+          this.resolveDamageDirection(world, entityB, entityA, this.destroyedEntities);
         }
       }
     }

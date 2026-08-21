@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { COLORS } from "../theme";
 
-export function usePressedButton(primaryColor: string = COLORS.neonCyan) {
+export function usePressedButton(primaryColor = COLORS.neonCyan) {
   const [isPressed, setIsPressed] = useState(false);
 
   const onPressIn = useCallback(() => {

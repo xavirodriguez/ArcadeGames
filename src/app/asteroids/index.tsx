@@ -8,7 +8,8 @@ import { ComboDisplay } from "@/components/ComboDisplay";
 import { GameUI } from "@/components/GameUI";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useAsteroidsGame } from "@/hooks/useAsteroidsGame";
-import { useMultiplayer } from "@tiny-aster/react-native";
+import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
+import { AsteroidsGame } from "@/games/asteroids/AsteroidsGame";
 import { useTranslation } from "@/hooks/useTranslation";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
 import { ShootButton } from "../../components/ShootButton";
@@ -92,7 +93,12 @@ export default function AsteroidsScreen() {
 
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
-  const { room, connected, serverState, sendInput, inputBufferRef } = useMultiplayer("asteroids", playerName, isMulti && started);
+  const { room, connected, handleMultiplayerInput: sendNetInput } = useMultiplayerGame<AsteroidsGame, InputState>({
+    game,
+    roomName: "asteroids",
+    playerName,
+    active: isMulti && started,
+  });
 
   useEffect(() => {
     MutatorService.isMutatorModeEnabled().then(enabled => {
@@ -109,41 +115,16 @@ export default function AsteroidsScreen() {
     gameState,
   });
 
-  useEffect(() => {
-    if (isMulti && connected && game) {
-      game.setMultiplayerMode(true);
-    }
-  }, [isMulti, connected, game]);
-
-  useEffect(() => {
-    if (isMulti && serverState && game) {
-        const sessionId = room?.sessionId;
-        const pendingInputs = inputBufferRef.current;
-
-        game.updateFromServer(serverState, sessionId);
-
-        // Re-apply pending inputs for reconciliation
-        if (sessionId && pendingInputs.length > 0) {
-            pendingInputs.forEach(frame => {
-                game.predictLocalPlayer(frame, 16.66);
-            });
-        }
-    }
-  }, [isMulti, serverState, game, room?.sessionId, inputBufferRef]);
-
   const handleMultiplayerInput = useCallback((input: Partial<InputState>) => {
     if (isMulti && room) {
-        const frame = sendInput(input as Record<string, boolean>);
-        if (frame) {
-            game?.predictLocalPlayer(frame, 16.66);
-        }
+      sendNetInput(input);
     } else {
-        handleInput(input);
+      handleInput(input);
 
-        // Task 3: Decoupled Integration with ECS world for touch controls via Input Bridge
-        game?.setInputState(input);
+      // Task 3: Decoupled Integration with ECS world for touch controls via Input Bridge
+      game?.setInputState(input);
     }
-  }, [isMulti, room, sendInput, game, handleInput]);
+  }, [isMulti, room, sendNetInput, game, handleInput]);
 
   const handleShootPress = useCallback(() => {
     handleMultiplayerInput({ shoot: true });

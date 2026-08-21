@@ -43,6 +43,11 @@ import {
   NeonButton,
 } from "../../components/ui";
 
+import { GameThemeProvider } from "./GameThemeProvider";
+import { useArcadeTransition } from "@/hooks/useArcadeTransition";
+import { TransitionOverlay } from "@/components/TransitionOverlay";
+import { ScorePulse } from "@/components/ScorePulse";
+
 export default function AsteroidsScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
@@ -371,7 +376,7 @@ function AsteroidsGameContent({
       </GameThemeProvider>
     </ArcadeProvider>
   );
-}
+};
 
 const StartScreen: FC<{
   title: string;

@@ -1,9 +1,10 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle } from "react-native";
 import { router } from "expo-router";
-import { colors, typography, spacing, radius } from "@/theme";
+import { colors, typography, spacing, radius, COLORS } from "@/theme";
 import { hapticSelection } from "@/utils/haptics";
 import { useTranslation } from "@/hooks/useTranslation";
+import { usePressedButton } from "@/hooks/usePressedButton";
 
 interface BackButtonProps {
   label?: string;
@@ -38,9 +39,12 @@ export const BackButton: React.FC<BackButtonProps> = ({
     }
   };
 
+  const { pressProps, pressedStyle } = usePressedButton(COLORS.neonCyan);
+
   return (
     <TouchableOpacity
-      style={[styles.backButton, style]}
+      {...pressProps}
+      style={[styles.backButton, pressedStyle, style]}
       onPress={handlePress}
       activeOpacity={0.7}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

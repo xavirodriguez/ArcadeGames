@@ -11,8 +11,9 @@ import { useGameServices } from "@tiny-aster/react-native";
 import { PassportOverlay } from "../components/PassportOverlay";
 import { DailyChallengeCard } from "../components/DailyChallengeCard";
 import { LeaderboardOverlay } from "../components/LeaderboardOverlay";
+import { SoundIcon, TrophyIcon } from "../components/icons";
 import { hapticSelection } from "../utils/haptics";
-import { colors, spacing, typography, effects, neonTextGlow } from "../theme";
+import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../theme";
 
 interface GameEntry {
   id: string;
@@ -112,7 +113,7 @@ export default function HomeScreen() {
               accessibilityState={{ checked: !isMuted }}
               accessibilityHint={t?.accessibility?.mute_button_hint || "Toggles audio sound"}
             >
-              <Text style={styles.muteButtonText}>{isMuted ? "🔇" : "🔊"}</Text>
+              <SoundIcon size={20} color={COLORS.info} muted={isMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -156,7 +157,7 @@ export default function HomeScreen() {
                 accessibilityLabel={(t?.accessibility?.leaderboard_button || "View leaderboard for {game}").replace("{game}", t.menu[game.key])}
                 accessibilityHint={t?.accessibility?.leaderboard_button_hint || "Opens the daily ranking of scores"}
               >
-                <Text style={styles.rankButtonText}>🏆</Text>
+                <TrophyIcon size={22} color={COLORS.warning} />
               </TouchableOpacity>
             </View>
           ))}

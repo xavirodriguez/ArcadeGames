@@ -1,15 +1,15 @@
 import { StyleSheet } from "react-native";
-import { colors, spacing, typography, radius, effects } from "../theme";
+import { colors, spacing, typography, radius, effects, COLORS } from "../theme";
 
 export const NeonColors = {
-  backgroundDeep: colors.background,
-  primaryCyan: colors.cyan,
+  backgroundDeep: COLORS.bgDark,
+  primaryCyan: COLORS.neonCyan,
   pinkAsteroids: colors.pink,
-  secondaryGreen: colors.green,
+  secondaryGreen: COLORS.success,
   white: colors.white,
   textSecondary: colors.textSecondary,
   textMuted: colors.textMuted,
-  highScoreGold: colors.gold,
+  highScoreGold: COLORS.warning,
   inputBg: colors.surface,
   overlayBg: colors.overlay,
 };
@@ -17,14 +17,14 @@ export const NeonColors = {
 export const sharedScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: COLORS.bgDark,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
   },
   startScreen: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: COLORS.bgDark,
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
@@ -36,12 +36,12 @@ export const sharedScreenStyles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     marginBottom: spacing.xxxl,
     textAlign: "center",
-    textShadowColor: colors.cyan,
+    textShadowColor: COLORS.neonCyan,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 16,
   },
   instructions: {
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.body,
     color: colors.textSecondary,
     fontFamily: typography.game,
     marginBottom: spacing.md,
@@ -50,7 +50,7 @@ export const sharedScreenStyles = StyleSheet.create({
   },
   highScoreText: {
     fontSize: typography.sizes.xl,
-    color: colors.gold,
+    color: COLORS.warning,
     fontFamily: typography.game,
     marginBottom: spacing.xxxl,
   },
@@ -65,7 +65,7 @@ export const sharedScreenStyles = StyleSheet.create({
     ...effects.whiteGlow,
   },
   multiButton: {
-    backgroundColor: colors.cyan,
+    backgroundColor: COLORS.neonCyan,
     paddingHorizontal: spacing.xxxl,
     paddingVertical: spacing.lg,
     borderRadius: radius.xl,
@@ -75,14 +75,14 @@ export const sharedScreenStyles = StyleSheet.create({
     ...effects.cyanGlow,
   },
   startButtonText: {
-    color: "#000000",
-    fontSize: typography.sizes.xl,
+    color: COLORS.ink,
+    fontSize: typography.sizes.label,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
   },
   multiButtonText: {
-    color: "#000000",
-    fontSize: typography.sizes.xl,
+    color: COLORS.ink,
+    fontSize: typography.sizes.label,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
   },
@@ -92,9 +92,9 @@ export const sharedScreenStyles = StyleSheet.create({
     justifyContent: "center",
   },
   inputLabel: {
-    color: colors.cyan,
+    color: COLORS.neonCyan,
     fontFamily: typography.game,
-    fontSize: typography.sizes.sm,
+    fontSize: typography.sizes.small,
     fontWeight: typography.weights.bold,
     marginBottom: spacing.sm,
     textAlign: "center",
@@ -103,13 +103,13 @@ export const sharedScreenStyles = StyleSheet.create({
   input: {
     backgroundColor: colors.surface,
     color: colors.white,
-    padding: 15,
+    padding: spacing.md,
     borderRadius: radius.lg,
     width: 260,
     marginBottom: spacing.xl,
     fontFamily: typography.game,
     textAlign: "center",
-    fontSize: typography.sizes.lg,
+    fontSize: typography.sizes.body,
     borderWidth: 1,
     borderColor: "rgba(0, 240, 255, 0.2)",
   },
@@ -122,7 +122,7 @@ export const sharedScreenStyles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radius.round,
     borderWidth: 1,
-    borderColor: colors.cyan,
+    borderColor: COLORS.neonCyan,
     backgroundColor: "rgba(0, 240, 255, 0.15)",
     minHeight: 44,
     minWidth: 80,
@@ -131,8 +131,8 @@ export const sharedScreenStyles = StyleSheet.create({
     flexDirection: "row",
   },
   backButtonText: {
-    color: colors.cyan,
-    fontSize: typography.sizes.sm,
+    color: COLORS.neonCyan,
+    fontSize: typography.sizes.small,
     fontFamily: typography.game,
     fontWeight: typography.weights.bold,
   },

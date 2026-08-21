@@ -1,6 +1,7 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from "react-native";
 import { colors, typography, radius, spacing, effects } from "@/theme";
+import { usePressedButton } from "@/hooks/usePressedButton";
 
 interface NeonButtonProps {
   children: string;
@@ -23,8 +24,9 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
   accessibilityLabel,
   accessibilityHint,
 }) => {
-  const glowStyle = effects[`${variant}Glow` as keyof typeof effects] || effects.cyanGlow;
   const themeColor = colors[variant as keyof typeof colors] || colors.cyan;
+  const { pressProps, pressedStyle } = usePressedButton(themeColor);
+  const glowStyle = effects[`${variant}Glow` as keyof typeof effects] || effects.cyanGlow;
 
   const dynamicButtonStyle: ViewStyle = bordered
     ? {
@@ -49,10 +51,12 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
 
   return (
     <TouchableOpacity
+      {...pressProps}
       style={[
         styles.button,
         dynamicButtonStyle,
         glowStyle,
+        pressedStyle,
         style,
       ]}
       onPress={onPress}

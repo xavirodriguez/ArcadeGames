@@ -1,8 +1,9 @@
 export const typography = {
   game: "monospace",
   weights: {
-    regular: "normal",
-    bold: "bold",
+    bold: "700",
+    medium: "600",
+    regular: "400",
   },
   sizes: {
     xs: 12,
@@ -11,7 +12,13 @@ export const typography = {
     lg: 18,
     xl: 20,
     xxl: 24,
+
+    // Unified hierarchy scale
     title: 48,
+    heading: 32,
+    body: 18,
+    label: 14,
+    small: 12,
     bigTitle: 64,
   },
 } as const;

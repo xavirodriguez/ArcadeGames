@@ -186,6 +186,8 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
   }
 
   async onLeave(client: Client, code: number): Promise<void> {
+    // Freeze/clear active input buffer on disconnect so ghost inputs aren't applied during reconnection wait
+    this.inputBuffers.set(client.sessionId, []);
     try {
       if (code === CloseCode.CONSENTED) {
         throw new Error("consented leave");
@@ -208,6 +210,10 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
     this.inputBuffers.delete(client.sessionId);
     this.clientAcks.delete(client.sessionId);
     this.newClients.delete(client.sessionId);
+  }
+
+  public update(dt: number): void {
+    this.tick(dt);
   }
 
   protected tick(dt: number): void {

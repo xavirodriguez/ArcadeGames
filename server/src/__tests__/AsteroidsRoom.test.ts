@@ -118,13 +118,21 @@ describe("AsteroidsRoom Lifecycle & Normalization", () => {
     expect(world.hasComponent(entity2, "Ship")).toBe(true);
   });
 
-  it("should support client reconnection on leave", async () => {
+  it("should support client reconnection on leave and clear input buffer to prevent ghost inputs", async () => {
     const mockClient = {
       sessionId: "client_1",
       send: jest.fn(),
     } as unknown as Client;
 
     room.onJoin(mockClient, { name: "Player One" });
+
+    const inputHandler = messageHandlers.get("input")!;
+    inputHandler(mockClient, {
+      tick: 1,
+      timestamp: Date.now(),
+      actions: ["thrust"],
+      axes: {}
+    });
 
     // Client leaves temporarily (not consented)
     await room.onLeave(mockClient, CloseCode.GOING_AWAY);
@@ -133,6 +141,9 @@ describe("AsteroidsRoom Lifecycle & Normalization", () => {
     expect(room.allowReconnection).toHaveBeenCalledWith(mockClient, 10);
     // State should still have the player
     expect(room.state.players.has("client_1")).toBe(true);
+    // Input buffer for disconnected client should be cleared to prevent ghost inputs
+    const buffer = (room as any).inputBuffers.get("client_1");
+    expect(buffer).toEqual([]);
   });
 
   it("should permanently clean up player state if leave is consented", async () => {

@@ -49,9 +49,14 @@ export class RollbackSimulation {
     // 4. Fast-forward / Resimulate up to currentTick
     const world = (this.simulation as any).world ?? (this.simulation as any).getWorld?.();
     const prevIsReSimulating = world ? world.isReSimulating : false;
+    const random = world ? world.gameplayRandom : undefined;
+    const wasLocked = random ? random.isLocked() : false;
 
     if (world) {
       world.isReSimulating = true;
+    }
+    if (random && wasLocked) {
+      random.unlock();
     }
 
     try {
@@ -68,6 +73,9 @@ export class RollbackSimulation {
         this.simulation.step(input);
       }
     } finally {
+      if (random && wasLocked) {
+        random.lock();
+      }
       if (world) {
         world.isReSimulating = prevIsReSimulating;
       }

@@ -118,8 +118,23 @@ export class Schedule<
       world.gameplayRandom.unlock();
     }
     try {
-      const freeze = world.getResource<{ remaining?: number }>("GameplayFreeze");
+      const timeScaleRes = world.getResource<import("../runtime/TimeScale").TimeScale>("TimeScale") || world.getResource<{ scale?: number; remainingDuration?: number }>("TimeScale");
+      let effectiveTimeScale = 1.0;
 
+      if (timeScaleRes) {
+        if (typeof timeScaleRes.scale === "number") {
+          effectiveTimeScale = timeScaleRes.scale;
+        }
+        if (typeof timeScaleRes.remainingDuration === "number") {
+          timeScaleRes.remainingDuration = Math.max(0, timeScaleRes.remainingDuration - deltaTime);
+          if (timeScaleRes.remainingDuration <= 0) {
+            timeScaleRes.scale = 1.0;
+            timeScaleRes.remainingDuration = undefined;
+          }
+        }
+      }
+
+      const freeze = world.getResource<{ remaining?: number }>("GameplayFreeze");
       if (freeze && typeof freeze.remaining === "number") {
         freeze.remaining = Math.max(0, freeze.remaining - deltaTime);
         if (freeze.remaining <= 0) {
@@ -127,7 +142,9 @@ export class Schedule<
         }
       }
 
-      const isFrozen = world.getResource("GameplayFreeze") !== undefined;
+      const isPausedResource = world.getResource("IsPaused") === true;
+      const isFrozen = world.getResource("GameplayFreeze") !== undefined || isPausedResource || effectiveTimeScale === 0;
+      const scaledDeltaTime = deltaTime * effectiveTimeScale;
 
       const gameState = world.getSingleton("GameState" as any) as any;
       let activeGroups = world.getResource<string[]>("ActiveGroups");
@@ -154,16 +171,19 @@ export class Schedule<
           for (let i = 0; i < phaseSystems.length; i++) {
             const sysRecord = phaseSystems[i];
             const sys = sysRecord.system;
+            const className = sys.constructor.name;
             if (isFrozen && phase === SystemPhase.Simulation) {
-              const className = sys.constructor.name;
-              if (className !== "TTLSystem" && className !== "JuiceSystem") {
+              if (className !== "TTLSystem" && className !== "JuiceSystem" && className !== "ParticleSystem") {
                 continue;
               }
             }
             if (activeGroups && sysRecord.group && !activeGroups.includes(sysRecord.group)) {
               continue;
             }
-            sys.update(world, deltaTime);
+            const dtToPass = (phase === SystemPhase.Presentation || className === "TTLSystem" || className === "ParticleSystem")
+              ? deltaTime
+              : scaledDeltaTime;
+            sys.update(world, dtToPass);
           }
         }
       }

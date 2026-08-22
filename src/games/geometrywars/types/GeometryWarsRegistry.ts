@@ -1,7 +1,7 @@
 import { CoreComponentRegistry, CoreEvents, Component, BlueprintRegistryMap } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
 import { SpawnDirectorComponent, WaveMemberComponent } from "../../shared/spawn/components/SpawnComponents";
-import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { ComboComponent } from "@tiny-aster/core";
 
 /**
  * State component containing overall score, lives, current wave, and game-over status.

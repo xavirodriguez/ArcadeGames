@@ -18,7 +18,7 @@ import { colors } from "../../../theme/colors";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { FactionComponent, DamageComponent } from "../../shared/combat/components/CombatComponents";
 import { SpawnDirectorComponent } from "../../shared/spawn/components/SpawnComponents";
-import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { ComboComponent } from "@tiny-aster/core";
 
 /**
  * Registers Geometry Wars blueprints.

@@ -4,7 +4,7 @@ export interface FlappyBirdEventRegistry extends CoreEvents, Record<string, unkn
   "flappy:near_miss": { points: number };
   "pipe:passed": Record<string, unknown>;
 }
-import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { ComboComponent } from "@tiny-aster/core";
 
 export interface FlappyBirdComponentRegistry extends CoreComponentRegistry {
   FlappyInput: FlappyBirdInputComponent;

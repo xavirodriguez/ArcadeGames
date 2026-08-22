@@ -1,4 +1,6 @@
-import { System, World, ComponentRegistry } from "@tiny-aster/core";
+import { System } from "../ecs/System";
+import { World } from "../ecs/World";
+import { ComponentRegistry } from "../ecs/Component";
 
 /** @public */
 export class ComboSystem<TComponents extends ComponentRegistry = ComponentRegistry> extends System<TComponents> {

@@ -101,6 +101,38 @@ export class AssetLoader {
     this.queue = [];
   }
 
+  /**
+   * Parses TexturePacker (Hash/Array) or Aseprite frame atlas JSON and registers frame sub-regions.
+   *
+   * @param atlasJson - The parsed JSON descriptor from TexturePacker or Aseprite.
+   * @returns Map of frame names to source rectangle sub-regions (`{ x, y, w, h }`).
+   */
+  public parseAtlas(atlasJson: any): Map<string, { x: number; y: number; w: number; h: number }> {
+    const framesMap = new Map<string, { x: number; y: number; w: number; h: number }>();
+    if (!atlasJson) return framesMap;
+
+    const rawFrames = atlasJson.frames;
+    if (Array.isArray(rawFrames)) {
+      // TexturePacker Array format or Aseprite array format
+      for (const item of rawFrames) {
+        if (item && item.filename && item.frame) {
+          const { x, y, w, h } = item.frame;
+          framesMap.set(item.filename, { x, y, w, h });
+        }
+      }
+    } else if (rawFrames && typeof rawFrames === "object") {
+      // TexturePacker Hash format or Aseprite object format
+      for (const [filename, item] of Object.entries<any>(rawFrames)) {
+        if (item && item.frame) {
+          const { x, y, w, h } = item.frame;
+          framesMap.set(filename, { x, y, w, h });
+        }
+      }
+    }
+
+    return framesMap;
+  }
+
   public get<T>(id: string): T {
     return this.cache.get(id) as T;
   }

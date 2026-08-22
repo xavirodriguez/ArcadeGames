@@ -50,7 +50,8 @@ import {
   WebAssetProvider
 } from "@tiny-aster/core";
 
-import { LootSystem, PowerUpSystem, ComboSystem, DifficultyDirectorSystem, AchievementSystem } from "../shared/arcade";
+import { ComboSystem } from "@tiny-aster/core";
+import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem } from "../shared/arcade";
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";

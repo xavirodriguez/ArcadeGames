@@ -10,7 +10,7 @@ export interface SpaceInvadersEventRegistry extends CoreEvents, Record<string, u
   "si:kill": { chain: number };
   "entity:destroyed": { entity: number; type: string };
 }
-import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { ComboComponent } from "@tiny-aster/core";
 import { LootTableComponent, PowerUpComponent } from "../../shared/arcade";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
 import { SpawnDirectorComponent, WaveMemberComponent } from "../../shared/spawn/components/SpawnComponents";

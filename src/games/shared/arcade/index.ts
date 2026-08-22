@@ -1,5 +1,4 @@
-export * from "./components/ComboComponent";
-export * from "./systems/ComboSystem";
+export * from "@tiny-aster/core";
 export * from "./systems/LootSystem";
 export * from "./systems/PowerUpSystem";
 export * from "./systems/DifficultyDirectorSystem";

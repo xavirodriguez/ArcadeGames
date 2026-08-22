@@ -1,5 +1,6 @@
 import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer } from "@tiny-aster/core";
-import { LootSystem, PowerUpSystem, ComboSystem } from "../shared/arcade";
+import { ComboSystem } from "@tiny-aster/core";
+import { LootSystem, PowerUpSystem } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
 /* eslint-disable @typescript-eslint/no-require-imports */

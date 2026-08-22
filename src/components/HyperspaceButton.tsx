@@ -39,19 +39,20 @@ export function HyperspaceButton({
       accessibilityHint={hint}
       accessibilityState={{ disabled }}
       disabled={disabled}
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       onPressIn={handlePressIn}
       onPressOut={onPressOut}
       style={({ pressed }) => [
         styles.button,
         disabled && styles.disabled,
+        pressed && !disabled && styles.pressed,
         {
           backgroundColor: disabled
             ? "rgba(100, 100, 100, 0.2)"
             : pressed
-            ? "rgba(0, 255, 255, 0.7)"
+            ? "rgba(0, 255, 255, 0.75)"
             : "rgba(0, 255, 255, 0.3)",
-          transform: [{ scale: pressed && !disabled ? 0.94 : 1 }],
+          transform: [{ scale: pressed && !disabled ? 0.92 : 1 }],
         },
       ]}
     >
@@ -71,6 +72,9 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0, 255, 255, 0.8)",
     alignItems: "center",
     justifyContent: "center",
+  },
+  pressed: {
+    borderColor: "#00FFFF",
   },
   disabled: {
     borderColor: "rgba(150, 150, 150, 0.4)",

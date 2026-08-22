@@ -123,17 +123,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingBottom: 32,
+    paddingHorizontal: 32,
+    paddingBottom: 36,
   },
   leftZone: {
+    width: 160,
+    height: 160,
     alignItems: "center",
     justifyContent: "center",
   },
   rightZone: {
-    gap: 16,
+    gap: 20,
     alignItems: "center",
     justifyContent: "flex-end",
     flexDirection: "column",
+    paddingBottom: 8,
   },
 });

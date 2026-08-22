@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Pressable, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -200,57 +200,73 @@ function EchoRunnerContent() {
           <View style={styles.touchControlsContainer} pointerEvents="box-none">
             {/* Left D-Pad */}
             <View style={styles.dpad} pointerEvents="box-none">
-              <TouchableOpacity
-                style={styles.touchButton}
+              <Pressable
+                style={({ pressed }) => [styles.touchButton, pressed && styles.touchButtonPressed]}
                 onPressIn={() => {
                   hapticSelection();
                   handleTouchLeft(true);
                 }}
                 onPressOut={() => handleTouchLeft(false)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityRole="button"
-                accessibilityLabel="Mover izquierda"
+                accessibilityLabel={t?.accessibility?.move_left_label || "Move left"}
+                accessibilityHint={t?.accessibility?.move_left_hint || "Moves runner to the left"}
               >
                 <Text style={styles.touchButtonText}>◀</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.touchButton}
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.touchButton, pressed && styles.touchButtonPressed]}
                 onPressIn={() => {
                   hapticSelection();
                   handleTouchRight(true);
                 }}
                 onPressOut={() => handleTouchRight(false)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityRole="button"
-                accessibilityLabel="Mover derecha"
+                accessibilityLabel={t?.accessibility?.move_right_label || "Move right"}
+                accessibilityHint={t?.accessibility?.move_right_hint || "Moves runner to the right"}
               >
                 <Text style={styles.touchButtonText}>▶</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             {/* Right Action buttons */}
             <View style={styles.actions} pointerEvents="box-none">
-              <TouchableOpacity
-                style={[styles.touchButton, styles.pulseButton]}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.touchButton,
+                  styles.pulseButton,
+                  pressed && styles.touchButtonPressed,
+                ]}
                 onPressIn={() => {
                   hapticSelection();
                   handleTouchPulse();
                 }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityRole="button"
-                accessibilityLabel="Ataque de pulso"
+                accessibilityLabel={t?.accessibility?.pulse_button_label || "Pulse wave attack"}
+                accessibilityHint={t?.accessibility?.pulse_button_hint || "Emits an acoustic pulse wave"}
               >
                 <Text style={styles.touchButtonText}>PULSE</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.touchButton, styles.jumpButton]}
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.touchButton,
+                  styles.jumpButton,
+                  pressed && styles.touchButtonPressed,
+                ]}
                 onPressIn={() => {
                   hapticSelection();
                   handleTouchJump(true);
                 }}
                 onPressOut={() => handleTouchJump(false)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityRole="button"
-                accessibilityLabel="Saltar"
+                accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
+                accessibilityHint={t?.accessibility?.jump_button_hint || "Jumps over obstacles"}
               >
                 <Text style={styles.touchButtonText}>JUMP</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         )}
@@ -370,6 +386,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: spacing.sm,
+  },
+  touchButtonPressed: {
+    transform: [{ scale: 0.92 }],
+    backgroundColor: "rgba(30, 41, 59, 0.9)",
+    borderColor: colors.white,
   },
   touchButtonText: {
     color: colors.white,

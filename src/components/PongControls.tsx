@@ -32,6 +32,8 @@ export const PongControls: React.FC<PongControlsProps> = ({
           accessibilityRole="button"
           accessibilityLabel={t?.accessibility?.pong_p1_up || "Player 1 Move Up"}
           accessibilityHint={t?.accessibility?.pong_p1_up_hint || "Moves Player 1 paddle upwards"}
+          accessibilityState={{ disabled: false }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           onPressIn={() => handlePressIn(() => onP1Up(true))}
           onPressOut={() => onP1Up(false)}
@@ -43,6 +45,8 @@ export const PongControls: React.FC<PongControlsProps> = ({
           accessibilityRole="button"
           accessibilityLabel={t?.accessibility?.pong_p1_down || "Player 1 Move Down"}
           accessibilityHint={t?.accessibility?.pong_p1_down_hint || "Moves Player 1 paddle downwards"}
+          accessibilityState={{ disabled: false }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           onPressIn={() => handlePressIn(() => onP1Down(true))}
           onPressOut={() => onP1Down(false)}
@@ -57,6 +61,8 @@ export const PongControls: React.FC<PongControlsProps> = ({
             accessibilityRole="button"
             accessibilityLabel={t?.accessibility?.pong_p2_up || "Player 2 Move Up"}
             accessibilityHint={t?.accessibility?.pong_p2_up_hint || "Moves Player 2 paddle upwards"}
+            accessibilityState={{ disabled: false }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={({ pressed }) => [styles.button, pressed && styles.pressed]}
             onPressIn={() => handlePressIn(() => onP2Up(true))}
             onPressOut={() => onP2Up(false)}
@@ -68,6 +74,8 @@ export const PongControls: React.FC<PongControlsProps> = ({
             accessibilityRole="button"
             accessibilityLabel={t?.accessibility?.pong_p2_down || "Player 2 Move Down"}
             accessibilityHint={t?.accessibility?.pong_p2_down_hint || "Moves Player 2 paddle downwards"}
+            accessibilityState={{ disabled: false }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={({ pressed }) => [styles.button, pressed && styles.pressed]}
             onPressIn={() => handlePressIn(() => onP2Down(true))}
             onPressOut={() => onP2Down(false)}
@@ -101,7 +109,9 @@ const styles = StyleSheet.create({
     borderColor: "white",
   },
   pressed: {
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    backgroundColor: "rgba(255, 255, 255, 0.55)",
+    borderColor: "#FFFFFF",
+    transform: [{ scale: 0.92 }],
   },
   text: {
     color: "white",

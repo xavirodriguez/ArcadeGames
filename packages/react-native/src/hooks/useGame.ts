@@ -56,13 +56,21 @@ export function useGame<
 ): UseGameResult<TGame, TState, TInput> {
   const { seed, gameOptions, initialState = null } = options;
 
+  const serializedGameOptions = useMemo(() => {
+    try {
+      return JSON.stringify(gameOptions ?? {});
+    } catch {
+      return "";
+    }
+  }, [gameOptions]);
+
   const config = useMemo(() => ({
     isMultiplayer,
     seed,
     gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) },
     assetProvider: options.assetProvider,
     audio: new WebAudioPlayer()
-  }), [isMultiplayer, seed, gameOptions, options.assetProvider]);
+  }), [isMultiplayer, seed, serializedGameOptions, options.assetProvider]);
 
   const [game, setGame] = useState<TGame | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -143,8 +151,11 @@ export function useGame<
       const isPausedNow = gameInstance.isPausedState();
       if (isPausedNow !== isPausedRef.current || now - lastUpdateTime >= UI_UPDATE_INTERVAL) {
         isPausedRef.current = isPausedNow;
-        // Spread to help ensure a new object reference for React reconciliation.
-        setGameState({ ...(state as TState) });
+        const nextState =
+          state && typeof state === "object"
+            ? ({ ...(state as object) } as TState)
+            : state;
+        setGameState(nextState);
         setIsPaused(isPausedNow);
         lastUpdateTime = now;
       }

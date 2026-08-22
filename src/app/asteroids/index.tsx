@@ -85,10 +85,20 @@ export default function AsteroidsScreen() {
     }
   }, [params.seed, params.isDaily, started]);
 
+  const requestedSeedRestartRef = useRef<number | undefined>(undefined);
+
   // Ensure game starts with the correct seed if set via params
   useEffect(() => {
-    if (started && isDaily && initialSeed !== undefined && isReady && seed !== initialSeed) {
-        restartWithSeed(initialSeed);
+    if (
+      started &&
+      isDaily &&
+      initialSeed !== undefined &&
+      isReady &&
+      seed !== initialSeed &&
+      requestedSeedRestartRef.current !== initialSeed
+    ) {
+      requestedSeedRestartRef.current = initialSeed;
+      restartWithSeed(initialSeed);
     }
   }, [started, isDaily, initialSeed, isReady, seed, restartWithSeed]);
 

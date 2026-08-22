@@ -53,6 +53,8 @@ export function ScorePulse({ score, fontSize = 32 }: ScorePulseProps) {
       );
 
       setPrevScore(score);
+    } else if (score < prevScore) {
+      setPrevScore(score);
     }
   }, [score, prevScore, scoreScale, scoreGlowRadius]);
 

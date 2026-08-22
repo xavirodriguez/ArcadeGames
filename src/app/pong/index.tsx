@@ -1,4 +1,4 @@
-import { useState, useEffect, FC } from "react";
+import { useState, useEffect, useRef, FC } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -69,10 +69,20 @@ export default function PongScreen() {
     }
   }, [params.seed, params.isDaily, started]);
 
+  const requestedSeedRestartRef = useRef<number | undefined>(undefined);
+
   // Ensure game starts with the correct seed if set via params
   useEffect(() => {
-    if (started && isDaily && initialSeed !== undefined && isReady && game?.getSeed() !== initialSeed) {
-        restart(initialSeed);
+    if (
+      started &&
+      isDaily &&
+      initialSeed !== undefined &&
+      isReady &&
+      game?.getSeed() !== initialSeed &&
+      requestedSeedRestartRef.current !== initialSeed
+    ) {
+      requestedSeedRestartRef.current = initialSeed;
+      restart(initialSeed);
     }
   }, [started, isDaily, initialSeed, isReady, game, restart]);
 

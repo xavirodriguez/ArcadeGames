@@ -15,12 +15,14 @@ const INITIAL_ECHO_STATE: EchoRunnerGameState = {
   elapsedTime: 0
 };
 
+const EMPTY_GAME_OPTIONS = {};
+
 export function useEchoRunnerGame(started: boolean, seed?: number) {
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<EchoRunnerGame, EchoRunnerGameState, EchoRunnerInput>(
       started ? EchoRunnerGame : null,
       false,
-      { gameOptions: {}, initialState: INITIAL_ECHO_STATE, seed }
+      { gameOptions: EMPTY_GAME_OPTIONS, initialState: INITIAL_ECHO_STATE, seed }
     );
 
   const { highScore, updateHighScore } = useHighScore("echorunner-high-score");

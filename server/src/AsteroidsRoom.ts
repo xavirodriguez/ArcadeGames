@@ -34,10 +34,6 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
   private deltaSystem = new NetworkDeltaSystem(this.replicationTracker);
   private REPLICATION_MODE: 'legacy' | 'interest' | 'delta' | 'budget' | 'binary' = 'binary';
 
-  public update(dt: number) {
-    this.tick(dt);
-  }
-
   private spawnAsteroids(count: number) {
     const gameplayRandom = this.world.gameplayRandom;
     const wasLocked = gameplayRandom.isLocked();

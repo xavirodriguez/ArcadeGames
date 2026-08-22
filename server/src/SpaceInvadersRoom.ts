@@ -11,10 +11,6 @@ const RoomOptionsSchema = z.object({
 export class SpaceInvadersRoom extends BaseRoom<SpaceInvadersState> {
   maxClients = 4;
 
-  public update(dt: number) {
-    this.tick(dt);
-  }
-
   protected async setupSimulation(options: any): Promise<{ world: any; gameSimulation: any }> {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const validOptions = parsedOptions.success ? parsedOptions.data : {};

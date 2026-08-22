@@ -16,7 +16,7 @@ import {
 } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { ParticlePool } from "../EntityPool";
-import { createParticle } from "../EntityFactory";
+import { createSharedParticle } from "../../shared/rendering/SharedVFX";
 
 /**
  * System that handles all game collisions by reacting to events from CollisionSystem2D.
@@ -357,14 +357,16 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const angle = rng.next() * Math.PI * 2;
       const speed = rng.next() * 100 + 50;
 
-      createParticle(
+      createSharedParticle(
         world,
         x,
         y,
         Math.cos(angle) * speed,
         Math.sin(angle) * speed,
         color,
-        this._particlePool
+        this._particlePool,
+        2,
+        this.config!.PARTICLE_TTL_BASE
       );
     }
   }

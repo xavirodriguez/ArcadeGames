@@ -18,6 +18,7 @@ export class FlappyBirdRoom extends BaseRoom<FlappyState> {
 
   async onCreate(options: unknown): Promise<void> {
     await super.onCreate(options);
+    this.allowedActions = ["jump"];
     this.onMessage("jump", (_client: Client) => {});
   }
 

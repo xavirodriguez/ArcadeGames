@@ -14,6 +14,7 @@ export class PongRoom extends BaseRoom<PongState> {
 
   async onCreate(options: unknown): Promise<void> {
     await super.onCreate(options);
+    this.allowedActions = ["moveUp", "moveDown", "move"];
     this.onMessage("move", (_client: Client, _data: any) => {});
   }
 

@@ -351,7 +351,7 @@ export class FlappyBirdGame
     this.isMultiplayer = active;
   }
 
-  public override setInputState(input: Partial<FlappyBirdInput>): void {
+  public override setInputState(input: any): void {
     const world = this.getWorld();
     const birdEntity = world.query("Bird")[0];
     if (birdEntity !== undefined) {
@@ -364,11 +364,20 @@ export class FlappyBirdGame
         } as any);
       }
       world.mutateComponent(birdEntity, "FlappyInput", (inputComp: any) => {
-        if (input.flap !== undefined) {
-          inputComp.flap = input.flap;
-        }
-        if (input.glide !== undefined) {
-          inputComp.glide = input.glide;
+        if (input && typeof input === "object" && input.axes) {
+          const moveY = input.axes.moveY ?? 0;
+          const actions = input.actions;
+          const hasAction = (name: string) => actions instanceof Set ? actions.has(name) : !!actions?.includes?.(name);
+
+          inputComp.flap = hasAction("confirm") || hasAction("fire") || moveY < 0;
+          inputComp.glide = hasAction("boost") || moveY > 0;
+        } else {
+          if (input.flap !== undefined) {
+            inputComp.flap = input.flap;
+          }
+          if (input.glide !== undefined) {
+            inputComp.glide = input.glide;
+          }
         }
       });
     }

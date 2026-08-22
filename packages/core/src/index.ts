@@ -53,6 +53,8 @@ export * from "./events/EventBus";
 // Input
 export * from "./input/InputSystem";
 export * from "./input/UnifiedInputSystem";
+export * from "./input/CanonicalInput";
+export * from "./input/providers";
 
 // Loop & Runtime
 export * from "./loop/GameLoop";

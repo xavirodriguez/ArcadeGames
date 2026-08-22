@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { World, System } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
-import { fragmentAsteroid, createParticle } from "../EntityFactory";
+import { fragmentAsteroid } from "../EntityFactory";
 import { spawnScorePopup } from "../../shared/arcade/spawnScorePopup";
+import { createSharedParticle } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
 
 /**
@@ -155,7 +156,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
         const color = colors[rng.nextInt(0, colors.length)];
         const pSize = rng.nextRange(1.5, 4.5);
         const ttl = rng.nextRange(0.4, 0.9);
-        createParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
+        createSharedParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
       }
     }
 
@@ -301,7 +302,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
               const color = colors[rng.nextInt(0, colors.length)];
               const pSize = rng.nextRange(2.0, 5.5);
               const ttl = rng.nextRange(0.5, 1.2);
-              createParticle(world, sx, sy, vx, vy, color, shipParticlePool, pSize, ttl);
+              createSharedParticle(world, sx, sy, vx, vy, color, shipParticlePool, pSize, ttl);
             }
           }
 

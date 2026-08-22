@@ -18,7 +18,6 @@ import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/Aste
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { ParticlePool } from "./EntityPool";
 import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
-import { createSharedParticle } from "../shared/rendering/SharedVFX";
 
 /**
  * Registers ship, bullet, and asteroid blueprints.
@@ -566,21 +565,3 @@ export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, Aster
         });
     }
 };
-
-/**
- * Creates a particle entity from the ParticlePool.
- * @public
- */
-export function createParticle(
-  world: World<any, any, any>,
-  x: number,
-  y: number,
-  dx: number,
-  dy: number,
-  color: string,
-  pool: ParticlePool,
-  size = 3,
-  ttl = 0.8
-): number {
-  return createSharedParticle(world, x, y, dx, dy, color, pool, size, ttl);
-}

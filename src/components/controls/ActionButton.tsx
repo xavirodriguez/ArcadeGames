@@ -53,6 +53,7 @@ export function ActionButton({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled }}
       disabled={disabled}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={({ pressed }) => [
@@ -77,8 +78,9 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   pressed: {
-    backgroundColor: "rgba(255,255,255,0.35)",
-    borderColor: "rgba(255,255,255,0.8)",
+    backgroundColor: "rgba(255,255,255,0.45)",
+    borderColor: "#FFFFFF",
+    transform: [{ scale: 0.92 }],
   },
   disabled: {
     opacity: 0.5,

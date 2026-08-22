@@ -176,8 +176,8 @@ export function VirtualJoystick({
               width: BASE_RADIUS * 2,
               height: BASE_RADIUS * 2,
               borderRadius: BASE_RADIUS,
-              borderColor: color,
-              backgroundColor: showBackgroundRing ? "rgba(255,255,255,0.05)" : "transparent"
+              borderColor: activeColor,
+              backgroundColor: showBackgroundRing ? "rgba(255,255,255,0.08)" : "transparent"
             }
           ]}
         >
@@ -189,6 +189,8 @@ export function VirtualJoystick({
                 width: KNOB_RADIUS * 2,
                 height: KNOB_RADIUS * 2,
                 borderRadius: KNOB_RADIUS,
+                borderWidth: 1.5,
+                borderColor: "#FFFFFF",
               }
             ]}
           />

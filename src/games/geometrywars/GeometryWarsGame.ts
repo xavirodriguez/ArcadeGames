@@ -303,42 +303,43 @@ export class GeometryWarsGame extends BaseGame<
    * Twin-stick Input Bridge.
    * Maps input onto Player and Aim components in the ECS world.
    */
-  public override setInputState(input: Partial<{
-    moveX: number;
-    moveY: number;
-    aimX: number;
-    aimY: number;
-    fire: boolean;
-    mouseAbsolute?: boolean;
-  }>): void {
+  public override setInputState(input: any): void {
     const sceneWorld = this.currentScene ? this.currentScene.getWorld() : this.world;
     const players = sceneWorld.query("Player");
     if (players.length > 0) {
       const player = players[0];
 
+      // CanonicalInputState support
+      const axes = input.axes ?? input;
+      const actions = input.actions;
+
       if (sceneWorld.hasComponent(player, "Player")) {
         sceneWorld.mutateComponent(player, "Player", (p: any) => {
-          if (input.moveX !== undefined) p.moveX = input.moveX;
-          if (input.moveY !== undefined) p.moveY = input.moveY;
+          if (axes.moveX !== undefined) p.moveX = axes.moveX;
+          if (axes.moveY !== undefined) p.moveY = axes.moveY;
         });
       }
 
       if (sceneWorld.hasComponent(player, "Aim")) {
         sceneWorld.mutateComponent(player, "Aim", (aim: any) => {
-          if (input.aimX !== undefined && input.aimY !== undefined) {
+          if (axes.aimX !== undefined && axes.aimY !== undefined) {
             if (input.mouseAbsolute) {
               const playerTransform = sceneWorld.getComponent(player, "Transform") as TransformComponent | undefined;
               if (playerTransform) {
-                const worldMouse = Camera2DSystem.screenToWorld(sceneWorld, input.aimX, input.aimY);
+                const worldMouse = Camera2DSystem.screenToWorld(sceneWorld, axes.aimX, axes.aimY);
                 aim.aimX = worldMouse.x - playerTransform.x;
                 aim.aimY = worldMouse.y - playerTransform.y;
               }
             } else {
-              aim.aimX = input.aimX;
-              aim.aimY = input.aimY;
+              aim.aimX = axes.aimX;
+              aim.aimY = axes.aimY;
             }
           }
-          if (input.fire !== undefined) aim.isFiring = input.fire;
+          if (actions !== undefined) {
+            aim.isFiring = actions instanceof Set ? actions.has("fire") : !!actions.fire;
+          } else if (input.fire !== undefined) {
+            aim.isFiring = !!input.fire;
+          }
         });
       }
     }

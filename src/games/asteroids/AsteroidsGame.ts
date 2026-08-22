@@ -514,7 +514,7 @@ export class AsteroidsGame
    * Mapped fields: rotateLeft, rotateRight, thrust, shoot, hyperspace, rotationAmount.
    * Ensures that the LocalPlayer entity has the "Input" component, adding it if missing.
    */
-  public setInputState(input: Partial<InputState>): void {
+  public setInputState(input: any): void {
     // Paso 1: Unificar el puente de Inputs
     const localPlayer = this.world.query("LocalPlayer")[0];
     if (localPlayer !== undefined) {
@@ -532,25 +532,38 @@ export class AsteroidsGame
         }
         if (!inputComp.axes) inputComp.axes = {};
 
-        // Only write fields that are defined in the payload (!== undefined)
-        if (input.rotateLeft !== undefined) {
-          inputComp.actions["rotateLeft"] = input.rotateLeft;
-        }
-        if (input.rotateRight !== undefined) {
-          inputComp.actions["rotateRight"] = input.rotateRight;
-        }
-        if (input.thrust !== undefined) {
-          inputComp.actions["thrust"] = input.thrust;
-        }
-        if (input.shoot !== undefined) {
-          inputComp.actions["shoot"] = input.shoot;
-        }
-        if (input.hyperspace !== undefined) {
-          inputComp.actions["hyperspace"] = input.hyperspace;
-        }
-        if (input.rotationAmount !== undefined) {
-          inputComp.axes["rotate_x"] = input.rotationAmount;
-          inputComp.axes["horizontal"] = input.rotationAmount;
+        if (input && typeof input === "object" && input.axes) {
+          const moveX = input.axes.moveX ?? 0;
+          const moveY = input.axes.moveY ?? 0;
+          const actions = input.actions;
+          const hasAction = (name: string) => actions instanceof Set ? actions.has(name) : !!actions?.includes?.(name);
+
+          inputComp.actions["rotateLeft"] = moveX < 0;
+          inputComp.actions["rotateRight"] = moveX > 0;
+          inputComp.actions["thrust"] = moveY < 0 || hasAction("boost");
+          inputComp.actions["shoot"] = hasAction("fire");
+          inputComp.actions["hyperspace"] = hasAction("hyperspace");
+        } else {
+          // Only write fields that are defined in the payload (!== undefined)
+          if (input.rotateLeft !== undefined) {
+            inputComp.actions["rotateLeft"] = input.rotateLeft;
+          }
+          if (input.rotateRight !== undefined) {
+            inputComp.actions["rotateRight"] = input.rotateRight;
+          }
+          if (input.thrust !== undefined) {
+            inputComp.actions["thrust"] = input.thrust;
+          }
+          if (input.shoot !== undefined) {
+            inputComp.actions["shoot"] = input.shoot;
+          }
+          if (input.hyperspace !== undefined) {
+            inputComp.actions["hyperspace"] = input.hyperspace;
+          }
+          if (input.rotationAmount !== undefined) {
+            inputComp.axes["rotate_x"] = input.rotationAmount;
+            inputComp.axes["horizontal"] = input.rotationAmount;
+          }
         }
       });
     }

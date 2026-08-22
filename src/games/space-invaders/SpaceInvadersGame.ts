@@ -671,7 +671,7 @@ export class SpaceInvadersGame
     this.isMultiplayer = active;
   }
 
-  public override setInputState(input: Partial<InputState>): void {
+  public override setInputState(input: any): void {
     const world = this.getWorld();
     const playerEntity = world.query("Player")[0];
     if (playerEntity !== undefined) {
@@ -685,14 +685,16 @@ export class SpaceInvadersGame
         } as any);
       }
       world.mutateComponent(playerEntity, "Input", (inputComp: any) => {
-        if (input.moveLeft !== undefined) {
-          inputComp.moveLeft = input.moveLeft;
-        }
-        if (input.moveRight !== undefined) {
-          inputComp.moveRight = input.moveRight;
-        }
-        if (input.shoot !== undefined) {
-          inputComp.shoot = input.shoot;
+        // CanonicalInputState support
+        if (input && typeof input === "object" && input.axes) {
+          const moveX = input.axes.moveX ?? 0;
+          inputComp.moveLeft = moveX < 0;
+          inputComp.moveRight = moveX > 0;
+          inputComp.shoot = input.actions instanceof Set ? input.actions.has("fire") : !!input.actions?.includes?.("fire");
+        } else {
+          if (input.moveLeft !== undefined) inputComp.moveLeft = input.moveLeft;
+          if (input.moveRight !== undefined) inputComp.moveRight = input.moveRight;
+          if (input.shoot !== undefined) inputComp.shoot = input.shoot;
         }
       });
     }

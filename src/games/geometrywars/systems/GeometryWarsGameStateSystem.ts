@@ -28,6 +28,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
   }
 
   public update(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     // Increment game time if game is not over
     const stateEntity = world.query("GeometryWarsState")[0];
     if (stateEntity !== undefined) {

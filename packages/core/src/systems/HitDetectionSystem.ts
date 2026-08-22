@@ -8,6 +8,7 @@ import { CoreComponentRegistry, TransformComponent } from "../ecs/CoreComponents
  */
 export class HitDetectionSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const hitboxes = world.query("CollisionEvents", "Hitbox");
     const len = hitboxes.length;
     if (len === 0) return;

@@ -160,8 +160,8 @@ export class Schedule<
 
       for (const phase of this.phases) {
         if (isFrozen) {
-          // Bypassed entirely during freeze: Input, Collision, GameRules
-          if (phase === SystemPhase.Input || phase === SystemPhase.Collision || phase === SystemPhase.GameRules) {
+          // Bypassed entirely during freeze: Input, Transform, Collision, GameRules
+          if (phase === SystemPhase.Input || phase === SystemPhase.Transform || phase === SystemPhase.Collision || phase === SystemPhase.GameRules) {
             continue;
           }
         }

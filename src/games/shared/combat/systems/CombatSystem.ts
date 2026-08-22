@@ -18,6 +18,7 @@ export class CombatSystem<
   }
 
   public update(world: World<TComponents, TEvents>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const entitiesWithEvents = world.query("CollisionEvents" as any);
     this.destroyedEntities.clear();
 

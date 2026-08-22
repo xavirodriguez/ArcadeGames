@@ -9,6 +9,7 @@ import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
  */
 export class GeometryWarsAISystem extends System<GeometryWarsComponentRegistry> {
   public update(world: World<GeometryWarsComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const players = world.query("Player", "Transform");
     if (players.length === 0) return;
 

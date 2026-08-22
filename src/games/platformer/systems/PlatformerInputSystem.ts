@@ -10,6 +10,7 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
   private lastJumpStates = new Map<Entity, boolean>();
 
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const inputType = "PlatformerInput";
     const jumperType = "PlatformerJumper";
     const groundStateType = "PlatformerGroundState";

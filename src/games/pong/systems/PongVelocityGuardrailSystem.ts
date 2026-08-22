@@ -4,6 +4,7 @@ import { type PongComponentRegistry } from "../types";
 
 export class PongVelocityGuardrailSystem extends System<PongComponentRegistry> {
   public update(world: World<PongComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const config = world.getResource<PongConfig>("GameConfig")!;
     const balls = world.query("Ball" as any);
 

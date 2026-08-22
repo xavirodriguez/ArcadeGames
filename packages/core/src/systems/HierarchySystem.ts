@@ -7,6 +7,7 @@ type Mat3 = [number, number, number, number, number, number];
 /** @public */
 export class HierarchySystem extends AbstractHierarchySystem<CoreComponentRegistry> {
   public override update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     this.wasDirty.clear();
 
     const order = this.getProcessingOrder(world, "Transform");

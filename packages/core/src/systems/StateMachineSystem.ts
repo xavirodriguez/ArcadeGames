@@ -28,6 +28,7 @@ export interface StateDefinition {
  */
 export class StateMachineSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const entities = world.query("StateMachine");
     const len = entities.length;
 

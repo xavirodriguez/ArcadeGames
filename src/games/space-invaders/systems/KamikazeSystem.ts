@@ -9,6 +9,7 @@ export class KamikazeSystem extends System<SpaceInvadersComponentRegistry> {
   private config?: SpaceInvadersConfig;
 
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }

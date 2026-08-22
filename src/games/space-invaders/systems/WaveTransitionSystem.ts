@@ -8,6 +8,7 @@ import { MutatorRegistry } from "../../../utils/MutatorRegistry";
  */
 export class WaveTransitionSystem extends System<SpaceInvadersComponentRegistry> {
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const gs = world.getSingleton("GameState") as any;
     if (!gs || gs.phase !== "WAVE_TRANSITION") return;
 

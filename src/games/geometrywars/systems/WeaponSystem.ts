@@ -13,6 +13,7 @@ export class WeaponSystem extends System<GeometryWarsComponentRegistry> {
   private config?: GeometryWarsConfig;
 
   public update(world: World<GeometryWarsComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
       this.config = world.getResource<GeometryWarsConfig>("GameConfig")!;
     }

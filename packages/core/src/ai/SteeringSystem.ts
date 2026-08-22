@@ -12,6 +12,7 @@ export class SteeringSystem<
   TRegistry extends ComponentRegistry = CoreComponentRegistry
 > extends System<TRegistry> {
   public update(world: World<TRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     if (deltaTime <= 0) return;
 
     const steeringType = "Steering" as Extract<keyof TRegistry, string>;

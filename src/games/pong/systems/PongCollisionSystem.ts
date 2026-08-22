@@ -22,6 +22,7 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
   }
 
   public override update(world: World<PongComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const entities = world.query("CollisionEvents");
     this.processedPairs.clear();
 
@@ -67,6 +68,16 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
                 vel.vx = nextVx;
                 vel.vy = nextVy;
               });
+
+              // Increment Combo component on paddle hit
+              const comboEntities = world.query("Combo" as any);
+              if (comboEntities.length > 0) {
+                world.mutateComponent(comboEntities[0], "Combo" as any, (c: any) => {
+                  c.combo = (c.combo || 0) + 1;
+                  c.multiplier = 1 + Math.floor(c.combo / 5);
+                  c.timerRemaining = c.timerDuration || 2.0;
+                });
+              }
 
               // Apply physical hit-stop (60ms) to make paddle hit feel heavy and punchy
               world.setResource("GameplayFreeze", { remaining: 0.06 });

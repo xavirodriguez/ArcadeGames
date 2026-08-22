@@ -41,6 +41,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInva
   }
 
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }

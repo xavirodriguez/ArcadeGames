@@ -30,6 +30,7 @@ export class ModifierSystem<TComponents extends ComponentRegistry = ComponentReg
   }
 
   public override update(world: World<TComponents>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     // 1. Process active ModifierComponents
     const entities = world.query("modifier" as Extract<keyof TComponents, string>);
     for (const entity of entities) {

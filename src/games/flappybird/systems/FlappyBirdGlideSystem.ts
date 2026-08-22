@@ -9,6 +9,7 @@ import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 
 export class FlappyBirdGlideSystem extends System<FlappyBirdComponentRegistry> {
   public update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const birds = world.query("Bird", "FlappyInput", "Transform", "Velocity");
     const dtSeconds = deltaTime;
 

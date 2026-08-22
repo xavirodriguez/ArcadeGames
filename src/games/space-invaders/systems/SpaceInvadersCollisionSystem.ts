@@ -201,6 +201,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
   }
 
   public override update(world: World<SpaceInvadersComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }

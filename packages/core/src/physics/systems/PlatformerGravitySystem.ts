@@ -24,6 +24,7 @@ export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreC
    * @sideEffect Mutates `Velocity` components on active entities.
    */
   public update(world: World<TRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const configType = "PlatformerGravityConfig" as Extract<keyof TRegistry, string>;
     const velocityType = "Velocity" as Extract<keyof TRegistry, string>;
     const groundStateType = "PlatformerGroundState" as Extract<keyof TRegistry, string>;

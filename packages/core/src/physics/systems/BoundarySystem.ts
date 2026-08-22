@@ -24,6 +24,7 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
    * @sideEffect Mutates `Transform` or `Velocity` components, or schedules entity destruction via command buffer.
    */
   update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     let entities = world.query("Transform", "Boundary");
     if (world.getResource("SpatialCullingEnabled") === true) {
       const margin = world.getResource<number>("SpatialCullingMargin") ?? 100;

@@ -17,6 +17,7 @@ export class SpawnDirectorSystem<
   }
 
   public update(world: World<TComponents, TEvents>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const gameState = world.getSingleton("GameState" as any) as any;
     if (gameState && (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) return;
 

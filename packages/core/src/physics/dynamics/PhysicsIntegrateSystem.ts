@@ -9,9 +9,12 @@ import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
  * Physics dynamics system that integrates entity velocities and angular velocities into positions.
  *
  * @remarks
- * Uses Euler integration (x_next = x + v * dt) for spatial updates.
+ * Uses Euler integration (`x_next = x + v * dt`) for spatial updates during `SystemPhase.Simulation`.
  * Supports candidate entity list filtering and viewport spatial culling to skip offscreen integration.
  * Respects the `IsPaused` world resource to freeze physical motion during pause states.
+ *
+ * Calls `world.getMutableComponent` on active entities to update transform positions while maintaining
+ * deterministic clone-on-write state versioning.
  *
  * @public
  */
@@ -19,9 +22,9 @@ export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry = CoreCo
   private candidateEntities: Entity[] | null = null;
 
   /**
-   * Sets candidate entities for integration checks.
+   * Sets explicit candidate entities for integration checks.
    *
-   * @param entities - Filtered entity array, or `null` to integrate all matching entities in the world.
+   * @param entities - Filtered entity ID array, or `null` to evaluate spatial culling or integrate all world entities.
    */
   public setCandidates(entities: Entity[] | null): void {
     this.candidateEntities = entities;

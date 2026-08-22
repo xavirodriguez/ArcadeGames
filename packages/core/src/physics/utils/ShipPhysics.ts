@@ -1,16 +1,17 @@
 /**
- * Pure function computing ship rotation, thrust acceleration, and friction.
+ * Pure function computing ship rotation, thrust acceleration, and friction decay.
  *
  * @remarks
  * Shared across client-side prediction, authoritative server simulation, and singleplayer gameplay
  * to guarantee 100% deterministic ship movement dynamics across network rollbacks.
+ * Normalizes rotation to `[-Math.PI, Math.PI]` and applies linear/exponential velocity decay.
  *
  * @param transform - Object containing current rotation in radians.
  * @param velocity - Object containing current velocity components (`vx`, `vy`).
  * @param input - Player input frame payload containing actions, axes, or explicit directional flags.
  * @param config - Ship physics configuration constants (`SHIP_THRUST`, `SHIP_ROTATION_SPEED`, `SHIP_FRICTION`).
- * @param deltaTimeSec - Frame duration in seconds.
- * @returns Updated velocity (`vx`, `vy`) and rotation state in radians normalized to [-PI, PI].
+ * @param deltaTimeSec - Frame tick duration in seconds.
+ * @returns Updated velocity (`vx`, `vy`) and rotation state in radians normalized to `[-Math.PI, Math.PI]`.
  *
  * @public
  */

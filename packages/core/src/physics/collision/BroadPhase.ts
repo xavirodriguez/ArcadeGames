@@ -31,11 +31,15 @@ const pairsPool: Array<[Entity, Entity]> = [];
  */
 export class BroadPhase {
   /**
-   * Computes the world-space Axis-Aligned Bounding Box (AABB) for a entity collider.
+   * Computes the world-space Axis-Aligned Bounding Box (AABB) for an entity collider.
+   *
+   * @remarks
+   * Handles Circle, Box, and Convex Polygon geometry. Transforms local vertex offsets
+   * into world coordinates using position, offset, scale, and rotation.
    *
    * @param transform - World transform component defining position, scale, and rotation.
    * @param collider - Collider component containing shape geometry and offsets.
-   * @returns Computed world-space AABB bounds.
+   * @returns Computed world-space AABB bounds `{ minX, minY, maxX, maxY }`.
    */
   static getShapeBounds(transform: Readonly<TransformComponent>, collider: Readonly<ColliderComponent>): AABB {
     const worldX = transform.worldX ?? transform.x;
@@ -97,13 +101,13 @@ export class BroadPhase {
    * Executes 1D Sweep and Prune on candidate entities along the X-axis.
    *
    * @remarks
-   * Performs zero runtime object or array allocations by mutating static pre-allocated pools.
- * Shell sort operates in-place on bounds sorted by `minX`, providing fast O(n log n) to O(n)
-   * performance for temporally coherent physics bodies.
+   * Performs zero runtime object or array allocations by mutating static pre-allocated pools
+   * (`boundsPool` and `pairsPool`). In-place Shell sort operates on bounds sorted by `minX`,
+   * providing fast O(n log n) to O(n) performance for temporally coherent physics bodies.
    *
    * @param entities - List of candidate entities to evaluate.
-   * @param world - Simulation world instance.
-   * @returns Array of candidate overlapping entity ID pairs.
+   * @param world - Simulation world instance containing Transform and Collider components.
+   * @returns Reused array of candidate overlapping entity ID pairs `[Entity, Entity]`.
    */
   static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry>): Array<[Entity, Entity]> {
     // Re-use or expand boundsPool to minimize object allocation overhead.

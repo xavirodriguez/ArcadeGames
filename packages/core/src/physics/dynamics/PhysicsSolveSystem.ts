@@ -6,7 +6,8 @@ import { ComponentRegistry } from "../../ecs/Component";
  * System that solves physical collision constraints and impulse responses.
  *
  * @remarks
- * Executed after collision detection to resolve penetration overlap and apply impulse forces.
+ * Executed in `SystemPhase.Collision` after narrowphase collision detection to resolve penetration overlap
+ * and apply physical impulse forces across rigid bodies in the simulation world.
  *
  * @public
  */
@@ -14,8 +15,8 @@ export class PhysicsSolveSystem<TRegistry extends ComponentRegistry = ComponentR
   /**
    * Solves active physical collision constraints across matching entities in the world.
    *
-   * @param _world - Simulation world.
-   * @param _deltaTime - Elapsed frame time in seconds.
+   * @param _world - Simulation world containing active physics entities and collision manifolds.
+   * @param _deltaTime - Elapsed frame time step in seconds.
    */
   public update(_world: World<TRegistry>, _deltaTime: number): void {
     // Collision resolution and constraint solving logic

@@ -73,7 +73,7 @@ export class ModifierSystem<TComponents extends ComponentRegistry = ComponentReg
    * @returns Computed final value applying add, multiply, and override modifiers in sequence.
    */
   public static calculateModifiedValue(baseValue: number, modifiers: ModifierEffect[]): number {
-    let result = baseValue;
+    const result = baseValue;
     let addSum = 0;
     let multProduct = 1.0;
     let overrideValue: number | undefined = undefined;

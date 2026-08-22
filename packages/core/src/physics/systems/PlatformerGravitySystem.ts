@@ -29,23 +29,15 @@ export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreC
     const groundStateType = "PlatformerGroundState" as Extract<keyof TRegistry, string>;
 
     const entities = world.query(configType, velocityType);
+    const len = entities.length;
 
-    for (const entity of entities) {
+    // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
       const config = world.getComponent(entity, configType) as any;
       const vel = world.getComponent(entity, velocityType) as any;
-      const groundState = world.hasComponent(entity, groundStateType)
-        ? (world.getComponent(entity, groundStateType) as any)
-        : null;
 
       if (!config || !vel) continue;
-
-      // If grounded, do not apply gravity (or we can let it apply, but usually gravity pulls down and collision pushes up).
-      // Standard platformers still apply gravity when grounded to keep the player attached to slopes, but we can bypass it if grounded is true.
-      // However, to keep standard gravity/ground collision resolving properly, we apply gravity. Let's apply it.
-      if (groundState && groundState.isGrounded && vel.vy >= 0) {
-        // Just minor gravity or 0 to keep from sinking indefinitely (collision system usually sets vy = 0 anyway, but we can do vy = 0 too)
-        // Let's just apply standard gravity so that collision system's push-out keeps them grounded.
-      }
 
       let gravity = vel.vy < 0 ? config.riseGravity : config.fallGravity;
 
@@ -55,9 +47,11 @@ export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreC
         }
       }
 
-      world.mutateComponent(entity, velocityType, (v: any) => {
-        v.vy += gravity * deltaTime;
-      });
+      // Safe for determinism/rollback. Replacing mutateComponent with direct getMutableComponent eliminates callback closure allocations per frame.
+      const mutableVel = world.getMutableComponent(entity, velocityType) as any;
+      if (mutableVel) {
+        mutableVel.vy += gravity * deltaTime;
+      }
     }
   }
 }

@@ -27,7 +27,10 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
         const dtSec = deltaTime;
 
         const localQuery = world.query(...(this.queryComponents as any));
-        for (const entity of localQuery) {
+        const qLen = localQuery.length;
+        // Safe for determinism/rollback. Sequential indexed loop replaces for..of iterator.
+        for (let i = 0; i < qLen; i++) {
+            const entity = localQuery[i];
             const input     = world.getComponent(entity, "Input" as Extract<keyof TRegistry, string>) as any;
             const velocity  = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
             const transform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
@@ -68,20 +71,36 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
         }
 
         try {
-            this.inputQueue = this.inputQueue.filter(i => i.tick > serverTick);
+            // Safe for determinism/rollback. In-place filter/trim avoids allocating new array per reconciliation step.
+            let writeIdx = 0;
+            const qLen = this.inputQueue.length;
+            for (let i = 0; i < qLen; i++) {
+                if (this.inputQueue[i].tick > serverTick) {
+                    this.inputQueue[writeIdx++] = this.inputQueue[i];
+                }
+            }
+            this.inputQueue.length = writeIdx;
 
             const localQuery = world.query(...(this.reconcileQueryComponents as any));
-            for (const entity of localQuery) {
-                world.mutateComponent(entity, "Transform" as Extract<keyof TRegistry, string>, (t: any) => {
-                    t.x = serverState.x;
-                    t.y = serverState.y;
-                });
-                world.mutateComponent(entity, "Velocity" as Extract<keyof TRegistry, string>, (v: any) => {
-                    v.vx = serverState.vx;
-                    v.vy = serverState.vy;
-                });
+            const entLen = localQuery.length;
+            for (let i = 0; i < entLen; i++) {
+                const entity = localQuery[i];
+                // Safe for determinism/rollback. Replacing mutateComponent with direct getMutableComponent eliminates callback closure allocations per reconciliation frame.
+                const mutTrans = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
+                if (mutTrans) {
+                    mutTrans.x = serverState.x;
+                    mutTrans.y = serverState.y;
+                }
 
-                for (const item of this.inputQueue) {
+                const mutVel = world.getMutableComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
+                if (mutVel) {
+                    mutVel.vx = serverState.vx;
+                    mutVel.vy = serverState.vy;
+                }
+
+                const itemLen = this.inputQueue.length;
+                for (let k = 0; k < itemLen; k++) {
+                    const item = this.inputQueue[k];
                     const itemDtSec = item.dt;
 
                     if (this.simulateFn) {
@@ -91,12 +110,12 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
                     if (this.reconcileFn) {
                         this.reconcileFn(world, entity, item.input, itemDtSec);
                     } else {
-                        const currentVelocity  = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
-
-                        world.mutateComponent(entity, "Transform" as Extract<keyof TRegistry, string>, (t: any) => {
-                            t.x += currentVelocity.vx * itemDtSec;
-                            t.y += currentVelocity.vy * itemDtSec;
-                        });
+                        const currentVelocity = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
+                        const mutT = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
+                        if (mutT && currentVelocity) {
+                            mutT.x += currentVelocity.vx * itemDtSec;
+                            mutT.y += currentVelocity.vy * itemDtSec;
+                        }
                     }
                 }
             }

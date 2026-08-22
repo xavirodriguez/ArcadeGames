@@ -43,8 +43,11 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     const groundStateType = "PlatformerGroundState" as Extract<keyof TRegistry, string>;
 
     const entities = world.query(transformType, velocityType, collider2DType);
+    const len = entities.length;
 
-    for (const entity of entities) {
+    // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
       const hasTileColliderTag = this.hasTileColliderTag(world, entity);
       if (!hasTileColliderTag) continue;
 
@@ -137,10 +140,6 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
 
           if (tileDef.solid) {
             if (tileDef.oneWay) {
-              // Hito 9: One-way platform logic
-              // Replicates standard platformer behavior: only collides when player
-              // is descending (moving down vertically) and their previous Y position
-              // was above the top edge of the tile.
               const prevPlayerBottom = prevY + offsetY + halfH;
               const isDescending = oldVy >= 0;
               const wasAbove = prevPlayerBottom <= tileTop + 1.0;
@@ -193,12 +192,17 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
         }
       }
 
-      // Write ground state
+      // Safe for determinism/rollback. Value-gate getMutableComponent and direct mutation to avoid callback closure allocations and unnecessary stateVersion bumps when ground state is unchanged.
       if (world.hasComponent(entity, groundStateType)) {
-        world.mutateComponent(entity, groundStateType, (g: any) => {
-          g.isGrounded = isGrounded;
-          g.iceMultiplier = onIce ? 0.2 : 1.0;
-        });
+        const targetIceMultiplier = onIce ? 0.2 : 1.0;
+        const currentGround = world.getComponent(entity, groundStateType) as any;
+        if (!currentGround || currentGround.isGrounded !== isGrounded || currentGround.iceMultiplier !== targetIceMultiplier) {
+          const mutableGround = world.getMutableComponent(entity, groundStateType) as any;
+          if (mutableGround) {
+            mutableGround.isGrounded = isGrounded;
+            mutableGround.iceMultiplier = targetIceMultiplier;
+          }
+        }
       }
     }
   }
@@ -214,10 +218,12 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
   }
 
   private handleSpikeCollision(world: World<any>, entity: Entity): void {
+    // Safe for determinism/rollback. Direct getMutableComponent avoids callback closure allocation.
     if (world.hasComponent(entity, "Health")) {
-      world.mutateComponent(entity, "Health", (h: any) => {
+      const h = world.getMutableComponent(entity, "Health") as any;
+      if (h) {
         h.current = Math.max(0, h.current - 1);
-      });
+      }
     }
     const eventBus = world.getEventBus();
     if (eventBus) {

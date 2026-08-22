@@ -28,7 +28,10 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           world.setResource("LocalPhysicsProcessedThisFrame", true);
       }
 
-      for (const entity of entities) {
+      const len = entities.length;
+      // Safe for determinism/rollback. Sequential indexed loop replaces for..of iterator.
+      for (let i = 0; i < len; i++) {
+          const entity = entities[i];
           const transform = world.getComponent(entity, "Transform")!;
           const velocity = world.getComponent(entity, "Velocity")!;
           const input = world.getComponent(entity, "Input")!;
@@ -41,7 +44,11 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   return acts.has(actionName);
               }
               if (Array.isArray(acts)) {
-                  return acts.includes(actionName);
+                  const aLen = acts.length;
+                  for (let j = 0; j < aLen; j++) {
+                      if (acts[j] === actionName) return true;
+                  }
+                  return false;
               }
               if (acts && typeof acts === "object") {
                   return (acts as Record<string, boolean>)[actionName] === true;
@@ -58,22 +65,25 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               dtSec
           );
 
-          world.mutateComponent(entity, "Velocity", (v) => {
-              v.vx = phys.vx;
-              v.vy = phys.vy;
-          });
+          // Safe for determinism/rollback. Replacing mutateComponent with direct getMutableComponent eliminates callback closure allocations per frame.
+          const mutVel = world.getMutableComponent(entity, "Velocity");
+          if (mutVel) {
+              mutVel.vx = phys.vx;
+              mutVel.vy = phys.vy;
+          }
 
-          world.mutateComponent(entity, "Transform", (t) => {
-              t.rotation = phys.rotation;
-          });
+          const mutTrans = world.getMutableComponent(entity, "Transform");
+          if (mutTrans) {
+              mutTrans.rotation = phys.rotation;
+          }
 
           // 2. Process shooting
-          // Cooldown decrement
           if (ship && ship.shootCooldownRemaining > 0) {
-              world.mutateComponent(entity, "Ship", (s) => {
-                  s.shootCooldownRemaining -= dtSec;
-                  if (s.shootCooldownRemaining < 0) s.shootCooldownRemaining = 0;
-              });
+              const mutShip = world.getMutableComponent(entity, "Ship");
+              if (mutShip) {
+                  mutShip.shootCooldownRemaining -= dtSec;
+                  if (mutShip.shootCooldownRemaining < 0) mutShip.shootCooldownRemaining = 0;
+              }
           }
 
           const currentShip = world.getComponent(entity, "Ship");
@@ -95,28 +105,29 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               });
 
               if (world.hasComponent(entity, "Ship")) {
-                  world.mutateComponent(entity, "Ship", (s) => {
-                      s.shootCooldownRemaining = config.SHIP_SHOOT_COOLDOWN ?? 0.25;
-                  });
+                  const mutShip = world.getMutableComponent(entity, "Ship");
+                  if (mutShip) {
+                      mutShip.shootCooldownRemaining = config.SHIP_SHOOT_COOLDOWN ?? 0.25;
+                  }
               }
           }
 
           // Decrement hyperspace cooldown
           if (ship) {
               if (ship.hyperspaceCooldownRemaining === undefined) {
-                  world.mutateComponent(entity, "Ship", (s) => {
-                      s.hyperspaceCooldownRemaining = 0;
-                      s.hyperspacePrepTime = 0;
-                  });
+                  const mutShip = world.getMutableComponent(entity, "Ship");
+                  if (mutShip) {
+                      mutShip.hyperspaceCooldownRemaining = 0;
+                      mutShip.hyperspacePrepTime = 0;
+                  }
               }
-              const currentShip = world.getComponent(entity, "Ship")!;
-              if (currentShip.hyperspaceCooldownRemaining && currentShip.hyperspaceCooldownRemaining > 0) {
-                  world.mutateComponent(entity, "Ship", (s) => {
-                      if (s.hyperspaceCooldownRemaining !== undefined) {
-                          s.hyperspaceCooldownRemaining -= dtSec;
-                          if (s.hyperspaceCooldownRemaining < 0) s.hyperspaceCooldownRemaining = 0;
-                      }
-                  });
+              const activeShip = world.getComponent(entity, "Ship")!;
+              if (activeShip.hyperspaceCooldownRemaining && activeShip.hyperspaceCooldownRemaining > 0) {
+                  const mutShip = world.getMutableComponent(entity, "Ship");
+                  if (mutShip && mutShip.hyperspaceCooldownRemaining !== undefined) {
+                      mutShip.hyperspaceCooldownRemaining -= dtSec;
+                      if (mutShip.hyperspaceCooldownRemaining < 0) mutShip.hyperspaceCooldownRemaining = 0;
+                  }
               }
           }
 
@@ -129,7 +140,6 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           if (isHyperspaceHeld && hCooldown <= 0) {
               const totalPrepTime = config.HYPERSPACE_PREP_TIME ?? 0.5;
               if (!prepActive) {
-                  // Initialize hyperspace destination and charge timer
                   const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || {
                       width: config.SCREEN_WIDTH ?? 800,
                       height: config.SCREEN_HEIGHT ?? 600
@@ -138,27 +148,24 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   const rx = rand.next() * screen.width;
                   const ry = rand.next() * screen.height;
 
-                  world.mutateComponent(entity, "Ship", (s) => {
-                      s.hyperspacePrepTime = totalPrepTime;
-                      s.hyperspacePreviewX = rx;
-                      s.hyperspacePreviewY = ry;
-                  });
+                  const mutShip = world.getMutableComponent(entity, "Ship");
+                  if (mutShip) {
+                      mutShip.hyperspacePrepTime = totalPrepTime;
+                      mutShip.hyperspacePreviewX = rx;
+                      mutShip.hyperspacePreviewY = ry;
+                  }
               } else {
-                  // Decrement prep time
-                  world.mutateComponent(entity, "Ship", (s) => {
-                      if (s.hyperspacePrepTime !== undefined) {
-                          s.hyperspacePrepTime -= dtSec;
-                          if (s.hyperspacePrepTime < 0) s.hyperspacePrepTime = 0;
-                      }
-                  });
+                  const mutShip = world.getMutableComponent(entity, "Ship");
+                  if (mutShip && mutShip.hyperspacePrepTime !== undefined) {
+                      mutShip.hyperspacePrepTime -= dtSec;
+                      if (mutShip.hyperspacePrepTime < 0) mutShip.hyperspacePrepTime = 0;
+                  }
               }
 
-              // Re-read because we just mutated it
               const updatedShip = world.getComponent(entity, "Ship")!;
               const rx = updatedShip.hyperspacePreviewX ?? transform.x;
               const ry = updatedShip.hyperspacePreviewY ?? transform.y;
 
-              // Spawn visual preview indicator at destination coordinates using low TTL (e.g. 0.05s)
               const previewEntity = world.reserveEntityId();
               world.getCommandBuffer().createEntity(previewEntity);
               world.getCommandBuffer().addComponent(previewEntity, {
@@ -193,44 +200,46 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   remaining: 0.05
               } as any);
 
-              // If preparation completes, confirm teletransporte!
               if (updatedShip.hyperspacePrepTime === 0) {
-                  world.mutateComponent(entity, "Transform", (t) => {
-                      t.x = rx;
-                      t.y = ry;
-                  });
+                  const mutTrans = world.getMutableComponent(entity, "Transform");
+                  if (mutTrans) {
+                      mutTrans.x = rx;
+                      mutTrans.y = ry;
+                  }
 
-                  world.mutateComponent(entity, "Velocity", (v) => {
-                      v.vx = 0;
-                      v.vy = 0;
-                  });
+                  const mutVel = world.getMutableComponent(entity, "Velocity");
+                  if (mutVel) {
+                      mutVel.vx = 0;
+                      mutVel.vy = 0;
+                  }
 
-                  world.mutateComponent(entity, "Ship", (s) => {
-                      s.hyperspaceCooldownRemaining = config.HYPERSPACE_COOLDOWN ?? 5.0;
-                      s.hyperspacePrepTime = 0;
-                      s.hyperspacePreviewX = undefined;
-                      s.hyperspacePreviewY = undefined;
-                  });
+                  const mutShip = world.getMutableComponent(entity, "Ship");
+                  if (mutShip) {
+                      mutShip.hyperspaceCooldownRemaining = config.HYPERSPACE_COOLDOWN ?? 5.0;
+                      mutShip.hyperspacePrepTime = 0;
+                      mutShip.hyperspacePreviewX = undefined;
+                      mutShip.hyperspacePreviewY = undefined;
+                  }
 
-                  // Clear the input flag so hyperspace is consumed
-                  world.mutateComponent(entity, "Input", (inp) => {
-                      const acts = inp.actions;
+                  const mutInp = world.getMutableComponent(entity, "Input");
+                  if (mutInp) {
+                      const acts = mutInp.actions;
                       if (acts instanceof Set) {
                           acts.delete("hyperspace");
                       } else if (Array.isArray(acts)) {
-                          inp.actions = acts.filter(x => x !== "hyperspace");
+                          mutInp.actions = acts.filter(x => x !== "hyperspace");
                       } else if (acts && typeof acts === "object") {
                           (acts as Record<string, boolean>)["hyperspace"] = false;
                       }
-                  });
+                  }
               }
           } else if (!isHyperspaceHeld && prepActive) {
-              // Cancel hyperspace charging if key released before completion
-              world.mutateComponent(entity, "Ship", (s) => {
-                  s.hyperspacePrepTime = 0;
-                  s.hyperspacePreviewX = undefined;
-                  s.hyperspacePreviewY = undefined;
-              });
+              const mutShip = world.getMutableComponent(entity, "Ship");
+              if (mutShip) {
+                  mutShip.hyperspacePrepTime = 0;
+                  mutShip.hyperspacePreviewX = undefined;
+                  mutShip.hyperspacePreviewY = undefined;
+              }
           }
       }
   }

@@ -8,15 +8,21 @@ import { PhysicsTransformLike, ColliderLike } from "../PhysicsTypes";
 
 /**
  * Utility for performing physics-based spatial queries on the ECS world.
- * Enforces strong type-safety by parameterizing over the world's ComponentRegistry
- * to avoid any implicit or explicit 'any' type assertions.
+ *
+ * @remarks
+ * Enforces strong type-safety by parameterizing over the world's `ComponentRegistry` to avoid type assertions.
+ * Uses `PhysicsTransformLike` and `ColliderLike` structural subtyping to query entities without strict component registry coupling.
+ *
  * @public
  */
 export class PhysicsQuery {
   /**
-   * Casts a point into the world and returns all entities whose collider intersects the point.
+   * Casts a 2D point into the world and returns all entities whose collider intersects the point.
    *
-   * @param world - Simulation world instance.
+   * @remarks
+   * Evaluates point intersection against Circle, Box, and Convex Polygon geometries, accounting for world rotation and offsets.
+   *
+   * @param world - Simulation world instance containing Transform and Collider components.
    * @param x - Target world-space X coordinate.
    * @param y - Target world-space Y coordinate.
    * @returns Array of entity IDs overlapping the query point.
@@ -96,7 +102,10 @@ export class PhysicsQuery {
   /**
    * Casts a primitive geometry shape into the world and returns all entities overlapping the shape.
    *
-   * @param world - Simulation world instance.
+   * @remarks
+   * Evaluates narrowphase SAT overlap using `NarrowPhase.test` between the input shape and world colliders.
+   *
+   * @param world - Simulation world instance containing Transform and Collider components.
    * @param shape - Query shape geometry (Circle, Box, or Convex Polygon).
    * @param x - World-space position X of the query shape center.
    * @param y - World-space position Y of the query shape center.

@@ -234,17 +234,22 @@ function resetManifold(): CollisionManifold {
  */
 export class NarrowPhase {
   /**
-   * Tests collision between two shapes in 2D world space.
+   * Tests collision between two primitive shapes in 2D world space.
+   *
+   * @remarks
+   * Evaluates pairwise geometric overlap across Circle, Box, and Convex Polygon geometries.
+   * Collision normals point from shape A towards shape B. Pre-condition: Polygon vertices
+   * must be ordered convex hulls.
    *
    * @param shapeA - First geometry shape definition.
-   * @param ax - World position X of shape A.
-   * @param ay - World position Y of shape A.
+   * @param ax - World position X of shape A center.
+   * @param ay - World position Y of shape A center.
    * @param ar - World rotation in radians of shape A.
    * @param shapeB - Second geometry shape definition.
-   * @param bx - World position X of shape B.
-   * @param by - World position Y of shape B.
+   * @param bx - World position X of shape B center.
+   * @param by - World position Y of shape B center.
    * @param br - World rotation in radians of shape B.
-   * @returns Detailed collision manifold indicating collision flag, depth, normals, and contact points.
+   * @returns Detailed collision manifold indicating collision flag, penetration depth, response normals, and contact points.
    */
   public static test(
     shapeA: Shape, ax: number, ay: number, ar: number,

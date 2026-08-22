@@ -24,6 +24,7 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
     }
 
     public update(world: World<TRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
         const dtSec = deltaTime;
 
         const localQuery = world.query(...(this.queryComponents as any));

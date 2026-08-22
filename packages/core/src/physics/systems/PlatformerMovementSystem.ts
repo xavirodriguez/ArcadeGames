@@ -22,6 +22,7 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
    * @sideEffect Mutates `Velocity` components on active platformer entities.
    */
   public update(world: World<TRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const inputType = "PlatformerInput" as Extract<keyof TRegistry, string>;
     const configType = "PlatformerMovementConfig" as Extract<keyof TRegistry, string>;
     const velocityType = "Velocity" as Extract<keyof TRegistry, string>;

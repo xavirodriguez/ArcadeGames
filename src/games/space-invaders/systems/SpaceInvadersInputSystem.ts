@@ -33,6 +33,7 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
   }
 
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }

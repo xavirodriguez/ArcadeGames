@@ -207,14 +207,14 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     description: "Comienza la oleada con un multiplicador x2.",
     rarity: "COMMON",
     tags: ["utility", "combo"],
-    supportedGames: ["space-invaders", "pong", "flappy_bird", "asteroids"],
+    supportedGames: ["space-invaders", "pong", "flappybird", "flappy_bird", "asteroids", "geometrywars"],
     xpCost: 300,
     canDraft: (world, context) => {
       const target = context?.targetEntity;
       if (target !== undefined) {
         return world.hasComponent(target, "Combo" as any);
       }
-      return world.query("Combo").length > 0 || world.query("ComboState" as any).length > 0;
+      return world.query("Combo").length > 0;
     },
     apply: (world, context) => {
       world.setResource("HasComboHeadStart", true);
@@ -239,13 +239,6 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
             c.combo = 5;
             c.multiplier = 2;
             c.timerRemaining = comboTimeout;
-          });
-        }
-        if (world.query("ComboState" as any).length > 0) {
-          world.mutateSingleton("ComboState" as any, (cs: any) => {
-            cs.hits = 5;
-            cs.multiplier = 2;
-            cs.timerRemaining = comboTimeout * 1000;
           });
         }
       }
@@ -451,6 +444,26 @@ export class MutatorRegistry {
     return mutator;
   }
 
+  /**
+   * Returns all mutators (beneficial and negative) supported for a given game ID.
+   */
+  public static getAvailableForGame(gameId: string): BeneficialMutator[] {
+    this.init();
+    return Array.from(this.mutators.values()).filter(m =>
+      m.supportedGames.includes('ALL') || m.supportedGames.includes(gameId)
+    );
+  }
+
+  /**
+   * Checks whether a mutator is supported for a given game ID.
+   */
+  public static isMutatorSupportedForGame(mutator: BeneficialMutator | string, gameId: string): boolean {
+    this.init();
+    const mut = typeof mutator === "string" ? this.mutators.get(mutator) : mutator;
+    if (!mut) return false;
+    return mut.supportedGames.includes('ALL') || mut.supportedGames.includes(gameId);
+  }
+
   public static init(): void {
     if (this.mutators.size > 0) return;
     Object.values(BENEFICIAL_MUTATORS).forEach(m => this.register(m));
@@ -465,48 +478,54 @@ export class MutatorRegistry {
   ): BeneficialMutator[] {
     this.init();
     const rng = world.gameplayRandom;
+    const wasLocked = rng ? rng.isLocked() : false;
+    if (wasLocked && rng) rng.unlock();
 
-    const pool = Array.from(this.mutators.values()).filter(m => {
-      const isGameSupported = m.supportedGames.includes('ALL') || m.supportedGames.includes(gameId);
-      return isGameSupported && m.canDraft(world, context);
-    });
+    try {
+      const pool = Array.from(this.mutators.values()).filter(m => {
+        const isGameSupported = m.supportedGames.includes('ALL') || m.supportedGames.includes(gameId);
+        return isGameSupported && m.canDraft(world, context);
+      });
 
-    if (pool.length === 0) return [];
+      if (pool.length === 0) return [];
 
-    // Expandir el pool por peso de rareza antes de barajar
-    const weightedPool: BeneficialMutator[] = [];
-    for (const mutator of pool) {
-      const weight = this.RARITY_WEIGHTS[mutator.rarity] || 1;
-      for (let i = 0; i < weight; i++) {
-        weightedPool.push(mutator);
+      // Expandir el pool por peso de rareza antes de barajar
+      const weightedPool: BeneficialMutator[] = [];
+      for (const mutator of pool) {
+        const weight = this.RARITY_WEIGHTS[mutator.rarity] || 1;
+        for (let i = 0; i < weight; i++) {
+          weightedPool.push(mutator);
+        }
       }
-    }
 
-    // Deterministic shuffle
-    const shuffleArray = <T>(array: T[], r: { next: () => number }): T[] => {
-      const result = [...array];
-      for (let i = result.length - 1; i > 0; i--) {
-        const j = Math.floor(r.next() * (i + 1));
-        const temp = result[i];
-        result[i] = result[j];
-        result[j] = temp;
+      // Deterministic shuffle
+      const shuffleArray = <T>(array: T[], r: { next: () => number }): T[] => {
+        const result = [...array];
+        for (let i = result.length - 1; i > 0; i--) {
+          const j = Math.floor(r.next() * (i + 1));
+          const temp = result[i];
+          result[i] = result[j];
+          result[j] = temp;
+        }
+        return result;
+      };
+
+      const shuffled = shuffleArray(weightedPool, rng);
+
+      // Tomar los primeros `count` ids únicos del pool ya ponderado y barajado
+      const selected: BeneficialMutator[] = [];
+      const seenIds = new Set<string>();
+      for (const mutator of shuffled) {
+        if (selected.length >= count) break;
+        if (seenIds.has(mutator.id)) continue;
+        seenIds.add(mutator.id);
+        selected.push(mutator);
       }
-      return result;
-    };
 
-    const shuffled = shuffleArray(weightedPool, rng);
-
-    // Tomar los primeros `count` ids únicos del pool ya ponderado y barajado
-    const selected: BeneficialMutator[] = [];
-    const seenIds = new Set<string>();
-    for (const mutator of shuffled) {
-      if (selected.length >= count) break;
-      if (seenIds.has(mutator.id)) continue;
-      seenIds.add(mutator.id);
-      selected.push(mutator);
+      return selected;
+    } finally {
+      if (wasLocked && rng) rng.lock();
     }
-
-    return selected;
   }
 }
 

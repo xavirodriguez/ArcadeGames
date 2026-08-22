@@ -36,6 +36,7 @@ export class InputBufferSystem extends System<FlappyBirdComponentRegistry> {
   }
 
   public update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     // Optional buffer decay/cleanup
   }
 }

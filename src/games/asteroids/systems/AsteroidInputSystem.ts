@@ -13,6 +13,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
   }
 
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
       const gameState = world.getSingleton("GameState");
       if (gameState && (((gameState.readyRemaining ?? 0) > 0) || ((gameState.intermissionRemaining ?? 0) > 0))) {
           return;

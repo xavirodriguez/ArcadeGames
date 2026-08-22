@@ -8,6 +8,7 @@ import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
  */
 export class GeometryWarsInputSystem extends System<GeometryWarsComponentRegistry> {
   public update(world: World<GeometryWarsComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const config = world.getResource<GeometryWarsConfig>("GameConfig");
     const speed = config?.PLAYER_SPEED ?? 220;
 

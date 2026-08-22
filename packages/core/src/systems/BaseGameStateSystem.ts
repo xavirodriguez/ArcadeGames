@@ -20,6 +20,7 @@ export abstract class BaseGameStateSystem<
   }
 
   public update(world: World<TComponents, TEvents>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const gameState = this.getGameState(world);
     if (!gameState) return;
 

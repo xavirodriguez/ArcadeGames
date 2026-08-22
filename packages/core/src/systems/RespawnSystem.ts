@@ -14,6 +14,7 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
   private itemsToRespawnBuffer: { blueprintKey: string; initialArgs: any }[] = [];
 
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const runState = world.getResource<RunState>("RunState");
     const deadPlayers = world.query("PlatformerInput", "Transform", "Dead");
 

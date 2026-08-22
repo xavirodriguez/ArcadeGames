@@ -136,6 +136,7 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
    * @sideEffect Mutates `CollisionEvents` components on colliding entities and invokes registered callbacks.
    */
   public update(world: World<TRegistry>, _deltaTime: number, candidatesOverride?: Entity[]): void {
+    if (world.getResource("IsPaused") === true) return;
     // Cast to access core components reliably while maintaining generic TRegistry if needed by subclasses
     const w = world as unknown as World<CoreComponentRegistry>;
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");

@@ -29,6 +29,7 @@ export class MutatorSystem<TComponents extends ComponentRegistry = ComponentRegi
   }
 
   public update(world: World<TComponents>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     for (const mutator of this.mutators) {
       if (mutator && mutator.componentType && typeof mutator.mutate === "function") {
         const compType = mutator.componentType as Extract<keyof TComponents, string>;

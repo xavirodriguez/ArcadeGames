@@ -19,6 +19,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
   }
 
   public override update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     // Decrementar coyote timer y disparar game over si expiró
     const birds = world.query("Bird");
     for (let i = 0; i < birds.length; i++) {
@@ -161,6 +162,15 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
       world.mutateSingleton("FlappyState", gs => {
           gs.isGameOver = true;
       });
+
+      const comboEntities = world.query("Combo");
+      if (comboEntities.length > 0) {
+        world.mutateComponent(comboEntities[0], "Combo", (c: any) => {
+          c.combo = 0;
+          c.multiplier = 1;
+          c.timerRemaining = 0;
+        });
+      }
 
       const eventBus = world.getResource<EventBus>("EventBus");
       if (eventBus) {

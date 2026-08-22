@@ -11,6 +11,7 @@ import { Entity } from "../ecs/Entity";
  */
 export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
   public update(world: World<TRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const jumperType = "PlatformerJumper" as Extract<keyof TRegistry, string>;
     const groundStateType = "PlatformerGroundState" as Extract<keyof TRegistry, string>;
     const gravityConfigType = "PlatformerGravityConfig" as Extract<keyof TRegistry, string>;

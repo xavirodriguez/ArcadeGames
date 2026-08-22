@@ -18,6 +18,7 @@ export class PongInputSystem extends System<PongComponentRegistry> {
   }
 
   public update(world: World<PongComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     this.currentTick++;
     const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
     const inputSystem = world.getResource<InputSystem>("InputSystem");

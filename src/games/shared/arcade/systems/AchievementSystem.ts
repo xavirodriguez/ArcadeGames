@@ -140,6 +140,7 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
   }
 
   public update(world: World<TComponents>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     // Achievements are entirely event-driven.
   }
 

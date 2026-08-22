@@ -175,6 +175,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
   }
 
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     this.processedDeaths.clear();
     // Safe for determinism/rollback. Reusing instance Set avoids per-tick heap allocations during collision updates.
     this.destroyedEntities.clear();

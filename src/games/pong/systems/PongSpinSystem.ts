@@ -3,6 +3,7 @@ import { BallComponent, PaddleComponent, PongComponentRegistry } from "../types"
 
 export class PongSpinSystem extends System<PongComponentRegistry> {
   public update(world: World<PongComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const balls = world.query("Ball" as any);
 
     balls.forEach(entity => {

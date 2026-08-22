@@ -9,6 +9,7 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
  */
 export class EnemySensorSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const tilemaps = world.query("Tilemap", "Transform");
     const players = world.query("PlatformerInput", "Transform");
 

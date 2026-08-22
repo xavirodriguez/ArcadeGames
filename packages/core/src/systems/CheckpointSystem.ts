@@ -9,6 +9,7 @@ import { Entity } from "../ecs/Entity";
  */
 export class CheckpointSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const runState = world.getResource<RunState>("RunState");
     if (!runState) return;
 

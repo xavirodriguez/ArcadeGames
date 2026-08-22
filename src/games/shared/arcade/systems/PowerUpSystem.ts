@@ -9,6 +9,7 @@ export interface IPowerUpEffect {
 /** @public */
 export class PowerUpSystem extends System<CoreComponentRegistry & { PowerUp: PowerUpComponent }> {
   public update(world: World<CoreComponentRegistry & { PowerUp: PowerUpComponent }>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
       const powerUpType = "PowerUp" as Extract<keyof (CoreComponentRegistry & { PowerUp: PowerUpComponent }), string>;
       const collisionType = "CollisionEvents" as Extract<keyof (CoreComponentRegistry & { PowerUp: PowerUpComponent }), string>;
       const entities = world.query(powerUpType, collisionType);

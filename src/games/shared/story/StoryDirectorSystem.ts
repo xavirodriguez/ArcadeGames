@@ -79,6 +79,7 @@ export class StoryDirectorSystem<
   }
 
   public update(world: World<TComponents, TEvents>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     // Evaluation is purely event-driven
   }
 }

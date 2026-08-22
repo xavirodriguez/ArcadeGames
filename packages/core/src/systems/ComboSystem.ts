@@ -5,6 +5,7 @@ import { ComponentRegistry } from "../ecs/Component";
 /** @public */
 export class ComboSystem<TComponents extends ComponentRegistry = ComponentRegistry> extends System<TComponents> {
   public update(world: World<TComponents>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const entities = world.query("Combo" as any);
     const len = entities.length;
 

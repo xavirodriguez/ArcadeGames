@@ -24,6 +24,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
    * @sideEffect Mutates `Transform`, `Velocity`, `Health`, and `PlatformerGroundState` components.
    */
   public update(world: World<TRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const tilemapEntities = world.query("Tilemap" as Extract<keyof TRegistry, string>);
     if (tilemapEntities.length === 0) return;
 

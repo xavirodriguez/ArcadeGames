@@ -7,6 +7,7 @@ import { System, World, ComponentRegistry } from "@tiny-aster/core";
  */
 export class DifficultyDirectorSystem<TComponents extends ComponentRegistry = ComponentRegistry> extends System<TComponents> {
   public update(world: World<TComponents>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     // 1. Read performance metrics
     const comboEntity = world.query("Combo" as any)[0];
     const comboComp = comboEntity !== undefined

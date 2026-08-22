@@ -34,6 +34,7 @@ export class FrictionSystem extends System<CoreComponentRegistry> {
    * @sideEffect Mutates `Velocity` components on active entities.
    */
   update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
     const candidatesList = this.candidateEntities !== null ? this.candidateEntities : (resourceCandidates !== undefined ? resourceCandidates : null);
 

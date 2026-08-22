@@ -4,6 +4,7 @@ import { LootTableComponent } from "../types/ArcadeTypes";
 /** @public */
 export class LootSystem extends System<CoreComponentRegistry & { LootTable: LootTableComponent }> {
   public update(world: World<CoreComponentRegistry & { LootTable: LootTableComponent }>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const lootType = "LootTable" as Extract<keyof (CoreComponentRegistry & { LootTable: LootTableComponent }), string>;
     const transformType = "Transform" as Extract<keyof (CoreComponentRegistry & { LootTable: LootTableComponent }), string>;
     const entities = world.query(lootType, transformType);

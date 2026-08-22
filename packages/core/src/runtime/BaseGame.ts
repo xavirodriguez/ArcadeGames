@@ -325,9 +325,9 @@ export abstract class BaseGame<
     this.registerInternalResources();
     this.registerEventBusListeners();
 
-    // Subscribe loop to update
+    // Subscribe loop to update (runs during RUNNING or PAUSED for presentation/UI rendering)
     this.loop.subscribeUpdate((dt) => {
-      if (this.lifecycleState === GameLifecycleState.RUNNING) {
+      if (this.lifecycleState === GameLifecycleState.RUNNING || this.lifecycleState === GameLifecycleState.PAUSED) {
         this.update(dt);
       }
     });
@@ -513,8 +513,6 @@ export abstract class BaseGame<
     if (this.kernel.getState() === ArcadeState.PLAYING) {
       this.kernel.transitionTo(ArcadeState.PAUSED);
     }
-
-    this.loop.pause();
   }
 
   /**
@@ -528,13 +526,11 @@ export abstract class BaseGame<
     if (!this.isPaused) return;
     this.isPaused = false;
     this.lifecycleState = GameLifecycleState.RUNNING;
-    this.world.setResource("IsPaused", false);
+    this.world.deleteResource("IsPaused");
 
     if (this.kernel.getState() === ArcadeState.PAUSED) {
       this.kernel.transitionTo(ArcadeState.PLAYING);
     }
-
-    this.loop.resume();
   }
 
   /**

@@ -55,10 +55,12 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
           let multiplier = 1;
           const comboEntities = world.query("Combo");
           if (comboEntities.length > 0) {
-            const comboComp = world.getComponent(comboEntities[0], "Combo") as any;
-            if (comboComp) {
-              multiplier = comboComp.multiplier || 1;
-            }
+            world.mutateComponent(comboEntities[0], "Combo", (c: any) => {
+              c.combo = (c.combo || 0) + 1;
+              c.multiplier = 1 + Math.floor(c.combo / 5);
+              c.timerRemaining = c.timerDuration || 2.0;
+              multiplier = c.multiplier;
+            });
           }
 
           world.mutateSingleton("FlappyState", (gs) => {

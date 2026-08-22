@@ -115,30 +115,25 @@ describe("BaseGame lifecycle", () => {
 
     game.pause();
     expect(game.isPausedState()).toBe(true);
-    expect(game.getGameLoop().pause).toHaveBeenCalledTimes(1);
+    expect(game.world.getResource("IsPaused")).toBe(true);
 
     // Call pause() again
     game.pause();
     expect(game.isPausedState()).toBe(true);
-    // Should NOT call loop.pause() again
-    expect(game.getGameLoop().pause).toHaveBeenCalledTimes(1);
   });
 
   test("resume() is idempotent", () => {
     const game = new TestGame();
     game.pause();
     expect(game.isPausedState()).toBe(true);
-    expect(game.getGameLoop().resume).toHaveBeenCalledTimes(0);
 
     game.resume();
     expect(game.isPausedState()).toBe(false);
-    expect(game.getGameLoop().resume).toHaveBeenCalledTimes(1);
+    expect(game.world.getResource("IsPaused")).toBeFalsy();
 
     // Call resume() again
     game.resume();
     expect(game.isPausedState()).toBe(false);
-    // Should NOT call loop.resume() again
-    expect(game.getGameLoop().resume).toHaveBeenCalledTimes(1);
   });
 
   test("resume() without prior pause() is a no-op", () => {

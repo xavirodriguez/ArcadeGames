@@ -23,6 +23,7 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
    * @sideEffect Mutates `Transform`, `Velocity`, and `PlatformerGroundState` components.
    */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const characters = world.query("Transform", "Velocity", "Collider2D", "PlatformerGroundState");
     const platforms = world.query("Transform", "Velocity", "Collider2D", "MovingPlatform");
 

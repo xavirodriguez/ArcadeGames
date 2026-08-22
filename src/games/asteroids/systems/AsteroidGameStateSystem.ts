@@ -101,6 +101,7 @@ export class AsteroidGameStateSystem extends BaseGameStateSystem<
   }
 
   public update(world: World<AsteroidsComponentRegistry>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
       super.update(world, deltaTime);
   }
 

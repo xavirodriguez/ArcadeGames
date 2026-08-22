@@ -11,6 +11,7 @@ export class DialogueSystem<
 > extends System<TComponents, TEvents> {
 
   public update(world: World<TComponents, TEvents>, deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
     const dialogs = world.query("DialogueBox" as any);
     const eventBus = world.getEventBus() as EventBus;
 

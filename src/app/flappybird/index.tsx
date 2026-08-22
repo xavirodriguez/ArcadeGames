@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, FC } from "react";
+import { useState, useEffect, useCallback, useRef, FC } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, TextInput } from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -75,10 +75,20 @@ export default function FlappyBirdScreen() {
     }
   }, [params.seed, params.isDaily, started]);
 
+  const requestedSeedRestartRef = useRef<number | undefined>(undefined);
+
   // Ensure game starts with the correct seed if set via params
   useEffect(() => {
-    if (started && isDaily && initialSeed !== undefined && isReady && seed !== initialSeed) {
-        restartWithSeed(initialSeed);
+    if (
+      started &&
+      isDaily &&
+      initialSeed !== undefined &&
+      isReady &&
+      seed !== initialSeed &&
+      requestedSeedRestartRef.current !== initialSeed
+    ) {
+      requestedSeedRestartRef.current = initialSeed;
+      restartWithSeed(initialSeed);
     }
   }, [started, isDaily, initialSeed, isReady, seed, restartWithSeed]);
 

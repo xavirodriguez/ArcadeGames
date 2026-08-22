@@ -34,6 +34,7 @@ describe("StoryRuntime & StoryGraph Engine Tests", () => {
           type: "gameplay",
           objective: {
             id: "obj_clear_lvl1",
+            eventKey: "level:completed",
             titleKey: "story.obj_lvl1",
             targetCount: 1,
             currentCount: 0,

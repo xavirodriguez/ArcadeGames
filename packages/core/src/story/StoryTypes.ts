@@ -139,7 +139,10 @@ export type StoryConditionType =
   | "choice"
   | "objective"
   | "evidence"
-  | "random";
+  | "random"
+  | "all"
+  | "any"
+  | "not";
 
 /**
  * Predicate condition evaluated by `StoryRuntime` to determine transition eligibility.
@@ -148,7 +151,7 @@ export type StoryConditionType =
  */
 export interface StoryCondition {
   /** Category of state property evaluated by this condition. */
-  type: StoryConditionType;
+  type?: StoryConditionType;
   /** Key name of the event, flag, or state variable being evaluated. */
   key?: string;
   /** Target value expected for state variable or flag comparisons. */
@@ -157,6 +160,12 @@ export interface StoryCondition {
   operator?: "==" | "!=" | ">" | ">=" | "<" | "<=" | "contains";
   /** Probability threshold (0.0 to 1.0) for 'random' condition evaluation. */
   chance?: number;
+  /** List of sub-conditions required to ALL evaluate to true. */
+  all?: StoryCondition[];
+  /** List of sub-conditions required to ANY evaluate to true. */
+  any?: StoryCondition[];
+  /** Inverted sub-condition required to evaluate to false. */
+  not?: StoryCondition;
 }
 
 /**
@@ -203,6 +212,8 @@ export interface StoryChoice {
 export interface StoryObjective {
   /** Unique objective identifier. */
   id: string;
+  /** Optional specific event key required to advance progress on this objective. */
+  eventKey?: string;
   /** Localization key or raw text for objective title. */
   titleKey: string;
   /** Optional localization key or sub-description. */

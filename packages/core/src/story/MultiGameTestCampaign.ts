@@ -38,6 +38,7 @@ export const MultiGameTestCampaign: StoryGraph = {
       sceneToLoad: "asteroids",
       objective: {
         id: "obj_destroy_rocks",
+        eventKey: "rock:destroyed",
         titleKey: "story.test.destroy_rocks_objective",
         targetCount: 5,
         currentCount: 0,

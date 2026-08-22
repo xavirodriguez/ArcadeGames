@@ -1,7 +1,7 @@
 import { ShapeDrawer, EffectDrawer, World, TransformComponent } from "@tiny-aster/core";
 import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
-import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { ComboComponent } from "@tiny-aster/core";
 import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 

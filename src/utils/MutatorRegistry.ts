@@ -12,8 +12,7 @@
  * @packageDocumentation
  */
 
-import { World, HealthComponent, ComponentRegistry } from "@tiny-aster/core";
-import { ComboComponent } from "../games/shared/arcade/components/ComboComponent";
+import { World, HealthComponent, ComponentRegistry, ComboComponent } from "@tiny-aster/core";
 
 /**
  * Interface for a beneficial mutator registry components.

@@ -21,7 +21,8 @@ import {
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
-import { ComboSystem, AchievementSystem } from "../shared/arcade";
+import { ComboSystem } from "@tiny-aster/core";
+import { AchievementSystem } from "../shared/arcade";
 import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorRegistry";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 

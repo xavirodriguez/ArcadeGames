@@ -1,6 +1,6 @@
 import { System, World, Entity, Juice } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
-import { ComboComponent } from "../../shared/arcade/components/ComboComponent";
+import { ComboComponent } from "@tiny-aster/core";
 import { GWParticlePool } from "../EntityPool";
 
 /**

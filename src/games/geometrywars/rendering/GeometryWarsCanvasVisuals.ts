@@ -2,103 +2,15 @@ import { ShapeDrawer, EffectDrawer, TransformComponent, World, Entity, RenderCom
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
 
-// ============================================================================
-// ZERO-ALLOCATION FILE-LEVEL PRE-ALLOCATED VISUAL PARTICLE POOL
-// ============================================================================
-
-interface VisualParticle {
-  active: boolean;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  size: number;
-  color: string;
-}
-
-const PARTICLE_POOL_SIZE = 250;
-const PARTICLE_POOL: VisualParticle[] = Array.from({ length: PARTICLE_POOL_SIZE }, () => ({
-  active: false,
-  x: 0,
-  y: 0,
-  vx: 0,
-  vy: 0,
-  life: 0,
-  maxLife: 0,
-  size: 0,
-  color: ""
-}));
-
-/**
- * Spawns a custom particle from our zero-allocation pool.
- */
 export function spawnVisualParticle(
-  x: number,
-  y: number,
-  vx: number,
-  vy: number,
-  maxLife: number,
-  size: number,
-  color: string
-): void {
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
-    if (!p.active) {
-      p.active = true;
-      p.x = x;
-      p.y = y;
-      p.vx = vx;
-      p.vy = vy;
-      p.life = maxLife;
-      p.maxLife = maxLife;
-      p.size = size;
-      p.color = color;
-      break;
-    }
-  }
-}
-
-/**
- * Updates active particles with friction and limits.
- */
-function updateVisualParticles(dt: number = 0.016): void {
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
-    if (p.active) {
-      p.life -= dt;
-      if (p.life <= 0) {
-        p.active = false;
-        continue;
-      }
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vx *= 0.94; // friction
-      p.vy *= 0.94;
-    }
-  }
-}
-
-/**
- * Draws all active particles with neon glow.
- */
-function drawVisualParticles(ctx: CanvasRenderingContext2D): void {
-  ctx.save();
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
-    if (!p.active) continue;
-
-    const ratio = p.life / p.maxLife;
-    ctx.globalAlpha = ratio;
-    ctx.fillStyle = p.color;
-    ctx.shadowBlur = 8 * ratio;
-    ctx.shadowColor = p.color;
-
-    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-  }
-  ctx.restore();
-}
+  _x: number,
+  _y: number,
+  _vx: number,
+  _vy: number,
+  _maxLife: number,
+  _size: number,
+  _color: string
+): void {}
 
 // ============================================================================
 // GRID DEFORMATION MATHEMATICS (ZERO FRAME ALLOCATION)
@@ -563,10 +475,6 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
   draw(ctx, world) {
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
     const { width, height } = screen;
-
-    // 1. Process visual particles updates and drawings
-    updateVisualParticles();
-    drawVisualParticles(ctx);
 
     // 2. Monitor bullet states for trail and explosion spawns
     monitorBulletsAndSpawnTrails(world);

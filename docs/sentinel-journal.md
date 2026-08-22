@@ -20,3 +20,11 @@
   Ensured `SpaceInvadersRoom` and `GeometryWarsRoom` clamp all input axis coordinates within `[-1.0, 1.0]` using `Math.max(-1, Math.min(1, val))` for every axis entry, matching `AsteroidsRoom`.
 - **Safe Fallback for `localTickRef`**:
   In `useMultiplayer.ts`, sanitized `localTickRef.current` calculation against `NaN`/negative values by falling back to `serverTickRef.current` rather than `0` if invalid state is detected, preventing client input frames from being rejected by room tick validation mid-session.
+
+## Iteration Pass 3 - Room Whitelisting Symmetry & Lower-bound Input Frame Protection
+
+### Key Findings & Insights
+- **Action Whitelisting Symmetry**:
+  Aligned `PongRoom` (`["moveUp", "moveDown", "move"]`) and `FlappyBirdRoom` (`["jump"]`) with explicit action whitelists in `allowedActions`.
+- **Obsolete Tick Lower Bounds Protection**:
+  Hardened `BaseRoom.handleInputMessage` to reject input frames with `tick < Math.max(0, currentServerTick - 120)` to prevent ancient out-of-order frames from polluting the input buffer.

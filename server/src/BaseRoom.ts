@@ -110,7 +110,7 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
     const currentServerTick = (this.state as any)?.serverTick ?? 0;
 
     // Bounds check against tick manipulation or negative ticks
-    if (validFrame.tick < 0 || validFrame.tick > currentServerTick + 1000) {
+    if (validFrame.tick < Math.max(0, currentServerTick - 120) || validFrame.tick > currentServerTick + 1000) {
       return;
     }
 
@@ -272,5 +272,7 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
     if (this.gameSimulation?.destroy) {
       this.gameSimulation.destroy();
     }
+    this.gameSimulation = null;
+    this.world = null;
   }
 }

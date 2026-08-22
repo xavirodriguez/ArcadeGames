@@ -4,12 +4,118 @@ import { InvulnerabilitySystem } from "../systems/InvulnerabilitySystem";
 import { StateMachineSystem, StateMachineDefinition } from "../systems/StateMachineSystem";
 import { FeedbackSystem } from "../systems/FeedbackSystem";
 import { HitDetectionSystem } from "../systems/HitDetectionSystem";
+import { FrictionSystem } from "../physics/systems/FrictionSystem";
+import { PlatformerGravitySystem } from "../physics/systems/PlatformerGravitySystem";
+import { PhysicsIntegrateSystem } from "../physics/dynamics/PhysicsIntegrateSystem";
+import { TileCollisionSystem } from "../physics/systems/TileCollisionSystem";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { SnapshotBuffer } from "../snapshots/SnapshotBuffer";
 import { SnapshotRestore } from "../snapshots/SnapshotRestore";
 import { SnapshotSerializer } from "../snapshots/SnapshotSerializer";
 
 describe("Bolt Performance & Determinism Tests", () => {
+  it("FrictionSystem: resting entities (vx=0, vy=0) produce zero stateVersion increases", () => {
+    const world = new World<CoreComponentRegistry>();
+    world.addSystem(new FrictionSystem());
+
+    const entity = world.createEntity();
+    world.addComponent(entity, {
+      type: "Velocity",
+      vx: 0,
+      vy: 0,
+      angularVelocity: 0
+    });
+    world.addComponent(entity, {
+      type: "Friction",
+      value: 0.1
+    });
+
+    world.update(1 / 60);
+    const initialVersion = world.stateVersion;
+
+    for (let i = 0; i < 50; i++) {
+      world.update(1 / 60);
+    }
+
+    expect(world.stateVersion).toBe(initialVersion);
+  });
+
+  it("PlatformerGravitySystem & TileCollisionSystem: deterministic physics simulation", () => {
+    const world = new World<CoreComponentRegistry>();
+    world.addSystem(new PlatformerGravitySystem());
+    world.addSystem(new PhysicsIntegrateSystem());
+    world.addSystem(new TileCollisionSystem());
+
+    const tilemap = world.createEntity();
+    world.addComponent(tilemap, {
+      type: "Tilemap",
+      tileSize: 32,
+      data: [
+        [0, 0, 0],
+        [0, 0, 0],
+        [1, 1, 1]
+      ],
+      tileDefinitions: {
+        1: { solid: true, oneWay: false }
+      }
+    });
+
+    const player = world.createEntity();
+    world.addComponent(player, {
+      type: "Transform",
+      x: 32,
+      y: 30,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 32,
+      worldY: 30,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: false
+    });
+    world.addComponent(player, {
+      type: "Velocity",
+      vx: 0,
+      vy: 0,
+      angularVelocity: 0
+    });
+    world.addComponent(player, {
+      type: "PlatformerGravityConfig",
+      riseGravity: 500,
+      fallGravity: 800,
+      jumpVelocity: -300,
+      minJumpVelocity: -100
+    });
+    world.addComponent(player, {
+      type: "Collider2D",
+      enabled: true,
+      isTrigger: false,
+      shape: { type: "aabb", halfWidth: 8, halfHeight: 8 },
+      offsetX: 0,
+      offsetY: 0,
+      layer: 1,
+      mask: 1
+    });
+    world.addComponent(player, {
+      type: "Tag",
+      tags: ["TileCollider"]
+    });
+    world.addComponent(player, {
+      type: "PlatformerGroundState",
+      isGrounded: false,
+      iceMultiplier: 1.0
+    });
+
+    for (let t = 0; t < 30; t++) {
+      world.update(1 / 60);
+    }
+
+    const ground = world.getComponent(player, "PlatformerGroundState") as any;
+    expect(ground.isGrounded).toBe(true);
+  });
+
   it("SpatialPartitioningSystem: stationary entities produce zero stateVersion increases", () => {
     const world = new World<CoreComponentRegistry>();
     world.addSystem(new SpatialPartitioningSystem());

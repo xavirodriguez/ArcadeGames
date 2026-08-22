@@ -38,13 +38,20 @@ export class FrictionSystem extends System<CoreComponentRegistry> {
     const candidatesList = this.candidateEntities !== null ? this.candidateEntities : (resourceCandidates !== undefined ? resourceCandidates : null);
 
     if (candidatesList !== null) {
-      for (const entity of candidatesList) {
+      const len = candidatesList.length;
+      // Safe for determinism/rollback. Indexed loop replaces for..of iterator to eliminate per-tick heap allocations.
+      for (let i = 0; i < len; i++) {
+        const entity = candidatesList[i];
         const f = world.getComponent(entity, "Friction");
         if (!f) continue;
         const v = world.getComponent(entity, "Velocity");
         if (!v) continue;
 
-        // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
+        // Safe for determinism/rollback. Bypasses getMutableComponent for resting entities (vx === 0 && vy === 0 && !angularVelocity) to prevent unnecessary stateVersion bumps and component clones.
+        if (v.vx === 0 && v.vy === 0 && (!v.angularVelocity || v.angularVelocity === 0)) {
+          continue;
+        }
+
         const vel = world.getMutableComponent(entity, "Velocity");
         if (vel) {
           const factor = Math.exp(-f.value * deltaTime);
@@ -57,17 +64,26 @@ export class FrictionSystem extends System<CoreComponentRegistry> {
       }
     } else {
       const entities = world.query("Velocity", "Friction");
-      for (const entity of entities) {
+      const len = entities.length;
+      // Safe for determinism/rollback. Indexed loop replaces for..of iterator to eliminate per-tick heap allocations.
+      for (let i = 0; i < len; i++) {
+        const entity = entities[i];
         const f = world.getComponent(entity, "Friction")!;
+        const v = world.getComponent(entity, "Velocity");
+        if (!v) continue;
 
-        // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
-        const v = world.getMutableComponent(entity, "Velocity");
-        if (v) {
+        // Safe for determinism/rollback. Bypasses getMutableComponent for resting entities (vx === 0 && vy === 0 && !angularVelocity) to prevent unnecessary stateVersion bumps and component clones.
+        if (v.vx === 0 && v.vy === 0 && (!v.angularVelocity || v.angularVelocity === 0)) {
+          continue;
+        }
+
+        const vel = world.getMutableComponent(entity, "Velocity");
+        if (vel) {
           const factor = Math.exp(-f.value * deltaTime);
-          v.vx *= factor;
-          v.vy *= factor;
-          if (v.angularVelocity) {
-            v.angularVelocity *= factor;
+          vel.vx *= factor;
+          vel.vy *= factor;
+          if (vel.angularVelocity) {
+            vel.angularVelocity *= factor;
           }
         }
       }

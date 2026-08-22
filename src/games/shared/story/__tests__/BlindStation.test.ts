@@ -81,8 +81,15 @@ describe("BlindStation StoryGraph", () => {
     scene.selectChoice("visit_infirmary");
     expect(scene.getCurrentNode()?.id).toBe("hub");
 
-    // Visit comms (comms_intro -> comms_blackbox -> investigation_branch -> power_choice)
+    // Visit comms (comms_intro -> comms_blackbox -> investigation_branch -> hub)
     scene.selectChoice("visit_comms");
+    expect(scene.getCurrentNode()?.id).toBe("hub");
+
+    // Once investigationComplete is true, the hub choice "route_emergency_power" is unlocked
+    const choices = scene.getAvailableChoices();
+    expect(choices.map((c) => c.id)).toContain("route_emergency_power");
+
+    scene.selectChoice("route_emergency_power");
     expect(scene.getCurrentNode()?.id).toBe("power_choice");
   });
 

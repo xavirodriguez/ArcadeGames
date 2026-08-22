@@ -858,6 +858,8 @@ export function bindBlindStationEffects(
           break;
 
         case "reactor_intro":
+          runtime.getState().flags.visitedReactor = true;
+          updateDerivedFlags(runtime);
           runtime.setFlag("visitedReactor", true);
           break;
 
@@ -870,6 +872,8 @@ export function bindBlindStationEffects(
           break;
 
         case "infirmary_intro":
+          runtime.getState().flags.visitedInfirmary = true;
+          updateDerivedFlags(runtime);
           runtime.setFlag("visitedInfirmary", true);
           break;
 
@@ -883,6 +887,7 @@ export function bindBlindStationEffects(
 
         case "comms_blackbox":
           applyEvidenceOnce(runtime, "seenEvidenceComms");
+          updateDerivedFlags(runtime);
           break;
 
         case "vega_awakens":

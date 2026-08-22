@@ -113,6 +113,21 @@ export class StoryRuntime {
   }
 
   /**
+   * Dispatches a `story:state_changed` event via `EventBus` if bound.
+   *
+   * @public
+   */
+  public emitStateChanged(): void {
+    if (this.eventBus) {
+      this.eventBus.emit("story:state_changed" as any, {
+        graphId: this.graph?.id || null,
+        state: this.getState(),
+        currentNode: this.getCurrentNode()
+      });
+    }
+  }
+
+  /**
    * Retrieves list of all recorded checkpoint node IDs.
    */
   public getCheckpoints(): string[] {
@@ -133,6 +148,24 @@ export class StoryRuntime {
 
     const currentNode = this.getCurrentNode();
     if (currentNode?.meta?.rewindPolicy === "permanent") {
+      return false;
+    }
+
+    if (this.graph) {
+      for (const choiceId of this.state.selectedChoices) {
+        for (const n of Object.values(this.graph.nodes)) {
+          if (n.choices) {
+            const ch = n.choices.find((c) => c.id === choiceId);
+            if (ch && ch.rewindPolicy === "permanent") {
+              return false;
+            }
+          }
+        }
+      }
+    }
+
+    const targetNode = this.graph?.nodes[targetNodeId];
+    if (currentNode?.meta?.rewindPolicy === "checkpoint-only" && !targetNode?.checkpoint) {
       return false;
     }
 
@@ -219,6 +252,8 @@ export class StoryRuntime {
 
     if (startAtEntry && graph.entryNodeId && graph.nodes[graph.entryNodeId]) {
       this.navigateToNode(graph.entryNodeId);
+    } else {
+      this.emitStateChanged();
     }
   }
 
@@ -417,6 +452,7 @@ export class StoryRuntime {
       }
     }
 
+    this.emitStateChanged();
     return true;
   }
 
@@ -555,7 +591,30 @@ export class StoryRuntime {
    * @returns Boolean truth result of evaluation.
    */
   public evaluateCondition(condition: StoryCondition): boolean {
+    if (!condition) return false;
+
+    if (condition.all && Array.isArray(condition.all)) {
+      return (condition.all as StoryCondition[]).every((c: StoryCondition) => this.evaluateCondition(c));
+    }
+
+    if (condition.any && Array.isArray(condition.any)) {
+      return (condition.any as StoryCondition[]).some((c: StoryCondition) => this.evaluateCondition(c));
+    }
+
+    if (condition.not) {
+      return !this.evaluateCondition(condition.not as StoryCondition);
+    }
+
     switch (condition.type) {
+      case "all":
+        return condition.all ? (condition.all as StoryCondition[]).every((c: StoryCondition) => this.evaluateCondition(c)) : true;
+
+      case "any":
+        return condition.any ? (condition.any as StoryCondition[]).some((c: StoryCondition) => this.evaluateCondition(c)) : false;
+
+      case "not":
+        return condition.not ? !this.evaluateCondition(condition.not as StoryCondition) : true;
+
       case "event":
         if (!condition.key) return false;
         return !!this.state.flags[`event:${condition.key}`];
@@ -583,12 +642,24 @@ export class StoryRuntime {
         if (!condition.key) return false;
         return !!(this.state.evidence && this.state.evidence.includes(condition.key));
 
-      case "random":
+      case "random": {
         const threshold = condition.chance ?? 0.5;
         if (this.world && this.world.gameplayRandom) {
-          return this.world.gameplayRandom.next() < threshold;
+          const wasLocked = this.world.gameplayRandom.isLocked();
+          if (wasLocked) {
+            this.world.gameplayRandom.unlock();
+          }
+          try {
+            return this.world.gameplayRandom.next() < threshold;
+          } finally {
+            if (wasLocked) {
+              this.world.gameplayRandom.lock();
+            }
+          }
         }
-        return Math.random() < threshold;
+        console.warn("[StoryRuntime] 'random' condition evaluated without world.gameplayRandom; returning false for determinism.");
+        return false;
+      }
 
       default:
         return false;
@@ -605,6 +676,7 @@ export class StoryRuntime {
     if (this.state.flags[key] === value) return;
     this.state.flags[key] = value;
     this.evaluateTransitions();
+    this.emitStateChanged();
   }
 
   /**
@@ -633,6 +705,7 @@ export class StoryRuntime {
     }
 
     this.evaluateTransitions();
+    this.emitStateChanged();
   }
 
   /**
@@ -657,6 +730,7 @@ export class StoryRuntime {
         this.deductionEngine.discoverEvidence(evidenceId);
       }
       this.evaluateTransitions();
+      this.emitStateChanged();
     }
   }
 
@@ -690,6 +764,8 @@ export class StoryRuntime {
     }
     if (this.state.currentNodeId) {
       this.navigateToNode(this.state.currentNodeId);
+    } else {
+      this.emitStateChanged();
     }
   }
 
@@ -717,9 +793,17 @@ export class StoryRuntime {
       return;
     }
 
+    let progressMade = false;
+
     for (const objId in this.state.objectives) {
       const obj = this.state.objectives[objId];
       if (obj.completed) continue;
+
+      const isMatch = obj.eventKey
+        ? obj.eventKey === eventName
+        : obj.id === eventName || payload?.objectiveId === obj.id || payload?.event === obj.id || payload?.eventKey === obj.id;
+
+      if (!isMatch) continue;
 
       const increment =
         typeof payload?.amount === "number"
@@ -729,6 +813,8 @@ export class StoryRuntime {
           : 1;
 
       obj.currentCount += increment;
+      progressMade = true;
+
       if (obj.currentCount >= obj.targetCount) {
         obj.completed = true;
         if (this.eventBus) {
@@ -738,6 +824,11 @@ export class StoryRuntime {
           });
         }
       }
+    }
+
+    if (progressMade) {
+      this.evaluateTransitions();
+      this.emitStateChanged();
     }
   }
 

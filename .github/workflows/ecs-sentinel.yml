@@ -60,7 +60,10 @@ jobs:
           echo "## 🔍 AST Linter Results" >> $GITHUB_STEP_SUMMARY
           pnpm exec tsx scripts/ast-determinism-linter.ts >> $GITHUB_STEP_SUMMARY
 
-      - name: 3. Run Mutation Guards Unit Tests
+      - name: 3. Run StoryGraph & Semantic Linter
+        run: pnpm run story:lint
+
+      - name: 4. Run Mutation Guards Unit Tests
         run: |
           # Corre la suite de tests unitarios del core asegurando que NODE_ENV=development
           # capture cualquier mutación directa prohibida durante world.isUpdating

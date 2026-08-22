@@ -53,6 +53,8 @@ export interface CoreEvents {
   // Narrative & Story Systems
   "story:scene_change": { sceneToLoad: string; [key: string]: unknown };
   "story:node_changed": { graphId?: string; currentNodeId?: string; previousNodeId?: string | null; node?: unknown; nodeId?: string; title?: string; text?: string; choices?: unknown[]; [key: string]: unknown };
+  "story:state_changed": { graphId?: string | null; state: unknown; currentNode?: unknown; [key: string]: unknown };
+  "story:evidence_discovered": { evidenceId: string; [key: string]: unknown };
   "story:beat_reached": { beatId: string; dialogueReference?: string; payload?: unknown; [key: string]: unknown };
   "story:choice_selected": { choiceId: string; targetNodeId: string; nodeId?: string; [key: string]: unknown };
   "story:objective_completed": { objectiveId: string; objective?: unknown; [key: string]: unknown };

@@ -34,6 +34,7 @@
     "typecheck:app": "pnpm exec tsc -p tsconfig.json --noEmit",
     "check:core-boundaries": "bash ./scripts/check-core-boundaries.sh",
     "story:lint": "pnpm exec tsx scripts/story-lint.ts",
+    "validate:story": "pnpm run story:lint",
     "ci": "pnpm run build:core && pnpm run check:core-boundaries && pnpm run story:lint && pnpm run docs:check && pnpm run typecheck:app",
     "test:ci": "NODE_OPTIONS=\"--max-old-space-size=4096\" pnpm exec jest --runInBand"
   },

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { World, StoryRuntime, CYOAScene, ArcadeKernel, ArcadeState } from "@tiny-aster/core";
+import { World, StoryRuntime, CYOAScene, ArcadeKernel, ArcadeState, EventBus } from "@tiny-aster/core";
 import { createBlindStationStory, BlindStationGraph } from "../../games/shared/story/BlindStation";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useStoryRuntime } from "../../hooks/useStoryRuntime";
 import { GameScreen } from "../../components/ui/GameScreen";
 import { BackButton } from "../../components/ui/BackButton";
 import { GameTitle } from "../../components/ui/GameTitle";
@@ -13,46 +14,27 @@ import { colors, spacing, typography } from "../../theme";
 
 export default function BlindStationScreen() {
   const { t } = useTranslation();
-  const [nodeId, setNodeId] = useState<string | null>(null);
-
-  // Dynamic game state variables for UI status indicators
-  const [evidence, setEvidence] = useState<number>(0);
-  const [oxygen, setOxygen] = useState<number>(100);
-  const [trustARES, setTrustARES] = useState<number>(0);
-  const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [runtime, setRuntime] = useState<StoryRuntime | null>(null);
+  const [eventBus, setEventBus] = useState<EventBus | null>(null);
 
   const sceneRef = useRef<CYOAScene | null>(null);
-  const runtimeRef = useRef<StoryRuntime | null>(null);
-
-  const refreshState = (runtime: StoryRuntime) => {
-    const st = runtime.getState();
-    setEvidence((st.variables["evidence"] as number) || 0);
-    setOxygen((st.variables["oxygen"] as number) || 100);
-    setTrustARES((st.variables["trustARES"] as number) || 0);
-    setFlags({ ...st.flags });
-  };
 
   useEffect(() => {
     const world = new World();
 
-    const { runtime, eventBus } = createBlindStationStory(world);
-    runtimeRef.current = runtime;
+    const { runtime: storyRuntime, eventBus: bus } = createBlindStationStory(world);
+    setRuntime(storyRuntime);
+    setEventBus(bus);
 
-    const kernel = new ArcadeKernel(eventBus);
+    const kernel = new ArcadeKernel(bus);
     kernel.transitionTo(ArcadeState.LOADING);
     kernel.transitionTo(ArcadeState.MENU);
     kernel.transitionTo(ArcadeState.STORY);
 
-    const scene = new CYOAScene(world, runtime, (node) => {
-      setNodeId(node.id);
-      refreshState(runtime);
-    });
+    const scene = new CYOAScene(world, storyRuntime);
 
     sceneRef.current = scene;
     scene.onEnter(world);
-
-    setNodeId(scene.getCurrentNode()?.id || null);
-    refreshState(runtime);
 
     return () => {
       if (kernel.getState() === ArcadeState.STORY) {
@@ -61,45 +43,39 @@ export default function BlindStationScreen() {
     };
   }, []);
 
+  const storySnapshot = useStoryRuntime(runtime, eventBus);
+  const currentNode = storySnapshot.currentNode || sceneRef.current?.getCurrentNode();
+  const availableChoices = sceneRef.current?.getAvailableChoices() || [];
+
+  const oxygen = (storySnapshot.variables["oxygen"] as number) ?? 100;
+  const trustARES = (storySnapshot.variables["trustARES"] as number) ?? 0;
+  const evidence = (storySnapshot.variables["evidence"] as number) ?? 0;
+  const flags = storySnapshot.flags;
+
   const handleSelectChoice = (choiceId: string) => {
     hapticSelection();
     if (sceneRef.current) {
       sceneRef.current.selectChoice(choiceId);
-      if (runtimeRef.current) {
-        setNodeId(sceneRef.current.getCurrentNode()?.id || null);
-        refreshState(runtimeRef.current);
-      }
     }
   };
 
   const handleAdvanceStory = () => {
     hapticSelection();
-    if (runtimeRef.current && sceneRef.current) {
-      runtimeRef.current.evaluateTransitions();
-      setNodeId(sceneRef.current.getCurrentNode()?.id || null);
-      refreshState(runtimeRef.current);
+    if (runtime) {
+      runtime.evaluateTransitions();
     }
   };
 
   const handleRestart = () => {
     hapticSelection();
-    if (sceneRef.current) {
+    if (sceneRef.current && runtime) {
       sceneRef.current.restart();
-      if (runtimeRef.current) {
-        runtimeRef.current.setVariable("evidence", 0);
-        runtimeRef.current.setVariable("oxygen", 100);
-        runtimeRef.current.setVariable("trustARES", 0);
-        runtimeRef.current.setVariable("trustVega", 0);
-      }
-      setNodeId(sceneRef.current.getCurrentNode()?.id || null);
-      if (runtimeRef.current) {
-        refreshState(runtimeRef.current);
-      }
+      runtime.setVariable("evidence", 0);
+      runtime.setVariable("oxygen", 100);
+      runtime.setVariable("trustARES", 0);
+      runtime.setVariable("trustVega", 0);
     }
   };
-
-  const currentNode = sceneRef.current?.getCurrentNode();
-  const availableChoices = sceneRef.current?.getAvailableChoices() || [];
 
   // Safely look up localized text keys or fallback gracefully
   const getLocalizedText = (key?: string) => {

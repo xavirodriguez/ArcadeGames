@@ -355,5 +355,6 @@ export const es = {
     seed_input_hint: "Ingresa un valor numérico de semilla para generación determinista",
     seed_apply_label: "Aplicar semilla",
     seed_apply_hint: "Aplica la semilla y reinicia la configuración del juego",
+    daily_challenge_hint: "Inicia el reto diario de hoy con reglas de mutador activas",
   }
 };

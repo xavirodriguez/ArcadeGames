@@ -204,7 +204,7 @@ export default function FlappyBirdScreen() {
             </View>
         )}
 
-        <ComboDisplay multiplier={gameState?.comboMultiplier || 1} isActive={true} />
+        <ComboDisplay multiplier={(gameState as { comboMultiplier?: number })?.comboMultiplier || 1} isActive={true} />
         <FlappyBirdUI
           gameState={gameState}
           onRestart={() => isMulti ? room?.send("start_game") : game.restart()}

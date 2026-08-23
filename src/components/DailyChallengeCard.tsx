@@ -39,7 +39,13 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
 
   const sanitizedGameKey = gameId.replace('-', '_');
   const gameTitle = (t?.menu as any)?.[sanitizedGameKey] || gameId.replace('-', ' ').toUpperCase();
+  const mutatorName = mutators.length > 0
+    ? (t?.mutators?.[mutators[0].id as keyof typeof t.mutators]?.name || mutators[0].name)
+    : null;
+
   const accessibleLabel = `${t?.daily?.title || 'Daily Challenge'}: ${gameTitle}. ${
+    mutatorName ? `${t?.daily?.mutator || 'Mutator'}: ${mutatorName}. ` : ''
+  }${
     played
       ? `${t?.daily?.played || 'Played'}. ${t?.daily?.your_score || 'Your Score'}: ${score ?? 0}. ${t?.daily?.improve_score || 'Improve score'}`
       : t?.daily?.play_now || 'Play now'
@@ -52,7 +58,7 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
       onPress={handlePlay}
       accessibilityRole="button"
       accessibilityLabel={accessibleLabel}
-      accessibilityHint="Starts daily challenge with special active mutators"
+      accessibilityHint={t?.accessibility?.daily_challenge_hint || "Launches today's seed challenge with active mutator rules"}
     >
       <View style={styles.header}>
         <Text style={styles.title}>{t?.daily?.title || "DAILY CHALLENGE"}</Text>

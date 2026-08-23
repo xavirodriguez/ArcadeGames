@@ -6,7 +6,8 @@ import {
   StoryState,
   StoryCondition,
   StoryChoice,
-  StoryEffect
+  StoryEffect,
+  StoryStateCheckpoint
 } from "./StoryTypes";
 import { RelationshipEngine } from "./RelationshipEngine";
 import { DeductionEngine } from "./DeductionEngine";
@@ -39,7 +40,7 @@ export class StoryRuntime {
   private deductionEngine?: DeductionEngine;
   private timelineEngine?: NarrativeTimelineEngine;
   private lastRecordedEventId: string | null = null;
-  private checkpoints: Map<string, { state: StoryState; lastEventId: string | null }> = new Map();
+  private checkpoints: Map<string, StoryStateCheckpoint> = new Map();
 
   /**
    * Constructs a new `StoryRuntime` instance.
@@ -125,6 +126,62 @@ export class StoryRuntime {
         currentNode: this.getCurrentNode()
       });
     }
+  }
+
+  /**
+   * Captures an explicit immutable checkpoint snapshot labeled with the specified target node ID.
+   *
+   * @param nodeId - Target node ID associated with checkpoint (defaults to current active node).
+   * @returns Generated StoryStateCheckpoint.
+   */
+  public saveCheckpoint(nodeId?: string): StoryStateCheckpoint {
+    const targetNodeId = nodeId || this.state.currentNodeId || "unknown";
+    const id = `checkpoint_${targetNodeId}`;
+    const checkpoint: StoryStateCheckpoint = {
+      id,
+      nodeId: targetNodeId,
+      timestamp: Date.now(),
+      state: JSON.parse(JSON.stringify(this.state)),
+      lastEventId: this.lastRecordedEventId
+    };
+    this.checkpoints.set(id, checkpoint);
+    this.checkpoints.set(targetNodeId, checkpoint);
+    return checkpoint;
+  }
+
+  /**
+   * Restores narrative state to a checkpoint and explicitly discards any subsequent flags,
+   * variables, evidence, objectives, and history modifications applied after that checkpoint.
+   *
+   * @param checkpointId - Checkpoint identifier or node ID to fork at.
+   * @throws Error if specified checkpointId does not exist in runtime.
+   */
+  public forkAt(checkpointId: string): void {
+    const cp = this.checkpoints.get(checkpointId);
+    if (!cp) {
+      throw new Error(`[StoryRuntime] Cannot fork at invalid checkpoint '${checkpointId}'.`);
+    }
+
+    // 1. Restore exact state snapshot from checkpoint
+    this.state = JSON.parse(JSON.stringify(cp.state));
+    this.lastRecordedEventId = cp.lastEventId;
+
+    // 2. Truncate timeline events recorded after checkpoint in NarrativeTimelineEngine
+    if (this.timelineEngine) {
+      this.timelineEngine.truncateAfter(cp.lastEventId);
+    }
+
+    // 3. Clean history array to remove subsequent nodes
+    const nodeIdx = this.state.history.lastIndexOf(cp.nodeId);
+    if (nodeIdx !== -1) {
+      this.state.history = this.state.history.slice(0, nodeIdx + 1);
+    } else {
+      this.state.history = [cp.nodeId];
+    }
+
+    // 4. Update current node ID and emit state change
+    this.state.currentNodeId = cp.nodeId;
+    this.emitStateChanged();
   }
 
   /**
@@ -386,10 +443,7 @@ export class StoryRuntime {
 
     // Capture checkpoint state snapshot BEFORE node entry effects execute
     if (node.checkpoint) {
-      this.checkpoints.set(nodeId, {
-        state: JSON.parse(JSON.stringify(this.state)),
-        lastEventId: this.lastRecordedEventId
-      });
+      this.saveCheckpoint(nodeId);
     }
 
     // Record NodeEntered event on NarrativeTimelineEngine if bound

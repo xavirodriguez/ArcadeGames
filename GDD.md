@@ -381,3 +381,62 @@ To support a deeply immersive "Story Mode" while preserving game loop determinis
 
 ### 4. Deterministic Narrative Decisions (`RunStoryChoices`)
 - Reuses the active `IsPaused` and seed-aware randomized selection mechanics to spawn 3 deterministic dialogue/story path choices when a level completes. Player selections are processed to affect which subsequent `StoryBeatComponent` instances get triggered, enabling narrative branches.
+
+---
+
+## 🕹️ Part 6: Integración de Narrative Arcade & MiniGameEncounter Pipeline
+
+### 1. Auditoría de Cobertura de Juegos
+
+El ecosistema narrativo de TinyAster soporta integración completa de minijuegos retro mediante el contrato unificado `ArcadeGameAdapter` y el motor `ArcadeOrchestrator`. A continuación se detalla la cobertura real verificada en el catálogo:
+
+| Juego | Tiene Encounter DSL | Tiene Adapter (`ArcadeGameAdapter`) | Usa `ArcadeOrchestrator` | Soporte Hándicap / Modificadores Clave |
+| :--- | :---: | :---: | :---: | :--- |
+| **Asteroids** | Sí (`escapeRoute01Encounter`) | Sí (`AsteroidsArcadeAdapter`) | Sí | `shieldMultiplier`, `navigationAssist` |
+| **Space Invaders** | Sí (`spaceInvadersInvasionEncounter`) | Sí (`SpaceInvadersArcadeAdapter`) | Sí | `extraLives`, `fireRateMultiplier`, `enemySpeedMultiplier` |
+| **Geometry Wars** | Sí (`geometryWarsOverdriveEncounter`) | Sí (`GeometryWarsArcadeAdapter`) | Sí | `bombCount`, `multiplierBoost`, `playerSpeedMultiplier` |
+| **Pong** | Sí (`pongChampionshipEncounter`) | Sí (`PongArcadeAdapter`) | Sí | `paddleSpeedMultiplier`, `ballSpeedMultiplier`, `extraPointsHandicap` |
+| **Flappy Bird** | Sí (`flappyBirdEscapeEncounter`) | Sí (`FlappyBirdArcadeAdapter`) | Sí | `gravityMultiplier`, `pipeGapMultiplier`, `scoreMultiplier` |
+| **Echo Runner** | Sí (`echoRunnerDashEncounter`) | Sí (`EchoRunnerArcadeAdapter`) | Sí | `timeLimitMultiplier`, `energyBoost`, `speedMultiplier` |
+| **Platformer** | Sí (`platformerRunEncounter`) | Sí (`PlatformerArcadeAdapter`) | Sí | `jumpPowerMultiplier`, `extraLives`, `moveSpeedMultiplier` |
+
+*Nota*: Las campañas o nodos simples (como `MultiGameTestCampaign.ts`) pueden seguir utilizando la transición ligera basada únicamente en `sceneToLoad` y objetivos directos cuando no requieran evaluación declarativa de modificadores o reglas de resultado complejas.
+
+### 2. Pipeline Completo de Ejecución Narrativa ↔ Minijuegos
+
+Cualquier nodo de tipo `gameplay` puede integrarse en el pipeline unificado mediante el siguiente flujo secuencial de 7 etapas:
+
+```
++-------------------+      +--------------------+      +---------------------------+
+| StoryNode         | ---> | ArcadeOrchestrator | ---> | MiniGameModifierResolver  |
+| (type: gameplay)  |      | .startRun()        |      | .resolve(snapshot, enc)   |
++-------------------+      +--------------------+      +---------------------------+
+                                                                     |
+                                                                     v
++-------------------+      +--------------------+      +---------------------------+
+| StoryEffectApplier| <--- | OutcomeRuleEngine  | <--- | Adapter.emitResult        |
+| .applyEffects()   |      | .evaluate(result)  |      | (MiniGameResult)          |
++-------------------+      +--------------------+      +---------------------------+
+```
+
+1. **`StoryNode` (gameplay)**: Define el nodo narrativo con metadatos de minijuego (`sceneToLoad`, objetivos o referencia a `MiniGameEncounter`).
+2. **`ArcadeOrchestrator.startRun(encounter, snapshot)`**: Inicia la sesión de juego, valida que no haya ejecuciones concurrentes y genera un `MiniGameRunContext` inmutable equipado con semilla, configuración base y modificadores resueltos.
+3. **`MiniGameModifierResolver.resolve(snapshot, encounter)`**: Evalúa el estado actual (`StoryRuntimeSnapshot`) contra las reglas condicionales del `MiniGameEncounter` (`modifierRules`) para derivar modificadores de gameplay específicos del juego de forma aislada.
+4. **`Adapter.initialize(runContext, hostElement)`**: La clase `<Game>ArcadeAdapter` concreta instancia el juego, aplica los modificadores recibidos al `GameConfig` o `World` antes del primer tick y escucha eventos de finalización (`game:over`, `level:completed`).
+5. **`Adapter.emitResult(context, rawPayload)`**: Transforma las métricas brutas del motor de juego en una estructura canónica `MiniGameResult` (score, completion, métricas, secretos descubiertos).
+6. **`OutcomeRuleEngine.evaluate(result, outcomeRules)`**: Evalúa las reglas declarativas de resultado (`MiniGameOutcomeRule`) priorizadas para determinar los efectos narrativos (`StoryEffect[]`) aplicables.
+7. **`StoryEffectApplier.applyEffects(runtime, effects)`**: Aplica de manera determinista los efectos a `StoryRuntime` (alterando flags, variables, evidencia, u objetivos).
+
+### 3. Rejugabilidad sin Estado Fantasma (`saveCheckpoint` & `forkAt`)
+
+Para permitir que el jugador reintente niveles jugables o elija ramificaciones alternativas sin arrastrar consecuencias o efectos producidos por ejecuciones anteriores (como flags de daño acumulado o evidencias fantasma):
+
+1. **Checkpointing Explícito (`saveCheckpoint`)**:
+   - `saveCheckpoint(nodeId?: string): StoryStateCheckpoint` captura un snapshot inmutable etiquetado con el nodo actual (se invoca automáticamente al entrar a nodos con `checkpoint: true`).
+2. **Limpieza y Reinvocación (`forkAt`)**:
+   - `forkAt(checkpointId: string)` restaura el `StoryState` exactamente al momento del checkpoint.
+   - Trunca automáticamente los eventos posteriores del registro causal en `NarrativeTimelineEngine` (`truncateAfter(checkpoint.lastEventId)`).
+   - Recorta la secuencia de nodos posteriores en `state.history`.
+   - Garantiza que cualquier flag, variable o evidencia creada por ejecuciones fallidas o anteriores quede **completamente descartada** sin dejar rastro en el estado final.
+3. **Configuración DSL (`replayable: boolean`)**:
+   - `MiniGameEncounter` expone la propiedad opcional `replayable: boolean`. Cuando está habilitada, el orquestador o la interfaz de campaña invoca automáticamente `forkAt` al checkpoint previo al reintentar la fase, preservando el permadeath o las consecuencias permanentes en fases donde `replayable === false`.

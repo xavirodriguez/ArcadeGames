@@ -54,11 +54,13 @@ export class InputValidator {
    */
   public static sanitizeFrame(clientFrame: CompactInputFrame): CompactInputFrame {
     if (clientFrame.a) {
-      const x = Math.max(-1.0, Math.min(1.0, clientFrame.a[0]));
-      const y = Math.max(-1.0, Math.min(1.0, clientFrame.a[1]));
+      const rawX = clientFrame.a[0];
+      const rawY = clientFrame.a[1];
+      const safeX = (typeof rawX === "number" && !isNaN(rawX) && isFinite(rawX)) ? Math.max(-1.0, Math.min(1.0, rawX)) : 0;
+      const safeY = (typeof rawY === "number" && !isNaN(rawY) && isFinite(rawY)) ? Math.max(-1.0, Math.min(1.0, rawY)) : 0;
       return {
         ...clientFrame,
-        a: [x, y]
+        a: [safeX, safeY]
       };
     }
     return clientFrame;

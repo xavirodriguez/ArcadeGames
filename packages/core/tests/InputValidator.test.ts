@@ -36,5 +36,11 @@ describe("Server-side InputValidator security layer", () => {
     expect(cleanFrame.a).toBeDefined();
     expect(cleanFrame.a![0]).toBe(1.0); // Clamped to max
     expect(cleanFrame.a![1]).toBe(-1.0); // Clamped to min
+
+    // 6. Sanitising non-finite values defaults axes to zero safely
+    const nanAxesFrame: CompactInputFrame = { t: 11, b: 1, a: [NaN, Infinity] };
+    const sanitizedNanFrame = InputValidator.sanitizeFrame(nanAxesFrame);
+    expect(sanitizedNanFrame.a![0]).toBe(0);
+    expect(sanitizedNanFrame.a![1]).toBe(0);
   });
 });

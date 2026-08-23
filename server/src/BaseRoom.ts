@@ -20,8 +20,8 @@ export const BaseInputFrameSchema = z.object({
   protocolVersion: z.number().optional(),
   tick: z.number().int().nonnegative(),
   timestamp: z.number().optional(),
-  actions: z.array(z.string()),
-  axes: z.record(z.string(), z.number())
+  actions: z.array(z.string().max(32)).max(16),
+  axes: z.record(z.string().max(32), z.number())
 });
 
 export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRoom<TState> {
@@ -120,10 +120,13 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
 
     const sanitizedAxes: Record<string, number> = {};
     if (validFrame.axes) {
-      for (const [key, rawVal] of Object.entries(validFrame.axes)) {
-        const val = Number(rawVal);
-        if (!isNaN(val) && isFinite(val)) {
-          sanitizedAxes[key] = Math.max(-1, Math.min(1, val));
+      const axisEntries = Object.entries(validFrame.axes);
+      if (axisEntries.length <= 16) {
+        for (const [key, rawVal] of axisEntries) {
+          const val = Number(rawVal);
+          if (!isNaN(val) && isFinite(val)) {
+            sanitizedAxes[key] = Math.max(-1, Math.min(1, val));
+          }
         }
       }
     }

@@ -226,6 +226,38 @@ describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
       const buffer = (room as any).inputBuffers.get("client_1");
       expect(buffer.length).toBe(1);
     });
+
+    it("should reject input frames exceeding actions limit or axes key count", () => {
+      const handler = messageHandlers.get("input");
+
+      // Too many actions (> 16)
+      const excessiveActionsFrame = {
+        tick: 12,
+        actions: new Array(20).fill("shoot"),
+        axes: {}
+      };
+      handler!(mockClient, excessiveActionsFrame);
+
+      let buffer = (room as any).inputBuffers.get("client_1");
+      expect(buffer.some((f: any) => f.tick === 12)).toBe(false);
+
+      // Too many axes keys (> 16)
+      const excessiveAxesKeys: Record<string, number> = {};
+      for (let i = 0; i < 20; i++) {
+        excessiveAxesKeys[`axis_${i}`] = 0.5;
+      }
+      const excessiveAxesFrame = {
+        tick: 13,
+        actions: ["shoot"],
+        axes: excessiveAxesKeys
+      };
+      handler!(mockClient, excessiveAxesFrame);
+
+      buffer = (room as any).inputBuffers.get("client_1");
+      const tick13Frame = buffer.find((f: any) => f.tick === 13);
+      expect(tick13Frame).toBeDefined();
+      expect(Object.keys(tick13Frame.axes).length).toBe(0); // Exceeded 16 limit, axes ignored/emptied
+    });
   });
 
   describe("Headless Simulation Loop", () => {

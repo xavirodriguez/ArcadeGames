@@ -155,6 +155,7 @@ export const MiniGameEncounterSchema = z.object({
   baseConfig: MiniGameConfigSchema.optional(),
   modifierRules: z.array(MiniGameModifierRuleSchema).optional(),
   outcomeRules: z.array(MiniGameOutcomeRuleSchema),
+  replayable: z.boolean().optional(),
   meta: z.record(z.string(), z.unknown()).optional()
 });
 

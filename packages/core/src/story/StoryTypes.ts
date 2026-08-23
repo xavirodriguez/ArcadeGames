@@ -400,6 +400,24 @@ export interface RelationshipState {
  *
  * @public
  */
+/**
+ * Immutable snapshot descriptor capturing StoryRuntime state at a specific checkpoint node.
+ *
+ * @public
+ */
+export interface StoryStateCheckpoint {
+  /** Unique identifier for the checkpoint. */
+  readonly id: string;
+  /** Target node ID where checkpoint was saved. */
+  readonly nodeId: string;
+  /** High-precision epoch timestamp when checkpoint was recorded. */
+  readonly timestamp: number;
+  /** Deep clone of the StoryState at the checkpoint. */
+  readonly state: StoryState;
+  /** Narrative timeline event ID recorded at time of checkpoint. */
+  readonly lastEventId: string | null;
+}
+
 export interface NarrativeSaveGame {
   /** Save file format schema version. */
   readonly saveVersion: number;

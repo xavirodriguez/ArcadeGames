@@ -7,3 +7,4 @@ export { WeaponSystem } from "./systems/WeaponSystem";
 export { GWBulletPool } from "./EntityPool";
 export { drawPlayerShip, drawBullet } from "./rendering/GeometryWarsCanvasVisuals";
 export { drawSkiaPlayerShip, drawSkiaBullet } from "./rendering/GeometryWarsSkiaVisuals";
+export * from "./story/GeometryWarsEncounter";

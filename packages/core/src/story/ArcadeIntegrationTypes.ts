@@ -163,5 +163,6 @@ export interface MiniGameEncounter {
   readonly baseConfig?: MiniGameConfig;
   readonly modifierRules?: ReadonlyArray<ModifierRule>;
   readonly outcomeRules: ReadonlyArray<MiniGameOutcomeRule>;
+  readonly replayable?: boolean;
   readonly meta?: Readonly<Record<string, unknown>>;
 }

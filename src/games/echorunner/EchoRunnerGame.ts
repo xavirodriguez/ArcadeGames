@@ -1278,16 +1278,17 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     const playerEntity = world.query("PlatformerInput" as any)[0];
     if (playerEntity !== undefined) {
       world.mutateComponent(playerEntity, "PlatformerInput" as any, (inputComp: any) => {
-        if (input.moveLeft !== undefined || input.moveRight !== undefined) {
-          const left = !!input.moveLeft;
-          const right = !!input.moveRight;
-          inputComp.moveDir = left ? -1 : (right ? 1 : 0);
-        }
+        const left = input.moveLeft !== undefined ? !!input.moveLeft : (inputComp._moveLeft ?? (inputComp.moveDir === -1));
+        const right = input.moveRight !== undefined ? !!input.moveRight : (inputComp._moveRight ?? (inputComp.moveDir === 1));
+        inputComp._moveLeft = left;
+        inputComp._moveRight = right;
+        inputComp.moveDir = left ? -1 : (right ? 1 : 0);
+
         if (input.jump !== undefined) {
-          inputComp.jumpHeld = input.jump;
+          inputComp.jumpHeld = !!input.jump;
         }
         if (input.pulse !== undefined) {
-          inputComp.pulsePressed = input.pulse;
+          inputComp.pulsePressed = !!input.pulse;
         }
       });
     }

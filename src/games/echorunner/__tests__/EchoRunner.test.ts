@@ -41,6 +41,25 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(vel.vx).toBeLessThan(220); // Should decelerate or accelerate left
   });
 
+  it("should maintain opposite directional state when partial input updates are sent", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+
+    // Send touch down for moveRight only
+    game.setInputState({ moveRight: true });
+    let inputComp = world.getComponent(playerEntity, "PlatformerInput") as any;
+    expect(inputComp.moveDir).toBe(1);
+
+    // Send jump trigger without passing moveRight/moveLeft
+    game.setInputState({ jump: true });
+    inputComp = world.getComponent(playerEntity, "PlatformerInput") as any;
+    expect(inputComp.moveDir).toBe(1);
+
+    // Send touch up for moveRight
+    game.setInputState({ moveRight: false });
+    inputComp = world.getComponent(playerEntity, "PlatformerInput") as any;
+    expect(inputComp.moveDir).toBe(0);
+  });
+
   it("should trigger a Pulse attack on input, spawning a Hitbox child entity with TTL", () => {
     const playerEntity = world.query("PlatformerInput")[0];
 

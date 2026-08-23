@@ -45,7 +45,7 @@ function EchoRunnerContent() {
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
     useEchoRunnerGame(started, initialSeed);
 
-  // Keyboard controls for Web platforms (customized to map pulse attack correctly)
+  // Keyboard controls for Web platforms (mapping move, jump, and pulse attack)
   useEffect(() => {
     if (Platform.OS !== "web" || !game || !isReady) return;
 
@@ -61,11 +61,16 @@ function EchoRunnerContent() {
       updateInput();
     };
 
+    const handleBlur = () => {
+      activeKeys.clear();
+      updateInput();
+    };
+
     const updateInput = () => {
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
       const jump = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("Space");
-      const pulse = activeKeys.has("KeyF") || activeKeys.has("KeyJ") || activeKeys.has("KeyE");
+      const pulse = activeKeys.has("KeyF") || activeKeys.has("KeyJ") || activeKeys.has("KeyE") || activeKeys.has("ShiftLeft");
 
       game.setInputState({
         moveLeft,
@@ -77,10 +82,12 @@ function EchoRunnerContent() {
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
     };
   }, [game, isReady]);
 

@@ -41,8 +41,8 @@ export const es = {
     vs_ai: "VS IA",
   },
   flappybird: {
-    instructions: "Espacio saltar",
-    touch_instructions: "Tocar pantalla para saltar",
+    instructions: "Espacio para Impulso",
+    touch_instructions: "Tocar pantalla para Impulso",
   },
   "space-invaders": {
     instructions: "←→ Mover  Espacio Disparar",

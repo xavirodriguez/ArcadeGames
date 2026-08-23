@@ -15,12 +15,12 @@ function getPaint(): any {
 }
 
 // ============================================================================
-// ZERO-ALLOCATION FILE-LEVEL PRE-ALLOCATED VISUAL PARTICLE POOL
+// ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
 // ============================================================================
 
 interface VisualParticle {
   active: boolean;
-  type: "feather" | "star" | "smoke";
+  type: "spark" | "shard" | "star";
   x: number;
   y: number;
   vx: number;
@@ -36,7 +36,7 @@ interface VisualParticle {
 const PARTICLE_POOL_SIZE = 150;
 const PARTICLE_POOL: VisualParticle[] = Array.from({ length: PARTICLE_POOL_SIZE }, () => ({
   active: false,
-  type: "feather",
+  type: "spark",
   x: 0,
   y: 0,
   vx: 0,
@@ -50,7 +50,7 @@ const PARTICLE_POOL: VisualParticle[] = Array.from({ length: PARTICLE_POOL_SIZE 
 }));
 
 function spawnVisualParticle(
-  type: "feather" | "star" | "smoke",
+  type: "spark" | "shard" | "star",
   x: number,
   y: number,
   vx: number,
@@ -95,43 +95,40 @@ function updateVisualParticles(): void {
       p.y += p.vy * dt;
       p.angle += p.angularVelocity * dt;
 
-      if (p.type === "feather") {
-        p.vx += Math.sin(p.life * 6) * 12 * dt;
-        p.vy += 25 * dt;
-      } else if (p.type === "smoke") {
-        p.vx *= 0.94;
-        p.vy *= 0.94;
+      if (p.type === "spark") {
+        p.vx *= 0.96;
+        p.vy *= 0.96;
+      } else if (p.type === "shard") {
+        p.vy += 45 * dt; // Gravity drop on hull debris
       }
     }
   }
 }
 
-// Normalized Star Path (Size 1.0) cached to ensure absolute zero-allocation in the loop
-let normalizedStarPath: any = null;
-function getNormalizedStarPath(): any {
-  if (!normalizedStarPath && Skia) {
-    normalizedStarPath = Skia.Path.Make();
-    const spikes = 5;
-    const outerRadius = 1.0;
-    const innerRadius = 0.4;
-    let rot = (Math.PI / 2) * 3;
-    const step = Math.PI / spikes;
-
-    normalizedStarPath.moveTo(0, -outerRadius);
-    for (let s = 0; s < spikes; s++) {
-      let cx = Math.cos(rot) * outerRadius;
-      let cy = Math.sin(rot) * outerRadius;
-      normalizedStarPath.lineTo(cx, cy);
-      rot += step;
-
-      cx = Math.cos(rot) * innerRadius;
-      cy = Math.sin(rot) * innerRadius;
-      normalizedStarPath.lineTo(cx, cy);
-      rot += step;
-    }
-    normalizedStarPath.close();
+let diamondSparkPath: any = null;
+function getDiamondSparkPath(): any {
+  if (!diamondSparkPath && Skia) {
+    diamondSparkPath = Skia.Path.Make();
+    diamondSparkPath.moveTo(2.5, 0);
+    diamondSparkPath.lineTo(0, -0.6);
+    diamondSparkPath.lineTo(-2.5, 0);
+    diamondSparkPath.lineTo(0, 0.6);
+    diamondSparkPath.close();
   }
-  return normalizedStarPath;
+  return diamondSparkPath;
+}
+
+let shardPolyPath: any = null;
+function getShardPolyPath(): any {
+  if (!shardPolyPath && Skia) {
+    shardPolyPath = Skia.Path.Make();
+    shardPolyPath.moveTo(1.2, -0.8);
+    shardPolyPath.lineTo(0.4, 1.1);
+    shardPolyPath.lineTo(-1.1, 0.3);
+    shardPolyPath.lineTo(-0.6, -1.0);
+    shardPolyPath.close();
+  }
+  return shardPolyPath;
 }
 
 function drawSkiaVisualParticles(canvas: any, paint: any): void {
@@ -148,31 +145,37 @@ function drawSkiaVisualParticles(canvas: any, paint: any): void {
     paint.setAntiAlias(true);
     paint.setAlphaf(ratio);
 
-    if (p.type === "feather") {
+    if (p.type === "spark") {
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(p.color));
-      canvas.drawOval(Skia.XYWHRect(-p.size, -p.size * 0.4, p.size * 2, p.size * 0.8), paint);
+      const sparkPath = getDiamondSparkPath();
+      if (sparkPath) {
+        canvas.save();
+        canvas.scale(p.size, p.size);
+        canvas.drawPath(sparkPath, paint);
+        canvas.restore();
+      }
+    } else if (p.type === "shard") {
+      // Titanium hull fragment with red-hot edge
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("#5A6173")); // Titanium hull color
+      const shardPath = getShardPolyPath();
+      if (shardPath) {
+        canvas.save();
+        canvas.scale(p.size, p.size);
+        canvas.drawPath(shardPath, paint);
 
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("rgba(0, 0, 0, 0.12)"));
-      paint.setStrokeWidth(0.5);
-      canvas.drawOval(Skia.XYWHRect(-p.size, -p.size * 0.4, p.size * 2, p.size * 0.8), paint);
+        // Red-hot glowing edge
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setColor(Skia.Color("#FF3300"));
+        paint.setStrokeWidth(0.6);
+        canvas.drawPath(shardPath, paint);
+        canvas.restore();
+      }
     } else if (p.type === "star") {
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(p.color));
-
-      const starPath = getNormalizedStarPath();
-      if (starPath) {
-        canvas.save();
-        canvas.scale(p.size, p.size);
-        canvas.drawPath(starPath, paint);
-        canvas.restore();
-      }
-    } else if (p.type === "smoke") {
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(p.color));
-      const currentSize = p.size * (1.0 + (1.0 - ratio) * 0.8);
-      canvas.drawCircle(0, 0, currentSize, paint);
+      canvas.drawRect(Skia.XYWHRect(-p.size / 2, -p.size / 2, p.size, p.size), paint);
     }
 
     canvas.restore();
@@ -180,31 +183,39 @@ function drawSkiaVisualParticles(canvas: any, paint: any): void {
 }
 
 // ============================================================================
-// BIRD RENDERING WITH GRADIENTS, SQUASH-AND-STRETCH & ROTATING WINGS
+// PLAYER SHIP ("INTERCEPTOR") RENDERING WITH TITANIUM HULL & CYAN COCKPIT
 // ============================================================================
 
-interface BirdRenderState {
+interface InterceptorRenderState {
   lastVy: number;
   lastIsAlive: boolean;
   lastNearMissTimer: number;
 }
 
-const birdStates = new Map<number, BirdRenderState>();
+const shipStates = new Map<number, InterceptorRenderState>();
 
-// Caching paths on unique RenderComponent objects to achieve 100% zero allocation
-const cachedBeakPaths = new WeakMap<any, any>();
+let cachedArrowheadPath: any = null;
+function getArrowheadPath(size: number): any {
+  if (!cachedArrowheadPath && Skia) {
+    cachedArrowheadPath = Skia.Path.Make();
+    cachedArrowheadPath.moveTo(size * 1.2, 0);
+    cachedArrowheadPath.lineTo(-size * 0.7, -size * 0.85);
+    cachedArrowheadPath.lineTo(-size * 0.4, -size * 0.35);
+    cachedArrowheadPath.lineTo(-size * 0.55, 0);
+    cachedArrowheadPath.lineTo(-size * 0.4, size * 0.35);
+    cachedArrowheadPath.lineTo(-size * 0.7, size * 0.85);
+    cachedArrowheadPath.close();
+  }
+  return cachedArrowheadPath;
+}
 
-/**
- * Visuals for the bird using React Native Skia.
- * Volumetric radial gradients, squash-and-stretch, rotating wings, and custom particles.
- */
 export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
-    const { size = 15, color = "yellow" } = render;
+    const { size = 15 } = render;
     const transform = world.getComponent(entity, "Transform") as TransformComponent;
     const birdComp = world.getComponent(entity, "Bird");
     if (!transform || !birdComp) return;
@@ -213,128 +224,68 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
-    // --- DETECT STATE TRANSITIONS FOR PARTICLE TRIGGERS ---
-    let state = birdStates.get(entity);
+    let state = shipStates.get(entity);
     if (!state) {
       state = {
         lastVy: 0,
         lastIsAlive: birdComp.isAlive,
         lastNearMissTimer: birdComp.nearMissTimer,
       };
-      birdStates.set(entity, state);
+      shipStates.set(entity, state);
     }
 
     const vy = birdComp.velocityY;
+    const isAlive = birdComp.isAlive;
 
-    // 1. Trigger Jump/Flap particles
+    // --- TRIGGER SPARKS ON BOOST THRUST ---
     const flapStrength = FLAPPY_CONFIG.FLAP_STRENGTH;
     const hasFlapped = (vy < -150 && state.lastVy >= -150) || (vy === flapStrength && state.lastVy !== flapStrength);
-    if (hasFlapped && birdComp.isAlive) {
-      const pCount = 3 + world.renderRandom.nextInt(0, 2);
+    if (hasFlapped && isAlive) {
+      const pCount = 4 + world.renderRandom.nextInt(0, 3);
       for (let i = 0; i < pCount; i++) {
-        const angleVal = world.renderRandom.nextRange(150, 210) * (Math.PI / 180);
-        const speedVal = world.renderRandom.nextRange(30, 60);
-        const pVx = Math.cos(angleVal) * speedVal;
-        const pVy = Math.sin(angleVal) * speedVal + 20;
-        const lifeVal = world.renderRandom.nextRange(0.6, 1.0);
-        const sizeVal = world.renderRandom.nextRange(3, 5);
-        const randColor = world.renderRandom.next() > 0.5 ? "#FFFFFF" : "#FFF7D6";
-        spawnVisualParticle(
-          "feather",
-          x - size * 0.5,
-          y + size * 0.1,
-          pVx,
-          pVy,
-          lifeVal,
-          sizeVal,
-          randColor,
-          world.renderRandom.nextRange(0, Math.PI * 2),
-          world.renderRandom.nextRange(-1, 1)
-        );
-      }
-    }
-
-    // 2. Trigger Near Miss particles
-    const hasNearMissed = birdComp.nearMissTimer > 0 && state.lastNearMissTimer <= 0;
-    if (hasNearMissed && birdComp.isAlive) {
-      const pCount = 8 + world.renderRandom.nextInt(0, 5);
-      for (let i = 0; i < pCount; i++) {
-        const angleVal = world.renderRandom.next() * Math.PI * 2;
-        const speedVal = world.renderRandom.nextRange(60, 140);
+        const angleVal = world.renderRandom.nextRange(160, 200) * (Math.PI / 180);
+        const speedVal = world.renderRandom.nextRange(80, 160);
         const pVx = Math.cos(angleVal) * speedVal;
         const pVy = Math.sin(angleVal) * speedVal;
-        const lifeVal = world.renderRandom.nextRange(0.4, 0.8);
-        const sizeVal = world.renderRandom.nextRange(4, 7);
-        spawnVisualParticle(
-          "star",
-          x,
-          y,
-          pVx,
-          pVy,
-          lifeVal,
-          sizeVal,
-          "#FFD700",
-          world.renderRandom.next() * Math.PI,
-          world.renderRandom.nextRange(-3, 3)
-        );
+        const lifeVal = world.renderRandom.nextRange(0.2, 0.45);
+        const sizeVal = world.renderRandom.nextRange(2, 4);
+        const randColor = world.renderRandom.next() > 0.5 ? "#FFFFFF" : "#FFC000";
+        spawnVisualParticle("spark", x - size * 0.5, y, pVx, pVy, lifeVal, sizeVal, randColor, angleVal);
       }
     }
 
-    // 3. Trigger Death Explosion
-    const hasDied = !birdComp.isAlive && state.lastIsAlive;
+    // --- TRIGGER SHARDS & SPARKS ON DEATH ---
+    const hasDied = !isAlive && state.lastIsAlive;
     if (hasDied) {
-      const sCount = 10 + world.renderRandom.nextInt(0, 5);
+      const sCount = 8 + world.renderRandom.nextInt(0, 4);
       for (let i = 0; i < sCount; i++) {
         const angleVal = world.renderRandom.next() * Math.PI * 2;
-        const speedVal = world.renderRandom.nextRange(20, 70);
+        const speedVal = world.renderRandom.nextRange(40, 120);
         const pVx = Math.cos(angleVal) * speedVal;
         const pVy = Math.sin(angleVal) * speedVal;
-        const lifeVal = world.renderRandom.nextRange(0.8, 1.3);
-        const sizeVal = world.renderRandom.nextRange(10, 18);
-        const smokeGrey = world.renderRandom.nextInt(180, 220);
-        spawnVisualParticle(
-          "smoke",
-          x,
-          y,
-          pVx,
-          pVy,
-          lifeVal,
-          sizeVal,
-          `rgba(${smokeGrey}, ${smokeGrey}, ${smokeGrey}, 0.5)`
-        );
+        const lifeVal = world.renderRandom.nextRange(0.6, 1.1);
+        const sizeVal = world.renderRandom.nextRange(3, 6);
+        spawnVisualParticle("shard", x, y, pVx, pVy, lifeVal, sizeVal, "#5A6173", angleVal, world.renderRandom.nextRange(-4, 4));
       }
-      const fCount = 15 + world.renderRandom.nextInt(0, 6);
-      for (let i = 0; i < fCount; i++) {
+      for (let i = 0; i < 12; i++) {
         const angleVal = world.renderRandom.next() * Math.PI * 2;
-        const speedVal = world.renderRandom.nextRange(50, 150);
+        const speedVal = world.renderRandom.nextRange(80, 200);
         const pVx = Math.cos(angleVal) * speedVal;
         const pVy = Math.sin(angleVal) * speedVal;
-        const lifeVal = world.renderRandom.nextRange(0.7, 1.2);
-        const sizeVal = world.renderRandom.nextRange(4, 7);
-        const randColor = world.renderRandom.next() > 0.4 ? color : "#FFFFFF";
-        spawnVisualParticle(
-          "feather",
-          x,
-          y,
-          pVx,
-          pVy,
-          lifeVal,
-          sizeVal,
-          randColor,
-          world.renderRandom.next() * Math.PI,
-          world.renderRandom.nextRange(-4, 4)
-        );
+        const lifeVal = world.renderRandom.nextRange(0.25, 0.5);
+        const sizeVal = world.renderRandom.nextRange(2, 5);
+        spawnVisualParticle("spark", x, y, pVx, pVy, lifeVal, sizeVal, "#FF3300", angleVal);
       }
     }
 
     state.lastVy = vy;
-    state.lastIsAlive = birdComp.isAlive;
+    state.lastIsAlive = isAlive;
     state.lastNearMissTimer = birdComp.nearMissTimer;
 
     let globalOpacity = 1.0;
     if (render.hitFlashFrames && render.hitFlashFrames > 0) {
       if ((render.hitFlashFrames >> 1) % 2 === 0) {
-        globalOpacity = 0.3;
+        globalOpacity = 0.35;
       }
     }
 
@@ -346,171 +297,113 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     canvas.save();
 
-    // --- VELOCITY-BASED SQUASH-AND-STRETCH ---
+    // Velocity Squash-and-Stretch
     const speed = Math.abs(vy);
-    const stretch = Math.min(speed / 900, 0.22);
+    const stretch = Math.min(speed / 900, 0.18);
     let scaleX = 1;
     let scaleY = 1;
     if (vy > 0) {
-      scaleX = 1 - stretch;
+      scaleX = 1 - stretch * 0.8;
       scaleY = 1 + stretch;
     } else {
       scaleX = 1 + stretch;
-      scaleY = 1 - stretch;
+      scaleY = 1 - stretch * 0.8;
     }
     canvas.scale(scaleX, scaleY);
 
-    // --- AERODYNAMIC GLIDE STREAM TRAILS ---
-    if (birdComp.isGliding || (birdComp.isAlive && speed > 220)) {
+    // --- CYAN LIGHT TRAIL ---
+    if (isAlive) {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("rgba(235, 245, 255, 0.4)"));
-      paint.setStrokeWidth(1.5);
-      canvas.drawLine(-size * 1.1, -size * 0.3, -size * 2.2, -size * 0.3, paint);
-      canvas.drawLine(-size * 1.1, size * 0.3, -size * 2.2, size * 0.3, paint);
+      paint.setColor(Skia.Color("rgba(0, 243, 255, 0.35)"));
+      paint.setStrokeWidth(2.0);
+      canvas.drawLine(-size * 0.55, 0, -size * 1.8 - Math.min(speed * 0.1, 15), 0, paint);
     }
 
-    // --- 3D SPHERICAL RADIAL GRADIENT BODY ---
+    // --- THERMONUCLEAR REACTIVE THRUSTER FLAME ---
+    if (isAlive) {
+      const isBoosting = vy < 0;
+      const flicker = 0.85 + 0.15 * Math.sin(world.tick * 0.8);
+      const flameLength = (isBoosting ? size * 1.6 : size * 0.75) * flicker;
+      const flameWidth = (isBoosting ? size * 0.55 : size * 0.3) * flicker;
+
+      const flameShader = Skia.Shader.MakeLinearGradient(
+        Skia.Point(-size * 0.55, 0),
+        Skia.Point(-size * 0.55 - flameLength, 0),
+        [Skia.Color("#FFFFFF"), Skia.Color("#FFC000"), Skia.Color("#FF3300")],
+        [0, 0.35, 1.0],
+        Skia.TileMode.Clamp
+      );
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setShader(flameShader);
+      paint.setAlphaf(globalOpacity);
+
+      const flamePath = Skia.Path.Make();
+      flamePath.moveTo(-size * 0.55, -flameWidth * 0.5);
+      flamePath.lineTo(-size * 0.55 - flameLength, 0);
+      flamePath.lineTo(-size * 0.55, flameWidth * 0.5);
+      flamePath.close();
+      canvas.drawPath(flamePath, paint);
+    }
+
+    // --- TITANIUM HULL GRADIENT SHADER ---
+    let hullColors = [Skia.Color("#5A6173"), Skia.Color("#8B93A5"), Skia.Color("#D3D9E2")];
+    if (!isAlive) {
+      hullColors = [Skia.Color("#3A3F4B"), Skia.Color("#5A6173"), Skia.Color("#696969")];
+    }
+
+    const hullShader = Skia.Shader.MakeLinearGradient(
+      Skia.Point(-size * 0.7, 0),
+      Skia.Point(size * 1.2, 0),
+      hullColors,
+      [0, 0.5, 1.0],
+      Skia.TileMode.Clamp
+    );
+
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setShader(hullShader);
     paint.setAlphaf(globalOpacity);
 
-    // Recreate radial body shader
-    let bodyColors = [Skia.Color("#FFE600"), Skia.Color(color), Skia.Color("#D47A00")];
-    if (!birdComp.isAlive) {
-      bodyColors = [Skia.Color("#D3D3D3"), Skia.Color("#A9A9A9"), Skia.Color("#696969")];
-    }
-
-    const bodyShader = Skia.Shader.MakeRadialGradient(
-      Skia.Point(-size * 0.25, -size * 0.25),
-      size,
-      bodyColors,
-      [0, 0.65, 1.0],
-      Skia.TileMode.Clamp
-    );
-    paint.setShader(bodyShader);
-    canvas.drawCircle(0, 0, size, paint);
-
-    // Dark sleek outline
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.65)"));
-    paint.setStrokeWidth(1.5);
-    paint.setAlphaf(globalOpacity);
-    canvas.drawCircle(0, 0, size, paint);
-
-    // --- EYE WITH HIGHLIGHTED REFLECTION ---
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FFFFFF"));
-    paint.setAlphaf(globalOpacity);
-    canvas.drawCircle(size * 0.35, -size * 0.3, size * 0.32, paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.55)"));
-    paint.setStrokeWidth(0.8);
-    canvas.drawCircle(size * 0.35, -size * 0.3, size * 0.32, paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#000000"));
-    canvas.drawCircle(size * 0.45, -size * 0.3, size * 0.14, paint);
-
-    paint.setColor(Skia.Color("#FFFFFF"));
-    canvas.drawCircle(size * 0.42, -size * 0.36, size * 0.05, paint);
-
-    // --- VOLUMETRIC ORANGE BEAK ---
-    const beakShader = Skia.Shader.MakeLinearGradient(
-      Skia.Point(size * 0.7, -size * 0.1),
-      Skia.Point(size * 1.3, size * 0.1),
-      [Skia.Color("#FF6A00"), Skia.Color("#E02D00")],
-      [0, 1.0],
-      Skia.TileMode.Clamp
-    );
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(beakShader);
-    paint.setAlphaf(globalOpacity);
-
-    // Retrieve or cache static beak path
-    let beakPath = cachedBeakPaths.get(render);
-    if (!beakPath) {
-      beakPath = Skia.Path.Make();
-      beakPath.moveTo(size * 0.65, -size * 0.15);
-      beakPath.lineTo(size * 1.25, 0);
-      beakPath.lineTo(size * 0.65, size * 0.2);
-      beakPath.close();
-      cachedBeakPaths.set(render, beakPath);
-    }
-    canvas.drawPath(beakPath, paint);
-
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.5)"));
-    paint.setStrokeWidth(0.8);
-    canvas.drawPath(beakPath, paint);
-
-    // Beak division line
-    canvas.drawLine(size * 0.65, size * 0.025, size * 1.15, size * 0.025, paint);
-
-    // --- ROTATING FLAPPING WINGS ---
-    const wingFreq = birdComp.isAlive ? (vy < 0 ? 0.35 : 0.18) : 0;
-    const wingAngle = birdComp.isAlive ? Math.sin(world.tick * wingFreq) * 0.55 : 0.3;
-
-    canvas.save();
-    canvas.translate(-size * 0.25, size * 0.12);
-    canvas.rotate((wingAngle * 180) / Math.PI, 0, 0);
-
-    const wingShader = Skia.Shader.MakeLinearGradient(
-      Skia.Point(-size * 0.55, 0),
-      Skia.Point(size * 0.15, 0),
-      [Skia.Color("#FFFFFF"), Skia.Color("#FFF0AA")],
-      [0, 1.0],
-      Skia.TileMode.Clamp
-    );
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(wingShader);
-    paint.setAlphaf(globalOpacity);
-    canvas.drawOval(Skia.XYWHRect(-size * 0.7, -size * 0.32, size * 1.1, size * 0.64), paint);
-
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.65)"));
-    paint.setStrokeWidth(1.0);
-    canvas.drawOval(Skia.XYWHRect(-size * 0.7, -size * 0.32, size * 1.1, size * 0.64), paint);
-
-    // Inner wing details
-    canvas.drawLine(-size * 0.3, -size * 0.1, -size * 0.55, 0, paint);
-    canvas.drawLine(-size * 0.2, 0, -size * 0.45, size * 0.1, paint);
-
-    canvas.restore();
-
-    canvas.restore(); // Squash-and-stretch restore
-
-    // --- NEAR MISS INDICATOR CUBE OVERLAY ---
-    if (birdComp.nearMissTimer > 0) {
-      canvas.save();
-      const alphaVal = birdComp.nearMissTimer / 300;
-      const floatY = (300 - birdComp.nearMissTimer) * 0.15;
+    const arrowheadPath = getArrowheadPath(size);
+    if (arrowheadPath) {
+      canvas.drawPath(arrowheadPath, paint);
 
       paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("#FFD700"));
-      paint.setAlphaf(alphaVal);
-      canvas.drawRect(Skia.XYWHRect(-12, -40 - floatY, 24, 6), paint);
-      canvas.restore();
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color("#1A1D24"));
+      paint.setStrokeWidth(1.2);
+      paint.setAlphaf(globalOpacity);
+      canvas.drawPath(arrowheadPath, paint);
     }
+
+    // --- ELLIPTICAL CYAN COCKPIT ---
+    paint.reset();
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color("#00F3FF"));
+    paint.setAlphaf(globalOpacity);
+    canvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.7, size * 0.36), paint);
+
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.7)"));
+    paint.setStrokeWidth(0.8);
+    canvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.7, size * 0.36), paint);
+
+    // Reflection dot
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color("#FFFFFF"));
+    canvas.drawCircle(size * 0.25, -size * 0.09, size * 0.06, paint);
+
+    canvas.restore();
   }
 };
 
 // ============================================================================
-// METALLIC PIPES WITH VOLUMETRIC GRADIENTS & PULSING INDICATORS
+// CONTAINMENT TOWERS (OBSTACLES) — INDUSTRIAL METALLIC PILLARS & RED BEACONS
 // ============================================================================
 
-/**
- * Visuals for industrial, high-fidelity pipes using React Native Skia.
- */
 export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -518,7 +411,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const pos = world.getComponent(entity, "Transform");
     if (!render || !pos) return;
 
-    const { size = 60, color = "green" } = render;
+    const { size = 60 } = render;
     const width = size;
     const halfWidth = width / 2;
 
@@ -541,133 +434,84 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     const paint = getPaint();
 
-    // --- METALLIC HORIZONTAL GRADIENT FOR THE MAIN CYLINDER ---
-    let cylinderColors = [
-      Skia.Color("#1E5F3B"),
-      Skia.Color("#288050"),
-      Skia.Color("#3AD482"),
-      Skia.Color("#257348"),
-      Skia.Color("#144229"),
-    ];
-    if (color !== "green") {
-      cylinderColors = [
-        Skia.Color("#4A4A4A"),
-        Skia.Color("#A1A1A1"),
-        Skia.Color("#FFFFFF"),
-        Skia.Color("#808080"),
-        Skia.Color("#333333"),
-      ];
-    }
-
-    const cylinderShader = Skia.Shader.MakeLinearGradient(
+    // Metallic Pillar Body Shader (#2A2A35)
+    const pillarShader = Skia.Shader.MakeLinearGradient(
       Skia.Point(-halfWidth, 0),
       Skia.Point(halfWidth, 0),
-      cylinderColors,
-      [0, 0.2, 0.55, 0.85, 1.0],
+      [
+        Skia.Color("#1A1A22"),
+        Skia.Color("#2A2A35"),
+        Skia.Color("#3F3F50"),
+        Skia.Color("#2A2A35"),
+        Skia.Color("#121218")
+      ],
+      [0, 0.25, 0.5, 0.75, 1.0],
       Skia.TileMode.Clamp
     );
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(cylinderShader);
+    paint.setShader(pillarShader);
     canvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
 
-    // Inner pipe shadow borders
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.4)"));
+    paint.setColor(Skia.Color("#121218"));
     paint.setStrokeWidth(1.5);
     canvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
 
-    // --- PIPE CAP VISUAL ---
-    const capHeight = 30;
-    const capExtraWidth = 10;
+    // Docking Collar Cap at gap mouth
+    const capHeight = 28;
+    const capExtraWidth = 12;
     const capWidth = width + capExtraWidth;
     const capHalfWidth = capWidth / 2;
     const capYOffset = isTopPipe ? (pipeY + pipeHeight - capHeight) : pipeY;
 
-    let capColors = [
-      Skia.Color("#195232"),
-      Skia.Color("#237045"),
-      Skia.Color("#42EF94"),
-      Skia.Color("#216E43"),
-      Skia.Color("#103822"),
-    ];
-    if (color !== "green") {
-      capColors = [
-        Skia.Color("#333"),
-        Skia.Color("#FFF"),
-        Skia.Color("#222"),
-      ];
-    }
-
-    const capShader = Skia.Shader.MakeLinearGradient(
+    const collarShader = Skia.Shader.MakeLinearGradient(
       Skia.Point(-capHalfWidth, 0),
       Skia.Point(capHalfWidth, 0),
-      capColors,
-      color === "green" ? [0, 0.2, 0.5, 0.85, 1.0] : [0, 0.5, 1.0],
+      [
+        Skia.Color("#22222D"),
+        Skia.Color("#3A3A4A"),
+        Skia.Color("#525266"),
+        Skia.Color("#3A3A4A"),
+        Skia.Color("#181822")
+      ],
+      [0, 0.3, 0.55, 0.8, 1.0],
       Skia.TileMode.Clamp
     );
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(capShader);
+    paint.setShader(collarShader);
     canvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.4)"));
+    paint.setColor(Skia.Color("#121218"));
     paint.setStrokeWidth(1.5);
     canvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
 
-    // Inner shining bevel
-    paint.setColor(Skia.Color("rgba(255, 255, 255, 0.25)"));
-    paint.setStrokeWidth(1.0);
-    if (isTopPipe) {
-      canvas.drawLine(-capHalfWidth + 1, capYOffset + capHeight - 1, capHalfWidth - 1, capYOffset + capHeight - 1, paint);
-    } else {
-      canvas.drawLine(-capHalfWidth + 1, capYOffset + 1, capHalfWidth - 1, capYOffset + 1, paint);
-    }
-
-    // --- DETAILED RIVETS ---
-    const rivetCount = 4;
-    for (let r = 0; r < rivetCount; r++) {
-      const rx = -capHalfWidth + 10 + r * ((capWidth - 20) / (rivetCount - 1));
-      const ry = capYOffset + capHeight * 0.5;
-
-      // Pocket
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("rgba(0,0,0,0.45)"));
-      canvas.drawCircle(rx, ry, 2.5, paint);
-
-      // Screw core
-      paint.setColor(Skia.Color("rgba(255,255,255,0.7)"));
-      canvas.drawCircle(rx - 0.5, ry - 0.5, 1.2, paint);
-    }
-
-    // --- PULSING NEON SAFETY LIGHTS ON THE GAP LIP ---
-    const pulseFactor = 0.55 + 0.45 * Math.sin(world.tick * 0.12);
-    const indicatorX = 0;
-    const indicatorY = isTopPipe ? (capYOffset + capHeight - 3) : (capYOffset + 3);
+    // Stroboscopic Red Warning Beacons (#FF0000) strictly bound to world.tick
+    const beaconPulse = 0.35 + 0.65 * Math.abs(Math.sin(world.tick * 0.2));
+    const beaconY = isTopPipe ? (capYOffset + capHeight - 4) : (capYOffset + 4);
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FF2828"));
-    paint.setAlphaf(pulseFactor);
-    canvas.drawCircle(indicatorX, indicatorY, 4, paint);
+    paint.setColor(Skia.Color("#FF0000"));
+    paint.setAlphaf(beaconPulse);
+    canvas.drawCircle(-capHalfWidth + 8, beaconY, 3.5, paint);
+    canvas.drawCircle(capHalfWidth - 8, beaconY, 3.5, paint);
 
     paint.setColor(Skia.Color("#FFFFFF"));
-    paint.setAlphaf(pulseFactor);
-    canvas.drawCircle(indicatorX, indicatorY, 1.5, paint);
+    paint.setAlphaf(beaconPulse);
+    canvas.drawCircle(-capHalfWidth + 8, beaconY, 1.2, paint);
+    canvas.drawCircle(capHalfWidth - 8, beaconY, 1.2, paint);
   }
 };
 
 // ============================================================================
-// LAYERED CYBER GROUND WITH DIAGONAL HAZARD SCROLLING LINES
+// STATION HULL GROUND — INDUSTRIAL METALLIC BASE WITH CAUTION STRIPES
 // ============================================================================
 
-/**
- * Visuals for the ground using React Native Skia.
- */
 export const drawSkiaFlappyGround: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -680,70 +524,45 @@ export const drawSkiaFlappyGround: ShapeDrawer<any, FlappyBirdComponentRegistry>
 
     const paint = getPaint();
 
-    // 1. Core earth blocks with deep brown linear fill
-    const dirtShader = Skia.Shader.MakeLinearGradient(
+    // Dark industrial metal base
+    const baseShader = Skia.Shader.MakeLinearGradient(
       Skia.Point(0, -height / 2),
       Skia.Point(0, height / 2),
-      [Skia.Color("#4D2D18"), Skia.Color("#26150A")],
+      [Skia.Color("#22222C"), Skia.Color("#0D0D12")],
       [0, 1.0],
       Skia.TileMode.Clamp
     );
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(dirtShader);
+    paint.setShader(baseShader);
     canvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, height), paint);
 
-    // 2. Neon grass top strip (representing virtual cyber ground limit)
-    const neonGreenShader = Skia.Shader.MakeLinearGradient(
-      Skia.Point(0, -height / 2),
-      Skia.Point(0, -height / 2 + 6),
-      [Skia.Color("#39FF14"), Skia.Color("#1D8F0B")],
-      [0, 1.0],
-      Skia.TileMode.Clamp
-    );
+    // Yellow / Black caution stripe top rim
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(neonGreenShader);
-    canvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, 6), paint);
+    paint.setColor(Skia.Color("#FFCC00"));
+    canvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, 8), paint);
 
-    // Bounding line
-    paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(255, 255, 255, 0.75)"));
-    paint.setStrokeWidth(1.0);
-    canvas.drawLine(-width / 2, -height / 2, width / 2, -height / 2, paint);
-
-    // 3. Scrolling diagonal hazard stripes (representing forward conveyor movement)
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(29, 143, 11, 0.25)"));
+    paint.setColor(Skia.Color("#111116"));
     paint.setStrokeWidth(4);
-    const stripeOffset = (world.tick * 2.5) % 30;
+    const stripeOffset = (world.tick * 3) % 24;
 
-    for (let sx = -width / 2 - 30; sx < width / 2 + 30; sx += 25) {
-      canvas.drawLine(sx + stripeOffset, -height / 2 + 6, sx + stripeOffset - 15, height / 2, paint);
+    for (let sx = -width / 2 - 24; sx < width / 2 + 24; sx += 20) {
+      canvas.drawLine(sx + stripeOffset, -height / 2, sx + stripeOffset - 10, -height / 2 + 8, paint);
     }
 
-    // Fine dark bottom bounding line
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#000000"));
-    paint.setStrokeWidth(1.5);
-    canvas.drawLine(-width / 2, height / 2, width / 2, height / 2, paint);
+    paint.setColor(Skia.Color("#5A6173"));
+    paint.setStrokeWidth(1.0);
+    canvas.drawLine(-width / 2, -height / 2, width / 2, -height / 2, paint);
   }
 };
 
 // ============================================================================
-// SUNSET SCENIC PARALLAX SKY BACKGROUND EFFECT
+// THE DEEP VOID PARALLAX BACKGROUND (#050510)
 // ============================================================================
-
-let bgOffset = 0;
-let mountainsOffset = 0;
-let hillsOffset = 0;
-
-// Pre-allocated in-place global mutable paths to avoid heap allocations in drawing loop
-let globalMountainPath: any = null;
-let globalHillsPath: any = null;
 
 export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world) {
@@ -756,153 +575,56 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
 
     updateVisualParticles();
 
-    if (!gameState.isGameOver) {
-      bgOffset = (bgOffset + 0.95) % width;
-      mountainsOffset = (mountainsOffset + 0.15) % width;
-      hillsOffset = (hillsOffset + 0.45) % width;
-    }
-
-    // ========================================================================
-    // LAYER 1: WARM SUNSET TWILIGHT GRADIENT SKY
-    // ========================================================================
-    const skyShader = Skia.Shader.MakeLinearGradient(
-      Skia.Point(0, 0),
-      Skia.Point(0, height),
-      [
-        Skia.Color("#120136"),
-        Skia.Color("#400082"),
-        Skia.Color("#E84545"),
-        Skia.Color("#F0A500"),
-        Skia.Color("#E84545")
-      ],
-      [0, 0.3, 0.65, 0.85, 1.0],
-      Skia.TileMode.Clamp
-    );
+    // Deep Void Space Base (#050510)
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(skyShader);
+    paint.setColor(Skia.Color("#050510"));
     canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
-    // Sunset sun orb
-    const sunShader = Skia.Shader.MakeRadialGradient(
-      Skia.Point(width * 0.72, height * 0.65),
-      60,
-      [
-        Skia.Color("rgba(255, 245, 200, 0.75)"),
-        Skia.Color("rgba(240, 165, 0, 0.45)"),
-        Skia.Color("rgba(232, 69, 69, 0)")
-      ],
-      [0, 0.3, 1.0],
-      Skia.TileMode.Clamp
-    );
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(sunShader);
-    canvas.drawCircle(width * 0.72, height * 0.65, 60, paint);
-
-    // ========================================================================
-    // LAYER 2: JAGGED MOUNTAIN SILHOUETTES
-    // ========================================================================
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("rgba(43, 14, 76, 0.45)"));
-
-    const points = [
-      0, 20, 45, 75, 110, 140, 185, 230, 275, 320, 360, 400,
-      420, 445, 475, 510, 540, 585, 630, 675, 720, 760, 800
-    ];
-    const heights = [
-      0.9, 0.6, 1.2, 0.75, 1.1, 0.5, 0.95, 1.3, 0.7, 1.05, 0.65, 0.8,
-      0.9, 0.6, 1.2, 0.75, 1.1, 0.5, 0.95, 1.3, 0.7, 1.05, 0.8
-    ];
-
-    const mBaseY = height * 0.72;
-    if (!globalMountainPath && Skia) {
-      globalMountainPath = Skia.Path.Make();
-    }
-    if (globalMountainPath) {
-      globalMountainPath.reset();
-      globalMountainPath.moveTo(0, height);
-
-      for (let i = 0; i < points.length; i++) {
-        const px = points[i] - mountainsOffset;
-        const py = mBaseY - heights[i] * 45;
-        globalMountainPath.lineTo(px, py);
+    // Hypervelocity combo factor calculation
+    let warpFactor = 1.0;
+    const comboEntities = world.query("Combo");
+    if (comboEntities.length > 0) {
+      const combo = world.getComponent(comboEntities[0], "Combo") as any;
+      if (combo && combo.multiplier > 1) {
+        warpFactor = 1.0 + (combo.multiplier - 1) * 0.35;
       }
-      for (let i = 0; i < points.length; i++) {
-        const px = (points[i] + width) - mountainsOffset;
-        const py = mBaseY - heights[i] * 45;
-        globalMountainPath.lineTo(px, py);
-      }
-      globalMountainPath.lineTo(width * 2, height);
-      globalMountainPath.close();
-      canvas.drawPath(globalMountainPath, paint);
     }
 
-    // ========================================================================
-    // LAYER 3: SMOOTH ROLLING HILLS
-    // ========================================================================
+    // Stars Parallax Layers
+    const tick = world.tick;
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("rgba(80, 15, 66, 0.68)"));
 
-    const hBaseY = height * 0.76;
-    if (!globalHillsPath && Skia) {
-      globalHillsPath = Skia.Path.Make();
-    }
-    if (globalHillsPath) {
-      globalHillsPath.reset();
-      globalHillsPath.moveTo(0, height);
-
-      const hillSteps = 40;
-      const stepSize = (width * 2) / hillSteps;
-      for (let i = 0; i <= hillSteps; i++) {
-        const xPos = i * stepSize - hillsOffset;
-        const waveHeight = Math.sin(i * 0.35) * 18 + Math.cos(i * 0.18) * 8;
-        globalHillsPath.lineTo(xPos, hBaseY - waveHeight);
-      }
-      globalHillsPath.lineTo(width * 2, height);
-      globalHillsPath.close();
-      canvas.drawPath(globalHillsPath, paint);
+    // Layer 0: Distant White Stars
+    paint.setColor(Skia.Color("#FFFFFF"));
+    paint.setAlphaf(0.5);
+    for (let i = 0; i < 40; i++) {
+      const sx = ((i * 37 + 13) - tick * 0.2) % width;
+      const x = sx < 0 ? sx + width : sx;
+      const y = (i * 83 + 29) % height;
+      canvas.drawRect(Skia.XYWHRect(x, y, 1.2, 1.2), paint);
     }
 
-    // ========================================================================
-    // LAYER 4: VOLUMETRIC SOFT DRIFTING CLOUDS
-    // ========================================================================
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("rgba(255, 235, 235, 0.28)"));
-
-    for (let i = 0; i < 4; i++) {
-      const x = (i * 175 - bgOffset + width) % width;
-      const y = 60 + (i % 2) * 55;
-
-      canvas.drawCircle(x, y, 22, paint);
-      canvas.drawCircle(x + 18, y - 12, 18, paint);
-      canvas.drawCircle(x - 18, y - 8, 15, paint);
-      canvas.drawCircle(x + 35, y, 16, paint);
+    // Layer 1: Near Pale White-Blue Stars
+    paint.setColor(Skia.Color("#E0E5FF"));
+    paint.setAlphaf(0.75);
+    for (let i = 0; i < 25; i++) {
+      const sx = ((i * 53 + 7) - tick * 0.8 * warpFactor) % width;
+      const x = sx < 0 ? sx + width : sx;
+      const y = (i * 97 + 41) % height;
+      const pLen = warpFactor > 1.2 ? Math.min(3 * warpFactor, 10) : 1.8;
+      canvas.drawRect(Skia.XYWHRect(x, y, pLen, 1.5), paint);
     }
 
-    // ========================================================================
-    // UPDATE & DRAW ACTIVE VISUAL PARTICLES IN THE AIR
-    // ========================================================================
+    // Draw active sparks & shards
     drawSkiaVisualParticles(canvas, paint);
 
-    // ========================================================================
-    // RETRO CRT GRID OVERLAY & SCANLINE FILTER
-    // ========================================================================
+    // CRT Scanlines Overlay
     paint.reset();
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.05)"));
+    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.06)"));
     for (let ly = 0; ly < height; ly += 3) {
       canvas.drawRect(Skia.XYWHRect(0, ly, width, 1), paint);
     }
-
-    // Screen Vignette
-    paint.reset();
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.38)"));
-    canvas.drawRect(Skia.XYWHRect(0, 0, width, 12), paint);
-    canvas.drawRect(Skia.XYWHRect(0, height - 12, width, 12), paint);
-    canvas.drawRect(Skia.XYWHRect(0, 0, 12, height), paint);
-    canvas.drawRect(Skia.XYWHRect(width - 12, 0, 12, height), paint);
   },
 };

@@ -397,7 +397,7 @@ const HUD: React.FC<{
           accessibilityRole="header"
           accessibilityLabel={t.accessibility.current_score_label.replace("{score}", String(score)).replace("{highScore}", String(highScore))}
         >
-          <Text style={styles.hudLabel}>MISSION SCORE</Text>
+          <Text style={styles.hudLabel}>SCORE_MATCH</Text>
           <Score score={score} />
           <Text style={styles.hudMicro}>RECORD {formatScore(highScore)}</Text>
         </HudPanel>

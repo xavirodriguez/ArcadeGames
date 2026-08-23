@@ -2,26 +2,26 @@ import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core"
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 
 // ============================================================================
-// BIRD RENDERING WITH 3D RADIAL GRADIENTS, SQUASH-AND-STRETCH & ROTATING WINGS
+// "NEON VOID" CANVAS VISUALS — HARD SCI-FI INDUSTRIAL ART DIRECTION
 // ============================================================================
 
-interface BirdRenderState {
+interface InterceptorRenderState {
   lastVy: number;
   lastIsAlive: boolean;
   lastNearMissTimer: number;
 }
 
-const birdStates = new Map<number, BirdRenderState>();
+const shipStates = new Map<number, InterceptorRenderState>();
 
 /**
- * Visuals for the bird with volumetric radial gradients, squash-and-stretch,
- * flapping wings, trails, and custom particle spawns.
+ * Player Ship ("Interceptor") shape drawer.
+ * Arrowhead spearhead silhouette, titanium hull, cyan cockpit, thermonuclear thruster flame.
  */
 export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    const { size = 15, color = "yellow" } = render;
+    const { size = 15 } = render;
 
     const transform = world.getComponent(entity, "Transform") as TransformComponent;
     const birdComp = world.getComponent(entity, "Bird");
@@ -29,195 +29,189 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     const health = world.getComponent(entity, "Health");
 
-    // --- DETECT STATE TRANSITIONS ---
-    let state = birdStates.get(entity);
+    let state = shipStates.get(entity);
     if (!state) {
       state = {
         lastVy: 0,
         lastIsAlive: birdComp.isAlive,
         lastNearMissTimer: birdComp.nearMissTimer,
       };
-      birdStates.set(entity, state);
+      shipStates.set(entity, state);
     }
 
     const vy = birdComp.velocityY;
+    const isAlive = birdComp.isAlive;
 
-    // Sync state values
     state.lastVy = vy;
-    state.lastIsAlive = birdComp.isAlive;
+    state.lastIsAlive = isAlive;
     state.lastNearMissTimer = birdComp.nearMissTimer;
 
-    // --- HIT SHIVER & FLASHING EFFORTS ---
+    let globalOpacity = 1.0;
     if (render.hitFlashFrames && render.hitFlashFrames > 0) {
       if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
-        ctx.globalAlpha = 0.3;
+        ctx.globalAlpha = 0.35;
       }
     }
 
     if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
-      ctx.globalAlpha = (Math.floor(health.invulnerableRemaining / 100) % 2 === 0) ? 0.35 : 1.0;
+      globalOpacity = (Math.floor(health.invulnerableRemaining / 100) % 2 === 0) ? 0.35 : 1.0;
     }
 
     ctx.save();
+    ctx.globalAlpha = globalOpacity;
 
-    // --- VELOCITY-BASED SQUASH-AND-STRETCH ---
+    // --- VELOCITY SQUASH AND STRETCH ---
     const speed = Math.abs(vy);
-    const stretch = Math.min(speed / 900, 0.22);
+    const stretch = Math.min(speed / 900, 0.18);
     let scaleX = 1;
     let scaleY = 1;
     if (vy > 0) {
-      // Falling: stretch vertically
-      scaleX = 1 - stretch;
+      scaleX = 1 - stretch * 0.8;
       scaleY = 1 + stretch;
     } else {
-      // Rising: squash vertically
       scaleX = 1 + stretch;
-      scaleY = 1 - stretch;
+      scaleY = 1 - stretch * 0.8;
     }
     ctx.scale(scaleX, scaleY);
 
-    // --- AERODYNAMIC GLIDE STREAM TRAILS ---
-    if (birdComp.isGliding || (birdComp.isAlive && speed > 220)) {
+    // --- RGB CHROMATIC ABERRATION SPLIT ON DEATH ---
+    const isDyingGlitch = render.hitFlashFrames && render.hitFlashFrames > 0;
+    if (isDyingGlitch) {
       ctx.save();
-      ctx.strokeStyle = "rgba(235, 245, 255, 0.4)";
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 8]);
+      ctx.translate(-3, -1);
+      ctx.fillStyle = "rgba(255, 0, 0, 0.6)";
+      drawArrowheadPath(ctx, size);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(3, 1);
+      ctx.fillStyle = "rgba(0, 243, 255, 0.6)";
+      drawArrowheadPath(ctx, size);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // --- CYAN LIGHT TRAIL ---
+    if (isAlive) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(0, 243, 255, 0.35)";
+      ctx.lineWidth = 2.0;
+      ctx.shadowColor = "#00F3FF";
+      ctx.shadowBlur = 8;
       ctx.beginPath();
-      ctx.moveTo(-size * 1.1, -size * 0.3);
-      ctx.lineTo(-size * 2.2, -size * 0.3);
-      ctx.moveTo(-size * 1.1, size * 0.3);
-      ctx.lineTo(-size * 2.2, size * 0.3);
+      ctx.moveTo(-size * 0.55, 0);
+      ctx.lineTo(-size * 1.8 - Math.min(speed * 0.1, 15), 0);
       ctx.stroke();
       ctx.restore();
     }
 
-    // --- 3D SPHERICAL RADIAL GRADIENT BODY ---
-    const bodyGrad = ctx.createRadialGradient(
-      -size * 0.25,
-      -size * 0.25,
-      size * 0.15,
-      0,
-      0,
-      size
-    );
-    if (birdComp.isAlive) {
-      bodyGrad.addColorStop(0, "#FFE600"); // Hot spot
-      bodyGrad.addColorStop(0.65, color);  // Midtone yellow
-      bodyGrad.addColorStop(1, "#D47A00");   // Shadow shade
-    } else {
-      bodyGrad.addColorStop(0, "#D3D3D3");
-      bodyGrad.addColorStop(0.7, "#A9A9A9");
-      bodyGrad.addColorStop(1, "#696969");
+    // --- THERMONUCLEAR REACTIVE THRUSTER FLAME ---
+    if (isAlive) {
+      const isBoosting = vy < 0;
+      const flicker = 0.85 + 0.15 * Math.sin(world.tick * 0.8);
+      const flameLength = (isBoosting ? size * 1.6 : size * 0.75) * flicker;
+      const flameWidth = (isBoosting ? size * 0.55 : size * 0.3) * flicker;
+
+      const flameGrad = ctx.createLinearGradient(-size * 0.55, 0, -size * 0.55 - flameLength, 0);
+      flameGrad.addColorStop(0, "#FFFFFF");   // White thermonuclear core
+      flameGrad.addColorStop(0.35, "#FFC000"); // Hot yellow-orange
+      flameGrad.addColorStop(1.0, "#FF3300");  // Thermonuclear red tip
+
+      ctx.fillStyle = flameGrad;
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.55, -flameWidth * 0.5);
+      ctx.lineTo(-size * 0.55 - flameLength, 0);
+      ctx.lineTo(-size * 0.55, flameWidth * 0.5);
+      ctx.closePath();
+      ctx.fill();
     }
 
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    // --- TITANIUM HULL GRADIENT ---
+    const hullGrad = ctx.createLinearGradient(-size * 0.7, 0, size * 1.2, 0);
+    if (isAlive) {
+      hullGrad.addColorStop(0, "#5A6173"); // Dark titanium tail
+      hullGrad.addColorStop(0.5, "#8B93A5"); // Mid-tone titanium
+      hullGrad.addColorStop(1.0, "#D3D9E2"); // Light metallic nose
+    } else {
+      hullGrad.addColorStop(0, "#3A3F4B"); // Lead gray dead state
+      hullGrad.addColorStop(0.6, "#5A6173");
+      hullGrad.addColorStop(1.0, "#696969");
+    }
+
+    ctx.fillStyle = hullGrad;
+    drawArrowheadPath(ctx, size);
     ctx.fill();
 
-    // Dark sleek silhouette border
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.65)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    // Dark armor plate seam border
+    ctx.strokeStyle = "#1A1D24";
+    ctx.lineWidth = 1.2;
+    drawArrowheadPath(ctx, size);
     ctx.stroke();
 
-    // --- EYE WITH HIGHLIGHTED REFLECTION ---
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.arc(size * 0.35, -size * 0.3, size * 0.32, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.55)";
+    // Structural panel detail line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
     ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(size * 0.8, 0);
+    ctx.lineTo(-size * 0.2, 0);
     ctx.stroke();
 
-    ctx.fillStyle = "black";
-    ctx.beginPath();
-    ctx.arc(size * 0.45, -size * 0.3, size * 0.14, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Tiny shiny eye reflection dot
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.arc(size * 0.42, -size * 0.36, size * 0.05, 0, Math.PI * 2);
-    ctx.fill();
-
-    // --- VOLUMETRIC ORANGE BEAK ---
-    const beakGrad = ctx.createLinearGradient(size * 0.7, -size * 0.1, size * 1.3, size * 0.1);
-    beakGrad.addColorStop(0, "#FF6A00");
-    beakGrad.addColorStop(1, "#E02D00");
-    ctx.fillStyle = beakGrad;
-
-    ctx.beginPath();
-    ctx.moveTo(size * 0.65, -size * 0.15);
-    ctx.lineTo(size * 1.25, 0);
-    ctx.lineTo(size * 0.65, size * 0.2);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-
-    // Beak division line
-    ctx.beginPath();
-    ctx.moveTo(size * 0.65, size * 0.025);
-    ctx.lineTo(size * 1.15, size * 0.025);
-    ctx.stroke();
-
-    // --- ROTATING FLAPPING WINGS ---
-    const wingFreq = birdComp.isAlive ? (vy < 0 ? 0.35 : 0.18) : 0;
-    const wingAngle = birdComp.isAlive ? Math.sin(world.tick * wingFreq) * 0.55 : 0.3;
-
+    // --- ELLIPTICAL CYAN COCKPIT (ONLY CYAN SATURATED ELEMENT ON SCREEN) ---
     ctx.save();
-    ctx.translate(-size * 0.25, size * 0.12);
-    ctx.rotate(wingAngle);
-
-    const wingGrad = ctx.createLinearGradient(-size * 0.55, 0, size * 0.15, 0);
-    wingGrad.addColorStop(0, "#FFFFFF");
-    wingGrad.addColorStop(1, "#FFF0AA");
-    ctx.fillStyle = wingGrad;
+    ctx.fillStyle = "#00F3FF";
+    ctx.shadowColor = "#00F3FF";
+    ctx.shadowBlur = isAlive ? 6 : 0;
 
     ctx.beginPath();
-    ctx.ellipse(-size * 0.15, 0, size * 0.55, size * 0.32, 0, 0, Math.PI * 2);
+    ctx.ellipse(size * 0.15, -size * 0.05, size * 0.35, size * 0.18, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.65)";
-    ctx.lineWidth = 1.0;
-    ctx.stroke();
-
-    // Inner feathers details
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.3, -size * 0.1);
-    ctx.lineTo(-size * 0.55, 0);
-    ctx.moveTo(-size * 0.2, 0);
-    ctx.lineTo(-size * 0.45, size * 0.1);
-    ctx.stroke();
-
     ctx.restore();
+
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.ellipse(size * 0.15, -size * 0.05, size * 0.35, size * 0.18, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Off-center white highlight reflection dot (no eyes/pupils)
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.arc(size * 0.25, -size * 0.09, size * 0.06, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore(); // Squash-and-stretch pop
 
-    // --- NEAR MISS FLOATING TEXT OVERLAY ---
+    // --- TACTICAL NEAR MISS OVERLAY ---
     if (birdComp.nearMissTimer > 0) {
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      const alphaVal = birdComp.nearMissTimer / 300;
-      ctx.fillStyle = `rgba(255, 215, 0, ${alphaVal})`;
-      ctx.shadowColor = "#FFD700";
-      ctx.shadowBlur = 12 * alphaVal;
-      ctx.font = "bold 16px monospace";
+      const alphaVal = birdComp.nearMissTimer / 0.3;
+      ctx.fillStyle = `rgba(0, 243, 255, ${alphaVal})`;
+      ctx.shadowColor = "#00F3FF";
+      ctx.shadowBlur = 10 * alphaVal;
+      ctx.font = "bold 13px 'Share Tech Mono', monospace";
       ctx.textAlign = "center";
-      const floatY = (300 - birdComp.nearMissTimer) * 0.15;
-      ctx.fillText("NEAR MISS! +50", transform.x, transform.y - 40 - floatY);
+      const floatY = (0.3 - birdComp.nearMissTimer) * 40;
+      ctx.fillText("NEAR_MISS +50", transform.x, transform.y - 35 - floatY);
       ctx.restore();
     }
-
-    ctx.globalAlpha = 1.0;
   }
 };
 
+function drawArrowheadPath(ctx: CanvasRenderingContext2D, size: number) {
+  ctx.beginPath();
+  ctx.moveTo(size * 1.2, 0);                   // Prow (nose tip)
+  ctx.lineTo(-size * 0.7, -size * 0.85);       // Top fin tip
+  ctx.lineTo(-size * 0.4, -size * 0.35);       // Top wing notch
+  ctx.lineTo(-size * 0.55, 0);                 // Rear engine notch center
+  ctx.lineTo(-size * 0.4, size * 0.35);        // Bottom wing notch
+  ctx.lineTo(-size * 0.7, size * 0.85);        // Bottom fin tip
+  ctx.closePath();
+}
+
 // ============================================================================
-// METALLIC PIPES WITH HORIZONTAL GRADIENTS, RIVETS & PULSING INDICATORS
+// CONTAINMENT TOWERS (OBSTACLES) — INDUSTRIAL METALLIC PILLARS & RED BEACONS
 // ============================================================================
 
 export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
@@ -226,7 +220,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const pos = world.getComponent(entity, "Transform");
     if (!render || !pos) return;
 
-    const { size = 60, color = "green" } = render;
+    const { size = 60 } = render;
     const width = size;
     const halfWidth = width / 2;
 
@@ -247,52 +241,53 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       pipeHeight = FLAPPY_CONFIG.SCREEN_HEIGHT - (pipe.gapY + halfGap);
     }
 
-    const cylinderGrad = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
-    if (color === "green") {
-      cylinderGrad.addColorStop(0, "#1E5F3B");
-      cylinderGrad.addColorStop(0.2, "#288050");
-      cylinderGrad.addColorStop(0.55, "#3AD482");
-      cylinderGrad.addColorStop(0.85, "#257348");
-      cylinderGrad.addColorStop(1, "#144229");
-    } else {
-      cylinderGrad.addColorStop(0, "#4A4A4A");
-      cylinderGrad.addColorStop(0.3, "#A1A1A1");
-      cylinderGrad.addColorStop(0.55, "#FFFFFF");
-      cylinderGrad.addColorStop(0.85, "#808080");
-      cylinderGrad.addColorStop(1, "#333333");
-    }
+    // --- METALLIC PILLAR BODY (#2A2A35) ---
+    const pillarGrad = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
+    pillarGrad.addColorStop(0, "#1A1A22");
+    pillarGrad.addColorStop(0.25, "#2A2A35");
+    pillarGrad.addColorStop(0.5, "#3F3F50");
+    pillarGrad.addColorStop(0.75, "#2A2A35");
+    pillarGrad.addColorStop(1.0, "#121218");
 
-    ctx.fillStyle = cylinderGrad;
+    ctx.fillStyle = pillarGrad;
     ctx.fillRect(-halfWidth, pipeY, width, pipeHeight);
 
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
+    // Dark vertical armor panel seams
+    ctx.strokeStyle = "#121218";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(-halfWidth, pipeY, width, pipeHeight);
 
-    const capHeight = 30;
-    const capExtraWidth = 10;
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-halfWidth + width * 0.3, pipeY);
+    ctx.lineTo(-halfWidth + width * 0.3, pipeY + pipeHeight);
+    ctx.moveTo(-halfWidth + width * 0.7, pipeY);
+    ctx.lineTo(-halfWidth + width * 0.7, pipeY + pipeHeight);
+    ctx.stroke();
+
+    // --- REINFORCED DOCKING COLLAR AT THE GAP MOUTH ---
+    const capHeight = 28;
+    const capExtraWidth = 12;
     const capWidth = width + capExtraWidth;
     const capHalfWidth = capWidth / 2;
     const capYOffset = isTopPipe ? (pipeY + pipeHeight - capHeight) : pipeY;
 
-    const capGrad = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
-    if (color === "green") {
-      capGrad.addColorStop(0, "#195232");
-      capGrad.addColorStop(0.2, "#237045");
-      capGrad.addColorStop(0.5, "#42EF94");
-      capGrad.addColorStop(0.85, "#216E43");
-      capGrad.addColorStop(1, "#103822");
-    } else {
-      capGrad.addColorStop(0, "#333");
-      capGrad.addColorStop(0.5, "#FFF");
-      capGrad.addColorStop(1, "#222");
-    }
+    const collarGrad = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
+    collarGrad.addColorStop(0, "#22222D");
+    collarGrad.addColorStop(0.3, "#3A3A4A");
+    collarGrad.addColorStop(0.55, "#525266");
+    collarGrad.addColorStop(0.8, "#3A3A4A");
+    collarGrad.addColorStop(1.0, "#181822");
 
-    ctx.fillStyle = capGrad;
+    ctx.fillStyle = collarGrad;
     ctx.fillRect(-capHalfWidth, capYOffset, capWidth, capHeight);
+    ctx.strokeStyle = "#121218";
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(-capHalfWidth, capYOffset, capWidth, capHeight);
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    // Collar bevel line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.lineWidth = 1.0;
     ctx.beginPath();
     if (isTopPipe) {
@@ -304,48 +299,50 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     }
     ctx.stroke();
 
+    // Industrial Rivets along collar
     const rivetCount = 4;
-    ctx.save();
     for (let r = 0; r < rivetCount; r++) {
-      const rx = -capHalfWidth + 10 + r * ((capWidth - 20) / (rivetCount - 1));
+      const rx = -capHalfWidth + 8 + r * ((capWidth - 16) / (rivetCount - 1));
       const ry = capYOffset + capHeight * 0.5;
 
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
       ctx.beginPath();
-      ctx.arc(rx, ry, 2.5, 0, Math.PI * 2);
+      ctx.arc(rx, ry, 2.2, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
       ctx.beginPath();
-      ctx.arc(rx - 0.5, ry - 0.5, 1.2, 0, Math.PI * 2);
+      ctx.arc(rx - 0.5, ry - 0.5, 1.0, 0, Math.PI * 2);
       ctx.fill();
     }
-    ctx.restore();
+
+    // --- STROBOSCOPIC RED WARNING BEACONS (#FF0000) ---
+    const beaconPulse = 0.35 + 0.65 * Math.abs(Math.sin(world.tick * 0.2));
+    const beaconY = isTopPipe ? (capYOffset + capHeight - 4) : (capYOffset + 4);
 
     ctx.save();
-    const pulseFactor = 0.55 + 0.45 * Math.sin(world.tick * 0.12);
-    const indicatorX = 0;
-    const indicatorY = isTopPipe ? (capYOffset + capHeight - 3) : (capYOffset + 3);
+    ctx.fillStyle = `rgba(255, 0, 0, ${beaconPulse})`;
+    ctx.shadowColor = "#FF0000";
+    ctx.shadowBlur = beaconPulse * 12;
 
-    ctx.fillStyle = `rgba(255, 40, 40, ${pulseFactor})`;
-    ctx.shadowColor = "#FF2828";
-    ctx.shadowBlur = pulseFactor * 10;
+    // Beacons on left and right edges of the docking lip
     ctx.beginPath();
-    ctx.arc(indicatorX, indicatorY, 4, 0, Math.PI * 2);
+    ctx.arc(-capHalfWidth + 8, beaconY, 3.5, 0, Math.PI * 2);
+    ctx.arc(capHalfWidth - 8, beaconY, 3.5, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.shadowBlur = 0;
-    ctx.fillStyle = `rgba(255, 200, 200, ${pulseFactor})`;
+    ctx.fillStyle = "#FFFFFF";
     ctx.beginPath();
-    ctx.arc(indicatorX, indicatorY, 1.5, 0, Math.PI * 2);
+    ctx.arc(-capHalfWidth + 8, beaconY, 1.2, 0, Math.PI * 2);
+    ctx.arc(capHalfWidth - 8, beaconY, 1.2, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.restore();
   }
 };
 
 // ============================================================================
-// LAYERED CYBER GROUND WITH DIAGONAL HAZARD SCROLLING LINES
+// STATION HULL GROUND — INDUSTRIAL METALLIC BASE WITH CAUTION STRIPES
 // ============================================================================
 
 export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
@@ -356,38 +353,48 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     const width = size;
     const height = 40;
 
-    const dirtGrad = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
-    dirtGrad.addColorStop(0, "#4D2D18");
-    dirtGrad.addColorStop(1, "#26150A");
-    ctx.fillStyle = dirtGrad;
+    // Dark industrial metal base
+    const baseGrad = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
+    baseGrad.addColorStop(0, "#22222C");
+    baseGrad.addColorStop(1, "#0D0D12");
+    ctx.fillStyle = baseGrad;
     ctx.fillRect(-width / 2, -height / 2, width, height);
 
-    const neonGreenGrad = ctx.createLinearGradient(0, -height / 2, 0, -height / 2 + 6);
-    neonGreenGrad.addColorStop(0, "#39FF14");
-    neonGreenGrad.addColorStop(1, "#1D8F0B");
-    ctx.fillStyle = neonGreenGrad;
-    ctx.fillRect(-width / 2, -height / 2, width, 6);
+    // Yellow / Black hazard warning caution rim at the top
+    const hazardHeight = 8;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(-width / 2, -height / 2, width, hazardHeight);
+    ctx.clip();
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+    ctx.fillStyle = "#FFCC00"; // Yellow caution
+    ctx.fillRect(-width / 2, -height / 2, width, hazardHeight);
+
+    // Black diagonal stripes scrolling with camera
+    ctx.fillStyle = "#111116";
+    const stripeWidth = 12;
+    const stripeOffset = (world.tick * 3) % (stripeWidth * 2);
+
+    for (let sx = -width / 2 - stripeWidth * 2; sx < width / 2 + stripeWidth * 2; sx += stripeWidth * 2) {
+      ctx.beginPath();
+      ctx.moveTo(sx + stripeOffset, -height / 2);
+      ctx.lineTo(sx + stripeOffset + stripeWidth, -height / 2);
+      ctx.lineTo(sx + stripeOffset, -height / 2 + hazardHeight);
+      ctx.lineTo(sx + stripeOffset - stripeWidth, -height / 2 + hazardHeight);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Top bounding metal seam
+    ctx.strokeStyle = "#5A6173";
     ctx.lineWidth = 1.0;
     ctx.beginPath();
     ctx.moveTo(-width / 2, -height / 2);
     ctx.lineTo(width / 2, -height / 2);
     ctx.stroke();
 
-    ctx.save();
-    ctx.strokeStyle = "rgba(29, 143, 11, 0.25)";
-    ctx.lineWidth = 4;
-    const stripeOffset = (world.tick * 2.5) % 30;
-
-    ctx.beginPath();
-    for (let sx = -width / 2 - 30; sx < width / 2 + 30; sx += 25) {
-      ctx.moveTo(sx + stripeOffset, -height / 2 + 6);
-      ctx.lineTo(sx + stripeOffset - 15, height / 2);
-    }
-    ctx.stroke();
-    ctx.restore();
-
+    // Bottom dark bounding line
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -398,16 +405,43 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
 };
 
 // ============================================================================
-// SUNSET SCENIC PARALLAX SKY BACKGROUND EFFECT (WITH CRT GRID & VIGNETTES)
+// THE DEEP VOID PARALLAX BACKGROUND (#050510) WITH WARP & MEGASTRUCTURE
 // ============================================================================
 
-let bgOffset = 0;
-let mountainsOffset = 0;
-let hillsOffset = 0;
+interface Star {
+  x: number;
+  y: number;
+  size: number;
+  layer: number; // 0 = distant white, 1 = near pale violet
+  alpha: number;
+}
 
-let cachedSkyGradient: CanvasGradient | null = null;
-let cachedVignette: CanvasGradient | null = null;
-let lastGradientHeight = 0;
+let staticStars: Star[] | null = null;
+
+function initStarfield(width: number, height: number): Star[] {
+  const stars: Star[] = [];
+  // Layer 0: Distant slow white stars (60 count)
+  for (let i = 0; i < 60; i++) {
+    stars.push({
+      x: (i * 37 + 13) % width,
+      y: (i * 83 + 29) % height,
+      size: 0.8 + (i % 3) * 0.4,
+      layer: 0,
+      alpha: 0.4 + (i % 5) * 0.12,
+    });
+  }
+  // Layer 1: Near faster pale white-blue stars (40 count)
+  for (let i = 0; i < 40; i++) {
+    stars.push({
+      x: (i * 53 + 7) % width,
+      y: (i * 97 + 41) % height,
+      size: 1.2 + (i % 3) * 0.6,
+      layer: 1,
+      alpha: 0.6 + (i % 4) * 0.1,
+    });
+  }
+  return stars;
+}
 
 export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world) {
@@ -415,121 +449,98 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     if (!gameState) return;
     const { width = 400, height = 600 } = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };
 
-    if (!gameState.isGameOver) {
-      bgOffset = (bgOffset + 0.95) % width;
-      mountainsOffset = (mountainsOffset + 0.15) % width;
-      hillsOffset = (hillsOffset + 0.45) % width;
+    if (!staticStars) {
+      staticStars = initStarfield(width, height);
     }
 
-    if (!cachedSkyGradient || lastGradientHeight !== height) {
-      cachedSkyGradient = ctx.createLinearGradient(0, 0, 0, height);
-      cachedSkyGradient.addColorStop(0, "#120136");
-      cachedSkyGradient.addColorStop(0.3, "#400082");
-      cachedSkyGradient.addColorStop(0.65, "#E84545");
-      cachedSkyGradient.addColorStop(0.85, "#F0A500");
-      cachedSkyGradient.addColorStop(1, "#E84545");
-      lastGradientHeight = height;
-    }
-    ctx.fillStyle = cachedSkyGradient;
+    // --- DEEP VOID BASE (#050510) ---
+    ctx.fillStyle = "#050510";
     ctx.fillRect(0, 0, width, height);
 
-    ctx.save();
-    const sunGrad = ctx.createRadialGradient(width * 0.72, height * 0.65, 0, width * 0.72, height * 0.65, 60);
-    sunGrad.addColorStop(0, "rgba(255, 245, 200, 0.75)");
-    sunGrad.addColorStop(0.3, "rgba(240, 165, 0, 0.45)");
-    sunGrad.addColorStop(1, "rgba(232, 69, 69, 0)");
-    ctx.fillStyle = sunGrad;
-    ctx.beginPath();
-    ctx.arc(width * 0.72, height * 0.65, 60, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    ctx.fillStyle = "rgba(43, 14, 76, 0.45)";
-    ctx.beginPath();
-
-    const mBaseY = height * 0.72;
-    const points = [
-      0, 20, 45, 75, 110, 140, 185, 230, 275, 320, 360, 400,
-      420, 445, 475, 510, 540, 585, 630, 675, 720, 760, 800
-    ];
-    const heights = [
-      0.9, 0.6, 1.2, 0.75, 1.1, 0.5, 0.95, 1.3, 0.7, 1.05, 0.65, 0.8,
-      0.9, 0.6, 1.2, 0.75, 1.1, 0.5, 0.95, 1.3, 0.7, 1.05, 0.8
-    ];
-
-    ctx.moveTo(0, height);
-    for (let i = 0; i < points.length; i++) {
-      const px = points[i] - mountainsOffset;
-      const py = mBaseY - heights[i] * 45;
-      ctx.lineTo(px, py);
-    }
-    for (let i = 0; i < points.length; i++) {
-      const px = (points[i] + width) - mountainsOffset;
-      const py = mBaseY - heights[i] * 45;
-      ctx.lineTo(px, py);
+    // Hypervelocity combo factor calculation
+    let warpFactor = 1.0;
+    const comboEntities = world.query("Combo");
+    if (comboEntities.length > 0) {
+      const combo = world.getComponent(comboEntities[0], "Combo") as any;
+      if (combo && combo.multiplier > 1) {
+        warpFactor = 1.0 + (combo.multiplier - 1) * 0.35;
+      }
     }
 
-    ctx.lineTo(width * 2, height);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    ctx.fillStyle = "rgba(80, 15, 66, 0.68)";
-    ctx.beginPath();
-
-    const hBaseY = height * 0.76;
-    ctx.moveTo(0, height);
-
-    const hillSteps = 40;
-    const stepSize = (width * 2) / hillSteps;
-    for (let i = 0; i <= hillSteps; i++) {
-      const xPos = i * stepSize - hillsOffset;
-      const waveHeight = Math.sin(i * 0.35) * 18 + Math.cos(i * 0.18) * 8;
-      ctx.lineTo(xPos, hBaseY - waveHeight);
-    }
-
-    ctx.lineTo(width * 2, height);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    ctx.fillStyle = "rgba(255, 235, 235, 0.28)";
-    for (let i = 0; i < 4; i++) {
-      const x = (i * 175 - bgOffset + width) % width;
-      const y = 60 + (i % 2) * 55;
+    // --- PARALLAX STARFIELD LAYERS ---
+    const tick = world.tick;
+    for (let i = 0; i < staticStars.length; i++) {
+      const star = staticStars[i];
+      let speed = star.layer === 0 ? 0.2 : 0.8 * warpFactor;
+      let starX = (star.x - tick * speed) % width;
+      if (starX < 0) starX += width;
 
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(x, y, 22, 0, Math.PI * 2);
-      ctx.arc(x + 18, y - 12, 18, 0, Math.PI * 2);
-      ctx.arc(x - 18, y - 8, 15, 0, Math.PI * 2);
-      ctx.arc(x + 35, y, 16, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.globalAlpha = star.alpha;
+
+      if (star.layer === 0) {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(starX, star.y, star.size, star.size);
+      } else {
+        // Pale white-blue / violet non-saturated star
+        ctx.fillStyle = "#E0E5FF";
+        if (warpFactor > 1.2) {
+          // Hypervelocity speed-line stretch
+          const lineLength = Math.min(star.size * 3 * warpFactor, 12);
+          ctx.fillRect(starX, star.y, lineLength, star.size * 0.8);
+        } else {
+          ctx.fillRect(starX, star.y, star.size, star.size);
+        }
+      }
       ctx.restore();
     }
 
-    ctx.save();
+    // --- OCCASIONAL ISOLATED ABANDONED MEGASTRUCTURE SILHOUETTE ---
+    const megaCycle = 1600; // Scrolls once every ~1600 ticks
+    const megaProgress = (tick % megaCycle) / megaCycle;
+    if (megaProgress < 0.6) {
+      const megaX = width - (megaProgress / 0.6) * (width + 250);
+      const megaY = height * 0.35;
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.save();
+      ctx.fillStyle = "rgba(15, 18, 28, 0.65)"; // Dark void silhouette
+      ctx.beginPath();
+
+      // Main station hub core
+      ctx.arc(megaX, megaY, 40, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Extended solar/antenna arrays
+      ctx.fillRect(megaX - 90, megaY - 4, 180, 8);
+      ctx.fillRect(megaX - 85, megaY - 25, 6, 50);
+      ctx.fillRect(megaX + 80, megaY - 25, 6, 50);
+      ctx.fillRect(megaX - 4, megaY - 80, 8, 160);
+
+      // Faint beacon on station tip
+      const megaBeacon = 0.2 + 0.3 * Math.sin(tick * 0.05);
+      ctx.fillStyle = `rgba(255, 0, 0, ${megaBeacon})`;
+      ctx.beginPath();
+      ctx.arc(megaX, megaY - 80, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // --- CRT SCANLINES & SCREEN VIGNETTE ---
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.06)";
     for (let ly = 0; ly < height; ly += 3) {
       ctx.fillRect(0, ly, width, 1);
     }
 
-    if (!cachedVignette || lastGradientHeight !== height) {
-      cachedVignette = ctx.createRadialGradient(
-        width / 2,
-        height / 2,
-        width * 0.45,
-        width / 2,
-        height / 2,
-        width * 0.78
-      );
-      cachedVignette.addColorStop(0, "rgba(0, 0, 0, 0)");
-      cachedVignette.addColorStop(1, "rgba(0, 0, 0, 0.38)");
-    }
-    ctx.fillStyle = cachedVignette;
+    // Subtle dark edge vignette
+    const vignGrad = ctx.createRadialGradient(
+      width / 2, height / 2, width * 0.4,
+      width / 2, height / 2, width * 0.8
+    );
+    vignGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
+    vignGrad.addColorStop(1, "rgba(0, 0, 0, 0.45)");
+    ctx.fillStyle = vignGrad;
     ctx.fillRect(0, 0, width, height);
 
     ctx.restore();

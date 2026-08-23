@@ -2,6 +2,11 @@ import { StoryRuntime } from "./StoryRuntime";
 import { NarrativeSaveGame } from "./StoryTypes";
 import { IMetaStorageProvider, MemoryStorageProvider } from "./MetaProgressionService";
 
+/**
+ * Current version number for narrative save game snapshots.
+ *
+ * @public
+ */
 export const NARRATIVE_SAVE_VERSION = 1;
 
 /**

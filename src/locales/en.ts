@@ -355,5 +355,6 @@ export const en = {
     seed_input_hint: "Enter a numeric seed value for deterministic generation",
     seed_apply_label: "Apply seed",
     seed_apply_hint: "Applies the seed and resets game configuration",
+    daily_challenge_hint: "Launches today's seed challenge with active mutator rules",
   }
 };

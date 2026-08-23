@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, FC } from "react";
+import { useState, useEffect, useCallback, useRef, FC } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PlayerProfileService } from "../../services/PlayerProfileService";

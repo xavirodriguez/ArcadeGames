@@ -54,6 +54,7 @@ export * from "./events/EventBus";
 export * from "./input/InputSystem";
 export * from "./input/UnifiedInputSystem";
 export * from "./input/CanonicalInput";
+export * from "./input/InputMapper";
 export * from "./input/providers";
 
 // Loop & Runtime

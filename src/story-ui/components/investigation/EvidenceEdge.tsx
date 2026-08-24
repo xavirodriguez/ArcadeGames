@@ -1,12 +1,20 @@
 import React from 'react';
-import { EvidenceEdgeViewModel, EvidenceNodeViewModel, EvidenceRelation } from '../../types/evidence';
+import { EvidenceEdgeViewModel, EvidenceNodeViewModel } from '../../types/evidence';
+import { getRelationConfig } from '../../config/evidenceConfig';
 
 interface EvidenceEdgeProps {
   edge: EvidenceEdgeViewModel;
   nodes: EvidenceNodeViewModel[];
+  isSelectedNodeConnected?: boolean;
+  hasNodeSelected?: boolean;
 }
 
-export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({ edge, nodes }) => {
+export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
+  edge,
+  nodes,
+  isSelectedNodeConnected = false,
+  hasNodeSelected = false,
+}) => {
   if (!edge.discovered) return null;
 
   const fromNode = nodes.find((n) => n.id === edge.from && n.discovered);
@@ -20,53 +28,76 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({ edge, nodes }) => {
   const x2 = (toNode.position.x / 1000) * 100;
   const y2 = (toNode.position.y / 1000) * 100;
 
-  const midX = (x1 + x2) / 2;
-  const midY = (y1 + y2) / 2;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const angle = Math.atan2(dy, dx);
 
-  const getRelationStyles = (relation: EvidenceRelation) => {
-    switch (relation) {
-      case 'confirms':
-        return { stroke: '#10b981', strokeWidth: '3', dashArray: undefined }; // emerald
-      case 'contradicts':
-        return { stroke: '#f43f5e', strokeWidth: '3', dashArray: '6,6' }; // rose
-      case 'suggests':
-        return { stroke: '#06b6d4', strokeWidth: '2', dashArray: '4,4' }; // cyan
-      case 'mentions':
-        return { stroke: '#94a3b8', strokeWidth: '2', dashArray: undefined }; // slate
-      case 'caused':
-        return { stroke: '#f59e0b', strokeWidth: '3', dashArray: undefined }; // amber
-      case 'requires':
-        return { stroke: '#a855f7', strokeWidth: '2', dashArray: '2,2' }; // purple
-      case 'hiddenBy':
-        return { stroke: '#64748b', strokeWidth: '2', dashArray: '8,4' }; // dark slate
+  // Perpendicular offset for label to avoid line collision
+  // Offset in percent space (approx 1.8% offset perpendicularly)
+  const offsetDistance = 1.8;
+  const perpX = -Math.sin(angle) * offsetDistance;
+  const perpY = Math.cos(angle) * offsetDistance;
+
+  const midX = (x1 + x2) / 2 + perpX;
+  const midY = (y1 + y2) / 2 + perpY;
+
+  const style = getRelationConfig(edge.relation);
+
+  // Selection states: highlighted, dimmed, or normal
+  let opacity = 1;
+  let strokeWidth = style.strokeWidth;
+
+  if (hasNodeSelected) {
+    if (isSelectedNodeConnected) {
+      opacity = 1;
+      strokeWidth = style.strokeWidth + 1.5;
+    } else {
+      opacity = 0.25;
     }
-  };
-
-  const style = getRelationStyles(edge.relation);
+  }
 
   return (
-    <g className="transition-all duration-300">
+    <g className="transition-all duration-300" style={{ opacity }}>
       <line
         x1={`${x1}%`}
         y1={`${y1}%`}
         x2={`${x2}%`}
         y2={`${y2}%`}
         stroke={style.stroke}
-        strokeWidth={style.strokeWidth}
+        strokeWidth={strokeWidth}
         strokeDasharray={style.dashArray}
         strokeLinecap="round"
       />
+      {isSelectedNodeConnected && (
+        /* Additional glow line for connected selected edge */
+        <line
+          x1={`${x1}%`}
+          y1={`${y1}%`}
+          x2={`${x2}%`}
+          y2={`${y2}%`}
+          stroke={style.stroke}
+          strokeWidth={strokeWidth + 4}
+          strokeLinecap="round"
+          opacity={0.3}
+        />
+      )}
       {edge.label && (
         <g transform={`translate(0, 0)`}>
           <foreignObject
             x={`${midX}%`}
             y={`${midY}%`}
-            width="120"
-            height="30"
+            width="130"
+            height="32"
             className="overflow-visible -translate-x-1/2 -translate-y-1/2 pointer-events-none"
           >
             <div className="flex justify-center items-center h-full">
-              <span className="bg-slate-950/90 text-slate-300 border border-slate-700/80 text-[10px] font-bold px-2 py-0.5 rounded shadow-md whitespace-nowrap">
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-md whitespace-nowrap transition-colors ${
+                  isSelectedNodeConnected
+                    ? 'bg-slate-900 text-cyan-200 border border-cyan-500/80 ring-1 ring-cyan-500/40'
+                    : 'bg-slate-950/90 text-slate-300 border border-slate-700/80'
+                }`}
+              >
                 {edge.label}
               </span>
             </div>

@@ -71,6 +71,23 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+:root {
+  /* Narrative UI Semantic Tokens */
+  --narrative-bg: #020617;
+  --narrative-surface: #0f172a;
+  --narrative-surface-elevated: #1e293b;
+  --narrative-foreground: #f8fafc;
+  --narrative-muted: #94a3b8;
+  --narrative-primary: #06b6d4;
+  --narrative-interactive: #00f0ff;
+  --narrative-danger: #f43f5e;
+  --narrative-warning: #f59e0b;
+  --narrative-success: #10b981;
+  --narrative-mystery: #a855f7;
+  --narrative-border: #334155;
+  --narrative-focus: #67e8f9;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -110,6 +127,21 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Narrative Theme Mappings */
+  --color-narrative-bg: var(--narrative-bg);
+  --color-narrative-surface: var(--narrative-surface);
+  --color-narrative-surface-elevated: var(--narrative-surface-elevated);
+  --color-narrative-foreground: var(--narrative-foreground);
+  --color-narrative-muted: var(--narrative-muted);
+  --color-narrative-primary: var(--narrative-primary);
+  --color-narrative-interactive: var(--narrative-interactive);
+  --color-narrative-danger: var(--narrative-danger);
+  --color-narrative-warning: var(--narrative-warning);
+  --color-narrative-success: var(--narrative-success);
+  --color-narrative-mystery: var(--narrative-mystery);
+  --color-narrative-border: var(--narrative-border);
+  --color-narrative-focus: var(--narrative-focus);
 }
 
 @layer base {

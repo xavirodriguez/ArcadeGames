@@ -17,11 +17,12 @@ export const LockedChoice: React.FC<LockedChoiceProps> = ({ choice }) => {
 
   return (
     <div
-      className={`w-full text-left p-4 rounded-lg border cursor-not-allowed opacity-80 ${
+      className={`w-full text-left p-4 rounded-lg border cursor-not-allowed opacity-75 select-none ${
         isMystery
           ? 'bg-purple-950/20 border-purple-800/40 text-purple-300'
           : 'bg-slate-950/60 border-slate-800 text-slate-500'
       }`}
+      aria-disabled="true"
       role="region"
       aria-label={`Opción bloqueada: ${isMystery ? 'Opción misteriosa' : choice.title}`}
     >
@@ -45,7 +46,7 @@ export const LockedChoice: React.FC<LockedChoiceProps> = ({ choice }) => {
           {isMystery ? '????????????????' : choice.title}
         </h3>
 
-        <p className="text-xs italic leading-relaxed mt-1 border-t border-slate-800/60 pt-2">
+        <p className="text-xs italic leading-relaxed mt-1 border-t border-slate-800/60 pt-2 opacity-90">
           {getReasonText()}
         </p>
       </div>

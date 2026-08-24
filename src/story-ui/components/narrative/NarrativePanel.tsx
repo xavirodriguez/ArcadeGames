@@ -25,7 +25,7 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = ({
       aria-label={title || 'Escena Narrativa'}
     >
       {title && (
-        <h2 className="text-xl font-extrabold text-cyan-400 tracking-wide border-b border-slate-800 pb-2">
+        <h2 className="text-xl font-extrabold text-slate-100 tracking-wide border-b border-slate-800/80 pb-2">
           {title}
         </h2>
       )}

@@ -314,7 +314,8 @@ const StartScreen: FC<{
   return (
     <GameScreen>
       <BackButton label={t?.common?.menu || "Menu"} />
-      <GameTitle glowColor={colors.cyan}>{title}</GameTitle>
+      <GameTitle glowColor="#00F3FF">{title}</GameTitle>
+      <Text style={styles.startSub}>INTERCEPTOR // CONTAINMENT SECTOR 07</Text>
 
       <PlayerNameInput
         label={t?.accessibility?.player_name_label || "Player Name"}
@@ -413,5 +414,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#FF0000",
     letterSpacing: 1,
+  },
+  startSub: {
+    fontFamily: "monospace",
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#5A6173",
+    letterSpacing: 2.5,
+    marginTop: -20,
+    marginBottom: 20,
+    textAlign: "center",
   },
 });

@@ -25,6 +25,8 @@ import { AchievementSystem } from "../shared/arcade";
  */
 import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBirdCanvasVisuals";
+import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
 
 export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, any, any>> {
   bird: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number, y: number }>;
@@ -42,6 +44,7 @@ export class FlappyBirdGame
   public readonly gameId = "flappybird";
   private config!: typeof FLAPPY_CONFIG;
   public isMultiplayer = false;
+  private activeRendererType: "canvas" | "skia" = "canvas";
 
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, audio?: any } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
@@ -302,6 +305,37 @@ export class FlappyBirdGame
     this.world.addSystem(new JuiceSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Presentation });
     this.world.addSystem(new FlappyBirdRenderSystem(), { phase: SystemPhase.Presentation });
 
+    // Register visual feedback listener for obstacle pipe clearance
+    const eventBus = this.getEventBus();
+    if (eventBus) {
+      eventBus.on("pipe:passed", () => {
+        const birdEntities = this.world.query("Bird", "Transform");
+        if (birdEntities.length > 0) {
+          const transform = this.world.getComponent(birdEntities[0], "Transform");
+          if (transform) {
+            const bx = transform.worldX ?? transform.x;
+            const by = transform.worldY ?? transform.y;
+
+            const spawnParticle = this.activeRendererType === "skia" ? spawnSkiaParticle : spawnCanvasParticle;
+
+            const renderRandom = this.world.renderRandom;
+            const count = 6 + renderRandom.nextInt(0, 3);
+            for (let i = 0; i < count; i++) {
+              const angle = renderRandom.next() * Math.PI * 2;
+              const speed = renderRandom.nextRange(60, 150);
+              const pvx = Math.cos(angle) * speed;
+              const pvy = Math.sin(angle) * speed;
+              const life = renderRandom.nextRange(0.3, 0.6);
+              const size = renderRandom.nextRange(2.5, 4.5);
+              const color = renderRandom.next() > 0.4 ? "#00F3FF" : "#FFFFFF"; // Cyan & white success sparks
+
+              spawnParticle("spark", bx + 10, by, pvx, pvy, life, size, color, angle);
+            }
+          }
+        }
+      });
+    }
+
     if (!this.networkManager) {
       this.networkManager = NetworkManager.registerGame(this.gameId, this, {
         strategy: 'snapshot',
@@ -488,12 +522,14 @@ export class FlappyBirdGame
 
   public initializeRenderer(renderer: Renderer<any, any>): void {
     if (renderer.type === "canvas") {
+      this.activeRendererType = "canvas";
       const { drawFlappyBird, drawFlappyPipe, drawFlappyGround, scrollingBackgroundEffect } = require("./rendering/FlappyBirdCanvasVisuals");
       renderer.registerShape("bird", drawFlappyBird);
       renderer.registerShape("pipe", drawFlappyPipe);
       renderer.registerShape("ground", drawFlappyGround);
       renderer.registerBackgroundEffect("scrollingSky", scrollingBackgroundEffect);
     } else if (renderer.type === "skia") {
+      this.activeRendererType = "skia";
       const { drawSkiaFlappyBird, drawSkiaFlappyPipe, drawSkiaFlappyGround, scrollingSkiaBackgroundEffect } = require("./rendering/FlappyBirdSkiaVisuals");
       renderer.registerShape("bird", drawSkiaFlappyBird);
       renderer.registerShape("pipe", drawSkiaFlappyPipe);

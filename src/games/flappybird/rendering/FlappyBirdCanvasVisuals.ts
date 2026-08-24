@@ -13,6 +13,167 @@ interface InterceptorRenderState {
 
 const shipStates = new Map<number, InterceptorRenderState>();
 
+// ============================================================================
+// ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
+// ============================================================================
+
+interface VisualParticle {
+  active: boolean;
+  type: "spark" | "shard" | "star";
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+  color: string;
+  angle: number;
+  angularVelocity: number;
+}
+
+const PARTICLE_POOL_SIZE = 150;
+const PARTICLE_POOL: VisualParticle[] = Array.from({ length: PARTICLE_POOL_SIZE }, () => ({
+  active: false,
+  type: "spark",
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  life: 0,
+  maxLife: 0,
+  size: 0,
+  color: "",
+  angle: 0,
+  angularVelocity: 0,
+}));
+
+export function spawnVisualParticle(
+  type: "spark" | "shard" | "star",
+  x: number,
+  y: number,
+  vx: number,
+  vy: number,
+  maxLife: number,
+  size: number,
+  color: string,
+  angle = 0,
+  angularVelocity = 0
+): void {
+  for (let i = 0; i < PARTICLE_POOL.length; i++) {
+    const p = PARTICLE_POOL[i];
+    if (!p.active) {
+      p.active = true;
+      p.type = type;
+      p.x = x;
+      p.y = y;
+      p.vx = vx;
+      p.vy = vy;
+      p.life = maxLife;
+      p.maxLife = maxLife;
+      p.size = size;
+      p.color = color;
+      p.angle = angle;
+      p.angularVelocity = angularVelocity;
+      break;
+    }
+  }
+}
+
+function updateVisualParticles(): void {
+  const dt = 0.016; // Target 60FPS step
+  for (let i = 0; i < PARTICLE_POOL.length; i++) {
+    const p = PARTICLE_POOL[i];
+    if (p.active) {
+      p.life -= dt;
+      if (p.life <= 0) {
+        p.active = false;
+        continue;
+      }
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.angle += p.angularVelocity * dt;
+
+      if (p.type === "spark") {
+        p.vx *= 0.96;
+        p.vy *= 0.96;
+      } else if (p.type === "shard") {
+        p.vy += 45 * dt; // Gravity drop on debris
+      }
+    }
+  }
+}
+
+function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
+  for (let i = 0; i < PARTICLE_POOL.length; i++) {
+    const p = PARTICLE_POOL[i];
+    if (!p.active) continue;
+
+    const ratio = p.life / p.maxLife;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    if (p.angle !== 0) {
+      ctx.rotate(p.angle);
+    }
+    ctx.globalAlpha = ratio;
+
+    if (p.type === "spark") {
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      const sz = p.size;
+      ctx.moveTo(sz * 0.8, 0);
+      ctx.lineTo(0, -sz * 0.2);
+      ctx.lineTo(-sz * 0.8, 0);
+      ctx.lineTo(0, sz * 0.2);
+      ctx.closePath();
+      ctx.fill();
+    } else if (p.type === "shard") {
+      ctx.fillStyle = "#5A6173";
+      const sz = p.size;
+      ctx.beginPath();
+      ctx.moveTo(sz * 0.4, -sz * 0.3);
+      ctx.lineTo(sz * 0.1, sz * 0.4);
+      ctx.lineTo(-sz * 0.4, sz * 0.1);
+      ctx.lineTo(-sz * 0.2, -sz * 0.3);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = "#FF3300";
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+    } else if (p.type === "star") {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    }
+
+    ctx.restore();
+  }
+}
+
+// Zero-allocation gradient cache for Canvas 2D context operations
+const canvasGradientCache = new Map<string, CanvasGradient>();
+let lastCanvasCtx: CanvasRenderingContext2D | null = null;
+
+function getCachedCanvasGradient(
+  ctx: CanvasRenderingContext2D,
+  key: string,
+  factory: () => CanvasGradient
+): CanvasGradient {
+  if (lastCanvasCtx !== ctx) {
+    lastCanvasCtx = ctx;
+    canvasGradientCache.clear();
+  }
+  let grad = canvasGradientCache.get(key);
+  if (!grad) {
+    if (canvasGradientCache.size > 40) {
+      canvasGradientCache.clear();
+    }
+    grad = factory();
+    canvasGradientCache.set(key, grad);
+  }
+  return grad;
+}
+
 /**
  * Player Ship ("Interceptor") shape drawer.
  * Arrowhead spearhead silhouette, titanium hull, cyan cockpit, thermonuclear thruster flame.
@@ -41,6 +202,53 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     const vy = birdComp.velocityY;
     const isAlive = birdComp.isAlive;
+
+    // --- TRIGGER SPARKS ON BOOST THRUST ---
+    const flapStrength = FLAPPY_CONFIG.FLAP_STRENGTH;
+    const hasFlapped = (vy < -150 && state.lastVy >= -150) || (vy === flapStrength && state.lastVy !== flapStrength);
+    if (hasFlapped && isAlive) {
+      const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
+      const x = transformPos.worldX ?? transformPos.x;
+      const y = transformPos.worldY ?? transformPos.y;
+      const pCount = 4 + world.renderRandom.nextInt(0, 3);
+      for (let i = 0; i < pCount; i++) {
+        const angleVal = world.renderRandom.nextRange(160, 200) * (Math.PI / 180);
+        const speedVal = world.renderRandom.nextRange(80, 160);
+        const pVx = Math.cos(angleVal) * speedVal;
+        const pVy = Math.sin(angleVal) * speedVal;
+        const lifeVal = world.renderRandom.nextRange(0.2, 0.45);
+        const sizeVal = world.renderRandom.nextRange(2, 4);
+        const randColor = world.renderRandom.next() > 0.5 ? "#FFFFFF" : "#FFC000";
+        spawnVisualParticle("spark", x - size * 0.5, y, pVx, pVy, lifeVal, sizeVal, randColor, angleVal);
+      }
+    }
+
+    // --- TRIGGER SHARDS & SPARKS ON DEATH ---
+    const hasDied = !isAlive && state.lastIsAlive;
+    if (hasDied) {
+      const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
+      const x = transformPos.worldX ?? transformPos.x;
+      const y = transformPos.worldY ?? transformPos.y;
+      const sCount = 8 + world.renderRandom.nextInt(0, 4);
+      for (let i = 0; i < sCount; i++) {
+        const angleVal = world.renderRandom.next() * Math.PI * 2;
+        const speedVal = world.renderRandom.nextRange(40, 120);
+        const pVx = Math.cos(angleVal) * speedVal;
+        const pVy = Math.sin(angleVal) * speedVal;
+        const lifeVal = world.renderRandom.nextRange(0.6, 1.1);
+        const sizeVal = world.renderRandom.nextRange(3, 6);
+        spawnVisualParticle("shard", x, y, pVx, pVy, lifeVal, sizeVal, "#5A6173", angleVal, world.renderRandom.nextRange(-4, 4));
+      }
+      for (let i = 0; i < 12; i++) {
+        const angleVal = world.renderRandom.next() * Math.PI * 2;
+        const speedVal = world.renderRandom.nextRange(80, 200);
+        const pVx = Math.cos(angleVal) * speedVal;
+        const pVy = Math.sin(angleVal) * speedVal;
+        const lifeVal = world.renderRandom.nextRange(0.25, 0.5);
+        const sizeVal = world.renderRandom.nextRange(2, 5);
+        spawnVisualParticle("spark", x, y, pVx, pVy, lifeVal, sizeVal, "#FF3300", angleVal);
+      }
+    }
 
     state.lastVy = vy;
     state.lastIsAlive = isAlive;
@@ -113,10 +321,13 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       const flameLength = (isBoosting ? size * 1.6 : size * 0.75) * flicker;
       const flameWidth = (isBoosting ? size * 0.55 : size * 0.3) * flicker;
 
-      const flameGrad = ctx.createLinearGradient(-size * 0.55, 0, -size * 0.55 - flameLength, 0);
-      flameGrad.addColorStop(0, "#FFFFFF");   // White thermonuclear core
-      flameGrad.addColorStop(0.35, "#FFC000"); // Hot yellow-orange
-      flameGrad.addColorStop(1.0, "#FF3300");  // Thermonuclear red tip
+      const flameGrad = getCachedCanvasGradient(ctx, `flame_${size}`, () => {
+        const g = ctx.createLinearGradient(-size * 0.55, 0, -size * 2.2, 0);
+        g.addColorStop(0, "#FFFFFF");   // White thermonuclear core
+        g.addColorStop(0.35, "#FFC000"); // Hot yellow-orange
+        g.addColorStop(1.0, "#FF3300");  // Thermonuclear red tip
+        return g;
+      });
 
       ctx.fillStyle = flameGrad;
       ctx.beginPath();
@@ -128,16 +339,19 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     }
 
     // --- TITANIUM HULL GRADIENT ---
-    const hullGrad = ctx.createLinearGradient(-size * 0.7, 0, size * 1.2, 0);
-    if (isAlive) {
-      hullGrad.addColorStop(0, "#5A6173"); // Dark titanium tail
-      hullGrad.addColorStop(0.5, "#8B93A5"); // Mid-tone titanium
-      hullGrad.addColorStop(1.0, "#D3D9E2"); // Light metallic nose
-    } else {
-      hullGrad.addColorStop(0, "#3A3F4B"); // Lead gray dead state
-      hullGrad.addColorStop(0.6, "#5A6173");
-      hullGrad.addColorStop(1.0, "#696969");
-    }
+    const hullGrad = getCachedCanvasGradient(ctx, `hull_${size}_${isAlive}`, () => {
+      const g = ctx.createLinearGradient(-size * 0.7, 0, size * 1.2, 0);
+      if (isAlive) {
+        g.addColorStop(0, "#5A6173"); // Dark titanium tail
+        g.addColorStop(0.5, "#8B93A5"); // Mid-tone titanium
+        g.addColorStop(1.0, "#D3D9E2"); // Light metallic nose
+      } else {
+        g.addColorStop(0, "#3A3F4B"); // Lead gray dead state
+        g.addColorStop(0.6, "#5A6173");
+        g.addColorStop(1.0, "#696969");
+      }
+      return g;
+    });
 
     ctx.fillStyle = hullGrad;
     drawArrowheadPath(ctx, size);
@@ -242,12 +456,15 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     }
 
     // --- METALLIC PILLAR BODY (#2A2A35) ---
-    const pillarGrad = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
-    pillarGrad.addColorStop(0, "#1A1A22");
-    pillarGrad.addColorStop(0.25, "#2A2A35");
-    pillarGrad.addColorStop(0.5, "#3F3F50");
-    pillarGrad.addColorStop(0.75, "#2A2A35");
-    pillarGrad.addColorStop(1.0, "#121218");
+    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}`, () => {
+      const g = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
+      g.addColorStop(0, "#1A1A22");
+      g.addColorStop(0.25, "#2A2A35");
+      g.addColorStop(0.5, "#3F3F50");
+      g.addColorStop(0.75, "#2A2A35");
+      g.addColorStop(1.0, "#121218");
+      return g;
+    });
 
     ctx.fillStyle = pillarGrad;
     ctx.fillRect(-halfWidth, pipeY, width, pipeHeight);
@@ -273,12 +490,15 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const capHalfWidth = capWidth / 2;
     const capYOffset = isTopPipe ? (pipeY + pipeHeight - capHeight) : pipeY;
 
-    const collarGrad = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
-    collarGrad.addColorStop(0, "#22222D");
-    collarGrad.addColorStop(0.3, "#3A3A4A");
-    collarGrad.addColorStop(0.55, "#525266");
-    collarGrad.addColorStop(0.8, "#3A3A4A");
-    collarGrad.addColorStop(1.0, "#181822");
+    const collarGrad = getCachedCanvasGradient(ctx, `collar_${capHalfWidth}`, () => {
+      const g = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
+      g.addColorStop(0, "#22222D");
+      g.addColorStop(0.3, "#3A3A4A");
+      g.addColorStop(0.55, "#525266");
+      g.addColorStop(0.8, "#3A3A4A");
+      g.addColorStop(1.0, "#181822");
+      return g;
+    });
 
     ctx.fillStyle = collarGrad;
     ctx.fillRect(-capHalfWidth, capYOffset, capWidth, capHeight);
@@ -354,9 +574,12 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     const height = 40;
 
     // Dark industrial metal base
-    const baseGrad = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
-    baseGrad.addColorStop(0, "#22222C");
-    baseGrad.addColorStop(1, "#0D0D12");
+    const baseGrad = getCachedCanvasGradient(ctx, `base_${height}`, () => {
+      const g = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
+      g.addColorStop(0, "#22222C");
+      g.addColorStop(1, "#0D0D12");
+      return g;
+    });
     ctx.fillStyle = baseGrad;
     ctx.fillRect(-width / 2, -height / 2, width, height);
 
@@ -412,7 +635,7 @@ interface Star {
   x: number;
   y: number;
   size: number;
-  layer: number; // 0 = distant white, 1 = near pale violet
+  layer: number; // 0 = distant white, 1 = near pale blue, 2 = deep titanium dust
   alpha: number;
 }
 
@@ -420,6 +643,16 @@ let staticStars: Star[] | null = null;
 
 function initStarfield(width: number, height: number): Star[] {
   const stars: Star[] = [];
+  // Layer 2: Deepest micro titanium space dust (50 count)
+  for (let i = 0; i < 50; i++) {
+    stars.push({
+      x: (i * 29 + 17) % width,
+      y: (i * 71 + 11) % height,
+      size: 0.5 + (i % 2) * 0.3,
+      layer: 2,
+      alpha: 0.2 + (i % 3) * 0.08,
+    });
+  }
   // Layer 0: Distant slow white stars (60 count)
   for (let i = 0; i < 60; i++) {
     stars.push({
@@ -453,6 +686,8 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       staticStars = initStarfield(width, height);
     }
 
+    updateVisualParticles();
+
     // --- DEEP VOID BASE (#050510) ---
     ctx.fillStyle = "#050510";
     ctx.fillRect(0, 0, width, height);
@@ -471,14 +706,17 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     const tick = world.tick;
     for (let i = 0; i < staticStars.length; i++) {
       const star = staticStars[i];
-      let speed = star.layer === 0 ? 0.2 : 0.8 * warpFactor;
+      let speed = star.layer === 2 ? 0.08 : star.layer === 0 ? 0.2 : 0.8 * warpFactor;
       let starX = (star.x - tick * speed) % width;
       if (starX < 0) starX += width;
 
       ctx.save();
       ctx.globalAlpha = star.alpha;
 
-      if (star.layer === 0) {
+      if (star.layer === 2) {
+        ctx.fillStyle = "#5A6173";
+        ctx.fillRect(starX, star.y, star.size, star.size);
+      } else if (star.layer === 0) {
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(starX, star.y, star.size, star.size);
       } else {
@@ -526,6 +764,9 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
+    // --- DRAW ACTIVE PARTICLES (SPARKS & SHARDS) ---
+    drawCanvasVisualParticles(ctx);
+
     // --- CRT SCANLINES & SCREEN VIGNETTE ---
     ctx.save();
     ctx.fillStyle = "rgba(0, 0, 0, 0.06)";
@@ -534,12 +775,15 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     }
 
     // Subtle dark edge vignette
-    const vignGrad = ctx.createRadialGradient(
-      width / 2, height / 2, width * 0.4,
-      width / 2, height / 2, width * 0.8
-    );
-    vignGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
-    vignGrad.addColorStop(1, "rgba(0, 0, 0, 0.45)");
+    const vignGrad = getCachedCanvasGradient(ctx, `vign_${width}_${height}`, () => {
+      const g = ctx.createRadialGradient(
+        width / 2, height / 2, width * 0.4,
+        width / 2, height / 2, width * 0.8
+      );
+      g.addColorStop(0, "rgba(0, 0, 0, 0)");
+      g.addColorStop(1, "rgba(0, 0, 0, 0.45)");
+      return g;
+    });
     ctx.fillStyle = vignGrad;
     ctx.fillRect(0, 0, width, height);
 

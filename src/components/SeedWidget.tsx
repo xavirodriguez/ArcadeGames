@@ -52,7 +52,7 @@ export const SeedWidget: React.FC<SeedWidgetProps> = ({ seed, onSeedEnter, style
         accessibilityLabel={applyLabel}
         accessibilityHint={applyHint}
       >
-        <Text style={styles.buttonText}>APLICAR SEED</Text>
+        <Text style={styles.buttonText}>{(t?.accessibility?.seed_apply_label || "APPLY SEED").toUpperCase()}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -72,19 +72,25 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
     fontFamily: typography.game,
     textAlign: "center",
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: "rgba(255, 255, 255, 0.2)",
-    minHeight: 44,
+    minHeight: 48,
   },
   inputFocused: {
     borderColor: colors.cyan,
+    borderWidth: 2,
+    shadowColor: colors.cyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4,
   },
   button: {
     backgroundColor: colors.borderDark,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: 8,
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: "center",
     alignItems: "center",
   },

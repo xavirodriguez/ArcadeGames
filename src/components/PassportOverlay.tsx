@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
   closeTouchArea: {
     padding: spacing.sm,
     margin: -spacing.sm,
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: 48,
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },

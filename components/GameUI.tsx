@@ -101,6 +101,21 @@ if (Platform.OS !== "web") {
   }
 }
 
+export interface GameUITheme {
+  title?: string;
+  subTitle?: string;
+  sectorLabel?: string;
+  scoreLabel?: string;
+  colors?: {
+    system?: string;
+    warning?: string;
+    success?: string;
+    danger?: string;
+    panel?: string;
+    border?: string;
+  };
+}
+
 interface MinimalGameState {
   score: number;
   lives?: number;
@@ -120,7 +135,7 @@ interface MinimalGameState {
   [key: string]: any;
 }
 
-interface GameUIProps {
+export interface GameUIProps {
   gameState: MinimalGameState;
   onRestart?: () => void;
   onPause?: () => void;
@@ -131,6 +146,8 @@ interface GameUIProps {
   onContinue?: () => void;
   /** Callback to advance dialogue. */
   onAdvanceDialogue?: () => void;
+  /** Custom theme options to give distinct visual identities to different games. */
+  theme?: GameUITheme;
 }
 
 const formatScore = (score: number) => String(Math.max(0, score)).padStart(8, "0");
@@ -144,6 +161,7 @@ export const GameUI = React.memo(function GameUI({
   highScore,
   onContinue,
   onAdvanceDialogue,
+  theme,
 }: GameUIProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -249,6 +267,7 @@ export const GameUI = React.memo(function GameUI({
         highScore={highScore ?? 0}
         paddingTop={Math.max(insets.top, 14)}
         reservePauseSpace={showPauseButton}
+        theme={theme}
       />
 
       {showPauseButton && (
@@ -357,8 +376,17 @@ const HUD: React.FC<{
   highScore: number;
   paddingTop: number;
   reservePauseSpace: boolean;
-}> = ({ lives, score, level, highScore, paddingTop, reservePauseSpace }) => {
+  theme?: GameUITheme;
+}> = ({ lives, score, level, highScore, paddingTop, reservePauseSpace, theme }) => {
   const { t } = useTranslation();
+  const titleText = theme?.title ?? "ODISEA-7";
+  const subTitleText = theme?.subTitle ?? "PILOT LINK // ACTIVE";
+  const scoreLabelText = theme?.scoreLabel ?? "SCORE_MATCH";
+  const sectorLabelText = theme?.sectorLabel ?? "KEPLER-791";
+
+  const systemColor = theme?.colors?.system ?? COLORS.system;
+  const warningColor = theme?.colors?.warning ?? COLORS.warning;
+
   return (
     <Animated.View entering={FadeIn.duration(650)} style={[styles.topBar, { paddingTop }]}>
       {Platform.OS !== "web" && Canvas && BackdropBlur && Fill && (
@@ -374,31 +402,33 @@ const HUD: React.FC<{
           style={styles.hudLeftPanel}
           accent="system"
           moduleCode="LIFE//01"
+          themeColors={theme?.colors}
           accessibilityRole="header"
           accessibilityLabel={t.accessibility.lives_remaining_label.replace("{lives}", String(lives))}
         >
-          <Text style={styles.hudKicker}>ODISEA-7</Text>
+          <Text style={[styles.hudKicker, theme?.colors?.system ? { color: theme.colors.system } : null]}>{titleText}</Text>
           <View style={styles.lifeRow}>
             {lives > 0 ? (
               Array.from({ length: lives }).map((_, index) => (
-                <ShipLifeIcon key={`life-${index}`} />
+                <ShipLifeIcon key={`life-${index}`} color={systemColor} />
               ))
             ) : (
               <Text style={styles.signalLostMini}>SIGNAL LOST</Text>
             )}
           </View>
-          <Text style={styles.hudMicro}>PILOT LINK // ACTIVE</Text>
+          <Text style={styles.hudMicro}>{subTitleText}</Text>
         </HudPanel>
 
         <HudPanel
           style={styles.hudScorePanel}
           accent="system"
           moduleCode="SCR//02"
+          themeColors={theme?.colors}
           accessibilityRole="header"
           accessibilityLabel={t.accessibility.current_score_label.replace("{score}", String(score)).replace("{highScore}", String(highScore))}
         >
-          <Text style={styles.hudLabel}>SCORE_MATCH</Text>
-          <Score score={score} />
+          <Text style={styles.hudLabel}>{scoreLabelText}</Text>
+          <Score score={score} color={systemColor} />
           <Text style={styles.hudMicro}>RECORD {formatScore(highScore)}</Text>
         </HudPanel>
 
@@ -406,17 +436,18 @@ const HUD: React.FC<{
           style={styles.hudRightPanel}
           accent="warning"
           moduleCode="NAV//03"
+          themeColors={theme?.colors}
           accessibilityRole="header"
           accessibilityLabel={t.accessibility.sector_threat_label.replace("{level}", formatLevel(level))}
         >
-          <Text style={styles.hudLabel}>KEPLER-791</Text>
-          <Text style={styles.sectorValue}>SECTOR {formatLevel(level)}</Text>
+          <Text style={styles.hudLabel}>{sectorLabelText}</Text>
+          <Text style={[styles.sectorValue, { color: warningColor }]}>SECTOR {formatLevel(level)}</Text>
           <View style={styles.threatRow}>
             <Text style={styles.hudMicro}>THREAT</Text>
             <View style={styles.threatBars}>
-              <View style={styles.threatBarOn} />
-              <View style={styles.threatBarOn} />
-              <View style={styles.threatBarOn} />
+              <View style={[styles.threatBarOn, { backgroundColor: warningColor }]} />
+              <View style={[styles.threatBarOn, { backgroundColor: warningColor }]} />
+              <View style={[styles.threatBarOn, { backgroundColor: warningColor }]} />
               <View style={styles.threatBarOff} />
             </View>
           </View>
@@ -431,6 +462,7 @@ const HudPanel: React.FC<{
   style?: import("react-native").StyleProp<import("react-native").ViewStyle>;
   accent?: "system" | "warning" | "success" | "danger";
   moduleCode?: string;
+  themeColors?: GameUITheme["colors"];
   accessibilityRole?: import("react-native").AccessibilityRole;
   accessibilityLabel?: string;
 }> = ({
@@ -438,21 +470,25 @@ const HudPanel: React.FC<{
   style,
   accent = "system",
   moduleCode,
+  themeColors,
   accessibilityRole,
   accessibilityLabel,
 }) => {
   const accentColor =
     accent === "warning"
-      ? COLORS.warning
+      ? (themeColors?.warning ?? COLORS.warning)
       : accent === "success"
-        ? COLORS.success
+        ? (themeColors?.success ?? COLORS.success)
         : accent === "danger"
-          ? COLORS.danger
-          : COLORS.system;
+          ? (themeColors?.danger ?? COLORS.danger)
+          : (themeColors?.system ?? COLORS.system);
+
+  const panelBg = themeColors?.panel ?? COLORS.panel;
+  const borderColor = themeColors?.border ?? COLORS.border;
 
   return (
     <View
-      style={[styles.hudPanel, style]}
+      style={[styles.hudPanel, { backgroundColor: panelBg, borderColor }, style]}
       accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
     >
@@ -523,17 +559,17 @@ const TechnicalRail: React.FC<{
   </View>
 );
 
-const ShipLifeIcon: React.FC = () => (
+const ShipLifeIcon: React.FC<{ color?: string }> = ({ color = COLORS.cyan }) => (
   <View style={styles.shipIcon} accessibilityLabel="life">
-    <View style={styles.shipNose} />
-    <View style={styles.shipBody} />
-    <View style={[styles.shipWing, styles.shipWingLeft]} />
-    <View style={[styles.shipWing, styles.shipWingRight]} />
+    <View style={[styles.shipNose, { borderBottomColor: color }]} />
+    <View style={[styles.shipBody, { backgroundColor: color }]} />
+    <View style={[styles.shipWing, styles.shipWingLeft, { backgroundColor: color }]} />
+    <View style={[styles.shipWing, styles.shipWingRight, { backgroundColor: color }]} />
     <View style={styles.shipEngine} />
   </View>
 );
 
-const Score: React.FC<{ score: number }> = ({ score }) => {
+const Score: React.FC<{ score: number; color?: string }> = ({ score, color = COLORS.cyan }) => {
   const scale = useSharedValue(1);
 
   useEffect(() => {
@@ -549,7 +585,7 @@ const Score: React.FC<{ score: number }> = ({ score }) => {
 
   return (
     <Animated.View style={animatedStyle}>
-      <Text style={styles.scoreValue}>{formatScore(score)}</Text>
+      <Text style={[styles.scoreValue, { color }]}>{formatScore(score)}</Text>
     </Animated.View>
   );
 };

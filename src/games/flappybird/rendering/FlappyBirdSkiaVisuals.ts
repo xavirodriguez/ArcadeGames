@@ -14,6 +14,22 @@ function getPaint(): any {
   return cachedPaint;
 }
 
+// Zero-allocation shader cache for React Native Skia bridge
+const skiaShaderCache = new Map<string, any>();
+let staticStars: any[] | null = null;
+
+function getCachedSkiaShader(key: string, factory: () => any): any {
+  let shader = skiaShaderCache.get(key);
+  if (!shader) {
+    if (skiaShaderCache.size > 40) {
+      skiaShaderCache.clear();
+    }
+    shader = factory();
+    skiaShaderCache.set(key, shader);
+  }
+  return shader;
+}
+
 // ============================================================================
 // ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
 // ============================================================================
@@ -49,7 +65,7 @@ const PARTICLE_POOL: VisualParticle[] = Array.from({ length: PARTICLE_POOL_SIZE 
   angularVelocity: 0,
 }));
 
-function spawnVisualParticle(
+export function spawnVisualParticle(
   type: "spark" | "shard" | "star",
   x: number,
   y: number,
@@ -327,12 +343,14 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
       const flameLength = (isBoosting ? size * 1.6 : size * 0.75) * flicker;
       const flameWidth = (isBoosting ? size * 0.55 : size * 0.3) * flicker;
 
-      const flameShader = Skia.Shader.MakeLinearGradient(
-        Skia.Point(-size * 0.55, 0),
-        Skia.Point(-size * 0.55 - flameLength, 0),
-        [Skia.Color("#FFFFFF"), Skia.Color("#FFC000"), Skia.Color("#FF3300")],
-        [0, 0.35, 1.0],
-        Skia.TileMode.Clamp
+      const flameShader = getCachedSkiaShader(`flame_${size}`, () =>
+        Skia.Shader.MakeLinearGradient(
+          Skia.Point(-size * 0.55, 0),
+          Skia.Point(-size * 2.2, 0),
+          [Skia.Color("#FFFFFF"), Skia.Color("#FFC000"), Skia.Color("#FF3300")],
+          [0, 0.35, 1.0],
+          Skia.TileMode.Clamp
+        )
       );
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
@@ -348,18 +366,19 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     }
 
     // --- TITANIUM HULL GRADIENT SHADER ---
-    let hullColors = [Skia.Color("#5A6173"), Skia.Color("#8B93A5"), Skia.Color("#D3D9E2")];
-    if (!isAlive) {
-      hullColors = [Skia.Color("#3A3F4B"), Skia.Color("#5A6173"), Skia.Color("#696969")];
-    }
-
-    const hullShader = Skia.Shader.MakeLinearGradient(
-      Skia.Point(-size * 0.7, 0),
-      Skia.Point(size * 1.2, 0),
-      hullColors,
-      [0, 0.5, 1.0],
-      Skia.TileMode.Clamp
-    );
+    const hullShader = getCachedSkiaShader(`hull_${size}_${isAlive}`, () => {
+      let hullColors = [Skia.Color("#5A6173"), Skia.Color("#8B93A5"), Skia.Color("#D3D9E2")];
+      if (!isAlive) {
+        hullColors = [Skia.Color("#3A3F4B"), Skia.Color("#5A6173"), Skia.Color("#696969")];
+      }
+      return Skia.Shader.MakeLinearGradient(
+        Skia.Point(-size * 0.7, 0),
+        Skia.Point(size * 1.2, 0),
+        hullColors,
+        [0, 0.5, 1.0],
+        Skia.TileMode.Clamp
+      );
+    });
 
     paint.reset();
     paint.setAntiAlias(true);
@@ -435,18 +454,20 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const paint = getPaint();
 
     // Metallic Pillar Body Shader (#2A2A35)
-    const pillarShader = Skia.Shader.MakeLinearGradient(
-      Skia.Point(-halfWidth, 0),
-      Skia.Point(halfWidth, 0),
-      [
-        Skia.Color("#1A1A22"),
-        Skia.Color("#2A2A35"),
-        Skia.Color("#3F3F50"),
-        Skia.Color("#2A2A35"),
-        Skia.Color("#121218")
-      ],
-      [0, 0.25, 0.5, 0.75, 1.0],
-      Skia.TileMode.Clamp
+    const pillarShader = getCachedSkiaShader(`pillar_${halfWidth}`, () =>
+      Skia.Shader.MakeLinearGradient(
+        Skia.Point(-halfWidth, 0),
+        Skia.Point(halfWidth, 0),
+        [
+          Skia.Color("#1A1A22"),
+          Skia.Color("#2A2A35"),
+          Skia.Color("#3F3F50"),
+          Skia.Color("#2A2A35"),
+          Skia.Color("#121218")
+        ],
+        [0, 0.25, 0.5, 0.75, 1.0],
+        Skia.TileMode.Clamp
+      )
     );
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -466,18 +487,20 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const capHalfWidth = capWidth / 2;
     const capYOffset = isTopPipe ? (pipeY + pipeHeight - capHeight) : pipeY;
 
-    const collarShader = Skia.Shader.MakeLinearGradient(
-      Skia.Point(-capHalfWidth, 0),
-      Skia.Point(capHalfWidth, 0),
-      [
-        Skia.Color("#22222D"),
-        Skia.Color("#3A3A4A"),
-        Skia.Color("#525266"),
-        Skia.Color("#3A3A4A"),
-        Skia.Color("#181822")
-      ],
-      [0, 0.3, 0.55, 0.8, 1.0],
-      Skia.TileMode.Clamp
+    const collarShader = getCachedSkiaShader(`collar_${capHalfWidth}`, () =>
+      Skia.Shader.MakeLinearGradient(
+        Skia.Point(-capHalfWidth, 0),
+        Skia.Point(capHalfWidth, 0),
+        [
+          Skia.Color("#22222D"),
+          Skia.Color("#3A3A4A"),
+          Skia.Color("#525266"),
+          Skia.Color("#3A3A4A"),
+          Skia.Color("#181822")
+        ],
+        [0, 0.3, 0.55, 0.8, 1.0],
+        Skia.TileMode.Clamp
+      )
     );
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -525,12 +548,14 @@ export const drawSkiaFlappyGround: ShapeDrawer<any, FlappyBirdComponentRegistry>
     const paint = getPaint();
 
     // Dark industrial metal base
-    const baseShader = Skia.Shader.MakeLinearGradient(
-      Skia.Point(0, -height / 2),
-      Skia.Point(0, height / 2),
-      [Skia.Color("#22222C"), Skia.Color("#0D0D12")],
-      [0, 1.0],
-      Skia.TileMode.Clamp
+    const baseShader = getCachedSkiaShader(`base_${height}`, () =>
+      Skia.Shader.MakeLinearGradient(
+        Skia.Point(0, -height / 2),
+        Skia.Point(0, height / 2),
+        [Skia.Color("#22222C"), Skia.Color("#0D0D12")],
+        [0, 1.0],
+        Skia.TileMode.Clamp
+      )
     );
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -591,30 +616,97 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       }
     }
 
-    // Stars Parallax Layers
+    interface Star {
+      x: number;
+      y: number;
+      size: number;
+      layer: number;
+      alpha: number;
+    }
+
+    if (!staticStars) {
+      const stars: Star[] = [];
+      for (let i = 0; i < 50; i++) {
+        stars.push({
+          x: (i * 29 + 17) % width,
+          y: (i * 71 + 11) % height,
+          size: 0.5 + (i % 2) * 0.3,
+          layer: 2,
+          alpha: 0.2 + (i % 3) * 0.08,
+        });
+      }
+      for (let i = 0; i < 60; i++) {
+        stars.push({
+          x: (i * 37 + 13) % width,
+          y: (i * 83 + 29) % height,
+          size: 0.8 + (i % 3) * 0.4,
+          layer: 0,
+          alpha: 0.4 + (i % 5) * 0.12,
+        });
+      }
+      for (let i = 0; i < 40; i++) {
+        stars.push({
+          x: (i * 53 + 7) % width,
+          y: (i * 97 + 41) % height,
+          size: 1.2 + (i % 3) * 0.6,
+          layer: 1,
+          alpha: 0.6 + (i % 4) * 0.1,
+        });
+      }
+      staticStars = stars;
+    }
+
     const tick = world.tick;
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
 
-    // Layer 0: Distant White Stars
-    paint.setColor(Skia.Color("#FFFFFF"));
-    paint.setAlphaf(0.5);
-    for (let i = 0; i < 40; i++) {
-      const sx = ((i * 37 + 13) - tick * 0.2) % width;
-      const x = sx < 0 ? sx + width : sx;
-      const y = (i * 83 + 29) % height;
-      canvas.drawRect(Skia.XYWHRect(x, y, 1.2, 1.2), paint);
+    for (let i = 0; i < staticStars.length; i++) {
+      const star = staticStars[i];
+      let speed = star.layer === 2 ? 0.08 : star.layer === 0 ? 0.2 : 0.8 * warpFactor;
+      let sx = (star.x - tick * speed) % width;
+      if (sx < 0) sx += width;
+
+      paint.setAlphaf(star.alpha);
+      if (star.layer === 2) {
+        paint.setColor(Skia.Color("#5A6173"));
+        canvas.drawRect(Skia.XYWHRect(sx, star.y, star.size, star.size), paint);
+      } else if (star.layer === 0) {
+        paint.setColor(Skia.Color("#FFFFFF"));
+        canvas.drawRect(Skia.XYWHRect(sx, star.y, star.size, star.size), paint);
+      } else {
+        paint.setColor(Skia.Color("#E0E5FF"));
+        const pLen = warpFactor > 1.2 ? Math.min(star.size * 3 * warpFactor, 10) : star.size;
+        canvas.drawRect(Skia.XYWHRect(sx, star.y, pLen, star.size), paint);
+      }
     }
 
-    // Layer 1: Near Pale White-Blue Stars
-    paint.setColor(Skia.Color("#E0E5FF"));
-    paint.setAlphaf(0.75);
-    for (let i = 0; i < 25; i++) {
-      const sx = ((i * 53 + 7) - tick * 0.8 * warpFactor) % width;
-      const x = sx < 0 ? sx + width : sx;
-      const y = (i * 97 + 41) % height;
-      const pLen = warpFactor > 1.2 ? Math.min(3 * warpFactor, 10) : 1.8;
-      canvas.drawRect(Skia.XYWHRect(x, y, pLen, 1.5), paint);
+    // --- OCCASIONAL ISOLATED ABANDONED MEGASTRUCTURE SILHOUETTE ---
+    const megaCycle = 1600;
+    const megaProgress = (tick % megaCycle) / megaCycle;
+    if (megaProgress < 0.6) {
+      const megaX = width - (megaProgress / 0.6) * (width + 250);
+      const megaY = height * 0.35;
+
+      canvas.save();
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("rgba(15, 18, 28, 0.65)"));
+
+      // Hub core
+      canvas.drawCircle(megaX, megaY, 40, paint);
+      // Solar / antenna arrays
+      canvas.drawRect(Skia.XYWHRect(megaX - 90, megaY - 4, 180, 8), paint);
+      canvas.drawRect(Skia.XYWHRect(megaX - 85, megaY - 25, 6, 50), paint);
+      canvas.drawRect(Skia.XYWHRect(megaX + 80, megaY - 25, 6, 50), paint);
+      canvas.drawRect(Skia.XYWHRect(megaX - 4, megaY - 80, 8, 160), paint);
+
+      // Faint beacon on station tip
+      const megaBeacon = 0.2 + 0.3 * Math.sin(tick * 0.05);
+      paint.setColor(Skia.Color("#FF0000"));
+      paint.setAlphaf(megaBeacon);
+      canvas.drawCircle(megaX, megaY - 80, 2, paint);
+
+      canvas.restore();
     }
 
     // Draw active sparks & shards
@@ -625,6 +717,25 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     paint.setColor(Skia.Color("rgba(0, 0, 0, 0.06)"));
     for (let ly = 0; ly < height; ly += 3) {
       canvas.drawRect(Skia.XYWHRect(0, ly, width, 1), paint);
+    }
+
+    // Edge Vignette Overlay
+    const vignShader = getCachedSkiaShader(`vign_${width}_${height}`, () =>
+      Skia.Shader.MakeTwoPointConicalGradient(
+        Skia.Point(width / 2, height / 2),
+        width * 0.4,
+        Skia.Point(width / 2, height / 2),
+        width * 0.8,
+        [Skia.Color("rgba(0,0,0,0)"), Skia.Color("rgba(0,0,0,0.45)")],
+        [0, 1.0],
+        Skia.TileMode.Clamp
+      )
+    );
+    if (vignShader) {
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setShader(vignShader);
+      canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
     }
   },
 };

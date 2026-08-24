@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChoiceViewModel } from '../../types/choices';
+import { WarningIcon } from '../icons/EvidenceIcons';
 
 interface ChoiceCardProps {
   choice: ChoiceViewModel;
@@ -51,10 +52,11 @@ export const ChoiceCard: React.FC<ChoiceCardProps> = ({ choice, onSelect }) => {
 
           {isIrreversible && (
             <span
-              className="text-xs font-black uppercase text-rose-400 bg-rose-950/80 border border-rose-600/80 px-2 py-0.5 rounded tracking-wide animate-pulse"
+              className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-rose-400 bg-rose-950/80 border border-rose-600/80 px-2 py-0.5 rounded tracking-wide animate-pulse"
               title="Esta decisión tendrá consecuencias permanentes"
             >
-              ⚠ IRREVERSIBLE
+              <WarningIcon size={14} className="text-rose-400 flex-shrink-0" />
+              <span>IRREVERSIBLE</span>
             </span>
           )}
         </div>

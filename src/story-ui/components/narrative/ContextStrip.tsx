@@ -44,51 +44,38 @@ export const ContextStrip: React.FC<ContextStripProps> = ({
 
   return (
     <div
-      className="flex flex-wrap gap-2 my-2"
+      className="flex flex-wrap gap-2 my-2 select-none"
       role="region"
       aria-label="Contexto narrativo y evidencias relacionadas"
     >
       {items.map((item) => {
         const isInteractive = Boolean(item.evidenceId && onSelectEvidence);
 
-        const content = (
-          <div
+        return (
+          <button
             key={item.id}
-            className={`inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${getTypeStyles(
+            type={isInteractive ? 'button' : undefined}
+            disabled={!isInteractive}
+            className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border font-mono tracking-wide transition-all ${getTypeStyles(
               item.type
             )} ${
               isInteractive
-                ? 'cursor-pointer hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-cyan-400'
-                : ''
+                ? 'cursor-pointer hover:bg-slate-800/90 hover:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+                : 'cursor-default'
             }`}
-            tabIndex={isInteractive ? 0 : undefined}
-            role={isInteractive ? 'button' : 'status'}
             aria-label={`${getTypeBadge(item.type)}: ${item.label}`}
             onClick={() => {
               if (item.evidenceId && onSelectEvidence) {
                 onSelectEvidence(item.evidenceId);
               }
             }}
-            onKeyDown={(e) => {
-              if (
-                isInteractive &&
-                (e.key === 'Enter' || e.key === ' ') &&
-                item.evidenceId &&
-                onSelectEvidence
-              ) {
-                e.preventDefault();
-                onSelectEvidence(item.evidenceId);
-              }
-            }}
           >
-            <span className="font-bold tracking-wider text-[10px]">
+            <span className="font-extrabold uppercase text-[10px] tracking-wider opacity-90">
               [{getTypeBadge(item.type)}]
             </span>
-            <span>{item.label}</span>
-          </div>
+            <span className="font-sans font-medium">{item.label}</span>
+          </button>
         );
-
-        return content;
       })}
     </div>
   );

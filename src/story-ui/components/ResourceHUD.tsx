@@ -1,4 +1,5 @@
 import React from 'react';
+import { SearchIcon } from './icons/EvidenceIcons';
 
 interface ResourceHUDProps {
   oxygen?: number;
@@ -8,6 +9,26 @@ interface ResourceHUDProps {
   onOpenInvestigation: () => void;
 }
 
+type ResourceStatus = 'normal' | 'warning' | 'critical';
+
+function getResourceStatus(value: number): ResourceStatus {
+  if (value < 20) return 'critical';
+  if (value < 50) return 'warning';
+  return 'normal';
+}
+
+function getBarColorAndAnimation(status: ResourceStatus, isEnergy = false) {
+  switch (status) {
+    case 'critical':
+      return 'bg-rose-500 animate-pulse';
+    case 'warning':
+      return 'bg-amber-400';
+    case 'normal':
+    default:
+      return isEnergy ? 'bg-amber-400' : 'bg-cyan-400';
+  }
+}
+
 export const ResourceHUD: React.FC<ResourceHUDProps> = ({
   oxygen,
   energy,
@@ -15,9 +36,12 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
   unreadCount = 0,
   onOpenInvestigation,
 }) => {
+  const o2Status = typeof oxygen === 'number' ? getResourceStatus(oxygen) : 'normal';
+  const pwrStatus = typeof energy === 'number' ? getResourceStatus(energy) : 'normal';
+
   return (
     <header
-      className="w-full bg-slate-950/90 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between backdrop-blur-md sticky top-0 z-30"
+      className="w-full bg-slate-950/90 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between backdrop-blur-md sticky top-0 z-30 select-none"
       role="banner"
     >
       {/* Station Vital Signs */}
@@ -26,20 +50,22 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
           <div
             className="flex items-center gap-2"
             role="status"
-            aria-label={`Nivel de Oxígeno: ${oxygen}%`}
+            aria-label={`Nivel de Oxígeno: ${oxygen}%, estado ${o2Status}`}
           >
-            <span className="text-xs font-bold text-cyan-400 tracking-wider">
+            <span
+              className={`text-xs font-bold tracking-wider ${
+                o2Status === 'critical'
+                  ? 'text-rose-400 font-extrabold animate-pulse'
+                  : o2Status === 'warning'
+                  ? 'text-amber-400'
+                  : 'text-cyan-400'
+              }`}
+            >
               O2
             </span>
             <div className="w-24 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
               <div
-                className={`h-full transition-all duration-300 ${
-                  oxygen < 20
-                    ? 'bg-rose-500 animate-pulse'
-                    : oxygen < 50
-                    ? 'bg-amber-400'
-                    : 'bg-cyan-400'
-                }`}
+                className={`h-full transition-all duration-300 ${getBarColorAndAnimation(o2Status)}`}
                 style={{ width: `${Math.max(0, Math.min(100, oxygen))}%` }}
               />
             </div>
@@ -53,14 +79,20 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
           <div
             className="flex items-center gap-2"
             role="status"
-            aria-label={`Energía de Estación: ${energy}%`}
+            aria-label={`Energía de Estación: ${energy}%, estado ${pwrStatus}`}
           >
-            <span className="text-xs font-bold text-amber-400 tracking-wider">
+            <span
+              className={`text-xs font-bold tracking-wider ${
+                pwrStatus === 'critical'
+                  ? 'text-rose-400 font-extrabold animate-pulse'
+                  : 'text-amber-400'
+              }`}
+            >
               PWR
             </span>
             <div className="w-24 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
               <div
-                className="h-full bg-amber-400 transition-all duration-300"
+                className={`h-full transition-all duration-300 ${getBarColorAndAnimation(pwrStatus, true)}`}
                 style={{ width: `${Math.max(0, Math.min(100, energy))}%` }}
               />
             </div>
@@ -71,7 +103,7 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
         )}
       </div>
 
-      {/* Investigation Drawer Button Trigger */}
+      {/* Investigation Drawer Trigger */}
       <button
         type="button"
         onClick={onOpenInvestigation}
@@ -80,7 +112,8 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
           hasNewEvidence ? ` (${unreadCount} nuevas pistas)` : ''
         }`}
       >
-        <span>🔍 INVESTIGACIÓN</span>
+        <SearchIcon size={14} className="text-cyan-400 flex-shrink-0" />
+        <span>INVESTIGACIÓN</span>
         {hasNewEvidence && (
           <span className="flex h-2.5 w-2.5 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />

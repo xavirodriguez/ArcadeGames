@@ -42,7 +42,7 @@ export const SpeakerHeader: React.FC<SpeakerHeaderProps> = ({ speaker }) => {
           className="w-12 h-12 rounded-md object-cover border border-cyan-500/30"
         />
       ) : (
-        <div className="w-12 h-12 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-lg">
+        <div className="w-12 h-12 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-lg text-slate-100 flex-shrink-0">
           {speaker.name.charAt(0).toUpperCase()}
         </div>
       )}

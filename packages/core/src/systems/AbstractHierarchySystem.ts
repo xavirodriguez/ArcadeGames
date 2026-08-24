@@ -5,11 +5,15 @@ import { IHierarchicalComponent, CoreComponentRegistry } from "../ecs/CoreCompon
 import { ComponentRegistry, ComponentType } from "../ecs/Component";
 import { EventRegistry, EventBus } from "../events/EventBus";
 
-/** @public */
+/**
+ * Abstract system base providing topological sorting for entity hierarchy processing.
+ * @public
+ */
 export abstract class AbstractHierarchySystem<
   TComponents extends ComponentRegistry = CoreComponentRegistry,
   TEvents extends EventRegistry = EventRegistry
 > extends System<TComponents, TEvents> {
+  /** Set of entities marked as dirty during previous ticks. */
   protected wasDirty = new Set<Entity>();
 
   // Safe for determinism/rollback. Internal structures reused across ticks to eliminate per-tick object allocations during hierarchy traversal.
@@ -18,6 +22,9 @@ export abstract class AbstractHierarchySystem<
   private processingSet = new Set<Entity>();
   private traversalStack: { entity: Entity; stage: 'enter' | 'exit' }[] = [];
 
+  /**
+   * Computes the depth-first / topological processing order for entities possessing hierarchical components.
+   */
   protected getProcessingOrder(world: World<TComponents, TEvents>, componentType: ComponentType<TComponents>): Entity[] {
     const entities = world.query(componentType);
     if (entities.length === 0) return [];

@@ -1,79 +1,129 @@
 /** @public */
 import type { Entity } from "../ecs/Entity";
 
-/** @public */
+/**
+ * Registry type constraint mapping event names to payload structures.
+ * @public
+ */
 export type EventRegistry = Record<string, unknown>;
 
-/** @public */
+/**
+ * Registry of core engine framework events and their payloads.
+ * @public
+ */
 export interface CoreEvents {
+  /** Emitted when simulation engine pauses. */
   "engine:paused": { tick: number; timestamp: number };
+  /** Emitted when simulation engine resumes. */
   "engine:resumed": { tick: number; timestamp: number };
+  /** Emitted when simulation engine is destroyed. */
   "engine:destroyed": { timestamp: number };
+  /** Emitted when network sequence version is acknowledged. */
   "net:ack_version": { version: number; tick: number };
 
-  // Achievements
+  /** Emitted when an achievement is unlocked. */
   "achievement:unlocked": { achievement: unknown; [key: string]: unknown };
 
-  // Tests & Subsystems
+  /** Emitted when an obstacle rock is destroyed. */
   "rock:destroyed": { amount?: number; [key: string]: unknown };
 
-  // Audio / Visual SFX
+  /** Emitted to trigger audio sound effect playback. */
   "PlaySFX": { name: string };
 
-  // Core Gameplay & Collision Events
+  /** Emitted upon enemy kill combo. */
   "si:kill": { chain: number; [key: string]: unknown };
+  /** Emitted when an entity is destroyed. */
   "entity:destroyed": { type: string; entity?: Entity; [key: string]: unknown };
+  /** Emitted when player entity dies. */
   "PlayerDied": { playerEntity?: Entity; [key: string]: unknown };
+  /** Emitted when player entity is respawned. */
   "PlayerRespawned": { playerEntity: Entity; x: number; y: number };
+  /** Emitted when game over state triggers. */
   "game:over": { state?: unknown; score?: number; level?: number; [key: string]: unknown };
+  /** Emitted when an entity contacts spike hazards. */
   "spike:hit": { entity: Entity };
+  /** Emitted when a hitbox hits a hurtbox. */
   "hitbox:hit": { attacker?: Entity; defender?: Entity; damage?: number; [key: string]: unknown };
+  /** Emitted when a checkpoint is activated. */
   "CheckpointActivated": { checkpointEntity: Entity; playerEntity: Entity; checkpointId?: string; x?: number; y?: number; position?: { x: number; y: number }; [key: string]: unknown };
+  /** Emitted when a collectible item is picked up. */
   "CollectiblePickedUp": { collectibleEntity?: Entity; playerEntity?: Entity; value?: number; collectibleType?: string; [key: string]: unknown };
+  /** Emitted to spawn loot items. */
   "loot:spawn": { x: number; y: number; lootType?: string; [key: string]: unknown };
+  /** Emitted when a wave starts. */
   "spawn:wave_start": { waveIndex?: number; waveId?: string; isBossWave?: boolean; [key: string]: unknown };
+  /** Emitted when a wave is completed. */
   "spawn:wave_complete": { wave?: number; [key: string]: unknown };
+  /** Emitted when a hierarchy cycle or error is detected. */
   "hierarchy:warning": { message: string };
+  /** Emitted when simulation stalls. */
   "simulation:stalled": { duration: number };
+  /** Emitted when simulation recovers from stall. */
   "simulation:unstalled": Record<string, unknown>;
+  /** Emitted when player continues game. */
   "player:continue": Record<string, unknown>;
 
-  // Cutscenes & Scenes
+  /** Emitted when a cutscene starts. */
   "cutscene:started": { lines: string[] };
+  /** Emitted when a cutscene advances a dialogue line. */
   "cutscene:line_advanced": { index: number; line: string };
+  /** Emitted when a cutscene completes. */
   "cutscene:completed": Record<string, unknown>;
+  /** Emitted when scene transition starts. */
   "scene:transition:start": { scene: unknown };
+  /** Emitted during scene transition progress. */
   "scene:transition:progress": { progress: number };
+  /** Emitted when scene transition succeeds. */
   "scene:transition:success": { scene: unknown };
+  /** Emitted when scene transition times out. */
   "scene:transition:timeout": { scene: unknown; error?: unknown };
+  /** Emitted when scene transition encounters an error. */
   "scene:transition:error": { scene: unknown; error?: unknown };
+  /** Emitted on scene error. */
   "scene:error": { action: string; error?: unknown };
+  /** Emitted on scene warning. */
   "scene:warning": { message: string };
 
-  // Narrative & Story Systems
+  /** Emitted on narrative scene change request. */
   "story:scene_change": { sceneToLoad: string; [key: string]: unknown };
+  /** Emitted when narrative node changes. */
   "story:node_changed": { graphId?: string; currentNodeId?: string; previousNodeId?: string | null; node?: unknown; nodeId?: string; title?: string; text?: string; choices?: unknown[]; [key: string]: unknown };
+  /** Emitted when story runtime state updates. */
   "story:state_changed": { graphId?: string | null; state: unknown; currentNode?: unknown; [key: string]: unknown };
+  /** Emitted when evidence is discovered. */
   "story:evidence_discovered": { evidenceId: string; [key: string]: unknown };
+  /** Emitted when a story beat is reached. */
   "story:beat_reached": { beatId: string; dialogueReference?: string; payload?: unknown; [key: string]: unknown };
+  /** Emitted when a narrative choice is selected. */
   "story:choice_selected": { choiceId: string; targetNodeId: string; nodeId?: string; [key: string]: unknown };
+  /** Emitted when a story objective is completed. */
   "story:objective_completed": { objectiveId: string; objective?: unknown; [key: string]: unknown };
+  /** Emitted when dialogue completes. */
   "dialogue:completed": Record<string, unknown>;
+  /** Emitted when dialogue advances. */
   "dialogue:line_advanced": { index: number; line: string };
+  /** Emitted when a level is completed. */
   "level:completed": { level: number; nextLevel?: number; [key: string]: unknown };
 
-  // Narrative CYOA & Adventure Hooks
+  /** Emitted when narrative torch is acquired. */
   "adventure:torch_acquired": Record<string, unknown>;
 
-  // Kernel & Session Lifecycle
+  /** Emitted when arcade kernel state changes. */
   "arcade:state_changed": { from: string; to: string };
+  /** Emitted on game session tick update. */
   "session:tick": { tick: number; state: unknown };
 }
 
-/** @public */
+/**
+ * Union of CoreEvents and custom user events.
+ * @public
+ */
 export type CombinedEvents<TEvents extends EventRegistry> = CoreEvents & TEvents;
 
-/** @public */
+/**
+ * Event handler callback signature.
+ * @public
+ */
 export type EventHandler<TPayload> = (payload: TPayload, event: string) => void;
 
 /**

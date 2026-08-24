@@ -1,6 +1,7 @@
 import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
+import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 
 let Skia: any = null;
 try {
@@ -63,9 +64,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     // Draw Thrust Flame if thrust is active (ephemeral flame can use a pooled/reusable path or direct line drawing)
     const input = world.getComponent(entity, "Input");
     if (input && input.actions && input.actions["thrust"]) {
-      const renderRandom = world.renderRandom;
-      const flicker = 1.0 + 0.3 * (renderRandom.next() - 0.5);
-      const flameLen = size * 1.5 * flicker;
+      const { flameLen, sparks } = computeThrustFlame(size, world.renderRandom);
 
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(colors.gold)); // Neon yellow core
@@ -88,10 +87,8 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color("#ffffff"));
       paint.setAlphaf(opacity);
-      for (let i = 0; i < 3; i++) {
-        const sparkOffset = flameLen + renderRandom.nextRange(2, 8);
-        const sparkY = renderRandom.nextRange(-size * 0.2, size * 0.2);
-        const sparkRadius = renderRandom.nextRange(1, 2);
+      for (let i = 0; i < sparks.length; i++) {
+        const { sparkOffset, sparkY, sparkRadius } = sparks[i];
         canvas.drawCircle(-(size * 0.4 + sparkOffset), sparkY, sparkRadius, paint);
       }
     }
@@ -172,25 +169,13 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
     let astPath = cachedAsteroidPaths.get(render);
     if (!astPath) {
       astPath = Skia.Path.Make();
-      const numPoints = 11;
-      let s = entity + 45000;
+      const points = computeAsteroidSilhouette(entity, radius, 11);
 
-      for (let i = 0; i < numPoints; i++) {
-        const angle = (i / numPoints) * Math.PI * 2;
-
-        // Inline LCG
-        s = (s * 1664525 + 1013904223) % 4294967296;
-        const rngValue = s / 4294967296;
-
-        const offsetFactor = rngValue * 0.35 - 0.175;
-        const currentRadius = radius * (1.0 + offsetFactor);
-        const x = Math.cos(angle) * currentRadius;
-        const y = Math.sin(angle) * currentRadius;
-
+      for (let i = 0; i < points.length; i++) {
         if (i === 0) {
-          astPath.moveTo(x, y);
+          astPath.moveTo(points[i].x, points[i].y);
         } else {
-          astPath.lineTo(x, y);
+          astPath.lineTo(points[i].x, points[i].y);
         }
       }
       astPath.close();

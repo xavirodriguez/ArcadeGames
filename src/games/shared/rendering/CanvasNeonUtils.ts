@@ -4,6 +4,7 @@
  */
 
 import { colors } from "../../../theme/colors";
+import { computeNeonPulse } from "./ProceduralShapeUtils";
 
 export interface TrailPoint {
   x: number;
@@ -17,7 +18,7 @@ export interface TrailPoint {
  */
 export class CanvasMotionTrail {
   private readonly trails = new Map<number, TrailPoint[]>();
-  private readonly maxPoints: number;
+  protected readonly maxPoints: number;
 
   constructor(maxPoints: number = 30) {
     this.maxPoints = maxPoints;
@@ -118,7 +119,7 @@ export function drawNeonShape(
   ctx.save();
 
   // 1. Draw outer glowing outline
-  const pulseFactor = 1.0 + 0.08 * Math.sin(tick / 6);
+  const pulseFactor = computeNeonPulse(tick);
   ctx.strokeStyle = color;
   ctx.shadowColor = color;
   ctx.shadowBlur = 12;

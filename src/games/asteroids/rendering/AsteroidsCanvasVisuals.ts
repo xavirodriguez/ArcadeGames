@@ -2,6 +2,7 @@ import { ShapeDrawer, ShapeType, CircleShape } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
+import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 
 /**
  * Procedural player ship shape drawer for HTML5 Canvas.
@@ -14,7 +15,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 
     const size = render.size || 15;
     let baseColor = render.color || colors.cyan;
-    const tick = Math.floor(Date.now() / 40);
+    const tick = Math.floor((world.tick * 5) / 12);
 
     ctx.save();
 
@@ -46,9 +47,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 
     // Draw Thrust Flame if thrust is active
     if (isThrusting) {
-      const renderRandom = world.renderRandom;
-      const flicker = 1.0 + 0.3 * (renderRandom.next() - 0.5);
-      const flameLen = size * 1.5 * flicker;
+      const { flameLen, sparks } = computeThrustFlame(size, world.renderRandom);
 
       ctx.strokeStyle = colors.orangeDark;
       ctx.fillStyle = colors.gold;
@@ -66,10 +65,8 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 
       // Lingering Hot Plasma Exhaust Sparks
       ctx.fillStyle = "#ffffff";
-      for (let i = 0; i < 3; i++) {
-        const sparkOffset = flameLen + renderRandom.nextRange(2, 8);
-        const sparkY = renderRandom.nextRange(-size * 0.2, size * 0.2);
-        const sparkRadius = renderRandom.nextRange(1, 2);
+      for (let i = 0; i < sparks.length; i++) {
+        const { sparkOffset, sparkY, sparkRadius } = sparks[i];
         ctx.beginPath();
         ctx.arc(-(size * 0.4 + sparkOffset), sparkY, sparkRadius, 0, Math.PI * 2);
         ctx.fill();
@@ -157,26 +154,14 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
 
     // Geometry points based on radius (R12)
     const numPoints = radius > 30 ? 14 : radius > 18 ? 10 : 7;
-    // Inline high-speed LCG state (0 function allocations!)
-    let s = entity + 45000;
+    const points = computeAsteroidSilhouette(entity, radius, numPoints);
 
     ctx.beginPath();
-    for (let i = 0; i < numPoints; i++) {
-      const angle = (i / numPoints) * Math.PI * 2;
-
-      // Deterministic inline LCG
-      s = (s * 1664525 + 1013904223) % 4294967296;
-      const rngValue = s / 4294967296;
-
-      const offsetFactor = rngValue * 0.35 - 0.175; // up to 35% radius variance
-      const currentRadius = radius * (1.0 + offsetFactor);
-      const x = Math.cos(angle) * currentRadius;
-      const y = Math.sin(angle) * currentRadius;
-
+    for (let i = 0; i < points.length; i++) {
       if (i === 0) {
-        ctx.moveTo(x, y);
+        ctx.moveTo(points[i].x, points[i].y);
       } else {
-        ctx.lineTo(x, y);
+        ctx.lineTo(points[i].x, points[i].y);
       }
     }
     ctx.closePath();

@@ -1,6 +1,7 @@
 import { ShapeDrawer, EffectDrawer, TransformComponent, World, Entity, RenderComponent } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
+import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 
 export function spawnVisualParticle(
   _x: number,
@@ -11,58 +12,6 @@ export function spawnVisualParticle(
   _size: number,
   _color: string
 ): void {}
-
-// ============================================================================
-// GRID DEFORMATION MATHEMATICS (ZERO FRAME ALLOCATION)
-// ============================================================================
-
-const BULLET_COORDS = Array.from({ length: 100 }, () => ({ x: 0, y: 0 }));
-const DISPLACED_COORD = { x: 0, y: 0 };
-
-/**
- * Calculates real-time neon grid point displacement based on player and bullets coordinates.
- */
-function getDisplacedPoint(
-  x: number,
-  y: number,
-  px: number,
-  py: number,
-  bulletCoords: typeof BULLET_COORDS,
-  bulletCount: number
-): { x: number; y: number } {
-  let dx = x;
-  let dy = y;
-
-  // 1. Player lens bulge deformation
-  const pdx = x - px;
-  const pdy = y - py;
-  const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
-  if (pdist < 140 && pdist > 0.1) {
-    const factor = (140 - pdist) / 140;
-    const displacement = 20 * factor * factor;
-    dx += (pdx / pdist) * displacement;
-    dy += (pdy / pdist) * displacement;
-  }
-
-  // 2. Active bullets gravity ripple deformation
-  for (let i = 0; i < bulletCount; i++) {
-    const bx = bulletCoords[i].x;
-    const by = bulletCoords[i].y;
-    const bdx = x - bx;
-    const bdy = y - by;
-    const bdist = Math.sqrt(bdx * bdx + bdy * bdy);
-    if (bdist < 60 && bdist > 0.1) {
-      const bFactor = (60 - bdist) / 60;
-      const bDisplacement = 12 * bFactor * bFactor;
-      dx += (bdx / bdist) * bDisplacement;
-      dy += (bdy / bdist) * bDisplacement;
-    }
-  }
-
-  DISPLACED_COORD.x = dx;
-  DISPLACED_COORD.y = dy;
-  return DISPLACED_COORD;
-}
 
 // ============================================================================
 // DECOUPLED BULLET DEATH & TRAIL MONITOR

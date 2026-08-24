@@ -1,5 +1,6 @@
 import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
+import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
 
 // ============================================================================
 // "NEON VOID" CANVAS VISUALS — HARD SCI-FI INDUSTRIAL ART DIRECTION
@@ -316,10 +317,7 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     // --- THERMONUCLEAR REACTIVE THRUSTER FLAME ---
     if (isAlive) {
-      const isBoosting = vy < 0;
-      const flicker = 0.85 + 0.15 * Math.sin(world.tick * 0.8);
-      const flameLength = (isBoosting ? size * 1.6 : size * 0.75) * flicker;
-      const flameWidth = (isBoosting ? size * 0.55 : size * 0.3) * flicker;
+      const { flameLength, flameWidth } = computeFlappyThrusterFlame(size, vy, world.tick);
 
       const flameGrad = getCachedCanvasGradient(ctx, `flame_${size}`, () => {
         const g = ctx.createLinearGradient(-size * 0.55, 0, -size * 2.2, 0);

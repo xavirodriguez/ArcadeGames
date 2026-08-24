@@ -15,6 +15,10 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
 
     const checkpoints = world.query("RespawnPoint");
     const players = world.query("PlatformerInput");
+    if (checkpoints.length === 0 || players.length === 0) return;
+
+    // Fast player entity lookup: single player fast-path or direct index check
+    const singlePlayer = players.length === 1 ? players[0] : null;
 
     for (let i = 0; i < checkpoints.length; i++) {
       const checkpointEntity = checkpoints[i];
@@ -28,14 +32,14 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
 
       let triggeredBy: Entity | null = null;
 
-      // Safe for determinism/rollback. Sequential indexed loops replace array spreading/mapping [...activeTriggers, ...collisions.map()], eliminating per-tick heap allocations while evaluating identical overlap conditions.
+      // Safe for determinism/rollback. Single player fast-path or indexed matching avoids repeated linear scans (players.includes), achieving O(1) entity overlap lookup per trigger.
       // 1. Check if checkpoint has CollisionEvents
       if (world.hasComponent(checkpointEntity, "CollisionEvents")) {
         const events = world.getComponent(checkpointEntity, "CollisionEvents")!;
         if (events.activeTriggers) {
           for (let j = 0; j < events.activeTriggers.length; j++) {
             const other = events.activeTriggers[j];
-            if (players.includes(other)) {
+            if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
               triggeredBy = other;
               break;
             }
@@ -44,7 +48,7 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
         if (!triggeredBy && events.collisions) {
           for (let j = 0; j < events.collisions.length; j++) {
             const other = events.collisions[j].otherEntity;
-            if (players.includes(other)) {
+            if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
               triggeredBy = other;
               break;
             }

@@ -25,19 +25,24 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
           const speed = (data.patrolSpeed as number) ?? 80;
 
           if (patrol) {
+            // Safe for determinism/rollback. Value-gated getMutableComponent prevents per-tick closure allocations and stateVersion bumps on constant movement.
             // Check wall or ground gap to turn around
             if (gd && (gd.hasWallAhead || !gd.hasGroundAhead)) {
-              world.mutateComponent(entity, "Patrol", (p) => {
-                p.direction = -p.direction;
-              });
+              const mutablePatrol = world.getMutableComponent(entity, "Patrol");
+              if (mutablePatrol) {
+                mutablePatrol.direction = -mutablePatrol.direction;
+              }
             }
 
             const currentPatrol = world.getComponent(entity, "Patrol")!;
             // Control intent: set horizontal velocity
-            if (world.hasComponent(entity, "Velocity")) {
-              world.mutateComponent(entity, "Velocity", (v) => {
-                v.vx = currentPatrol.direction * speed;
-              });
+            const vel = world.getComponent(entity, "Velocity");
+            const targetVx = currentPatrol.direction * speed;
+            if (vel && vel.vx !== targetVx) {
+              const mutableVel = world.getMutableComponent(entity, "Velocity");
+              if (mutableVel) {
+                mutableVel.vx = targetVx;
+              }
             }
           }
 
@@ -49,10 +54,10 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
       },
       Alert: {
         onEnter(world, entity, _data) {
-          if (world.hasComponent(entity, "Velocity")) {
-            world.mutateComponent(entity, "Velocity", (v) => {
-              v.vx = 0;
-            });
+          const vel = world.getComponent(entity, "Velocity");
+          if (vel && vel.vx !== 0) {
+            const mutableVel = world.getMutableComponent(entity, "Velocity");
+            if (mutableVel) mutableVel.vx = 0;
           }
         },
         onUpdate(_world, _entity, data, elapsed) {
@@ -64,10 +69,10 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
       },
       Windup: {
         onEnter(world, entity, _data) {
-          if (world.hasComponent(entity, "Velocity")) {
-            world.mutateComponent(entity, "Velocity", (v) => {
-              v.vx = 0;
-            });
+          const vel = world.getComponent(entity, "Velocity");
+          if (vel && vel.vx !== 0) {
+            const mutableVel = world.getMutableComponent(entity, "Velocity");
+            if (mutableVel) mutableVel.vx = 0;
           }
         },
         onUpdate(_world, _entity, data, elapsed) {
@@ -82,12 +87,12 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
           const speed = (data.patrolSpeed as number) ?? 80;
           const patrol = world.getComponent(entity, "Patrol");
           const dir = patrol ? patrol.direction : 1;
+          const targetVx = dir * speed * 1.5;
 
-          if (world.hasComponent(entity, "Velocity")) {
-            world.mutateComponent(entity, "Velocity", (v) => {
-              // Lunge forward
-              v.vx = dir * speed * 1.5;
-            });
+          const vel = world.getComponent(entity, "Velocity");
+          if (vel && vel.vx !== targetVx) {
+            const mutableVel = world.getMutableComponent(entity, "Velocity");
+            if (mutableVel) mutableVel.vx = targetVx;
           }
         },
         onUpdate(_world, _entity, data, elapsed) {
@@ -99,10 +104,10 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
       },
       Recovery: {
         onEnter(world, entity, _data) {
-          if (world.hasComponent(entity, "Velocity")) {
-            world.mutateComponent(entity, "Velocity", (v) => {
-              v.vx = 0;
-            });
+          const vel = world.getComponent(entity, "Velocity");
+          if (vel && vel.vx !== 0) {
+            const mutableVel = world.getMutableComponent(entity, "Velocity");
+            if (mutableVel) mutableVel.vx = 0;
           }
         },
         onUpdate(_world, _entity, data, elapsed) {

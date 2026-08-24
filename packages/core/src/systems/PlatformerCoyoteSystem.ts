@@ -18,8 +18,10 @@ export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreCo
     const velocityType = "Velocity" as Extract<keyof TRegistry, string>;
 
     const entities = world.query(jumperType, groundStateType, velocityType, gravityConfigType);
+    const len = entities.length;
 
-    for (const entity of entities) {
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
       const groundState = world.getComponent(entity, groundStateType) as any;
       const jumper = world.getComponent(entity, jumperType) as any;
       const gravityConfig = world.getComponent(entity, gravityConfigType) as any;
@@ -43,27 +45,31 @@ export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreCo
         nextJumpBufferTimer = Math.max(0, nextJumpBufferTimer - deltaTime);
       }
 
+      // Safe for determinism/rollback. Direct getMutableComponent calls and value-gating eliminate closure allocations and redundant stateVersion increments when timers or grounded states remain identical.
       // Check if we can trigger a buffered jump upon landing
       if (isGrounded && nextJumpBufferTimer > 0) {
-        // Execute the jump!
-        world.mutateComponent(entity, velocityType, (v: any) => {
-          v.vy = -gravityConfig.jumpVelocity;
-        });
+        const mutableVel = world.getMutableComponent(entity, velocityType) as any;
+        if (mutableVel) {
+          mutableVel.vy = -gravityConfig.jumpVelocity;
+        }
 
-        // Mutate ground state
-        world.mutateComponent(entity, groundStateType, (g: any) => {
-          g.isGrounded = false;
-        });
+        const mutableGround = world.getMutableComponent(entity, groundStateType) as any;
+        if (mutableGround) {
+          mutableGround.isGrounded = false;
+        }
 
         nextJumpBufferTimer = 0;
         nextCoyoteTimer = 0;
       }
 
-      // Write updated timers
-      world.mutateComponent(entity, jumperType, (j: any) => {
-        j.coyoteTimer = nextCoyoteTimer;
-        j.jumpBufferTimer = nextJumpBufferTimer;
-      });
+      // Write updated timers only when values actually change
+      if (jumper.coyoteTimer !== nextCoyoteTimer || jumper.jumpBufferTimer !== nextJumpBufferTimer) {
+        const mutableJumper = world.getMutableComponent(entity, jumperType) as any;
+        if (mutableJumper) {
+          mutableJumper.coyoteTimer = nextCoyoteTimer;
+          mutableJumper.jumpBufferTimer = nextJumpBufferTimer;
+        }
+      }
     }
   }
 }

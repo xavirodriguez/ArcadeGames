@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: radius.lg,
     width: 260,
+    minHeight: 48,
     fontFamily: typography.game,
     textAlign: "center",
     fontSize: typography.sizes.lg,

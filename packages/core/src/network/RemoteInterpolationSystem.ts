@@ -1,7 +1,12 @@
 import { World } from "../ecs/World";
 import { System } from "../ecs/System";
 import { NetworkManager } from "./NetworkManager";
-import { MultiplayerRegistry } from "./types";
+import {
+    MultiplayerRegistry,
+    IInterpolationModel,
+    RemoteInterpolationOptions,
+    ExponentialSmoothingModel
+} from "./types";
 
 /**
  * System responsible for visual interpolation (LERP) on Remote Players.
@@ -10,30 +15,41 @@ import { MultiplayerRegistry } from "./types";
  * @public
  */
 export class RemoteInterpolationSystem<TRegistry extends MultiplayerRegistry = MultiplayerRegistry> extends System<TRegistry> {
+    private interpolationModel: IInterpolationModel<TRegistry>;
+    private queryComponents: Extract<keyof TRegistry, string>[];
+
+    /**
+     * Constructs a RemoteInterpolationSystem with options object or legacy positional parameters.
+     *
+     * @param networkManager - The network manager instance.
+     * @param smoothingFactorOrOptions - Smoothing factor number or RemoteInterpolationOptions configuration object.
+     * @param queryComponents - Legacy positional query components array.
+     */
     constructor(
         private networkManager: NetworkManager<TRegistry>,
-        private smoothingFactor: number = 0.15,
-        private queryComponents: Extract<keyof TRegistry, string>[] = ["Transform", "RemotePlayer"] as any
+        smoothingFactorOrOptions?: number | RemoteInterpolationOptions<TRegistry>,
+        queryComponents?: Extract<keyof TRegistry, string>[]
     ) {
         super();
+        if (typeof smoothingFactorOrOptions === "object" && smoothingFactorOrOptions !== null) {
+            const options = smoothingFactorOrOptions;
+            this.interpolationModel = options.interpolationModel ?? new ExponentialSmoothingModel<TRegistry>(options.smoothingFactor ?? 0.15);
+            this.queryComponents = options.queryComponents ?? (options.interpolationModel?.queryComponents as any) ?? ["Transform", "RemotePlayer"];
+        } else {
+            const smoothingFactor = typeof smoothingFactorOrOptions === "number" ? smoothingFactorOrOptions : 0.15;
+            this.interpolationModel = new ExponentialSmoothingModel<TRegistry>(smoothingFactor);
+            this.queryComponents = queryComponents ?? (this.interpolationModel.queryComponents as any) ?? ["Transform", "RemotePlayer"];
+        }
     }
 
-    public update(world: World<TRegistry>, _deltaTime: number): void {
+    public update(world: World<TRegistry>, deltaTime: number): void {
         const remoteQuery = world.query(...(this.queryComponents as any));
-        for (const entity of remoteQuery) {
+        const qLen = remoteQuery.length;
+        for (let i = 0; i < qLen; i++) {
+            const entity = remoteQuery[i];
             const remote = world.getComponent(entity, "RemotePlayer" as Extract<keyof TRegistry, string>) as any;
-            if (remote && remote.targetX !== undefined && remote.targetY !== undefined) {
-                const alpha = 1 - Math.pow(1 - this.smoothingFactor, _deltaTime * 60);
-                world.mutateComponent(entity, "Transform" as Extract<keyof TRegistry, string>, (t: any) => {
-                    t.x += (remote.targetX! - t.x) * alpha;
-                    t.y += (remote.targetY! - t.y) * alpha;
-                    if (remote.targetRotation !== undefined) {
-                        let diffRot = remote.targetRotation - t.rotation;
-                        while (diffRot > Math.PI) diffRot -= Math.PI * 2;
-                        while (diffRot < -Math.PI) diffRot += Math.PI * 2;
-                        t.rotation += diffRot * alpha;
-                    }
-                });
+            if (remote && (remote.targetX !== undefined || remote.targetY !== undefined)) {
+                this.interpolationModel.interpolate(world, entity, remote, deltaTime);
             }
         }
     }

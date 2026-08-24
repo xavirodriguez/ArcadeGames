@@ -310,25 +310,27 @@ export class AsteroidsGame
     }
 
     if (this.networkManager) {
-      this.world.addSystem(new LocalPredictionSystem(this.networkManager, (world, input, dt) => {
-        const localQuery = world.query("Transform" as any, "LocalPlayer" as any, "Velocity" as any);
-        for (const entity of localQuery) {
-            const velocity  = world.getComponent(entity, "Velocity" as any) as any;
-            const transform = world.getComponent(entity, "Transform" as any) as any;
-            if (!velocity || !transform) continue;
+      this.world.addSystem(new LocalPredictionSystem(this.networkManager, {
+        simulateFn: (world, input, dt) => {
+          const localQuery = world.query("Transform" as any, "LocalPlayer" as any, "Velocity" as any);
+          for (const entity of localQuery) {
+              const velocity  = world.getComponent(entity, "Velocity" as any) as any;
+              const transform = world.getComponent(entity, "Transform" as any) as any;
+              if (!velocity || !transform) continue;
 
-            const tPlane = { rotation: transform.rotation };
-            const vPlane = { vx: velocity.vx, vy: velocity.vy };
+              const tPlane = { rotation: transform.rotation };
+              const vPlane = { vx: velocity.vx, vy: velocity.vy };
 
-            const phys = computeShipPhysics(tPlane, vPlane, input as any, this.config, dt);
+              const phys = computeShipPhysics(tPlane, vPlane, input as any, this.config, dt);
 
-            world.mutateComponent(entity, "Velocity" as any, (v: any) => {
-                v.vx = phys.vx;
-                v.vy = phys.vy;
-            });
-            world.mutateComponent(entity, "Transform" as any, (t: any) => {
-                t.rotation = phys.rotation;
-            });
+              world.mutateComponent(entity, "Velocity" as any, (v: any) => {
+                  v.vx = phys.vx;
+                  v.vy = phys.vy;
+              });
+              world.mutateComponent(entity, "Transform" as any, (t: any) => {
+                  t.rotation = phys.rotation;
+              });
+          }
         }
       }), { phase: SystemPhase.Input });
       this.world.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });

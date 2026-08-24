@@ -2,6 +2,13 @@ import { MiniGameEncounterDSL } from "./EncounterDSLSchema";
 import { StoryGraph } from "./StoryTypes";
 
 /**
+ * Validator Responsibility: Encounter DSL Semantic Validation Layer.
+ *
+ * Validates `MiniGameEncounterDSL` declarations against game registries and story context.
+ * Distinct from `StoryGraphValidator` (graph topology) and `StoryPackageValidator` (package bundle metadata & cross-references).
+ */
+
+/**
  * Represents a semantic validation error or warning detected during encounter linting.
  *
  * @public

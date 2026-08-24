@@ -33,9 +33,11 @@
     "typecheck:core": "pnpm --filter=@tiny-aster/core typecheck",
     "typecheck:app": "pnpm exec tsc -p tsconfig.json --noEmit",
     "check:core-boundaries": "bash ./scripts/check-core-boundaries.sh",
+    "check:ratchet": "pnpm exec tsx scripts/typecast-ratchet.ts",
+    "ratchet:update": "pnpm exec tsx scripts/typecast-ratchet.ts --update",
     "story:lint": "pnpm exec tsx scripts/story-lint.ts",
     "validate:story": "pnpm run story:lint",
-    "ci": "pnpm run build:core && pnpm run check:core-boundaries && pnpm run story:lint && pnpm run docs:check && pnpm run typecheck:app",
+    "ci": "pnpm run build:core && pnpm run check:core-boundaries && pnpm run check:ratchet && pnpm run story:lint && pnpm run docs:check && pnpm run typecheck:app",
     "test:ci": "NODE_OPTIONS=\"--max-old-space-size=4096\" pnpm exec jest --runInBand"
   },
   "dependencies": {

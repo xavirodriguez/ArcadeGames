@@ -54,13 +54,16 @@ jobs:
       - name: 1. Check Core Package Boundaries
         run: pnpm run check:core-boundaries
 
-      - name: 2. Run AST Determinism Linter (ts-morph)
+      - name: 2. Check Typecast Ratchet Linter (as any / as unknown)
+        run: NODE_OPTIONS="--max-old-space-size=4096" pnpm run check:ratchet
+
+      - name: 3. Run AST Determinism Linter (ts-morph)
         id: ast_linter
         run: |
           echo "## 🔍 AST Linter Results" >> $GITHUB_STEP_SUMMARY
           pnpm exec tsx scripts/ast-determinism-linter.ts >> $GITHUB_STEP_SUMMARY
 
-      - name: 3. Run StoryGraph & Semantic Linter
+      - name: 4. Run StoryGraph & Semantic Linter
         run: pnpm run story:lint
 
       - name: 4. Run Mutation Guards Unit Tests

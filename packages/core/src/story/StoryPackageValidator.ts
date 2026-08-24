@@ -2,6 +2,13 @@ import { StoryPackage, StoryGraph } from "./StoryTypes";
 import { StoryGraphValidator } from "./StoryGraphValidator";
 
 /**
+ * Validator Responsibility: Full Story Package Bundle Integrity & Cross-Reference Layer.
+ *
+ * Validates manifest metadata, delegates graph topology checks to `StoryGraphValidator`, and verifies package-wide entity cross-references (characters, evidence, deductions).
+ * Distinct from `SemanticValidator` (encounter DSL rules) and `StoryGraphValidator` (pure graph topology).
+ */
+
+/**
  * Validation result descriptor produced by `StoryPackageValidator`.
  *
  * @public

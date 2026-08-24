@@ -1,6 +1,13 @@
 import { StoryGraph, StoryCondition, StoryEffect } from "./StoryTypes";
 
 /**
+ * Validator Responsibility: Pure Story Graph Topology & State Key Linting Layer.
+ *
+ * Validates pure `StoryGraph` assets for entry point validity, broken transitions, orphan nodes, dead ends, and state keys.
+ * Distinct from `SemanticValidator` (encounter DSL rules) and `StoryPackageValidator` (package bundle manifest & cross-references).
+ */
+
+/**
  * Validation options supplied to `StoryGraphValidator`.
  *
  * @public

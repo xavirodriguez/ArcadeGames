@@ -1,0 +1,1032 @@
+{
+  "packages/core/src/__tests__/BaseGame.lifecycle.test.ts": {
+    "anyCount": 8,
+    "unknownCount": 0,
+    "total": 8
+  },
+  "packages/core/src/ai/SteeringSystem.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
+  "packages/core/src/assets/WebAssetProvider.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/src/audio/WebAudioPlayer.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/audio/__tests__/WebAudioPlayer.test.ts": {
+    "anyCount": 19,
+    "unknownCount": 0,
+    "total": 19
+  },
+  "packages/core/src/ecs/ComponentCloner.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "packages/core/src/ecs/Query.ts": {
+    "anyCount": 4,
+    "unknownCount": 0,
+    "total": 4
+  },
+  "packages/core/src/ecs/Schedule.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/src/ecs/World.ts": {
+    "anyCount": 11,
+    "unknownCount": 3,
+    "total": 14
+  },
+  "packages/core/src/network/LocalPredictionSystem.ts": {
+    "anyCount": 16,
+    "unknownCount": 0,
+    "total": 16
+  },
+  "packages/core/src/network/MultiplayerReconciler.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/src/network/NetworkController.ts": {
+    "anyCount": 0,
+    "unknownCount": 3,
+    "total": 3
+  },
+  "packages/core/src/network/NetworkManager.ts": {
+    "anyCount": 12,
+    "unknownCount": 1,
+    "total": 13
+  },
+  "packages/core/src/network/RemoteInterpolationSystem.ts": {
+    "anyCount": 4,
+    "unknownCount": 0,
+    "total": 4
+  },
+  "packages/core/src/network/RollbackSimulation.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/src/network/types.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
+  "packages/core/src/physics/collision/BroadPhase.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "packages/core/src/physics/collision/CollisionSystems.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "packages/core/src/physics/dynamics/PhysicsIntegrateSystem.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
+  "packages/core/src/physics/query/PhysicsQuery.ts": {
+    "anyCount": 0,
+    "unknownCount": 4,
+    "total": 4
+  },
+  "packages/core/src/physics/systems/PlatformCarrySystem.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/src/physics/systems/PlatformerGravitySystem.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "packages/core/src/physics/systems/PlatformerMovementSystem.ts": {
+    "anyCount": 4,
+    "unknownCount": 0,
+    "total": 4
+  },
+  "packages/core/src/physics/systems/TileCollisionSystem.ts": {
+    "anyCount": 9,
+    "unknownCount": 0,
+    "total": 9
+  },
+  "packages/core/src/physics/utils/ShipPhysics.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/rendering/Camera2D.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/rendering/RendererUtils.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/replay/ReplayPlayer.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/replay/ReplayRecorder.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/src/runtime/BaseGame.ts": {
+    "anyCount": 13,
+    "unknownCount": 0,
+    "total": 13
+  },
+  "packages/core/src/runtime/GameSession.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
+  "packages/core/src/scenes/CYOAScene.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/scenes/SceneManager.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
+  "packages/core/src/scenes/transitions/PixelateTransition.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "packages/core/src/snapshots/SnapshotRestore.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/src/snapshots/SnapshotRestoreSoA.ts": {
+    "anyCount": 3,
+    "unknownCount": 2,
+    "total": 5
+  },
+  "packages/core/src/snapshots/SnapshotSerializer.ts": {
+    "anyCount": 2,
+    "unknownCount": 4,
+    "total": 6
+  },
+  "packages/core/src/snapshots/SnapshotSerializerSoA.ts": {
+    "anyCount": 2,
+    "unknownCount": 1,
+    "total": 3
+  },
+  "packages/core/src/snapshots/WorldSnapshot.ts": {
+    "anyCount": 1,
+    "unknownCount": 2,
+    "total": 3
+  },
+  "packages/core/src/story/MetaProgressionService.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "packages/core/src/story/NarrativeTimelineEngine.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/story/StoryGraphValidator.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/story/StoryMigrations.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/src/story/StoryRuntime.ts": {
+    "anyCount": 4,
+    "unknownCount": 1,
+    "total": 5
+  },
+  "packages/core/src/story/StorySaveMigrations.ts": {
+    "anyCount": 11,
+    "unknownCount": 0,
+    "total": 11
+  },
+  "packages/core/src/systems/AbstractHierarchySystem.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "packages/core/src/systems/ComboSystem.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "packages/core/src/systems/InvulnerabilitySystem.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
+  "packages/core/src/systems/JuiceSystem.ts": {
+    "anyCount": 0,
+    "unknownCount": 6,
+    "total": 6
+  },
+  "packages/core/src/systems/ModifierSystem.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/systems/PlatformerCoyoteSystem.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
+  "packages/core/src/systems/RespawnSystem.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/src/systems/SegmentGenerator.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "packages/core/src/tests/BoltPerformance.test.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
+  "packages/core/src/utils/ComponentSetPool.ts": {
+    "anyCount": 2,
+    "unknownCount": 4,
+    "total": 6
+  },
+  "packages/core/src/utils/Juice.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/ArcadeDebugRun.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/ArcadeKernel.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/AssetLoader.test.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "packages/core/tests/BroadphaseScaleBenchmark.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/CollisionSystems.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/CombatRollbackResimulation.test.ts": {
+    "anyCount": 80,
+    "unknownCount": 0,
+    "total": 80
+  },
+  "packages/core/tests/ConfigService.test.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "packages/core/tests/DeterministicReplay.test.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "packages/core/tests/DivergenceDetector.test.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "packages/core/tests/GameSession.test.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/tests/MetaProgression.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/MultiplayerReconciler.test.ts": {
+    "anyCount": 13,
+    "unknownCount": 0,
+    "total": 13
+  },
+  "packages/core/tests/NarrativeEngineArchitecture.test.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/tests/PlatformerLevel3.test.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "packages/core/tests/PlatformerSystems.test.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
+  "packages/core/tests/ReplaySystem.test.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "packages/core/tests/ReplicationSystem.test.ts": {
+    "anyCount": 11,
+    "unknownCount": 0,
+    "total": 11
+  },
+  "packages/core/tests/RollbackSimulation.test.ts": {
+    "anyCount": 13,
+    "unknownCount": 0,
+    "total": 13
+  },
+  "packages/core/tests/SnapshotBuffer.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/SpatialCullingSystem.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/SpriteSystem.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/StoryRuntimeExtended.test.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "packages/core/tests/StorySaveMigrations.test.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "packages/core/tests/TTLSystemPool.test.ts": {
+    "anyCount": 33,
+    "unknownCount": 0,
+    "total": 33
+  },
+  "packages/core/tests/UnifiedLifecycle.test.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
+  "packages/core/tests/determinism.test.ts": {
+    "anyCount": 4,
+    "unknownCount": 0,
+    "total": 4
+  },
+  "packages/core/tests/ecs.test.ts": {
+    "anyCount": 14,
+    "unknownCount": 0,
+    "total": 14
+  },
+  "packages/core/tests/golden.test.ts": {
+    "anyCount": 11,
+    "unknownCount": 0,
+    "total": 11
+  },
+  "packages/core/tests/loop.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/refactor.test.ts": {
+    "anyCount": 9,
+    "unknownCount": 0,
+    "total": 9
+  },
+  "packages/core/tests/rollback.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "packages/core/tests/snapshots.test.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "packages/core/tests/utilsAndNetwork.test.ts": {
+    "anyCount": 21,
+    "unknownCount": 0,
+    "total": 21
+  },
+  "packages/renderer-canvas/src/CanvasRenderer.ts": {
+    "anyCount": 0,
+    "unknownCount": 7,
+    "total": 7
+  },
+  "packages/renderer-canvas/src/CanvasShapeDrawers.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "packages/renderer-canvas/src/CanvasSpriteDrawer.ts": {
+    "anyCount": 0,
+    "unknownCount": 3,
+    "total": 3
+  },
+  "packages/renderer-skia/src/SkiaRenderer.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "packages/renderer-skia/src/SkiaSpriteDrawer.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "scripts/typecast-ratchet.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "server/src/AsteroidsRoom.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
+  "server/src/BaseRoom.ts": {
+    "anyCount": 32,
+    "unknownCount": 1,
+    "total": 33
+  },
+  "server/src/SpaceInvadersRoom.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "server/src/__tests__/AsteroidsRoom.test.ts": {
+    "anyCount": 11,
+    "unknownCount": 7,
+    "total": 18
+  },
+  "server/src/__tests__/FlappyBirdRoom.test.ts": {
+    "anyCount": 4,
+    "unknownCount": 0,
+    "total": 4
+  },
+  "server/src/__tests__/GeometryWarsMultiplayer.test.ts": {
+    "anyCount": 5,
+    "unknownCount": 1,
+    "total": 6
+  },
+  "server/src/__tests__/GeometryWarsRoom.test.ts": {
+    "anyCount": 10,
+    "unknownCount": 4,
+    "total": 14
+  },
+  "server/src/__tests__/PongRoom.test.ts": {
+    "anyCount": 4,
+    "unknownCount": 0,
+    "total": 4
+  },
+  "server/src/__tests__/SpaceInvadersRoom.test.ts": {
+    "anyCount": 37,
+    "unknownCount": 12,
+    "total": 49
+  },
+  "server/src/index.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "src/app/asteroids/index.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/app/blindstation/index.tsx": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/app/cyoa/index.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/app/flappybird/index.tsx": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "src/app/index.tsx": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/components/ArcadeStage.tsx": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "src/components/ComboDisplay.tsx": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "src/components/DailyChallengeCard.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/components/DailyResultsOverlay.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/components/EncounterRuleEditor.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/components/GameOverNarrative.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/components/LeaderboardOverlay.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/components/TransitionOverlay.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/components/debug/DebugOverlay.tsx": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "src/games/asteroids/AsteroidsGame.ts": {
+    "anyCount": 34,
+    "unknownCount": 0,
+    "total": 34
+  },
+  "src/games/asteroids/EntityFactory.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/games/asteroids/__tests__/AsteroidCollisionSystem.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/asteroids/__tests__/AsteroidsGame.test.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
+  "src/games/asteroids/__tests__/AsteroidsGameplay.test.ts": {
+    "anyCount": 42,
+    "unknownCount": 0,
+    "total": 42
+  },
+  "src/games/asteroids/__tests__/AsteroidsStoryMode.test.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/games/asteroids/__tests__/AsteroidsVisuals.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/asteroids/__tests__/InputBridge.test.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/asteroids/__tests__/NewCorrections.test.ts": {
+    "anyCount": 19,
+    "unknownCount": 0,
+    "total": 19
+  },
+  "src/games/asteroids/__tests__/SharedVFX.test.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/asteroids/rendering/AsteroidsCanvasVisuals.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/asteroids/rendering/AsteroidsSkiaVisuals.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/asteroids/story/EscapeRouteEncounter.ts": {
+    "anyCount": 12,
+    "unknownCount": 0,
+    "total": 12
+  },
+  "src/games/asteroids/systems/AsteroidCollisionSystem.ts": {
+    "anyCount": 11,
+    "unknownCount": 2,
+    "total": 13
+  },
+  "src/games/asteroids/systems/AsteroidInputSystem.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/games/echorunner/EchoRunnerGame.ts": {
+    "anyCount": 23,
+    "unknownCount": 0,
+    "total": 23
+  },
+  "src/games/echorunner/__tests__/EchoRunner.test.ts": {
+    "anyCount": 11,
+    "unknownCount": 1,
+    "total": 12
+  },
+  "src/games/echorunner/rendering/EchoRunnerCanvasVisuals.ts": {
+    "anyCount": 10,
+    "unknownCount": 0,
+    "total": 10
+  },
+  "src/games/echorunner/story/EchoRunnerEncounter.ts": {
+    "anyCount": 12,
+    "unknownCount": 0,
+    "total": 12
+  },
+  "src/games/flappybird/FlappyBirdGame.ts": {
+    "anyCount": 13,
+    "unknownCount": 1,
+    "total": 14
+  },
+  "src/games/flappybird/rendering/FlappyBirdCanvasVisuals.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/flappybird/rendering/FlappyBirdSkiaVisuals.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/flappybird/story/FlappyBirdEncounter.ts": {
+    "anyCount": 12,
+    "unknownCount": 0,
+    "total": 12
+  },
+  "src/games/flappybird/systems/FlappyBirdCollisionSystem.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/flappybird/systems/FlappyBirdGlideSystem.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/flappybird/systems/FlappyBirdInputSystem.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/geometrywars/GeometryWarsGame.ts": {
+    "anyCount": 30,
+    "unknownCount": 0,
+    "total": 30
+  },
+  "src/games/geometrywars/__tests__/GeometricWaves.test.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
+  "src/games/geometrywars/__tests__/GeometryWarsGame.test.ts": {
+    "anyCount": 14,
+    "unknownCount": 0,
+    "total": 14
+  },
+  "src/games/geometrywars/__tests__/GeometryWarsTriggerCombat.test.ts": {
+    "anyCount": 12,
+    "unknownCount": 0,
+    "total": 12
+  },
+  "src/games/geometrywars/__tests__/RendererParity.test.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/geometrywars/__tests__/WeaponAndBroadphase.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/geometrywars/entities/GeometryWarsEntities.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/games/geometrywars/scenes/GeometryWarsGameScene.ts": {
+    "anyCount": 11,
+    "unknownCount": 0,
+    "total": 11
+  },
+  "src/games/geometrywars/story/GeometryWarsEncounter.ts": {
+    "anyCount": 13,
+    "unknownCount": 0,
+    "total": 13
+  },
+  "src/games/geometrywars/systems/GeometryWarsGameStateSystem.ts": {
+    "anyCount": 15,
+    "unknownCount": 0,
+    "total": 15
+  },
+  "src/games/geometrywars/systems/WeaponSystem.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/platformer/PlatformerGame.ts": {
+    "anyCount": 11,
+    "unknownCount": 0,
+    "total": 11
+  },
+  "src/games/platformer/story/PlatformerEncounter.ts": {
+    "anyCount": 12,
+    "unknownCount": 0,
+    "total": 12
+  },
+  "src/games/platformer/systems/PlatformerInputSystem.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "src/games/pong/PongGame.ts": {
+    "anyCount": 20,
+    "unknownCount": 1,
+    "total": 21
+  },
+  "src/games/pong/__tests__/PongUpgrades.test.ts": {
+    "anyCount": 22,
+    "unknownCount": 0,
+    "total": 22
+  },
+  "src/games/pong/input/AIPongController.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/pong/story/PongEncounter.ts": {
+    "anyCount": 13,
+    "unknownCount": 0,
+    "total": 13
+  },
+  "src/games/pong/systems/PongCollisionSystem.ts": {
+    "anyCount": 8,
+    "unknownCount": 0,
+    "total": 8
+  },
+  "src/games/pong/systems/PongGameStateSystem.ts": {
+    "anyCount": 14,
+    "unknownCount": 0,
+    "total": 14
+  },
+  "src/games/pong/systems/PongInputSystem.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
+  "src/games/pong/systems/PongSpinSystem.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/pong/systems/PongVelocityGuardrailSystem.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/shared/__tests__/AchievementAndBossReactivity.test.ts": {
+    "anyCount": 10,
+    "unknownCount": 0,
+    "total": 10
+  },
+  "src/games/shared/__tests__/DifficultyDirectorSystem.test.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
+  "src/games/shared/__tests__/InputUnificationRetrofit.test.ts": {
+    "anyCount": 16,
+    "unknownCount": 0,
+    "total": 16
+  },
+  "src/games/shared/__tests__/UnifiedComboIntegration.test.ts": {
+    "anyCount": 12,
+    "unknownCount": 0,
+    "total": 12
+  },
+  "src/games/shared/arcade/spawnScorePopup.ts": {
+    "anyCount": 1,
+    "unknownCount": 1,
+    "total": 2
+  },
+  "src/games/shared/arcade/systems/AchievementSystem.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/games/shared/arcade/systems/DifficultyDirectorSystem.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "src/games/shared/arcade/systems/LootSystem.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/shared/arcade/systems/PowerUpSystem.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
+  "src/games/shared/combat/__tests__/CombatSystem.test.ts": {
+    "anyCount": 51,
+    "unknownCount": 0,
+    "total": 51
+  },
+  "src/games/shared/combat/systems/CombatSystem.ts": {
+    "anyCount": 21,
+    "unknownCount": 0,
+    "total": 21
+  },
+  "src/games/shared/spawn/__tests__/SpawnDirectorSystem.test.ts": {
+    "anyCount": 25,
+    "unknownCount": 0,
+    "total": 25
+  },
+  "src/games/shared/spawn/systems/SpawnDirectorSystem.ts": {
+    "anyCount": 9,
+    "unknownCount": 0,
+    "total": 9
+  },
+  "src/games/shared/story/DialogueSystem.ts": {
+    "anyCount": 14,
+    "unknownCount": 0,
+    "total": 14
+  },
+  "src/games/shared/story/StoryDirectorSystem.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
+  },
+  "src/games/shared/story/__tests__/StorySystem.test.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/games/space-invaders/EnemyFactory.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/games/space-invaders/SpaceInvadersGame.ts": {
+    "anyCount": 49,
+    "unknownCount": 0,
+    "total": 49
+  },
+  "src/games/space-invaders/__tests__/SpaceInvadersCombat.test.ts": {
+    "anyCount": 23,
+    "unknownCount": 0,
+    "total": 23
+  },
+  "src/games/space-invaders/__tests__/SpaceInvadersDraftSystem.test.ts": {
+    "anyCount": 29,
+    "unknownCount": 0,
+    "total": 29
+  },
+  "src/games/space-invaders/__tests__/SpaceInvadersInput.test.ts": {
+    "anyCount": 10,
+    "unknownCount": 0,
+    "total": 10
+  },
+  "src/games/space-invaders/__tests__/SpaceInvadersOverlaysAndDemo.test.ts": {
+    "anyCount": 13,
+    "unknownCount": 0,
+    "total": 13
+  },
+  "src/games/space-invaders/__tests__/SpaceInvadersReplayIntegration.test.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/space-invaders/__tests__/SpaceInvadersShootingIntegration.test.ts": {
+    "anyCount": 10,
+    "unknownCount": 0,
+    "total": 10
+  },
+  "src/games/space-invaders/__tests__/space-invaders.test.ts": {
+    "anyCount": 33,
+    "unknownCount": 0,
+    "total": 33
+  },
+  "src/games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/space-invaders/scenes/SpaceInvadersGameScene.ts": {
+    "anyCount": 11,
+    "unknownCount": 3,
+    "total": 14
+  },
+  "src/games/space-invaders/story/InvasionEncounter.ts": {
+    "anyCount": 13,
+    "unknownCount": 0,
+    "total": 13
+  },
+  "src/games/space-invaders/systems/SpaceInvadersCollisionSystem.ts": {
+    "anyCount": 12,
+    "unknownCount": 0,
+    "total": 12
+  },
+  "src/games/space-invaders/systems/SpaceInvadersGameStateSystem.ts": {
+    "anyCount": 4,
+    "unknownCount": 0,
+    "total": 4
+  },
+  "src/games/space-invaders/systems/SpaceInvadersInputSystem.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/space-invaders/systems/WaveTransitionSystem.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/hooks/useKeyboardControls.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/hooks/useStoryRuntime.ts": {
+    "anyCount": 3,
+    "unknownCount": 0,
+    "total": 3
+  },
+  "src/providers/ExpoAssetProvider.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/styles/Glow.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/utils/MutatorRegistry.ts": {
+    "anyCount": 15,
+    "unknownCount": 0,
+    "total": 15
+  }
+}

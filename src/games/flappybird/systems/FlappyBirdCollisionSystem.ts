@@ -143,7 +143,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
                 rate: 0,
                 burst: true,
                 count: 5,
-                color: ["#FFD700"],
+                color: ["#00F3FF"],
                 size: [2, 4],
                 speed: [40, 80],
                 angle: [0, 360],

@@ -42,6 +42,8 @@ export default function FlappyBirdScreen() {
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
   const [playerName, setPlayerName] = useState("");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+  const [isBooting, setIsBooting] = useState(false);
+  const sessionBootedRef = useRef(false);
 
   // Sync player name from profile
   useEffect(() => {
@@ -140,10 +142,22 @@ export default function FlappyBirdScreen() {
     handleInputState({ flap: false, glide: false });
   }, [handleInputState]);
 
+  if (isBooting) {
+    return (
+      <SafeAreaProvider>
+        <View style={[sharedScreenStyles.container, styles.bootContainer]}>
+          <Text style={styles.bootTitle}>NEON VOID // INTERCEPTOR</Text>
+          <Text style={styles.bootSub}>INITIALIZING FLIGHT TELEMETRY...</Text>
+          <Text style={styles.bootCode}>SYSTEM_OK [CONTAINMENT_SECTOR_7]</Text>
+        </View>
+      </SafeAreaProvider>
+    );
+  }
+
   if (!started) {
     return (
       <StartScreen
-        title="FLAPPY BIRD"
+        title="NEON VOID"
         highScore={highScore}
         onStart={() => {
           hapticSelection();
@@ -151,7 +165,16 @@ export default function FlappyBirdScreen() {
             restartWithSeed(initialSeed);
           }
           setIsMulti(false);
-          setStarted(true);
+          if (!sessionBootedRef.current) {
+            setIsBooting(true);
+            setTimeout(() => {
+              sessionBootedRef.current = true;
+              setIsBooting(false);
+              setStarted(true);
+            }, 800);
+          } else {
+            setStarted(true);
+          }
         }}
         onStartMulti={() => {
           hapticSelection();
@@ -363,5 +386,32 @@ const styles = StyleSheet.create({
   },
   spacerHorizontal20: {
     width: 20,
+  },
+  bootContainer: {
+    backgroundColor: "#050510",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  bootTitle: {
+    fontFamily: "monospace",
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#00F3FF",
+    letterSpacing: 2,
+    marginBottom: 10,
+  },
+  bootSub: {
+    fontFamily: "monospace",
+    fontSize: 14,
+    color: "#8B93A5",
+    letterSpacing: 1,
+    marginBottom: 15,
+  },
+  bootCode: {
+    fontFamily: "monospace",
+    fontSize: 12,
+    color: "#FF0000",
+    letterSpacing: 1,
   },
 });

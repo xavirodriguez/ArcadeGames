@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { EvidenceRelation } from '../../types/evidence';
-import { getRelationConfig, RELATION_CONFIGS } from '../../config/evidenceConfig';
+import { getRelationConfig } from '../../utils/evidence';
 
 const RELATIONS: EvidenceRelation[] = [
   'confirms',
@@ -17,15 +17,15 @@ export const EvidenceLegend: React.FC = () => {
 
   return (
     <div className="absolute bottom-3 left-3 z-20 max-w-xs select-none">
-      <div className="bg-slate-950/90 border border-slate-800 rounded-lg backdrop-blur-md p-2 shadow-xl">
+      <div className="bg-slate-950/90 border border-slate-800 rounded-md backdrop-blur-md p-2 shadow-xl">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-400">
+          <span className="text-[11px] font-mono font-extrabold uppercase tracking-wider text-slate-300">
             LEYENDA DE RELACIONES
           </span>
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-[10px] font-bold text-slate-400 hover:text-cyan-300 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+            className="text-[10px] font-mono font-bold text-slate-400 hover:text-cyan-300 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 focus:outline-none focus:ring-1 focus:ring-cyan-400"
             aria-expanded={isExpanded}
             aria-label={isExpanded ? 'Ocultar leyenda' : 'Mostrar leyenda'}
           >
@@ -51,7 +51,7 @@ export const EvidenceLegend: React.FC = () => {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <span className="font-medium text-[11px] truncate">{cfg.label}</span>
+                  <span className="font-mono text-[11px] truncate">{cfg.label}</span>
                 </div>
               );
             })}

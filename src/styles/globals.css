@@ -73,19 +73,33 @@
 
 :root {
   /* Narrative UI Semantic Tokens */
-  --narrative-bg: #020617;
-  --narrative-surface: #0f172a;
-  --narrative-surface-elevated: #1e293b;
-  --narrative-foreground: #f8fafc;
-  --narrative-muted: #94a3b8;
-  --narrative-primary: #06b6d4;
-  --narrative-interactive: #00f0ff;
-  --narrative-danger: #f43f5e;
-  --narrative-warning: #f59e0b;
-  --narrative-success: #10b981;
-  --narrative-mystery: #a855f7;
-  --narrative-border: #334155;
-  --narrative-focus: #67e8f9;
+  --story-bg: #020617;
+  --story-surface: #0f172a;
+  --story-surface-elevated: #1e293b;
+  --story-foreground: #f8fafc;
+  --story-muted: #94a3b8;
+  --story-interactive: #06b6d4;
+  --story-danger: #f43f5e;
+  --story-warning: #f59e0b;
+  --story-system: #10b981;
+  --story-mystery: #a855f7;
+  --story-border: #334155;
+  --story-focus: #67e8f9;
+
+  /* Narrative UI Legacy Compat Tokens */
+  --narrative-bg: var(--story-bg);
+  --narrative-surface: var(--story-surface);
+  --narrative-surface-elevated: var(--story-surface-elevated);
+  --narrative-foreground: var(--story-foreground);
+  --narrative-muted: var(--story-muted);
+  --narrative-primary: var(--story-interactive);
+  --narrative-interactive: var(--story-interactive);
+  --narrative-danger: var(--story-danger);
+  --narrative-warning: var(--story-warning);
+  --narrative-success: var(--story-system);
+  --narrative-mystery: var(--story-mystery);
+  --narrative-border: var(--story-border);
+  --narrative-focus: var(--story-focus);
 }
 
 @theme inline {
@@ -129,6 +143,19 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   /* Narrative Theme Mappings */
+  --color-story-bg: var(--story-bg);
+  --color-story-surface: var(--story-surface);
+  --color-story-surface-elevated: var(--story-surface-elevated);
+  --color-story-foreground: var(--story-foreground);
+  --color-story-muted: var(--story-muted);
+  --color-story-interactive: var(--story-interactive);
+  --color-story-danger: var(--story-danger);
+  --color-story-warning: var(--story-warning);
+  --color-story-system: var(--story-system);
+  --color-story-mystery: var(--story-mystery);
+  --color-story-border: var(--story-border);
+  --color-story-focus: var(--story-focus);
+
   --color-narrative-bg: var(--narrative-bg);
   --color-narrative-surface: var(--narrative-surface);
   --color-narrative-surface-elevated: var(--narrative-surface-elevated);

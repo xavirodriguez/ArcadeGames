@@ -20,17 +20,22 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
   const visibleNodes = useMemo(() => nodes.filter((node) => node.discovered), [nodes]);
   const visibleEdges = useMemo(() => edges.filter((edge) => edge.discovered), [edges]);
 
-  // Node Map lookup optimization
-  const nodeMap = useMemo(() => {
-    const map = new Map<string, EvidenceNodeViewModel>();
-    visibleNodes.forEach((n) => map.set(n.id, n));
-    return map;
-  }, [visibleNodes]);
+  // Set of node IDs related to the selected node via edges
+  const relatedNodeIds = useMemo(() => {
+    if (!selectedNodeId) return new Set<string>();
+    const set = new Set<string>([selectedNodeId]);
+    visibleEdges.forEach((edge) => {
+      if (edge.from === selectedNodeId) set.add(edge.to);
+      if (edge.to === selectedNodeId) set.add(edge.from);
+    });
+    return set;
+  }, [selectedNodeId, visibleEdges]);
 
-  // Defensive Overlap Detection Strategy (Option A & B: Warn in dev and subtle minimum visual separation)
+  // Diagnostic Overlap Detector (approx < 220px equivalent in 0..1000 coordinate space)
   const overlappingWarnings = useMemo(() => {
     const warnings: string[] = [];
-    const minDistanceSq = 40 * 40; // 40 unit threshold in 0..1000 coordinate space
+    const minDistanceThreshold = 220;
+    const minDistanceSq = minDistanceThreshold * minDistanceThreshold;
 
     for (let i = 0; i < visibleNodes.length; i++) {
       for (let j = i + 1; j < visibleNodes.length; j++) {
@@ -41,7 +46,10 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
         const distSq = dx * dx + dy * dy;
 
         if (distSq < minDistanceSq) {
-          warnings.push(`Nodos en conflicto visual: "${n1.title}" y "${n2.title}"`);
+          const dist = Math.round(Math.sqrt(distSq));
+          warnings.push(
+            `Nodos excesivamente próximos (${dist}px < 220px): "${n1.title}" y "${n2.title}"`
+          );
         }
       }
     }
@@ -52,7 +60,7 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
 
   return (
     <div
-      className="relative w-full h-full min-h-[500px] bg-slate-950 rounded-xl border border-slate-800 overflow-hidden select-none"
+      className="relative w-full h-full min-h-[500px] bg-slate-950 rounded-lg border border-slate-800 overflow-hidden select-none"
       role="region"
       aria-label="Tablero de Investigación y Evidencias"
     >
@@ -84,6 +92,8 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
             key={node.id}
             node={node}
             isSelected={node.id === selectedNodeId}
+            hasNodeSelected={hasNodeSelected}
+            isRelatedToSelected={relatedNodeIds.has(node.id)}
             onSelect={onSelectNode}
           />
         ))}
@@ -92,10 +102,10 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
       {/* Relationship Legend */}
       <EvidenceLegend />
 
-      {/* Dev Warning Banner for Overlapping Nodes */}
+      {/* Dev Warning Banner for Overlapping Nodes (< 220 units in 0..1000 coordinate space) */}
       {process.env.NODE_ENV !== 'production' && overlappingWarnings.length > 0 && (
-        <div className="absolute top-2 left-2 z-30 max-w-sm bg-amber-950/90 border border-amber-500/80 text-amber-200 text-[10px] p-2 rounded shadow-lg pointer-events-none">
-          <div className="font-bold uppercase tracking-wider mb-1">[DEV WARNING - OVERLAP]</div>
+        <div className="absolute top-2 left-2 z-30 max-w-sm bg-amber-950/90 border border-amber-500/80 text-amber-200 text-[10px] p-2 rounded shadow-lg pointer-events-none font-mono">
+          <div className="font-bold uppercase tracking-wider mb-1">[DEV WARNING - OVERLAP DETECTION]</div>
           <ul className="list-disc pl-3 space-y-0.5">
             {overlappingWarnings.map((w, idx) => (
               <li key={idx}>{w}</li>
@@ -105,7 +115,7 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
       )}
 
       {visibleNodes.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center text-slate-600 italic text-sm">
+        <div className="absolute inset-0 flex items-center justify-center text-slate-600 italic text-sm font-mono">
           No hay evidencias ni pistas descubiertas en este momento.
         </div>
       )}

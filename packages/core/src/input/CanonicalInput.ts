@@ -19,13 +19,16 @@ export type CanonicalActionName<TExtra extends string = never> =
  * @public
  */
 export interface CanonicalInputState<TExtra extends string = never> {
+  /** Map of standard analog axis values normalized between -1.0 and 1.0. */
   axes: {
     moveX: number;
     moveY: number;
     aimX: number;
     aimY: number;
   };
+  /** Set of currently active canonical action names. */
   actions: Set<CanonicalActionName<TExtra>>;
+  /** Timestamp when the input frame was recorded. */
   timestamp: number;
 }
 

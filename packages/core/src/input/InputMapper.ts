@@ -9,8 +9,11 @@ import {
  * @public
  */
 export interface RawGamepadState {
+  /** Whether the gamepad controller is currently connected. */
   connected: boolean;
+  /** Array of analog axis positions on the gamepad. */
   axes: number[];
+  /** Array of digital button states on the gamepad. */
   buttons: boolean[];
 }
 
@@ -19,7 +22,9 @@ export interface RawGamepadState {
  * @public
  */
 export interface RawInputState {
+  /** Set of physical keyboard keys currently pressed. */
   keysPressed: Set<string>;
+  /** Optional raw gamepad hardware state. */
   gamepad?: RawGamepadState;
 }
 
@@ -38,8 +43,11 @@ export function createEmptyRawInputState(): RawInputState {
  * @public
  */
 export interface AxisBinding {
+  /** Binding discriminator kind. */
   kind: "axis";
+  /** Target canonical input axis mapped by this binding. */
   canonicalAxis: keyof CanonicalInputState["axes"];
+  /** Hardware input source descriptor. */
   source:
     | { type: "keyboard"; positiveKey: string; negativeKey: string }
     | { type: "gamepadAxis"; index: number; invert?: boolean; deadzone?: number };
@@ -50,8 +58,11 @@ export interface AxisBinding {
  * @public
  */
 export interface ActionBinding<TExtra extends string = never> {
+  /** Binding discriminator kind. */
   kind: "action";
+  /** Target canonical action name mapped by this binding. */
   canonicalAction: CanonicalActionName<TExtra>;
+  /** Hardware input source descriptor. */
   source:
     | { type: "keyboard"; key: string }
     | { type: "gamepadButton"; index: number };
@@ -78,14 +89,17 @@ export type BindingSet<TExtra extends string = never> = InputBinding<TExtra>[];
 export class InputMapper<TExtra extends string = never> {
   private bindings: BindingSet<TExtra>;
 
+  /** Creates a new InputMapper instance with optional initial bindings. */
   constructor(bindings: BindingSet<TExtra> = []) {
     this.bindings = bindings;
   }
 
+  /** Sets active input bindings. */
   public setBindings(bindings: BindingSet<TExtra>): void {
     this.bindings = bindings;
   }
 
+  /** Gets active input bindings. */
   public getBindings(): BindingSet<TExtra> {
     return [...this.bindings];
   }

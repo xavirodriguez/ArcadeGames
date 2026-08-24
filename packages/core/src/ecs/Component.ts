@@ -16,11 +16,17 @@ export interface Component {
  */
 export type ComponentRegistry = Record<string, Component>;
 
-/** @public */
+/**
+ * Extracts string component type keys registered in a ComponentRegistry.
+ * @public
+ */
 export type ComponentType<TRegistry extends ComponentRegistry> =
   Extract<keyof TRegistry, string>;
 
-/** @public */
+/**
+ * Retrieves the Component data structure type associated with a specific component type key in a ComponentRegistry.
+ * @public
+ */
 export type ComponentOf<
   TRegistry extends ComponentRegistry,
   TType extends ComponentType<TRegistry>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { SearchIcon } from './icons/EvidenceIcons';
+import { getResourceStatus, ResourceStatus } from '../utils/evidence';
 
 interface ResourceHUDProps {
   oxygen?: number;
@@ -9,15 +10,7 @@ interface ResourceHUDProps {
   onOpenInvestigation: () => void;
 }
 
-type ResourceStatus = 'normal' | 'warning' | 'critical';
-
-function getResourceStatus(value: number): ResourceStatus {
-  if (value < 20) return 'critical';
-  if (value < 50) return 'warning';
-  return 'normal';
-}
-
-function getBarColorAndAnimation(status: ResourceStatus, isEnergy = false) {
+function getBarColorAndAnimation(status: ResourceStatus) {
   switch (status) {
     case 'critical':
       return 'bg-rose-500 animate-pulse';
@@ -25,7 +18,7 @@ function getBarColorAndAnimation(status: ResourceStatus, isEnergy = false) {
       return 'bg-amber-400';
     case 'normal':
     default:
-      return isEnergy ? 'bg-amber-400' : 'bg-cyan-400';
+      return 'bg-emerald-400';
   }
 }
 
@@ -45,7 +38,7 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
       role="banner"
     >
       {/* Station Vital Signs */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-6 font-mono">
         {typeof oxygen === 'number' && (
           <div
             className="flex items-center gap-2"
@@ -58,18 +51,18 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
                   ? 'text-rose-400 font-extrabold animate-pulse'
                   : o2Status === 'warning'
                   ? 'text-amber-400'
-                  : 'text-cyan-400'
+                  : 'text-slate-300'
               }`}
             >
               O2
             </span>
-            <div className="w-24 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+            <div className="w-24 bg-slate-900 h-2 rounded overflow-hidden border border-slate-800">
               <div
                 className={`h-full transition-all duration-300 ${getBarColorAndAnimation(o2Status)}`}
                 style={{ width: `${Math.max(0, Math.min(100, oxygen))}%` }}
               />
             </div>
-            <span className="text-xs font-mono text-slate-300 font-bold">
+            <span className="text-xs text-slate-300 font-bold">
               {oxygen}%
             </span>
           </div>
@@ -85,18 +78,20 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
               className={`text-xs font-bold tracking-wider ${
                 pwrStatus === 'critical'
                   ? 'text-rose-400 font-extrabold animate-pulse'
-                  : 'text-amber-400'
+                  : pwrStatus === 'warning'
+                  ? 'text-amber-400'
+                  : 'text-slate-300'
               }`}
             >
               PWR
             </span>
-            <div className="w-24 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+            <div className="w-24 bg-slate-900 h-2 rounded overflow-hidden border border-slate-800">
               <div
-                className={`h-full transition-all duration-300 ${getBarColorAndAnimation(pwrStatus, true)}`}
+                className={`h-full transition-all duration-300 ${getBarColorAndAnimation(pwrStatus)}`}
                 style={{ width: `${Math.max(0, Math.min(100, energy))}%` }}
               />
             </div>
-            <span className="text-xs font-mono text-slate-300 font-bold">
+            <span className="text-xs text-slate-300 font-bold">
               {energy}%
             </span>
           </div>
@@ -107,7 +102,7 @@ export const ResourceHUD: React.FC<ResourceHUDProps> = ({
       <button
         type="button"
         onClick={onOpenInvestigation}
-        className="relative flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-cyan-500 hover:bg-slate-800 transition-all text-xs font-bold text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        className="relative flex items-center gap-2 px-3 py-1.5 rounded bg-slate-900 border border-slate-700 hover:border-cyan-400 hover:bg-slate-800 transition-all text-xs font-mono font-bold text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 active:scale-[0.98]"
         aria-label={`Abrir Tablero de Investigación${
           hasNewEvidence ? ` (${unreadCount} nuevas pistas)` : ''
         }`}

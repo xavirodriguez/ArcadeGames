@@ -15,15 +15,15 @@ export const ContextStrip: React.FC<ContextStripProps> = ({
   const getTypeStyles = (type: ContextItem['type']) => {
     switch (type) {
       case 'warning':
-        return 'bg-rose-950/40 border-rose-500/50 text-rose-300';
+        return 'bg-rose-950/50 border-rose-600/60 text-rose-300';
       case 'objective':
-        return 'bg-amber-950/40 border-amber-500/50 text-amber-300';
+        return 'bg-amber-950/50 border-amber-600/60 text-amber-300';
       case 'knowledge':
-        return 'bg-cyan-950/40 border-cyan-500/50 text-cyan-300';
+        return 'bg-slate-900/90 border-slate-700 text-slate-200';
       case 'memory':
-        return 'bg-purple-950/40 border-purple-500/50 text-purple-300';
+        return 'bg-purple-950/50 border-purple-600/60 text-purple-300';
       case 'relationship':
-        return 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300';
+        return 'bg-emerald-950/50 border-emerald-600/60 text-emerald-300';
     }
   };
 
@@ -46,7 +46,7 @@ export const ContextStrip: React.FC<ContextStripProps> = ({
     <div
       className="flex flex-wrap gap-2 my-2 select-none"
       role="region"
-      aria-label="Contexto narrativo y evidencias relacionadas"
+      aria-label="Registro de contexto narrativo"
     >
       {items.map((item) => {
         const isInteractive = Boolean(item.evidenceId && onSelectEvidence);
@@ -56,11 +56,11 @@ export const ContextStrip: React.FC<ContextStripProps> = ({
             key={item.id}
             type={isInteractive ? 'button' : undefined}
             disabled={!isInteractive}
-            className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border font-mono tracking-wide transition-all ${getTypeStyles(
+            className={`inline-flex items-center gap-2 text-xs px-2.5 py-1 rounded border font-mono tracking-wide transition-all ${getTypeStyles(
               item.type
             )} ${
               isInteractive
-                ? 'cursor-pointer hover:bg-slate-800/90 hover:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+                ? 'cursor-pointer hover:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
                 : 'cursor-default'
             }`}
             aria-label={`${getTypeBadge(item.type)}: ${item.label}`}
@@ -73,7 +73,7 @@ export const ContextStrip: React.FC<ContextStripProps> = ({
             <span className="font-extrabold uppercase text-[10px] tracking-wider opacity-90">
               [{getTypeBadge(item.type)}]
             </span>
-            <span className="font-sans font-medium">{item.label}</span>
+            <span className="font-mono text-xs uppercase tracking-wide">{item.label}</span>
           </button>
         );
       })}

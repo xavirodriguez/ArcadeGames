@@ -16,6 +16,10 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
     // Query collectibles
     const collectibles = world.query("Collectible");
     const players = world.query("PlatformerInput");
+    if (collectibles.length === 0 || players.length === 0) return;
+
+    // Fast player entity lookup: single player fast-path or direct index check
+    const singlePlayer = players.length === 1 ? players[0] : null;
 
     for (let i = 0; i < collectibles.length; i++) {
       const collEntity = collectibles[i];
@@ -30,14 +34,14 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
 
       let collectedBy: Entity | null = null;
 
-      // Safe for determinism/rollback. Sequential indexed loops replace array spreading/mapping [...activeTriggers, ...collisions.map()], eliminating per-tick heap allocations while evaluating identical overlap conditions.
+      // Safe for determinism/rollback. Single player fast-path or indexed matching avoids repeated linear scans (players.includes), achieving O(1) entity overlap lookup per trigger.
       // 1. Check if collectible has CollisionEvents
       if (world.hasComponent(collEntity, "CollisionEvents")) {
         const events = world.getComponent(collEntity, "CollisionEvents")!;
         if (events.activeTriggers) {
           for (let j = 0; j < events.activeTriggers.length; j++) {
             const other = events.activeTriggers[j];
-            if (players.includes(other)) {
+            if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
               collectedBy = other;
               break;
             }
@@ -46,7 +50,7 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
         if (!collectedBy && events.collisions) {
           for (let j = 0; j < events.collisions.length; j++) {
             const other = events.collisions[j].otherEntity;
-            if (players.includes(other)) {
+            if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
               collectedBy = other;
               break;
             }

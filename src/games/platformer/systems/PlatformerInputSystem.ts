@@ -18,8 +18,10 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
     const velocityType = "Velocity";
 
     const entities = world.query(inputType, jumperType, groundStateType, gravityConfigType, velocityType);
+    const len = entities.length;
 
-    for (const entity of entities) {
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
       const input = world.getMutableComponent(entity, inputType) as any;
       const jumper = world.getMutableComponent(entity, jumperType) as any;
       const groundState = world.getMutableComponent(entity, groundStateType) as any;
@@ -40,34 +42,25 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
       const isGrounded = groundState.isGrounded;
       const coyoteTimer = jumper.coyoteTimer;
 
+      // Safe for determinism/rollback. Direct component mutation without mutateComponent callbacks eliminates closure allocations on jump events.
       // 1. If jump pressed:
       if (jumpPressed) {
         if (isGrounded || coyoteTimer > 0) {
           // Perform normal / coyote jump!
-          world.mutateComponent(entity, velocityType, (v: any) => {
-            v.vy = -gravityConfig.jumpVelocity;
-          });
-          world.mutateComponent(entity, groundStateType, (g: any) => {
-            g.isGrounded = false;
-          });
-          world.mutateComponent(entity, jumperType, (j: any) => {
-            j.coyoteTimer = 0;
-            j.jumpBufferTimer = 0;
-          });
+          vel.vy = -gravityConfig.jumpVelocity;
+          groundState.isGrounded = false;
+          jumper.coyoteTimer = 0;
+          jumper.jumpBufferTimer = 0;
         } else {
           // In the air, but no coyote time left -> store in jump buffer
-          world.mutateComponent(entity, jumperType, (j: any) => {
-            j.jumpBufferTimer = j.jumpBufferMax;
-          });
+          jumper.jumpBufferTimer = jumper.jumpBufferMax;
         }
       }
 
       // 2. Variable jump height (short hop):
       if (jumpReleased) {
         if (vel.vy < -gravityConfig.minJumpVelocity) {
-          world.mutateComponent(entity, velocityType, (v: any) => {
-            v.vy = -gravityConfig.minJumpVelocity;
-          });
+          vel.vy = -gravityConfig.minJumpVelocity;
         }
       }
     }

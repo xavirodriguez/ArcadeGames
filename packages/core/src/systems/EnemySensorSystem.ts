@@ -39,10 +39,12 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
         }
       }
 
-      // Safe for determinism/rollback. Direct getMutableComponent avoids callback/closure allocation.
-      const mutableSensor = world.getMutableComponent(entity, "PlayerSensor");
-      if (mutableSensor) {
-        mutableSensor.detectedPlayerEntity = detected;
+      // Safe for determinism/rollback. Value-gated check prevents per-tick stateVersion bumps when target player detection is unchanged.
+      if (sensor.detectedPlayerEntity !== detected) {
+        const mutableSensor = world.getMutableComponent(entity, "PlayerSensor");
+        if (mutableSensor) {
+          mutableSensor.detectedPlayerEntity = detected;
+        }
       }
     }
 
@@ -101,11 +103,13 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
         const hasWallAhead = isSolidAt(wallCheckX, wallCheckY);
         const hasGroundAhead = isSolidAt(groundCheckX, groundCheckY);
 
-        // Safe for determinism/rollback. Direct getMutableComponent avoids callback/closure allocation.
-        const mutableGd = world.getMutableComponent(entity, "GroundDetector");
-        if (mutableGd) {
-          mutableGd.hasWallAhead = hasWallAhead;
-          mutableGd.hasGroundAhead = hasGroundAhead;
+        // Safe for determinism/rollback. Value-gated check prevents per-tick stateVersion bumps when terrain status is unchanged.
+        if (detector.hasWallAhead !== hasWallAhead || detector.hasGroundAhead !== hasGroundAhead) {
+          const mutableGd = world.getMutableComponent(entity, "GroundDetector");
+          if (mutableGd) {
+            mutableGd.hasWallAhead = hasWallAhead;
+            mutableGd.hasGroundAhead = hasGroundAhead;
+          }
         }
       }
     }

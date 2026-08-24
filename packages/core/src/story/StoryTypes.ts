@@ -418,6 +418,11 @@ export interface StoryStateCheckpoint {
   readonly lastEventId: string | null;
 }
 
+/**
+ * Serialized save game format for narrative state.
+ *
+ * @public
+ */
 export interface NarrativeSaveGame {
   /** Save file format schema version. */
   readonly saveVersion: number;

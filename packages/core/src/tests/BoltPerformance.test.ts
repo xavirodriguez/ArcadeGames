@@ -14,6 +14,128 @@ import { SnapshotRestore } from "../snapshots/SnapshotRestore";
 import { SnapshotSerializer } from "../snapshots/SnapshotSerializer";
 
 describe("Bolt Performance & Determinism Tests", () => {
+  it("PlatformerCoyoteSystem & EnemyBehaviorRegistry: constant patrol state update produces zero stateVersion increases", () => {
+    const world = new World<CoreComponentRegistry>();
+    const CoyoteSystemClass = require("../systems/PlatformerCoyoteSystem").PlatformerCoyoteSystem;
+    const registerEnemies = require("../systems/EnemyBehaviorRegistry").registerEnemyStateMachines;
+
+    registerEnemies(world);
+    world.addSystem(new CoyoteSystemClass());
+
+    const patrolEnemy = world.createEntity();
+    world.addComponent(patrolEnemy, {
+      type: "Patrol",
+      direction: 1,
+      startX: 0,
+      endX: 100,
+      patrolSpeed: 80
+    });
+    world.addComponent(patrolEnemy, {
+      type: "Velocity",
+      vx: 80,
+      vy: 0,
+      angularVelocity: 0
+    });
+    world.addComponent(patrolEnemy, {
+      type: "GroundDetector",
+      sensorOffsetX: 10,
+      sensorOffsetY: 10,
+      hasWallAhead: false,
+      hasGroundAhead: true
+    });
+    world.addComponent(patrolEnemy, {
+      type: "PlatformerJumper",
+      coyoteTimer: 0.1,
+      coyoteTimeMax: 0.1,
+      jumpBufferTimer: 0,
+      jumpBufferMax: 0.1
+    });
+    world.addComponent(patrolEnemy, {
+      type: "PlatformerGroundState",
+      isGrounded: true,
+      iceMultiplier: 1.0
+    });
+    world.addComponent(patrolEnemy, {
+      type: "PlatformerGravityConfig",
+      riseGravity: 500,
+      fallGravity: 800,
+      jumpVelocity: -300,
+      minJumpVelocity: -100
+    });
+
+    world.update(1 / 60);
+    const initialVersion = world.stateVersion;
+
+    // Run 50 ticks of grounded patrol state
+    for (let i = 0; i < 50; i++) {
+      const smReg = world.getResource<any>("StateMachineRegistry")!;
+      smReg["patrol"].states["Patrol"].onUpdate!(world, patrolEnemy, { patrolSpeed: 80 }, 0.5);
+      world.update(1 / 60);
+    }
+
+    expect(world.stateVersion).toBe(initialVersion);
+  });
+
+  it("ComboSystem & CheckpointSystem & EnemySensorSystem: idle state produces zero stateVersion increases", () => {
+    const world = new World<CoreComponentRegistry>();
+    const ComboSystemClass = require("../systems/ComboSystem").ComboSystem;
+    const CheckpointSystemClass = require("../systems/CheckpointSystem").CheckpointSystem;
+    const EnemySensorSystemClass = require("../systems/EnemySensorSystem").EnemySensorSystem;
+
+    world.addSystem(new ComboSystemClass());
+    world.addSystem(new CheckpointSystemClass());
+    world.addSystem(new EnemySensorSystemClass());
+
+    world.setResource("RunState", {
+      lives: 3,
+      deaths: 0,
+      attempt: 1,
+      collectedPermanentIds: [],
+      collectedTemporalIds: [],
+      activeCheckpoint: "cp_1"
+    });
+
+    const cp = world.createEntity();
+    world.addComponent(cp, {
+      type: "RespawnPoint",
+      checkpointId: "cp_1",
+      x: 100,
+      y: 100
+    });
+
+    const sensorEntity = world.createEntity();
+    world.addComponent(sensorEntity, {
+      type: "GroundDetector",
+      sensorOffsetX: 10,
+      sensorOffsetY: 10,
+      hasWallAhead: false,
+      hasGroundAhead: true
+    });
+    world.addComponent(sensorEntity, {
+      type: "Transform",
+      x: 0,
+      y: 0,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 0,
+      worldY: 0,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: false
+    });
+
+    world.update(1 / 60);
+    const initialVersion = world.stateVersion;
+
+    for (let i = 0; i < 50; i++) {
+      world.update(1 / 60);
+    }
+
+    expect(world.stateVersion).toBe(initialVersion);
+  });
+
   it("FrictionSystem: resting entities (vx=0, vy=0) produce zero stateVersion increases", () => {
     const world = new World<CoreComponentRegistry>();
     world.addSystem(new FrictionSystem());

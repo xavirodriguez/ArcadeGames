@@ -6,59 +6,81 @@ import { World } from "./World";
 
 /** @public */
 export interface TransformComponent extends Component {
+  /** Component discriminator type. */
   type: "Transform";
+  /** Local X position. */
   x: number;
+  /** Local Y position. */
   y: number;
+  /** Local rotation in radians. */
   rotation: number;
+  /** Local X scale factor. */
   scaleX: number;
+  /** Local Y scale factor. */
   scaleY: number;
+  /** World-space X position computed by hierarchy system. */
   worldX: number;
+  /** World-space Y position computed by hierarchy system. */
   worldY: number;
+  /** World-space rotation in radians. */
   worldRotation: number;
+  /** World-space X scale factor. */
   worldScaleX: number;
+  /** World-space Y scale factor. */
   worldScaleY: number;
+  /** Whether transform matrix is dirty and needs recalculation. */
   dirty: boolean;
+  /** Optional parent entity ID in spatial hierarchy. */
   parentEntity?: Entity;
 }
 
 /** @public */
 export interface VelocityComponent extends Component {
+  /** Component discriminator type. */
   type: "Velocity";
+  /** X linear velocity. */
   vx: number;
+  /** Y linear velocity. */
   vy: number;
+  /** Angular velocity in radians per second. */
   angularVelocity: number;
 }
 
 /** @public */
 export interface FrictionComponent extends Component {
+  /** Component discriminator type. */
   type: "Friction";
+  /** Linear friction coefficient. */
   value: number;
 }
 
 /** @public */
 export interface BoundaryComponent extends Component {
+  /** Component discriminator type. */
   type: "Boundary";
+  /** Boundary width. */
   width: number;
+  /** Boundary height. */
   height: number;
+  /** Boundary behavior mode when entity leaves bounds. */
   mode: "wrap" | "bounce" | "destroy";
-  /**
-   * Whether to bounce on the X axis when mode is "bounce". Defaults to true.
-   */
+  /** Whether to bounce on the X axis when mode is "bounce". Defaults to true. */
   bounceX?: boolean;
-  /**
-   * Whether to bounce on the Y axis when mode is "bounce". Defaults to true.
-   */
+  /** Whether to bounce on the Y axis when mode is "bounce". Defaults to true. */
   bounceY?: boolean;
 }
 
 /** @public */
 export interface TTLComponent extends Component {
+  /** Component discriminator type. */
   type: "TTL";
   /**
    * @deprecated Use `TTLComponent.remaining` instead.
    */
   timeLeft: number;
+  /** Remaining time to live in seconds. */
   remaining: number;
+  /** Optional event emitted when TTL expires. */
   onCompleteEvent?: string;
 }
 
@@ -93,85 +115,137 @@ export interface IEntityPool {
 
 /** @public */
 export interface RenderComponent extends Component {
+  /** Component discriminator type. */
   type: "Render";
+  /** Optional sprite identifier for rendering. */
   spriteId?: string;
+  /** Optional fill or stroke color string. */
   color?: string;
+  /** Whether the entity is visible for rendering. */
   visible: boolean;
+  /** Opacity transparency value between 0.0 and 1.0. */
   opacity: number;
+  /** Z-index sorting order. */
   order: number;
+  /** Rotation angle in radians. */
   rotation: number;
+  /** Angular velocity in radians per second. */
   angularVelocity: number;
+  /** Remaining frames for hit flash visual effect. */
   hitFlashFrames: number;
+  /** Primitive shape descriptor if no sprite ID is set. */
   shape?: string;
+  /** Base rendering scale size or radius. */
   size?: number;
 }
 
 /** @public */
 export interface HealthComponent extends Component {
+  /** Component discriminator type. */
   type: "Health";
+  /** Current health points. */
   current: number;
+  /** Maximum health capacity. */
   max: number;
+  /** Remaining invulnerability duration in seconds. */
   invulnerableRemaining?: number;
 }
 
 /** @public */
 export interface InputStateComponent extends Component {
+  /** Component discriminator type. */
   type: "InputState";
+  /** Map of active analog axes and their normalized positions. */
   axes: Record<string, number>;
+  /** Map of active button action states. */
   buttons: Record<string, boolean>;
 }
 
 /** @public */
 export interface AnimationDefinition {
+  /** Sequence of sprite frame indices. */
   frames: number[];
+  /** Playback frame rate in frames per second. */
   frameRate: number;
+  /** Whether animation loops indefinitely. */
   loop?: boolean;
+  /** Optional event key triggered when non-looping animation completes. */
   onCompleteEvent?: string;
 }
 
 /** @public */
 export interface AnimatorComponent extends Component {
+  /** Component discriminator type. */
   type: "Animator";
+  /** Whether animation playback is currently active. */
   isPlaying: boolean;
+  /** Map of registered animation definitions by name. */
   animations: Record<string, AnimationDefinition>;
+  /** Name of active animation clip. */
   current: string | null;
+  /** Accumulated frame duration elapsed. */
   elapsed: number;
+  /** Current active animation frame index. */
   frame: number;
 }
 
 /** @public */
 export interface StateMachineComponent extends Component {
+  /** Component discriminator type. */
   type: "StateMachine";
+  /** Name of the current active FSM state. */
   currentState: string;
+  /** Time elapsed in seconds within current state. */
   elapsedInState: number;
+  /** State machine context data storage. */
   data: Record<string, unknown>;
+  /** Identifier matching the state machine definition. */
   machineId: string;
+  /** Total elapsed time in milliseconds across states. */
   elapsedMs: number;
+  /** Name of the previous state, if any. */
   previousState?: string;
 }
 
 /** @public */
 export interface ParticleEmitterConfig {
-    type: string;
-    x: number;
-    y: number;
-    count: number;
-    burst?: boolean;
-    rate: number;
-    angle?: [number, number];
-    speed?: [number, number];
-    lifetime?: [number, number];
-    size?: [number, number];
-    color?: string | string[];
-    position?: [number, number, number, number] | {x: number, y: number};
-    loop?: boolean;
+  /** Particle type descriptor. */
+  type: string;
+  /** X origin coordinate. */
+  x: number;
+  /** Y origin coordinate. */
+  y: number;
+  /** Total particle count per burst or cycle. */
+  count: number;
+  /** Whether particles are spawned as a single burst. */
+  burst?: boolean;
+  /** Spawn rate in particles per second. */
+  rate: number;
+  /** Angle emission range in radians [min, max]. */
+  angle?: [number, number];
+  /** Emission speed range [min, max]. */
+  speed?: [number, number];
+  /** Particle lifetime duration range in seconds [min, max]. */
+  lifetime?: [number, number];
+  /** Particle render size range [min, max]. */
+  size?: [number, number];
+  /** Color string or palette of color strings. */
+  color?: string | string[];
+  /** Spawn offset bounding area. */
+  position?: [number, number, number, number] | {x: number, y: number};
+  /** Whether the emitter loops continuously. */
+  loop?: boolean;
 }
 
 /** @public */
 export interface ParticleEmitterComponent extends Component {
+  /** Component discriminator type. */
   type: "ParticleEmitter";
+  /** Emitter configuration parameters. */
   config: ParticleEmitterConfig;
+  /** Whether emission is currently active. */
   active: boolean | number;
+  /** Accumulated emission time elapsed. */
   elapsed: number;
 }
 

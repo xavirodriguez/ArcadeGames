@@ -39,10 +39,15 @@ export type OrchestratorState =
  * @public
  */
 export interface ArcadeOrchestratorOptions {
+  /** Optional narrative StoryRuntime instance. */
   readonly runtime?: StoryRuntime;
+  /** Optional ArcadeKernel instance for global state synchronization. */
   readonly kernel?: ArcadeKernel;
+  /** Optional custom resolver for computing minigame modifiers from story state. */
   readonly resolver?: MiniGameModifierResolver;
+  /** Optional custom rule engine for evaluating run outcomes. */
   readonly ruleEngine?: OutcomeRuleEngine;
+  /** Optional custom applier for mutating story state based on rule effects. */
   readonly effectApplier?: StoryEffectApplier;
 }
 

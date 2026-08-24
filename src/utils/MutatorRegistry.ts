@@ -207,7 +207,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     description: "Comienza la oleada con un multiplicador x2.",
     rarity: "COMMON",
     tags: ["utility", "combo"],
-    supportedGames: ["space-invaders", "pong", "flappybird", "flappy_bird", "asteroids", "geometrywars"],
+    supportedGames: ["space-invaders", "pong", "flappybird", "flappy_bird", "asteroids", "geometrywars", "nebuladash", "nebula_dash"],
     xpCost: 300,
     canDraft: (world, context) => {
       const target = context?.targetEntity;
@@ -303,6 +303,26 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         world.setResource("GameConfig", newConfig);
       }
       runMutatorHooks(world, "hyper_drift");
+    }
+  },
+  "heavy_gravity": {
+    id: "heavy_gravity",
+    name: "Gravedad Pesada",
+    description: "Mayor aceleración de caída y mayor salto para un ascenso de alto ritmo.",
+    rarity: "RARE",
+    tags: ["physics", "gravity"],
+    supportedGames: ["nebuladash", "nebula_dash"],
+    xpCost: 600,
+    canDraft: (world, context) => true,
+    apply: (world, context) => {
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        newConfig.GRAVITY = 1500;
+        newConfig.JUMP_IMPULSE = -600;
+        world.setResource("GameConfig", newConfig);
+      }
+      runMutatorHooks(world, "heavy_gravity");
     }
   },
   "bouncing_bullets": {
@@ -439,6 +459,12 @@ export class MutatorRegistry {
 
   public static get(id: string): BeneficialMutator {
     this.init();
+    if (!this.mutators.has(id) && BENEFICIAL_MUTATORS[id]) {
+      this.register(BENEFICIAL_MUTATORS[id]);
+    }
+    if (!this.mutators.has(id) && NEGATIVE_MUTATORS[id]) {
+      this.register(NEGATIVE_MUTATORS[id]);
+    }
     const mutator = this.mutators.get(id);
     if (!mutator) throw new Error(`Mutator no encontrado: ${id}`);
     return mutator;
@@ -465,9 +491,12 @@ export class MutatorRegistry {
   }
 
   public static init(): void {
-    if (this.mutators.size > 0) return;
-    Object.values(BENEFICIAL_MUTATORS).forEach(m => this.register(m));
-    Object.values(NEGATIVE_MUTATORS).forEach(m => this.register(m));
+    Object.values(BENEFICIAL_MUTATORS).forEach(m => {
+      if (!this.mutators.has(m.id)) this.register(m);
+    });
+    Object.values(NEGATIVE_MUTATORS).forEach(m => {
+      if (!this.mutators.has(m.id)) this.register(m);
+    });
   }
 
   public static generateDraft(

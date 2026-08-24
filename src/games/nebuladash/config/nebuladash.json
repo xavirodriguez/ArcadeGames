@@ -1,0 +1,20 @@
+{
+  "SCREEN_WIDTH": 800,
+  "SCREEN_HEIGHT": 600,
+  "SCREEN_CENTER_X": 400,
+  "SCREEN_CENTER_Y": 300,
+  "COMBO_TIMEOUT": 2000,
+  "MAX_MULTIPLIER": 10,
+  "JUMP_IMPULSE": -420,
+  "GRAVITY": 980,
+  "LATERAL_SPEED": 320,
+  "PLASMA_BASE_SPEED": 80,
+  "PLASMA_ACCELERATION": 1.5,
+  "KEYS": {
+    "LEFT": "KeyA",
+    "RIGHT": "KeyD",
+    "JUMP": "Space",
+    "PAUSE": "KeyP",
+    "RESTART": "KeyR"
+  }
+}

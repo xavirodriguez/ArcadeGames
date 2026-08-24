@@ -107,6 +107,24 @@ Here we outline the moment-to-moment, session, and long-term meta-loops across t
 
 ---
 
+### Core Loop: Nebula Dash
+
+#### Moment-to-Moment (0–30 seconds)
+- **Action**: Lateral movement (Left/Right) combined with Flap/Jump vertical thrust impulse to climb through vertical obstacle gap barriers and avoid floating asteroids.
+- **Feedback**: Immediate thrust impulse, barrier gap pass glow, combo increment popups, and accelerating plasma hazard wall rising at screen bottom.
+- **Reward**: Compounding combo multiplier increments and altitude gains.
+
+#### Session Loop (5–30 minutes)
+- **Goal**: Reach maximum vertical altitude while threading obstacle gaps and outrunning the accelerating plasma wall.
+- **Tension**: Accelerating plasma wall speed (`PLASMA_BASE_SPEED = 80`, `PLASMA_ACCELERATION = 1.5`), narrowing obstacle gaps, and floating asteroid hazards.
+- **Resolution**: Plasma wall or obstacle collision triggers Game Over; final score = base gap points * max combo multiplier + altitude.
+
+#### Long-Term Loop (Meta-Progression)
+- **Progression**: Earn XP per cleared gap and altitude milestone.
+- **Retention Hook**: Apply mutators like `heavy_gravity` (`GRAVITY = 1500`, `JUMP_IMPULSE = -600`), `shield_pulse`, or `combo_head_start`.
+
+---
+
 ### Core Loop: Pong
 
 #### Moment-to-Moment (0–30 seconds)
@@ -277,7 +295,7 @@ The project separates logic into three distinct architectural layers to ensure a
 
 3. **Game-Specific Submodules (`src/games/[game-name]/`)**:
    - Houses unique gameplay parameters, layout rendering, visual assets, scene workflows, and custom collision/interaction behaviors.
-   - Core titles include **Space Invaders**, **Asteroids**, **Pong**, and **Flappy Bird**.
+   - Core titles include **Space Invaders**, **Asteroids**, **Pong**, **Flappy Bird**, **Geometry Wars**, **Platformer**, **Echo Runner**, and **Nebula Dash**.
 
 ---
 

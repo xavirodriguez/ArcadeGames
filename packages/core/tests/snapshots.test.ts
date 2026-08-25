@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry, TransformComponent, BinaryCompression, AoSWorldSnapshot, SoAWorldSnapshot } from "../src";
+import { World, CoreComponentRegistry, TransformComponent, BinaryCompression, AoSWorldSnapshot, SoAWorldSnapshot, hashSoA } from "../src";
 
 describe("World Snapshots", () => {
   it("should capture and restore world state", () => {
@@ -122,6 +122,45 @@ describe("World Snapshots", () => {
       expect(restoredComp?.x).toBe(42.5);
       expect(restoredComp?.y).toBe(-99.9);
       expect(restoredComp?.dirty).toBe(true);
+    });
+
+    it("should compute deterministic hash for SoA snapshots and detect numeric and non-numeric changes", () => {
+      const world1 = new World<CoreComponentRegistry>();
+      world1.setResource("UseSoASnapshots", true);
+      const entity1 = world1.createEntity();
+      world1.addComponent(entity1, {
+        type: "Transform",
+        x: 10, y: 20, rotation: 0, scaleX: 1, scaleY: 1,
+        worldX: 10, worldY: 20, worldRotation: 0, worldScaleX: 1, worldScaleY: 1,
+        dirty: false
+      });
+
+      const world2 = new World<CoreComponentRegistry>();
+      world2.setResource("UseSoASnapshots", true);
+      const entity2 = world2.createEntity();
+      world2.addComponent(entity2, {
+        type: "Transform",
+        x: 10, y: 20, rotation: 0, scaleX: 1, scaleY: 1,
+        worldX: 10, worldY: 20, worldRotation: 0, worldScaleX: 1, worldScaleY: 1,
+        dirty: false
+      });
+
+      const snap1 = world1.snapshot() as SoAWorldSnapshot;
+      const snap2 = world2.snapshot() as SoAWorldSnapshot;
+
+      const hash1 = hashSoA(snap1);
+      const hash2 = hashSoA(snap2);
+
+      expect(hash1).toBe(hash2);
+      expect(hash1).toHaveLength(8);
+
+      // Mutate numeric property
+      world1.mutateComponent(entity1, "Transform", (t) => {
+        t.x = 10.001;
+      });
+      const snap1Mutated = world1.snapshot() as SoAWorldSnapshot;
+      const hash1Mutated = hashSoA(snap1Mutated);
+      expect(hash1Mutated).not.toBe(hash1);
     });
   });
 });

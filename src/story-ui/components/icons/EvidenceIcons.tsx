@@ -6,11 +6,11 @@ export interface IconProps extends React.SVGProps<SVGSVGElement> {
   className?: string;
 }
 
-function createNamedIcon(name: StoryIconName) {
-  const IconComponent: React.FC<IconProps> = ({ size = 16, className = '', ...props }) => (
-    <StoryIcon name={name} size={size} className={className} {...props} />
+function createNamedIcon(iconName: StoryIconName) {
+  const IconComponent: React.FC<IconProps> = ({ size = 16, className = '', name: _name, ...props }) => (
+    <StoryIcon name={iconName} size={size} className={className} {...props} />
   );
-  IconComponent.displayName = `StoryIcon(${name})`;
+  IconComponent.displayName = `StoryIcon(${iconName})`;
   return IconComponent;
 }
 

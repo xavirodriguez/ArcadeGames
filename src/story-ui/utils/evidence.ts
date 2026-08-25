@@ -140,6 +140,8 @@ export function getEvidenceKindConfig(kind: EvidenceNodeKind): KindConfig {
   return EVIDENCE_KIND_CONFIGS[kind] ?? EVIDENCE_KIND_CONFIGS.fact;
 }
 
+export const getKindConfig = getEvidenceKindConfig;
+
 export function getRelationConfig(relation: EvidenceRelation): RelationConfig {
   return RELATION_CONFIGS[relation] ?? RELATION_CONFIGS.mentions;
 }

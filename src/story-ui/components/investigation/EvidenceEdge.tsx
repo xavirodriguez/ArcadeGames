@@ -5,6 +5,8 @@ import { getRelationConfig } from '../../utils/evidence';
 interface EvidenceEdgeProps {
   edge: EvidenceEdgeViewModel;
   nodes: EvidenceNodeViewModel[];
+  isHighlighted?: boolean;
+  isDimmed?: boolean;
   isSelectedNodeConnected?: boolean;
   hasNodeSelected?: boolean;
 }
@@ -12,6 +14,8 @@ interface EvidenceEdgeProps {
 export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
   edge,
   nodes,
+  isHighlighted,
+  isDimmed,
   isSelectedNodeConnected = false,
   hasNodeSelected = false,
 }) => {
@@ -28,32 +32,29 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
   const x2 = (toNode.position.x / 1000) * 100;
   const y2 = (toNode.position.y / 1000) * 100;
 
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const angle = Math.atan2(dy, dx);
+  const isConnected = isHighlighted ?? (hasNodeSelected && isSelectedNodeConnected);
+  const dimmed = isDimmed ?? (hasNodeSelected && !isConnected);
 
-  // Perpendicular unit vector (-sin(angle), cos(angle))
-  const perpendicularX = -Math.sin(angle);
-  const perpendicularY = Math.cos(angle);
+  // Perpendicular offset for edge label positioning
+  const midX = (x1 + x2) / 2;
+  const midY = (y1 + y2) / 2;
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const offset = 2;
 
-  // Small perpendicular offset (1.5 percentage points) to avoid edge line overlap
-  const offsetDistance = 1.5;
-  const midX = (x1 + x2) / 2 + perpendicularX * offsetDistance;
-  const midY = (y1 + y2) / 2 + perpendicularY * offsetDistance;
+  const labelX = midX + Math.cos(angle + Math.PI / 2) * offset;
+  const labelY = midY + Math.sin(angle + Math.PI / 2) * offset;
 
   const style = getRelationConfig(edge.relation);
 
-  // Focus highlighting: connected edge stays full opacity, unconnected dims to 0.2
+  // Focus highlighting: connected edge stays full opacity, unconnected dims to 0.25
   let opacity = 1;
   let strokeWidth = style.strokeWidth;
 
-  if (hasNodeSelected) {
-    if (isSelectedNodeConnected) {
-      opacity = 1;
-      strokeWidth = style.strokeWidth + 1.5;
-    } else {
-      opacity = 0.2;
-    }
+  if (dimmed) {
+    opacity = 0.25;
+  } else if (isConnected) {
+    opacity = 1;
+    strokeWidth = style.strokeWidth + 1.5;
   }
 
   return (
@@ -67,8 +68,9 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
         strokeWidth={strokeWidth}
         strokeDasharray={style.dashArray}
         strokeLinecap="round"
+        className="transition-all duration-300"
       />
-      {isSelectedNodeConnected && (
+      {isConnected && (
         <line
           x1={`${x1}%`}
           y1={`${y1}%`}
@@ -77,14 +79,15 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
           stroke={style.stroke}
           strokeWidth={strokeWidth + 4}
           strokeLinecap="round"
-          opacity={0.3}
+          opacity={0.35}
+          className="transition-all duration-300"
         />
       )}
       {edge.label && (
         <g transform={`translate(0, 0)`}>
           <foreignObject
-            x={`${midX}%`}
-            y={`${midY}%`}
+            x={`${labelX}%`}
+            y={`${labelY}%`}
             width="130"
             height="32"
             className="overflow-visible -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -92,7 +95,7 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
             <div className="flex justify-center items-center h-full">
               <span
                 className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow-md whitespace-nowrap transition-colors ${
-                  isSelectedNodeConnected
+                  isConnected
                     ? 'bg-slate-900 text-cyan-200 border border-cyan-500/80 ring-1 ring-cyan-500/40'
                     : 'bg-slate-950/90 text-slate-300 border border-slate-700/80'
                 }`}

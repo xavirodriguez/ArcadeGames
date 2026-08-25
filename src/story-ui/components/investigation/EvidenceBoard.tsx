@@ -72,12 +72,15 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
         {visibleEdges.map((edge) => {
           const isConnected =
             hasNodeSelected && (edge.from === selectedNodeId || edge.to === selectedNodeId);
+          const isDimmed = hasNodeSelected && !isConnected;
 
           return (
             <EvidenceEdge
               key={edge.id}
               edge={edge}
               nodes={visibleNodes}
+              isHighlighted={isConnected}
+              isDimmed={isDimmed}
               isSelectedNodeConnected={isConnected}
               hasNodeSelected={hasNodeSelected}
             />

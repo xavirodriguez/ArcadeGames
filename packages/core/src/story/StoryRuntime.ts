@@ -739,10 +739,8 @@ export class StoryRuntime {
         if (!condition.key) return false;
         const obj = this.state.objectives[condition.key];
         const completed = obj ? obj.completed : false;
-        if (condition.value !== undefined) {
-          return this.compareValues(completed, condition.value, condition.operator || "==");
-        }
-        return completed;
+        const targetVal = condition.value !== undefined ? condition.value : true;
+        return this.compareValues(completed, targetVal, condition.operator || "==");
       }
 
       case "evidence":

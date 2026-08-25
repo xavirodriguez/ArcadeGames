@@ -26,7 +26,7 @@ describe("BlindStation StoryGraph", () => {
     expect(choices.length).toBe(3);
 
     const debugState = getBlindStationDebugState(runtime);
-    expect(debugState.variables.evidence).toBe(0);
+    expect(debugState.variables.evidenceCount).toBe(0);
     expect(debugState.variables.oxygen).toBe(100);
     expect(debugState.variables.assertiveness).toBe(0);
     expect(debugState.variables.empathyStyle).toBe(0);
@@ -131,7 +131,7 @@ describe("BlindStation StoryGraph", () => {
     runtime.setFlag("visitedReactor", true);
     runtime.setFlag("visitedInfirmary", true);
     runtime.setFlag("visitedComms", true);
-    runtime.setVariable("evidence", 5);
+    runtime.setVariable("evidenceCount", 5);
     runtime.setVariable("assertiveness", 3);
     runtime.setObjective({
       id: "test_obj",
@@ -149,7 +149,7 @@ describe("BlindStation StoryGraph", () => {
     expect(runtime.getFlag("visitedReactor")).toBe(false);
     expect(runtime.getFlag("visitedInfirmary")).toBe(false);
     expect(runtime.getFlag("visitedComms")).toBe(false);
-    expect(runtime.getVariable("evidence")).toBe(0);
+    expect(runtime.getVariable("evidenceCount")).toBe(0);
     expect(runtime.getVariable("assertiveness")).toBe(0);
     expect(runtime.getObjective("test_obj")).toBeUndefined();
     expect(runtime.getState().selectedChoices).toEqual([]);
@@ -185,7 +185,7 @@ describe("BlindStation StoryGraph", () => {
     const scene = new CYOAScene(world, runtime);
     scene.onEnter(world);
 
-    runtime.setVariable("evidence", 4);
+    runtime.setVariable("evidenceCount", 4);
     runtime.setFlag("reactorActive", true);
     runtime.setFlag("sawSecretRecording", true);
     runtime.setFlag("foundVega", true);

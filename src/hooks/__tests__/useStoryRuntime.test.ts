@@ -1,3 +1,5 @@
+import test, { describe, it } from "node:test";
+import assert from "node:assert/strict";
 import { StoryRuntime } from "@tiny-aster/core";
 
 describe("useStoryRuntime hook unit test", () => {
@@ -14,15 +16,16 @@ describe("useStoryRuntime hook unit test", () => {
     const v1 = runtime.getVersion();
     const st1 = runtime.getState();
 
-    expect(v1).toBeGreaterThanOrEqual(0);
-    expect(st1.currentNodeId).toBe("n1");
+    assert.ok(v1 >= 0);
+    assert.equal(st1.currentNodeId, "n1");
 
     runtime.setVariable("x", 1);
     const v2 = runtime.getVersion();
-    expect(v2).toBe(v1 + 1);
+    assert.equal(v2, v1 + 1);
 
+    // Setting same variable value does not bump version
     runtime.setVariable("x", 1);
     const v3 = runtime.getVersion();
-    expect(v3).toBe(v2);
+    assert.equal(v3, v2);
   });
 });

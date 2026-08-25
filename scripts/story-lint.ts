@@ -54,7 +54,7 @@ const storyGraphRegistry: GraphRegistryEntry[] = [
         "powerLifeSupport",
         "secretEndingUnlocked",
       ],
-      declaredVariables: ["evidence", "trustARES", "trustVega", "oxygen", "assertiveness", "empathyStyle"],
+      declaredVariables: ["evidenceCount", "trustARES", "trustVega", "oxygen", "assertiveness", "empathyStyle"],
     },
   },
   {

@@ -519,7 +519,7 @@ export const BlindStationGraph: StoryGraph = {
           titleKey: "Mantener la cuarentena",
           descriptionKey: "Aceptar que el riesgo biologico es demasiado alto.",
           targetNodeId: "ending_quarantine",
-          condition: { type: "variable", key: "evidence", operator: ">=", value: 3 },
+          condition: { type: "variable", key: "evidenceCount", operator: ">=", value: 3 },
         },
         {
           id: "ending_release_choice",
@@ -640,7 +640,7 @@ export const BlindStationValidation = StoryGraphValidator.validate(BlindStationG
     "powerLifeSupport",
     "secretEndingUnlocked",
   ],
-  declaredVariables: ["evidence", "trustARES", "trustVega", "oxygen", "assertiveness", "empathyStyle"],
+  declaredVariables: ["evidenceCount", "trustARES", "trustVega", "oxygen", "assertiveness", "empathyStyle"],
 });
 
 const REACTOR_OBJECTIVE: StoryObjective = {
@@ -704,7 +704,7 @@ function updateDerivedFlags(runtime: StoryRuntime): void {
   const secretEndingUnlocked =
     runtime.getFlag("reactorActive") === true &&
     runtime.getFlag("sawSecretRecording") === true &&
-    Number(runtime.getVariable("evidence") ?? 0) >= 4;
+    Number(runtime.getVariable("evidenceCount") ?? 0) >= 4;
 
   if (runtime.getFlag("secretEndingUnlocked") !== secretEndingUnlocked) {
     runtime.setFlag("secretEndingUnlocked", secretEndingUnlocked);
@@ -718,7 +718,7 @@ function applyEvidenceOnce(
 ): void {
   if (runtime.getFlag(seenFlag)) return;
   runtime.setFlag(seenFlag, true);
-  incrementVariable(runtime, "evidence", amount);
+  incrementVariable(runtime, "evidenceCount", amount);
 }
 
 /**
@@ -727,7 +727,7 @@ function applyEvidenceOnce(
  */
 export function bootstrapBlindStation(runtime: StoryRuntime): void {
   const state = runtime.getState();
-  state.variables["evidence"] = 0;
+  state.variables["evidenceCount"] = 0;
   state.variables["trustARES"] = 0;
   state.variables["trustVega"] = 0;
   state.variables["oxygen"] = 100;

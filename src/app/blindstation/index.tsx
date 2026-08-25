@@ -22,7 +22,7 @@ export default function BlindStationScreen() {
   useEffect(() => {
     const world = new World();
 
-    const { runtime: storyRuntime, eventBus: bus } = createBlindStationStory(world);
+    const { runtime: storyRuntime, eventBus: bus, dispose } = createBlindStationStory(world);
     setRuntime(storyRuntime);
     setEventBus(bus);
 
@@ -40,6 +40,7 @@ export default function BlindStationScreen() {
       if (kernel.getState() === ArcadeState.STORY) {
         kernel.transitionTo(ArcadeState.MENU);
       }
+      dispose();
     };
   }, []);
 

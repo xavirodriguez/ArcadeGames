@@ -144,4 +144,38 @@ describe("BlindStation StoryGraph", () => {
     expect(scene.getCurrentNode()?.id).toBe("ending_secret");
     expect(scene.getCurrentNode()?.isEndNode).toBe(true);
   });
+
+  it("updates visited flags via setFlag without no-op state mutations and cleans up listeners via dispose", () => {
+    const world = new World();
+    const { runtime, eventBus, dispose } = createBlindStationStory(world);
+
+    // Initial state check
+    expect(runtime.getState().flags.visitedReactor).toBe(false);
+    expect(runtime.getState().flags.visitedInfirmary).toBe(false);
+    expect(runtime.getState().flags.investigationComplete).toBe(false);
+
+    // Navigate to reactor_intro node
+    runtime.navigateToNode("reactor_intro");
+    expect(runtime.getState().flags.visitedReactor).toBe(true);
+
+    // Navigate to infirmary_intro node
+    runtime.navigateToNode("infirmary_intro");
+    expect(runtime.getState().flags.visitedInfirmary).toBe(true);
+
+    // Navigate to comms_intro node
+    runtime.navigateToNode("comms_intro");
+    expect(runtime.getState().flags.visitedComms).toBe(true);
+    expect(runtime.getState().flags.investigationComplete).toBe(true);
+
+    // Verify dispose cleans up listeners
+    dispose();
+
+    // Trigger an event on eventBus after dispose and verify objective count does not change
+    runtime.navigateToNode("reactor_objective");
+    const countBefore = runtime.getState().objectives["reactivate_reactor"]?.currentCount ?? 0;
+    eventBus.emit("reactor:module_online", { moduleId: "TEST" });
+    const countAfter = runtime.getState().objectives["reactivate_reactor"]?.currentCount ?? 0;
+
+    expect(countAfter).toBe(countBefore);
+  });
 });

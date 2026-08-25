@@ -858,9 +858,8 @@ export function bindBlindStationEffects(
           break;
 
         case "reactor_intro":
-          runtime.getState().flags.visitedReactor = true;
-          updateDerivedFlags(runtime);
           runtime.setFlag("visitedReactor", true);
+          updateDerivedFlags(runtime);
           break;
 
         case "reactor_objective":
@@ -872,9 +871,8 @@ export function bindBlindStationEffects(
           break;
 
         case "infirmary_intro":
-          runtime.getState().flags.visitedInfirmary = true;
-          updateDerivedFlags(runtime);
           runtime.setFlag("visitedInfirmary", true);
+          updateDerivedFlags(runtime);
           break;
 
         case "infirmary_log":

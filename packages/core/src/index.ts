@@ -26,6 +26,7 @@ export * from "./snapshots/SnapshotSerializer";
 export * from "./snapshots/SnapshotRestore";
 export * from "./snapshots/SnapshotSerializerSoA";
 export * from "./snapshots/SnapshotRestoreSoA";
+export * from "./snapshots/SnapshotHash";
 export * from "./snapshots/SnapshotBuffer";
 export * from "./ecs/ComponentCloner";
 export * from "./scenes/Scene";
@@ -52,6 +53,7 @@ export * from "./events/EventBus";
 
 // Input
 export * from "./input/InputSystem";
+export * from "./input/NullInputSystem";
 export * from "./input/UnifiedInputSystem";
 export * from "./input/CanonicalInput";
 export * from "./input/InputMapper";
@@ -70,8 +72,6 @@ export * from "./runtime/GameSession";
 export * from "./runtime/ArcadeKernel";
 
 // Input
-export * from "./input/InputSystem";
-export * from "./input/UnifiedInputSystem";
 export * from "./input/InputFrame";
 
 // Assets & Audio

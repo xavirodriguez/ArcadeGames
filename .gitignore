@@ -55,7 +55,8 @@ npm_output.log
 
 # Documentation artifacts
 temp/
-etc/
+etc/*
+!etc/asteroides.api.md
 docs/api-reference/
 study/
 

@@ -6,9 +6,10 @@ import { IGame } from "./IGame";
 import { GameLoop } from "../loop/GameLoop";
 import { Simulation } from "./Simulation";
 import { CompactInputFrame } from "../input/InputFrame";
-import { WorldSnapshot } from "../snapshots/WorldSnapshot";
+import { WorldSnapshot, SoAWorldSnapshot } from "../snapshots/WorldSnapshot";
+import { hashSoA } from "../snapshots/SnapshotHash";
 import { InputSystem, IInputSystem } from "../input/InputSystem";
-import { UnifiedInputSystem } from "../input/UnifiedInputSystem";
+import { NullInputSystem } from "../input/NullInputSystem";
 import { Schedule } from "../ecs/Schedule";
 import { SceneManager } from "../scenes/SceneManager";
 import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
@@ -70,7 +71,7 @@ export interface BaseGameConfig<
   assetProvider?: IAssetProvider;
   /** Timeout for `init()` execution in milliseconds. Defaults to 10000ms. */
   initTimeout?: number;
-  /** Optional custom input system instance implementing `IInputSystem<TInput>`. Defaults to `UnifiedInputSystem`. */
+  /** Optional custom input system instance implementing `IInputSystem<TInput>`. Defaults to `NullInputSystem`. */
   inputSystem?: IInputSystem<TInput>;
   /** Factory callback to construct a custom `SceneManager` instance. */
   sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
@@ -153,14 +154,23 @@ export abstract class BaseGame<
   /**
    * Computes a deterministic hexadecimal FNV-1a hash of the current simulation state.
    *
+   * @remarks
+   * For Structure of Arrays (`SoAWorldSnapshot`) snapshots, delegates to zero-allocation binary buffer hashing via `hashSoA`
+   * to eliminate intermediate string conversions and heap allocations during high-frequency rollback checks.
+   * For legacy Array of Structures snapshots (`isSoA === false`), falls back to JSON stringification.
+   *
    * @returns 8-character hex hash string.
    */
   public hash(): string {
     const snap = this.snapshot();
+    if (snap.isSoA) {
+      return hashSoA(snap as SoAWorldSnapshot);
+    }
+
     const dataToHash = {
       tick: snap.tick,
       entities: snap.entities,
-      components: snap.isSoA ? snap.soaComponentData : snap.componentData,
+      components: snap.componentData,
       seed: snap.seed,
       rngState: snap.rngState
     };
@@ -290,7 +300,7 @@ export abstract class BaseGame<
       maxDelta: 0.25,
       manual: config.isMultiplayer || config.manualLoop || false
     });
-    this.unifiedInput = config.inputSystem || new UnifiedInputSystem();
+    this.unifiedInput = config.inputSystem || new NullInputSystem<TInput>();
     this.sceneManager = config.sceneManagerFactory
       ? config.sceneManagerFactory(this.world, this.eventBus)
       : new SceneManager<TComponents>(this.world, this.eventBus);

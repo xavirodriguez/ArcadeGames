@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { World, StoryRuntime, CYOAScene, ArcadeKernel, ArcadeState, EventBus } from "@tiny-aster/core";
-import { createBlindStationStory, BlindStationGraph } from "../../games/shared/story/BlindStation";
+import { createBlindStationStory, BlindStationGraph, bootstrapBlindStation } from "../../games/shared/story/BlindStation";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useStoryRuntime } from "../../hooks/useStoryRuntime";
 import { GameScreen } from "../../components/ui/GameScreen";
@@ -53,6 +53,13 @@ export default function BlindStationScreen() {
   const evidence = (storySnapshot.variables["evidence"] as number) ?? 0;
   const flags = storySnapshot.flags;
 
+  const activeObjective = currentNode?.objective
+    ? storySnapshot.state?.objectives?.[currentNode.objective.id] || currentNode.objective
+    : null;
+  const isObjectiveIncomplete = Boolean(activeObjective && !activeObjective.completed);
+  const objectiveCurrentCount = activeObjective?.currentCount ?? 0;
+  const objectiveTargetCount = activeObjective?.targetCount ?? 1;
+
   const handleSelectChoice = (choiceId: string) => {
     hapticSelection();
     if (sceneRef.current) {
@@ -67,14 +74,39 @@ export default function BlindStationScreen() {
     }
   };
 
+  const handleReactorMinigame = () => {
+    hapticSelection();
+    if (eventBus && activeObjective) {
+      eventBus.emit("reactor:module_online", {
+        moduleId: `mod_${objectiveCurrentCount + 1}`,
+      });
+    }
+  };
+
+  const handleLabMinigame = () => {
+    hapticSelection();
+    if (eventBus && activeObjective) {
+      eventBus.emit("lab:sample_scanned", {
+        sampleId: `sample_${objectiveCurrentCount + 1}`,
+      });
+    }
+  };
+
+  const handleGenericObjective = () => {
+    hapticSelection();
+    if (eventBus && activeObjective) {
+      eventBus.emit(activeObjective.id as keyof import("../../games/shared/story/BlindStation").BlindStationEvents, {
+        objectiveId: activeObjective.id,
+        increment: 1,
+      } as never);
+    }
+  };
+
   const handleRestart = () => {
     hapticSelection();
     if (sceneRef.current && runtime) {
+      bootstrapBlindStation(runtime);
       sceneRef.current.restart();
-      runtime.setVariable("evidence", 0);
-      runtime.setVariable("oxygen", 100);
-      runtime.setVariable("trustARES", 0);
-      runtime.setVariable("trustVega", 0);
     }
   };
 
@@ -181,15 +213,49 @@ export default function BlindStationScreen() {
           })}
 
           {!availableChoices.length && currentNode?.transitions?.length && !currentNode?.isEndNode && (
-            <NeonButton
-              variant="cyan"
-              onPress={handleAdvanceStory}
-              style={styles.restartButton}
-              accessibilityLabel="Continue"
-              accessibilityHint="Advances to the next node"
-            >
-              CONTINUE ➔
-            </NeonButton>
+            isObjectiveIncomplete ? (
+              currentNode?.sceneToLoad === "reactor_gameplay" || activeObjective?.id === "reactivate_reactor" ? (
+                <NeonButton
+                  variant="cyan"
+                  onPress={handleReactorMinigame}
+                  style={styles.restartButton}
+                  accessibilityLabel="Connect Reactor Module"
+                  accessibilityHint="Connects a transfer module in the reactor minigame"
+                >
+                  {`⚡ CONNECT MODULE (${objectiveCurrentCount + 1}/${objectiveTargetCount})`}
+                </NeonButton>
+              ) : currentNode?.sceneToLoad === "lab_gameplay" || activeObjective?.id === "scan_samples" ? (
+                <NeonButton
+                  variant="cyan"
+                  onPress={handleLabMinigame}
+                  style={styles.restartButton}
+                  accessibilityLabel="Scan Sample"
+                  accessibilityHint="Scans a lunar sample in the lab minigame"
+                >
+                  {`🔬 SCAN SAMPLE (${objectiveCurrentCount + 1}/${objectiveTargetCount})`}
+                </NeonButton>
+              ) : (
+                <NeonButton
+                  variant="cyan"
+                  onPress={handleGenericObjective}
+                  style={styles.restartButton}
+                  accessibilityLabel="Progress Objective"
+                  accessibilityHint="Advances objective progress"
+                >
+                  {`🎯 PROGRESS OBJECTIVE (${objectiveCurrentCount + 1}/${objectiveTargetCount})`}
+                </NeonButton>
+              )
+            ) : (
+              <NeonButton
+                variant="cyan"
+                onPress={handleAdvanceStory}
+                style={styles.restartButton}
+                accessibilityLabel="Continue"
+                accessibilityHint="Advances to the next node"
+              >
+                CONTINUE ➔
+              </NeonButton>
+            )
           )}
 
           {currentNode?.isEndNode && (

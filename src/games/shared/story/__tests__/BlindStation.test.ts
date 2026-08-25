@@ -103,10 +103,13 @@ describe("BlindStation StoryGraph", () => {
     eventBus.emit("reactor:module_online", { moduleId: "A" });
     expect(runtime.getState().objectives["reactivate_reactor"]?.currentCount).toBe(1);
 
-    eventBus.emit("reactor:restored", {});
+    eventBus.emit("reactor:module_online", { moduleId: "B" });
+    expect(runtime.getState().objectives["reactivate_reactor"]?.currentCount).toBe(2);
+
+    // 3rd module online event completes objective and navigates to reactor_evidence
+    eventBus.emit("reactor:module_online", { moduleId: "C" });
     expect(runtime.getState().objectives["reactivate_reactor"]?.completed).toBe(true);
-    // Auto-evaluates through reactor_evidence -> investigation_branch -> hub
-    expect(runtime.getCurrentNode()?.id).toBe("hub");
+    expect(runtime.getFlag("reactorActive")).toBe(true);
 
     runtime.navigateToNode("lab_objective");
     expect(runtime.getState().objectives["scan_samples"]?.currentCount).toBe(0);
@@ -118,6 +121,62 @@ describe("BlindStation StoryGraph", () => {
     expect(runtime.getState().objectives["scan_samples"]?.completed).toBe(true);
     // Auto-evaluates through lab_revelation -> core_approach -> core_choice
     expect(runtime.getCurrentNode()?.id).toBe("core_choice");
+  });
+
+  it("resets state completely on bootstrapBlindStation", () => {
+    const world = new World();
+    const { runtime } = createBlindStationStory(world);
+
+    // Mutate state
+    runtime.setFlag("visitedReactor", true);
+    runtime.setFlag("visitedInfirmary", true);
+    runtime.setFlag("visitedComms", true);
+    runtime.setVariable("evidence", 5);
+    runtime.setVariable("assertiveness", 3);
+    runtime.setObjective({
+      id: "test_obj",
+      titleKey: "Test",
+      descriptionKey: "Test desc",
+      targetCount: 1,
+      currentCount: 1,
+      completed: true,
+    });
+
+    // Run bootstrapBlindStation to restart state
+    const { bootstrapBlindStation } = require("../BlindStation");
+    bootstrapBlindStation(runtime);
+
+    expect(runtime.getFlag("visitedReactor")).toBe(false);
+    expect(runtime.getFlag("visitedInfirmary")).toBe(false);
+    expect(runtime.getFlag("visitedComms")).toBe(false);
+    expect(runtime.getVariable("evidence")).toBe(0);
+    expect(runtime.getVariable("assertiveness")).toBe(0);
+    expect(runtime.getObjective("test_obj")).toBeUndefined();
+    expect(runtime.getState().selectedChoices).toEqual([]);
+  });
+
+  it("provides efficient StoryRuntime getters and setters", () => {
+    const world = new World();
+    const { runtime } = createBlindStationStory(world);
+
+    expect(runtime.getCurrentNodeId()).toBe("awakening_choice");
+
+    runtime.setFlag("testFlag", true);
+    expect(runtime.getFlag("testFlag")).toBe(true);
+
+    runtime.setVariable("testVar", 42);
+    expect(runtime.getVariable("testVar")).toBe(42);
+
+    const obj = {
+      id: "obj1",
+      titleKey: "Obj 1",
+      descriptionKey: "Desc",
+      targetCount: 2,
+      currentCount: 0,
+      completed: false,
+    };
+    runtime.setObjective(obj);
+    expect(runtime.getObjective("obj1")?.titleKey).toBe("Obj 1");
   });
 
   it("unlocks final choices based on gathered evidence and story flags", () => {

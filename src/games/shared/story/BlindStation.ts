@@ -662,7 +662,7 @@ const LAB_OBJECTIVE: StoryObjective = {
 };
 
 function currentNumber(runtime: StoryRuntime, key: string): number {
-  return Number(runtime.getState().variables[key] ?? 0);
+  return Number(runtime.getVariable(key) ?? 0);
 }
 
 function incrementVariable(runtime: StoryRuntime, key: string, amount = 1): void {
@@ -670,16 +670,8 @@ function incrementVariable(runtime: StoryRuntime, key: string, amount = 1): void
 }
 
 function ensureObjective(runtime: StoryRuntime, objective: StoryObjective): void {
-  const state = runtime.getState();
-  if (state.objectives[objective.id]) return;
-
-  runtime.setState({
-    ...state,
-    objectives: {
-      ...state.objectives,
-      [objective.id]: { ...objective },
-    },
-  });
+  if (runtime.getObjective(objective.id)) return;
+  runtime.setObjective({ ...objective });
 }
 
 function setObjectiveCount(
@@ -687,8 +679,7 @@ function setObjectiveCount(
   objective: StoryObjective,
   count: number,
 ): StoryObjective {
-  const state = runtime.getState();
-  const existing = state.objectives[objective.id] ?? { ...objective };
+  const existing = runtime.getObjective(objective.id) ?? { ...objective };
   const nextCount = Math.min(existing.targetCount, Math.max(0, count));
   const next: StoryObjective = {
     ...existing,
@@ -696,35 +687,26 @@ function setObjectiveCount(
     completed: nextCount >= existing.targetCount,
   };
 
-  runtime.setState({
-    ...state,
-    objectives: {
-      ...state.objectives,
-      [objective.id]: next,
-    },
-  });
-
+  runtime.setObjective(next);
   return next;
 }
 
 function updateDerivedFlags(runtime: StoryRuntime): void {
-  const state = runtime.getState();
   const investigationComplete =
-    state.flags.visitedReactor === true &&
-    state.flags.visitedInfirmary === true &&
-    state.flags.visitedComms === true;
+    runtime.getFlag("visitedReactor") === true &&
+    runtime.getFlag("visitedInfirmary") === true &&
+    runtime.getFlag("visitedComms") === true;
 
-  if (state.flags.investigationComplete !== investigationComplete) {
+  if (runtime.getFlag("investigationComplete") !== investigationComplete) {
     runtime.setFlag("investigationComplete", investigationComplete);
   }
 
-  const refreshed = runtime.getState();
   const secretEndingUnlocked =
-    refreshed.flags.reactorActive === true &&
-    refreshed.flags.sawSecretRecording === true &&
-    Number(refreshed.variables.evidence ?? 0) >= 4;
+    runtime.getFlag("reactorActive") === true &&
+    runtime.getFlag("sawSecretRecording") === true &&
+    Number(runtime.getVariable("evidence") ?? 0) >= 4;
 
-  if (refreshed.flags.secretEndingUnlocked !== secretEndingUnlocked) {
+  if (runtime.getFlag("secretEndingUnlocked") !== secretEndingUnlocked) {
     runtime.setFlag("secretEndingUnlocked", secretEndingUnlocked);
   }
 }
@@ -734,7 +716,7 @@ function applyEvidenceOnce(
   seenFlag: string,
   amount = 1,
 ): void {
-  if (runtime.getState().flags[seenFlag]) return;
+  if (runtime.getFlag(seenFlag)) return;
   runtime.setFlag(seenFlag, true);
   incrementVariable(runtime, "evidence", amount);
 }
@@ -777,6 +759,10 @@ export function bootstrapBlindStation(runtime: StoryRuntime): void {
   for (const flag of falseFlags) {
     state.flags[flag] = false;
   }
+
+  state.objectives = {};
+  state.selectedChoices = [];
+  state.history = [];
 
   runtime.setState(state);
 }
@@ -896,7 +882,7 @@ export function bindBlindStationEffects(
           runtime.setFlag("rescueIncoming", true);
           applyEvidenceOnce(runtime, "seenEvidenceExternal");
 
-          if (runtime.getState().flags.sawCryoRecord) {
+          if (runtime.getFlag("sawCryoRecord")) {
             runtime.setFlag("sawSecretRecording", true);
           }
           break;
@@ -917,8 +903,14 @@ export function bindBlindStationEffects(
   unsubs.push(
     eventBus.on("reactor:module_online", () => {
       ensureObjective(runtime, REACTOR_OBJECTIVE);
-      const current = runtime.getState().objectives[REACTOR_OBJECTIVE.id]?.currentCount ?? 0;
-      setObjectiveCount(runtime, REACTOR_OBJECTIVE, current + 1);
+      const current = runtime.getObjective(REACTOR_OBJECTIVE.id)?.currentCount ?? 0;
+      const next = setObjectiveCount(runtime, REACTOR_OBJECTIVE, current + 1);
+
+      if (next.completed && runtime.getCurrentNodeId() === "reactor_objective") {
+        runtime.setFlag("reactorActive", true);
+        updateDerivedFlags(runtime);
+        runtime.navigateToNode("reactor_evidence");
+      }
     }),
   );
 
@@ -928,7 +920,7 @@ export function bindBlindStationEffects(
       setObjectiveCount(runtime, REACTOR_OBJECTIVE, REACTOR_OBJECTIVE.targetCount);
       updateDerivedFlags(runtime);
 
-      if (runtime.getState().currentNodeId === "reactor_objective") {
+      if (runtime.getCurrentNodeId() === "reactor_objective") {
         runtime.navigateToNode("reactor_evidence");
       }
     }),
@@ -937,10 +929,10 @@ export function bindBlindStationEffects(
   unsubs.push(
     eventBus.on("lab:sample_scanned", () => {
       ensureObjective(runtime, LAB_OBJECTIVE);
-      const current = runtime.getState().objectives[LAB_OBJECTIVE.id]?.currentCount ?? 0;
+      const current = runtime.getObjective(LAB_OBJECTIVE.id)?.currentCount ?? 0;
       const next = setObjectiveCount(runtime, LAB_OBJECTIVE, current + 1);
 
-      if (next.completed && runtime.getState().currentNodeId === "lab_objective") {
+      if (next.completed && runtime.getCurrentNodeId() === "lab_objective") {
         runtime.navigateToNode("lab_revelation");
       }
     }),

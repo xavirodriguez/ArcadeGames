@@ -721,6 +721,16 @@ export class StoryRuntime {
   }
 
   /**
+   * Retrieves the boolean value of a narrative state flag without cloning full runtime state.
+   *
+   * @param key - Flag name identifier.
+   * @returns `true` if flag is set to true, `false` otherwise.
+   */
+  public getFlag(key: string): boolean {
+    return !!this.state.flags[key];
+  }
+
+  /**
    * Sets a narrative state boolean flag and re-evaluates outgoing node transitions.
    *
    * @param key - Flag name identifier.
@@ -731,6 +741,16 @@ export class StoryRuntime {
     this.state.flags[key] = value;
     this.evaluateTransitions();
     this.emitStateChanged();
+  }
+
+  /**
+   * Retrieves the value of a narrative state variable without cloning full runtime state.
+   *
+   * @param key - Variable name identifier.
+   * @returns Variable value or undefined if not set.
+   */
+  public getVariable(key: string): any {
+    return this.state.variables[key];
   }
 
   /**
@@ -821,6 +841,35 @@ export class StoryRuntime {
     } else {
       this.emitStateChanged();
     }
+  }
+
+  /**
+   * Retrieves an active story objective by ID without cloning full runtime state.
+   *
+   * @param id - Objective identifier string.
+   * @returns StoryObjective instance or undefined if not registered.
+   */
+  public getObjective(id: string): import("./StoryTypes").StoryObjective | undefined {
+    return this.state.objectives[id];
+  }
+
+  /**
+   * Registers or updates an active story objective in runtime state.
+   *
+   * @param objective - Objective state descriptor to set.
+   */
+  public setObjective(objective: import("./StoryTypes").StoryObjective): void {
+    this.state.objectives[objective.id] = { ...objective };
+    this.emitStateChanged();
+  }
+
+  /**
+   * Retrieves current active node ID without cloning full runtime state.
+   *
+   * @returns Active node string ID, or null if no node is active.
+   */
+  public getCurrentNodeId(): string | null {
+    return this.state.currentNodeId;
   }
 
   /**

@@ -58,8 +58,8 @@ export function useStoryRuntime(
   const getSnapshot = useCallback((): UseStoryRuntimeResult => {
     if (!runtime) return EMPTY_SNAPSHOT;
 
-    const currentVersion = typeof (runtime as any).getVersion === "function"
-      ? (runtime as any).getVersion()
+    const currentVersion = typeof runtime.getVersion === "function"
+      ? runtime.getVersion()
       : 0;
     const currentNode = runtime.getCurrentNode();
 

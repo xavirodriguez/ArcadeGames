@@ -1,6 +1,6 @@
 import React from 'react';
 import { EvidenceNodeViewModel } from '../../types/evidence';
-import { getEvidenceKindConfig } from '../../utils/evidence';
+import { getKindConfig } from '../../config/evidenceConfig';
 
 interface EvidenceNodeProps {
   node: EvidenceNodeViewModel;
@@ -19,7 +19,7 @@ export const EvidenceNode: React.FC<EvidenceNodeProps> = ({
 }) => {
   if (!node.discovered) return null;
 
-  const config = getEvidenceKindConfig(node.kind);
+  const config = getKindConfig(node.kind);
   const IconComponent = config.icon;
 
   // Position is 0..1000 percentage mapped

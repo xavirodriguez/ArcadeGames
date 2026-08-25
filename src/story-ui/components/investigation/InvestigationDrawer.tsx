@@ -54,7 +54,7 @@ export const InvestigationDrawer: React.FC<InvestigationDrawerProps> = ({
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
   const selectedKindConfig = selectedNode ? getKindConfig(selectedNode.kind) : null;
-  const SelectedIcon = selectedKindConfig ? selectedKindConfig.icon : null;
+  const SelectedIcon = selectedKindConfig?.icon ?? null;
 
   return (
     <div

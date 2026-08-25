@@ -1,6 +1,6 @@
 import React from 'react';
 import { SearchIcon } from './icons/EvidenceIcons';
-import { getResourceStatus, ResourceStatus } from '../utils/evidence';
+import { getResourceStatus, ResourceStatus } from '../config/evidenceConfig';
 
 interface ResourceHUDProps {
   oxygen?: number;

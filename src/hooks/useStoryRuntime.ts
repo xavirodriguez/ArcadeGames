@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useCallback } from "react";
+import { useSyncExternalStore, useCallback, useRef } from "react";
 import { StoryRuntime, StoryState, StoryNode, EventBus } from "@tiny-aster/core";
 
 export interface UseStoryRuntimeResult {
@@ -27,6 +27,18 @@ export function useStoryRuntime(
   runtime: StoryRuntime | null,
   eventBus?: EventBus | null
 ): UseStoryRuntimeResult {
+  const cacheRef = useRef<{
+    runtime: StoryRuntime | null;
+    version: number;
+    currentNode: StoryNode | null;
+    snapshot: UseStoryRuntimeResult;
+  }>({
+    runtime: null,
+    version: -1,
+    currentNode: null,
+    snapshot: EMPTY_SNAPSHOT
+  });
+
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
       if (!runtime) return () => {};
@@ -45,14 +57,37 @@ export function useStoryRuntime(
 
   const getSnapshot = useCallback((): UseStoryRuntimeResult => {
     if (!runtime) return EMPTY_SNAPSHOT;
+
+    const currentVersion = typeof (runtime as any).getVersion === "function"
+      ? (runtime as any).getVersion()
+      : 0;
+    const currentNode = runtime.getCurrentNode();
+
+    if (
+      cacheRef.current.runtime === runtime &&
+      cacheRef.current.version === currentVersion &&
+      cacheRef.current.currentNode === currentNode
+    ) {
+      return cacheRef.current.snapshot;
+    }
+
     const st = runtime.getState();
-    return {
+    const newSnapshot: UseStoryRuntimeResult = {
       state: st,
-      currentNode: runtime.getCurrentNode(),
+      currentNode,
       flags: st.flags || {},
       variables: st.variables || {},
       evidence: st.evidence || []
     };
+
+    cacheRef.current = {
+      runtime,
+      version: currentVersion,
+      currentNode,
+      snapshot: newSnapshot
+    };
+
+    return newSnapshot;
   }, [runtime]);
 
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);

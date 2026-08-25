@@ -10,6 +10,43 @@ import {
   StoryStateCheckpoint
 } from "./StoryTypes";
 import { RelationshipEngine } from "./RelationshipEngine";
+
+/**
+ * Deep clones a `StoryState` snapshot without using `JSON.stringify`, preserving
+ * non-serializable values (such as `undefined`, `NaN`, or `Infinity`).
+ */
+function cloneStoryState(state: StoryState): StoryState {
+  const flags: Record<string, boolean> = { ...state.flags };
+  const variables: Record<string, any> = {};
+  if (state.variables) {
+    for (const k in state.variables) {
+      const v = state.variables[k];
+      if (typeof v === "object" && v !== null) {
+        variables[k] = Array.isArray(v) ? [...v] : { ...v };
+      } else {
+        variables[k] = v;
+      }
+    }
+  }
+  const objectives: Record<string, any> = {};
+  if (state.objectives) {
+    for (const k in state.objectives) {
+      if (state.objectives[k]) {
+        objectives[k] = { ...state.objectives[k] };
+      }
+    }
+  }
+  return {
+    graphId: state.graphId ?? null,
+    currentNodeId: state.currentNodeId ?? null,
+    flags,
+    variables,
+    selectedChoices: state.selectedChoices ? [...state.selectedChoices] : [],
+    objectives,
+    evidence: state.evidence ? [...state.evidence] : [],
+    history: state.history ? [...state.history] : []
+  };
+}
 import { DeductionEngine } from "./DeductionEngine";
 import { NarrativeTimelineEngine } from "./NarrativeTimelineEngine";
 
@@ -41,6 +78,7 @@ export class StoryRuntime {
   private timelineEngine?: NarrativeTimelineEngine;
   private lastRecordedEventId: string | null = null;
   private checkpoints: Map<string, StoryStateCheckpoint> = new Map();
+  private stateVersion: number = 0;
 
   /**
    * Constructs a new `StoryRuntime` instance.
@@ -114,11 +152,21 @@ export class StoryRuntime {
   }
 
   /**
+   * Retrieves monotonic state revision version counter.
+   *
+   * @public
+   */
+  public getVersion(): number {
+    return this.stateVersion;
+  }
+
+  /**
    * Dispatches a `story:state_changed` event via `EventBus` if bound.
    *
    * @public
    */
   public emitStateChanged(): void {
+    this.stateVersion++;
     if (this.eventBus) {
       this.eventBus.emit("story:state_changed" as any, {
         graphId: this.graph?.id || null,
@@ -141,7 +189,7 @@ export class StoryRuntime {
       id,
       nodeId: targetNodeId,
       timestamp: Date.now(),
-      state: JSON.parse(JSON.stringify(this.state)),
+      state: cloneStoryState(this.state),
       lastEventId: this.lastRecordedEventId
     };
     this.checkpoints.set(id, checkpoint);
@@ -163,7 +211,7 @@ export class StoryRuntime {
     }
 
     // 1. Restore exact state snapshot from checkpoint
-    this.state = JSON.parse(JSON.stringify(cp.state));
+    this.state = cloneStoryState(cp.state);
     this.lastRecordedEventId = cp.lastEventId;
 
     // 2. Truncate timeline events recorded after checkpoint in NarrativeTimelineEngine
@@ -226,7 +274,7 @@ export class StoryRuntime {
       return false;
     }
 
-    this.state = JSON.parse(JSON.stringify(checkpointData.state));
+    this.state = cloneStoryState(checkpointData.state);
     this.lastRecordedEventId = checkpointData.lastEventId;
 
     if (this.timelineEngine) {
@@ -687,10 +735,15 @@ export class StoryRuntime {
         if (!condition.key) return false;
         return this.state.selectedChoices.includes(condition.key);
 
-      case "objective":
+      case "objective": {
         if (!condition.key) return false;
         const obj = this.state.objectives[condition.key];
-        return obj ? obj.completed : false;
+        const completed = obj ? obj.completed : false;
+        if (condition.value !== undefined) {
+          return this.compareValues(completed, condition.value, condition.operator || "==");
+        }
+        return completed;
+      }
 
       case "evidence":
         if (!condition.key) return false;
@@ -763,9 +816,7 @@ export class StoryRuntime {
     if (this.state.variables[key] === value) return;
     this.state.variables[key] = value;
 
-    if (key === "evidence" && typeof value === "string") {
-      this.discoverEvidence(value);
-    } else if (key.startsWith("evidence:") && value === true) {
+    if (key.startsWith("evidence:") && value === true) {
       this.discoverEvidence(key.slice(9));
     } else if ((key.startsWith("relationship:") || key.startsWith("rel:")) && this.relationshipEngine) {
       const parts = key.split(":");
@@ -823,7 +874,7 @@ export class StoryRuntime {
    * @returns Deep copy of active `StoryState`.
    */
   public getState(): StoryState {
-    return JSON.parse(JSON.stringify(this.state));
+    return cloneStoryState(this.state);
   }
 
   /**
@@ -832,7 +883,7 @@ export class StoryRuntime {
    * @param state - State snapshot object to restore.
    */
   public setState(state: StoryState): void {
-    this.state = JSON.parse(JSON.stringify(state));
+    this.state = cloneStoryState(state);
     if (!this.state.evidence) {
       this.state.evidence = [];
     }

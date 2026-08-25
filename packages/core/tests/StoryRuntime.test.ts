@@ -360,4 +360,64 @@ describe("StoryRuntime & StoryGraph Engine Tests", () => {
     expect(timelineEngine.getTimeline().length).toBe(initialTimelineLength);
     expect(timelineEngine.getTimeline().pop()?.payload?.nodeId).toBe("node_start");
   });
+
+  it("should evaluate 'objective' condition with operator and value accurately", () => {
+    const runtime = new StoryRuntime();
+    runtime.bindWorld(world);
+
+    runtime.setObjective({
+      id: "obj_test",
+      titleKey: "Test Obj",
+      targetCount: 2,
+      currentCount: 0,
+      completed: false
+    });
+
+    // Uncompleted objective evaluation
+    expect(runtime.evaluateCondition({ type: "objective", key: "obj_test", operator: "==", value: true })).toBe(false);
+    expect(runtime.evaluateCondition({ type: "objective", key: "obj_test", operator: "==", value: false })).toBe(true);
+    expect(runtime.evaluateCondition({ type: "objective", key: "obj_test", operator: "!=", value: true })).toBe(true);
+    expect(runtime.evaluateCondition({ type: "objective", key: "obj_test" })).toBe(false);
+
+    // Complete objective
+    runtime.setObjective({
+      id: "obj_test",
+      titleKey: "Test Obj",
+      targetCount: 2,
+      currentCount: 2,
+      completed: true
+    });
+
+    expect(runtime.evaluateCondition({ type: "objective", key: "obj_test", operator: "==", value: true })).toBe(true);
+    expect(runtime.evaluateCondition({ type: "objective", key: "obj_test", operator: "==", value: false })).toBe(false);
+    expect(runtime.evaluateCondition({ type: "objective", key: "obj_test", operator: "!=", value: false })).toBe(true);
+    expect(runtime.evaluateCondition({ type: "objective", key: "obj_test" })).toBe(true);
+  });
+
+  it("should isolate numeric/string progress variable 'evidence' from state.evidence discovery array", () => {
+    const runtime = new StoryRuntime();
+    runtime.bindWorld(world);
+
+    runtime.setVariable("evidence", 3);
+    expect(runtime.getVariable("evidence")).toBe(3);
+    expect(runtime.getDiscoveredEvidence()).toEqual([]);
+
+    runtime.setVariable("evidence", "some_string_count");
+    expect(runtime.getVariable("evidence")).toBe("some_string_count");
+    expect(runtime.getDiscoveredEvidence()).toEqual([]); // Should NOT trigger discoverEvidence
+  });
+
+  it("should preserve non-serializable values (undefined, NaN, Infinity) in getState()", () => {
+    const runtime = new StoryRuntime();
+    runtime.bindWorld(world);
+
+    runtime.setVariable("nanVar", NaN);
+    runtime.setVariable("infinityVar", Infinity);
+    runtime.setVariable("undefVar", undefined);
+
+    const st = runtime.getState();
+    expect(Number.isNaN(st.variables.nanVar)).toBe(true);
+    expect(st.variables.infinityVar).toBe(Infinity);
+    expect(st.variables.undefVar).toBeUndefined();
+  });
 });

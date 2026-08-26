@@ -1,156 +1,123 @@
-# Casos de Estudio Narrativo-Gameplay: Campaña Multi-Juego
+# Casos de Estudio Narrativos: Campaña Multi-Juego Proof-of-Concept
 
-Este documento detalla los 3 caminos de ejecución ramificados dentro de la campaña Proof-of-Concept (`proofOfConceptStoryGraph`), ilustrando el impacto directo de las acciones del jugador en las mecánicas de juego y el desenlace narrativo.
+Este documento detalla las 3 rutas principales de ejecución en el grafo narrativo de la campaña Proof-of-Concept (`proofOfConceptStoryGraph`), demostrando la propagación de banderas, variables, modificadores mecánicos y finales diferenciados.
 
 ---
 
-## Caso Estudio A: "Flawless Run" (Victoria Impecable)
+## Caso A: "Flawless Run" (Victoria Impecable)
 
-### Perfil de Ejecución
-El jugador completa los 3 niveles iniciales de **Asteroids** sin morir, desbloqueando el camino heroico. Afronta **Space Invaders** con handicap (sin asistencias adicionales) y logra un puntaje superior a 5,000 puntos, asegurando los refuerzos para la batalla final en **Asteroids Redux**.
+### Descripción General
+El jugador demuestra un rendimiento perfecto en el Acto 1 (Asteroids) sin perder vidas y supera el umbral de 5000 puntos en el Acto 2 (Space Invaders).
 
 ### Árbol de Decisiones y Trayectoria
 ```
-[poc_start] ──> [poc_briefing] ──> [poc_act1_prep] (opción: Entrada Agresiva)
-                                        │
-                                        ▼
-                            [poc_act1_asteroids] (0 muertes)
-                                        │
-                                        ▼
-                            [poc_act1_heroic_diag] (`heroicEntry = true`)
-                                        │
-                                        ▼
-                            [poc_transition_si] ──> [poc_act2_prep]
-                                                        │
-                                                        ▼
-                                            [poc_act2_space_invaders] (Score: 6,500)
-                                                        │
-                                                        ▼
-                                            [poc_act2_highscore_diag] (`reinforcementsReceived = true`)
-                                                        │
-                                                        ▼
-                                            [poc_transition_asteroids_redux]
-                                                        │
-                                                        ▼
-                                            [poc_act3_asteroids_redux] (Escudo x1.5)
-                                                        │
-                                                        ▼
-                                            [poc_ending_flawless] ("Flawless Victory")
+[start_node]
+   ↓
+[act1_asteroids_gameplay] (Sin muertes, 3 oleadas completadas)
+   ↓
+[eval_act1_performance] → Setea `asteroidsPerfect = true` & `heroicEntry = true`
+   ↓
+[branch_heroic_entry] ("Maniobra limpia. Escudos al máximo rendimiento.")
+   ↓
+[cutscene_trans_to_spaceinvaders]
+   ↓
+[act2_spaceinvaders_gameplay] (Modificadores: `extraLives = 0`, `fireRateMultiplier = 1.0`. Score: 6200 pts)
+   ↓
+[eval_act2_performance] → Setea `reinforcementsReceived = true`
+   ↓
+[branch_reinforcements_success] ("Puntuación de combate alta. Cargamento desplegado.")
+   ↓
+[act3_asteroids_redux_gameplay] (Modificadores: `shieldMultiplier = 1.5`, munición extra)
+   ↓
+[final_evaluation_branch] → Condición `all: [heroicEntry, reinforcementsReceived]` = true
+   ↓
+[ending_flawless] ("Flawless Victory: La estación está a salvo y la leyenda perdura.")
 ```
 
 ### Matriz de Estado por Hito
 
-| Hito | Node ID | Flags Activos | Variables | Modificadores Aplicados |
-|---|---|---|---|---|
-| **Inicio Acto 1** | `poc_act1_prep` | ninguna | `asteroidsDeaths: 0` | Configuración base |
-| **Fin Acto 1** | `poc_act1_heroic_diag` | `heroicEntry: true` | `asteroidsDeaths: 0` | N/A |
-| **Inicio Acto 2** | `poc_act2_space_invaders` | `heroicEntry: true` | `asteroidsDeaths: 0` | `extraLives: 0`, `fireRateMultiplier: 1.0` |
-| **Fin Acto 2** | `poc_act2_highscore_diag` | `heroicEntry: true`, `reinforcementsReceived: true` | `spaceinvadersScore: 6500`, `narrativeScore: 100` | N/A |
-| **Inicio Acto 3** | `poc_act3_asteroids_redux` | `heroicEntry: true`, `reinforcementsReceived: true` | `spaceinvadersScore: 6500` | `shieldMultiplier: 1.5` |
-| **Final** | `poc_ending_flawless` | `heroicEntry: true`, `reinforcementsReceived: true` | `narrativeScore: 100` | N/A |
-
-### Líneas Narrativas Clave
-* **AI Odyssey-7 (Heroic):** *"Increíble maniobra. Maniobra limpia en el sector de asteroides sin registrar bajas de integridad."*
-* **AI Odyssey-7 (Final):** *"Victoria Impecable. Estación Odyssey salvada con daños mínimos y la flotilla enemiga destruida."*
+| Hito | Flags Activos | Variables | Modificadores Aplicados |
+|------|---------------|-----------|------------------------|
+| Fin Acto 1 | `asteroidsPerfect: true`, `heroicEntry: true` | `asteroidLevelReached: 2` | `navigationAssist: false` |
+| Fin Acto 2 | `heroicEntry: true`, `reinforcementsReceived: true` | `spaceinvadersScore: 6200`, `narrativeScore: 100` | `extraLives: 0`, `fireRateMultiplier: 1.0` |
+| Fin Acto 3 | `heroicEntry: true`, `reinforcementsReceived: true` | `narrativeScore: 300` | `shieldMultiplier: 1.5` |
 
 ---
 
-## Caso Estudio B: "Pyrrhic Victory" (Victoria Nula / Pirrórica)
+## Caso B: "Pyrrhic Victory" (Victoria Pírrica)
 
-### Perfil de Ejecución
-El jugador sufre bajas en **Asteroids** (`asteroidsDeaths >= 1`), por lo que no obtiene el flag heroico (`heroicEntry = false`). En **Space Invaders** recibe asistencias tácticas (`extraLives = 2`, `fireRateMultiplier = 1.3`), logrando superar los 5,000 puntos para activar refuerzos (`reinforcementsReceived = true`). En el acto 3 logra resistir pero con secuelas narrativas de costo elevado.
+### Descripción General
+El jugador sufre bajas en el Acto 1 (`heroicEntry = false`), pero logra recuperarse en el Acto 2 obteniendo más de 5000 puntos (`reinforcementsReceived = true`), o viceversa.
 
 ### Árbol de Decisiones y Trayectoria
 ```
-[poc_start] ──> [poc_briefing] ──> [poc_act1_prep] (opción: Entrada Cauta)
-                                        │
-                                        ▼
-                            [poc_act1_asteroids] (2 muertes)
-                                        │
-                                        ▼
-                            [poc_act1_struggle_diag] (`heroicEntry = false`)
-                                        │
-                                        ▼
-                            [poc_transition_si] ──> [poc_act2_prep]
-                                                        │
-                                                        ▼
-                                            [poc_act2_space_invaders] (Score: 5,500)
-                                                        │
-                                                        ▼
-                                            [poc_act2_highscore_diag] (`reinforcementsReceived = true`)
-                                                        │
-                                                        ▼
-                                            [poc_transition_asteroids_redux]
-                                                        │
-                                                        ▼
-                                            [poc_act3_asteroids_redux] (Escudo x1.5)
-                                                        │
-                                                        ▼
-                                            [poc_ending_pyrrhic] ("Pyrrhic Victory")
+[start_node]
+   ↓
+[act1_asteroids_gameplay] (Con muertes / lucha)
+   ↓
+[eval_act1_performance] → Setea `asteroidsStruggle = true` & `heroicEntry = false`
+   ↓
+[branch_struggling_entry] ("Impactos confirmados. Activando protocolo de asistencia.")
+   ↓
+[cutscene_trans_to_spaceinvaders]
+   ↓
+[act2_spaceinvaders_gameplay] (Modificadores: `extraLives = 2`, `fireRateMultiplier = 1.3`. Score: 5400 pts)
+   ↓
+[eval_act2_performance] → Setea `reinforcementsReceived = true`
+   ↓
+[branch_reinforcements_success]
+   ↓
+[act3_asteroids_redux_gameplay] (Modificadores: `shieldMultiplier = 1.5`)
+   ↓
+[final_evaluation_branch] → Condición `any: [heroicEntry, reinforcementsReceived]` = true
+   ↓
+[ending_pyrrhic] ("Pyrrhic Victory: Sobreviviste, pero a un costo devastador.")
 ```
 
 ### Matriz de Estado por Hito
 
-| Hito | Node ID | Flags Activos | Variables | Modificadores Aplicados |
-|---|---|---|---|---|
-| **Inicio Acto 1** | `poc_act1_prep` | ninguna | `asteroidsDeaths: 0` | Configuración base |
-| **Fin Acto 1** | `poc_act1_struggle_diag` | `heroicEntry: false` | `asteroidsDeaths: 2` | N/A |
-| **Inicio Acto 2** | `poc_act2_space_invaders` | `heroicEntry: false` | `asteroidsDeaths: 2` | `extraLives: 2`, `fireRateMultiplier: 1.3` |
-| **Fin Acto 2** | `poc_act2_highscore_diag` | `heroicEntry: false`, `reinforcementsReceived: true` | `spaceinvadersScore: 5500`, `narrativeScore: 100` | N/A |
-| **Inicio Acto 3** | `poc_act3_asteroids_redux` | `heroicEntry: false`, `reinforcementsReceived: true` | `spaceinvadersScore: 5500` | `shieldMultiplier: 1.5` |
-| **Final** | `poc_ending_pyrrhic` | `heroicEntry: false`, `reinforcementsReceived: true` | `narrativeScore: 100` | N/A |
-
-### Líneas Narrativas Clave
-* **AI Odyssey-7 (Struggle):** *"Navegación crítica. Casco secundario comprometido durante el cruce de asteroides."*
-* **Commander Valeria (Final):** *"Sobrevivimos, pero los sistemas de la estación están diezmados. Una victoria amarga."*
+| Hito | Flags Activos | Variables | Modificadores Aplicados |
+|------|---------------|-----------|------------------------|
+| Fin Acto 1 | `asteroidsStruggle: true`, `heroicEntry: false` | `asteroidLevelReached: 2` | `navigationAssist: true`, `shieldMultiplier: 1.2` |
+| Fin Acto 2 | `heroicEntry: false`, `reinforcementsReceived: true` | `spaceinvadersScore: 5400`, `narrativeScore: 100` | `extraLives: 2`, `fireRateMultiplier: 1.3` |
+| Fin Acto 3 | `heroicEntry: false`, `reinforcementsReceived: true` | `narrativeScore: 250` | `shieldMultiplier: 1.5` |
 
 ---
 
-## Caso Estudio C: "Survival" (Supervivencia Ajustada)
+## Caso C: "Survival" (Supervivencia Ajustada)
 
-### Perfil de Ejecución
-El jugador tiene un rendimiento deficiente en **Asteroids** (`heroicEntry = false`) y obtiene menos de 5,000 puntos en **Space Invaders** (`reinforcementsReceived = false`). Como resultado, entra a **Asteroids Redux** con una penalización de escudo (`shieldMultiplier = 0.8`), apenas logrando completar la campaña en el desenlace de mera supervivencia.
+### Descripción General
+El jugador sufre daños en el Acto 1 (`heroicEntry = false`) y no logra superar el umbral de 5000 puntos en Space Invaders (`reinforcementsReceived = false`).
 
 ### Árbol de Decisiones y Trayectoria
 ```
-[poc_start] ──> [poc_briefing] ──> [poc_act1_prep] (opción: Entrada Cauta)
-                                        │
-                                        ▼
-                            [poc_act1_asteroids] (1 muerte)
-                                        │
-                                        ▼
-                            [poc_act1_struggle_diag] (`heroicEntry = false`)
-                                        │
-                                        ▼
-                            [poc_transition_si] ──> [poc_act2_prep]
-                                                        │
-                                                        ▼
-                                            [poc_act2_space_invaders] (Score: 3,000)
-                                                        │
-                                                        ▼
-                                            [poc_act2_lowscore_diag] (`reinforcementsReceived = false`)
-                                                        │
-                                                        ▼
-                                            [poc_transition_asteroids_redux]
-                                                        │
-                                                        ▼
-                                            [poc_act3_asteroids_redux] (Escudo x0.8)
-                                                        │
-                                                        ▼
-                                            [poc_ending_survival] ("Bare Survival")
+[start_node]
+   ↓
+[act1_asteroids_gameplay] (Supervivencia mínima)
+   ↓
+[eval_act1_performance] → Setea `heroicEntry = false`
+   ↓
+[branch_struggling_entry]
+   ↓
+[cutscene_trans_to_spaceinvaders]
+   ↓
+[act2_spaceinvaders_gameplay] (Score: 3100 pts < 5000)
+   ↓
+[eval_act2_performance] → Setea `reinforcementsReceived = false`
+   ↓
+[branch_reinforcements_failed] ("Línea de suministros comprometida.")
+   ↓
+[act3_asteroids_redux_gameplay] (Modificadores penalizados: `shieldMultiplier = 0.8`)
+   ↓
+[final_evaluation_branch] → Ninguna condición cumplida (fallback a prioridad 0)
+   ↓
+[ending_survival] ("Survival: Apenas lo logramos. Los recursos están prácticamente agotados.")
 ```
 
 ### Matriz de Estado por Hito
 
-| Hito | Node ID | Flags Activos | Variables | Modificadores Aplicados |
-|---|---|---|---|---|
-| **Inicio Acto 1** | `poc_act1_prep` | ninguna | `asteroidsDeaths: 0` | Configuración base |
-| **Fin Acto 1** | `poc_act1_struggle_diag` | `heroicEntry: false` | `asteroidsDeaths: 1` | N/A |
-| **Inicio Acto 2** | `poc_act2_space_invaders` | `heroicEntry: false` | `asteroidsDeaths: 1` | `extraLives: 2`, `fireRateMultiplier: 1.3` |
-| **Fin Acto 2** | `poc_act2_lowscore_diag` | `heroicEntry: false`, `reinforcementsReceived: false` | `spaceinvadersScore: 3000`, `narrativeScore: 50` | N/A |
-| **Inicio Acto 3** | `poc_act3_asteroids_redux` | `heroicEntry: false`, `reinforcementsReceived: false` | `spaceinvadersScore: 3000` | `shieldMultiplier: 0.8` |
-| **Final** | `poc_ending_survival` | `heroicEntry: false`, `reinforcementsReceived: false` | `narrativeScore: 50` | N/A |
-
-### Líneas Narrativas Clave
-* **AI Odyssey-7 (Low Score):** *"Sin respuesta de los refuerzos. Los sensores muestran múltiples interceptores hostiles activos."*
-* **AI Odyssey-7 (Final):** *"Sistemas al borde del colapso. Apenas logramos mantener la energía primaria activa."*
+| Hito | Flags Activos | Variables | Modificadores Aplicados |
+|------|---------------|-----------|------------------------|
+| Fin Acto 1 | `heroicEntry: false` | `asteroidLevelReached: 2` | `navigationAssist: true` |
+| Fin Acto 2 | `heroicEntry: false`, `reinforcementsReceived: false` | `spaceinvadersScore: 3100`, `narrativeScore: 50` | `extraLives: 2`, `fireRateMultiplier: 1.3` |
+| Fin Acto 3 | `heroicEntry: false`, `reinforcementsReceived: false` | `narrativeScore: 100` | `shieldMultiplier: 0.8` |

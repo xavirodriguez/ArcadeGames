@@ -1,40 +1,17 @@
-# Pipeline Narrativo-Gameplay de 7 Etapas
+# Pipeline Narrativo-Gameplay: 7 Etapas
 
-Este documento describe la arquitectura declarativa de 7 etapas que interconecta el motor narrativo `StoryRuntime` con las sesiones de minijuegos arcade en **TinyAster**.
+Este documento describe la arquitectura del pipeline de integración entre la narrativa data-driven y el motor de juegos arcade de TinyAster.
 
----
-
-## Diagrama Flujo Conceptual (Mermaid)
+## Diagrama Conceptual (Mermaid)
 
 ```mermaid
 graph TD
-    subgraph Etapa 1: Definición Narrativa
-        A["StoryNode (type: gameplay)<br/>target: Asteroids / Space Invaders<br/>objective & encounterId"]
-    end
-
-    subgraph Etapa 2: Orquestación
-        A -->|startRun| B["ArcadeOrchestrator<br/>Valida ejecución activa<br/>Crea MiniGameRunContext inmutable"]
-    end
-
-    subgraph Etapa 3: Resolución de Modificadores
-        B -->|resolve| C["MiniGameModifierResolver<br/>Inspecciona StoryRuntimeSnapshot<br/>Genera MiniGameModifier[]"]
-    end
-
-    subgraph Etapa 4: Inicialización del Juego
-        C -->|initialize| D["ArcadeGameAdapter<br/>Aplica modificadores a la instancia<br/>Escucha eventos (game:over / level:completed)"]
-    end
-
-    subgraph Etapa 5: Ejecución y Captura de Métricas
-        D -->|emitResult| E["Adapter.emitResult<br/>Mapea métricas de juego<br/>a MiniGameResult canónico"]
-    end
-
-    subgraph Etapa 6: Reglas de Consecuencia
-        E -->|evaluate| F["OutcomeRuleEngine<br/>Evalúa MiniGameOutcomeRule[] por prioridad<br/>Genera StoryEffect[]"]
-    end
-
-    subgraph Etapa 7: Mutación de Estado y Transición
-        F -->|applyEffects| G["StoryEffectApplier / StoryRuntime<br/>Mutan flags, variables y objetivos<br/>StoryRuntime.evaluateTransitions()"]
-    end
+    A["Etapa 1: StoryNode<br/>(gameplay type)<br/>minijuego: Asteroids"] -->|startRun| B["Etapa 2: ArcadeOrchestrator<br/>valida contexto<br/>genera MiniGameRunContext"]
+    B -->|resolve| C["Etapa 3: MiniGameModifierResolver<br/>snapshot → modificadores<br/>específicos del juego"]
+    C -->|emitContext| D["Etapa 4: ArcadeGameAdapter<br/>initialize con modificadores<br/>escucha eventos de juego"]
+    D -->|game:over / level:completed| E["Etapa 5: Adapter.emitResult<br/>raw metrics →<br/>MiniGameResult canónico"]
+    E -->|evaluate| F["Etapa 6: OutcomeRuleEngine<br/>result → StoryEffect[]<br/>por prioridad"]
+    F -->|applyEffects| G["Etapa 7: StoryEffectApplier / StoryRuntime<br/>effects → StoryRuntime<br/>flags/variables/evidencia & advance"]
 ```
 
 ---
@@ -42,150 +19,113 @@ graph TD
 ## Desglose Etapa por Etapa
 
 ### Etapa 1: StoryNode (Definición Declarativa)
-* **Responsabilidad:** Declarar el encuentro de juego dentro del grafo narrativo (`StoryGraph`).
-* **Input:** Grafo narrativo cargado en `StoryRuntime`.
-* **Output:** Objeto `StoryNode` activo de tipo `"gameplay"`.
-* **Tipos involucrados:** `StoryNode` (`packages/core/src/story/StoryTypes.ts`)
-* **Código:**
-```typescript
-{
-  id: "poc_act1_asteroids",
-  type: "gameplay",
-  title: "Act 1: Asteroids Debris Sweep",
-  sceneToLoad: "asteroids-story-mode-lv3",
-  meta: {
+- **Responsabilidad:** Definir el encuentro narrativo dentro del grafo (`StoryGraph`).
+- **Input:** Configuración del nodo de tipo `"gameplay"`.
+- **Output:** Nodo activo con metadatos de encuentro (`encounterId`).
+- **Pseudocódigo:**
+  ```typescript
+  const node: StoryNode = {
+    id: "act1_asteroids_gameplay",
+    type: "gameplay",
+    sceneToLoad: "asteroids-story-mode-lv3",
+    meta: { minijuego: "asteroids", encounterId: "poc-asteroids-1" },
+    objective: { id: "survive-asteroids-wave3", targetCount: 3, currentCount: 0, completed: false },
+    transitions: [{ targetNodeId: "eval_act1_performance" }]
+  };
+  ```
+
+### Etapa 2: ArcadeOrchestrator.startRun()
+- **Responsabilidad:** Validar el estado del orquestador, crear el contexto inmutable `MiniGameRunContext` con seed determinista y notificar a la máquina de estados (`ArcadeKernel`).
+- **Input:** `MiniGameEncounter` y `StoryRuntimeSnapshot`.
+- **Output:** Instancia de `MiniGameRunContext`.
+- **Pseudocódigo:**
+  ```typescript
+  const runContext = orchestrator.startRun(
+    asteroidsPOCEncounter,
+    storyRuntime.getStateSnapshot()
+  );
+  ```
+
+### Etapa 3: MiniGameModifierResolver
+- **Responsabilidad:** Evaluar las reglas declarativas `modifierRules` sobre el snapshot narrativo actual sin mutar estado.
+- **Input:** Snapshot de `StoryRuntime` + `ModifierRule[]`.
+- **Output:** Lista de `MiniGameModifier` (ej. `shieldMultiplier`, `navigationAssist`).
+- **Pseudocódigo:**
+  ```typescript
+  const modifiers = modifierRules
+    .filter(rule => rule.condition(snapshot))
+    .map(rule => rule.modifier);
+  ```
+
+### Etapa 4: ArcadeGameAdapter.initialize()
+- **Responsabilidad:** Instanciar la partida del minijuego concreto (`AsteroidsGame` / `SpaceInvadersGame`), aplicar los modificadores mecánicos en el motor ECS y suscribirse a eventos de victoria/derrota.
+- **Input:** `MiniGameRunContext` y contenedor DOM/Canvas.
+- **Output:** Instancia activa del minijuego ejecutándose a 60 FPS.
+- **Pseudocódigo:**
+  ```typescript
+  adapter.initialize(runContext, hostElement);
+  // Aplica: game.shieldMultiplier = 1.5; game.navigationAssist = false;
+  ```
+
+### Etapa 5: Adapter.emitResult()
+- **Responsabilidad:** Mapear las métricas de rendimiento brutas del juego (puntuación, tiempo, colisiones, secretos) a un objeto `MiniGameResult` canónico.
+- **Input:** Evento de finalización de juego (`game:over` / `level:completed`).
+- **Output:** Estructura unificada `MiniGameResult`.
+- **Pseudocódigo:**
+  ```typescript
+  const result: MiniGameResult = {
+    runId: context.runId,
     gameId: "asteroids",
-    encounterId: "poc-asteroids-1"
-  },
-  objective: {
-    id: "obj_asteroids_sweep",
-    eventKey: "level:completed",
-    titleKey: "story.poc.obj_asteroids_title",
-    descriptionKey: "story.poc.obj_asteroids_desc",
-    targetCount: 3,
-    currentCount: 0,
-    completed: false
-  },
-  transitions: [
-    {
-      targetNodeId: "poc_act1_check",
-      condition: { type: "objective", key: "obj_asteroids_sweep" }
-    }
-  ]
-}
-```
+    score: 1500,
+    completed: true,
+    durationMs: 42000,
+    metrics: { collisions: 0, asteroidsDestroyed: 18 },
+    secretsFound: []
+  };
+  ```
+
+### Etapa 6: OutcomeRuleEngine.evaluate()
+- **Responsabilidad:** Evaluar las `outcomeRules` del encuentro contra el `MiniGameResult` por orden de prioridad y compilar los `StoryEffect[]` resultantes.
+- **Input:** `MiniGameResult` + `MiniGameOutcomeRule[]`.
+- **Output:** Conjunto de efectos declarativos (`setFlag`, `incrementVariable`, `discoverEvidence`).
+- **Pseudocódigo:**
+  ```typescript
+  const effects = ruleEngine.evaluate(result, encounter.outcomeRules);
+  // Genera: [{ type: "setFlag", key: "asteroidsPerfect", value: true }, { type: "setFlag", key: "heroicEntry", value: true }]
+  ```
+
+### Etapa 7: StoryEffectApplier y StoryRuntime.evaluateTransitions()
+- **Responsabilidad:** Aplicar los efectos en `StoryRuntime`, mutar flags/variables y evaluar transiciones salientes para avanzar al siguiente nodo del grafo (`story:node_changed`).
+- **Input:** `StoryEffect[]`.
+- **Output:** Nuevo nodo activo en el grafo narrativo.
+- **Pseudocódigo:**
+  ```typescript
+  StoryEffectApplier.applyEffects(storyRuntime, effects);
+  storyRuntime.evaluateTransitions(); // Transiciona a "cutscene_trans_to_spaceinvaders"
+  ```
 
 ---
 
-### Etapa 2: ArcadeOrchestrator (Contexto Inmutable de Ejecución)
-* **Responsabilidad:** Garantizar aislamiento de estado, evitar ejecuciones simultáneas y generar una semilla determinista junto con el snapshot del runtime narrativo.
-* **Input:** `MiniGameEncounter`, `StoryRuntimeSnapshot`.
-* **Output:** Objeto `MiniGameRunContext`.
-* **Tipos involucrados:** `MiniGameRunContext`, `ArcadeOrchestrator` (`packages/core/src/story/ArcadeOrchestrator.ts`)
-* **Código:**
-```typescript
-const runContext: MiniGameRunContext = orchestrator.startRun(
-  asteroidsPOCEncounter,
-  storyRuntime.getState()
-);
-```
+## Tabla de Transformación de Datos
+
+| Etapa | Estructura Entrante | Transformación Principal | Estructura Saliente |
+|-------|--------------------|--------------------------|---------------------|
+| 1 | `StoryGraph` | Selección de nodo actual | `StoryNode` |
+| 2 | `StoryNode` + `MiniGameEncounter` | Validación y generación de contexto | `MiniGameRunContext` |
+| 3 | `StoryRuntimeSnapshot` | Evaluación de predicados de modificador | `MiniGameModifier[]` |
+| 4 | `MiniGameRunContext` | Inyección de parámetros mecánicos en ECS | Instancia de Juego Activa |
+| 5 | Métricas ECS Brutas | Canonización de datos de sesión | `MiniGameResult` |
+| 6 | `MiniGameResult` | Evaluación DSL de condiciones | `StoryEffect[]` |
+| 7 | `StoryEffect[]` | Mutación de estado y salto de nodo | `StoryState` actualizado |
 
 ---
 
-### Etapa 3: MiniGameModifierResolver (Modificadores Mecánicos)
-* **Responsabilidad:** Evaluar las condiciones narrativas (`ModifierRule[]`) contra el snapshot del `StoryRuntime` para producir modificadores aplicables al minijuego sin acoplar la lógica del juego al motor narrativo.
-* **Input:** `StoryRuntimeSnapshot`, `MiniGameEncounter`.
-* **Output:** Array `MiniGameModifier[]`.
-* **Tipos involucrados:** `MiniGameModifierResolver`, `MiniGameModifier` (`packages/core/src/story/MiniGameModifierResolver.ts`)
-* **Código:**
-```typescript
-const resolver = new MiniGameModifierResolver();
-const activeModifiers = resolver.resolve(storyRuntime.getState(), spaceInvadersPOCEncounter);
-// Resultado: [{ targetProperty: "extraLives", value: 2 }, { targetProperty: "fireRateMultiplier", value: 1.3 }]
-```
+## Ejemplo End-to-End: Flawless Run
 
----
-
-### Etapa 4: ArcadeGameAdapter (Inicialización y Enlace de Eventos)
-* **Responsabilidad:** Instanciar el juego (ej. `AsteroidsGame` o `SpaceInvadersGame`), aplicar los modificadores recibidos a las propiedades del mundo o jugador, y registrar listeners para eventos de término (`game:over`, `level:completed`).
-* **Input:** `MiniGameRunContext`, `HTMLElement` (host contenedor).
-* **Output:** Instancia de juego activa en loop de renderizado.
-* **Tipos involucrados:** `ArcadeGameAdapter` (`packages/core/src/story/ArcadeGameAdapter.ts`)
-* **Código:**
-```typescript
-export class SpaceInvadersArcadeAdapter implements ArcadeGameAdapter {
-  public initialize(context: MiniGameRunContext, host: HTMLElement): void {
-    const game = new SpaceInvadersGame({ seed: context.seed });
-    for (const mod of context.modifiers) {
-      if (mod.targetProperty === "extraLives") (game as any).extraLives = mod.value;
-      if (mod.targetProperty === "fireRateMultiplier") (game as any).fireRateMultiplier = mod.value;
-    }
-    game.start();
-  }
-}
-```
-
----
-
-### Etapa 5: Metric Capture & Canonical MiniGameResult
-* **Responsabilidad:** Traducir las métricas de gameplay brutas (puntuación, colisiones, enemigos destruidos, secretos hallados) a una estructura canónica estandarizada.
-* **Input:** Eventos de gameplay o estado final del controlador de juego.
-* **Output:** Objeto canónico `MiniGameResult`.
-* **Tipos involucrados:** `MiniGameResult` (`packages/core/src/story/ArcadeIntegrationTypes.ts`)
-* **Código:**
-```typescript
-const result: MiniGameResult = {
-  runId: context.runId,
-  gameId: "space-invaders",
-  score: rawPayload.score,
-  completed: rawPayload.score >= 5000,
-  durationMs: rawPayload.durationMs,
-  metrics: {
-    invadersDestroyed: rawPayload.kills,
-    damageTaken: rawPayload.damage
-  },
-  secretsFound: rawPayload.secrets || []
-};
-```
-
----
-
-### Etapa 6: OutcomeRuleEngine (Evaluación de Reglas de Consecuencia)
-* **Responsabilidad:** Evaluar puramente las reglas de resultado (`MiniGameOutcomeRule[]`) ordenadas por prioridad de mayor a menor y convertir la performance del jugador en efectos narrativos.
-* **Input:** `MiniGameResult`, `MiniGameOutcomeRule[]`.
-* **Output:** Array de comandos declarativos `StoryEffect[]`.
-* **Tipos involucrados:** `OutcomeRuleEngine` (`packages/core/src/story/OutcomeRuleEngine.ts`)
-* **Código:**
-```typescript
-const engine = new OutcomeRuleEngine();
-const effects = engine.evaluate(siResult, spaceInvadersPOCEncounter.outcomeRules);
-// Retorna: [{ type: "setFlag", key: "reinforcementsReceived", value: true }, ...]
-```
-
----
-
-### Etapa 7: StoryEffectApplier & StoryRuntime Transition
-* **Responsabilidad:** Mutar las variables, flags y objetivos en `StoryRuntime` aplicando el array `StoryEffect[]`, y posteriormente invocar `evaluateTransitions()` para avanzar el grafo narrativo hacia la siguiente escena o diálogo ramificado.
-* **Input:** `StoryRuntime`, `StoryEffect[]`.
-* **Output:** `StoryRuntime` actualizado navegando al siguiente nodo.
-* **Tipos involucrados:** `StoryEffectApplier`, `StoryRuntime` (`packages/core/src/story/StoryRuntime.ts`)
-* **Código:**
-```typescript
-storyRuntime.applyEffects(effects);
-storyRuntime.applyEffect({ type: "completeObjective", objectiveId: "obj_space_invaders_waves" });
-storyRuntime.evaluateTransitions();
-```
-
----
-
-## Tabla Resumen de Datos del Pipeline
-
-| Etapa | Componente Principal | Entrada (Input) | Salida (Output) | Archivo de Origen |
-|---|---|---|---|---|
-| **1** | `StoryNode` | Grafo narrativo | Gameplay `StoryNode` | `packages/core/src/story/StoryTypes.ts` |
-| **2** | `ArcadeOrchestrator` | Encounter + StorySnapshot | `MiniGameRunContext` | `packages/core/src/story/ArcadeOrchestrator.ts` |
-| **3** | `MiniGameModifierResolver` | Snapshot + Rules | `MiniGameModifier[]` | `packages/core/src/story/MiniGameModifierResolver.ts` |
-| **4** | `ArcadeGameAdapter` | Context + Modifiers | Instancia de Juego activa | `src/games/asteroids/story/EscapeRouteEncounter.ts` |
-| **5** | `Adapter.emitResult` | Métricas brutas de Juego | `MiniGameResult` canónico | `src/games/space-invaders/story/InvasionEncounter.ts` |
-| **6** | `OutcomeRuleEngine` | Result + OutcomeRules | Comandos `StoryEffect[]` | `packages/core/src/story/OutcomeRuleEngine.ts` |
-| **7** | `StoryRuntime` | `StoryEffect[]` | Transición al siguiente nodo | `packages/core/src/story/StoryRuntime.ts` |
+1. **Asteroids Act 1:** Jugador completa el nivel 3 de Asteroids sin perder vidas (`completed = true`, `score = 1500`).
+2. **Resultado de Reglas:** `OutcomeRuleEngine` setea `asteroidsPerfect = true` y `heroicEntry = true`.
+3. **Transición:** El orquestador transiciona al corte narrativo `cutscene_trans_to_spaceinvaders`.
+4. **Space Invaders Act 2:** `MiniGameModifierResolver` lee `heroicEntry = true` y aplica handicap: `extraLives = 0`, `fireRateMultiplier = 1.0`.
+5. **Resultado Space Invaders:** Jugador obtiene `score = 6200 (> 5000)` → `OutcomeRuleEngine` setea `reinforcementsReceived = true`.
+6. **Asteroids Redux Act 3:** `MiniGameModifierResolver` lee `reinforcementsReceived = true` y aplica bonificación: `shieldMultiplier = 1.5`.
+7. **Final:** El nodo `final_evaluation_branch` evalúa `heroicEntry == true` Y `reinforcementsReceived == true`, desbloqueando el final **"Flawless Victory"**.

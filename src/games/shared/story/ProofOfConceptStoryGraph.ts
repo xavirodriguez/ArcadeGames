@@ -1,437 +1,286 @@
 import { StoryGraph } from "@tiny-aster/core";
 
 /**
- * Proof of Concept Multi-Game Narrative Campaign Graph.
- *
- * Flow:
- * Act 1: Asteroids (3 Levels)
- *   -> Branch on heroic performance (0 deaths => heroicEntry = true; >= 1 death => heroicEntry = false)
- * Act 2: Space Invaders (2 Waves)
- *   -> Modifiers applied dynamically from heroicEntry flag
- *   -> Branch on high score (> 5000 score => reinforcementsReceived = true; <= 5000 => false)
- * Act 3: Asteroids Redux (Level 4 Final Stand)
- *   -> Modifiers applied dynamically from reinforcementsReceived flag
- * Branching Finales:
- *   -> Flawless Victory (heroicEntry && reinforcementsReceived)
- *   -> Pyrrhic Victory (one true, one false)
- *   -> Survival (both false)
- *
- * @public
+ * PROOF OF CONCEPT STORY GRAPH
+ * Multi-game campaign flow:
+ * Asteroids (Act 1) -> Space Invaders (Act 2) -> Asteroids Redux (Act 3) -> 3 Branched Endings
  */
 export const proofOfConceptStoryGraph: StoryGraph = {
   id: "poc_multi_game_campaign",
-  title: "Multi-Game Narrative Campaign: Odyssey Station Crisis",
-  entryNodeId: "poc_start",
+  title: "Proof of Concept: Multi-Game Campaign",
+  entryNodeId: "start_node",
+
   characters: {
-    AI_ODYSSEY_7: {
-      id: "AI_ODYSSEY_7",
-      name: "Odyssey-7 AI",
-      avatarUrl: "assets/portraits/ai_odyssey.png"
-    },
-    COMMANDER_VALERIA: {
-      id: "COMMANDER_VALERIA",
-      name: "Commander Valeria",
-      avatarUrl: "assets/portraits/valeria.png"
-    }
+    ai: { id: "AI_ODYSSEY_7", name: "AI ODYSSEY 7" },
+    player: { id: "COMMANDER", name: "Comandante" }
   },
+
   nodes: {
-    poc_start: {
-      id: "poc_start",
+    // 01: Inicio
+    start_node: {
+      id: "start_node",
       type: "dialogue",
-      title: "Act 1: Station Alert",
+      title: "Inicio: Crisis en la estación",
       dialogue: {
-        id: "diag_poc_start",
+        id: "dlg_start_crisis",
         lines: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.crisis_alert",
-            emotion: "alarmed"
-          },
-          {
-            characterId: "COMMANDER_VALERIA",
-            speakerName: "Commander Valeria",
-            textKey: "story.poc.valeria_response",
-            emotion: "determined"
-          }
+          { speakerName: "AI ODYSSEY 7", textKey: "Alerta sectorial. Enjambre de asteroides detectado en aproximación." },
+          { speakerName: "AI ODYSSEY 7", textKey: "Sistemas primarios en riesgo. Comandante, tome los controles." }
         ]
       },
-      transitions: [
-        {
-          targetNodeId: "poc_briefing"
-        }
-      ]
+      transitions: [{ targetNodeId: "act1_asteroids_intro" }]
     },
-    poc_briefing: {
-      id: "poc_briefing",
-      type: "dialogue",
-      title: "Act 1: Debris Field Threat",
-      dialogue: {
-        id: "diag_poc_briefing",
-        lines: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.debris_briefing",
-            emotion: "neutral"
-          }
+
+    // 02: Intro Cutscene Act 1
+    act1_asteroids_intro: {
+      id: "act1_asteroids_intro",
+      type: "cutscene",
+      title: "Despliegue Orbital",
+      cutscene: {
+        id: "cs_act1_deploy",
+        transitionEffect: "fade",
+        dialogueQueue: [
+          { speakerName: "SISTEMA", textKey: "Iniciando secuencia de lanzamiento de interceptor." },
+          { speakerName: "AI ODYSSEY 7", textKey: "Destruya la primera oleada sin sufrir daños graves." }
         ]
       },
-      transitions: [
-        {
-          targetNodeId: "poc_act1_prep"
-        }
-      ]
+      transitions: [{ targetNodeId: "act1_asteroids_gameplay" }]
     },
-    poc_act1_prep: {
-      id: "poc_act1_prep",
-      type: "choice",
-      title: "Act 1: Tactical Approach",
-      dialogue: {
-        id: "diag_poc_prep",
-        lines: [
-          {
-            characterId: "COMMANDER_VALERIA",
-            speakerName: "Commander Valeria",
-            textKey: "story.poc.prep_prompt",
-            emotion: "thinking"
-          }
-        ]
-      },
-      choices: [
-        {
-          id: "choice_aggressive_entry",
-          titleKey: "story.poc.choice_aggressive_title",
-          descriptionKey: "story.poc.choice_aggressive_desc",
-          targetNodeId: "poc_act1_asteroids",
-          effects: [
-            {
-              type: "setVariable",
-              key: "asteroidsDeaths",
-              value: 0
-            }
-          ]
-        },
-        {
-          id: "choice_cautious_entry",
-          titleKey: "story.poc.choice_cautious_title",
-          descriptionKey: "story.poc.choice_cautious_desc",
-          targetNodeId: "poc_act1_asteroids",
-          effects: [
-            {
-              type: "setVariable",
-              key: "asteroidsDeaths",
-              value: 0
-            }
-          ]
-        }
-      ]
-    },
-    poc_act1_asteroids: {
-      id: "poc_act1_asteroids",
+
+    // 03: Gameplay Act 1 (Asteroids)
+    act1_asteroids_gameplay: {
+      id: "act1_asteroids_gameplay",
       type: "gameplay",
-      title: "Act 1: Asteroids Debris Sweep",
+      title: "Capítulo 1: Asteroids",
       sceneToLoad: "asteroids-story-mode-lv3",
       meta: {
-        gameId: "asteroids",
+        minijuego: "asteroids",
         encounterId: "poc-asteroids-1"
       },
       objective: {
-        id: "obj_asteroids_sweep",
-        eventKey: "level:completed",
-        titleKey: "story.poc.obj_asteroids_title",
-        descriptionKey: "story.poc.obj_asteroids_desc",
+        id: "survive-asteroids-wave3",
+        titleKey: "Sobrevive a las rocas",
+        descriptionKey: "Destruye 3 oleadas de asteroides",
         targetCount: 3,
         currentCount: 0,
         completed: false
       },
       transitions: [
         {
-          targetNodeId: "poc_act1_check",
-          condition: { type: "objective", key: "obj_asteroids_sweep" }
+          targetNodeId: "eval_act1_performance",
+          condition: { type: "objective", key: "survive-asteroids-wave3", operator: "==", value: true }
         }
       ]
     },
-    poc_act1_check: {
-      id: "poc_act1_check",
+
+    // 04: Branch Eval Act 1
+    eval_act1_performance: {
+      id: "eval_act1_performance",
       type: "branch",
-      title: "Act 1: Performance Evaluation",
+      title: "Evaluación Acto 1",
       transitions: [
         {
-          targetNodeId: "poc_act1_heroic_diag",
+          targetNodeId: "branch_heroic_entry",
           priority: 10,
           condition: {
-            type: "variable",
-            key: "asteroidsDeaths",
-            operator: "<=",
-            value: 0
+            any: [
+              { type: "flag", key: "asteroidsPerfect", value: true },
+              { type: "flag", key: "heroicEntry", value: true }
+            ]
           }
         },
         {
-          targetNodeId: "poc_act1_struggle_diag",
-          priority: 1
+          targetNodeId: "branch_struggling_entry",
+          priority: 0
         }
       ]
     },
-    poc_act1_heroic_diag: {
-      id: "poc_act1_heroic_diag",
+
+    // 05: Branch Heroic Entry
+    branch_heroic_entry: {
+      id: "branch_heroic_entry",
       type: "dialogue",
-      title: "Flawless Debris Run",
+      title: "Entrada Heroica",
       effects: [
-        {
-          type: "setFlag",
-          key: "heroicEntry",
-          value: true
-        }
+        { type: "setFlag", key: "heroicEntry", value: true }
       ],
       dialogue: {
-        id: "diag_poc_heroic",
+        id: "dlg_heroic_entry",
         lines: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.heroic_clear_text",
-            emotion: "pleased"
-          }
+          { speakerName: "AI ODYSSEY 7", textKey: "Maniobra limpia. Escudos al máximo rendimiento." }
         ]
       },
-      transitions: [
-        {
-          targetNodeId: "poc_transition_si"
-        }
-      ]
+      transitions: [{ targetNodeId: "cutscene_trans_to_spaceinvaders" }]
     },
-    poc_act1_struggle_diag: {
-      id: "poc_act1_struggle_diag",
+
+    // 06: Branch Struggling Entry
+    branch_struggling_entry: {
+      id: "branch_struggling_entry",
       type: "dialogue",
-      title: "Damaged Passage",
+      title: "Entrada con Daños",
       effects: [
-        {
-          type: "setFlag",
-          key: "heroicEntry",
-          value: false
-        }
+        { type: "setFlag", key: "heroicEntry", value: false }
       ],
       dialogue: {
-        id: "diag_poc_struggle",
+        id: "dlg_struggling_entry",
         lines: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.struggle_clear_text",
-            emotion: "concerned"
-          }
+          { speakerName: "AI ODYSSEY 7", textKey: "Impactos confirmados. Activando protocolo de asistencia táctica." }
         ]
       },
-      transitions: [
-        {
-          targetNodeId: "poc_transition_si"
-        }
-      ]
+      transitions: [{ targetNodeId: "cutscene_trans_to_spaceinvaders" }]
     },
-    poc_transition_si: {
-      id: "poc_transition_si",
+
+    // 07: Visual Transition to Space Invaders
+    cutscene_trans_to_spaceinvaders: {
+      id: "cutscene_trans_to_spaceinvaders",
       type: "cutscene",
-      title: "Signal Intercepted",
+      title: "Intercepción de Señal",
       cutscene: {
-        id: "cutscene_si_incoming",
-        sceneId: "CutsceneScene",
-        duration: 3,
-        transitionEffect: "iris",
+        id: "cs_trans_spaceinvaders",
+        transitionEffect: "IrisTransition",
         dialogueQueue: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.signal_intercepted_text",
-            emotion: "alarmed"
-          }
+          { speakerName: "SISTEMA", textKey: "Signal intercepted. Enemies incoming." },
+          { speakerName: "AI ODYSSEY 7", textKey: "Formación hostil aproximándose en cuadrante 4." }
         ]
       },
-      transitions: [
-        {
-          targetNodeId: "poc_act2_prep"
-        }
-      ]
+      transitions: [{ targetNodeId: "act2_spaceinvaders_gameplay" }]
     },
-    poc_act2_prep: {
-      id: "poc_act2_prep",
-      type: "dialogue",
-      title: "Act 2: Defense Grid Engagement",
-      dialogue: {
-        id: "diag_poc_act2_prep",
-        lines: [
-          {
-            characterId: "COMMANDER_VALERIA",
-            speakerName: "Commander Valeria",
-            textKey: "story.poc.act2_prep_text",
-            emotion: "determined"
-          }
-        ]
-      },
-      transitions: [
-        {
-          targetNodeId: "poc_act2_space_invaders"
-        }
-      ]
-    },
-    poc_act2_space_invaders: {
-      id: "poc_act2_space_invaders",
+
+    // 08: Gameplay Act 2 (Space Invaders)
+    act2_spaceinvaders_gameplay: {
+      id: "act2_spaceinvaders_gameplay",
       type: "gameplay",
-      title: "Act 2: Alien Wave Interception",
-      sceneToLoad: "space-invaders-story-mode",
+      title: "Capítulo 2: Space Invaders",
+      sceneToLoad: "space-invaders-story-mode-wave2",
       meta: {
-        gameId: "space-invaders",
+        minijuego: "space-invaders",
         encounterId: "poc-space-invaders-1"
       },
       objective: {
-        id: "obj_space_invaders_waves",
-        eventKey: "wave:completed",
-        titleKey: "story.poc.obj_invaders_title",
-        descriptionKey: "story.poc.obj_invaders_desc",
+        id: "repel-invaders-wave",
+        titleKey: "Repele la invasión",
+        descriptionKey: "Elimina 2 oleadas de invasores espacial",
         targetCount: 2,
         currentCount: 0,
         completed: false
       },
       transitions: [
         {
-          targetNodeId: "poc_act2_check",
-          condition: { type: "objective", key: "obj_space_invaders_waves" }
+          targetNodeId: "eval_act2_performance",
+          condition: { type: "objective", key: "repel-invaders-wave", operator: "==", value: true }
         }
       ]
     },
-    poc_act2_check: {
-      id: "poc_act2_check",
+
+    // 09: Branch Eval Act 2
+    eval_act2_performance: {
+      id: "eval_act2_performance",
       type: "branch",
-      title: "Act 2: Reinforcement Evaluation",
+      title: "Evaluación Acto 2",
       transitions: [
         {
-          targetNodeId: "poc_act2_highscore_diag",
+          targetNodeId: "branch_reinforcements_success",
           priority: 10,
           condition: {
-            type: "variable",
-            key: "spaceinvadersScore",
-            operator: ">",
-            value: 5000
+            any: [
+              { type: "flag", key: "reinforcementsReceived", value: true },
+              { type: "variable", key: "spaceinvadersScore", operator: ">", value: 5000 }
+            ]
           }
         },
         {
-          targetNodeId: "poc_act2_lowscore_diag",
-          priority: 1
+          targetNodeId: "branch_reinforcements_failed",
+          priority: 0
         }
       ]
     },
-    poc_act2_highscore_diag: {
-      id: "poc_act2_highscore_diag",
+
+    // 10: Branch Reinforcements Success
+    branch_reinforcements_success: {
+      id: "branch_reinforcements_success",
       type: "dialogue",
-      title: "Reinforcements Confirmed",
+      title: "Refuerzos Confirmados",
       effects: [
-        {
-          type: "setFlag",
-          key: "reinforcementsReceived",
-          value: true
-        }
+        { type: "setFlag", key: "reinforcementsReceived", value: true }
       ],
       dialogue: {
-        id: "diag_poc_reinforcements_ok",
+        id: "dlg_reinforcements_success",
         lines: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.reinforcements_success_text",
-            emotion: "pleased"
-          }
+          { speakerName: "AI ODYSSEY 7", textKey: "Puntuación de combate alta. Cargamento de munición y escudos desplegado." }
         ]
       },
-      transitions: [
-        {
-          targetNodeId: "poc_transition_asteroids_redux"
-        }
-      ]
+      transitions: [{ targetNodeId: "cutscene_trans_to_asteroids_redux" }]
     },
-    poc_act2_lowscore_diag: {
-      id: "poc_act2_lowscore_diag",
+
+    // 11: Branch Reinforcements Failed
+    branch_reinforcements_failed: {
+      id: "branch_reinforcements_failed",
       type: "dialogue",
-      title: "Reinforcements Cut Off",
+      title: "Línea de Suministros Interrumpida",
       effects: [
-        {
-          type: "setFlag",
-          key: "reinforcementsReceived",
-          value: false
-        }
+        { type: "setFlag", key: "reinforcementsReceived", value: false }
       ],
       dialogue: {
-        id: "diag_poc_reinforcements_failed",
+        id: "dlg_reinforcements_failed",
         lines: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.reinforcements_failed_text",
-            emotion: "concerned"
-          }
+          { speakerName: "AI ODYSSEY 7", textKey: "Línea de suministros comprometida. Deberemos resistir con recursos limitados." }
         ]
       },
-      transitions: [
-        {
-          targetNodeId: "poc_transition_asteroids_redux"
-        }
-      ]
+      transitions: [{ targetNodeId: "cutscene_trans_to_asteroids_redux" }]
     },
-    poc_transition_asteroids_redux: {
-      id: "poc_transition_asteroids_redux",
-      type: "dialogue",
-      title: "Act 3: Final Stand Preparation",
-      dialogue: {
-        id: "diag_poc_act3_prep",
-        lines: [
-          {
-            characterId: "COMMANDER_VALERIA",
-            speakerName: "Commander Valeria",
-            textKey: "story.poc.act3_prep_text",
-            emotion: "resolute"
-          }
+
+    // 12: Visual Transition to Asteroids Redux
+    cutscene_trans_to_asteroids_redux: {
+      id: "cutscene_trans_to_asteroids_redux",
+      type: "cutscene",
+      title: "Retorno a la Zona de Impacto",
+      cutscene: {
+        id: "cs_trans_asteroids_redux",
+        transitionEffect: "fade",
+        dialogueQueue: [
+          { speakerName: "AI ODYSSEY 7", textKey: "We made it. For now." },
+          { speakerName: "AI ODYSSEY 7", textKey: "Último sector de asteroides por despejar." }
         ]
       },
-      transitions: [
-        {
-          targetNodeId: "poc_act3_asteroids_redux"
-        }
-      ]
+      transitions: [{ targetNodeId: "act3_asteroids_redux_gameplay" }]
     },
-    poc_act3_asteroids_redux: {
-      id: "poc_act3_asteroids_redux",
+
+    // 13: Gameplay Act 3 (Asteroids Redux)
+    act3_asteroids_redux_gameplay: {
+      id: "act3_asteroids_redux_gameplay",
       type: "gameplay",
-      title: "Act 3: Asteroids Redux - Final Wave",
-      sceneToLoad: "asteroids-story-redux-lv4",
+      title: "Capítulo 3: Asteroids Redux",
+      sceneToLoad: "asteroids-story-mode-redux",
       meta: {
-        gameId: "asteroids",
-        encounterId: "poc-asteroids-redux-1"
+        minijuego: "asteroids",
+        encounterId: "poc-asteroids-redux"
       },
       objective: {
-        id: "obj_asteroids_redux_final",
-        eventKey: "level:completed",
-        titleKey: "story.poc.obj_asteroids_redux_title",
-        descriptionKey: "story.poc.obj_asteroids_redux_desc",
-        targetCount: 1,
+        id: "clear-final-sector",
+        titleKey: "Limpia el sector final",
+        descriptionKey: "Supera el nivel 4 final de Asteroids",
+        targetCount: 4,
         currentCount: 0,
         completed: false
       },
       transitions: [
         {
-          targetNodeId: "poc_act3_eval_branch",
-          condition: { type: "objective", key: "obj_asteroids_redux_final" }
+          targetNodeId: "final_evaluation_branch",
+          condition: { type: "objective", key: "clear-final-sector", operator: "==", value: true }
         }
       ]
     },
-    poc_act3_eval_branch: {
-      id: "poc_act3_eval_branch",
+
+    // 14: Final Evaluation Branch
+    final_evaluation_branch: {
+      id: "final_evaluation_branch",
       type: "branch",
-      title: "Act 3: Outcome Branching",
+      title: "Determinación de Final",
       transitions: [
         {
-          targetNodeId: "poc_ending_flawless",
-          priority: 20,
+          targetNodeId: "ending_flawless",
+          priority: 30,
           condition: {
-            type: "all",
             all: [
               { type: "flag", key: "heroicEntry", value: true },
               { type: "flag", key: "reinforcementsReceived", value: true }
@@ -439,10 +288,9 @@ export const proofOfConceptStoryGraph: StoryGraph = {
           }
         },
         {
-          targetNodeId: "poc_ending_pyrrhic",
-          priority: 10,
+          targetNodeId: "ending_pyrrhic",
+          priority: 20,
           condition: {
-            type: "any",
             any: [
               { type: "flag", key: "heroicEntry", value: true },
               { type: "flag", key: "reinforcementsReceived", value: true }
@@ -450,59 +298,56 @@ export const proofOfConceptStoryGraph: StoryGraph = {
           }
         },
         {
-          targetNodeId: "poc_ending_survival",
-          priority: 1
+          targetNodeId: "ending_survival",
+          priority: 0
         }
       ]
     },
-    poc_ending_flawless: {
-      id: "poc_ending_flawless",
-      type: "dialogue",
-      title: "Ending: Flawless Victory",
+
+    // 15: Flawless Victory Ending
+    ending_flawless: {
+      id: "ending_flawless",
+      type: "cutscene",
+      title: "Final: Flawless Victory",
+      sceneToLoad: "ending-flawless",
       isEndNode: true,
-      dialogue: {
-        id: "diag_ending_flawless",
-        lines: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.ending_flawless_text",
-            emotion: "triumphant"
-          }
+      cutscene: {
+        id: "cs_ending_flawless",
+        dialogueQueue: [
+          { speakerName: "AI ODYSSEY 7", textKey: "Victoria Impecable. Todos los sectores limpios y suministros resguardados." },
+          { speakerName: "COMMANDER", textKey: "La estación está a salvo. Misión cumplida." }
         ]
       }
     },
-    poc_ending_pyrrhic: {
-      id: "poc_ending_pyrrhic",
-      type: "dialogue",
-      title: "Ending: Pyrrhic Victory",
+
+    // 16: Pyrrhic Victory Ending
+    ending_pyrrhic: {
+      id: "ending_pyrrhic",
+      type: "cutscene",
+      title: "Final: Pyrrhic Victory",
+      sceneToLoad: "ending-pyrrhic",
       isEndNode: true,
-      dialogue: {
-        id: "diag_ending_pyrrhic",
-        lines: [
-          {
-            characterId: "COMMANDER_VALERIA",
-            speakerName: "Commander Valeria",
-            textKey: "story.poc.ending_pyrrhic_text",
-            emotion: "somber"
-          }
+      cutscene: {
+        id: "cs_ending_pyrrhic",
+        dialogueQueue: [
+          { speakerName: "AI ODYSSEY 7", textKey: "Sobrevivimos al ataque, pero los sistemas sufrieron daños significativos." },
+          { speakerName: "COMMANDER", textKey: "Una victoria amarga, pero seguimos de pie." }
         ]
       }
     },
-    poc_ending_survival: {
-      id: "poc_ending_survival",
-      type: "dialogue",
-      title: "Ending: Bare Survival",
+
+    // 17: Survival Ending
+    ending_survival: {
+      id: "ending_survival",
+      type: "cutscene",
+      title: "Final: Survival",
+      sceneToLoad: "ending-survival",
       isEndNode: true,
-      dialogue: {
-        id: "diag_ending_survival",
-        lines: [
-          {
-            characterId: "AI_ODYSSEY_7",
-            speakerName: "AI Odyssey-7",
-            textKey: "story.poc.ending_survival_text",
-            emotion: "exhausted"
-          }
+      cutscene: {
+        id: "cs_ending_survival",
+        dialogueQueue: [
+          { speakerName: "AI ODYSSEY 7", textKey: "Apenas lo logramos. Los recursos están prácticamente agotados." },
+          { speakerName: "COMMANDER", textKey: "Resistimos hoy. Mañana será otra batalla." }
         ]
       }
     }

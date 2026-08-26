@@ -5,6 +5,7 @@ import { MiniGameEncounterDSL } from "../packages/core/src/story/EncounterDSLSch
 
 import { caveAdventureGraph } from "../src/games/shared/story/TheCaveAdventure";
 import { BlindStationGraph } from "../src/games/shared/story/BlindStation";
+import { proofOfConceptStoryGraph } from "../src/games/shared/story/ProofOfConceptStoryGraph";
 import {
   asteroidsStoryGraph,
   spaceInvadersStoryGraph,
@@ -84,15 +85,14 @@ const storyGraphRegistry: GraphRegistryEntry[] = [
     getGraph: () => proofOfConceptStoryGraph,
     options: {
       declaredFlags: [
-        "heroicEntry",
-        "reinforcementsReceived",
         "asteroidsPerfect",
         "asteroidsStruggle",
-        "asteroidsReduxCompleted"
+        "heroicEntry",
+        "reinforcementsReceived"
       ],
       declaredVariables: [
-        "asteroidsDeaths",
         "spaceinvadersScore",
+        "asteroidLevelReached",
         "narrativeScore"
       ]
     }

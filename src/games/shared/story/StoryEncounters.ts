@@ -20,21 +20,32 @@ export const asteroidsPOCEncounter: MiniGameEncounter = {
   },
   modifierRules: [
     {
-      id: "heroic_entry_check",
+      id: "heroic_entry_check_true",
       condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.heroicEntry === true,
       modifier: {
         id: "heroic_no_assist",
         targetProperty: "navigationAssist",
-        value: false
+        value: false,
+        name: "Sin asistencia: manera difícil"
       }
     },
     {
-      id: "struggle_entry_check",
+      id: "heroic_entry_check_false",
       condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.heroicEntry === false,
       modifier: {
-        id: "struggle_assist_enable",
+        id: "heroic_assist_enable",
         targetProperty: "navigationAssist",
-        value: true
+        value: true,
+        name: "Con asistencia: camino más amable"
+      }
+    },
+    {
+      id: "heroic_shield_boost",
+      condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.heroicEntry === false,
+      modifier: {
+        id: "heroic_shield_multiplier",
+        targetProperty: "shieldMultiplier",
+        value: 1.2
       }
     }
   ],
@@ -52,6 +63,11 @@ export const asteroidsPOCEncounter: MiniGameEncounter = {
           type: "setFlag",
           key: "asteroidsPerfect",
           value: true
+        },
+        {
+          type: "setFlag",
+          key: "heroicEntry",
+          value: true
         }
       ]
     },
@@ -59,15 +75,20 @@ export const asteroidsPOCEncounter: MiniGameEncounter = {
       id: "rule_asteroids_struggle",
       priority: 20,
       condition: {
-        metric: "collisions",
-        operator: ">=",
-        value: 3
+        field: "completed",
+        operator: "==",
+        value: false
       },
       effects: [
         {
           type: "setFlag",
           key: "asteroidsStruggle",
           value: true
+        },
+        {
+          type: "setFlag",
+          key: "heroicEntry",
+          value: false
         }
       ]
     }
@@ -75,10 +96,10 @@ export const asteroidsPOCEncounter: MiniGameEncounter = {
 };
 
 /**
- * Encounter definition for Act 2: Space Invaders
+ * Proof of Concept Encounter for Space Invaders (Act 2)
  */
 export const spaceInvadersPOCEncounter: MiniGameEncounter = {
-  id: SPACE_INVADERS_POC_ENCOUNTER_ID,
+  id: "poc-space-invaders-1",
   gameId: "space-invaders",
   baseConfig: {
     difficulty: "normal",
@@ -87,37 +108,28 @@ export const spaceInvadersPOCEncounter: MiniGameEncounter = {
   },
   modifierRules: [
     {
-      id: "heroic_handicap_check",
+      id: "si_heroic_true_extra_lives",
       condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.heroicEntry === true,
       modifier: {
-        id: "heroic_handicap_lives",
+        id: "si_no_extra_lives",
         targetProperty: "extraLives",
         value: 0
       }
     },
     {
-      id: "heroic_handicap_firerate",
-      condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.heroicEntry === true,
-      modifier: {
-        id: "heroic_handicap_firerate_val",
-        targetProperty: "fireRateMultiplier",
-        value: 1.0
-      }
-    },
-    {
-      id: "struggle_bonus_check",
+      id: "si_heroic_false_extra_lives",
       condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.heroicEntry === false,
       modifier: {
-        id: "struggle_bonus_lives",
+        id: "si_extra_lives_bonus",
         targetProperty: "extraLives",
         value: 2
       }
     },
     {
-      id: "struggle_bonus_firerate",
+      id: "si_heroic_false_firerate",
       condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.heroicEntry === false,
       modifier: {
-        id: "struggle_bonus_firerate_val",
+        id: "si_fire_rate_bonus",
         targetProperty: "fireRateMultiplier",
         value: 1.3
       }
@@ -125,8 +137,8 @@ export const spaceInvadersPOCEncounter: MiniGameEncounter = {
   ],
   outcomeRules: [
     {
-      id: "rule_reinforcements_high_score",
-      priority: 20,
+      id: "rule_si_high_score",
+      priority: 10,
       condition: {
         field: "score",
         operator: ">=",
@@ -139,11 +151,6 @@ export const spaceInvadersPOCEncounter: MiniGameEncounter = {
           value: true
         },
         {
-          type: "setVariable",
-          key: "spaceinvadersScore",
-          value: 6000
-        },
-        {
           type: "incrementVariable",
           key: "narrativeScore",
           amount: 100
@@ -151,8 +158,8 @@ export const spaceInvadersPOCEncounter: MiniGameEncounter = {
       ]
     },
     {
-      id: "rule_reinforcements_low_score",
-      priority: 10,
+      id: "rule_si_low_score",
+      priority: 20,
       condition: {
         field: "score",
         operator: "<",
@@ -163,11 +170,6 @@ export const spaceInvadersPOCEncounter: MiniGameEncounter = {
           type: "setFlag",
           key: "reinforcementsReceived",
           value: false
-        },
-        {
-          type: "setVariable",
-          key: "spaceinvadersScore",
-          value: 3000
         },
         {
           type: "incrementVariable",
@@ -192,19 +194,19 @@ export const asteroidsReduxPOCEncounter: MiniGameEncounter = {
   },
   modifierRules: [
     {
-      id: "reinforcements_boost_shield",
+      id: "redux_reinforcements_true_shield",
       condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.reinforcementsReceived === true,
       modifier: {
-        id: "shield_boost",
+        id: "redux_high_shield",
         targetProperty: "shieldMultiplier",
         value: 1.5
       }
     },
     {
-      id: "no_reinforcements_penalty_shield",
+      id: "redux_reinforcements_false_shield",
       condition: (snapshot: StoryRuntimeSnapshot) => snapshot.flags.reinforcementsReceived === false,
       modifier: {
-        id: "shield_penalty",
+        id: "redux_low_shield",
         targetProperty: "shieldMultiplier",
         value: 0.8
       }
@@ -212,7 +214,7 @@ export const asteroidsReduxPOCEncounter: MiniGameEncounter = {
   ],
   outcomeRules: [
     {
-      id: "rule_act3_complete",
+      id: "rule_redux_completion",
       priority: 10,
       condition: {
         field: "completed",
@@ -221,9 +223,9 @@ export const asteroidsReduxPOCEncounter: MiniGameEncounter = {
       },
       effects: [
         {
-          type: "setFlag",
-          key: "asteroidsReduxCompleted",
-          value: true
+          type: "incrementVariable",
+          key: "narrativeScore",
+          amount: 200
         }
       ]
     }

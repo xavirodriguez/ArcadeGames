@@ -16,6 +16,7 @@ import {
 } from "@tiny-aster/core";
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { CanvasRenderer } from "./CanvasRenderer";
+import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
 
 export interface CampaignScreenProps {
   /** Initial StoryGraph asset to start campaign. */
@@ -82,6 +83,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const [availableChoices, setAvailableChoices] = useState<StoryChoice[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string>("Initializing Campaign...");
+  const [showDashboard, setShowDashboard] = useState<boolean>(false);
 
   const currentGameRef = useRef<BaseGame | null>(null);
   currentGameRef.current = activeGame;
@@ -316,8 +318,16 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         </View>
       )}
 
-      {/* Quick Save / Load Toolbar */}
+      {/* Quick Save / Load / Narrative Debug Toolbar */}
       <View style={styles.toolbar}>
+        <TouchableOpacity
+          style={styles.toolbarButton}
+          onPress={() => setShowDashboard(!showDashboard)}
+        >
+          <Text style={styles.toolbarText}>
+            {showDashboard ? "Hide Debug" : "📖 Narrative Debug"}
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.toolbarButton} onPress={handleSave}>
           <Text style={styles.toolbarText}>Save</Text>
         </TouchableOpacity>
@@ -325,6 +335,15 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
           <Text style={styles.toolbarText}>Load</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Introspection Dashboard Overlay */}
+      {runtimeRef.current && (
+        <NarrativeDashboard
+          storyRuntime={runtimeRef.current}
+          isVisible={showDashboard}
+          onToggle={() => setShowDashboard(false)}
+        />
+      )}
     </View>
   );
 };

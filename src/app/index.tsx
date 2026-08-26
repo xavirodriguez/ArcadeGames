@@ -17,11 +17,12 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "cyoa" | "blindstation";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "cyoa" | "blindstation" | "campaign";
   href: Href<string>;
 }
 
 const GAMES: GameEntry[] = [
+  { id: "campaign", key: "campaign", href: "/campaign" },
   { id: "asteroids", key: "asteroids", href: "/asteroids" },
   { id: "space-invaders", key: "space_invaders", href: "/space-invaders" },
   { id: "flappybird", key: "flappybird", href: "/flappybird" },

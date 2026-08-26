@@ -40,7 +40,7 @@ export const PongControls: React.FC<PongControlsProps> = ({
         >
           <Text style={styles.text}>▲</Text>
         </Pressable>
-        <View style={{ height: 20 }} />
+        <View style={styles.spacer} />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t?.accessibility?.pong_p1_down || "Player 1 Move Down"}
@@ -69,7 +69,7 @@ export const PongControls: React.FC<PongControlsProps> = ({
           >
             <Text style={styles.text}>▲</Text>
           </Pressable>
-          <View style={{ height: 20 }} />
+          <View style={styles.spacer} />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t?.accessibility?.pong_p2_down || "Player 2 Move Down"}
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 32,
   },
-  spacerVertical20: {
+  spacer: {
     height: 20,
   },
 });

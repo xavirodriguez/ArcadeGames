@@ -3,11 +3,15 @@ import {
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
 
+export const ASTEROIDS_POC_ENCOUNTER_ID = "poc-asteroids-1";
+export const SPACE_INVADERS_POC_ENCOUNTER_ID = "poc-space-invaders-1";
+export const ASTEROIDS_REDUX_POC_ENCOUNTER_ID = "poc-asteroids-redux-1";
+
 /**
- * Proof of Concept Encounter for Asteroids (Act 1)
+ * Encounter definition for Act 1: Asteroids
  */
 export const asteroidsPOCEncounter: MiniGameEncounter = {
-  id: "poc-asteroids-1",
+  id: ASTEROIDS_POC_ENCOUNTER_ID,
   gameId: "asteroids",
   baseConfig: {
     difficulty: "normal",
@@ -178,14 +182,14 @@ export const spaceInvadersPOCEncounter: MiniGameEncounter = {
 };
 
 /**
- * Proof of Concept Encounter for Asteroids Redux (Act 3)
+ * Encounter definition for Act 3: Asteroids Redux
  */
 export const asteroidsReduxPOCEncounter: MiniGameEncounter = {
-  id: "poc-asteroids-redux",
+  id: ASTEROIDS_REDUX_POC_ENCOUNTER_ID,
   gameId: "asteroids",
   baseConfig: {
     difficulty: "hard",
-    timeLimitMs: 120000,
+    timeLimitMs: 60000,
     targetScore: 3000
   },
   modifierRules: [

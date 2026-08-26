@@ -84,6 +84,52 @@ describe("StoryRuntime Extended Capabilities & Robustness Tests", () => {
     });
   });
 
+  describe("Objective Condition Operator & Value Evaluation", () => {
+    it("should evaluate operator and value correctly for objective conditions", () => {
+      const graph: StoryGraph = {
+        id: "obj_eval_graph",
+        title: "Obj Eval Test",
+        entryNodeId: "n1",
+        nodes: {
+          n1: {
+            id: "n1",
+            type: "objective",
+            objective: {
+              id: "task_1",
+              titleKey: "Task 1",
+              targetCount: 1,
+              currentCount: 0,
+              completed: false
+            }
+          }
+        }
+      };
+
+      const runtime = new StoryRuntime(graph);
+      // Check incomplete objective evaluated with value: false -> should be true
+      const incompleteCondition = { type: "objective" as const, key: "task_1", operator: "==" as const, value: false };
+      expect(runtime.evaluateCondition(incompleteCondition)).toBe(true);
+
+      const completeCondition = { type: "objective" as const, key: "task_1", operator: "==" as const, value: true };
+      expect(runtime.evaluateCondition(completeCondition)).toBe(false);
+
+      // Now complete objective
+      runtime.applyEffect({ type: "completeObjective", objectiveId: "task_1" });
+      expect(runtime.evaluateCondition(incompleteCondition)).toBe(false);
+      expect(runtime.evaluateCondition(completeCondition)).toBe(true);
+    });
+
+    it("should not trigger discoverEvidence when setting a numerical variable named 'evidence'", () => {
+      const runtime = new StoryRuntime();
+      runtime.setVariable("evidence", 3);
+      expect(runtime.getDiscoveredEvidence()).toEqual([]);
+
+      // Triggering evidence via prefixed flag format "evidence:ev_1" SHOULD discover evidence
+      runtime.setVariable("evidence:ev_1", true);
+      expect(runtime.getDiscoveredEvidence()).toContain("ev_1");
+    });
+  });
+
   describe("Compound Conditions Evaluation (Task 3.2)", () => {
     it("should evaluate 'all', 'any', and 'not' compound conditions recursively", () => {
       const runtime = new StoryRuntime();

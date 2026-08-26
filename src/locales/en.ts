@@ -9,6 +9,7 @@ export const en = {
     echorunner: "ECHO // RUNNER",
     cyoa: "THE CAVE // CYOA",
     blindstation: "THE BLIND STATION",
+    campaign: "STORY CAMPAIGN (POC)",
     level: "LEVEL",
   },
   daily: {

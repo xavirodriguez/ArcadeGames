@@ -6,8 +6,8 @@ import { IGame } from "./IGame";
 import { GameLoop } from "../loop/GameLoop";
 import { Simulation } from "./Simulation";
 import { CompactInputFrame } from "../input/InputFrame";
-import { WorldSnapshot, SoAWorldSnapshot } from "../snapshots/WorldSnapshot";
-import { hashSoA } from "../snapshots/SnapshotHash";
+import { WorldSnapshot, SoAWorldSnapshot, AoSWorldSnapshot } from "../snapshots/WorldSnapshot";
+import { hashSoA, hashAoS } from "../snapshots/SnapshotHash";
 import { InputSystem, IInputSystem } from "../input/InputSystem";
 import { NullInputSystem } from "../input/NullInputSystem";
 import { Schedule } from "../ecs/Schedule";
@@ -167,30 +167,14 @@ export abstract class BaseGame<
       return hashSoA(snap as SoAWorldSnapshot);
     }
 
-    const dataToHash = {
-      tick: snap.tick,
-      entities: snap.entities,
-      components: snap.componentData,
-      seed: snap.seed,
-      rngState: snap.rngState
-    };
-
-    const str = JSON.stringify(dataToHash, (key, value) => {
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        return Object.keys(value).sort().reduce((sorted: any, k) => {
-          sorted[k] = value[k];
-          return sorted;
-        }, {});
-      }
-      return value;
+    const aosSnap = snap as AoSWorldSnapshot;
+    return hashAoS({
+      tick: aosSnap.tick,
+      entities: aosSnap.entities,
+      componentData: aosSnap.componentData,
+      seed: aosSnap.seed,
+      rngState: aosSnap.rngState
     });
-
-    let hash = 2166136261;
-    for (let i = 0; i < str.length; i++) {
-      hash ^= str.charCodeAt(i);
-      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
-    }
-    return (hash >>> 0).toString(16).padStart(8, '0');
   }
 
   /** The primary ECS `World` container. */

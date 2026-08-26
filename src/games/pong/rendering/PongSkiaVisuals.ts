@@ -26,7 +26,7 @@ export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
  * Inherits state tracking logic from CanvasMotionTrail and provides Skia-specific drawing.
  */
 export class SkiaMotionTrail extends CanvasMotionTrail {
-  public draw(
+  public drawSkia(
     canvas: any,
     paint: any,
     entityId: number,
@@ -116,7 +116,7 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
 
     // 2. Update and draw trails using the generic zero-allocation motion trail tracker
     ballSkiaMotionTrail.update(entity, x, y, 4);
-    ballSkiaMotionTrail.draw(canvas, paint, entity, x, y, trailLength, size, trailColor, trailColorInner);
+    ballSkiaMotionTrail.drawSkia(canvas, paint, entity, x, y, trailLength, size, trailColor, trailColorInner);
 
     // 3. Render the ball with a swirling core reflecting actual spinFactor
     canvas.save();

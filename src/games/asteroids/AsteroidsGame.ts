@@ -289,7 +289,8 @@ export class AsteroidsGame
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
     if (this.mode === "story") {
-      const storyRuntime = new StoryRuntime(asteroidsStoryGraph);
+      const graph = (this._config.gameOptions as { graphOverride?: StoryGraph })?.graphOverride || asteroidsStoryGraph;
+      const storyRuntime = new StoryRuntime(graph);
       this.world.setResource("StoryRuntime", storyRuntime);
       this.world.addSystem(new StoryDirectorSystem(storyRuntime), { phase: SystemPhase.GameRules });
       this.world.addSystem(new DialogueSystem(), { phase: SystemPhase.Simulation });

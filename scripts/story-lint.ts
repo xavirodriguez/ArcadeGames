@@ -11,6 +11,7 @@ import {
   pongStoryGraph,
   flappyBirdStoryGraph,
 } from "../src/games/shared/story/StoryGraphs";
+import { proofOfConceptStoryGraph } from "../src/games/shared/story/ProofOfConceptStoryGraph";
 
 interface GraphRegistryEntry {
   id: string;
@@ -76,6 +77,25 @@ const storyGraphRegistry: GraphRegistryEntry[] = [
     id: flappyBirdStoryGraph.id,
     sourceFile: "src/games/shared/story/StoryGraphs.ts",
     getGraph: () => flappyBirdStoryGraph,
+  },
+  {
+    id: proofOfConceptStoryGraph.id,
+    sourceFile: "src/games/shared/story/ProofOfConceptStoryGraph.ts",
+    getGraph: () => proofOfConceptStoryGraph,
+    options: {
+      declaredFlags: [
+        "heroicEntry",
+        "reinforcementsReceived",
+        "asteroidsPerfect",
+        "asteroidsStruggle",
+        "asteroidsReduxCompleted"
+      ],
+      declaredVariables: [
+        "asteroidsDeaths",
+        "spaceinvadersScore",
+        "narrativeScore"
+      ]
+    }
   },
 ];
 

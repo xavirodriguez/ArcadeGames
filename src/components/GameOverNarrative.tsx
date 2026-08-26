@@ -121,7 +121,12 @@ export const GameOverNarrative: React.FC<GameOverNarrativeProps> = ({
         </View>
 
         {isNewRecord && (
-          <Text style={[styles.newRecordFlag, { color: COLORS.warning }]}>
+          <Text
+            style={[styles.newRecordFlag, { color: COLORS.warning }]}
+            accessibilityRole="text"
+            accessibilityLiveRegion="polite"
+            accessibilityLabel="New Archive Record Achieved!"
+          >
             // NEW ARCHIVE RECORD //
           </Text>
         )}
@@ -143,6 +148,8 @@ export const GameOverNarrative: React.FC<GameOverNarrativeProps> = ({
           accessibilityRole="button"
           accessibilityLabel={t?.accessibility?.restart_game_label || "Restart game"}
           accessibilityHint={t?.accessibility?.restart_game_hint || "Restarts the game"}
+          accessibilityState={{ disabled: false }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
           <View style={[styles.restartAccent, { backgroundColor: accentColor }]} />
           <Text style={styles.restartButtonMeta}>MISSION CONTROL</Text>

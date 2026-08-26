@@ -79,6 +79,62 @@ export class StoryRuntime {
   private lastRecordedEventId: string | null = null;
   private checkpoints: Map<string, StoryStateCheckpoint> = new Map();
   private stateVersion: number = 0;
+  private eventTimeline: Array<{
+    type: string;
+    timestamp: Date;
+    payload?: Record<string, any>;
+  }> = [];
+
+  private recordEvent(type: string, payload?: Record<string, any>): void {
+    this.eventTimeline.push({ type, timestamp: new Date(), payload });
+    if (this.eventTimeline.length > 100) {
+      this.eventTimeline.shift();
+    }
+  }
+
+  /**
+   * Returns recent or all narrative events recorded during execution for live monitoring.
+   *
+   * @public
+   */
+  public getTimeline(): {
+    recent: (count: number) => Array<{ type: string; timestamp: Date; payload?: Record<string, any> }>;
+    all: () => Array<{ type: string; timestamp: Date; payload?: Record<string, any> }>;
+  } {
+    return {
+      recent: (count: number) => this.eventTimeline.slice(-count),
+      all: () => [...this.eventTimeline]
+    };
+  }
+
+  /**
+   * Retrieves light snapshot of active state for dashboard introspection.
+   *
+   * @public
+   */
+  public getStateSnapshot(): {
+    currentNodeId: string | null;
+    flags: Record<string, { value: boolean; timestamp: Date }>;
+    variables: Record<string, { value: any; timestamp: Date }>;
+    selectedChoices: string[];
+  } {
+    const flagsSnapshot: Record<string, { value: boolean; timestamp: Date }> = {};
+    for (const [k, v] of Object.entries(this.state.flags)) {
+      flagsSnapshot[k] = { value: v, timestamp: new Date() };
+    }
+
+    const variablesSnapshot: Record<string, { value: any; timestamp: Date }> = {};
+    for (const [k, v] of Object.entries(this.state.variables)) {
+      variablesSnapshot[k] = { value: v, timestamp: new Date() };
+    }
+
+    return {
+      currentNodeId: this.state.currentNodeId,
+      flags: flagsSnapshot,
+      variables: variablesSnapshot,
+      selectedChoices: [...this.state.selectedChoices]
+    };
+  }
 
   /**
    * Constructs a new `StoryRuntime` instance.
@@ -505,6 +561,12 @@ export class StoryRuntime {
       this.lastRecordedEventId = recorded.id;
     }
 
+    this.recordEvent("story:node_changed", {
+      from: previousNodeId,
+      to: nodeId,
+      title: node.title
+    });
+
     // Apply declarative node entry effects if defined
     if (node.effects) {
       this.applyEffects(node.effects);
@@ -648,6 +710,10 @@ export class StoryRuntime {
     }
 
     this.state.selectedChoices.push(choiceId);
+    this.recordEvent("story:choice_selected", {
+      choiceId,
+      nodeId: node.id
+    });
 
     // Record ChoiceSelected event on NarrativeTimelineEngine if bound
     if (this.timelineEngine) {

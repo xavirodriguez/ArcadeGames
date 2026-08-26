@@ -5,6 +5,7 @@ import { MiniGameEncounterDSL } from "../packages/core/src/story/EncounterDSLSch
 
 import { caveAdventureGraph } from "../src/games/shared/story/TheCaveAdventure";
 import { BlindStationGraph } from "../src/games/shared/story/BlindStation";
+import { proofOfConceptStoryGraph } from "../src/games/shared/story/ProofOfConceptStoryGraph";
 import {
   asteroidsStoryGraph,
   spaceInvadersStoryGraph,
@@ -76,6 +77,24 @@ const storyGraphRegistry: GraphRegistryEntry[] = [
     id: flappyBirdStoryGraph.id,
     sourceFile: "src/games/shared/story/StoryGraphs.ts",
     getGraph: () => flappyBirdStoryGraph,
+  },
+  {
+    id: proofOfConceptStoryGraph.id,
+    sourceFile: "src/games/shared/story/ProofOfConceptStoryGraph.ts",
+    getGraph: () => proofOfConceptStoryGraph,
+    options: {
+      declaredFlags: [
+        "asteroidsPerfect",
+        "asteroidsStruggle",
+        "heroicEntry",
+        "reinforcementsReceived"
+      ],
+      declaredVariables: [
+        "spaceinvadersScore",
+        "asteroidLevelReached",
+        "narrativeScore"
+      ]
+    }
   },
 ];
 

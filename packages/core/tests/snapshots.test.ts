@@ -161,6 +161,14 @@ describe("World Snapshots", () => {
       const snap1Mutated = world1.snapshot() as SoAWorldSnapshot;
       const hash1Mutated = hashSoA(snap1Mutated);
       expect(hash1Mutated).not.toBe(hash1);
+
+      // Mutate non-numeric property
+      world2.mutateComponent(entity2, "Transform", (t) => {
+        t.dirty = true;
+      });
+      const snap2Mutated = world2.snapshot() as SoAWorldSnapshot;
+      const hash2Mutated = hashSoA(snap2Mutated);
+      expect(hash2Mutated).not.toBe(hash2);
     });
   });
 });

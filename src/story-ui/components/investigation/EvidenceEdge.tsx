@@ -9,6 +9,7 @@ interface EvidenceEdgeProps {
   isDimmed?: boolean;
   isSelectedNodeConnected?: boolean;
   hasNodeSelected?: boolean;
+  selectedNodeId?: string;
 }
 
 export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
@@ -18,6 +19,7 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
   isDimmed,
   isSelectedNodeConnected = false,
   hasNodeSelected = false,
+  selectedNodeId,
 }) => {
   if (!edge.discovered) return null;
 
@@ -32,8 +34,13 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
   const x2 = (toNode.position.x / 1000) * 100;
   const y2 = (toNode.position.y / 1000) * 100;
 
-  const isConnected = isHighlighted ?? (hasNodeSelected && isSelectedNodeConnected);
-  const dimmed = isDimmed ?? (hasNodeSelected && !isConnected);
+  const nodeIsSelected = Boolean(selectedNodeId || hasNodeSelected);
+  const connectedToSelected =
+    (selectedNodeId && (edge.from === selectedNodeId || edge.to === selectedNodeId)) ||
+    isSelectedNodeConnected;
+
+  const isConnected = isHighlighted ?? (nodeIsSelected && Boolean(connectedToSelected));
+  const dimmed = isDimmed ?? (nodeIsSelected && !isConnected);
 
   // Perpendicular offset for edge label positioning
   const midX = (x1 + x2) / 2;

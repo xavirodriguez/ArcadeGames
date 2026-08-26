@@ -79,6 +79,7 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
               key={edge.id}
               edge={edge}
               nodes={visibleNodes}
+              selectedNodeId={selectedNodeId}
               isHighlighted={isConnected}
               isDimmed={isDimmed}
               isSelectedNodeConnected={isConnected}

@@ -60,6 +60,7 @@ export const asteroidsStoryGraph: StoryGraph = {
     ast_cutscene_aggressive: {
       id: "ast_cutscene_aggressive",
       type: "cutscene",
+      isEndNode: true,
       cutscene: {
         id: "cs_ast_aggr",
         transitionEffect: "CRTGlitchTransition"
@@ -68,6 +69,7 @@ export const asteroidsStoryGraph: StoryGraph = {
     ast_cutscene_stealth: {
       id: "ast_cutscene_stealth",
       type: "cutscene",
+      isEndNode: true,
       cutscene: {
         id: "cs_ast_stealth",
         transitionEffect: "FadeTransition"
@@ -117,6 +119,7 @@ export const spaceInvadersStoryGraph: StoryGraph = {
     si_cutscene_victory: {
       id: "si_cutscene_victory",
       type: "cutscene",
+      isEndNode: true,
       cutscene: {
         id: "cs_si_vic",
         transitionEffect: "DitherTransition"
@@ -166,6 +169,7 @@ export const pongStoryGraph: StoryGraph = {
     pong_cutscene_champ: {
       id: "pong_cutscene_champ",
       type: "cutscene",
+      isEndNode: true,
       cutscene: {
         id: "cs_pong_champ",
         transitionEffect: "RetroGridTransition"
@@ -215,6 +219,7 @@ export const flappyBirdStoryGraph: StoryGraph = {
     fb_cutscene_freedom: {
       id: "fb_cutscene_freedom",
       type: "cutscene",
+      isEndNode: true,
       cutscene: {
         id: "cs_fb_freedom",
         transitionEffect: "PixelateTransition"

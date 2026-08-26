@@ -74,12 +74,12 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           gs.isGameOver = true;
             const eventBus = world.getEventBus();
           if (eventBus && !world.isReSimulating) {
-              eventBus.emit("PlaySFX", { name: "game_over" });
+              eventBus.emitDeferred("PlaySFX", { name: "game_over" });
           }
         } else {
             const eventBus = world.getEventBus();
           if (eventBus && !world.isReSimulating) {
-              eventBus.emit("PlaySFX", { name: "hit" });
+              eventBus.emitDeferred("PlaySFX", { name: "hit" });
           }
         }
       });
@@ -116,7 +116,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
         const eventBus = world.getEventBus();
         if (eventBus && !world.isReSimulating) {
-          eventBus.emit("PlaySFX", { name: "hit" });
+          eventBus.emitDeferred("PlaySFX", { name: "hit" });
         }
       }
     }
@@ -127,7 +127,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       });
       const eventBus = world.getEventBus();
       if (eventBus && !world.isReSimulating) {
-        eventBus.emit("PlaySFX", { name: "hit" });
+        eventBus.emitDeferred("PlaySFX", { name: "hit" });
       }
     }
   }
@@ -183,7 +183,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           eventBus.emitDeferred("si:kill", { chain: nextCombo });
           eventBus.emitDeferred("entity:destroyed", { entity: target, type: "Invader" });
           if (!world.isReSimulating) {
-            eventBus.emit("PlaySFX", { name: "explosion" });
+            eventBus.emitDeferred("PlaySFX", { name: "explosion" });
           }
         }
 

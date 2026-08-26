@@ -1593,6 +1593,15 @@ export interface HapticRequestComponent<TPattern extends string = string> extend
 }
 
 // @public
+export function hashAoS(snapshot: {
+    tick: number;
+    entities: number[];
+    componentData: Record<string, Record<number, unknown>>;
+    seed: number;
+    rngState?: number;
+}): string;
+
+// @public
 export function hashSoA(snapshot: SoAWorldSnapshot): string;
 
 // @public (undocumented)

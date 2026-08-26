@@ -77,6 +77,58 @@ export function hashSoA(snapshot: SoAWorldSnapshot): string {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
+/**
+ * Calculates an FNV-1a state hash for Array of Structures (AoS) snapshots without intermediate stringification.
+ *
+ * @param snapshot - The AoS snapshot object to hash.
+ * @returns 8-character hexadecimal state hash string.
+ * @public
+ */
+export function hashAoS(snapshot: {
+  tick: number;
+  entities: number[];
+  componentData: Record<string, Record<number, unknown>>;
+  seed: number;
+  rngState?: number;
+}): string {
+  let hash = 2166136261;
+
+  hash = hashInt32(hash, snapshot.tick);
+  hash = hashInt32(hash, snapshot.seed);
+  if (snapshot.rngState !== undefined) {
+    hash = hashInt32(hash, snapshot.rngState);
+  }
+
+  const entities = snapshot.entities;
+  hash = hashInt32(hash, entities.length);
+  for (let i = 0; i < entities.length; i++) {
+    hash = hashInt32(hash, entities[i]);
+  }
+
+  const componentData = snapshot.componentData;
+  if (componentData) {
+    const types = Object.keys(componentData).sort();
+    for (let i = 0; i < types.length; i++) {
+      const type = types[i];
+      hash = hashString(hash, type);
+
+      const entityMap = componentData[type];
+      if (!entityMap) continue;
+
+      const entityKeys = Object.keys(entityMap).map(Number).sort((a, b) => a - b);
+      hash = hashInt32(hash, entityKeys.length);
+
+      for (let j = 0; j < entityKeys.length; j++) {
+        const entityId = entityKeys[j];
+        hash = hashInt32(hash, entityId);
+        hash = hashValue(hash, entityMap[entityId]);
+      }
+    }
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
 function hashInt32(hash: number, val: number): number {
   val = val | 0;
   hash ^= val & 0xff;

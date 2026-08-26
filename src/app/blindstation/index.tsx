@@ -50,7 +50,7 @@ export default function BlindStationScreen() {
 
   const oxygen = (storySnapshot.variables["oxygen"] as number) ?? 100;
   const trustARES = (storySnapshot.variables["trustARES"] as number) ?? 0;
-  const evidence = (storySnapshot.variables["evidence"] as number) ?? 0;
+  const evidence = (storySnapshot.variables["evidenceCount"] as number) ?? (storySnapshot.variables["evidence"] as number) ?? 0;
   const flags = storySnapshot.flags;
 
   const activeObjective = currentNode?.objective

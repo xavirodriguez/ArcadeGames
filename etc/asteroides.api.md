@@ -824,6 +824,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Hurtbox: HurtboxComponent;
     InputState: InputStateComponent;
     Juice: JuiceComponent;
+    KineticAccumulator: KineticAccumulatorComponent;
     MovingPlatform: MovingPlatformComponent;
     ParticleEmitter: ParticleEmitterComponent;
     Patrol: PatrolComponent;
@@ -1943,6 +1944,27 @@ export interface KeyboardMapConfig<TExtra extends string = never> {
     moveRight?: string[];
     // (undocumented)
     moveUp?: string[];
+}
+
+// @public
+export interface KineticAccumulatorComponent extends Component {
+    burstRadius: number;
+    chargeOnMoveRate: number;
+    grazeChargeAmount: number;
+    grazeRadius: number;
+    isBurstActive: boolean;
+    isBurstReady: boolean;
+    maxEnergy: number;
+    storedEnergy: number;
+    // (undocumented)
+    type: "KineticAccumulator";
+}
+
+// @public
+export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
+    clearGrazeCache(): void;
+    // (undocumented)
+    update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
 // @public

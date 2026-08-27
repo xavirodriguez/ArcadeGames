@@ -711,6 +711,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   GroundDetector: GroundDetectorComponent;
   /** Player sensor component. */
   PlayerSensor: PlayerSensorComponent;
+  /** Kinetic accumulator component. */
+  KineticAccumulator: import("../components/KineticAccumulatorComponent").KineticAccumulatorComponent;
 }
 
 /**

@@ -45,7 +45,7 @@ describe("StoryGraph Data-Driven Serialization & Visual Editor Round-Trip", () =
         "powerLifeSupport",
         "secretEndingUnlocked",
       ],
-      declaredVariables: ["evidence", "trustARES", "trustVega", "oxygen"],
+      declaredVariables: ["evidenceCount", "trustARES", "trustVega", "oxygen"],
     });
 
     expect(validationResult.valid).toBe(true);

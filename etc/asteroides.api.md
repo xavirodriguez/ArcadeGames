@@ -4074,6 +4074,30 @@ export class StoryRuntime {
     getObjective(id: string): StoryObjective | undefined;
     getRelationshipEngine(): RelationshipEngine | undefined;
     getState(): StoryState;
+    getStateSnapshot(): {
+        currentNodeId: string | null;
+        flags: Record<string, {
+            value: boolean;
+            timestamp: Date;
+        }>;
+        variables: Record<string, {
+            value: any;
+            timestamp: Date;
+        }>;
+        selectedChoices: string[];
+    };
+    getTimeline(): {
+        recent: (count: number) => Array<{
+            type: string;
+            timestamp: Date;
+            payload?: Record<string, any>;
+        }>;
+        all: () => Array<{
+            type: string;
+            timestamp: Date;
+            payload?: Record<string, any>;
+        }>;
+    };
     getTimelineEngine(): NarrativeTimelineEngine | undefined;
     getVariable(key: string): any;
     getVersion(): number;

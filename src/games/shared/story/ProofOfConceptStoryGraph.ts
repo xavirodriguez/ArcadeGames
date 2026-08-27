@@ -253,7 +253,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       sceneToLoad: "asteroids-story-mode-redux",
       meta: {
         minijuego: "asteroids",
-        encounterId: "poc-asteroids-redux"
+        encounterId: "poc-asteroids-redux-1"
       },
       objective: {
         id: "clear-final-sector",

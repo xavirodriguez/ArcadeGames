@@ -1,6 +1,7 @@
 import { EventBus, Scene, StoryRuntime, World } from "@tiny-aster/core";
 
 export interface AsteroidsStoryEvents {
+  [key: string]: unknown;
   "story:beat_reached": { dialogueReference?: string; beatId?: string };
   "story:objective_completed": Record<string, unknown>;
   "story:node_changed": { node?: { dialogue?: { lines?: Array<{ speakerName?: string; textKey: string }> } } };

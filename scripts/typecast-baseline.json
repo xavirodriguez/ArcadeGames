@@ -691,8 +691,8 @@
   },
   "src/games/flappybird/FlappyBirdGame.ts": {
     "anyCount": 13,
-    "unknownCount": 1,
-    "total": 14
+    "unknownCount": 0,
+    "total": 13
   },
   "src/games/flappybird/rendering/FlappyBirdCanvasVisuals.ts": {
     "anyCount": 1,
@@ -795,9 +795,9 @@
     "total": 5
   },
   "src/games/pong/PongGame.ts": {
-    "anyCount": 20,
+    "anyCount": 19,
     "unknownCount": 1,
-    "total": 21
+    "total": 20
   },
   "src/games/pong/__tests__/PongUpgrades.test.ts": {
     "anyCount": 22,

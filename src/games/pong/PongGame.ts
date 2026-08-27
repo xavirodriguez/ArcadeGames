@@ -275,7 +275,6 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.unifiedInput.bind("p2Down", ["ArrowDown"]);
 
     this.stateSystem = new PongGameStateSystem(this.config);
-    this.world.addSystem(this.unifiedInput as any, { phase: SystemPhase.Input });
 
     if (mode === "online") {
       this.networkController = new NetworkController();

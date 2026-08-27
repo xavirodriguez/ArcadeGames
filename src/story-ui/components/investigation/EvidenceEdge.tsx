@@ -5,21 +5,17 @@ import { getRelationConfig } from '../../utils/evidence';
 interface EvidenceEdgeProps {
   edge: EvidenceEdgeViewModel;
   nodes: EvidenceNodeViewModel[];
+  selectedNodeId?: string;
   isHighlighted?: boolean;
   isDimmed?: boolean;
-  isSelectedNodeConnected?: boolean;
-  hasNodeSelected?: boolean;
-  selectedNodeId?: string;
 }
 
 export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
   edge,
   nodes,
+  selectedNodeId,
   isHighlighted,
   isDimmed,
-  isSelectedNodeConnected = false,
-  hasNodeSelected = false,
-  selectedNodeId,
 }) => {
   if (!edge.discovered) return null;
 
@@ -34,13 +30,10 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
   const x2 = (toNode.position.x / 1000) * 100;
   const y2 = (toNode.position.y / 1000) * 100;
 
-  const nodeIsSelected = Boolean(selectedNodeId || hasNodeSelected);
-  const connectedToSelected =
-    (selectedNodeId && (edge.from === selectedNodeId || edge.to === selectedNodeId)) ||
-    isSelectedNodeConnected;
-
-  const isConnected = isHighlighted ?? (nodeIsSelected && Boolean(connectedToSelected));
-  const dimmed = isDimmed ?? (nodeIsSelected && !isConnected);
+  const hasSelectedNode = Boolean(selectedNodeId);
+  const isConnected =
+    isHighlighted ?? (hasSelectedNode && (edge.from === selectedNodeId || edge.to === selectedNodeId));
+  const dimmed = isDimmed ?? (hasSelectedNode && !isConnected);
 
   // Perpendicular offset for edge label positioning
   const midX = (x1 + x2) / 2;
@@ -91,27 +84,27 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
         />
       )}
       {edge.label && (
-        <g transform={`translate(0, 0)`}>
-          <foreignObject
-            x={`${labelX}%`}
-            y={`${labelY}%`}
-            width="130"
-            height="32"
-            className="overflow-visible -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          >
-            <div className="flex justify-center items-center h-full">
-              <span
-                className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow-md whitespace-nowrap transition-colors ${
-                  isConnected
-                    ? 'bg-slate-900 text-cyan-200 border border-cyan-500/80 ring-1 ring-cyan-500/40'
-                    : 'bg-slate-950/90 text-slate-300 border border-slate-700/80'
-                }`}
-              >
-                {edge.label}
-              </span>
-            </div>
-          </foreignObject>
-        </g>
+        <foreignObject
+          x={`${labelX}%`}
+          y={`${labelY}%`}
+          width="130"
+          height="32"
+          className="overflow-visible -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        >
+          <div className="flex justify-center items-center h-full">
+            <span
+              className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow-md whitespace-nowrap transition-colors duration-300 ${
+                isConnected
+                  ? 'bg-slate-900 text-cyan-200 border border-cyan-500/80 ring-1 ring-cyan-500/40'
+                  : dimmed
+                  ? 'bg-slate-950/80 text-slate-400 border border-slate-800'
+                  : 'bg-slate-950/90 text-slate-300 border border-slate-700/80'
+              }`}
+            >
+              {edge.label}
+            </span>
+          </div>
+        </foreignObject>
       )}
     </g>
   );

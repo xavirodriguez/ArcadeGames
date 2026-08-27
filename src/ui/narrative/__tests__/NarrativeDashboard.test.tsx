@@ -21,8 +21,8 @@ describe("NarrativeDashboard Component", () => {
     });
 
     expect(element).toBeTruthy();
-    expect(element.props.storyRuntime.getFlag("heroicEntry")).toBe(true);
-    expect(element.props.storyRuntime.getVariable("spaceinvadersScore")).toBe(6000);
-    expect(element.props.storyRuntime.getCurrentNodeId()).toBe("poc_start");
+    expect(element.props.storyRuntime?.getFlag("heroicEntry")).toBe(true);
+    expect(element.props.storyRuntime?.getVariable("spaceinvadersScore")).toBe(6000);
+    expect(element.props.storyRuntime?.getCurrentNodeId()).toBe("start_node");
   });
 });

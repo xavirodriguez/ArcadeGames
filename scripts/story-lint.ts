@@ -12,7 +12,6 @@ import {
   pongStoryGraph,
   flappyBirdStoryGraph,
 } from "../src/games/shared/story/StoryGraphs";
-import { proofOfConceptStoryGraph } from "../src/games/shared/story/ProofOfConceptStoryGraph";
 
 interface GraphRegistryEntry {
   id: string;

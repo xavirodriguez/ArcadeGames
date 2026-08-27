@@ -10,6 +10,9 @@ interface EvidenceNodeProps {
   onSelect: (nodeId: string) => void;
 }
 
+/**
+ * Renders an evidence node on the investigation board using unified SVG iconography and Tailwind v4 hover effects.
+ */
 export const EvidenceNode: React.FC<EvidenceNodeProps> = ({
   node,
   isSelected,

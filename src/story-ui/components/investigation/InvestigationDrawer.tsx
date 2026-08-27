@@ -13,6 +13,9 @@ interface InvestigationDrawerProps {
   onSelectNode: (nodeId: string) => void;
 }
 
+/**
+ * Slide-over drawer presenting the full Investigation Board and evidence detail sidebar, using shared evidence configs and custom SVG icons.
+ */
 export const InvestigationDrawer: React.FC<InvestigationDrawerProps> = ({
   isOpen,
   onClose,

@@ -82,8 +82,6 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
               selectedNodeId={selectedNodeId}
               isHighlighted={isConnected}
               isDimmed={isDimmed}
-              isSelectedNodeConnected={isConnected}
-              hasNodeSelected={hasNodeSelected}
             />
           );
         })}

@@ -22,6 +22,9 @@ function getBarColorAndAnimation(status: ResourceStatus) {
   }
 }
 
+/**
+ * Top HUD component displaying station vital resources and unified SVG trigger for the Investigation Drawer.
+ */
 export const ResourceHUD: React.FC<ResourceHUDProps> = ({
   oxygen,
   energy,

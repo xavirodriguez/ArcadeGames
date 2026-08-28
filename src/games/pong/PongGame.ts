@@ -17,7 +17,8 @@ import {
   HierarchySystem,
   TTLSystem,
   World,
-  WebAudioPlayer
+  WebAudioPlayer,
+  System
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
@@ -275,7 +276,9 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.unifiedInput.bind("p2Down", ["ArrowDown"]);
 
     this.stateSystem = new PongGameStateSystem(this.config);
-    this.world.addSystem(this.unifiedInput as any, { phase: SystemPhase.Input });
+    if (this.unifiedInput instanceof System) {
+      this.world.addSystem(this.unifiedInput as any, { phase: SystemPhase.Input });
+    }
 
     if (mode === "online") {
       this.networkController = new NetworkController();

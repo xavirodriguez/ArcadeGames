@@ -1,13 +1,52 @@
 import { ShapeDrawer, EffectDrawer, RenderComponent, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
 
+const gradientCache = new Map<number, CanvasGradient>();
+let lastCtx: CanvasRenderingContext2D | null = null;
+
+function getMemoryCoreGradient(ctx: CanvasRenderingContext2D, size: number): CanvasGradient {
+  if (lastCtx !== ctx) {
+    lastCtx = ctx;
+    gradientCache.clear();
+  }
+  // Use numeric hash key: 1000 + size
+  const key = 1000 + size;
+  let grad = gradientCache.get(key);
+  if (!grad) {
+    grad = ctx.createRadialGradient(0, 0, 2, 0, 0, size * 0.5);
+    grad.addColorStop(0, colors.white);
+    grad.addColorStop(0.3, colors.yellow);
+    grad.addColorStop(1, colors.amber);
+    gradientCache.set(key, grad);
+  }
+  return grad;
+}
+
+function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number): CanvasGradient {
+  if (lastCtx !== ctx) {
+    lastCtx = ctx;
+    gradientCache.clear();
+  }
+  // Use numeric hash key: 2000 + size
+  const key = 2000 + size;
+  let grad = gradientCache.get(key);
+  if (!grad) {
+    grad = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size);
+    grad.addColorStop(0, "rgba(255, 255, 255, 0.9)");
+    grad.addColorStop(0.4, "rgba(0, 240, 255, 0.6)");
+    grad.addColorStop(1, "rgba(0, 240, 255, 0)");
+    gradientCache.set(key, grad);
+  }
+  return grad;
+}
+
 export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
     const width = screenConfig.width;
     const height = screenConfig.height;
     const runState = world.getResource<any>("RunState");
-    const elapsed = runState?.elapsedTime || (Date.now() / 1000);
+    const elapsed = runState?.elapsedTime || (world.tick * 0.016);
 
     ctx.fillStyle = colors.backgroundDark;
     ctx.fillRect(0, 0, width, height);
@@ -55,7 +94,7 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     // If invulnerable, blink
     const health = world.getComponent(entity, "Health" as any) as any;
     if (health && health.invulnerableRemaining && health.invulnerableRemaining > 0) {
-      if (Math.floor(Date.now() / 60) % 2 === 0) {
+      if (Math.floor(world.tick / 4) % 2 === 0) {
         return;
       }
     }
@@ -126,7 +165,7 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 16;
-    const elapsed = Date.now() / 1000;
+    const elapsed = world.tick * 0.016;
     const hoverOffset = Math.sin(elapsed * 6) * 4;
 
     ctx.save();
@@ -169,7 +208,7 @@ export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 24;
-    const elapsed = Date.now() / 1000;
+    const elapsed = world.tick * 0.016;
     const hoverOffset = Math.sin(elapsed * 4) * 6;
 
     ctx.save();
@@ -192,10 +231,7 @@ export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.stroke();
 
     // Main Sphere
-    const gradient = ctx.createRadialGradient(0, 0, 2, 0, 0, size * 0.5);
-    gradient.addColorStop(0, colors.white);
-    gradient.addColorStop(0.3, colors.yellow);
-    gradient.addColorStop(1, colors.amber);
+    const gradient = getMemoryCoreGradient(ctx, size);
 
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -262,10 +298,7 @@ export const drawPulseAttack: ShapeDrawer<CanvasRenderingContext2D, CoreComponen
     ctx.shadowBlur = 12;
 
     // Radial shockwave arc ahead
-    const grad = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size);
-    grad.addColorStop(0, "rgba(255, 255, 255, 0.9)");
-    grad.addColorStop(0.4, "rgba(0, 240, 255, 0.6)");
-    grad.addColorStop(1, "rgba(0, 240, 255, 0)");
+    const grad = getPulseAttackGradient(ctx, size);
 
     ctx.fillStyle = grad;
     ctx.beginPath();
@@ -305,7 +338,7 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
     ctx.stroke();
 
     // Sensor Eye
-    ctx.fillStyle = isAlert && Math.floor(Date.now() / 80) % 2 === 0 ? colors.white : glowColor;
+    ctx.fillStyle = isAlert && Math.floor(world.tick / 5) % 2 === 0 ? colors.white : glowColor;
     ctx.beginPath();
     ctx.arc(0, -size * 0.05, size * 0.15, 0, Math.PI * 2);
     ctx.fill();
@@ -460,7 +493,7 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
 
     // Stunned indicator (spinning stars)
     if (isStunned) {
-      const elapsed = Date.now() / 200;
+      const elapsed = world.tick * 0.1;
       ctx.strokeStyle = colors.yellow;
       ctx.lineWidth = 1.5;
       for (let i = 0; i < 3; i++) {

@@ -1128,6 +1128,7 @@ export class CYOAScene extends Scene {
 // @public
 export class DangerPulseTransition implements ITransitionEffect {
     readonly drawsBothScenes = false;
+    // (undocumented)
     render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
 }
 

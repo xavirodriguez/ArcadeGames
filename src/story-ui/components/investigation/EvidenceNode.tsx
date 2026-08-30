@@ -11,7 +11,8 @@ interface EvidenceNodeProps {
 }
 
 /**
- * Renders an evidence node on the investigation board using unified SVG iconography and Tailwind v4 hover effects.
+ * Renders an evidence node on the investigation board using unified SVG iconography,
+ * shared evidence configurations, and Tailwind CSS v4 hover effects (hover:scale-[1.02]).
  */
 export const EvidenceNode: React.FC<EvidenceNodeProps> = ({
   node,

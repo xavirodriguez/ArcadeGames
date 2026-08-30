@@ -14,7 +14,8 @@ interface InvestigationDrawerProps {
 }
 
 /**
- * Slide-over drawer presenting the full Investigation Board and evidence detail sidebar, using shared evidence configs and custom SVG icons.
+ * Slide-over drawer presenting the full Investigation Board and evidence detail sidebar,
+ * consuming shared evidence configs (getKindConfig) and custom inline SVG icons.
  */
 export const InvestigationDrawer: React.FC<InvestigationDrawerProps> = ({
   isOpen,

@@ -19,6 +19,14 @@ export class DangerPulseTransition implements ITransitionEffect {
    * @param progress - Transition progress from 0.0 to 1.0 (used as the time/pulse driver).
    * @param options - Visual configurations.
    */
+  private cachedGrad?: any;
+  private cachedCtx?: RenderContext;
+  private cachedCX?: number;
+  private cachedCY?: number;
+  private cachedInnerR?: number;
+  private cachedOuterR?: number;
+  private cachedColor?: string;
+
   public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
     const canvas = ctx.canvas;
     if (!canvas) return;
@@ -36,15 +44,32 @@ export class DangerPulseTransition implements ITransitionEffect {
 
     ctx.save();
 
-    // Create radial gradient for vignette
     const innerRadius = Math.min(width, height) * 0.25;
     const outerRadius = Math.sqrt(cx * cx + cy * cy);
 
-    const grad = ctx.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius);
-    grad.addColorStop(0, "rgba(0, 0, 0, 0)");
-    grad.addColorStop(1, `${color}${Math.floor(pulseOpacity * 255).toString(16).padStart(2, "0")}`);
+    if (
+      !this.cachedGrad ||
+      this.cachedCtx !== ctx ||
+      this.cachedCX !== cx ||
+      this.cachedCY !== cy ||
+      this.cachedInnerR !== innerRadius ||
+      this.cachedOuterR !== outerRadius ||
+      this.cachedColor !== color
+    ) {
+      const grad = ctx.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius);
+      grad.addColorStop(0, "rgba(0, 0, 0, 0)");
+      grad.addColorStop(1, color);
+      this.cachedGrad = grad;
+      this.cachedCtx = ctx;
+      this.cachedCX = cx;
+      this.cachedCY = cy;
+      this.cachedInnerR = innerRadius;
+      this.cachedOuterR = outerRadius;
+      this.cachedColor = color;
+    }
 
-    ctx.fillStyle = grad;
+    ctx.fillStyle = this.cachedGrad;
+    ctx.globalAlpha = pulseOpacity;
     ctx.fillRect(0, 0, width, height);
 
     ctx.restore();

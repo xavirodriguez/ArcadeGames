@@ -8,7 +8,7 @@ interface ChoiceCardProps {
 }
 
 /**
- * Renders an interactive choice option using unified SVG iconography for irreversible choices.
+ * Renders an interactive choice option using unified SVG warning iconography for irreversible choices.
  */
 export const ChoiceCard: React.FC<ChoiceCardProps> = ({ choice, onSelect }) => {
   const isIrreversible = choice.importance === 'irreversible';

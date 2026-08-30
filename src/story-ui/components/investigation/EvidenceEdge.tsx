@@ -1,6 +1,6 @@
 import React from 'react';
 import { EvidenceEdgeViewModel, EvidenceNodeViewModel } from '../../types/evidence';
-import { getRelationConfig } from '../../utils/evidence';
+import { calculateEdgeLabelPosition, getRelationConfig } from '../../utils/evidence';
 
 interface EvidenceEdgeProps {
   edge: EvidenceEdgeViewModel;
@@ -36,13 +36,7 @@ export const EvidenceEdge: React.FC<EvidenceEdgeProps> = ({
   const dimmed = isDimmed ?? (hasSelectedNode && !isConnected);
 
   // Perpendicular offset for edge label positioning
-  const midX = (x1 + x2) / 2;
-  const midY = (y1 + y2) / 2;
-  const angle = Math.atan2(y2 - y1, x2 - x1);
-  const offset = 2;
-
-  const labelX = midX + Math.cos(angle + Math.PI / 2) * offset;
-  const labelY = midY + Math.sin(angle + Math.PI / 2) * offset;
+  const { labelX, labelY } = calculateEdgeLabelPosition(x1, y1, x2, y2, 2);
 
   const style = getRelationConfig(edge.relation);
 

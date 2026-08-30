@@ -11,6 +11,10 @@ interface EvidenceBoardProps {
   onSelectNode: (nodeId: string) => void;
 }
 
+/**
+ * Main Investigation Board component. Propagates selectedNodeId to EvidenceEdge
+ * components to highlight connected edges and dim unconnected edges.
+ */
 export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({
   nodes,
   edges,

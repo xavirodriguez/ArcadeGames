@@ -13,6 +13,7 @@
 | Version | Date | Author | Description of Changes |
 | :--- | :--- | :--- | :--- |
 | `1.0.0` | 2023-10-24 | GameDesigner | Initial specification of core gameplay loops, economy balance baseline, onboarding flows, beneficial mutator integration, and architectural combo unification proposal. |
+| `1.1.0` | 2026-08-30 | GameDesigner | Synchronized active Game Design Specification with `docs/2026-08-30-game-design-specification.md`, updated economy tables with exact `GAME_CONFIG` locations, MutatorRegistry contracts, and determinism rules. |
 
 ---
 

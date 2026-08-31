@@ -125,6 +125,24 @@ Here we outline the moment-to-moment, session, and long-term meta-loops across t
 
 ---
 
+### Core Loop: Platformer
+
+#### Moment-to-Moment (0–30 seconds)
+- **Action**: Run laterally, perform variable-height jumps, adjust aerial trajectories, and land on solid/ice/bounce platforms.
+- **Feedback**: Jump launch squash-and-stretch, landing squish animations, particle dust trails on ice, and screen shake on bounce tile landings.
+- **Reward**: Kinetic momentum flow and fluid navigation through complex obstacle terrain.
+
+#### Session Loop (5–30 minutes)
+- **Goal**: Reach destination checkpoints (`RespawnPointComponent`) and stage exits while collecting persistent or temporal collectibles.
+- **Tension**: Escalating environmental hazard density (moving platforms, ice platforms, spike traps, one-way ledges) requiring tight jump timing.
+- **Resolution**: Reaching stage exit advances `RunState` and awards XP; depleting lives or falling into fatal hazards triggers a checkpoint respawn or Game Over.
+
+#### Long-Term Loop (Meta-Progression)
+- **Progression**: Earn XP per stage cleared and collectibles acquired.
+- **Retention Hook**: Unlock kinetic mutators (`coyote_extension`, `apex_booster`, `kinetic_saver`) in `MutatorRegistry` to enhance jumping and momentum retention in future runs.
+
+---
+
 ## 📊 Part 2: Economy Balance Spreadsheet Template
 
 All numeric constants in the arcade engine must be grounded in actual code configurations and balanced systematically. The following tables outline the parameters, baseline limits, and meta-game pricing structures.
@@ -148,6 +166,22 @@ All numeric constants in the arcade engine must be grounded in actual code confi
 | `COMBO_TIMEOUT` | `2000` ms | `1000` | `5000` | Grace period in ms before combo resets. `GAME_CONFIG.COMBO_TIMEOUT` |
 | `MAX_MULTIPLIER` | `10` | `3` | `20` | Score multiplier cap = `1 + floor(combo / 5)`. `GAME_CONFIG.MAX_MULTIPLIER` |
 | `PARTICLE_COUNT` | `8` | `0` | `24` | Burst particles spawned on invader death. `GAME_CONFIG.PARTICLE_COUNT` |
+
+### Platformer Balance Baseline
+
+| Variable Name | Base Value | Min Limit | Max Limit | Tuning Notes & Code Config Location |
+| :--- | :--- | :--- | :--- | :--- |
+| `PLAYER_SPEED` | `200` px/s | `100` | `400` | Maximum horizontal running speed. `PLATFORMER_CONFIG.PLAYER_SPEED` |
+| `PLAYER_ACCEL` | `800` px/s² | `400` | `1600` | Ground acceleration rate. `PLATFORMER_CONFIG.PLAYER_ACCEL` |
+| `PLAYER_DECEL` | `1200` px/s² | `600` | `2400` | Ground deceleration rate. `PLATFORMER_CONFIG.PLAYER_DECEL` |
+| `PLAYER_AIR_ACCEL` | `400` px/s² | `200` | `800` | Aerial horizontal acceleration. `PLATFORMER_CONFIG.PLAYER_AIR_ACCEL` |
+| `PLAYER_AIR_DECEL` | `600` px/s² | `300` | `1200` | Aerial horizontal deceleration. `PLATFORMER_CONFIG.PLAYER_AIR_DECEL` |
+| `PLAYER_JUMP_VEL` | `350` px/s | `200` | `500` | Full jump initial upward impulse. `PLATFORMER_CONFIG.PLAYER_JUMP_VEL` |
+| `PLAYER_MIN_JUMP_VEL` | `150` px/s | `80` | `250` | Minimum velocity on tap jump release. `PLATFORMER_CONFIG.PLAYER_MIN_JUMP_VEL` |
+| `RISE_GRAVITY` | `800` px/s² | `400` | `1600` | Gravity applied while rising (`vy < 0`). `PLATFORMER_CONFIG.RISE_GRAVITY` |
+| `FALL_GRAVITY` | `1200` px/s² | `600` | `2400` | Gravity applied while falling (`vy > 0`). `PLATFORMER_CONFIG.FALL_GRAVITY` |
+| `coyoteTimeMax` | `0.15` s | `0.05` | `0.30` | Ledge jump grace window. `PlatformerJumper.coyoteTimeMax` |
+| `jumpBufferMax` | `0.10` s | `0.05` | `0.25` | Pre-landing input buffer. `PlatformerJumper.jumpBufferMax` |
 
 ### Meta-Progression & XP Upgrade Economy
 

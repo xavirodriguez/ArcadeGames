@@ -109,6 +109,8 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
     return { world, gameSimulation };
   }
 
+  private gameOverUnsubscribe?: () => void;
+
   async onCreate(options: unknown): Promise<void> {
     await super.onCreate(options);
     this.allowedActions = ["thrust", "rotateLeft", "rotateRight", "shoot", "hyperspace"];
@@ -118,7 +120,10 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
       this.state.gameStarted = true;
       this.spawnAsteroids(6);
 
-      this.world.getEventBus().on("game:over" as any, () => {
+      if (this.gameOverUnsubscribe) {
+        this.gameOverUnsubscribe();
+      }
+      this.gameOverUnsubscribe = this.world.getEventBus().on("game:over" as any, () => {
         this.state.gameOver = true;
         console.log(`[AsteroidsRoom] Game Over. Final Authoritative Score: ${this.state.score}`);
       });
@@ -248,6 +253,10 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
     console.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
     this.stateHistory.clear();
     this.replayFrames = [];
+    if (this.gameOverUnsubscribe) {
+      this.gameOverUnsubscribe();
+      this.gameOverUnsubscribe = undefined;
+    }
     if (this.networkMetrics) {
       this.networkMetrics.destroy();
     }

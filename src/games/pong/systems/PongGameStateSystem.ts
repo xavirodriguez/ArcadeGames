@@ -87,7 +87,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
 
               // Trigger visual feedback (Screen shake, particles, and sfx)
               const eventBus = world.getEventBus();
-              eventBus.emit("PlaySFX", { name: "hit" });
+              eventBus.emitDeferred("PlaySFX", { name: "hit" });
               const shake = world.getSingleton("ScreenShake" as any) as any;
               if (shake) {
                 world.mutateSingleton("ScreenShake" as any, (s: any) => {
@@ -154,7 +154,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
 
             // Play score audio
             const eventBus = world.getEventBus();
-            eventBus.emit("PlaySFX", { name: "score" });
+            eventBus.emitDeferred("PlaySFX", { name: "score" });
 
             // Check Win Condition
             if (
@@ -163,7 +163,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
             ) {
               gs.isGameOver = true;
               this._isGameOver = true;
-              eventBus.emit("PlaySFX", { name: "game_over" });
+              eventBus.emitDeferred("PlaySFX", { name: "game_over" });
             } else {
               // Trigger 1.2-second transition freeze state instead of instant reset
               gs.scoreFreezeRemaining = 1.2;

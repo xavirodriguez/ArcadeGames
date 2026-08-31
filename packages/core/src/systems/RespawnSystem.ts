@@ -124,7 +124,7 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
       // Dispatch event
       const eventBus = world.getEventBus();
       if (eventBus) {
-        eventBus.emit("PlayerRespawned", {
+        eventBus.emitDeferred("PlayerRespawned", {
           playerEntity,
           x: respawnX,
           y: respawnY

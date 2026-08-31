@@ -94,7 +94,6 @@ export class SpaceInvadersRoom extends BaseRoom<SpaceInvadersState> {
   }
 
   protected spawnPlayer(client: Client, validOptions: any): number {
-    this.world = this.gameSimulation.getWorld();
     this.world.setResource("UseNetworkInputs", true);
 
     const player = new SpaceInvadersPlayer();
@@ -118,7 +117,6 @@ export class SpaceInvadersRoom extends BaseRoom<SpaceInvadersState> {
   }
 
   protected despawnPlayer(_client: Client, entity?: number): void {
-    this.world = this.gameSimulation.getWorld();
     if (entity !== undefined) {
       this.world.getCommandBuffer().removeEntity(entity);
     }
@@ -126,14 +124,11 @@ export class SpaceInvadersRoom extends BaseRoom<SpaceInvadersState> {
 
   protected override tick(dt: number): void {
     if (!this.state.gameStarted) return;
-    this.world = this.gameSimulation.getWorld();
     this.world.setResource("UseNetworkInputs", true);
     super.tick(dt);
   }
 
   protected syncWorldToSchema(): void {
-    this.world = this.gameSimulation.getWorld();
-
     this.playerEntities.forEach((entity, sessionId) => {
       const player = this.state.players.get(sessionId);
       if (!player) return;

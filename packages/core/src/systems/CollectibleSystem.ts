@@ -104,7 +104,7 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
         }
 
         if (eventBus) {
-          eventBus.emit("CollectiblePickedUp", {
+          eventBus.emitDeferred("CollectiblePickedUp", {
             collectibleEntity: collEntity,
             collectible,
             playerEntity: collectedBy

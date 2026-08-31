@@ -45,7 +45,7 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
 
               const eventBus = world.getEventBus();
               if (eventBus) {
-                eventBus.emit("hitbox:hit", {
+                eventBus.emitDeferred("hitbox:hit", {
                   hitboxEntity,
                   hurtboxEntity: otherEntity,
                   attacker: hitboxTrans?.parentEntity,
@@ -79,7 +79,7 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
 
               const eventBus = world.getEventBus();
               if (eventBus) {
-                eventBus.emit("hitbox:hit", {
+                eventBus.emitDeferred("hitbox:hit", {
                   hitboxEntity,
                   hurtboxEntity: otherEntity,
                   attacker: hitboxTrans?.parentEntity,

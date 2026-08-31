@@ -112,7 +112,7 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
             nextShootCooldownRemaining = this.config!.PLAYER_SHOOT_COOLDOWN / 1000;
             const eventBus = world.getEventBus();
             if (eventBus) {
-              eventBus.emit("PlaySFX", { name: "shoot" });
+                eventBus.emitDeferred("PlaySFX", { name: "shoot" });
             }
           }
         }

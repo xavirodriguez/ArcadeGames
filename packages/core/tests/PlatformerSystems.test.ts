@@ -1002,6 +1002,7 @@ describe("Platformer Systems Tests", () => {
 
       // Run Hit Detection System to process trigger events
       hitDetectionSystem.update(world, 0.1);
+      eventBus.flushDeferred();
 
       expect(hitEventsCount).toBe(1);
       expect(attackerId).toBe(attacker);

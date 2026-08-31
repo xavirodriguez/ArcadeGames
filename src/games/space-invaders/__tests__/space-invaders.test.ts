@@ -632,4 +632,30 @@ describe("Space Invaders Combo Logic & Performance", () => {
       expect(pauseCalled).toBe(false);
     });
   });
+
+  describe("Unified World Single Source of Truth", () => {
+    it("verifies BaseGame.snapshot(), BaseGame.hash(), and BaseGame.restore() operate on the same World used by active systems", async () => {
+      const { SpaceInvadersGame } = await import("../SpaceInvadersGame");
+      const game = new SpaceInvadersGame({ headless: true, seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+      expect(gameWorld).toBe(game.world);
+
+      // Step simulation
+      game.update(0.016);
+
+      const snap1 = game.snapshot();
+      const hash1 = game.hash();
+      expect(snap1).toBeDefined();
+      expect(typeof hash1).toBe("string");
+
+      // Restore snapshot and verify hash equality
+      game.restore(snap1);
+      const hash2 = game.hash();
+      expect(hash2).toBe(hash1);
+
+      game.destroy();
+    });
+  });
 });

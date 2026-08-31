@@ -780,9 +780,14 @@
     "total": 1
   },
   "src/games/platformer/PlatformerGame.ts": {
-    "anyCount": 11,
+    "anyCount": 23,
     "unknownCount": 0,
-    "total": 11
+    "total": 23
+  },
+  "src/games/platformer/rendering/PlatformerCanvasVisuals.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
   },
   "src/games/platformer/story/PlatformerEncounter.ts": {
     "anyCount": 12,

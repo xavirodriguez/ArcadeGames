@@ -15,6 +15,21 @@ import {
   TileCollisionSystem,
   PlatformerCoyoteSystem,
   TTLSystem,
+  Renderer,
+  TilemapRenderSystem,
+  Camera2DSystem,
+  EnemySensorSystem,
+  StateMachineSystem,
+  registerEnemyStateMachines,
+  HitDetectionSystem,
+  CollectibleSystem,
+  CheckpointSystem,
+  DeathSystem,
+  RespawnSystem,
+  RunState,
+  SegmentTemplate,
+  SegmentGenerator,
+  LevelPlan,
   TransformComponent,
   VelocityComponent,
   Collider2DComponent,
@@ -22,6 +37,9 @@ import {
   HealthComponent
 } from "@tiny-aster/core";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
+import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
+import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/PlatformerCanvasVisuals";
+import { drawMemoryFragment, drawCheckpointNode, drawSentinel } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 
 export interface PlatformerInput {
   moveLeft: boolean;
@@ -33,6 +51,8 @@ export interface PlatformerInput {
 export interface PlatformerGameState extends Component {
   type: "PlatformerGameState";
   score: number;
+  lives: number;
+  attempts: number;
   isGameOver: boolean;
 }
 
@@ -59,6 +79,7 @@ export const PLATFORMER_CONFIG = {
 export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, any, PlatformerBlueprintMap> {
   public readonly gameId = "platformer";
   private gameOver = false;
+  private levelPlan!: LevelPlan;
 
   constructor(config: { seed?: number; gameOptions?: Record<string, unknown> } = {}) {
     super({
@@ -72,8 +93,235 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
   protected override async onRegisterSystems(): Promise<void> {
     this.world.setResource("ScreenConfig", { width: PLATFORMER_CONFIG.SCREEN_WIDTH, height: PLATFORMER_CONFIG.SCREEN_HEIGHT });
+    this.world.setResource("DeathPlaneY", 650);
+
+    const runState: RunState = {
+      attempt: 1,
+      lives: 3,
+      activeCheckpoint: null,
+      elapsedTime: 0,
+      deaths: 0,
+      collectedPermanentIds: [],
+      collectedTemporalIds: []
+    };
+    this.world.setResource("RunState", runState);
+
+    // Register level completed event listener
+    const eventBus = this.getEventBus();
+    if (eventBus) {
+      eventBus.on("level:completed", () => {
+        this.gameOver = true;
+      });
+    }
+
+    // Register state machines
+    registerEnemyStateMachines(this.world);
 
     // Blueprints
+    this.blueprints.register("collectible_fragment", {
+      spawn: (world, entity, args: { x: number; y: number; id: string }) => {
+        world.addComponent(entity, {
+          type: "Transform",
+          x: args.x,
+          y: args.y,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: args.x,
+          worldY: args.y,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: false
+        } as TransformComponent);
+
+        world.addComponent(entity, {
+          type: "Collectible",
+          kind: "fragment",
+          value: 10,
+          persistent: false,
+          collectOnce: false,
+          id: args.id
+        } as any);
+
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "fragment",
+          size: 16,
+          visible: true,
+          opacity: 1,
+          order: 1,
+          rotation: 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0
+        } as any);
+      }
+    });
+
+    this.blueprints.register("checkpoint_node", {
+      spawn: (world, entity, args: { x: number; y: number; id: string }) => {
+        world.addComponent(entity, {
+          type: "Transform",
+          x: args.x,
+          y: args.y,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: args.x,
+          worldY: args.y,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: false
+        } as TransformComponent);
+
+        world.addComponent(entity, {
+          type: "RespawnPoint",
+          x: args.x,
+          y: args.y - 10,
+          checkpointId: args.id
+        } as any);
+
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "node",
+          size: 32,
+          visible: true,
+          opacity: 1,
+          order: 1,
+          rotation: 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0
+        } as any);
+      }
+    });
+
+    this.blueprints.register("enemy_sentinel", {
+      spawn: (world, entity, args: { x: number; y: number }) => {
+        world.addComponent(entity, {
+          type: "Transform",
+          x: args.x,
+          y: args.y,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: args.x,
+          worldY: args.y,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: false
+        } as TransformComponent);
+
+        world.addComponent(entity, {
+          type: "Velocity",
+          vx: 0,
+          vy: 0,
+          angularVelocity: 0
+        } as VelocityComponent);
+
+        world.addComponent(entity, {
+          type: "Enemy",
+          kind: "patrol"
+        } as any);
+
+        world.addComponent(entity, {
+          type: "Patrol",
+          startX: args.x - 80,
+          endX: args.x + 80,
+          direction: 1,
+          patrolSpeed: 70
+        } as any);
+
+        world.addComponent(entity, {
+          type: "GroundDetector",
+          hasGroundAhead: true,
+          hasWallAhead: false,
+          sensorOffsetX: 15,
+          sensorOffsetY: 20
+        } as any);
+
+        world.addComponent(entity, {
+          type: "PlayerSensor",
+          visionRange: 130,
+          detectedPlayerEntity: undefined
+        } as any);
+
+        world.addComponent(entity, {
+          type: "StateMachine",
+          currentState: "Patrol",
+          elapsedInState: 0,
+          data: {
+            patrolSpeed: 70,
+            alertDuration: 0.3,
+            windupDuration: 0.3,
+            attackDuration: 0.4,
+            recoveryDuration: 0.5
+          },
+          machineId: "patrol",
+          elapsedMs: 0
+        } as any);
+
+        world.addComponent(entity, {
+          type: "Health",
+          current: 1,
+          max: 1
+        } as HealthComponent);
+
+        world.addComponent(entity, {
+          type: "Hurtbox"
+        } as any);
+
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "sentinel",
+          size: 22,
+          visible: true,
+          opacity: 1,
+          order: 2,
+          rotation: 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0
+        } as any);
+      }
+    });
+
+    this.blueprints.register("goal", {
+      spawn: (world, entity, args: { x: number; y: number }) => {
+        world.addComponent(entity, {
+          type: "Transform",
+          x: args.x,
+          y: args.y,
+          rotation: 0,
+          scaleX: 1,
+          scaleY: 1,
+          worldX: args.x,
+          worldY: args.y,
+          worldRotation: 0,
+          worldScaleX: 1,
+          worldScaleY: 1,
+          dirty: false
+        } as TransformComponent);
+
+        world.addComponent(entity, {
+          type: "LevelGoal",
+          reached: false
+        } as any);
+
+        world.addComponent(entity, {
+          type: "Render",
+          shape: "goal",
+          size: 32,
+          visible: true,
+          opacity: 1,
+          order: 1,
+          rotation: 0,
+          angularVelocity: 0,
+          hitFlashFrames: 0
+        } as any);
+      }
+    });
+
     this.blueprints.register("player", {
       spawn: (world, entity, args: { x: number; y: number }) => {
         world.addComponent(entity, {
@@ -144,7 +392,9 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
           coyoteTimer: 0,
           jumpBufferTimer: 0,
           coyoteTimeMax: 0.15,
-          jumpBufferMax: 0.1
+          jumpBufferMax: 0.1,
+          maxJumps: 2,
+          jumpsRemaining: 2
         } as any);
 
         world.addComponent(entity, {
@@ -192,19 +442,30 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new EnemySensorSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new StateMachineSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new CheckpointSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new DeathSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new RespawnSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
     this.world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CollectibleSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new PlatformerGoalSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new TilemapRenderSystem(), { phase: SystemPhase.Presentation });
+  }
+
+  public initializeRenderer(renderer: Renderer<any, any>): void {
+    renderer.registerShape("player", drawPlatformerPlayer);
+    renderer.registerShape("goal", drawPlatformerGoal);
+    renderer.registerShape("fragment", drawMemoryFragment);
+    renderer.registerShape("node", drawCheckpointNode);
+    renderer.registerShape("sentinel", drawSentinel);
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    // Standard test tile definitions:
-    // 0: empty
-    // 1: solid normal ground
-    // 2: solid ice ground
-    // 3: functional bounce tile (non-solid or solid, let's make it solid)
-    // 4: functional spike tile (non-solid or solid, let's make it solid)
-    // 5: solid one-way platform
     const tileDefinitions = {
       1: { solid: true, kind: "normal" as const },
       2: { solid: true, kind: "ice" as const },
@@ -213,41 +474,103 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
       5: { solid: true, oneWay: true, kind: "normal" as const }
     };
 
-    // Simple test tilemap data
-    // 15 rows x 20 cols
-    const data: number[][] = [];
-    for (let r = 0; r < 15; r++) {
-      const row: number[] = [];
-      for (let c = 0; c < 20; c++) {
-        if (r === 14) {
-          // Bottom floor is solid normal ground
-          row.push(1);
-        } else if (r === 10 && c >= 5 && c <= 8) {
-          // Some ice platforms
-          row.push(2);
-        } else if (r === 10 && c === 9) {
-          // Spike tile
-          row.push(4);
-        } else if (r === 11 && c === 12) {
-          // Bounce tile
-          row.push(3);
-        } else if (r === 8 && c >= 14 && c <= 17) {
-          // One-way platform
-          row.push(5);
-        } else {
-          row.push(0);
-        }
+    const templates: SegmentTemplate[] = [
+      {
+        id: "intro_01",
+        entry: { x: 0, y: 11 },
+        exit: { x: 20, y: 11 },
+        bounds: { width: 20, height: 15 },
+        difficulty: 1,
+        tags: ["intro"],
+        tileData: [
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ],
+        spawnPoints: []
+      },
+      {
+        id: "jump_01",
+        entry: { x: 0, y: 11 },
+        exit: { x: 20, y: 11 },
+        bounds: { width: 20, height: 15 },
+        difficulty: 1,
+        tags: ["movement"],
+        tileData: [
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,5,5,5,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
+          [1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1]
+        ],
+        spawnPoints: [
+          { x: 10, y: 8, type: "collectible_fragment", args: { id: "frag_1" } },
+          { x: 18, y: 10, type: "goal" }
+        ]
       }
-      data.push(row);
-    }
+    ];
 
-    // Spawn tilemap
-    const tilemapEntity = this.world.createEntity();
-    this.blueprints.get("tilemap")?.spawn(this.world as any, tilemapEntity, { data, tileDefinitions });
+    const grammar = ["intro", "movement"];
+    const levelSeed = this.getSeed() || 41873;
+    this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
+
+    this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
+    SegmentGenerator.instantiatePlan(this.world, this.levelPlan, PLATFORMER_CONFIG.TILE_SIZE, tileDefinitions);
 
     // Spawn player
     const playerEntity = this.world.createEntity();
-    this.blueprints.get("player")?.spawn(this.world as any, playerEntity, { x: 100, y: 100 });
+    this.blueprints.get("player")?.spawn(this.world as any, playerEntity, { x: 100, y: 350 });
+
+    // Spawn Main Follow Camera
+    const cameraEntity = this.world.createEntity();
+    this.world.addComponent(cameraEntity, {
+      type: "Camera2D",
+      zoom: 1.0,
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      isMain: true,
+      followEntity: playerEntity,
+      lookAheadX: 80,
+      smoothingX: 6.0,
+      smoothingY: 6.0,
+      verticalDeadzone: 45
+    });
+  }
+
+  private async onPreloadAssets(): Promise<void> {
+    const assets = [
+      { id: "jump", path: "/audio/flap.mp3" },
+      { id: "hit", path: "/audio/hit.mp3" },
+      { id: "score", path: "/audio/score.mp3" },
+      { id: "game_over", path: "/audio/game_over.mp3" }
+    ];
+    for (const asset of assets) {
+      try {
+        await this.audio.loadSFX(asset.id, asset.path);
+      } catch (e) {
+        // Fallback for environment constraints
+      }
+    }
   }
 
   public override update(dt: number): void {
@@ -273,9 +596,16 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
   }
 
   public getGameState(): PlatformerGameState {
+    const runState = this.world.getResource<RunState>("RunState");
+    const score = runState ? runState.collectedTemporalIds.length * 10 + runState.collectedPermanentIds.length * 100 : 0;
+    const lives = runState ? runState.lives : 3;
+    const attempts = runState ? runState.attempt : 1;
+
     return {
       type: "PlatformerGameState",
-      score: 0,
+      score,
+      lives,
+      attempts,
       isGameOver: this.gameOver
     };
   }

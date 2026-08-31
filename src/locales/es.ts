@@ -9,6 +9,7 @@ export const es = {
     echorunner: "ECHO // RUNNER",
     cyoa: "LA CUEVA // CYOA",
     blindstation: "LA ESTACIÓN CIEGA",
+    platformer: "PLATAFORMAS // 2D",
     campaign: "CAMPAÑA HISTORIA (POC)",
     level: "NIVEL",
   },
@@ -80,6 +81,14 @@ export const es = {
     elapsed_time: "Tiempo Transcurrido",
     return_repo: "VOLVER AL REPOSITORIO",
     syncing_files: "Sincronizando Archivos de Memoria...",
+  },
+  platformer: {
+    instructions: "A/D o Flechas: Mover  |  W/Espacio/Flecha Arriba: Saltar",
+    start_run: "INICIAR NIVEL",
+    level: "NIVEL",
+    score: "PUNTAJE",
+    lives: "VIDAS",
+    syncing_level: "Cargando Nivel de Plataformas...",
   },
   mutators: {
     heavy_gravity: {

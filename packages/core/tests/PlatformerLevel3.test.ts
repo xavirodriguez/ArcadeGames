@@ -155,6 +155,7 @@ describe("Platformer Level 3 - Content & Design Tests", () => {
       });
 
       checkpointSys.update(world, 0.1);
+      eventBus.flushDeferred();
 
       expect(runState.activeCheckpoint).toBe("checkpoint_alpha");
       expect(eventPayload).not.toBeNull();
@@ -193,6 +194,7 @@ describe("Platformer Level 3 - Content & Design Tests", () => {
       });
 
       deathSys.update(world, 0.1);
+      eventBus.flushDeferred();
       world.flush(); // Flush commands to add Dead component
 
       expect(world.hasComponent(player, "Dead")).toBe(true);

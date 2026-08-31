@@ -134,7 +134,7 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
       // Notify the world / presentation layers
       const eventBus = world.getEventBus() as EventBus;
       if (eventBus) {
-        eventBus.emit("achievement:unlocked", { achievement });
+        eventBus.emitDeferred("achievement:unlocked", { achievement });
       }
     }
   }

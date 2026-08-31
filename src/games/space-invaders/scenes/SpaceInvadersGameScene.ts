@@ -55,17 +55,16 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     playerBulletPool: PlayerBulletPool,
     enemyBulletPool: EnemyBulletPool,
     particlePool: ParticlePool,
-    config?: SpaceInvadersConfig
+    config?: SpaceInvadersConfig,
+    world?: World<SpaceInvadersComponentRegistry>
   ) {
-    // Note: in this engine, Scene creates its own World if not provided
-    // but the constructor requires a World.
-    const world = new World<SpaceInvadersComponentRegistry>();
-    super(world);
+    const targetWorld = world || new World<SpaceInvadersComponentRegistry>();
+    super(targetWorld);
     this.game = game;
     this.playerBulletPool = playerBulletPool;
     this.enemyBulletPool = enemyBulletPool;
     this.particlePool = particlePool;
-    this.config = config || world.getResource<SpaceInvadersConfig>("GameConfig")!;
+    this.config = config || targetWorld.getResource<SpaceInvadersConfig>("GameConfig")!;
   }
 
   public onEnter(): void {

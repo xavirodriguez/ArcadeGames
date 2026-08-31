@@ -84,7 +84,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         if (world.isReSimulating) return;
         world.mutateSingleton("GameState", (gs) => {
           gs.intermissionRemaining = 3.0; // 3 seconds intermission
-          eventBus.emit("stage:cleared", { level: gs.level });
+          eventBus.emitDeferred("stage:cleared", { level: gs.level });
         });
       });
 
@@ -106,7 +106,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           });
 
           // Play confirm sound
-          eventBus.emit("PlaySFX", { name: "shoot" });
+          eventBus.emitDeferred("PlaySFX", { name: "shoot" });
         });
       });
     }
@@ -136,7 +136,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           gs.isGameOver = true;
           const eventBus = world.getEventBus();
           if (eventBus) {
-            eventBus.emit("PlaySFX", { name: "game_over" });
+            eventBus.emitDeferred("PlaySFX", { name: "game_over" });
           }
         }
       });
@@ -161,7 +161,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
             gs.level = nextLevel;
             const eventBus = world.getEventBus();
             if (eventBus) {
-              eventBus.emit("level:completed", { level: oldLevel, nextLevel: gs.level });
+              eventBus.emitDeferred("level:completed", { level: oldLevel, nextLevel: gs.level });
             }
           }
         });
@@ -182,7 +182,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         });
         const eventBus = world.getEventBus();
         if (eventBus) {
-          eventBus.emit("PlaySFX", { name: "game_over" });
+          eventBus.emitDeferred("PlaySFX", { name: "game_over" });
         }
       }
     }

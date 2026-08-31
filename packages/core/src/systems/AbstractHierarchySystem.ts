@@ -54,7 +54,7 @@ export abstract class AbstractHierarchySystem<
           if (processing.has(entity)) {
             const eventBus = world.getEventBus() as EventBus | undefined;
             if (eventBus) {
-              eventBus.emit("hierarchy:warning", { message: `Circular dependency detected at entity ${entity}.` });
+              eventBus.emitDeferred("hierarchy:warning", { message: `Circular dependency detected at entity ${entity}.` });
             }
             continue;
           }

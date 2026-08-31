@@ -365,14 +365,14 @@ export class SpaceInvadersGame
       this.playerBulletPool,
       this.enemyBulletPool,
       this.particlePool,
-      this.config
+      this.config,
+      this.world
     );
 
-    // Register Power-up systems in the scene world
-    const sceneWorld = gameScene.getWorld();
-    sceneWorld.addSystem(new LootSystem());
-    sceneWorld.addSystem(new PowerUpSystem());
-    sceneWorld.addSystem(new ComboSystem());
+    // Register Power-up systems in the unified world
+    this.world.addSystem(new LootSystem());
+    this.world.addSystem(new PowerUpSystem());
+    this.world.addSystem(new ComboSystem());
 
     if (!this.networkManager) {
       this.networkManager = NetworkManager.registerGame(this.gameId, this, {
@@ -380,8 +380,8 @@ export class SpaceInvadersGame
           interpolationDelay: 100
       });
     }
-    sceneWorld.addSystem(new LocalPredictionSystem(this.networkManager, () => {}), { phase: SystemPhase.Input });
-    sceneWorld.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new LocalPredictionSystem(this.networkManager, () => {}), { phase: SystemPhase.Input });
+    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });
 
     this.sceneManager.transitionTo(gameScene, { effect: "crt", duration: 300 });
   }
@@ -658,12 +658,6 @@ export class SpaceInvadersGame
   }
 
   public getWorld(): World<SpaceInvadersComponentRegistry> {
-    // Priority 1: Scene-specific world (active gameplay)
-    const scene = this.sceneManager?.getCurrentScene();
-    if (scene) {
-      return scene.getWorld() as World<SpaceInvadersComponentRegistry>;
-    }
-    // Priority 2: Base world (loading/initialization)
     return this.world;
   }
 

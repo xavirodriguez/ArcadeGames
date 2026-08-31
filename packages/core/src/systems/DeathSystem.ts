@@ -57,7 +57,7 @@ export class DeathSystem extends System<CoreComponentRegistry> {
 
         // Emit PlayerDied event
         if (eventBus) {
-          eventBus.emit("PlayerDied", {
+          eventBus.emitDeferred("PlayerDied", {
             playerEntity
           });
         }

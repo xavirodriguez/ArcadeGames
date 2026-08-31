@@ -13,6 +13,7 @@
 | Version | Date | Author | Description of Changes |
 | :--- | :--- | :--- | :--- |
 | `1.0.0` | 2023-10-24 | GameDesigner | Initial specification of core gameplay loops, economy balance baseline, onboarding flows, beneficial mutator integration, and architectural combo unification proposal. |
+| `1.1.0` | 2026-08-28 | GameDesigner | Added Platformer Kinetic Momentum GDD (`docs/design/platformer/kinetic-momentum-gdd.md`) and Space Invaders Boss Kamikaze Dives GDD (`docs/design/space-invaders/boss-kamikaze-gdd.md`). |
 
 ---
 

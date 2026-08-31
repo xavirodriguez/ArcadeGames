@@ -6,6 +6,8 @@ import { PlatformerGame, PlatformerGameState, PlatformerInput } from "../games/p
 const INITIAL_PLATFORMER_STATE: PlatformerGameState = {
   type: "PlatformerGameState",
   score: 0,
+  lives: 3,
+  attempts: 1,
   isGameOver: false
 };
 

@@ -164,6 +164,10 @@ function PlatformerContent() {
             <Text style={styles.hudLabel}>{t.platformer?.score || "PUNTAJE"}</Text>
             <Text style={styles.hudValue}>{gameState.score}</Text>
           </View>
+          <View style={styles.hudItem}>
+            <Text style={styles.hudLabel}>{t.platformer?.lives || "VIDAS"}</Text>
+            <Text style={styles.hudValue}>{"❤️ ".repeat(Math.max(0, gameState.lives))}</Text>
+          </View>
         </View>
 
         {/* Canvas Renderer */}

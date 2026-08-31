@@ -15,6 +15,8 @@ import {
   TileCollisionSystem,
   PlatformerCoyoteSystem,
   TTLSystem,
+  Renderer,
+  TilemapRenderSystem,
   TransformComponent,
   VelocityComponent,
   Collider2DComponent,
@@ -195,6 +197,16 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
     this.world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new TilemapRenderSystem(), { phase: SystemPhase.Presentation });
+  }
+
+  public initializeRenderer(renderer: Renderer<any, any>): void {
+    renderer.registerShape("player", {
+      draw(ctx: CanvasRenderingContext2D, _world: World<any>, _entity: number) {
+        ctx.fillStyle = "#00f0ff";
+        ctx.fillRect(-10, -15, 20, 30);
+      }
+    });
   }
 
   protected override async onInitializeEntities(): Promise<void> {

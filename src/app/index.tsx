@@ -17,7 +17,7 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "cyoa" | "blindstation" | "campaign";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "platformer" | "cyoa" | "blindstation" | "campaign";
   href: Href<string>;
 }
 
@@ -29,6 +29,7 @@ const GAMES: GameEntry[] = [
   { id: "pong", key: "pong", href: "/pong" },
   { id: "geometrywars", key: "geometrywars", href: "/geometrywars" },
   { id: "echorunner", key: "echorunner", href: "/echorunner" },
+  { id: "platformer", key: "platformer", href: "/platformer" },
   { id: "cyoa", key: "cyoa", href: "/cyoa" },
   { id: "blindstation", key: "blindstation", href: "/blindstation" },
 ];

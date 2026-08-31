@@ -9,6 +9,7 @@ export const en = {
     echorunner: "ECHO // RUNNER",
     cyoa: "THE CAVE // CYOA",
     blindstation: "THE BLIND STATION",
+    platformer: "PLATFORMER // 2D",
     campaign: "STORY CAMPAIGN (POC)",
     level: "LEVEL",
   },
@@ -80,6 +81,14 @@ export const en = {
     elapsed_time: "Elapsed Time",
     return_repo: "RETURN TO REPOSITORY",
     syncing_files: "Synchronizing Memory Files...",
+  },
+  platformer: {
+    instructions: "A/D or Arrows: Move  |  W/Space/Up Arrow: Jump",
+    start_run: "START LEVEL",
+    level: "LEVEL",
+    score: "SCORE",
+    lives: "LIVES",
+    syncing_level: "Loading Platformer Level...",
   },
   mutators: {
     heavy_gravity: {

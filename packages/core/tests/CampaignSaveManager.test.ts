@@ -51,12 +51,16 @@ describe("CampaignSaveManager & Integration", () => {
     // 3. Save campaign -> 1 single storage write
     const envelope = await manager.saveCampaign("slot_1", runtime, metaService, {
       totalPlaytimeSeconds: 120,
-      minigamesPlayed: { "space-invaders": 1 }
+      minigamesPlayed: { "space-invaders": 1 },
+      activeGameId: "space-invaders",
+      activeGameSeed: 424242
     });
 
     expect(setItemSpy).toHaveBeenCalledTimes(1);
     expect(envelope.slotId).toBe("slot_1");
     expect(envelope.narrative.story.currentNodeId).toBe("node_a");
+    expect(envelope.activeGameId).toBe("space-invaders");
+    expect(envelope.activeGameSeed).toBe(424242);
     expect(envelope.meta.completedEndings).toContain("ending_alpha");
     expect(envelope.stats.minigamesPlayed["space-invaders"]).toBe(1);
   });
@@ -77,7 +81,10 @@ describe("CampaignSaveManager & Integration", () => {
     });
     runtimeA.selectChoice("choice_a");
 
-    await manager.saveCampaign("slot_roundtrip", runtimeA, metaA);
+    await manager.saveCampaign("slot_roundtrip", runtimeA, metaA, {
+      activeGameId: "space-invaders",
+      activeGameSeed: 999111
+    });
 
     // Runtime B setup (fresh instances)
     const runtimeB = new StoryRuntime(sampleGraph);
@@ -89,6 +96,8 @@ describe("CampaignSaveManager & Integration", () => {
     const loadedEnvelope = await manager.loadCampaign("slot_roundtrip", runtimeB, metaB);
 
     expect(loadedEnvelope).not.toBeNull();
+    expect(loadedEnvelope?.activeGameId).toBe("space-invaders");
+    expect(loadedEnvelope?.activeGameSeed).toBe(999111);
     expect(runtimeB.getCurrentNode()?.id).toBe("node_a");
     expect(runtimeB.getState().flags.flag_a).toBe(true);
     expect(metaB.getState().discoveredMetaEvidence).toHaveLength(1);

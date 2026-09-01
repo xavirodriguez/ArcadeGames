@@ -79,6 +79,7 @@ export class StoryRuntime {
   private lastRecordedEventId: string | null = null;
   private checkpoints: Map<string, StoryStateCheckpoint> = new Map();
   private stateVersion: number = 0;
+  private registeredEvents: Set<string> = new Set();
   private eventTimeline: Array<{
     type: string;
     timestamp: Date;
@@ -384,6 +385,10 @@ export class StoryRuntime {
 
     if (this.graph) {
       for (const node of Object.values(this.graph.nodes)) {
+        if (node.objective) {
+          if (node.objective.eventKey) listenEvents.add(node.objective.eventKey);
+          if (node.objective.id) listenEvents.add(node.objective.id);
+        }
         if (node.transitions) {
           for (const t of node.transitions) {
             if (t.condition?.type === "event" && t.condition.key) {
@@ -395,9 +400,12 @@ export class StoryRuntime {
     }
 
     for (const eventName of listenEvents) {
-      eventBus.on(eventName as unknown as keyof import("../events/EventBus").CombinedEvents<import("../events/EventBus").EventRegistry> & string, (payload: any) => {
-        this.handleEvent(eventName, payload);
-      });
+      if (!this.registeredEvents.has(eventName)) {
+        this.registeredEvents.add(eventName);
+        eventBus.on(eventName as unknown as keyof import("../events/EventBus").CombinedEvents<import("../events/EventBus").EventRegistry> & string, (payload: any) => {
+          this.handleEvent(eventName, payload);
+        });
+      }
     }
   }
 
@@ -410,6 +418,10 @@ export class StoryRuntime {
   public loadGraph(graph: StoryGraph, startAtEntry: boolean = true): void {
     this.graph = graph;
     this.state.graphId = graph.id;
+
+    if (this.eventBus) {
+      this.bindEventBus(this.eventBus);
+    }
 
     if (startAtEntry && graph.entryNodeId && graph.nodes[graph.entryNodeId]) {
       this.navigateToNode(graph.entryNodeId);
@@ -635,6 +647,11 @@ export class StoryRuntime {
       return false;
     }
 
+    const hasIncompleteObjective =
+      (currentNode.type === "gameplay" || currentNode.objective !== undefined) &&
+      currentNode.objective &&
+      !this.state.objectives[currentNode.objective.id]?.completed;
+
     // 1. Evaluate explicit outgoing transitions sorted by priority
     if (currentNode.transitions && currentNode.transitions.length > 0) {
       const sortedTransitions = [...currentNode.transitions].sort(
@@ -642,6 +659,11 @@ export class StoryRuntime {
       );
 
       for (const transition of sortedTransitions) {
+        // Prevent auto-advancing gameplay nodes with incomplete objectives via conditionless transitions
+        if (hasIncompleteObjective && !transition.condition) {
+          continue;
+        }
+
         if (!transition.condition || this.evaluateCondition(transition.condition)) {
           return this.navigateToNode(transition.targetNodeId);
         }

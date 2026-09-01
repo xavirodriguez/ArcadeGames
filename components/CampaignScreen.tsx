@@ -15,6 +15,7 @@ import {
   ArcadeState
 } from "@tiny-aster/core";
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
+import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
 import { CanvasRenderer } from "./CanvasRenderer";
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
 
@@ -79,26 +80,30 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   }
 
   const [activeGame, setActiveGame] = useState<BaseGame | null>(null);
-  const [currentNode, setCurrentNode] = useState<StoryNode | null>(null);
-  const [availableChoices, setAvailableChoices] = useState<StoryChoice[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string>("Initializing Campaign...");
   const [showDashboard, setShowDashboard] = useState<boolean>(false);
 
+  const activeGameIdRef = useRef<string | null>(null);
+  const activeGameSeedRef = useRef<number | null>(null);
   const currentGameRef = useRef<BaseGame | null>(null);
   currentGameRef.current = activeGame;
+
+  // Reactively synchronized StoryRuntime state hook
+  const { currentNode } = useStoryRuntime(runtimeRef.current, eventBusRef.current);
+  const availableChoices: StoryChoice[] = currentNode?.choices || [];
+  const isEndNode = Boolean(
+    currentNode &&
+    (currentNode.isEndNode ||
+     currentNode.meta?.isEndNode ||
+     (!currentNode.transitions?.length && !currentNode.choices?.length && currentNode.type !== "gameplay"))
+  );
 
   /**
    * Switches the active minigame by resolving the target gameId via GameDefinitionRegistry
    * and instantiating the BaseGame simulation instance.
-   *
-   * @remarks
-   * Direct `BaseGame` simulation instantiation via `definition.createSimulation(seed)` + `.init()` is chosen
-   * because it allows `BaseGame`'s internal high-performance game loop (`GameLoop`) to drive physical simulation ticks
-   * and Canvas updates natively in React Native, while maintaining seed-based determinism.
-   * `GameSession` is reserved for headless execution, replay recording, and server-side step ticking.
    */
-  const switchGame = useCallback(async (gameId: string) => {
+  const switchGame = useCallback(async (gameId: string, overrideSeed?: number) => {
     setIsLoading(true);
     setStatusMessage(`Loading minigame (${gameId})...`);
 
@@ -110,10 +115,13 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
       let newGame: BaseGame;
       const normalizedId = GameDefinitionRegistry.normalizeId(gameId);
+      const seed = overrideSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+
+      activeGameIdRef.current = gameId;
+      activeGameSeedRef.current = seed;
 
       if (GameDefinitionRegistry.has(normalizedId)) {
         const definition = GameDefinitionRegistry.resolve(normalizedId);
-        const seed = Math.floor(Math.random() * 0xFFFFFFFF);
         // Create pure simulation instance passing seed and shared campaign kernel
         newGame = definition.createSimulation(seed) as BaseGame;
       } else {
@@ -158,16 +166,6 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
     runtime.bindEventBus(eventBus);
 
-    // Update React UI on node changes
-    const unsubNode = eventBus.on("story:node_changed", (data: { node?: unknown }) => {
-      if (!isSubscribed) return;
-      const node = data.node as StoryNode | undefined;
-      if (node) {
-        setCurrentNode(node);
-        setAvailableChoices(node.choices || []);
-      }
-    });
-
     // Handle scene / gameplay change requests from story runtime
     const unsubScene = eventBus.on("story:scene_change", (data: { sceneToLoad?: unknown; gameId?: unknown }) => {
       if (!isSubscribed) return;
@@ -181,22 +179,14 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     if (graph) {
       runtime.loadGraph(graph, true);
       const entryNode = runtime.getCurrentNode();
-      if (entryNode) {
-        setCurrentNode(entryNode);
-        setAvailableChoices(entryNode.choices || []);
-
-        const initialScene = entryNode.sceneToLoad || entryNode.meta?.sceneToLoad || defaultGameId;
-        switchGame(initialScene);
-      } else {
-        switchGame(defaultGameId);
-      }
+      const initialScene = entryNode?.sceneToLoad || entryNode?.meta?.sceneToLoad || defaultGameId;
+      switchGame(initialScene);
     } else {
       switchGame(defaultGameId);
     }
 
     return () => {
       isSubscribed = false;
-      unsubNode();
       unsubScene();
 
       if (currentGameRef.current) {
@@ -210,12 +200,17 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const handleSelectChoice = useCallback((choiceId: string) => {
     const runtime = runtimeRef.current!;
     runtime.selectChoice(choiceId);
-    const updatedNode = runtime.getCurrentNode();
-    if (updatedNode) {
-      setCurrentNode(updatedNode);
-      setAvailableChoices(updatedNode.choices || []);
-    }
   }, []);
+
+  // Restart campaign handler
+  const handleRestartCampaign = useCallback(() => {
+    if (graph && runtimeRef.current) {
+      runtimeRef.current.loadGraph(graph, true);
+      const entryNode = runtimeRef.current.getCurrentNode();
+      const initialScene = entryNode?.sceneToLoad || entryNode?.meta?.sceneToLoad || defaultGameId;
+      switchGame(initialScene);
+    }
+  }, [graph, defaultGameId, switchGame]);
 
   // Save campaign state handler
   const handleSave = useCallback(async () => {
@@ -223,7 +218,11 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       await saveManagerRef.current!.saveCampaign(
         slotId,
         runtimeRef.current!,
-        metaServiceRef.current!
+        metaServiceRef.current!,
+        {
+          activeGameId: activeGameIdRef.current || undefined,
+          activeGameSeed: activeGameSeedRef.current || undefined
+        }
       );
       setStatusMessage("Campaign Saved Successfully!");
     } catch (err: unknown) {
@@ -246,13 +245,8 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       if (envelope) {
         const runtime = runtimeRef.current!;
         const restoredNode = runtime.getCurrentNode();
-        if (restoredNode) {
-          setCurrentNode(restoredNode);
-          setAvailableChoices(restoredNode.choices || []);
-
-          const targetGame = restoredNode.sceneToLoad || restoredNode.meta?.sceneToLoad || defaultGameId;
-          await switchGame(targetGame);
-        }
+        const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || restoredNode?.meta?.sceneToLoad || defaultGameId;
+        await switchGame(targetGame, envelope.activeGameSeed);
         setStatusMessage("Campaign Loaded Successfully!");
       }
     } catch (err: unknown) {
@@ -286,7 +280,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       )}
 
       {/* Narrative Dialogue & Choices Overlay Layer */}
-      {currentNode && (
+      {currentNode && !isEndNode && (
         <View style={styles.narrativeOverlay}>
           {currentNode.title && (
             <Text style={styles.nodeTitle}>{currentNode.title}</Text>
@@ -315,6 +309,26 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+      )}
+
+      {/* Terminal Node / Campaign Completion Overlay */}
+      {isEndNode && currentNode && (
+        <View style={styles.endNodeOverlay}>
+          <Text style={styles.endNodeTitle}>🏆 Campaign Completed</Text>
+          {currentNode.dialogue?.lines?.map((line, idx) => (
+            <Text key={line.id || `line_${idx}`} style={styles.dialogueText}>
+              {line.speakerName ? `${line.speakerName}: ` : ""}
+              {line.textKey}
+            </Text>
+          ))}
+          <TouchableOpacity
+            style={styles.restartButton}
+            onPress={handleRestartCampaign}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.restartButtonText}>Restart Campaign</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -441,6 +455,39 @@ const styles = StyleSheet.create({
   toolbarText: {
     color: "#00ffcc",
     fontSize: 12,
+    fontWeight: "bold",
+  },
+  endNodeOverlay: {
+    position: "absolute",
+    bottom: 40,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(20, 10, 35, 0.95)",
+    borderColor: "#ffcc00",
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 20,
+    alignItems: "center",
+    zIndex: 70,
+  },
+  endNodeTitle: {
+    color: "#ffcc00",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  restartButton: {
+    marginTop: 16,
+    backgroundColor: "rgba(255, 204, 0, 0.2)",
+    borderColor: "#ffcc00",
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  restartButtonText: {
+    color: "#ffcc00",
+    fontSize: 14,
     fontWeight: "bold",
   },
 });

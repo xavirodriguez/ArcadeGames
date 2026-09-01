@@ -505,6 +505,8 @@ export type CampaignSaveEnvelope = CampaignSaveEnvelopeV1;
 
 // @public
 export interface CampaignSaveEnvelopeV1 {
+    readonly activeGameId?: string;
+    readonly activeGameSeed?: number;
     readonly meta: MetaProgressionState;
     readonly narrative: NarrativeSaveGame;
     readonly schemaVersion: 1;
@@ -524,6 +526,8 @@ export class CampaignSaveManager {
     saveCampaign(slotId: string, runtime: StoryRuntime, metaService: MetaProgressionService, stats?: {
         totalPlaytimeSeconds?: number;
         minigamesPlayed?: Record<string, number>;
+        activeGameId?: string;
+        activeGameSeed?: number;
     }): Promise<CampaignSaveEnvelopeV1>;
 }
 

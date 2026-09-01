@@ -1,6 +1,7 @@
 import { CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
 import { LootTableComponent, PowerUpComponent, ComboComponent } from "../../shared/arcade";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
+import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";
 import {
   GameStateComponent,
   InputComponent,
@@ -12,6 +13,7 @@ export interface AsteroidsComponentRegistry extends CoreComponentRegistry {
   LootTable: LootTableComponent;
   PowerUp: PowerUpComponent;
   Combo: ComboComponent;
+  DialogueBox: DialogueBoxComponent;
   GameState: GameStateComponent;
   Input: InputComponent;
   Ufo: UfoComponent;

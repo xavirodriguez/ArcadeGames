@@ -623,9 +623,9 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
 // ==========================================================================
 
 registerMutatorHook("combo_head_start", (world: World) => {
-  const comboEntities = world.query("Combo" as any);
+  const comboEntities = world.query("Combo");
   if (comboEntities.length > 0) {
-    world.mutateComponent(comboEntities[0], "Combo" as any, (c: any) => {
+    world.mutateComponent(comboEntities[0], "Combo", (c) => {
       c.combo = 5;
       c.multiplier = 2;
       c.timerRemaining = 999999;

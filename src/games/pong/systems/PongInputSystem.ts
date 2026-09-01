@@ -23,13 +23,13 @@ export class PongInputSystem extends System<PongComponentRegistry> {
     const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
     const inputSystem = world.getResource<InputSystem>("InputSystem");
 
-    const paddles = world.query("Paddle" as any);
+    const paddles = world.query("Paddle");
     const len = paddles.length;
 
     // Safe for determinism/rollback. Single pass indexed loop replaces array filter/forEach closures to eliminate per-tick array allocations.
     for (let i = 0; i < len; i++) {
       const entity = paddles[i];
-      const p = world.getComponent(entity, "Paddle" as any) as any;
+      const p = world.getComponent(entity, "Paddle");
       if (!p) continue;
 
       let targetVy = 0;
@@ -59,9 +59,9 @@ export class PongInputSystem extends System<PongComponentRegistry> {
       }
 
       // Safe for determinism/rollback. Direct getMutableComponent with value checking avoids callback closure allocation and stateVersion bumps when velocity hasn't changed.
-      const vel = world.getComponent(entity, "Velocity" as any) as any;
+      const vel = world.getComponent(entity, "Velocity");
       if (vel && vel.vy !== targetVy) {
-        const mutVel = world.getMutableComponent(entity, "Velocity" as any) as any;
+        const mutVel = world.getMutableComponent(entity, "Velocity");
         if (mutVel) {
           mutVel.vy = targetVy;
         }

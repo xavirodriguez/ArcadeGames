@@ -143,16 +143,16 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
     }
 
     // 1. Count remaining invaders and wave members
-    const activeMembers = world.query("WaveMember" as any);
+    const activeMembers = world.query("WaveMember");
     const invaders = world.query("Invader");
     world.mutateSingleton("GameState", (gs) => {
         gs.invadersRemaining = activeMembers.length > 0 ? activeMembers.length : invaders.length;
     });
 
     // 2. Handle level progression driven by SpawnDirector waveIndex
-    const directorEntity = world.query("SpawnDirector" as any)[0];
+    const directorEntity = world.query("SpawnDirector")[0];
     if (directorEntity !== undefined) {
-      const director = world.getComponent(directorEntity, "SpawnDirector" as any) as any;
+      const director = world.getComponent(directorEntity, "SpawnDirector");
       if (director) {
         world.mutateSingleton("GameState", (gs) => {
           const nextLevel = director.waveIndex + 1;

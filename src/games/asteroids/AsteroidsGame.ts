@@ -126,9 +126,9 @@ export class AsteroidsGame
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("PowerUpEffects", {
       speed_boost: {
-        apply(w: World<any>, player: number) {
-          if (w.hasComponent(player, "Velocity" as any)) {
-            w.mutateComponent(player, "Velocity" as any, (v: any) => {
+        apply(w: World<AsteroidsComponentRegistry>, player: number) {
+          if (w.hasComponent(player, "Velocity")) {
+            w.mutateComponent(player, "Velocity", (v) => {
               v.vx *= 1.5;
               v.vy *= 1.5;
             });
@@ -136,29 +136,29 @@ export class AsteroidsGame
         }
       },
       shield: {
-        apply(w: World<any>, player: number) {
-          if (!w.hasComponent(player, "Invulnerable" as any)) {
+        apply(w: World<AsteroidsComponentRegistry>, player: number) {
+          if (!w.hasComponent(player, "Invulnerable")) {
             w.getCommandBuffer().addComponent(player, {
               type: "Invulnerable",
               remaining: 5.0
-            } as any);
+            });
           } else {
-            w.mutateComponent(player, "Invulnerable" as any, (inv: any) => {
+            w.mutateComponent(player, "Invulnerable", (inv) => {
               inv.remaining = Math.max(inv.remaining, 5.0);
             });
           }
         }
       },
       extra_life: {
-        apply(w: World<any>, player: number) {
-          w.mutateSingleton("GameState" as any, (state: any) => {
+        apply(w: World<AsteroidsComponentRegistry>, player: number) {
+          w.mutateSingleton("GameState", (state) => {
             state.lives = Math.min(5, state.lives + 1);
           });
         }
       },
       score_multiplier: {
-        apply(w: World<any>, player: number) {
-          w.mutateSingleton("GameState" as any, (state: any) => {
+        apply(w: World<AsteroidsComponentRegistry>, player: number) {
+          w.mutateSingleton("GameState", (state) => {
             state.score += 500;
           });
         }
@@ -313,10 +313,10 @@ export class AsteroidsGame
     if (this.networkManager) {
       this.world.addSystem(new LocalPredictionSystem(this.networkManager, {
         simulateFn: (world, input, dt) => {
-          const localQuery = world.query("Transform" as any, "LocalPlayer" as any, "Velocity" as any);
+          const localQuery = world.query("Transform", "LocalPlayer", "Velocity");
           for (const entity of localQuery) {
-              const velocity  = world.getComponent(entity, "Velocity" as any) as any;
-              const transform = world.getComponent(entity, "Transform" as any) as any;
+              const velocity  = world.getComponent(entity, "Velocity");
+              const transform = world.getComponent(entity, "Transform");
               if (!velocity || !transform) continue;
 
               const tPlane = { rotation: transform.rotation };
@@ -324,11 +324,11 @@ export class AsteroidsGame
 
               const phys = computeShipPhysics(tPlane, vPlane, input as any, this.config, dt);
 
-              world.mutateComponent(entity, "Velocity" as any, (v: any) => {
+              world.mutateComponent(entity, "Velocity", (v) => {
                   v.vx = phys.vx;
                   v.vy = phys.vy;
               });
-              world.mutateComponent(entity, "Transform" as any, (t: any) => {
+              world.mutateComponent(entity, "Transform", (t) => {
                   t.rotation = phys.rotation;
               });
           }
@@ -475,10 +475,10 @@ export class AsteroidsGame
     let multiplier = 1;
     let comboTimerRemaining = 0;
 
-    const comboEntities = this.world.query("Combo" as any);
+    const comboEntities = this.world.query("Combo");
     const comboEntity = comboEntities[0];
     if (comboEntity !== undefined) {
-      const comboComp = this.world.getComponent(comboEntity, "Combo" as any) as any;
+      const comboComp = this.world.getComponent(comboEntity, "Combo");
       if (comboComp) {
         combo = comboComp.combo;
         multiplier = comboComp.multiplier;
@@ -488,9 +488,9 @@ export class AsteroidsGame
 
     let isDialogueActive = false;
     let dialogueText = "";
-    const dialogueBoxEntities = this.world.query("DialogueBox" as any);
+    const dialogueBoxEntities = this.world.query("DialogueBox");
     if (dialogueBoxEntities.length > 0) {
-      const dialogueBox = this.world.getComponent(dialogueBoxEntities[0], "DialogueBox" as any) as any;
+      const dialogueBox = this.world.getComponent(dialogueBoxEntities[0], "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;
         const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];

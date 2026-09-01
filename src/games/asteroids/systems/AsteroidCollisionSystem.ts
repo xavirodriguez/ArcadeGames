@@ -55,10 +55,10 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     let nextCombo = 0;
     let nextMultiplier = 1;
 
-    const comboEntities = world.query("Combo" as any);
+    const comboEntities = world.query("Combo");
     const comboEntity = comboEntities[0];
     if (comboEntity !== undefined) {
-      world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+      world.mutateComponent(comboEntity, "Combo", (c) => {
         c.combo++;
         c.timerRemaining = (config.COMBO_TIMEOUT ?? 2000) / 1000;
         c.multiplier = Math.min(config.MAX_MULTIPLIER ?? 10, 1 + Math.floor(c.combo / 5));
@@ -233,9 +233,9 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
             // If CombatSystem has already processed this, it will have marked the asteroid as Dead
             // or the bullet would be removed. Otherwise, we are running in direct/headless mode,
             // so we manually trigger the combat death reaction to maintain 100% backward compatibility.
-            const health = world.getComponent(asteroid, "Health" as any) as any;
+            const health = world.getComponent(asteroid, "Health");
             const isDeadPending = health && health.current <= 0;
-            if (!world.hasComponent(asteroid, "Dead" as any) && !isDeadPending) {
+            if (!world.hasComponent(asteroid, "Dead") && !isDeadPending) {
               this.onCombatDeath(world, { entity: asteroid, sourceEntity: bullet });
               world.getCommandBuffer().removeEntity(bullet);
               this.destroyedEntities.add(bullet);
@@ -254,7 +254,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           }
 
           // Ignore collision if ship is invulnerable
-          if (world.hasComponent(ship, "Invulnerable" as any)) {
+          if (world.hasComponent(ship, "Invulnerable")) {
             continue;
           }
 
@@ -269,17 +269,17 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           });
 
           // Reset combo on player hit/life loss
-          if (world.hasComponent(ship, "Combo" as any)) {
-            world.mutateComponent(ship, "Combo" as any, (c: any) => {
+          if (world.hasComponent(ship, "Combo")) {
+            world.mutateComponent(ship, "Combo", (c) => {
               c.combo = 0;
               c.multiplier = 1;
               c.timerRemaining = 0;
             });
           } else {
-            const comboEntities = world.query("Combo" as any);
+            const comboEntities = world.query("Combo");
             const comboEntity = comboEntities[0];
             if (comboEntity !== undefined) {
-              world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+              world.mutateComponent(comboEntity, "Combo", (c) => {
                 c.combo = 0;
                 c.multiplier = 1;
                 c.timerRemaining = 0;
@@ -321,7 +321,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
             world.getCommandBuffer().addComponent(ship, {
               type: "Invulnerable",
               remaining: 3.0
-            } as any);
+            });
           } else {
             // Modificaciones Diferidas: TODA eliminación debe hacerse con world.getCommandBuffer().removeEntity(entity)
             world.getCommandBuffer().removeEntity(ship);

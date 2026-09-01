@@ -407,10 +407,10 @@ export class GeometryWarsGame extends BaseGame<
       let multiplier = 1;
       let comboTimerRemaining = 0;
 
-      const comboEntities = sceneWorld.query("Combo" as any);
+      const comboEntities = sceneWorld.query("Combo");
       const comboEntity = comboEntities[0];
       if (comboEntity !== undefined) {
-        const comboComp = sceneWorld.getComponent(comboEntity, "Combo" as any) as any;
+        const comboComp = sceneWorld.getComponent(comboEntity, "Combo");
         if (comboComp) {
           combo = comboComp.combo;
           multiplier = comboComp.multiplier;

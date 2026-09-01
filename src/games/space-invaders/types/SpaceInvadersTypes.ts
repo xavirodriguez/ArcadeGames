@@ -14,6 +14,7 @@ import { ComboComponent } from "@tiny-aster/core";
 import { LootTableComponent, PowerUpComponent } from "../../shared/arcade";
 import { DamageComponent, FactionComponent } from "../../shared/combat/components/CombatComponents";
 import { SpawnDirectorComponent, WaveMemberComponent } from "../../shared/spawn/components/SpawnComponents";
+import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";
 
 /**
  * Component for Boss entities.
@@ -72,6 +73,7 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   WaveMember: WaveMemberComponent;
   LootTable: LootTableComponent;
   PowerUp: PowerUpComponent;
+  DialogueBox: DialogueBoxComponent;
 }
 
 /**

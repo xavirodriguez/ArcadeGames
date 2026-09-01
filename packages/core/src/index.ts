@@ -134,6 +134,7 @@ export * from "./systems/AbstractHierarchySystem";
 export * from "./components/ModifierComponent";
 export * from "./components/ComboComponent";
 export * from "./components/KineticAccumulatorComponent";
+export * from "./components/InvulnerableComponent";
 export * from "./systems/ModifierSystem";
 export * from "./systems/ComboSystem";
 export * from "./systems/KineticAccumulatorSystem";

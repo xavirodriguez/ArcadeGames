@@ -713,6 +713,10 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   PlayerSensor: PlayerSensorComponent;
   /** Kinetic accumulator component. */
   KineticAccumulator: import("../components/KineticAccumulatorComponent").KineticAccumulatorComponent;
+  /** Combo component. */
+  Combo: import("../components/ComboComponent").ComboComponent;
+  /** Invulnerable component. */
+  Invulnerable: import("../components/InvulnerableComponent").InvulnerableComponent;
 }
 
 /**

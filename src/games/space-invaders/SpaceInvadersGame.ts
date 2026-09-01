@@ -11,6 +11,7 @@ import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
+import spaceInvadersConfigRaw from "./config/space-invaders.json";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -45,15 +46,16 @@ export class SpaceInvadersGame
   private particlePool!: ParticlePool;
   private networkManager!: NetworkManager<any>;
   public readonly gameId = "space-invaders";
+  private baseConfig: SpaceInvadersConfig;
   private config!: SpaceInvadersConfig;
   private network: NetworkController<SpaceInvadersComponentRegistry>;
 
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any, audio?: any, theme?: Theme } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
-    const rawConfig = require("./config/space-invaders.json");
+    const loadedBaseConfig = ConfigService.load<SpaceInvadersConfig>("space-invaders", SpaceInvadersConfigSchema, spaceInvadersConfigRaw);
     super({
-      pauseKey: rawConfig.KEYS.PAUSE,
-      restartKey: rawConfig.KEYS.RESTART,
+      pauseKey: loadedBaseConfig.KEYS.PAUSE,
+      restartKey: loadedBaseConfig.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
       headless: config.headless,
       schedule: config.schedule,
@@ -61,6 +63,8 @@ export class SpaceInvadersGame
       gameOptions: { ...config.gameOptions, seed },
       audio: config.audio || new WebAudioPlayer()
     });
+    this.baseConfig = loadedBaseConfig;
+    this.config = this.baseConfig;
     this.isHeadless = !!config.headless;
     this.isMultiplayer = !!config.isMultiplayer;
     this.network = new NetworkController<SpaceInvadersComponentRegistry>(this.world);
@@ -96,13 +100,10 @@ export class SpaceInvadersGame
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    const rawConfig = require("./config/space-invaders.json");
-    const baseConfig = ConfigService.load(this.gameId, SpaceInvadersConfigSchema, rawConfig) as any;
-
     const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
     this.config = mutators.length > 0
-      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...(baseConfig as any) }) as SpaceInvadersConfig
-      : { ...(baseConfig as any) } as SpaceInvadersConfig;
+      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...(this.baseConfig as any) }) as SpaceInvadersConfig
+      : { ...(this.baseConfig as any) } as SpaceInvadersConfig;
 
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });

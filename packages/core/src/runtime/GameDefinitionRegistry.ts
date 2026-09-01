@@ -24,6 +24,7 @@ export class GameDefinitionRegistry {
     if (lower === "echo-runner") return "echorunner";
     if (lower === "flappy-bird") return "flappybird";
     if (lower === "geometry-wars") return "geometrywars";
+    if (lower === "spaceinvaders") return "space-invaders";
     return lower;
   }
 

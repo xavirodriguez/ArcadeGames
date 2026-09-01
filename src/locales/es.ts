@@ -88,6 +88,9 @@ export const es = {
     level: "NIVEL",
     score: "PUNTAJE",
     lives: "VIDAS",
+    attempts: "INTENTOS",
+    level_completed: "¡NIVEL COMPLETADO!",
+    final_score: "Puntaje Final",
     syncing_level: "Cargando Nivel de Plataformas...",
   },
   mutators: {

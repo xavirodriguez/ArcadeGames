@@ -7,13 +7,20 @@ import {
   StoryGraph,
   StoryNode,
   StoryChoice,
-  CampaignGameResolver,
   GameDefinitionRegistry,
   CampaignSaveManager,
   MetaProgressionService,
   ArcadeKernel,
-  ArcadeState
+  ArcadeState,
+  MiniGameResult,
+  OutcomeRuleEngine,
+  StoryEffectApplier
 } from "@tiny-aster/core";
+import {
+  asteroidsPOCEncounter,
+  spaceInvadersPOCEncounter,
+  asteroidsReduxPOCEncounter
+} from "../src/games/shared/story/StoryEncounters";
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
 import { CanvasRenderer } from "./CanvasRenderer";
@@ -83,11 +90,56 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string>("Initializing Campaign...");
   const [showDashboard, setShowDashboard] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<{ error: Error; gameId: string; seed?: number } | null>(null);
 
   const activeGameIdRef = useRef<string | null>(null);
   const activeGameSeedRef = useRef<number | null>(null);
   const currentGameRef = useRef<BaseGame | null>(null);
   currentGameRef.current = activeGame;
+
+  const ruleEngineRef = useRef<OutcomeRuleEngine>(new OutcomeRuleEngine());
+  const effectApplierRef = useRef<StoryEffectApplier>(new StoryEffectApplier());
+
+  /**
+   * Submits gameplay outcome results, applies narrative effects, updates story variables,
+   * completes current node objective, and advances narrative transitions.
+   */
+  const handleGameplayResult = useCallback((result: MiniGameResult) => {
+    const runtime = runtimeRef.current;
+    if (!runtime) return;
+
+    // 1. Determine encounter and evaluate outcome rules
+    const currentNode = runtime.getCurrentNode();
+    let outcomeRules = asteroidsPOCEncounter.outcomeRules;
+    if (result.gameId === "space-invaders") {
+      outcomeRules = spaceInvadersPOCEncounter.outcomeRules;
+    } else if (currentNode?.meta?.encounterId === "poc-asteroids-redux-1") {
+      outcomeRules = asteroidsReduxPOCEncounter.outcomeRules;
+    }
+
+    const effects = ruleEngineRef.current.evaluate(result, outcomeRules);
+    effectApplierRef.current.applyEffects(runtime, effects);
+
+    // 2. Update variables in StoryRuntime if applicable
+    const normalizedGameId = GameDefinitionRegistry.normalizeId(result.gameId);
+    if (normalizedGameId === "space-invaders") {
+      runtime.setVariable("spaceinvadersScore", result.score);
+    } else if (normalizedGameId === "asteroids") {
+      const currentLvl = (runtime.getVariable("asteroidLevelReached") as number) || 1;
+      runtime.setVariable("asteroidLevelReached", currentLvl + 1);
+    }
+
+    // 3. Complete objective for current gameplay node upon minigame conclusion
+    if (currentNode?.objective) {
+      runtime.applyEffect({
+        type: "completeObjective",
+        objectiveId: currentNode.objective.id
+      });
+    }
+
+    // 4. Advance narrative transitions out of current node
+    runtime.evaluateTransitions();
+  }, []);
 
   // Reactively synchronized StoryRuntime state hook
   const { currentNode } = useStoryRuntime(runtimeRef.current, eventBusRef.current);
@@ -106,6 +158,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const switchGame = useCallback(async (gameId: string, overrideSeed?: number) => {
     setIsLoading(true);
     setStatusMessage(`Loading minigame (${gameId})...`);
+    setLoadError(null);
 
     try {
       if (currentGameRef.current) {
@@ -120,14 +173,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       activeGameIdRef.current = gameId;
       activeGameSeedRef.current = seed;
 
-      if (GameDefinitionRegistry.has(normalizedId)) {
-        const definition = GameDefinitionRegistry.resolve(normalizedId);
-        // Create pure simulation instance passing seed and shared campaign kernel
-        newGame = definition.createSimulation(seed) as BaseGame;
-      } else {
-        // Fallback to legacy CampaignGameResolver if not found in GameDefinitionRegistry
-        newGame = CampaignGameResolver.resolveGame(gameId, { arcadeKernel: sharedKernelRef.current });
-      }
+      const definition = GameDefinitionRegistry.resolve(normalizedId);
+      // Create pure simulation instance passing seed and shared campaign kernel
+      newGame = definition.createSimulation(seed) as BaseGame;
 
       await newGame.init();
 
@@ -150,8 +198,10 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       setActiveGame(newGame);
     } catch (err: unknown) {
       console.error("[CampaignScreen] Failed to switch game:", err);
+      const errorObj = err instanceof Error ? err : new Error(String(err));
+      setLoadError({ error: errorObj, gameId, seed: overrideSeed });
       if (onError) {
-        onError(err instanceof Error ? err : new Error(String(err)));
+        onError(errorObj);
       }
     } finally {
       setIsLoading(false);
@@ -175,6 +225,30 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       }
     });
 
+    // Handle minigame completion via game:over event
+    const unsubGameOver = eventBus.on("game:over", (payload: any) => {
+      if (!isSubscribed) return;
+
+      const currentGame = currentGameRef.current;
+      const activeGameId = activeGameIdRef.current || "asteroids";
+      const statePayload = payload?.state || (currentGame ? currentGame.getGameState() : undefined);
+      const score = payload?.score ?? statePayload?.score ?? 0;
+      const isGameOver = statePayload?.isGameOver ?? true;
+      const isVictory = statePayload?.isVictory ?? statePayload?.victory ?? (score >= 1000);
+
+      const result: MiniGameResult = {
+        runId: `run_${Date.now()}`,
+        gameId: GameDefinitionRegistry.normalizeId(activeGameId),
+        score,
+        completed: isVictory || !isGameOver,
+        durationMs: 30000,
+        metrics: statePayload?.metrics || {},
+        secretsFound: []
+      };
+
+      handleGameplayResult(result);
+    });
+
     // Initialize story runtime graph
     if (graph) {
       runtime.loadGraph(graph, true);
@@ -188,13 +262,14 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     return () => {
       isSubscribed = false;
       unsubScene();
+      unsubGameOver();
 
       if (currentGameRef.current) {
         currentGameRef.current.destroy();
         currentGameRef.current = null;
       }
     };
-  }, [graph, defaultGameId, switchGame]);
+  }, [graph, defaultGameId, switchGame, handleGameplayResult]);
 
   // Choice selection handler
   const handleSelectChoice = useCallback((choiceId: string) => {
@@ -276,6 +351,21 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#00ffcc" />
           <Text style={styles.loadingText}>{statusMessage}</Text>
+        </View>
+      )}
+
+      {/* Error Retry Overlay */}
+      {loadError && !isLoading && (
+        <View style={styles.errorOverlay}>
+          <Text style={styles.errorTitle}>⚠️ Error al cargar minijuego</Text>
+          <Text style={styles.errorMessage}>{loadError.error.message}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => switchGame(loadError.gameId, loadError.seed)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.retryButtonText}>Reintentar</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -487,6 +577,39 @@ const styles = StyleSheet.create({
   },
   restartButtonText: {
     color: "#ffcc00",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  errorOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(30, 5, 5, 0.95)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+    zIndex: 110,
+  },
+  errorTitle: {
+    color: "#ff4444",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  errorMessage: {
+    color: "#ffffff",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: "rgba(255, 68, 68, 0.2)",
+    borderColor: "#ff4444",
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  retryButtonText: {
+    color: "#ff4444",
     fontSize: 14,
     fontWeight: "bold",
   },

@@ -1,6 +1,6 @@
 import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
-import { LootSystem, PowerUpSystem } from "../shared/arcade";
+import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -23,7 +23,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * Unlike Asteroids, it uses a rigid formation system where the movement
  * of one entity affects the whole group (Swarm movement).
  */
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition, Theme, resolveThemeColor } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition, Theme, resolveThemeColor, createEntityBuilder } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { FactionComponent } from "../shared/combat/components/CombatComponents";
 
@@ -124,75 +124,49 @@ export class SpaceInvadersGame
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
         const tint = resolveThemeColor(world, "player");
 
-        world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent);
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "player_ship",
-          size: config.PLAYER_RENDER_WIDTH,
-          color: tint,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 0,
-          hitFlashFrames: 0,
-          angularVelocity: 0
-        } as RenderComponent);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Circle, radius: config.PLAYER_COLLIDER_RADIUS } as CircleShape,
-          layer: CollisionLayers.PLAYER,
-          mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-        world.addComponent(entity, {
-          type: "Health",
-          current: config.PLAYER_INITIAL_LIVES,
-          max: config.PLAYER_INITIAL_LIVES,
-          invulnerableRemaining: 0,
-        } as HealthComponent);
-        world.addComponent(entity, {
-          type: "Faction",
-          faction: "player",
-          value: "player"
-        } as FactionComponent);
-        world.addComponent(entity, {
-          type: "Input",
-          moveLeft: false,
-          moveRight: false,
-          shoot: false,
-          shootCooldownRemaining: 0,
-        } as any);
-        world.addComponent(entity, { type: "Player" } as any);
-        world.addComponent(entity, {
-          type: "Boundary",
-          width: GAME_CONFIG.SCREEN_WIDTH - config.PLAYER_RENDER_WIDTH,
-          height: GAME_CONFIG.SCREEN_HEIGHT,
-          mode: "bounce"
-        } as any);
-
         const hasComboHeadStart = world.getResource("HasComboHeadStart") === true;
         const initialCombo = hasComboHeadStart ? 5 : 0;
         const initialMultiplier = hasComboHeadStart ? 2 : 1;
         const initialTimerRemaining = hasComboHeadStart ? config.COMBO_TIMEOUT / 1000 : 0;
 
-        world.addComponent(entity, {
-          type: "Combo",
-          combo: initialCombo,
-          multiplier: initialMultiplier,
-          timerRemaining: initialTimerRemaining,
-          timerDuration: config.COMBO_TIMEOUT / 1000
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity()
+          .withRender({
+            shape: "player_ship",
+            size: config.PLAYER_RENDER_WIDTH,
+            color: tint,
+            order: 0
+          })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: config.PLAYER_COLLIDER_RADIUS } as CircleShape,
+            layer: CollisionLayers.PLAYER,
+            mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS
+          })
+          .withCollisionEvents()
+          .withHealth(config.PLAYER_INITIAL_LIVES, config.PLAYER_INITIAL_LIVES, 0)
+          .withFaction("player")
+          .withBoundary({
+            width: GAME_CONFIG.SCREEN_WIDTH - config.PLAYER_RENDER_WIDTH,
+            height: GAME_CONFIG.SCREEN_HEIGHT,
+            mode: "bounce"
+          })
+          .withComponent({
+            type: "Input",
+            moveLeft: false,
+            moveRight: false,
+            shoot: false,
+            shootCooldownRemaining: 0,
+          } as any)
+          .withComponent({ type: "Player" } as any)
+          .withComponent({
+            type: "Combo",
+            combo: initialCombo,
+            multiplier: initialMultiplier,
+            timerRemaining: initialTimerRemaining,
+            timerDuration: config.COMBO_TIMEOUT / 1000
+          } as any)
+          .commit();
 
         createEmitter(world as any, {
           type: "spawn",
@@ -244,42 +218,22 @@ export class SpaceInvadersGame
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
         const tint = resolveThemeColor(world, "shield", "secondary");
 
-        world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "shield_block",
-          size: 15,
-          color: tint,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 0,
-          hitFlashFrames: 0,
-          angularVelocity: 0
-        } as RenderComponent);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Box, width: 15, height: 15 } as BoxShape,
-          layer: CollisionLayers.DEBRIS,
-          mask: CollisionLayers.ENEMY | CollisionLayers.PROJECTILE,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-        world.addComponent(entity, {
-          type: "Shield",
-          hp: config.SHIELD_SEGMENT_HP,
-          maxHp: config.SHIELD_SEGMENT_HP,
-          segment: { row: args.row, col: args.col }
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withRender({ shape: "shield_block", size: 15, color: tint, order: 0 })
+          .withCollider({
+            shape: { type: ShapeType.Box, width: 15, height: 15 } as BoxShape,
+            layer: CollisionLayers.DEBRIS,
+            mask: CollisionLayers.ENEMY | CollisionLayers.PROJECTILE
+          })
+          .withCollisionEvents()
+          .withComponent({
+            type: "Shield",
+            hp: config.SHIELD_SEGMENT_HP,
+            maxHp: config.SHIELD_SEGMENT_HP,
+            segment: { row: args.row, col: args.col }
+          } as any)
+          .commit();
       }
     });
 
@@ -323,28 +277,19 @@ export class SpaceInvadersGame
         const hp = 50 + (args.level / 5) * 50;
         const tint = resolveThemeColor(world, "boss", "accent");
 
-        world.addComponent(entity, { type: "Transform", x: GAME_CONFIG.SCREEN_WIDTH / 2, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: GAME_CONFIG.SCREEN_WIDTH / 2, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.addComponent(entity, { type: "Render", shape: "invader", size: 80, color: tint, rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Circle, radius: 40 } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-        world.addComponent(entity, { type: "Boss", hp, maxHp: hp, timer: 0, phase: 1 } as BossComponent);
-        world.addComponent(entity, { type: "Health", current: hp, max: hp } as HealthComponent);
-        world.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: GAME_CONFIG.SCREEN_WIDTH / 2, y: 100 })
+          .withRender({ shape: "invader", size: 80, color: tint, order: 0 })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: 40 } as CircleShape,
+            layer: CollisionLayers.ENEMY,
+            mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+          })
+          .withCollisionEvents()
+          .withHealth(hp, hp)
+          .withFaction("enemy")
+          .withComponent({ type: "Boss", hp, maxHp: hp, timer: 0, phase: 1 } as BossComponent)
+          .commit();
       }
     });
 
@@ -377,6 +322,9 @@ export class SpaceInvadersGame
       this.config,
       this.world
     );
+
+    const powerUpRegistry = new PowerUpEffectRegistry();
+    powerUpRegistry.attachToWorld(this.world);
 
     // Register Power-up systems in the unified world
     this.world.addSystem(new LootSystem());

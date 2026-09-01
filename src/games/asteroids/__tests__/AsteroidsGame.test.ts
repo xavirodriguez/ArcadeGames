@@ -1,5 +1,6 @@
 import { AsteroidsGame } from "../AsteroidsGame";
 import { WorldSnapshot, ServerUpdatePayload } from "@tiny-aster/core";
+import { createPowerUp } from "../EntityFactory";
 
 describe("AsteroidsGame Network & Prediction Tests", () => {
   let game: AsteroidsGame;
@@ -97,5 +98,69 @@ describe("AsteroidsGame Network & Prediction Tests", () => {
 
     expect(processSpy).toHaveBeenCalledWith(100, payload.fullWorldState, "my-session-id");
     expect((game as any).lastProcessedFullStateVersion).toBe(200);
+  });
+});
+
+describe("AsteroidsGame PowerUp & Blueprint Tests", () => {
+  let game: AsteroidsGame;
+
+  beforeEach(async () => {
+    game = new AsteroidsGame({ headless: true });
+    await game.init();
+  });
+
+  afterEach(() => {
+    game.destroy();
+  });
+
+  it("should spawn power-up entity via createPowerUp factory", () => {
+    const world = game.getWorld();
+    const powerUpEntity = createPowerUp({
+      world,
+      x: 100,
+      y: 200,
+      lootType: "shield"
+    });
+
+    expect(world.hasComponent(powerUpEntity, "Transform")).toBe(true);
+    expect(world.hasComponent(powerUpEntity, "Render")).toBe(true);
+    expect(world.hasComponent(powerUpEntity, "Collider")).toBe(true);
+    expect(world.hasComponent(powerUpEntity, "CollisionEvents")).toBe(true);
+    expect(world.hasComponent(powerUpEntity, "PowerUp")).toBe(true);
+    expect(world.hasComponent(powerUpEntity, "TTL")).toBe(true);
+
+    const transform = world.getComponent(powerUpEntity, "Transform");
+    expect(transform?.x).toBe(100);
+    expect(transform?.y).toBe(200);
+
+    const render = world.getComponent(powerUpEntity, "Render");
+    expect(render?.color).toBe("#00f0ff");
+    expect(render?.shape).toBe("shield_bubble");
+
+    const powerUp = world.getComponent(powerUpEntity, "PowerUp");
+    expect(powerUp?.powerUpType).toBe("shield");
+
+    const ttl = world.getComponent(powerUpEntity, "TTL");
+    expect(ttl?.remaining).toBe(10.0);
+  });
+
+  it("should spawn power-up entity when loot:spawn event is emitted", () => {
+    const world = game.getWorld();
+    const eventBus = game.getEventBus();
+
+    eventBus.emit("loot:spawn", { x: 300, y: 400, lootType: "speed_boost" });
+
+    const powerUpEntities = world.query("PowerUp");
+    expect(powerUpEntities.length).toBeGreaterThan(0);
+
+    const entity = powerUpEntities[powerUpEntities.length - 1];
+    const powerUp = world.getComponent(entity, "PowerUp");
+    const transform = world.getComponent(entity, "Transform");
+    const render = world.getComponent(entity, "Render");
+
+    expect(powerUp?.powerUpType).toBe("speed_boost");
+    expect(transform?.x).toBe(300);
+    expect(transform?.y).toBe(400);
+    expect(render?.color).toBe("#ff5d00");
   });
 });

@@ -44,8 +44,6 @@ import {
   CollisionEventsComponent,
   TTLComponent,
   BoundaryComponent,
-  ShapeType,
-  CircleShape,
   WebAudioPlayer,
   WebAssetProvider
 } from "@tiny-aster/core";
@@ -54,7 +52,6 @@ import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem } from "../shared/arcade";
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
-import { CollisionLayers } from "../shared/types/CollisionLayers";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
@@ -62,7 +59,7 @@ import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
 import { AsteroidCollisionSystem } from "./systems/AsteroidCollisionSystem";
 import { CombatSystem } from "../shared/combat/systems/CombatSystem";
 import { INITIAL_GAME_STATE } from "./types/AsteroidTypes";
-import { createShip, spawnAsteroidWave, registerAsteroidsBlueprints } from "./EntityFactory";
+import { createShip, createPowerUp, spawnAsteroidWave, registerAsteroidsBlueprints } from "./EntityFactory";
 import type { IAsteroidsGame } from "./types/GameInterfaces";
 import { BulletPool, ParticlePool } from "./EntityPool";
 import { initializeAsteroidsRenderer } from "./rendering/AsteroidsRendererManager";
@@ -170,58 +167,12 @@ export class AsteroidsGame
     });
 
     this.eventBus.on("loot:spawn", (event: any) => {
-      const entity = this.world.reserveEntityId();
-      this.world.getCommandBuffer().createEntity(entity);
-      this.world.getCommandBuffer().addComponent(entity, {
-        type: "Transform",
+      createPowerUp({
+        world: this.world,
         x: event.x,
         y: event.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: event.x,
-        worldY: event.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as any);
-      this.world.getCommandBuffer().addComponent(entity, {
-        type: "Render",
-        shape: "shield_bubble",
-        size: 15,
-        color: event.lootType === "shield" ? "#00f0ff" : (event.lootType === "speed_boost" ? "#ff5d00" : "#ffd700"),
-        visible: true,
-        opacity: 1,
-        order: 5,
-        rotation: 0,
-        angularVelocity: 1.0,
-        hitFlashFrames: 0
-      } as any);
-      this.world.getCommandBuffer().addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER,
-        enabled: true,
-        isTrigger: true
-      } as any);
-      this.world.getCommandBuffer().addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as any);
-      this.world.getCommandBuffer().addComponent(entity, {
-        type: "PowerUp",
-        powerUpType: event.lootType
-      } as any);
-      this.world.getCommandBuffer().addComponent(entity, {
-        type: "TTL",
-        remaining: 10.0,
-        timeLeft: 10.0
-      } as any);
+        lootType: event.lootType
+      });
     });
 
     this.updateScreenConfig();

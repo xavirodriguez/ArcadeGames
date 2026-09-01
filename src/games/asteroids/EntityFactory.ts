@@ -13,7 +13,8 @@ import {
   BlueprintRegistry,
   CircleShape,
   SpriteComponent,
-  Theme
+  Theme,
+  resolveThemeColor
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
@@ -40,7 +41,7 @@ export function registerAsteroidsBlueprints(
       const useSprites = gameConfig?.USE_SPRITES !== false;
 
       const assetKey = theme?.spriteMap["player-ship"] ?? theme?.spriteMap["player"] ?? "ship_sprite";
-      const tint = theme?.colorMap["player-ship"] ?? theme?.colorMap["player"] ?? "#00f0ff";
+      const tint = resolveThemeColor(w, "ship", "player-ship", "player");
 
       w.addComponent(entity, {
         type: "Transform",
@@ -135,8 +136,7 @@ export function registerAsteroidsBlueprints(
 
   registry.register("bullet", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
-      const theme = w.getResource<Theme>("Theme");
-      const tint = theme?.colorMap["bullet"] ?? theme?.colorMap["player-bullet"] ?? "#00ff66";
+      const tint = resolveThemeColor(w, "bullet", "player-bullet");
 
       w.addComponent(entity, {
         type: "Transform",
@@ -258,9 +258,8 @@ export function registerAsteroidsBlueprints(
       if (args.size === "medium") radius = 20;
       else if (args.size === "small") radius = 10;
 
-      const theme = w.getResource<Theme>("Theme");
       const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
-      const tint = theme?.colorMap[logicalRole] ?? theme?.colorMap["asteroid"] ?? theme?.colorMap["enemy"] ?? "#ff66cc";
+      const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy");
 
       w.addComponent(entity, {
         type: "Render",

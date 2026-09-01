@@ -805,9 +805,9 @@
     "total": 4
   },
   "src/games/pong/PongGame.ts": {
-    "anyCount": 20,
+    "anyCount": 18,
     "unknownCount": 1,
-    "total": 21
+    "total": 19
   },
   "src/games/pong/__tests__/PongUpgrades.test.ts": {
     "anyCount": 22,

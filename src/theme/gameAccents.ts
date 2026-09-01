@@ -32,6 +32,11 @@ export const GAME_ACCENTS = {
     secondary: 'gold' as const,
     accent: 'pink' as const,
   },
+  geometrywars: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'pink' as const,
+  },
 } as const;
 
 export type GameKey = keyof typeof GAME_ACCENTS;
@@ -63,13 +68,23 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     bullet: accentColors.secondary,
     "player-bullet": accentColors.secondary,
     enemy: accentColors.accent,
+    asteroid: accentColors.accent,
+    "small-asteroid": accentColors.accent,
+    "medium-asteroid": accentColors.accent,
+    "large-asteroid": accentColors.accent,
     boss: accentColors.accent,
     shield: accentColors.primary,
     ball: accentColors.primary,
     paddle: accentColors.primary,
+    left: accentColors.primary,
+    right: accentColors.primary,
     bird: accentColors.primary,
     pipe: accentColors.accent,
     ground: accentColors.secondary,
+    invader_commander: accentColors.accent,
+    invader_scout: accentColors.secondary,
+    commander: accentColors.accent,
+    scout: accentColors.secondary,
   };
 
   return {

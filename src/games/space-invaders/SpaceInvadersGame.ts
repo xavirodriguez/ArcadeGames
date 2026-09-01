@@ -5,6 +5,7 @@ import { EnemyFactory } from "./EnemyFactory";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
@@ -21,7 +22,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * Unlike Asteroids, it uses a rigid formation system where the movement
  * of one entity affects the whole group (Swarm movement).
  */
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition, Theme } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition, Theme, resolveThemeColor } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { FactionComponent } from "../shared/combat/components/CombatComponents";
 
@@ -47,7 +48,7 @@ export class SpaceInvadersGame
   private config!: SpaceInvadersConfig;
   private network: NetworkController<SpaceInvadersComponentRegistry>;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any, audio?: any } = {}) {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any, audio?: any, theme?: Theme } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     const rawConfig = require("./config/space-invaders.json");
     super({
@@ -56,6 +57,7 @@ export class SpaceInvadersGame
       isMultiplayer: config.isMultiplayer,
       headless: config.headless,
       schedule: config.schedule,
+      theme: config.theme ?? createThemeFromGameAccents("space-invaders"),
       gameOptions: { ...config.gameOptions, seed },
       audio: config.audio || new WebAudioPlayer()
     });
@@ -119,8 +121,7 @@ export class SpaceInvadersGame
     this.blueprints.register("player", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-        const theme = world.getResource<Theme>("Theme");
-        const tint = theme?.colorMap["player"] ?? "#00FF00";
+        const tint = resolveThemeColor(world, "player");
 
         world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent);
@@ -240,8 +241,7 @@ export class SpaceInvadersGame
     this.blueprints.register("shield", {
       spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-        const theme = world.getResource<Theme>("Theme");
-        const tint = theme?.colorMap["shield"] ?? theme?.colorMap["secondary"] ?? "#00FF00";
+        const tint = resolveThemeColor(world, "shield", "secondary");
 
         world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         world.addComponent(entity, {
@@ -320,8 +320,7 @@ export class SpaceInvadersGame
     this.blueprints.register("boss", {
       spawn: (world, entity, args: { level: number }) => {
         const hp = 50 + (args.level / 5) * 50;
-        const theme = world.getResource<Theme>("Theme");
-        const tint = theme?.colorMap["boss"] ?? theme?.colorMap["accent"] ?? "#FF00FF";
+        const tint = resolveThemeColor(world, "boss", "accent");
 
         world.addComponent(entity, { type: "Transform", x: GAME_CONFIG.SCREEN_WIDTH / 2, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: GAME_CONFIG.SCREEN_WIDTH / 2, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         world.addComponent(entity, { type: "Render", shape: "invader", size: 80, color: tint, rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);

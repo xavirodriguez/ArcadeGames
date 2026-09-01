@@ -46,6 +46,7 @@ import { type PongState, type PongInput, type PongComponentRegistry } from "./ty
 import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
 export type PongMode = "local" | "ai" | "online";
 
@@ -56,7 +57,7 @@ export type PongMode = "local" | "ai" | "online";
  * Implementa una física de rebotes basada en el ángulo de incidencia y el movimiento
  * relativo de las paletas (spin). Gestiona modos de juego contra IA o multijugador local.
  */
-import { TransformComponent, VelocityComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColor } from "@tiny-aster/core";
 
 export interface PongBlueprintMap extends Record<string, BlueprintDefinition<PongComponentRegistry, any, any>> {
   ball: BlueprintDefinition<PongComponentRegistry, any, {}>;
@@ -74,20 +75,22 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   private stallStartTime = 0;
   private isStalled = false;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode, assetProvider?: any, audio?: any } | PongMode = "local") {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode, assetProvider?: any, audio?: any, theme?: Theme } | PongMode = "local") {
     const isConfig = typeof config === "object" && config !== null;
     const mode = isConfig
       ? (config.gameOptions?.mode as PongMode || config.mode || "local")
       : config;
     const isMultiplayer = isConfig ? config.isMultiplayer : false;
     const seed = isConfig ? (config.gameOptions?.seed as number || config.seed) : undefined;
-    const assetProvider = isConfig ? (config as any).assetProvider : undefined;
-    const audio = isConfig ? (config as any).audio : undefined;
+    const assetProvider = isConfig ? config.assetProvider : undefined;
+    const audio = isConfig ? config.audio : undefined;
+    const theme = isConfig && config.theme ? config.theme : createThemeFromGameAccents("pong");
 
     super({
       pauseKey: "Escape",
       isMultiplayer,
       assetProvider,
+      theme,
       gameOptions: { mode, seed, ...((isConfig && config.gameOptions) || {}) },
       audio: audio || new WebAudioPlayer()
     });
@@ -113,8 +116,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.blueprints.register("ball", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
-        const theme = world.getResource<Theme>("Theme");
-        const tint = theme?.colorMap["ball"] ?? theme?.colorMap["primary"] ?? "white";
+        const tint = resolveThemeColor(world, "ball", "primary");
 
         world.addComponent(entity, {
           type: "Transform",
@@ -181,8 +183,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.blueprints.register("paddle", {
       spawn: (world, entity, args: { side: "left" | "right" }) => {
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
-        const theme = world.getResource<Theme>("Theme");
-        const tint = theme?.colorMap[args.side] ?? theme?.colorMap["paddle"] ?? theme?.colorMap["primary"] ?? "white";
+        const tint = resolveThemeColor(world, args.side, "paddle", "primary");
 
         const x = args.side === "left" ? 40 : config.WIDTH - 40;
         const y = config.HEIGHT / 2;

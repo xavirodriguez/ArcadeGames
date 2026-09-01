@@ -34,7 +34,8 @@ import {
   Collider2DComponent,
   TagComponent,
   HealthComponent,
-  Theme
+  Theme,
+  resolveThemeColor
 } from "@tiny-aster/core";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
@@ -44,6 +45,7 @@ import { PlatformerWallJumpSystem } from "./systems/PlatformerWallJumpSystem";
 import { PowerUpSystem } from "../shared/arcade/systems/PowerUpSystem";
 import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
 export interface PlatformerInput {
   moveLeft: boolean;
@@ -86,12 +88,13 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
   private gameOver = false;
   private levelPlan!: LevelPlan;
 
-  constructor(config: { seed?: number; gameOptions?: Record<string, unknown> } = {}) {
+  constructor(config: { seed?: number; gameOptions?: Record<string, unknown>; theme?: Theme } = {}) {
     super({
       pauseKey: "KeyP",
       restartKey: "KeyR",
       gameOptions: config.gameOptions,
       seed: config.seed,
+      theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
   }
@@ -808,7 +811,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
         const theme = world.getResource<Theme>("Theme");
         const assetKey = theme?.spriteMap["player"] ?? "player_sprite";
-        const tint = theme?.colorMap["player"] ?? "#00ffff";
+        const tint = resolveThemeColor(world, "player");
 
         world.addComponent(entity, {
           type: "Sprite",

@@ -35,6 +35,7 @@ export interface PlayerComponent extends Component {
   invulnRemaining: number;
   moveX: number;
   moveY: number;
+  useBomb?: boolean;
 }
 
 /**
@@ -44,6 +45,15 @@ export interface WeaponComponent extends Component {
   type: "Weapon";
   cooldownRemaining: number;
   cooldownDuration: number;
+}
+
+import { KineticAccumulatorComponent as CoreKineticAccumulatorComponent } from "@tiny-aster/core";
+
+/**
+ * KineticAccumulatorComponent tracks energy accumulation, burst availability, and overdrive mode.
+ */
+export interface KineticAccumulatorComponent extends CoreKineticAccumulatorComponent {
+  overdriveRemaining: number;
 }
 
 export interface GeometryWarsInput extends Record<string, any> {
@@ -68,6 +78,7 @@ export interface GeometryWarsComponentRegistry extends CoreComponentRegistry {
   SpawnDirector: SpawnDirectorComponent;
   WaveMember: WaveMemberComponent;
   Combo: ComboComponent;
+  KineticAccumulator: KineticAccumulatorComponent;
 }
 
 /**

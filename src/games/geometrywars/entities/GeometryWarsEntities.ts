@@ -125,6 +125,19 @@ export function registerGeometryWarsBlueprints(
         timerRemaining: 0,
         timerDuration: 3.0
       } as ComboComponent);
+
+      w.addComponent(entity, {
+        type: "KineticAccumulator",
+        storedEnergy: 0,
+        maxEnergy: config?.KINETIC_MAX_ENERGY ?? 100,
+        chargeOnMoveRate: config?.KINETIC_CHARGE_ON_MOVE_RATE ?? 15,
+        grazeRadius: config?.KINETIC_GRAZE_RADIUS ?? 40,
+        grazeChargeAmount: config?.KINETIC_GRAZE_CHARGE_AMOUNT ?? 10,
+        burstRadius: config?.KINETIC_BURST_RADIUS ?? 180,
+        isBurstReady: false,
+        isBurstActive: false,
+        overdriveRemaining: 0
+      } as GeometryWarsComponentRegistry["KineticAccumulator"]);
     }
   });
 

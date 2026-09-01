@@ -10,6 +10,13 @@ export const GeometryWarsConfigSchema = z.object({
   INITIAL_LIVES: z.number().default(3),
   INITIAL_BOMBS: z.number().default(3),
   INVULNERABILITY_DURATION: z.number().default(2.0),
+  KINETIC_MAX_ENERGY: z.number().default(100),
+  KINETIC_CHARGE_ON_MOVE_RATE: z.number().default(15),
+  KINETIC_GRAZE_RADIUS: z.number().default(40),
+  KINETIC_GRAZE_CHARGE_AMOUNT: z.number().default(10),
+  KINETIC_BURST_RADIUS: z.number().default(180),
+  OVERDRIVE_DURATION: z.number().default(5.0),
+  OVERDRIVE_FIRE_RATE_MULT: z.number().default(2.5),
 });
 
 export type GeometryWarsConfig = z.infer<typeof GeometryWarsConfigSchema>;
@@ -24,4 +31,11 @@ export const DEFAULT_CONFIG: GeometryWarsConfig = {
   INITIAL_LIVES: 3,
   INITIAL_BOMBS: 3,
   INVULNERABILITY_DURATION: 2.0,
+  KINETIC_MAX_ENERGY: 100,
+  KINETIC_CHARGE_ON_MOVE_RATE: 15,
+  KINETIC_GRAZE_RADIUS: 40,
+  KINETIC_GRAZE_CHARGE_AMOUNT: 10,
+  KINETIC_BURST_RADIUS: 180,
+  OVERDRIVE_DURATION: 5.0,
+  OVERDRIVE_FIRE_RATE_MULT: 2.5,
 };

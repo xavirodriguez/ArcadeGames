@@ -317,6 +317,11 @@ export class GeometryWarsGame extends BaseGame<
         sceneWorld.mutateComponent(player, "Player", (p: any) => {
           if (axes.moveX !== undefined) p.moveX = axes.moveX;
           if (axes.moveY !== undefined) p.moveY = axes.moveY;
+          if (actions !== undefined) {
+            p.useBomb = actions instanceof Set ? actions.has("bomb") : !!actions.bomb;
+          } else if (input.bomb !== undefined) {
+            p.useBomb = !!input.bomb;
+          }
         });
       }
 
@@ -346,6 +351,9 @@ export class GeometryWarsGame extends BaseGame<
   }
 
   public initializeRenderer(renderer: Renderer<GeometryWarsComponentRegistry, any>): void {
+    const { registerSharedVFX } = require("../shared/rendering/SharedVFX");
+    registerSharedVFX(renderer);
+
     if (renderer.type === "canvas") {
       const {
         drawPlayerShip,

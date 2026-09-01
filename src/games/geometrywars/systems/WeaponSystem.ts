@@ -96,8 +96,10 @@ export class WeaponSystem extends System<GeometryWarsComponentRegistry> {
           }
         }
 
-        // Reset cooldown
-        mutWeapon.cooldownRemaining = mutWeapon.cooldownDuration;
+        // Reset cooldown, applying OVERDRIVE_FIRE_RATE_MULT if burst is active
+        const kinetic = world.getComponent(entity, "KineticAccumulator");
+        const fireRateMult = (kinetic && kinetic.isBurstActive) ? (this.config?.OVERDRIVE_FIRE_RATE_MULT ?? 2.5) : 1.0;
+        mutWeapon.cooldownRemaining = mutWeapon.cooldownDuration / fireRateMult;
       }
     }
   }

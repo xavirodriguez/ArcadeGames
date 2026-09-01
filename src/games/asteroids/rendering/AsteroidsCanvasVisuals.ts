@@ -1,4 +1,4 @@
-import { ShapeDrawer, ShapeType, CircleShape } from "@tiny-aster/core";
+import { ShapeDrawer, ShapeType, CircleShape, SHIP_FORWARD_AXIS } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
@@ -81,7 +81,8 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 240, 255, 0.15)",
       (c, widthScale) => {
         const s = size * breath * widthScale;
-        c.moveTo(s, 0); // Nose pointing RIGHT (+X)
+        // Ship nose points along SHIP_FORWARD_AXIS (+X, 0)
+        c.moveTo(s * SHIP_FORWARD_AXIS.x, s * SHIP_FORWARD_AXIS.y);
         c.lineTo(-s * 0.7, s * 0.7); // Right back
         c.lineTo(-s * 0.5, s * 0.3); // Center back indent
         c.lineTo(-s * 0.5, -s * 0.3); // Center back indent
@@ -105,7 +106,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       ctx.lineWidth = 3;
       ctx.beginPath();
       const s = size * breath;
-      ctx.moveTo(s, 0);
+      ctx.moveTo(s * SHIP_FORWARD_AXIS.x, s * SHIP_FORWARD_AXIS.y);
       ctx.lineTo(-s * 0.7, s * 0.7);
       ctx.lineTo(-s * 0.5, s * 0.3);
       ctx.lineTo(-s * 0.5, -s * 0.3);

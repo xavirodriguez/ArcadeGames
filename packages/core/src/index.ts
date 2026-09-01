@@ -102,6 +102,7 @@ export * from "./physics/collision/BroadPhase";
 export * from "./physics/collision/CollisionTypes";
 export * from "./physics/utils/PhysicsUtils";
 export * from "./physics/utils/ShipPhysics";
+export * from "./physics/utils/ForwardVector";
 export * from "./physics/shapes/Shapes";
 export * from "./physics/query/PhysicsQuery";
 export * from "./physics/dynamics/PhysicsIntegrateSystem";

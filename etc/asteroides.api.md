@@ -1583,6 +1583,12 @@ export class GameSession {
 export function getEasingFunction(easingOption?: EasingFunction | string): EasingFunction;
 
 // @public
+export function getForwardVector(rotation: number): {
+    x: number;
+    y: number;
+};
+
+// @public
 export interface GroundDetectorComponent extends Component {
     hasGroundAhead: boolean;
     hasWallAhead: boolean;
@@ -3672,6 +3678,12 @@ export enum ShapeType {
     Circle = 0,
     Polygon = 2
 }
+
+// @public
+export const SHIP_FORWARD_AXIS: {
+    readonly x: 1;
+    readonly y: 0;
+};
 
 // @public
 export interface Simulation {

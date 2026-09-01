@@ -1,9 +1,12 @@
+import { getForwardVector } from "./ForwardVector";
+
 /**
  * Pure function computing ship rotation, thrust acceleration, and friction decay.
  *
  * @remarks
  * Shared across client-side prediction, authoritative server simulation, and singleplayer gameplay
  * to guarantee 100% deterministic ship movement dynamics across network rollbacks.
+ * Forward vectors and rotation conventions follow `ForwardVector.ts`.
  * Normalizes rotation to `[-Math.PI, Math.PI]` and applies linear/exponential velocity decay.
  *
  * @param transform - Object containing current rotation in radians.
@@ -64,8 +67,9 @@ export function computeShipPhysics(
 
   // 2. Thrust handling
   if (thrust) {
-    const ax = Math.cos(rotation) * config.SHIP_THRUST;
-    const ay = Math.sin(rotation) * config.SHIP_THRUST;
+    const forward = getForwardVector(rotation);
+    const ax = forward.x * config.SHIP_THRUST;
+    const ay = forward.y * config.SHIP_THRUST;
     vx += ax * deltaTimeSec;
     vy += ay * deltaTimeSec;
   }

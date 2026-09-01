@@ -70,9 +70,9 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
               });
 
               // Increment Combo component on paddle hit
-              const comboEntities = world.query("Combo" as any);
+              const comboEntities = world.query("Combo");
               if (comboEntities.length > 0) {
-                world.mutateComponent(comboEntities[0], "Combo" as any, (c: any) => {
+                world.mutateComponent(comboEntities[0], "Combo", (c) => {
                   c.combo = (c.combo || 0) + 1;
                   c.multiplier = 1 + Math.floor(c.combo / 5);
                   c.timerRemaining = c.timerDuration || 2.0;

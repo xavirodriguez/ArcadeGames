@@ -94,8 +94,8 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);
 
     // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
-    const input = world.getComponent(entity, "Input") as any;
-    const isShooting = Boolean(input && input.actions && input.actions["shoot"]);
+    const input = world.getComponent(entity, "Input");
+    const isShooting = Boolean(input && input.shoot);
     if (isShooting) {
       const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
       ctx.fillStyle = "#00FFFF";
@@ -383,10 +383,10 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
     if (!render) return;
     const { size = 2, color = "white" } = render;
 
-    const ttl = world.getComponent(entity, "TTL") as any;
+    const ttl = world.getComponent(entity, "TTL");
     let progress = 0.5;
 
-    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {
+    if (ttl && ttl.remaining !== undefined) {
       const totalLife = ttl.timeLeft || 0.5;
       progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));
     }

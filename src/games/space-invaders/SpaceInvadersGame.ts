@@ -624,10 +624,10 @@ export class SpaceInvadersGame
     let multiplier = 1;
     let comboTimerRemaining = 0;
 
-    const comboEntities = world.query("Combo" as any);
+    const comboEntities = world.query("Combo");
     const comboEntity = comboEntities[0];
     if (comboEntity !== undefined) {
-      const comboComp = world.getComponent(comboEntity, "Combo" as any) as any;
+      const comboComp = world.getComponent(comboEntity, "Combo");
       if (comboComp) {
         combo = comboComp.combo;
         multiplier = comboComp.multiplier;
@@ -644,9 +644,9 @@ export class SpaceInvadersGame
 
     let isDialogueActive = false;
     let dialogueText = "";
-    const dialogueBoxEntities = world.query("DialogueBox" as any);
+    const dialogueBoxEntities = world.query("DialogueBox");
     if (dialogueBoxEntities.length > 0) {
-      const dialogueBox = world.getComponent(dialogueBoxEntities[0], "DialogueBox" as any) as any;
+      const dialogueBox = world.getComponent(dialogueBoxEntities[0], "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;
         const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];

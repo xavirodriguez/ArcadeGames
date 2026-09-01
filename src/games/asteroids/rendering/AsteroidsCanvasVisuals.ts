@@ -29,9 +29,9 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     }
 
     // Invulnerability Pulse
-    const hasInvulnerable = world.hasComponent(entity, "Invulnerable" as any);
+    const hasInvulnerable = world.hasComponent(entity, "Invulnerable");
     if (hasInvulnerable) {
-      const inv = world.getComponent(entity, "Invulnerable" as any) as { remaining: number } | undefined;
+      const inv = world.getComponent(entity, "Invulnerable");
       if (inv && inv.remaining > 0) {
         const pulse = Math.floor(inv.remaining * 10) % 2;
         if (pulse === 0) {

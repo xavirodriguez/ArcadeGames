@@ -711,7 +711,7 @@ export interface ComboComponent extends Component {
 }
 
 // @public (undocumented)
-export class ComboSystem<TComponents extends ComponentRegistry = ComponentRegistry> extends System<TComponents> {
+export class ComboSystem<TComponents extends CoreComponentRegistry = CoreComponentRegistry> extends System<TComponents> {
     // (undocumented)
     dispose(): void;
     // (undocumented)
@@ -818,6 +818,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Collider: ColliderComponent;
     Collider2D: Collider2DComponent;
     CollisionEvents: CollisionEventsComponent;
+    Combo: ComboComponent;
     Dead: DeadComponent;
     Enemy: EnemyComponent;
     Faction: FactionComponent;
@@ -828,6 +829,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Hitbox: HitboxComponent;
     Hurtbox: HurtboxComponent;
     InputState: InputStateComponent;
+    Invulnerable: InvulnerableComponent;
     Juice: JuiceComponent;
     KineticAccumulator: KineticAccumulatorComponent;
     MovingPlatform: MovingPlatformComponent;
@@ -1845,6 +1847,13 @@ export class InterestManagerSystem<TComponents extends ComponentRegistry = Compo
 export class InvulnerabilitySystem extends System<CoreComponentRegistry> {
     // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
+}
+
+// @public
+export interface InvulnerableComponent extends Component {
+    remaining: number;
+    // (undocumented)
+    type: "Invulnerable";
 }
 
 // @public

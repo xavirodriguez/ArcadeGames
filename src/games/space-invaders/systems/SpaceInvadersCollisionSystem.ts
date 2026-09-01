@@ -107,12 +107,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           this.createExplosion(world, pos.x, pos.y, "#FF00FF");
         }
 
-        const gsEntity = world.query("GameState" as any)[0];
-        if (gsEntity !== undefined) {
-          world.mutateComponent(gsEntity, "GameState" as any, (gs: any) => {
-            gs.score += 100;
-          });
-        }
+        world.mutateSingleton("GameState", (gs) => {
+          gs.score += 100;
+        });
 
         const eventBus = world.getEventBus();
         if (eventBus && !world.isReSimulating) {

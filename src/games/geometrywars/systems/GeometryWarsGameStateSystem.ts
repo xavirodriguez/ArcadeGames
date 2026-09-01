@@ -67,13 +67,12 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
       }
 
       // Reset combo on player hit/death
-      const comboEntity = world.query("Combo" as any)[0];
+      const comboEntity = world.query("Combo")[0];
       if (comboEntity !== undefined) {
-        world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
-          const cb = c as ComboComponent;
-          cb.combo = 0;
-          cb.multiplier = 1;
-          cb.timerRemaining = 0;
+        world.mutateComponent(comboEntity, "Combo", (c) => {
+          c.combo = 0;
+          c.multiplier = 1;
+          c.timerRemaining = 0;
         });
       }
 
@@ -114,15 +113,14 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
 
       // Calculate multiplied score reward
       let finalMultiplier = 1;
-      const comboEntity = world.query("Combo" as any)[0];
+      const comboEntity = world.query("Combo")[0];
       if (comboEntity !== undefined) {
-        world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
-          const cb = c as ComboComponent;
-          cb.combo += 1;
+        world.mutateComponent(comboEntity, "Combo", (c) => {
+          c.combo += 1;
           // Multiplier increments by 1 every 10 combo hits
-          cb.multiplier = 1 + Math.floor(cb.combo / 10);
-          cb.timerRemaining = cb.timerDuration; // refresh timer
-          finalMultiplier = cb.multiplier;
+          c.multiplier = 1 + Math.floor(c.combo / 10);
+          c.timerRemaining = c.timerDuration; // refresh timer
+          finalMultiplier = c.multiplier;
         });
       }
 

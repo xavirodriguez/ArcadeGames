@@ -930,9 +930,9 @@
     "total": 3
   },
   "src/games/space-invaders/SpaceInvadersGame.ts": {
-    "anyCount": 43,
+    "anyCount": 42,
     "unknownCount": 0,
-    "total": 43
+    "total": 42
   },
   "src/games/space-invaders/__tests__/SpaceInvadersCombat.test.ts": {
     "anyCount": 23,

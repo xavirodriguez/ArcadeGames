@@ -47,6 +47,7 @@ import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongC
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import pongConfigRaw from "./config/pong.json";
 
 export type PongMode = "local" | "ai" | "online";
 
@@ -70,6 +71,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   private assetLoader: AssetLoader;
   private networkController?: NetworkController;
   public readonly gameId = "pong";
+  private baseConfig: PongConfig;
   private config!: PongConfig;
 
   private stallStartTime = 0;
@@ -94,17 +96,16 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
       gameOptions: { mode, seed, ...((isConfig && config.gameOptions) || {}) },
       audio: audio || new WebAudioPlayer()
     });
+    this.baseConfig = ConfigService.load<PongConfig>(this.gameId, PongConfigSchema, pongConfigRaw);
+    this.config = this.baseConfig;
     this.assetLoader = new AssetLoader(assetProvider);
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    const rawConfig = require("./config/pong.json");
-    const baseConfig = ConfigService.load<PongConfig>(this.gameId, PongConfigSchema, rawConfig);
-
     const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
     this.config = mutators.length > 0
-      ? mutators.reduce((cfg, m) => (m as any).apply(cfg), { ...baseConfig }) as PongConfig
-      : { ...baseConfig };
+      ? mutators.reduce((cfg, m) => (m as any).apply(cfg), { ...this.baseConfig }) as PongConfig
+      : { ...this.baseConfig };
 
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("ScreenConfig", { width: this.config.WIDTH, height: this.config.HEIGHT });

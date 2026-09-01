@@ -68,6 +68,7 @@ import { GameStateComponent, InputState } from "./types/AsteroidTypes";
 import { getStoryBeatForLevel } from "./story/StoryBeats";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import asteroidsConfigRaw from "./config/asteroids.json";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -86,6 +87,7 @@ export class AsteroidsGame
   private particlePool!: ParticlePool;
   private network!: NetworkController<AsteroidsComponentRegistry>;
   public readonly gameId = "asteroids";
+  private baseConfig: AsteroidConfig;
   private config: AsteroidConfig;
   private resizeListener?: () => void;
   private isHeadless: boolean;
@@ -110,19 +112,16 @@ export class AsteroidsGame
     this.mode = (config.gameOptions as any)?.mode || "deathmatch";
     this.network = new NetworkController<AsteroidsComponentRegistry>(this.world);
     this.isMultiplayer = config.isMultiplayer || false;
-    const rawConfig = require("./config/asteroids.json");
-    this.config = ConfigService.load<AsteroidConfig>(this.gameId, AsteroidConfigSchema, rawConfig);
+    this.baseConfig = ConfigService.load<AsteroidConfig>(this.gameId, AsteroidConfigSchema, asteroidsConfigRaw);
+    this.config = this.baseConfig;
     this.assetLoader = new AssetLoader(config.assetProvider);
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    const rawConfig = require("./config/asteroids.json");
-    const baseConfig = ConfigService.load<AsteroidConfig>(this.gameId, AsteroidConfigSchema, rawConfig);
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mutators = (this._config.gameOptions?.mutators as any[]) || [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.config = mutators.reduce((cfg, m) => m.apply(cfg), { ...baseConfig } as any);
+    this.config = mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig } as any);
 
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("PowerUpEffects", {

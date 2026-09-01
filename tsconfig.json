@@ -6,6 +6,7 @@
     "strictPropertyInitialization": false,
     "noImplicitAny": true,
     "downlevelIteration": true,
+    "resolveJsonModule": true,
     "paths": {
       "@/*": [
         "./*",

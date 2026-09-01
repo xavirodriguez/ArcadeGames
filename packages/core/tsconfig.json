@@ -12,6 +12,7 @@
         "sourceMap": true,
         "outDir": "./dist", // STOP CONTAMINATION: Output directory configured to "./dist" for compiled artifacts
         "esModuleInterop": true,
+        "resolveJsonModule": true,
         "forceConsistentCasingInFileNames": true,
         "skipLibCheck": true,
         "baseUrl": ".",

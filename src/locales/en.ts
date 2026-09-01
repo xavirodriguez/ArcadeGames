@@ -88,6 +88,9 @@ export const en = {
     level: "LEVEL",
     score: "SCORE",
     lives: "LIVES",
+    attempts: "ATTEMPTS",
+    level_completed: "LEVEL COMPLETED!",
+    final_score: "Final Score",
     syncing_level: "Loading Platformer Level...",
   },
   mutators: {

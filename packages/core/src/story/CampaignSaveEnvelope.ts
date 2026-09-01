@@ -26,6 +26,11 @@ export interface CampaignSaveEnvelopeV1 {
   /** Full meta progression state snapshot. */
   readonly meta: MetaProgressionState;
 
+  /** Active minigame identifier at time of save. */
+  readonly activeGameId?: string;
+  /** Seed used to initialize active minigame simulation. */
+  readonly activeGameSeed?: number;
+
   /** Campaign performance and play statistics. */
   readonly stats: {
     /** Accumulated total playtime across active campaign session in seconds. */

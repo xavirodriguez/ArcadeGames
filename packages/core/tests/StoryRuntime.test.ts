@@ -420,4 +420,49 @@ describe("StoryRuntime & StoryGraph Engine Tests", () => {
     expect(st.variables.infinityVar).toBe(Infinity);
     expect(st.variables.undefVar).toBeUndefined();
   });
+
+  it("should prevent premature automatic transition from gameplay nodes with incomplete objectives", () => {
+    const gameplayGraph: StoryGraph = {
+      id: "gameplay_objective_test",
+      title: "Gameplay Objective Test",
+      entryNodeId: "game_node",
+      nodes: {
+        game_node: {
+          id: "game_node",
+          type: "gameplay",
+          objective: {
+            id: "defeat_boss",
+            eventKey: "boss_defeated",
+            titleKey: "Defeat Boss",
+            targetCount: 1,
+            currentCount: 0,
+            completed: false
+          },
+          transitions: [
+            {
+              targetNodeId: "next_node"
+              // Conditionless transition
+            }
+          ]
+        },
+        next_node: {
+          id: "next_node",
+          type: "dialogue",
+          dialogue: { id: "d_next", lines: [{ textKey: "Boss defeated dialogue" }] }
+        }
+      }
+    };
+
+    const runtime = new StoryRuntime(gameplayGraph);
+    runtime.bindWorld(world);
+
+    // Initial load -> should remain on game_node because objective is incomplete
+    expect(runtime.getCurrentNode()?.id).toBe("game_node");
+
+    // Complete objective via event
+    eventBus.emit("boss_defeated", {});
+
+    // Now it should transition to next_node
+    expect(runtime.getCurrentNode()?.id).toBe("next_node");
+  });
 });

@@ -43,7 +43,12 @@ export class CampaignSaveManager {
     slotId: string,
     runtime: StoryRuntime,
     metaService: MetaProgressionService,
-    stats?: { totalPlaytimeSeconds?: number; minigamesPlayed?: Record<string, number> }
+    stats?: {
+      totalPlaytimeSeconds?: number;
+      minigamesPlayed?: Record<string, number>;
+      activeGameId?: string;
+      activeGameSeed?: number;
+    }
   ): Promise<CampaignSaveEnvelopeV1> {
     const narrativeState = runtime.getState();
 
@@ -64,6 +69,8 @@ export class CampaignSaveManager {
       updatedAt: Date.now(),
       narrative: narrativeSave,
       meta: metaState,
+      activeGameId: stats?.activeGameId,
+      activeGameSeed: stats?.activeGameSeed,
       stats: {
         totalPlaytimeSeconds: stats?.totalPlaytimeSeconds ?? 0,
         minigamesPlayed: stats?.minigamesPlayed ?? {}
@@ -125,6 +132,8 @@ export class CampaignSaveManager {
       updatedAt: typeof parsed.updatedAt === "number" ? parsed.updatedAt : Date.now(),
       narrative: narrativeSave,
       meta: metaState,
+      activeGameId: typeof parsed.activeGameId === "string" ? parsed.activeGameId : undefined,
+      activeGameSeed: typeof parsed.activeGameSeed === "number" ? parsed.activeGameSeed : undefined,
       stats: {
         totalPlaytimeSeconds: typeof parsed.stats?.totalPlaytimeSeconds === "number" ? parsed.stats.totalPlaytimeSeconds : 0,
         minigamesPlayed: typeof parsed.stats?.minigamesPlayed === "object" && parsed.stats.minigamesPlayed ? parsed.stats.minigamesPlayed : {}

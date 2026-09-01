@@ -15,6 +15,7 @@ import { SceneManager } from "../scenes/SceneManager";
 import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
 import { IAssetProvider } from "../assets/AssetLoader";
 import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
+import { Theme } from "../theme/Theme";
 
 /**
  * Enumeration of lifecycle execution states for a `BaseGame` instance.
@@ -79,6 +80,8 @@ export interface BaseGameConfig<
   arcadeKernel?: ArcadeKernel;
   /** Disables the automatic loop ticker when true, delegating frame updates to an external driver (such as `GameSession`). */
   manualLoop?: boolean;
+  /** Optional theme configuration for decoupling sprite asset keys, color palettes, and lore texts. */
+  theme?: Theme;
 }
 
 /**
@@ -336,6 +339,7 @@ export abstract class BaseGame<
     this.world.setResource("SceneManager", this.sceneManager);
     this.world.setResource("headless", this._config.headless);
     this.world.setResource("ArcadeKernel", this.kernel);
+    this.world.setResource("Theme", this._config.theme ?? { spriteMap: {}, colorMap: {} });
   }
 
   private registerEventBusListeners(): void {

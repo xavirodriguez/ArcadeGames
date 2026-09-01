@@ -33,7 +33,8 @@ import {
   VelocityComponent,
   Collider2DComponent,
   TagComponent,
-  HealthComponent
+  HealthComponent,
+  Theme
 } from "@tiny-aster/core";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
@@ -805,9 +806,13 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
           }
         } as any);
 
+        const theme = world.getResource<Theme>("Theme");
+        const assetKey = theme?.spriteMap["player"] ?? "player_sprite";
+        const tint = theme?.colorMap["player"] ?? "#00ffff";
+
         world.addComponent(entity, {
           type: "Sprite",
-          assetKey: "player_sprite",
+          assetKey,
           anchor: { x: 0.5, y: 0.5 }
         } as any);
 
@@ -815,6 +820,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
           type: "Render",
           shape: "player",
           size: 24,
+          color: tint,
           visible: true,
           opacity: 1,
           order: 2,

@@ -21,7 +21,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * Unlike Asteroids, it uses a rigid formation system where the movement
  * of one entity affects the whole group (Swarm movement).
  */
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition, Theme } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { FactionComponent } from "../shared/combat/components/CombatComponents";
 
@@ -119,13 +119,16 @@ export class SpaceInvadersGame
     this.blueprints.register("player", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const theme = world.getResource<Theme>("Theme");
+        const tint = theme?.colorMap["player"] ?? "#00FF00";
+
         world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent);
         world.addComponent(entity, {
           type: "Render",
           shape: "player_ship",
           size: config.PLAYER_RENDER_WIDTH,
-          color: "#00FF00",
+          color: tint,
           rotation: 0,
           visible: true,
           opacity: 1,
@@ -237,12 +240,15 @@ export class SpaceInvadersGame
     this.blueprints.register("shield", {
       spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const theme = world.getResource<Theme>("Theme");
+        const tint = theme?.colorMap["shield"] ?? theme?.colorMap["secondary"] ?? "#00FF00";
+
         world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         world.addComponent(entity, {
           type: "Render",
           shape: "shield_block",
           size: 15,
-          color: "#00FF00",
+          color: tint,
           rotation: 0,
           visible: true,
           opacity: 1,
@@ -314,8 +320,11 @@ export class SpaceInvadersGame
     this.blueprints.register("boss", {
       spawn: (world, entity, args: { level: number }) => {
         const hp = 50 + (args.level / 5) * 50;
+        const theme = world.getResource<Theme>("Theme");
+        const tint = theme?.colorMap["boss"] ?? theme?.colorMap["accent"] ?? "#FF00FF";
+
         world.addComponent(entity, { type: "Transform", x: GAME_CONFIG.SCREEN_WIDTH / 2, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: GAME_CONFIG.SCREEN_WIDTH / 2, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.addComponent(entity, { type: "Render", shape: "invader", size: 80, color: "#FF00FF", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
+        world.addComponent(entity, { type: "Render", shape: "invader", size: 80, color: tint, rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
         world.addComponent(entity, {
           type: "Collider",
           shape: { type: ShapeType.Circle, radius: 40 } as CircleShape,

@@ -2,7 +2,7 @@ import { World } from "@tiny-aster/core";
 import { Entity, Component } from "@tiny-aster/core";
 import { EnemyBlueprints } from "./config/EnemyBlueprints";
 import { EnemyTagComponent } from "./components/EnemyTagComponent";
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent, FactionComponent } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent, FactionComponent, Theme } from "@tiny-aster/core";
 
 /**
  * Interface for runtime overrides when creating an enemy.
@@ -117,11 +117,14 @@ export class EnemyFactory {
     }
 
     // 3. Rendering
+    const theme = world.getResource<Theme>("Theme");
+    const themeColor = theme?.colorMap[blueprintId] ?? theme?.colorMap[blueprint.kind] ?? theme?.colorMap["enemy"];
+
     add({
       type: "Render",
       shape: blueprint.render.shape,
       size: blueprint.render.size,
-      color: overrides.color ?? blueprint.render.color,
+      color: overrides.color ?? themeColor ?? blueprint.render.color,
       rotation: overrides.rotation ?? 0,
       visible: true,
       opacity: 1,

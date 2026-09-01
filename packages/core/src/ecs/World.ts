@@ -792,6 +792,19 @@ function assertResourceShape(name: string, value: unknown): void {
   if (value === undefined || value === null) return;
 
   switch (name) {
+    case "Theme": {
+      const themeVal = value as Record<string, unknown>;
+      if (typeof themeVal !== "object" || themeVal === null) {
+        throw new Error(`[World] Resource "Theme" must be an object.`);
+      }
+      if (themeVal.spriteMap !== undefined && (typeof themeVal.spriteMap !== "object" || themeVal.spriteMap === null)) {
+        throw new Error(`[World] Resource "Theme" spriteMap must be an object.`);
+      }
+      if (themeVal.colorMap !== undefined && (typeof themeVal.colorMap !== "object" || themeVal.colorMap === null)) {
+        throw new Error(`[World] Resource "Theme" colorMap must be an object.`);
+      }
+      break;
+    }
     case "GameplayFreeze":
       if (typeof value !== "object" || ( (value as any).remaining !== undefined && typeof (value as any).remaining !== "number" )) {
         throw new Error(`[World] Resource "GameplayFreeze" does not match the expected shape { remaining?: number }.`);

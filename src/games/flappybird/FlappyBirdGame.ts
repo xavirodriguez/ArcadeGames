@@ -23,7 +23,7 @@ import { AchievementSystem } from "../shared/arcade";
  * Implementa mecánicas de scroll infinito y generación procedural de obstáculos (tuberías).
  * Utiliza un sistema de gravedad simple y una única acción de entrada ("jump").
  */
-import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter } from "@tiny-aster/core";
+import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBirdCanvasVisuals";
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
@@ -71,13 +71,16 @@ export class FlappyBirdGame
     // Register blueprints
     this.blueprints.register("bird", {
       spawn: (world, entity, args: { x: number, y: number }) => {
+        const theme = world.getResource<Theme>("Theme");
+        const tint = theme?.colorMap["bird"] ?? theme?.colorMap["player"] ?? "#D3D9E2";
+
         world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent);
         world.addComponent(entity, {
           type: "Render",
           shape: "bird",
           size: FLAPPY_CONFIG.BIRD_RADIUS,
-          color: "#D3D9E2",
+          color: tint,
           rotation: 0,
           visible: true,
           opacity: 1,
@@ -149,6 +152,9 @@ export class FlappyBirdGame
 
     this.blueprints.register("pipe", {
       spawn: (world, entity, args: { x: number, gapY: number }) => {
+        const theme = world.getResource<Theme>("Theme");
+        const pipeColor = theme?.colorMap["pipe"] ?? theme?.colorMap["enemy"] ?? "#2A2A35";
+
         // Since original createPipe spawned TWO entities, we can spawn a bottom pipe too or define separate blueprints.
         // But to keep it as a single spawner interface, let's spawn both from this blueprint using commands inside commands!
         const halfGap = FLAPPY_CONFIG.GAP_SIZE / 2;
@@ -163,7 +169,7 @@ export class FlappyBirdGame
           type: "Render",
           shape: "pipe",
           size: pipeWidth,
-          color: "#2A2A35",
+          color: pipeColor,
           rotation: 0,
           visible: true,
           opacity: 1,
@@ -200,7 +206,7 @@ export class FlappyBirdGame
           type: "Render",
           shape: "pipe",
           size: pipeWidth,
-          color: "#2A2A35",
+          color: pipeColor,
           rotation: 0,
           visible: true,
           opacity: 1,
@@ -231,6 +237,9 @@ export class FlappyBirdGame
 
     this.blueprints.register("ground", {
       spawn: (world, entity, _args: {}) => {
+        const theme = world.getResource<Theme>("Theme");
+        const groundColor = theme?.colorMap["ground"] ?? "#22222C";
+
         world.addComponent(entity, { type: "Transform", x: FLAPPY_CONFIG.SCREEN_WIDTH / 2, y: FLAPPY_CONFIG.GROUND_Y, rotation: 0, scaleX: 1, scaleY: 1, worldX: FLAPPY_CONFIG.SCREEN_WIDTH / 2, worldY: FLAPPY_CONFIG.GROUND_Y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         world.addComponent(entity, {
           type: "Collider",
@@ -254,7 +263,7 @@ export class FlappyBirdGame
           type: "Render",
           shape: "ground",
           size: FLAPPY_CONFIG.SCREEN_WIDTH,
-          color: "#22222C",
+          color: groundColor,
           rotation: 0,
           visible: true,
           opacity: 1,

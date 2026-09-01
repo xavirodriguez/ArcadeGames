@@ -155,7 +155,8 @@ export * from "./network/NetTypes";
 export * from "./network/NetworkController";
 export * from "./network/ReplaySystem";
 
-// Config
+// Theme & Config
+export * from "./theme/Theme";
 export * from "./config/ConfigService";
 export * from "./config/BaseConfigSchema";
 

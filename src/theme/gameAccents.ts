@@ -1,4 +1,5 @@
 import { colors } from './colors';
+import type { Theme } from '@tiny-aster/core';
 
 /**
  * Mapeo de paletas de juego a tokens de color existentes.
@@ -44,5 +45,36 @@ export function getGameAccentColors(game: GameKey) {
     primary: colors[accentKeys.primary],
     secondary: colors[accentKeys.secondary],
     accent: colors[accentKeys.accent],
+  };
+}
+
+/**
+ * Construye un objeto `Theme` usando los colores predeterminados de `GAME_ACCENTS[game]`
+ * para poblar `colorMap`, permitiendo overrides opcionales.
+ */
+export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<Theme>): Theme {
+  const accentColors = getGameAccentColors(game);
+  const defaultColorMap: Record<string, string> = {
+    primary: accentColors.primary,
+    secondary: accentColors.secondary,
+    accent: accentColors.accent,
+    player: accentColors.primary,
+    "player-ship": accentColors.primary,
+    bullet: accentColors.secondary,
+    "player-bullet": accentColors.secondary,
+    enemy: accentColors.accent,
+    boss: accentColors.accent,
+    shield: accentColors.primary,
+    ball: accentColors.primary,
+    paddle: accentColors.primary,
+    bird: accentColors.primary,
+    pipe: accentColors.accent,
+    ground: accentColors.secondary,
+  };
+
+  return {
+    spriteMap: { ...customTheme?.spriteMap },
+    colorMap: { ...defaultColorMap, ...customTheme?.colorMap },
+    lore: { ...customTheme?.lore },
   };
 }

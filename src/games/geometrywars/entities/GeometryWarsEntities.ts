@@ -10,7 +10,8 @@ import {
   ShapeType,
   BlueprintRegistry,
   CircleShape,
-  SteeringComponent
+  SteeringComponent,
+  Theme
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
@@ -32,6 +33,9 @@ export function registerGeometryWarsBlueprints(
   registry.register("player", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
+      const theme = w.getResource<Theme>("Theme");
+      const tint = theme?.colorMap["player"] ?? colors.cyan;
+
       w.addComponent(entity, {
         type: "Transform",
         x: args.x,
@@ -58,7 +62,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_player",
         size: 16,
-        color: colors.cyan,
+        color: tint,
         visible: true,
         opacity: 1,
         order: 1,
@@ -144,6 +148,9 @@ export function registerGeometryWarsBlueprints(
   registry.register("bullet", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation: number }) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
+      const theme = w.getResource<Theme>("Theme");
+      const tint = theme?.colorMap["bullet"] ?? theme?.colorMap["secondary"] ?? colors.gold;
+
       w.addComponent(entity, {
         type: "Transform",
         x: args.x,
@@ -170,7 +177,7 @@ export function registerGeometryWarsBlueprints(
         type: "Render",
         shape: "gw_bullet",
         size: 4,
-        color: colors.gold,
+        color: tint,
         visible: true,
         opacity: 1,
         order: 2,

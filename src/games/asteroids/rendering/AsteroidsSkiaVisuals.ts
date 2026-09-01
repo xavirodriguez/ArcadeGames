@@ -1,4 +1,4 @@
-import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent } from "@tiny-aster/core";
+import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, SHIP_FORWARD_AXIS } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
@@ -97,7 +97,8 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     let shipGeom = cachedShipPaths.get(render);
     if (!shipGeom) {
       const shipPath = Skia.Path.Make();
-      shipPath.moveTo(size, 0); // Nose pointing RIGHT (+X)
+      // Ship nose points along SHIP_FORWARD_AXIS (+X, 0)
+      shipPath.moveTo(size * SHIP_FORWARD_AXIS.x, size * SHIP_FORWARD_AXIS.y);
       shipPath.lineTo(-size * 0.7, size * 0.7); // Right back
       shipPath.lineTo(-size * 0.5, size * 0.3); // Center back indent
       shipPath.lineTo(-size * 0.5, -size * 0.3); // Center back indent

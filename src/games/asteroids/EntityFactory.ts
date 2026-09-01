@@ -1,6 +1,7 @@
 import {
   World,
   TransformComponent,
+  getForwardVector,
   VelocityComponent,
   RenderComponent,
   HealthComponent,
@@ -390,6 +391,7 @@ export const createShip = (config: { world: World<AsteroidsComponentRegistry, As
 /**
  * Factory function to create and initialize a Bullet entity in the Asteroids game.
  * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL (timeLeft & remaining), Collider, CollisionEvents.
+ * Note: Forward vectors and rotation conventions follow `ForwardVector.ts`.
  * @public
  */
 export function createBullet(
@@ -428,8 +430,9 @@ export function createBullet(
     const rot = rotation!;
     rotVal = rot;
     const spd = speed!;
-    vxVal = Math.cos(rot) * spd;
-    vyVal = Math.sin(rot) * spd;
+    const forward = getForwardVector(rot);
+    vxVal = forward.x * spd;
+    vyVal = forward.y * spd;
     owner = ownerId;
     life = ttl ?? 2.0;
   } else {
@@ -446,8 +449,9 @@ export function createBullet(
       const rot = worldOrConfig.rotation ?? 0;
       rotVal = rot;
       const spd = worldOrConfig.speed ?? 0;
-      vxVal = Math.cos(rot) * spd;
-      vyVal = Math.sin(rot) * spd;
+      const forward = getForwardVector(rot);
+      vxVal = forward.x * spd;
+      vyVal = forward.y * spd;
     }
     const gameConfig = world.getResource<AsteroidConfig>("GameConfig");
     const bulletTtl = gameConfig?.BULLET_TTL ?? 2.0;

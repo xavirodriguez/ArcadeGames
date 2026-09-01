@@ -639,6 +639,11 @@
     "unknownCount": 0,
     "total": 19
   },
+  "src/games/asteroids/__tests__/PhysicsRenderInvariant.test.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
   "src/games/asteroids/__tests__/SharedVFX.test.ts": {
     "anyCount": 2,
     "unknownCount": 0,
@@ -760,8 +765,8 @@
     "total": 3
   },
   "src/games/geometrywars/scenes/GeometryWarsGameScene.ts": {
-    "anyCount": 11,
-    "unknownCount": 0,
+    "anyCount": 8,
+    "unknownCount": 3,
     "total": 11
   },
   "src/games/geometrywars/story/GeometryWarsEncounter.ts": {
@@ -780,9 +785,14 @@
     "total": 1
   },
   "src/games/platformer/PlatformerGame.ts": {
-    "anyCount": 23,
+    "anyCount": 49,
     "unknownCount": 0,
-    "total": 23
+    "total": 49
+  },
+  "src/games/platformer/__tests__/PlatformerGame.test.ts": {
+    "anyCount": 4,
+    "unknownCount": 1,
+    "total": 5
   },
   "src/games/platformer/rendering/PlatformerCanvasVisuals.ts": {
     "anyCount": 2,
@@ -794,10 +804,25 @@
     "unknownCount": 0,
     "total": 12
   },
+  "src/games/platformer/systems/PlatformerDashSystem.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/platformer/systems/PlatformerGoalSystem.ts": {
+    "anyCount": 7,
+    "unknownCount": 0,
+    "total": 7
+  },
   "src/games/platformer/systems/PlatformerInputSystem.ts": {
     "anyCount": 5,
     "unknownCount": 0,
     "total": 5
+  },
+  "src/games/platformer/systems/PlatformerWallJumpSystem.ts": {
+    "anyCount": 4,
+    "unknownCount": 0,
+    "total": 4
   },
   "src/games/pong/PongGame.ts": {
     "anyCount": 20,

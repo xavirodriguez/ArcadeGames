@@ -1,4 +1,4 @@
-import { World, System, computeShipPhysics } from "@tiny-aster/core";
+import { World, System, computeShipPhysics, getForwardVector } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import { createBullet } from "../EntityFactory";
@@ -92,8 +92,9 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
 
           if (hasAction("shoot") && cooldown <= 0) {
               const bulletSpeed = config.BULLET_SPEED ?? 300;
-              const vx = velocity.vx + Math.cos(transform.rotation) * bulletSpeed;
-              const vy = velocity.vy + Math.sin(transform.rotation) * bulletSpeed;
+              const forward = getForwardVector(transform.rotation);
+              const vx = velocity.vx + forward.x * bulletSpeed;
+              const vy = velocity.vy + forward.y * bulletSpeed;
 
               createBullet({
                   world,

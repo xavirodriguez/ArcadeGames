@@ -50,4 +50,5 @@ export interface AsteroidsBlueprintMap extends Record<string, import("@tiny-aste
   ship: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number }>;
   bullet: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; vx: number; vy: number; ownerId?: string; ttl?: number }>;
   asteroid: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }>;
+  powerup: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; lootType: string }>;
 }

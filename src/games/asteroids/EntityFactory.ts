@@ -17,10 +17,17 @@ import {
   resolveThemeColor
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { PowerUpComponent } from "../shared/arcade";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { ParticlePool } from "./EntityPool";
 import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
+
+function getPowerUpColor(lootType: string): string {
+  if (lootType === "shield") return "#00f0ff";
+  if (lootType === "speed_boost") return "#ff5d00";
+  return "#ffd700";
+}
 
 /**
  * Registers ship, bullet, and asteroid blueprints.
@@ -324,6 +331,61 @@ export function registerAsteroidsBlueprints(
     }
   });
 
+  registry.register("powerup", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; lootType: string }) => {
+      w.addComponent(entity, {
+        type: "Transform",
+        x: args.x,
+        y: args.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: args.x,
+        worldY: args.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      } as TransformComponent);
+      w.addComponent(entity, {
+        type: "Render",
+        shape: "shield_bubble",
+        size: 15,
+        color: getPowerUpColor(args.lootType),
+        visible: true,
+        opacity: 1,
+        order: 5,
+        rotation: 0,
+        angularVelocity: 1.0,
+        hitFlashFrames: 0
+      } as RenderComponent);
+      w.addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
+        layer: CollisionLayers.ENEMY,
+        mask: CollisionLayers.PLAYER,
+        enabled: true,
+        isTrigger: true
+      } as ColliderComponent);
+      w.addComponent(entity, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      } as CollisionEventsComponent);
+      w.addComponent(entity, {
+        type: "PowerUp",
+        powerUpType: args.lootType
+      } as PowerUpComponent);
+      w.addComponent(entity, {
+        type: "TTL",
+        remaining: 10.0,
+        timeLeft: 10.0
+      } as TTLComponent);
+    }
+  });
+
   world.setResource("BlueprintRegistry", registry);
 }
 
@@ -393,6 +455,20 @@ function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any
   }
   return entity;
 }
+
+/** @public */
+export const createPowerUp = (config: {
+  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
+  x: number;
+  y: number;
+  lootType: string;
+}): number => {
+  return spawnEntity(config.world, "powerup", {
+    x: config.x,
+    y: config.y,
+    lootType: config.lootType
+  });
+};
 
 /** @public */
 export const createShip = (config: { world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, x: number, y: number }): number => {

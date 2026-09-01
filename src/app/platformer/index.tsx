@@ -69,11 +69,13 @@ function PlatformerContent() {
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
       const jump = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("Space");
+      const dash = activeKeys.has("KeyK") || activeKeys.has("ShiftLeft");
 
       game.setInputState({
         moveLeft,
         moveRight,
         jump,
+        dash
       });
     };
 
@@ -101,6 +103,11 @@ function PlatformerContent() {
     game?.setInputState({ jump: pressed });
   };
 
+  const handleTouchDash = () => {
+    game?.setInputState({ dash: true });
+    setTimeout(() => game?.setInputState({ dash: false }), 50);
+  };
+
   if (!started) {
     return (
       <GameScreen>
@@ -117,7 +124,7 @@ function PlatformerContent() {
 
         <GameInstructions>
           {Platform.OS === "web"
-            ? (t.platformer?.instructions || "A/D o Flechas: Mover | W/Espacio/Flecha Arriba: Saltar")
+            ? (t.platformer?.instructions || "A/D o Flechas: Mover | W/Espacio/Flecha Arriba: Saltar | Shift/K: Dash")
             : t.common.touch_controls}
         </GameInstructions>
 
@@ -168,6 +175,10 @@ function PlatformerContent() {
             <Text style={styles.hudLabel}>{t.platformer?.lives || "VIDAS"}</Text>
             <Text style={styles.hudValue}>{"❤️ ".repeat(Math.max(0, gameState.lives))}</Text>
           </View>
+          <View style={styles.hudItem}>
+            <Text style={styles.hudLabel}>{t.platformer?.attempts || "INTENTOS"}</Text>
+            <Text style={styles.hudValue}>{gameState.attempts}</Text>
+          </View>
         </View>
 
         {/* Canvas Renderer */}
@@ -217,6 +228,23 @@ function PlatformerContent() {
               <Pressable
                 style={({ pressed }) => [
                   styles.touchButton,
+                  styles.dashButton,
+                  pressed && styles.touchButtonPressed,
+                ]}
+                onPressIn={() => {
+                  hapticSelection();
+                  handleTouchDash();
+                }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityRole="button"
+                accessibilityLabel={"Dash"}
+                accessibilityHint={"Performs a rapid forward dash"}
+              >
+                <Text style={styles.touchButtonText}>DASH</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.touchButton,
                   styles.jumpButton,
                   pressed && styles.touchButtonPressed,
                 ]}
@@ -239,7 +267,8 @@ function PlatformerContent() {
         {/* Game Over Screen */}
         {gameState.isGameOver && (
           <View style={styles.gameOverOverlay}>
-            <Text style={styles.gameOverTitle}>{t.common.game_over}</Text>
+            <Text style={styles.gameOverTitle}>{t.platformer?.level_completed || "¡NIVEL COMPLETADO!"}</Text>
+            <Text style={styles.hudValue}>{t.platformer?.final_score || "Puntaje final"}: {gameState.score}</Text>
 
             <TouchableOpacity
               style={styles.menuButton}
@@ -355,6 +384,11 @@ const styles = StyleSheet.create({
     borderColor: colors.cyan,
     width: 75,
     height: 75,
+  },
+  dashButton: {
+    borderColor: colors.gold,
+    width: 65,
+    height: 65,
   },
   gameOverOverlay: {
     ...StyleSheet.absoluteFillObject,

@@ -9,7 +9,7 @@ import { World, System, Entity, CoreComponentRegistry } from "@tiny-aster/core";
 export class PlatformerInputSystem extends System<CoreComponentRegistry> {
   private lastJumpStates = new Map<Entity, boolean>();
 
-  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+  public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const inputType = "PlatformerInput";
     const jumperType = "PlatformerJumper";
@@ -42,7 +42,10 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
       const isGrounded = groundState.isGrounded;
       const coyoteTimer = jumper.coyoteTimer;
 
-      // Safe for determinism/rollback. Direct component mutation without mutateComponent callbacks eliminates closure allocations on jump events.
+      // Double jump support if power-up or jumper config specifies maxJumps > 1
+      const maxJumps = jumper.maxJumps ?? 1;
+      const jumpsRemaining = jumper.jumpsRemaining ?? 1;
+
       // 1. If jump pressed:
       if (jumpPressed) {
         if (isGrounded || coyoteTimer > 0) {
@@ -51,10 +54,31 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
           groundState.isGrounded = false;
           jumper.coyoteTimer = 0;
           jumper.jumpBufferTimer = 0;
+          jumper.jumpsRemaining = maxJumps - 1;
+
+          const eventBus = world.getEventBus();
+          if (eventBus) {
+            eventBus.emit("PlaySFX", { name: "jump" });
+          }
+        } else if (jumpsRemaining > 0) {
+          // Double jump
+          vel.vy = -gravityConfig.jumpVelocity;
+          jumper.jumpsRemaining = jumpsRemaining - 1;
+          jumper.jumpBufferTimer = 0;
+
+          const eventBus = world.getEventBus();
+          if (eventBus) {
+            eventBus.emit("PlaySFX", { name: "jump" });
+          }
         } else {
-          // In the air, but no coyote time left -> store in jump buffer
+          // In the air, but no coyote time or double jumps left -> store in jump buffer
           jumper.jumpBufferTimer = jumper.jumpBufferMax;
         }
+      }
+
+      // Reset jumps remaining on ground
+      if (isGrounded) {
+        jumper.jumpsRemaining = maxJumps;
       }
 
       // 2. Variable jump height (short hop):

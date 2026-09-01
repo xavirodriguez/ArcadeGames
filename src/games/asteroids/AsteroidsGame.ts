@@ -70,6 +70,7 @@ import { AsteroidConfigSchema, AsteroidConfig } from "./types/AsteroidConfigSche
 import { GameStateComponent, InputState } from "./types/AsteroidTypes";
 import { getStoryBeatForLevel } from "./story/StoryBeats";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -103,6 +104,9 @@ export class AsteroidsGame
   constructor(config: BaseGameConfig<AsteroidsComponentRegistry, AsteroidsEventRegistry, InputState> = {}) {
     if (!config.audio) {
       config.audio = new WebAudioPlayer();
+    }
+    if (!config.theme) {
+      config.theme = createThemeFromGameAccents("asteroids");
     }
     super(config);
     this.isHeadless = config.headless !== undefined ? config.headless : (typeof window === "undefined");

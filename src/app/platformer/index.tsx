@@ -176,7 +176,7 @@ function PlatformerContent() {
             <Text style={styles.hudValue}>{"❤️ ".repeat(Math.max(0, gameState.lives))}</Text>
           </View>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{(t.platformer as Record<string, string>)?.attempts || "INTENTOS"}</Text>
+            <Text style={styles.hudLabel}>{t.platformer?.attempts || "INTENTOS"}</Text>
             <Text style={styles.hudValue}>{gameState.attempts}</Text>
           </View>
         </View>
@@ -267,8 +267,8 @@ function PlatformerContent() {
         {/* Game Over Screen */}
         {gameState.isGameOver && (
           <View style={styles.gameOverOverlay}>
-            <Text style={styles.gameOverTitle}>{(t.platformer as Record<string, string>)?.level_completed || "¡NIVEL COMPLETADO!"}</Text>
-            <Text style={styles.hudValue}>{(t.platformer as Record<string, string>)?.final_score || "Puntaje final"}: {gameState.score}</Text>
+            <Text style={styles.gameOverTitle}>{t.platformer?.level_completed || "¡NIVEL COMPLETADO!"}</Text>
+            <Text style={styles.hudValue}>{t.platformer?.final_score || "Puntaje final"}: {gameState.score}</Text>
 
             <TouchableOpacity
               style={styles.menuButton}

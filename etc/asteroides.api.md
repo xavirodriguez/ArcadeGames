@@ -219,6 +219,9 @@ export interface AssistRule {
 }
 
 // @public
+export type AsteroidsRoleKey = CommonRoleKey | "player-ship" | "player-bullet" | "asteroid" | "asteroid-large" | "asteroid-medium" | "asteroid-small";
+
+// @public
 export interface AuthoritativeServerState {
     vx: number;
     vy: number;
@@ -723,6 +726,9 @@ export interface Command<TComponents extends ComponentRegistry, TEvents extends 
     // (undocumented)
     execute(world: World<TComponents, TEvents, TBlueprints>): void;
 }
+
+// @public
+export type CommonRoleKey = "primary" | "secondary" | "accent" | "player" | "enemy" | "bullet" | "boss" | "shield";
 
 // @public
 export interface CompactInputFrame {
@@ -1439,6 +1445,9 @@ export class FeedbackSystem extends System<CoreComponentRegistry> {
 export function filterSoASnapshot(snapshot: WorldSnapshot, interestIds: Set<number>): WorldSnapshot;
 
 // @public
+export type FlappyBirdRoleKey = CommonRoleKey | "bird" | "pipe" | "ground";
+
+// @public
 export interface FormulationResult {
     reason?: string;
     resultEvidenceId?: string;
@@ -1567,6 +1576,9 @@ export interface GameplayFreeze {
 }
 
 // @public
+export type GameRoleKey = AsteroidsRoleKey | SpaceInvadersRoleKey | PongRoleKey | FlappyBirdRoleKey | PlatformerRoleKey | GeometryWarsRoleKey;
+
+// @public
 export class GameSession {
     constructor(gameDefinition: GameDefinition, seed: number, playerId?: string, sessionId?: string, kernel?: ArcadeKernel);
     readonly gameDefinition: GameDefinition;
@@ -1579,6 +1591,9 @@ export class GameSession {
     readonly seed: number;
     readonly simulation: Simulation;
 }
+
+// @public
+export type GeometryWarsRoleKey = CommonRoleKey | "chaser" | "evader" | "grunt" | "seeker" | "fast_seeker";
 
 // @public
 export function getEasingFunction(easingOption?: EasingFunction | string): EasingFunction;
@@ -2972,11 +2987,17 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
 }
 
 // @public
+export type PlatformerRoleKey = CommonRoleKey | "sentinel" | "hopper" | "charger" | "fragment" | "coin" | "goal" | "tilemap";
+
+// @public
 export interface PlayerSensorComponent extends Component {
     detectedPlayerEntity?: Entity;
     type: "PlayerSensor";
     visionRange: number;
 }
+
+// @public
+export type PongRoleKey = CommonRoleKey | "ball" | "paddle" | "left" | "right";
 
 // @public
 export interface PredictedState {
@@ -3389,6 +3410,16 @@ export class Replicator<TComponents extends ComponentRegistry = ComponentRegistr
 }
 
 // @public
+export function resolveThemeColor<TRole extends string = GameRoleKey>(world: {
+    getResource: <T>(key: string) => T | undefined;
+}, ...roles: TRole[]): string | undefined;
+
+// @public
+export function resolveThemeColorWithFallback<TRole extends string = GameRoleKey>(world: {
+    getResource: <T>(key: string) => T | undefined;
+}, fallbackColor: string, ...roles: TRole[]): string;
+
+// @public
 export function resolveTransitionEffect(effect?: string | ITransitionEffect): ITransitionEffect | undefined;
 
 // @public
@@ -3748,6 +3779,9 @@ export interface SoAWorldSnapshot extends BaseWorldSnapshot {
     isSoA: true;
     soaComponentData: Record<string, SoAComponentTypeData>;
 }
+
+// @public
+export type SpaceInvadersRoleKey = CommonRoleKey | "invader" | "invader_commander" | "invader_scout" | "commander" | "scout" | "ufo";
 
 // @public
 export class SpatialCullingSystem extends System<CoreComponentRegistry> {
@@ -4275,10 +4309,10 @@ export class TerminalPresenter implements NarrativePresenter {
 }
 
 // @public
-export interface Theme {
-    colorMap: Record<string, string>;
+export interface Theme<TRole extends string = string> {
+    colorMap: Partial<Record<TRole, string>>;
     lore?: Record<string, string>;
-    spriteMap: Record<string, string>;
+    spriteMap: Partial<Record<TRole, string>>;
 }
 
 // @public

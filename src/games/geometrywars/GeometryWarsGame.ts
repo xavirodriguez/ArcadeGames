@@ -13,6 +13,7 @@ import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, GeometryWarsS
 import { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { colors } from "../../theme/colors";
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
 /**
  * Main game class for Geometry Wars.
@@ -34,12 +35,13 @@ export class GeometryWarsGame extends BaseGame<
   public isMultiplayer = false;
   private networkManager!: NetworkManager<any>;
 
-  constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any; headless?: boolean; isMultiplayer?: boolean } = {}) {
+  constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any; headless?: boolean; isMultiplayer?: boolean; theme?: any } = {}) {
     super({
       pauseKey: "Escape",
       isMultiplayer: options.isMultiplayer || false,
       headless: options.headless || false,
       assetProvider: options.assetProvider,
+      theme: options.theme ?? createThemeFromGameAccents("geometrywars"),
       gameOptions: options.gameOptions,
       audio: options.audio || new WebAudioPlayer()
     });

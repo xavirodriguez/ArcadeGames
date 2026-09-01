@@ -32,8 +32,10 @@ describe("Theme Resource & Entity Factory Integration", () => {
     }).toThrow(/colorMap must be an object/);
   });
 
-  it("should fall back to default assetKey and color when no Theme resource is provided", () => {
+  it("should fall back to default assetKey and GAME_ACCENTS color when default Theme resource is set", () => {
     const world = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
+    const defaultTheme = createThemeFromGameAccents("asteroids");
+    world.setResource(THEME_RESOURCE_KEY, defaultTheme);
     registerAsteroidsBlueprints(world);
 
     const shipEntity = world.createEntity();
@@ -44,7 +46,7 @@ describe("Theme Resource & Entity Factory Integration", () => {
     const sprite = world.getComponent(shipEntity, "Sprite") as SpriteComponent;
 
     expect(render).toBeDefined();
-    expect(render.color).toBe("#00f0ff");
+    expect(render.color).toBe(defaultTheme.colorMap["player-ship"]);
     expect(sprite).toBeDefined();
     expect(sprite.assetKey).toBe("ship_sprite");
   });

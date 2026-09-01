@@ -12,7 +12,8 @@ import {
   BoundaryComponent,
   BlueprintRegistry,
   CircleShape,
-  SpriteComponent
+  SpriteComponent,
+  Theme
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
@@ -35,7 +36,11 @@ export function registerAsteroidsBlueprints(
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
       const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
       const gameConfig = w.getResource<any>("GameConfig");
+      const theme = w.getResource<Theme>("Theme");
       const useSprites = gameConfig?.USE_SPRITES !== false;
+
+      const assetKey = theme?.spriteMap["player-ship"] ?? theme?.spriteMap["player"] ?? "ship_sprite";
+      const tint = theme?.colorMap["player-ship"] ?? theme?.colorMap["player"] ?? "#00f0ff";
 
       w.addComponent(entity, {
         type: "Transform",
@@ -61,7 +66,7 @@ export function registerAsteroidsBlueprints(
         type: "Render",
         shape: useSprites ? "sprite" : "player_ship",
         size: 15,
-        color: "#00f0ff",
+        color: tint,
         visible: true,
         opacity: 1,
         order: 1,
@@ -73,7 +78,7 @@ export function registerAsteroidsBlueprints(
       if (useSprites) {
         w.addComponent(entity, {
           type: "Sprite",
-          assetKey: "ship_sprite",
+          assetKey,
           anchor: { x: 0.5, y: 0.5 }
         } as SpriteComponent);
       }
@@ -130,6 +135,9 @@ export function registerAsteroidsBlueprints(
 
   registry.register("bullet", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
+      const theme = w.getResource<Theme>("Theme");
+      const tint = theme?.colorMap["bullet"] ?? theme?.colorMap["player-bullet"] ?? "#00ff66";
+
       w.addComponent(entity, {
         type: "Transform",
         x: args.x,
@@ -154,7 +162,7 @@ export function registerAsteroidsBlueprints(
         type: "Render",
         shape: "bullet",
         size: 2,
-        color: "#00ff66",
+        color: tint,
         visible: true,
         opacity: 1,
         order: 2,
@@ -250,11 +258,15 @@ export function registerAsteroidsBlueprints(
       if (args.size === "medium") radius = 20;
       else if (args.size === "small") radius = 10;
 
+      const theme = w.getResource<Theme>("Theme");
+      const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
+      const tint = theme?.colorMap[logicalRole] ?? theme?.colorMap["asteroid"] ?? theme?.colorMap["enemy"] ?? "#ff66cc";
+
       w.addComponent(entity, {
         type: "Render",
         shape: "asteroid",
         size: radius * 2,
-        color: "#ff66cc",
+        color: tint,
         visible: true,
         opacity: 1,
         order: 0,

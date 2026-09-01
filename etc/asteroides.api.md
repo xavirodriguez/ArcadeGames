@@ -354,6 +354,7 @@ export interface BaseGameConfig<TComponents extends ComponentRegistry = Componen
     sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
     schedule?: Schedule<TComponents, TEvents>;
     seed?: number;
+    theme?: Theme;
 }
 
 // @public (undocumented)
@@ -4272,6 +4273,16 @@ export class TerminalPresenter implements NarrativePresenter {
     // (undocumented)
     buildViewModel(context: NarrativePresentationContext): NarrativePresentationModel;
 }
+
+// @public
+export interface Theme {
+    colorMap: Record<string, string>;
+    lore?: Record<string, string>;
+    spriteMap: Record<string, string>;
+}
+
+// @public
+export const THEME_RESOURCE_KEY = "Theme";
 
 // @public
 export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {

@@ -56,7 +56,7 @@ export type PongMode = "local" | "ai" | "online";
  * Implementa una física de rebotes basada en el ángulo de incidencia y el movimiento
  * relativo de las paletas (spin). Gestiona modos de juego contra IA o multijugador local.
  */
-import { TransformComponent, VelocityComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme } from "@tiny-aster/core";
 
 export interface PongBlueprintMap extends Record<string, BlueprintDefinition<PongComponentRegistry, any, any>> {
   ball: BlueprintDefinition<PongComponentRegistry, any, {}>;
@@ -113,6 +113,9 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.blueprints.register("ball", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
+        const theme = world.getResource<Theme>("Theme");
+        const tint = theme?.colorMap["ball"] ?? theme?.colorMap["primary"] ?? "white";
+
         world.addComponent(entity, {
           type: "Transform",
           x: config.WIDTH / 2,
@@ -137,7 +140,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
           type: "Render",
           shape: "circle",
           size: config.BALL_SIZE,
-          color: "white",
+          color: tint,
           rotation: 0,
           visible: true,
           opacity: 1,
@@ -178,6 +181,9 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.blueprints.register("paddle", {
       spawn: (world, entity, args: { side: "left" | "right" }) => {
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
+        const theme = world.getResource<Theme>("Theme");
+        const tint = theme?.colorMap[args.side] ?? theme?.colorMap["paddle"] ?? theme?.colorMap["primary"] ?? "white";
+
         const x = args.side === "left" ? 40 : config.WIDTH - 40;
         const y = config.HEIGHT / 2;
         world.addComponent(entity, {
@@ -204,7 +210,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
           type: "Render",
           shape: "paddle",
           size: config.PADDLE_WIDTH,
-          color: "white",
+          color: tint,
           rotation: 0,
           visible: true,
           opacity: 1,

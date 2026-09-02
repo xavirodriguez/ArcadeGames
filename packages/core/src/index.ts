@@ -20,6 +20,7 @@ export * from "./ecs/System";
 export * from "./ecs/Schedule";
 export * from "./ecs/WorldCommandBuffer";
 export * from "./ecs/BlueprintRegistry";
+export * from "./ecs/deferredEntity";
 export * from "./ecs/CoreComponents";
 export * from "./ecs/TagComponent";
 export * from "./snapshots/WorldSnapshot";

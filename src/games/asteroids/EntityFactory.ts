@@ -6,7 +6,8 @@ import {
   CircleShape,
   Theme,
   resolveThemeColor,
-  createEntityBuilder
+  createEntityBuilder,
+  spawnViaBlueprint
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
@@ -178,46 +179,8 @@ export function registerAsteroidsBlueprints(
   world.setResource("BlueprintRegistry", registry);
 }
 
-// Generadores de entidades genéricas que admiten cualquier tipo de componente dinámico.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any) => void } => {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-
-    if (isUpdating) {
-        const entity = world.reserveEntityId();
-        commands.createEntity(entity);
-        return {
-            entity,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            add: (comp: any) => {
-                commands.addComponent(entity, comp);
-            }
-        };
-    }
-
-    const entity = world.createEntity();
-    return {
-        entity,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        add: (comp: any) => world.addComponent(entity, comp)
-    };
-};
-
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  if (world.isUpdating) {
-    const entity = world.reserveEntityId();
-    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
-    return entity;
-  }
-
-  const entity = world.createEntity();
-  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
-  const blueprint = registry?.get(blueprintId);
-  if (blueprint) {
-    blueprint.spawn(world, entity, args);
-  }
-  return entity;
+  return spawnViaBlueprint(world, blueprintId, args);
 }
 
 /** @public */

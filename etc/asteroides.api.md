@@ -399,6 +399,14 @@ export interface BaseWorldSnapshot {
     tick: number;
 }
 
+// @public
+export function beginEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, deferred?: boolean, entityId?: Entity): {
+    entity: Entity;
+    add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & {
+        type: K;
+    }) => void;
+};
+
 // @public (undocumented)
 export class BinaryCompression {
     // (undocumented)
@@ -3931,6 +3939,9 @@ export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
     // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
+
+// @public
+export function spawnViaBlueprint<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>, TId extends keyof TBlueprints & string = keyof TBlueprints & string>(world: World<TComponents, TEvents, TBlueprints>, blueprintId: TId, args: any, deferred?: boolean): Entity;
 
 // @public (undocumented)
 export interface SpriteComponent extends Component {

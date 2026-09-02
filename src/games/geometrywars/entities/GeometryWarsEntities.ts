@@ -5,7 +5,8 @@ import {
   CircleShape,
   Theme,
   resolveThemeColor,
-  createEntityBuilder
+  createEntityBuilder,
+  spawnViaBlueprint
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
@@ -322,177 +323,30 @@ export function registerGeometryWarsBlueprints(
  */
 export class GeometryWarsEntityFactory {
   public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("seeker")?.spawn(mockWorld, entity, { x, y });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("seeker")?.spawn(world, entity, { x, y });
-    }
-    return entity;
+    return spawnViaBlueprint(world, "seeker", { x, y });
   }
 
   public static createEvader(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("evader")?.spawn(mockWorld, entity, { x, y });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("evader")?.spawn(world, entity, { x, y });
-    }
-    return entity;
+    return spawnViaBlueprint(world, "evader", { x, y });
   }
 
   public static createFastSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("fast_seeker")?.spawn(mockWorld, entity, { x, y });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("fast_seeker")?.spawn(world, entity, { x, y });
-    }
-    return entity;
+    return spawnViaBlueprint(world, "fast_seeker", { x, y });
   }
 
   public static createPlayer(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("player")?.spawn(mockWorld, entity, { x, y });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("player")?.spawn(world, entity, { x, y });
-    }
-    return entity;
+    return spawnViaBlueprint(world, "player", { x, y });
   }
 
   public static createBullet(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number, vx: number, vy: number, rotation: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("bullet")?.spawn(mockWorld, entity, { x, y, vx, vy, rotation });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("bullet")?.spawn(world, entity, { x, y, vx, vy, rotation });
-    }
-    return entity;
+    return spawnViaBlueprint(world, "bullet", { x, y, vx, vy, rotation });
   }
 
   public static createSpawnDirector(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("spawn_director")?.spawn(mockWorld, entity, {});
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("spawn_director")?.spawn(world, entity, {});
-    }
-    return entity;
+    return spawnViaBlueprint(world, "spawn_director", {});
   }
 
   public static createGameState(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("state")?.spawn(mockWorld, entity, {});
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("state")?.spawn(world, entity, {});
-    }
-    return entity;
+    return spawnViaBlueprint(world, "state", {});
   }
 }

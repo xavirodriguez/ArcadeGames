@@ -1,4 +1,4 @@
-import { World } from "@tiny-aster/core";
+import { World, beginEntity } from "@tiny-aster/core";
 import { Entity, Component } from "@tiny-aster/core";
 import { EnemyBlueprints } from "./config/EnemyBlueprints";
 import { EnemyTagComponent } from "./components/EnemyTagComponent";
@@ -48,19 +48,7 @@ export class EnemyFactory {
       throw new Error(`EnemyFactory: Blueprint "${blueprintId}" not found.`);
     }
 
-    const isDeferred = !!(deferred || world.isUpdating);
-    const { entity, add } = entityId !== undefined
-      ? {
-          entity: entityId,
-          add: (comp: Component) => {
-            if (isDeferred) {
-              world.getCommandBuffer().addComponent(entityId, comp);
-            } else {
-              world.addComponent(entityId, comp);
-            }
-          }
-        }
-      : this.createBaseEntity(world, deferred);
+    const { entity, add } = beginEntity(world, deferred, entityId);
 
     // 1. Transform
     add({
@@ -202,26 +190,4 @@ export class EnemyFactory {
     return entity;
   }
 
-  /**
-   * Internal helper for entity creation logic.
-   */
-  private static createBaseEntity(world: World, deferred?: boolean): { entity: Entity, add: (comp: Component) => void } {
-    const isDeferred = !!(deferred || world.isUpdating);
-    const commands = world.getCommandBuffer();
-
-    if (isDeferred) {
-      const entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      return {
-        entity,
-        add: (comp: Component) => commands.addComponent(entity, comp)
-      };
-    }
-
-    const entity = world.createEntity();
-    return {
-      entity,
-      add: (comp: Component) => world.addComponent(entity, comp)
-    };
-  }
 }

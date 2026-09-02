@@ -23,7 +23,7 @@ import { AchievementSystem } from "../shared/arcade";
  * Implementa mecánicas de scroll infinito y generación procedural de obstáculos (tuberías).
  * Utiliza un sistema de gravedad simple y una única acción de entrada ("jump").
  */
-import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColor } from "@tiny-aster/core";
+import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBirdCanvasVisuals";
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
@@ -75,37 +75,23 @@ export class FlappyBirdGame
       spawn: (world, entity, args: { x: number, y: number }) => {
         const tint = resolveThemeColor(world, "bird", "player");
 
-        world.addComponent(entity, { type: "Transform", x: args.x, y: args.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: args.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent);
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "bird",
-          size: FLAPPY_CONFIG.BIRD_RADIUS,
-          color: tint,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 0,
-          hitFlashFrames: 0,
-          angularVelocity: 0
-        } as RenderComponent);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Circle, radius: (FLAPPY_CONFIG.BIRD_RADIUS - 2) * 0.85 } as CircleShape,
-          layer: CollisionLayers.PLAYER,
-          mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity()
+          .withRender({
+            shape: "bird",
+            size: FLAPPY_CONFIG.BIRD_RADIUS,
+            color: tint
+          })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: (FLAPPY_CONFIG.BIRD_RADIUS - 2) * 0.85 } as CircleShape,
+            layer: CollisionLayers.PLAYER,
+            mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
+            offsetX: 0,
+            offsetY: 0
+          })
+          .withCollisionEvents();
+
         world.addComponent(entity, {
           type: "Bird",
           velocityY: 0,

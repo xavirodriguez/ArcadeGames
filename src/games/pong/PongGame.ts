@@ -58,7 +58,7 @@ export type PongMode = "local" | "ai" | "online";
  * Implementa una física de rebotes basada en el ángulo de incidencia y el movimiento
  * relativo de las paletas (spin). Gestiona modos de juego contra IA o multijugador local.
  */
-import { TransformComponent, VelocityComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColor } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
 
 export interface PongBlueprintMap extends Record<string, BlueprintDefinition<PongComponentRegistry, any, any>> {
   ball: BlueprintDefinition<PongComponentRegistry, any, {}>;
@@ -119,48 +119,30 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
         const tint = resolveThemeColor(world, "ball", "primary");
 
-        world.addComponent(entity, {
-          type: "Transform",
-          x: config.WIDTH / 2,
-          y: config.HEIGHT / 2,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: config.WIDTH / 2,
-          worldY: config.HEIGHT / 2,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: true
-        } as TransformComponent);
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: config.BALL_SPEED_START,
-          vy: config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1),
-          angularVelocity: 0
-        } as VelocityComponent);
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "circle",
-          size: config.BALL_SIZE,
-          color: tint,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Circle, radius: config.BALL_SIZE } as CircleShape,
-          layer: CollisionLayers.PROJECTILE,
-          mask: CollisionLayers.PLAYER,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({
+            x: config.WIDTH / 2,
+            y: config.HEIGHT / 2,
+            dirty: true
+          })
+          .withVelocity({
+            vx: config.BALL_SPEED_START,
+            vy: config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1)
+          })
+          .withRender({
+            shape: "circle",
+            size: config.BALL_SIZE,
+            color: tint
+          })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: config.BALL_SIZE } as CircleShape,
+            layer: CollisionLayers.PROJECTILE,
+            mask: CollisionLayers.PLAYER,
+            offsetX: 0,
+            offsetY: 0
+          })
+          .withCollisionEvents();
+
         world.addComponent(entity, {
           type: "Boundary",
           width: config.WIDTH,
@@ -168,13 +150,6 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
           mode: "bounce",
           bounceX: false,
           bounceY: true
-        } as any);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
         } as any);
         world.addComponent(entity, { type: "Tag", tags: ["Ball"] } as any);
         world.addComponent(entity, { type: "Ball", spinFactor: 0, spinDecay: 0.02 } as any);

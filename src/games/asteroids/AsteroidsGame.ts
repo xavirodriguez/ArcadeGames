@@ -49,7 +49,7 @@ import {
 } from "@tiny-aster/core";
 
 import { ComboSystem } from "@tiny-aster/core";
-import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem } from "../shared/arcade";
+import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem, PowerUpRegistry } from "../shared/arcade";
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -124,46 +124,7 @@ export class AsteroidsGame
     this.config = mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig } as any);
 
     this.world.setResource("GameConfig", this.config);
-    this.world.setResource("PowerUpEffects", {
-      speed_boost: {
-        apply(w: World<AsteroidsComponentRegistry>, player: number) {
-          if (w.hasComponent(player, "Velocity")) {
-            w.mutateComponent(player, "Velocity", (v) => {
-              v.vx *= 1.5;
-              v.vy *= 1.5;
-            });
-          }
-        }
-      },
-      shield: {
-        apply(w: World<AsteroidsComponentRegistry>, player: number) {
-          if (!w.hasComponent(player, "Invulnerable")) {
-            w.getCommandBuffer().addComponent(player, {
-              type: "Invulnerable",
-              remaining: 5.0
-            });
-          } else {
-            w.mutateComponent(player, "Invulnerable", (inv) => {
-              inv.remaining = Math.max(inv.remaining, 5.0);
-            });
-          }
-        }
-      },
-      extra_life: {
-        apply(w: World<AsteroidsComponentRegistry>, player: number) {
-          w.mutateSingleton("GameState", (state) => {
-            state.lives = Math.min(5, state.lives + 1);
-          });
-        }
-      },
-      score_multiplier: {
-        apply(w: World<AsteroidsComponentRegistry>, player: number) {
-          w.mutateSingleton("GameState", (state) => {
-            state.score += 500;
-          });
-        }
-      }
-    });
+    this.world.setResource("PowerUpEffects", new PowerUpRegistry());
 
     this.eventBus.on("loot:spawn", (event: any) => {
       createPowerUp({

@@ -14,7 +14,8 @@ import {
   CircleShape,
   SpriteComponent,
   Theme,
-  resolveThemeColor
+  resolveThemeColor,
+  EntityBuilder
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { PowerUpComponent } from "../shared/arcade";
@@ -50,38 +51,25 @@ export function registerAsteroidsBlueprints(
       const assetKey = theme?.spriteMap["player-ship"] ?? theme?.spriteMap["player"] ?? "ship_sprite";
       const tint = resolveThemeColor(w, "ship", "player-ship", "player");
 
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-      } as VelocityComponent);
-      w.addComponent(entity, {
-        type: "Render",
-        shape: useSprites ? "sprite" : "player_ship",
-        size: 15,
-        color: tint,
-        visible: true,
-        opacity: 1,
-        order: 1,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          dirty: true
+        })
+        .withVelocity()
+        .withRender({
+          shape: useSprites ? "sprite" : "player_ship",
+          size: 15,
+          color: tint,
+          order: 1
+        })
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
+          layer: CollisionLayers.PLAYER,
+          mask: CollisionLayers.ENEMY
+        })
+        .withCollisionEvents();
 
       if (useSprites) {
         w.addComponent(entity, {
@@ -96,21 +84,6 @@ export function registerAsteroidsBlueprints(
         current: 3,
         max: 3
       } as HealthComponent);
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
-        layer: CollisionLayers.PLAYER,
-        mask: CollisionLayers.ENEMY,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
       w.addComponent(entity, {
         type: "Boundary",
         width: screen.width,
@@ -145,62 +118,36 @@ export function registerAsteroidsBlueprints(
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
       const tint = resolveThemeColor(w, "bullet", "player-bullet");
 
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: args.rotation ?? 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: args.rotation ?? 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: args.vx,
-        vy: args.vy,
-        angularVelocity: 0
-      } as VelocityComponent);
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "bullet",
-        size: 2,
-        color: tint,
-        visible: true,
-        opacity: 1,
-        order: 2,
-        rotation: args.rotation ?? 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          rotation: args.rotation ?? 0,
+          dirty: true
+        })
+        .withVelocity({
+          vx: args.vx,
+          vy: args.vy
+        })
+        .withRender({
+          shape: "bullet",
+          size: 2,
+          color: tint,
+          order: 2,
+          rotation: args.rotation ?? 0
+        })
+        .withTTL(args.ttl ?? 2.0)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
+          layer: CollisionLayers.PROJECTILE,
+          mask: CollisionLayers.ENEMY
+        })
+        .withCollisionEvents();
+
       w.addComponent(entity, {
         type: "Bullet",
         ownerId: args.ownerId
       } as AsteroidsComponentRegistry["Bullet"]);
-      w.addComponent(entity, {
-        type: "TTL",
-        remaining: args.ttl ?? 2.0,
-        timeLeft: args.ttl ?? 2.0
-      } as TTLComponent);
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
-        layer: CollisionLayers.PROJECTILE,
-        mask: CollisionLayers.ENEMY,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
       w.addComponent(entity, {
         type: "Damage",
         amount: 1,
@@ -230,36 +177,9 @@ export function registerAsteroidsBlueprints(
   registry.register("asteroid", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
       const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
       const randVx = (w.gameplayRandom.next() - 0.5) * 100;
       const randVy = (w.gameplayRandom.next() - 0.5) * 100;
       const randAng = (w.gameplayRandom.next() - 0.5) * 2;
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: args.vx !== undefined ? args.vx : randVx,
-        vy: args.vy !== undefined ? args.vy : randVy,
-        angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Asteroid",
-        size: args.size
-      } as AsteroidsComponentRegistry["Asteroid"]);
 
       let radius = 40;
       if (args.size === "medium") radius = 20;
@@ -268,36 +188,33 @@ export function registerAsteroidsBlueprints(
       const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
       const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy");
 
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "asteroid",
-        size: radius * 2,
-        color: tint,
-        visible: true,
-        opacity: 1,
-        order: 0,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          dirty: true
+        })
+        .withVelocity({
+          vx: args.vx !== undefined ? args.vx : randVx,
+          vy: args.vy !== undefined ? args.vy : randVy,
+          angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng
+        })
+        .withRender({
+          shape: "asteroid",
+          size: radius * 2,
+          color: tint
+        })
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents();
 
       w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
+        type: "Asteroid",
+        size: args.size
+      } as AsteroidsComponentRegistry["Asteroid"]);
       w.addComponent(entity, {
         type: "Boundary",
         width: screen.width,
@@ -318,8 +235,6 @@ export function registerAsteroidsBlueprints(
         type: "LootTable",
         tableId: "default"
       } as any);
-
-      // Attach Collectible component directly
       w.addComponent(entity, {
         type: "Collectible",
         kind: "story_fragment",
@@ -333,56 +248,32 @@ export function registerAsteroidsBlueprints(
 
   registry.register("powerup", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; lootType: string }) => {
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "shield_bubble",
-        size: 15,
-        color: getPowerUpColor(args.lootType),
-        visible: true,
-        opacity: 1,
-        order: 5,
-        rotation: 0,
-        angularVelocity: 1.0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER,
-        enabled: true,
-        isTrigger: true
-      } as ColliderComponent);
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          dirty: true
+        })
+        .withRender({
+          shape: "shield_bubble",
+          size: 15,
+          color: getPowerUpColor(args.lootType),
+          order: 5,
+          angularVelocity: 1.0
+        })
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER,
+          isTrigger: true
+        })
+        .withCollisionEvents()
+        .withTTL(10.0);
+
       w.addComponent(entity, {
         type: "PowerUp",
         powerUpType: args.lootType
       } as PowerUpComponent);
-      w.addComponent(entity, {
-        type: "TTL",
-        remaining: 10.0,
-        timeLeft: 10.0
-      } as TTLComponent);
     }
   });
 

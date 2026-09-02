@@ -1372,6 +1372,20 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
 export type Entity = number;
 
 // @public
+export class EntityBuilder {
+    build(): Entity;
+    static create(world: World<any>): EntityBuilder;
+    static createDeferred(world: World<any>): EntityBuilder;
+    static fromEntity(world: World<any>, entity: Entity): EntityBuilder;
+    withCollider(config: Partial<Omit<ColliderComponent, "type">>): this;
+    withCollisionEvents(): this;
+    withRender(config?: Partial<Omit<RenderComponent, "type">>): this;
+    withTransform(config?: Partial<Omit<TransformComponent, "type">>): this;
+    withTTL(remaining: number, onCompleteEvent?: string): this;
+    withVelocity(config?: Partial<Omit<VelocityComponent, "type">>): this;
+}
+
+// @public
 export interface EntitySnapshot {
     angle?: number;
     tick: number;

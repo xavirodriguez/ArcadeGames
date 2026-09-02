@@ -42,7 +42,7 @@ import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
 import { PlatformerDamageSystem } from "./systems/PlatformerDamageSystem";
 import { PlatformerDashSystem } from "./systems/PlatformerDashSystem";
 import { PlatformerWallJumpSystem } from "./systems/PlatformerWallJumpSystem";
-import { PowerUpSystem } from "../shared/arcade/systems/PowerUpSystem";
+import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder } from "../shared/arcade";
 import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -116,7 +116,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.world.setResource("AudioPlayer", this.audio);
 
     // Register PowerUp effects
-    const powerUpEffects = {
+    const powerUpRegistry = new PowerUpRegistry({
       double_jump: {
         apply(world: World<any>, player: number) {
           if (world.hasComponent(player, "PlatformerJumper")) {
@@ -147,8 +147,8 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
           });
         }
       }
-    };
-    this.world.setResource("PowerUpEffects", powerUpEffects);
+    });
+    this.world.setResource("PowerUpEffects", powerUpRegistry);
 
     // Event bus listeners
     const eventBus = this.getEventBus();
@@ -175,20 +175,13 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     // Blueprints
     this.blueprints.register("collectible_fragment", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withRender({
+            shape: "fragment",
+            size: 16,
+            order: 1
+          });
 
         world.addComponent(entity, {
           type: "Collectible",
@@ -198,37 +191,18 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
           collectOnce: false,
           id: args.id
         } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "fragment",
-          size: 16,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
       }
     });
 
     this.blueprints.register("collectible_coin", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withRender({
+            shape: "fragment",
+            size: 16,
+            order: 1
+          });
 
         world.addComponent(entity, {
           type: "Collectible",
@@ -237,18 +211,6 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
           persistent: false,
           collectOnce: false,
           id: args.id
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "fragment",
-          size: 16,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
         } as any);
       }
     });
@@ -546,113 +508,37 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
     this.blueprints.register("powerup_double_jump", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
-          layer: 1,
-          mask: 0xFFFF,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: true,
-          enabled: true
-        } as Collider2DComponent);
-
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PowerUp",
-          powerUpType: "double_jump",
-          duration: 9999
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "fragment",
-          size: 18,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
+            isTrigger: true
+          })
+          .withCollisionEvents()
+          .withPowerUp("double_jump")
+          .withRender({
+            shape: "fragment",
+            size: 18,
+            order: 1
+          });
       }
     });
 
     this.blueprints.register("powerup_dash", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
-          layer: 1,
-          mask: 0xFFFF,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: true,
-          enabled: true
-        } as Collider2DComponent);
-
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PowerUp",
-          powerUpType: "dash_unlock",
-          duration: 9999
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "fragment",
-          size: 18,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
+            isTrigger: true
+          })
+          .withCollisionEvents()
+          .withPowerUp("dash_unlock")
+          .withRender({
+            shape: "fragment",
+            size: 18,
+            order: 1
+          });
       }
     });
 

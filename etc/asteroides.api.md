@@ -1074,6 +1074,11 @@ export function createEmptyCanonicalInputState<TExtra extends string = never>():
 export function createEmptyRawInputState(): RawInputState;
 
 // @public
+export function createEntityBuilder<TComponents extends Record<string, Component> = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entityId?: number, options?: {
+    forceDeferred?: boolean;
+}): EntityBuilder<TComponents, TEvents, TBlueprints>;
+
+// @public
 export class CrossfadeTransition implements ITransitionEffect {
     readonly drawsBothScenes = true;
     render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
@@ -2991,6 +2996,8 @@ export interface PlatformerJumperComponent extends Component {
     coyoteTimer: number;
     jumpBufferMax: number;
     jumpBufferTimer: number;
+    jumpsRemaining?: number;
+    maxJumps?: number;
     type: "PlatformerJumper";
 }
 

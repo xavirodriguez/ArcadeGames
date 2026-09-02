@@ -163,56 +163,30 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
         const x = args.side === "left" ? 40 : config.WIDTH - 40;
         const y = config.HEIGHT / 2;
-        world.addComponent(entity, {
-          type: "Transform",
-          x,
-          y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: x,
-          worldY: y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: true
-        } as TransformComponent);
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: 0,
-          vy: 0,
-          angularVelocity: 0
-        } as VelocityComponent);
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "paddle",
-          size: config.PADDLE_WIDTH,
-          color: tint,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0,
-          vertices: [
-            { x: -config.PADDLE_WIDTH / 2, y: -config.PADDLE_HEIGHT / 2 },
-            { x: config.PADDLE_WIDTH / 2, y: -config.PADDLE_HEIGHT / 2 },
-            { x: config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
-            { x: -config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
-          ]
-        } as any);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,
-          layer: CollisionLayers.PLAYER,
-          mask: CollisionLayers.PROJECTILE,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
-        world.addComponent(entity, { type: "Tag", tags: ["Paddle", args.side] } as any);
-        world.addComponent(entity, { type: "Paddle", side: args.side, previousY: y, lastVelocityY: 0 } as any);
+
+        createEntityBuilder(world, entity)
+          .withTransform({ x, y })
+          .withVelocity()
+          .withRender({
+            shape: "paddle",
+            size: config.PADDLE_WIDTH,
+            color: tint,
+            order: 0,
+            vertices: [
+              { x: -config.PADDLE_WIDTH / 2, y: -config.PADDLE_HEIGHT / 2 },
+              { x: config.PADDLE_WIDTH / 2, y: -config.PADDLE_HEIGHT / 2 },
+              { x: config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
+              { x: -config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
+            ]
+          } as any)
+          .withCollider({
+            shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,
+            layer: CollisionLayers.PLAYER,
+            mask: CollisionLayers.PROJECTILE
+          })
+          .withTag(["Paddle", args.side])
+          .withComponent({ type: "Paddle", side: args.side, previousY: y, lastVelocityY: 0 } as any)
+          .commit();
       }
     });
 

@@ -141,83 +141,40 @@ export class FlappyBirdGame
       spawn: (world, entity, args: { x: number, gapY: number }) => {
         const pipeColor = resolveThemeColor(world, "pipe", "enemy");
 
-        // Since original createPipe spawned TWO entities, we can spawn a bottom pipe too or define separate blueprints.
-        // But to keep it as a single spawner interface, let's spawn both from this blueprint using commands inside commands!
         const halfGap = FLAPPY_CONFIG.GAP_SIZE / 2;
         const pipeWidth = FLAPPY_CONFIG.PIPE_WIDTH;
         const pipeSpeed = FLAPPY_CONFIG.PIPE_SPEED;
 
-        // Top Pipe components are added on this entity
+        // Top Pipe
         const topY = args.gapY - halfGap;
-        world.addComponent(entity, { type: "Transform", x: args.x, y: topY / 2, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: topY / 2, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.addComponent(entity, { type: "Velocity", vx: -pipeSpeed, vy: 0, angularVelocity: 0 } as VelocityComponent);
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "pipe",
-          size: pipeWidth,
-          color: pipeColor,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 0,
-          hitFlashFrames: 0,
-          angularVelocity: 0
-        } as RenderComponent);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Box, width: pipeWidth, height: topY } as BoxShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: false });
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: topY / 2 })
+          .withVelocity({ vx: -pipeSpeed, vy: 0 })
+          .withRender({ shape: "pipe", size: pipeWidth, color: pipeColor, order: 0 })
+          .withCollider({
+            shape: { type: ShapeType.Box, width: pipeWidth, height: topY } as BoxShape,
+            layer: CollisionLayers.ENEMY,
+            mask: CollisionLayers.PLAYER
+          })
+          .withCollisionEvents()
+          .withComponent({ type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: false })
+          .commit();
 
-        // Spawn Bottom Pipe entity deferredly/immediately
-        const bottomEntity = world.createEntity();
+        // Bottom Pipe
         const bottomY = args.gapY + halfGap;
         const bottomHeight = FLAPPY_CONFIG.SCREEN_HEIGHT - bottomY;
-        world.addComponent(bottomEntity, { type: "Transform", x: args.x, y: bottomY + bottomHeight / 2, rotation: 0, scaleX: 1, scaleY: 1, worldX: args.x, worldY: bottomY + bottomHeight / 2, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.addComponent(bottomEntity, { type: "Velocity", vx: -pipeSpeed, vy: 0, angularVelocity: 0 } as VelocityComponent);
-        world.addComponent(bottomEntity, {
-          type: "Render",
-          shape: "pipe",
-          size: pipeWidth,
-          color: pipeColor,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 0,
-          hitFlashFrames: 0,
-          angularVelocity: 0
-        } as RenderComponent);
-        world.addComponent(bottomEntity, {
-          type: "Collider",
-          shape: { type: ShapeType.Box, width: pipeWidth, height: bottomHeight } as BoxShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
-        world.addComponent(bottomEntity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-        world.addComponent(bottomEntity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: true });
+        createEntityBuilder(world)
+          .withTransform({ x: args.x, y: bottomY + bottomHeight / 2 })
+          .withVelocity({ vx: -pipeSpeed, vy: 0 })
+          .withRender({ shape: "pipe", size: pipeWidth, color: pipeColor, order: 0 })
+          .withCollider({
+            shape: { type: ShapeType.Box, width: pipeWidth, height: bottomHeight } as BoxShape,
+            layer: CollisionLayers.ENEMY,
+            mask: CollisionLayers.PLAYER
+          })
+          .withCollisionEvents()
+          .withComponent({ type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: true })
+          .commit();
       }
     });
 
@@ -225,37 +182,17 @@ export class FlappyBirdGame
       spawn: (world, entity, _args: {}) => {
         const groundColor = resolveThemeColor(world, "ground");
 
-        world.addComponent(entity, { type: "Transform", x: FLAPPY_CONFIG.SCREEN_WIDTH / 2, y: FLAPPY_CONFIG.GROUND_Y, rotation: 0, scaleX: 1, scaleY: 1, worldX: FLAPPY_CONFIG.SCREEN_WIDTH / 2, worldY: FLAPPY_CONFIG.GROUND_Y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-        world.addComponent(entity, {
-          type: "Collider",
-          shape: { type: ShapeType.Box, width: FLAPPY_CONFIG.SCREEN_WIDTH, height: FLAPPY_CONFIG.SCREEN_HEIGHT - FLAPPY_CONFIG.GROUND_Y } as BoxShape,
-          layer: CollisionLayers.DEBRIS,
-          mask: CollisionLayers.PLAYER,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as ColliderComponent);
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as CollisionEventsComponent);
-        world.addComponent(entity, { type: "Ground" });
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "ground",
-          size: FLAPPY_CONFIG.SCREEN_WIDTH,
-          color: groundColor,
-          rotation: 0,
-          visible: true,
-          opacity: 1,
-          order: 0,
-          hitFlashFrames: 0,
-          angularVelocity: 0
-        } as RenderComponent);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: FLAPPY_CONFIG.SCREEN_WIDTH / 2, y: FLAPPY_CONFIG.GROUND_Y })
+          .withCollider({
+            shape: { type: ShapeType.Box, width: FLAPPY_CONFIG.SCREEN_WIDTH, height: FLAPPY_CONFIG.SCREEN_HEIGHT - FLAPPY_CONFIG.GROUND_Y } as BoxShape,
+            layer: CollisionLayers.DEBRIS,
+            mask: CollisionLayers.PLAYER
+          })
+          .withCollisionEvents()
+          .withRender({ shape: "ground", size: FLAPPY_CONFIG.SCREEN_WIDTH, color: groundColor, order: 0 })
+          .withComponent({ type: "Ground" })
+          .commit();
       }
     });
 

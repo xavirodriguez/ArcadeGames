@@ -1,28 +1,16 @@
 import {
   World,
-  TransformComponent,
   getForwardVector,
-  VelocityComponent,
-  RenderComponent,
-  HealthComponent,
-  TTLComponent,
-  ColliderComponent,
-  CollisionEventsComponent,
   ShapeType,
-  BoundaryComponent,
   BlueprintRegistry,
   CircleShape,
-  SpriteComponent,
   Theme,
   resolveThemeColor,
   EntityBuilder
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
-import { PowerUpComponent } from "../shared/arcade";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
-import { ParticlePool } from "./EntityPool";
-import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
 
 function getPowerUpColor(lootType: string): string {
   if (lootType === "shield") return "#00f0ff";
@@ -99,24 +87,44 @@ export function registerAsteroidsBlueprints(
       const initialCombo = hasComboHeadStart ? 5 : 0;
       const initialMultiplier = hasComboHeadStart ? 2 : 1;
       const initialTimerRemaining = hasComboHeadStart ? (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000 : 0;
-      w.addComponent(entity, {
-        type: "Combo",
-        combo: initialCombo,
-        multiplier: initialMultiplier,
-        timerRemaining: initialTimerRemaining,
-        timerDuration: (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000
-      } as any);
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "player",
-        value: "player"
-      } as FactionComponent);
+
+      const builder = createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withVelocity()
+        .withRender({ shape: useSprites ? "sprite" : "player_ship", size: 15, color: tint, order: 1 })
+        .withHealth(3, 3)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
+          layer: CollisionLayers.PLAYER,
+          mask: CollisionLayers.ENEMY
+        })
+        .withCollisionEvents()
+        .withBoundary({ width: screen.width, height: screen.height, mode: "wrap" })
+        .withFaction("player")
+        .withComponent({
+          type: "Ship",
+          sessionId: "",
+          shootCooldownRemaining: 0
+        } as any)
+        .withComponent({
+          type: "Combo",
+          combo: initialCombo,
+          multiplier: initialMultiplier,
+          timerRemaining: initialTimerRemaining,
+          timerDuration: (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000
+        } as any);
+
+      if (useSprites) {
+        builder.withSprite({ assetKey, anchor: { x: 0.5, y: 0.5 } });
+      }
+      builder.commit();
     }
   });
 
   registry.register("bullet", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
       const tint = resolveThemeColor(w, "bullet", "player-bullet");
+      const gameConfig = w.getResource<any>("GameConfig");
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({
@@ -161,16 +169,11 @@ export function registerAsteroidsBlueprints(
         value: "player"
       } as FactionComponent);
 
-      const gameConfig = w.getResource<any>("GameConfig");
       if (gameConfig?.BULLET_BOUNDARY_BEHAVIOR === "bounce") {
         const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-        w.addComponent(entity, {
-          type: "Boundary",
-          width: screen.width,
-          height: screen.height,
-          mode: "bounce"
-        } as BoundaryComponent);
+        builder.withBoundary({ width: screen.width, height: screen.height, mode: "bounce" });
       }
+      builder.commit();
     }
   });
 
@@ -307,34 +310,9 @@ const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any)
 };
 
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  const isUpdating = world.isUpdating;
-  const commands = world.commands;
-
-  if (isUpdating) {
+  if (world.isUpdating) {
     const entity = world.reserveEntityId();
-    commands.createEntity(entity);
-
-    const mockWorld = new Proxy(world, {
-      get(target, prop, receiver) {
-        if (prop === "addComponent") {
-          return (ent: number, comp: any) => commands.addComponent(ent, comp);
-        }
-        if (prop === "createEntity") {
-          return () => {
-            const ent = target.reserveEntityId();
-            commands.createEntity(ent);
-            return ent;
-          };
-        }
-        return Reflect.get(target, prop, receiver);
-      }
-    });
-
-    const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
-    const blueprint = registry?.get(blueprintId);
-    if (blueprint) {
-      blueprint.spawn(mockWorld, entity, args);
-    }
+    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
     return entity;
   }
 

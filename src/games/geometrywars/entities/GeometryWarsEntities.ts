@@ -1,18 +1,11 @@
 import {
   World,
-  TransformComponent,
-  VelocityComponent,
-  RenderComponent,
-  HealthComponent,
-  TTLComponent,
-  ColliderComponent,
-  CollisionEventsComponent,
   ShapeType,
   BlueprintRegistry,
   CircleShape,
-  SteeringComponent,
   Theme,
-  resolveThemeColor
+  resolveThemeColor,
+  createEntityBuilder
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
@@ -36,112 +29,56 @@ export function registerGeometryWarsBlueprints(
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
       const tint = resolveThemeColor(w, "player");
 
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "gw_player",
-        size: 16,
-        color: tint,
-        visible: true,
-        opacity: 1,
-        order: 1,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-
-      w.addComponent(entity, {
-        type: "Health",
-        current: 1,
-        max: 1,
-        invulnerableRemaining: config?.INVULNERABILITY_DURATION ?? 2.0
-      } as HealthComponent);
-
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 8 } as CircleShape,
-        layer: CollisionLayers.PLAYER,
-        mask: CollisionLayers.ENEMY,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
-      w.addComponent(entity, {
-        type: "Player",
-        fireCooldownRemaining: 0,
-        invulnRemaining: config?.INVULNERABILITY_DURATION ?? 2.0,
-        moveX: 0,
-        moveY: 0
-      } as GeometryWarsComponentRegistry["Player"]);
-
-      w.addComponent(entity, {
-        type: "Aim",
-        aimX: 0,
-        aimY: 0,
-        isFiring: false
-      } as GeometryWarsComponentRegistry["Aim"]);
-
-      w.addComponent(entity, {
-        type: "Weapon",
-        cooldownRemaining: 0,
-        cooldownDuration: config?.PLAYER_FIRE_COOLDOWN ?? 0.12
-      } as WeaponComponent);
-
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "player",
-        value: "player"
-      } as FactionComponent);
-
-      w.addComponent(entity, {
-        type: "Combo",
-        combo: 0,
-        multiplier: 1,
-        timerRemaining: 0,
-        timerDuration: 3.0
-      } as ComboComponent);
-
-      w.addComponent(entity, {
-        type: "KineticAccumulator",
-        storedEnergy: 0,
-        maxEnergy: config?.KINETIC_MAX_ENERGY ?? 100,
-        chargeOnMoveRate: config?.KINETIC_CHARGE_ON_MOVE_RATE ?? 15,
-        grazeRadius: config?.KINETIC_GRAZE_RADIUS ?? 40,
-        grazeChargeAmount: config?.KINETIC_GRAZE_CHARGE_AMOUNT ?? 10,
-        burstRadius: config?.KINETIC_BURST_RADIUS ?? 180,
-        isBurstReady: false,
-        isBurstActive: false,
-        overdriveRemaining: 0
-      } as GeometryWarsComponentRegistry["KineticAccumulator"]);
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withVelocity()
+        .withRender({ shape: "gw_player", size: 16, color: tint, order: 1 })
+        .withHealth(1, 1, config?.INVULNERABILITY_DURATION ?? 2.0)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 8 } as CircleShape,
+          layer: CollisionLayers.PLAYER,
+          mask: CollisionLayers.ENEMY
+        })
+        .withCollisionEvents()
+        .withFaction("player")
+        .withComponent({
+          type: "Player",
+          fireCooldownRemaining: 0,
+          invulnRemaining: config?.INVULNERABILITY_DURATION ?? 2.0,
+          moveX: 0,
+          moveY: 0
+        } as any)
+        .withComponent({
+          type: "Aim",
+          aimX: 0,
+          aimY: 0,
+          isFiring: false
+        } as any)
+        .withComponent({
+          type: "Weapon",
+          cooldownRemaining: 0,
+          cooldownDuration: config?.PLAYER_FIRE_COOLDOWN ?? 0.12
+        } as WeaponComponent)
+        .withComponent({
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: 3.0
+        } as any)
+        .withComponent({
+          type: "KineticAccumulator",
+          storedEnergy: 0,
+          maxEnergy: config?.KINETIC_MAX_ENERGY ?? 100,
+          chargeOnMoveRate: config?.KINETIC_CHARGE_ON_MOVE_RATE ?? 15,
+          grazeRadius: config?.KINETIC_GRAZE_RADIUS ?? 40,
+          grazeChargeAmount: config?.KINETIC_GRAZE_CHARGE_AMOUNT ?? 10,
+          burstRadius: config?.KINETIC_BURST_RADIUS ?? 180,
+          isBurstReady: false,
+          isBurstActive: false,
+          overdriveRemaining: 0
+        } as any)
+        .commit();
     }
   });
 
@@ -150,305 +87,102 @@ export function registerGeometryWarsBlueprints(
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
       const tint = resolveThemeColor(w, "bullet", "secondary");
 
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: args.rotation,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: args.rotation,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: args.vx,
-        vy: args.vy,
-        angularVelocity: 0
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "gw_bullet",
-        size: 4,
-        color: tint,
-        visible: true,
-        opacity: 1,
-        order: 2,
-        rotation: args.rotation,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-
-      w.addComponent(entity, {
-        type: "TTL",
-        remaining: config?.BULLET_TTL ?? 1.2,
-        timeLeft: config?.BULLET_TTL ?? 1.2
-      } as TTLComponent);
-
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
-        layer: CollisionLayers.PROJECTILE,
-        mask: CollisionLayers.ENEMY,
-        enabled: true,
-        isTrigger: true
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
-      w.addComponent(entity, {
-        type: "Damage",
-        amount: 1,
-        category: "player_bullet",
-        friendlyFire: false,
-        consumption: "destroy-entity"
-      } as DamageComponent);
-
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "player",
-        value: "player"
-      } as FactionComponent);
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y, rotation: args.rotation })
+        .withVelocity({ vx: args.vx, vy: args.vy })
+        .withRender({ shape: "gw_bullet", size: 4, color: tint, order: 2, rotation: args.rotation })
+        .withTTL(config?.BULLET_TTL ?? 1.2)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
+          layer: CollisionLayers.PROJECTILE,
+          mask: CollisionLayers.ENEMY,
+          isTrigger: true
+        })
+        .withCollisionEvents()
+        .withFaction("player")
+        .withComponent({
+          type: "Damage",
+          amount: 1,
+          category: "player_bullet",
+          friendlyFire: false,
+          consumption: "destroy-entity"
+        } as any)
+        .commit();
     }
   });
 
   registry.register("enemy_chaser", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "gw_chaser",
-        size: 14,
-        color: colors.pink,
-        visible: true,
-        opacity: 1,
-        order: 1,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-
-      w.addComponent(entity, {
-        type: "Health",
-        current: 1,
-        max: 1
-      } as HealthComponent);
-
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 7 } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "enemy",
-        value: "enemy"
-      } as FactionComponent);
-
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
-        maxSpeed: 140,
-        maxAcceleration: 150
-      } as SteeringComponent);
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withVelocity()
+        .withRender({ shape: "gw_chaser", size: 14, color: colors.pink, order: 1 })
+        .withHealth(1, 1)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 7 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents()
+        .withFaction("enemy")
+        .withComponent({
+          type: "Steering",
+          mode: "seek",
+          targetFaction: "player",
+          maxSpeed: 140,
+          maxAcceleration: 150
+        } as any)
+        .commit();
     }
   });
 
   registry.register("enemy_evader", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "gw_evader",
-        size: 14,
-        color: "#ffaa00",
-        visible: true,
-        opacity: 1,
-        order: 1,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-
-      w.addComponent(entity, {
-        type: "Health",
-        current: 1,
-        max: 1
-      } as HealthComponent);
-
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 7 } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "enemy",
-        value: "enemy"
-      } as FactionComponent);
-
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
-        maxSpeed: 120,
-        maxAcceleration: 100
-      } as SteeringComponent);
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withVelocity()
+        .withRender({ shape: "gw_evader", size: 14, color: "#ffaa00", order: 1 })
+        .withHealth(1, 1)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 7 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents()
+        .withFaction("enemy")
+        .withComponent({
+          type: "Steering",
+          mode: "seek",
+          targetFaction: "player",
+          maxSpeed: 120,
+          maxAcceleration: 100
+        } as any)
+        .commit();
     }
   });
 
   registry.register("enemy_grunt", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "gw_grunt",
-        size: 10,
-        color: colors.cyan,
-        visible: true,
-        opacity: 1,
-        order: 1,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-
-      w.addComponent(entity, {
-        type: "Health",
-        current: 1,
-        max: 1
-      } as HealthComponent);
-
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 5 } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "enemy",
-        value: "enemy"
-      } as FactionComponent);
-
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
-        maxSpeed: 250,
-        maxAcceleration: 280
-      } as SteeringComponent);
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withVelocity()
+        .withRender({ shape: "gw_grunt", size: 10, color: colors.cyan, order: 1 })
+        .withHealth(1, 1)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 5 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents()
+        .withFaction("enemy")
+        .withComponent({
+          type: "Steering",
+          mode: "seek",
+          targetFaction: "player",
+          maxSpeed: 250,
+          maxAcceleration: 280
+        } as any)
+        .commit();
     }
   });
 
@@ -483,258 +217,99 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("seeker", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "gw_seeker",
-        size: 12,
-        color: colors.pink,
-        visible: true,
-        opacity: 1,
-        order: 3,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-
-      w.addComponent(entity, {
-        type: "Health",
-        current: 2,
-        max: 2,
-        invulnerableRemaining: 0
-      } as HealthComponent);
-
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
-      w.addComponent(entity, {
-        type: "Damage",
-        amount: 1,
-        category: "enemy_contact",
-        friendlyFire: false,
-        consumption: "none"
-      } as DamageComponent);
-
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "enemy",
-        value: "enemy"
-      } as FactionComponent);
-
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
-        maxSpeed: 120,
-        maxAcceleration: 80,
-        arrivalRadius: 10
-      } as any);
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withVelocity()
+        .withRender({ shape: "gw_seeker", size: 12, color: colors.pink, order: 3 })
+        .withHealth(2, 2, 0)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents()
+        .withFaction("enemy")
+        .withComponent({
+          type: "Damage",
+          amount: 1,
+          category: "enemy_contact",
+          friendlyFire: false,
+          consumption: "none"
+        } as any)
+        .withComponent({
+          type: "Steering",
+          mode: "seek",
+          targetFaction: "player",
+          maxSpeed: 120,
+          maxAcceleration: 80,
+          arrivalRadius: 10
+        } as any)
+        .commit();
     }
   });
 
   registry.register("evader", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "gw_evader",
-        size: 12,
-        color: colors.green,
-        visible: true,
-        opacity: 1,
-        order: 3,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-
-      w.addComponent(entity, {
-        type: "Health",
-        current: 1,
-        max: 1,
-        invulnerableRemaining: 0
-      } as HealthComponent);
-
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
-      w.addComponent(entity, {
-        type: "Damage",
-        amount: 1,
-        category: "enemy_contact",
-        friendlyFire: false,
-        consumption: "none"
-      } as DamageComponent);
-
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "enemy",
-        value: "enemy"
-      } as FactionComponent);
-
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "flee",
-        targetFaction: "player",
-        maxSpeed: 100,
-        maxAcceleration: 60
-      } as any);
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withVelocity()
+        .withRender({ shape: "gw_evader", size: 12, color: colors.green, order: 3 })
+        .withHealth(1, 1, 0)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents()
+        .withFaction("enemy")
+        .withComponent({
+          type: "Damage",
+          amount: 1,
+          category: "enemy_contact",
+          friendlyFire: false,
+          consumption: "none"
+        } as any)
+        .withComponent({
+          type: "Steering",
+          mode: "flee",
+          targetFaction: "player",
+          maxSpeed: 100,
+          maxAcceleration: 60
+        } as any)
+        .commit();
     }
   });
 
   registry.register("fast_seeker", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      w.addComponent(entity, {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: args.x,
-        worldY: args.y,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as TransformComponent);
-
-      w.addComponent(entity, {
-        type: "Velocity",
-        vx: 0,
-        vy: 0,
-        angularVelocity: 0
-      } as VelocityComponent);
-
-      w.addComponent(entity, {
-        type: "Render",
-        shape: "gw_fast_seeker",
-        size: 8,
-        color: colors.pink,
-        visible: true,
-        opacity: 1,
-        order: 3,
-        rotation: 0,
-        angularVelocity: 0,
-        hitFlashFrames: 0
-      } as RenderComponent);
-
-      w.addComponent(entity, {
-        type: "Health",
-        current: 1,
-        max: 1,
-        invulnerableRemaining: 0
-      } as HealthComponent);
-
-      w.addComponent(entity, {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 4 } as CircleShape,
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-        enabled: true,
-        isTrigger: false
-      } as ColliderComponent);
-
-      w.addComponent(entity, {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent);
-
-      w.addComponent(entity, {
-        type: "Damage",
-        amount: 1,
-        category: "enemy_contact",
-        friendlyFire: false,
-        consumption: "none"
-      } as DamageComponent);
-
-      w.addComponent(entity, {
-        type: "Faction",
-        faction: "enemy",
-        value: "enemy"
-      } as FactionComponent);
-
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
-        maxSpeed: 200,
-        maxAcceleration: 150,
-        arrivalRadius: 5
-      } as any);
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withVelocity()
+        .withRender({ shape: "gw_fast_seeker", size: 8, color: colors.pink, order: 3 })
+        .withHealth(1, 1, 0)
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 4 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents()
+        .withFaction("enemy")
+        .withComponent({
+          type: "Damage",
+          amount: 1,
+          category: "enemy_contact",
+          friendlyFire: false,
+          consumption: "none"
+        } as any)
+        .withComponent({
+          type: "Steering",
+          mode: "seek",
+          targetFaction: "player",
+          maxSpeed: 200,
+          maxAcceleration: 150,
+          arrivalRadius: 5
+        } as any)
+        .commit();
     }
   });
 

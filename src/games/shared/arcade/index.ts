@@ -1,6 +1,7 @@
 export * from "@tiny-aster/core";
 export * from "./systems/LootSystem";
 export * from "./systems/PowerUpSystem";
+export * from "./powerups/PowerUpEffectRegistry";
 export * from "./systems/DifficultyDirectorSystem";
 export * from "./systems/AchievementSystem";
 export * from "./powerups/PowerUpRegistry";

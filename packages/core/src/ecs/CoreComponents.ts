@@ -364,6 +364,10 @@ export interface PlatformerJumperComponent extends Component {
   coyoteTimeMax: number;
   /** Maximum jump buffer window duration. */
   jumpBufferMax: number;
+  /** Maximum jumps allowed (for double jump). */
+  maxJumps?: number;
+  /** Remaining jumps available. */
+  jumpsRemaining?: number;
 }
 
 /** @public */

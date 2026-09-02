@@ -399,14 +399,6 @@ export interface BaseWorldSnapshot {
     tick: number;
 }
 
-// @public
-export function beginEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, deferred?: boolean, entityId?: Entity): {
-    entity: Entity;
-    add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & {
-        type: K;
-    }) => void;
-};
-
 // @public (undocumented)
 export class BinaryCompression {
     // (undocumented)
@@ -1082,9 +1074,7 @@ export function createEmptyCanonicalInputState<TExtra extends string = never>():
 export function createEmptyRawInputState(): RawInputState;
 
 // @public
-export function createEntityBuilder<TComponents extends Record<string, Component> = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entityId?: number, options?: {
-    forceDeferred?: boolean;
-}): EntityBuilder<TComponents, TEvents, TBlueprints>;
+export function createEntityBuilder(world: World<any>, entity?: Entity): EntityBuilder;
 
 // @public
 export class CrossfadeTransition implements ITransitionEffect {
@@ -1385,102 +1375,17 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
 export type Entity = number;
 
 // @public
-export class EntityBuilder<TComponents extends Record<string, Component> = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
-    constructor(world: World<TComponents, TEvents, TBlueprints>, entityId?: number, options?: {
-        forceDeferred?: boolean;
-    });
-    build(): number;
-    commit(): number;
-    getEntityId(): number;
-    withBoundary(config: {
-        width: number;
-        height: number;
-        mode: "wrap" | "bounce" | "destroy";
-        bounceX?: boolean;
-        bounceY?: boolean;
-    }): this;
-    withCollider(config: {
-        shape: Shape;
-        layer?: CollisionLayer;
-        mask?: CollisionMask;
-        enabled?: boolean;
-        isTrigger?: boolean;
-        offsetX?: number;
-        offsetY?: number;
-    }): this;
-    withCollider2D(config: {
-        shape: {
-            type: "circle";
-            radius: number;
-        } | {
-            type: "aabb";
-            halfWidth: number;
-            halfHeight: number;
-        };
-        layer?: number;
-        mask?: number;
-        enabled?: boolean;
-        isTrigger?: boolean;
-        offsetX?: number;
-        offsetY?: number;
-    }): this;
+export class EntityBuilder {
+    build(): Entity;
+    static create(world: World<any>): EntityBuilder;
+    static createDeferred(world: World<any>): EntityBuilder;
+    static fromEntity(world: World<any>, entity: Entity): EntityBuilder;
+    withCollider(config: Partial<Omit<ColliderComponent, "type">>): this;
     withCollisionEvents(): this;
-    withComponent<K extends ComponentType<TComponents>>(component: TComponents[K] & {
-        type: K;
-    }): this;
-    withFaction(value: string): this;
-    withHealth(current: number, max?: number, invulnerableRemaining?: number): this;
-    withPowerUp(powerUpType: string, duration?: number): this;
-    withRender(config: {
-        shape?: string;
-        spriteId?: string;
-        size?: number;
-        color?: string;
-        visible?: boolean;
-        opacity?: number;
-        order?: number;
-        rotation?: number;
-        angularVelocity?: number;
-        hitFlashFrames?: number;
-    }): this;
-    withSprite(config: {
-        textureId?: string;
-        assetKey?: string;
-        srcRect?: {
-            x: number;
-            y: number;
-            w: number;
-            h: number;
-        };
-        anchor?: {
-            x: number;
-            y: number;
-        };
-        flipX?: boolean;
-        flipY?: boolean;
-        tint?: string;
-    }): this;
-    withTag(tags: string[]): this;
-    withTransform(config: {
-        x: number;
-        y: number;
-        rotation?: number;
-        scaleX?: number;
-        scaleY?: number;
-        worldX?: number;
-        worldY?: number;
-        worldRotation?: number;
-        worldScaleX?: number;
-        worldScaleY?: number;
-        dirty?: boolean;
-        parentEntity?: number;
-    }): this;
-    withTTL(remainingSeconds: number, onCompleteEvent?: string): this;
-    withVelocity(config?: {
-        vx?: number;
-        vy?: number;
-        angularVelocity?: number;
-    }): this;
+    withRender(config?: Partial<Omit<RenderComponent, "type">>): this;
+    withTransform(config?: Partial<Omit<TransformComponent, "type">>): this;
+    withTTL(remaining: number, onCompleteEvent?: string): this;
+    withVelocity(config?: Partial<Omit<VelocityComponent, "type">>): this;
 }
 
 // @public
@@ -3939,9 +3844,6 @@ export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
     // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
-
-// @public
-export function spawnViaBlueprint<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>, TId extends keyof TBlueprints & string = keyof TBlueprints & string>(world: World<TComponents, TEvents, TBlueprints>, blueprintId: TId, args: any, deferred?: boolean): Entity;
 
 // @public (undocumented)
 export interface SpriteComponent extends Component {

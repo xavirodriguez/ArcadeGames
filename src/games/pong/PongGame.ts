@@ -58,7 +58,7 @@ export type PongMode = "local" | "ai" | "online";
  * Implementa una física de rebotes basada en el ángulo de incidencia y el movimiento
  * relativo de las paletas (spin). Gestiona modos de juego contra IA o multijugador local.
  */
-import { TransformComponent, VelocityComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColor, createEntityBuilder } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, ColliderComponent, BoundaryComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
 
 export interface PongBlueprintMap extends Record<string, BlueprintDefinition<PongComponentRegistry, any, any>> {
   ball: BlueprintDefinition<PongComponentRegistry, any, {}>;
@@ -119,23 +119,40 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
         const tint = resolveThemeColor(world, "ball", "primary");
 
-        createEntityBuilder(world, entity)
-          .withTransform({ x: config.WIDTH / 2, y: config.HEIGHT / 2 })
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({
+            x: config.WIDTH / 2,
+            y: config.HEIGHT / 2,
+            dirty: true
+          })
           .withVelocity({
             vx: config.BALL_SPEED_START,
             vy: config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1)
           })
-          .withRender({ shape: "circle", size: config.BALL_SIZE, color: tint, order: 0 })
+          .withRender({
+            shape: "circle",
+            size: config.BALL_SIZE,
+            color: tint
+          })
           .withCollider({
             shape: { type: ShapeType.Circle, radius: config.BALL_SIZE } as CircleShape,
             layer: CollisionLayers.PROJECTILE,
-            mask: CollisionLayers.PLAYER
+            mask: CollisionLayers.PLAYER,
+            offsetX: 0,
+            offsetY: 0
           })
-          .withBoundary({ width: config.WIDTH, height: config.HEIGHT, mode: "bounce", bounceX: false, bounceY: true })
-          .withCollisionEvents()
-          .withTag(["Ball"])
-          .withComponent({ type: "Ball", spinFactor: 0, spinDecay: 0.02 } as any)
-          .commit();
+          .withCollisionEvents();
+
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: config.WIDTH,
+          height: config.HEIGHT,
+          mode: "bounce",
+          bounceX: false,
+          bounceY: true
+        } as BoundaryComponent);
+        world.addComponent(entity, { type: "Tag", tags: ["Ball"] } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "Ball", spinFactor: 0, spinDecay: 0.02 } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -147,7 +164,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         const x = args.side === "left" ? 40 : config.WIDTH - 40;
         const y = config.HEIGHT / 2;
 
-        createEntityBuilder(world, entity)
+        EntityBuilder.fromEntity(world, entity)
           .withTransform({ x, y })
           .withVelocity()
           .withRender({
@@ -166,10 +183,10 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
             shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,
             layer: CollisionLayers.PLAYER,
             mask: CollisionLayers.PROJECTILE
-          })
-          .withTag(["Paddle", args.side])
-          .withComponent({ type: "Paddle", side: args.side, previousY: y, lastVelocityY: 0 } as any)
-          .commit();
+          });
+
+        world.addComponent(entity, { type: "Tag", tags: ["Paddle", args.side] } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "Paddle", side: args.side, previousY: y, lastVelocityY: 0 } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -195,14 +212,14 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
           shieldPulseRemaining: hasShieldPulse ? 5.0 : 0.0,
           scoreFreezeRemaining: 0,
           lastScorer: null
-        } as any);
+        } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "Combo",
           combo: 0,
           multiplier: 1,
           timerRemaining: 0,
           timerDuration: 2.0
-        } as any);
+        } as { type: string; [key: string]: unknown });
       }
     });
 

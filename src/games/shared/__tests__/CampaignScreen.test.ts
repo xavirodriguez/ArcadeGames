@@ -1,7 +1,8 @@
 import React from "react";
 import { CampaignScreen } from "../../../components/CampaignScreen";
-import { GameDefinitionRegistry } from "@tiny-aster/core";
+import { GameDefinitionRegistry, CampaignGameResolver } from "@tiny-aster/core";
 import { registerDefaultCampaignGames } from "../../../services/CampaignGameRegistryService";
+import { proofOfConceptStoryGraph } from "../story/ProofOfConceptStoryGraph";
 
 describe("CampaignScreen Component & Resolver Tests", () => {
   beforeAll(() => {
@@ -52,5 +53,24 @@ describe("CampaignScreen Component & Resolver Tests", () => {
 
     expect(element).toBeTruthy();
     expect(element.type).toBe(CampaignScreen);
+  });
+
+  it("verifies proofOfConceptStoryGraph nodes resolve to valid game definitions", () => {
+    for (const [nodeId, node] of Object.entries(proofOfConceptStoryGraph.nodes)) {
+      const targetGameId = (node.sceneToLoad || node.meta?.minijuego || node.meta?.sceneToLoad) as string | undefined;
+
+      if (node.type === "gameplay") {
+        expect(targetGameId).toBeDefined();
+        const normalizedId = GameDefinitionRegistry.normalizeId(targetGameId!);
+        const isRegistered = GameDefinitionRegistry.has(normalizedId);
+        expect(isRegistered).toBe(true);
+
+        expect(() => GameDefinitionRegistry.resolve(normalizedId)).not.toThrow();
+      } else if (node.sceneToLoad) {
+        const normalizedId = GameDefinitionRegistry.normalizeId(node.sceneToLoad);
+        const isRegistered = GameDefinitionRegistry.has(normalizedId);
+        expect(isRegistered).toBe(true);
+      }
+    }
   });
 });

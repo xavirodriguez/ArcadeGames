@@ -76,7 +76,28 @@ export class SpawnDirectorSystem<
           world.getCommandBuffer().createEntity(entityId);
 
           if (blueprints) {
-            world.getCommandBuffer().spawnFromBlueprintForEntity(entityId, spawn.blueprintId as never, spawn.args as never);
+            const blueprint = blueprints.get(spawn.blueprintId);
+            if (blueprint) {
+              // Safe blueprint spawn proxy for updates
+              const commands = world.getCommandBuffer();
+              const proxyWorld = new Proxy(world, {
+                get(target, prop, receiver) {
+                  if (prop === "addComponent") {
+                    return (ent: number, comp: any) => commands.addComponent(ent, comp);
+                  }
+                  if (prop === "createEntity") {
+                    return () => {
+                      const ent = target.reserveEntityId();
+                      commands.createEntity(ent);
+                      return ent;
+                    };
+                  }
+                  return Reflect.get(target, prop, receiver);
+                }
+              });
+
+              blueprint.spawn(proxyWorld as any, entityId, spawn.args);
+            }
           }
 
           // Attach WaveMember component to identify it belongs to the wave

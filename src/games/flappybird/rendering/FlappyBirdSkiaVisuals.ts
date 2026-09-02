@@ -328,13 +328,18 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     }
     canvas.scale(scaleX, scaleY);
 
-    // --- CYAN LIGHT TRAIL ---
+    // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
     if (isAlive) {
+      const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
+      const trailColor = trailConfig?.color || "rgba(0, 243, 255, 0.35)";
+      const trailWidth = trailConfig?.width || 2.0;
+      const lengthMult = trailConfig?.lengthMultiplier || 1.0;
+
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("rgba(0, 243, 255, 0.35)"));
-      paint.setStrokeWidth(2.0);
-      canvas.drawLine(-size * 0.55, 0, -size * 1.8 - Math.min(speed * 0.1, 15), 0, paint);
+      paint.setColor(Skia.Color(trailColor));
+      paint.setStrokeWidth(trailWidth);
+      canvas.drawLine(-size * 0.55, 0, -size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0, paint);
     }
 
     // --- THERMONUCLEAR REACTIVE THRUSTER FLAME ---

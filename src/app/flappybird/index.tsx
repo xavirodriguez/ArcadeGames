@@ -135,11 +135,11 @@ export default function FlappyBirdScreen() {
   }, [isMulti, room, handleInput, game]);
 
   const handleShootPress = useCallback(() => {
-    handleInputState({ flap: true, glide: true });
+    handleInputState({ flap: true });
   }, [handleInputState]);
 
   const handleShootRelease = useCallback(() => {
-    handleInputState({ flap: false, glide: false });
+    handleInputState({ flap: false });
   }, [handleInputState]);
 
   if (isBooting) {
@@ -227,7 +227,12 @@ export default function FlappyBirdScreen() {
             </View>
         )}
 
-        <ComboDisplay multiplier={(gameState as { comboMultiplier?: number })?.comboMultiplier || 1} isActive={true} />
+        <ComboDisplay
+          multiplier={(gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier || (gameState as { multiplier?: number })?.multiplier || 1}
+          isActive={true}
+          timerRemaining={(gameState as { comboTimerRemaining?: number })?.comboTimerRemaining}
+          timerDuration={2.0}
+        />
         <FlappyBirdUI
           gameState={gameState}
           onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
@@ -249,16 +254,13 @@ export default function FlappyBirdScreen() {
               joystickId="movement_joystick"
               type="movement"
               onMove={(x, y) => {
-                const flap = y < -0.25;
                 handleInputState({
-                  flap,
-                  glide: flap,
+                  flap: y < -0.25,
                 });
               }}
               onRelease={() => {
                 handleInputState({
                   flap: false,
-                  glide: false,
                 });
               }}
             />

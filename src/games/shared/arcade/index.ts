@@ -4,6 +4,8 @@ export * from "./systems/PowerUpSystem";
 export * from "./powerups/PowerUpEffectRegistry";
 export * from "./systems/DifficultyDirectorSystem";
 export * from "./systems/AchievementSystem";
+export * from "./powerups/PowerUpRegistry";
+export * from "./builders/ArcadeEntityBuilder";
 export * from "./types/ArcadeTypes";
 export * from "./types/ArcadeConfigSchema";
 export * from "./spawnScorePopup";

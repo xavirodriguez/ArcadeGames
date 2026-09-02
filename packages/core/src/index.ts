@@ -19,6 +19,7 @@ export * from "./ecs/Query";
 export * from "./ecs/System";
 export * from "./ecs/Schedule";
 export * from "./ecs/WorldCommandBuffer";
+export * from "./ecs/EntityBuilder";
 export * from "./ecs/BlueprintRegistry";
 export * from "./ecs/CoreComponents";
 export * from "./ecs/TagComponent";

@@ -6,7 +6,8 @@ import {
   CircleShape,
   Theme,
   resolveThemeColor,
-  EntityBuilder
+  createEntityBuilder,
+  spawnViaBlueprint
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
@@ -104,24 +105,10 @@ export function registerAsteroidsBlueprints(
       const tint = resolveThemeColor(w, "bullet", "player-bullet");
       const gameConfig = w.getResource<any>("GameConfig");
 
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({
-          x: args.x,
-          y: args.y,
-          rotation: args.rotation ?? 0,
-          dirty: true
-        })
-        .withVelocity({
-          vx: args.vx,
-          vy: args.vy
-        })
-        .withRender({
-          shape: "bullet",
-          size: 2,
-          color: tint,
-          order: 2,
-          rotation: args.rotation ?? 0
-        })
+      const builder = createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y, rotation: args.rotation ?? 0 })
+        .withVelocity({ vx: args.vx, vy: args.vy })
+        .withRender({ shape: "bullet", size: 2, color: tint, order: 2, rotation: args.rotation ?? 0 })
         .withTTL(args.ttl ?? 2.0)
         .withCollider({
           shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
@@ -162,6 +149,7 @@ export function registerAsteroidsBlueprints(
   registry.register("asteroid", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
       const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+
       const randVx = (w.gameplayRandom.next() - 0.5) * 100;
       const randVy = (w.gameplayRandom.next() - 0.5) * 100;
       const randAng = (w.gameplayRandom.next() - 0.5) * 2;
@@ -173,22 +161,14 @@ export function registerAsteroidsBlueprints(
       const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
       const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy");
 
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({
-          x: args.x,
-          y: args.y,
-          dirty: true
-        })
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
         .withVelocity({
           vx: args.vx !== undefined ? args.vx : randVx,
           vy: args.vy !== undefined ? args.vy : randVy,
           angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng
         })
-        .withRender({
-          shape: "asteroid",
-          size: radius * 2,
-          color: tint
-        })
+        .withRender({ shape: "asteroid", size: radius * 2, color: tint, order: 0 })
         .withCollider({
           shape: { type: ShapeType.Circle, radius } as CircleShape,
           layer: CollisionLayers.ENEMY,
@@ -233,19 +213,9 @@ export function registerAsteroidsBlueprints(
 
   registry.register("powerup", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; lootType: string }) => {
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({
-          x: args.x,
-          y: args.y,
-          dirty: true
-        })
-        .withRender({
-          shape: "shield_bubble",
-          size: 15,
-          color: getPowerUpColor(args.lootType),
-          order: 5,
-          angularVelocity: 1.0
-        })
+      createEntityBuilder(w, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withRender({ shape: "shield_bubble", size: 15, color: getPowerUpColor(args.lootType), order: 5, angularVelocity: 1.0 })
         .withCollider({
           shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
           layer: CollisionLayers.ENEMY,
@@ -265,46 +235,8 @@ export function registerAsteroidsBlueprints(
   world.setResource("BlueprintRegistry", registry);
 }
 
-// Generadores de entidades genéricas que admiten cualquier tipo de componente dinámico.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any) => void } => {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-
-    if (isUpdating) {
-        const entity = world.reserveEntityId();
-        commands.createEntity(entity);
-        return {
-            entity,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            add: (comp: any) => {
-                commands.addComponent(entity, comp);
-            }
-        };
-    }
-
-    const entity = world.createEntity();
-    return {
-        entity,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        add: (comp: any) => world.addComponent(entity, comp)
-    };
-};
-
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  if (world.isUpdating) {
-    const entity = world.reserveEntityId();
-    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
-    return entity;
-  }
-
-  const entity = world.createEntity();
-  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
-  const blueprint = registry?.get(blueprintId);
-  if (blueprint) {
-    blueprint.spawn(world, entity, args);
-  }
-  return entity;
+  return spawnViaBlueprint(world, blueprintId, args);
 }
 
 /** @public */

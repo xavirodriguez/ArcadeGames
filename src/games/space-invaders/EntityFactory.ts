@@ -1,4 +1,4 @@
-import { World } from "@tiny-aster/core";
+import { World, spawnViaBlueprint } from "@tiny-aster/core";
 import { Entity, Component } from "@tiny-aster/core";
 import { SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG, SpaceInvadersComponentRegistry } from "./types/SpaceInvadersTypes";
@@ -26,48 +26,8 @@ import { EnemyFactory } from "./EnemyFactory";
  * @packageDocumentation
  */
 
-/**
- * Helper to handle deferred or immediate entity creation and component attachment.
- */
-const createBaseEntity = (world: World<any>, deferred?: boolean): { entity: Entity, add: (comp: any) => void } => {
-    const isUpdating = world.isUpdating;
-    const isDeferred = !!(deferred || isUpdating);
-    const commands = world.getCommandBuffer();
-
-    if (isDeferred) {
-        const entity = world.reserveEntityId();
-        commands.createEntity(entity);
-        return {
-            entity,
-            add: (comp: any) => {
-                commands.addComponent(entity, comp);
-            }
-        };
-    }
-
-    const entity = world.createEntity();
-    return {
-        entity,
-        add: (comp: any) => world.addComponent(entity, comp)
-    };
-};
-
-import { BlueprintRegistry } from "@tiny-aster/core";
-
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  if (world.isUpdating) {
-    const entity = world.reserveEntityId();
-    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
-    return entity;
-  }
-
-  const entity = world.createEntity();
-  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
-  const blueprint = registry?.get(blueprintId);
-  if (blueprint) {
-    blueprint.spawn(world, entity, args);
-  }
-  return entity;
+  return spawnViaBlueprint(world, blueprintId, args);
 }
 
 /**

@@ -45,6 +45,7 @@ import {
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
 import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
+import { ArcadeEntityBuilder } from "../shared/arcade";
 
 /**
  * System that manages triggering the Pulse attack and processing its cooldowns.
@@ -213,7 +214,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     // Register blueprints
     this.blueprints.register("pulse_hitbox", {
       spawn: (world, entity, args: { dir: number; x: number; y: number; parent: number }) => {
-        EntityBuilder.fromEntity(world, entity)
+        ArcadeEntityBuilder.fromEntity(world, entity)
           .withTransform({
             x: args.dir * 25,
             y: 0,
@@ -221,8 +222,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
             worldY: args.y,
             parentEntity: args.parent
           })
-          .withCollider({
-            shape: { type: "aabb", halfWidth: 15, halfHeight: 15 } as any,
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 15, halfHeight: 15 },
             layer: 1 << 3,
             mask: 1 << 4,
             isTrigger: true
@@ -242,17 +243,21 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
 
     this.blueprints.register("player", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        EntityBuilder.fromEntity(world, entity)
+        ArcadeEntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withVelocity()
-          .withCollider({
-            shape: { type: "aabb", halfWidth: 10, halfHeight: 15 } as any
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 10, halfHeight: 15 },
+            layer: 1,
+            mask: 0xffff,
+            enabled: true,
+            isTrigger: false
           })
           .withRender({ shape: "player", size: 24, order: 2 })
           .withCollisionEvents();
 
+        world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
-        world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as { type: string; [key: string]: unknown });
         world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerMovementConfig",
@@ -426,11 +431,11 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
 
     this.blueprints.register("moving_platform", {
       spawn: (world, entity, args: { x: number; y: number; ampX: number; ampY: number; freq: number }) => {
-        EntityBuilder.fromEntity(world, entity)
+        ArcadeEntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withVelocity()
-          .withCollider({
-            shape: { type: "aabb", halfWidth: 30, halfHeight: 10 } as any,
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 30, halfHeight: 10 },
             layer: 2
           })
           .withRender({ shape: "paddle", size: 60, order: 1 });
@@ -831,7 +836,6 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
 
     // Instantiate Plan
     SegmentGenerator.instantiatePlan(this.world, this.levelPlan, ECHO_CONFIG.TILE_SIZE, tileDefinitions);
-    this.world.flush();
 
     // Spawn Player
     const playerEntity = this.world.createEntity();
@@ -858,6 +862,9 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
       smoothingY: 6.0,
       verticalDeadzone: 45
     });
+
+    // Flush all deferred commands from SegmentGenerator and blueprint spawns
+    this.world.flush();
     } catch (err) {
       console.error("[EchoRunnerGame] Failed to initialize entities:", err);
       throw err instanceof Error ? err : new Error(`[EchoRunnerGame] Initialization error: ${String(err)}`);

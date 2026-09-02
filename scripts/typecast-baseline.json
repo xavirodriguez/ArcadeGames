@@ -650,9 +650,9 @@
     "total": 3
   },
   "src/games/echorunner/EchoRunnerGame.ts": {
-    "anyCount": 17,
+    "anyCount": 14,
     "unknownCount": 0,
-    "total": 17
+    "total": 14
   },
   "src/games/echorunner/__tests__/EchoRunner.test.ts": {
     "anyCount": 12,

@@ -33,9 +33,13 @@ const rawMutators: Mutator[] = [
   {
     id: 'heavy_gravity',
     name: 'Heavy Gravity',
-    description: 'La gravedad es el doble de fuerte.',
+    description: 'La gravedad es el doble de fuerte y los impulsos son un 50% más potentes.',
     games: ['flappybird'],
-    apply: (cfg) => ({ ...cfg, GRAVITY: ((cfg.GRAVITY as number) || 0) * 2 })
+    apply: (cfg) => ({
+      ...cfg,
+      GRAVITY: ((cfg.GRAVITY as number) || 800) * 2,
+      FLAP_STRENGTH: Math.round(((cfg.FLAP_STRENGTH as number) || -300) * 1.5),
+    })
   },
   {
     id: 'hyper_drift',

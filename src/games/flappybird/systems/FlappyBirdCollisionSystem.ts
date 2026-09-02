@@ -10,17 +10,19 @@ import { EventBus } from "@tiny-aster/core";
 /**
  * System that reacts to collision events between the bird and pipes or ground.
  */
+import { FLAPPY_CONFIG } from "../types/FlappyBirdTypes";
+
 export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistry> {
   private _game: IFlappyBirdGame;
 
-  constructor(game: IFlappyBirdGame) {
+  constructor(game: IFlappyBirdGame, private config: typeof FLAPPY_CONFIG = FLAPPY_CONFIG) {
     super();
     this._game = game;
   }
 
   public override update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
-    // Decrementar coyote timer y disparar game over si expiró
+    // Decrementar coyote timer, aplicar flash visual y disparar game over si expiró
     const birds = world.query("Bird");
     for (let i = 0; i < birds.length; i++) {
       const bird = birds[i];
@@ -35,6 +37,10 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
             this.triggerGameOver(world);
             return;
           }
+        }
+        const mutableRender = world.getMutableComponent(bird, "Render");
+        if (mutableRender) {
+          mutableRender.hitFlashFrames = 2;
         }
       }
     }
@@ -62,7 +68,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
       // Safe for determinism/rollback. Direct getMutableComponent avoids callback allocation.
       const birdComp = world.getMutableComponent(matchPipe["Bird"], "Bird");
       if (birdComp && birdComp.coyoteTimer <= 0) {
-        birdComp.coyoteTimer = 0.05; // 50ms en segundos
+        birdComp.coyoteTimer = this.config.COYOTE_TIME;
         const eventBus = world.getResource<EventBus>("EventBus");
         if (eventBus) {
           eventBus.emitDeferred("PlaySFX", { name: "hit" });
@@ -122,18 +128,27 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
         const verticalDist = Math.max(0, pipeTop - birdBottom, birdTop - pipeBottom);
         const dist = horizontalDist + verticalDist;
 
-        if (dist > 0 && dist < 12) {
+        if (dist > 0 && dist < this.config.NEAR_MISS_THRESHOLD) {
            if (birdComp.nearMissTimer <= 0) {
+             const points = Math.max(10, Math.round(
+               this.config.MAX_NEAR_MISS_POINTS * (1 - dist / this.config.NEAR_MISS_THRESHOLD)
+             ));
+
              world.mutateComponent(bird, "Bird", b => {
                 b.nearMissTimer = 0.3;
              });
 
              world.mutateSingleton("FlappyState", gs => {
-                 gs.score += 50;
+                 gs.score += points;
              });
 
              const eventBus = world.getResource<EventBus>("EventBus");
-             if (eventBus) eventBus.emitDeferred("flappy:near_miss", { points: 50 });
+             if (eventBus) eventBus.emitDeferred("flappy:near_miss", { points });
+
+             const closeness = 1 - dist / this.config.NEAR_MISS_THRESHOLD;
+             const particleCount = Math.max(3, Math.round(12 * closeness));
+             const minSpeed = Math.round(40 + 40 * closeness);
+             const maxSpeed = Math.round(80 + 80 * closeness);
 
              Juice.shake(world, 2, 100);
              createEmitter(world, {
@@ -142,10 +157,10 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
                 y: birdPos.y,
                 rate: 0,
                 burst: true,
-                count: 5,
-                color: ["#00F3FF"],
+                count: particleCount,
+                color: ["#FF3300", "#FF9900"],
                 size: [2, 4],
-                speed: [40, 80],
+                speed: [minSpeed, maxSpeed],
                 angle: [0, 360],
                 lifetime: [0.3, 0.5],
                 loop: false

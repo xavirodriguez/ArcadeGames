@@ -281,6 +281,49 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
       runMutatorHooks(world, "shield_pulse");
     }
   },
+  "heavy_gravity": {
+    id: "heavy_gravity",
+    name: "Gravedad Pesada",
+    description: "Gravedad x2 y fuerza de flap x1.5 para una física intensa.",
+    rarity: "COMMON",
+    tags: ["physics", "movement"],
+    supportedGames: ["flappybird", "flappy_bird"],
+    xpCost: 400,
+    canDraft: (world, context) => true,
+    apply: (world, context) => {
+      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      if (config) {
+        const newConfig = { ...config };
+        if (typeof newConfig.GRAVITY === "number") {
+          newConfig.GRAVITY = Math.round(newConfig.GRAVITY * 2.0);
+        }
+        if (typeof newConfig.FLAP_STRENGTH === "number") {
+          newConfig.FLAP_STRENGTH = Math.round(newConfig.FLAP_STRENGTH * 1.5);
+        }
+        world.setResource("GameConfig", newConfig);
+      }
+      runMutatorHooks(world, "heavy_gravity");
+    }
+  },
+  "cosmetic_trails": {
+    id: "cosmetic_trails",
+    name: "Estela Neón Cosmética",
+    description: "Activa una estela neón intensa y parametrizada detrás de tu nave.",
+    rarity: "COMMON",
+    tags: ["cosmetic", "visual"],
+    supportedGames: ["flappybird", "flappy_bird"],
+    xpCost: 200,
+    canDraft: (world, context) => true,
+    apply: (world, context) => {
+      world.setResource("CosmeticTrailConfig", {
+        enabled: true,
+        color: "#00F3FF",
+        width: 3.5,
+        lengthMultiplier: 1.8,
+      });
+      runMutatorHooks(world, "cosmetic_trails");
+    }
+  },
   "hyper_drift": {
     id: "hyper_drift",
     name: "Derrape Hiperespacial",

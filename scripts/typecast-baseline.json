@@ -44,11 +44,6 @@
     "unknownCount": 3,
     "total": 14
   },
-  "packages/core/src/ecs/__tests__/EntityBuilder.test.ts": {
-    "anyCount": 3,
-    "unknownCount": 0,
-    "total": 3
-  },
   "packages/core/src/network/LocalPredictionSystem.ts": {
     "anyCount": 16,
     "unknownCount": 0,
@@ -549,11 +544,6 @@
     "unknownCount": 1,
     "total": 1
   },
-  "src/components/ComboDisplay.tsx": {
-    "anyCount": 0,
-    "unknownCount": 2,
-    "total": 2
-  },
   "src/components/DailyChallengeCard.tsx": {
     "anyCount": 1,
     "unknownCount": 0,
@@ -595,9 +585,9 @@
     "total": 6
   },
   "src/games/asteroids/EntityFactory.ts": {
-    "anyCount": 7,
+    "anyCount": 2,
     "unknownCount": 0,
-    "total": 7
+    "total": 2
   },
   "src/games/asteroids/__tests__/AsteroidCollisionSystem.test.ts": {
     "anyCount": 1,
@@ -660,19 +650,24 @@
     "total": 3
   },
   "src/games/echorunner/EchoRunnerGame.ts": {
-    "anyCount": 39,
+    "anyCount": 17,
     "unknownCount": 0,
-    "total": 39
+    "total": 17
   },
   "src/games/echorunner/__tests__/EchoRunner.test.ts": {
-    "anyCount": 11,
+    "anyCount": 12,
     "unknownCount": 1,
-    "total": 12
+    "total": 13
   },
   "src/games/echorunner/rendering/EchoRunnerCanvasVisuals.ts": {
-    "anyCount": 10,
+    "anyCount": 16,
     "unknownCount": 0,
-    "total": 10
+    "total": 16
+  },
+  "src/games/echorunner/rendering/EchoRunnerSkiaVisuals.ts": {
+    "anyCount": 16,
+    "unknownCount": 0,
+    "total": 16
   },
   "src/games/echorunner/story/EchoRunnerEncounter.ts": {
     "anyCount": 12,
@@ -744,11 +739,6 @@
     "unknownCount": 0,
     "total": 1
   },
-  "src/games/geometrywars/entities/GeometryWarsEntities.ts": {
-    "anyCount": 14,
-    "unknownCount": 0,
-    "total": 14
-  },
   "src/games/geometrywars/scenes/GeometryWarsGameScene.ts": {
     "anyCount": 8,
     "unknownCount": 3,
@@ -770,9 +760,9 @@
     "total": 1
   },
   "src/games/platformer/PlatformerGame.ts": {
-    "anyCount": 33,
+    "anyCount": 8,
     "unknownCount": 0,
-    "total": 33
+    "total": 8
   },
   "src/games/platformer/__tests__/PlatformerGame.test.ts": {
     "anyCount": 4,
@@ -810,9 +800,9 @@
     "total": 4
   },
   "src/games/pong/PongGame.ts": {
-    "anyCount": 13,
+    "anyCount": 9,
     "unknownCount": 1,
-    "total": 14
+    "total": 10
   },
   "src/games/pong/__tests__/PongUpgrades.test.ts": {
     "anyCount": 22,
@@ -895,14 +885,9 @@
     "total": 5
   },
   "src/games/shared/arcade/systems/LootSystem.ts": {
-    "anyCount": 2,
+    "anyCount": 3,
     "unknownCount": 0,
-    "total": 2
-  },
-  "src/games/shared/arcade/systems/PowerUpSystem.ts": {
-    "anyCount": 4,
-    "unknownCount": 0,
-    "total": 4
+    "total": 3
   },
   "src/games/shared/combat/__tests__/CombatSystem.test.ts": {
     "anyCount": 51,
@@ -945,9 +930,9 @@
     "total": 3
   },
   "src/games/space-invaders/SpaceInvadersGame.ts": {
-    "anyCount": 41,
+    "anyCount": 32,
     "unknownCount": 0,
-    "total": 41
+    "total": 32
   },
   "src/games/space-invaders/__tests__/SpaceInvadersCombat.test.ts": {
     "anyCount": 23,
@@ -1005,9 +990,9 @@
     "total": 10
   },
   "src/games/space-invaders/systems/SpaceInvadersInputSystem.ts": {
-    "anyCount": 2,
+    "anyCount": 3,
     "unknownCount": 0,
-    "total": 2
+    "total": 3
   },
   "src/games/space-invaders/systems/WaveTransitionSystem.ts": {
     "anyCount": 2,

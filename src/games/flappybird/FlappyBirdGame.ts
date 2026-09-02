@@ -228,7 +228,7 @@ export class FlappyBirdGame
     this.world.addSystem(new HierarchySystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Transform });
     this.world.addSystem(new TTLSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
     this.world.addSystem(new CollisionSystem2D() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Collision });
-    this.world.addSystem(new FlappyBirdCollisionSystem(this), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new FlappyBirdCollisionSystem(this, this.config), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
@@ -471,9 +471,31 @@ export class FlappyBirdGame
     }
   }
 
-  public getGameState(): FlappyBirdState {
-    const state = this.getWorld().getSingleton("FlappyState");
-    return state ? { ...state } : { ...INITIAL_FLAPPY_STATE };
+  public getGameState(): FlappyBirdState & { combo?: number; multiplier?: number; comboMultiplier?: number; comboTimerRemaining?: number } {
+    const world = this.getWorld();
+    const state = world.getSingleton("FlappyState");
+    let combo = 0;
+    let multiplier = 1;
+    let comboTimerRemaining = 0;
+
+    const comboEntities = world.query("Combo");
+    if (comboEntities.length > 0) {
+      const comboComp = world.getComponent(comboEntities[0], "Combo");
+      if (comboComp) {
+        combo = comboComp.combo ?? 0;
+        multiplier = comboComp.multiplier ?? 1;
+        comboTimerRemaining = Math.max(0, comboComp.timerRemaining ?? 0);
+      }
+    }
+
+    const baseState = state ? { ...state } : { ...INITIAL_FLAPPY_STATE };
+    return {
+      ...baseState,
+      combo,
+      multiplier,
+      comboMultiplier: multiplier,
+      comboTimerRemaining
+    };
   }
 
   public isGameOver(): boolean {

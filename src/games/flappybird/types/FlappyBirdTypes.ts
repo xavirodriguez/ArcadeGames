@@ -101,6 +101,11 @@ export const FLAPPY_CONFIG = {
 
   GROUND_Y: 580,
 
+  NEAR_MISS_THRESHOLD: 12,
+  PIPE_SPAWN_MARGIN: 100,
+  COYOTE_TIME: 0.05,
+  MAX_NEAR_MISS_POINTS: 80,
+
   KEYS: {
     FLAP: "Space",
     PAUSE: "KeyP",

@@ -301,16 +301,21 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.restore();
     }
 
-    // --- CYAN LIGHT TRAIL ---
+    // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
     if (isAlive) {
+      const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
+      const trailColor = trailConfig?.color || "#00F3FF";
+      const trailWidth = trailConfig?.width || 2.0;
+      const lengthMult = trailConfig?.lengthMultiplier || 1.0;
+
       ctx.save();
-      ctx.strokeStyle = "rgba(0, 243, 255, 0.35)";
-      ctx.lineWidth = 2.0;
-      ctx.shadowColor = "#00F3FF";
-      ctx.shadowBlur = 8;
+      ctx.strokeStyle = trailConfig?.enabled ? trailColor : "rgba(0, 243, 255, 0.35)";
+      ctx.lineWidth = trailWidth;
+      ctx.shadowColor = trailColor;
+      ctx.shadowBlur = trailConfig?.enabled ? 12 : 8;
       ctx.beginPath();
       ctx.moveTo(-size * 0.55, 0);
-      ctx.lineTo(-size * 1.8 - Math.min(speed * 0.1, 15), 0);
+      ctx.lineTo(-size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0);
       ctx.stroke();
       ctx.restore();
     }

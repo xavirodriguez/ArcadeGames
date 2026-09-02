@@ -7,7 +7,7 @@ import {
   Theme,
   resolveThemeColor,
   createEntityBuilder,
-  spawnViaBlueprint
+  spawnViaBlueprint,
   EntityBuilder
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";

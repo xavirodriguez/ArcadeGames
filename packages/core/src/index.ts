@@ -12,6 +12,7 @@
 
 // ECS Core
 export * from "./ecs/Entity";
+export * from "./ecs/EntityBuilder";
 export * from "./ecs/Component";
 export * from "./ecs/World";
 export * from "./ecs/Query";

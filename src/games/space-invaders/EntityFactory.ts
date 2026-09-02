@@ -55,34 +55,9 @@ const createBaseEntity = (world: World<any>, deferred?: boolean): { entity: Enti
 import { BlueprintRegistry } from "@tiny-aster/core";
 
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  const isUpdating = world.isUpdating;
-  const commands = world.commands;
-
-  if (isUpdating) {
+  if (world.isUpdating) {
     const entity = world.reserveEntityId();
-    commands.createEntity(entity);
-
-    const mockWorld = new Proxy(world, {
-      get(target, prop, receiver) {
-        if (prop === "addComponent") {
-          return (ent: number, comp: any) => commands.addComponent(ent, comp);
-        }
-        if (prop === "createEntity") {
-          return () => {
-            const ent = target.reserveEntityId();
-            commands.createEntity(ent);
-            return ent;
-          };
-        }
-        return Reflect.get(target, prop, receiver);
-      }
-    });
-
-    const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
-    const blueprint = registry?.get(blueprintId);
-    if (blueprint) {
-      blueprint.spawn(mockWorld, entity, args);
-    }
+    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
     return entity;
   }
 

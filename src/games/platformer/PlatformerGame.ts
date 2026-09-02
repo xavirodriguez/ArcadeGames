@@ -35,14 +35,15 @@ import {
   TagComponent,
   HealthComponent,
   Theme,
-  resolveThemeColor
+  resolveThemeColor,
+  createEntityBuilder
 } from "@tiny-aster/core";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
 import { PlatformerDamageSystem } from "./systems/PlatformerDamageSystem";
 import { PlatformerDashSystem } from "./systems/PlatformerDashSystem";
 import { PlatformerWallJumpSystem } from "./systems/PlatformerWallJumpSystem";
-import { PowerUpSystem } from "../shared/arcade/systems/PowerUpSystem";
+import { PowerUpSystem, PowerUpEffectRegistry } from "../shared/arcade";
 import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -115,40 +116,8 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.world.setResource("RunState", runState);
     this.world.setResource("AudioPlayer", this.audio);
 
-    // Register PowerUp effects
-    const powerUpEffects = {
-      double_jump: {
-        apply(world: World<any>, player: number) {
-          if (world.hasComponent(player, "PlatformerJumper")) {
-            world.mutateComponent(player, "PlatformerJumper", (j: any) => {
-              j.maxJumps = 2;
-              j.jumpsRemaining = 2;
-            });
-          }
-        }
-      },
-      dash_unlock: {
-        apply(world: World<any>, player: number) {
-          world.commands.addComponent(player, {
-            type: "DashUnlocked",
-            unlocked: true,
-            dashSpeed: 500,
-            cooldown: 0,
-            cooldownMax: 0.8,
-            dashTimeRemaining: 0
-          });
-        }
-      },
-      wall_jump_unlock: {
-        apply(world: World<any>, player: number) {
-          world.commands.addComponent(player, {
-            type: "WallJumpUnlocked",
-            unlocked: true
-          });
-        }
-      }
-    };
-    this.world.setResource("PowerUpEffects", powerUpEffects);
+    const powerUpRegistry = new PowerUpEffectRegistry();
+    powerUpRegistry.attachToWorld(this.world);
 
     // Event bus listeners
     const eventBus = this.getEventBus();
@@ -175,688 +144,247 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     // Blueprints
     this.blueprints.register("collectible_fragment", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Collectible",
-          kind: "fragment",
-          value: 10,
-          persistent: false,
-          collectOnce: false,
-          id: args.id
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "fragment",
-          size: 16,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withRender({ shape: "fragment", size: 16, order: 1 })
+          .withComponent({
+            type: "Collectible",
+            kind: "fragment",
+            value: 10,
+            persistent: false,
+            collectOnce: false,
+            id: args.id
+          } as any)
+          .commit();
       }
     });
 
     this.blueprints.register("collectible_coin", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Collectible",
-          kind: "coin",
-          value: 20,
-          persistent: false,
-          collectOnce: false,
-          id: args.id
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "fragment",
-          size: 16,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withRender({ shape: "fragment", size: 16, order: 1 })
+          .withComponent({
+            type: "Collectible",
+            kind: "coin",
+            value: 20,
+            persistent: false,
+            collectOnce: false,
+            id: args.id
+          } as any)
+          .commit();
       }
     });
 
     this.blueprints.register("checkpoint_node", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "RespawnPoint",
-          x: args.x,
-          y: args.y - 10,
-          checkpointId: args.id
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "node",
-          size: 32,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withRender({ shape: "node", size: 32, order: 1 })
+          .withComponent({
+            type: "RespawnPoint",
+            x: args.x,
+            y: args.y - 10,
+            checkpointId: args.id
+          } as any)
+          .commit();
       }
     });
 
     this.blueprints.register("enemy_sentinel", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: 0,
-          vy: 0,
-          angularVelocity: 0
-        } as VelocityComponent);
-
-        world.addComponent(entity, {
-          type: "Enemy",
-          kind: "patrol"
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Patrol",
-          startX: args.x - 80,
-          endX: args.x + 80,
-          direction: 1,
-          patrolSpeed: 70
-        } as any);
-
-        world.addComponent(entity, {
-          type: "GroundDetector",
-          hasGroundAhead: true,
-          hasWallAhead: false,
-          sensorOffsetX: 15,
-          sensorOffsetY: 20
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PlayerSensor",
-          visionRange: 130,
-          detectedPlayerEntity: undefined
-        } as any);
-
-        world.addComponent(entity, {
-          type: "StateMachine",
-          currentState: "Patrol",
-          elapsedInState: 0,
-          data: {
-            patrolSpeed: 70,
-            alertDuration: 0.3,
-            windupDuration: 0.3,
-            attackDuration: 0.4,
-            recoveryDuration: 0.5
-          },
-          machineId: "patrol",
-          elapsedMs: 0
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Health",
-          current: 1,
-          max: 1
-        } as HealthComponent);
-
-        world.addComponent(entity, {
-          type: "Hurtbox"
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "sentinel",
-          size: 22,
-          visible: true,
-          opacity: 1,
-          order: 2,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity()
+          .withRender({ shape: "sentinel", size: 22, order: 2 })
+          .withHealth(1, 1)
+          .withComponent({ type: "Enemy", kind: "patrol" } as any)
+          .withComponent({ type: "Patrol", startX: args.x - 80, endX: args.x + 80, direction: 1, patrolSpeed: 70 } as any)
+          .withComponent({ type: "GroundDetector", hasGroundAhead: true, hasWallAhead: false, sensorOffsetX: 15, sensorOffsetY: 20 } as any)
+          .withComponent({ type: "PlayerSensor", visionRange: 130, detectedPlayerEntity: undefined } as any)
+          .withComponent({
+            type: "StateMachine",
+            currentState: "Patrol",
+            elapsedInState: 0,
+            data: { patrolSpeed: 70, alertDuration: 0.3, windupDuration: 0.3, attackDuration: 0.4, recoveryDuration: 0.5 },
+            machineId: "patrol",
+            elapsedMs: 0
+          } as any)
+          .withComponent({ type: "Hurtbox" } as any)
+          .commit();
       }
     });
 
     this.blueprints.register("enemy_hopper", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: 0,
-          vy: 0,
-          angularVelocity: 0
-        } as VelocityComponent);
-
-        world.addComponent(entity, {
-          type: "Enemy",
-          kind: "jumper"
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PlayerSensor",
-          visionRange: 150,
-          detectedPlayerEntity: undefined
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PlatformerGroundState",
-          isGrounded: false
-        } as any);
-
-        world.addComponent(entity, {
-          type: "StateMachine",
-          currentState: "Idle",
-          elapsedInState: 0,
-          data: {
-            idleDuration: 0.8,
-            alertDuration: 0.3,
-            windupDuration: 0.3,
-            jumpVelocity: 260,
-            patrolSpeed: 60,
-            attackDuration: 0.8,
-            recoveryDuration: 0.4
-          },
-          machineId: "jumper",
-          elapsedMs: 0
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Health",
-          current: 1,
-          max: 1
-        } as HealthComponent);
-
-        world.addComponent(entity, {
-          type: "Hurtbox"
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "hopper",
-          size: 24,
-          visible: true,
-          opacity: 1,
-          order: 2,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity()
+          .withRender({ shape: "hopper", size: 24, order: 2 })
+          .withHealth(1, 1)
+          .withComponent({ type: "Enemy", kind: "jumper" } as any)
+          .withComponent({ type: "PlayerSensor", visionRange: 150, detectedPlayerEntity: undefined } as any)
+          .withComponent({ type: "PlatformerGroundState", isGrounded: false } as any)
+          .withComponent({
+            type: "StateMachine",
+            currentState: "Idle",
+            elapsedInState: 0,
+            data: { idleDuration: 0.8, alertDuration: 0.3, windupDuration: 0.3, jumpVelocity: 260, patrolSpeed: 60, attackDuration: 0.8, recoveryDuration: 0.4 },
+            machineId: "jumper",
+            elapsedMs: 0
+          } as any)
+          .withComponent({ type: "Hurtbox" } as any)
+          .commit();
       }
     });
 
     this.blueprints.register("enemy_charger", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: 0,
-          vy: 0,
-          angularVelocity: 0
-        } as VelocityComponent);
-
-        world.addComponent(entity, {
-          type: "Enemy",
-          kind: "charger"
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PlayerSensor",
-          visionRange: 160,
-          detectedPlayerEntity: undefined
-        } as any);
-
-        world.addComponent(entity, {
-          type: "GroundDetector",
-          hasGroundAhead: true,
-          hasWallAhead: false,
-          sensorOffsetX: 15,
-          sensorOffsetY: 20
-        } as any);
-
-        world.addComponent(entity, {
-          type: "StateMachine",
-          currentState: "Idle",
-          elapsedInState: 0,
-          data: {
-            alertDuration: 0.4,
-            windupDuration: 0.4,
-            chargeSpeed: 200,
-            attackDuration: 1.0,
-            recoveryDuration: 0.8
-          },
-          machineId: "charger",
-          elapsedMs: 0
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Health",
-          current: 1,
-          max: 1
-        } as HealthComponent);
-
-        world.addComponent(entity, {
-          type: "Hurtbox"
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "charger",
-          size: 28,
-          visible: true,
-          opacity: 1,
-          order: 2,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity()
+          .withRender({ shape: "charger", size: 28, order: 2 })
+          .withHealth(1, 1)
+          .withComponent({ type: "Enemy", kind: "charger" } as any)
+          .withComponent({ type: "PlayerSensor", visionRange: 160, detectedPlayerEntity: undefined } as any)
+          .withComponent({ type: "GroundDetector", hasGroundAhead: true, hasWallAhead: false, sensorOffsetX: 15, sensorOffsetY: 20 } as any)
+          .withComponent({
+            type: "StateMachine",
+            currentState: "Idle",
+            elapsedInState: 0,
+            data: { alertDuration: 0.4, windupDuration: 0.4, chargeSpeed: 200, attackDuration: 1.0, recoveryDuration: 0.8 },
+            machineId: "charger",
+            elapsedMs: 0
+          } as any)
+          .withComponent({ type: "Hurtbox" } as any)
+          .commit();
       }
     });
 
     this.blueprints.register("powerup_double_jump", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
-          layer: 1,
-          mask: 0xFFFF,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: true,
-          enabled: true
-        } as Collider2DComponent);
-
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PowerUp",
-          powerUpType: "double_jump",
-          duration: 9999
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "fragment",
-          size: 18,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
+            isTrigger: true
+          })
+          .withCollisionEvents()
+          .withPowerUp("double_jump")
+          .withRender({ shape: "fragment", size: 18, order: 1 })
+          .commit();
       }
     });
 
     this.blueprints.register("powerup_dash", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
-          layer: 1,
-          mask: 0xFFFF,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: true,
-          enabled: true
-        } as Collider2DComponent);
-
-        world.addComponent(entity, {
-          type: "CollisionEvents",
-          collisions: [],
-          activeTriggers: [],
-          triggersEntered: [],
-          triggersExited: []
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PowerUp",
-          powerUpType: "dash_unlock",
-          duration: 9999
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "fragment",
-          size: 18,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
+            isTrigger: true
+          })
+          .withCollisionEvents()
+          .withPowerUp("dash_unlock")
+          .withRender({ shape: "fragment", size: 18, order: 1 })
+          .commit();
       }
     });
 
     this.blueprints.register("goal", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "LevelGoal",
-          reached: false
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "goal",
-          size: 32,
-          visible: true,
-          opacity: 1,
-          order: 1,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withRender({ shape: "goal", size: 32, order: 1 })
+          .withComponent({ type: "LevelGoal", reached: false } as any)
+          .commit();
       }
     });
 
     this.blueprints.register("player", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        world.addComponent(entity, {
-          type: "Transform",
-          x: args.x,
-          y: args.y,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: args.x,
-          worldY: args.y,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as TransformComponent);
-
-        world.addComponent(entity, {
-          type: "Velocity",
-          vx: 0,
-          vy: 0,
-          angularVelocity: 0
-        } as VelocityComponent);
-
-        world.addComponent(entity, {
-          type: "Collider2D",
-          shape: { type: "aabb", halfWidth: 10, halfHeight: 15 },
-          layer: 1,
-          mask: 0xFFFF,
-          offsetX: 0,
-          offsetY: 0,
-          isTrigger: false,
-          enabled: true
-        } as Collider2DComponent);
-
-        world.addComponent(entity, {
-          type: "Tag",
-          tags: ["TileCollider", "Player"]
-        } as TagComponent);
-
-        world.addComponent(entity, {
-          type: "PlatformerMovementConfig",
-          acceleration: PLATFORMER_CONFIG.PLAYER_ACCEL,
-          maxSpeed: PLATFORMER_CONFIG.PLAYER_SPEED,
-          deceleration: PLATFORMER_CONFIG.PLAYER_DECEL,
-          airAcceleration: PLATFORMER_CONFIG.PLAYER_AIR_ACCEL,
-          airDeceleration: PLATFORMER_CONFIG.PLAYER_AIR_DECEL
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PlatformerInput",
-          moveDir: 0,
-          jumpPressed: false,
-          jumpHeld: false,
-          jumpReleased: false,
-          dash: false
-        } as any);
-
-        world.addComponent(entity, {
-          type: "DashUnlocked",
-          unlocked: true,
-          dashSpeed: 500,
-          cooldown: 0,
-          cooldownMax: 0.8,
-          dashTimeRemaining: 0
-        } as any);
-
-        world.addComponent(entity, {
-          type: "WallJumpUnlocked",
-          unlocked: true
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PlatformerGravityConfig",
-          riseGravity: PLATFORMER_CONFIG.RISE_GRAVITY,
-          fallGravity: PLATFORMER_CONFIG.FALL_GRAVITY,
-          jumpVelocity: PLATFORMER_CONFIG.PLAYER_JUMP_VEL,
-          minJumpVelocity: PLATFORMER_CONFIG.PLAYER_MIN_JUMP_VEL
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PlatformerJumper",
-          coyoteTimer: 0,
-          jumpBufferTimer: 0,
-          coyoteTimeMax: 0.15,
-          jumpBufferMax: 0.1,
-          maxJumps: 2,
-          jumpsRemaining: 2
-        } as any);
-
-        world.addComponent(entity, {
-          type: "PlatformerGroundState",
-          isGrounded: false,
-          iceMultiplier: 1.0
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Health",
-          current: 3,
-          max: 3,
-          invulnerableRemaining: 0
-        } as HealthComponent);
-
-        world.addComponent(entity, {
-          type: "Animator",
-          isPlaying: true,
-          current: "idle",
-          elapsed: 0,
-          frame: 0,
-          animations: {
-            idle: { name: "idle", frameRate: 4, loop: true, frames: [0, 1] },
-            run: { name: "run", frameRate: 8, loop: true, frames: [2, 3, 4, 5] },
-            jump: { name: "jump", frameRate: 6, loop: false, frames: [6] },
-            fall: { name: "fall", frameRate: 6, loop: false, frames: [7] }
-          }
-        } as any);
-
         const theme = world.getResource<Theme>("Theme");
         const assetKey = theme?.spriteMap["player"] ?? "player_sprite";
         const tint = resolveThemeColor(world, "player");
 
-        world.addComponent(entity, {
-          type: "Sprite",
-          assetKey,
-          anchor: { x: 0.5, y: 0.5 }
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Render",
-          shape: "player",
-          size: 24,
-          color: tint,
-          visible: true,
-          opacity: 1,
-          order: 2,
-          rotation: 0,
-          angularVelocity: 0,
-          hitFlashFrames: 0
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity()
+          .withCollider2D({ shape: { type: "aabb", halfWidth: 10, halfHeight: 15 } })
+          .withTag(["TileCollider", "Player"])
+          .withHealth(3, 3, 0)
+          .withRender({ shape: "player", size: 24, color: tint, order: 2 })
+          .withSprite({ assetKey, anchor: { x: 0.5, y: 0.5 } })
+          .withComponent({
+            type: "PlatformerMovementConfig",
+            acceleration: PLATFORMER_CONFIG.PLAYER_ACCEL,
+            maxSpeed: PLATFORMER_CONFIG.PLAYER_SPEED,
+            deceleration: PLATFORMER_CONFIG.PLAYER_DECEL,
+            airAcceleration: PLATFORMER_CONFIG.PLAYER_AIR_ACCEL,
+            airDeceleration: PLATFORMER_CONFIG.PLAYER_AIR_DECEL
+          } as any)
+          .withComponent({
+            type: "PlatformerInput",
+            moveDir: 0,
+            jumpPressed: false,
+            jumpHeld: false,
+            jumpReleased: false,
+            dash: false
+          } as any)
+          .withComponent({
+            type: "DashUnlocked",
+            unlocked: true,
+            dashSpeed: 500,
+            cooldown: 0,
+            cooldownMax: 0.8,
+            dashTimeRemaining: 0
+          } as any)
+          .withComponent({ type: "WallJumpUnlocked", unlocked: true } as any)
+          .withComponent({
+            type: "PlatformerGravityConfig",
+            riseGravity: PLATFORMER_CONFIG.RISE_GRAVITY,
+            fallGravity: PLATFORMER_CONFIG.FALL_GRAVITY,
+            jumpVelocity: PLATFORMER_CONFIG.PLAYER_JUMP_VEL,
+            minJumpVelocity: PLATFORMER_CONFIG.PLAYER_MIN_JUMP_VEL
+          } as any)
+          .withComponent({
+            type: "PlatformerJumper",
+            coyoteTimer: 0,
+            jumpBufferTimer: 0,
+            coyoteTimeMax: 0.15,
+            jumpBufferMax: 0.1,
+            maxJumps: 2,
+            jumpsRemaining: 2
+          } as any)
+          .withComponent({ type: "PlatformerGroundState", isGrounded: false, iceMultiplier: 1.0 } as any)
+          .withComponent({
+            type: "Animator",
+            isPlaying: true,
+            current: "idle",
+            elapsed: 0,
+            frame: 0,
+            animations: {
+              idle: { name: "idle", frameRate: 4, loop: true, frames: [0, 1] },
+              run: { name: "run", frameRate: 8, loop: true, frames: [2, 3, 4, 5] },
+              jump: { name: "jump", frameRate: 6, loop: false, frames: [6] },
+              fall: { name: "fall", frameRate: 6, loop: false, frames: [7] }
+            }
+          } as any)
+          .commit();
       }
     });
 
     this.blueprints.register("tilemap", {
       spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
-        world.addComponent(entity, {
-          type: "Tilemap",
-          data: args.data,
-          tileSize: PLATFORMER_CONFIG.TILE_SIZE,
-          tileDefinitions: args.tileDefinitions
-        } as any);
-
-        world.addComponent(entity, {
-          type: "Transform",
-          x: 0,
-          y: 0,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: 0,
-          worldY: 0,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        } as any);
+        createEntityBuilder(world, entity)
+          .withTransform({ x: 0, y: 0 })
+          .withComponent({
+            type: "Tilemap",
+            data: args.data,
+            tileSize: PLATFORMER_CONFIG.TILE_SIZE,
+            tileDefinitions: args.tileDefinitions
+          } as any)
+          .commit();
       }
     });
 

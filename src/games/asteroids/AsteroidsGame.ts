@@ -49,7 +49,7 @@ import {
 } from "@tiny-aster/core";
 
 import { ComboSystem } from "@tiny-aster/core";
-import { LootSystem, PowerUpSystem, PowerUpEffectRegistry, DifficultyDirectorSystem, AchievementSystem } from "../shared/arcade";
+import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem, PowerUpRegistry } from "../shared/arcade";
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -124,8 +124,7 @@ export class AsteroidsGame
     this.config = mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig } as any);
 
     this.world.setResource("GameConfig", this.config);
-    const powerUpRegistry = new PowerUpEffectRegistry();
-    powerUpRegistry.attachToWorld(this.world);
+    this.world.setResource("PowerUpEffects", new PowerUpRegistry());
 
     this.eventBus.on("loot:spawn", (event: any) => {
       createPowerUp({

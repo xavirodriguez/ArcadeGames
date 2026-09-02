@@ -52,7 +52,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       id: "act1_asteroids_gameplay",
       type: "gameplay",
       title: "Capítulo 1: Asteroids",
-      sceneToLoad: "asteroids-story-mode-lv3",
+      sceneToLoad: "asteroids",
       meta: {
         minijuego: "asteroids",
         encounterId: "poc-asteroids-1"
@@ -151,7 +151,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       id: "act2_spaceinvaders_gameplay",
       type: "gameplay",
       title: "Capítulo 2: Space Invaders",
-      sceneToLoad: "space-invaders-story-mode-wave2",
+      sceneToLoad: "space-invaders",
       meta: {
         minijuego: "space-invaders",
         encounterId: "poc-space-invaders-1"
@@ -250,7 +250,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       id: "act3_asteroids_redux_gameplay",
       type: "gameplay",
       title: "Capítulo 3: Asteroids Redux",
-      sceneToLoad: "asteroids-story-mode-redux",
+      sceneToLoad: "asteroids",
       meta: {
         minijuego: "asteroids",
         encounterId: "poc-asteroids-redux-1"
@@ -309,7 +309,6 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       id: "ending_flawless",
       type: "cutscene",
       title: "Final: Flawless Victory",
-      sceneToLoad: "ending-flawless",
       isEndNode: true,
       cutscene: {
         id: "cs_ending_flawless",
@@ -325,7 +324,6 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       id: "ending_pyrrhic",
       type: "cutscene",
       title: "Final: Pyrrhic Victory",
-      sceneToLoad: "ending-pyrrhic",
       isEndNode: true,
       cutscene: {
         id: "cs_ending_pyrrhic",
@@ -341,7 +339,6 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       id: "ending_survival",
       type: "cutscene",
       title: "Final: Survival",
-      sceneToLoad: "ending-survival",
       isEndNode: true,
       cutscene: {
         id: "cs_ending_survival",

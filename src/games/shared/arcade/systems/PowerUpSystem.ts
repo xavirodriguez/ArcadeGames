@@ -5,9 +5,6 @@ import { PowerUpRegistry, IPowerUpEffect } from "../powerups/PowerUpRegistry";
 const __DEV__ = typeof process !== "undefined" && process.env?.NODE_ENV !== "production";
 
 /** @public */
-export { IPowerUpEffect } from "../powerups/PowerUpRegistry";
-
-/** @public */
 export class PowerUpSystem extends System<CoreComponentRegistry & { PowerUp: PowerUpComponent }> {
   public update(world: World<CoreComponentRegistry & { PowerUp: PowerUpComponent }>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;

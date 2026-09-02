@@ -180,3 +180,13 @@ export class EntityBuilder {
     }
   }
 }
+
+/**
+ * Factory helper function to instantiate an EntityBuilder.
+ * @public
+ */
+export function createEntityBuilder(world: World<any>, entity?: Entity): EntityBuilder {
+  return entity !== undefined
+    ? EntityBuilder.fromEntity(world, entity)
+    : EntityBuilder.create(world);
+}

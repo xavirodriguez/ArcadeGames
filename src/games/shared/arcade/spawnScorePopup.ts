@@ -1,4 +1,4 @@
-import { World, TransformComponent, RenderComponent, TTLComponent, Juice, Entity } from "@tiny-aster/core";
+import { World, TransformComponent, RenderComponent, TTLComponent, Juice, Entity, beginEntity } from "@tiny-aster/core";
 
 /**
  * Spawns a floating score or combo popup text at (x, y) coordinates.
@@ -18,24 +18,7 @@ export function spawnScorePopup(
   text: string,
   color: string = "#FFFF00"
 ): Entity {
-  const isUpdating = world.isUpdating;
-  const commands = world.getCommandBuffer();
-
-  let popup: Entity;
-  if (isUpdating) {
-    popup = world.reserveEntityId();
-    commands.createEntity(popup);
-  } else {
-    popup = world.createEntity();
-  }
-
-  const addComp = (comp: any) => {
-    if (isUpdating) {
-      commands.addComponent(popup, comp);
-    } else {
-      world.addComponent(popup, comp);
-    }
-  };
+  const { entity: popup, add: addComp } = beginEntity(world);
 
   addComp({
     type: "Transform",

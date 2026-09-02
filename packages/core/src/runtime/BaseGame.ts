@@ -1,5 +1,6 @@
 import { World, ComponentRegistry, BlueprintRegistryMap, ComponentType } from "../ecs/World";
 import { Entity } from "../ecs/Entity";
+import { beginEntity } from "../ecs/deferredEntity";
 import { EventRegistry, EventBus } from "../events/EventBus";
 import { BlueprintRegistry } from "../ecs/BlueprintRegistry";
 import { IGame } from "./IGame";
@@ -732,25 +733,6 @@ export abstract class BaseGame<
    * @returns Object containing reserved `entity` ID and `add` helper function.
    */
   protected createBaseEntity(deferred?: boolean): { entity: Entity; add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & { type: K }) => void } {
-    const isUpdating = this.world.isUpdating;
-    const isDeferred = !!(deferred || isUpdating);
-    const commands = this.world.getCommandBuffer();
-
-    if (isDeferred) {
-      const entity = this.world.reserveEntityId();
-      commands.createEntity(entity);
-      return {
-        entity,
-        add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & { type: K }) => {
-          commands.addComponent(entity, comp);
-        }
-      };
-    }
-
-    const entity = this.world.createEntity();
-    return {
-      entity,
-      add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & { type: K }) => this.world.addComponent(entity, comp)
-    };
+    return beginEntity(this.world, deferred);
   }
 }

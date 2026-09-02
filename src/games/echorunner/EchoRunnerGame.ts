@@ -153,6 +153,9 @@ class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
           h.current--;
           h.invulnerableRemaining = 1.0; // 1 second invulnerability
         });
+        world.mutateComponent(player, "Render", (r) => {
+          r.hitFlashFrames = 8;
+        });
 
         // Request Screenshake
         const cameras = world.query("Camera2D");
@@ -490,6 +493,9 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           if (this.world.hasComponent(victim, "Health")) {
             this.world.mutateComponent(victim, "Health", (h) => {
               h.current--;
+            });
+            this.world.mutateComponent(victim, "Render", (r) => {
+              r.hitFlashFrames = 8;
             });
 
             // Play hit/kill sound
@@ -941,11 +947,27 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     } else if (renderer.type === "skia") {
       const {
         drawSkiaEchoBackground,
-        drawSkiaEchoPlayer
+        drawSkiaEchoPlayer,
+        drawSkiaMemoryFragment,
+        drawSkiaMemoryCore,
+        drawSkiaCheckpointNode,
+        drawSkiaPulseAttack,
+        drawSkiaSentinel,
+        drawSkiaHopper,
+        drawSkiaWatcher,
+        drawSkiaCharger
       } = require("./rendering/EchoRunnerSkiaVisuals");
 
       renderer.registerBackgroundEffect("echo_bg", drawSkiaEchoBackground);
       renderer.registerShape("player", drawSkiaEchoPlayer);
+      renderer.registerShape("fragment", drawSkiaMemoryFragment);
+      renderer.registerShape("core", drawSkiaMemoryCore);
+      renderer.registerShape("node", drawSkiaCheckpointNode);
+      renderer.registerShape("pulse_attack", drawSkiaPulseAttack);
+      renderer.registerShape("sentinel", drawSkiaSentinel);
+      renderer.registerShape("hopper", drawSkiaHopper);
+      renderer.registerShape("watcher", drawSkiaWatcher);
+      renderer.registerShape("charger", drawSkiaCharger);
     }
   }
 

@@ -166,6 +166,33 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(() => renderer.render(world, dummyCtx)).not.toThrow();
   });
 
+  it("should register all shapes for Skia renderer when renderer type is skia", () => {
+    const registeredShapes: string[] = [];
+    const registeredEffects: string[] = [];
+    const skiaRenderer = {
+      type: "skia",
+      registerShape: jest.fn((name) => registeredShapes.push(name)),
+      registerBackgroundEffect: jest.fn((name) => registeredEffects.push(name)),
+    };
+
+    game.initializeRenderer(skiaRenderer as any);
+
+    expect(registeredEffects).toContain("echo_bg");
+    expect(registeredShapes).toEqual(
+      expect.arrayContaining([
+        "player",
+        "fragment",
+        "core",
+        "node",
+        "pulse_attack",
+        "sentinel",
+        "hopper",
+        "watcher",
+        "charger"
+      ])
+    );
+  });
+
   it("should throw a descriptive error when required player blueprint is missing during entity initialization", async () => {
     const badGame = new EchoRunnerGame({ seed: 12345 });
     // Intentionally bypass blueprint registration or clear blueprints

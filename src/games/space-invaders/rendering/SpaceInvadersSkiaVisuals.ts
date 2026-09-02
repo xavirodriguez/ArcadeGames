@@ -1,6 +1,7 @@
 import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, TransformComponent } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
+import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
 
 let Skia: any = null;
 try {
@@ -34,26 +35,16 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     if (!render) return;
 
     const size = render.size || 40;
-    let colorStr = render.color || colors.green;
+    const flash = applyHitFlash(render, render.color || colors.green, render.opacity ?? 1.0);
+    const colorStr = flash.color;
+    const opacity = flash.opacity;
 
     canvas.save();
-
-    let opacity = render.opacity ?? 1.0;
-
-    // Apply hit flash
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if ((render.hitFlashFrames >> 1) % 2 === 0) {
-        opacity = 0.3;
-      }
-      colorStr = colors.white;
-    }
 
     // 1. Dynamic tilt/lean based on horizontal velocity
     const velocity = world.getComponent(entity, "Velocity");
     if (velocity) {
-      const maxTilt = 0.15; // Limit tilt radians (~8.5 degrees)
-      const targetTilt = velocity.vx * 0.0004; // scale velocity to tilt
-      const tilt = Math.max(-maxTilt, Math.min(maxTilt, targetTilt));
+      const tilt = calculatePlayerTilt(velocity.vx);
       canvas.rotate((tilt * 180) / Math.PI, 0, 0);
     }
 
@@ -63,8 +54,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
     // 2. Flickering dual-stage thruster plume tail (at the bottom)
     const tick = world.tick;
-    const flicker = 1.0 + 0.18 * Math.sin(tick / 2);
-    const plumeLength = (size / 2.2) * flicker;
+    const plumeLength = calculateThrusterPlumeLength(tick, size);
 
     // Outer plasma flame
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -145,8 +135,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     canvas.drawRect(Skia.XYWHRect(size / 3 - 1, -size / 3, 2, size / 4), paint);
 
     // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
-    const input = world.getComponent(entity, "Input");
-    const isShooting = Boolean(input && input.shoot);
+    const isShooting = isPlayerShooting(world, entity);
     if (isShooting) {
       const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
       paint.setColor(Skia.Color("#00FFFF"));
@@ -210,29 +199,23 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     if (!render) return;
 
     const size = render.size || 15;
-    let colorStr = render.color || colors.white;
-    let opacity = render.opacity ?? 1.0;
+    let baseColor = render.color || colors.white;
 
-    // Apply hit flash
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if ((render.hitFlashFrames >> 1) % 2 === 0) {
-        opacity = 0.3;
-      }
-      colorStr = colors.white;
-    } else {
-      // Assign gorgeous row-based/rank-based colors
-      const invaderComp = world.getComponent(entity, "Invader");
-      if (invaderComp) {
-        const row = invaderComp.row;
-        if (row === 0) {
-          colorStr = colors.magentaHot; // Hot Magenta
-        } else if (row <= 2) {
-          colorStr = colors.cyan; // Electric Cyan
-        } else {
-          colorStr = colors.gold; // Cyber Gold
-        }
+    const invaderComp = world.getComponent(entity, "Invader");
+    if (invaderComp) {
+      const row = invaderComp.row;
+      if (row === 0) {
+        baseColor = colors.magentaHot; // Hot Magenta
+      } else if (row <= 2) {
+        baseColor = colors.cyan; // Electric Cyan
+      } else {
+        baseColor = colors.gold; // Cyber Gold
       }
     }
+
+    const flash = applyHitFlash(render, baseColor, render.opacity ?? 1.0);
+    const colorStr = flash.color;
+    const opacity = flash.opacity;
 
     const s = size / 11;
     const tick = world.tick;
@@ -327,6 +310,103 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
 };
 
 /**
+ * Visuals for the Boss flagship using React Native Skia.
+ */
+export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
+    if (!render) return;
+
+    const size = render.size || 80;
+    const boss = world.getComponent(entity, "Boss");
+    const health = world.getComponent(entity, "Health");
+
+    const currentHp = health ? health.current : (boss ? boss.hp : 50);
+    const maxHp = health ? health.max : (boss ? boss.maxHp : 50);
+    const hpRatio = Math.max(0, Math.min(1.0, currentHp / maxHp));
+
+    let phase = 1;
+    let baseColor: string = colors.magentaHot;
+    let accentColor: string = colors.cyan;
+
+    if (hpRatio <= 0.33) {
+      phase = 3;
+      baseColor = colors.redHot;
+      accentColor = colors.orange;
+    } else if (hpRatio <= 0.66) {
+      phase = 2;
+      baseColor = colors.gold;
+      accentColor = colors.orangeDark;
+    }
+
+    const flash = applyHitFlash(render, baseColor, render.opacity ?? 1.0);
+    const colorStr = flash.color;
+    const opacity = flash.opacity;
+
+    canvas.save();
+
+    const tick = world.tick;
+    const s = size / 20;
+
+    const paint = getPaint();
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(colorStr));
+    paint.setAlphaf(opacity);
+
+    // Hull Path
+    const hull = Skia.Path.Make();
+    hull.moveTo(0, -s * 8);
+    hull.lineTo(s * 4, -s * 4);
+    hull.lineTo(s * 10, -s * 2);
+    hull.lineTo(s * 9, s * 4);
+    hull.lineTo(s * 6, s * 8);
+    hull.lineTo(s * 3, s * 6);
+    hull.lineTo(0, s * 7);
+    hull.lineTo(-s * 3, s * 6);
+    hull.lineTo(-s * 6, s * 8);
+    hull.lineTo(-s * 9, s * 4);
+    hull.lineTo(-s * 10, -s * 2);
+    hull.lineTo(-s * 4, -s * 4);
+    hull.close();
+
+    canvas.drawPath(hull, paint);
+
+    // Cannons
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(accentColor));
+    paint.setStrokeWidth(2.5);
+    canvas.drawLine(-s * 8, -s * 2, -s * 8, -s * 6, paint);
+    canvas.drawLine(s * 8, -s * 2, s * 8, -s * 6, paint);
+
+    // Core
+    const pulseSpeed = phase === 3 ? 0.3 : phase === 2 ? 0.15 : 0.08;
+    const corePulse = 0.5 + 0.5 * Math.sin(tick * pulseSpeed);
+    const coreRadius = s * (3.5 + 1.2 * corePulse);
+
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(phase === 3 ? colors.white : accentColor));
+    canvas.drawCircle(0, 0, coreRadius, paint);
+
+    // Cracks
+    if (hpRatio < 1.0) {
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color("rgba(0,0,0,0.85)"));
+      paint.setStrokeWidth(2);
+      canvas.drawLine(-s * 6, -s * 2, s * 2, s * 4, paint);
+
+      if (phase === 3) {
+        canvas.drawLine(s * 5, -s * 3, -s * 3, s * 5, paint);
+      }
+    }
+
+    canvas.restore();
+  }
+};
+
+/**
  * Visuals for shield blocks using React Native Skia.
  * Layered high-tech structures, cracks, etc.
  */
@@ -337,16 +417,9 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
     if (!render) return;
 
     const size = render.size || 15;
-    let colorStr = render.color || colors.green;
-    let opacity = render.opacity ?? 1.0;
-
-    // Apply hit flash
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if ((render.hitFlashFrames >> 1) % 2 === 0) {
-        opacity = 0.3;
-      }
-      colorStr = colors.white;
-    }
+    const flash = applyHitFlash(render, render.color || colors.green, render.opacity ?? 1.0);
+    const colorStr = flash.color;
+    const opacity = flash.opacity;
 
     const shield = world.getComponent(entity, "Shield");
     const hp = shield ? shield.hp : 3;

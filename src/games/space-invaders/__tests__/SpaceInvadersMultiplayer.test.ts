@@ -74,4 +74,71 @@ describe("Space Invaders Authoritative Multiplayer", () => {
 
     game.destroy();
   });
+
+  it("should spawn network entities using full blueprints and materialize them immediately on updateFromServer", async () => {
+    const game = new SpaceInvadersGame({
+      headless: true,
+      isMultiplayer: true,
+      gameOptions: { seed: 1234 }
+    });
+
+    await game.init();
+    const world = game.getWorld();
+
+    const serverState = {
+      tick: 10,
+      score: 100,
+      gameOver: false,
+      players: {
+        "p1": { x: 200, y: 500, alive: true }
+      },
+      invaders: {
+        "inv1": { id: "inv1", x: 150, y: 80, alive: true }
+      },
+      bullets: {
+        "b1": { x: 200, y: 480, ownerId: "player" },
+        "b2": { x: 150, y: 100, ownerId: "enemy" }
+      }
+    };
+
+    game.updateFromServer(serverState, "p1");
+
+    // 1. Verify Player entity materialized with full blueprint components
+    const players = world.query("Player");
+    expect(players.length).toBe(1);
+    const pEntity = players[0];
+    expect(world.hasComponent(pEntity, "Transform")).toBe(true);
+    expect(world.hasComponent(pEntity, "Render")).toBe(true);
+    expect(world.hasComponent(pEntity, "Collider")).toBe(true);
+    expect(world.hasComponent(pEntity, "Health")).toBe(true);
+    expect(world.hasComponent(pEntity, "Faction")).toBe(true);
+    expect(world.hasComponent(pEntity, "Boundary")).toBe(true);
+    expect(world.hasComponent(pEntity, "LocalPlayer")).toBe(true);
+
+    // 2. Verify Invader entity materialized with full blueprint components
+    const invaders = world.query("Invader");
+    expect(invaders.length).toBe(1);
+    const invEntity = invaders[0];
+    expect(world.hasComponent(invEntity, "Transform")).toBe(true);
+    expect(world.hasComponent(invEntity, "Render")).toBe(true);
+    expect(world.hasComponent(invEntity, "Collider")).toBe(true);
+    expect(world.hasComponent(invEntity, "Health")).toBe(true);
+    expect(world.hasComponent(invEntity, "Faction")).toBe(true);
+    expect(world.hasComponent(invEntity, "LootTable")).toBe(true);
+
+    // 3. Verify Bullets materialized with full blueprint components
+    const playerBullets = world.query("PlayerBullet");
+    expect(playerBullets.length).toBe(1);
+    const pbEntity = playerBullets[0];
+    expect(world.hasComponent(pbEntity, "Damage")).toBe(true);
+    expect(world.hasComponent(pbEntity, "Collider")).toBe(true);
+
+    const enemyBullets = world.query("EnemyBullet");
+    expect(enemyBullets.length).toBe(1);
+    const ebEntity = enemyBullets[0];
+    expect(world.hasComponent(ebEntity, "Damage")).toBe(true);
+    expect(world.hasComponent(ebEntity, "Collider")).toBe(true);
+
+    game.destroy();
+  });
 });

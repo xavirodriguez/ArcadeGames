@@ -25,7 +25,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  */
 import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
-import { FactionComponent } from "../shared/combat/components/CombatComponents";
+import { FactionComponent, DamageComponent } from "../shared/combat/components/CombatComponents";
 
 export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, any, any>> {
   player: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
@@ -33,6 +33,8 @@ export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefin
   shield: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
   state: BlueprintDefinition<SpaceInvadersComponentRegistry, any, {}>;
   formation: BlueprintDefinition<SpaceInvadersComponentRegistry, any, {}>;
+  player_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
+  enemy_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
 }
 
 export class SpaceInvadersGame
@@ -223,6 +225,70 @@ export class SpaceInvadersGame
       }
     });
 
+    this.blueprints.register("player_bullet", {
+      spawn: (world, entity, args: { x: number, y: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity({ vy: -config.PLAYER_BULLET_SPEED })
+          .withRender({ shape: "player_bullet", size: config.PLAYER_BULLET_SIZE, color: "yellow", order: 10 })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: config.PLAYER_BULLET_SIZE } as CircleShape,
+            layer: CollisionLayers.PROJECTILE,
+            mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS
+          })
+          .withCollisionEvents();
+
+        world.addComponent(entity, { type: "PlayerBullet" } as any);
+        world.addComponent(entity, {
+          type: "Damage",
+          amount: 1,
+          category: "player_bullet",
+          friendlyFire: false,
+          consumption: "destroy-entity"
+        } as DamageComponent);
+        world.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as FactionComponent);
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: GAME_CONFIG.SCREEN_WIDTH,
+          height: GAME_CONFIG.SCREEN_HEIGHT,
+          mode: "destroy"
+        } as BoundaryComponent);
+      }
+    });
+
+    this.blueprints.register("enemy_bullet", {
+      spawn: (world, entity, args: { x: number, y: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity({ vy: config.ENEMY_BULLET_SPEED })
+          .withRender({ shape: "enemy_bullet", size: config.ENEMY_BULLET_SIZE, color: "red", order: 10 })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: config.ENEMY_BULLET_SIZE } as CircleShape,
+            layer: CollisionLayers.ENEMY,
+            mask: CollisionLayers.PLAYER | CollisionLayers.DEBRIS
+          })
+          .withCollisionEvents();
+
+        world.addComponent(entity, { type: "EnemyBullet" } as any);
+        world.addComponent(entity, {
+          type: "Damage",
+          amount: 1,
+          category: "enemy_bullet",
+          friendlyFire: false,
+          consumption: "destroy-entity"
+        } as DamageComponent);
+        world.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: GAME_CONFIG.SCREEN_WIDTH,
+          height: GAME_CONFIG.SCREEN_HEIGHT,
+          mode: "destroy"
+        } as BoundaryComponent);
+      }
+    });
+
     this.blueprints.register("shield", {
       spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
@@ -289,7 +355,7 @@ export class SpaceInvadersGame
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: GAME_CONFIG.SCREEN_WIDTH / 2, y: 100 })
-          .withRender({ shape: "invader", size: 80, color: tint, order: 0 })
+          .withRender({ shape: "boss", size: 80, color: tint, order: 0 })
           .withCollider({
             shape: { type: ShapeType.Circle, radius: 40 } as CircleShape,
             layer: CollisionLayers.ENEMY,
@@ -463,12 +529,14 @@ export class SpaceInvadersGame
         const {
           drawSpaceInvadersPlayer,
           drawSpaceInvadersInvader,
+          drawSpaceInvadersBoss,
           drawSpaceInvadersBullet,
           drawSpaceInvadersShield,
           drawSpaceInvadersParticle
         } = require("./rendering/SpaceInvadersCanvasVisuals");
         r.registerShape("player_ship", drawSpaceInvadersPlayer);
         r.registerShape("invader", drawSpaceInvadersInvader);
+        r.registerShape("boss", drawSpaceInvadersBoss);
         r.registerShape("player_bullet", drawSpaceInvadersBullet);
         r.registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
         r.registerShape("shield_block", drawSpaceInvadersShield);
@@ -478,12 +546,14 @@ export class SpaceInvadersGame
         const {
           drawSkiaSpaceInvadersPlayer,
           drawSkiaSpaceInvadersInvader,
+          drawSkiaSpaceInvadersBoss,
           drawSkiaSpaceInvadersBullet,
           drawSkiaSpaceInvadersShield,
           drawSkiaSpaceInvadersParticle
         } = require("./rendering/SpaceInvadersSkiaVisuals");
         r.registerShape("player_ship", drawSkiaSpaceInvadersPlayer);
         r.registerShape("invader", drawSkiaSpaceInvadersInvader);
+        r.registerShape("boss", drawSkiaSpaceInvadersBoss);
         r.registerShape("player_bullet", drawSkiaSpaceInvadersBullet);
         r.registerShape("enemy_bullet", drawSkiaSpaceInvadersBullet);
         r.registerShape("shield_block", drawSkiaSpaceInvadersShield);
@@ -708,9 +778,7 @@ export class SpaceInvadersGame
 
         const entity = replicator.resolveEntity(serverId, world);
         if (!world.hasComponent(entity, "Transform")) {
-          commands.addComponent(entity, { type: "Player" } as any);
-          commands.addComponent(entity, { type: "Transform", x: playerState.x, y: playerState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: playerState.x, worldY: playerState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: "player_ship", size: 20, color: "green", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as any);
+          this.blueprints.get("player")?.spawn(world, entity, { x: playerState.x, y: playerState.y });
         }
 
         if (sessionId === localSessionId && !world.hasComponent(entity, "LocalPlayer" as any)) {
@@ -745,9 +813,7 @@ export class SpaceInvadersGame
 
         const entity = replicator.resolveEntity(serverId, world);
         if (!world.hasComponent(entity, "Transform")) {
-          commands.addComponent(entity, { type: "Invader", row: 0, col: 0, points: 10 } as any);
-          commands.addComponent(entity, { type: "Transform", x: invaderState.x, y: invaderState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: invaderState.x, worldY: invaderState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: "invader", size: 15, color: "white", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as any);
+          this.blueprints.get("invader")?.spawn(world, entity, { x: invaderState.x, y: invaderState.y, row: 0, col: 0 });
         }
 
         snapshot.entities.push(entity);
@@ -764,9 +830,8 @@ export class SpaceInvadersGame
 
         const entity = replicator.resolveEntity(serverId, world);
         if (!world.hasComponent(entity, "Transform")) {
-          commands.addComponent(entity, { type: "PlayerBullet" } as any);
-          commands.addComponent(entity, { type: "Transform", x: bulletState.x, y: bulletState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: bulletState.x, worldY: bulletState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: "player_bullet", size: 5, color: "yellow", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as any);
+          const bpName = bulletState.ownerId === "player" ? "player_bullet" : "enemy_bullet";
+          this.blueprints.get(bpName)?.spawn(world, entity, { x: bulletState.x, y: bulletState.y });
         }
 
         snapshot.entities.push(entity);
@@ -784,8 +849,16 @@ export class SpaceInvadersGame
       }
     });
 
+    // Deferred CommandBuffer Flush Lifecycle:
+    // When updateFromServer is executed out-of-band (e.g., upon receiving a server network snapshot message
+    // between game loop frames), world.isUpdating is false.
+    // Structural changes like entity removal or deferred blueprint additions queue commands into WorldCommandBuffer.
+    // Flushing when !world.isUpdating immediately materializes queued entity/component state, preventing
+    // transient "ghost entities" or unapplied network components prior to system queries or rendering.
+    // If updateFromServer is called during active frame execution (world.isUpdating === true), flush is deferred
+    // to the end of world.update() tick to avoid structural mutation during system query iteration.
     if (!world.isUpdating) {
-        world.flush();
+      world.flush();
     }
   }
 

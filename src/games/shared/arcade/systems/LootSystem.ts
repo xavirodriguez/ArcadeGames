@@ -20,38 +20,60 @@ export class LootSystem extends System<CoreComponentRegistry & { LootTable: Loot
       const isTTLExpired = ttl !== undefined && ttl.remaining <= 0;
 
       if (isDead || isTTLExpired) {
-        const registry = world.getResource<Record<string, Array<{ type: string; weight: number }>>>("LootTables") || {
-          default: [
-            { type: "speed_boost", weight: 30 },
-            { type: "shield", weight: 20 },
-            { type: "extra_life", weight: 10 },
-            { type: "score_multiplier", weight: 40 }
-          ]
-        };
+        const config = world.getResource<Record<string, unknown>>("GameConfig");
+        const lootMultiplier = typeof config?.LOOT_DROP_MULTIPLIER === "number" ? config.LOOT_DROP_MULTIPLIER : 1.0;
 
-        const table = registry[loot.tableId] || registry["default"];
-        if (table && table.length > 0) {
-          const totalWeight = table.reduce((sum: number, item: { weight: number }) => sum + item.weight, 0);
-          const roll = world.gameplayRandom.range(0, totalWeight);
-
-          let currentSum = 0;
-          let selectedType: string | null = null;
-          for (const item of table) {
-            currentSum += item.weight;
-            if (roll <= currentSum) {
-              selectedType = item.type;
-              break;
+        const customDrops = (loot as any).drops as Array<{ type: string; chance: number; config?: Record<string, unknown> }> | undefined;
+        if (customDrops && Array.isArray(customDrops) && customDrops.length > 0) {
+          for (const drop of customDrops) {
+            const effectiveChance = drop.chance * lootMultiplier;
+            if (world.gameplayRandom.next() < effectiveChance) {
+              const eventBus = world.getEventBus();
+              if (eventBus) {
+                eventBus.emit("loot:spawn", {
+                  x: transform.x,
+                  y: transform.y,
+                  lootType: drop.type,
+                  config: drop.config
+                } as never);
+              }
+              break; // Limit to 1 item drop per entity
             }
           }
+        } else {
+          const registry = world.getResource<Record<string, Array<{ type: string; weight: number }>>>("LootTables") || {
+            default: [
+              { type: "speed_boost", weight: 30 },
+              { type: "shield", weight: 20 },
+              { type: "extra_life", weight: 10 },
+              { type: "score_multiplier", weight: 40 }
+            ]
+          };
 
-          if (selectedType && selectedType !== "none") {
-            const eventBus = world.getEventBus();
-            if (eventBus) {
-              eventBus.emit("loot:spawn", {
-                x: transform.x,
-                y: transform.y,
-                lootType: selectedType
-              } as never);
+          const table = registry[loot.tableId] || registry["default"];
+          if (table && table.length > 0) {
+            const totalWeight = table.reduce((sum: number, item: { weight: number }) => sum + item.weight, 0);
+            const roll = world.gameplayRandom.range(0, totalWeight);
+
+            let currentSum = 0;
+            let selectedType: string | null = null;
+            for (const item of table) {
+              currentSum += item.weight;
+              if (roll <= currentSum) {
+                selectedType = item.type;
+                break;
+              }
+            }
+
+            if (selectedType && selectedType !== "none") {
+              const eventBus = world.getEventBus();
+              if (eventBus) {
+                eventBus.emit("loot:spawn", {
+                  x: transform.x,
+                  y: transform.y,
+                  lootType: selectedType
+                } as never);
+              }
             }
           }
         }

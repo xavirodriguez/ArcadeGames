@@ -1,6 +1,7 @@
 import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
+import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
 
 /**
  * Visuals for the player ship.
@@ -15,31 +16,23 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 40 } = render;
-    let { color = colors.green } = render;
 
-    // Apply hit flash
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
-        ctx.globalAlpha = 0.3;
-      }
-      color = colors.white;
-    }
+    const flash = applyHitFlash(render, render.color || colors.green);
+    const color = flash.color;
 
     ctx.save();
+    ctx.globalAlpha = flash.opacity;
 
     // 1. Dynamic tilt/lean based on horizontal velocity
     const velocity = world.getComponent(entity, "Velocity");
     if (velocity) {
-      const maxTilt = 0.15; // Limit tilt radians (~8.5 degrees)
-      const targetTilt = velocity.vx * 0.0004; // scale velocity to tilt
-      const tilt = Math.max(-maxTilt, Math.min(maxTilt, targetTilt));
+      const tilt = calculatePlayerTilt(velocity.vx);
       ctx.rotate(tilt);
     }
 
     // 2. Flickering dual-stage thruster plume tail (at the bottom)
     const tick = world.tick;
-    const flicker = 1.0 + 0.18 * Math.sin(tick / 2);
-    const plumeLength = (size / 2.2) * flicker;
+    const plumeLength = calculateThrusterPlumeLength(tick, size);
 
     // Outer plasma flame
     ctx.fillStyle = colors.orangeDark;
@@ -94,8 +87,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);
 
     // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
-    const input = world.getComponent(entity, "Input");
-    const isShooting = Boolean(input && input.shoot);
+    const isShooting = isPlayerShooting(world, entity);
     if (isShooting) {
       const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
       ctx.fillStyle = "#00FFFF";
@@ -187,28 +179,23 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 15 } = render;
-    let { color = colors.white } = render;
 
-    // Apply hit flash
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
-        ctx.globalAlpha = 0.3;
-      }
-      color = colors.white;
-    } else {
-      // Assign gorgeous row-based/rank-based colors
-      const invaderComp = world.getComponent(entity, "Invader");
-      if (invaderComp) {
-        const row = invaderComp.row;
-        if (row === 0) {
-          color = colors.magentaHot; // Row 0 (Commanders): Hot Magenta
-        } else if (row <= 2) {
-          color = colors.cyan; // Rows 1-2 (Scouts): Electric Cyan
-        } else {
-          color = colors.gold; // Rows 3-4 (Grunts): Cyber Gold
-        }
+    let baseColor = render.color || colors.white;
+    const invaderComp = world.getComponent(entity, "Invader");
+    if (invaderComp) {
+      const row = invaderComp.row;
+      if (row === 0) {
+        baseColor = colors.magentaHot; // Row 0 (Commanders): Hot Magenta
+      } else if (row <= 2) {
+        baseColor = colors.cyan; // Rows 1-2 (Scouts): Electric Cyan
+      } else {
+        baseColor = colors.gold; // Rows 3-4 (Grunts): Cyber Gold
       }
     }
+
+    const flash = applyHitFlash(render, baseColor);
+    ctx.globalAlpha = flash.opacity;
+    const color = flash.color;
 
     ctx.fillStyle = color;
 
@@ -307,6 +294,126 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
 };
 
 /**
+ * Visuals for the Boss flagship.
+ * Features phase-based adaptive presentation:
+ * - Phase 1 (HP > 66%): Commanding Deep Magenta/Cyan energy shield, intact armored hull.
+ * - Phase 2 (33% < HP <= 66%): Warning Cyber Gold/Orange tone, hull damage cracks, accelerated core pulse.
+ * - Phase 3 (HP <= 33%): Overdrive Crimson/Red-Hot enraged aura, flickering core instability flares.
+ */
+export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render) return;
+    const { size = 80 } = render;
+
+    const boss = world.getComponent(entity, "Boss");
+    const health = world.getComponent(entity, "Health");
+
+    const currentHp = health ? health.current : (boss ? boss.hp : 50);
+    const maxHp = health ? health.max : (boss ? boss.maxHp : 50);
+    const hpRatio = Math.max(0, Math.min(1.0, currentHp / maxHp));
+
+    // Determine Boss Phase based on HP ratio
+    let phase = 1;
+    let baseColor: string = colors.magentaHot;
+    let accentColor: string = colors.cyan;
+
+    if (hpRatio <= 0.33) {
+      phase = 3;
+      baseColor = colors.redHot;
+      accentColor = colors.orange;
+    } else if (hpRatio <= 0.66) {
+      phase = 2;
+      baseColor = colors.gold;
+      accentColor = colors.orangeDark;
+    }
+
+    const flash = applyHitFlash(render, baseColor);
+    const color = flash.color;
+
+    ctx.save();
+    ctx.globalAlpha = flash.opacity;
+
+    const tick = world.tick;
+    const s = size / 20;
+
+    // 1. Phase 3 Overdrive Energy Aura Glow
+    if (phase === 3) {
+      const auraPulse = 1.0 + 0.15 * Math.sin(tick * 0.4);
+      ctx.shadowColor = colors.redHot;
+      ctx.shadowBlur = 15 * auraPulse;
+    } else if (phase === 2) {
+      ctx.shadowColor = colors.gold;
+      ctx.shadowBlur = 8;
+    }
+
+    // 2. Heavy Armored Mothership Hull Shape
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    // Central Command Spire / Nose
+    ctx.moveTo(0, -s * 8);
+    ctx.lineTo(s * 4, -s * 4);
+    // Right Heavy Armor Wing
+    ctx.lineTo(s * 10, -s * 2);
+    ctx.lineTo(s * 9, s * 4);
+    ctx.lineTo(s * 6, s * 8);
+    ctx.lineTo(s * 3, s * 6);
+    // Central Engine Intake
+    ctx.lineTo(0, s * 7);
+    // Left Heavy Armor Wing
+    ctx.lineTo(-s * 3, s * 6);
+    ctx.lineTo(-s * 6, s * 8);
+    ctx.lineTo(-s * 9, s * 4);
+    ctx.lineTo(-s * 10, -s * 2);
+    ctx.lineTo(-s * 4, -s * 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Reset shadow blur
+    ctx.shadowBlur = 0;
+
+    // 3. Phase Accent Trims & Secondary Cannons
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    // Wing Cannons
+    ctx.moveTo(-s * 8, -s * 2);
+    ctx.lineTo(-s * 8, -s * 6);
+    ctx.moveTo(s * 8, -s * 2);
+    ctx.lineTo(s * 8, -s * 6);
+    ctx.stroke();
+
+    // 4. Phase-based Core Reaction Chamber
+    const pulseSpeed = phase === 3 ? 0.3 : phase === 2 ? 0.15 : 0.08;
+    const corePulse = 0.5 + 0.5 * Math.sin(tick * pulseSpeed);
+    const coreRadius = s * (3.5 + 1.2 * corePulse);
+
+    ctx.fillStyle = phase === 3 ? colors.white : accentColor;
+    ctx.beginPath();
+    ctx.arc(0, 0, coreRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 5. Procedural Damage Cracks Overlay in Phase 2 & Phase 3
+    if (hpRatio < 1.0) {
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      ctx.moveTo(-s * 6, -s * 2);
+      ctx.lineTo(s * 2, s * 4);
+
+      if (phase === 3) {
+        ctx.moveTo(s * 5, -s * 3);
+        ctx.lineTo(-s * 3, s * 5);
+      }
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+};
+
+/**
  * Visuals for shield blocks.
  * - Layered high-tech hex barricade structures.
  * - Neon green outer outline.
@@ -317,15 +424,9 @@ export const drawSpaceInvadersShield: ShapeDrawer<CanvasRenderingContext2D, Spac
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 15 } = render;
-    let { color = colors.green } = render;
 
-    // Apply hit flash
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
-        ctx.globalAlpha = 0.3;
-      }
-      color = colors.white;
-    }
+    const flash = applyHitFlash(render, render.color || colors.green);
+    const color = flash.color;
 
     const shield = world.getComponent(entity, "Shield");
     const hp = shield ? shield.hp : 3;
@@ -336,13 +437,13 @@ export const drawSpaceInvadersShield: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     // Draw glowing semi-transparent high-tech energy cell fill
     ctx.fillStyle = color;
-    ctx.globalAlpha = 0.15 + 0.5 * ratio;
+    ctx.globalAlpha = flash.opacity * (0.15 + 0.5 * ratio);
     ctx.fillRect(-size / 2, -size / 2, size, size);
 
     // Draw glowing contours around undamaged/active shield segments
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;
-    ctx.globalAlpha = 0.3 + 0.7 * ratio;
+    ctx.globalAlpha = flash.opacity * (0.3 + 0.7 * ratio);
     ctx.strokeRect(-size / 2, -size / 2, size, size);
 
     // Draw procedural damage cracking overlay lines if damaged

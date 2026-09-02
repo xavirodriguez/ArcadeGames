@@ -53,6 +53,9 @@ export class DifficultyDirectorSystem<TComponents extends ComponentRegistry = Co
       // Symmetrical multipliers centered around neutral tension (0.5)
       const speedMultiplier = 0.6 + (tension - 0.1) * 1.0;          // 0.6 to 1.4
       const fireIntervalMultiplier = 1.4 - (tension - 0.1) * 1.0;   // 1.4 to 0.6
+      const lootDropMultiplier = Number((0.6 + (tension - 0.1) * 1.0).toFixed(2)); // Single source of truth for loot drop scaling (0.6x to 1.4x)
+
+      newConfig.LOOT_DROP_MULTIPLIER = lootDropMultiplier;
 
       // Space Invaders Adjustments
       if (typeof newConfig.INVADER_SPEED === "number") {

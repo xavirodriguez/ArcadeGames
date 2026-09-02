@@ -164,7 +164,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         const x = args.side === "left" ? 40 : config.WIDTH - 40;
         const y = config.HEIGHT / 2;
 
-        createEntityBuilder(world, entity)
+        EntityBuilder.fromEntity(world, entity)
           .withTransform({ x, y })
           .withVelocity()
           .withRender({
@@ -183,10 +183,10 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
             shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,
             layer: CollisionLayers.PLAYER,
             mask: CollisionLayers.PROJECTILE
-          })
-          .withTag(["Paddle", args.side])
-          .withComponent({ type: "Paddle", side: args.side, previousY: y, lastVelocityY: 0 } as any)
-          .commit();
+          });
+
+        world.addComponent(entity, { type: "Tag", tags: ["Paddle", args.side] } as any);
+        world.addComponent(entity, { type: "Paddle", side: args.side, previousY: y, lastVelocityY: 0 } as any);
       }
     });
 

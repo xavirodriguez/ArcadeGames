@@ -147,7 +147,7 @@ export class FlappyBirdGame
 
         // Top Pipe
         const topY = args.gapY - halfGap;
-        createEntityBuilder(world, entity)
+        EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: topY / 2 })
           .withVelocity({ vx: -pipeSpeed, vy: 0 })
           .withRender({ shape: "pipe", size: pipeWidth, color: pipeColor, order: 0 })
@@ -156,14 +156,14 @@ export class FlappyBirdGame
             layer: CollisionLayers.ENEMY,
             mask: CollisionLayers.PLAYER
           })
-          .withCollisionEvents()
-          .withComponent({ type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: false })
-          .commit();
+          .withCollisionEvents();
+
+        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: false });
 
         // Bottom Pipe
         const bottomY = args.gapY + halfGap;
         const bottomHeight = FLAPPY_CONFIG.SCREEN_HEIGHT - bottomY;
-        createEntityBuilder(world)
+        EntityBuilder.create(world)
           .withTransform({ x: args.x, y: bottomY + bottomHeight / 2 })
           .withVelocity({ vx: -pipeSpeed, vy: 0 })
           .withRender({ shape: "pipe", size: pipeWidth, color: pipeColor, order: 0 })
@@ -172,9 +172,9 @@ export class FlappyBirdGame
             layer: CollisionLayers.ENEMY,
             mask: CollisionLayers.PLAYER
           })
-          .withCollisionEvents()
-          .withComponent({ type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: true })
-          .commit();
+          .withCollisionEvents();
+
+        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: true });
       }
     });
 
@@ -182,7 +182,7 @@ export class FlappyBirdGame
       spawn: (world, entity, _args: {}) => {
         const groundColor = resolveThemeColor(world, "ground");
 
-        createEntityBuilder(world, entity)
+        EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: FLAPPY_CONFIG.SCREEN_WIDTH / 2, y: FLAPPY_CONFIG.GROUND_Y })
           .withCollider({
             shape: { type: ShapeType.Box, width: FLAPPY_CONFIG.SCREEN_WIDTH, height: FLAPPY_CONFIG.SCREEN_HEIGHT - FLAPPY_CONFIG.GROUND_Y } as BoxShape,
@@ -190,9 +190,9 @@ export class FlappyBirdGame
             mask: CollisionLayers.PLAYER
           })
           .withCollisionEvents()
-          .withRender({ shape: "ground", size: FLAPPY_CONFIG.SCREEN_WIDTH, color: groundColor, order: 0 })
-          .withComponent({ type: "Ground" })
-          .commit();
+          .withRender({ shape: "ground", size: FLAPPY_CONFIG.SCREEN_WIDTH, color: groundColor, order: 0 });
+
+        world.addComponent(entity, { type: "Ground" });
       }
     });
 

@@ -64,60 +64,38 @@ export function registerAsteroidsBlueprints(
           type: "Sprite",
           assetKey,
           anchor: { x: 0.5, y: 0.5 }
-        } as SpriteComponent);
+        } as any);
       }
 
       w.addComponent(entity, {
         type: "Health",
         current: 3,
         max: 3
-      } as HealthComponent);
+      } as any);
       w.addComponent(entity, {
         type: "Boundary",
         width: screen.width,
         height: screen.height,
         mode: "wrap"
-      } as BoundaryComponent);
+      } as any);
       w.addComponent(entity, {
         type: "Ship",
         sessionId: "",
         shootCooldownRemaining: 0
-      } as AsteroidsComponentRegistry["Ship"]);
+      } as any);
+
       const hasComboHeadStart = w.getResource("HasComboHeadStart") === true;
       const initialCombo = hasComboHeadStart ? 5 : 0;
       const initialMultiplier = hasComboHeadStart ? 2 : 1;
       const initialTimerRemaining = hasComboHeadStart ? (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000 : 0;
 
-      const builder = createEntityBuilder(w, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withVelocity()
-        .withRender({ shape: useSprites ? "sprite" : "player_ship", size: 15, color: tint, order: 1 })
-        .withHealth(3, 3)
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
-          layer: CollisionLayers.PLAYER,
-          mask: CollisionLayers.ENEMY
-        })
-        .withCollisionEvents()
-        .withBoundary({ width: screen.width, height: screen.height, mode: "wrap" })
-        .withFaction("player")
-        .withComponent({
-          type: "Ship",
-          sessionId: "",
-          shootCooldownRemaining: 0
-        } as any)
-        .withComponent({
-          type: "Combo",
-          combo: initialCombo,
-          multiplier: initialMultiplier,
-          timerRemaining: initialTimerRemaining,
-          timerDuration: (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000
-        } as any);
-
-      if (useSprites) {
-        builder.withSprite({ assetKey, anchor: { x: 0.5, y: 0.5 } });
-      }
-      builder.commit();
+      w.addComponent(entity, {
+        type: "Combo",
+        combo: initialCombo,
+        multiplier: initialMultiplier,
+        timerRemaining: initialTimerRemaining,
+        timerDuration: (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000
+      } as any);
     }
   });
 
@@ -155,25 +133,29 @@ export function registerAsteroidsBlueprints(
       w.addComponent(entity, {
         type: "Bullet",
         ownerId: args.ownerId
-      } as AsteroidsComponentRegistry["Bullet"]);
+      } as any);
       w.addComponent(entity, {
         type: "Damage",
         amount: 1,
         category: "player_bullet",
         friendlyFire: false,
         consumption: "destroy-entity"
-      } as DamageComponent);
+      } as any);
       w.addComponent(entity, {
         type: "Faction",
         faction: "player",
         value: "player"
-      } as FactionComponent);
+      } as any);
 
       if (gameConfig?.BULLET_BOUNDARY_BEHAVIOR === "bounce") {
         const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-        builder.withBoundary({ width: screen.width, height: screen.height, mode: "bounce" });
+        w.addComponent(entity, {
+          type: "Boundary",
+          width: screen.width,
+          height: screen.height,
+          mode: "bounce"
+        } as any);
       }
-      builder.commit();
     }
   });
 
@@ -217,23 +199,23 @@ export function registerAsteroidsBlueprints(
       w.addComponent(entity, {
         type: "Asteroid",
         size: args.size
-      } as AsteroidsComponentRegistry["Asteroid"]);
+      } as any);
       w.addComponent(entity, {
         type: "Boundary",
         width: screen.width,
         height: screen.height,
         mode: "wrap"
-      } as BoundaryComponent);
+      } as any);
       w.addComponent(entity, {
         type: "Health",
         current: 1,
         max: 1
-      } as HealthComponent);
+      } as any);
       w.addComponent(entity, {
         type: "Faction",
         faction: "enemy",
         value: "enemy"
-      } as FactionComponent);
+      } as any);
       w.addComponent(entity, {
         type: "LootTable",
         tableId: "default"
@@ -276,7 +258,7 @@ export function registerAsteroidsBlueprints(
       w.addComponent(entity, {
         type: "PowerUp",
         powerUpType: args.lootType
-      } as PowerUpComponent);
+      } as any);
     }
   });
 

@@ -15,6 +15,10 @@ describe("Echo Runner Game Simulation Tests", () => {
     world.flush(); // Flush deferred commands to spawn segment templates
   });
 
+  afterEach(() => {
+    game?.destroy();
+  });
+
   it("should initialize with 1 attempt, 0 deaths, 0 fragments, and 0 cores collected", () => {
     const state = game.getGameState();
     expect(state.attempts).toBe(1);
@@ -167,5 +171,46 @@ describe("Echo Runner Game Simulation Tests", () => {
     // Intentionally bypass blueprint registration or clear blueprints
     (badGame as any).blueprints.blueprints.clear();
     await expect((badGame as any).onInitializeEntities()).rejects.toThrow("[EchoRunnerGame]");
+  });
+
+  it("should materialize level plan (tilemap, enemies, collectibles, player) during game.init() production path without manual flush", async () => {
+    const prodGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await prodGame.init();
+      const prodWorld = prodGame.getWorld();
+
+      // Verify all level elements exist immediately after init()
+      const players = prodWorld.query("PlatformerInput");
+      expect(players.length).toBeGreaterThan(0);
+
+      const tilemaps = prodWorld.query("Tilemap");
+      expect(tilemaps.length).toBeGreaterThan(0);
+
+      const enemies = prodWorld.query("Enemy");
+      expect(enemies.length).toBeGreaterThan(0);
+
+      const collectibles = prodWorld.query("Collectible");
+      expect(collectibles.length).toBeGreaterThan(0);
+
+      // Simulate 2 frames of gameplay update
+      prodGame.update(0.016);
+      prodGame.update(0.016);
+
+      // Verify player is alive and level geometry remains intact
+      const playerEntity = players[0];
+      expect(prodWorld.isAlive(playerEntity)).toBe(true);
+
+      const playerTrans = prodWorld.getComponent(playerEntity, "Transform");
+      expect(playerTrans).toBeDefined();
+
+      // Simulate input movement
+      prodGame.setInputState({ moveRight: true });
+      prodGame.update(0.1);
+
+      const playerVel = prodWorld.getComponent(playerEntity, "Velocity");
+      expect(playerVel?.vx).toBeGreaterThan(0);
+    } finally {
+      prodGame.destroy();
+    }
   });
 });

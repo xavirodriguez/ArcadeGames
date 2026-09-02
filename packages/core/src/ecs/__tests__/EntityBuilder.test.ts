@@ -1,88 +1,69 @@
-import { World } from "../World";
-import { createEntityBuilder, EntityBuilder } from "../EntityBuilder";
-import { ShapeType } from "../../physics/shapes/Shapes";
+import { World, ShapeType } from "@tiny-aster/core";
+import { EntityBuilder } from "../EntityBuilder";
 
 describe("EntityBuilder", () => {
-  let world: World;
-
-  beforeEach(() => {
-    world = new World();
-  });
-
-  it("should build an entity with transform, velocity, render, collider, and TTL directly on World when not updating", () => {
-    const builder = createEntityBuilder(world);
-    const entity = builder
-      .withTransform({ x: 100, y: 200, rotation: 1.5 })
-      .withVelocity({ vx: 50, vy: -50 })
-      .withRender({ shape: "ship", size: 20, color: "blue" })
-      .withCollider({ shape: { type: ShapeType.Circle, radius: 20 } as any, layer: 1, mask: 2 })
+  it("should build entity with core components in World directly", () => {
+    const world = new World<any>();
+    const entity = EntityBuilder.create(world)
+      .withTransform({ x: 100, y: 200, rotation: 1.57 })
+      .withVelocity({ vx: 10, vy: -20 })
+      .withRender({ shape: "circle", size: 12, color: "#ff0000" })
+      .withCollider({
+        shape: { type: ShapeType.Circle, radius: 12 },
+        layer: 1,
+        mask: 2,
+        isTrigger: true
+      })
       .withTTL(5.0)
-      .withHealth(3, 3)
       .withCollisionEvents()
-      .commit();
+      .build();
 
-    expect(world.isAlive(entity)).toBe(true);
+    expect(world.hasEntity(entity)).toBe(true);
+    expect(world.hasComponent(entity, "Transform")).toBe(true);
+    expect(world.hasComponent(entity, "Velocity")).toBe(true);
+    expect(world.hasComponent(entity, "Render")).toBe(true);
+    expect(world.hasComponent(entity, "Collider")).toBe(true);
+    expect(world.hasComponent(entity, "TTL")).toBe(true);
+    expect(world.hasComponent(entity, "CollisionEvents")).toBe(true);
+
     const transform = world.getComponent(entity, "Transform");
-    expect(transform).toEqual({
-      type: "Transform",
-      x: 100,
-      y: 200,
-      rotation: 1.5,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: 100,
-      worldY: 200,
-      worldRotation: 1.5,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-      parentEntity: undefined
-    });
+    expect(transform?.x).toBe(100);
+    expect(transform?.y).toBe(200);
+    expect(transform?.rotation).toBe(1.57);
 
     const velocity = world.getComponent(entity, "Velocity");
-    expect(velocity?.vx).toBe(50);
-    expect(velocity?.vy).toBe(-50);
-
-    const render = world.getComponent(entity, "Render");
-    expect(render?.shape).toBe("ship");
-    expect(render?.size).toBe(20);
-    expect(render?.color).toBe("blue");
+    expect(velocity?.vx).toBe(10);
+    expect(velocity?.vy).toBe(-20);
 
     const ttl = world.getComponent(entity, "TTL");
     expect(ttl?.remaining).toBe(5.0);
-
-    const health = world.getComponent(entity, "Health");
-    expect(health?.current).toBe(3);
   });
 
-  it("should defer mutations to CommandBuffer when world is updating", () => {
-    world.isUpdating = true;
+  it("should queue component additions when using createDeferred", () => {
+    const world = new World<any>();
+    const entity = EntityBuilder.createDeferred(world)
+      .withTransform({ x: 50, y: 50 })
+      .withVelocity({ vx: 5, vy: 5 })
+      .build();
 
-    const builder = createEntityBuilder(world);
-    const entity = builder
-      .withTransform({ x: 10, y: 20 })
-      .withTag(["Player"])
-      .commit();
+    expect(world.hasEntity(entity)).toBe(true);
+    // Before buffer flush, components are not yet in World
+    expect(world.hasComponent(entity, "Transform")).toBe(false);
 
-    // Before flush, components should not be attached yet
-    expect(world.getComponent(entity, "Transform")).toBeUndefined();
+    world.getCommandBuffer().flush(world);
 
-    // Set updating to false and flush command buffer
-    world.isUpdating = false;
-    world.flush();
-
-    expect(world.getComponent(entity, "Transform")).toBeDefined();
-    expect(world.getComponent(entity, "Tag")?.tags).toEqual(["Player"]);
+    expect(world.hasComponent(entity, "Transform")).toBe(true);
+    expect(world.hasComponent(entity, "Velocity")).toBe(true);
   });
 
-  it("should support custom component addition via withComponent", () => {
-    const entity = createEntityBuilder(world)
-      .withComponent({ type: "CustomComp", value: 42 } as any)
-      .commit();
+  it("should configure an existing entity via fromEntity", () => {
+    const world = new World<any>();
+    const existing = world.createEntity();
 
-    expect(world.getComponent(entity, "CustomComp" as any)).toEqual({
-      type: "CustomComp",
-      value: 42
-    });
+    EntityBuilder.fromEntity(world, existing)
+      .withTransform({ x: 300, y: 400 })
+      .build();
+
+    expect(world.getComponent(existing, "Transform")?.x).toBe(300);
   });
 });

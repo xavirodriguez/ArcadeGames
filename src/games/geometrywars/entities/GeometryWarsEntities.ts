@@ -5,7 +5,8 @@ import {
   CircleShape,
   Theme,
   resolveThemeColor,
-  EntityBuilder
+  EntityBuilder,
+  HealthComponent
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
@@ -40,21 +41,21 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: config?.INVULNERABILITY_DURATION ?? 2.0 } as any);
-      w.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as any);
+      w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: config?.INVULNERABILITY_DURATION ?? 2.0 } as HealthComponent);
+      w.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as FactionComponent);
       w.addComponent(entity, {
         type: "Player",
         fireCooldownRemaining: 0,
         invulnRemaining: config?.INVULNERABILITY_DURATION ?? 2.0,
         moveX: 0,
         moveY: 0
-      } as any);
+      } as GeometryWarsComponentRegistry["Player"]);
       w.addComponent(entity, {
         type: "Aim",
         aimX: 0,
         aimY: 0,
         isFiring: false
-      } as any);
+      } as GeometryWarsComponentRegistry["Aim"]);
       w.addComponent(entity, {
         type: "Weapon",
         cooldownRemaining: 0,
@@ -66,7 +67,7 @@ export function registerGeometryWarsBlueprints(
         multiplier: 1,
         timerRemaining: 0,
         timerDuration: 3.0
-      } as any);
+      } as GeometryWarsComponentRegistry["Combo"]);
       w.addComponent(entity, {
         type: "KineticAccumulator",
         storedEnergy: 0,
@@ -78,7 +79,7 @@ export function registerGeometryWarsBlueprints(
         isBurstReady: false,
         isBurstActive: false,
         overdriveRemaining: 0
-      } as any);
+      } as GeometryWarsComponentRegistry["KineticAccumulator"]);
     }
   });
 
@@ -100,14 +101,14 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as any);
+      w.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as FactionComponent);
       w.addComponent(entity, {
         type: "Damage",
         amount: 1,
         category: "player_bullet",
         friendlyFire: false,
         consumption: "destroy-entity"
-      } as any);
+      } as DamageComponent);
     }
   });
 
@@ -124,15 +125,15 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as any);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
+      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       w.addComponent(entity, {
         type: "Steering",
         mode: "seek",
         targetFaction: "player",
         maxSpeed: 140,
         maxAcceleration: 150
-      } as any);
+      } as GeometryWarsComponentRegistry["Steering"]);
     }
   });
 
@@ -149,15 +150,15 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as any);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
+      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       w.addComponent(entity, {
         type: "Steering",
         mode: "seek",
         targetFaction: "player",
         maxSpeed: 120,
         maxAcceleration: 100
-      } as any);
+      } as GeometryWarsComponentRegistry["Steering"]);
     }
   });
 
@@ -174,15 +175,15 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as any);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
+      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       w.addComponent(entity, {
         type: "Steering",
         mode: "seek",
         targetFaction: "player",
         maxSpeed: 250,
         maxAcceleration: 280
-      } as any);
+      } as GeometryWarsComponentRegistry["Steering"]);
     }
   });
 
@@ -228,15 +229,15 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Health", current: 2, max: 2, invulnerableRemaining: 0 } as any);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+      w.addComponent(entity, { type: "Health", current: 2, max: 2, invulnerableRemaining: 0 } as HealthComponent);
+      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       w.addComponent(entity, {
         type: "Damage",
         amount: 1,
         category: "enemy_contact",
         friendlyFire: false,
         consumption: "none"
-      } as any);
+      } as DamageComponent);
       w.addComponent(entity, {
         type: "Steering",
         mode: "seek",
@@ -244,7 +245,7 @@ export function registerGeometryWarsBlueprints(
         maxSpeed: 120,
         maxAcceleration: 80,
         arrivalRadius: 10
-      } as any);
+      } as GeometryWarsComponentRegistry["Steering"]);
     }
   });
 
@@ -261,22 +262,22 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 } as any);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+      w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 } as HealthComponent);
+      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       w.addComponent(entity, {
         type: "Damage",
         amount: 1,
         category: "enemy_contact",
         friendlyFire: false,
         consumption: "none"
-      } as any);
+      } as DamageComponent);
       w.addComponent(entity, {
         type: "Steering",
         mode: "flee",
         targetFaction: "player",
         maxSpeed: 100,
         maxAcceleration: 60
-      } as any);
+      } as GeometryWarsComponentRegistry["Steering"]);
     }
   });
 
@@ -293,15 +294,15 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 } as any);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+      w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 } as HealthComponent);
+      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       w.addComponent(entity, {
         type: "Damage",
         amount: 1,
         category: "enemy_contact",
         friendlyFire: false,
         consumption: "none"
-      } as any);
+      } as DamageComponent);
       w.addComponent(entity, {
         type: "Steering",
         mode: "seek",
@@ -309,7 +310,7 @@ export function registerGeometryWarsBlueprints(
         maxSpeed: 200,
         maxAcceleration: 150,
         arrivalRadius: 5
-      } as any);
+      } as GeometryWarsComponentRegistry["Steering"]);
     }
   });
 
@@ -322,30 +323,177 @@ export function registerGeometryWarsBlueprints(
  */
 export class GeometryWarsEntityFactory {
   public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    return spawnViaBlueprint(world, "seeker", { x, y });
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("seeker")?.spawn(mockWorld, entity, { x, y });
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("seeker")?.spawn(world, entity, { x, y });
+    }
+    return entity;
   }
 
   public static createEvader(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    return spawnViaBlueprint(world, "evader", { x, y });
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("evader")?.spawn(mockWorld, entity, { x, y });
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("evader")?.spawn(world, entity, { x, y });
+    }
+    return entity;
   }
 
   public static createFastSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    return spawnViaBlueprint(world, "fast_seeker", { x, y });
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("fast_seeker")?.spawn(mockWorld, entity, { x, y });
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("fast_seeker")?.spawn(world, entity, { x, y });
+    }
+    return entity;
   }
 
   public static createPlayer(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    return spawnViaBlueprint(world, "player", { x, y });
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("player")?.spawn(mockWorld, entity, { x, y });
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("player")?.spawn(world, entity, { x, y });
+    }
+    return entity;
   }
 
   public static createBullet(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number, vx: number, vy: number, rotation: number): number {
-    return spawnViaBlueprint(world, "bullet", { x, y, vx, vy, rotation });
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("bullet")?.spawn(mockWorld, entity, { x, y, vx, vy, rotation });
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("bullet")?.spawn(world, entity, { x, y, vx, vy, rotation });
+    }
+    return entity;
   }
 
   public static createSpawnDirector(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
-    return spawnViaBlueprint(world, "spawn_director", {});
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("spawn_director")?.spawn(mockWorld, entity, {});
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("spawn_director")?.spawn(world, entity, {});
+    }
+    return entity;
   }
 
   public static createGameState(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
-    return spawnViaBlueprint(world, "state", {});
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+
+    let entity: number;
+    if (isUpdating) {
+      entity = world.reserveEntityId();
+      commands.createEntity(entity);
+      const mockWorld = new Proxy(world, {
+        get(target, prop, receiver) {
+          if (prop === "addComponent") {
+            return (ent: number, comp: any) => commands.addComponent(ent, comp);
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+      });
+      blueprintRegistry?.get("state")?.spawn(mockWorld, entity, {});
+    } else {
+      entity = world.createEntity();
+      blueprintRegistry?.get("state")?.spawn(world, entity, {});
+    }
+    return entity;
   }
 }

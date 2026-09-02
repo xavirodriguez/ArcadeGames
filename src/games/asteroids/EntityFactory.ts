@@ -6,12 +6,16 @@ import {
   CircleShape,
   Theme,
   resolveThemeColor,
-  createEntityBuilder,
-  spawnViaBlueprint
+  EntityBuilder,
+  HealthComponent,
+  BoundaryComponent,
+  SpriteComponent
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
+import { DamageComponent, FactionComponent } from "../shared/combat/components/CombatComponents";
+import { PowerUpComponent } from "../shared/arcade/types/ArcadeTypes";
 
 function getPowerUpColor(lootType: string): string {
   if (lootType === "shield") return "#00f0ff";
@@ -65,25 +69,25 @@ export function registerAsteroidsBlueprints(
           type: "Sprite",
           assetKey,
           anchor: { x: 0.5, y: 0.5 }
-        } as any);
+        } as SpriteComponent);
       }
 
       w.addComponent(entity, {
         type: "Health",
         current: 3,
         max: 3
-      } as any);
+      } as HealthComponent);
       w.addComponent(entity, {
         type: "Boundary",
         width: screen.width,
         height: screen.height,
         mode: "wrap"
-      } as any);
+      } as BoundaryComponent);
       w.addComponent(entity, {
         type: "Ship",
         sessionId: "",
         shootCooldownRemaining: 0
-      } as any);
+      } as AsteroidsComponentRegistry["Ship"]);
 
       const hasComboHeadStart = w.getResource("HasComboHeadStart") === true;
       const initialCombo = hasComboHeadStart ? 5 : 0;
@@ -96,7 +100,7 @@ export function registerAsteroidsBlueprints(
         multiplier: initialMultiplier,
         timerRemaining: initialTimerRemaining,
         timerDuration: (gameConfig?.COMBO_TIMEOUT ?? 2000) / 1000
-      } as any);
+      } as AsteroidsComponentRegistry["Combo"]);
     }
   });
 
@@ -105,10 +109,24 @@ export function registerAsteroidsBlueprints(
       const tint = resolveThemeColor(w, "bullet", "player-bullet");
       const gameConfig = w.getResource<any>("GameConfig");
 
-      const builder = createEntityBuilder(w, entity)
-        .withTransform({ x: args.x, y: args.y, rotation: args.rotation ?? 0 })
-        .withVelocity({ vx: args.vx, vy: args.vy })
-        .withRender({ shape: "bullet", size: 2, color: tint, order: 2, rotation: args.rotation ?? 0 })
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          rotation: args.rotation ?? 0,
+          dirty: true
+        })
+        .withVelocity({
+          vx: args.vx,
+          vy: args.vy
+        })
+        .withRender({
+          shape: "bullet",
+          size: 2,
+          color: tint,
+          order: 2,
+          rotation: args.rotation ?? 0
+        })
         .withTTL(args.ttl ?? 2.0)
         .withCollider({
           shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
@@ -120,19 +138,19 @@ export function registerAsteroidsBlueprints(
       w.addComponent(entity, {
         type: "Bullet",
         ownerId: args.ownerId
-      } as any);
+      } as AsteroidsComponentRegistry["Bullet"]);
       w.addComponent(entity, {
         type: "Damage",
         amount: 1,
         category: "player_bullet",
         friendlyFire: false,
         consumption: "destroy-entity"
-      } as any);
+      } as DamageComponent);
       w.addComponent(entity, {
         type: "Faction",
         faction: "player",
         value: "player"
-      } as any);
+      } as FactionComponent);
 
       if (gameConfig?.BULLET_BOUNDARY_BEHAVIOR === "bounce") {
         const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
@@ -141,7 +159,7 @@ export function registerAsteroidsBlueprints(
           width: screen.width,
           height: screen.height,
           mode: "bounce"
-        } as any);
+        } as BoundaryComponent);
       }
     }
   });
@@ -149,7 +167,6 @@ export function registerAsteroidsBlueprints(
   registry.register("asteroid", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
       const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-
       const randVx = (w.gameplayRandom.next() - 0.5) * 100;
       const randVy = (w.gameplayRandom.next() - 0.5) * 100;
       const randAng = (w.gameplayRandom.next() - 0.5) * 2;
@@ -161,14 +178,22 @@ export function registerAsteroidsBlueprints(
       const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
       const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy");
 
-      createEntityBuilder(w, entity)
-        .withTransform({ x: args.x, y: args.y })
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          dirty: true
+        })
         .withVelocity({
           vx: args.vx !== undefined ? args.vx : randVx,
           vy: args.vy !== undefined ? args.vy : randVy,
           angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng
         })
-        .withRender({ shape: "asteroid", size: radius * 2, color: tint, order: 0 })
+        .withRender({
+          shape: "asteroid",
+          size: radius * 2,
+          color: tint
+        })
         .withCollider({
           shape: { type: ShapeType.Circle, radius } as CircleShape,
           layer: CollisionLayers.ENEMY,
@@ -179,23 +204,23 @@ export function registerAsteroidsBlueprints(
       w.addComponent(entity, {
         type: "Asteroid",
         size: args.size
-      } as any);
+      } as AsteroidsComponentRegistry["Asteroid"]);
       w.addComponent(entity, {
         type: "Boundary",
         width: screen.width,
         height: screen.height,
         mode: "wrap"
-      } as any);
+      } as BoundaryComponent);
       w.addComponent(entity, {
         type: "Health",
         current: 1,
         max: 1
-      } as any);
+      } as HealthComponent);
       w.addComponent(entity, {
         type: "Faction",
         faction: "enemy",
         value: "enemy"
-      } as any);
+      } as FactionComponent);
       w.addComponent(entity, {
         type: "LootTable",
         tableId: "default"
@@ -213,9 +238,19 @@ export function registerAsteroidsBlueprints(
 
   registry.register("powerup", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; lootType: string }) => {
-      createEntityBuilder(w, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withRender({ shape: "shield_bubble", size: 15, color: getPowerUpColor(args.lootType), order: 5, angularVelocity: 1.0 })
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          dirty: true
+        })
+        .withRender({
+          shape: "shield_bubble",
+          size: 15,
+          color: getPowerUpColor(args.lootType),
+          order: 5,
+          angularVelocity: 1.0
+        })
         .withCollider({
           shape: { type: ShapeType.Circle, radius: 15 } as CircleShape,
           layer: CollisionLayers.ENEMY,
@@ -228,15 +263,53 @@ export function registerAsteroidsBlueprints(
       w.addComponent(entity, {
         type: "PowerUp",
         powerUpType: args.lootType
-      } as any);
+      } as PowerUpComponent);
     }
   });
 
   world.setResource("BlueprintRegistry", registry);
 }
 
+// Generadores de entidades genéricas que admiten cualquier tipo de componente dinámico.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any) => void } => {
+    const isUpdating = world.isUpdating;
+    const commands = world.getCommandBuffer();
+
+    if (isUpdating) {
+        const entity = world.reserveEntityId();
+        commands.createEntity(entity);
+        return {
+            entity,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            add: (comp: any) => {
+                commands.addComponent(entity, comp);
+            }
+        };
+    }
+
+    const entity = world.createEntity();
+    return {
+        entity,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        add: (comp: any) => world.addComponent(entity, comp)
+    };
+};
+
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  return spawnViaBlueprint(world, blueprintId, args);
+  if (world.isUpdating) {
+    const entity = world.reserveEntityId();
+    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
+    return entity;
+  }
+
+  const entity = world.createEntity();
+  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
+  const blueprint = registry?.get(blueprintId);
+  if (blueprint) {
+    blueprint.spawn(world, entity, args);
+  }
+  return entity;
 }
 
 /** @public */

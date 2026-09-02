@@ -23,7 +23,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * Unlike Asteroids, it uses a rigid formation system where the movement
  * of one entity affects the whole group (Swarm movement).
  */
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { FactionComponent } from "../shared/combat/components/CombatComponents";
 
@@ -150,18 +150,18 @@ export class SpaceInvadersGame
           current: config.PLAYER_INITIAL_LIVES,
           max: config.PLAYER_INITIAL_LIVES,
           invulnerableRemaining: 0
-        } as any);
+        } as HealthComponent);
         world.addComponent(entity, {
           type: "Faction",
           faction: "player",
           value: "player"
-        } as any);
+        } as FactionComponent);
         world.addComponent(entity, {
           type: "Boundary",
           width: GAME_CONFIG.SCREEN_WIDTH - config.PLAYER_RENDER_WIDTH,
           height: GAME_CONFIG.SCREEN_HEIGHT,
           mode: "bounce"
-        } as any);
+        } as BoundaryComponent);
         world.addComponent(entity, {
           type: "Input",
           moveLeft: false,
@@ -176,7 +176,7 @@ export class SpaceInvadersGame
           multiplier: initialMultiplier,
           timerRemaining: initialTimerRemaining,
           timerDuration: config.COMBO_TIMEOUT / 1000
-        } as any);
+        } as SpaceInvadersComponentRegistry["Combo"]);
 
         createEmitter(world as any, {
           type: "spawn",
@@ -243,7 +243,7 @@ export class SpaceInvadersGame
           hp: config.SHIELD_SEGMENT_HP,
           maxHp: config.SHIELD_SEGMENT_HP,
           segment: { row: args.row, col: args.col }
-        } as any);
+        } as SpaceInvadersComponentRegistry["Shield"]);
       }
     });
 
@@ -297,8 +297,8 @@ export class SpaceInvadersGame
           })
           .withCollisionEvents();
 
-        world.addComponent(entity, { type: "Health", current: hp, max: hp } as any);
-        world.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+        world.addComponent(entity, { type: "Health", current: hp, max: hp } as HealthComponent);
+        world.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
         world.addComponent(entity, { type: "Boss", hp, maxHp: hp, timer: 0, phase: 1 } as BossComponent);
       }
     });

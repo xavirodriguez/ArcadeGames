@@ -1,11 +1,25 @@
-import { World, spawnViaBlueprint } from "@tiny-aster/core";
+import { World } from "@tiny-aster/core";
 import { PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
 import { TransformComponent, VelocityComponent, ColliderComponent } from "@tiny-aster/core";
 
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 
+import { BlueprintRegistry } from "@tiny-aster/core";
+
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  return spawnViaBlueprint(world, blueprintId, args);
+  if (world.isUpdating) {
+    const entity = world.reserveEntityId();
+    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
+    return entity;
+  }
+
+  const entity = world.createEntity();
+  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
+  const blueprint = registry?.get(blueprintId);
+  if (blueprint) {
+    blueprint.spawn(world, entity, args);
+  }
+  return entity;
 }
 
 /**

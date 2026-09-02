@@ -1,4 +1,4 @@
-import { World, spawnViaBlueprint } from "@tiny-aster/core";
+import { World } from "@tiny-aster/core";
 import { Entity, Component } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { createEmitter } from "@tiny-aster/core";
@@ -14,6 +14,32 @@ import { Collider2DComponent, TransformComponent, VelocityComponent, RenderCompo
  *
  * @packageDocumentation
  */
+
+/**
+ * Helper to handle deferred or immediate entity creation and component attachment.
+ */
+const createBaseEntity = (world: World<any>, deferred?: boolean): { entity: Entity, add: (comp: any) => void } => {
+    const isUpdating = world.isUpdating;
+    const isDeferred = !!(deferred || isUpdating);
+    const commands = world.getCommandBuffer();
+
+    if (isDeferred) {
+        const entity = world.reserveEntityId();
+        commands.createEntity(entity);
+        return {
+            entity,
+            add: (comp: any) => {
+                commands.addComponent(entity, comp);
+            }
+        };
+    }
+
+    const entity = world.createEntity();
+    return {
+        entity,
+        add: (comp: any) => world.addComponent(entity, comp)
+    };
+};
 
 /**
  * Parameters for creating a bird entity.
@@ -35,8 +61,22 @@ export interface CreatePipeParams {
   deferred?: boolean;
 }
 
+import { BlueprintRegistry } from "@tiny-aster/core";
+
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  return spawnViaBlueprint(world, blueprintId, args);
+  if (world.isUpdating) {
+    const entity = world.reserveEntityId();
+    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
+    return entity;
+  }
+
+  const entity = world.createEntity();
+  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
+  const blueprint = registry?.get(blueprintId);
+  if (blueprint) {
+    blueprint.spawn(world, entity, args);
+  }
+  return entity;
 }
 
 /**

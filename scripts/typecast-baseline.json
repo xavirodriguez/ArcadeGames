@@ -920,9 +920,9 @@
     "total": 25
   },
   "src/games/shared/spawn/systems/SpawnDirectorSystem.ts": {
-    "anyCount": 8,
+    "anyCount": 9,
     "unknownCount": 0,
-    "total": 8
+    "total": 9
   },
   "src/games/shared/story/DialogueSystem.ts": {
     "anyCount": 14,

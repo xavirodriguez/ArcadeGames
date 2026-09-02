@@ -23,7 +23,7 @@ import { AchievementSystem } from "../shared/arcade";
  * Implementa mecánicas de scroll infinito y generación procedural de obstáculos (tuberías).
  * Utiliza un sistema de gravedad simple y una única acción de entrada ("jump").
  */
-import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColor, createEntityBuilder } from "@tiny-aster/core";
+import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBirdCanvasVisuals";
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
@@ -75,39 +75,50 @@ export class FlappyBirdGame
       spawn: (world, entity, args: { x: number, y: number }) => {
         const tint = resolveThemeColor(world, "bird", "player");
 
-        createEntityBuilder(world, entity)
+        EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withVelocity()
-          .withRender({ shape: "bird", size: FLAPPY_CONFIG.BIRD_RADIUS, color: tint, order: 0 })
+          .withRender({
+            shape: "bird",
+            size: FLAPPY_CONFIG.BIRD_RADIUS,
+            color: tint
+          })
           .withCollider({
             shape: { type: ShapeType.Circle, radius: (FLAPPY_CONFIG.BIRD_RADIUS - 2) * 0.85 } as CircleShape,
             layer: CollisionLayers.PLAYER,
-            mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS
+            mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
+            offsetX: 0,
+            offsetY: 0
           })
-          .withCollisionEvents()
-          .withHealth(1, 1, 0)
-          .withComponent({
-            type: "Bird",
-            velocityY: 0,
-            isAlive: true,
-            isGliding: false,
-            nearMissTimer: 0,
-            coyoteTimer: 0,
-          })
-          .withComponent({
-            type: "FlappyInput",
-            flap: false,
-            glide: false,
-            flapCooldownRemaining: 0,
-          })
-          .withComponent({
-            type: "Combo",
-            combo: 0,
-            multiplier: 1,
-            timerRemaining: 0,
-            timerDuration: 2.0
-          } as any)
-          .commit();
+          .withCollisionEvents();
+
+        world.addComponent(entity, {
+          type: "Bird",
+          velocityY: 0,
+          isAlive: true,
+          isGliding: false,
+          nearMissTimer: 0,
+          coyoteTimer: 0,
+        });
+        world.addComponent(entity, {
+          type: "FlappyInput",
+          flap: false,
+          glide: false,
+          flapCooldownRemaining: 0,
+        });
+        world.addComponent(entity, {
+          type: "Health",
+          current: 1,
+          max: 1,
+          invulnerableRemaining: 0,
+        } as HealthComponent);
+        world.addComponent(entity, {
+          type: "Combo",
+          combo: 0,
+          multiplier: 1,
+          timerRemaining: 0,
+          timerDuration: 2.0
+        } as any);
 
         createEmitter(world as any, {
           type: "spawn",

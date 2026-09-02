@@ -233,7 +233,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
             rotation: args.dir < 0 ? Math.PI : 0
           });
 
-        world.addComponent(entity, { type: "Hitbox", hitEntities: [] } as any);
+        world.addComponent(entity, { type: "Hitbox", hitEntities: [] } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -249,8 +249,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           .withCollisionEvents();
 
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
-        world.addComponent(entity, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 } as any);
-        world.addComponent(entity, { type: "Hurtbox" } as any);
+        world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerMovementConfig",
           acceleration: ECHO_CONFIG.PLAYER_ACCEL,
@@ -258,7 +258,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           deceleration: ECHO_CONFIG.PLAYER_DECEL,
           airAcceleration: ECHO_CONFIG.PLAYER_AIR_ACCEL,
           airDeceleration: ECHO_CONFIG.PLAYER_AIR_DECEL
-        } as any);
+        } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerInput",
           moveDir: 0,
@@ -267,7 +267,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           jumpReleased: false,
           pulsePressed: false,
           pulseCooldown: 0
-        } as any);
+        } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerGravityConfig",
           riseGravity: ECHO_CONFIG.RISE_GRAVITY,
@@ -276,15 +276,15 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           minJumpVelocity: ECHO_CONFIG.PLAYER_MIN_JUMP_VEL,
           apexThreshold: ECHO_CONFIG.APEX_THRESHOLD,
           apexGravityMultiplier: ECHO_CONFIG.APEX_GRAVITY_MULTIPLIER
-        } as any);
+        } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerJumper",
           coyoteTimer: 0,
           jumpBufferTimer: 0,
           coyoteTimeMax: ECHO_CONFIG.COYOTE_TIME_MAX,
           jumpBufferMax: ECHO_CONFIG.JUMP_BUFFER_MAX
-        } as any);
-        world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false, iceMultiplier: 1.0 } as any);
+        } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false, iceMultiplier: 1.0 } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -298,7 +298,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           data: args.data,
           tileSize: ECHO_CONFIG.TILE_SIZE,
           tileDefinitions: args.tileDefinitions
-        } as any);
+        } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -315,7 +315,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           persistent: false,
           collectOnce: false,
           id: args.id
-        } as any);
+        } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -332,7 +332,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           persistent: true,
           collectOnce: true,
           id: args.id
-        } as any);
+        } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -347,7 +347,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           x: args.x,
           y: args.y - 10,
           checkpointId: args.id
-        } as any);
+        } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -358,11 +358,11 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           .withVelocity()
           .withRender({ shape: "sentinel", size: 22, order: 2 });
 
-        world.addComponent(entity, { type: "Health", current: 1, max: 1 } as any);
-        world.addComponent(entity, { type: "Enemy", kind: "patrol" } as any);
-        world.addComponent(entity, { type: "Patrol", startX: args.x - 80, endX: args.x + 80, direction: 1, patrolSpeed: 70 } as any);
-        world.addComponent(entity, { type: "GroundDetector", hasGroundAhead: true, hasWallAhead: false, sensorOffsetX: 15, sensorOffsetY: 20 } as any);
-        world.addComponent(entity, { type: "PlayerSensor", visionRange: 130, detectedPlayerEntity: undefined } as any);
+        world.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
+        world.addComponent(entity, { type: "Enemy", kind: "patrol" } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "Patrol", startX: args.x - 80, endX: args.x + 80, direction: 1, patrolSpeed: 70 } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "GroundDetector", hasGroundAhead: true, hasWallAhead: false, sensorOffsetX: 15, sensorOffsetY: 20 } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "PlayerSensor", visionRange: 130, detectedPlayerEntity: undefined } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "StateMachine",
           currentState: "Patrol",
@@ -370,8 +370,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           data: { patrolSpeed: 70, alertDuration: 0.3, windupDuration: 0.3, attackDuration: 0.4, recoveryDuration: 0.5 },
           machineId: "patrol",
           elapsedMs: 0
-        } as any);
-        world.addComponent(entity, { type: "Hurtbox" } as any);
+        } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -383,9 +383,9 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           .withRender({ shape: "hopper", size: 24, order: 2 });
 
         world.addComponent(entity, { type: "Health", current: 1, max: 1 } as any);
-        world.addComponent(entity, { type: "Enemy", kind: "jumper" } as any);
-        world.addComponent(entity, { type: "PlayerSensor", visionRange: 150, detectedPlayerEntity: undefined } as any);
-        world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false } as any);
+        world.addComponent(entity, { type: "Enemy", kind: "jumper" } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "PlayerSensor", visionRange: 150, detectedPlayerEntity: undefined } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "StateMachine",
           currentState: "Idle",
@@ -393,8 +393,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           data: { idleDuration: 0.8, alertDuration: 0.3, windupDuration: 0.3, jumpVelocity: 260, patrolSpeed: 60, attackDuration: 0.8, recoveryDuration: 0.4 },
           machineId: "jumper",
           elapsedMs: 0
-        } as any);
-        world.addComponent(entity, { type: "Hurtbox" } as any);
+        } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -406,9 +406,9 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           .withRender({ shape: "charger", size: 28, order: 2 });
 
         world.addComponent(entity, { type: "Health", current: 1, max: 1 } as any);
-        world.addComponent(entity, { type: "Enemy", kind: "charger" } as any);
-        world.addComponent(entity, { type: "PlayerSensor", visionRange: 160, detectedPlayerEntity: undefined } as any);
-        world.addComponent(entity, { type: "GroundDetector", hasGroundAhead: true, hasWallAhead: false, sensorOffsetX: 15, sensorOffsetY: 20 } as any);
+        world.addComponent(entity, { type: "Enemy", kind: "charger" } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "PlayerSensor", visionRange: 160, detectedPlayerEntity: undefined } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "GroundDetector", hasGroundAhead: true, hasWallAhead: false, sensorOffsetX: 15, sensorOffsetY: 20 } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "StateMachine",
           currentState: "Idle",
@@ -416,8 +416,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           data: { alertDuration: 0.4, windupDuration: 0.4, chargeSpeed: 200, attackDuration: 1.0, recoveryDuration: 0.8 },
           machineId: "charger",
           elapsedMs: 0
-        } as any);
-        world.addComponent(entity, { type: "Hurtbox" } as any);
+        } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
       }
     });
 
@@ -441,7 +441,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
           amplitudeY: args.ampY,
           frequency: args.freq,
           elapsed: 0
-        } as any);
+        } as { type: string; [key: string]: unknown });
       }
     });
 

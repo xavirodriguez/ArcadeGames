@@ -630,6 +630,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
     this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
     SegmentGenerator.instantiatePlan(this.world, this.levelPlan, PLATFORMER_CONFIG.TILE_SIZE, tileDefinitions);
+    this.world.flush();
 
     // Spawn player
     const playerEntity = this.world.createEntity();

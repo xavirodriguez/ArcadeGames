@@ -823,6 +823,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
 
     // Instantiate Plan
     SegmentGenerator.instantiatePlan(this.world, this.levelPlan, ECHO_CONFIG.TILE_SIZE, tileDefinitions);
+    this.world.flush();
 
     // Spawn Player
     const playerEntity = this.world.createEntity();

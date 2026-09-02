@@ -19,7 +19,19 @@ import { ParticlePool } from "../EntityPool";
 import { createSharedParticle } from "../../shared/rendering/SharedVFX";
 
 /**
- * System that handles all game collisions by reacting to events from CollisionSystem2D.
+ * System that handles game-specific collision reactions and combat side-effects.
+ *
+ * @remarks
+ * **Collision & Combat Pipeline Architecture:**
+ * 1. `CollisionSystem2D` (`SystemPhase.Collision`): Evaluates geometric contact/overlap
+ *    using hitboxes/colliders and populates `CollisionEventsComponent`. Does not mutate health or destroy entities.
+ * 2. `CombatSystem` (`SystemPhase.Collision`): Processes `CollisionEventsComponent` to apply
+ *    generic health reductions (`DamageComponent` vs `HealthComponent`) and emits deferred `combat:hit` and `combat:death` events.
+ * 3. `SpaceInvadersCollisionSystem` (`SystemPhase.GameRules`): Reacts to `combat:hit` and `combat:death` events
+ *    to trigger game-specific rules (combo chain updates, score gain, lives decrement, particle explosions, SFX, floating popups, and shield degradation).
+ *
+ * Being in `SystemPhase.GameRules` guarantees that all physical contact and damage values are fully resolved
+ * before game rules, combo meters, and audio/VFX side-effects are calculated.
  */
 export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry> {
   private config?: SpaceInvadersConfig;

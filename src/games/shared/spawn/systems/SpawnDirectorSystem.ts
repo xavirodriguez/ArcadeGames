@@ -76,7 +76,7 @@ export class SpawnDirectorSystem<
           world.getCommandBuffer().createEntity(entityId);
 
           if (blueprints) {
-            world.getCommandBuffer().spawnFromBlueprintForEntity(entityId, spawn.blueprintId as any, spawn.args as any);
+            world.getCommandBuffer().spawnFromBlueprintForEntity(entityId, spawn.blueprintId as never, spawn.args as never);
           }
 
           // Attach WaveMember component to identify it belongs to the wave

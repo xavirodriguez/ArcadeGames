@@ -6,7 +6,7 @@ import {
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
 import { EchoRunnerGame } from "../EchoRunnerGame";
-import { applyStandardEncounterModifiers } from "../../shared/story/encounterHelpers";
+import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
 
 export const ECHO_RUNNER_DASH_ENCOUNTER_ID = "echo_runner_dash_01";
 

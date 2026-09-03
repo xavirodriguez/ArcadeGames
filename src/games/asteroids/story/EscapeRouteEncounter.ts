@@ -6,7 +6,7 @@ import {
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
 import { AsteroidsGame } from "../AsteroidsGame";
-import { applyStandardEncounterModifiers } from "../../shared/story/encounterHelpers";
+import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
 
 /**
  * Encounter ID for the debris field escape sequence in Asteroids.

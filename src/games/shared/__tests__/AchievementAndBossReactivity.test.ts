@@ -61,6 +61,7 @@ describe("AchievementSystem and BossSystem Reactivity", () => {
 
       // Emit high-value combo hit
       eventBus.emit("si:kill", { chain: 10 });
+      eventBus.flushDeferred();
 
       expect(unlockedEventEmitted).toBe(true);
       expect(PersistenceService.save).toHaveBeenCalledWith("unlocked_achievements", { combo_king: true });
@@ -77,6 +78,7 @@ describe("AchievementSystem and BossSystem Reactivity", () => {
       for (let i = 0; i < 50; i++) {
         eventBus.emit("entity:destroyed", { type: "Invader" });
       }
+      eventBus.flushDeferred();
 
       expect(unlockedEventEmitted).toBe(true);
       expect(PersistenceService.save).toHaveBeenCalledWith("unlocked_achievements", { invader_slayer: true });

@@ -8,7 +8,7 @@ export { PowerUpRegistry } from "./powerups/PowerUpRegistry";
 export * from "./builders/ArcadeEntityBuilder";
 export * from "./types/ArcadeTypes";
 export * from "./types/ArcadeConfigSchema";
-export * from "./spawnScorePopup";
+export * from "./helpers/spawnScorePopup";
 export * from "./AttractModeController";
 export * from "./ParticlePool";
 export * from "./blueprints/enemyBlueprints";

@@ -14,7 +14,8 @@ import {
   ArcadeState,
   MiniGameResult,
   OutcomeRuleEngine,
-  StoryEffectApplier
+  StoryEffectApplier,
+  StoryEffect
 } from "@tiny-aster/core";
 import {
   asteroidsPOCEncounter,
@@ -91,6 +92,8 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const [statusMessage, setStatusMessage] = useState<string>("Initializing Campaign...");
   const [showDashboard, setShowDashboard] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<{ error: Error; gameId: string; seed?: number } | null>(null);
+  const [lastResult, setLastResult] = useState<MiniGameResult | null>(null);
+  const [lastAppliedEffects, setLastAppliedEffects] = useState<StoryEffect[] | null>(null);
 
   const activeGameIdRef = useRef<string | null>(null);
   const activeGameSeedRef = useRef<number | null>(null);
@@ -108,6 +111,8 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     const runtime = runtimeRef.current;
     if (!runtime) return;
 
+    setLastResult(result);
+
     // 1. Determine encounter and evaluate outcome rules
     const currentNode = runtime.getCurrentNode();
     let outcomeRules = asteroidsPOCEncounter.outcomeRules;
@@ -119,17 +124,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
     const effects = ruleEngineRef.current.evaluate(result, outcomeRules);
     effectApplierRef.current.applyEffects(runtime, effects);
+    setLastAppliedEffects(effects);
 
-    // 2. Update variables in StoryRuntime if applicable
-    const normalizedGameId = GameDefinitionRegistry.normalizeId(result.gameId);
-    if (normalizedGameId === "space-invaders") {
-      runtime.setVariable("spaceinvadersScore", result.score);
-    } else if (normalizedGameId === "asteroids") {
-      const currentLvl = (runtime.getVariable("asteroidLevelReached") as number) || 1;
-      runtime.setVariable("asteroidLevelReached", currentLvl + 1);
-    }
-
-    // 3. Complete objective for current gameplay node upon minigame conclusion
+    // 2. Complete objective for current gameplay node upon minigame conclusion
     if (currentNode?.objective) {
       runtime.applyEffect({
         type: "completeObjective",
@@ -137,7 +134,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       });
     }
 
-    // 4. Advance narrative transitions out of current node
+    // 3. Advance narrative transitions out of current node
     runtime.evaluateTransitions();
   }, []);
 
@@ -446,6 +443,8 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
           storyRuntime={runtimeRef.current}
           isVisible={showDashboard}
           onToggle={() => setShowDashboard(false)}
+          lastResult={lastResult}
+          lastAppliedEffects={lastAppliedEffects}
         />
       )}
     </View>

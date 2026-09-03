@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
-import type { StoryRuntime, MiniGameEncounter } from "@tiny-aster/core";
+import type { StoryRuntime, MiniGameEncounter, MiniGameResult, StoryEffect } from "@tiny-aster/core";
 import { ModifierInspector } from "./ModifierInspector";
 
 export interface NarrativeDashboardProps {
@@ -9,6 +9,8 @@ export interface NarrativeDashboardProps {
   onToggle?: () => void;
   activeModifiers?: Record<string, unknown>;
   modifierRules?: MiniGameEncounter["modifierRules"];
+  lastResult?: MiniGameResult | null;
+  lastAppliedEffects?: StoryEffect[] | null;
 }
 
 interface ValueHolder {
@@ -24,6 +26,8 @@ export const NarrativeDashboard: React.FC<NarrativeDashboardProps> = ({
   onToggle,
   activeModifiers = {},
   modifierRules,
+  lastResult,
+  lastAppliedEffects,
 }) => {
   const [expanded, setExpanded] = useState(true);
   const [, setVersion] = useState(0);
@@ -210,6 +214,65 @@ export const NarrativeDashboard: React.FC<NarrativeDashboardProps> = ({
                         {JSON.stringify(evt.payload)}
                       </pre>
                     )}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+
+          {/* Last MiniGame Result */}
+          <section style={{ marginBottom: "10px" }}>
+            <h4 style={{ margin: "2px 0 4px 0", color: "#00ffff", fontSize: "11px", textTransform: "uppercase" }}>
+              Last MiniGame Result
+            </h4>
+            {!lastResult ? (
+              <span style={{ color: "#888888", fontStyle: "italic" }}>No minigame run recorded</span>
+            ) : (
+              <div style={{ paddingLeft: "8px", borderLeft: "2px solid #00ffff" }}>
+                <div><strong>Game ID:</strong> {lastResult.gameId}</div>
+                <div><strong>Score:</strong> {lastResult.score}</div>
+                <div><strong>Completed:</strong> <span style={{ color: lastResult.completed ? "#00ff00" : "#ff5555" }}>{String(lastResult.completed)}</span></div>
+                <div><strong>Duration:</strong> {lastResult.durationMs} ms</div>
+                <div><strong>Secrets Found:</strong> {lastResult.secretsFound.length > 0 ? lastResult.secretsFound.join(", ") : "None"}</div>
+                {lastResult.metrics && Object.keys(lastResult.metrics).length > 0 && (
+                  <table style={tableStyle}>
+                    <thead>
+                      <tr style={{ backgroundColor: "rgba(0, 255, 0, 0.1)" }}>
+                        <th style={cellStyle}>Metric</th>
+                        <th style={cellStyle}>Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(lastResult.metrics).map(([mKey, mVal]) => (
+                        <tr key={mKey}>
+                          <td style={cellStyle}>{mKey}</td>
+                          <td style={{ ...cellStyle, color: "#ffff00" }}>{String(mVal)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* Last Applied Effects */}
+          <section style={{ marginBottom: "10px" }}>
+            <h4 style={{ margin: "2px 0 4px 0", color: "#00ffff", fontSize: "11px", textTransform: "uppercase" }}>
+              Last Applied Effects ({lastAppliedEffects?.length ?? 0})
+            </h4>
+            {!lastAppliedEffects || lastAppliedEffects.length === 0 ? (
+              <span style={{ color: "#888888", fontStyle: "italic" }}>No narrative effects applied yet</span>
+            ) : (
+              <ol style={{ margin: "4px 0", paddingLeft: "16px", fontSize: "10px" }}>
+                {lastAppliedEffects.map((eff, idx) => (
+                  <li key={idx} style={{ margin: "3px 0", color: "#ff88ff" }}>
+                    <strong>{eff.type}:</strong>{" "}
+                    {"key" in eff ? `${eff.key} = ${"value" in eff ? String(eff.value) : "amount" in eff ? String(eff.amount) : ""}` : ""}
+                    {"evidenceId" in eff ? eff.evidenceId : ""}
+                    {"objectiveId" in eff ? eff.objectiveId : ""}
+                    {"nodeId" in eff ? eff.nodeId : ""}
+                    {"event" in eff ? eff.event : ""}
                   </li>
                 ))}
               </ol>

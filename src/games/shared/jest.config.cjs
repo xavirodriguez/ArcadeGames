@@ -13,6 +13,7 @@ module.exports = {
     }],
   },
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  roots: ['<rootDir>', path.resolve(__dirname, '../../../src/ui')],
   moduleNameMapper: {
     '^@tiny-aster/core$': path.resolve(__dirname, "../../../packages/core/src/index.ts"),
     '^@tiny-aster/renderer-canvas$': path.resolve(__dirname, "../../../packages/renderer-canvas/src/index.ts"),

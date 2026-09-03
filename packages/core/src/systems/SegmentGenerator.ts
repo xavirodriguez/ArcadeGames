@@ -245,3 +245,81 @@ export class SegmentGenerator {
     }
   }
 }
+
+/**
+ * Validates a list of segment templates and an optional level grammar for structural consistency.
+ *
+ * @param templates - The segment templates to validate.
+ * @param grammar - Optional grammatical tag sequence to verify template coverage.
+ * @returns Array of validation error messages. Returns an empty array if all validations pass.
+ * @public
+ */
+export function validateSegmentTemplates(
+  templates: SegmentTemplate[],
+  grammar?: string[]
+): string[] {
+  const errors: string[] = [];
+
+  if (!Array.isArray(templates) || templates.length === 0) {
+    errors.push("Templates array must not be empty.");
+    return errors;
+  }
+
+  const registeredTags = new Set<string>();
+
+  templates.forEach((template, idx) => {
+    const idStr = template.id ? `template '${template.id}' (index ${idx})` : `template at index ${idx}`;
+
+    if (!template.id) {
+      errors.push(`Template at index ${idx} is missing a valid 'id'.`);
+    }
+
+    if (!template.bounds || typeof template.bounds.width !== "number" || typeof template.bounds.height !== "number") {
+      errors.push(`${idStr} must specify valid numerical 'bounds' ({ width, height }).`);
+    } else if (template.bounds.width <= 0 || template.bounds.height <= 0) {
+      errors.push(`${idStr} bounds width and height must be greater than 0.`);
+    }
+
+    if (!Array.isArray(template.tileData)) {
+      errors.push(`${idStr} 'tileData' must be a 2D array.`);
+    } else if (template.bounds) {
+      if (template.tileData.length !== template.bounds.height) {
+        errors.push(
+          `${idStr} 'tileData' row count (${template.tileData.length}) does not match bounds.height (${template.bounds.height}).`
+        );
+      }
+      for (let r = 0; r < template.tileData.length; r++) {
+        const row = template.tileData[r];
+        if (!Array.isArray(row) || row.length !== template.bounds.width) {
+          errors.push(
+            `${idStr} 'tileData' row ${r} length (${Array.isArray(row) ? row.length : "invalid"}) does not match bounds.width (${template.bounds.width}).`
+          );
+        }
+      }
+    }
+
+    if (!template.entry || typeof template.entry.x !== "number" || typeof template.entry.y !== "number") {
+      errors.push(`${idStr} must specify a valid 'entry' point ({ x, y }).`);
+    }
+
+    if (!template.exit || typeof template.exit.x !== "number" || typeof template.exit.y !== "number") {
+      errors.push(`${idStr} must specify a valid 'exit' point ({ x, y }).`);
+    }
+
+    if (!Array.isArray(template.tags) || template.tags.length === 0) {
+      errors.push(`${idStr} must have at least one tag in 'tags'.`);
+    } else {
+      template.tags.forEach((tag) => registeredTags.add(tag));
+    }
+  });
+
+  if (grammar && Array.isArray(grammar)) {
+    grammar.forEach((tag, idx) => {
+      if (!registeredTags.has(tag)) {
+        errors.push(`Grammar tag '${tag}' at step ${idx} has no matching template in templates.`);
+      }
+    });
+  }
+
+  return errors;
+}

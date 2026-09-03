@@ -8,8 +8,7 @@ describe("Platformer Game Simulation Tests", () => {
 
   beforeEach(async () => {
     game = new PlatformerGame({ seed: 41873 });
-    await (game as any).onRegisterSystems();
-    await (game as any).onInitializeEntities();
+    await game.init();
     world = game.getWorld();
     world.flush();
   });
@@ -91,6 +90,30 @@ describe("Platformer Game Simulation Tests", () => {
 
     const newHealth = world.getComponent(playerEntity, "Health")!.current;
     expect(newHealth).toBeLessThan(initialHealth);
+  });
+
+  it("should support custom levelData in configuration", async () => {
+    const customData = {
+      grammar: ["custom_tag"],
+      templates: [
+        {
+          id: "custom_segment",
+          entry: { x: 0, y: 5 },
+          exit: { x: 10, y: 5 },
+          bounds: { width: 10, height: 10 },
+          difficulty: 1,
+          tags: ["custom_tag"],
+          tileData: Array(10).fill(Array(10).fill(0)),
+          spawnPoints: []
+        }
+      ]
+    };
+
+    const customGame = new PlatformerGame({ seed: 123, levelData: customData });
+    await customGame.init();
+
+    const goals = customGame.getWorld().query("LevelGoal");
+    expect(goals.length).toBe(0);
   });
 
   it("should initialize renderer and render frame cleanly", () => {

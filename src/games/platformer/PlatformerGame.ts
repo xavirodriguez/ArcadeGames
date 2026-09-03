@@ -47,6 +47,14 @@ import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder } from "../shared/a
 import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import defaultLevelData from "./levels/level-01.json";
+
+export interface PlatformerConfig {
+  seed?: number;
+  gameOptions?: Record<string, unknown>;
+  theme?: Theme;
+  levelData?: { templates: SegmentTemplate[]; grammar: string[] };
+}
 
 export interface PlatformerInput {
   moveLeft: boolean;
@@ -88,8 +96,9 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
   public readonly gameId = "platformer";
   private gameOver = false;
   private levelPlan!: LevelPlan;
+  private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
 
-  constructor(config: { seed?: number; gameOptions?: Record<string, unknown>; theme?: Theme } = {}) {
+  constructor(config: PlatformerConfig = {}) {
     super({
       pauseKey: "KeyP",
       restartKey: "KeyR",
@@ -98,6 +107,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
       theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
+    this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
   }
 
   protected override async onRegisterSystems(): Promise<void> {
@@ -359,6 +369,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
           .withCollider({ shape: { type: "aabb", halfWidth: 10, halfHeight: 15 } as any })
           .withRender({ shape: "player", size: 24, color: tint, order: 2 });
 
+        world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as { type: string; [key: string]: unknown });
         world.addComponent(entity, { type: "Sprite", assetKey, anchor: { x: 0.5, y: 0.5 } } as { type: string; [key: string]: unknown });
@@ -480,197 +491,9 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
       5: { solid: true, oneWay: true, kind: "normal" as const }
     };
 
-    const templates: SegmentTemplate[] = [
-      {
-        id: "intro_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 1,
-        tags: ["intro"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 5, y: 10, type: "collectible_fragment", args: { id: "frag_intro_1" } },
-          { x: 10, y: 10, type: "collectible_fragment", args: { id: "frag_intro_2" } }
-        ]
-      },
-      {
-        id: "movement_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 1,
-        tags: ["movement"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,5,5,5,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
-          [1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 9, y: 7, type: "collectible_coin", args: { id: "coin_mov_1" } },
-          { x: 10, y: 7, type: "collectible_coin", args: { id: "coin_mov_2" } }
-        ]
-      },
-      {
-        id: "combat_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 2,
-        tags: ["combat"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 10, y: 10, type: "enemy_sentinel" },
-          { x: 15, y: 10, type: "enemy_hopper" }
-        ]
-      },
-      {
-        id: "precision_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 3,
-        tags: ["precision"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,0,0,4,4,4,0,0,3,3,3,0,0,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 11, y: 9, type: "collectible_fragment", args: { id: "frag_prec_1" } }
-        ]
-      },
-      {
-        id: "checkpoint_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 1,
-        tags: ["checkpoint"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 10, y: 10, type: "checkpoint_node", args: { id: "cp_midway" } }
-        ]
-      },
-      {
-        id: "reward_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 1,
-        tags: ["reward"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 5, y: 10, type: "collectible_coin", args: { id: "coin_rew_1" } },
-          { x: 10, y: 10, type: "collectible_coin", args: { id: "coin_rew_2" } },
-          { x: 15, y: 10, type: "collectible_coin", args: { id: "coin_rew_3" } }
-        ]
-      },
-      {
-        id: "goal_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 1,
-        tags: ["goal"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 10, y: 10, type: "goal" }
-        ]
-      }
-    ];
-
-    const grammar = ["intro", "movement", "combat", "precision", "checkpoint", "movement", "combat", "precision", "reward", "goal"];
+    const levelData = this.customLevelData ?? defaultLevelData;
+    const templates = levelData.templates as SegmentTemplate[];
+    const grammar = levelData.grammar as string[];
     const levelSeed = this.getSeed() || 41873;
     this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
 

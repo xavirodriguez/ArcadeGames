@@ -4480,6 +4480,9 @@ export function unpackEntityIndex(entity: Entity): number;
 // @public (undocumented)
 export type UpdateCallback = (dt: number) => void;
 
+// @public
+export function validateSegmentTemplates(templates: SegmentTemplate[], grammar?: string[]): string[];
+
 // @public (undocumented)
 export interface VelocityComponent extends Component {
     angularVelocity: number;

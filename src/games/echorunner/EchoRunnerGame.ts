@@ -46,6 +46,13 @@ import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore,
 import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { ArcadeEntityBuilder } from "../shared/arcade";
+import defaultLevelData from "./levels/level-01.json";
+
+export interface EchoRunnerConfig {
+  seed?: number;
+  gameOptions?: Record<string, unknown>;
+  levelData?: { templates: SegmentTemplate[]; grammar: string[] };
+}
 
 /**
  * System that manages triggering the Pulse attack and processing its cooldowns.
@@ -183,8 +190,9 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;
+  private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
 
-  constructor(config: { seed?: number; gameOptions?: Record<string, unknown> } = {}) {
+  constructor(config: EchoRunnerConfig = {}) {
     super({
       pauseKey: "KeyP",
       restartKey: "KeyR",
@@ -192,6 +200,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
       seed: config.seed,
       audio: new WebAudioPlayer()
     });
+    this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
   }
 
   protected override async onRegisterSystems(): Promise<void> {
@@ -550,282 +559,9 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
         5: { solid: true, oneWay: true, kind: "normal" as const }
       };
 
-    // Design 10 handcrafted beautiful, engaging segments
-    const templates: SegmentTemplate[] = [
-      {
-        id: "intro_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 1,
-        tags: ["intro"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 5, y: 10, type: "collectible_fragment", args: { id: "frag_01" } },
-          { x: 10, y: 10, type: "collectible_fragment", args: { id: "frag_02" } },
-          { x: 15, y: 10, type: "collectible_fragment", args: { id: "frag_03" } }
-        ]
-      },
-      {
-        id: "jump_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 1,
-        tags: ["movement"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,5,5,5,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1],
-          [1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 9, y: 7, type: "collectible_fragment", args: { id: "frag_04" } },
-          { x: 10, y: 7, type: "collectible_fragment", args: { id: "frag_05" } },
-          { x: 11, y: 7, type: "collectible_fragment", args: { id: "frag_06" } }
-        ]
-      },
-      {
-        id: "combat_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 2,
-        tags: ["combat"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 12, y: 10, type: "enemy_sentinel" },
-          { x: 6, y: 10, type: "collectible_fragment", args: { id: "frag_07" } },
-          { x: 16, y: 10, type: "collectible_fragment", args: { id: "frag_08" } }
-        ]
-      },
-      {
-        id: "hazards_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 3,
-        tags: ["precision"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,0,0,4,4,4,0,0,5,5,5,0,0,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 13, y: 10, type: "collectible_fragment", args: { id: "frag_09" } }
-        ]
-      },
-      {
-        id: "checkpoint_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 1,
-        tags: ["checkpoint"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 10, y: 10, type: "checkpoint_node", args: { id: "cp_node_1" } }
-        ]
-      },
-      {
-        id: "ice_and_bounce",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 3,
-        tags: ["movement"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,2,2,2,3,3,3,2,2,2,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 4, y: 10, type: "collectible_fragment", args: { id: "frag_10" } },
-          { x: 10, y: 10, type: "collectible_fragment", args: { id: "frag_11" } }
-        ]
-      },
-      {
-        id: "hopper_encounter",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 3,
-        tags: ["combat"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 12, y: 10, type: "enemy_hopper" },
-          { x: 8, y: 10, type: "collectible_fragment", args: { id: "frag_12" } }
-        ]
-      },
-      {
-        id: "moving_parts_01",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 4,
-        tags: ["precision"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-          [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 10, y: 10, type: "moving_platform", args: { ampX: 100, ampY: 0, freq: 0.3 } },
-          { x: 10, y: 7, type: "collectible_fragment", args: { id: "frag_13" } }
-        ]
-      },
-      {
-        id: "charger_encounter",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 4,
-        tags: ["combat"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 12, y: 10, type: "enemy_charger" },
-          { x: 8, y: 10, type: "collectible_fragment", args: { id: "frag_14" } }
-        ]
-      },
-      {
-        id: "final_challenge",
-        entry: { x: 0, y: 11 },
-        exit: { x: 20, y: 11 },
-        bounds: { width: 20, height: 15 },
-        difficulty: 5,
-        tags: ["reward"],
-        tileData: [
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ],
-        spawnPoints: [
-          { x: 10, y: 10, type: "collectible_core", args: { id: "archive_core_1" } }
-        ]
-      }
-    ];
-
-    // Define Level Grammar sequence for the 10 levels
-    const grammar = ["intro", "movement", "combat", "precision", "checkpoint", "movement", "combat", "precision", "combat", "reward"];
+    const levelData = this.customLevelData ?? defaultLevelData;
+    const templates = levelData.templates as SegmentTemplate[];
+    const grammar = levelData.grammar as string[];
 
     // Generate deterministic Plan using SegmentGenerator
     const levelSeed = this.getSeed() || 41873;

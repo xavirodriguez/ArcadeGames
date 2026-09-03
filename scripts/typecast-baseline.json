@@ -765,9 +765,9 @@
     "total": 8
   },
   "src/games/platformer/__tests__/PlatformerGame.test.ts": {
-    "anyCount": 4,
+    "anyCount": 2,
     "unknownCount": 1,
-    "total": 5
+    "total": 3
   },
   "src/games/platformer/rendering/PlatformerCanvasVisuals.ts": {
     "anyCount": 2,

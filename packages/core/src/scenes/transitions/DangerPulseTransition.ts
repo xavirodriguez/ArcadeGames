@@ -27,6 +27,7 @@ export class DangerPulseTransition implements ITransitionEffect {
   private cachedOuterR?: number;
   private cachedColor?: string;
 
+  // TODO(refactor): código duplicado detectado (método) con scenes/transitions/DitherTransition.ts:16-30. Considerar extraer a función compartida. Ref: f320351e
   public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
     const canvas = ctx.canvas;
     if (!canvas) return;

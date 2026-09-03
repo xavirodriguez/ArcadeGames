@@ -29,6 +29,7 @@ export class SharedParticlePool extends ProjectilePool<any, ProjectileParams> {
     const order = config.order ?? 10;
     const isTrigger = config.isTrigger ?? true;
 
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/EntityPool.ts:27-51. Considerar extraer a función compartida. Ref: 6c6321d0
     super({
       factory: () => ({
         position: {
@@ -119,6 +120,7 @@ export class SharedParticlePool extends ProjectilePool<any, ProjectileParams> {
         data.position.x = p.x;
         data.position.y = p.y;
         data.position.worldX = p.x;
+        // TODO(refactor): código duplicado detectado (bloque) con geometrywars/EntityPool.ts:134-142. Considerar extraer a función compartida. Ref: e0b47b36
         data.position.worldY = p.y;
         data.position.dirty = true;
 

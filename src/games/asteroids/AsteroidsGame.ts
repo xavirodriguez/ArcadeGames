@@ -405,6 +405,7 @@ export class AsteroidsGame
     let dialogueText = "";
     const dialogueBoxEntities = this.world.query("DialogueBox");
     if (dialogueBoxEntities.length > 0) {
+      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:677-689. Considerar extraer a función compartida. Ref: 4fe85665
       const dialogueBox = this.world.getComponent(dialogueBoxEntities[0], "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;
@@ -518,6 +519,7 @@ export class AsteroidsGame
 }
 
 /** @public */
+// TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:510-527. Considerar extraer a función compartida. Ref: 6d05e6b9
 export class NullAsteroidsGame implements IAsteroidsGame {
   public get tick() { return 0; }
   public get state() { return this.getGameState(); }
@@ -547,6 +549,7 @@ export class NullAsteroidsGame implements IAsteroidsGame {
   public getSeed() { return 0; }
   public subscribe(_listener: unknown) { return () => {}; }
   public initializeRenderer() {}
+  // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:558-574. Considerar extraer a función compartida. Ref: dc6bca3d
   public setInputState(_input: Partial<InputState>) {}
   public enterGameplayFreeze(duration?: number): void {
     this._world.setResource("GameplayFreeze", {

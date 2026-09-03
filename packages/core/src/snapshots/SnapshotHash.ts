@@ -14,6 +14,7 @@ const byteBuffer = new Uint8Array(floatBuffer.buffer);
  * @returns 8-character hexadecimal state hash string.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotHash.ts:93-108. Considerar extraer a función compartida. Ref: 5dee7222
 export function hashSoA(snapshot: SoAWorldSnapshot): string {
   let hash = 2166136261;
 
@@ -84,6 +85,7 @@ export function hashSoA(snapshot: SoAWorldSnapshot): string {
  * @returns 8-character hexadecimal state hash string.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotHash.ts:18-36. Considerar extraer a función compartida. Ref: a8d6766c
 export function hashAoS(snapshot: {
   tick: number;
   entities: number[];

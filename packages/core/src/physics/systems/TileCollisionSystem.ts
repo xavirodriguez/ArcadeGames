@@ -103,6 +103,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       let minTileX = Math.floor((playerMinX - tilemapX) / tileSize);
       let maxTileX = Math.floor((playerMaxX - tilemapX) / tileSize);
       let minTileY = Math.floor((playerMinY - tilemapY) / tileSize);
+      // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:143-150. Considerar extraer a función compartida. Ref: 07552814
       let maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);
 
       forEachTileInBounds(minTileX, minTileY, maxTileX, maxTileY, (tx, ty) => {
@@ -140,6 +141,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       minTileY = Math.floor((playerMinY - tilemapY) / tileSize);
       maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);
 
+      // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:107-114. Considerar extraer a función compartida. Ref: eeeb3706
       const oldVy = vel.vy;
 
       forEachTileInBounds(minTileX, minTileY, maxTileX, maxTileY, (tx, ty) => {
@@ -158,6 +160,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
             const isDescending = oldVy >= 0;
             const wasAbove = prevPlayerBottom <= tileTop + 1.0;
 
+            // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:176-189. Considerar extraer a función compartida. Ref: d056ddc2
             if (isDescending && wasAbove) {
               trans.y = tileTop - halfH - offsetY;
               vel.vy = 0;
@@ -173,6 +176,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
               return true;
             }
           } else {
+            // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:163-176. Considerar extraer a función compartida. Ref: a710136f
             if (oldVy > 0) {
               trans.y = tileTop - halfH - offsetY;
               vel.vy = 0;

@@ -4,6 +4,7 @@ export class PlatformerDamageSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
 
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:121-147. Considerar extraer a función compartida. Ref: 72e3e047
     const players = world.query("PlatformerInput", "Health", "Transform");
     const enemies = world.query("Enemy", "Transform");
 

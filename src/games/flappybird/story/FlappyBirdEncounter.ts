@@ -116,6 +116,7 @@ export const flappyBirdEscapeEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Flappy Bird encounters.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 6f4254b2
 export class FlappyBirdArcadeAdapter implements ArcadeGameAdapter {
   private game: FlappyBirdGame | null = null;
   private resultCallback: ((result: MiniGameResult) => void) | null = null;
@@ -131,6 +132,7 @@ export class FlappyBirdArcadeAdapter implements ArcadeGameAdapter {
       } else if (modifier.targetProperty === "pipeGapMultiplier" && typeof modifier.value === "number") {
         (game as any).pipeGapMultiplier = modifier.value;
       } else if (modifier.targetProperty === "scoreMultiplier" && typeof modifier.value === "number") {
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-161. Considerar extraer a función compartida. Ref: a07c240f
         (game as any).scoreMultiplier = modifier.value;
       }
     }

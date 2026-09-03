@@ -48,6 +48,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
         if (gs.scoreFreezeRemaining <= 0) {
           const scorer = gs.lastScorer;
           balls.forEach(ball => {
+            // TODO(refactor): código duplicado detectado (bloque) con pong/systems/PongGameStateSystem.ts:173-178. Considerar extraer a función compartida. Ref: 64c02763
             world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
               t.x = this.config.WIDTH / 2;
               t.y = this.config.HEIGHT / 2;
@@ -170,6 +171,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
               gs.lastScorer = scorer;
 
               // Move ball to center during freeze
+              // TODO(refactor): código duplicado detectado (bloque) con pong/systems/PongGameStateSystem.ts:52-57. Considerar extraer a función compartida. Ref: e93af0d3
               world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
                 t.x = this.config.WIDTH / 2;
                 t.y = this.config.HEIGHT / 2;

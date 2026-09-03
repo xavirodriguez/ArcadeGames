@@ -7,6 +7,7 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/DangerPulseTransition.ts:28-36. Considerar extraer a función compartida. Ref: f320351e
 export class DitherTransition implements ITransitionEffect {
   private static readonly BAYER_4X4 = [
     [ 0,  8,  2, 10],

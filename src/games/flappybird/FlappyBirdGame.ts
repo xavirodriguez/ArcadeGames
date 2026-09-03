@@ -57,6 +57,7 @@ export class FlappyBirdGame
       gameOptions: { ...config.gameOptions, seed },
       audio: config.audio || new WebAudioPlayer()
     });
+    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:101-107. Considerar extraer a función compartida. Ref: a8fa2796
     this.isMultiplayer = !!config.isMultiplayer;
   }
 
@@ -299,12 +300,14 @@ export class FlappyBirdGame
 
   private async onPreloadAssets(): Promise<void> {
     const audio = this.audio;
+    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:322-335. Considerar extraer a función compartida. Ref: ed520f42
     const assets = [
       { id: "flap", path: "/audio/flap.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },
       { id: "score", path: "/audio/score.mp3" },
       { id: "game_over", path: "/audio/game_over.mp3" },
     ];
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:79-88. Considerar extraer a función compartida. Ref: 379c1d5e
     for (const asset of assets) {
       try {
         await audio.loadSFX(asset.id, asset.path);
@@ -356,6 +359,7 @@ export class FlappyBirdGame
 
   public updateFromServer(state: Record<string, unknown>) {
     if (!this.isMultiplayer || !state) return;
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:163-170. Considerar extraer a función compartida. Ref: 4e9c55a5
     const world = this.getWorld();
     const commands = world.getCommandBuffer();
     const replicator = this.networkManager.getReplicator();
@@ -363,6 +367,7 @@ export class FlappyBirdGame
     const currentServerEntities = new Set<string>();
 
     if (state.players && typeof state.players === 'object') {
+      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:774-780. Considerar extraer a función compartida. Ref: 7a271799
       const players = state.players as Record<string, { x: number, y: number, alive: boolean, velocityY: number }>;
       Object.entries(players).forEach(([sessionId, playerState]) => {
         const serverId = `player_${sessionId}`;
@@ -402,12 +407,14 @@ export class FlappyBirdGame
         if (!world.hasComponent(entity, "Transform")) {
           commands.addComponent(entity, { type: "Transform", x: pipeState.x, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: pipeState.x, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
           commands.addComponent(entity, { type: "Render", shape: "pipe", size: 60, color: "green", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
+          // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:238-258. Considerar extraer a función compartida. Ref: 95603026
           commands.addComponent(entity, { type: "Pipe", gapY: pipeState.gapY, gapSize: 140, scored: false } as PipeComponent);
         }
       });
     }
 
     // Sync with NetworkManager for interpolation
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:761-773. Considerar extraer a función compartida. Ref: 6b235ffa
     const snapshot: WorldSnapshot = {
         tick: (state.tick as number) || 0,
         entities: [],
@@ -421,6 +428,7 @@ export class FlappyBirdGame
 
     if (state.players) {
         Object.entries(state.players).forEach(([sessionId, p]: [string, Record<string, unknown>]) => {
+            // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:264-271. Considerar extraer a función compartida. Ref: 879d9b3e
             const entityId = replicator.getLocalId(`player_${sessionId}`);
             if (entityId !== undefined) {
                 snapshot.entities.push(entityId);
@@ -433,11 +441,13 @@ export class FlappyBirdGame
             const entityId = replicator.getLocalId(`pipe_${id}`);
             if (entityId !== undefined) {
                 snapshot.entities.push(entityId);
+                // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:276-296. Considerar extraer a función compartida. Ref: 8e72a4b2
                 snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
             }
         });
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:842-865. Considerar extraer a función compartida. Ref: a1d6c8d1
     this.networkManager.processServerUpdate(snapshot.tick, snapshot);
 
     // Cleanup removed entities
@@ -507,6 +517,7 @@ export class FlappyBirdGame
   }
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/AsteroidsGame.ts:521-538. Considerar extraer a función compartida. Ref: 6d05e6b9
 export class NullFlappyBirdGame implements IFlappyBirdGame {
   public get tick() { return 0; }
   public get state() { return this.getGameState(); }
@@ -533,6 +544,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public async init() {}
   public start() {} public stop() {} public pause() {} public resume() {}
   public async restart() {} public destroy() {}
+  // TODO(refactor): código duplicado detectado (método) con space-invaders/SpaceInvadersGame.ts:923-928. Considerar extraer a función compartida. Ref: 15e23d78
   public getWorld() { return this._world; }
   public getGameLoop() { return this._loop; }
   public getEventBus() { return new EventBus(); }
@@ -544,6 +556,7 @@ export class NullFlappyBirdGame implements IFlappyBirdGame {
   public setInput(input: Partial<FlappyBirdInput>) {}
   public subscribe(cb: (state: FlappyBirdState) => void) { return () => {}; }
   public initializeRenderer() {}
+  // TODO(refactor): código duplicado detectado (método) con asteroids/AsteroidsGame.ts:552-568. Considerar extraer a función compartida. Ref: dc6bca3d
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
   public enterGameplayFreeze(duration?: number): void {
     this._world.setResource("GameplayFreeze", {

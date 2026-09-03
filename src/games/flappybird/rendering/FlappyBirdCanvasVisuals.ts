@@ -28,6 +28,7 @@ const shipStates = new Map<number, InterceptorRenderState>();
 // ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
 // ============================================================================
 
+// TODO(refactor): código duplicado detectado (clase) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:48-133. Considerar extraer a función compartida. Ref: 2c8ae715
 interface VisualParticle {
   active: boolean;
   type: "spark" | "shard" | "star";
@@ -75,6 +76,7 @@ export function spawnVisualParticle(
     const p = PARTICLE_POOL[i];
     if (!p.active) {
       p.active = true;
+      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:63-72. Considerar extraer a función compartida. Ref: 2e7d453d
       p.type = type;
       p.x = x;
       p.y = y;
@@ -93,7 +95,8 @@ export function spawnVisualParticle(
 
 function updateVisualParticles(): void {
   const dt = 0.016; // Target 60FPS step
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
+  for (// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:82-92. Considerar extraer a función compartida. Ref: 26faf9f0
+  let i = 0; i < PARTICLE_POOL.length; i++) {
     const p = PARTICLE_POOL[i];
     if (p.active) {
       p.life -= dt;
@@ -191,6 +194,7 @@ function getCachedCanvasGradient(
  */
 export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:242-250. Considerar extraer a función compartida. Ref: 99824503
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 15 } = render;
@@ -199,6 +203,7 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const birdComp = world.getComponent(entity, "Bird");
     if (!transform || !birdComp) return;
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:252-271. Considerar extraer a función compartida. Ref: 0d24f7f4
     const health = world.getComponent(entity, "Health");
 
     let state = shipStates.get(entity);
@@ -221,6 +226,7 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
       const x = transformPos.worldX ?? transformPos.x;
       const y = transformPos.worldY ?? transformPos.y;
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:271-287. Considerar extraer a función compartida. Ref: 7387d3cd
       const pCount = 4 + world.renderRandom.nextInt(0, 3);
       for (let i = 0; i < pCount; i++) {
         const angleVal = world.renderRandom.nextRange(160, 200) * (Math.PI / 180);
@@ -240,6 +246,7 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
       const x = transformPos.worldX ?? transformPos.x;
       const y = transformPos.worldY ?? transformPos.y;
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:287-314. Considerar extraer a función compartida. Ref: 2e7c6e07
       const sCount = 8 + world.renderRandom.nextInt(0, 4);
       for (let i = 0; i < sCount; i++) {
         const angleVal = world.renderRandom.next() * Math.PI * 2;
@@ -434,6 +441,7 @@ function drawArrowheadPath(ctx: CanvasRenderingContext2D, size: number) {
 
 export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:433-451. Considerar extraer a función compartida. Ref: ac6d56dd
     const render = world.getComponent(entity, "Render");
     const pos = world.getComponent(entity, "Transform");
     if (!render || !pos) return;
@@ -642,6 +650,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     // --- DEEP VOID BASE (#050510) ---
     ctx.fillStyle = "#050510";
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:602-612. Considerar extraer a función compartida. Ref: e7c4cf1f
     ctx.fillRect(0, 0, width, height);
 
     // Hypervelocity combo factor calculation

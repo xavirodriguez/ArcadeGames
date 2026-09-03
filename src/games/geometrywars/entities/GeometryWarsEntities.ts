@@ -20,6 +20,7 @@ import { ComboComponent } from "@tiny-aster/core";
  * Registers Geometry Wars blueprints.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/EntityFactory.ts:103-108. Considerar extraer a función compartida. Ref: 969af9ba
 export function registerGeometryWarsBlueprints(
   world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>
 ): void {
@@ -112,8 +113,10 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
+  // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:141-146. Considerar extraer a función compartida. Ref: 9b01a12f
   registry.register("enemy_chaser", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
+      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:148-162. Considerar extraer a función compartida. Ref: 8eb4bd52
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y })
         .withVelocity()
@@ -137,8 +140,10 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
+  // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:117-122. Considerar extraer a función compartida. Ref: 25380fc7
   registry.register("enemy_evader", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
+      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:121-135. Considerar extraer a función compartida. Ref: 7ccae71e
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y })
         .withVelocity()
@@ -162,7 +167,8 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
-  registry.register("enemy_grunt", {
+  registry.register("enemy_grunt", // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:123-135. Considerar extraer a función compartida. Ref: 1e580194
+  {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y })
@@ -218,6 +224,7 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("seeker", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
+      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:258-266. Considerar extraer a función compartida. Ref: 6f2c8975
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y })
         .withVelocity()
@@ -229,6 +236,7 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
+      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:266-277. Considerar extraer a función compartida. Ref: dc09f747
       w.addComponent(entity, { type: "Health", current: 2, max: 2, invulnerableRemaining: 0 } as HealthComponent);
       w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       w.addComponent(entity, {
@@ -249,7 +257,8 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
-  registry.register("evader", {
+  registry.register("evader", // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:292-311. Considerar extraer a función compartida. Ref: 2b752fae
+  {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y })
@@ -262,6 +271,7 @@ export function registerGeometryWarsBlueprints(
         })
         .withCollisionEvents();
 
+      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:238-249. Considerar extraer a función compartida. Ref: c080a7fa
       w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 } as HealthComponent);
       w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
       w.addComponent(entity, {
@@ -281,7 +291,8 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
-  registry.register("fast_seeker", {
+  registry.register("fast_seeker", // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:266-285. Considerar extraer a función compartida. Ref: b15da619
+  {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y })
@@ -322,6 +333,7 @@ export function registerGeometryWarsBlueprints(
  * @public
  */
 export class GeometryWarsEntityFactory {
+  // TODO(refactor): código duplicado detectado (método) con geometrywars/entities/GeometryWarsEntities.ts:350-367. Considerar extraer a función compartida. Ref: ae35df01
   public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
     const isUpdating = world.isUpdating;
     const commands = world.getCommandBuffer();
@@ -347,6 +359,7 @@ export class GeometryWarsEntityFactory {
     return entity;
   }
 
+  // TODO(refactor): código duplicado detectado (método) con geometrywars/entities/GeometryWarsEntities.ts:333-350. Considerar extraer a función compartida. Ref: 054a220d
   public static createEvader(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
     const isUpdating = world.isUpdating;
     const commands = world.getCommandBuffer();
@@ -447,6 +460,7 @@ export class GeometryWarsEntityFactory {
     return entity;
   }
 
+  // TODO(refactor): código duplicado detectado (método) con geometrywars/entities/GeometryWarsEntities.ts:475-492. Considerar extraer a función compartida. Ref: 0165ce82
   public static createSpawnDirector(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
     const isUpdating = world.isUpdating;
     const commands = world.getCommandBuffer();
@@ -472,6 +486,7 @@ export class GeometryWarsEntityFactory {
     return entity;
   }
 
+  // TODO(refactor): código duplicado detectado (método) con geometrywars/entities/GeometryWarsEntities.ts:459-476. Considerar extraer a función compartida. Ref: c2956842
   public static createGameState(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
     const isUpdating = world.isUpdating;
     const commands = world.getCommandBuffer();

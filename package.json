@@ -37,6 +37,7 @@
     "ratchet:update": "pnpm exec tsx scripts/typecast-ratchet.ts --update",
     "check:duplication": "pnpm exec tsx scripts/duplication-ratchet.ts",
     "duplication:update-baseline": "pnpm exec tsx scripts/duplication-ratchet.ts --update",
+    "detect:duplicates": "pnpm exec tsx scripts/detect-duplicates.ts",
     "story:lint": "pnpm exec tsx scripts/story-lint.ts",
     "validate:story": "pnpm run story:lint",
     "ci": "pnpm run build:core && pnpm run check:core-boundaries && pnpm run check:ratchet && pnpm run check:duplication && pnpm run story:lint && pnpm run docs:check && pnpm run typecheck:app",
@@ -103,6 +104,7 @@
     "zod": "^4.1.4"
   },
   "devDependencies": {
+    "@ast-grep/napi": "^0.45.3",
     "@babel/cli": "^7.29.7",
     "@babel/core": "7.29.7",
     "@babel/preset-env": "^7.29.7",

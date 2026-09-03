@@ -1,5 +1,6 @@
 import { System } from "../ecs/System";
 import { World } from "../ecs/World";
+// TODO(refactor): código duplicado detectado (bloque) con systems/ModifierSystem.ts:4-24. Considerar extraer a función compartida. Ref: 6004af8c
 import { ComponentRegistry } from "../ecs/Component";
 
 /**

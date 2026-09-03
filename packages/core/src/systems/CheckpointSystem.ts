@@ -35,6 +35,7 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
       // Safe for determinism/rollback. Single player fast-path or indexed matching avoids repeated linear scans (players.includes), achieving O(1) entity overlap lookup per trigger.
       // 1. Check if checkpoint has CollisionEvents
       if (world.hasComponent(checkpointEntity, "CollisionEvents")) {
+        // TODO(refactor): código duplicado detectado (bloque) con platformer/systems/PlatformerGoalSystem.ts:28-53. Considerar extraer a función compartida. Ref: fcf9a970
         const events = world.getComponent(checkpointEntity, "CollisionEvents")!;
         if (events.activeTriggers) {
           for (let j = 0; j < events.activeTriggers.length; j++) {
@@ -57,6 +58,7 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
       }
 
       // 2. Check if players have CollisionEvents pointing to this checkpoint
+      // TODO(refactor): código duplicado detectado (bloque) con systems/CollectibleSystem.ts:62-70. Considerar extraer a función compartida. Ref: 22e0c446
       if (!triggeredBy) {
         for (let p = 0; p < players.length; p++) {
           const playerEntity = players[p];
@@ -65,6 +67,7 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
             let found = false;
             if (events.activeTriggers) {
               for (let j = 0; j < events.activeTriggers.length; j++) {
+                // TODO(refactor): código duplicado detectado (bloque) con systems/CollectibleSystem.ts:71-79. Considerar extraer a función compartida. Ref: b8d65f39
                 if (events.activeTriggers[j] === checkpointEntity) {
                   found = true;
                   break;

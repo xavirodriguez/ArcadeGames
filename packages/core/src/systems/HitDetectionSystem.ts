@@ -26,6 +26,7 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
       if (activeTriggers) {
         const trigLen = activeTriggers.length;
         for (let j = 0; j < trigLen; j++) {
+          // TODO(refactor): código duplicado detectado (bloque) con systems/HitDetectionSystem.ts:63-92. Considerar extraer a función compartida. Ref: a8f9a92b
           const otherEntity = activeTriggers[j];
           if (!world.hasEntity(otherEntity)) continue;
 
@@ -60,6 +61,7 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
       if (collisions) {
         const colLen = collisions.length;
         for (let j = 0; j < colLen; j++) {
+          // TODO(refactor): código duplicado detectado (bloque) con systems/HitDetectionSystem.ts:30-59. Considerar extraer a función compartida. Ref: 0bb9ecca
           const otherEntity = collisions[j].otherEntity;
           if (!world.hasEntity(otherEntity)) continue;
 

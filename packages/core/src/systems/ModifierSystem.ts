@@ -1,6 +1,7 @@
 import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
+// TODO(refactor): código duplicado detectado (bloque) con systems/MutatorSystem.ts:3-23. Considerar extraer a función compartida. Ref: 6004af8c
 import { ModifierComponent, ModifierEffect } from "../components/ModifierComponent";
 
 /**

@@ -115,6 +115,7 @@ export const geometryWarsOverdriveEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Geometry Wars encounters.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 8d507ec2
 export class GeometryWarsArcadeAdapter implements ArcadeGameAdapter {
   private game: GeometryWarsGame | null = null;
   private resultCallback: ((result: MiniGameResult) => void) | null = null;
@@ -130,6 +131,7 @@ export class GeometryWarsArcadeAdapter implements ArcadeGameAdapter {
       } else if (modifier.targetProperty === "multiplierBoost" && typeof modifier.value === "number") {
         (game as any).multiplierBoost = modifier.value;
       } else if (modifier.targetProperty === "playerSpeedMultiplier" && typeof modifier.value === "number") {
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-161. Considerar extraer a función compartida. Ref: 085d1c4b
         (game as any).playerSpeedMultiplier = modifier.value;
       }
     }

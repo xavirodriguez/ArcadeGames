@@ -3,6 +3,7 @@ import { Entity, Component } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { createEmitter } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
+// TODO(refactor): código duplicado detectado (bloque) con space-invaders/EntityFactory.ts:18-53. Considerar extraer a función compartida. Ref: c2ca13fe
 import { Collider2DComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent } from "@tiny-aster/core";
 
 /**
@@ -23,6 +24,7 @@ const createBaseEntity = (world: World<any>, deferred?: boolean): { entity: Enti
     const isDeferred = !!(deferred || isUpdating);
     const commands = world.getCommandBuffer();
 
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/EntityFactory.ts:279-297. Considerar extraer a función compartida. Ref: 8db4e6a4
     if (isDeferred) {
         const entity = world.reserveEntityId();
         commands.createEntity(entity);
@@ -61,6 +63,7 @@ export interface CreatePipeParams {
   deferred?: boolean;
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/EntityFactory.ts:297-316. Considerar extraer a función compartida. Ref: 00253afa
 import { BlueprintRegistry } from "@tiny-aster/core";
 
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {

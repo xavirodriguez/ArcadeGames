@@ -4,6 +4,7 @@ import { TransformComponent, VelocityComponent, ColliderComponent } from "@tiny-
 
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 
+// TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: c53d5ed5
 import { BlueprintRegistry } from "@tiny-aster/core";
 
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {

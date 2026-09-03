@@ -15,6 +15,7 @@ import {
   GameStateComponent,
   FormationComponent,
 } from "./types/SpaceInvadersTypes";
+// TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:6-42. Considerar extraer a función compartida. Ref: c2ca13fe
 import { EnemyFactory } from "./EnemyFactory";
 
 /**
@@ -52,6 +53,7 @@ const createBaseEntity = (world: World<any>, deferred?: boolean): { entity: Enti
     };
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con pong/EntityFactory.ts:5-34. Considerar extraer a función compartida. Ref: ff1b45eb
 import { BlueprintRegistry } from "@tiny-aster/core";
 
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {

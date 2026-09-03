@@ -31,6 +31,7 @@ function getOffscreen(width: number, height: number) {
  *
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/FadeTransition.ts:10-23. Considerar extraer a función compartida. Ref: 9c415b60
 export class PixelateTransition implements ITransitionEffect {
   /**
    * Renders the pixelated scale mosaic effect.

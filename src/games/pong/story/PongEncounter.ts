@@ -115,6 +115,7 @@ export const pongChampionshipEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Pong encounters.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: d62b6c96
 export class PongArcadeAdapter implements ArcadeGameAdapter {
   private game: PongGame | null = null;
   private resultCallback: ((result: MiniGameResult) => void) | null = null;
@@ -130,6 +131,7 @@ export class PongArcadeAdapter implements ArcadeGameAdapter {
       } else if (modifier.targetProperty === "ballSpeedMultiplier" && typeof modifier.value === "number") {
         (game as any).ballSpeedMultiplier = modifier.value;
       } else if (modifier.targetProperty === "extraPointsHandicap" && typeof modifier.value === "number") {
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-147. Considerar extraer a función compartida. Ref: c5c4d235
         (game as any).extraPointsHandicap = modifier.value;
       }
     }
@@ -141,6 +143,7 @@ export class PongArcadeAdapter implements ArcadeGameAdapter {
       eventBus.on("game:over" as any, (payload: any) => {
         this.emitResult(context, payload);
       });
+      // TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:139-152. Considerar extraer a función compartida. Ref: 472ffcf5
       eventBus.on("match:completed" as any, (payload: any) => {
         this.emitResult(context, payload);
       });

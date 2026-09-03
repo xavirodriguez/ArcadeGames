@@ -233,6 +233,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
     }
   }
 
+  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:426-433. Considerar extraer a función compartida. Ref: 9ee5aed7
   private matchPair<T1 extends ComponentType<FlappyBirdComponentRegistry>, T2 extends ComponentType<FlappyBirdComponentRegistry>>(
     world: World<FlappyBirdComponentRegistry>,
     entityA: Entity,

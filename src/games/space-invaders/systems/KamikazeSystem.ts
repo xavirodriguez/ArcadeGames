@@ -8,6 +8,7 @@ export class KamikazeSystem extends System<SpaceInvadersComponentRegistry> {
   private timer = 0;
   private config?: SpaceInvadersConfig;
 
+  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/BossSystem.ts:43-50. Considerar extraer a función compartida. Ref: 210f5f08
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     if (!this.config) {

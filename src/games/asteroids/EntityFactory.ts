@@ -28,6 +28,7 @@ function getPowerUpColor(lootType: string): string {
  * Keeping them in a single place allows unifying test world runs with game runs.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:82-87. Considerar extraer a función compartida. Ref: 969af9ba
 export function registerAsteroidsBlueprints(
   world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>,
   customRegistry?: BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>
@@ -211,6 +212,7 @@ export function registerAsteroidsBlueprints(
         height: screen.height,
         mode: "wrap"
       } as BoundaryComponent);
+      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:127-132. Considerar extraer a función compartida. Ref: 040950df
       w.addComponent(entity, {
         type: "Health",
         current: 1,
@@ -276,6 +278,7 @@ const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any)
     const isUpdating = world.isUpdating;
     const commands = world.getCommandBuffer();
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:26-42. Considerar extraer a función compartida. Ref: 8db4e6a4
     if (isUpdating) {
         const entity = world.reserveEntityId();
         commands.createEntity(entity);
@@ -296,6 +299,7 @@ const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any)
     };
 };
 
+// TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
   if (world.isUpdating) {
     const entity = world.reserveEntityId();

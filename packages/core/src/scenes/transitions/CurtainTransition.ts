@@ -7,6 +7,7 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/CRTGlitchTransition.ts:10-28. Considerar extraer a función compartida. Ref: e9dcf478
 export class CurtainTransition implements ITransitionEffect {
   /**
    * Set flag to indicate that both scenes should be drawn.

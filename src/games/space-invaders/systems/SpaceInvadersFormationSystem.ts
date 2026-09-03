@@ -17,6 +17,7 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
 
   constructor(enemyBulletPool: EnemyBulletPool) {
     super();
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/BossSystem.ts:41-49. Considerar extraer a función compartida. Ref: d157968e
     this.enemyBulletPool = enemyBulletPool;
   }
 

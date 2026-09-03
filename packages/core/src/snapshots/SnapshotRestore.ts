@@ -37,6 +37,7 @@ export class SnapshotRestore {
     state: WorldSnapshot
   ): void {
     if (state.isSoA) {
+      // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestoreSoA.ts:76-100. Considerar extraer a función compartida. Ref: 8f7a2df1
       throw new Error("SnapshotRestore does not support SoA WorldSnapshot. Use SnapshotRestoreSoA instead.");
     }
 
@@ -63,6 +64,7 @@ export class SnapshotRestore {
     world["componentIndex"].clear();
     world["componentVersions"].clear();
 
+    // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestoreSoA.ts:31-40. Considerar extraer a función compartida. Ref: b99eff15
     for (const type in state.componentData) {
       const storage = new Map<number, any>();
       const index = new Set<number>();
@@ -78,6 +80,7 @@ export class SnapshotRestore {
         const sourceComp = snapshotEntities[entityId];
         const component = ComponentCloner.cloneComponent(sourceComp);
 
+        // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestoreSoA.ts:44-54. Considerar extraer a función compartida. Ref: 8e9d4aa2
         storage.set(entityId, component);
         index.add(entityId);
         versions.set(entityId, world["_stateVersion"]);

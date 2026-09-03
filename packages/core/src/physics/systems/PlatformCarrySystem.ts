@@ -108,6 +108,7 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
         if (collisionEvents) {
           if (collisionEvents.activeTriggers) {
             for (let j = 0; j < collisionEvents.activeTriggers.length; j++) {
+              // TODO(refactor): código duplicado detectado (bloque) con physics/systems/PlatformCarrySystem.ts:123-132. Considerar extraer a función compartida. Ref: 659ec6d9
               const contactEntity = collisionEvents.activeTriggers[j];
               if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
                 const platVel = world.getComponent(contactEntity, "Velocity")!;
@@ -120,6 +121,7 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
           }
           if (landedPlatform === undefined && collisionEvents.collisions) {
             for (let j = 0; j < collisionEvents.collisions.length; j++) {
+              // TODO(refactor): código duplicado detectado (bloque) con physics/systems/PlatformCarrySystem.ts:112-121. Considerar extraer a función compartida. Ref: 1c1310b3
               const contactEntity = collisionEvents.collisions[j].otherEntity;
               if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
                 const platVel = world.getComponent(contactEntity, "Velocity")!;

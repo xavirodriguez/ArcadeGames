@@ -47,6 +47,7 @@ export class WorldCommandBuffer<
   ): void {
     this.commands.push({
       execute: (world) => {
+        // TODO(refactor): código duplicado detectado (bloque) con ecs/WorldCommandBuffer.ts:77-84. Considerar extraer a función compartida. Ref: 8922af63
         const entity = world.createEntity();
         const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
         const blueprint = registry?.get(blueprintId);
@@ -74,6 +75,7 @@ export class WorldCommandBuffer<
   ): void {
     this.commands.push({
       execute: (world) => {
+        // TODO(refactor): código duplicado detectado (bloque) con ecs/WorldCommandBuffer.ts:51-58. Considerar extraer a función compartida. Ref: fa28c3fa
         world.activateEntity(entity);
         const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
         const blueprint = registry?.get(blueprintId);

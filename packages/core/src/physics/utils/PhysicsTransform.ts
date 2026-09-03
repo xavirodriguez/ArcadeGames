@@ -14,6 +14,7 @@ export function getColliderWorldBounds(
   transform: PhysicsTransformLike,
   collider: ColliderLike
 ): AABB {
+  // TODO(refactor): código duplicado detectado (bloque) con physics/query/PhysicsQuery.ts:50-56. Considerar extraer a función compartida. Ref: dbf8ef00
   const worldX = transform.worldX ?? transform.x;
   const worldY = transform.worldY ?? transform.y;
   const cx = worldX + (collider.offsetX ?? 0);

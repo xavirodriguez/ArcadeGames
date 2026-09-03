@@ -7,6 +7,7 @@ import { Entity } from "../ecs/Entity";
  * System that manages collecting collectibles and managing persistent vs non-persistent states.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con systems/DeathSystem.ts:10-16. Considerar extraer a función compartida. Ref: 63111e4a
 export class CollectibleSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
@@ -59,6 +60,7 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
       }
 
       // 2. Check if players have CollisionEvents pointing to this collectible
+      // TODO(refactor): código duplicado detectado (bloque) con systems/CheckpointSystem.ts:62-70. Considerar extraer a función compartida. Ref: 22e0c446
       if (!collectedBy) {
         for (let p = 0; p < players.length; p++) {
           const playerEntity = players[p];
@@ -67,6 +69,7 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
             let found = false;
             if (events.activeTriggers) {
               for (let j = 0; j < events.activeTriggers.length; j++) {
+                // TODO(refactor): código duplicado detectado (bloque) con systems/CheckpointSystem.ts:71-79. Considerar extraer a función compartida. Ref: 8f4acd46
                 if (events.activeTriggers[j] === collEntity) {
                   found = true;
                   break;

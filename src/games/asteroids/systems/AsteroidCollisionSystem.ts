@@ -52,6 +52,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     else if (size === "small") points = 100;
 
     const config = world.getResource<any>("GameConfig") || {};
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:153-161. Considerar extraer a función compartida. Ref: 76e7c40a
     let nextCombo = 0;
     let nextMultiplier = 1;
 

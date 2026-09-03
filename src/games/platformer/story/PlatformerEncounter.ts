@@ -115,6 +115,7 @@ export const platformerRunEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Platformer encounters.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 81ecb1e3
 export class PlatformerArcadeAdapter implements ArcadeGameAdapter {
   private game: PlatformerGame | null = null;
   private resultCallback: ((result: MiniGameResult) => void) | null = null;
@@ -130,6 +131,7 @@ export class PlatformerArcadeAdapter implements ArcadeGameAdapter {
       } else if (modifier.targetProperty === "extraLives" && typeof modifier.value === "number") {
         (game as any).extraLives = modifier.value;
       } else if (modifier.targetProperty === "moveSpeedMultiplier" && typeof modifier.value === "number") {
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-161. Considerar extraer a función compartida. Ref: 7a5d7ed8
         (game as any).moveSpeedMultiplier = modifier.value;
       }
     }

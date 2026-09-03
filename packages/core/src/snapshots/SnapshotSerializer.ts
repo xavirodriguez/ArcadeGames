@@ -1,6 +1,7 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
 import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
+// TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotSerializerSoA.ts:4-30. Considerar extraer a función compartida. Ref: 37b385bf
 import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
 
 /**
@@ -88,6 +89,7 @@ export class SnapshotSerializer {
       }
     });
 
+    // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotSerializerSoA.ts:126-134. Considerar extraer a función compartida. Ref: 9b0e72d4
     return {
       entities: Array.from(activeEntities).sort((a, b) => a - b),
       componentData,

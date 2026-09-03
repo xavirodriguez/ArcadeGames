@@ -232,6 +232,7 @@ function resetManifold(): CollisionManifold {
  *
  * @public
  */
+// DUP-06: hot path medido (NarrowPhase manifold calc). Extracción a helper costó ~3.6% en benchmark (1M ops). Se mantiene inline a propósito. Ver docs/tech-debt/duplication.md
 export class NarrowPhase {
   /**
    * Tests collision between two primitive shapes in 2D world space.

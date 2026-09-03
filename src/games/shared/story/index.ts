@@ -8,4 +8,5 @@ export * from "./TheCaveAdventure";
 export * from "./BlindStation";
 export * from "./ProofOfConceptStoryGraph";
 export * from "./StoryEncounters";
+export * from "./adapters/BaseArcadeAdapter";
 // MultiGameStoryProofOfConcept is retained strictly as a test fixture outside production exports

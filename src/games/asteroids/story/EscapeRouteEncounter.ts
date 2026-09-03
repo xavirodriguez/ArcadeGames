@@ -115,44 +115,19 @@ export const escapeRoute01Encounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Asteroids encounters.
  */
-// TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:177-196. Considerar extraer a función compartida. Ref: 8e598bb4
-export class AsteroidsArcadeAdapter implements ArcadeGameAdapter {
-  private game: AsteroidsGame | null = null;
-  private resultCallback: ((result: MiniGameResult) => void) | null = null;
+import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
-  public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
-    const game = new AsteroidsGame();
-
-    this.game = game;
-
-    // Apply modifiers from run context to game instance
-    applyStandardEncounterModifiers(game, context);
-
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:140-160. Considerar extraer a función compartida. Ref: bacb64ad
-    game.start();
-
-    // Listen for gameplay termination / completion events
-    const eventBus = (game as any).eventBus || (game as any).getEventBus?.();
-    if (eventBus) {
-      eventBus.on("game:over" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-      // TODO(refactor): código duplicado detectado (bloque) con pong/story/PongEncounter.ts:145-158. Considerar extraer a función compartida. Ref: 472ffcf5
-      eventBus.on("level:completed" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-    }
+/**
+ * ArcadeGameAdapter implementation for Asteroids encounters.
+ */
+export class AsteroidsArcadeAdapter extends BaseArcadeAdapter<AsteroidsGame> {
+  protected createGame(_context: MiniGameRunContext): AsteroidsGame {
+    return new AsteroidsGame();
   }
 
-  public onResult(callback: (result: MiniGameResult) => void): void {
-    this.resultCallback = callback;
-  }
-
-  public emitResult(context: MiniGameRunContext, payload?: any): void {
-    if (!this.resultCallback) return;
-
+  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
     const collisions = payload?.collisions ?? (this.game as any)?.collisionsCount ?? 0;
-    const score = payload?.score ?? (this.game as any)?.getScore() ?? 0;
+    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
     const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1000));
     const durationMs = payload?.durationMs ?? 30000;
     const secretsFound: string[] = payload?.secretsFound ?? [];
@@ -161,7 +136,7 @@ export class AsteroidsArcadeAdapter implements ArcadeGameAdapter {
       secretsFound.push("black_box_fragment");
     }
 
-    const result: MiniGameResult = {
+    return {
       runId: context.runId,
       gameId: context.gameId,
       score,
@@ -173,19 +148,5 @@ export class AsteroidsArcadeAdapter implements ArcadeGameAdapter {
       },
       secretsFound
     };
-
-    this.resultCallback(result);
-  }
-
-  public dispose(): void {
-    if (this.game) {
-      if (typeof (this.game as any).destroy === "function") {
-        (this.game as any).destroy();
-      } else if (typeof (this.game as any).stop === "function") {
-        (this.game as any).stop();
-      }
-      this.game = null;
-    }
-    this.resultCallback = null;
   }
 }

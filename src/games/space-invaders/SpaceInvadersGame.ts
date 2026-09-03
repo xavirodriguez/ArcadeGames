@@ -111,7 +111,7 @@ export class SpaceInvadersGame
       : { ...(this.baseConfig as any) } as SpaceInvadersConfig;
 
     this.world.setResource("GameConfig", this.config);
-    this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });
+    this.setupCommonArcadeResources();
     this.world.setResource("IsHeadless", this.isHeadless);
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 

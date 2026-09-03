@@ -82,6 +82,8 @@ export interface BaseGameConfig<
   manualLoop?: boolean;
   /** Optional theme configuration for decoupling sprite asset keys, color palettes, and lore texts. */
   theme?: Theme;
+  /** Optional HTML Canvas Element target for rendering and viewport dimensions. */
+  canvas?: HTMLCanvasElement;
 }
 
 /**
@@ -200,6 +202,9 @@ export abstract class BaseGame<
   public sceneManager: SceneManager<TComponents>;
   /** Platform-agnostic audio player instance. */
   public audio: IAudioPlayer;
+  /** Target HTML canvas element when running in browser environment. */
+  protected canvas?: HTMLCanvasElement;
+  private resizeListenerBound?: () => void;
   private _debugEventLog: Array<{ timestamp: number; event: string; payload: any }> = [];
 
   /**
@@ -602,10 +607,96 @@ export abstract class BaseGame<
    * Postcondition: Lifecycle state becomes `DESTROYED`. System dispose callbacks are executed, schedule is cleared,
    * and input system resources are released.
    */
+  /**
+   * Calculates current screen configuration based on canvas dimensions, window inner size, or default fallback (800x600).
+   *
+   * @returns `ScreenConfig` object `{ width, height, pixelRatio }`.
+   */
+  protected calculateScreenConfig(): { width: number; height: number; pixelRatio: number } {
+    let width = 800;
+    let height = 600;
+    let pixelRatio = 1;
+
+    if (this.canvas) {
+      width = this.canvas.clientWidth || this.canvas.width || width;
+      height = this.canvas.clientHeight || this.canvas.height || height;
+    } else if (typeof window !== "undefined") {
+      width = window.innerWidth || width;
+      height = window.innerHeight || height;
+      pixelRatio = window.devicePixelRatio || 1;
+    }
+
+    return { width, height, pixelRatio };
+  }
+
+  /**
+   * Recalculates screen config and updates the `"ScreenConfig"` resource in the world.
+   */
+  protected handleScreenResize(): void {
+    const config = this.calculateScreenConfig();
+    this.world.setResource("ScreenConfig", config);
+  }
+
+  /**
+   * Attaches a window resize event listener that delegates to `handleScreenResize()`.
+   */
+  protected registerResizeListener(): void {
+    if (typeof window === "undefined") return;
+    this.unregisterResizeListener();
+    this.resizeListenerBound = () => this.handleScreenResize();
+    window.addEventListener("resize", this.resizeListenerBound);
+  }
+
+  /**
+   * Removes the window resize event listener if previously registered.
+   */
+  protected unregisterResizeListener(): void {
+    if (typeof window !== "undefined" && this.resizeListenerBound) {
+      window.removeEventListener("resize", this.resizeListenerBound);
+      this.resizeListenerBound = undefined;
+    }
+  }
+
+  /**
+   * Common setup helper for arcade minigames. Sets screen config, registers resize listener, and saves canvas reference.
+   *
+   * @param canvas - Optional HTML canvas element.
+   */
+  protected setupCommonArcadeResources(canvas?: HTMLCanvasElement): void {
+    if (canvas) {
+      this.canvas = canvas;
+    } else if (this._config.canvas) {
+      this.canvas = this._config.canvas;
+    }
+    this.handleScreenResize();
+    this.registerResizeListener();
+  }
+
+  /**
+   * Applies server state update payload to world entities and immediately flushes queued command buffer mutations.
+   *
+   * @remarks
+   * Critical for network netcode: flushing command buffer out-of-band ensures new network entities are fully materialized prior to next frame tick or rendering query.
+   *
+   * @param update - Server state payload containing entities or resources.
+   */
+  public applyServerStateUpdate(update: WorldSnapshot | { resources?: Record<string, any> }): void {
+    if ("tick" in update && "entities" in update) {
+      this.world.restore(update as WorldSnapshot);
+    }
+    if ("resources" in update && update.resources && typeof update.resources === "object") {
+      Object.entries(update.resources).forEach(([key, val]) => {
+        this.world.setResource(key, val);
+      });
+    }
+    this.world.flush();
+  }
+
   public destroy(): void {
     this.lifecycleState = GameLifecycleState.DESTROYED;
     this.loop.stop();
 
+    this.unregisterResizeListener();
     this.world.schedule.clearSystems();
     this.eventBus.clear();
 

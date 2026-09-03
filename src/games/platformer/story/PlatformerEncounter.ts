@@ -115,47 +115,17 @@ export const platformerRunEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Platformer encounters.
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 81ecb1e3
-export class PlatformerArcadeAdapter implements ArcadeGameAdapter {
-  private game: PlatformerGame | null = null;
-  private resultCallback: ((result: MiniGameResult) => void) | null = null;
+import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
-  public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
-    const game = new PlatformerGame();
-    this.game = game;
-
-    // Apply modifiers from run context
-    for (const modifier of context.modifiers) {
-      if (modifier.targetProperty === "jumpPowerMultiplier" && typeof modifier.value === "number") {
-        (game as any).jumpPowerMultiplier = modifier.value;
-      } else if (modifier.targetProperty === "extraLives" && typeof modifier.value === "number") {
-        (game as any).extraLives = modifier.value;
-      } else if (modifier.targetProperty === "moveSpeedMultiplier" && typeof modifier.value === "number") {
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-161. Considerar extraer a función compartida. Ref: 7a5d7ed8
-        (game as any).moveSpeedMultiplier = modifier.value;
-      }
-    }
-
-    game.start();
-
-    const eventBus = (game as any).eventBus || (game as any).getEventBus?.();
-    if (eventBus) {
-      eventBus.on("game:over" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-      eventBus.on("level:completed" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-    }
+/**
+ * ArcadeGameAdapter implementation for Platformer encounters.
+ */
+export class PlatformerArcadeAdapter extends BaseArcadeAdapter<PlatformerGame> {
+  protected createGame(_context: MiniGameRunContext): PlatformerGame {
+    return new PlatformerGame();
   }
 
-  public onResult(callback: (result: MiniGameResult) => void): void {
-    this.resultCallback = callback;
-  }
-
-  public emitResult(context: MiniGameRunContext, payload?: any): void {
-    if (!this.resultCallback) return;
-
+  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
     const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
     const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1000));
     const durationMs = payload?.durationMs ?? 40000;
@@ -166,7 +136,7 @@ export class PlatformerArcadeAdapter implements ArcadeGameAdapter {
       secretsFound.push("ancient_relic_cache");
     }
 
-    const result: MiniGameResult = {
+    return {
       runId: context.runId,
       gameId: context.gameId,
       score,
@@ -178,19 +148,5 @@ export class PlatformerArcadeAdapter implements ArcadeGameAdapter {
       },
       secretsFound
     };
-
-    this.resultCallback(result);
-  }
-
-  public dispose(): void {
-    if (this.game) {
-      if (typeof (this.game as any).destroy === "function") {
-        (this.game as any).destroy();
-      } else if (typeof (this.game as any).stop === "function") {
-        (this.game as any).stop();
-      }
-      this.game = null;
-    }
-    this.resultCallback = null;
   }
 }

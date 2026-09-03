@@ -109,7 +109,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
       : { ...this.baseConfig };
 
     this.world.setResource("GameConfig", this.config);
-    this.world.setResource("ScreenConfig", { width: this.config.WIDTH, height: this.config.HEIGHT });
+    this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
     await this.onPreloadAssets();

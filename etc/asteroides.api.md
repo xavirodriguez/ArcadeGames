@@ -260,8 +260,17 @@ export const BaseConfigSchema: z.ZodObject<{
 // @public
 export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput>, Simulation {
     constructor(config?: BaseGameConfig<TComponents, TEvents, TInput>);
+    applyServerStateUpdate(update: WorldSnapshot | {
+        resources?: Record<string, any>;
+    }): void;
     audio: IAudioPlayer;
     blueprints: BlueprintRegistry<TComponents, TBlueprints>;
+    protected calculateScreenConfig(): {
+        width: number;
+        height: number;
+        pixelRatio: number;
+    };
+    protected canvas?: HTMLCanvasElement;
     // (undocumented)
     protected _config: BaseGameConfig<TComponents, TEvents, TInput>;
     protected createBaseEntity(deferred?: boolean): {
@@ -296,6 +305,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
         }[];
         clearEventLog: () => void;
     };
+    // (undocumented)
     destroy(): void;
     enterGameplayFreeze(duration?: number): void;
     eventBus: EventBus<TEvents>;
@@ -309,6 +319,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
     getLifecycleState(): GameLifecycleState;
     getSeed(): number;
     getWorld(): World<TComponents, TEvents, TBlueprints>;
+    protected handleScreenResize(): void;
     hash(): string;
     init(): Promise<void>;
     abstract isGameOver(): boolean;
@@ -322,11 +333,13 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
     protected onInitializeEntities(): Promise<void>;
     protected onRegisterSystems(): Promise<void>;
     pause(): void;
+    protected registerResizeListener(): void;
     restart(seed?: number): Promise<void>;
     restore(snapshot: WorldSnapshot): void;
     resume(): void;
     sceneManager: SceneManager<TComponents>;
     setInputState(input: Partial<TInput>): void;
+    protected setupCommonArcadeResources(canvas?: HTMLCanvasElement): void;
     snapshot(): WorldSnapshot;
     start(): void;
     get state(): any;
@@ -337,6 +350,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
     get tick(): number;
     // (undocumented)
     protected unifiedInput: IInputSystem<TInput>;
+    protected unregisterResizeListener(): void;
     abstract update(dt: number): void;
     world: World<TComponents, TEvents, TBlueprints>;
 }
@@ -346,6 +360,7 @@ export interface BaseGameConfig<TComponents extends ComponentRegistry = Componen
     arcadeKernel?: ArcadeKernel;
     assetProvider?: IAssetProvider;
     audio?: IAudioPlayer;
+    canvas?: HTMLCanvasElement;
     gameOptions?: Record<string, unknown>;
     headless?: boolean;
     initTimeout?: number;

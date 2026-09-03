@@ -117,48 +117,17 @@ export const echoRunnerDashEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Echo Runner encounters.
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 8e598bb4
-export class EchoRunnerArcadeAdapter implements ArcadeGameAdapter {
-  private game: EchoRunnerGame | null = null;
-  private resultCallback: ((result: MiniGameResult) => void) | null = null;
+import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
-  public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
-    const game = new EchoRunnerGame({ seed: context.seed });
-    this.game = game;
-
-    // Apply modifiers from run context
-    for (const modifier of context.modifiers) {
-      if (modifier.targetProperty === "timeLimitMultiplier" && typeof modifier.value === "number") {
-        (game as any).timeLimitMultiplier = modifier.value;
-      } else if (modifier.targetProperty === "energyBoost" && typeof modifier.value === "number") {
-        (game as any).energyBoost = modifier.value;
-      } else if (modifier.targetProperty === "speedMultiplier" && typeof modifier.value === "number") {
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/story/FlappyBirdEncounter.ts:135-160. Considerar extraer a función compartida. Ref: a07c240f
-        (game as any).speedMultiplier = modifier.value;
-      }
-    }
-
-    // TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:131-152. Considerar extraer a función compartida. Ref: bacb64ad
-    game.start();
-
-    const eventBus = (game as any).eventBus || (game as any).getEventBus?.();
-    if (eventBus) {
-      eventBus.on("game:over" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-      eventBus.on("level:completed" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-    }
+/**
+ * ArcadeGameAdapter implementation for Echo Runner encounters.
+ */
+export class EchoRunnerArcadeAdapter extends BaseArcadeAdapter<EchoRunnerGame> {
+  protected createGame(context: MiniGameRunContext): EchoRunnerGame {
+    return new EchoRunnerGame({ seed: context.seed });
   }
 
-  public onResult(callback: (result: MiniGameResult) => void): void {
-    this.resultCallback = callback;
-  }
-
-  public emitResult(context: MiniGameRunContext, payload?: any): void {
-    if (!this.resultCallback) return;
-
+  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
     const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
     const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1500));
     const durationMs = payload?.durationMs ?? 35000;
@@ -169,7 +138,7 @@ export class EchoRunnerArcadeAdapter implements ArcadeGameAdapter {
       secretsFound.push("memory_core_fragment_01");
     }
 
-    const result: MiniGameResult = {
+    return {
       runId: context.runId,
       gameId: context.gameId,
       score,
@@ -181,19 +150,5 @@ export class EchoRunnerArcadeAdapter implements ArcadeGameAdapter {
       },
       secretsFound
     };
-
-    this.resultCallback(result);
-  }
-
-  public dispose(): void {
-    if (this.game) {
-      if (typeof (this.game as any).destroy === "function") {
-        (this.game as any).destroy();
-      } else if (typeof (this.game as any).stop === "function") {
-        (this.game as any).stop();
-      }
-      this.game = null;
-    }
-    this.resultCallback = null;
   }
 }

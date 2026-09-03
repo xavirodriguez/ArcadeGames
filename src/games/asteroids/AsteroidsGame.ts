@@ -89,7 +89,6 @@ export class AsteroidsGame
   public readonly gameId = "asteroids";
   private baseConfig: AsteroidConfig;
   private config: AsteroidConfig;
-  private resizeListener?: () => void;
   private isHeadless: boolean;
   public mode: "deathmatch" | "story" = "deathmatch";
 
@@ -135,12 +134,7 @@ export class AsteroidsGame
       });
     });
 
-    this.updateScreenConfig();
-
-    if (typeof window !== "undefined") {
-        this.resizeListener = () => this.updateScreenConfig();
-        window.addEventListener("resize", this.resizeListener);
-    }
+    this.setupCommonArcadeResources();
 
     if (!this.bulletPool) this.bulletPool = new BulletPool();
     if (!this.particlePool) this.particlePool = new ParticlePool();
@@ -306,22 +300,6 @@ export class AsteroidsGame
       this.world.update(dt);
   }
 
-  private updateScreenConfig(): void {
-    let width = this.config?.SCREEN_WIDTH ?? 800;
-    let height = this.config?.SCREEN_HEIGHT ?? 600;
-
-    if (typeof window !== "undefined") {
-        width = window.innerWidth;
-        height = window.innerHeight;
-    }
-
-    const screenConfig = { width, height };
-    this.world.setResource("ScreenConfig", screenConfig);
-
-    if (__DEV__) {
-        console.log(`[AsteroidsGame] ScreenConfig updated: ${width}x${height}`);
-    }
-  }
 
   /**
    * Preloads game assets (SFX and Textures) to prevent cold-start latency.
@@ -495,24 +473,17 @@ export class AsteroidsGame
 
   public override destroy(): void {
     super.destroy();
-    // Limpiar el listener de resize registrado en window para evitar fugas de memoria
-    if (this.resizeListener && typeof window !== "undefined") {
-      window.removeEventListener("resize", this.resizeListener);
-      this.resizeListener = undefined;
-    }
     this.bulletPool?.clear();
     this.particlePool?.clear();
   }
 
   public override pause(): void {
     super.pause();
-    this.world.setResource("IsPaused", true);
     if (__DEV__) console.log("[AsteroidsGame] Simulation paused");
   }
 
   public override resume(): void {
     super.resume();
-    this.world.setResource("IsPaused", false);
     if (__DEV__) console.log("[AsteroidsGame] Simulation resumed");
   }
 

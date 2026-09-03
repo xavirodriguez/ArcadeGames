@@ -240,4 +240,35 @@ describe("Echo Runner Game Simulation Tests", () => {
       prodGame.destroy();
     }
   });
+
+  it("should equip player with Collider2D and Health components, ensuring ground collision resolution", async () => {
+    const testGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await testGame.init();
+      const testWorld = testGame.getWorld();
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+
+      // Assert player possesses Collider2D and Health components
+      expect(testWorld.hasComponent(playerEntity, "Collider2D")).toBe(true);
+      expect(testWorld.hasComponent(playerEntity, "Health")).toBe(true);
+
+      const initialTrans = testWorld.getComponent(playerEntity, "Transform")!;
+      const initialY = initialTrans.y;
+
+      // Update simulation over multiple frames (~0.6s) to allow gravity to pull player onto tilemap ground
+      for (let i = 0; i < 40; i++) {
+        testGame.update(0.016);
+      }
+
+      const groundState = testWorld.getComponent(playerEntity, "PlatformerGroundState")!;
+      expect(groundState.isGrounded).toBe(true);
+
+      const currentTrans = testWorld.getComponent(playerEntity, "Transform")!;
+      // Player should be resting on the tile ground (~425 y) rather than falling endlessly into death plane (650+)
+      expect(currentTrans.y).toBeLessThan(600);
+      expect(currentTrans.y).toBeGreaterThan(initialY);
+    } finally {
+      testGame.destroy();
+    }
+  });
 });

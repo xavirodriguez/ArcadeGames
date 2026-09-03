@@ -864,15 +864,15 @@
     "unknownCount": 0,
     "total": 3
   },
+  "src/games/shared/arcade/helpers/spawnScorePopup.ts": {
+    "anyCount": 1,
+    "unknownCount": 1,
+    "total": 2
+  },
   "src/games/shared/arcade/powerups/PowerUpEffectRegistry.ts": {
     "anyCount": 4,
     "unknownCount": 2,
     "total": 6
-  },
-  "src/games/shared/arcade/spawnScorePopup.ts": {
-    "anyCount": 1,
-    "unknownCount": 1,
-    "total": 2
   },
   "src/games/shared/arcade/systems/AchievementSystem.ts": {
     "anyCount": 3,

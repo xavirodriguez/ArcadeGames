@@ -6,7 +6,7 @@ import {
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
 import { FlappyBirdGame } from "../FlappyBirdGame";
-import { applyStandardEncounterModifiers } from "../../shared/story/encounterHelpers";
+import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
 
 export const FLAPPY_BIRD_ESCAPE_ENCOUNTER_ID = "flappy_bird_escape_01";
 

@@ -6,7 +6,7 @@ import {
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
 import { SpaceInvadersGame } from "../SpaceInvadersGame";
-import { applyStandardEncounterModifiers } from "../../shared/story/encounterHelpers";
+import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
 
 export const SPACE_INVADERS_INVASION_ENCOUNTER_ID = "space_invaders_invasion_01";
 

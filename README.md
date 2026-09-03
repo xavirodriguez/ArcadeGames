@@ -205,8 +205,25 @@ pnpm story:lint               # Story graph & semantic validation linter
 pnpm typecheck:core           # Strict typecheck of the engine core
 pnpm typecheck:app            # Strict typecheck of the app layer
 pnpm check:core-boundaries    # Enforce core/platform/game isolation
+pnpm detect:duplicates        # Run jscpd + ast-grep to insert refactoring TODO comments
 pnpm ci                       # Full CI pipeline locally: build core + boundaries + story:lint + docs:check + typecheck
 ```
+
+### 🔍 Duplicate Code Detection & Refactoring TODOs
+
+The project integrates `jscpd` and `ast-grep` (`@ast-grep/napi`) to automate duplicate code detection and annotate source files with refactoring hints.
+
+- **How it works**:
+  1. `jscpd` scans TypeScript source code (`packages/core/src`, `src`) using `.jscpd.json` and produces a JSON report of code clones.
+  2. `scripts/detect-duplicates.ts` parses the JSON report and uses `ast-grep` to locate the exact AST node (method, function, class, or statement block) associated with the duplicated lines.
+  3. An idempotent `TODO(refactor)` comment is inserted directly above the target node:
+     ```typescript
+     // TODO(refactor): código duplicado detectado con archivo(s) [path/to/file.ts:20-35]. Considerar extraer a función compartida. Ref: a1b2c3d4
+     ```
+- **Resolving TODOs**:
+  1. Review the referenced file and lines specified in the `TODO(refactor)` comment.
+  2. Refactor the duplicated code into a shared utility, helper, or base class.
+  3. Remove the `TODO(refactor)` comment after completing the refactoring.
 
 The test suite spans multiple layers:
 

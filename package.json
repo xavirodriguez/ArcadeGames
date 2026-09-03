@@ -35,6 +35,7 @@
     "check:core-boundaries": "bash ./scripts/check-core-boundaries.sh",
     "check:ratchet": "pnpm exec tsx scripts/typecast-ratchet.ts",
     "ratchet:update": "pnpm exec tsx scripts/typecast-ratchet.ts --update",
+    "detect:duplicates": "pnpm exec tsx scripts/detect-duplicates.ts",
     "check:duplication": "pnpm exec tsx scripts/duplication-ratchet.ts",
     "duplication:update-baseline": "pnpm exec tsx scripts/duplication-ratchet.ts --update",
     "story:lint": "pnpm exec tsx scripts/story-lint.ts",

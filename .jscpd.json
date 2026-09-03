@@ -1,7 +1,7 @@
 {
   "path": [
     "packages/core/src",
-    "src/games"
+    "src"
   ],
   "pattern": "**/*.ts",
   "ignore": [
@@ -15,9 +15,9 @@
     "typescript"
   ],
   "reporters": [
-    "console",
     "json",
-    "markdown"
+    "console"
   ],
+  "output": "./report",
   "absolute": false
 }

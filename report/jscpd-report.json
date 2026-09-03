@@ -27,7 +27,7 @@
           "line": 122,
           "position": 3630
         },
-        "name": "shared/arcade/builders/ArcadeEntityBuilder.ts",
+        "name": "games/shared/arcade/builders/ArcadeEntityBuilder.ts",
         "start": 112,
         "startLoc": {
           "column": 31,
@@ -471,7 +471,7 @@
           "line": 166,
           "position": 6371
         },
-        "name": "shared/combat/systems/CombatSystem.ts",
+        "name": "games/shared/combat/systems/CombatSystem.ts",
         "start": 154,
         "startLoc": {
           "column": 79,
@@ -1729,7 +1729,7 @@
           "line": 53,
           "position": 2034
         },
-        "name": "platformer/systems/PlatformerGoalSystem.ts",
+        "name": "games/platformer/systems/PlatformerGoalSystem.ts",
         "start": 28,
         "startLoc": {
           "column": 86,
@@ -1840,7 +1840,7 @@
           "line": 66,
           "position": 2621
         },
-        "name": "platformer/systems/PlatformerGoalSystem.ts",
+        "name": "games/platformer/systems/PlatformerGoalSystem.ts",
         "start": 58,
         "startLoc": {
           "column": 59,
@@ -2561,7 +2561,7 @@
           "line": 420,
           "position": 16705
         },
-        "name": "asteroids/AsteroidsGame.ts",
+        "name": "games/asteroids/AsteroidsGame.ts",
         "start": 408,
         "startLoc": {
           "column": 31,
@@ -2580,7 +2580,7 @@
           "line": 689,
           "position": 27916
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 677,
         "startLoc": {
           "column": 26,
@@ -2598,7 +2598,7 @@
           "line": 538,
           "position": 20822
         },
-        "name": "asteroids/AsteroidsGame.ts",
+        "name": "games/asteroids/AsteroidsGame.ts",
         "start": 521,
         "startLoc": {
           "column": 57,
@@ -2617,7 +2617,7 @@
           "line": 527,
           "position": 22414
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 510,
         "startLoc": {
           "column": 59,
@@ -2635,7 +2635,7 @@
           "line": 540,
           "position": 20880
         },
-        "name": "asteroids/AsteroidsGame.ts",
+        "name": "games/asteroids/AsteroidsGame.ts",
         "start": 521,
         "startLoc": {
           "column": 57,
@@ -2654,7 +2654,7 @@
           "line": 911,
           "position": 36384
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 891,
         "startLoc": {
           "column": 65,
@@ -2672,7 +2672,7 @@
           "line": 566,
           "position": 21934
         },
-        "name": "asteroids/AsteroidsGame.ts",
+        "name": "games/asteroids/AsteroidsGame.ts",
         "start": 550,
         "startLoc": {
           "column": 53,
@@ -2691,7 +2691,7 @@
           "line": 563,
           "position": 23918
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 547,
         "startLoc": {
           "column": 74,
@@ -2709,7 +2709,7 @@
           "line": 108,
           "position": 3891
         },
-        "name": "asteroids/EntityFactory.ts",
+        "name": "games/asteroids/EntityFactory.ts",
         "start": 103,
         "startLoc": {
           "column": 45,
@@ -2728,7 +2728,7 @@
           "line": 87,
           "position": 3480
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 82,
         "startLoc": {
           "column": 61,
@@ -2746,7 +2746,7 @@
           "line": 225,
           "position": 7771
         },
-        "name": "asteroids/EntityFactory.ts",
+        "name": "games/asteroids/EntityFactory.ts",
         "start": 213,
         "startLoc": {
           "column": 28,
@@ -2765,7 +2765,7 @@
           "line": 131,
           "position": 5331
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 126,
         "startLoc": {
           "column": 29,
@@ -2783,7 +2783,7 @@
           "line": 297,
           "position": 9905
         },
-        "name": "asteroids/EntityFactory.ts",
+        "name": "games/asteroids/EntityFactory.ts",
         "start": 279,
         "startLoc": {
           "column": 18,
@@ -2802,7 +2802,7 @@
           "line": 42,
           "position": 1447
         },
-        "name": "flappybird/EntityFactory.ts",
+        "name": "games/flappybird/EntityFactory.ts",
         "start": 26,
         "startLoc": {
           "column": 18,
@@ -2820,7 +2820,7 @@
           "line": 316,
           "position": 10454
         },
-        "name": "asteroids/EntityFactory.ts",
+        "name": "games/asteroids/EntityFactory.ts",
         "start": 297,
         "startLoc": {
           "column": 1,
@@ -2839,7 +2839,7 @@
           "line": 89,
           "position": 2560
         },
-        "name": "flappybird/EntityFactory.ts",
+        "name": "games/flappybird/EntityFactory.ts",
         "start": 64,
         "startLoc": {
           "column": 52,
@@ -2857,7 +2857,7 @@
           "line": 27,
           "position": 1183
         },
-        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsCanvasVisuals.ts",
         "start": 18,
         "startLoc": {
           "column": 50,
@@ -2876,7 +2876,7 @@
           "line": 146,
           "position": 5106
         },
-        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsCanvasVisuals.ts",
         "start": 139,
         "startLoc": {
           "column": 43,
@@ -2894,7 +2894,7 @@
           "line": 37,
           "position": 1535
         },
-        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsCanvasVisuals.ts",
         "start": 28,
         "startLoc": {
           "column": 16,
@@ -2913,7 +2913,7 @@
           "line": 54,
           "position": 1879
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 45,
         "startLoc": {
           "column": 15,
@@ -2931,7 +2931,7 @@
           "line": 139,
           "position": 4817
         },
-        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsCanvasVisuals.ts",
         "start": 128,
         "startLoc": {
           "column": 4,
@@ -2950,7 +2950,7 @@
           "line": 150,
           "position": 5276
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 139,
         "startLoc": {
           "column": 4,
@@ -2968,7 +2968,7 @@
           "line": 17,
           "position": 602
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 4,
         "startLoc": {
           "column": 107,
@@ -2987,7 +2987,7 @@
           "line": 15,
           "position": 376
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 2,
         "startLoc": {
           "column": 50,
@@ -3005,7 +3005,7 @@
           "line": 20,
           "position": 698
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 4,
         "startLoc": {
           "column": 107,
@@ -3024,7 +3024,7 @@
           "line": 29,
           "position": 950
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 10,
         "startLoc": {
           "column": 40,
@@ -3042,7 +3042,7 @@
           "line": 17,
           "position": 602
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 4,
         "startLoc": {
           "column": 55,
@@ -3061,7 +3061,7 @@
           "line": 16,
           "position": 528
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 3,
         "startLoc": {
           "column": 42,
@@ -3079,7 +3079,7 @@
           "line": 20,
           "position": 698
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 4,
         "startLoc": {
           "column": 107,
@@ -3098,7 +3098,7 @@
           "line": 22,
           "position": 712
         },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
+        "name": "games/pong/rendering/PongSkiaVisuals.ts",
         "start": 7,
         "startLoc": {
           "column": 74,
@@ -3116,7 +3116,7 @@
           "line": 20,
           "position": 698
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 4,
         "startLoc": {
           "column": 107,
@@ -3135,7 +3135,7 @@
           "line": 20,
           "position": 699
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 4,
         "startLoc": {
           "column": 127,
@@ -3153,7 +3153,7 @@
           "line": 33,
           "position": 1226
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 27,
         "startLoc": {
           "column": 40,
@@ -3172,7 +3172,7 @@
           "line": 202,
           "position": 6764
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 36,
@@ -3190,7 +3190,7 @@
           "line": 49,
           "position": 1605
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 34,
         "startLoc": {
           "column": 46,
@@ -3209,7 +3209,7 @@
           "line": 161,
           "position": 5573
         },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 150,
         "startLoc": {
           "column": 46,
@@ -3227,7 +3227,7 @@
           "line": 151,
           "position": 4023
         },
-        "name": "asteroids/story/EscapeRouteEncounter.ts",
+        "name": "games/asteroids/story/EscapeRouteEncounter.ts",
         "start": 130,
         "startLoc": {
           "column": 4,
@@ -3246,7 +3246,7 @@
           "line": 159,
           "position": 4563
         },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
+        "name": "games/echorunner/story/EchoRunnerEncounter.ts",
         "start": 139,
         "startLoc": {
           "column": 4,
@@ -3264,7 +3264,7 @@
           "line": 151,
           "position": 4023
         },
-        "name": "asteroids/story/EscapeRouteEncounter.ts",
+        "name": "games/asteroids/story/EscapeRouteEncounter.ts",
         "start": 138,
         "startLoc": {
           "column": 36,
@@ -3283,7 +3283,7 @@
           "line": 157,
           "position": 4492
         },
-        "name": "pong/story/PongEncounter.ts",
+        "name": "games/pong/story/PongEncounter.ts",
         "start": 144,
         "startLoc": {
           "column": 36,
@@ -3301,7 +3301,7 @@
           "line": 188,
           "position": 5113
         },
-        "name": "asteroids/story/EscapeRouteEncounter.ts",
+        "name": "games/asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
@@ -3320,7 +3320,7 @@
           "line": 196,
           "position": 5621
         },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
+        "name": "games/echorunner/story/EchoRunnerEncounter.ts",
         "start": 177,
         "startLoc": {
           "column": 50,
@@ -3338,7 +3338,7 @@
           "line": 188,
           "position": 5113
         },
-        "name": "asteroids/story/EscapeRouteEncounter.ts",
+        "name": "games/asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
@@ -3357,7 +3357,7 @@
           "line": 195,
           "position": 5631
         },
-        "name": "flappybird/story/FlappyBirdEncounter.ts",
+        "name": "games/flappybird/story/FlappyBirdEncounter.ts",
         "start": 176,
         "startLoc": {
           "column": 40,
@@ -3375,7 +3375,7 @@
           "line": 188,
           "position": 5113
         },
-        "name": "asteroids/story/EscapeRouteEncounter.ts",
+        "name": "games/asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
@@ -3394,7 +3394,7 @@
           "line": 194,
           "position": 5712
         },
-        "name": "geometrywars/story/GeometryWarsEncounter.ts",
+        "name": "games/geometrywars/story/GeometryWarsEncounter.ts",
         "start": 175,
         "startLoc": {
           "column": 48,
@@ -3412,7 +3412,7 @@
           "line": 188,
           "position": 5113
         },
-        "name": "asteroids/story/EscapeRouteEncounter.ts",
+        "name": "games/asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
@@ -3431,7 +3431,7 @@
           "line": 194,
           "position": 5557
         },
-        "name": "platformer/story/PlatformerEncounter.ts",
+        "name": "games/platformer/story/PlatformerEncounter.ts",
         "start": 175,
         "startLoc": {
           "column": 50,
@@ -3449,7 +3449,7 @@
           "line": 188,
           "position": 5113
         },
-        "name": "asteroids/story/EscapeRouteEncounter.ts",
+        "name": "games/asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
@@ -3468,7 +3468,7 @@
           "line": 195,
           "position": 5661
         },
-        "name": "pong/story/PongEncounter.ts",
+        "name": "games/pong/story/PongEncounter.ts",
         "start": 176,
         "startLoc": {
           "column": 38,
@@ -3486,7 +3486,7 @@
           "line": 188,
           "position": 5113
         },
-        "name": "asteroids/story/EscapeRouteEncounter.ts",
+        "name": "games/asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
@@ -3505,7 +3505,7 @@
           "line": 195,
           "position": 5777
         },
-        "name": "space-invaders/story/InvasionEncounter.ts",
+        "name": "games/space-invaders/story/InvasionEncounter.ts",
         "start": 176,
         "startLoc": {
           "column": 54,
@@ -3523,7 +3523,7 @@
           "line": 63,
           "position": 2316
         },
-        "name": "asteroids/systems/AsteroidCollisionSystem.ts",
+        "name": "games/asteroids/systems/AsteroidCollisionSystem.ts",
         "start": 55,
         "startLoc": {
           "column": 4,
@@ -3542,7 +3542,7 @@
           "line": 161,
           "position": 6088
         },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
+        "name": "games/space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 153,
         "startLoc": {
           "column": 8,
@@ -3560,7 +3560,7 @@
           "line": 147,
           "position": 4691
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 121,
         "startLoc": {
           "column": 4,
@@ -3579,7 +3579,7 @@
           "line": 30,
           "position": 1152
         },
-        "name": "platformer/systems/PlatformerDamageSystem.ts",
+        "name": "games/platformer/systems/PlatformerDamageSystem.ts",
         "start": 7,
         "startLoc": {
           "column": 4,
@@ -3597,7 +3597,7 @@
           "line": 207,
           "position": 6594
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 200,
         "startLoc": {
           "column": 23,
@@ -3616,7 +3616,7 @@
           "line": 114,
           "position": 3634
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 107,
         "startLoc": {
           "column": 69,
@@ -3634,7 +3634,7 @@
           "line": 221,
           "position": 7071
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 207,
         "startLoc": {
           "column": 97,
@@ -3653,7 +3653,7 @@
           "line": 127,
           "position": 4071
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 114,
         "startLoc": {
           "column": 109,
@@ -3671,7 +3671,7 @@
           "line": 254,
           "position": 8149
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 249,
         "startLoc": {
           "column": 69,
@@ -3690,7 +3690,7 @@
           "line": 293,
           "position": 9140
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 288,
         "startLoc": {
           "column": 71,
@@ -3708,7 +3708,7 @@
           "line": 316,
           "position": 10833
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 304,
         "startLoc": {
           "column": 106,
@@ -3727,7 +3727,7 @@
           "line": 374,
           "position": 12880
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 362,
         "startLoc": {
           "column": 8,
@@ -3745,7 +3745,7 @@
           "line": 339,
           "position": 11577
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 324,
         "startLoc": {
           "column": 21,
@@ -3764,7 +3764,7 @@
           "line": 208,
           "position": 6361
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 189,
         "startLoc": {
           "column": 27,
@@ -3782,7 +3782,7 @@
           "line": 373,
           "position": 12702
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 350,
         "startLoc": {
           "column": 27,
@@ -3801,7 +3801,7 @@
           "line": 246,
           "position": 7543
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 223,
         "startLoc": {
           "column": 28,
@@ -3819,7 +3819,7 @@
           "line": 407,
           "position": 14108
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 402,
         "startLoc": {
           "column": 82,
@@ -3838,7 +3838,7 @@
           "line": 387,
           "position": 13616
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 383,
         "startLoc": {
           "column": 89,
@@ -3856,7 +3856,7 @@
           "line": 414,
           "position": 14705
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 408,
         "startLoc": {
           "column": 48,
@@ -3875,7 +3875,7 @@
           "line": 392,
           "position": 14036
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 386,
         "startLoc": {
           "column": 51,
@@ -3893,7 +3893,7 @@
           "line": 420,
           "position": 15076
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 414,
         "startLoc": {
           "column": 51,
@@ -3912,7 +3912,7 @@
           "line": 397,
           "position": 14483
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 393,
         "startLoc": {
           "column": 38,
@@ -3930,7 +3930,7 @@
           "line": 425,
           "position": 15366
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 420,
         "startLoc": {
           "column": 82,
@@ -3949,7 +3949,7 @@
           "line": 402,
           "position": 14921
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 399,
         "startLoc": {
           "column": 85,
@@ -3967,7 +3967,7 @@
           "line": 429,
           "position": 15607
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 424,
         "startLoc": {
           "column": 86,
@@ -3986,7 +3986,7 @@
           "line": 267,
           "position": 11153
         },
-        "name": "pong/PongGame.ts",
+        "name": "games/pong/PongGame.ts",
         "start": 261,
         "startLoc": {
           "column": 93,
@@ -4004,7 +4004,7 @@
           "line": 506,
           "position": 18408
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 489,
         "startLoc": {
           "column": 63,
@@ -4023,7 +4023,7 @@
           "line": 433,
           "position": 16302
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 421,
         "startLoc": {
           "column": 61,
@@ -4041,7 +4041,7 @@
           "line": 532,
           "position": 19175
         },
-        "name": "echorunner/EchoRunnerGame.ts",
+        "name": "games/echorunner/EchoRunnerGame.ts",
         "start": 518,
         "startLoc": {
           "column": 4,
@@ -4060,7 +4060,7 @@
           "line": 455,
           "position": 16928
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 441,
         "startLoc": {
           "column": 4,
@@ -4078,7 +4078,7 @@
           "line": 50,
           "position": 1827
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 43,
         "startLoc": {
           "column": 4,
@@ -4097,7 +4097,7 @@
           "line": 26,
           "position": 845
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 20,
         "startLoc": {
           "column": 4,
@@ -4115,7 +4115,7 @@
           "line": 119,
           "position": 4082
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 113,
         "startLoc": {
           "column": 27,
@@ -4134,7 +4134,7 @@
           "line": 10,
           "position": 403
         },
-        "name": "platformer/rendering/PlatformerCanvasVisuals.ts",
+        "name": "games/platformer/rendering/PlatformerCanvasVisuals.ts",
         "start": 4,
         "startLoc": {
           "column": 33,
@@ -4152,7 +4152,7 @@
           "line": 129,
           "position": 4794
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 115,
         "startLoc": {
           "column": 4,
@@ -4171,7 +4171,7 @@
           "line": 100,
           "position": 3781
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 86,
         "startLoc": {
           "column": 4,
@@ -4189,7 +4189,7 @@
           "line": 179,
           "position": 6225
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 147,
         "startLoc": {
           "column": 22,
@@ -4208,7 +4208,7 @@
           "line": 151,
           "position": 5213
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 119,
         "startLoc": {
           "column": 12,
@@ -4226,7 +4226,7 @@
           "line": 298,
           "position": 10300
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 287,
         "startLoc": {
           "column": 4,
@@ -4245,7 +4245,7 @@
           "line": 267,
           "position": 9725
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 257,
         "startLoc": {
           "column": 4,
@@ -4263,7 +4263,7 @@
           "line": 340,
           "position": 11317
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 335,
         "startLoc": {
           "column": 27,
@@ -4282,7 +4282,7 @@
           "line": 532,
           "position": 17264
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 527,
         "startLoc": {
           "column": 23,
@@ -4300,7 +4300,7 @@
           "line": 343,
           "position": 11407
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 337,
         "startLoc": {
           "column": 4,
@@ -4319,7 +4319,7 @@
           "line": 319,
           "position": 11142
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 313,
         "startLoc": {
           "column": 4,
@@ -4337,7 +4337,7 @@
           "line": 379,
           "position": 12395
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 374,
         "startLoc": {
           "column": 31,
@@ -4356,7 +4356,7 @@
           "line": 48,
           "position": 1457
         },
-        "name": "platformer/rendering/PlatformerCanvasVisuals.ts",
+        "name": "games/platformer/rendering/PlatformerCanvasVisuals.ts",
         "start": 42,
         "startLoc": {
           "column": 31,
@@ -4374,7 +4374,7 @@
           "line": 381,
           "position": 12631
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 376,
         "startLoc": {
           "column": 4,
@@ -4393,7 +4393,7 @@
           "line": 362,
           "position": 12724
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 357,
         "startLoc": {
           "column": 4,
@@ -4411,7 +4411,7 @@
           "line": 450,
           "position": 14775
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 445,
         "startLoc": {
           "column": 4,
@@ -4430,7 +4430,7 @@
           "line": 445,
           "position": 15672
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 440,
         "startLoc": {
           "column": 4,
@@ -4448,7 +4448,7 @@
           "line": 457,
           "position": 14918
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 449,
         "startLoc": {
           "column": 49,
@@ -4467,7 +4467,7 @@
           "line": 615,
           "position": 19697
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 607,
         "startLoc": {
           "column": 47,
@@ -4485,7 +4485,7 @@
           "line": 534,
           "position": 17465
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 529,
         "startLoc": {
           "column": 4,
@@ -4504,7 +4504,7 @@
           "line": 525,
           "position": 18691
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 520,
         "startLoc": {
           "column": 4,
@@ -4522,7 +4522,7 @@
           "line": 540,
           "position": 17569
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 531,
         "startLoc": {
           "column": 34,
@@ -4541,7 +4541,7 @@
           "line": 614,
           "position": 19658
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 605,
         "startLoc": {
           "column": 34,
@@ -4559,7 +4559,7 @@
           "line": 540,
           "position": 17589
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 531,
         "startLoc": {
           "column": 34,
@@ -4578,7 +4578,7 @@
           "line": 683,
           "position": 21903
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 673,
         "startLoc": {
           "column": 34,
@@ -4596,7 +4596,7 @@
           "line": 608,
           "position": 19554
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 603,
         "startLoc": {
           "column": 4,
@@ -4615,7 +4615,7 @@
           "line": 608,
           "position": 21427
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 603,
         "startLoc": {
           "column": 4,
@@ -4633,7 +4633,7 @@
           "line": 676,
           "position": 21776
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 671,
         "startLoc": {
           "column": 4,
@@ -4652,7 +4652,7 @@
           "line": 684,
           "position": 24184
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 679,
         "startLoc": {
           "column": 4,
@@ -4670,7 +4670,7 @@
           "line": 692,
           "position": 22321
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 685,
         "startLoc": {
           "column": 9,
@@ -4689,7 +4689,7 @@
           "line": 702,
           "position": 24862
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 695,
         "startLoc": {
           "column": 12,
@@ -4707,7 +4707,7 @@
           "line": 744,
           "position": 23972
         },
-        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 739,
         "startLoc": {
           "column": 25,
@@ -4726,7 +4726,7 @@
           "line": 758,
           "position": 26983
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 753,
         "startLoc": {
           "column": 31,
@@ -4744,7 +4744,7 @@
           "line": 88,
           "position": 3054
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
@@ -4763,7 +4763,7 @@
           "line": 259,
           "position": 9219
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 254,
         "startLoc": {
           "column": 35,
@@ -4781,7 +4781,7 @@
           "line": 88,
           "position": 3054
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
@@ -4800,7 +4800,7 @@
           "line": 315,
           "position": 11036
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 310,
         "startLoc": {
           "column": 31,
@@ -4818,7 +4818,7 @@
           "line": 88,
           "position": 3054
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
@@ -4837,7 +4837,7 @@
           "line": 359,
           "position": 12474
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 354,
         "startLoc": {
           "column": 35,
@@ -4855,7 +4855,7 @@
           "line": 88,
           "position": 3054
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
@@ -4874,7 +4874,7 @@
           "line": 408,
           "position": 14484
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 403,
         "startLoc": {
           "column": 32,
@@ -4892,7 +4892,7 @@
           "line": 88,
           "position": 3054
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
@@ -4911,7 +4911,7 @@
           "line": 442,
           "position": 15455
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 437,
         "startLoc": {
           "column": 29,
@@ -4929,7 +4929,7 @@
           "line": 90,
           "position": 3069
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
@@ -4948,7 +4948,7 @@
           "line": 523,
           "position": 18490
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 517,
         "startLoc": {
           "column": 27,
@@ -4966,7 +4966,7 @@
           "line": 88,
           "position": 3054
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
@@ -4985,7 +4985,7 @@
           "line": 605,
           "position": 21212
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 600,
         "startLoc": {
           "column": 28,
@@ -5003,7 +5003,7 @@
           "line": 88,
           "position": 3054
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
@@ -5022,7 +5022,7 @@
           "line": 681,
           "position": 23969
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 676,
         "startLoc": {
           "column": 28,
@@ -5040,7 +5040,7 @@
           "line": 111,
           "position": 4080
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 99,
         "startLoc": {
           "column": 101,
@@ -5059,7 +5059,7 @@
           "line": 455,
           "position": 15944
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 444,
         "startLoc": {
           "column": 49,
@@ -5077,7 +5077,7 @@
           "line": 111,
           "position": 4057
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 99,
         "startLoc": {
           "column": 101,
@@ -5096,7 +5096,7 @@
           "line": 535,
           "position": 18940
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 524,
         "startLoc": {
           "column": 47,
@@ -5114,7 +5114,7 @@
           "line": 535,
           "position": 18968
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 522,
         "startLoc": {
           "column": 34,
@@ -5133,7 +5133,7 @@
           "line": 618,
           "position": 21699
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 605,
         "startLoc": {
           "column": 34,
@@ -5151,7 +5151,7 @@
           "line": 535,
           "position": 18970
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 522,
         "startLoc": {
           "column": 34,
@@ -5170,7 +5170,7 @@
           "line": 694,
           "position": 24463
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 681,
         "startLoc": {
           "column": 34,
@@ -5188,7 +5188,7 @@
           "line": 160,
           "position": 4713
         },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
+        "name": "games/echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
@@ -5207,7 +5207,7 @@
           "line": 159,
           "position": 4732
         },
-        "name": "flappybird/story/FlappyBirdEncounter.ts",
+        "name": "games/flappybird/story/FlappyBirdEncounter.ts",
         "start": 134,
         "startLoc": {
           "column": 38,
@@ -5225,7 +5225,7 @@
           "line": 160,
           "position": 4713
         },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
+        "name": "games/echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
@@ -5244,7 +5244,7 @@
           "line": 158,
           "position": 4762
         },
-        "name": "geometrywars/story/GeometryWarsEncounter.ts",
+        "name": "games/geometrywars/story/GeometryWarsEncounter.ts",
         "start": 133,
         "startLoc": {
           "column": 44,
@@ -5262,7 +5262,7 @@
           "line": 160,
           "position": 4713
         },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
+        "name": "games/echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
@@ -5281,7 +5281,7 @@
           "line": 158,
           "position": 4645
         },
-        "name": "platformer/story/PlatformerEncounter.ts",
+        "name": "games/platformer/story/PlatformerEncounter.ts",
         "start": 133,
         "startLoc": {
           "column": 42,
@@ -5299,7 +5299,7 @@
           "line": 146,
           "position": 4222
         },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
+        "name": "games/echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
@@ -5318,7 +5318,7 @@
           "line": 144,
           "position": 4151
         },
-        "name": "pong/story/PongEncounter.ts",
+        "name": "games/pong/story/PongEncounter.ts",
         "start": 133,
         "startLoc": {
           "column": 42,
@@ -5336,7 +5336,7 @@
           "line": 160,
           "position": 4713
         },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
+        "name": "games/echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
@@ -5355,7 +5355,7 @@
           "line": 159,
           "position": 4827
         },
-        "name": "space-invaders/story/InvasionEncounter.ts",
+        "name": "games/space-invaders/story/InvasionEncounter.ts",
         "start": 133,
         "startLoc": {
           "column": 43,
@@ -5373,7 +5373,7 @@
           "line": 42,
           "position": 1447
         },
-        "name": "flappybird/EntityFactory.ts",
+        "name": "games/flappybird/EntityFactory.ts",
         "start": 6,
         "startLoc": {
           "column": 127,
@@ -5392,7 +5392,7 @@
           "line": 53,
           "position": 1895
         },
-        "name": "space-invaders/EntityFactory.ts",
+        "name": "games/space-invaders/EntityFactory.ts",
         "start": 18,
         "startLoc": {
           "column": 45,
@@ -5410,7 +5410,7 @@
           "line": 89,
           "position": 2569
         },
-        "name": "flappybird/EntityFactory.ts",
+        "name": "games/flappybird/EntityFactory.ts",
         "start": 64,
         "startLoc": {
           "column": 0,
@@ -5429,7 +5429,7 @@
           "line": 34,
           "position": 1219
         },
-        "name": "pong/EntityFactory.ts",
+        "name": "games/pong/EntityFactory.ts",
         "start": 7,
         "startLoc": {
           "column": 0,
@@ -5447,7 +5447,7 @@
           "line": 66,
           "position": 3871
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 60,
         "startLoc": {
           "column": 47,
@@ -5466,7 +5466,7 @@
           "line": 107,
           "position": 4490
         },
-        "name": "pong/PongGame.ts",
+        "name": "games/pong/PongGame.ts",
         "start": 101,
         "startLoc": {
           "column": 53,
@@ -5484,7 +5484,7 @@
           "line": 66,
           "position": 3892
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 61,
         "startLoc": {
           "column": 2,
@@ -5503,7 +5503,7 @@
           "line": 107,
           "position": 5751
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 102,
         "startLoc": {
           "column": 2,
@@ -5521,7 +5521,7 @@
           "line": 317,
           "position": 13840
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 304,
         "startLoc": {
           "column": 6,
@@ -5540,7 +5540,7 @@
           "line": 335,
           "position": 13264
         },
-        "name": "pong/PongGame.ts",
+        "name": "games/pong/PongGame.ts",
         "start": 322,
         "startLoc": {
           "column": 6,
@@ -5558,7 +5558,7 @@
           "line": 317,
           "position": 13876
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 305,
         "startLoc": {
           "column": 46,
@@ -5577,7 +5577,7 @@
           "line": 526,
           "position": 21475
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 514,
         "startLoc": {
           "column": 42,
@@ -5595,7 +5595,7 @@
           "line": 315,
           "position": 13830
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 306,
         "startLoc": {
           "column": 54,
@@ -5614,7 +5614,7 @@
           "line": 88,
           "position": 3294
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 79,
         "startLoc": {
           "column": 56,
@@ -5632,7 +5632,7 @@
           "line": 366,
           "position": 15612
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 359,
         "startLoc": {
           "column": 4,
@@ -5651,7 +5651,7 @@
           "line": 170,
           "position": 5834
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 163,
         "startLoc": {
           "column": 4,
@@ -5669,7 +5669,7 @@
           "line": 372,
           "position": 15920
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 366,
         "startLoc": {
           "column": 112,
@@ -5688,7 +5688,7 @@
           "line": 780,
           "position": 31020
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 774,
         "startLoc": {
           "column": 113,
@@ -5706,7 +5706,7 @@
           "line": 427,
           "position": 18736
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 407,
         "startLoc": {
           "column": 6,
@@ -5725,7 +5725,7 @@
           "line": 258,
           "position": 10503
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 238,
         "startLoc": {
           "column": 6,
@@ -5743,7 +5743,7 @@
           "line": 422,
           "position": 18334
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 411,
         "startLoc": {
           "column": 4,
@@ -5762,7 +5762,7 @@
           "line": 773,
           "position": 30577
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 761,
         "startLoc": {
           "column": 4,
@@ -5780,7 +5780,7 @@
           "line": 432,
           "position": 18963
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 424,
         "startLoc": {
           "column": 70,
@@ -5799,7 +5799,7 @@
           "line": 271,
           "position": 11321
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 264,
         "startLoc": {
           "column": 62,
@@ -5817,7 +5817,7 @@
           "line": 456,
           "position": 19855
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 436,
         "startLoc": {
           "column": 192,
@@ -5836,7 +5836,7 @@
           "line": 296,
           "position": 12316
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 276,
         "startLoc": {
           "column": 244,
@@ -5854,7 +5854,7 @@
           "line": 456,
           "position": 19855
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 441,
         "startLoc": {
           "column": 67,
@@ -5873,7 +5873,7 @@
           "line": 865,
           "position": 35183
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 842,
         "startLoc": {
           "column": 83,
@@ -5891,7 +5891,7 @@
           "line": 541,
           "position": 22977
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 536,
         "startLoc": {
           "column": 2,
@@ -5910,7 +5910,7 @@
           "line": 919,
           "position": 36756
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 914,
         "startLoc": {
           "column": 2,
@@ -5928,7 +5928,7 @@
           "line": 562,
           "position": 23916
         },
-        "name": "flappybird/FlappyBirdGame.ts",
+        "name": "games/flappybird/FlappyBirdGame.ts",
         "start": 545,
         "startLoc": {
           "column": 76,
@@ -5947,7 +5947,7 @@
           "line": 946,
           "position": 37822
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 929,
         "startLoc": {
           "column": 47,
@@ -5965,7 +5965,7 @@
           "line": 116,
           "position": 3003
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 31,
         "startLoc": {
           "column": 0,
@@ -5984,7 +5984,7 @@
           "line": 133,
           "position": 3286
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 48,
         "startLoc": {
           "column": 0,
@@ -6002,7 +6002,7 @@
           "line": 87,
           "position": 2362
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 78,
         "startLoc": {
           "column": 19,
@@ -6021,7 +6021,7 @@
           "line": 72,
           "position": 1690
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 63,
         "startLoc": {
           "column": 21,
@@ -6039,7 +6039,7 @@
           "line": 106,
           "position": 2784
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 96,
         "startLoc": {
           "column": 2,
@@ -6058,7 +6058,7 @@
           "line": 92,
           "position": 2136
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 82,
         "startLoc": {
           "column": 2,
@@ -6076,7 +6076,7 @@
           "line": 202,
           "position": 5473
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 194,
         "startLoc": {
           "column": 4,
@@ -6095,7 +6095,7 @@
           "line": 250,
           "position": 7041
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 242,
         "startLoc": {
           "column": 4,
@@ -6113,7 +6113,7 @@
           "line": 221,
           "position": 6047
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 202,
         "startLoc": {
           "column": 55,
@@ -6132,7 +6132,7 @@
           "line": 271,
           "position": 7709
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 252,
         "startLoc": {
           "column": 45,
@@ -6150,7 +6150,7 @@
           "line": 240,
           "position": 7043
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 224,
         "startLoc": {
           "column": 6,
@@ -6169,7 +6169,7 @@
           "line": 287,
           "position": 8505
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 271,
         "startLoc": {
           "column": 6,
@@ -6187,7 +6187,7 @@
           "line": 270,
           "position": 8540
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 243,
         "startLoc": {
           "column": 6,
@@ -6206,7 +6206,7 @@
           "line": 314,
           "position": 9802
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 287,
         "startLoc": {
           "column": 6,
@@ -6224,7 +6224,7 @@
           "line": 456,
           "position": 15049
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 437,
         "startLoc": {
           "column": 4,
@@ -6243,7 +6243,7 @@
           "line": 451,
           "position": 14598
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 433,
         "startLoc": {
           "column": 4,
@@ -6261,7 +6261,7 @@
           "line": 655,
           "position": 21943
         },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 645,
         "startLoc": {
           "column": 36,
@@ -6280,7 +6280,7 @@
           "line": 612,
           "position": 20244
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 602,
         "startLoc": {
           "column": 61,
@@ -6298,7 +6298,7 @@
           "line": 478,
           "position": 15459
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 472,
         "startLoc": {
           "column": 70,
@@ -6317,7 +6317,7 @@
           "line": 510,
           "position": 16497
         },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 504,
         "startLoc": {
           "column": 80,
@@ -6335,7 +6335,7 @@
           "line": 243,
           "position": 9074
         },
-        "name": "flappybird/systems/FlappyBirdCollisionSystem.ts",
+        "name": "games/flappybird/systems/FlappyBirdCollisionSystem.ts",
         "start": 237,
         "startLoc": {
           "column": 44,
@@ -6354,7 +6354,7 @@
           "line": 433,
           "position": 15501
         },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
+        "name": "games/space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 426,
         "startLoc": {
           "column": 47,
@@ -6372,7 +6372,7 @@
           "line": 51,
           "position": 1337
         },
-        "name": "geometrywars/EntityPool.ts",
+        "name": "games/geometrywars/EntityPool.ts",
         "start": 27,
         "startLoc": {
           "column": 4,
@@ -6391,7 +6391,7 @@
           "line": 56,
           "position": 1331
         },
-        "name": "shared/arcade/ParticlePool.ts",
+        "name": "games/shared/arcade/ParticlePool.ts",
         "start": 32,
         "startLoc": {
           "column": 4,
@@ -6409,7 +6409,7 @@
           "line": 51,
           "position": 1338
         },
-        "name": "geometrywars/EntityPool.ts",
+        "name": "games/geometrywars/EntityPool.ts",
         "start": 27,
         "startLoc": {
           "column": 10,
@@ -6428,7 +6428,7 @@
           "line": 24,
           "position": 1238
         },
-        "name": "space-invaders/EntityPool.ts",
+        "name": "games/space-invaders/EntityPool.ts",
         "start": 20,
         "startLoc": {
           "column": 9,
@@ -6446,7 +6446,7 @@
           "line": 141,
           "position": 4050
         },
-        "name": "geometrywars/EntityPool.ts",
+        "name": "games/geometrywars/EntityPool.ts",
         "start": 133,
         "startLoc": {
           "column": 60,
@@ -6465,7 +6465,7 @@
           "line": 131,
           "position": 3660
         },
-        "name": "shared/arcade/ParticlePool.ts",
+        "name": "games/shared/arcade/ParticlePool.ts",
         "start": 122,
         "startLoc": {
           "column": 34,
@@ -6483,7 +6483,7 @@
           "line": 137,
           "position": 4796
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 125,
         "startLoc": {
           "column": 2,
@@ -6502,7 +6502,7 @@
           "line": 95,
           "position": 5322
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 83,
         "startLoc": {
           "column": 2,
@@ -6520,7 +6520,7 @@
           "line": 228,
           "position": 9040
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 222,
         "startLoc": {
           "column": 92,
@@ -6539,7 +6539,7 @@
           "line": 832,
           "position": 33486
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 826,
         "startLoc": {
           "column": 94,
@@ -6557,7 +6557,7 @@
           "line": 270,
           "position": 11306
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 264,
         "startLoc": {
           "column": 60,
@@ -6576,7 +6576,7 @@
           "line": 279,
           "position": 11913
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
+        "name": "games/geometrywars/GeometryWarsGame.ts",
         "start": 273,
         "startLoc": {
           "column": 61,
@@ -6594,7 +6594,7 @@
           "line": 120,
           "position": 4790
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 115,
         "startLoc": {
           "column": 34,
@@ -6613,7 +6613,7 @@
           "line": 145,
           "position": 5790
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 140,
         "startLoc": {
           "column": 34,
@@ -6631,7 +6631,7 @@
           "line": 120,
           "position": 4790
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 115,
         "startLoc": {
           "column": 34,
@@ -6650,7 +6650,7 @@
           "line": 170,
           "position": 6787
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 165,
         "startLoc": {
           "column": 33,
@@ -6668,7 +6668,7 @@
           "line": 120,
           "position": 4790
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 115,
         "startLoc": {
           "column": 34,
@@ -6687,7 +6687,7 @@
           "line": 224,
           "position": 8618
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 219,
         "startLoc": {
           "column": 28,
@@ -6705,7 +6705,7 @@
           "line": 120,
           "position": 4809
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 115,
         "startLoc": {
           "column": 34,
@@ -6724,7 +6724,7 @@
           "line": 257,
           "position": 9878
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 252,
         "startLoc": {
           "column": 28,
@@ -6742,7 +6742,7 @@
           "line": 120,
           "position": 4790
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 115,
         "startLoc": {
           "column": 34,
@@ -6761,7 +6761,7 @@
           "line": 289,
           "position": 11079
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 284,
         "startLoc": {
           "column": 33,
@@ -6779,7 +6779,7 @@
           "line": 134,
           "position": 5416
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 120,
         "startLoc": {
           "column": 70,
@@ -6798,7 +6798,7 @@
           "line": 159,
           "position": 6414
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 145,
         "startLoc": {
           "column": 68,
@@ -6816,7 +6816,7 @@
           "line": 134,
           "position": 5416
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 122,
         "startLoc": {
           "column": 53,
@@ -6835,7 +6835,7 @@
           "line": 184,
           "position": 7412
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 172,
         "startLoc": {
           "column": 53,
@@ -6853,7 +6853,7 @@
           "line": 232,
           "position": 8976
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 224,
         "startLoc": {
           "column": 70,
@@ -6872,7 +6872,7 @@
           "line": 265,
           "position": 10218
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 257,
         "startLoc": {
           "column": 71,
@@ -6890,7 +6890,7 @@
           "line": 243,
           "position": 9406
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 232,
         "startLoc": {
           "column": 65,
@@ -6909,7 +6909,7 @@
           "line": 276,
           "position": 10648
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 265,
         "startLoc": {
           "column": 65,
@@ -6927,7 +6927,7 @@
           "line": 278,
           "position": 10707
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 259,
         "startLoc": {
           "column": 53,
@@ -6946,7 +6946,7 @@
           "line": 310,
           "position": 11930
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 291,
         "startLoc": {
           "column": 53,
@@ -6964,7 +6964,7 @@
           "line": 342,
           "position": 13052
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 325,
         "startLoc": {
           "column": 28,
@@ -6983,7 +6983,7 @@
           "line": 367,
           "position": 14071
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 350,
         "startLoc": {
           "column": 28,
@@ -7001,7 +7001,7 @@
           "line": 342,
           "position": 13052
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 325,
         "startLoc": {
           "column": 28,
@@ -7020,7 +7020,7 @@
           "line": 392,
           "position": 15094
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 375,
         "startLoc": {
           "column": 32,
@@ -7038,7 +7038,7 @@
           "line": 342,
           "position": 13052
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 325,
         "startLoc": {
           "column": 28,
@@ -7057,7 +7057,7 @@
           "line": 417,
           "position": 16123
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 400,
         "startLoc": {
           "column": 28,
@@ -7075,7 +7075,7 @@
           "line": 342,
           "position": 13052
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 325,
         "startLoc": {
           "column": 118,
@@ -7094,7 +7094,7 @@
           "line": 442,
           "position": 17184
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 425,
         "startLoc": {
           "column": 160,
@@ -7112,7 +7112,7 @@
           "line": 342,
           "position": 13052
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 325,
         "startLoc": {
           "column": 126,
@@ -7131,7 +7131,7 @@
           "line": 467,
           "position": 18224
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 450,
         "startLoc": {
           "column": 111,
@@ -7149,7 +7149,7 @@
           "line": 467,
           "position": 18224
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 450,
         "startLoc": {
           "column": 35,
@@ -7168,7 +7168,7 @@
           "line": 492,
           "position": 19228
         },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "name": "games/geometrywars/entities/GeometryWarsEntities.ts",
         "start": 475,
         "startLoc": {
           "column": 31,
@@ -7186,7 +7186,7 @@
           "line": 39,
           "position": 1539
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 14,
         "startLoc": {
           "column": 9,
@@ -7205,7 +7205,7 @@
           "line": 149,
           "position": 3870
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 123,
         "startLoc": {
           "column": 0,
@@ -7223,7 +7223,7 @@
           "line": 62,
           "position": 2373
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 48,
         "startLoc": {
           "column": 8,
@@ -7242,7 +7242,7 @@
           "line": 172,
           "position": 4706
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 158,
         "startLoc": {
           "column": 8,
@@ -7260,7 +7260,7 @@
           "line": 94,
           "position": 3341
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 86,
         "startLoc": {
           "column": 96,
@@ -7279,7 +7279,7 @@
           "line": 23,
           "position": 1025
         },
-        "name": "pong/rendering/PongCanvasVisuals.ts",
+        "name": "games/pong/rendering/PongCanvasVisuals.ts",
         "start": 15,
         "startLoc": {
           "column": 86,
@@ -7297,7 +7297,7 @@
           "line": 98,
           "position": 3484
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 88,
         "startLoc": {
           "column": 4,
@@ -7316,7 +7316,7 @@
           "line": 210,
           "position": 5797
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 200,
         "startLoc": {
           "column": 4,
@@ -7334,7 +7334,7 @@
           "line": 110,
           "position": 4178
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 99,
         "startLoc": {
           "column": 4,
@@ -7353,7 +7353,7 @@
           "line": 223,
           "position": 6532
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 212,
         "startLoc": {
           "column": 6,
@@ -7371,7 +7371,7 @@
           "line": 139,
           "position": 5179
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 119,
         "startLoc": {
           "column": 8,
@@ -7390,7 +7390,7 @@
           "line": 252,
           "position": 7589
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 232,
         "startLoc": {
           "column": 10,
@@ -7408,7 +7408,7 @@
           "line": 223,
           "position": 7348
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 217,
         "startLoc": {
           "column": 23,
@@ -7427,7 +7427,7 @@
           "line": 253,
           "position": 8052
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 247,
         "startLoc": {
           "column": 23,
@@ -7445,7 +7445,7 @@
           "line": 292,
           "position": 8959
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 282,
         "startLoc": {
           "column": 45,
@@ -7464,7 +7464,7 @@
           "line": 405,
           "position": 11646
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 395,
         "startLoc": {
           "column": 45,
@@ -7482,7 +7482,7 @@
           "line": 339,
           "position": 10094
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 333,
         "startLoc": {
           "column": 28,
@@ -7501,7 +7501,7 @@
           "line": 369,
           "position": 10801
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 363,
         "startLoc": {
           "column": 28,
@@ -7519,7 +7519,7 @@
           "line": 348,
           "position": 10261
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 338,
         "startLoc": {
           "column": 34,
@@ -7538,7 +7538,7 @@
           "line": 404,
           "position": 11609
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 394,
         "startLoc": {
           "column": 33,
@@ -7556,7 +7556,7 @@
           "line": 453,
           "position": 13441
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 426,
         "startLoc": {
           "column": 36,
@@ -7575,7 +7575,7 @@
           "line": 623,
           "position": 17334
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 596,
         "startLoc": {
           "column": 31,
@@ -7593,7 +7593,7 @@
           "line": 474,
           "position": 14064
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 464,
         "startLoc": {
           "column": 36,
@@ -7612,7 +7612,7 @@
           "line": 490,
           "position": 14533
         },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 480,
         "startLoc": {
           "column": 37,
@@ -7630,7 +7630,7 @@
           "line": 203,
           "position": 5540
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 31,
@@ -7649,7 +7649,7 @@
           "line": 327,
           "position": 9588
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 320,
         "startLoc": {
           "column": 29,
@@ -7667,7 +7667,7 @@
           "line": 203,
           "position": 5572
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 31,
@@ -7686,7 +7686,7 @@
           "line": 355,
           "position": 10281
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 348,
         "startLoc": {
           "column": 27,
@@ -7704,7 +7704,7 @@
           "line": 204,
           "position": 5624
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 31,
@@ -7723,7 +7723,7 @@
           "line": 392,
           "position": 11141
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 384,
         "startLoc": {
           "column": 27,
@@ -7741,7 +7741,7 @@
           "line": 203,
           "position": 5572
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 31,
@@ -7760,7 +7760,7 @@
           "line": 426,
           "position": 11920
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 419,
         "startLoc": {
           "column": 26,
@@ -7778,7 +7778,7 @@
           "line": 203,
           "position": 5572
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 31,
@@ -7797,7 +7797,7 @@
           "line": 461,
           "position": 12730
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 454,
         "startLoc": {
           "column": 27,
@@ -7815,7 +7815,7 @@
           "line": 203,
           "position": 5572
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 31,
@@ -7834,7 +7834,7 @@
           "line": 490,
           "position": 13425
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 483,
         "startLoc": {
           "column": 32,
@@ -7852,7 +7852,7 @@
           "line": 204,
           "position": 5624
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 31,
@@ -7871,7 +7871,7 @@
           "line": 526,
           "position": 14307
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 518,
         "startLoc": {
           "column": 32,
@@ -7889,7 +7889,7 @@
           "line": 203,
           "position": 5572
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 31,
@@ -7908,7 +7908,7 @@
           "line": 556,
           "position": 15023
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 549,
         "startLoc": {
           "column": 36,
@@ -7926,7 +7926,7 @@
           "line": 206,
           "position": 5654
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 196,
         "startLoc": {
           "column": 79,
@@ -7945,7 +7945,7 @@
           "line": 88,
           "position": 2709
         },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
+        "name": "games/pong/rendering/PongSkiaVisuals.ts",
         "start": 79,
         "startLoc": {
           "column": 69,
@@ -7963,7 +7963,7 @@
           "line": 348,
           "position": 10023
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 335,
         "startLoc": {
           "column": 39,
@@ -7982,7 +7982,7 @@
           "line": 549,
           "position": 14756
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 534,
         "startLoc": {
           "column": 28,
@@ -8000,7 +8000,7 @@
           "line": 364,
           "position": 10500
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 355,
         "startLoc": {
           "column": 34,
@@ -8019,7 +8019,7 @@
           "line": 499,
           "position": 13644
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 490,
         "startLoc": {
           "column": 34,
@@ -8037,7 +8037,7 @@
           "line": 368,
           "position": 10597
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 356,
         "startLoc": {
           "column": 43,
@@ -8056,7 +8056,7 @@
           "line": 404,
           "position": 11419
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 392,
         "startLoc": {
           "column": 43,
@@ -8074,7 +8074,7 @@
           "line": 436,
           "position": 12183
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 427,
         "startLoc": {
           "column": 43,
@@ -8093,7 +8093,7 @@
           "line": 471,
           "position": 12992
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 462,
         "startLoc": {
           "column": 43,
@@ -8111,7 +8111,7 @@
           "line": 439,
           "position": 12236
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 427,
         "startLoc": {
           "column": 43,
@@ -8130,7 +8130,7 @@
           "line": 503,
           "position": 13741
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 491,
         "startLoc": {
           "column": 43,
@@ -8148,7 +8148,7 @@
           "line": 438,
           "position": 12199
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 427,
         "startLoc": {
           "column": 43,
@@ -8167,7 +8167,7 @@
           "line": 537,
           "position": 14545
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 526,
         "startLoc": {
           "column": 43,
@@ -8185,7 +8185,7 @@
           "line": 440,
           "position": 12274
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 427,
         "startLoc": {
           "column": 43,
@@ -8204,7 +8204,7 @@
           "line": 570,
           "position": 15376
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 557,
         "startLoc": {
           "column": 43,
@@ -8222,7 +8222,7 @@
           "line": 652,
           "position": 18194
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 640,
         "startLoc": {
           "column": 36,
@@ -8241,7 +8241,7 @@
           "line": 671,
           "position": 18764
         },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 659,
         "startLoc": {
           "column": 37,
@@ -8259,7 +8259,7 @@
           "line": 199,
           "position": 6144
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 187,
         "startLoc": {
           "column": 51,
@@ -8278,7 +8278,7 @@
           "line": 220,
           "position": 6762
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 208,
         "startLoc": {
           "column": 47,
@@ -8296,7 +8296,7 @@
           "line": 255,
           "position": 7932
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 246,
         "startLoc": {
           "column": 50,
@@ -8315,7 +8315,7 @@
           "line": 273,
           "position": 8487
         },
-        "name": "platformer/PlatformerGame.ts",
+        "name": "games/platformer/PlatformerGame.ts",
         "start": 264,
         "startLoc": {
           "column": 43,
@@ -8333,7 +8333,7 @@
           "line": 34,
           "position": 1219
         },
-        "name": "pong/EntityFactory.ts",
+        "name": "games/pong/EntityFactory.ts",
         "start": 5,
         "startLoc": {
           "column": 65,
@@ -8352,7 +8352,7 @@
           "line": 77,
           "position": 2598
         },
-        "name": "space-invaders/EntityFactory.ts",
+        "name": "games/space-invaders/EntityFactory.ts",
         "start": 53,
         "startLoc": {
           "column": 1,
@@ -8370,7 +8370,7 @@
           "line": 31,
           "position": 1488
         },
-        "name": "pong/rendering/PongCanvasVisuals.ts",
+        "name": "games/pong/rendering/PongCanvasVisuals.ts",
         "start": 17,
         "startLoc": {
           "column": 4,
@@ -8389,7 +8389,7 @@
           "line": 96,
           "position": 3134
         },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
+        "name": "games/pong/rendering/PongSkiaVisuals.ts",
         "start": 82,
         "startLoc": {
           "column": 4,
@@ -8407,7 +8407,7 @@
           "line": 98,
           "position": 3657
         },
-        "name": "pong/rendering/PongCanvasVisuals.ts",
+        "name": "games/pong/rendering/PongCanvasVisuals.ts",
         "start": 86,
         "startLoc": {
           "column": 4,
@@ -8426,7 +8426,7 @@
           "line": 176,
           "position": 5945
         },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
+        "name": "games/pong/rendering/PongSkiaVisuals.ts",
         "start": 164,
         "startLoc": {
           "column": 4,
@@ -8444,7 +8444,7 @@
           "line": 49,
           "position": 1564
         },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
+        "name": "games/pong/rendering/PongSkiaVisuals.ts",
         "start": 38,
         "startLoc": {
           "column": 17,
@@ -8463,7 +8463,7 @@
           "line": 86,
           "position": 2406
         },
-        "name": "shared/rendering/CanvasNeonUtils.ts",
+        "name": "games/shared/rendering/CanvasNeonUtils.ts",
         "start": 75,
         "startLoc": {
           "column": 14,
@@ -8481,7 +8481,7 @@
           "line": 85,
           "position": 2595
         },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
+        "name": "games/pong/rendering/PongSkiaVisuals.ts",
         "start": 79,
         "startLoc": {
           "column": 29,
@@ -8500,7 +8500,7 @@
           "line": 167,
           "position": 5506
         },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
+        "name": "games/pong/rendering/PongSkiaVisuals.ts",
         "start": 161,
         "startLoc": {
           "column": 31,
@@ -8518,7 +8518,7 @@
           "line": 56,
           "position": 2119
         },
-        "name": "pong/systems/PongGameStateSystem.ts",
+        "name": "games/pong/systems/PongGameStateSystem.ts",
         "start": 51,
         "startLoc": {
           "column": 12,
@@ -8537,7 +8537,7 @@
           "line": 178,
           "position": 7017
         },
-        "name": "pong/systems/PongGameStateSystem.ts",
+        "name": "games/pong/systems/PongGameStateSystem.ts",
         "start": 173,
         "startLoc": {
           "column": 14,
@@ -8555,7 +8555,7 @@
           "line": 131,
           "position": 3664
         },
-        "name": "shared/arcade/ParticlePool.ts",
+        "name": "games/shared/arcade/ParticlePool.ts",
         "start": 119,
         "startLoc": {
           "column": 8,
@@ -8574,7 +8574,7 @@
           "line": 68,
           "position": 3527
         },
-        "name": "space-invaders/EntityPool.ts",
+        "name": "games/space-invaders/EntityPool.ts",
         "start": 59,
         "startLoc": {
           "column": 6,
@@ -8592,7 +8592,7 @@
           "line": 23,
           "position": 698
         },
-        "name": "shared/arcade/blueprints/enemyBlueprints.ts",
+        "name": "games/shared/arcade/blueprints/enemyBlueprints.ts",
         "start": 18,
         "startLoc": {
           "column": 38,
@@ -8611,7 +8611,7 @@
           "line": 47,
           "position": 2201
         },
-        "name": "shared/arcade/blueprints/enemyBlueprints.ts",
+        "name": "games/shared/arcade/blueprints/enemyBlueprints.ts",
         "start": 42,
         "startLoc": {
           "column": 36,
@@ -8629,7 +8629,7 @@
           "line": 23,
           "position": 698
         },
-        "name": "shared/arcade/blueprints/enemyBlueprints.ts",
+        "name": "games/shared/arcade/blueprints/enemyBlueprints.ts",
         "start": 18,
         "startLoc": {
           "column": 38,
@@ -8648,7 +8648,7 @@
           "line": 70,
           "position": 3515
         },
-        "name": "shared/arcade/blueprints/enemyBlueprints.ts",
+        "name": "games/shared/arcade/blueprints/enemyBlueprints.ts",
         "start": 65,
         "startLoc": {
           "column": 37,
@@ -8666,7 +8666,7 @@
           "line": 42,
           "position": 1934
         },
-        "name": "shared/arcade/blueprints/enemyBlueprints.ts",
+        "name": "games/shared/arcade/blueprints/enemyBlueprints.ts",
         "start": 35,
         "startLoc": {
           "column": 27,
@@ -8685,7 +8685,7 @@
           "line": 65,
           "position": 3247
         },
-        "name": "shared/arcade/blueprints/enemyBlueprints.ts",
+        "name": "games/shared/arcade/blueprints/enemyBlueprints.ts",
         "start": 58,
         "startLoc": {
           "column": 27,
@@ -8703,7 +8703,7 @@
           "line": 40,
           "position": 1910
         },
-        "name": "shared/arcade/blueprints/enemyBlueprints.ts",
+        "name": "games/shared/arcade/blueprints/enemyBlueprints.ts",
         "start": 35,
         "startLoc": {
           "column": 27,
@@ -8722,7 +8722,7 @@
           "line": 86,
           "position": 4558
         },
-        "name": "shared/arcade/blueprints/enemyBlueprints.ts",
+        "name": "games/shared/arcade/blueprints/enemyBlueprints.ts",
         "start": 81,
         "startLoc": {
           "column": 28,
@@ -8740,7 +8740,7 @@
           "line": 46,
           "position": 2092
         },
-        "name": "shared/combat/systems/CombatSystem.ts",
+        "name": "games/shared/combat/systems/CombatSystem.ts",
         "start": 36,
         "startLoc": {
           "column": 10,
@@ -8759,7 +8759,7 @@
           "line": 62,
           "position": 2975
         },
-        "name": "shared/combat/systems/CombatSystem.ts",
+        "name": "games/shared/combat/systems/CombatSystem.ts",
         "start": 52,
         "startLoc": {
           "column": 10,
@@ -8777,7 +8777,7 @@
           "line": 227,
           "position": 6417
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 221,
         "startLoc": {
           "column": 96,
@@ -8796,7 +8796,7 @@
           "line": 378,
           "position": 11571
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 372,
         "startLoc": {
           "column": 97,
@@ -8814,7 +8814,7 @@
           "line": 229,
           "position": 6445
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 223,
         "startLoc": {
           "column": 4,
@@ -8833,7 +8833,7 @@
           "line": 281,
           "position": 8025
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 275,
         "startLoc": {
           "column": 4,
@@ -8851,7 +8851,7 @@
           "line": 277,
           "position": 7983
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 272,
         "startLoc": {
           "column": 40,
@@ -8870,7 +8870,7 @@
           "line": 406,
           "position": 12455
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 401,
         "startLoc": {
           "column": 41,
@@ -8888,7 +8888,7 @@
           "line": 277,
           "position": 7955
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 272,
         "startLoc": {
           "column": 40,
@@ -8907,7 +8907,7 @@
           "line": 486,
           "position": 15055
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 481,
         "startLoc": {
           "column": 47,
@@ -8925,7 +8925,7 @@
           "line": 277,
           "position": 7955
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 272,
         "startLoc": {
           "column": 40,
@@ -8944,7 +8944,7 @@
           "line": 917,
           "position": 28439
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 911,
         "startLoc": {
           "column": 39,
@@ -8962,7 +8962,7 @@
           "line": 277,
           "position": 7955
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 272,
         "startLoc": {
           "column": 40,
@@ -8981,7 +8981,7 @@
           "line": 1142,
           "position": 34917
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1137,
         "startLoc": {
           "column": 39,
@@ -8999,7 +8999,7 @@
           "line": 380,
           "position": 11642
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 374,
         "startLoc": {
           "column": 4,
@@ -9018,7 +9018,7 @@
           "line": 410,
           "position": 12534
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 404,
         "startLoc": {
           "column": 4,
@@ -9036,7 +9036,7 @@
           "line": 391,
           "position": 11961
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 382,
         "startLoc": {
           "column": 12,
@@ -9055,7 +9055,7 @@
           "line": 422,
           "position": 12888
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 413,
         "startLoc": {
           "column": 28,
@@ -9073,7 +9073,7 @@
           "line": 449,
           "position": 13870
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 440,
         "startLoc": {
           "column": 4,
@@ -9092,7 +9092,7 @@
           "line": 493,
           "position": 15312
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 484,
         "startLoc": {
           "column": 4,
@@ -9110,7 +9110,7 @@
           "line": 468,
           "position": 14584
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 452,
         "startLoc": {
           "column": 23,
@@ -9129,7 +9129,7 @@
           "line": 514,
           "position": 16111
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 498,
         "startLoc": {
           "column": 29,
@@ -9147,7 +9147,7 @@
           "line": 578,
           "position": 18030
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 572,
         "startLoc": {
           "column": 41,
@@ -9166,7 +9166,7 @@
           "line": 984,
           "position": 30418
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 978,
         "startLoc": {
           "column": 41,
@@ -9184,7 +9184,7 @@
           "line": 578,
           "position": 18030
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 572,
         "startLoc": {
           "column": 41,
@@ -9203,7 +9203,7 @@
           "line": 1306,
           "position": 39796
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1300,
         "startLoc": {
           "column": 39,
@@ -9221,7 +9221,7 @@
           "line": 578,
           "position": 18030
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 572,
         "startLoc": {
           "column": 41,
@@ -9240,7 +9240,7 @@
           "line": 1377,
           "position": 41805
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1371,
         "startLoc": {
           "column": 40,
@@ -9258,7 +9258,7 @@
           "line": 641,
           "position": 20130
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 625,
         "startLoc": {
           "column": 34,
@@ -9277,7 +9277,7 @@
           "line": 1426,
           "position": 43338
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1410,
         "startLoc": {
           "column": 36,
@@ -9295,7 +9295,7 @@
           "line": 645,
           "position": 20255
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 627,
         "startLoc": {
           "column": 4,
@@ -9314,7 +9314,7 @@
           "line": 703,
           "position": 21986
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 685,
         "startLoc": {
           "column": 4,
@@ -9332,7 +9332,7 @@
           "line": 673,
           "position": 21068
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 665,
         "startLoc": {
           "column": 27,
@@ -9351,7 +9351,7 @@
           "line": 731,
           "position": 22891
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 723,
         "startLoc": {
           "column": 31,
@@ -9369,7 +9369,7 @@
           "line": 699,
           "position": 21861
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 682,
         "startLoc": {
           "column": 38,
@@ -9388,7 +9388,7 @@
           "line": 1460,
           "position": 44341
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1443,
         "startLoc": {
           "column": 40,
@@ -9406,7 +9406,7 @@
           "line": 816,
           "position": 25437
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 810,
         "startLoc": {
           "column": 4,
@@ -9425,7 +9425,7 @@
           "line": 854,
           "position": 26524
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 848,
         "startLoc": {
           "column": 4,
@@ -9443,7 +9443,7 @@
           "line": 824,
           "position": 25625
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 818,
         "startLoc": {
           "column": 12,
@@ -9462,7 +9462,7 @@
           "line": 863,
           "position": 26747
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 857,
         "startLoc": {
           "column": 28,
@@ -9480,7 +9480,7 @@
           "line": 893,
           "position": 27758
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 887,
         "startLoc": {
           "column": 4,
@@ -9499,7 +9499,7 @@
           "line": 920,
           "position": 28512
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 914,
         "startLoc": {
           "column": 4,
@@ -9517,7 +9517,7 @@
           "line": 901,
           "position": 28016
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 896,
         "startLoc": {
           "column": 29,
@@ -9536,7 +9536,7 @@
           "line": 928,
           "position": 28813
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 924,
         "startLoc": {
           "column": 41,
@@ -9554,7 +9554,7 @@
           "line": 1171,
           "position": 35873
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1163,
         "startLoc": {
           "column": 4,
@@ -9573,7 +9573,7 @@
           "line": 1225,
           "position": 37381
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1217,
         "startLoc": {
           "column": 4,
@@ -9591,7 +9591,7 @@
           "line": 1201,
           "position": 36719
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1193,
         "startLoc": {
           "column": 29,
@@ -9610,7 +9610,7 @@
           "line": 1255,
           "position": 38248
         },
-        "name": "shared/rendering/SharedVFX.ts",
+        "name": "games/shared/rendering/SharedVFX.ts",
         "start": 1246,
         "startLoc": {
           "column": 42,
@@ -9628,7 +9628,7 @@
           "line": 105,
           "position": 4655
         },
-        "name": "space-invaders/EntityPool.ts",
+        "name": "games/space-invaders/EntityPool.ts",
         "start": 94,
         "startLoc": {
           "column": 4,
@@ -9647,7 +9647,7 @@
           "line": 126,
           "position": 5327
         },
-        "name": "space-invaders/EntityPool.ts",
+        "name": "games/space-invaders/EntityPool.ts",
         "start": 115,
         "startLoc": {
           "column": 4,
@@ -9665,7 +9665,7 @@
           "line": 233,
           "position": 10564
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 228,
         "startLoc": {
           "column": 44,
@@ -9684,7 +9684,7 @@
           "line": 265,
           "position": 11957
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
+        "name": "games/space-invaders/SpaceInvadersGame.ts",
         "start": 260,
         "startLoc": {
           "column": 43,
@@ -9702,7 +9702,7 @@
           "line": 65,
           "position": 2847
         },
-        "name": "space-invaders/config/EnemyBlueprints.ts",
+        "name": "games/space-invaders/config/EnemyBlueprints.ts",
         "start": 58,
         "startLoc": {
           "column": 32,
@@ -9721,7 +9721,7 @@
           "line": 77,
           "position": 3352
         },
-        "name": "space-invaders/config/EnemyBlueprints.ts",
+        "name": "games/space-invaders/config/EnemyBlueprints.ts",
         "start": 70,
         "startLoc": {
           "column": 32,
@@ -9739,7 +9739,7 @@
           "line": 67,
           "position": 2864
         },
-        "name": "space-invaders/config/EnemyBlueprints.ts",
+        "name": "games/space-invaders/config/EnemyBlueprints.ts",
         "start": 60,
         "startLoc": {
           "column": 4,
@@ -9758,7 +9758,7 @@
           "line": 79,
           "position": 3369
         },
-        "name": "space-invaders/config/EnemyBlueprints.ts",
+        "name": "games/space-invaders/config/EnemyBlueprints.ts",
         "start": 72,
         "startLoc": {
           "column": 4,
@@ -9776,7 +9776,7 @@
           "line": 138,
           "position": 4685
         },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 131,
         "startLoc": {
           "column": 7,
@@ -9795,7 +9795,7 @@
           "line": 161,
           "position": 6288
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 154,
         "startLoc": {
           "column": 10,
@@ -9813,7 +9813,7 @@
           "line": 196,
           "position": 6356
         },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 181,
         "startLoc": {
           "column": 32,
@@ -9832,7 +9832,7 @@
           "line": 216,
           "position": 7935
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 201,
         "startLoc": {
           "column": 34,
@@ -9850,7 +9850,7 @@
           "line": 331,
           "position": 10792
         },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 307,
         "startLoc": {
           "column": 32,
@@ -9869,7 +9869,7 @@
           "line": 343,
           "position": 12559
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 321,
         "startLoc": {
           "column": 34,
@@ -9887,7 +9887,7 @@
           "line": 434,
           "position": 13758
         },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 429,
         "startLoc": {
           "column": 29,
@@ -9906,7 +9906,7 @@
           "line": 427,
           "position": 15156
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 422,
         "startLoc": {
           "column": 33,
@@ -9924,7 +9924,7 @@
           "line": 496,
           "position": 15776
         },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 485,
         "startLoc": {
           "column": 48,
@@ -9943,7 +9943,7 @@
           "line": 502,
           "position": 17555
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 491,
         "startLoc": {
           "column": 49,
@@ -9961,7 +9961,7 @@
           "line": 510,
           "position": 16272
         },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 497,
         "startLoc": {
           "column": 25,
@@ -9980,7 +9980,7 @@
           "line": 515,
           "position": 18035
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 503,
         "startLoc": {
           "column": 57,
@@ -9998,7 +9998,7 @@
           "line": 37,
           "position": 1602
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 31,
         "startLoc": {
           "column": 40,
@@ -10017,7 +10017,7 @@
           "line": 201,
           "position": 7480
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 195,
         "startLoc": {
           "column": 41,
@@ -10035,7 +10035,7 @@
           "line": 37,
           "position": 1598
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 31,
         "startLoc": {
           "column": 40,
@@ -10054,7 +10054,7 @@
           "line": 275,
           "position": 10336
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 269,
         "startLoc": {
           "column": 40,
@@ -10072,7 +10072,7 @@
           "line": 37,
           "position": 1598
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 31,
         "startLoc": {
           "column": 40,
@@ -10091,7 +10091,7 @@
           "line": 321,
           "position": 11839
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 315,
         "startLoc": {
           "column": 38,
@@ -10109,7 +10109,7 @@
           "line": 38,
           "position": 1612
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 31,
         "startLoc": {
           "column": 40,
@@ -10128,7 +10128,7 @@
           "line": 420,
           "position": 14803
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 413,
         "startLoc": {
           "column": 40,
@@ -10146,7 +10146,7 @@
           "line": 37,
           "position": 1598
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 31,
         "startLoc": {
           "column": 40,
@@ -10165,7 +10165,7 @@
           "line": 490,
           "position": 17167
         },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 484,
         "startLoc": {
           "column": 42,
@@ -10183,7 +10183,7 @@
           "line": 49,
           "position": 2197
         },
-        "name": "space-invaders/systems/BossSystem.ts",
+        "name": "games/space-invaders/systems/BossSystem.ts",
         "start": 41,
         "startLoc": {
           "column": 2,
@@ -10202,7 +10202,7 @@
           "line": 30,
           "position": 1295
         },
-        "name": "space-invaders/systems/SpaceInvadersFormationSystem.ts",
+        "name": "games/space-invaders/systems/SpaceInvadersFormationSystem.ts",
         "start": 21,
         "startLoc": {
           "column": 2,
@@ -10220,7 +10220,7 @@
           "line": 50,
           "position": 2369
         },
-        "name": "space-invaders/systems/BossSystem.ts",
+        "name": "games/space-invaders/systems/BossSystem.ts",
         "start": 43,
         "startLoc": {
           "column": 2,
@@ -10239,7 +10239,7 @@
           "line": 18,
           "position": 1015
         },
-        "name": "space-invaders/systems/KamikazeSystem.ts",
+        "name": "games/space-invaders/systems/KamikazeSystem.ts",
         "start": 11,
         "startLoc": {
           "column": 2,
@@ -10257,7 +10257,7 @@
           "line": 49,
           "position": 2240
         },
-        "name": "space-invaders/systems/BossSystem.ts",
+        "name": "games/space-invaders/systems/BossSystem.ts",
         "start": 43,
         "startLoc": {
           "column": 71,
@@ -10276,7 +10276,7 @@
           "line": 218,
           "position": 8075
         },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
+        "name": "games/space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 212,
         "startLoc": {
           "column": 81,
@@ -10294,7 +10294,7 @@
           "line": 230,
           "position": 8582
         },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
+        "name": "games/space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 222,
         "startLoc": {
           "column": 34,
@@ -10313,7 +10313,7 @@
           "line": 276,
           "position": 10207
         },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
+        "name": "games/space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 268,
         "startLoc": {
           "column": 70,
@@ -10331,7 +10331,7 @@
           "line": 30,
           "position": 1319
         },
-        "name": "space-invaders/systems/SpaceInvadersFormationSystem.ts",
+        "name": "games/space-invaders/systems/SpaceInvadersFormationSystem.ts",
         "start": 20,
         "startLoc": {
           "column": 42,
@@ -10350,7 +10350,7 @@
           "line": 42,
           "position": 1471
         },
-        "name": "space-invaders/systems/SpaceInvadersInputSystem.ts",
+        "name": "games/space-invaders/systems/SpaceInvadersInputSystem.ts",
         "start": 32,
         "startLoc": {
           "column": 31,
@@ -10359,35 +10359,442 @@
         }
       },
       "tokens": 73
+    },
+    {
+      "firstFile": {
+        "end": 55,
+        "endLoc": {
+          "column": 17,
+          "line": 55,
+          "position": 2388
+        },
+        "name": "games/space-invaders/systems/SpaceInvadersGameStateSystem.ts",
+        "start": 44,
+        "startLoc": {
+          "column": 26,
+          "line": 44,
+          "position": 1983
+        }
+      },
+      "format": "typescript",
+      "fragment": "            const shuffle = <T>(array: T[], r: { next: () => number }): T[] => {\n              const result = [...array];\n              for (let i = result.length - 1; i > 0; i--) {\n                const j = Math.floor(r.next() * (i + 1));\n                const temp = result[i];\n                result[i] = result[j];\n                result[j] = temp;\n              }\n              return result;\n            };\n\n            const shuffledBeneficial = shuffle(beneficialKeys, rng);",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 556,
+        "endLoc": {
+          "column": 11,
+          "line": 556,
+          "position": 18360
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 545,
+        "startLoc": {
+          "column": 25,
+          "line": 545,
+          "position": 18015
+        }
+      },
+      "tokens": 107
+    },
+    {
+      "firstFile": {
+        "end": 71,
+        "endLoc": {
+          "column": 1,
+          "line": 71,
+          "position": 2338
+        },
+        "name": "hooks/useAsteroidsGame.ts",
+        "start": 51,
+        "startLoc": {
+          "column": 54,
+          "line": 51,
+          "position": 1920
+        }
+      },
+      "format": "typescript",
+      "fragment": "  const { highScore, updateHighScore } = useHighScore();\n\n  // Update high score when game is over\n  useEffect(() => {\n    if (gameState?.isGameOver) {\n      updateHighScore(gameState.score);\n    }\n  }, [gameState?.isGameOver, gameState?.score, updateHighScore]);\n\n  return {\n    game,\n    gameState: gameState ?? INITIAL_GAME_STATE,\n    handleInput,\n    isPaused,\n    isReady,\n    togglePause,\n    highScore,\n    seed: game?.getSeed(),\n    restartWithSeed: restart\n  };\n}",
+      "isNew": false,
+      "lines": 21,
+      "secondFile": {
+        "end": 53,
+        "endLoc": {
+          "column": 1,
+          "line": 53,
+          "position": 1852
+        },
+        "name": "hooks/useSpaceInvadersGame.ts",
+        "start": 33,
+        "startLoc": {
+          "column": 81,
+          "line": 33,
+          "position": 1434
+        }
+      },
+      "tokens": 72
+    },
+    {
+      "firstFile": {
+        "end": 31,
+        "endLoc": {
+          "column": 49,
+          "line": 31,
+          "position": 952
+        },
+        "name": "hooks/useCanonicalInputControls.ts",
+        "start": 22,
+        "startLoc": {
+          "column": 43,
+          "line": 22,
+          "position": 751
+        }
+      },
+      "format": "typescript",
+      "fragment": "  onInput?: (input: Record<string, unknown>) => void\n) {\n  useEffect(() => {\n    if (Platform.OS !== \"web\" || !game || !isReady) {\n      return;\n    }\n\n    const activeKeys = new Set<string>();\n\n    const handleKeyDown = (e: KeyboardEvent) => {",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 19,
+        "endLoc": {
+          "column": 49,
+          "line": 19,
+          "position": 674
+        },
+        "name": "hooks/useKeyboardControls.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 95,
+          "line": 10,
+          "position": 430
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 17,
+        "endLoc": {
+          "column": 66,
+          "line": 17,
+          "position": 800
+        },
+        "name": "hooks/useFlappyBirdGame.ts",
+        "start": 11,
+        "startLoc": {
+          "column": 33,
+          "line": 11,
+          "position": 493
+        }
+      },
+      "format": "typescript",
+      "fragment": "export function useFlappyBirdGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {\n  const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);\n\n  useEffect(() => {\n    MutatorService.isMutatorModeEnabled().then(enabled => {\n      if (enabled) {\n        setActiveMutators(MutatorService.getActiveMutatorsForGame(\"flappybird\"));",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 19,
+        "endLoc": {
+          "column": 66,
+          "line": 19,
+          "position": 947
+        },
+        "name": "hooks/useSpaceInvadersGame.ts",
+        "start": 13,
+        "startLoc": {
+          "column": 36,
+          "line": 13,
+          "position": 640
+        }
+      },
+      "tokens": 63
+    },
+    {
+      "firstFile": {
+        "end": 25,
+        "endLoc": {
+          "column": 12,
+          "line": 25,
+          "position": 1017
+        },
+        "name": "hooks/useFlappyBirdGame.ts",
+        "start": 17,
+        "startLoc": {
+          "column": 78,
+          "line": 17,
+          "position": 812
+        }
+      },
+      "format": "typescript",
+      "fragment": "        setActiveMutators(MutatorService.getActiveMutatorsForGame(\"flappybird\"));\n      }\n    });\n  }, []);\n\n  const gameOptions = useMemo(() => ({ activeMutators }), [activeMutators]);\n\n  const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =\n    useGame<FlappyBirdGame, FlappyBirdState, FlappyBirdInput>(",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 27,
+        "endLoc": {
+          "column": 12,
+          "line": 27,
+          "position": 1168
+        },
+        "name": "hooks/useSpaceInvadersGame.ts",
+        "start": 19,
+        "startLoc": {
+          "column": 82,
+          "line": 19,
+          "position": 963
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 142,
+        "endLoc": {
+          "column": 84,
+          "line": 142,
+          "position": 4399
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 136,
+        "startLoc": {
+          "column": 5,
+          "line": 136,
+          "position": 4075
+        }
+      },
+      "format": "typescript",
+      "fragment": "    },\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.PLAYER_BULLET_SPEED === \"number\") {\n          newConfig.PLAYER_BULLET_SPEED = Math.round(newConfig.PLAYER_BULLET_SPEED * 1.10);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 457,
+        "endLoc": {
+          "column": 84,
+          "line": 457,
+          "position": 15296
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 451,
+        "startLoc": {
+          "column": 38,
+          "line": 451,
+          "position": 14972
+        }
+      },
+      "tokens": 63
+    },
+    {
+      "firstFile": {
+        "end": 171,
+        "endLoc": {
+          "column": 62,
+          "line": 171,
+          "position": 5369
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 163,
+        "startLoc": {
+          "column": 58,
+          "line": 163,
+          "position": 5060
+        }
+      },
+      "format": "typescript",
+      "fragment": "        return world.hasComponent(target, \"Health\" as any);\n      }\n      return world.query(\"Player\", \"Health\").length > 0;\n    },\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.PLAYER_INITIAL_LIVES === \"number\") {",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 420,
+        "endLoc": {
+          "column": 62,
+          "line": 420,
+          "position": 13924
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 412,
+        "startLoc": {
+          "column": 41,
+          "line": 412,
+          "position": 13615
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 297,
+        "endLoc": {
+          "column": 29,
+          "line": 297,
+          "position": 9555
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 291,
+        "startLoc": {
+          "column": 15,
+          "line": 291,
+          "position": 9311
+        }
+      },
+      "format": "typescript",
+      "fragment": "    xpCost: 400,\n    canDraft: (world, context) => true,\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.GRAVITY === \"number\") {",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 340,
+        "endLoc": {
+          "column": 29,
+          "line": 340,
+          "position": 11070
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 334,
+        "startLoc": {
+          "column": 15,
+          "line": 334,
+          "position": 10826
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 296,
+        "endLoc": {
+          "column": 40,
+          "line": 296,
+          "position": 9525
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 291,
+        "startLoc": {
+          "column": 15,
+          "line": 291,
+          "position": 9311
+        }
+      },
+      "format": "typescript",
+      "fragment": "    xpCost: 400,\n    canDraft: (world, context) => true,\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 363,
+        "endLoc": {
+          "column": 40,
+          "line": 363,
+          "position": 11904
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 358,
+        "startLoc": {
+          "column": 15,
+          "line": 358,
+          "position": 11690
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 297,
+        "endLoc": {
+          "column": 29,
+          "line": 297,
+          "position": 9555
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 291,
+        "startLoc": {
+          "column": 15,
+          "line": 291,
+          "position": 9311
+        }
+      },
+      "format": "typescript",
+      "fragment": "    xpCost: 400,\n    canDraft: (world, context) => true,\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.GRAVITY === \"number\") {",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 389,
+        "endLoc": {
+          "column": 29,
+          "line": 389,
+          "position": 12752
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 383,
+        "startLoc": {
+          "column": 13,
+          "line": 383,
+          "position": 12508
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 389,
+        "endLoc": {
+          "column": 29,
+          "line": 389,
+          "position": 12752
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 382,
+        "startLoc": {
+          "column": 37,
+          "line": 382,
+          "position": 12492
+        }
+      },
+      "format": "typescript",
+      "fragment": "    supportedGames: [\"space-invaders\"],\n    xpCost: 0,\n    canDraft: (world, context) => true,\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.INVADER_SPEED === \"number\") {",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 456,
+        "endLoc": {
+          "column": 29,
+          "line": 456,
+          "position": 15176
+        },
+        "name": "utils/MutatorRegistry.ts",
+        "start": 449,
+        "startLoc": {
+          "column": 50,
+          "line": 449,
+          "position": 14916
+        }
+      },
+      "tokens": 61
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-03T15:29:19.928Z",
+    "detectionDate": "2026-09-03T17:05:51.712Z",
     "formats": {
       "typescript": {
-        "clones": 280,
-        "duplicatedLines": 3404,
-        "duplicatedTokens": 24380,
-        "lines": 50579,
+        "clones": 291,
+        "duplicatedLines": 3496,
+        "duplicatedTokens": 25076,
+        "lines": 55445,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 6.730065837600585,
-        "percentageTokens": 8.953524669935181,
-        "sources": 309,
-        "tokens": 272295
+        "percentage": 6.305347641807196,
+        "percentageTokens": 8.513412120985784,
+        "sources": 367,
+        "tokens": 294547
       }
     },
     "total": {
-      "clones": 280,
-      "duplicatedLines": 3404,
-      "duplicatedTokens": 24380,
-      "lines": 50579,
+      "clones": 291,
+      "duplicatedLines": 3496,
+      "duplicatedTokens": 25076,
+      "lines": 55445,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 6.730065837600585,
-      "percentageTokens": 8.953524669935181,
-      "sources": 309,
-      "tokens": 272295
+      "percentage": 6.305347641807196,
+      "percentageTokens": 8.513412120985784,
+      "sources": 367,
+      "tokens": 294547
     }
   }
 }

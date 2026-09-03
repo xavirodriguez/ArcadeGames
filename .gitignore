@@ -34,24 +34,8 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-**/src/**/*.js
-**/src/**/*.js.map
-
-# coverage
-coverage/
-
-server.log
-web_server.log
-npm_output.log
+# Reports
+report/
 
 # Documentation artifacts
 temp/

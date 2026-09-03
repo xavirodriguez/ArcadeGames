@@ -74,6 +74,7 @@ export class WorldCommandBuffer<
   ): void {
     this.commands.push({
       execute: (world) => {
+        world.activateEntity(entity);
         const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
         const blueprint = registry?.get(blueprintId);
         if (blueprint) {

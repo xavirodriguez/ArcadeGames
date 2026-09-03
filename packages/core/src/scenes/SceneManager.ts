@@ -194,6 +194,21 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     this._onExitCalled = false;
   }
 
+  private createTimeoutPromise(timeoutMs: number, errorMessage: string): { promise: Promise<never>; clearTimeout: () => void } {
+    let timeoutId: any;
+    const promise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error(errorMessage));
+      }, timeoutMs);
+    });
+    return {
+      promise,
+      clearTimeout: () => {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    };
+  }
+
   private _resolveDuration(options?: TransitionOptions): number {
     const isHeadless =
       this.world.getResource<any>("headless") === true ||
@@ -264,12 +279,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           this.currentScene = scene;
           this.sceneStack = [scene];
 
-          let timeoutId: any;
-          const timeoutPromise = new Promise<never>((_, reject) => {
-            timeoutId = setTimeout(() => {
-              reject(new Error("Transition timed out"));
-            }, timeoutMs);
-          });
+          const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Transition timed out");
 
           const loadPromise = (async () => {
             if (this.onWorldCreated) {
@@ -291,9 +301,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           try {
             await Promise.race([loadPromise, timeoutPromise]);
           } finally {
-            if (timeoutId) {
-              clearTimeout(timeoutId);
-            }
+            clearTimer();
           }
 
           if (myToken !== this.transitionToken) return;
@@ -370,12 +378,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         this._transitionElapsed = 0;
         this._onExitCalled = false;
 
-        let timeoutId: any;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error("Transition timed out"));
-          }, timeoutMs);
-        });
+        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Transition timed out");
 
         let onEnterResolved = false;
         let onEnterError: any = null;
@@ -397,9 +400,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         });
 
         const loadWithTimeout = Promise.race([loadPromise, timeoutPromise]).finally(() => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
+          clearTimer();
         });
 
         await new Promise<void>((resolve, reject) => {
@@ -462,12 +463,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         const oldStack = [...this.sceneStack];
         const timeoutMs = options?.timeout ?? this.transitionTimeout;
 
-        let timeoutId: any;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error("Push transition timed out"));
-          }, timeoutMs);
-        });
+        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Push transition timed out");
 
         try {
           if (this.currentScene) {
@@ -493,9 +489,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           try {
             await Promise.race([loadPromise, timeoutPromise]);
           } finally {
-            if (timeoutId) {
-              clearTimeout(timeoutId);
-            }
+            clearTimer();
           }
 
           if (myToken !== this.transitionToken) return;
@@ -546,12 +540,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         this._transitionElapsed = 0;
         this._onExitCalled = false;
 
-        let timeoutId: any;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error("Push transition timed out"));
-          }, timeoutMs);
-        });
+        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Push transition timed out");
 
         let onEnterResolved = false;
         let onEnterError: any = null;
@@ -573,9 +562,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         });
 
         const loadWithTimeout = Promise.race([loadPromise, timeoutPromise]).finally(() => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
+          clearTimer();
         });
 
         await new Promise<void>((resolve, reject) => {
@@ -641,12 +628,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         const poppedScene = this.sceneStack[this.sceneStack.length - 1];
         const timeoutMs = options?.timeout ?? this.transitionTimeout;
 
-        let timeoutId: any;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error("Pop transition timed out"));
-          }, timeoutMs);
-        });
+        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Pop transition timed out");
 
         try {
           this.state = SceneState.UNLOADING;
@@ -660,9 +642,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           try {
             await Promise.race([unloadPromise, timeoutPromise]);
           } finally {
-            if (timeoutId) {
-              clearTimeout(timeoutId);
-            }
+            clearTimer();
           }
 
           if (myToken !== this.transitionToken) return;

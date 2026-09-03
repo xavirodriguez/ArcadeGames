@@ -45,7 +45,7 @@ import {
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
 import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
-import { ArcadeEntityBuilder } from "../shared/arcade";
+import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState } from "../shared/arcade";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -368,75 +368,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
       }
     });
 
-    this.blueprints.register("enemy_sentinel", {
-      spawn: (world, entity, args: { x: number; y: number }) => {
-        EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withVelocity()
-          .withRender({ shape: "sentinel", size: 22, order: 2 });
-
-        world.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
-        world.addComponent(entity, { type: "Enemy", kind: "patrol" } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "Patrol", startX: args.x - 80, endX: args.x + 80, direction: 1, patrolSpeed: 70 } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "GroundDetector", hasGroundAhead: true, hasWallAhead: false, sensorOffsetX: 15, sensorOffsetY: 20 } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "PlayerSensor", visionRange: 130, detectedPlayerEntity: undefined } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, {
-          type: "StateMachine",
-          currentState: "Patrol",
-          elapsedInState: 0,
-          data: { patrolSpeed: 70, alertDuration: 0.3, windupDuration: 0.3, attackDuration: 0.4, recoveryDuration: 0.5 },
-          machineId: "patrol",
-          elapsedMs: 0
-        } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
-      }
-    });
-
-    this.blueprints.register("enemy_hopper", {
-      spawn: (world, entity, args: { x: number; y: number }) => {
-        EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withVelocity()
-          .withRender({ shape: "hopper", size: 24, order: 2 });
-
-        world.addComponent(entity, { type: "Health", current: 1, max: 1 } as any);
-        world.addComponent(entity, { type: "Enemy", kind: "jumper" } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "PlayerSensor", visionRange: 150, detectedPlayerEntity: undefined } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, {
-          type: "StateMachine",
-          currentState: "Idle",
-          elapsedInState: 0,
-          data: { idleDuration: 0.8, alertDuration: 0.3, windupDuration: 0.3, jumpVelocity: 260, patrolSpeed: 60, attackDuration: 0.8, recoveryDuration: 0.4 },
-          machineId: "jumper",
-          elapsedMs: 0
-        } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
-      }
-    });
-
-    this.blueprints.register("enemy_charger", {
-      spawn: (world, entity, args: { x: number; y: number }) => {
-        EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withVelocity()
-          .withRender({ shape: "charger", size: 28, order: 2 });
-
-        world.addComponent(entity, { type: "Health", current: 1, max: 1 } as any);
-        world.addComponent(entity, { type: "Enemy", kind: "charger" } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "PlayerSensor", visionRange: 160, detectedPlayerEntity: undefined } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "GroundDetector", hasGroundAhead: true, hasWallAhead: false, sensorOffsetX: 15, sensorOffsetY: 20 } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, {
-          type: "StateMachine",
-          currentState: "Idle",
-          elapsedInState: 0,
-          data: { alertDuration: 0.4, windupDuration: 0.4, chargeSpeed: 200, attackDuration: 1.0, recoveryDuration: 0.8 },
-          machineId: "charger",
-          elapsedMs: 0
-        } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
-      }
-    });
+    registerPlatformerEnemyBlueprints(this.blueprints);
 
     this.blueprints.register("moving_platform", {
       spawn: (world, entity, args: { x: number; y: number; ampX: number; ampY: number; freq: number }) => {
@@ -627,24 +559,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
   }
 
   public override setInputState(input: Partial<EchoRunnerInput>): void {
-    const world = this.getWorld();
-    const playerEntity = world.query("PlatformerInput" as any)[0];
-    if (playerEntity !== undefined) {
-      world.mutateComponent(playerEntity, "PlatformerInput" as any, (inputComp: any) => {
-        const left = input.moveLeft !== undefined ? !!input.moveLeft : (inputComp._moveLeft ?? (inputComp.moveDir === -1));
-        const right = input.moveRight !== undefined ? !!input.moveRight : (inputComp._moveRight ?? (inputComp.moveDir === 1));
-        inputComp._moveLeft = left;
-        inputComp._moveRight = right;
-        inputComp.moveDir = left ? -1 : (right ? 1 : 0);
-
-        if (input.jump !== undefined) {
-          inputComp.jumpHeld = !!input.jump;
-        }
-        if (input.pulse !== undefined) {
-          inputComp.pulsePressed = !!input.pulse;
-        }
-      });
-    }
+    mutatePlatformerInputState(this.getWorld(), input);
   }
 
   private async onPreloadAssets(): Promise<void> {

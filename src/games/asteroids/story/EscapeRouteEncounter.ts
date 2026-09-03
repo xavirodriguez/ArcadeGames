@@ -6,6 +6,7 @@ import {
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
 import { AsteroidsGame } from "../AsteroidsGame";
+import { applyStandardEncounterModifiers } from "../../shared/story/encounterHelpers";
 
 /**
  * Encounter ID for the debris field escape sequence in Asteroids.
@@ -124,13 +125,7 @@ export class AsteroidsArcadeAdapter implements ArcadeGameAdapter {
     this.game = game;
 
     // Apply modifiers from run context to game instance
-    for (const modifier of context.modifiers) {
-      if (modifier.targetProperty === "shieldMultiplier" && typeof modifier.value === "number") {
-        (game as any).shieldMultiplier = modifier.value;
-      } else if (modifier.targetProperty === "navigationAssist" && typeof modifier.value === "boolean") {
-        (game as any).navigationAssist = modifier.value;
-      }
-    }
+    applyStandardEncounterModifiers(game, context);
 
     game.start();
 

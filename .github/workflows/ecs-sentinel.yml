@@ -57,6 +57,9 @@ jobs:
       - name: 2. Check Typecast Ratchet Linter (as any / as unknown)
         run: NODE_OPTIONS="--max-old-space-size=4096" pnpm run check:ratchet
 
+      - name: Check Code Duplication Ratchet
+        run: pnpm run check:duplication
+
       - name: 3. Run AST Determinism Linter (ts-morph)
         id: ast_linter
         run: |

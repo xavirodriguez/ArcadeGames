@@ -2,7 +2,6 @@ import { Simulation } from "../runtime/Simulation";
 import { SnapshotBuffer } from "../snapshots/SnapshotBuffer";
 import { CompactInputFrame } from "../input/InputFrame";
 import { WorldSnapshot } from "../snapshots/WorldSnapshot";
-import { RollbackSimulation } from "./RollbackSimulation";
 
 /**
  * Handles client-side prediction logging, state hash verification, and server-reconciliation rollback cycles.
@@ -14,13 +13,11 @@ export class MultiplayerReconciler {
   private inputsHistory = new Map<number, CompactInputFrame>();
   private localHashes = new Map<number, string>();
   private maxHistorySize: number;
-  private resimulator: RollbackSimulation;
 
   constructor(simulation: Simulation, rollbackBuffer: SnapshotBuffer, maxHistorySize = 60) {
     this.simulation = simulation;
     this.rollbackBuffer = rollbackBuffer;
     this.maxHistorySize = maxHistorySize;
-    this.resimulator = new RollbackSimulation(simulation, rollbackBuffer);
   }
 
   /**
@@ -65,13 +62,42 @@ export class MultiplayerReconciler {
     // Save this authoritative state under serverTick in the sliding snapshot buffer
     this.rollbackBuffer.saveSnapshot(serverTick, serverSnapshot);
 
-    // 3. Rollback resimulator: delegate to RollbackSimulation.resimulateFromTick
-    this.resimulator.resimulateFromTick(
-      serverTick,
-      currentLocalTick,
-      this.inputsHistory,
-      this.localHashes
-    );
+    // 3. Rollback resimulator: we fast-forward by stepping inputs starting from serverTick up to currentLocalTick.
+    const world = (this.simulation as any).world ?? (this.simulation as any).getWorld?.();
+    const prevIsReSimulating = world ? world.isReSimulating : false;
+    const random = world ? world.gameplayRandom : undefined;
+    const wasLocked = random ? random.isLocked() : false;
+
+    if (world) {
+      world.isReSimulating = true;
+    }
+    if (random && wasLocked) {
+      random.unlock();
+    }
+
+    try {
+      for (let t = serverTick; t <= currentLocalTick; t++) {
+        // Save state snapshot of tick t BEFORE executing its step
+        this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
+
+        let input = this.inputsHistory.get(t);
+        if (!input) {
+          input = { t, b: 0 };
+          this.inputsHistory.set(t, input);
+        }
+        this.simulation.step(input);
+
+        // Re-log the corrected state hashes for all resimulated ticks
+        this.localHashes.set(t + 1, this.simulation.hash());
+      }
+    } finally {
+      if (random && wasLocked) {
+        random.lock();
+      }
+      if (world) {
+        world.isReSimulating = prevIsReSimulating;
+      }
+    }
 
     return true;
   }

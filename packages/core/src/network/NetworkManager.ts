@@ -1,8 +1,7 @@
 import { WorldSnapshot, ComponentDataSnapshot } from "../snapshots/WorldSnapshot";
-import { SoADeserializer } from "../snapshots/SoADeserializer";
 import { NetworkTransport } from "./NetworkTransport";
 import { NullTransport } from "./NullTransport";
-import { ComponentRegistry } from "../ecs/Component";
+import { Component, ComponentRegistry } from "../ecs/Component";
 
 /**
  * Interface with exact ECS signatures for world mutations.
@@ -188,24 +187,6 @@ export interface INetworkGame {
 
 /** @public */
 export class NetworkReplicationUtils {
-  /**
-   * Processes an SoA packet into standard ComponentDataSnapshot using SoADeserializer.
-   *
-   * @param soaComponentData - Raw SoA component block map.
-   * @returns Reconstructed component data dictionary.
-   */
-  public static processSoAPacket(soaComponentData: Record<string, any>): ComponentDataSnapshot {
-    const componentData: ComponentDataSnapshot = {};
-    for (const type in soaComponentData) {
-      componentData[type] = {};
-      const soaData = soaComponentData[type];
-      SoADeserializer.hydrateEntities(soaData.entities, soaData, type, (entityId, component) => {
-        componentData[type][entityId] = component;
-      });
-    }
-    return componentData;
-  }
-
   public static applyDelta(base: WorldSnapshot, delta: Partial<WorldSnapshot>): void {
     const d = delta as any;
     if (d.tick !== undefined) base.tick = d.tick;
@@ -266,7 +247,53 @@ export class NetworkReplicationUtils {
 
 function reconstructComponentData(snapshot: WorldSnapshot): ComponentDataSnapshot {
   if (snapshot.isSoA) {
-    return NetworkReplicationUtils.processSoAPacket(snapshot.soaComponentData);
+    const componentData: ComponentDataSnapshot = {};
+    const soaComponentData = snapshot.soaComponentData;
+
+    for (const type in soaComponentData) {
+      componentData[type] = {};
+      const soaData = soaComponentData[type];
+      const keys = soaData.keys;
+      const numKeys = keys.length;
+      const entities = soaData.entities;
+
+      let numEntities = 0;
+      if (entities) {
+        if (typeof (entities as any).length === "number") {
+          numEntities = (entities as any).length;
+        } else {
+          numEntities = Object.keys(entities).filter(k => !isNaN(Number(k))).length;
+        }
+      }
+
+      const valArray = soaData.values;
+      const nonNumericValues = soaData.nonNumericValues;
+      const booleanKeys = soaData.booleanKeys ? new Set(soaData.booleanKeys) : null;
+
+      for (let i = 0; i < numEntities; i++) {
+        const entityId = (entities as any)[i];
+        const component: Record<string, any> = { type };
+
+        for (let j = 0; j < numKeys; j++) {
+          const key = keys[j];
+          const offset = i * numKeys + j;
+          const nonNumericVal = nonNumericValues ? nonNumericValues[offset] : undefined;
+
+          if (nonNumericVal !== undefined && nonNumericVal !== null) {
+            component[key] = nonNumericVal;
+          } else {
+            const rawVal = valArray[offset];
+            if (booleanKeys && booleanKeys.has(key)) {
+              component[key] = rawVal === 1;
+            } else {
+              component[key] = rawVal;
+            }
+          }
+        }
+        componentData[type][entityId] = component;
+      }
+    }
+    return componentData;
   }
 
   return snapshot.componentData;

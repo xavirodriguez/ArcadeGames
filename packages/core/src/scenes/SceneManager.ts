@@ -34,6 +34,7 @@ export interface SceneEventRegistry extends Record<string, any> {
 
 /**
  * Operational states for the Scene Manager.
+ *
  * @public
  */
 export enum SceneState {
@@ -48,24 +49,20 @@ export enum SceneState {
 }
 
 /**
- * Context payload required to execute a unified scene transition pipeline.
- * @public
- */
-export interface TransitionContext<TComponents extends ComponentRegistry = CoreComponentRegistry> {
-  /** Target scene for the transition operation. */
-  targetScene?: Scene<TComponents>;
-  /** Action type of the transition operation. */
-  type: "transitionTo" | "push" | "pop" | "replace";
-  /** Visual transition configuration options. */
-  options?: TransitionOptions;
-  /** Async lifecycle logic hook to execute for entering/exiting scenes. */
-  executeLifecycle: (token: number) => Promise<void>;
-  /** Stack mutation hook to update sceneStack and currentScene state upon success. */
-  updateStack: () => void;
-}
-
-/**
  * Central manager for scene transitions and lifecycle orchestration.
+ *
+ * @responsibility Implement a Finite State Machine (FSM) for scene flow.
+ * @responsibility Manage sequential transitions via a task queue to prevent race conditions.
+ * @responsibility Manage a scene stack (Push/Pop) for sub-states like pause menus.
+ *
+ * @remarks
+ * El `SceneManager` es crítico para prevenir fugas de memoria y condiciones de carrera
+ * durante la carga/descarga de recursos asíncronos. Utiliza LifecycleUtils
+ * para asegurar que los ganchos de ciclo de vida se ejecuten correctamente.
+ *
+ * @conceptualRisk [TRANSITION_INTERRUPTION][HIGH] If an asynchronous transition
+ * is interrupted by another request, the engine state may become inconsistent.
+ * Mitigated by the `transitionQueue`.
  *
  * @public
  */
@@ -91,7 +88,6 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   private _onEnterResolved: () => boolean = () => false;
   private _onEnterError: () => any = () => null;
   private _onExitCalled = false;
-  private _transitionUpdateStack: (() => void) | null = null;
 
   /** Progress of the current transition from 0 to 1 */
   public transitionProgress = 0;
@@ -101,6 +97,9 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
 
   /**
    * Optional hook executed whenever a new world context is established for a scene.
+   *
+   * @remarks
+   * Useful for registering global engine systems on fresh world instances.
    */
   public onWorldCreated?: (world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>) => void | Promise<void>;
 
@@ -157,7 +156,8 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   /**
-   * Processes the transition queue sequentially.
+   * Processes the transition queue.
+   * Ensures only one transition happens at a time.
    */
   private async processQueue(): Promise<void> {
     if (this.isProcessingTransition || this.transitionQueue.length === 0) {
@@ -192,7 +192,6 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     this._onEnterResolved = () => false;
     this._onEnterError = () => null;
     this._onExitCalled = false;
-    this._transitionUpdateStack = null;
   }
 
   private createTimeoutPromise(timeoutMs: number, errorMessage: string): { promise: Promise<never>; clearTimeout: () => void } {
@@ -217,32 +216,35 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       this.world.getResource<any>("GameConfig")?.isHeadless === true;
 
     if (isHeadless) {
-      return 0;
+      return 0; // Always force 0 for server/headless execution
     }
 
     if (options?.duration !== undefined) {
-      return options.duration;
+      return options.duration; // Respect explicit duration in visual tests
     }
 
     if (isTestEnvironment()) {
-      return 0;
+      return 0; // Default to 0 for other tests to run fast
     }
 
-    return 300;
+    return 300; // Default production transition
   }
 
   /**
-   * Unified transition pipeline managing snapshots, timeouts, EventBus messages, and rollback handling.
+   * Realiza una transición a una nueva escena.
+   * Limpia la pila actual y reemplaza la escena activa.
+   *
+   * @param scene - La nueva instancia de {@link Scene} a cargar.
+   * @param options - Opciones de configuración para la transición.
+   * @returns A promise that resolves when the transition is complete.
    */
-  private async executeTransitionPipeline(context: TransitionContext<TComponents>): Promise<void> {
-    const duration = this._resolveDuration(context.options);
-    const scene = context.targetScene;
-    const timeoutMsg = context.type === "push" ? "Push transition timed out" : context.type === "pop" ? "Pop transition timed out" : "Transition timed out";
+  public async transitionTo(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void> {
+    const duration = this._resolveDuration(options);
 
     if (duration === 0) {
       return this.enqueueTransition(async () => {
         const eventBus = this.eventBus;
-        if (eventBus && scene) {
+        if (eventBus) {
           eventBus.emit("scene:transition:start", { scene });
         }
 
@@ -255,44 +257,76 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         const oldScene = this.currentScene;
         const oldStack = [...this.sceneStack];
         const oldState = this.state;
-        const timeoutMs = context.options?.timeout ?? this.transitionTimeout;
-
-        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(
-          timeoutMs,
-          timeoutMsg
-        );
+        const timeoutMs = options?.timeout ?? this.transitionTimeout;
 
         try {
-          const loadPromise = context.executeLifecycle(myToken);
-          await Promise.race([loadPromise, timeoutPromise]);
+          if (this.currentScene) {
+            this.state = SceneState.UNLOADING;
+            const oldSceneRef = this.currentScene;
+            await runLifecycleAsync(async () => {
+              await oldSceneRef.onExit(oldSceneRef.getWorld());
+            });
+          }
 
           if (myToken !== this.transitionToken) return;
 
-          context.updateStack();
+          this.transitionProgress = 0.3;
+          if (eventBus) {
+            eventBus.emit("scene:transition:progress", { progress: 0.3 });
+          }
+
+          this.state = SceneState.LOADING;
+          this.currentScene = scene;
+          this.sceneStack = [scene];
+
+          const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Transition timed out");
+
+          const loadPromise = (async () => {
+            if (this.onWorldCreated) {
+              await this.onWorldCreated(scene.getWorld());
+            }
+
+            if (myToken !== this.transitionToken) return;
+
+            this.transitionProgress = 0.7;
+            if (eventBus) {
+              eventBus.emit("scene:transition:progress", { progress: 0.7 });
+            }
+
+            await runLifecycleAsync(async () => {
+              await scene.onEnter(scene.getWorld());
+            });
+          })();
+
+          try {
+            await Promise.race([loadPromise, timeoutPromise]);
+          } finally {
+            clearTimer();
+          }
+
+          if (myToken !== this.transitionToken) return;
+
           this.state = SceneState.ACTIVE;
           this.transitionProgress = 1.0;
 
           if (eventBus) {
             eventBus.emit("scene:transition:progress", { progress: 1.0 });
-            if (scene) {
-              eventBus.emit("scene:transition:success", { scene });
-            }
+            eventBus.emit("scene:transition:success", { scene });
           }
         } catch (error: unknown) {
           if (myToken !== this.transitionToken) return;
+
           this.transitionToken++;
 
-          const isTimeout = error instanceof Error && error.message === timeoutMsg;
+          const isTimeout = error instanceof Error && error.message === "Transition timed out";
 
           if (eventBus) {
-            if (scene) {
-              if (isTimeout) {
-                eventBus.emit("scene:transition:timeout", { scene, error });
-              } else {
-                eventBus.emit("scene:transition:error", { scene, error });
-              }
+            if (isTimeout) {
+              eventBus.emit("scene:transition:timeout", { scene, error });
+            } else {
+              eventBus.emit("scene:transition:error", { scene, error });
             }
-            eventBus.emit("scene:error", { action: context.type, error });
+            eventBus.emit("scene:error", { action: "transition", error });
           }
 
           this.currentScene = oldScene;
@@ -307,8 +341,6 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           }
 
           throw error;
-        } finally {
-          clearTimer();
         }
       });
     }
@@ -316,7 +348,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     // Animated Transition (duration > 0)
     return this.enqueueTransition(async () => {
       const eventBus = this.eventBus;
-      if (eventBus && scene) {
+      if (eventBus) {
         eventBus.emit("scene:transition:start", { scene });
       }
 
@@ -329,49 +361,43 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       const oldScene = this.currentScene;
       const oldStack = [...this.sceneStack];
       const oldState = this.state;
-      const timeoutMs = context.options?.timeout ?? this.transitionTimeout;
+      const timeoutMs = options?.timeout ?? this.transitionTimeout;
 
       try {
-        if (oldScene && context.type !== "pop") {
+        if (oldScene) {
           runLifecycleSync(() => oldScene.onPause());
         }
 
         this.state = SceneState.UNLOADING;
-        this._transitionOldScene = context.type === "pop" ? oldStack[oldStack.length - 1] : oldScene;
-        this._transitionNewScene = scene ?? null;
-        this._transitionOptions = { ...context.options, duration, type: context.type };
-        this._transitionUpdateStack = context.updateStack;
+        this._transitionOldScene = oldScene;
+        this._transitionNewScene = scene;
+        this._transitionOptions = { ...options, duration, type: "transitionTo" };
 
-        const effectOption = context.options?.effect ?? "fade";
+        const effectOption = options?.effect ?? "fade";
         this._activeTransitionEffect = resolveTransitionEffect(effectOption) ?? TransitionRegistry.fade;
         this._transitionElapsed = 0;
         this._onExitCalled = false;
 
-        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(
-          timeoutMs,
-          timeoutMsg
-        );
+        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Transition timed out");
 
         let onEnterResolved = false;
         let onEnterError: any = null;
 
         const loadPromise = (async () => {
-          if (scene && context.type !== "pop") {
-            if (this.onWorldCreated) {
-              await this.onWorldCreated(scene.getWorld());
-            }
-            if (myToken !== this.transitionToken) return;
-            await runLifecycleAsync(async () => {
-              await scene.onEnter(scene.getWorld());
-            });
+          if (this.onWorldCreated) {
+            await this.onWorldCreated(scene.getWorld());
           }
-        })()
-          .then(() => {
-            onEnterResolved = true;
-          })
-          .catch((err) => {
-            onEnterError = err;
+
+          if (myToken !== this.transitionToken) return;
+
+          await runLifecycleAsync(async () => {
+            await scene.onEnter(scene.getWorld());
           });
+        })().then(() => {
+          onEnterResolved = true;
+        }).catch((err) => {
+          onEnterError = err;
+        });
 
         const loadWithTimeout = Promise.race([loadPromise, timeoutPromise]).finally(() => {
           clearTimer();
@@ -379,10 +405,6 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
 
         await new Promise<void>((resolve, reject) => {
           this._transitionResolve = () => {
-            if (this._transitionUpdateStack) {
-              this._transitionUpdateStack();
-              this._transitionUpdateStack = null;
-            }
             this._cleanupTransition();
             resolve();
           };
@@ -394,20 +416,19 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           this._onEnterResolved = () => onEnterResolved;
           this._onEnterError = () => onEnterError;
         });
+
       } catch (error) {
         if (myToken !== this.transitionToken) return;
         this.transitionToken++;
 
-        const isTimeout = error instanceof Error && error.message === timeoutMsg;
+        const isTimeout = error instanceof Error && error.message === "Transition timed out";
         if (eventBus) {
-          if (scene) {
-            if (isTimeout) {
-              eventBus.emit("scene:transition:timeout", { scene, error });
-            } else {
-              eventBus.emit("scene:transition:error", { scene, error });
-            }
+          if (isTimeout) {
+            eventBus.emit("scene:transition:timeout", { scene, error });
+          } else {
+            eventBus.emit("scene:transition:error", { scene, error });
           }
-          eventBus.emit("scene:error", { action: context.type, error });
+          eventBus.emit("scene:error", { action: "transition", error });
         }
 
         this.currentScene = oldScene;
@@ -425,159 +446,301 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   /**
-   * Transition to a new scene, resetting stack.
-   */
-  public async transitionTo(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void> {
-    return this.executeTransitionPipeline({
-      targetScene: scene,
-      type: "transitionTo",
-      options,
-      executeLifecycle: async (token) => {
-        if (this.currentScene) {
-          this.state = SceneState.UNLOADING;
-          const oldSceneRef = this.currentScene;
-          await runLifecycleAsync(async () => {
-            await oldSceneRef.onExit(oldSceneRef.getWorld());
-          });
-        }
-        if (token !== this.transitionToken) return;
-
-        this.transitionProgress = 0.3;
-        if (this.eventBus) {
-          this.eventBus.emit("scene:transition:progress", { progress: 0.3 });
-        }
-
-        this.state = SceneState.LOADING;
-        this.currentScene = scene;
-
-        if (this.onWorldCreated) {
-          await this.onWorldCreated(scene.getWorld());
-        }
-        if (token !== this.transitionToken) return;
-
-        this.transitionProgress = 0.7;
-        if (this.eventBus) {
-          this.eventBus.emit("scene:transition:progress", { progress: 0.7 });
-        }
-
-        await runLifecycleAsync(async () => {
-          await scene.onEnter(scene.getWorld());
-        });
-      },
-      updateStack: () => {
-        this.currentScene = scene;
-        this.sceneStack = [scene];
-      }
-    });
-  }
-
-  /**
-   * Pushes a new scene onto the stack, pausing current scene.
+   * Pushes a new scene onto the stack, pausing the current one.
+   *
+   * @param scene - The Scene to push.
+   * @param options - Visual transition configurations.
+   * @returns A promise that resolves when the push operation is complete.
    */
   public async push(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void> {
-    return this.executeTransitionPipeline({
-      targetScene: scene,
-      type: "push",
-      options,
-      executeLifecycle: async (token) => {
-        if (this.currentScene) {
-          runLifecycleSync(() => this.currentScene!.onPause());
-        }
-        this.state = SceneState.LOADING;
-        this.currentScene = scene;
+    const duration = this._resolveDuration(options);
 
-        if (this.onWorldCreated) {
-          await this.onWorldCreated(scene.getWorld());
-        }
-        if (token !== this.transitionToken) return;
+    if (duration === 0) {
+      return this.enqueueTransition(async () => {
+        const myToken = ++this.transitionToken;
+        const previousState = this.state;
+        const oldScene = this.currentScene;
+        const oldStack = [...this.sceneStack];
+        const timeoutMs = options?.timeout ?? this.transitionTimeout;
 
-        await runLifecycleAsync(async () => {
-          await scene.onEnter(scene.getWorld());
+        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Push transition timed out");
+
+        try {
+          if (this.currentScene) {
+            runLifecycleSync(() => this.currentScene!.onPause());
+          }
+
+          this.state = SceneState.LOADING;
+          this.sceneStack.push(scene);
+          this.currentScene = scene;
+
+          const loadPromise = (async () => {
+            if (this.onWorldCreated) {
+              await this.onWorldCreated(scene.getWorld());
+            }
+
+            if (myToken !== this.transitionToken) return;
+
+            await runLifecycleAsync(async () => {
+              await scene.onEnter(scene.getWorld());
+            });
+          })();
+
+          try {
+            await Promise.race([loadPromise, timeoutPromise]);
+          } finally {
+            clearTimer();
+          }
+
+          if (myToken !== this.transitionToken) return;
+
+          this.state = SceneState.ACTIVE;
+        } catch (error) {
+          if (myToken !== this.transitionToken) return;
+
+          this.transitionToken++;
+          const eventBus = this.world.getResource<EventBus<SceneEventRegistry>>("EventBus");
+          if (eventBus) {
+            eventBus.emit("scene:error", { action: "push", error });
+          }
+
+          this.currentScene = oldScene;
+          this.sceneStack = oldStack;
+          this.state = previousState;
+
+          if (oldScene) {
+            runLifecycleSync(() => oldScene.onResume());
+          }
+
+          throw error;
+        }
+      });
+    }
+
+    // Animated Push
+    return this.enqueueTransition(async () => {
+      const myToken = ++this.transitionToken;
+      const oldScene = this.currentScene;
+      const oldStack = [...this.sceneStack];
+      const oldState = this.state;
+      const timeoutMs = options?.timeout ?? this.transitionTimeout;
+
+      try {
+        if (oldScene) {
+          runLifecycleSync(() => oldScene.onPause());
+        }
+
+        this.state = SceneState.UNLOADING;
+        this._transitionOldScene = oldScene;
+        this._transitionNewScene = scene;
+        this._transitionOptions = { ...options, duration, type: "push" };
+
+        const effectOption = options?.effect ?? "fade";
+        this._activeTransitionEffect = resolveTransitionEffect(effectOption) ?? TransitionRegistry.fade;
+        this._transitionElapsed = 0;
+        this._onExitCalled = false;
+
+        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Push transition timed out");
+
+        let onEnterResolved = false;
+        let onEnterError: any = null;
+
+        const loadPromise = (async () => {
+          if (this.onWorldCreated) {
+            await this.onWorldCreated(scene.getWorld());
+          }
+
+          if (myToken !== this.transitionToken) return;
+
+          await runLifecycleAsync(async () => {
+            await scene.onEnter(scene.getWorld());
+          });
+        })().then(() => {
+          onEnterResolved = true;
+        }).catch((err) => {
+          onEnterError = err;
         });
-      },
-      updateStack: () => {
-        this.sceneStack.push(scene);
-        this.currentScene = scene;
+
+        const loadWithTimeout = Promise.race([loadPromise, timeoutPromise]).finally(() => {
+          clearTimer();
+        });
+
+        await new Promise<void>((resolve, reject) => {
+          this._transitionResolve = () => {
+            this._cleanupTransition();
+            resolve();
+          };
+          this._transitionReject = (err) => {
+            this._cleanupTransition();
+            reject(err);
+          };
+          this._incomingLoadPromise = loadWithTimeout as any;
+          this._onEnterResolved = () => onEnterResolved;
+          this._onEnterError = () => onEnterError;
+        });
+
+      } catch (error) {
+        if (myToken !== this.transitionToken) return;
+        this.transitionToken++;
+
+        const eventBus = this.world.getResource<EventBus<SceneEventRegistry>>("EventBus");
+        if (eventBus) {
+          eventBus.emit("scene:error", { action: "push", error });
+        }
+
+        this.currentScene = oldScene;
+        this.sceneStack = oldStack;
+        this.state = oldState;
+
+        if (oldScene) {
+          runLifecycleSync(() => oldScene.onResume());
+        }
+
+        this._cleanupTransition();
+        throw error;
       }
     });
   }
 
   /**
-   * Pops current scene, resuming previous scene on stack.
+   * Pops the current scene from the stack, resuming the previous one.
+   *
+   * @param options - Visual transition configurations.
+   * @returns A promise that resolves when the pop operation is complete.
    */
   public async pop(options?: TransitionOptions): Promise<void> {
-    if (this.sceneStack.length <= 1) {
-      if (this.eventBus) {
-        this.eventBus.emit("scene:warning", { message: "Cannot pop the last scene." });
-      }
-      return;
-    }
-    const poppedScene = this.sceneStack[this.sceneStack.length - 1];
-    const targetScene = this.sceneStack[this.sceneStack.length - 2];
+    const duration = this._resolveDuration(options);
 
-    return this.executeTransitionPipeline({
-      targetScene,
-      type: "pop",
-      options,
-      executeLifecycle: async (token) => {
-        this.state = SceneState.UNLOADING;
-        await runLifecycleAsync(async () => {
-          await poppedScene.onExit(poppedScene.getWorld());
-        });
-      },
-      updateStack: () => {
-        this.sceneStack.pop();
-        this.currentScene = this.sceneStack[this.sceneStack.length - 1];
-        if (this.currentScene) {
-          runLifecycleSync(() => this.currentScene!.onResume());
+    if (duration === 0) {
+      return this.enqueueTransition(async () => {
+        const eventBus = this.world.getResource<EventBus<SceneEventRegistry>>("EventBus");
+        if (this.sceneStack.length <= 1) {
+          if (eventBus) {
+            eventBus.emit("scene:warning", { message: "Cannot pop the last scene." });
+          }
+          return;
         }
-      }
-    });
-  }
 
-  /**
-   * Replaces current top scene on stack with new scene.
-   */
-  public async replace(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void> {
-    return this.executeTransitionPipeline({
-      targetScene: scene,
-      type: "replace",
-      options,
-      executeLifecycle: async (token) => {
-        if (this.currentScene) {
+        const myToken = ++this.transitionToken;
+        const previousState = this.state;
+        const oldScene = this.currentScene;
+        const oldStack = [...this.sceneStack];
+        const poppedScene = this.sceneStack[this.sceneStack.length - 1];
+        const timeoutMs = options?.timeout ?? this.transitionTimeout;
+
+        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, "Pop transition timed out");
+
+        try {
           this.state = SceneState.UNLOADING;
-          const oldSceneRef = this.currentScene;
-          await runLifecycleAsync(async () => {
-            await oldSceneRef.onExit(oldSceneRef.getWorld());
-          });
+
+          const unloadPromise = (async () => {
+            await runLifecycleAsync(async () => {
+              await poppedScene.onExit(poppedScene.getWorld());
+            });
+          })();
+
+          try {
+            await Promise.race([unloadPromise, timeoutPromise]);
+          } finally {
+            clearTimer();
+          }
+
+          if (myToken !== this.transitionToken) return;
+
+          this.sceneStack.pop();
+          this.currentScene = this.sceneStack[this.sceneStack.length - 1];
+
+          if (this.currentScene) {
+            runLifecycleSync(() => this.currentScene!.onResume());
+          }
+          this.state = SceneState.ACTIVE;
+        } catch (error) {
+          if (myToken !== this.transitionToken) return;
+
+          this.transitionToken++;
+          if (eventBus) {
+            eventBus.emit("scene:error", { action: "pop", error });
+          }
+
+          this.currentScene = oldScene;
+          this.sceneStack = oldStack;
+          this.state = previousState;
+
+          throw error;
         }
-        if (token !== this.transitionToken) return;
+      });
+    }
 
-        this.state = SceneState.LOADING;
-        this.currentScene = scene;
-
-        if (this.onWorldCreated) {
-          await this.onWorldCreated(scene.getWorld());
+    // Animated Pop
+    return this.enqueueTransition(async () => {
+      const eventBus = this.world.getResource<EventBus<SceneEventRegistry>>("EventBus");
+      if (this.sceneStack.length <= 1) {
+        if (eventBus) {
+          eventBus.emit("scene:warning", { message: "Cannot pop the last scene." });
         }
-        if (token !== this.transitionToken) return;
+        return;
+      }
 
-        await runLifecycleAsync(async () => {
-          await scene.onEnter(scene.getWorld());
+      const myToken = ++this.transitionToken;
+      const oldScene = this.currentScene;
+      const oldStack = [...this.sceneStack];
+      const oldState = this.state;
+      const poppedScene = this.sceneStack[this.sceneStack.length - 1];
+
+      try {
+        if (oldScene) {
+          runLifecycleSync(() => oldScene.onPause());
+        }
+
+        this.state = SceneState.UNLOADING;
+        this._transitionOldScene = poppedScene;
+        this._transitionNewScene = this.sceneStack[this.sceneStack.length - 2];
+        this._transitionOptions = { ...options, duration, type: "pop" };
+
+        const effectOption = options?.effect ?? "fade";
+        this._activeTransitionEffect = resolveTransitionEffect(effectOption) ?? TransitionRegistry.fade;
+        this._transitionElapsed = 0;
+        this._onExitCalled = false;
+
+        const onEnterResolved = true;
+        const onEnterError: any = null;
+
+        await new Promise<void>((resolve, reject) => {
+          this._transitionResolve = () => {
+            this._cleanupTransition();
+            resolve();
+          };
+          this._transitionReject = (err) => {
+            this._cleanupTransition();
+            reject(err);
+          };
+          this._incomingLoadPromise = Promise.resolve();
+          this._onEnterResolved = () => onEnterResolved;
+          this._onEnterError = () => onEnterError;
         });
-      },
-      updateStack: () => {
-        if (this.sceneStack.length > 0) {
-          this.sceneStack[this.sceneStack.length - 1] = scene;
-        } else {
-          this.sceneStack = [scene];
+
+      } catch (error) {
+        if (myToken !== this.transitionToken) return;
+        this.transitionToken++;
+
+        if (eventBus) {
+          eventBus.emit("scene:error", { action: "pop", error });
         }
-        this.currentScene = scene;
+
+        this.currentScene = oldScene;
+        this.sceneStack = oldStack;
+        this.state = oldState;
+
+        this._cleanupTransition();
+        throw error;
       }
     });
   }
 
   /**
-   * Dispatches update tick to active scene.
+   * Dispatches the update tick to the active scene.
+   *
+   * @param deltaTime - Time elapsed since last update in milliseconds.
    */
   public update(deltaTime: number): void {
     if (this.state === SceneState.UNLOADING || this.state === SceneState.LOADING) {
@@ -598,7 +761,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           this.eventBus.emit("scene:transition:progress", { progress: this.transitionProgress });
         }
       } else {
-        // 1. Dispatch onExit on old scene exactly once at peak
+        // 1. Dispatch onExit on the old scene exactly once at the peak of transition
         if (rawProgress >= peakProgress && !this._onExitCalled) {
           this._onExitCalled = true;
           if (this._transitionOldScene) {
@@ -620,6 +783,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         }
 
         if (!this._onEnterResolved()) {
+          // Keep visually stuck at progress 0.5 while wait loading
           this._transitionElapsed = duration / 2;
           this.transitionProgress = easingFunc(0.5);
           if (this.eventBus) {
@@ -633,9 +797,20 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
 
         if (this._transitionNewScene && this.currentScene !== this._transitionNewScene) {
           this.currentScene = this._transitionNewScene;
-          if (this._transitionUpdateStack) {
-            this._transitionUpdateStack();
-            this._transitionUpdateStack = null;
+          const isPush = this._transitionOptions?.type === "push";
+          const isPop = this._transitionOptions?.type === "pop";
+
+          if (isPush) {
+            if (!this.sceneStack.includes(this._transitionNewScene)) {
+              this.sceneStack.push(this._transitionNewScene);
+            }
+          } else if (isPop) {
+            if (this.sceneStack.length > 1) {
+              this.sceneStack.pop();
+            }
+            this.currentScene = this.sceneStack[this.sceneStack.length - 1];
+          } else {
+            this.sceneStack = [this._transitionNewScene];
           }
         }
 
@@ -647,6 +822,10 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         if (rawProgress >= 1.0) {
           this.state = SceneState.ACTIVE;
           const finishedScene = this.currentScene;
+
+          if (this._transitionOptions?.type === "pop" && finishedScene) {
+            runLifecycleSync(() => finishedScene.onResume());
+          }
 
           this._transitionResolve?.();
 
@@ -661,7 +840,9 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   /**
-   * Dispatches render call to active scene.
+   * Dispatches the render call to the active scene.
+   *
+   * @param alpha - Interpolation factor between 0 and 1.
    */
   public render(alpha: number): void {
     if (this.state === SceneState.ACTIVE && this.currentScene) {
@@ -669,17 +850,22 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     }
   }
 
-  /** Pauses active scene. */
+  /** Pauses the active scene. */
   public pause(): void {
     if (this.currentScene) this.currentScene.onPause();
   }
 
-  /** Resumes active scene. */
+  /** Resumes the active scene. */
   public resume(): void {
     if (this.currentScene) this.currentScene.onResume();
   }
 
-  /** Restart current scene. */
+  /**
+   * Restarts the currently active scene.
+   *
+   * @remarks
+   * Clears the scene's world, resets systems, and executes `onRestartCleanup()`.
+   */
   public async restartCurrentScene(): Promise<void> {
     if (this.currentScene) {
       const world = this.currentScene.getWorld();
@@ -691,8 +877,13 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   /**
-   * Binds a StoryRuntime instance.
-   * @deprecated Use CampaignScreen instead.
+   * Binds a StoryRuntime instance and a scene factory to enable data-driven scene switches.
+   * Preserves StoryRuntime state across scene transitions.
+   *
+   * @deprecated Use `CampaignScreen` and `GameDefinitionRegistry` for orchestrating multi-game campaign transitions instead.
+   *
+   * @param runtime - Active StoryRuntime instance.
+   * @param sceneFactory - Factory function creating a Scene for a given scene identifier.
    */
   public bindStoryRuntime(
     runtime: StoryRuntime,
@@ -714,7 +905,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   /**
-   * Shuts down manager and releases resources.
+   * Shuts down the manager and releases references.
    */
   public destroy(): void {
     this.sceneStack = [];

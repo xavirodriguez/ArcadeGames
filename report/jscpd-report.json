@@ -2,6 +2,43 @@
   "duplicates": [
     {
       "firstFile": {
+        "end": 182,
+        "endLoc": {
+          "column": 1,
+          "line": 182,
+          "position": 5003
+        },
+        "name": "ecs/EntityBuilder.ts",
+        "start": 172,
+        "startLoc": {
+          "column": 22,
+          "line": 172,
+          "position": 4763
+        }
+      },
+      "format": "typescript",
+      "fragment": "    return this.entity;\n  }\n\n  private addComponent(component: any): void {\n    if (this.useCommandBuffer) {\n      this.world.getCommandBuffer().addComponent(this.entity, component);\n    } else {\n      this.world.addComponent(this.entity, component);\n    }\n  }\n}",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 122,
+        "endLoc": {
+          "column": 1,
+          "line": 122,
+          "position": 3630
+        },
+        "name": "games/shared/arcade/builders/ArcadeEntityBuilder.ts",
+        "start": 112,
+        "startLoc": {
+          "column": 31,
+          "line": 112,
+          "position": 3390
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
         "end": 57,
         "endLoc": {
           "column": 87,
@@ -39,114 +76,447 @@
     },
     {
       "firstFile": {
-        "end": 53,
+        "end": 79,
         "endLoc": {
-          "column": 23,
-          "line": 53,
-          "position": 1577
+          "column": 18,
+          "line": 79,
+          "position": 3256
         },
-        "name": "physics/collision/NarrowPhase.ts",
-        "start": 43,
+        "name": "network/MultiplayerReconciler.ts",
+        "start": 63,
         "startLoc": {
-          "column": 2,
-          "line": 43,
-          "position": 1337
+          "column": 63,
+          "line": 63,
+          "position": 2709
         }
       },
       "format": "typescript",
-      "fragment": "  const state: SATOverlapState = {\n    minOverlap: Infinity,\n    mtvX: 0,\n    mtvY: 0\n  };\n\n  for (let i = 0; i < axes.length; i++) {\n    const axis = axes[i];\n    let minProjA = Infinity;\n    let maxProjA = -Infinity;\n    for (let j = 0; j < vertsA.length; j++) {",
+      "fragment": "    this.rollbackBuffer.saveSnapshot(serverTick, serverSnapshot);\n\n    // 3. Rollback resimulator: we fast-forward by stepping inputs starting from serverTick up to currentLocalTick.\n    const world = (this.simulation as any).world ?? (this.simulation as any).getWorld?.();\n    const prevIsReSimulating = world ? world.isReSimulating : false;\n    const random = world ? world.gameplayRandom : undefined;\n    const wasLocked = random ? random.isLocked() : false;\n\n    if (world) {\n      world.isReSimulating = true;\n    }\n    if (random && wasLocked) {\n      random.unlock();\n    }\n\n    try {\n      for (let t = serverTick; t <= currentLocalTick; t++) {",
       "isNew": false,
-      "lines": 11,
+      "lines": 17,
       "secondFile": {
-        "end": 117,
+        "end": 63,
         "endLoc": {
-          "column": 23,
-          "line": 117,
-          "position": 3390
+          "column": 18,
+          "line": 63,
+          "position": 2359
         },
-        "name": "physics/collision/NarrowPhase.ts",
-        "start": 107,
+        "name": "network/RollbackSimulation.ts",
+        "start": 47,
         "startLoc": {
-          "column": 2,
+          "column": 48,
+          "line": 47,
+          "position": 1874
+        }
+      },
+      "tokens": 96
+    },
+    {
+      "firstFile": {
+        "end": 283,
+        "endLoc": {
+          "column": 28,
+          "line": 283,
+          "position": 9874
+        },
+        "name": "network/NetworkManager.ts",
+        "start": 269,
+        "startLoc": {
+          "column": 21,
+          "line": 269,
+          "position": 9256
+        }
+      },
+      "format": "typescript",
+      "fragment": "      const valArray = soaData.values;\n      const nonNumericValues = soaData.nonNumericValues;\n      const booleanKeys = soaData.booleanKeys ? new Set(soaData.booleanKeys) : null;\n\n      for (let i = 0; i < numEntities; i++) {\n        const entityId = (entities as any)[i];\n        const component: Record<string, any> = { type };\n\n        for (let j = 0; j < numKeys; j++) {\n          const key = keys[j];\n          const offset = i * numKeys + j;\n          const nonNumericVal = nonNumericValues ? nonNumericValues[offset] : undefined;\n\n          if (nonNumericVal !== undefined && nonNumericVal !== null) {\n            component[key] = nonNumericVal;",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 107,
+        "endLoc": {
+          "column": 28,
           "line": 107,
-          "position": 3150
+          "position": 4097
+        },
+        "name": "snapshots/SnapshotRestoreSoA.ts",
+        "start": 91,
+        "startLoc": {
+          "column": 19,
+          "line": 91,
+          "position": 3424
         }
       },
-      "tokens": 64
+      "tokens": 130
     },
     {
       "firstFile": {
-        "end": 45,
+        "end": 51,
         "endLoc": {
-          "column": 11,
+          "column": 42,
+          "line": 51,
+          "position": 1881
+        },
+        "name": "physics/collision/BroadPhase.ts",
+        "start": 45,
+        "startLoc": {
+          "column": 4,
           "line": 45,
-          "position": 2291
-        },
-        "name": "physics/query/PhysicsQuery.ts",
-        "start": 35,
-        "startLoc": {
-          "column": 51,
-          "line": 35,
-          "position": 1673
+          "position": 1606
         }
       },
       "format": "typescript",
-      "fragment": "  >(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number): Entity[] {\n    const results: Entity[] = [];\n    const colliderType = \"Collider\" as Extract<keyof TComponents, string>;\n    const transformType = \"Transform\" as Extract<keyof TComponents, string>;\n    const entities = world.query(colliderType, transformType);\n    for (const entity of entities) {\n      const transform = world.getComponent(entity, transformType) as unknown as PhysicsTransformLike | undefined;\n      const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;\n      if (!transform || !collider || !collider.enabled) continue;\n\n      const bounds = getColliderWorldBounds(transform, collider);",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 134,
-        "endLoc": {
-          "column": 11,
-          "line": 134,
-          "position": 6156
-        },
-        "name": "physics/query/PhysicsQuery.ts",
-        "start": 124,
-        "startLoc": {
-          "column": 65,
-          "line": 124,
-          "position": 5538
-        }
-      },
-      "tokens": 122
-    },
-    {
-      "firstFile": {
-        "end": 56,
-        "endLoc": {
-          "column": 44,
-          "line": 56,
-          "position": 2750
-        },
-        "name": "physics/query/PhysicsQuery.ts",
-        "start": 50,
-        "startLoc": {
-          "column": 6,
-          "line": 50,
-          "position": 2465
-        }
-      },
-      "format": "typescript",
-      "fragment": "      const worldX = transform.worldX ?? transform.x;\n      const worldY = transform.worldY ?? transform.y;\n      const cx = worldX + (collider.offsetX ?? 0);\n      const cy = worldY + (collider.offsetY ?? 0);\n\n      const shape = collider.shape;\n      if (shape.type === ShapeType.Circle) {",
+      "fragment": "    const worldX = transform.worldX ?? transform.x;\n    const worldY = transform.worldY ?? transform.y;\n    const cx = worldX + (collider.offsetX ?? 0);\n    const cy = worldY + (collider.offsetY ?? 0);\n    const shape = collider.shape;\n\n    if (shape.type === ShapeType.Circle) {",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 23,
+        "end": 50,
         "endLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 916
+          "column": 44,
+          "line": 50,
+          "position": 2503
         },
-        "name": "physics/utils/PhysicsTransform.ts",
-        "start": 17,
+        "name": "physics/query/PhysicsQuery.ts",
+        "start": 44,
         "startLoc": {
-          "column": 2,
-          "line": 17,
-          "position": 651
+          "column": 6,
+          "line": 44,
+          "position": 2218
         }
       },
       "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 53,
+        "endLoc": {
+          "column": 7,
+          "line": 53,
+          "position": 1582
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 44,
+        "startLoc": {
+          "column": 36,
+          "line": 44,
+          "position": 1363
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const p2 = vertsA[(i + 1) % numA];\n    const edgeX = p2.x - p1.x;\n    const edgeY = p2.y - p1.y;\n    const len = Math.sqrt(edgeX * edgeX + edgeY * edgeY);\n    if (len > 0.0001) {\n      axes.push({ x: -edgeY / len, y: edgeX / len });\n    }\n  }\n\n  for (let i = 0; i < numB; i++) {",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 64,
+        "endLoc": {
+          "column": 7,
+          "line": 64,
+          "position": 1891
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 55,
+        "startLoc": {
+          "column": 36,
+          "line": 55,
+          "position": 1672
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 51,
+        "endLoc": {
+          "column": 3,
+          "line": 51,
+          "position": 1573
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 44,
+        "startLoc": {
+          "column": 36,
+          "line": 44,
+          "position": 1363
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const p2 = vertsA[(i + 1) % numA];\n    const edgeX = p2.x - p1.x;\n    const edgeY = p2.y - p1.y;\n    const len = Math.sqrt(edgeX * edgeX + edgeY * edgeY);\n    if (len > 0.0001) {\n      axes.push({ x: -edgeY / len, y: edgeX / len });\n    }\n  }",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 147,
+        "endLoc": {
+          "column": 3,
+          "line": 147,
+          "position": 3962
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 140,
+        "startLoc": {
+          "column": 39,
+          "line": 140,
+          "position": 3752
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 96,
+        "endLoc": {
+          "column": 14,
+          "line": 96,
+          "position": 2720
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 81,
+        "startLoc": {
+          "column": 4,
+          "line": 81,
+          "position": 2371
+        }
+      },
+      "format": "typescript",
+      "fragment": "    if (maxProjA < minProjB || maxProjB < minProjA) {\n      return manifold;\n    }\n\n    const overlap = Math.min(maxProjA, maxProjB) - Math.max(minProjA, minProjB);\n    if (overlap < minOverlap) {\n      minOverlap = overlap;\n      mtvX = axis.x;\n      mtvY = axis.y;\n    }\n  }\n\n  manifold.colliding = true;\n  manifold.depth = minOverlap;\n\n  const dirX = bx - ax;",
+      "isNew": false,
+      "lines": 16,
+      "secondFile": {
+        "end": 195,
+        "endLoc": {
+          "column": 14,
+          "line": 195,
+          "position": 5274
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 180,
+        "startLoc": {
+          "column": 4,
+          "line": 180,
+          "position": 4925
+        }
+      },
+      "tokens": 76
+    },
+    {
+      "firstFile": {
+        "end": 121,
+        "endLoc": {
+          "column": 1,
+          "line": 121,
+          "position": 3298
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 89,
+        "startLoc": {
+          "column": 19,
+          "line": 89,
+          "position": 2632
+        }
+      },
+      "format": "typescript",
+      "fragment": "      mtvY = axis.y;\n    }\n  }\n\n  manifold.colliding = true;\n  manifold.depth = minOverlap;\n\n  const dirX = bx - ax;\n  const dirY = by - ay;\n  const dot = dirX * mtvX + dirY * mtvY;\n  if (dot < 0) {\n    manifold.normalX = -mtvX;\n    manifold.normalY = -mtvY;\n  } else {\n    manifold.normalX = mtvX;\n    manifold.normalY = mtvY;\n  }\n\n  let closestVertex = vertsB[0];\n  let minDist = Infinity;\n  for (const v of vertsB) {\n    const dx = v.x - ax;\n    const dy = v.y - ay;\n    const dist = dx * dx + dy * dy;\n    if (dist < minDist) {\n      minDist = dist;\n      closestVertex = v;\n    }\n  }\n  manifold.contactPoints.push({ x: closestVertex.x, y: closestVertex.y });\n\n  return manifold;\n}",
+      "isNew": false,
+      "lines": 33,
+      "secondFile": {
+        "end": 471,
+        "endLoc": {
+          "column": 3,
+          "line": 471,
+          "position": 14362
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 439,
+        "startLoc": {
+          "column": 20,
+          "line": 439,
+          "position": 13640
+        }
+      },
+      "tokens": 169
+    },
+    {
+      "firstFile": {
+        "end": 105,
+        "endLoc": {
+          "column": 3,
+          "line": 105,
+          "position": 2944
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 97,
+        "startLoc": {
+          "column": 18,
+          "line": 97,
+          "position": 2748
+        }
+      },
+      "format": "typescript",
+      "fragment": "  const dirY = by - ay;\n  const dot = dirX * mtvX + dirY * mtvY;\n  if (dot < 0) {\n    manifold.normalX = -mtvX;\n    manifold.normalY = -mtvY;\n  } else {\n    manifold.normalX = mtvX;\n    manifold.normalY = mtvY;\n  }",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 204,
+        "endLoc": {
+          "column": 3,
+          "line": 204,
+          "position": 5498
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 196,
+        "startLoc": {
+          "column": 18,
+          "line": 196,
+          "position": 5302
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 123,
+        "endLoc": {
+          "column": 8,
+          "line": 123,
+          "position": 3308
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 97,
+        "startLoc": {
+          "column": 22,
+          "line": 97,
+          "position": 2752
+        }
+      },
+      "format": "typescript",
+      "fragment": "  const dirY = by - ay;\n  const dot = dirX * mtvX + dirY * mtvY;\n  if (dot < 0) {\n    manifold.normalX = -mtvX;\n    manifold.normalY = -mtvY;\n  } else {\n    manifold.normalX = mtvX;\n    manifold.normalY = mtvY;\n  }\n\n  let closestVertex = vertsB[0];\n  let minDist = Infinity;\n  for (const v of vertsB) {\n    const dx = v.x - ax;\n    const dy = v.y - ay;\n    const dist = dx * dx + dy * dy;\n    if (dist < minDist) {\n      minDist = dist;\n      closestVertex = v;\n    }\n  }\n  manifold.contactPoints.push({ x: closestVertex.x, y: closestVertex.y });\n\n  return manifold;\n}\n\nfunction testPolygonVsCircle(",
+      "isNew": false,
+      "lines": 27,
+      "secondFile": {
+        "end": 472,
+        "endLoc": {
+          "column": 1,
+          "line": 472,
+          "position": 14364
+        },
+        "name": "physics/collision/NarrowPhase.ts",
+        "start": 447,
+        "startLoc": {
+          "column": 24,
+          "line": 447,
+          "position": 13772
+        }
+      },
+      "tokens": 141
+    },
+    {
+      "firstFile": {
+        "end": 49,
+        "endLoc": {
+          "column": 11,
+          "line": 49,
+          "position": 2434
+        },
+        "name": "physics/query/PhysicsQuery.ts",
+        "start": 34,
+        "startLoc": {
+          "column": 51,
+          "line": 34,
+          "position": 1605
+        }
+      },
+      "format": "typescript",
+      "fragment": "  >(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number): Entity[] {\n    const results: Entity[] = [];\n    const colliderType = \"Collider\" as Extract<keyof TComponents, string>;\n    const transformType = \"Transform\" as Extract<keyof TComponents, string>;\n    const entities = world.query(colliderType, transformType);\n    for (const entity of entities) {\n      const transform = world.getComponent(entity, transformType) as unknown as PhysicsTransformLike | undefined;\n      const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;\n      if (!transform || !collider || !collider.enabled) continue;\n\n      const worldX = transform.worldX ?? transform.x;\n      const worldY = transform.worldY ?? transform.y;\n      const cx = worldX + (collider.offsetX ?? 0);\n      const cy = worldY + (collider.offsetY ?? 0);\n\n      const shape = collider.shape;",
+      "isNew": false,
+      "lines": 16,
+      "secondFile": {
+        "end": 132,
+        "endLoc": {
+          "column": 11,
+          "line": 132,
+          "position": 6119
+        },
+        "name": "physics/query/PhysicsQuery.ts",
+        "start": 118,
+        "startLoc": {
+          "column": 65,
+          "line": 118,
+          "position": 5291
+        }
+      },
+      "tokens": 170
+    },
+    {
+      "firstFile": {
+        "end": 65,
+        "endLoc": {
+          "column": 9,
+          "line": 65,
+          "position": 3132
+        },
+        "name": "physics/systems/BoundarySystem.ts",
+        "start": 53,
+        "startLoc": {
+          "column": 71,
+          "line": 53,
+          "position": 2669
+        }
+      },
+      "format": "typescript",
+      "fragment": "          const reclaimable = world.getComponent(entity, \"Reclaimable\");\n          if (reclaimable) {\n            if (typeof reclaimable.onReclaim === \"function\") {\n              reclaimable.onReclaim({ world, entity });\n            } else {\n              const pool = world.getResource<any>(reclaimable.poolId);\n              if (pool && typeof pool.release === \"function\") {\n                pool.release({ world, entity });\n              }\n            }\n          }\n          world.getCommandBuffer().removeEntity(entity);\n        }",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 166,
+        "endLoc": {
+          "column": 3,
+          "line": 166,
+          "position": 6371
+        },
+        "name": "games/shared/combat/systems/CombatSystem.ts",
+        "start": 154,
+        "startLoc": {
+          "column": 79,
+          "line": 154,
+          "position": 5980
+        }
+      },
+      "tokens": 83
+    },
+    {
+      "firstFile": {
+        "end": 66,
+        "endLoc": {
+          "column": 5,
+          "line": 66,
+          "position": 2610
+        },
+        "name": "physics/systems/FrictionSystem.ts",
+        "start": 47,
+        "startLoc": {
+          "column": 24,
+          "line": 47,
+          "position": 1888
+        }
+      },
+      "format": "typescript",
+      "fragment": "        if (!f) continue;\n        const v = world.getComponent(entity, \"Velocity\");\n        if (!v) continue;\n\n        // Safe for determinism/rollback. Bypasses getMutableComponent for resting entities (vx === 0 && vy === 0 && !angularVelocity) to prevent unnecessary stateVersion bumps and component clones.\n        if (v.vx === 0 && v.vy === 0 && (!v.angularVelocity || v.angularVelocity === 0)) {\n          continue;\n        }\n\n        const vel = world.getMutableComponent(entity, \"Velocity\");\n        if (vel) {\n          const factor = Math.exp(-f.value * deltaTime);\n          vel.vx *= factor;\n          vel.vy *= factor;\n          if (vel.angularVelocity) {\n            vel.angularVelocity *= factor;\n          }\n        }\n      }\n    } else {",
+      "isNew": false,
+      "lines": 20,
+      "secondFile": {
+        "end": 91,
+        "endLoc": {
+          "column": 5,
+          "line": 91,
+          "position": 3685
+        },
+        "name": "physics/systems/FrictionSystem.ts",
+        "start": 72,
+        "startLoc": {
+          "column": 57,
+          "line": 72,
+          "position": 2963
+        }
+      },
+      "tokens": 112
     },
     {
       "firstFile": {
@@ -187,77 +557,77 @@
     },
     {
       "firstFile": {
-        "end": 113,
+        "end": 98,
         "endLoc": {
-          "column": 20,
-          "line": 113,
-          "position": 4509
+          "column": 22,
+          "line": 98,
+          "position": 4387
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 106,
+        "start": 90,
         "startLoc": {
           "column": 67,
-          "line": 106,
-          "position": 4233
+          "line": 90,
+          "position": 4071
         }
       },
       "format": "typescript",
-      "fragment": "      let maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);\n\n      forEachTileInBounds(minTileX, minTileY, maxTileX, maxTileY, (tx, ty) => {\n        const tileId = tilemap.data[ty] && tilemap.data[ty][tx];\n        if (tileId === undefined || tileId === 0) return;\n\n        const tileDef = tileDefinitions[tileId];\n        if (!tileDef || !tileDef.solid || tileDef.oneWay) return;",
+      "fragment": "      let maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);\n\n      for (let ty = minTileY; ty <= maxTileY; ty++) {\n        for (let tx = minTileX; tx <= maxTileX; tx++) {\n          const tileId = tilemap.data[ty] && tilemap.data[ty][tx];\n          if (tileId === undefined || tileId === 0) continue;\n\n          const tileDef = tileDefinitions[tileId];\n          if (!tileDef || !tileDef.solid || tileDef.oneWay) continue;",
       "isNew": false,
-      "lines": 8,
+      "lines": 9,
       "secondFile": {
-        "end": 150,
+        "end": 137,
         "endLoc": {
-          "column": 20,
-          "line": 150,
-          "position": 5792
+          "column": 22,
+          "line": 137,
+          "position": 5734
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 143,
+        "start": 129,
         "startLoc": {
           "column": 26,
-          "line": 143,
-          "position": 5516
+          "line": 129,
+          "position": 5418
         }
       },
-      "tokens": 62
+      "tokens": 75
     },
     {
       "firstFile": {
-        "end": 174,
+        "end": 161,
         "endLoc": {
-          "column": 13,
-          "line": 174,
-          "position": 6678
+          "column": 15,
+          "line": 161,
+          "position": 6658
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 161,
+        "start": 148,
         "startLoc": {
-          "column": 40,
-          "line": 161,
-          "position": 6174
+          "column": 42,
+          "line": 148,
+          "position": 6134
         }
       },
       "format": "typescript",
-      "fragment": "            if (isDescending && wasAbove) {\n              trans.y = tileTop - halfH - offsetY;\n              vel.vy = 0;\n              isGrounded = true;\n              if (tileDef.kind === \"ice\") {\n                onIce = true;\n              } else if (tileDef.kind === \"bounce\") {\n                vel.vy = -oldVy * (tileDef.bounce ?? 0.8);\n                isGrounded = false;\n              } else if (tileDef.kind === \"spike\") {\n                this.handleSpikeCollision(world, entity);\n              }\n              return true;\n            }",
+      "fragment": "              if (isDescending && wasAbove) {\n                trans.y = tileTop - halfH - offsetY;\n                vel.vy = 0;\n                isGrounded = true;\n                if (tileDef.kind === \"ice\") {\n                  onIce = true;\n                } else if (tileDef.kind === \"bounce\") {\n                  vel.vy = -oldVy * (tileDef.bounce ?? 0.8);\n                  isGrounded = false;\n                } else if (tileDef.kind === \"spike\") {\n                  this.handleSpikeCollision(world, entity);\n                }\n                break;\n              }",
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 189,
+        "end": 176,
         "endLoc": {
-          "column": 13,
-          "line": 189,
-          "position": 7227
+          "column": 15,
+          "line": 176,
+          "position": 7231
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 176,
+        "start": 163,
         "startLoc": {
-          "column": 25,
-          "line": 176,
-          "position": 6723
+          "column": 27,
+          "line": 163,
+          "position": 6707
         }
       },
-      "tokens": 90
+      "tokens": 89
     },
     {
       "firstFile": {
@@ -298,151 +668,447 @@
     },
     {
       "firstFile": {
-        "end": 258,
+        "end": 263,
         "endLoc": {
-          "column": 77,
-          "line": 258,
-          "position": 9012
+          "column": 14,
+          "line": 263,
+          "position": 9242
         },
         "name": "scenes/SceneManager.ts",
-        "start": 243,
+        "start": 245,
         "startLoc": {
           "column": 6,
-          "line": 243,
-          "position": 8426
+          "line": 245,
+          "position": 8643
         }
       },
       "format": "typescript",
-      "fragment": "      return this.enqueueTransition(async () => {\n        const eventBus = this.eventBus;\n        if (eventBus && scene) {\n          eventBus.emit(\"scene:transition:start\", { scene });\n        }\n\n        this.transitionProgress = 0;\n        if (eventBus) {\n          eventBus.emit(\"scene:transition:progress\", { progress: 0 });\n        }\n\n        const myToken = ++this.transitionToken;\n        const oldScene = this.currentScene;\n        const oldStack = [...this.sceneStack];\n        const oldState = this.state;\n        const timeoutMs = context.options?.timeout ?? this.transitionTimeout;",
+      "fragment": "      return this.enqueueTransition(async () => {\n        const eventBus = this.eventBus;\n        if (eventBus) {\n          eventBus.emit(\"scene:transition:start\", { scene });\n        }\n\n        this.transitionProgress = 0;\n        if (eventBus) {\n          eventBus.emit(\"scene:transition:progress\", { progress: 0 });\n        }\n\n        const myToken = ++this.transitionToken;\n        const oldScene = this.currentScene;\n        const oldStack = [...this.sceneStack];\n        const oldState = this.state;\n        const timeoutMs = options?.timeout ?? this.transitionTimeout;\n\n        try {\n          if (this.currentScene) {",
       "isNew": false,
-      "lines": 16,
+      "lines": 19,
       "secondFile": {
-        "end": 332,
+        "end": 367,
         "endLoc": {
-          "column": 75,
-          "line": 332,
-          "position": 11357
+          "column": 12,
+          "line": 367,
+          "position": 12531
         },
         "name": "scenes/SceneManager.ts",
-        "start": 317,
+        "start": 349,
         "startLoc": {
           "column": 4,
-          "line": 317,
-          "position": 10797
+          "line": 349,
+          "position": 11962
         }
       },
       "tokens": 106
     },
     {
       "firstFile": {
-        "end": 302,
+        "end": 309,
+        "endLoc": {
+          "column": 41,
+          "line": 309,
+          "position": 10723
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 296,
+        "startLoc": {
+          "column": 12,
+          "line": 296,
+          "position": 10361
+        }
+      },
+      "format": "typescript",
+      "fragment": "            await runLifecycleAsync(async () => {\n              await scene.onEnter(scene.getWorld());\n            });\n          })();\n\n          try {\n            await Promise.race([loadPromise, timeoutPromise]);\n          } finally {\n            clearTimer();\n          }\n\n          if (myToken !== this.transitionToken) return;\n\n          this.state = SceneState.ACTIVE;",
+      "isNew": false,
+      "lines": 14,
+      "secondFile": {
+        "end": 497,
+        "endLoc": {
+          "column": 41,
+          "line": 497,
+          "position": 16817
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 484,
+        "startLoc": {
+          "column": 12,
+          "line": 484,
+          "position": 16455
+        }
+      },
+      "tokens": 68
+    },
+    {
+      "firstFile": {
+        "end": 336,
         "endLoc": {
           "column": 25,
-          "line": 302,
-          "position": 10423
+          "line": 336,
+          "position": 11632
         },
         "name": "scenes/SceneManager.ts",
-        "start": 281,
+        "start": 316,
         "startLoc": {
           "column": 31,
-          "line": 281,
-          "position": 9731
+          "line": 316,
+          "position": 10976
         }
       },
       "format": "typescript",
-      "fragment": "        } catch (error: unknown) {\n          if (myToken !== this.transitionToken) return;\n          this.transitionToken++;\n\n          const isTimeout = error instanceof Error && error.message === timeoutMsg;\n\n          if (eventBus) {\n            if (scene) {\n              if (isTimeout) {\n                eventBus.emit(\"scene:transition:timeout\", { scene, error });\n              } else {\n                eventBus.emit(\"scene:transition:error\", { scene, error });\n              }\n            }\n            eventBus.emit(\"scene:error\", { action: context.type, error });\n          }\n\n          this.currentScene = oldScene;\n          this.sceneStack = oldStack;\n          this.state = oldState;\n\n          if (oldScene) {",
+      "fragment": "        } catch (error: unknown) {\n          if (myToken !== this.transitionToken) return;\n\n          this.transitionToken++;\n\n          const isTimeout = error instanceof Error && error.message === \"Transition timed out\";\n\n          if (eventBus) {\n            if (isTimeout) {\n              eventBus.emit(\"scene:transition:timeout\", { scene, error });\n            } else {\n              eventBus.emit(\"scene:transition:error\", { scene, error });\n            }\n            eventBus.emit(\"scene:error\", { action: \"transition\", error });\n          }\n\n          this.currentScene = oldScene;\n          this.sceneStack = oldStack;\n          this.state = oldState;\n\n          if (oldScene) {",
       "isNew": false,
-      "lines": 22,
+      "lines": 21,
       "secondFile": {
-        "end": 417,
+        "end": 438,
         "endLoc": {
           "column": 23,
-          "line": 417,
-          "position": 14294
+          "line": 438,
+          "position": 14969
         },
         "name": "scenes/SceneManager.ts",
-        "start": 397,
+        "start": 420,
         "startLoc": {
           "column": 20,
-          "line": 397,
-          "position": 13637
+          "line": 420,
+          "position": 14345
         }
       },
-      "tokens": 117
+      "tokens": 109
     },
     {
       "firstFile": {
-        "end": 445,
+        "end": 374,
         "endLoc": {
-          "column": 13,
-          "line": 445,
-          "position": 15083
+          "column": 63,
+          "line": 374,
+          "position": 12801
         },
         "name": "scenes/SceneManager.ts",
-        "start": 433,
+        "start": 360,
         "startLoc": {
-          "column": 26,
-          "line": 433,
-          "position": 14696
+          "column": 6,
+          "line": 360,
+          "position": 12276
         }
       },
       "format": "typescript",
-      "fragment": "      type: \"transitionTo\",\n      options,\n      executeLifecycle: async (token) => {\n        if (this.currentScene) {\n          this.state = SceneState.UNLOADING;\n          const oldSceneRef = this.currentScene;\n          await runLifecycleAsync(async () => {\n            await oldSceneRef.onExit(oldSceneRef.getWorld());\n          });\n        }\n        if (token !== this.transitionToken) return;\n\n        this.transitionProgress = 0.3;",
+      "fragment": "      const myToken = ++this.transitionToken;\n      const oldScene = this.currentScene;\n      const oldStack = [...this.sceneStack];\n      const oldState = this.state;\n      const timeoutMs = options?.timeout ?? this.transitionTimeout;\n\n      try {\n        if (oldScene) {\n          runLifecycleSync(() => oldScene.onPause());\n        }\n\n        this.state = SceneState.UNLOADING;\n        this._transitionOldScene = oldScene;\n        this._transitionNewScene = scene;\n        this._transitionOptions = { ...options, duration, type: \"transitionTo\" };",
       "isNew": false,
-      "lines": 13,
+      "lines": 15,
       "secondFile": {
-        "end": 556,
+        "end": 536,
         "endLoc": {
-          "column": 13,
-          "line": 556,
-          "position": 18407
+          "column": 63,
+          "line": 536,
+          "position": 17999
         },
         "name": "scenes/SceneManager.ts",
-        "start": 544,
+        "start": 522,
         "startLoc": {
-          "column": 21,
-          "line": 544,
-          "position": 18020
+          "column": 6,
+          "line": 522,
+          "position": 17474
         }
       },
-      "tokens": 69
+      "tokens": 95
     },
     {
       "firstFile": {
-        "end": 498,
+        "end": 381,
         "endLoc": {
-          "column": 26,
-          "line": 498,
-          "position": 16643
+          "column": 106,
+          "line": 381,
+          "position": 13162
         },
         "name": "scenes/SceneManager.ts",
-        "start": 486,
+        "start": 374,
         "startLoc": {
-          "column": 8,
-          "line": 486,
-          "position": 16279
+          "column": 79,
+          "line": 374,
+          "position": 12817
         }
       },
       "format": "typescript",
-      "fragment": "        this.state = SceneState.LOADING;\n        this.currentScene = scene;\n\n        if (this.onWorldCreated) {\n          await this.onWorldCreated(scene.getWorld());\n        }\n        if (token !== this.transitionToken) return;\n\n        await runLifecycleAsync(async () => {\n          await scene.onEnter(scene.getWorld());\n        });\n      },\n      updateStack: () => {",
+      "fragment": "        this._transitionOptions = { ...options, duration, type: \"transitionTo\" };\n\n        const effectOption = options?.effect ?? \"fade\";\n        this._activeTransitionEffect = resolveTransitionEffect(effectOption) ?? TransitionRegistry.fade;\n        this._transitionElapsed = 0;\n        this._onExitCalled = false;\n\n        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, \"Transition timed out\");",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 543,
+        "endLoc": {
+          "column": 106,
+          "line": 543,
+          "position": 18352
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 536,
+        "startLoc": {
+          "column": 71,
+          "line": 536,
+          "position": 18007
+        }
+      },
+      "tokens": 53
+    },
+    {
+      "firstFile": {
+        "end": 424,
+        "endLoc": {
+          "column": 13,
+          "line": 424,
+          "position": 14449
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 381,
+        "startLoc": {
+          "column": 129,
+          "line": 381,
+          "position": 13185
+        }
+      },
+      "format": "typescript",
+      "fragment": "        const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(timeoutMs, \"Transition timed out\");\n\n        let onEnterResolved = false;\n        let onEnterError: any = null;\n\n        const loadPromise = (async () => {\n          if (this.onWorldCreated) {\n            await this.onWorldCreated(scene.getWorld());\n          }\n\n          if (myToken !== this.transitionToken) return;\n\n          await runLifecycleAsync(async () => {\n            await scene.onEnter(scene.getWorld());\n          });\n        })().then(() => {\n          onEnterResolved = true;\n        }).catch((err) => {\n          onEnterError = err;\n        });\n\n        const loadWithTimeout = Promise.race([loadPromise, timeoutPromise]).finally(() => {\n          clearTimer();\n        });\n\n        await new Promise<void>((resolve, reject) => {\n          this._transitionResolve = () => {\n            this._cleanupTransition();\n            resolve();\n          };\n          this._transitionReject = (err) => {\n            this._cleanupTransition();\n            reject(err);\n          };\n          this._incomingLoadPromise = loadWithTimeout as any;\n          this._onEnterResolved = () => onEnterResolved;\n          this._onEnterError = () => onEnterError;\n        });\n\n      } catch (error) {\n        if (myToken !== this.transitionToken) return;\n        this.transitionToken++;\n\n        const isTimeout = error instanceof Error && error.message === \"Transition timed out\";",
+      "isNew": false,
+      "lines": 44,
+      "secondFile": {
+        "end": 586,
+        "endLoc": {
+          "column": 13,
+          "line": 586,
+          "position": 19644
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 543,
+        "startLoc": {
+          "column": 134,
+          "line": 543,
+          "position": 18380
+        }
+      },
+      "tokens": 242
+    },
+    {
+      "firstFile": {
+        "end": 396,
+        "endLoc": {
+          "column": 12,
+          "line": 396,
+          "position": 13597
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 384,
+        "startLoc": {
+          "column": 36,
+          "line": 384,
+          "position": 13262
+        }
+      },
+      "format": "typescript",
+      "fragment": "        let onEnterError: any = null;\n\n        const loadPromise = (async () => {\n          if (this.onWorldCreated) {\n            await this.onWorldCreated(scene.getWorld());\n          }\n\n          if (myToken !== this.transitionToken) return;\n\n          await runLifecycleAsync(async () => {\n            await scene.onEnter(scene.getWorld());\n          });\n        })().then(() => {",
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 568,
+        "end": 487,
         "endLoc": {
-          "column": 26,
-          "line": 568,
-          "position": 18766
+          "column": 14,
+          "line": 487,
+          "position": 16576
         },
         "name": "scenes/SceneManager.ts",
-        "start": 556,
+        "start": 475,
         "startLoc": {
-          "column": 8,
-          "line": 556,
-          "position": 18402
+          "column": 35,
+          "line": 475,
+          "position": 16223
         }
       },
-      "tokens": 75
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 415,
+        "endLoc": {
+          "column": 37,
+          "line": 415,
+          "position": 14179
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 404,
+        "startLoc": {
+          "column": 10,
+          "line": 404,
+          "position": 13842
+        }
+      },
+      "format": "typescript",
+      "fragment": "        });\n\n        await new Promise<void>((resolve, reject) => {\n          this._transitionResolve = () => {\n            this._cleanupTransition();\n            resolve();\n          };\n          this._transitionReject = (err) => {\n            this._cleanupTransition();\n            reject(err);\n          };\n          this._incomingLoadPromise = loadWithTimeout as any;",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 717,
+        "endLoc": {
+          "column": 37,
+          "line": 717,
+          "position": 23945
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 706,
+        "startLoc": {
+          "column": 38,
+          "line": 706,
+          "position": 23608
+        }
+      },
+      "tokens": 61
+    },
+    {
+      "firstFile": {
+        "end": 455,
+        "endLoc": {
+          "column": 14,
+          "line": 455,
+          "position": 15379
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 431,
+        "startLoc": {
+          "column": 61,
+          "line": 431,
+          "position": 14817
+        }
+      },
+      "format": "typescript",
+      "fragment": "          eventBus.emit(\"scene:error\", { action: \"transition\", error });\n        }\n\n        this.currentScene = oldScene;\n        this.sceneStack = oldStack;\n        this.state = oldState;\n\n        if (oldScene) {\n          runLifecycleSync(() => oldScene.onResume());\n        }\n\n        this._cleanupTransition();\n        throw error;\n      }\n    });\n  }\n\n  /**\n   * Pushes a new scene onto the stack, pausing the current one.\n   *\n   * @param scene - The Scene to push.\n   * @param options - Visual transition configurations.\n   * @returns A promise that resolves when the push operation is complete.\n   */\n  public async push(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void> {",
+      "isNew": false,
+      "lines": 25,
+      "secondFile": {
+        "end": 611,
+        "endLoc": {
+          "column": 14,
+          "line": 611,
+          "position": 20329
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 588,
+        "startLoc": {
+          "column": 55,
+          "line": 588,
+          "position": 19801
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 509,
+        "endLoc": {
+          "column": 22,
+          "line": 509,
+          "position": 17236
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 497,
+        "startLoc": {
+          "column": 40,
+          "line": 497,
+          "position": 16816
+        }
+      },
+      "format": "typescript",
+      "fragment": "          this.state = SceneState.ACTIVE;\n        } catch (error) {\n          if (myToken !== this.transitionToken) return;\n\n          this.transitionToken++;\n          const eventBus = this.world.getResource<EventBus<SceneEventRegistry>>(\"EventBus\");\n          if (eventBus) {\n            eventBus.emit(\"scene:error\", { action: \"push\", error });\n          }\n\n          this.currentScene = oldScene;\n          this.sceneStack = oldStack;\n          this.state = previousState;",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 593,
+        "endLoc": {
+          "column": 20,
+          "line": 593,
+          "position": 19918
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 580,
+        "startLoc": {
+          "column": 10,
+          "line": 580,
+          "position": 19517
+        }
+      },
+      "tokens": 77
+    },
+    {
+      "firstFile": {
+        "end": 625,
+        "endLoc": {
+          "column": 13,
+          "line": 625,
+          "position": 20859
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 615,
+        "startLoc": {
+          "column": 6,
+          "line": 615,
+          "position": 20466
+        }
+      },
+      "format": "typescript",
+      "fragment": "      return this.enqueueTransition(async () => {\n        const eventBus = this.world.getResource<EventBus<SceneEventRegistry>>(\"EventBus\");\n        if (this.sceneStack.length <= 1) {\n          if (eventBus) {\n            eventBus.emit(\"scene:warning\", { message: \"Cannot pop the last scene.\" });\n          }\n          return;\n        }\n\n        const myToken = ++this.transitionToken;\n        const previousState = this.state;",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 685,
+        "endLoc": {
+          "column": 11,
+          "line": 685,
+          "position": 22768
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 675,
+        "startLoc": {
+          "column": 4,
+          "line": 675,
+          "position": 22393
+        }
+      },
+      "tokens": 70
+    },
+    {
+      "firstFile": {
+        "end": 667,
+        "endLoc": {
+          "column": 22,
+          "line": 667,
+          "position": 22302
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 656,
+        "startLoc": {
+          "column": 40,
+          "line": 656,
+          "position": 21976
+        }
+      },
+      "format": "typescript",
+      "fragment": "          this.state = SceneState.ACTIVE;\n        } catch (error) {\n          if (myToken !== this.transitionToken) return;\n\n          this.transitionToken++;\n          if (eventBus) {\n            eventBus.emit(\"scene:error\", { action: \"pop\", error });\n          }\n\n          this.currentScene = oldScene;\n          this.sceneStack = oldStack;\n          this.state = previousState;",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 732,
+        "endLoc": {
+          "column": 20,
+          "line": 732,
+          "position": 24392
+        },
+        "name": "scenes/SceneManager.ts",
+        "start": 720,
+        "startLoc": {
+          "column": 10,
+          "line": 720,
+          "position": 24083
+        }
+      },
+      "tokens": 59
     },
     {
       "firstFile": {
@@ -835,18 +1501,18 @@
       "isNew": false,
       "lines": 25,
       "secondFile": {
-        "end": 100,
+        "end": 64,
         "endLoc": {
           "column": 39,
-          "line": 100,
-          "position": 3687
+          "line": 64,
+          "position": 2510
         },
         "name": "snapshots/SnapshotRestoreSoA.ts",
-        "start": 76,
+        "start": 40,
         "startLoc": {
           "column": 84,
-          "line": 76,
-          "position": 2884
+          "line": 40,
+          "position": 1707
         }
       },
       "tokens": 182
@@ -862,9 +1528,9 @@
         "name": "snapshots/SnapshotRestore.ts",
         "start": 66,
         "startLoc": {
-          "column": 44,
+          "column": 42,
           "line": 66,
-          "position": 2644
+          "position": 2642
         }
       },
       "format": "typescript",
@@ -872,29 +1538,29 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 40,
+        "end": 77,
         "endLoc": {
-          "column": 9,
-          "line": 40,
-          "position": 1464
+          "column": 11,
+          "line": 77,
+          "position": 2908
         },
         "name": "snapshots/SnapshotRestoreSoA.ts",
-        "start": 31,
+        "start": 68,
         "startLoc": {
-          "column": 10,
-          "line": 31,
-          "position": 1177
+          "column": 39,
+          "line": 68,
+          "position": 2605
         }
       },
-      "tokens": 75
+      "tokens": 76
     },
     {
       "firstFile": {
-        "end": 91,
+        "end": 98,
         "endLoc": {
-          "column": 7,
-          "line": 91,
-          "position": 3599
+          "column": 1,
+          "line": 98,
+          "position": 3736
         },
         "name": "snapshots/SnapshotRestore.ts",
         "start": 81,
@@ -905,25 +1571,62 @@
         }
       },
       "format": "typescript",
-      "fragment": "        storage.set(entityId, component);\n        index.add(entityId);\n        versions.set(entityId, world[\"_stateVersion\"]);\n\n        let componentSet = world[\"entityComponentSets\"].get(entityId);\n        if (!componentSet) {\n          componentSet = new Set();\n          world[\"entityComponentSets\"].set(entityId, componentSet);\n        }\n        componentSet.add(type);\n      }",
+      "fragment": "        storage.set(entityId, component);\n        index.add(entityId);\n        versions.set(entityId, world[\"_stateVersion\"]);\n\n        let componentSet = world[\"entityComponentSets\"].get(entityId);\n        if (!componentSet) {\n          componentSet = new Set();\n          world[\"entityComponentSets\"].set(entityId, componentSet);\n        }\n        componentSet.add(type);\n      }\n    }\n\n    world[\"queries\"].forEach(query => {\n      query.rebuild(world[\"activeEntities\"], world[\"entityComponentSets\"]);\n    });\n  }\n}",
       "isNew": false,
-      "lines": 11,
+      "lines": 18,
       "secondFile": {
-        "end": 53,
+        "end": 135,
         "endLoc": {
-          "column": 5,
-          "line": 53,
-          "position": 1944
+          "column": 1,
+          "line": 135,
+          "position": 4922
         },
         "name": "snapshots/SnapshotRestoreSoA.ts",
-        "start": 43,
+        "start": 118,
         "startLoc": {
-          "column": 6,
-          "line": 43,
-          "position": 1589
+          "column": 8,
+          "line": 118,
+          "position": 4412
         }
       },
-      "tokens": 75
+      "tokens": 106
+    },
+    {
+      "firstFile": {
+        "end": 91,
+        "endLoc": {
+          "column": 11,
+          "line": 91,
+          "position": 3416
+        },
+        "name": "snapshots/SnapshotRestoreSoA.ts",
+        "start": 80,
+        "startLoc": {
+          "column": 30,
+          "line": 80,
+          "position": 3060
+        }
+      },
+      "format": "typescript",
+      "fragment": "      const entities = soaData.entities;\n\n      let numEntities = 0;\n      if (entities) {\n        if (typeof (entities as unknown as { length?: number }).length === \"number\") {\n          numEntities = (entities as unknown as { length: number }).length;\n        } else {\n          numEntities = Object.keys(entities).filter(k => !isNaN(Number(k))).length;\n        }\n      }\n\n      const values = soaData.values;",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 277,
+        "endLoc": {
+          "column": 9,
+          "line": 277,
+          "position": 10842
+        },
+        "name": "snapshots/WorldSnapshot.ts",
+        "start": 265,
+        "startLoc": {
+          "column": 25,
+          "line": 265,
+          "position": 10463
+        }
+      },
+      "tokens": 81
     },
     {
       "firstFile": {
@@ -10066,32 +10769,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-03T16:57:05.737Z",
+    "detectionDate": "2026-09-03T17:25:46.960Z",
     "formats": {
       "typescript": {
-        "clones": 261,
-        "duplicatedLines": 3087,
-        "duplicatedTokens": 22520,
-        "lines": 50430,
+        "clones": 291,
+        "duplicatedLines": 3496,
+        "duplicatedTokens": 25076,
+        "lines": 55445,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 6.121356335514575,
-        "percentageTokens": 8.306683339050632,
-        "sources": 312,
-        "tokens": 271107
+        "percentage": 6.305347641807196,
+        "percentageTokens": 8.513412120985784,
+        "sources": 367,
+        "tokens": 294547
       }
     },
     "total": {
-      "clones": 261,
-      "duplicatedLines": 3087,
-      "duplicatedTokens": 22520,
-      "lines": 50430,
+      "clones": 291,
+      "duplicatedLines": 3496,
+      "duplicatedTokens": 25076,
+      "lines": 55445,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 6.121356335514575,
-      "percentageTokens": 8.306683339050632,
-      "sources": 312,
-      "tokens": 271107
+      "percentage": 6.305347641807196,
+      "percentageTokens": 8.513412120985784,
+      "sources": 367,
+      "tokens": 294547
     }
   }
 }

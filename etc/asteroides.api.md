@@ -576,12 +576,6 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
 }
 
 // @public
-export function checkProjectionOverlap(minA: number, maxA: number, minB: number, maxB: number, axis: {
-    x: number;
-    y: number;
-}, state: SATOverlapState): boolean;
-
-// @public
 export interface CircleShape extends BaseShape {
     radius: number;
     type: ShapeType.Circle;
@@ -1382,25 +1376,16 @@ export type Entity = number;
 
 // @public
 export class EntityBuilder {
-    protected constructor(world: World<any>, entity: Entity, useCommandBuffer?: boolean);
-    // (undocumented)
-    protected addComponent(component: any): void;
     build(): Entity;
     static create(world: World<any>): EntityBuilder;
     static createDeferred(world: World<any>): EntityBuilder;
-    // (undocumented)
-    protected readonly entity: Entity;
     static fromEntity(world: World<any>, entity: Entity): EntityBuilder;
-    // (undocumented)
-    protected readonly useCommandBuffer: boolean;
     withCollider(config: Partial<Omit<ColliderComponent, "type">>): this;
     withCollisionEvents(): this;
     withRender(config?: Partial<Omit<RenderComponent, "type">>): this;
     withTransform(config?: Partial<Omit<TransformComponent, "type">>): this;
     withTTL(remaining: number, onCompleteEvent?: string): this;
     withVelocity(config?: Partial<Omit<VelocityComponent, "type">>): this;
-    // (undocumented)
-    protected readonly world: World<any>;
 }
 
 // @public
@@ -1457,15 +1442,6 @@ export class ExponentialSmoothingModel<TRegistry extends MultiplayerRegistry = M
 }
 
 // @public
-export function extractPolygonAxes(verts: Array<{
-    x: number;
-    y: number;
-}>, axes: Array<{
-    x: number;
-    y: number;
-}>): void;
-
-// @public
 export interface FactionComponent extends Component {
     // (undocumented)
     type: "Faction";
@@ -1488,16 +1464,7 @@ export class FeedbackSystem extends System<CoreComponentRegistry> {
 export function filterSoASnapshot(snapshot: WorldSnapshot, interestIds: Set<number>): WorldSnapshot;
 
 // @public
-export function finalizePolyManifold(manifold: CollisionManifold, minOverlap: number, mtvX: number, mtvY: number, centerAX: number, centerAY: number, centerBX: number, centerBY: number, vertsB: Array<{
-    x: number;
-    y: number;
-}>): CollisionManifold;
-
-// @public
 export type FlappyBirdRoleKey = CommonRoleKey | "bird" | "pipe" | "ground";
-
-// @public
-export function forEachTileInBounds(minTileX: number, minTileY: number, maxTileX: number, maxTileY: number, callback: (tx: number, ty: number) => boolean | void): void;
 
 // @public
 export interface FormulationResult {
@@ -1646,9 +1613,6 @@ export class GameSession {
 
 // @public
 export type GeometryWarsRoleKey = CommonRoleKey | "chaser" | "evader" | "grunt" | "seeker" | "fast_seeker";
-
-// @public
-export function getColliderWorldBounds(transform: PhysicsTransformLike, collider: ColliderLike): AABB;
 
 // @public
 export function getEasingFunction(easingOption?: EasingFunction | string): EasingFunction;
@@ -2750,7 +2714,6 @@ export class NetworkManager<TComponents extends ComponentRegistry = ComponentReg
 export class NetworkReplicationUtils {
     // (undocumented)
     static applyDelta(base: WorldSnapshot, delta: Partial<WorldSnapshot>): void;
-    static processSoAPacket(soaComponentData: Record<string, any>): ComponentDataSnapshot;
 }
 
 // @public
@@ -2964,11 +2927,7 @@ export class PhysicsSolveSystem<TRegistry extends ComponentRegistry = ComponentR
 // @public
 export interface PhysicsTransformLike {
     rotation?: number;
-    scaleX?: number;
-    scaleY?: number;
     worldRotation?: number;
-    worldScaleX?: number;
-    worldScaleY?: number;
     worldX?: number;
     worldY?: number;
     x: number;
@@ -3527,7 +3486,6 @@ export type RewindPolicy = "normal" | "checkpoint-only" | "permanent";
 export class RollbackSimulation {
     constructor(simulation: Simulation, rollbackBuffer: SnapshotBuffer);
     processRollback(targetTick: number, correctedInput: CompactInputFrame, currentTick: number, inputsHistory: Map<number, CompactInputFrame>): boolean;
-    resimulateFromTick(startTick: number, currentTick: number, inputsHistory: Map<number, CompactInputFrame>, localHashes?: Map<number, string>): void;
 }
 
 // @public
@@ -3539,13 +3497,6 @@ export interface RunState {
     deaths: number;
     elapsedTime: number;
     lives: number;
-}
-
-// @public
-export interface SATOverlapState {
-    minOverlap: number;
-    mtvX: number;
-    mtvY: number;
 }
 
 // @public
@@ -3622,7 +3573,6 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     pop(options?: TransitionOptions): Promise<void>;
     push(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void>;
     render(alpha: number): void;
-    replace(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void>;
     restartCurrentScene(): Promise<void>;
     resume(): void;
     transitionProgress: number;
@@ -3823,7 +3773,6 @@ export class SnapshotRestore {
 // @public
 export class SnapshotRestoreSoA {
     static restore<TComponents extends ComponentRegistry>(world: World<TComponents>, state: WorldSnapshot): void;
-    static restoreSoAComponent<TComponents extends ComponentRegistry>(world: World<TComponents>, type: string, soaData: SoAComponentBlock): void;
 }
 
 // @public
@@ -3853,12 +3802,6 @@ export interface SoAComponentTypeData extends SoAComponentBlock {
     keys: string[];
     nonNumericValues?: unknown[];
     values: Float64Array;
-}
-
-// @public
-export class SoADeserializer {
-    static hydrateComponent(soaData: SoAComponentBlock, entityIndex: number, componentType: string): Record<string, any>;
-    static hydrateEntities(entities: any, soaData: SoAComponentBlock, componentType: string, onHydrated: (entityId: number, component: Record<string, any>) => void): void;
 }
 
 // @public
@@ -4488,15 +4431,6 @@ export interface TransformComponent extends Component {
 }
 
 // @public
-export interface TransitionContext<TComponents extends ComponentRegistry = CoreComponentRegistry> {
-    executeLifecycle: (token: number) => Promise<void>;
-    options?: TransitionOptions;
-    targetScene?: Scene<TComponents>;
-    type: "transitionTo" | "push" | "pop" | "replace";
-    updateStack: () => void;
-}
-
-// @public
 export interface TransitionOptions {
     [key: string]: any;
     color?: string;
@@ -4668,12 +4602,10 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
     // (undocumented)
     query<K extends ComponentType<TComponents>>(...componentTypes: K[]): ReadonlyArray<Entity>;
     readComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): DeepReadonly<TComponents[K]> | undefined;
-    reclaimEntity(entity: Entity): void;
     registerComponentMetadata(type: string, options: {
         allowMutationDuringUpdate?: boolean;
     }): void;
     removeComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): void;
-    // (undocumented)
     removeEntity(entity: Entity): void;
     // @internal
     renderRandom: RandomService;

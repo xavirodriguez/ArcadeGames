@@ -5,27 +5,6 @@ import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
 
 /**
- * Iterates over tile coordinates within specified matrix grid bounds.
- * Returning true from callback breaks early out of iteration.
- * @public
- */
-export function forEachTileInBounds(
-  minTileX: number,
-  minTileY: number,
-  maxTileX: number,
-  maxTileY: number,
-  callback: (tx: number, ty: number) => boolean | void
-): void {
-  for (let ty = minTileY; ty <= maxTileY; ty++) {
-    for (let tx = minTileX; tx <= maxTileX; tx++) {
-      if (callback(tx, ty) === true) {
-        return;
-      }
-    }
-  }
-}
-
-/**
  * System resolving tilemap grid collisions for platformer entities.
  *
  * @remarks
@@ -67,6 +46,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     const entities = world.query(transformType, velocityType, collider2DType);
     const len = entities.length;
 
+    // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
       const hasTileColliderTag = this.hasTileColliderTag(world, entity);
@@ -76,6 +56,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       if (!collider || !collider.enabled || collider.isTrigger) continue;
       if (collider.shape.type !== "aabb") continue;
 
+      // Fetch mutable references for velocity and transform as they are modified by this system
       const vel = world.getMutableComponent(entity, velocityType) as any;
       const trans = world.getMutableComponent(entity, transformType) as any;
       if (!vel || !trans) continue;
@@ -85,9 +66,11 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       const offsetX = collider.offsetX;
       const offsetY = collider.offsetY;
 
+      // Reconstruct previous positions
       const prevX = trans.x - vel.vx * deltaTime;
       const prevY = trans.y - vel.vy * deltaTime;
 
+      // Initialize ground state defaults
       let isGrounded = false;
       let onIce = false;
 
@@ -95,6 +78,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       let currentX = trans.x;
       let currentY = prevY;
 
+      // Player bounds on X axis (using prevY for height alignment)
       let playerMinX = currentX + offsetX - halfW;
       let playerMaxX = currentX + offsetX + halfW;
       let playerMinY = currentY + offsetY - halfH;
@@ -105,28 +89,30 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       let minTileY = Math.floor((playerMinY - tilemapY) / tileSize);
       let maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);
 
-      forEachTileInBounds(minTileX, minTileY, maxTileX, maxTileY, (tx, ty) => {
-        const tileId = tilemap.data[ty] && tilemap.data[ty][tx];
-        if (tileId === undefined || tileId === 0) return;
+      for (let ty = minTileY; ty <= maxTileY; ty++) {
+        for (let tx = minTileX; tx <= maxTileX; tx++) {
+          const tileId = tilemap.data[ty] && tilemap.data[ty][tx];
+          if (tileId === undefined || tileId === 0) continue;
 
-        const tileDef = tileDefinitions[tileId];
-        if (!tileDef || !tileDef.solid || tileDef.oneWay) return;
+          const tileDef = tileDefinitions[tileId];
+          if (!tileDef || !tileDef.solid || tileDef.oneWay) continue;
 
-        const tileLeft = tilemapX + tx * tileSize;
-        const tileRight = tileLeft + tileSize;
+          const tileLeft = tilemapX + tx * tileSize;
+          const tileRight = tileLeft + tileSize;
 
-        if (vel.vx > 0) {
-          trans.x = tileLeft - halfW - offsetX;
-          vel.vx = 0;
-          currentX = trans.x;
-          return true;
-        } else if (vel.vx < 0) {
-          trans.x = tileRight + halfW - offsetX;
-          vel.vx = 0;
-          currentX = trans.x;
-          return true;
+          if (vel.vx > 0) {
+            trans.x = tileLeft - halfW - offsetX;
+            vel.vx = 0;
+            currentX = trans.x;
+            break;
+          } else if (vel.vx < 0) {
+            trans.x = tileRight + halfW - offsetX;
+            vel.vx = 0;
+            currentX = trans.x;
+            break;
+          }
         }
-      });
+      }
 
       // --- Resolve Y axis ---
       currentY = trans.y;
@@ -142,69 +128,72 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
 
       const oldVy = vel.vy;
 
-      forEachTileInBounds(minTileX, minTileY, maxTileX, maxTileY, (tx, ty) => {
-        const tileId = tilemap.data[ty] && tilemap.data[ty][tx];
-        if (tileId === undefined || tileId === 0) return;
+      for (let ty = minTileY; ty <= maxTileY; ty++) {
+        for (let tx = minTileX; tx <= maxTileX; tx++) {
+          const tileId = tilemap.data[ty] && tilemap.data[ty][tx];
+          if (tileId === undefined || tileId === 0) continue;
 
-        const tileDef = tileDefinitions[tileId];
-        if (!tileDef) return;
+          const tileDef = tileDefinitions[tileId];
+          if (!tileDef) continue;
 
-        const tileTop = tilemapY + ty * tileSize;
-        const tileBottom = tileTop + tileSize;
+          const tileTop = tilemapY + ty * tileSize;
+          const tileBottom = tileTop + tileSize;
 
-        if (tileDef.solid) {
-          if (tileDef.oneWay) {
-            const prevPlayerBottom = prevY + offsetY + halfH;
-            const isDescending = oldVy >= 0;
-            const wasAbove = prevPlayerBottom <= tileTop + 1.0;
+          if (tileDef.solid) {
+            if (tileDef.oneWay) {
+              const prevPlayerBottom = prevY + offsetY + halfH;
+              const isDescending = oldVy >= 0;
+              const wasAbove = prevPlayerBottom <= tileTop + 1.0;
 
-            if (isDescending && wasAbove) {
-              trans.y = tileTop - halfH - offsetY;
-              vel.vy = 0;
-              isGrounded = true;
-              if (tileDef.kind === "ice") {
-                onIce = true;
-              } else if (tileDef.kind === "bounce") {
-                vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-                isGrounded = false;
-              } else if (tileDef.kind === "spike") {
-                this.handleSpikeCollision(world, entity);
+              if (isDescending && wasAbove) {
+                trans.y = tileTop - halfH - offsetY;
+                vel.vy = 0;
+                isGrounded = true;
+                if (tileDef.kind === "ice") {
+                  onIce = true;
+                } else if (tileDef.kind === "bounce") {
+                  vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
+                  isGrounded = false;
+                } else if (tileDef.kind === "spike") {
+                  this.handleSpikeCollision(world, entity);
+                }
+                break;
               }
-              return true;
+            } else {
+              if (oldVy > 0) {
+                trans.y = tileTop - halfH - offsetY;
+                vel.vy = 0;
+                isGrounded = true;
+                if (tileDef.kind === "ice") {
+                  onIce = true;
+                } else if (tileDef.kind === "bounce") {
+                  vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
+                  isGrounded = false;
+                } else if (tileDef.kind === "spike") {
+                  this.handleSpikeCollision(world, entity);
+                }
+                break;
+              } else if (oldVy < 0) {
+                trans.y = tileBottom + halfH - offsetY;
+                vel.vy = 0;
+                if (tileDef.kind === "spike") {
+                  this.handleSpikeCollision(world, entity);
+                }
+                break;
+              }
             }
           } else {
-            if (oldVy > 0) {
-              trans.y = tileTop - halfH - offsetY;
-              vel.vy = 0;
-              isGrounded = true;
-              if (tileDef.kind === "ice") {
-                onIce = true;
-              } else if (tileDef.kind === "bounce") {
-                vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-                isGrounded = false;
-              } else if (tileDef.kind === "spike") {
-                this.handleSpikeCollision(world, entity);
-              }
-              return true;
-            } else if (oldVy < 0) {
-              trans.y = tileBottom + halfH - offsetY;
-              vel.vy = 0;
-              if (tileDef.kind === "spike") {
-                this.handleSpikeCollision(world, entity);
-              }
-              return true;
+            if (tileDef.kind === "spike") {
+              this.handleSpikeCollision(world, entity);
+            } else if (tileDef.kind === "bounce") {
+              vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
+              isGrounded = false;
             }
           }
-        } else {
-          if (tileDef.kind === "spike") {
-            this.handleSpikeCollision(world, entity);
-          } else if (tileDef.kind === "bounce") {
-            vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-            isGrounded = false;
-          }
         }
-      });
+      }
 
+      // Safe for determinism/rollback. Value-gate getMutableComponent and direct mutation to avoid callback closure allocations and unnecessary stateVersion bumps when ground state is unchanged.
       if (world.hasComponent(entity, groundStateType)) {
         const targetIceMultiplier = onIce ? 0.2 : 1.0;
         const currentGround = world.getComponent(entity, groundStateType) as any;
@@ -230,6 +219,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
   }
 
   private handleSpikeCollision(world: World<any>, entity: Entity): void {
+    // Safe for determinism/rollback. Direct getMutableComponent avoids callback closure allocation.
     if (world.hasComponent(entity, "Health")) {
       const h = world.getMutableComponent(entity, "Health") as any;
       if (h) {

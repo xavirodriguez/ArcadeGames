@@ -1,6 +1,7 @@
 import { System } from "../../ecs/System";
 import { World } from "../../ecs/World";
 import { CoreComponentRegistry } from "../../ecs/CoreComponents";
+
 import { Entity } from "../../ecs/Entity";
 
 /**
@@ -35,28 +36,56 @@ export class FrictionSystem extends System<CoreComponentRegistry> {
   update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
-    const candidates = this.candidateEntities ?? resourceCandidates ?? null;
-    const entities = candidates ?? world.query("Velocity", "Friction");
+    const candidatesList = this.candidateEntities !== null ? this.candidateEntities : (resourceCandidates !== undefined ? resourceCandidates : null);
 
-    const len = entities.length;
-    for (let i = 0; i < len; i++) {
-      const entity = entities[i];
-      const f = world.getComponent(entity, "Friction");
-      if (!f) continue;
-      const v = world.getComponent(entity, "Velocity");
-      if (!v) continue;
+    if (candidatesList !== null) {
+      const len = candidatesList.length;
+      // Safe for determinism/rollback. Indexed loop replaces for..of iterator to eliminate per-tick heap allocations.
+      for (let i = 0; i < len; i++) {
+        const entity = candidatesList[i];
+        const f = world.getComponent(entity, "Friction");
+        if (!f) continue;
+        const v = world.getComponent(entity, "Velocity");
+        if (!v) continue;
 
-      if (v.vx === 0 && v.vy === 0 && (!v.angularVelocity || v.angularVelocity === 0)) {
-        continue;
+        // Safe for determinism/rollback. Bypasses getMutableComponent for resting entities (vx === 0 && vy === 0 && !angularVelocity) to prevent unnecessary stateVersion bumps and component clones.
+        if (v.vx === 0 && v.vy === 0 && (!v.angularVelocity || v.angularVelocity === 0)) {
+          continue;
+        }
+
+        const vel = world.getMutableComponent(entity, "Velocity");
+        if (vel) {
+          const factor = Math.exp(-f.value * deltaTime);
+          vel.vx *= factor;
+          vel.vy *= factor;
+          if (vel.angularVelocity) {
+            vel.angularVelocity *= factor;
+          }
+        }
       }
+    } else {
+      const entities = world.query("Velocity", "Friction");
+      const len = entities.length;
+      // Safe for determinism/rollback. Indexed loop replaces for..of iterator to eliminate per-tick heap allocations.
+      for (let i = 0; i < len; i++) {
+        const entity = entities[i];
+        const f = world.getComponent(entity, "Friction")!;
+        const v = world.getComponent(entity, "Velocity");
+        if (!v) continue;
 
-      const vel = world.getMutableComponent(entity, "Velocity");
-      if (vel) {
-        const factor = Math.exp(-f.value * deltaTime);
-        vel.vx *= factor;
-        vel.vy *= factor;
-        if (vel.angularVelocity) {
-          vel.angularVelocity *= factor;
+        // Safe for determinism/rollback. Bypasses getMutableComponent for resting entities (vx === 0 && vy === 0 && !angularVelocity) to prevent unnecessary stateVersion bumps and component clones.
+        if (v.vx === 0 && v.vy === 0 && (!v.angularVelocity || v.angularVelocity === 0)) {
+          continue;
+        }
+
+        const vel = world.getMutableComponent(entity, "Velocity");
+        if (vel) {
+          const factor = Math.exp(-f.value * deltaTime);
+          vel.vx *= factor;
+          vel.vy *= factor;
+          if (vel.angularVelocity) {
+            vel.angularVelocity *= factor;
+          }
         }
       }
     }

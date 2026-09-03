@@ -16,59 +16,6 @@ export class RollbackSimulation {
   }
 
   /**
-   * Resimulates input frames sequentially starting from `startTick` up to `currentTick`.
-   *
-   * @param startTick - Starting tick index for resimulation.
-   * @param currentTick - Target tick index to resimulate up to.
-   * @param inputsHistory - Map of input frames per tick index.
-   * @param localHashes - Optional map to update state hashes during resimulation.
-   */
-  public resimulateFromTick(
-    startTick: number,
-    currentTick: number,
-    inputsHistory: Map<number, CompactInputFrame>,
-    localHashes?: Map<number, string>
-  ): void {
-    const world = (this.simulation as any).world ?? (this.simulation as any).getWorld?.();
-    const prevIsReSimulating = world ? world.isReSimulating : false;
-    const random = world ? world.gameplayRandom : undefined;
-    const wasLocked = random ? random.isLocked() : false;
-
-    if (world) {
-      world.isReSimulating = true;
-    }
-    if (random && wasLocked) {
-      random.unlock();
-    }
-
-    try {
-      for (let t = startTick; t <= currentTick; t++) {
-        // Save state snapshot of tick t BEFORE executing its step
-        this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
-
-        let input = inputsHistory.get(t);
-        if (!input) {
-          // Fallback in case input is missing: keep buttons empty, set correct tick
-          input = { t, b: 0 };
-          inputsHistory.set(t, input);
-        }
-        this.simulation.step(input);
-
-        if (localHashes) {
-          localHashes.set(t + 1, this.simulation.hash());
-        }
-      }
-    } finally {
-      if (random && wasLocked) {
-        random.lock();
-      }
-      if (world) {
-        world.isReSimulating = prevIsReSimulating;
-      }
-    }
-  }
-
-  /**
    * Executes a rollback and resimulation cycle.
    *
    * @param targetTick - The tick index where the input correction was received.
@@ -100,7 +47,39 @@ export class RollbackSimulation {
     inputsHistory.set(targetTick, correctedInput);
 
     // 4. Fast-forward / Resimulate up to currentTick
-    this.resimulateFromTick(targetTick + 1, currentTick, inputsHistory);
+    const world = (this.simulation as any).world ?? (this.simulation as any).getWorld?.();
+    const prevIsReSimulating = world ? world.isReSimulating : false;
+    const random = world ? world.gameplayRandom : undefined;
+    const wasLocked = random ? random.isLocked() : false;
+
+    if (world) {
+      world.isReSimulating = true;
+    }
+    if (random && wasLocked) {
+      random.unlock();
+    }
+
+    try {
+      for (let t = targetTick + 1; t <= currentTick; t++) {
+        // Save state snapshot of tick t BEFORE executing its step
+        this.rollbackBuffer.saveSnapshot(t, this.simulation.snapshot());
+
+        let input = inputsHistory.get(t);
+        if (!input) {
+          // Fallback in case input is missing: keep buttons empty, set correct tick
+          input = { t, b: 0 };
+          inputsHistory.set(t, input);
+        }
+        this.simulation.step(input);
+      }
+    } finally {
+      if (random && wasLocked) {
+        random.lock();
+      }
+      if (world) {
+        world.isReSimulating = prevIsReSimulating;
+      }
+    }
 
     return true;
   }

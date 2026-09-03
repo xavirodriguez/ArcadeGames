@@ -5,7 +5,6 @@ import { NarrowPhase } from "../collision/NarrowPhase";
 import { ComponentRegistry } from "../../ecs/Component";
 import { EventRegistry } from "../../events/EventBus";
 import { PhysicsTransformLike, ColliderLike } from "../PhysicsTypes";
-import { getColliderWorldBounds } from "../utils/PhysicsTransform";
 
 /**
  * Utility for performing physics-based spatial queries on the ECS world.
@@ -41,11 +40,6 @@ export class PhysicsQuery {
       const transform = world.getComponent(entity, transformType) as unknown as PhysicsTransformLike | undefined;
       const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;
       if (!transform || !collider || !collider.enabled) continue;
-
-      const bounds = getColliderWorldBounds(transform, collider);
-      if (x < bounds.minX || x > bounds.maxX || y < bounds.minY || y > bounds.maxY) {
-        continue;
-      }
 
       const worldX = transform.worldX ?? transform.x;
       const worldY = transform.worldY ?? transform.y;

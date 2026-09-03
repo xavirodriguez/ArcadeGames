@@ -1,6 +1,16 @@
 import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
+import {
+  StarfieldStar,
+  generateStarfield,
+  calculateSquashAndStretch,
+  calculateMegastructurePosition,
+  calculateFlappyPipeGeometry
+} from "../../shared/rendering/geometry";
+
+// DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
+// Solo se extrajeron los cálculos puros a src/games/shared/rendering/geometry.ts. Ver docs/tech-debt/duplication.md
 
 // ============================================================================
 // "NEON VOID" CANVAS VISUALS — HARD SCI-FI INDUSTRIAL ART DIRECTION
@@ -271,16 +281,7 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     // --- VELOCITY SQUASH AND STRETCH ---
     const speed = Math.abs(vy);
-    const stretch = Math.min(speed / 900, 0.18);
-    let scaleX = 1;
-    let scaleY = 1;
-    if (vy > 0) {
-      scaleX = 1 - stretch * 0.8;
-      scaleY = 1 + stretch;
-    } else {
-      scaleX = 1 + stretch;
-      scaleY = 1 - stretch * 0.8;
-    }
+    const { scaleX, scaleY } = calculateSquashAndStretch(vy);
     ctx.scale(scaleX, scaleY);
 
     // --- RGB CHROMATIC ABERRATION SPLIT ON DEATH ---
@@ -444,19 +445,12 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const pipe = world.getComponent(entity, "Pipe");
     if (!pipe) return;
 
-    const halfGap = pipe.gapSize / 2;
-    const isTopPipe = pos.y < pipe.gapY;
-
-    let pipeY: number;
-    let pipeHeight: number;
-
-    if (isTopPipe) {
-      pipeY = -pos.y;
-      pipeHeight = pipe.gapY - halfGap;
-    } else {
-      pipeY = (pipe.gapY + halfGap) - pos.y;
-      pipeHeight = FLAPPY_CONFIG.SCREEN_HEIGHT - (pipe.gapY + halfGap);
-    }
+    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(
+      pos.y,
+      pipe.gapY,
+      pipe.gapSize,
+      FLAPPY_CONFIG.SCREEN_HEIGHT
+    );
 
     // --- METALLIC PILLAR BODY (#2A2A35) ---
     const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}`, () => {
@@ -491,7 +485,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const capExtraWidth = 12;
     const capWidth = width + capExtraWidth;
     const capHalfWidth = capWidth / 2;
-    const capYOffset = isTopPipe ? (pipeY + pipeHeight - capHeight) : pipeY;
 
     const collarGrad = getCachedCanvasGradient(ctx, `collar_${capHalfWidth}`, () => {
       const g = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
@@ -541,7 +534,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     // --- STROBOSCOPIC RED WARNING BEACONS (#FF0000) ---
     const beaconPulse = 0.35 + 0.65 * Math.abs(Math.sin(world.tick * 0.2));
-    const beaconY = isTopPipe ? (capYOffset + capHeight - 4) : (capYOffset + 4);
 
     ctx.save();
     ctx.fillStyle = `rgba(255, 0, 0, ${beaconPulse})`;
@@ -634,50 +626,7 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
 // THE DEEP VOID PARALLAX BACKGROUND (#050510) WITH WARP & MEGASTRUCTURE
 // ============================================================================
 
-interface Star {
-  x: number;
-  y: number;
-  size: number;
-  layer: number; // 0 = distant white, 1 = near pale blue, 2 = deep titanium dust
-  alpha: number;
-}
-
-let staticStars: Star[] | null = null;
-
-function initStarfield(width: number, height: number): Star[] {
-  const stars: Star[] = [];
-  // Layer 2: Deepest micro titanium space dust (50 count)
-  for (let i = 0; i < 50; i++) {
-    stars.push({
-      x: (i * 29 + 17) % width,
-      y: (i * 71 + 11) % height,
-      size: 0.5 + (i % 2) * 0.3,
-      layer: 2,
-      alpha: 0.2 + (i % 3) * 0.08,
-    });
-  }
-  // Layer 0: Distant slow white stars (60 count)
-  for (let i = 0; i < 60; i++) {
-    stars.push({
-      x: (i * 37 + 13) % width,
-      y: (i * 83 + 29) % height,
-      size: 0.8 + (i % 3) * 0.4,
-      layer: 0,
-      alpha: 0.4 + (i % 5) * 0.12,
-    });
-  }
-  // Layer 1: Near faster pale white-blue stars (40 count)
-  for (let i = 0; i < 40; i++) {
-    stars.push({
-      x: (i * 53 + 7) % width,
-      y: (i * 97 + 41) % height,
-      size: 1.2 + (i % 3) * 0.6,
-      layer: 1,
-      alpha: 0.6 + (i % 4) * 0.1,
-    });
-  }
-  return stars;
-}
+let staticStars: StarfieldStar[] | null = null;
 
 export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world) {
@@ -686,7 +635,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     const { width = 400, height = 600 } = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };
 
     if (!staticStars) {
-      staticStars = initStarfield(width, height);
+      staticStars = generateStarfield(width, height);
     }
 
     updateVisualParticles();
@@ -737,11 +686,9 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     }
 
     // --- OCCASIONAL ISOLATED ABANDONED MEGASTRUCTURE SILHOUETTE ---
-    const megaCycle = 1600; // Scrolls once every ~1600 ticks
-    const megaProgress = (tick % megaCycle) / megaCycle;
-    if (megaProgress < 0.6) {
-      const megaX = width - (megaProgress / 0.6) * (width + 250);
-      const megaY = height * 0.35;
+    const megaState = calculateMegastructurePosition(tick, width, height);
+    if (megaState.visible) {
+      const { megaX, megaY, beaconAlpha } = megaState;
 
       ctx.save();
       ctx.fillStyle = "rgba(15, 18, 28, 0.65)"; // Dark void silhouette
@@ -758,8 +705,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.fillRect(megaX - 4, megaY - 80, 8, 160);
 
       // Faint beacon on station tip
-      const megaBeacon = 0.2 + 0.3 * Math.sin(tick * 0.05);
-      ctx.fillStyle = `rgba(255, 0, 0, ${megaBeacon})`;
+      ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
       ctx.beginPath();
       ctx.arc(megaX, megaY - 80, 2, 0, Math.PI * 2);
       ctx.fill();

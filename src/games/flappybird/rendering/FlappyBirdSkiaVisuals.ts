@@ -1,6 +1,16 @@
 import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
+import {
+  StarfieldStar,
+  generateStarfield,
+  calculateSquashAndStretch,
+  calculateMegastructurePosition,
+  calculateFlappyPipeGeometry
+} from "../../shared/rendering/geometry";
+
+// DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
+// Solo se extrajeron los cálculos puros a src/games/shared/rendering/geometry.ts. Ver docs/tech-debt/duplication.md
 
 let Skia: any = null;
 try {
@@ -316,16 +326,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     // Velocity Squash-and-Stretch
     const speed = Math.abs(vy);
-    const stretch = Math.min(speed / 900, 0.18);
-    let scaleX = 1;
-    let scaleY = 1;
-    if (vy > 0) {
-      scaleX = 1 - stretch * 0.8;
-      scaleY = 1 + stretch;
-    } else {
-      scaleX = 1 + stretch;
-      scaleY = 1 - stretch * 0.8;
-    }
+    const { scaleX, scaleY } = calculateSquashAndStretch(vy);
     canvas.scale(scaleX, scaleY);
 
     // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
@@ -440,19 +441,12 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const pipe = world.getComponent(entity, "Pipe");
     if (!pipe) return;
 
-    const halfGap = pipe.gapSize / 2;
-    const isTopPipe = pos.y < pipe.gapY;
-
-    let pipeY: number;
-    let pipeHeight: number;
-
-    if (isTopPipe) {
-      pipeY = -pos.y;
-      pipeHeight = pipe.gapY - halfGap;
-    } else {
-      pipeY = (pipe.gapY + halfGap) - pos.y;
-      pipeHeight = FLAPPY_CONFIG.SCREEN_HEIGHT - (pipe.gapY + halfGap);
-    }
+    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(
+      pos.y,
+      pipe.gapY,
+      pipe.gapSize,
+      FLAPPY_CONFIG.SCREEN_HEIGHT
+    );
 
     const paint = getPaint();
 
@@ -488,7 +482,6 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const capExtraWidth = 12;
     const capWidth = width + capExtraWidth;
     const capHalfWidth = capWidth / 2;
-    const capYOffset = isTopPipe ? (pipeY + pipeHeight - capHeight) : pipeY;
 
     const collarShader = getCachedSkiaShader(`collar_${capHalfWidth}`, () =>
       Skia.Shader.MakeLinearGradient(
@@ -518,7 +511,6 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     // Stroboscopic Red Warning Beacons (#FF0000) strictly bound to world.tick
     const beaconPulse = 0.35 + 0.65 * Math.abs(Math.sin(world.tick * 0.2));
-    const beaconY = isTopPipe ? (capYOffset + capHeight - 4) : (capYOffset + 4);
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -619,44 +611,8 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       }
     }
 
-    interface Star {
-      x: number;
-      y: number;
-      size: number;
-      layer: number;
-      alpha: number;
-    }
-
     if (!staticStars) {
-      const stars: Star[] = [];
-      for (let i = 0; i < 50; i++) {
-        stars.push({
-          x: (i * 29 + 17) % width,
-          y: (i * 71 + 11) % height,
-          size: 0.5 + (i % 2) * 0.3,
-          layer: 2,
-          alpha: 0.2 + (i % 3) * 0.08,
-        });
-      }
-      for (let i = 0; i < 60; i++) {
-        stars.push({
-          x: (i * 37 + 13) % width,
-          y: (i * 83 + 29) % height,
-          size: 0.8 + (i % 3) * 0.4,
-          layer: 0,
-          alpha: 0.4 + (i % 5) * 0.12,
-        });
-      }
-      for (let i = 0; i < 40; i++) {
-        stars.push({
-          x: (i * 53 + 7) % width,
-          y: (i * 97 + 41) % height,
-          size: 1.2 + (i % 3) * 0.6,
-          layer: 1,
-          alpha: 0.6 + (i % 4) * 0.1,
-        });
-      }
-      staticStars = stars;
+      staticStars = generateStarfield(width, height);
     }
 
     const tick = world.tick;
@@ -684,11 +640,9 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     }
 
     // --- OCCASIONAL ISOLATED ABANDONED MEGASTRUCTURE SILHOUETTE ---
-    const megaCycle = 1600;
-    const megaProgress = (tick % megaCycle) / megaCycle;
-    if (megaProgress < 0.6) {
-      const megaX = width - (megaProgress / 0.6) * (width + 250);
-      const megaY = height * 0.35;
+    const megaState = calculateMegastructurePosition(tick, width, height);
+    if (megaState.visible) {
+      const { megaX, megaY, beaconAlpha } = megaState;
 
       canvas.save();
       paint.reset();
@@ -704,9 +658,8 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       canvas.drawRect(Skia.XYWHRect(megaX - 4, megaY - 80, 8, 160), paint);
 
       // Faint beacon on station tip
-      const megaBeacon = 0.2 + 0.3 * Math.sin(tick * 0.05);
       paint.setColor(Skia.Color("#FF0000"));
-      paint.setAlphaf(megaBeacon);
+      paint.setAlphaf(beaconAlpha);
       canvas.drawCircle(megaX, megaY - 80, 2, paint);
 
       canvas.restore();

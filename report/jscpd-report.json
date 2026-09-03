@@ -317,18 +317,18 @@
       "isNew": false,
       "lines": 33,
       "secondFile": {
-        "end": 470,
+        "end": 471,
         "endLoc": {
           "column": 3,
-          "line": 470,
-          "position": 14182
+          "line": 471,
+          "position": 14362
         },
         "name": "physics/collision/NarrowPhase.ts",
-        "start": 438,
+        "start": 439,
         "startLoc": {
           "column": 20,
-          "line": 438,
-          "position": 13460
+          "line": 439,
+          "position": 13640
         }
       },
       "tokens": 169
@@ -391,18 +391,18 @@
       "isNew": false,
       "lines": 27,
       "secondFile": {
-        "end": 471,
+        "end": 472,
         "endLoc": {
           "column": 1,
-          "line": 471,
-          "position": 14184
+          "line": 472,
+          "position": 14364
         },
         "name": "physics/collision/NarrowPhase.ts",
-        "start": 446,
+        "start": 447,
         "startLoc": {
           "column": 24,
-          "line": 446,
-          "position": 13592
+          "line": 447,
+          "position": 13772
         }
       },
       "tokens": 141
@@ -3008,9 +3008,9 @@
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 4,
         "startLoc": {
-          "column": 55,
+          "column": 107,
           "line": 4,
-          "position": 309
+          "position": 361
         }
       },
       "format": "typescript",
@@ -3018,21 +3018,21 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 19,
+        "end": 29,
         "endLoc": {
           "column": 5,
-          "line": 19,
-          "position": 566
+          "line": 29,
+          "position": 950
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 3,
+        "start": 10,
         "startLoc": {
-          "column": 36,
-          "line": 3,
-          "position": 205
+          "column": 40,
+          "line": 10,
+          "position": 439
         }
       },
-      "tokens": 62
+      "tokens": 59
     },
     {
       "firstFile": {
@@ -5959,18 +5959,18 @@
     },
     {
       "firstFile": {
-        "end": 106,
+        "end": 116,
         "endLoc": {
           "column": 1,
-          "line": 106,
-          "position": 2619
+          "line": 116,
+          "position": 3003
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 21,
+        "start": 31,
         "startLoc": {
           "column": 0,
-          "line": 21,
-          "position": 907
+          "line": 31,
+          "position": 1291
         }
       },
       "format": "typescript",
@@ -5978,36 +5978,36 @@
       "isNew": false,
       "lines": 86,
       "secondFile": {
-        "end": 123,
+        "end": 133,
         "endLoc": {
           "column": 1,
-          "line": 123,
-          "position": 2902
+          "line": 133,
+          "position": 3286
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 38,
+        "start": 48,
         "startLoc": {
           "column": 0,
-          "line": 38,
-          "position": 1178
+          "line": 48,
+          "position": 1562
         }
       },
       "tokens": 438
     },
     {
       "firstFile": {
-        "end": 77,
+        "end": 87,
         "endLoc": {
           "column": 8,
-          "line": 77,
-          "position": 1978
+          "line": 87,
+          "position": 2362
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 68,
+        "start": 78,
         "startLoc": {
           "column": 19,
-          "line": 68,
-          "position": 1809
+          "line": 78,
+          "position": 2193
         }
       },
       "format": "typescript",
@@ -6033,18 +6033,18 @@
     },
     {
       "firstFile": {
-        "end": 96,
+        "end": 106,
         "endLoc": {
           "column": 8,
-          "line": 96,
-          "position": 2400
+          "line": 106,
+          "position": 2784
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 86,
+        "start": 96,
         "startLoc": {
           "column": 2,
-          "line": 86,
-          "position": 2146
+          "line": 96,
+          "position": 2530
         }
       },
       "format": "typescript",
@@ -6070,18 +6070,18 @@
     },
     {
       "firstFile": {
-        "end": 192,
+        "end": 202,
         "endLoc": {
           "column": 56,
-          "line": 192,
-          "position": 5089
+          "line": 202,
+          "position": 5473
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 184,
+        "start": 194,
         "startLoc": {
           "column": 4,
-          "line": 184,
-          "position": 4736
+          "line": 194,
+          "position": 5120
         }
       },
       "format": "typescript",
@@ -6089,36 +6089,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 240,
+        "end": 250,
         "endLoc": {
           "column": 56,
-          "line": 240,
-          "position": 6657
+          "line": 250,
+          "position": 7041
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 232,
+        "start": 242,
         "startLoc": {
           "column": 4,
-          "line": 232,
-          "position": 6304
+          "line": 242,
+          "position": 6688
         }
       },
       "tokens": 76
     },
     {
       "firstFile": {
-        "end": 211,
+        "end": 221,
         "endLoc": {
           "column": 11,
-          "line": 211,
-          "position": 5663
+          "line": 221,
+          "position": 6047
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 192,
+        "start": 202,
         "startLoc": {
           "column": 55,
-          "line": 192,
-          "position": 5088
+          "line": 202,
+          "position": 5472
         }
       },
       "format": "typescript",
@@ -6126,36 +6126,36 @@
       "isNew": false,
       "lines": 20,
       "secondFile": {
-        "end": 261,
+        "end": 271,
         "endLoc": {
           "column": 11,
-          "line": 261,
-          "position": 7325
+          "line": 271,
+          "position": 7709
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 242,
+        "start": 252,
         "startLoc": {
           "column": 45,
-          "line": 242,
-          "position": 6750
+          "line": 252,
+          "position": 7134
         }
       },
       "tokens": 106
     },
     {
       "firstFile": {
-        "end": 230,
+        "end": 240,
         "endLoc": {
           "column": 11,
-          "line": 230,
-          "position": 6659
+          "line": 240,
+          "position": 7043
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 214,
+        "start": 224,
         "startLoc": {
           "column": 6,
-          "line": 214,
-          "position": 5858
+          "line": 224,
+          "position": 6242
         }
       },
       "format": "typescript",
@@ -6163,36 +6163,36 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 277,
+        "end": 287,
         "endLoc": {
           "column": 11,
-          "line": 277,
-          "position": 8121
+          "line": 287,
+          "position": 8505
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 261,
+        "start": 271,
         "startLoc": {
           "column": 6,
-          "line": 261,
-          "position": 7320
+          "line": 271,
+          "position": 7704
         }
       },
       "tokens": 179
     },
     {
       "firstFile": {
-        "end": 260,
+        "end": 270,
         "endLoc": {
           "column": 10,
-          "line": 260,
-          "position": 8156
+          "line": 270,
+          "position": 8540
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 233,
+        "start": 243,
         "startLoc": {
           "column": 6,
-          "line": 233,
-          "position": 6854
+          "line": 243,
+          "position": 7238
         }
       },
       "format": "typescript",
@@ -6200,147 +6200,73 @@
       "isNew": false,
       "lines": 28,
       "secondFile": {
-        "end": 304,
+        "end": 314,
         "endLoc": {
           "column": 10,
-          "line": 304,
-          "position": 9418
+          "line": 314,
+          "position": 9802
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 277,
+        "start": 287,
         "startLoc": {
           "column": 6,
-          "line": 277,
-          "position": 8116
+          "line": 287,
+          "position": 8500
         }
       },
       "tokens": 309
     },
     {
       "firstFile": {
-        "end": 283,
-        "endLoc": {
-          "column": 5,
-          "line": 283,
-          "position": 8834
-        },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 270,
-        "startLoc": {
-          "column": 35,
-          "line": 270,
-          "position": 8507
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.globalAlpha = globalOpacity;\n\n    // --- VELOCITY SQUASH AND STRETCH ---\n    const speed = Math.abs(vy);\n    const stretch = Math.min(speed / 900, 0.18);\n    let scaleX = 1;\n    let scaleY = 1;\n    if (vy > 0) {\n      scaleX = 1 - stretch * 0.8;\n      scaleY = 1 + stretch;\n    } else {\n      scaleX = 1 + stretch;\n      scaleY = 1 - stretch * 0.8;\n    }",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 328,
-        "endLoc": {
-          "column": 5,
-          "line": 328,
-          "position": 10074
-        },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 315,
-        "startLoc": {
-          "column": 17,
-          "line": 315,
-          "position": 9755
-        }
-      },
-      "tokens": 74
-    },
-    {
-      "firstFile": {
-        "end": 462,
+        "end": 456,
         "endLoc": {
           "column": 9,
-          "line": 462,
-          "position": 15018
+          "line": 456,
+          "position": 15049
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 436,
+        "start": 437,
         "startLoc": {
           "column": 4,
-          "line": 436,
-          "position": 14298
+          "line": 437,
+          "position": 14494
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    const pos = world.getComponent(entity, \"Transform\");\n    if (!render || !pos) return;\n\n    const { size = 60 } = render;\n    const width = size;\n    const halfWidth = width / 2;\n\n    const pipe = world.getComponent(entity, \"Pipe\");\n    if (!pipe) return;\n\n    const halfGap = pipe.gapSize / 2;\n    const isTopPipe = pos.y < pipe.gapY;\n\n    let pipeY: number;\n    let pipeHeight: number;\n\n    if (isTopPipe) {\n      pipeY = -pos.y;\n      pipeHeight = pipe.gapY - halfGap;\n    } else {\n      pipeY = (pipe.gapY + halfGap) - pos.y;\n      pipeHeight = FLAPPY_CONFIG.SCREEN_HEIGHT - (pipe.gapY + halfGap);\n    }\n\n    // --- METALLIC PILLAR BODY (#2A2A35) ---\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}`, () => {",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    const pos = world.getComponent(entity, \"Transform\");\n    if (!render || !pos) return;\n\n    const { size = 60 } = render;\n    const width = size;\n    const halfWidth = width / 2;\n\n    const pipe = world.getComponent(entity, \"Pipe\");\n    if (!pipe) return;\n\n    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(\n      pos.y,\n      pipe.gapY,\n      pipe.gapSize,\n      FLAPPY_CONFIG.SCREEN_HEIGHT\n    );\n\n    // --- METALLIC PILLAR BODY (#2A2A35) ---\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}`, () => {",
       "isNew": false,
-      "lines": 27,
+      "lines": 20,
       "secondFile": {
-        "end": 457,
+        "end": 451,
         "endLoc": {
           "column": 9,
-          "line": 457,
-          "position": 14567
+          "line": 451,
+          "position": 14598
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 432,
+        "start": 433,
         "startLoc": {
           "column": 4,
-          "line": 432,
-          "position": 13893
+          "line": 433,
+          "position": 14089
         }
       },
-      "tokens": 157
+      "tokens": 107
     },
     {
       "firstFile": {
-        "end": 678,
-        "endLoc": {
-          "column": 3,
-          "line": 678,
-          "position": 22180
-        },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 647,
-        "startLoc": {
-          "column": 62,
-          "line": 647,
-          "position": 21352
-        }
-      },
-      "format": "typescript",
-      "fragment": "function initStarfield(width: number, height: number): Star[] {\n  const stars: Star[] = [];\n  // Layer 2: Deepest micro titanium space dust (50 count)\n  for (let i = 0; i < 50; i++) {\n    stars.push({\n      x: (i * 29 + 17) % width,\n      y: (i * 71 + 11) % height,\n      size: 0.5 + (i % 2) * 0.3,\n      layer: 2,\n      alpha: 0.2 + (i % 3) * 0.08,\n    });\n  }\n  // Layer 0: Distant slow white stars (60 count)\n  for (let i = 0; i < 60; i++) {\n    stars.push({\n      x: (i * 37 + 13) % width,\n      y: (i * 83 + 29) % height,\n      size: 0.8 + (i % 3) * 0.4,\n      layer: 0,\n      alpha: 0.4 + (i % 5) * 0.12,\n    });\n  }\n  // Layer 1: Near faster pale white-blue stars (40 count)\n  for (let i = 0; i < 40; i++) {\n    stars.push({\n      x: (i * 53 + 7) % width,\n      y: (i * 97 + 41) % height,\n      size: 1.2 + (i % 3) * 0.6,\n      layer: 1,\n      alpha: 0.6 + (i % 4) * 0.1,\n    });\n  }",
-      "isNew": false,
-      "lines": 32,
-      "secondFile": {
-        "end": 658,
-        "endLoc": {
-          "column": 7,
-          "line": 658,
-          "position": 21291
-        },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 630,
-        "startLoc": {
-          "column": 22,
-          "line": 630,
-          "position": 20519
-        }
-      },
-      "tokens": 239
-    },
-    {
-      "firstFile": {
-        "end": 706,
+        "end": 655,
         "endLoc": {
           "column": 5,
-          "line": 706,
-          "position": 23128
+          "line": 655,
+          "position": 21943
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 696,
+        "start": 645,
         "startLoc": {
           "column": 36,
-          "line": 696,
-          "position": 22780
+          "line": 645,
+          "position": 21595
         }
       },
       "format": "typescript",
@@ -6348,36 +6274,36 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 620,
+        "end": 612,
         "endLoc": {
           "column": 5,
-          "line": 620,
-          "position": 20371
+          "line": 612,
+          "position": 20244
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 610,
+        "start": 602,
         "startLoc": {
           "column": 61,
-          "line": 610,
-          "position": 20023
+          "line": 602,
+          "position": 19896
         }
       },
       "tokens": 70
     },
     {
       "firstFile": {
-        "end": 484,
+        "end": 478,
         "endLoc": {
           "column": 35,
-          "line": 484,
-          "position": 15428
+          "line": 478,
+          "position": 15459
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 478,
+        "start": 472,
         "startLoc": {
           "column": 70,
-          "line": 478,
-          "position": 15244
+          "line": 472,
+          "position": 15275
         }
       },
       "format": "typescript",
@@ -6385,18 +6311,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 517,
+        "end": 510,
         "endLoc": {
           "column": 35,
-          "line": 517,
-          "position": 16543
+          "line": 510,
+          "position": 16497
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 511,
+        "start": 504,
         "startLoc": {
           "column": 80,
-          "line": 511,
-          "position": 16359
+          "line": 504,
+          "position": 16313
         }
       },
       "tokens": 50
@@ -6442,80 +6368,6 @@
       "firstFile": {
         "end": 51,
         "endLoc": {
-          "column": 16,
-          "line": 51,
-          "position": 1338
-        },
-        "name": "geometrywars/EntityPool.ts",
-        "start": 25,
-        "startLoc": {
-          "column": 26,
-          "line": 25,
-          "position": 709
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {\n  constructor() {\n    super({\n      factory: () => ({\n        position: {\n          type: \"Transform\",\n          x: 0,\n          y: 0,\n          rotation: 0,\n          scaleX: 1,\n          scaleY: 1,\n          worldX: 0,\n          worldY: 0,\n          worldRotation: 0,\n          worldScaleX: 1,\n          worldScaleY: 1,\n          dirty: false\n        } as TransformComponent,\n        velocity: {\n          type: \"Velocity\",\n          vx: 0,\n          vy: 0,\n          angularVelocity: 0\n        } as VelocityComponent,\n        render: {\n          type: \"Render\",\n          shape: \"gw_bullet\",",
-      "isNew": false,
-      "lines": 27,
-      "secondFile": {
-        "end": 19,
-        "endLoc": {
-          "column": 40,
-          "line": 19,
-          "position": 1244
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 13,
-        "startLoc": {
-          "column": 30,
-          "line": 13,
-          "position": 811
-        }
-      },
-      "tokens": 107
-    },
-    {
-      "firstFile": {
-        "end": 51,
-        "endLoc": {
-          "column": 16,
-          "line": 51,
-          "position": 1338
-        },
-        "name": "geometrywars/EntityPool.ts",
-        "start": 25,
-        "startLoc": {
-          "column": 26,
-          "line": 25,
-          "position": 709
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {\n  constructor() {\n    super({\n      factory: () => ({\n        position: {\n          type: \"Transform\",\n          x: 0,\n          y: 0,\n          rotation: 0,\n          scaleX: 1,\n          scaleY: 1,\n          worldX: 0,\n          worldY: 0,\n          worldRotation: 0,\n          worldScaleX: 1,\n          worldScaleY: 1,\n          dirty: false\n        } as TransformComponent,\n        velocity: {\n          type: \"Velocity\",\n          vx: 0,\n          vy: 0,\n          angularVelocity: 0\n        } as VelocityComponent,\n        render: {\n          type: \"Render\",\n          shape: \"gw_bullet\",",
-      "isNew": false,
-      "lines": 27,
-      "secondFile": {
-        "end": 90,
-        "endLoc": {
-          "column": 40,
-          "line": 90,
-          "position": 4768
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 84,
-        "startLoc": {
-          "column": 29,
-          "line": 84,
-          "position": 4335
-        }
-      },
-      "tokens": 107
-    },
-    {
-      "firstFile": {
-        "end": 51,
-        "endLoc": {
           "column": 15,
           "line": 51,
           "position": 1337
@@ -6551,40 +6403,40 @@
     },
     {
       "firstFile": {
-        "end": 101,
+        "end": 51,
         "endLoc": {
-          "column": 24,
-          "line": 101,
-          "position": 2747
+          "column": 16,
+          "line": 51,
+          "position": 1338
         },
         "name": "geometrywars/EntityPool.ts",
-        "start": 80,
+        "start": 27,
         "startLoc": {
-          "column": 33,
-          "line": 80,
-          "position": 2160
+          "column": 10,
+          "line": 27,
+          "position": 785
         }
       },
       "format": "typescript",
-      "fragment": "        } as ReclaimableComponent,\n        collisionEvents: {\n          type: \"CollisionEvents\",\n          collisions: [],\n          activeTriggers: [],\n          triggersEntered: [],\n          triggersExited: []\n        } as CollisionEventsComponent,\n        damage: {\n          type: \"Damage\",\n          amount: 1,\n          category: \"player_bullet\",\n          friendlyFire: false,\n          consumption: \"destroy-entity\"\n        } as DamageComponent,\n        faction: {\n          type: \"Faction\",\n          faction: \"player\",\n          value: \"player\"\n        } as FactionComponent\n      }),\n      reset: (data) => {",
+      "fragment": "    super({\n      factory: () => ({\n        position: {\n          type: \"Transform\",\n          x: 0,\n          y: 0,\n          rotation: 0,\n          scaleX: 1,\n          scaleY: 1,\n          worldX: 0,\n          worldY: 0,\n          worldRotation: 0,\n          worldScaleX: 1,\n          worldScaleY: 1,\n          dirty: false\n        } as TransformComponent,\n        velocity: {\n          type: \"Velocity\",\n          vx: 0,\n          vy: 0,\n          angularVelocity: 0\n        } as VelocityComponent,\n        render: {\n          type: \"Render\",\n          shape: \"gw_bullet\",",
       "isNew": false,
-      "lines": 22,
+      "lines": 25,
       "secondFile": {
-        "end": 46,
+        "end": 24,
         "endLoc": {
-          "column": 24,
-          "line": 46,
-          "position": 2629
+          "column": 38,
+          "line": 24,
+          "position": 1238
         },
         "name": "space-invaders/EntityPool.ts",
-        "start": 35,
+        "start": 20,
         "startLoc": {
-          "column": 40,
-          "line": 35,
-          "position": 2138
+          "column": 9,
+          "line": 20,
+          "position": 889
         }
       },
-      "tokens": 84
+      "tokens": 93
     },
     {
       "firstFile": {
@@ -8716,18 +8568,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 63,
+        "end": 68,
         "endLoc": {
-          "column": 20,
-          "line": 63,
-          "position": 3637
+          "column": 18,
+          "line": 68,
+          "position": 3527
         },
         "name": "space-invaders/EntityPool.ts",
-        "start": 54,
+        "start": 59,
         "startLoc": {
-          "column": 8,
-          "line": 54,
-          "position": 3317
+          "column": 6,
+          "line": 59,
+          "position": 3225
         }
       },
       "tokens": 92
@@ -9770,114 +9622,40 @@
     },
     {
       "firstFile": {
-        "end": 34,
-        "endLoc": {
-          "column": 51,
-          "line": 34,
-          "position": 2021
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 24,
-        "startLoc": {
-          "column": 38,
-          "line": 24,
-          "position": 1595
-        }
-      },
-      "format": "typescript",
-      "fragment": "          mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,\n          offsetX: 0, offsetY: 0, isTrigger: false, enabled: true\n        } as ColliderComponent,\n        boundary: {\n          type: \"Boundary\",\n          width: GAME_CONFIG.SCREEN_WIDTH,\n          height: GAME_CONFIG.SCREEN_HEIGHT,\n          mode: \"destroy\"\n        } as BoundaryComponent,\n        ttl: { type: \"TTL\", remaining: 0, timeLeft: 0 },\n        reclaimable: { type: \"Reclaimable\", poolId: \"PlayerBulletPool\", poolName: \"PlayerBulletPool\" } as ReclaimableComponent,",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
         "end": 105,
         "endLoc": {
-          "column": 51,
+          "column": 12,
           "line": 105,
-          "position": 5540
+          "position": 4655
         },
         "name": "space-invaders/EntityPool.ts",
-        "start": 95,
+        "start": 94,
         "startLoc": {
-          "column": 39,
-          "line": 95,
-          "position": 5114
-        }
-      },
-      "tokens": 75
-    },
-    {
-      "firstFile": {
-        "end": 49,
-        "endLoc": {
-          "column": 46,
-          "line": 49,
-          "position": 2936
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 44,
-        "startLoc": {
-          "column": 71,
-          "line": 44,
-          "position": 2573
+          "column": 4,
+          "line": 94,
+          "position": 4354
         }
       },
       "format": "typescript",
-      "fragment": "        faction: { type: \"Faction\", faction: \"player\", value: \"player\" } as FactionComponent\n      }),\n      reset: (data) => {\n        data.position = { type: \"Transform\", x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: 0, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };\n        data.velocity = { type: \"Velocity\", vx: 0, vy: 0, angularVelocity: 0 };\n        data.render = { type: \"Render\", shape: \"player_bullet\", size: 0, color: \"\", rotation: 0, visible: true, opacity: 1, order: 10, hitFlashFrames: 0, angularVelocity: 0 };",
+      "fragment": "    }));\n  }\n\n  public acquireInvaderBullet(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {\n    return this.acquire(world, { x, y, dx, dy, size, color, ttl });\n  }\n}\n\n/**\n * Standardized Enemy Bullet Pool for Space Invaders.\n */\nexport class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {",
       "isNew": false,
-      "lines": 6,
+      "lines": 12,
       "secondFile": {
-        "end": 120,
+        "end": 126,
         "endLoc": {
-          "column": 46,
-          "line": 120,
-          "position": 6449
+          "column": 12,
+          "line": 126,
+          "position": 5327
         },
         "name": "space-invaders/EntityPool.ts",
         "start": 115,
         "startLoc": {
-          "column": 69,
+          "column": 4,
           "line": 115,
-          "position": 6086
+          "position": 5030
         }
       },
-      "tokens": 100
-    },
-    {
-      "firstFile": {
-        "end": 84,
-        "endLoc": {
-          "column": 12,
-          "line": 84,
-          "position": 4318
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 49,
-        "startLoc": {
-          "column": 62,
-          "line": 49,
-          "position": 2952
-        }
-      },
-      "format": "typescript",
-      "fragment": "        data.render = { type: \"Render\", shape: \"player_bullet\", size: 0, color: \"\", rotation: 0, visible: true, opacity: 1, order: 10, hitFlashFrames: 0, angularVelocity: 0 };\n        data.ttl = { type: \"TTL\", remaining: 0, timeLeft: 0 };\n        data.collisionEvents = { type: \"CollisionEvents\", collisions: [], activeTriggers: [], triggersEntered: [], triggersExited: [] };\n      },\n      initializer: (data, p) => {\n        data.position.x = p.x;\n        data.position.y = p.y;\n        data.position.worldX = p.x;\n        data.position.worldY = p.y;\n        data.position.dirty = true;\n        data.velocity.vx = p.dx;\n        data.velocity.vy = p.dy;\n        data.render.size = p.size;\n        data.render.color = p.color;\n        data.render.visible = true;\n        data.render.opacity = 1;\n        if (data.collider.shape.type === ShapeType.Circle) {\n          (data.collider.shape as CircleShape).radius = p.size;\n        }\n        data.boundary.width = GAME_CONFIG.SCREEN_WIDTH;\n        data.boundary.height = GAME_CONFIG.SCREEN_HEIGHT;\n        data.ttl.remaining = p.ttl;\n        data.ttl.timeLeft = p.ttl;\n      }\n    });\n  }\n\n  public acquireInvaderBullet(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {\n    return this.acquire(world, { x, y, dx, dy, size, color, ttl });\n  }\n}\n\n/**\n * Standardized Enemy Bullet Pool for Space Invaders.\n */\nexport class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {",
-      "isNew": false,
-      "lines": 36,
-      "secondFile": {
-        "end": 155,
-        "endLoc": {
-          "column": 12,
-          "line": 155,
-          "position": 7826
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 120,
-        "startLoc": {
-          "column": 61,
-          "line": 120,
-          "position": 6464
-        }
-      },
-      "tokens": 340
+      "tokens": 71
     },
     {
       "firstFile": {
@@ -10584,32 +10362,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-03T14:35:17.074Z",
+    "detectionDate": "2026-09-03T15:29:19.928Z",
     "formats": {
       "typescript": {
-        "clones": 286,
-        "duplicatedLines": 3543,
-        "duplicatedTokens": 25395,
-        "lines": 50577,
+        "clones": 280,
+        "duplicatedLines": 3404,
+        "duplicatedTokens": 24380,
+        "lines": 50579,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 7.005160448425174,
-        "percentageTokens": 9.301516372426928,
-        "sources": 308,
-        "tokens": 273020
+        "percentage": 6.730065837600585,
+        "percentageTokens": 8.953524669935181,
+        "sources": 309,
+        "tokens": 272295
       }
     },
     "total": {
-      "clones": 286,
-      "duplicatedLines": 3543,
-      "duplicatedTokens": 25395,
-      "lines": 50577,
+      "clones": 280,
+      "duplicatedLines": 3404,
+      "duplicatedTokens": 24380,
+      "lines": 50579,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 7.005160448425174,
-      "percentageTokens": 9.301516372426928,
-      "sources": 308,
-      "tokens": 273020
+      "percentage": 6.730065837600585,
+      "percentageTokens": 8.953524669935181,
+      "sources": 309,
+      "tokens": 272295
     }
   }
 }

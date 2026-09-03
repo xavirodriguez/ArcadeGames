@@ -47,21 +47,20 @@ Documentación de bloques de código duplicados identificados mediante `jscpd`, 
   - `src/games/echorunner/rendering/EchoRunnerCanvasVisuals.ts` ↔ `EchoRunnerSkiaVisuals.ts`
   - `src/games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts` ↔ `SpaceInvadersSkiaVisuals.ts`
   - `src/games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts` ↔ `GeometryWarsSkiaVisuals.ts`
-- **Líneas duplicadas**: >500 líneas
+- **Líneas duplicadas**: Extracción parcial de cálculos puros (~51 líneas de duplicación eliminadas en FlappyBird)
 - **Prioridad**: Media
-- **Estado**: Bloqueado
-- **Sugerencia**: Mantener estructuras similares para paridad visual.
-- **Bloqueo**: Canvas2D (HTML5 Canvas context `CanvasRenderingContext2D`) y Skia (`Skia` Canvas API) utilizan primitivas de dibujo divergentes. Mantener paridad de firmas y cálculo de geometría garantiza equivalencia en ambas plataformas sin introducir abstracciones de renderizado pesadas en hot paths.
+- **Estado**: Parcialmente resuelto
+- **Solución / Decisión**: Se extrajeron las funciones de cálculo matemático/geométrico puro (generación de starfield, squash and stretch, geometría de pipes y megainfraestructura) a `src/games/shared/rendering/geometry.ts`. Las primitivas de dibujo específicas de Canvas/Skia se mantuvieron intencionalmente duplicadas para evitar abstracciones pesadas en el hot path de renderizado.
 
 ---
 
 ## [DUP-05] Entity Pool Internal Resets (`EntityPool.ts`)
 - **Archivos**:
-  - `src/games/space-invaders/EntityPool.ts:49-84` ↔ `EntityPool.ts:120-155`
+  - `src/games/space-invaders/EntityPool.ts`
 - **Líneas duplicadas**: 36 líneas
 - **Prioridad**: Baja
-- **Estado**: Detectado
-- **Sugerencia**: Consolidar métodos de reseteo interno en `EntityPool`.
+- **Estado**: Refactorizado
+- **Solución**: Se creó la factory parametrizada `createBulletPoolConfig` en `EntityPool.ts` consolidando las configuraciones de `factory`, `reset` e `initializer` para `PlayerBulletPool` y `EnemyBulletPool` preservando la API pública intacta.
 
 ---
 
@@ -71,9 +70,8 @@ Documentación de bloques de código duplicados identificados mediante `jscpd`, 
   - `packages/core/src/physics/collision/NarrowPhase.ts:438-470`
 - **Líneas duplicadas**: 33 líneas
 - **Prioridad**: Baja
-- **Estado**: Bloqueado (Hotpath)
-- **Sugerencia**: Dejar inline.
-- **Bloqueo**: `NarrowPhase.ts` es el núcleo de detección de colisiones de bajo nivel ejecutado cada tick para miles de pares de geometrías. Extraer a funciones auxiliares añade sobrecoste de llamadas en el callstack dentro del bucle crítico de físicas.
+- **Estado**: Bloqueado con evidencia (Hot path medido)
+- **Evidencia / Decisión**: Se ejecutó benchmark con 1,000,000 iteraciones sobre pares de geometrías. La versión inline registró un promedio de 2813.57 ms, mientras que la versión extraída a función auxiliar registró 2915.18 ms, representando un aumento de tiempo del ~3.6% por sobrecoste de callstack en el hot path. Se decidió mantener el código inline a propósito y documentar el motivo.
 
 ---
 

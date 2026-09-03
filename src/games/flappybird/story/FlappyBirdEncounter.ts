@@ -116,47 +116,17 @@ export const flappyBirdEscapeEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Flappy Bird encounters.
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 6f4254b2
-export class FlappyBirdArcadeAdapter implements ArcadeGameAdapter {
-  private game: FlappyBirdGame | null = null;
-  private resultCallback: ((result: MiniGameResult) => void) | null = null;
+import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
-  public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
-    const game = new FlappyBirdGame({ seed: context.seed });
-    this.game = game;
-
-    // Apply modifiers from run context
-    for (const modifier of context.modifiers) {
-      if (modifier.targetProperty === "gravityMultiplier" && typeof modifier.value === "number") {
-        (game as any).gravityMultiplier = modifier.value;
-      } else if (modifier.targetProperty === "pipeGapMultiplier" && typeof modifier.value === "number") {
-        (game as any).pipeGapMultiplier = modifier.value;
-      } else if (modifier.targetProperty === "scoreMultiplier" && typeof modifier.value === "number") {
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-161. Considerar extraer a función compartida. Ref: a07c240f
-        (game as any).scoreMultiplier = modifier.value;
-      }
-    }
-
-    game.start();
-
-    const eventBus = (game as any).eventBus || (game as any).getEventBus?.();
-    if (eventBus) {
-      eventBus.on("game:over" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-      eventBus.on("level:completed" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-    }
+/**
+ * ArcadeGameAdapter implementation for Flappy Bird encounters.
+ */
+export class FlappyBirdArcadeAdapter extends BaseArcadeAdapter<FlappyBirdGame> {
+  protected createGame(context: MiniGameRunContext): FlappyBirdGame {
+    return new FlappyBirdGame({ seed: context.seed });
   }
 
-  public onResult(callback: (result: MiniGameResult) => void): void {
-    this.resultCallback = callback;
-  }
-
-  public emitResult(context: MiniGameRunContext, payload?: any): void {
-    if (!this.resultCallback) return;
-
+  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
     const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
     const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 10));
     const durationMs = payload?.durationMs ?? 20000;
@@ -167,7 +137,7 @@ export class FlappyBirdArcadeAdapter implements ArcadeGameAdapter {
       secretsFound.push("golden_feather_artifact");
     }
 
-    const result: MiniGameResult = {
+    return {
       runId: context.runId,
       gameId: context.gameId,
       score,
@@ -179,19 +149,5 @@ export class FlappyBirdArcadeAdapter implements ArcadeGameAdapter {
       },
       secretsFound
     };
-
-    this.resultCallback(result);
-  }
-
-  public dispose(): void {
-    if (this.game) {
-      if (typeof (this.game as any).destroy === "function") {
-        (this.game as any).destroy();
-      } else if (typeof (this.game as any).stop === "function") {
-        (this.game as any).stop();
-      }
-      this.game = null;
-    }
-    this.resultCallback = null;
   }
 }

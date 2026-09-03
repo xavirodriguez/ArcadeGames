@@ -114,7 +114,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
   // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:309-321. Considerar extraer a función compartida. Ref: b8cff4cf
   protected override async onRegisterSystems(): Promise<void> {
     // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:207-221. Considerar extraer a función compartida. Ref: 44f1ee7d
-    this.world.setResource("ScreenConfig", { width: PLATFORMER_CONFIG.SCREEN_WIDTH, height: PLATFORMER_CONFIG.SCREEN_HEIGHT });
+    this.setupCommonArcadeResources();
     this.world.setResource("DeathPlaneY", 650);
 
     const runState: RunState = {

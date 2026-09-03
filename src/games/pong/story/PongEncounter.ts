@@ -115,48 +115,17 @@ export const pongChampionshipEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Pong encounters.
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: d62b6c96
-export class PongArcadeAdapter implements ArcadeGameAdapter {
-  private game: PongGame | null = null;
-  private resultCallback: ((result: MiniGameResult) => void) | null = null;
+import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
-  public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
-    const game = new PongGame({ seed: context.seed });
-    this.game = game;
-
-    // Apply modifiers from run context
-    for (const modifier of context.modifiers) {
-      if (modifier.targetProperty === "paddleSpeedMultiplier" && typeof modifier.value === "number") {
-        (game as any).paddleSpeedMultiplier = modifier.value;
-      } else if (modifier.targetProperty === "ballSpeedMultiplier" && typeof modifier.value === "number") {
-        (game as any).ballSpeedMultiplier = modifier.value;
-      } else if (modifier.targetProperty === "extraPointsHandicap" && typeof modifier.value === "number") {
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-147. Considerar extraer a función compartida. Ref: c5c4d235
-        (game as any).extraPointsHandicap = modifier.value;
-      }
-    }
-
-    game.start();
-
-    const eventBus = (game as any).eventBus || (game as any).getEventBus?.();
-    if (eventBus) {
-      eventBus.on("game:over" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-      // TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:139-152. Considerar extraer a función compartida. Ref: 472ffcf5
-      eventBus.on("match:completed" as any, (payload: any) => {
-        this.emitResult(context, payload);
-      });
-    }
+/**
+ * ArcadeGameAdapter implementation for Pong encounters.
+ */
+export class PongArcadeAdapter extends BaseArcadeAdapter<PongGame> {
+  protected createGame(context: MiniGameRunContext): PongGame {
+    return new PongGame({ seed: context.seed });
   }
 
-  public onResult(callback: (result: MiniGameResult) => void): void {
-    this.resultCallback = callback;
-  }
-
-  public emitResult(context: MiniGameRunContext, payload?: any): void {
-    if (!this.resultCallback) return;
-
+  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
     const playerScore = payload?.playerScore ?? (this.game as any)?.playerScore ?? 0;
     const opponentScore = payload?.opponentScore ?? (this.game as any)?.opponentScore ?? 0;
     const completed = payload?.completed ?? (playerScore > opponentScore && playerScore >= (context.config.targetScore ?? 5));
@@ -167,7 +136,7 @@ export class PongArcadeAdapter implements ArcadeGameAdapter {
       secretsFound.push("prototype_paddle_schematic");
     }
 
-    const result: MiniGameResult = {
+    return {
       runId: context.runId,
       gameId: context.gameId,
       score: playerScore,
@@ -180,19 +149,5 @@ export class PongArcadeAdapter implements ArcadeGameAdapter {
       },
       secretsFound
     };
-
-    this.resultCallback(result);
-  }
-
-  public dispose(): void {
-    if (this.game) {
-      if (typeof (this.game as any).destroy === "function") {
-        (this.game as any).destroy();
-      } else if (typeof (this.game as any).stop === "function") {
-        (this.game as any).stop();
-      }
-      this.game = null;
-    }
-    this.resultCallback = null;
   }
 }

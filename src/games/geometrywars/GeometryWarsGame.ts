@@ -58,7 +58,7 @@ export class GeometryWarsGame extends BaseGame<
   protected override async onRegisterSystems(): Promise<void> {
     // 1. Set resources on the world
     this.world.setResource("GameConfig", this.config);
-    this.world.setResource("ScreenConfig", { width: this.config.WIDTH, height: this.config.HEIGHT });
+    this.setupCommonArcadeResources();
     this.world.setResource("BlueprintRegistry", this.blueprints);
 
     if (!this.isHeadless) {

@@ -46,33 +46,33 @@
           "position": 2336
         },
         "name": "ecs/WorldCommandBuffer.ts",
-        "start": 51,
+        "start": 50,
         "startLoc": {
-          "column": 8,
-          "line": 51,
-          "position": 1967
+          "column": 42,
+          "line": 50,
+          "position": 1956
         }
       },
       "format": "typescript",
-      "fragment": "        const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>(\"BlueprintRegistry\");\n        const blueprint = registry?.get(blueprintId);\n        if (blueprint) {\n          try {\n            blueprint.spawn(world, entity, args);\n          } catch (err) {\n            console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}':`, err);",
+      "fragment": "        const entity = world.createEntity();\n        const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>(\"BlueprintRegistry\");\n        const blueprint = registry?.get(blueprintId);\n        if (blueprint) {\n          try {\n            blueprint.spawn(world, entity, args);\n          } catch (err) {\n            console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}':`, err);",
       "isNew": false,
-      "lines": 7,
+      "lines": 8,
       "secondFile": {
-        "end": 83,
+        "end": 84,
         "endLoc": {
           "column": 87,
-          "line": 83,
-          "position": 3217
+          "line": 84,
+          "position": 3255
         },
         "name": "ecs/WorldCommandBuffer.ts",
         "start": 77,
         "startLoc": {
-          "column": 8,
+          "column": 35,
           "line": 77,
-          "position": 2848
+          "position": 2875
         }
       },
-      "tokens": 60
+      "tokens": 62
     },
     {
       "firstFile": {
@@ -3225,14 +3225,14 @@
         "endLoc": {
           "column": 9,
           "line": 151,
-          "position": 4015
+          "position": 4023
         },
         "name": "asteroids/story/EscapeRouteEncounter.ts",
         "start": 130,
         "startLoc": {
           "column": 4,
           "line": 130,
-          "position": 3373
+          "position": 3381
         }
       },
       "format": "typescript",
@@ -3244,14 +3244,14 @@
         "endLoc": {
           "column": 9,
           "line": 159,
-          "position": 4555
+          "position": 4563
         },
         "name": "echorunner/story/EchoRunnerEncounter.ts",
         "start": 139,
         "startLoc": {
           "column": 4,
           "line": 139,
-          "position": 3972
+          "position": 3980
         }
       },
       "tokens": 137
@@ -3262,14 +3262,14 @@
         "endLoc": {
           "column": 9,
           "line": 151,
-          "position": 4015
+          "position": 4023
         },
         "name": "asteroids/story/EscapeRouteEncounter.ts",
         "start": 138,
         "startLoc": {
           "column": 36,
           "line": 138,
-          "position": 3692
+          "position": 3700
         }
       },
       "format": "typescript",
@@ -3299,14 +3299,14 @@
         "endLoc": {
           "column": 1,
           "line": 188,
-          "position": 5105
+          "position": 5113
         },
         "name": "asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
           "line": 169,
-          "position": 4702
+          "position": 4710
         }
       },
       "format": "typescript",
@@ -3318,14 +3318,14 @@
         "endLoc": {
           "column": 1,
           "line": 196,
-          "position": 5613
+          "position": 5621
         },
         "name": "echorunner/story/EchoRunnerEncounter.ts",
         "start": 177,
         "startLoc": {
           "column": 50,
           "line": 177,
-          "position": 5210
+          "position": 5218
         }
       },
       "tokens": 103
@@ -3336,14 +3336,14 @@
         "endLoc": {
           "column": 1,
           "line": 188,
-          "position": 5105
+          "position": 5113
         },
         "name": "asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
           "line": 169,
-          "position": 4702
+          "position": 4710
         }
       },
       "format": "typescript",
@@ -3355,14 +3355,14 @@
         "endLoc": {
           "column": 1,
           "line": 195,
-          "position": 5623
+          "position": 5631
         },
         "name": "flappybird/story/FlappyBirdEncounter.ts",
         "start": 176,
         "startLoc": {
           "column": 40,
           "line": 176,
-          "position": 5220
+          "position": 5228
         }
       },
       "tokens": 103
@@ -3373,14 +3373,14 @@
         "endLoc": {
           "column": 1,
           "line": 188,
-          "position": 5105
+          "position": 5113
         },
         "name": "asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
           "line": 169,
-          "position": 4702
+          "position": 4710
         }
       },
       "format": "typescript",
@@ -3392,14 +3392,14 @@
         "endLoc": {
           "column": 1,
           "line": 194,
-          "position": 5704
+          "position": 5712
         },
         "name": "geometrywars/story/GeometryWarsEncounter.ts",
         "start": 175,
         "startLoc": {
           "column": 48,
           "line": 175,
-          "position": 5301
+          "position": 5309
         }
       },
       "tokens": 103
@@ -3410,14 +3410,14 @@
         "endLoc": {
           "column": 1,
           "line": 188,
-          "position": 5105
+          "position": 5113
         },
         "name": "asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
           "line": 169,
-          "position": 4702
+          "position": 4710
         }
       },
       "format": "typescript",
@@ -3429,14 +3429,14 @@
         "endLoc": {
           "column": 1,
           "line": 194,
-          "position": 5549
+          "position": 5557
         },
         "name": "platformer/story/PlatformerEncounter.ts",
         "start": 175,
         "startLoc": {
           "column": 50,
           "line": 175,
-          "position": 5146
+          "position": 5154
         }
       },
       "tokens": 103
@@ -3447,14 +3447,14 @@
         "endLoc": {
           "column": 1,
           "line": 188,
-          "position": 5105
+          "position": 5113
         },
         "name": "asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
           "line": 169,
-          "position": 4702
+          "position": 4710
         }
       },
       "format": "typescript",
@@ -3484,14 +3484,14 @@
         "endLoc": {
           "column": 1,
           "line": 188,
-          "position": 5105
+          "position": 5113
         },
         "name": "asteroids/story/EscapeRouteEncounter.ts",
         "start": 169,
         "startLoc": {
           "column": 56,
           "line": 169,
-          "position": 4702
+          "position": 4710
         }
       },
       "format": "typescript",
@@ -3503,14 +3503,14 @@
         "endLoc": {
           "column": 1,
           "line": 195,
-          "position": 5769
+          "position": 5777
         },
         "name": "space-invaders/story/InvasionEncounter.ts",
         "start": 176,
         "startLoc": {
           "column": 54,
           "line": 176,
-          "position": 5366
+          "position": 5374
         }
       },
       "tokens": 103
@@ -3521,14 +3521,14 @@
         "endLoc": {
           "column": 26,
           "line": 63,
-          "position": 2308
+          "position": 2316
         },
         "name": "asteroids/systems/AsteroidCollisionSystem.ts",
         "start": 55,
         "startLoc": {
           "column": 4,
           "line": 55,
-          "position": 2029
+          "position": 2037
         }
       },
       "format": "typescript",
@@ -3540,14 +3540,14 @@
         "endLoc": {
           "column": 30,
           "line": 161,
-          "position": 6080
+          "position": 6088
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 153,
         "startLoc": {
           "column": 8,
           "line": 153,
-          "position": 5773
+          "position": 5781
         }
       },
       "tokens": 57
@@ -5186,14 +5186,14 @@
         "endLoc": {
           "column": 84,
           "line": 160,
-          "position": 4705
+          "position": 4713
         },
         "name": "echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
           "line": 135,
-          "position": 3935
+          "position": 3943
         }
       },
       "format": "typescript",
@@ -5205,14 +5205,14 @@
         "endLoc": {
           "column": 84,
           "line": 159,
-          "position": 4724
+          "position": 4732
         },
         "name": "flappybird/story/FlappyBirdEncounter.ts",
         "start": 134,
         "startLoc": {
           "column": 38,
           "line": 134,
-          "position": 3954
+          "position": 3962
         }
       },
       "tokens": 182
@@ -5223,14 +5223,14 @@
         "endLoc": {
           "column": 84,
           "line": 160,
-          "position": 4705
+          "position": 4713
         },
         "name": "echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
           "line": 135,
-          "position": 3935
+          "position": 3943
         }
       },
       "format": "typescript",
@@ -5242,14 +5242,14 @@
         "endLoc": {
           "column": 84,
           "line": 158,
-          "position": 4754
+          "position": 4762
         },
         "name": "geometrywars/story/GeometryWarsEncounter.ts",
         "start": 133,
         "startLoc": {
           "column": 44,
           "line": 133,
-          "position": 3984
+          "position": 3992
         }
       },
       "tokens": 182
@@ -5260,14 +5260,14 @@
         "endLoc": {
           "column": 84,
           "line": 160,
-          "position": 4705
+          "position": 4713
         },
         "name": "echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
           "line": 135,
-          "position": 3935
+          "position": 3943
         }
       },
       "format": "typescript",
@@ -5279,14 +5279,14 @@
         "endLoc": {
           "column": 84,
           "line": 158,
-          "position": 4637
+          "position": 4645
         },
         "name": "platformer/story/PlatformerEncounter.ts",
         "start": 133,
         "startLoc": {
           "column": 42,
           "line": 133,
-          "position": 3867
+          "position": 3875
         }
       },
       "tokens": 182
@@ -5297,14 +5297,14 @@
         "endLoc": {
           "column": 18,
           "line": 146,
-          "position": 4214
+          "position": 4222
         },
         "name": "echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
           "line": 135,
-          "position": 3935
+          "position": 3943
         }
       },
       "format": "typescript",
@@ -5334,14 +5334,14 @@
         "endLoc": {
           "column": 84,
           "line": 160,
-          "position": 4705
+          "position": 4713
         },
         "name": "echorunner/story/EchoRunnerEncounter.ts",
         "start": 135,
         "startLoc": {
           "column": 38,
           "line": 135,
-          "position": 3935
+          "position": 3943
         }
       },
       "format": "typescript",
@@ -5353,14 +5353,14 @@
         "endLoc": {
           "column": 84,
           "line": 159,
-          "position": 4819
+          "position": 4827
         },
         "name": "space-invaders/story/InvasionEncounter.ts",
         "start": 133,
         "startLoc": {
           "column": 43,
           "line": 133,
-          "position": 3990
+          "position": 3998
         }
       },
       "tokens": 182
@@ -6426,14 +6426,14 @@
         "endLoc": {
           "column": 83,
           "line": 433,
-          "position": 15493
+          "position": 15501
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 426,
         "startLoc": {
           "column": 47,
           "line": 426,
-          "position": 15118
+          "position": 15126
         }
       },
       "tokens": 51
@@ -10496,14 +10496,14 @@
         "endLoc": {
           "column": 51,
           "line": 218,
-          "position": 8067
+          "position": 8075
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 212,
         "startLoc": {
           "column": 81,
           "line": 212,
-          "position": 7780
+          "position": 7788
         }
       },
       "tokens": 64
@@ -10514,14 +10514,14 @@
         "endLoc": {
           "column": 6,
           "line": 230,
-          "position": 8574
+          "position": 8582
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 222,
         "startLoc": {
           "column": 34,
           "line": 222,
-          "position": 8287
+          "position": 8295
         }
       },
       "format": "typescript",
@@ -10533,14 +10533,14 @@
         "endLoc": {
           "column": 6,
           "line": 276,
-          "position": 10199
+          "position": 10207
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
         "start": 268,
         "startLoc": {
           "column": 70,
           "line": 268,
-          "position": 9912
+          "position": 9920
         }
       },
       "tokens": 52
@@ -10584,32 +10584,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-03T13:07:11.019Z",
+    "detectionDate": "2026-09-03T14:43:59.911Z",
     "formats": {
       "typescript": {
         "clones": 286,
-        "duplicatedLines": 3542,
-        "duplicatedTokens": 25393,
-        "lines": 50246,
+        "duplicatedLines": 3543,
+        "duplicatedTokens": 25395,
+        "lines": 50247,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 7.04931735859571,
-        "percentageTokens": 9.358611005664626,
+        "percentage": 7.0511672338647085,
+        "percentageTokens": 9.359106655856122,
         "sources": 308,
-        "tokens": 271333
+        "tokens": 271340
       }
     },
     "total": {
       "clones": 286,
-      "duplicatedLines": 3542,
-      "duplicatedTokens": 25393,
-      "lines": 50246,
+      "duplicatedLines": 3543,
+      "duplicatedTokens": 25395,
+      "lines": 50247,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 7.04931735859571,
-      "percentageTokens": 9.358611005664626,
+      "percentage": 7.0511672338647085,
+      "percentageTokens": 9.359106655856122,
       "sources": 308,
-      "tokens": 271333
+      "tokens": 271340
     }
   }
 }

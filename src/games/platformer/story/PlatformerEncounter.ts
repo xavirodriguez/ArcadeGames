@@ -6,7 +6,7 @@ import {
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
 import { PlatformerGame } from "../PlatformerGame";
-import { applyStandardEncounterModifiers } from "../../shared/story/encounterHelpers";
+import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
 
 export const PLATFORMER_RUN_ENCOUNTER_ID = "platformer_run_01";
 

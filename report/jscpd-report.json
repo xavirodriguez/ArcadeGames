@@ -46,33 +46,33 @@
           "position": 2336
         },
         "name": "ecs/WorldCommandBuffer.ts",
-        "start": 51,
+        "start": 50,
         "startLoc": {
-          "column": 8,
-          "line": 51,
-          "position": 1967
+          "column": 42,
+          "line": 50,
+          "position": 1956
         }
       },
       "format": "typescript",
-      "fragment": "        const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>(\"BlueprintRegistry\");\n        const blueprint = registry?.get(blueprintId);\n        if (blueprint) {\n          try {\n            blueprint.spawn(world, entity, args);\n          } catch (err) {\n            console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}':`, err);",
+      "fragment": "        const entity = world.createEntity();\n        const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>(\"BlueprintRegistry\");\n        const blueprint = registry?.get(blueprintId);\n        if (blueprint) {\n          try {\n            blueprint.spawn(world, entity, args);\n          } catch (err) {\n            console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}':`, err);",
       "isNew": false,
-      "lines": 7,
+      "lines": 8,
       "secondFile": {
-        "end": 83,
+        "end": 84,
         "endLoc": {
           "column": 87,
-          "line": 83,
-          "position": 3217
+          "line": 84,
+          "position": 3255
         },
         "name": "ecs/WorldCommandBuffer.ts",
         "start": 77,
         "startLoc": {
-          "column": 8,
+          "column": 35,
           "line": 77,
-          "position": 2848
+          "position": 2875
         }
       },
-      "tokens": 60
+      "tokens": 62
     },
     {
       "firstFile": {
@@ -10584,32 +10584,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-03T13:07:11.019Z",
+    "detectionDate": "2026-09-03T13:40:03.680Z",
     "formats": {
       "typescript": {
         "clones": 286,
-        "duplicatedLines": 3542,
-        "duplicatedTokens": 25393,
-        "lines": 50246,
+        "duplicatedLines": 3543,
+        "duplicatedTokens": 25395,
+        "lines": 50247,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 7.04931735859571,
-        "percentageTokens": 9.358611005664626,
+        "percentage": 7.0511672338647085,
+        "percentageTokens": 9.359106655856122,
         "sources": 308,
-        "tokens": 271333
+        "tokens": 271340
       }
     },
     "total": {
       "clones": 286,
-      "duplicatedLines": 3542,
-      "duplicatedTokens": 25393,
-      "lines": 50246,
+      "duplicatedLines": 3543,
+      "duplicatedTokens": 25395,
+      "lines": 50247,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 7.04931735859571,
-      "percentageTokens": 9.358611005664626,
+      "percentage": 7.0511672338647085,
+      "percentageTokens": 9.359106655856122,
       "sources": 308,
-      "tokens": 271333
+      "tokens": 271340
     }
   }
 }

@@ -1,87 +1,68 @@
-# Technical Debt: Code Duplication Tracking
+# Tech Debt: Code Duplication Tracking (`jscpd`)
 
-Documentación de bloques de código duplicados identificados mediante `jscpd`, sus niveles de impacto, planes de refactorización y bloqueos conocidos.
-
----
-
-## [DUP-01] Enemy Blueprints in Platformer & EchoRunner
-- **Archivos**:
-  - `src/games/echorunner/EchoRunnerGame.ts:201-271`
-  - `src/games/platformer/PlatformerGame.ts:201-271`
-- **Líneas duplicadas**: ~70 líneas
-- **Prioridad**: Alta
-- **Estado**: Refactorizado
-- **Solución**: Se extrajo la función `registerPlatformerEnemyBlueprints` en `src/games/shared/arcade/blueprints/enemyBlueprints.ts`.
+This document tracks known code duplication clusters across `packages/core/src` and `src/games`, as identified by `jscpd` and managed via `scripts/duplication-ratchet.ts`.
 
 ---
 
-## [DUP-02] Player Input Handling (`setInputState`) in Platformer & EchoRunner
-- **Archivos**:
-  - `src/games/echorunner/EchoRunnerGame.ts:350-370`
-  - `src/games/platformer/PlatformerGame.ts:350-370`
-- **Líneas duplicadas**: ~20 líneas
-- **Prioridad**: Alta
-- **Estado**: Refactorizado
-- **Solución**: Se extrajo la función `mutatePlatformerInputState` en `src/games/shared/arcade/helpers/inputHelpers.ts`.
+## 1. Top Duplication Clusters
+
+### [DUP-01] Player Input Application (`setInputState`)
+- **Files**:
+  - `src/games/platformer/PlatformerGame.ts`
+  - `src/games/echorunner/EchoRunnerGame.ts`
+- **Lines**: ~20 lines per game
+- **Impact**: Medium
+- **Priority**: High (Refactored)
+- **Status**: Refactored / In Progress
+- **Refactoring Strategy**: Extracted into a shared helper `applyPlatformerInputState` in `src/games/shared/input/PlatformerInputUtils.ts`.
 
 ---
 
-## [DUP-03] Encounter Navigation Assist Modifiers Across Games
-- **Archivos**:
-  - `src/games/asteroids/story/EscapeRouteEncounter.ts:131-157`
-  - `src/games/flappybird/story/FlappyBirdEncounter.ts:133-158`
-  - `src/games/geometrywars/story/GeometryWarsEncounter.ts:132-157`
-  - `src/games/platformer/story/PlatformerEncounter.ts:132-157`
-  - `src/games/space-invaders/story/InvasionEncounter.ts:132-158`
-  - `src/games/echorunner/story/EchoRunnerEncounter.ts:134-158`
-- **Líneas duplicadas**: ~160 líneas totales (~27 líneas × 6 archivos)
-- **Prioridad**: Alta
-- **Estado**: Refactorizado
-- **Solución**: Se extrajo la aplicación de modificadores con `applyStandardEncounterModifiers` en `src/games/shared/story/encounterHelpers.ts`.
+### [DUP-02] Canvas vs Skia Particle & Visual Presentation Loops
+- **Files**:
+  - `src/games/flappybird/rendering/FlappyBirdCanvasVisuals.ts` ↔ `src/games/flappybird/rendering/FlappyBirdSkiaVisuals.ts`
+  - `src/games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts` ↔ `src/games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts`
+  - `src/games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts` ↔ `src/games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts`
+- **Lines**: ~30–50 lines per game drawer
+- **Impact**: High
+- **Priority**: Medium
+- **Status**: Blocked (Dual Renderer Architecture)
+- **Rationale / Blocked Reason**: Canvas2D and Skia backends operate on different draw APIs (Canvas Context 2D state machine vs Skia Canvas primitives/Paints). Abstracting state calculations vs draw calls introduces per-frame closure allocations in hot loops.
+- **Actionable Steps for Next Developer**:
+  1. Isolate stateless positional/particle calculations into game visual utility modules (e.g. `SpaceInvadersVisualUtils.ts`).
+  2. Keep drawer-specific drawing API calls separate in Canvas/Skia files to avoid allocation overhead in hot rendering loops.
 
 ---
 
-## [DUP-04] Canvas2D vs Skia Renderer Visual Drawers
-- **Archivos**:
-  - `src/games/flappybird/rendering/FlappyBirdCanvasVisuals.ts` ↔ `FlappyBirdSkiaVisuals.ts`
-  - `src/games/echorunner/rendering/EchoRunnerCanvasVisuals.ts` ↔ `EchoRunnerSkiaVisuals.ts`
-  - `src/games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts` ↔ `SpaceInvadersSkiaVisuals.ts`
-  - `src/games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts` ↔ `GeometryWarsSkiaVisuals.ts`
-- **Líneas duplicadas**: >500 líneas
-- **Prioridad**: Media
-- **Estado**: Bloqueado
-- **Sugerencia**: Mantener estructuras similares para paridad visual.
-- **Bloqueo**: Canvas2D (HTML5 Canvas context `CanvasRenderingContext2D`) y Skia (`Skia` Canvas API) utilizan primitivas de dibujo divergentes. Mantener paridad de firmas y cálculo de geometría garantiza equivalencia en ambas plataformas sin introducir abstracciones de renderizado pesadas en hot paths.
+### [DUP-03] Narrowphase Polygon/Circle Contact Calculations
+- **Files**:
+  - `packages/core/src/physics/collision/NarrowPhase.ts` (multiple internal geometry test helpers)
+- **Lines**: ~27 lines
+- **Impact**: Medium
+- **Priority**: Low
+- **Status**: Blocked (Hot Path Performance)
+- **Rationale / Blocked Reason**: Narrowphase collision math runs every tick for hundreds of potential contacts. Extracting dot product or vertex distance loops into helper functions adds stack frame overhead without vectorization benefits in JS runtime.
+- **Actionable Steps for Next Developer**:
+  1. Maintain inline math loops unless a SIMD/TypedArray batching approach is introduced for collision detection.
 
 ---
 
-## [DUP-05] Entity Pool Internal Resets (`EntityPool.ts`)
-- **Archivos**:
-  - `src/games/space-invaders/EntityPool.ts:49-84` ↔ `EntityPool.ts:120-155`
-- **Líneas duplicadas**: 36 líneas
-- **Prioridad**: Baja
-- **Estado**: Detectado
-- **Sugerencia**: Consolidar métodos de reseteo interno en `EntityPool`.
+### [DUP-04] Snapshot Serializer Interfaces & World Access Setup
+- **Files**:
+  - `packages/core/src/snapshots/SnapshotSerializer.ts` ↔ `packages/core/src/snapshots/SnapshotSerializerSoA.ts`
+- **Lines**: ~27 lines
+- **Impact**: Low
+- **Priority**: Low
+- **Status**: Blocked (Core API & Architecture)
+- **Rationale / Blocked Reason**: `SnapshotSerializer` (AoS) and `SnapshotSerializerSoA` (SoA) share internal interface definitions for private World access (`InternalWorldAccess`).
+- **Actionable Steps for Next Developer**:
+  1. Move shared internal World serializer interfaces into a common private header file `packages/core/src/snapshots/SerializerTypes.ts`.
 
 ---
 
-## [DUP-06] NarrowPhase Collision Manifold Calculation
-- **Archivos**:
-  - `packages/core/src/physics/collision/NarrowPhase.ts:89-121`
-  - `packages/core/src/physics/collision/NarrowPhase.ts:438-470`
-- **Líneas duplicadas**: 33 líneas
-- **Prioridad**: Baja
-- **Estado**: Bloqueado (Hotpath)
-- **Sugerencia**: Dejar inline.
-- **Bloqueo**: `NarrowPhase.ts` es el núcleo de detección de colisiones de bajo nivel ejecutado cada tick para miles de pares de geometrías. Extraer a funciones auxiliares añade sobrecoste de llamadas en el callstack dentro del bucle crítico de físicas.
+## 2. Ratchet & CI Integration
 
----
-
-## [DUP-07] SceneManager Transition Promise Handlers
-- **Archivos**:
-  - `packages/core/src/scenes/SceneManager.ts:376-423`
-  - `packages/core/src/scenes/SceneManager.ts:552-599`
-- **Líneas duplicadas**: 48 líneas
-- **Prioridad**: Media
-- **Estado**: Refactorizado
-- **Solución**: Se extrajo el helper privado `createTimeoutPromise` en `SceneManager.ts`.
+- **Command**: `pnpm run check:duplication`
+- **Baseline Update**: `pnpm run duplication:update-baseline`
+- **Script**: `scripts/duplication-ratchet.ts`
+- **CI Job**: `static-and-mutation-guards` in `.github/workflows/ecs-sentinel.yml`

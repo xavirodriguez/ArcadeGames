@@ -1,0 +1,23 @@
+{
+  "path": [
+    "packages/core/src",
+    "src/games"
+  ],
+  "pattern": "**/*.ts",
+  "ignore": [
+    "**/*.test.ts",
+    "**/__tests__/**",
+    "**/dist/**",
+    "**/compiled-js/**",
+    "**/node_modules/**"
+  ],
+  "format": [
+    "typescript"
+  ],
+  "reporters": [
+    "console",
+    "json",
+    "markdown"
+  ],
+  "absolute": false
+}

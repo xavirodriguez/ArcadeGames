@@ -6,6 +6,7 @@ import {
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
 import { GeometryWarsGame } from "../GeometryWarsGame";
+import { applyStandardEncounterModifiers } from "../../shared/story/encounterHelpers";
 
 export const GEOMETRY_WARS_OVERDRIVE_ENCOUNTER_ID = "geometry_wars_overdrive_01";
 

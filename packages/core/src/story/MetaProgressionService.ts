@@ -197,6 +197,53 @@ export class MetaProgressionService {
   }
 
   /**
+   * Increments or updates the mastery level for a specific minigame (clamped between 1 and 5).
+   * Performs auto-save only if `autoSave` is enabled.
+   *
+   * @param gameId - Identifier of the target minigame.
+   * @param amount - Optional incremental amount (default: 1).
+   * @public
+   */
+  public async incrementMiniGameMastery(gameId: string, amount: number = 1): Promise<void> {
+    const currentMastery = this.state.miniGameMastery[gameId] ?? 0;
+    const newMastery = Math.min(5, Math.max(1, currentMastery + amount));
+
+    this.state = {
+      ...this.state,
+      miniGameMastery: {
+        ...this.state.miniGameMastery,
+        [gameId]: newMastery
+      }
+    };
+
+    if (this.autoSave) {
+      await this.saveToStorage();
+    }
+  }
+
+  /**
+   * Unlocks a permanent meta modifier if not already unlocked.
+   * Performs auto-save only if `autoSave` is enabled.
+   *
+   * @param modifierId - Unique identifier of the modifier to unlock.
+   * @public
+   */
+  public async unlockModifier(modifierId: string): Promise<void> {
+    if (this.state.unlockedModifiers.includes(modifierId)) {
+      return;
+    }
+
+    this.state = {
+      ...this.state,
+      unlockedModifiers: [...this.state.unlockedModifiers, modifierId]
+    };
+
+    if (this.autoSave) {
+      await this.saveToStorage();
+    }
+  }
+
+  /**
    * Checks whether player qualifies for New Game+ content branch.
    */
   public isNewGamePlusUnlocked(): boolean {

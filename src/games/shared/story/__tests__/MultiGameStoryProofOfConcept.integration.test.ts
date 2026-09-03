@@ -12,7 +12,7 @@ import {
 } from "../StoryEncounters";
 
 describe("MultiGameStoryProofOfConcept 7-Stage Pipeline Integration Test", () => {
-  it("executes the 7-stage narrative <-> minigame pipeline across Asteroids and Space Invaders to completion", () => {
+  it("executes the 7-stage narrative <-> minigame pipeline across Asteroids, Space Invaders choice, and Redux to completion", () => {
     const poc = new MultiGameStoryProofOfConcept();
 
     // Stage 1 & 2: Start Campaign & Navigate through intro to Act 1 Gameplay
@@ -33,15 +33,15 @@ describe("MultiGameStoryProofOfConcept 7-Stage Pipeline Integration Test", () =>
     expect(asteroidsRunContext?.encounterId).toBe("poc-asteroids-1");
     expect(asteroidsRunContext?.runId).toBeDefined();
 
-    // Stage 4 & 5: Simulate MiniGameResult execution and submission
+    // Stage 4 & 5: Simulate MiniGameResult execution and submission with metrics
     const asteroidsResult: MiniGameResult = {
       runId: asteroidsRunContext!.runId,
       gameId: "asteroids",
       score: 1500,
       completed: true,
       durationMs: 45000,
-      metrics: { asteroidsDestroyed: 15 },
-      secretsFound: []
+      metrics: { wavesCleared: 3, livesRemaining: 2 },
+      secretsFound: ["black_box_alpha"]
     };
 
     // Stage 6 & 7: Submit result, evaluate outcome rules via OutcomeRuleEngine, apply effects via StoryEffectApplier, and advance narrative
@@ -51,9 +51,16 @@ describe("MultiGameStoryProofOfConcept 7-Stage Pipeline Integration Test", () =>
     expect(stateAfterAct1.flags.asteroidsPerfect).toBe(true);
     expect(stateAfterAct1.flags.heroicEntry).toBe(true);
     expect(stateAfterAct1.variables.asteroidLevelReached).toBe(2);
+    expect(stateAfterAct1.evidence).toContain("black_box_alpha");
+    expect(poc.metaService.getState().miniGameMastery["asteroids"]).toBe(1);
 
-    // Transition should have auto-advanced from gameplay -> branch eval -> heroic entry -> cutscene_trans_to_spaceinvaders
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("cutscene_trans_to_spaceinvaders");
+    // Transition should have auto-advanced to narrative_bridge_choice
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("narrative_bridge_choice");
+
+    // Select explicit choice: Space Invaders
+    poc.storyRuntime.selectChoice("choice_space_invaders");
+    expect(poc.storyRuntime.getFlag("route_space_invaders")).toBe(true);
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act2_spaceinvaders_intro");
 
     // Advance cutscene transition to Act 2 Space Invaders Gameplay
     poc.storyRuntime.evaluateTransitions();
@@ -79,8 +86,8 @@ describe("MultiGameStoryProofOfConcept 7-Stage Pipeline Integration Test", () =>
       score: 6000,
       completed: true,
       durationMs: 60000,
-      metrics: { invadersKilled: 40 },
-      secretsFound: []
+      metrics: { wavesCleared: 2, livesRemaining: 1 },
+      secretsFound: ["invader_core_data"]
     };
 
     poc.submitGameplayResult(spaceInvadersResult);
@@ -88,7 +95,11 @@ describe("MultiGameStoryProofOfConcept 7-Stage Pipeline Integration Test", () =>
     const stateAfterAct2 = poc.storyRuntime.getState();
     expect(stateAfterAct2.flags.reinforcementsReceived).toBe(true);
     expect(stateAfterAct2.variables.spaceinvadersScore).toBe(6000);
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("cutscene_trans_to_asteroids_redux");
+    expect(stateAfterAct2.evidence).toContain("invader_core_data");
+    expect(poc.metaService.getState().miniGameMastery["space-invaders"]).toBe(1);
+
+    // Advanced through branch to act3_asteroids_redux_intro
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act3_asteroids_redux_intro");
 
     // Advance to Act 3 Asteroids Redux gameplay
     poc.storyRuntime.evaluateTransitions();
@@ -111,7 +122,7 @@ describe("MultiGameStoryProofOfConcept 7-Stage Pipeline Integration Test", () =>
       score: 3500,
       completed: true,
       durationMs: 50000,
-      metrics: {},
+      metrics: { wavesCleared: 4 },
       secretsFound: []
     };
 
@@ -121,6 +132,12 @@ describe("MultiGameStoryProofOfConcept 7-Stage Pipeline Integration Test", () =>
     expect(poc.storyRuntime.getCurrentNodeId()).toBe("ending_flawless");
     const endNode = poc.storyRuntime.getCurrentNode();
     expect(endNode?.isEndNode).toBe(true);
+
+    // Verify Metaprogression updated run completion and unlocked permanent modifiers
+    expect(poc.metaService.getState().completedRuns).toBe(1);
+    expect(poc.metaService.getState().completedEndings).toContain("ending_flawless");
+    expect(poc.metaService.getState().unlockedModifiers).toContain("hyper_drift");
+    expect(poc.metaService.getState().unlockedModifiers).toContain("shield_pulse");
   });
 
   it("directly tests ArcadeOrchestrator modifier resolution using runtime.getState() snapshot", () => {

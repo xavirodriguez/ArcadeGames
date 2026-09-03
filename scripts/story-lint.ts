@@ -87,7 +87,13 @@ const storyGraphRegistry: GraphRegistryEntry[] = [
         "asteroidsPerfect",
         "asteroidsStruggle",
         "heroicEntry",
-        "reinforcementsReceived"
+        "route_space_invaders",
+        "route_flappy_bird",
+        "reinforcementsReceived",
+        "invadersDefeated",
+        "debrisNavigated",
+        "foundSecretEvidence",
+        "reduxClimaxFlawless"
       ],
       declaredVariables: [
         "spaceinvadersScore",

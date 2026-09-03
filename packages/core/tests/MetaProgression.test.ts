@@ -46,4 +46,30 @@ describe("MetaProgression & New Game+ Test Suite", () => {
     expect(migrated.completedRuns).toBe(2);
     expect(migrated.unlockedModifiers).toBeDefined();
   });
+
+  it("increments minigame mastery level clamped between 1 and 5", async () => {
+    const service = new MetaProgressionService(undefined, undefined, false);
+    expect(service.getState().miniGameMastery["asteroids"]).toBeUndefined();
+
+    await service.incrementMiniGameMastery("asteroids", 1);
+    expect(service.getState().miniGameMastery["asteroids"]).toBe(1);
+
+    await service.incrementMiniGameMastery("asteroids", 2);
+    expect(service.getState().miniGameMastery["asteroids"]).toBe(3);
+
+    await service.incrementMiniGameMastery("asteroids", 10);
+    expect(service.getState().miniGameMastery["asteroids"]).toBe(5);
+  });
+
+  it("unlocks permanent modifiers without duplication", async () => {
+    const service = new MetaProgressionService(undefined, undefined, false);
+    const initialLength = service.getState().unlockedModifiers.length;
+
+    await service.unlockModifier("hyper_drift");
+    expect(service.getState().unlockedModifiers.includes("hyper_drift")).toBe(true);
+
+    // Duplicate unlock call does not add extra entries
+    await service.unlockModifier("hyper_drift");
+    expect(service.getState().unlockedModifiers.filter((m) => m === "hyper_drift").length).toBe(1);
+  });
 });

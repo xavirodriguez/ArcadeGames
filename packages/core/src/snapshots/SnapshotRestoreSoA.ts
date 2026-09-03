@@ -1,7 +1,7 @@
-import { ComponentCloner } from "../ecs/ComponentCloner";
 import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
 import { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
+import { SoADeserializer } from "./SoADeserializer";
 
 /**
  * Structure of Arrays (SoA) restoration utility.
@@ -17,6 +17,42 @@ import { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
  * @public
  */
 export class SnapshotRestoreSoA {
+  /**
+   * Restores a single component block from SoA format into internal ECS maps.
+   *
+   * @param world - The active ECS World instance.
+   * @param type - Component type key string.
+   * @param soaData - SoA component block data.
+   */
+  public static restoreSoAComponent<TComponents extends ComponentRegistry>(
+    world: World<TComponents>,
+    type: string,
+    soaData: SoAComponentBlock
+  ): void {
+    const storage = new Map<number, any>();
+    const index = new Set<number>();
+    const versions = new Map<number, number>();
+
+    world["componentMaps"].set(type, storage);
+    world["componentIndex"].set(type, index);
+    world["componentVersions"].set(type, versions);
+
+    const entities = soaData.entities;
+
+    SoADeserializer.hydrateEntities(entities, soaData, type, (entityId, component) => {
+      storage.set(entityId, component);
+      index.add(entityId);
+      versions.set(entityId, world["_stateVersion"]);
+
+      let componentSet = world["entityComponentSets"].get(entityId);
+      if (!componentSet) {
+        componentSet = new Set();
+        world["entityComponentSets"].set(entityId, componentSet);
+      }
+      componentSet.add(type);
+    });
+  }
+
   /**
    * Restores the world state from a highly packed SoA snapshot.
    *
@@ -66,66 +102,7 @@ export class SnapshotRestoreSoA {
     const soaComponentData = state.soaComponentData;
 
     for (const type in soaComponentData) {
-      const storage = new Map<number, any>();
-      const index = new Set<number>();
-      const versions = new Map<number, number>();
-
-      world["componentMaps"].set(type, storage);
-      world["componentIndex"].set(type, index);
-      world["componentVersions"].set(type, versions);
-
-      const soaData: SoAComponentBlock = soaComponentData[type];
-      const keys = soaData.keys;
-      const numKeys = keys.length;
-      const entities = soaData.entities;
-
-      let numEntities = 0;
-      if (entities) {
-        if (typeof (entities as unknown as { length?: number }).length === "number") {
-          numEntities = (entities as unknown as { length: number }).length;
-        } else {
-          numEntities = Object.keys(entities).filter(k => !isNaN(Number(k))).length;
-        }
-      }
-
-      const values = soaData.values;
-      const nonNumericValues = soaData.nonNumericValues;
-      const booleanKeys = soaData.booleanKeys ? new Set(soaData.booleanKeys) : null;
-
-      for (let i = 0; i < numEntities; i++) {
-        const entityId = (entities as any)[i];
-
-        // Reconstruct component instance dynamically
-        const component: Record<string, any> = { type };
-
-        for (let j = 0; j < numKeys; j++) {
-          const key = keys[j];
-          const offset = i * numKeys + j;
-          const nonNumericVal = nonNumericValues ? nonNumericValues[offset] : undefined;
-
-          if (nonNumericVal !== undefined && nonNumericVal !== null) {
-            component[key] = ComponentCloner.cloneComponent(nonNumericVal);
-          } else {
-            const rawVal = values[offset];
-            if (booleanKeys && booleanKeys.has(key)) {
-              component[key] = rawVal === 1;
-            } else {
-              component[key] = rawVal;
-            }
-          }
-        }
-
-        storage.set(entityId, component);
-        index.add(entityId);
-        versions.set(entityId, world["_stateVersion"]);
-
-        let componentSet = world["entityComponentSets"].get(entityId);
-        if (!componentSet) {
-          componentSet = new Set();
-          world["entityComponentSets"].set(entityId, componentSet);
-        }
-        componentSet.add(type);
-      }
+      this.restoreSoAComponent(world, type, soaComponentData[type]);
     }
 
     world["queries"].forEach(query => {

@@ -338,6 +338,31 @@ export class World<
    *
    * @param entity - El identificador de la entidad a remover.
    */
+  /**
+   * Reclaims an entity by invoking its `Reclaimable` callback or releasing it back to its pool,
+   * then scheduling entity removal on the command buffer.
+   *
+   * @param entity - The entity ID to reclaim.
+   */
+  public reclaimEntity(entity: Entity): void {
+    const reclaimable = this.getComponent(entity, "Reclaimable" as Extract<keyof TComponents, string>) as {
+      onReclaim?: (ctx: { world: World<TComponents, TEvents, TBlueprints>; entity: Entity }) => void;
+      poolId?: string;
+    } | undefined;
+
+    if (reclaimable) {
+      if (typeof reclaimable.onReclaim === "function") {
+        reclaimable.onReclaim({ world: this, entity });
+      } else if (reclaimable.poolId) {
+        const pool = this.getResource<{ release?: (ctx: { world: World<TComponents, TEvents, TBlueprints>; entity: Entity }) => void }>(reclaimable.poolId);
+        if (pool && typeof pool.release === "function") {
+          pool.release({ world: this, entity });
+        }
+      }
+    }
+    this.commandBuffer.removeEntity(entity);
+  }
+
   removeEntity(entity: Entity): void {
     this.checkUpdatingMutation("removeEntity");
     if (!this.isAlive(entity)) {

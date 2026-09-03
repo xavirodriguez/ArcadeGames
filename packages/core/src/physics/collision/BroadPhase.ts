@@ -2,7 +2,7 @@ import { TransformComponent, ColliderComponent, CoreComponentRegistry } from "..
 import { Entity } from "../../ecs/Entity";
 import { World } from "../../ecs/World";
 import { AABB } from "./CollisionTypes";
-import { ShapeType, ConvexPolygonShape } from "../shapes/Shapes";
+import { getColliderWorldBounds } from "../utils/PhysicsTransform";
 
 /**
  * Bounds object used for Sweep and Prune.
@@ -42,59 +42,7 @@ export class BroadPhase {
    * @returns Computed world-space AABB bounds `{ minX, minY, maxX, maxY }`.
    */
   static getShapeBounds(transform: Readonly<TransformComponent>, collider: Readonly<ColliderComponent>): AABB {
-    const worldX = transform.worldX ?? transform.x;
-    const worldY = transform.worldY ?? transform.y;
-    const cx = worldX + (collider.offsetX ?? 0);
-    const cy = worldY + (collider.offsetY ?? 0);
-    const shape = collider.shape;
-
-    if (shape.type === ShapeType.Circle) {
-      return {
-        minX: cx - shape.radius,
-        minY: cy - shape.radius,
-        maxX: cx + shape.radius,
-        maxY: cy + shape.radius,
-      };
-    } else if (shape.type === ShapeType.Box) {
-      return {
-        minX: cx - shape.width / 2,
-        minY: cy - shape.height / 2,
-        maxX: cx + shape.width / 2,
-        maxY: cy + shape.height / 2,
-      };
-    } else if (shape.type === ShapeType.Polygon) {
-      const poly = shape as ConvexPolygonShape;
-      if (poly.vertices && poly.vertices.length > 0) {
-        const rot = transform.worldRotation ?? transform.rotation ?? 0;
-        const scaleX = transform.worldScaleX ?? transform.scaleX ?? 1;
-        const scaleY = transform.worldScaleY ?? transform.scaleY ?? 1;
-        const cos = Math.cos(rot);
-        const sin = Math.sin(rot);
-
-        let minX = Infinity;
-        let minY = Infinity;
-        let maxX = -Infinity;
-        let maxY = -Infinity;
-
-        for (const v of poly.vertices) {
-          const sx = v.x * scaleX;
-          const sy = v.y * scaleY;
-          const rx = cos * sx - sin * sy;
-          const ry = sin * sx + cos * sy;
-          const wx = cx + rx;
-          const wy = cy + ry;
-
-          if (wx < minX) minX = wx;
-          if (wy < minY) minY = wy;
-          if (wx > maxX) maxX = wx;
-          if (wy > maxY) maxY = wy;
-        }
-
-        return { minX, minY, maxX, maxY };
-      }
-    }
-
-    return { minX: cx, minY: cy, maxX: cx, maxY: cy };
+    return getColliderWorldBounds(transform, collider);
   }
 
   /**

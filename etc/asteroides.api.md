@@ -2100,6 +2100,7 @@ export class MetaProgressionService {
     constructor(initialState?: MetaProgressionState, storage?: IMetaStorageProvider, autoSave?: boolean);
     discoverMetaEvidence(metaEvidence: MetaEvidence): Promise<void>;
     getState(): MetaProgressionState;
+    incrementMiniGameMastery(gameId: string, amount?: number): Promise<void>;
     isAutoSaveEnabled(): boolean;
     isNewGamePlusUnlocked(): boolean;
     loadFromStorage(): Promise<MetaProgressionState>;
@@ -2109,6 +2110,7 @@ export class MetaProgressionService {
     recordRunCompletion(endingId: string): Promise<void>;
     saveToStorage(): Promise<void>;
     setAutoSave(autoSave: boolean): void;
+    unlockModifier(modifierId: string): Promise<void>;
 }
 
 // @public

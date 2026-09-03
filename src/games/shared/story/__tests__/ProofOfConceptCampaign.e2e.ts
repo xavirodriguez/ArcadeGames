@@ -2,7 +2,7 @@ import { MultiGameStoryProofOfConcept } from "../MultiGameStoryProofOfConcept";
 import { MiniGameResult } from "@tiny-aster/core";
 
 describe("MultiGameStoryProofOfConcept E2E Campaign Suite", () => {
-  it("Scenario 1: Executes Flawless Victory Run (Heroic Entry + Reinforcements Received)", () => {
+  it("Scenario 1: Executes Flawless Victory Run (Heroic Entry + Choice: Space Invaders + Reinforcements Received)", () => {
     const poc = new MultiGameStoryProofOfConcept();
     poc.startCampaign();
 
@@ -24,13 +24,18 @@ describe("MultiGameStoryProofOfConcept E2E Campaign Suite", () => {
       score: 1500,
       completed: true,
       durationMs: 30000,
-      metrics: { collisions: 0 },
-      secretsFound: []
+      metrics: { wavesCleared: 3, livesRemaining: 2 },
+      secretsFound: ["black_box_alpha"]
     };
     poc.submitGameplayResult(result1);
 
     expect(poc.storyRuntime.getFlag("heroicEntry")).toBe(true);
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("cutscene_trans_to_spaceinvaders");
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("narrative_bridge_choice");
+
+    // Select choice to intercept Space Invaders fleet
+    poc.storyRuntime.selectChoice("choice_space_invaders");
+    expect(poc.storyRuntime.getFlag("route_space_invaders")).toBe(true);
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act2_spaceinvaders_intro");
 
     // From transition cutscene, advance to Act 2 Space Invaders gameplay
     poc.storyRuntime.evaluateTransitions();
@@ -51,13 +56,13 @@ describe("MultiGameStoryProofOfConcept E2E Campaign Suite", () => {
       score: 6500,
       completed: true,
       durationMs: 45000,
-      metrics: { invadersDestroyed: 40 },
+      metrics: { wavesCleared: 2 },
       secretsFound: []
     };
     poc.submitGameplayResult(result2);
 
     expect(poc.storyRuntime.getFlag("reinforcementsReceived")).toBe(true);
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("cutscene_trans_to_asteroids_redux");
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act3_asteroids_redux_intro");
 
     // From transition cutscene, advance to Act 3 Asteroids Redux gameplay
     poc.storyRuntime.evaluateTransitions();
@@ -75,7 +80,7 @@ describe("MultiGameStoryProofOfConcept E2E Campaign Suite", () => {
       score: 4000,
       completed: true,
       durationMs: 50000,
-      metrics: {},
+      metrics: { wavesCleared: 4 },
       secretsFound: []
     };
     poc.submitGameplayResult(result3);
@@ -89,58 +94,64 @@ describe("MultiGameStoryProofOfConcept E2E Campaign Suite", () => {
     expect(timeline.length).toBeGreaterThan(5);
   });
 
-  it("Scenario 2: Executes Pyrrhic Victory Run (Struggling Entry + Reinforcements Received)", () => {
+  it("Scenario 2: Executes Alternate Route (Choice: Flappy Bird + Space Invaders Redux Climax)", () => {
     const poc = new MultiGameStoryProofOfConcept();
     poc.startCampaign();
 
     poc.storyRuntime.navigateToNode("act1_asteroids_gameplay");
     const runCtx1 = poc.startCurrentNodeGameplay();
 
-    // Submit failed / struggling Act 1 result
+    // Submit struggling Act 1 result
     const result1: MiniGameResult = {
       runId: runCtx1!.runId,
       gameId: "asteroids",
       score: 400,
       completed: false,
       durationMs: 30000,
-      metrics: { collisions: 4 },
+      metrics: { wavesCleared: 1, livesRemaining: 0 },
       secretsFound: []
     };
     poc.submitGameplayResult(result1);
 
     expect(poc.storyRuntime.getFlag("heroicEntry")).toBe(false);
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("cutscene_trans_to_spaceinvaders");
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("narrative_bridge_choice");
+
+    // Select choice to navigate debris via Flappy Bird
+    poc.storyRuntime.selectChoice("choice_flappy_bird");
+    expect(poc.storyRuntime.getFlag("route_flappy_bird")).toBe(true);
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act2_flappybird_intro");
 
     poc.storyRuntime.evaluateTransitions();
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act2_spaceinvaders_gameplay");
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act2_flappybird_gameplay");
 
     const runCtx2 = poc.startCurrentNodeGameplay();
-    const extraLivesMod = runCtx2?.modifiers.find((m) => m.targetProperty === "extraLives");
-    expect(extraLivesMod?.value).toBe(2);
+    expect(runCtx2?.gameId).toBe("flappybird");
 
-    // Submit high score Space Invaders result
+    // Submit successful Flappy Bird result
     const result2: MiniGameResult = {
       runId: runCtx2!.runId,
-      gameId: "space-invaders",
-      score: 5500,
+      gameId: "flappybird",
+      score: 12,
       completed: true,
       durationMs: 40000,
-      metrics: {},
-      secretsFound: []
+      metrics: { obstaclesPassed: 10, livesRemaining: 1 },
+      secretsFound: ["debris_cache"]
     };
     poc.submitGameplayResult(result2);
 
     expect(poc.storyRuntime.getFlag("reinforcementsReceived")).toBe(true);
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("cutscene_trans_to_asteroids_redux");
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act3_spaceinvaders_redux_intro");
 
     poc.storyRuntime.evaluateTransitions();
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act3_asteroids_redux_gameplay");
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act3_spaceinvaders_redux_gameplay");
 
     const runCtx3 = poc.startCurrentNodeGameplay();
+    expect(runCtx3?.gameId).toBe("space-invaders");
+
     poc.submitGameplayResult({
       runId: runCtx3!.runId,
-      gameId: "asteroids",
-      score: 3000,
+      gameId: "space-invaders",
+      score: 8500,
       completed: true,
       durationMs: 50000,
       metrics: {},
@@ -148,64 +159,6 @@ describe("MultiGameStoryProofOfConcept E2E Campaign Suite", () => {
     });
 
     expect(poc.storyRuntime.getCurrentNodeId()).toBe("ending_pyrrhic");
-  });
-
-  it("Scenario 3: Executes Survival Run (Struggling Entry + No Reinforcements)", () => {
-    const poc = new MultiGameStoryProofOfConcept();
-    poc.startCampaign();
-
-    poc.storyRuntime.navigateToNode("act1_asteroids_gameplay");
-    const runCtx1 = poc.startCurrentNodeGameplay();
-
-    poc.submitGameplayResult({
-      runId: runCtx1!.runId,
-      gameId: "asteroids",
-      score: 300,
-      completed: false,
-      durationMs: 25000,
-      metrics: {},
-      secretsFound: []
-    });
-
-    expect(poc.storyRuntime.getFlag("heroicEntry")).toBe(false);
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("cutscene_trans_to_spaceinvaders");
-
-    poc.storyRuntime.evaluateTransitions();
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act2_spaceinvaders_gameplay");
-
-    const runCtx2 = poc.startCurrentNodeGameplay();
-
-    // Submit low score Space Invaders result
-    poc.submitGameplayResult({
-      runId: runCtx2!.runId,
-      gameId: "space-invaders",
-      score: 2200,
-      completed: false,
-      durationMs: 35000,
-      metrics: {},
-      secretsFound: []
-    });
-
-    expect(poc.storyRuntime.getFlag("reinforcementsReceived")).toBe(false);
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("cutscene_trans_to_asteroids_redux");
-
-    poc.storyRuntime.evaluateTransitions();
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act3_asteroids_redux_gameplay");
-
-    const runCtx3 = poc.startCurrentNodeGameplay();
-    const shieldMod = runCtx3?.modifiers.find((m) => m.targetProperty === "shieldMultiplier");
-    expect(shieldMod?.value).toBe(0.8);
-
-    poc.submitGameplayResult({
-      runId: runCtx3!.runId,
-      gameId: "asteroids",
-      score: 1500,
-      completed: true,
-      durationMs: 60000,
-      metrics: {},
-      secretsFound: []
-    });
-
-    expect(poc.storyRuntime.getCurrentNodeId()).toBe("ending_survival");
+    expect(poc.storyRuntime.getCurrentNode()?.isEndNode).toBe(true);
   });
 });

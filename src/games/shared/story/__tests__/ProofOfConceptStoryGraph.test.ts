@@ -8,7 +8,13 @@ describe("ProofOfConceptStoryGraph Unit Tests", () => {
         "asteroidsPerfect",
         "asteroidsStruggle",
         "heroicEntry",
-        "reinforcementsReceived"
+        "route_space_invaders",
+        "route_flappy_bird",
+        "reinforcementsReceived",
+        "invadersDefeated",
+        "debrisNavigated",
+        "foundSecretEvidence",
+        "reduxClimaxFlawless"
       ],
       declaredVariables: [
         "spaceinvadersScore",
@@ -32,34 +38,55 @@ describe("ProofOfConceptStoryGraph Unit Tests", () => {
     expect(runtime.getCurrentNodeId()).toBe("act1_asteroids_gameplay");
   });
 
-  it("branches to heroic entry when asteroidsPerfect flag is true", () => {
+  it("branches to heroic entry and presents narrative bridge choices when asteroidsPerfect flag is true", () => {
     const runtime = new StoryRuntime(proofOfConceptStoryGraph);
     runtime.navigateToNode("act1_asteroids_gameplay");
     runtime.setFlag("asteroidsPerfect", true);
     runtime.applyEffect({ type: "completeObjective", objectiveId: "survive-asteroids-wave3" });
 
     expect(runtime.getFlag("heroicEntry")).toBe(true);
-    expect(runtime.getCurrentNodeId()).toBe("cutscene_trans_to_spaceinvaders");
+    expect(runtime.getCurrentNodeId()).toBe("narrative_bridge_choice");
+
+    // Select choice to intercept Space Invaders
+    runtime.selectChoice("choice_space_invaders");
+    expect(runtime.getFlag("route_space_invaders")).toBe(true);
+    expect(runtime.getCurrentNodeId()).toBe("act2_spaceinvaders_intro");
+
+    runtime.evaluateTransitions();
+    expect(runtime.getCurrentNodeId()).toBe("act2_spaceinvaders_gameplay");
   });
 
-  it("branches to struggling entry when asteroidsStruggle flag is set", () => {
+  it("branches to struggling entry and allows selecting Flappy Bird route in narrative bridge", () => {
     const runtime = new StoryRuntime(proofOfConceptStoryGraph);
     runtime.navigateToNode("act1_asteroids_gameplay");
     runtime.setFlag("asteroidsStruggle", true);
     runtime.applyEffect({ type: "completeObjective", objectiveId: "survive-asteroids-wave3" });
 
     expect(runtime.getFlag("heroicEntry")).toBe(false);
-    expect(runtime.getCurrentNodeId()).toBe("cutscene_trans_to_spaceinvaders");
+    expect(runtime.getCurrentNodeId()).toBe("narrative_bridge_choice");
+
+    // Select choice to navigate debris via Flappy Bird
+    runtime.selectChoice("choice_flappy_bird");
+    expect(runtime.getFlag("route_flappy_bird")).toBe(true);
+    expect(runtime.getCurrentNodeId()).toBe("act2_flappybird_intro");
+
+    runtime.evaluateTransitions();
+    expect(runtime.getCurrentNodeId()).toBe("act2_flappybird_gameplay");
   });
 
-  it("branches to reinforcements success when spaceinvadersScore > 5000", () => {
+  it("branches to reinforcements success when spaceinvadersScore >= 2000", () => {
     const runtime = new StoryRuntime(proofOfConceptStoryGraph);
+    runtime.setFlag("route_space_invaders", true);
     runtime.navigateToNode("act2_spaceinvaders_gameplay");
     runtime.setVariable("spaceinvadersScore", 6000);
+    runtime.setFlag("reinforcementsReceived", true);
     runtime.applyEffect({ type: "completeObjective", objectiveId: "repel-invaders-wave" });
 
     expect(runtime.getFlag("reinforcementsReceived")).toBe(true);
-    expect(runtime.getCurrentNodeId()).toBe("cutscene_trans_to_asteroids_redux");
+    expect(runtime.getCurrentNodeId()).toBe("branch_reinforcements_success");
+
+    runtime.evaluateTransitions();
+    expect(runtime.getCurrentNodeId()).toBe("act3_asteroids_redux_intro");
   });
 
   it("evaluates final branch to Flawless Victory when both flags are true", () => {

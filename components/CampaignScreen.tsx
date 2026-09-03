@@ -20,7 +20,9 @@ import {
 import {
   asteroidsPOCEncounter,
   spaceInvadersPOCEncounter,
-  asteroidsReduxPOCEncounter
+  flappyBirdPOCEncounter,
+  asteroidsReduxPOCEncounter,
+  spaceInvadersReduxPOCEncounter
 } from "../src/games/shared/story/StoryEncounters";
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
@@ -117,7 +119,11 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     const currentNode = runtime.getCurrentNode();
     let outcomeRules = asteroidsPOCEncounter.outcomeRules;
     if (result.gameId === "space-invaders") {
-      outcomeRules = spaceInvadersPOCEncounter.outcomeRules;
+      outcomeRules = currentNode?.meta?.encounterId === "poc-spaceinvaders-redux-1"
+        ? spaceInvadersReduxPOCEncounter.outcomeRules
+        : spaceInvadersPOCEncounter.outcomeRules;
+    } else if (result.gameId === "flappybird") {
+      outcomeRules = flappyBirdPOCEncounter.outcomeRules;
     } else if (currentNode?.meta?.encounterId === "poc-asteroids-redux-1") {
       outcomeRules = asteroidsReduxPOCEncounter.outcomeRules;
     }
@@ -134,8 +140,23 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       });
     }
 
-    // 3. Advance narrative transitions out of current node
+    // 3. Update metaprogression minigame mastery upon completion
+    if (result.completed && metaServiceRef.current) {
+      metaServiceRef.current.incrementMiniGameMastery(result.gameId, 1);
+    }
+
+    // 4. Advance narrative transitions out of current node
     runtime.evaluateTransitions();
+
+    // 5. Check if resulting node is terminal ending
+    const newCurrentNode = runtime.getCurrentNode();
+    if (newCurrentNode?.isEndNode && metaServiceRef.current) {
+      metaServiceRef.current.recordRunCompletion(newCurrentNode.id);
+      if (newCurrentNode.id === "ending_flawless" || newCurrentNode.id === "ending_pyrrhic") {
+        metaServiceRef.current.unlockModifier("hyper_drift");
+        metaServiceRef.current.unlockModifier("shield_pulse");
+      }
+    }
   }, []);
 
   // Reactively synchronized StoryRuntime state hook

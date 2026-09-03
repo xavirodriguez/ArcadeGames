@@ -2,8 +2,12 @@ import { StoryGraph } from "@tiny-aster/core";
 
 /**
  * PROOF OF CONCEPT STORY GRAPH
- * Multi-game campaign flow:
- * Asteroids (Act 1) -> Space Invaders (Act 2) -> Asteroids Redux (Act 3) -> 3 Branched Endings
+ * Extended 3-4 Act Multi-Game Campaign Flow:
+ * Act 1: Asteroids (Orbital Clearance)
+ * Narrative Bridge: Explicit Player Choice (Space Invaders Fleet OR Flappy Bird Debris Navigation)
+ * Act 2: Space Invaders or Flappy Bird
+ * Act 3: Return to Previous Game with Higher Difficulty (Asteroids Redux or Space Invaders Redux)
+ * Terminal Endings: Flawless, Pyrrhic, or Survival
  */
 export const proofOfConceptStoryGraph: StoryGraph = {
   id: "poc_multi_game_campaign",
@@ -51,8 +55,9 @@ export const proofOfConceptStoryGraph: StoryGraph = {
     act1_asteroids_gameplay: {
       id: "act1_asteroids_gameplay",
       type: "gameplay",
-      title: "Capítulo 1: Asteroids",
+      title: "Acto 1: Despeje de Asteroides",
       sceneToLoad: "asteroids",
+      checkpoint: true,
       meta: {
         minijuego: "asteroids",
         encounterId: "poc-asteroids-1"
@@ -110,7 +115,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
           { speakerName: "AI ODYSSEY 7", textKey: "Maniobra limpia. Escudos al máximo rendimiento." }
         ]
       },
-      transitions: [{ targetNodeId: "cutscene_trans_to_spaceinvaders" }]
+      transitions: [{ targetNodeId: "narrative_bridge_choice" }]
     },
 
     // 06: Branch Struggling Entry
@@ -127,31 +132,66 @@ export const proofOfConceptStoryGraph: StoryGraph = {
           { speakerName: "AI ODYSSEY 7", textKey: "Impactos confirmados. Activando protocolo de asistencia táctica." }
         ]
       },
-      transitions: [{ targetNodeId: "cutscene_trans_to_spaceinvaders" }]
+      transitions: [{ targetNodeId: "narrative_bridge_choice" }]
     },
 
-    // 07: Visual Transition to Space Invaders
-    cutscene_trans_to_spaceinvaders: {
-      id: "cutscene_trans_to_spaceinvaders",
+    // 07: Narrative Bridge with Explicit Choices
+    narrative_bridge_choice: {
+      id: "narrative_bridge_choice",
+      type: "choice",
+      title: "Elección de Ruta Táctica",
+      dialogue: {
+        id: "dlg_tactical_choice",
+        lines: [
+          { speakerName: "AI ODYSSEY 7", textKey: "Dos vectores tácticos disponibles tras superar el campo principal." },
+          { speakerName: "AI ODYSSEY 7", textKey: "¿Interceptamos la armada invasora o atravesamos el canal de escombros?" }
+        ]
+      },
+      choices: [
+        {
+          id: "choice_space_invaders",
+          titleKey: "Interceptar flota de invasores (Space Invaders)",
+          descriptionKey: "Combate frontal directo contra la vanguardia enemiga.",
+          targetNodeId: "act2_spaceinvaders_intro",
+          effects: [
+            { type: "setFlag", key: "route_space_invaders", value: true }
+          ]
+        },
+        {
+          id: "choice_flappy_bird",
+          titleKey: "Navegar canal de escombros (Flappy Bird)",
+          descriptionKey: "Maniobra de sigilo ágil entre estructuras colapsadas.",
+          targetNodeId: "act2_flappybird_intro",
+          effects: [
+            { type: "setFlag", key: "route_flappy_bird", value: true }
+          ]
+        }
+      ]
+    },
+
+    // 08: Cutscene Space Invaders Route
+    act2_spaceinvaders_intro: {
+      id: "act2_spaceinvaders_intro",
       type: "cutscene",
-      title: "Intercepción de Señal",
+      title: "Intercepción de Armada Hostil",
       cutscene: {
         id: "cs_trans_spaceinvaders",
         transitionEffect: "IrisTransition",
         dialogueQueue: [
-          { speakerName: "SISTEMA", textKey: "Signal intercepted. Enemies incoming." },
-          { speakerName: "AI ODYSSEY 7", textKey: "Formación hostil aproximándose en cuadrante 4." }
+          { speakerName: "SISTEMA", textKey: "Contacto de radar confirmado. Formación hostil detectada." },
+          { speakerName: "AI ODYSSEY 7", textKey: "Mantenga la línea defensiva. Destruya los invasores." }
         ]
       },
       transitions: [{ targetNodeId: "act2_spaceinvaders_gameplay" }]
     },
 
-    // 08: Gameplay Act 2 (Space Invaders)
+    // 09: Gameplay Space Invaders Route
     act2_spaceinvaders_gameplay: {
       id: "act2_spaceinvaders_gameplay",
       type: "gameplay",
-      title: "Capítulo 2: Space Invaders",
+      title: "Acto 2: Space Invaders",
       sceneToLoad: "space-invaders",
+      checkpoint: true,
       meta: {
         minijuego: "space-invaders",
         encounterId: "poc-space-invaders-1"
@@ -159,7 +199,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       objective: {
         id: "repel-invaders-wave",
         titleKey: "Repele la invasión",
-        descriptionKey: "Elimina 2 oleadas de invasores espacial",
+        descriptionKey: "Elimina 2 oleadas de invasores espaciales",
         targetCount: 2,
         currentCount: 0,
         completed: false
@@ -172,7 +212,50 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       ]
     },
 
-    // 09: Branch Eval Act 2
+    // 10: Cutscene Flappy Bird Route
+    act2_flappybird_intro: {
+      id: "act2_flappybird_intro",
+      type: "cutscene",
+      title: "Navegación en Estrecho",
+      cutscene: {
+        id: "cs_trans_flappybird",
+        transitionEffect: "fade",
+        dialogueQueue: [
+          { speakerName: "SISTEMA", textKey: "Ingresando a canal de escombros de alta densidad." },
+          { speakerName: "AI ODYSSEY 7", textKey: "Ajuste propulsores de altitud. Mantenga la nave estable." }
+        ]
+      },
+      transitions: [{ targetNodeId: "act2_flappybird_gameplay" }]
+    },
+
+    // 11: Gameplay Flappy Bird Route
+    act2_flappybird_gameplay: {
+      id: "act2_flappybird_gameplay",
+      type: "gameplay",
+      title: "Acto 2: Canal de Escombros",
+      sceneToLoad: "flappybird",
+      checkpoint: true,
+      meta: {
+        minijuego: "flappybird",
+        encounterId: "poc-flappybird-1"
+      },
+      objective: {
+        id: "navigate-debris-channel",
+        titleKey: "Navega el canal",
+        descriptionKey: "Esquiva 10 estructuras en el canal de escombros",
+        targetCount: 10,
+        currentCount: 0,
+        completed: false
+      },
+      transitions: [
+        {
+          targetNodeId: "eval_act2_performance",
+          condition: { type: "objective", key: "navigate-debris-channel", operator: "==", value: true }
+        }
+      ]
+    },
+
+    // 12: Branch Eval Act 2
     eval_act2_performance: {
       id: "eval_act2_performance",
       type: "branch",
@@ -184,7 +267,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
           condition: {
             any: [
               { type: "flag", key: "reinforcementsReceived", value: true },
-              { type: "variable", key: "spaceinvadersScore", operator: ">", value: 5000 }
+              { type: "variable", key: "spaceinvadersScore", operator: ">=", value: 2000 }
             ]
           }
         },
@@ -195,62 +278,86 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       ]
     },
 
-    // 10: Branch Reinforcements Success
+    // 13: Branch Reinforcements Success
     branch_reinforcements_success: {
       id: "branch_reinforcements_success",
       type: "dialogue",
-      title: "Refuerzos Confirmados",
+      title: "Suministros Asegurados",
       effects: [
         { type: "setFlag", key: "reinforcementsReceived", value: true }
       ],
       dialogue: {
         id: "dlg_reinforcements_success",
         lines: [
-          { speakerName: "AI ODYSSEY 7", textKey: "Puntuación de combate alta. Cargamento de munición y escudos desplegado." }
+          { speakerName: "AI ODYSSEY 7", textKey: "Rendimiento óptimo. Carga táctica y escudos suplementarios asegurados." }
         ]
       },
-      transitions: [{ targetNodeId: "cutscene_trans_to_asteroids_redux" }]
+      transitions: [{ targetNodeId: "act2_to_act3_bridge" }]
     },
 
-    // 11: Branch Reinforcements Failed
+    // 14: Branch Reinforcements Failed
     branch_reinforcements_failed: {
       id: "branch_reinforcements_failed",
       type: "dialogue",
-      title: "Línea de Suministros Interrumpida",
+      title: "Línea de Suministros Comprometida",
       effects: [
         { type: "setFlag", key: "reinforcementsReceived", value: false }
       ],
       dialogue: {
         id: "dlg_reinforcements_failed",
         lines: [
-          { speakerName: "AI ODYSSEY 7", textKey: "Línea de suministros comprometida. Deberemos resistir con recursos limitados." }
+          { speakerName: "AI ODYSSEY 7", textKey: "Línea de suministros interrumpida. Entraremos al sector final con recursos mínimos." }
         ]
       },
-      transitions: [{ targetNodeId: "cutscene_trans_to_asteroids_redux" }]
+      transitions: [{ targetNodeId: "act2_to_act3_bridge" }]
     },
 
-    // 12: Visual Transition to Asteroids Redux
-    cutscene_trans_to_asteroids_redux: {
-      id: "cutscene_trans_to_asteroids_redux",
+    // 15: Act 3 Router (Determines Act 3 Redux variant based on chosen route)
+    act2_to_act3_bridge: {
+      id: "act2_to_act3_bridge",
+      type: "branch",
+      title: "Router para Acto 3",
+      transitions: [
+        {
+          targetNodeId: "act3_asteroids_redux_intro",
+          priority: 10,
+          condition: { type: "flag", key: "route_space_invaders", value: true }
+        },
+        {
+          targetNodeId: "act3_spaceinvaders_redux_intro",
+          priority: 5,
+          condition: { type: "flag", key: "route_flappy_bird", value: true }
+        },
+        {
+          targetNodeId: "act3_asteroids_redux_intro",
+          priority: 0
+        }
+      ]
+    },
+
+    // 16: Act 3 Asteroids Redux Intro
+    act3_asteroids_redux_intro: {
+      id: "act3_asteroids_redux_intro",
       type: "cutscene",
-      title: "Retorno a la Zona de Impacto",
+      title: "Retorno al Cinturón de Asteroides",
       cutscene: {
         id: "cs_trans_asteroids_redux",
         transitionEffect: "fade",
         dialogueQueue: [
-          { speakerName: "AI ODYSSEY 7", textKey: "We made it. For now." },
-          { speakerName: "AI ODYSSEY 7", textKey: "Último sector de asteroides por despejar." }
+          { speakerName: "AI ODYSSEY 7", textKey: "Regresando al sector alfa. La densidad de asteroides ha alcanzado nivel crítico." },
+          { speakerName: "AI ODYSSEY 7", textKey: "Ajuste de dificultad aplicado: Detección táctica avanzada requerida." }
         ]
       },
       transitions: [{ targetNodeId: "act3_asteroids_redux_gameplay" }]
     },
 
-    // 13: Gameplay Act 3 (Asteroids Redux)
+    // 17: Act 3 Asteroids Redux Gameplay
     act3_asteroids_redux_gameplay: {
       id: "act3_asteroids_redux_gameplay",
       type: "gameplay",
-      title: "Capítulo 3: Asteroids Redux",
+      title: "Acto 3: Asteroids Clímax",
       sceneToLoad: "asteroids",
+      checkpoint: true,
       meta: {
         minijuego: "asteroids",
         encounterId: "poc-asteroids-redux-1"
@@ -271,7 +378,50 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       ]
     },
 
-    // 14: Final Evaluation Branch
+    // 18: Act 3 Space Invaders Redux Intro
+    act3_spaceinvaders_redux_intro: {
+      id: "act3_spaceinvaders_redux_intro",
+      type: "cutscene",
+      title: "Ataque Final Invasor",
+      cutscene: {
+        id: "cs_trans_si_redux",
+        transitionEffect: "IrisTransition",
+        dialogueQueue: [
+          { speakerName: "AI ODYSSEY 7", textKey: "Nodriza enemiga detectada. La armada invasora ha lanzado un contraataque total." },
+          { speakerName: "AI ODYSSEY 7", textKey: "Dificultad pesadilla activada. Resista hasta el último impacto." }
+        ]
+      },
+      transitions: [{ targetNodeId: "act3_spaceinvaders_redux_gameplay" }]
+    },
+
+    // 19: Act 3 Space Invaders Redux Gameplay
+    act3_spaceinvaders_redux_gameplay: {
+      id: "act3_spaceinvaders_redux_gameplay",
+      type: "gameplay",
+      title: "Acto 3: Space Invaders Clímax",
+      sceneToLoad: "space-invaders",
+      checkpoint: true,
+      meta: {
+        minijuego: "space-invaders",
+        encounterId: "poc-spaceinvaders-redux-1"
+      },
+      objective: {
+        id: "repel-final-fleet",
+        titleKey: "Repele la flota final",
+        descriptionKey: "Elimina 3 oleadas finales de invasores pesados",
+        targetCount: 3,
+        currentCount: 0,
+        completed: false
+      },
+      transitions: [
+        {
+          targetNodeId: "final_evaluation_branch",
+          condition: { type: "objective", key: "repel-final-fleet", operator: "==", value: true }
+        }
+      ]
+    },
+
+    // 20: Final Evaluation Branch
     final_evaluation_branch: {
       id: "final_evaluation_branch",
       type: "branch",
@@ -304,11 +454,11 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       ]
     },
 
-    // 15: Flawless Victory Ending
+    // 21: Flawless Victory Ending (Terminal Leaf Node)
     ending_flawless: {
       id: "ending_flawless",
       type: "cutscene",
-      title: "Final: Flawless Victory",
+      title: "Final: Victoria Impecable",
       isEndNode: true,
       cutscene: {
         id: "cs_ending_flawless",
@@ -319,11 +469,11 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       }
     },
 
-    // 16: Pyrrhic Victory Ending
+    // 22: Pyrrhic Victory Ending (Terminal Leaf Node)
     ending_pyrrhic: {
       id: "ending_pyrrhic",
       type: "cutscene",
-      title: "Final: Pyrrhic Victory",
+      title: "Final: Victoria Pirrórica",
       isEndNode: true,
       cutscene: {
         id: "cs_ending_pyrrhic",
@@ -334,11 +484,11 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       }
     },
 
-    // 17: Survival Ending
+    // 23: Survival Ending (Terminal Leaf Node)
     ending_survival: {
       id: "ending_survival",
       type: "cutscene",
-      title: "Final: Survival",
+      title: "Final: Supervivencia",
       isEndNode: true,
       cutscene: {
         id: "cs_ending_survival",

@@ -18,6 +18,14 @@ export interface PhysicsTransformLike {
   rotation?: number;
   /** Optional computed world-space orientation in radians. */
   worldRotation?: number;
+  /** Local scale X. */
+  scaleX?: number;
+  /** Local scale Y. */
+  scaleY?: number;
+  /** Computed world scale X. */
+  worldScaleX?: number;
+  /** Computed world scale Y. */
+  worldScaleY?: number;
 }
 
 /**

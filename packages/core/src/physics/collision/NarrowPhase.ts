@@ -1,5 +1,11 @@
 import { Shape, ShapeType, CircleShape, BoxShape, ConvexPolygonShape } from "../shapes/Shapes";
 import { CollisionManifold } from "./CollisionTypes";
+import {
+  SATOverlapState,
+  extractPolygonAxes,
+  checkProjectionOverlap,
+  finalizePolyManifold
+} from "./satUtils";
 
 function getPolygonWorldVertices(vertices: Array<{ x: number; y: number }>, cx: number, cy: number, rot: number): Array<{ x: number; y: number }> {
   const cos = Math.cos(rot);
@@ -29,42 +35,23 @@ function testPolygonVsPolygon(
   bx: number, by: number
 ): CollisionManifold {
   const manifold = resetManifold();
-
-  let minOverlap = Infinity;
-  let mtvX = 0;
-  let mtvY = 0;
-
-  const numA = vertsA.length;
-  const numB = vertsB.length;
-
   const axes: Array<{ x: number; y: number }> = [];
 
-  for (let i = 0; i < numA; i++) {
-    const p1 = vertsA[i];
-    const p2 = vertsA[(i + 1) % numA];
-    const edgeX = p2.x - p1.x;
-    const edgeY = p2.y - p1.y;
-    const len = Math.sqrt(edgeX * edgeX + edgeY * edgeY);
-    if (len > 0.0001) {
-      axes.push({ x: -edgeY / len, y: edgeX / len });
-    }
-  }
+  extractPolygonAxes(vertsA, axes);
+  extractPolygonAxes(vertsB, axes);
 
-  for (let i = 0; i < numB; i++) {
-    const p1 = vertsB[i];
-    const p2 = vertsB[(i + 1) % numB];
-    const edgeX = p2.x - p1.x;
-    const edgeY = p2.y - p1.y;
-    const len = Math.sqrt(edgeX * edgeX + edgeY * edgeY);
-    if (len > 0.0001) {
-      axes.push({ x: -edgeY / len, y: edgeX / len });
-    }
-  }
+  const state: SATOverlapState = {
+    minOverlap: Infinity,
+    mtvX: 0,
+    mtvY: 0
+  };
 
-  for (const axis of axes) {
+  for (let i = 0; i < axes.length; i++) {
+    const axis = axes[i];
     let minProjA = Infinity;
     let maxProjA = -Infinity;
-    for (const v of vertsA) {
+    for (let j = 0; j < vertsA.length; j++) {
+      const v = vertsA[j];
       const dot = v.x * axis.x + v.y * axis.y;
       if (dot < minProjA) minProjA = dot;
       if (dot > maxProjA) maxProjA = dot;
@@ -72,52 +59,19 @@ function testPolygonVsPolygon(
 
     let minProjB = Infinity;
     let maxProjB = -Infinity;
-    for (const v of vertsB) {
+    for (let j = 0; j < vertsB.length; j++) {
+      const v = vertsB[j];
       const dot = v.x * axis.x + v.y * axis.y;
       if (dot < minProjB) minProjB = dot;
       if (dot > maxProjB) maxProjB = dot;
     }
 
-    if (maxProjA < minProjB || maxProjB < minProjA) {
+    if (!checkProjectionOverlap(minProjA, maxProjA, minProjB, maxProjB, axis, state)) {
       return manifold;
     }
-
-    const overlap = Math.min(maxProjA, maxProjB) - Math.max(minProjA, minProjB);
-    if (overlap < minOverlap) {
-      minOverlap = overlap;
-      mtvX = axis.x;
-      mtvY = axis.y;
-    }
   }
 
-  manifold.colliding = true;
-  manifold.depth = minOverlap;
-
-  const dirX = bx - ax;
-  const dirY = by - ay;
-  const dot = dirX * mtvX + dirY * mtvY;
-  if (dot < 0) {
-    manifold.normalX = -mtvX;
-    manifold.normalY = -mtvY;
-  } else {
-    manifold.normalX = mtvX;
-    manifold.normalY = mtvY;
-  }
-
-  let closestVertex = vertsB[0];
-  let minDist = Infinity;
-  for (const v of vertsB) {
-    const dx = v.x - ax;
-    const dy = v.y - ay;
-    const dist = dx * dx + dy * dy;
-    if (dist < minDist) {
-      minDist = dist;
-      closestVertex = v;
-    }
-  }
-  manifold.contactPoints.push({ x: closestVertex.x, y: closestVertex.y });
-
-  return manifold;
+  return finalizePolyManifold(manifold, state.minOverlap, state.mtvX, state.mtvY, ax, ay, bx, by, vertsB);
 }
 
 function testPolygonVsCircle(
@@ -127,28 +81,14 @@ function testPolygonVsCircle(
   radius: number
 ): CollisionManifold {
   const manifold = resetManifold();
-
-  let minOverlap = Infinity;
-  let mtvX = 0;
-  let mtvY = 0;
-
-  const numVerts = verts.length;
   const axes: Array<{ x: number; y: number }> = [];
 
-  for (let i = 0; i < numVerts; i++) {
-    const p1 = verts[i];
-    const p2 = verts[(i + 1) % numVerts];
-    const edgeX = p2.x - p1.x;
-    const edgeY = p2.y - p1.y;
-    const len = Math.sqrt(edgeX * edgeX + edgeY * edgeY);
-    if (len > 0.0001) {
-      axes.push({ x: -edgeY / len, y: edgeX / len });
-    }
-  }
+  extractPolygonAxes(verts, axes);
 
   let closestVertex = verts[0];
   let minDistSq = Infinity;
-  for (const v of verts) {
+  for (let i = 0; i < verts.length; i++) {
+    const v = verts[i];
     const dx = v.x - cx;
     const dy = v.y - cy;
     const distSq = dx * dx + dy * dy;
@@ -164,10 +104,18 @@ function testPolygonVsCircle(
     axes.push({ x: toClosestX / toClosestLen, y: toClosestY / toClosestLen });
   }
 
-  for (const axis of axes) {
+  const state: SATOverlapState = {
+    minOverlap: Infinity,
+    mtvX: 0,
+    mtvY: 0
+  };
+
+  for (let i = 0; i < axes.length; i++) {
+    const axis = axes[i];
     let minProjA = Infinity;
     let maxProjA = -Infinity;
-    for (const v of verts) {
+    for (let j = 0; j < verts.length; j++) {
+      const v = verts[j];
       const dot = v.x * axis.x + v.y * axis.y;
       if (dot < minProjA) minProjA = dot;
       if (dot > maxProjA) maxProjA = dot;
@@ -177,30 +125,23 @@ function testPolygonVsCircle(
     const minProjB = circleCenterDot - radius;
     const maxProjB = circleCenterDot + radius;
 
-    if (maxProjA < minProjB || maxProjB < minProjA) {
+    if (!checkProjectionOverlap(minProjA, maxProjA, minProjB, maxProjB, axis, state)) {
       return manifold;
-    }
-
-    const overlap = Math.min(maxProjA, maxProjB) - Math.max(minProjA, minProjB);
-    if (overlap < minOverlap) {
-      minOverlap = overlap;
-      mtvX = axis.x;
-      mtvY = axis.y;
     }
   }
 
   manifold.colliding = true;
-  manifold.depth = minOverlap;
+  manifold.depth = state.minOverlap;
 
   const dirX = cx - ax;
   const dirY = cy - ay;
-  const dot = dirX * mtvX + dirY * mtvY;
+  const dot = dirX * state.mtvX + dirY * state.mtvY;
   if (dot < 0) {
-    manifold.normalX = -mtvX;
-    manifold.normalY = -mtvY;
+    manifold.normalX = -state.mtvX;
+    manifold.normalY = -state.mtvY;
   } else {
-    manifold.normalX = mtvX;
-    manifold.normalY = mtvY;
+    manifold.normalX = state.mtvX;
+    manifold.normalY = state.mtvY;
   }
 
   manifold.contactPoints.push({
@@ -232,7 +173,6 @@ function resetManifold(): CollisionManifold {
  *
  * @public
  */
-// DUP-06: hot path medido (NarrowPhase manifold calc). Extracción a helper costó ~3.6% en benchmark (1M ops). Se mantiene inline a propósito. Ver docs/tech-debt/duplication.md
 export class NarrowPhase {
   /**
    * Tests collision between two primitive shapes in 2D world space.
@@ -402,71 +342,41 @@ export class NarrowPhase {
       { x: -sinB, y: cosB }
     ];
 
-    let minOverlap = Infinity;
-    let mtvX = 0;
-    let mtvY = 0;
+    const state: SATOverlapState = {
+      minOverlap: Infinity,
+      mtvX: 0,
+      mtvY: 0
+    };
 
-    for (const axis of axes) {
+    for (let i = 0; i < axes.length; i++) {
+      const axis = axes[i];
       const len = Math.sqrt(axis.x * axis.x + axis.y * axis.y);
       if (len < 0.0001) continue;
-      const unitX = axis.x / len;
-      const unitY = axis.y / len;
+      const unitAxis = { x: axis.x / len, y: axis.y / len };
 
       let minA = Infinity;
       let maxA = -Infinity;
-      for (const v of vertsA) {
-        const proj = v.x * unitX + v.y * unitY;
+      for (let j = 0; j < vertsA.length; j++) {
+        const v = vertsA[j];
+        const proj = v.x * unitAxis.x + v.y * unitAxis.y;
         if (proj < minA) minA = proj;
         if (proj > maxA) maxA = proj;
       }
 
       let minB = Infinity;
       let maxB = -Infinity;
-      for (const v of vertsB) {
-        const proj = v.x * unitX + v.y * unitY;
+      for (let j = 0; j < vertsB.length; j++) {
+        const v = vertsB[j];
+        const proj = v.x * unitAxis.x + v.y * unitAxis.y;
         if (proj < minB) minB = proj;
         if (proj > maxB) maxB = proj;
       }
 
-      if (maxA < minB || maxB < minA) {
+      if (!checkProjectionOverlap(minA, maxA, minB, maxB, unitAxis, state)) {
         return manifold;
       }
-
-      const overlap = Math.min(maxA, maxB) - Math.max(minA, minB);
-      if (overlap < minOverlap) {
-        minOverlap = overlap;
-        mtvX = unitX;
-        mtvY = unitY;
-      }
     }
 
-    manifold.colliding = true;
-    manifold.depth = minOverlap;
-
-    const dirX = bx - ax;
-    const dirY = by - ay;
-    const dot = dirX * mtvX + dirY * mtvY;
-    if (dot < 0) {
-      manifold.normalX = -mtvX;
-      manifold.normalY = -mtvY;
-    } else {
-      manifold.normalX = mtvX;
-      manifold.normalY = mtvY;
-    }
-
-    let closestVertex = vertsB[0];
-    let minDist = Infinity;
-    for (const v of vertsB) {
-      const dx = v.x - ax;
-      const dy = v.y - ay;
-      const dist = dx * dx + dy * dy;
-      if (dist < minDist) {
-        minDist = dist;
-        closestVertex = v;
-      }
-    }
-    manifold.contactPoints.push({ x: closestVertex.x, y: closestVertex.y });
-
-    return manifold;
+    return finalizePolyManifold(manifold, state.minOverlap, state.mtvX, state.mtvY, ax, ay, bx, by, vertsB);
   }
 }

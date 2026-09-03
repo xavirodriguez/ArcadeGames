@@ -15,11 +15,11 @@ import {
  * @public
  */
 export class EntityBuilder {
-  private readonly world: World<any>;
-  private readonly entity: Entity;
-  private readonly useCommandBuffer: boolean;
+  protected readonly world: World<any>;
+  protected readonly entity: Entity;
+  protected readonly useCommandBuffer: boolean;
 
-  private constructor(world: World<any>, entity: Entity, useCommandBuffer = false) {
+  protected constructor(world: World<any>, entity: Entity, useCommandBuffer = false) {
     this.world = world;
     this.entity = entity;
     this.useCommandBuffer = useCommandBuffer;
@@ -172,7 +172,7 @@ export class EntityBuilder {
     return this.entity;
   }
 
-  private addComponent(component: any): void {
+  protected addComponent(component: any): void {
     if (this.useCommandBuffer) {
       this.world.getCommandBuffer().addComponent(this.entity, component);
     } else {

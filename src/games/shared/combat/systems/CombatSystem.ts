@@ -151,18 +151,7 @@ export class CombatSystem<
    * Safe reclamation and removal of an entity.
    */
   private reclaimAndDestroy(world: World<TComponents, TEvents>, entity: Entity): void {
-    const reclaimable = world.getComponent(entity, "Reclaimable" as any) as any;
-    if (reclaimable) {
-      if (typeof reclaimable.onReclaim === "function") {
-        reclaimable.onReclaim({ world, entity });
-      } else {
-        const pool = world.getResource<any>(reclaimable.poolId);
-        if (pool && typeof pool.release === "function") {
-          pool.release({ world, entity });
-        }
-      }
-    }
-    world.getCommandBuffer().removeEntity(entity);
+    world.reclaimEntity(entity);
   }
 
   /**

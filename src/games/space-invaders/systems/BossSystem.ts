@@ -40,6 +40,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInva
     }
   }
 
+  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/SpaceInvadersFormationSystem.ts:21-30. Considerar extraer a función compartida. Ref: d157968e
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     if (!this.config) {

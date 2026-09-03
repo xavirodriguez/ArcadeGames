@@ -17,6 +17,7 @@ export type BulletPoolConfig = {
 };
 
 function createBulletPoolConfig(config: BulletPoolConfig) {
+  // TODO(refactor): código duplicado detectado (bloque) con geometrywars/EntityPool.ts:27-51. Considerar extraer a función compartida. Ref: 35db7868
   return {
     factory: () => ({
       position: { type: "Transform", x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: 0, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent,
@@ -56,6 +57,7 @@ function createBulletPoolConfig(config: BulletPoolConfig) {
       data.collisionEvents = { type: "CollisionEvents", collisions: [], activeTriggers: [], triggersEntered: [], triggersExited: [] };
     },
     initializer: (data: any, p: ProjectileParams) => {
+      // TODO(refactor): código duplicado detectado (bloque) con shared/arcade/ParticlePool.ts:120-132. Considerar extraer a función compartida. Ref: f9c5c1f8
       data.position.x = p.x;
       data.position.y = p.y;
       data.position.worldX = p.x;
@@ -94,6 +96,7 @@ export class PlayerBulletPool extends ProjectilePool<any, ProjectileParams> {
     }));
   }
 
+  // TODO(refactor): código duplicado detectado (método) con space-invaders/EntityPool.ts:115-126. Considerar extraer a función compartida. Ref: 8fca2904
   public acquireInvaderBullet(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {
     return this.acquire(world, { x, y, dx, dy, size, color, ttl });
   }

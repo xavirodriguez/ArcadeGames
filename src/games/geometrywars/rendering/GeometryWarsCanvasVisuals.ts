@@ -3,6 +3,7 @@ import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 
+// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:123-149. Considerar extraer a función compartida. Ref: a6905ddf
 export function spawnVisualParticle(
   _x: number,
   _y: number,
@@ -20,6 +21,7 @@ export function spawnVisualParticle(
 const LAST_BULLETS_MAP = new Map<number, { x: number; y: number }>();
 const CURRENT_BULLETS_SET = new Set<number>();
 
+// TODO(refactor): código duplicado detectado (función) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:158-172. Considerar extraer a función compartida. Ref: bf14de5c
 function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry>): void {
   CURRENT_BULLETS_SET.clear();
 
@@ -83,8 +85,11 @@ function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry
  * Shape drawer for the Geometry Wars player ship (neon diamond/arrow).
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongCanvasVisuals.ts:15-23. Considerar extraer a función compartida. Ref: 0f5b5e6b
 export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
+  // TODO(refactor): código duplicado detectado (método) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:240-260. Considerar extraer a función compartida. Ref: 05c62a03
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:206-216. Considerar extraer a función compartida. Ref: b246837f
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -96,6 +101,7 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
 
     const size = render.size ?? 16;
     const color = render.color ?? colors.cyan;
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:218-229. Considerar extraer a función compartida. Ref: 8ad13b3a
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
@@ -214,6 +220,7 @@ export const drawParticle: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCom
  * Shape drawer for Chaser enemy (magenta diamond).
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:247-253. Considerar extraer a función compartida. Ref: 4309fb19
 export const drawChaser: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -244,6 +251,7 @@ export const drawChaser: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
  * Shape drawer for Evader enemy (orange triangle / star).
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:223-229. Considerar extraer a función compartida. Ref: 1e0fb40f
 export const drawEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -279,6 +287,7 @@ export const drawGrunt: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompon
     if (!render || !render.visible) return;
 
     const size = render.size ?? 10;
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:395-405. Considerar extraer a función compartida. Ref: cd9567aa
     const color = render.color ?? colors.cyan;
 
     ctx.save();
@@ -330,11 +339,13 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
  * Shape drawer for enemy seeker (neon diamond/star).
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:363-369. Considerar extraer a función compartida. Ref: fc8f753a
 export const drawEnemySeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:400-410. Considerar extraer a función compartida. Ref: 6cb74890
     const size = render.size ?? 12;
     const color = render.color ?? colors.pink;
 
@@ -391,7 +402,9 @@ export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, Geometry
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:349-359. Considerar extraer a función compartida. Ref: 3fa54020
     const size = render.size ?? 8;
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:289-299. Considerar extraer a función compartida. Ref: c15c9151
     const color = render.color ?? colors.pink;
 
     ctx.save();
@@ -423,6 +436,7 @@ export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, Geometry
 export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world) {
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:596-623. Considerar extraer a función compartida. Ref: 3ccbee7f
     const { width, height } = screen;
 
     // 2. Monitor bullet states for trail and explosion spawns
@@ -461,7 +475,8 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
     for (let y = 0; y <= height; y += 40) {
       ctx.beginPath();
       let first = true;
-      for (let x = 0; x <= width; x += 25) {
+      for (// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:480-490. Considerar extraer a función compartida. Ref: e6dc6a7a
+      let x = 0; x <= width; x += 25) {
         const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
         if (first) {
           ctx.moveTo(displaced.x, displaced.y);
@@ -477,7 +492,8 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
     for (let x = 0; x <= width; x += 40) {
       ctx.beginPath();
       let first = true;
-      for (let y = 0; y <= height; y += 25) {
+      for (// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:472-482. Considerar extraer a función compartida. Ref: 4f6c26d6
+      let y = 0; y <= height; y += 25) {
         const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
         if (first) {
           ctx.moveTo(displaced.x, displaced.y);

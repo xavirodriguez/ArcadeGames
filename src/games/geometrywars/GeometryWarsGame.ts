@@ -78,6 +78,7 @@ export class GeometryWarsGame extends BaseGame<
       { id: "explosion", path: "/audio/explosion.mp3" },
       { id: "explosion2", path: "/audio/explosion2.mp3" },
     ];
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:306-315. Considerar extraer a función compartida. Ref: 379c1d5e
     for (const asset of assets) {
       try {
         await audio.loadSFX(asset.id, asset.path);
@@ -124,6 +125,7 @@ export class GeometryWarsGame extends BaseGame<
     }
   }
 
+  // TODO(refactor): código duplicado detectado (método) con space-invaders/SpaceInvadersGame.ts:83-95. Considerar extraer a función compartida. Ref: 1390215f
   public runSimulationStep(deltaTime: number, isResimulating: boolean) {
     const activeWorld = this.getWorld();
     const random = activeWorld.gameplayRandom;
@@ -160,6 +162,7 @@ export class GeometryWarsGame extends BaseGame<
       });
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:359-366. Considerar extraer a función compartida. Ref: 4e9c55a5
     const world = this.getWorld();
     const commands = world.getCommandBuffer();
     const replicator = this.networkManager.getReplicator();
@@ -219,6 +222,7 @@ export class GeometryWarsGame extends BaseGame<
     }
 
     if (state.bullets && typeof state.bullets === 'object') {
+      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:826-832. Considerar extraer a función compartida. Ref: 31cad89a
       const bullets = state.bullets as Record<string, { x: number, y: number, angle: number }>;
       Object.entries(bullets).forEach(([id, bulletState]) => {
         const serverId = `bullet_${id}`;
@@ -233,6 +237,7 @@ export class GeometryWarsGame extends BaseGame<
         world.mutateComponent(entity, "Transform", (t: any) => {
           t.x = bulletState.x;
           t.y = bulletState.y;
+          // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:407-427. Considerar extraer a función compartida. Ref: 95603026
           t.rotation = bulletState.angle;
         });
       });
@@ -261,6 +266,7 @@ export class GeometryWarsGame extends BaseGame<
     }
     if (state.enemies) {
         Object.entries(state.enemies).forEach(([id, p]: [string, Record<string, unknown>]) => {
+            // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:424-432. Considerar extraer a función compartida. Ref: 879d9b3e
             const entityId = replicator.getLocalId(`enemy_${id}`);
             if (entityId !== undefined) {
                 snapshot.entities.push(entityId);
@@ -270,9 +276,11 @@ export class GeometryWarsGame extends BaseGame<
     }
     if (state.bullets) {
         Object.entries(state.bullets).forEach(([id, p]: [string, Record<string, unknown>]) => {
+            // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:270-276. Considerar extraer a función compartida. Ref: f5f3779b
             const entityId = replicator.getLocalId(`bullet_${id}`);
             if (entityId !== undefined) {
                 snapshot.entities.push(entityId);
+                // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:436-456. Considerar extraer a función compartida. Ref: 8e72a4b2
                 snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: (p as any).y, rotation: (p as any).angle, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: (p as any).angle, worldScaleX: 1, worldScaleY: 1, dirty: false };
             }
         });

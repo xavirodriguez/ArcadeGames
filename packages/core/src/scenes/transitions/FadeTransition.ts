@@ -7,6 +7,7 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/IrisTransition.ts:10-25. Considerar extraer a función compartida. Ref: 0946b729
 export class FadeTransition implements ITransitionEffect {
   /**
    * Renders the fade transition effect.
@@ -14,6 +15,7 @@ export class FadeTransition implements ITransitionEffect {
    * @param progress - Transition progress from 0.0 to 1.0.
    * @param options - Visual configurations.
    */
+  // TODO(refactor): código duplicado detectado (método) con scenes/transitions/DangerPulseTransition.ts:31-37. Considerar extraer a función compartida. Ref: 9c531bec
   public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
     const canvas = ctx.canvas;
     if (!canvas) return;

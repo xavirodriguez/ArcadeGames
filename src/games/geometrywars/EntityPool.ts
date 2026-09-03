@@ -24,6 +24,7 @@ import { SharedParticlePool } from "../shared/arcade/ParticlePool";
  */
 export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {
   constructor() {
+    // TODO(refactor): código duplicado detectado (bloque) con shared/arcade/ParticlePool.ts:32-56. Considerar extraer a función compartida. Ref: 6c6321d0
     super({
       factory: () => ({
         position: {
@@ -130,6 +131,7 @@ export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {
         data.position.rotation = p.shape ? parseFloat(p.shape) : 0; // Use shape or params to pass rotation
         data.position.worldX = p.x;
         data.position.worldY = p.y;
+        // TODO(refactor): código duplicado detectado (bloque) con shared/arcade/ParticlePool.ts:123-132. Considerar extraer a función compartida. Ref: e0b47b36
         data.position.worldRotation = data.position.rotation;
         data.position.dirty = true;
 

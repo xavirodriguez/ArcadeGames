@@ -117,6 +117,7 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
   /**
    * Converts screen coordinates to world coordinates.
    */
+  // TODO(refactor): código duplicado detectado (método) con rendering/Camera2D.ts:160-183. Considerar extraer a función compartida. Ref: 188e6e2e
   public static screenToWorld(
     world: World<any>,
     screenX: number,
@@ -154,6 +155,7 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
   /**
    * Converts world coordinates to screen coordinates.
    */
+  // TODO(refactor): código duplicado detectado (método) con rendering/Camera2D.ts:124-147. Considerar extraer a función compartida. Ref: 60333b4f
   public static worldToScreen(
     world: World<any>,
     worldX: number,

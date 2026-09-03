@@ -40,6 +40,7 @@ function testPolygonVsPolygon(
   extractPolygonAxes(vertsA, axes);
   extractPolygonAxes(vertsB, axes);
 
+  // TODO(refactor): código duplicado detectado (bloque) con physics/collision/NarrowPhase.ts:107-117. Considerar extraer a función compartida. Ref: ed311a16
   const state: SATOverlapState = {
     minOverlap: Infinity,
     mtvX: 0,
@@ -104,6 +105,7 @@ function testPolygonVsCircle(
     axes.push({ x: toClosestX / toClosestLen, y: toClosestY / toClosestLen });
   }
 
+  // TODO(refactor): código duplicado detectado (bloque) con physics/collision/NarrowPhase.ts:44-54. Considerar extraer a función compartida. Ref: 00b49bad
   const state: SATOverlapState = {
     minOverlap: Infinity,
     mtvX: 0,

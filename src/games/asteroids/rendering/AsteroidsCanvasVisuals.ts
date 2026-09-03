@@ -15,6 +15,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 
     const size = render.size || 15;
     let baseColor = render.color || colors.cyan;
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:139-146. Considerar extraer a función compartida. Ref: d2e141bf
     const tick = Math.floor((world.tick * 5) / 12);
 
     ctx.save();
@@ -25,6 +26,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       if ((render.hitFlashFrames! >> 1) % 2 === 0) {
         ctx.globalAlpha = 0.3;
       }
+      // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:45-54. Considerar extraer a función compartida. Ref: c4bcd449
       baseColor = colors.white;
     }
 
@@ -125,6 +127,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
  */
 export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:139-150. Considerar extraer a función compartida. Ref: 02c1f5f2
     const render = world.getComponent(entity, "Render");
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
@@ -136,6 +139,7 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
       radius = render.size / 2;
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:19-28. Considerar extraer a función compartida. Ref: 8e471d6c
     let color = render.color || colors.pink; // Neon pink default (R9)
     ctx.save();
 

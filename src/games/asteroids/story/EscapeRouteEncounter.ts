@@ -115,6 +115,7 @@ export const escapeRoute01Encounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Asteroids encounters.
  */
+// TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:177-196. Considerar extraer a función compartida. Ref: 8e598bb4
 export class AsteroidsArcadeAdapter implements ArcadeGameAdapter {
   private game: AsteroidsGame | null = null;
   private resultCallback: ((result: MiniGameResult) => void) | null = null;
@@ -127,6 +128,7 @@ export class AsteroidsArcadeAdapter implements ArcadeGameAdapter {
     // Apply modifiers from run context to game instance
     applyStandardEncounterModifiers(game, context);
 
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:140-160. Considerar extraer a función compartida. Ref: bacb64ad
     game.start();
 
     // Listen for gameplay termination / completion events
@@ -135,6 +137,7 @@ export class AsteroidsArcadeAdapter implements ArcadeGameAdapter {
       eventBus.on("game:over" as any, (payload: any) => {
         this.emitResult(context, payload);
       });
+      // TODO(refactor): código duplicado detectado (bloque) con pong/story/PongEncounter.ts:145-158. Considerar extraer a función compartida. Ref: 472ffcf5
       eventBus.on("level:completed" as any, (payload: any) => {
         this.emitResult(context, payload);
       });

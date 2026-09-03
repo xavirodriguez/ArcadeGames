@@ -7,6 +7,7 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/FadeTransition.ts:10-25. Considerar extraer a función compartida. Ref: 0946b729
 export class IrisTransition implements ITransitionEffect {
   /**
    * Renders the circular wipe effect.

@@ -1,6 +1,7 @@
 import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, TransformComponent } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-20. Considerar extraer a función compartida. Ref: 20bf4f89
 import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
 
 let Skia: any = null;
@@ -28,6 +29,7 @@ const cachedShieldCracks = new WeakMap<any, { x1: number; y1: number; x2: number
  * - Flickering, dual-stage thruster plasma plume tail.
  * - Glowing defensive neon invulnerability bubble shield when invulnerable.
  */
+// TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:195-201. Considerar extraer a función compartida. Ref: f43bc0df
 export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -151,6 +153,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     paint.setColor(Skia.Color(colors.white));
     canvas.drawPath(paths.reflection, paint);
 
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:132-139. Considerar extraer a función compartida. Ref: ac8bf58e
     canvas.restore();
 
     // 4. Glowing defensive neon invulnerability bubble shield (Pulsing blue/cyan)
@@ -192,12 +195,14 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
  * Visuals for an invader using React Native Skia.
  * Row-based colors, pulsing cyber eye core, leg animations.
  */
+// TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:33-39. Considerar extraer a función compartida. Ref: d30640a5
 export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
 
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:181-196. Considerar extraer a función compartida. Ref: ac0fb50f
     const size = render.size || 15;
     let baseColor = render.color || colors.white;
 
@@ -318,6 +323,7 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
 
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:307-331. Considerar extraer a función compartida. Ref: 0328253c
     const size = render.size || 80;
     const boss = world.getComponent(entity, "Boss");
     const health = world.getComponent(entity, "Health");
@@ -410,6 +416,7 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
  * Visuals for shield blocks using React Native Skia.
  * Layered high-tech structures, cracks, etc.
  */
+// TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:31-38. Considerar extraer a función compartida. Ref: 6a49b701
 export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -419,6 +426,7 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
     const size = render.size || 15;
     const flash = applyHitFlash(render, render.color || colors.green, render.opacity ?? 1.0);
     const colorStr = flash.color;
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:433-438. Considerar extraer a función compartida. Ref: a85d2ee2
     const opacity = flash.opacity;
 
     const shield = world.getComponent(entity, "Shield");
@@ -488,6 +496,7 @@ export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersCompon
     if (!render) return;
 
     const size = render.size || 2;
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:485-496. Considerar extraer a función compartida. Ref: 10ae45f2
     const colorStr = render.color || colors.white;
 
     const ttl = world.getComponent(entity, "TTL");
@@ -500,6 +509,7 @@ export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersCompon
 
     // Zero-allocation heat-dissipation color shifting
     let particleColor = colorStr;
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:497-510. Considerar extraer a función compartida. Ref: 2c9a8f76
     if (colorStr === "white" || colorStr === colors.white) {
       if (progress < 0.2) {
         particleColor = colors.white; // Hot white

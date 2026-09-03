@@ -45,6 +45,7 @@ function getCachedSkiaShader(key: string, factory: () => any): any {
 // ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
 // ============================================================================
 
+// TODO(refactor): código duplicado detectado (clase) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:31-116. Considerar extraer a función compartida. Ref: 2c8ae715
 interface VisualParticle {
   active: boolean;
   type: "spark" | "shard" | "star";
@@ -239,6 +240,7 @@ function getArrowheadPath(size: number): any {
 export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:194-202. Considerar extraer a función compartida. Ref: 99824503
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
@@ -249,6 +251,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     const health = world.getComponent(entity, "Health");
     const x = transform.worldX ?? transform.x;
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:202-221. Considerar extraer a función compartida. Ref: 0d24f7f4
     const y = transform.worldY ?? transform.y;
 
     let state = shipStates.get(entity);
@@ -268,6 +271,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const flapStrength = FLAPPY_CONFIG.FLAP_STRENGTH;
     const hasFlapped = (vy < -150 && state.lastVy >= -150) || (vy === flapStrength && state.lastVy !== flapStrength);
     if (hasFlapped && isAlive) {
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:224-240. Considerar extraer a función compartida. Ref: 7387d3cd
       const pCount = 4 + world.renderRandom.nextInt(0, 3);
       for (let i = 0; i < pCount; i++) {
         const angleVal = world.renderRandom.nextRange(160, 200) * (Math.PI / 180);
@@ -284,6 +288,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     // --- TRIGGER SHARDS & SPARKS ON DEATH ---
     const hasDied = !isAlive && state.lastIsAlive;
     if (hasDied) {
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:243-270. Considerar extraer a función compartida. Ref: 2e7c6e07
       const sCount = 8 + world.renderRandom.nextInt(0, 4);
       for (let i = 0; i < sCount; i++) {
         const angleVal = world.renderRandom.next() * Math.PI * 2;
@@ -430,6 +435,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:437-456. Considerar extraer a función compartida. Ref: ac6d56dd
     const render = world.getComponent(entity, "Render");
     const pos = world.getComponent(entity, "Transform");
     if (!render || !pos) return;
@@ -469,6 +475,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setShader(pillarShader);
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:504-510. Considerar extraer a función compartida. Ref: 84d69b61
     canvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
 
     paint.reset();
@@ -501,6 +508,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setShader(collarShader);
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:479-485. Considerar extraer a función compartida. Ref: 06124d5b
     canvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
 
     paint.reset();
@@ -599,6 +607,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#050510"));
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:645-655. Considerar extraer a función compartida. Ref: e7c4cf1f
     canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     // Hypervelocity combo factor calculation

@@ -117,6 +117,7 @@ export const echoRunnerDashEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Echo Runner encounters.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 8e598bb4
 export class EchoRunnerArcadeAdapter implements ArcadeGameAdapter {
   private game: EchoRunnerGame | null = null;
   private resultCallback: ((result: MiniGameResult) => void) | null = null;
@@ -132,10 +133,12 @@ export class EchoRunnerArcadeAdapter implements ArcadeGameAdapter {
       } else if (modifier.targetProperty === "energyBoost" && typeof modifier.value === "number") {
         (game as any).energyBoost = modifier.value;
       } else if (modifier.targetProperty === "speedMultiplier" && typeof modifier.value === "number") {
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/story/FlappyBirdEncounter.ts:135-160. Considerar extraer a función compartida. Ref: a07c240f
         (game as any).speedMultiplier = modifier.value;
       }
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:131-152. Considerar extraer a función compartida. Ref: bacb64ad
     game.start();
 
     const eventBus = (game as any).eventBus || (game as any).getEventBus?.();

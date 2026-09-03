@@ -28,6 +28,7 @@ export class PhysicsQuery {
    * @param y - Target world-space Y coordinate.
    * @returns Array of entity IDs overlapping the query point.
    */
+  // TODO(refactor): código duplicado detectado (método) con physics/query/PhysicsQuery.ts:124-134. Considerar extraer a función compartida. Ref: aee69b7e
   public static pointCast<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
@@ -47,6 +48,7 @@ export class PhysicsQuery {
         continue;
       }
 
+      // TODO(refactor): código duplicado detectado (bloque) con physics/utils/PhysicsTransform.ts:18-24. Considerar extraer a función compartida. Ref: dbf8ef00
       const worldX = transform.worldX ?? transform.x;
       const worldY = transform.worldY ?? transform.y;
       const cx = worldX + (collider.offsetX ?? 0);
@@ -117,6 +119,7 @@ export class PhysicsQuery {
    * @param y - World-space position Y of the query shape center.
    * @returns Array of entity IDs overlapping the query shape.
    */
+  // TODO(refactor): código duplicado detectado (método) con physics/query/PhysicsQuery.ts:36-46. Considerar extraer a función compartida. Ref: 75a89c85
   public static shapeCast<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,

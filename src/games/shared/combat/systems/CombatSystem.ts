@@ -33,6 +33,7 @@ export class CombatSystem<
           const entityB = collision.otherEntity;
 
           // Double Security A: Process each pair exactly once
+          // TODO(refactor): código duplicado detectado (bloque) con shared/combat/systems/CombatSystem.ts:52-62. Considerar extraer a función compartida. Ref: 35215b09
           if (entityA >= entityB) continue;
 
           // Double Security B: Ensure both entities still exist and aren't already queued for destruction
@@ -49,6 +50,7 @@ export class CombatSystem<
       if (colComp.triggersEntered) {
         for (const entityB of colComp.triggersEntered) {
           // Double Security A: Process each pair exactly once
+          // TODO(refactor): código duplicado detectado (bloque) con shared/combat/systems/CombatSystem.ts:37-47. Considerar extraer a función compartida. Ref: 4ceb0047
           if (entityA >= entityB) continue;
 
           // Double Security B: Ensure both entities still exist and aren't already queued for destruction

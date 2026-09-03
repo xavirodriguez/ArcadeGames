@@ -7,6 +7,7 @@ import { CoreComponentRegistry, RunState } from "../ecs/CoreComponents";
  * It marks the player as Dead, updates the RunState, and dispatches the "PlayerDied" event.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con systems/CollectibleSystem.ts:10-17. Considerar extraer a función compartida. Ref: 63111e4a
 export class DeathSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;

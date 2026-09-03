@@ -64,6 +64,7 @@ export class ComponentSetPool<T extends Record<string, Component>> {
         const commands = world.getCommandBuffer();
 
         // CommandBuffer creation logic
+        // TODO(refactor): código duplicado detectado (bloque) con utils/ComponentSetPool.ts:82-91. Considerar extraer a función compartida. Ref: 45dd26fe
         commands.createEntity(entity);
 
         this.activeEntities.add(entity);
@@ -79,6 +80,7 @@ export class ComponentSetPool<T extends Record<string, Component>> {
         return { entity, components };
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con utils/ComponentSetPool.ts:68-76. Considerar extraer a función compartida. Ref: 4eed773c
     const entity = world.createEntity();
     this.activeEntities.add(entity);
 

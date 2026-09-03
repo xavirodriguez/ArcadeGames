@@ -40,6 +40,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
    * @postcondition Retorna un objeto con las coordenadas del viewport `minX`, `minY`, `maxX`, `maxY`.
    */
   public static getViewport(world: World): { minX: number; minY: number; maxX: number; maxY: number } {
+    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:188-195. Considerar extraer a función compartida. Ref: 5820e562
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig");
     const screenWidth = screen?.width ?? 800;
     const screenHeight = screen?.height ?? 600;
@@ -80,6 +81,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     const maxY = viewport.maxY + margin;
 
     // Exclude check for players/important tags to ensure they are never culled
+    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:119-137. Considerar extraer a función compartida. Ref: 27c20cc8
     const isLocalPlayer = world.hasComponent(entity, "LocalPlayer") || world.hasComponent(entity, "Player");
 
     const tagComponent = world.getComponent(entity, "Tag") as TagComponent | undefined;
@@ -114,8 +116,10 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     const maxY = viewport.maxY + margin;
 
     // Zero-allocation viewport filtering avoids calling getViewport inside filter loop
+    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:215-225. Considerar extraer a función compartida. Ref: b63385c1
     return entities.filter((entity) => {
       // Exclude check for players/important tags to ensure they are never culled
+      // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:85-103. Considerar extraer a función compartida. Ref: a9574295
       const isLocalPlayer = world.hasComponent(entity, "LocalPlayer") || world.hasComponent(entity, "Player");
 
       const tagComponent = world.getComponent(entity, "Tag") as TagComponent | undefined;
@@ -185,6 +189,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     }
 
     // 2. Retrieve screen config/dimensions
+    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:44-50. Considerar extraer a función compartida. Ref: 6d11ee76
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig");
     const screenWidth = screen?.width ?? 800;
     const screenHeight = screen?.height ?? 600;
@@ -212,6 +217,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     const allEntities = world.query("Transform");
     this.candidateBuffer.length = 0;
 
+    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:120-130. Considerar extraer a función compartida. Ref: 5312e9ac
     for (const entity of allEntities) {
       // Exclude check for players/important tags to ensure they are never culled
       const isLocalPlayer = world.hasComponent(entity, "LocalPlayer") || world.hasComponent(entity, "Player");

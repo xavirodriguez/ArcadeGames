@@ -107,10 +107,13 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
       theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:200-207. Considerar extraer a función compartida. Ref: d29aace1
     this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
   }
 
+  // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:309-321. Considerar extraer a función compartida. Ref: b8cff4cf
   protected override async onRegisterSystems(): Promise<void> {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:207-221. Considerar extraer a función compartida. Ref: 44f1ee7d
     this.world.setResource("ScreenConfig", { width: PLATFORMER_CONFIG.SCREEN_WIDTH, height: PLATFORMER_CONFIG.SCREEN_HEIGHT });
     this.world.setResource("DeathPlaneY", 650);
 
@@ -186,6 +189,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     // Blueprints
     this.blueprints.register("collectible_fragment", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:324-339. Considerar extraer a función compartida. Ref: fbd854ae
         ArcadeEntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withRender({
@@ -205,6 +209,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
       }
     });
 
+    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:187-199. Considerar extraer a función compartida. Ref: 10f25666
     this.blueprints.register("collectible_coin", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
         ArcadeEntityBuilder.fromEntity(world, entity)
@@ -243,6 +248,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
     registerPlatformerEnemyBlueprints(this.blueprints);
 
+    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:264-273. Considerar extraer a función compartida. Ref: 6d4548db
     this.blueprints.register("powerup_double_jump", {
       spawn: (world, entity, args: { x: number; y: number }) => {
         ArcadeEntityBuilder.fromEntity(world, entity)
@@ -261,6 +267,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
       }
     });
 
+    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:252-261. Considerar extraer a función compartida. Ref: 5171adb5
     this.blueprints.register("powerup_dash", {
       spawn: (world, entity, args: { x: number; y: number }) => {
         ArcadeEntityBuilder.fromEntity(world, entity)
@@ -285,6 +292,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
           .withTransform({ x: args.x, y: args.y })
           .withRender({ shape: "goal", size: 32, order: 1 });
 
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:249-254. Considerar extraer a función compartida. Ref: 30c73994
         world.addComponent(entity, { type: "LevelGoal", reached: false } as { type: string; [key: string]: unknown });
       }
     });
@@ -380,6 +388,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     // Add Systems
     this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new PlatformerDashSystem(), { phase: SystemPhase.Input });
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:402-407. Considerar extraer a función compartida. Ref: 584bc078
     this.world.addSystem(new PlatformerWallJumpSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
@@ -390,12 +399,14 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.world.addSystem(new DeathSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new RespawnSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PlatformerDamageSystem(), { phase: SystemPhase.Simulation });
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:414-420. Considerar extraer a función compartida. Ref: 14b9d33b
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
     this.world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollectibleSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Collision });
     this.world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:420-425. Considerar extraer a función compartida. Ref: d0f615e5
     this.world.addSystem(new PlatformerGoalSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new TilemapRenderSystem(), { phase: SystemPhase.Presentation });
@@ -415,6 +426,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
   }
 
   protected override async onInitializeEntities(): Promise<void> {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:489-506. Considerar extraer a función compartida. Ref: cc474bd4
     const tileDefinitions = {
       1: { solid: true, kind: "normal" as const },
       2: { solid: true, kind: "ice" as const },
@@ -438,6 +450,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.blueprints.get("player")?.spawn(this.world as any, playerEntity, { x: 100, y: 350 });
 
     // Spawn Main Follow Camera
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:518-532. Considerar extraer a función compartida. Ref: 8ccc715b
     const cameraEntity = this.world.createEntity();
     this.world.addComponent(cameraEntity, {
       type: "Camera2D",

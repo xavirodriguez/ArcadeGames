@@ -12,8 +12,10 @@ const ballMotionTrail = new CanvasMotionTrail(30);
  * Upgraded, high-fidelity ball shape drawer with a swirling core and dynamic fading afterimage trails.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:86-94. Considerar extraer a función compartida. Ref: 0f5b5e6b
 export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:85-99. Considerar extraer a función compartida. Ref: cceb5e9c
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -83,6 +85,7 @@ export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRe
  */
 export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:164-176. Considerar extraer a función compartida. Ref: 18e6e604
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 

@@ -115,6 +115,7 @@ export const spaceInvadersInvasionEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Space Invaders encounters.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 96beae78
 export class SpaceInvadersArcadeAdapter implements ArcadeGameAdapter {
   private game: SpaceInvadersGame | null = null;
   private resultCallback: ((result: MiniGameResult) => void) | null = null;
@@ -130,6 +131,7 @@ export class SpaceInvadersArcadeAdapter implements ArcadeGameAdapter {
       } else if (modifier.targetProperty === "fireRateMultiplier" && typeof modifier.value === "number") {
         (game as any).fireRateMultiplier = modifier.value;
       } else if (modifier.targetProperty === "enemySpeedMultiplier" && typeof modifier.value === "number") {
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-161. Considerar extraer a función compartida. Ref: 3c3c14f3
         (game as any).enemySpeedMultiplier = modifier.value;
       }
     }

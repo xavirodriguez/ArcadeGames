@@ -98,6 +98,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     });
     this.baseConfig = ConfigService.load<PongConfig>(this.gameId, PongConfigSchema, pongConfigRaw);
     this.config = this.baseConfig;
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:60-66. Considerar extraer a función compartida. Ref: a8fa2796
     this.assetLoader = new AssetLoader(assetProvider);
   }
 
@@ -258,6 +259,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:424-429. Considerar extraer a función compartida. Ref: 6ae02dab
     this.world.addSystem(new MutatorSystem(mutators as any), { phase: SystemPhase.Simulation });
 
     // Visual / Presentation
@@ -318,6 +320,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
   private async onPreloadAssets(): Promise<void> {
     const audio = this.audio;
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:304-317. Considerar extraer a función compartida. Ref: ed520f42
     const assets = [
       { id: "hit", path: "/audio/hit.mp3" },
       { id: "score", path: "/audio/score.mp3" },

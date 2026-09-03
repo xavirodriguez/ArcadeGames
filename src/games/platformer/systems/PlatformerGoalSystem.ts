@@ -25,6 +25,7 @@ export class PlatformerGoalSystem extends System<CoreComponentRegistry> {
 
       // 1. Check goal's CollisionEvents
       if (world.hasComponent(goalEntity, "CollisionEvents" as any)) {
+        // TODO(refactor): código duplicado detectado (bloque) con systems/CheckpointSystem.ts:38-63. Considerar extraer a función compartida. Ref: fcf9a970
         const events = world.getComponent(goalEntity, "CollisionEvents" as any) as any;
         if (events.activeTriggers) {
           for (let j = 0; j < events.activeTriggers.length; j++) {
@@ -55,6 +56,7 @@ export class PlatformerGoalSystem extends System<CoreComponentRegistry> {
             let found = false;
             if (events.activeTriggers) {
               for (let j = 0; j < events.activeTriggers.length; j++) {
+                // TODO(refactor): código duplicado detectado (bloque) con systems/CheckpointSystem.ts:68-76. Considerar extraer a función compartida. Ref: 8d6140f8
                 if (events.activeTriggers[j] === goalEntity) {
                   found = true;
                   break;

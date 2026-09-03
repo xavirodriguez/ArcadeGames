@@ -1,7 +1,8 @@
 import { EntityBlueprint } from '../types/BlueprintTypes';
 import { CollisionLayers } from '../../shared/types/CollisionLayers';
 
-export const EnemyBlueprints: Record<string, EntityBlueprint> = {
+export const EnemyBlueprints: Record<string, EntityBlueprint> = // TODO(refactor): código duplicado detectado (bloque) con space-invaders/config/EnemyBlueprints.ts:70-77. Considerar extraer a función compartida. Ref: 148e3771
+{
   // --- Asteroids ---
   large_asteroid: {
     id: 'large_asteroid',

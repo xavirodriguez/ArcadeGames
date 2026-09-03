@@ -40,6 +40,7 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number): Ca
 
 export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:20-26. Considerar extraer a función compartida. Ref: 124bbcae
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
     const width = screenConfig.width;
     const height = screenConfig.height;
@@ -110,8 +111,10 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con platformer/rendering/PlatformerCanvasVisuals.ts:4-10. Considerar extraer a función compartida. Ref: 16b8cacf
 export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:89-104. Considerar extraer a función compartida. Ref: 29a17ac0
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 20;
@@ -144,6 +147,7 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
 
     // 2. Invulnerability translucency flickering
     if (isInvulnerable) {
+      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:124-156. Considerar extraer a función compartida. Ref: bb4edea1
       ctx.globalAlpha = 0.4 + 0.5 * Math.sin(world.tick * 0.8);
     }
 
@@ -284,6 +288,7 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
 
 export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:257-267. Considerar extraer a función compartida. Ref: bc2bb5ae
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 16;
@@ -332,8 +337,10 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:527-532. Considerar extraer a función compartida. Ref: 591adf1a
 export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:320-326. Considerar extraer a función compartida. Ref: ca7fc9e3
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 24;
@@ -371,8 +378,10 @@ export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con platformer/rendering/PlatformerCanvasVisuals.ts:42-48. Considerar extraer a función compartida. Ref: cd20434f
 export const drawCheckpointNode: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:365-370. Considerar extraer a función compartida. Ref: ab5ffc7d
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 32;
@@ -442,10 +451,12 @@ export const drawPulseAttack: ShapeDrawer<CanvasRenderingContext2D, CoreComponen
 
 export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:440-445. Considerar extraer a función compartida. Ref: 7e291e2a
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 22;
     const sm = world.getComponent(entity, "StateMachine" as any) as any;
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:607-615. Considerar extraer a función compartida. Ref: 43c99c04
     const state = sm ? sm.currentState : "Patrol";
     const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
 
@@ -526,8 +537,10 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
 
 export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:520-525. Considerar extraer a función compartida. Ref: 00bc468b
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:618-627. Considerar extraer a función compartida. Ref: c321974c
     const size = render.size || 24;
     const sm = world.getComponent(entity, "StateMachine" as any) as any;
     const state = sm ? sm.currentState : "Idle";
@@ -602,8 +615,10 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:531-540. Considerar extraer a función compartida. Ref: 6ebf197f
     const size = render.size || 26;
     const sm = world.getComponent(entity, "StateMachine" as any) as any;
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:460-468. Considerar extraer a función compartida. Ref: b04f7395
     const state = sm ? sm.currentState : "Idle";
     const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
 
@@ -668,6 +683,7 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
 
 export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:679-684. Considerar extraer a función compartida. Ref: d787ce3d
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 28;
@@ -682,6 +698,7 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
       ctx.beginPath();
       ctx.rect(-size * 0.5, -size * 0.3, size, size * 0.7);
       ctx.fill();
+      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:695-702. Considerar extraer a función compartida. Ref: e32a5cc2
       ctx.restore();
       return;
     }
@@ -736,6 +753,7 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     if (isStunned) {
       const elapsed = world.tick * 0.1;
       ctx.strokeStyle = ECHO_PALETTE.restorationGold;
+      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:753-758. Considerar extraer a función compartida. Ref: 642dd361
       ctx.lineWidth = 1.5;
       for (let i = 0; i < 3; i++) {
         const angle = elapsed + (i * Math.PI * 2) / 3;

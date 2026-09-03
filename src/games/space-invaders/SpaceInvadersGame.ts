@@ -79,6 +79,7 @@ export class SpaceInvadersGame
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:125-137. Considerar extraer a función compartida. Ref: 1390215f
     this.network.predictLocalPlayer(input, deltaTime);
   }
 
@@ -96,11 +97,13 @@ export class SpaceInvadersGame
       activeWorld.getEventBus()?.flushDeferred();
     } finally {
       if (random && wasLocked) {
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:62-67. Considerar extraer a función compartida. Ref: d7216a61
         random.lock();
       }
     }
   }
 
+  // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:61-66. Considerar extraer a función compartida. Ref: debee144
   protected override async onRegisterSystems(): Promise<void> {
     const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
     this.config = mutators.length > 0
@@ -225,6 +228,7 @@ export class SpaceInvadersGame
       }
     });
 
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:262-267. Considerar extraer a función compartida. Ref: 07d3787d
     this.blueprints.register("player_bullet", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
@@ -257,6 +261,7 @@ export class SpaceInvadersGame
       }
     });
 
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:231-236. Considerar extraer a función compartida. Ref: 7bc9738f
     this.blueprints.register("enemy_bullet", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
@@ -508,6 +513,7 @@ export class SpaceInvadersGame
 
   private async onPreloadAssets(): Promise<void> {
     const audio = this.audio;
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:305-317. Considerar extraer a función compartida. Ref: ccfdff17
     const assets = [
       { id: "shoot", path: "/audio/shoot.mp3" },
       { id: "explosion", path: "/audio/explosion.mp3" },
@@ -674,6 +680,7 @@ export class SpaceInvadersGame
     let dialogueText = "";
     const dialogueBoxEntities = world.query("DialogueBox");
     if (dialogueBoxEntities.length > 0) {
+      // TODO(refactor): código duplicado detectado (bloque) con asteroids/AsteroidsGame.ts:408-420. Considerar extraer a función compartida. Ref: 4fe85665
       const dialogueBox = world.getComponent(dialogueBoxEntities[0], "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;
@@ -758,6 +765,7 @@ export class SpaceInvadersGame
     const currentServerEntities = new Set<string>();
 
     // Sync with NetworkManager for interpolation
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:411-422. Considerar extraer a función compartida. Ref: 6b235ffa
     const snapshot: WorldSnapshot = {
         tick: (state.tick as number) || 0,
         entities: [],
@@ -771,6 +779,7 @@ export class SpaceInvadersGame
 
     // Update Players
     if (state.players && typeof state.players === 'object') {
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:366-372. Considerar extraer a función compartida. Ref: 7a271799
       const players = state.players as Record<string, { x: number, y: number, alive: boolean, sessionId?: string }>;
       Object.entries(players).forEach(([sessionId, playerState]) => {
         const serverId = `player_${sessionId}`;
@@ -823,6 +832,7 @@ export class SpaceInvadersGame
 
     // Update Bullets
     if (state.bullets && typeof state.bullets === 'object') {
+      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:222-228. Considerar extraer a función compartida. Ref: 31cad89a
       const bullets = state.bullets as Record<string, { x: number, y: number, ownerId: string }>;
       Object.entries(bullets).forEach(([id, bulletState]) => {
         const serverId = `bullet_${id}`;
@@ -839,6 +849,7 @@ export class SpaceInvadersGame
       });
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:441-456. Considerar extraer a función compartida. Ref: a1d6c8d1
     this.networkManager.processServerUpdate(snapshot.tick, snapshot, localSessionId);
 
     // Cleanup removed entities
@@ -888,6 +899,7 @@ export class SpaceInvadersGame
   }
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/AsteroidsGame.ts:521-540. Considerar extraer a función compartida. Ref: 6c40f071
 export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public get tick() { return 0; }
   public get state() { return this.getGameState(); }
@@ -911,6 +923,7 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public gameId = "space-invaders";
   private _world = new World<SpaceInvadersComponentRegistry>();
   private _loop = new GameLoop();
+  // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:547-552. Considerar extraer a función compartida. Ref: 15e23d78
   public getWorld() { return this._world; }
   public getGameLoop() { return this._loop; }
   public getEventBus() { return new EventBus(); }
@@ -926,6 +939,7 @@ export class NullSpaceInvadersGame implements ISpaceInvadersGame {
   public async restart() {}
   public subscribe(cb: (state: GameStateComponent) => void) { return () => {}; }
   public setInputState(input: Partial<InputState>) {}
+  // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:556-573. Considerar extraer a función compartida. Ref: 76136ba1
   public setInput(input: Partial<InputState>) {}
   public initializeRenderer() {}
   public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }

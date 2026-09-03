@@ -150,6 +150,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const gameState = world.getSingleton("GameState");
       if (gameState) {
         // Mutate Combo component
+        // TODO(refactor): código duplicado detectado (bloque) con asteroids/systems/AsteroidCollisionSystem.ts:55-63. Considerar extraer a función compartida. Ref: 76e7c40a
         let nextCombo = 0;
         let nextMultiplier = 1;
 
@@ -209,6 +210,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
+  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/BossSystem.ts:43-49. Considerar extraer a función compartida. Ref: ddc87c59
   public override update(world: World<SpaceInvadersComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
@@ -219,6 +221,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
     const entitiesWithEvents = world.query("CollisionEvents");
     // Safe for determinism/rollback. Reusing instance Set avoids per-tick heap allocations during collision resolution.
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:270-278. Considerar extraer a función compartida. Ref: 30754ba9
     this.destroyedEntities.clear();
 
     // Helper to check if entity exists and is active
@@ -265,6 +268,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     e2: Entity,
     destroyedEntities: Set<number>
   ): void {
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:225-233. Considerar extraer a función compartida. Ref: 553b6473
     if (destroyedEntities.has(e1) || destroyedEntities.has(e2)) return;
 
     // Helper to check if entity exists and is active
@@ -422,6 +426,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
+  // TODO(refactor): código duplicado detectado (método) con flappybird/systems/FlappyBirdCollisionSystem.ts:237-243. Considerar extraer a función compartida. Ref: 9ee5aed7
   private matchPair<T1 extends ComponentType<SpaceInvadersComponentRegistry>, T2 extends ComponentType<SpaceInvadersComponentRegistry>>(
     world: World<SpaceInvadersComponentRegistry>,
     entityA: Entity,

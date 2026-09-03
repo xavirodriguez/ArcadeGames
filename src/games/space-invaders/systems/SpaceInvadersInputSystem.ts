@@ -29,6 +29,7 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
   private isMultiplayer = false;
 
   public setMultiplayerMode(active: boolean) {
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersFormationSystem.ts:20-30. Considerar extraer a función compartida. Ref: 6098594b
     this.isMultiplayer = active;
   }
 

@@ -7,6 +7,7 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/FadeTransition.ts:10-25. Considerar extraer a función compartida. Ref: 9360e5da
 export class ScanlineWipeTransition implements ITransitionEffect {
   /**
    * Renders the Scanline CRT sweep effect.

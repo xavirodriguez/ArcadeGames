@@ -927,77 +927,40 @@
     },
     {
       "firstFile": {
-        "end": 31,
+        "end": 32,
         "endLoc": {
           "column": 12,
-          "line": 31,
-          "position": 1279
+          "line": 32,
+          "position": 1215
         },
         "name": "snapshots/SnapshotSerializer.ts",
-        "start": 5,
+        "start": 4,
         "startLoc": {
           "column": 85,
-          "line": 5,
-          "position": 392
+          "line": 4,
+          "position": 235
         }
       },
       "format": "typescript",
-      "fragment": "import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from \"./WorldSnapshot\";\n\n/**\n * Internal interface to access private world state for serialization.\n */\ninterface InternalWorldAccess<_TComponents extends ComponentRegistry> {\n  activeEntities: Set<number>;\n  entityComponentSets: Map<number, Set<string>>;\n  componentMaps: Map<string, Map<number, unknown>>;\n  nextEntityId: number;\n  freeEntities: number[];\n}\n\n/**\n * Classical Array of Structures (AoS) Serializer.\n *\n * @remarks\n * This class captures the entire ECS World state into an Array of Structures (AoS) layout,\n * where components are grouped by entity ID inside nested record maps.\n *\n * While highly inspectable and great for development or sparse incremental updates, AoS serialization\n * relies on deep object copying and allocates extensive temporary hashes, leading to garbage\n * collection (GC) overhead in high-frequency update loops.\n *\n * @public\n */\nexport class SnapshotSerializer {",
+      "fragment": "import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from \"./WorldSnapshot\";\nimport { buildSnapshotMetadata } from \"./SnapshotMetadataBuilder\";\n\n/**\n * Internal interface to access private world state for serialization.\n */\ninterface InternalWorldAccess<_TComponents extends ComponentRegistry> {\n  activeEntities: Set<number>;\n  entityComponentSets: Map<number, Set<string>>;\n  componentMaps: Map<string, Map<number, unknown>>;\n  nextEntityId: number;\n  freeEntities: number[];\n  generations?: number[];\n}\n\n/**\n * Classical Array of Structures (AoS) Serializer.\n *\n * @remarks\n * This class captures the entire ECS World state into an Array of Structures (AoS) layout,\n * where components are grouped by entity ID inside nested record maps.\n *\n * While highly inspectable and great for development or sparse incremental updates, AoS serialization\n * relies on deep object copying and allocates extensive temporary hashes, leading to garbage\n * collection (GC) overhead in high-frequency update loops.\n *\n * @public\n */\nexport class SnapshotSerializer {",
       "isNew": false,
-      "lines": 27,
+      "lines": 29,
       "secondFile": {
-        "end": 31,
+        "end": 32,
         "endLoc": {
           "column": 12,
-          "line": 31,
-          "position": 1358
+          "line": 32,
+          "position": 1297
         },
         "name": "snapshots/SnapshotSerializerSoA.ts",
-        "start": 5,
+        "start": 4,
         "startLoc": {
           "column": 48,
-          "line": 5,
-          "position": 352
+          "line": 4,
+          "position": 198
         }
       },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
-        "end": 103,
-        "endLoc": {
-          "column": 22,
-          "line": 103,
-          "position": 4556
-        },
-        "name": "snapshots/SnapshotSerializer.ts",
-        "start": 95,
-        "startLoc": {
-          "column": 19,
-          "line": 95,
-          "position": 4168
-        }
-      },
-      "format": "typescript",
-      "fragment": "      componentData,\n      nextEntityId: internal.nextEntityId,\n      freeEntities: [...internal.freeEntities],\n      generations: (world as any).generations ? Array.from((world as any).generations) : [],\n      structureVersion: world.structureVersion,\n      stateVersion: world.stateVersion,\n      seed: world.gameplayRandom.getSeed(),\n      rngState: world.gameplayRandom.getSeed(),\n      tick: world.tick",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 136,
-        "endLoc": {
-          "column": 22,
-          "line": 136,
-          "position": 5748
-        },
-        "name": "snapshots/SnapshotSerializerSoA.ts",
-        "start": 128,
-        "startLoc": {
-          "column": 64,
-          "line": 128,
-          "position": 5360
-        }
-      },
-      "tokens": 79
+      "tokens": 72
     },
     {
       "firstFile": {
@@ -1186,447 +1149,225 @@
     },
     {
       "firstFile": {
-        "end": 66,
+        "end": 63,
         "endLoc": {
-          "column": 28,
-          "line": 66,
-          "position": 2881
+          "column": 55,
+          "line": 63,
+          "position": 2451
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
         "start": 55,
         "startLoc": {
-          "column": 11,
+          "column": 10,
           "line": 55,
-          "position": 2176
+          "position": 2173
         }
       },
       "format": "typescript",
-      "fragment": "      Alert: {\n        // TODO(refactor): código duplicado detectado (método) con systems/EnemyBehaviorRegistry.ts:70-79. Considerar extraer a función compartida. Ref: a2746596\n        onEnter(world, entity, _data) {\n          const vel = world.getComponent(entity, \"Velocity\");\n          if (vel && vel.vx !== 0) {\n            const mutableVel = world.getMutableComponent(entity, \"Velocity\");\n            // TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:153-164. Considerar extraer a función compartida. Ref: 04ed0cb3\n            if (mutableVel) mutableVel.vx = 0;\n          }\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.alertDuration as number) ?? 0.5;",
+      "fragment": "          return checkPlayerDetectionToAlert(sensor);\n        }\n      },\n      Alert: {\n        onEnter(world, entity, _data) {\n          zeroOutVelocityX(world, entity);\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.alertDuration as number) ?? 0.5;",
       "isNew": false,
-      "lines": 12,
+      "lines": 9,
       "secondFile": {
+        "end": 210,
+        "endLoc": {
+          "column": 55,
+          "line": 210,
+          "position": 7072
+        },
+        "name": "systems/EnemyBehaviorRegistry.ts",
+        "start": 202,
+        "startLoc": {
+          "column": 10,
+          "line": 202,
+          "position": 6794
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
         "end": 82,
         "endLoc": {
-          "column": 28,
+          "column": 15,
           "line": 82,
-          "position": 3558
+          "position": 2934
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 72,
+        "start": 56,
         "startLoc": {
-          "column": 12,
-          "line": 72,
-          "position": 3018
-        }
-      },
-      "tokens": 76
-    },
-    {
-      "firstFile": {
-        "end": 66,
-        "endLoc": {
-          "column": 28,
-          "line": 66,
-          "position": 2881
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 55,
-        "startLoc": {
-          "column": 11,
-          "line": 55,
-          "position": 2176
+          "column": 8,
+          "line": 56,
+          "position": 2225
         }
       },
       "format": "typescript",
-      "fragment": "      Alert: {\n        // TODO(refactor): código duplicado detectado (método) con systems/EnemyBehaviorRegistry.ts:70-79. Considerar extraer a función compartida. Ref: a2746596\n        onEnter(world, entity, _data) {\n          const vel = world.getComponent(entity, \"Velocity\");\n          if (vel && vel.vx !== 0) {\n            const mutableVel = world.getMutableComponent(entity, \"Velocity\");\n            // TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:153-164. Considerar extraer a función compartida. Ref: 04ed0cb3\n            if (mutableVel) mutableVel.vx = 0;\n          }\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.alertDuration as number) ?? 0.5;",
+      "fragment": "        }\n      },\n      Alert: {\n        onEnter(world, entity, _data) {\n          zeroOutVelocityX(world, entity);\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.alertDuration as number) ?? 0.5;\n          if (elapsed >= dur) {\n            return \"Windup\";\n          }\n        }\n      },\n      Windup: {\n        onEnter(world, entity, _data) {\n          zeroOutVelocityX(world, entity);\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.windupDuration as number) ?? 0.5;\n          if (elapsed >= dur) {\n            return \"Attack\";\n          }\n        }\n      },\n      Attack: {\n        onEnter(world, entity, data) {\n          const speed = (data.patrolSpeed as number) ?? 80;",
       "isNew": false,
-      "lines": 12,
+      "lines": 27,
       "secondFile": {
-        "end": 117,
-        "endLoc": {
-          "column": 28,
-          "line": 117,
-          "position": 4814
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 108,
-        "startLoc": {
-          "column": 14,
-          "line": 108,
-          "position": 4444
-        }
-      },
-      "tokens": 76
-    },
-    {
-      "firstFile": {
-        "end": 73,
-        "endLoc": {
-          "column": 39,
-          "line": 73,
-          "position": 3061
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 62,
-        "startLoc": {
-          "column": 45,
-          "line": 62,
-          "position": 2777
-        }
-      },
-      "format": "typescript",
-      "fragment": "            if (mutableVel) mutableVel.vx = 0;\n          }\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.alertDuration as number) ?? 0.5;\n          if (elapsed >= dur) {\n            return \"Windup\";\n          }\n        }\n      },\n      Windup: {\n        onEnter(world, entity, _data) {",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 170,
-        "endLoc": {
-          "column": 39,
-          "line": 170,
-          "position": 7140
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 157,
-        "startLoc": {
-          "column": 14,
-          "line": 157,
-          "position": 6521
-        }
-      },
-      "tokens": 54
-    },
-    {
-      "firstFile": {
-        "end": 90,
+        "end": 156,
         "endLoc": {
           "column": 15,
-          "line": 90,
-          "position": 3754
+          "line": 156,
+          "position": 5187
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 78,
+        "start": 130,
         "startLoc": {
-          "column": 45,
-          "line": 78,
-          "position": 3454
+          "column": 8,
+          "line": 130,
+          "position": 4478
+        }
+      },
+      "tokens": 134
+    },
+    {
+      "firstFile": {
+        "end": 74,
+        "endLoc": {
+          "column": 56,
+          "line": 74,
+          "position": 2766
+        },
+        "name": "systems/EnemyBehaviorRegistry.ts",
+        "start": 63,
+        "startLoc": {
+          "column": 59,
+          "line": 63,
+          "position": 2455
         }
       },
       "format": "typescript",
-      "fragment": "            if (mutableVel) mutableVel.vx = 0;\n          }\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.windupDuration as number) ?? 0.5;\n          if (elapsed >= dur) {\n            return \"Attack\";\n          }\n        }\n      },\n      Attack: {\n        onEnter(world, entity, data) {\n          const speed = (data.patrolSpeed as number) ?? 80;",
+      "fragment": "          const dur = (data.alertDuration as number) ?? 0.5;\n          if (elapsed >= dur) {\n            return \"Windup\";\n          }\n        }\n      },\n      Windup: {\n        onEnter(world, entity, _data) {\n          zeroOutVelocityX(world, entity);\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.windupDuration as number) ?? 0.5;",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 221,
+        "endLoc": {
+          "column": 56,
+          "line": 221,
+          "position": 7387
+        },
+        "name": "systems/EnemyBehaviorRegistry.ts",
+        "start": 210,
+        "startLoc": {
+          "column": 59,
+          "line": 210,
+          "position": 7076
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 107,
+        "endLoc": {
+          "column": 18,
+          "line": 107,
+          "position": 3887
+        },
+        "name": "systems/EnemyBehaviorRegistry.ts",
+        "start": 95,
+        "startLoc": {
+          "column": 14,
+          "line": 95,
+          "position": 3530
+        }
+      },
+      "format": "typescript",
+      "fragment": "          if (elapsed >= dur) {\n            return \"Recovery\";\n          }\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, _data) {\n          zeroOutVelocityX(world, entity);\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.recoveryDuration as number) ?? 0.5;\n          if (elapsed >= dur) {\n            return \"Patrol\";",
       "isNew": false,
       "lines": 13,
       "secondFile": {
         "end": 186,
         "endLoc": {
-          "column": 15,
+          "column": 18,
           "line": 186,
-          "position": 7598
+          "position": 6429
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
         "start": 174,
         "startLoc": {
-          "column": 14,
+          "column": 64,
           "line": 174,
-          "position": 7298
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 139,
-        "endLoc": {
-          "column": 31,
-          "line": 139,
-          "position": 5621
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 128,
-        "startLoc": {
-          "column": 19,
-          "line": 128,
-          "position": 5167
-        }
-      },
-      "format": "typescript",
-      "fragment": "  registry[\"jumper\"] = {\n    states: {\n      Idle: {\n        // TODO(refactor): código duplicado detectado (método) con systems/EnemyBehaviorRegistry.ts:148-156. Considerar extraer a función compartida. Ref: af6deb12\n        onEnter(world, entity, _data) {\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vx = 0;\n            });\n          }\n        },\n        onUpdate(world, entity, data, elapsed) {",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 246,
-        "endLoc": {
-          "column": 31,
-          "line": 246,
-          "position": 9920
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 236,
-        "startLoc": {
-          "column": 20,
-          "line": 236,
-          "position": 9633
-        }
-      },
-      "tokens": 61
-    },
-    {
-      "firstFile": {
-        "end": 139,
-        "endLoc": {
-          "column": 17,
-          "line": 139,
-          "position": 5607
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 130,
-        "startLoc": {
-          "column": 10,
-          "line": 130,
-          "position": 5197
-        }
-      },
-      "format": "typescript",
-      "fragment": "      Idle: {\n        // TODO(refactor): código duplicado detectado (método) con systems/EnemyBehaviorRegistry.ts:148-156. Considerar extraer a función compartida. Ref: af6deb12\n        onEnter(world, entity, _data) {\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vx = 0;\n            });\n          }\n        },\n        onUpdate(world, entity, data, elapsed) {",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 160,
-        "endLoc": {
-          "column": 17,
-          "line": 160,
-          "position": 6563
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 151,
-        "startLoc": {
-          "column": 11,
-          "line": 151,
-          "position": 6150
-        }
-      },
-      "tokens": 50
-    },
-    {
-      "firstFile": {
-        "end": 140,
-        "endLoc": {
-          "column": 43,
-          "line": 140,
-          "position": 5682
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 130,
-        "startLoc": {
-          "column": 10,
-          "line": 130,
-          "position": 5197
-        }
-      },
-      "format": "typescript",
-      "fragment": "      Idle: {\n        // TODO(refactor): código duplicado detectado (método) con systems/EnemyBehaviorRegistry.ts:148-156. Considerar extraer a función compartida. Ref: af6deb12\n        onEnter(world, entity, _data) {\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vx = 0;\n            });\n          }\n        },\n        onUpdate(world, entity, data, elapsed) {\n          const sensor = world.getComponent(entity, \"PlayerSensor\");",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 178,
-        "endLoc": {
-          "column": 28,
-          "line": 178,
-          "position": 7402
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 168,
-        "startLoc": {
-          "column": 12,
-          "line": 168,
-          "position": 6930
+          "position": 6072
         }
       },
       "tokens": 65
     },
     {
       "firstFile": {
-        "end": 140,
-        "endLoc": {
-          "column": 43,
-          "line": 140,
-          "position": 5682
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 130,
-        "startLoc": {
-          "column": 10,
-          "line": 130,
-          "position": 5197
-        }
-      },
-      "format": "typescript",
-      "fragment": "      Idle: {\n        // TODO(refactor): código duplicado detectado (método) con systems/EnemyBehaviorRegistry.ts:148-156. Considerar extraer a función compartida. Ref: af6deb12\n        onEnter(world, entity, _data) {\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vx = 0;\n            });\n          }\n        },\n        onUpdate(world, entity, data, elapsed) {\n          const sensor = world.getComponent(entity, \"PlayerSensor\");",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 226,
-        "endLoc": {
-          "column": 28,
-          "line": 226,
-          "position": 9440
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 217,
-        "startLoc": {
-          "column": 14,
-          "line": 217,
-          "position": 9135
-        }
-      },
-      "tokens": 65
-    },
-    {
-      "firstFile": {
-        "end": 162,
-        "endLoc": {
-          "column": 55,
-          "line": 162,
-          "position": 6820
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 147,
-        "startLoc": {
-          "column": 27,
-          "line": 147,
-          "position": 6106
-        }
-      },
-      "format": "typescript",
-      "fragment": "            return \"Windup\";\n          }\n        }\n      },\n      Alert: {\n        onEnter(world, entity, _data) {\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              // TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:62-73. Considerar extraer a función compartida. Ref: 24aa0727\n              v.vx = 0;\n            });\n          }\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          // TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:254-269. Considerar extraer a función compartida. Ref: 0dbc5b2c\n          const dur = (data.alertDuration as number) ?? 0.5;",
-      "isNew": false,
-      "lines": 16,
-      "secondFile": {
-        "end": 262,
-        "endLoc": {
-          "column": 55,
-          "line": 262,
-          "position": 10480
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 249,
-        "startLoc": {
-          "column": 26,
-          "line": 249,
-          "position": 10104
-        }
-      },
-      "tokens": 76
-    },
-    {
-      "firstFile": {
-        "end": 178,
-        "endLoc": {
-          "column": 56,
-          "line": 178,
-          "position": 7430
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 162,
-        "startLoc": {
-          "column": 59,
-          "line": 162,
-          "position": 6824
-        }
-      },
-      "format": "typescript",
-      "fragment": "          const dur = (data.alertDuration as number) ?? 0.5;\n          if (elapsed >= dur) {\n            return \"Windup\";\n          }\n        }\n      },\n      Windup: {\n        // TODO(refactor): código duplicado detectado (método) con systems/EnemyBehaviorRegistry.ts:129-138. Considerar extraer a función compartida. Ref: 61f3bfb9\n        onEnter(world, entity, _data) {\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vx = 0;\n            });\n          }\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.windupDuration as number) ?? 0.5;",
-      "isNew": false,
-      "lines": 17,
-      "secondFile": {
-        "end": 277,
-        "endLoc": {
-          "column": 56,
-          "line": 277,
-          "position": 10923
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 262,
-        "startLoc": {
-          "column": 59,
-          "line": 262,
-          "position": 10484
-        }
-      },
-      "tokens": 86
-    },
-    {
-      "firstFile": {
-        "end": 202,
+        "end": 165,
         "endLoc": {
           "column": 16,
-          "line": 202,
-          "position": 8452
+          "line": 165,
+          "position": 5651
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 188,
+        "start": 157,
         "startLoc": {
           "column": 58,
-          "line": 188,
-          "position": 7873
+          "line": 157,
+          "position": 5294
         }
       },
       "format": "typescript",
-      "fragment": "          const speed = (data.patrolSpeed as number) ?? 80;\n          const sensor = world.getComponent(entity, \"PlayerSensor\");\n          const trans = world.getComponent(entity, \"Transform\");\n\n          let dir = 1;\n          if (sensor && sensor.detectedPlayerEntity !== undefined && trans) {\n            const playerTrans = world.getComponent(sensor.detectedPlayerEntity, \"Transform\");\n            if (playerTrans) {\n              dir = playerTrans.x > trans.x ? 1 : -1;\n            }\n          }\n\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vy = -jumpVel;",
+      "fragment": "          const speed = (data.patrolSpeed as number) ?? 80;\n          const sensor = world.getComponent(entity, \"PlayerSensor\");\n          const trans = world.getComponent(entity, \"Transform\");\n\n          const dir = getHorizontalDirectionToPlayer(world, entity, sensor, trans);\n\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vy = -jumpVel;",
       "isNew": false,
-      "lines": 15,
+      "lines": 9,
       "secondFile": {
-        "end": 300,
+        "end": 237,
         "endLoc": {
           "column": 16,
-          "line": 300,
-          "position": 11888
+          "line": 237,
+          "position": 7962
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 286,
+        "start": 229,
         "startLoc": {
           "column": 65,
-          "line": 286,
-          "position": 11309
+          "line": 229,
+          "position": 7605
         }
       },
-      "tokens": 106
+      "tokens": 66
     },
     {
       "firstFile": {
-        "end": 226,
+        "end": 184,
         "endLoc": {
           "column": 58,
-          "line": 226,
-          "position": 9470
+          "line": 184,
+          "position": 6373
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 212,
+        "start": 174,
         "startLoc": {
           "column": 59,
-          "line": 212,
-          "position": 9036
+          "line": 174,
+          "position": 6067
         }
       },
       "format": "typescript",
-      "fragment": "          if ((ground && ground.isGrounded && elapsed > 0.1) || elapsed >= dur) {\n            return \"Recovery\";\n          }\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, _data) {\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vx = 0;\n            });\n          }\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.recoveryDuration as number) ?? 0.5;",
+      "fragment": "          if ((ground && ground.isGrounded && elapsed > 0.1) || elapsed >= dur) {\n            return \"Recovery\";\n          }\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, _data) {\n          zeroOutVelocityX(world, entity);\n        },\n        onUpdate(_world, _entity, data, elapsed) {\n          const dur = (data.recoveryDuration as number) ?? 0.5;",
       "isNew": false,
-      "lines": 15,
+      "lines": 11,
       "secondFile": {
-        "end": 324,
+        "end": 256,
         "endLoc": {
           "column": 58,
-          "line": 324,
-          "position": 12880
+          "line": 256,
+          "position": 8658
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 310,
+        "start": 246,
         "startLoc": {
           "column": 60,
-          "line": 310,
-          "position": 12446
+          "line": 246,
+          "position": 8352
         }
       },
-      "tokens": 85
+      "tokens": 57
     },
     {
       "firstFile": {
@@ -9511,32 +9252,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-03T22:08:33.124Z",
+    "detectionDate": "2026-09-04T08:32:07.743Z",
     "formats": {
       "typescript": {
-        "clones": 257,
-        "duplicatedLines": 3004,
-        "duplicatedTokens": 21641,
-        "lines": 50744,
+        "clones": 250,
+        "duplicatedLines": 2929,
+        "duplicatedTokens": 21153,
+        "lines": 50838,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 5.919911713700142,
-        "percentageTokens": 8.015392991670154,
-        "sources": 313,
-        "tokens": 269993
+        "percentage": 5.761438294189386,
+        "percentageTokens": 7.831572867726278,
+        "sources": 315,
+        "tokens": 270099
       }
     },
     "total": {
-      "clones": 257,
-      "duplicatedLines": 3004,
-      "duplicatedTokens": 21641,
-      "lines": 50744,
+      "clones": 250,
+      "duplicatedLines": 2929,
+      "duplicatedTokens": 21153,
+      "lines": 50838,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 5.919911713700142,
-      "percentageTokens": 8.015392991670154,
-      "sources": 313,
-      "tokens": 269993
+      "percentage": 5.761438294189386,
+      "percentageTokens": 7.831572867726278,
+      "sources": 315,
+      "tokens": 270099
     }
   }
 }

@@ -26,34 +26,8 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
       if (activeTriggers) {
         const trigLen = activeTriggers.length;
         for (let j = 0; j < trigLen; j++) {
-          // TODO(refactor): código duplicado detectado (bloque) con systems/HitDetectionSystem.ts:63-92. Considerar extraer a función compartida. Ref: a8f9a92b
-          const otherEntity = activeTriggers[j];
-          if (!world.hasEntity(otherEntity)) continue;
-
-          if (world.hasComponent(otherEntity, "Hurtbox")) {
+          if (this.processHitOverlap(world, hitboxEntity, activeTriggers[j])) {
             activeHurtboxCount++;
-            const currentHitEntities = world.getComponent(hitboxEntity, "Hitbox")?.hitEntities ?? [];
-            if (!currentHitEntities.includes(otherEntity)) {
-              // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocation while updating hitEntities list.
-              const hb = world.getMutableComponent(hitboxEntity, "Hitbox");
-              if (hb) {
-                if (!hb.hitEntities) hb.hitEntities = [];
-                hb.hitEntities.push(otherEntity);
-              }
-
-              const hitboxTrans = world.getComponent(hitboxEntity, "Transform") as TransformComponent | undefined;
-              const hurtboxTrans = world.getComponent(otherEntity, "Transform") as TransformComponent | undefined;
-
-              const eventBus = world.getEventBus();
-              if (eventBus) {
-                eventBus.emitDeferred("hitbox:hit", {
-                  hitboxEntity,
-                  hurtboxEntity: otherEntity,
-                  attacker: hitboxTrans?.parentEntity,
-                  victim: hurtboxTrans?.parentEntity
-                });
-              }
-            }
           }
         }
       }
@@ -61,34 +35,8 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
       if (collisions) {
         const colLen = collisions.length;
         for (let j = 0; j < colLen; j++) {
-          // TODO(refactor): código duplicado detectado (bloque) con systems/HitDetectionSystem.ts:30-59. Considerar extraer a función compartida. Ref: 0bb9ecca
-          const otherEntity = collisions[j].otherEntity;
-          if (!world.hasEntity(otherEntity)) continue;
-
-          if (world.hasComponent(otherEntity, "Hurtbox")) {
+          if (this.processHitOverlap(world, hitboxEntity, collisions[j].otherEntity)) {
             activeHurtboxCount++;
-            const currentHitEntities = world.getComponent(hitboxEntity, "Hitbox")?.hitEntities ?? [];
-            if (!currentHitEntities.includes(otherEntity)) {
-              // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocation while updating hitEntities list.
-              const hb = world.getMutableComponent(hitboxEntity, "Hitbox");
-              if (hb) {
-                if (!hb.hitEntities) hb.hitEntities = [];
-                hb.hitEntities.push(otherEntity);
-              }
-
-              const hitboxTrans = world.getComponent(hitboxEntity, "Transform") as TransformComponent | undefined;
-              const hurtboxTrans = world.getComponent(otherEntity, "Transform") as TransformComponent | undefined;
-
-              const eventBus = world.getEventBus();
-              if (eventBus) {
-                eventBus.emitDeferred("hitbox:hit", {
-                  hitboxEntity,
-                  hurtboxEntity: otherEntity,
-                  attacker: hitboxTrans?.parentEntity,
-                  victim: hurtboxTrans?.parentEntity
-                });
-              }
-            }
           }
         }
       }
@@ -102,5 +50,40 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
         }
       }
     }
+  }
+
+  private processHitOverlap(
+    world: World<CoreComponentRegistry>,
+    hitboxEntity: number,
+    otherEntity: number
+  ): boolean {
+    if (!world.hasEntity(otherEntity)) return false;
+
+    if (world.hasComponent(otherEntity, "Hurtbox")) {
+      const currentHitEntities = world.getComponent(hitboxEntity, "Hitbox")?.hitEntities ?? [];
+      if (!currentHitEntities.includes(otherEntity)) {
+        // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocation while updating hitEntities list.
+        const hb = world.getMutableComponent(hitboxEntity, "Hitbox");
+        if (hb) {
+          if (!hb.hitEntities) hb.hitEntities = [];
+          hb.hitEntities.push(otherEntity);
+        }
+
+        const hitboxTrans = world.getComponent(hitboxEntity, "Transform") as TransformComponent | undefined;
+        const hurtboxTrans = world.getComponent(otherEntity, "Transform") as TransformComponent | undefined;
+
+        const eventBus = world.getEventBus();
+        if (eventBus) {
+          eventBus.emitDeferred("hitbox:hit", {
+            hitboxEntity,
+            hurtboxEntity: otherEntity,
+            attacker: hitboxTrans?.parentEntity,
+            victim: hurtboxTrans?.parentEntity
+          });
+        }
+      }
+      return true;
+    }
+    return false;
   }
 }

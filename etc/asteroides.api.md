@@ -2154,8 +2154,8 @@ export interface LocalPredictionOptions<TRegistry extends MultiplayerRegistry = 
 }
 
 // @public
-export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = MultiplayerRegistry> extends System<TRegistry> {
-    constructor(networkManager: NetworkManager<TRegistry>, optionsOrSimulateFn?: LocalPredictionOptions<TRegistry> | ((world: World<TRegistry>, input: any, dt: number) => void), queryComponents?: Extract<keyof TRegistry, string>[], reconcileQueryComponents?: Extract<keyof TRegistry, string>[], reconcileFn?: (world: World<TRegistry>, entity: number, input: any, dt: number) => void);
+export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = Record<string, unknown>> extends System<TRegistry> {
+    constructor(networkManager: NetworkManager<TRegistry>, optionsOrSimulateFn?: LocalPredictionOptions<TRegistry, TInput> | ((world: World<TRegistry>, input: TInput, dt: number) => void), queryComponents?: Extract<keyof TRegistry, string>[], reconcileQueryComponents?: Extract<keyof TRegistry, string>[], reconcileFn?: (world: World<TRegistry>, entity: number, input: TInput, dt: number) => void);
     // (undocumented)
     dispose(): void;
     // (undocumented)
@@ -4561,6 +4561,16 @@ export interface TransformComponent extends Component {
 }
 
 // @public
+export interface TransformLike {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
 export interface TransitionContext<TComponents extends ComponentRegistry = CoreComponentRegistry> {
     executeLifecycle: (token: number) => Promise<void>;
     options?: TransitionOptions;
@@ -4629,6 +4639,16 @@ export interface VelocityComponent extends Component {
     angularVelocity: number;
     type: "Velocity";
     vx: number;
+    vy: number;
+}
+
+// @public
+export interface VelocityLike {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    vx: number;
+    // (undocumented)
     vy: number;
 }
 

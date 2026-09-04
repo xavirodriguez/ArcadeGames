@@ -261,43 +261,6 @@
     },
     {
       "firstFile": {
-        "end": 147,
-        "endLoc": {
-          "column": 14,
-          "line": 147,
-          "position": 5673
-        },
-        "name": "rendering/Camera2D.ts",
-        "start": 124,
-        "startLoc": {
-          "column": 11,
-          "line": 124,
-          "position": 4828
-        }
-      },
-      "format": "typescript",
-      "fragment": "    screenY: number,\n    cameraEntity?: number\n  ): { x: number; y: number } {\n    let camEnt = cameraEntity;\n    if (camEnt === undefined) {\n      const cameras = world.query(\"Camera2D\");\n      for (let i = 0; i < cameras.length; i++) {\n        const cam = world.getComponent(cameras[i], \"Camera2D\") as Camera2DComponent | undefined;\n        if (cam?.isMain) {\n          camEnt = cameras[i];\n          break;\n        }\n      }\n    }\n\n    if (camEnt !== undefined) {\n      const cam = world.getComponent(camEnt, \"Camera2D\") as Camera2DComponent | undefined;\n      if (cam) {\n        const visualOffset = world.getComponent(camEnt, \"VisualOffset\") as VisualOffsetComponent | undefined;\n        const offsetX = visualOffset?.offsetX ?? 0;\n        const offsetY = visualOffset?.offsetY ?? 0;\n        const zoom = cam.zoom || 1;\n        return {\n          x: (screenX / zoom) + cam.x + offsetX,",
-      "isNew": false,
-      "lines": 24,
-      "secondFile": {
-        "end": 185,
-        "endLoc": {
-          "column": 14,
-          "line": 185,
-          "position": 6971
-        },
-        "name": "rendering/Camera2D.ts",
-        "start": 162,
-        "startLoc": {
-          "column": 10,
-          "line": 162,
-          "position": 6126
-        }
-      },
-      "tokens": 172
-    },
-    {
-      "firstFile": {
         "end": 259,
         "endLoc": {
           "column": 77,
@@ -1368,43 +1331,6 @@
         }
       },
       "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 59,
-        "endLoc": {
-          "column": 7,
-          "line": 59,
-          "position": 2588
-        },
-        "name": "systems/HitDetectionSystem.ts",
-        "start": 30,
-        "startLoc": {
-          "column": 47,
-          "line": 30,
-          "position": 1282
-        }
-      },
-      "format": "typescript",
-      "fragment": "          const otherEntity = activeTriggers[j];\n          if (!world.hasEntity(otherEntity)) continue;\n\n          if (world.hasComponent(otherEntity, \"Hurtbox\")) {\n            activeHurtboxCount++;\n            const currentHitEntities = world.getComponent(hitboxEntity, \"Hitbox\")?.hitEntities ?? [];\n            if (!currentHitEntities.includes(otherEntity)) {\n              // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocation while updating hitEntities list.\n              const hb = world.getMutableComponent(hitboxEntity, \"Hitbox\");\n              if (hb) {\n                if (!hb.hitEntities) hb.hitEntities = [];\n                hb.hitEntities.push(otherEntity);\n              }\n\n              const hitboxTrans = world.getComponent(hitboxEntity, \"Transform\") as TransformComponent | undefined;\n              const hurtboxTrans = world.getComponent(otherEntity, \"Transform\") as TransformComponent | undefined;\n\n              const eventBus = world.getEventBus();\n              if (eventBus) {\n                eventBus.emitDeferred(\"hitbox:hit\", {\n                  hitboxEntity,\n                  hurtboxEntity: otherEntity,\n                  attacker: hitboxTrans?.parentEntity,\n                  victim: hurtboxTrans?.parentEntity\n                });\n              }\n            }\n          }\n        }\n      }",
-      "isNew": false,
-      "lines": 30,
-      "secondFile": {
-        "end": 94,
-        "endLoc": {
-          "column": 7,
-          "line": 94,
-          "position": 4223
-        },
-        "name": "systems/HitDetectionSystem.ts",
-        "start": 65,
-        "startLoc": {
-          "column": 55,
-          "line": 65,
-          "position": 2917
-        }
-      },
-      "tokens": 175
     },
     {
       "firstFile": {
@@ -8956,32 +8882,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-04T15:25:19.965Z",
+    "detectionDate": "2026-09-04T16:10:37.073Z",
     "formats": {
       "typescript": {
-        "clones": 242,
-        "duplicatedLines": 2735,
-        "duplicatedTokens": 19980,
-        "lines": 50609,
+        "clones": 240,
+        "duplicatedLines": 2683,
+        "duplicatedTokens": 19633,
+        "lines": 50644,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 5.4041771226461695,
-        "percentageTokens": 7.42565977990612,
+        "percentage": 5.297764789511097,
+        "percentageTokens": 7.289164454510015,
         "sources": 319,
-        "tokens": 269067
+        "tokens": 269345
       }
     },
     "total": {
-      "clones": 242,
-      "duplicatedLines": 2735,
-      "duplicatedTokens": 19980,
-      "lines": 50609,
+      "clones": 240,
+      "duplicatedLines": 2683,
+      "duplicatedTokens": 19633,
+      "lines": 50644,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 5.4041771226461695,
-      "percentageTokens": 7.42565977990612,
+      "percentage": 5.297764789511097,
+      "percentageTokens": 7.289164454510015,
       "sources": 319,
-      "tokens": 269067
+      "tokens": 269345
     }
   }
 }

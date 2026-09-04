@@ -274,7 +274,7 @@ export interface TileDefinition {
   /** Whether the tile is solid for physical collisions. */
   solid: boolean;
   /** Whether the tile is a one-way platform. */
-  oneWay: boolean;
+  oneWay?: boolean;
   /** Optional friction coefficient override. */
   friction?: number;
   /** Optional bounciness coefficient. */
@@ -749,7 +749,7 @@ export interface RespawnableComponent extends Component {
   /** Blueprint key used for respawning. */
   blueprintKey: string;
   /** Initial blueprint arguments. */
-  initialArgs: any;
+  initialArgs: Record<string, unknown>;
 }
 
 /**

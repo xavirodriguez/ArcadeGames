@@ -8,6 +8,13 @@ import {
   VelocityComponent
 } from "../ecs/CoreComponents";
 
+interface WorldSizeConfig {
+  WIDTH?: number;
+  HEIGHT?: number;
+  worldWidth?: number;
+  worldHeight?: number;
+}
+
 /**
  * System that manages 2D camera transformations.
  *
@@ -23,7 +30,7 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
     const screenWidth = screenConfig?.width ?? 800;
     const screenHeight = screenConfig?.height ?? 600;
 
-    const gameConfig = world.getResource<any>("GameConfig");
+    const gameConfig = world.getResource<WorldSizeConfig>("GameConfig");
     const worldWidth = gameConfig?.WIDTH ?? gameConfig?.worldWidth;
     const worldHeight = gameConfig?.HEIGHT ?? gameConfig?.worldHeight;
 
@@ -37,7 +44,7 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
       // Determine followed entity
       let targetEntity = cam.followEntity;
       if (targetEntity === undefined) {
-        const players = world.query("Player" as any);
+        const players = world.query("Player" as Extract<keyof CoreComponentRegistry, string>);
         if (players.length > 0) {
           targetEntity = players[0];
         }
@@ -115,7 +122,7 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
   }
 
   private static getMainCameraInfo(
-    world: World<any>,
+    world: World<CoreComponentRegistry>,
     cameraEntity?: number
   ): { cam: Camera2DComponent; offsetX: number; offsetY: number; zoom: number } | null {
     let camEnt = cameraEntity;
@@ -147,7 +154,7 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
    * Converts screen coordinates to world coordinates.
    */
   public static screenToWorld(
-    world: World<any>,
+    world: World<CoreComponentRegistry>,
     screenX: number,
     screenY: number,
     cameraEntity?: number
@@ -166,7 +173,7 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
    * Converts world coordinates to screen coordinates.
    */
   public static worldToScreen(
-    world: World<any>,
+    world: World<CoreComponentRegistry>,
     worldX: number,
     worldY: number,
     cameraEntity?: number

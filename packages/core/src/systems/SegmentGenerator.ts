@@ -1,6 +1,7 @@
 import { World } from "../ecs/World";
-import { CoreComponentRegistry } from "../ecs/CoreComponents";
+import { CoreComponentRegistry, TileDefinition } from "../ecs/CoreComponents";
 import { RandomService } from "../utils/RandomService";
+import { BlueprintRegistry } from "../ecs/BlueprintRegistry";
 
 /**
  * Representation of a single spawn instruction in a segment.
@@ -10,7 +11,7 @@ export interface SegmentSpawnPoint {
   x: number;
   y: number;
   type: string;
-  args?: any;
+  args?: Record<string, unknown>;
 }
 
 /**
@@ -198,18 +199,18 @@ export class SegmentGenerator {
     world: World<CoreComponentRegistry>,
     plan: LevelPlan,
     tileSize: number,
-    tileDefinitions: any
+    tileDefinitions?: Record<number, TileDefinition>
   ): void {
-    const registry = world.getResource<any>("BlueprintRegistry");
+    const registry = world.getResource<BlueprintRegistry<CoreComponentRegistry>>("BlueprintRegistry");
 
     // 1. Spawn Tilemap
     if (registry && !registry.has("tilemap")) {
       console.warn("[SegmentGenerator] Blueprint 'tilemap' is not registered in BlueprintRegistry.");
     }
-    world.commands.spawnFromBlueprint("tilemap" as any, {
+    world.commands.spawnFromBlueprint("tilemap", {
       data: plan.globalTilemap,
       tileDefinitions
-    } as any);
+    });
 
     // 2. Spawn other elements
     for (const inst of plan.segments) {
@@ -223,7 +224,7 @@ export class SegmentGenerator {
         const globalPixelX = (inst.offsetX + sp.x) * tileSize + tileSize / 2;
         const globalPixelY = (inst.offsetY + sp.y) * tileSize + tileSize / 2;
 
-        const args = {
+        const args: Record<string, unknown> = {
           x: globalPixelX,
           y: globalPixelY,
           ...(sp.args ?? {})
@@ -232,7 +233,7 @@ export class SegmentGenerator {
         try {
           const entity = world.reserveEntityId();
           world.commands.createEntity(entity);
-          world.commands.spawnFromBlueprintForEntity(entity, sp.type as any, args);
+          world.commands.spawnFromBlueprintForEntity(entity, sp.type, args);
           world.commands.addComponent(entity, {
             type: "Respawnable",
             blueprintKey: sp.type,

@@ -72,6 +72,34 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
   }
 
   /**
+   * Checks if an entity is a player entity (has LocalPlayer/Player component or tag).
+   *
+   * @precondition El World de la simulación debe estar inicializado.
+   * @postcondition Retorna true si la entidad posee componentes o tags de jugador.
+   * @public
+   */
+  public static isPlayerEntity<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>,
+    entity: Entity
+  ): boolean {
+    const localPlayerType = "LocalPlayer" as Extract<keyof TRegistry, string>;
+    const playerType = "Player" as Extract<keyof TRegistry, string>;
+    const tagType = "Tag" as Extract<keyof TRegistry, string>;
+
+    const isLocalPlayer = world.hasComponent(entity, localPlayerType) || world.hasComponent(entity, playerType);
+
+    const tagComponent = world.getComponent(entity, tagType) as TagComponent | undefined;
+    const isTagPlayer = Boolean(
+      tagComponent && (
+        (tagComponent.tags as string[] | undefined)?.includes("LocalPlayer") ||
+        (tagComponent.tags as string[] | undefined)?.includes("Player")
+      )
+    );
+
+    return isLocalPlayer || isTagPlayer;
+  }
+
+  /**
    * Checks if an entity is within the active viewport bounds plus a margin.
    *
    * @precondition La entidad provista debe ser válida en el World y poseer el componente `Transform` (salvo que sea jugador).
@@ -82,31 +110,17 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     entity: Entity,
     margin: number = 100
   ): boolean {
+    if (this.isPlayerEntity(world, entity)) {
+      return true;
+    }
+
     const viewport = this.getViewport(world);
     const minX = viewport.minX - margin;
     const minY = viewport.minY - margin;
     const maxX = viewport.maxX + margin;
     const maxY = viewport.maxY + margin;
 
-    const localPlayerType = "LocalPlayer" as Extract<keyof TRegistry, string>;
-    const playerType = "Player" as Extract<keyof TRegistry, string>;
-    const tagType = "Tag" as Extract<keyof TRegistry, string>;
     const transformType = "Transform" as Extract<keyof TRegistry, string>;
-
-    // Exclude check for players/important tags to ensure they are never culled
-    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:119-137. Considerar extraer a función compartida. Ref: 27c20cc8
-    const isLocalPlayer = world.hasComponent(entity, localPlayerType) || world.hasComponent(entity, playerType);
-
-    const tagComponent = world.getComponent(entity, tagType) as TagComponent | undefined;
-    const isTagPlayer = tagComponent && (
-      (tagComponent.tags as string[] | undefined)?.includes("LocalPlayer") ||
-      (tagComponent.tags as string[] | undefined)?.includes("Player")
-    );
-
-    if (isLocalPlayer || isTagPlayer) {
-      return true;
-    }
-
     const trans = world.getComponent(entity, transformType) as TransformComponent | undefined;
     if (!trans) return false;
     const x = trans.worldX ?? trans.x;
@@ -132,25 +146,10 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     const maxX = viewport.maxX + margin;
     const maxY = viewport.maxY + margin;
 
-    const localPlayerType = "LocalPlayer" as Extract<keyof TRegistry, string>;
-    const playerType = "Player" as Extract<keyof TRegistry, string>;
-    const tagType = "Tag" as Extract<keyof TRegistry, string>;
     const transformType = "Transform" as Extract<keyof TRegistry, string>;
 
-    // Zero-allocation viewport filtering avoids calling getViewport inside filter loop
-    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:215-225. Considerar extraer a función compartida. Ref: b63385c1
     return entities.filter((entity) => {
-      // Exclude check for players/important tags to ensure they are never culled
-      // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:85-103. Considerar extraer a función compartida. Ref: a9574295
-      const isLocalPlayer = world.hasComponent(entity, localPlayerType) || world.hasComponent(entity, playerType);
-
-      const tagComponent = world.getComponent(entity, tagType) as TagComponent | undefined;
-      const isTagPlayer = tagComponent && (
-        (tagComponent.tags as string[] | undefined)?.includes("LocalPlayer") ||
-        (tagComponent.tags as string[] | undefined)?.includes("Player")
-      );
-
-      if (isLocalPlayer || isTagPlayer) {
+      if (this.isPlayerEntity(world, entity)) {
         return true;
       }
 
@@ -239,18 +238,8 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     const allEntities = world.query("Transform");
     this.candidateBuffer.length = 0;
 
-    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:120-130. Considerar extraer a función compartida. Ref: 5312e9ac
     for (const entity of allEntities) {
-      // Exclude check for players/important tags to ensure they are never culled
-      const isLocalPlayer = world.hasComponent(entity, "LocalPlayer") || world.hasComponent(entity, "Player");
-
-      const tagComponent = world.getComponent(entity, "Tag") as TagComponent | undefined;
-      const isTagPlayer = tagComponent && (
-        (tagComponent.tags as string[] | undefined)?.includes("LocalPlayer") ||
-        (tagComponent.tags as string[] | undefined)?.includes("Player")
-      );
-
-      if (isLocalPlayer || isTagPlayer) {
+      if (SpatialCullingSystem.isPlayerEntity(world, entity)) {
         this.candidateBuffer.push(entity);
         continue;
       }

@@ -165,9 +165,15 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const isEndNode = Boolean(
     currentNode &&
     (currentNode.isEndNode ||
-     currentNode.meta?.isEndNode ||
+     Boolean(currentNode.meta?.isEndNode) ||
      (!currentNode.transitions?.length && !currentNode.choices?.length && currentNode.type !== "gameplay"))
   );
+
+  const getSceneFromNode = (node: StoryNode | null, fallback: string): string => {
+    if (node?.sceneToLoad) return node.sceneToLoad;
+    if (typeof node?.meta?.sceneToLoad === "string") return node.meta.sceneToLoad;
+    return fallback;
+  };
 
   /**
    * Switches the active minigame by resolving the target gameId via GameDefinitionRegistry
@@ -271,7 +277,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     if (graph) {
       runtime.loadGraph(graph, true);
       const entryNode = runtime.getCurrentNode();
-      const initialScene = entryNode?.sceneToLoad || entryNode?.meta?.sceneToLoad || defaultGameId;
+      const initialScene = getSceneFromNode(entryNode, defaultGameId);
       switchGame(initialScene);
     } else {
       switchGame(defaultGameId);
@@ -300,7 +306,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     if (graph && runtimeRef.current) {
       runtimeRef.current.loadGraph(graph, true);
       const entryNode = runtimeRef.current.getCurrentNode();
-      const initialScene = entryNode?.sceneToLoad || entryNode?.meta?.sceneToLoad || defaultGameId;
+      const initialScene = getSceneFromNode(entryNode, defaultGameId);
       switchGame(initialScene);
     }
   }, [graph, defaultGameId, switchGame]);
@@ -338,7 +344,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       if (envelope) {
         const runtime = runtimeRef.current!;
         const restoredNode = runtime.getCurrentNode();
-        const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || restoredNode?.meta?.sceneToLoad || defaultGameId;
+        const targetGame = envelope.activeGameId || getSceneFromNode(restoredNode, defaultGameId);
         await switchGame(targetGame, envelope.activeGameSeed);
         setStatusMessage("Campaign Loaded Successfully!");
       }

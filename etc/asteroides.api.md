@@ -2019,6 +2019,7 @@ export interface IStateReplicator<TComponents extends ComponentRegistry = Compon
 
 // @public
 export interface ITransitionEffect {
+    drawsBothScenes?: boolean;
     render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
 }
 
@@ -3632,7 +3633,7 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
 }
 
 // @public
-export interface SceneEventRegistry extends Record<string, any> {
+export interface SceneEventRegistry extends Record<string, unknown> {
     // (undocumented)
     "scene:error": {
         action: string;
@@ -4292,7 +4293,7 @@ export class StoryRuntime {
     bindEventBus(eventBus: EventBus): void;
     bindRelationshipEngine(engine: RelationshipEngine): void;
     bindTimelineEngine(engine: NarrativeTimelineEngine): void;
-    bindWorld(world: World): void;
+    bindWorld<TComponents extends ComponentRegistry = CoreComponentRegistry>(world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>): void;
     discoverEvidence(evidenceId: string): void;
     emitStateChanged(): void;
     evaluateCondition(condition: StoryCondition): boolean;

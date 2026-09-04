@@ -22,7 +22,7 @@ function isTestEnvironment(): boolean {
  * Event registry contract for scene transitions and state events.
  * @public
  */
-export interface SceneEventRegistry extends Record<string, any> {
+export interface SceneEventRegistry extends Record<string, unknown> {
   "scene:transition:start": { scene: Scene<ComponentRegistry> };
   "scene:transition:progress": { progress: number };
   "scene:transition:success": { scene: Scene<ComponentRegistry> };
@@ -86,10 +86,10 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   private _activeTransitionEffect: ITransitionEffect | null = null;
   private _transitionElapsed = 0;
   private _transitionResolve: (() => void) | null = null;
-  private _transitionReject: ((err: any) => void) | null = null;
+  private _transitionReject: ((err: unknown) => void) | null = null;
   private _incomingLoadPromise: Promise<void> | null = null;
   private _onEnterResolved: () => boolean = () => false;
-  private _onEnterError: () => any = () => null;
+  private _onEnterError: () => unknown = () => null;
   private _onExitCalled = false;
   private _transitionUpdateStack: (() => void) | null = null;
 
@@ -196,7 +196,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   private createTimeoutPromise(timeoutMs: number, errorMessage: string): { promise: Promise<never>; clearTimeout: () => void } {
-    let timeoutId: any;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const promise = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error(errorMessage));
@@ -211,10 +211,9 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   private _resolveDuration(options?: TransitionOptions): number {
-    const isHeadless =
-      this.world.getResource<any>("headless") === true ||
-      this.world.getResource<any>("GameConfig")?.headless === true ||
-      this.world.getResource<any>("GameConfig")?.isHeadless === true;
+    const isHeadlessResource = this.world.getResource<boolean>("headless") === true;
+    const gameConfig = this.world.getResource<{ headless?: boolean; isHeadless?: boolean }>("GameConfig");
+    const isHeadless = isHeadlessResource || gameConfig?.headless === true || gameConfig?.isHeadless === true;
 
     if (isHeadless) {
       return 0;
@@ -302,7 +301,9 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           this.state = oldState;
 
           if (oldScene) {
-            const isOldScenePaused = (oldScene as any).isPaused === true || (oldScene as any).paused === true;
+            const isOldScenePaused =
+              ("isPaused" in oldScene && (oldScene as { isPaused?: boolean }).isPaused === true) ||
+              ("paused" in oldScene && (oldScene as { paused?: boolean }).paused === true);
             if (isOldScenePaused) {
               runLifecycleSync(() => oldScene.onResume());
             }
@@ -356,7 +357,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         );
 
         let onEnterResolved = false;
-        let onEnterError: any = null;
+        let onEnterError: unknown = null;
 
         const loadPromise = (async () => {
           if (scene && context.type !== "pop") {
@@ -372,7 +373,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           .then(() => {
             onEnterResolved = true;
           })
-          .catch((err) => {
+          .catch((err: unknown) => {
             onEnterError = err;
           });
 
@@ -393,7 +394,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
             this._cleanupTransition();
             reject(err);
           };
-          this._incomingLoadPromise = loadWithTimeout as any;
+          this._incomingLoadPromise = loadWithTimeout;
           this._onEnterResolved = () => onEnterResolved;
           this._onEnterError = () => onEnterError;
         });
@@ -595,7 +596,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       const rawProgress = duration > 0 ? Math.min(1.0, this._transitionElapsed / duration) : 1.0;
       const easingFunc = getEasingFunction(this._transitionOptions?.easing);
 
-      const isDoubleScene = this._activeTransitionEffect && (this._activeTransitionEffect as any).drawsBothScenes === true;
+      const isDoubleScene = this._activeTransitionEffect?.drawsBothScenes === true;
       const peakProgress = isDoubleScene ? 1.0 : 0.5;
 
       if (rawProgress < 0.5) {
@@ -713,7 +714,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       if (newScene) {
         const newWorld = newScene.getWorld();
         newWorld.setResource("StoryRuntime", runtime);
-        runtime.bindWorld(newWorld as any);
+        runtime.bindWorld(newWorld);
 
         await this.transitionTo(newScene);
       }

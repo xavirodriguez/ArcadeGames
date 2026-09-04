@@ -52,6 +52,11 @@ export interface TransitionOptions {
  */
 export interface ITransitionEffect {
   /**
+   * Indicates whether the transition requires rendering both old and new scenes simultaneously.
+   */
+  drawsBothScenes?: boolean;
+
+  /**
    * Renders the transition effect on top of the rendered frame.
    * @param ctx - The render context (e.g. CanvasRenderingContext2D).
    * @param progress - Normalized progress of the overall transition, from 0.0 (start) to 1.0 (end).

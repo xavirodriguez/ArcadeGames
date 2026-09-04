@@ -54,7 +54,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
         const effect = sceneManager.getActiveTransitionEffect();
         let options = sceneManager.getTransitionOptions();
 
-        const drawsBoth = effect && (effect as unknown as Record<string, unknown>).drawsBothScenes === true;
+        const drawsBoth = effect?.drawsBothScenes === true;
 
         if (drawsBoth) {
           const oldScene = sceneManager.getTransitionOldScene();

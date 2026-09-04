@@ -12,13 +12,13 @@ import {
 
 // Tipos auxiliares de componentes esperados por el sistema de físicas/predicción
 /**
- * Helper transform interface for network prediction.
+ * Helper shape representing a transform component.
  * @public
  */
 export interface TransformLike { x: number; y: number; [key: string]: unknown; }
 
 /**
- * Helper velocity interface for network prediction.
+ * Helper shape representing a velocity component.
  * @public
  */
 export interface VelocityLike { vx: number; vy: number; [key: string]: unknown; }

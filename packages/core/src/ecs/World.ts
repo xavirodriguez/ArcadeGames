@@ -59,6 +59,7 @@ export class World<
 > {
   private activeEntities = new Set<Entity>();
   private cachedEntities: ReadonlyArray<Entity> | null = null;
+  private _cachedEntitiesArray: Entity[] = [];
 
   /**
    * Internal slot generations tracker.
@@ -211,13 +212,12 @@ export class World<
         this.cachedEntities = Array.from(this.activeEntities).sort((a, b) => a - b);
         Object.freeze(this.cachedEntities);
       } else {
-        const arr: Entity[] = (this as any)._cachedEntitiesArray || [];
+        const arr: Entity[] = this._cachedEntitiesArray;
         arr.length = 0;
         for (const entity of this.activeEntities) {
           arr.push(entity);
         }
         arr.sort((a, b) => a - b);
-        (this as any)._cachedEntitiesArray = arr;
         this.cachedEntities = arr;
       }
     }
@@ -813,35 +813,38 @@ export class World<
   }
 }
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
 function assertResourceShape(name: string, value: unknown): void {
   if (value === undefined || value === null) return;
 
   switch (name) {
     case "Theme": {
-      const themeVal = value as Record<string, unknown>;
-      if (typeof themeVal !== "object" || themeVal === null) {
+      if (!isRecord(value)) {
         throw new Error(`[World] Resource "Theme" must be an object.`);
       }
-      if (themeVal.spriteMap !== undefined && (typeof themeVal.spriteMap !== "object" || themeVal.spriteMap === null)) {
+      if (value.spriteMap !== undefined && !isRecord(value.spriteMap)) {
         throw new Error(`[World] Resource "Theme" spriteMap must be an object.`);
       }
-      if (themeVal.colorMap !== undefined && (typeof themeVal.colorMap !== "object" || themeVal.colorMap === null)) {
+      if (value.colorMap !== undefined && !isRecord(value.colorMap)) {
         throw new Error(`[World] Resource "Theme" colorMap must be an object.`);
       }
       break;
     }
     case "GameplayFreeze":
-      if (typeof value !== "object" || ( (value as any).remaining !== undefined && typeof (value as any).remaining !== "number" )) {
+      if (!isRecord(value) || (value.remaining !== undefined && typeof value.remaining !== "number")) {
         throw new Error(`[World] Resource "GameplayFreeze" does not match the expected shape { remaining?: number }.`);
       }
       break;
     case "EventBus":
-      if (typeof (value as any).emit !== "function" || typeof (value as any).on !== "function") {
+      if (!isRecord(value) || typeof value.emit !== "function" || typeof value.on !== "function") {
         throw new Error(`[World] Resource "EventBus" does not match the expected EventBus interface (must have emit and on methods).`);
       }
       break;
     case "ScreenConfig":
-      if (typeof value !== "object" || typeof (value as any).width !== "number" || typeof (value as any).height !== "number") {
+      if (!isRecord(value) || typeof value.width !== "number" || typeof value.height !== "number") {
         throw new Error(`[World] Resource "ScreenConfig" does not match the expected shape { width: number, height: number }.`);
       }
       break;
@@ -861,7 +864,7 @@ function assertResourceShape(name: string, value: unknown): void {
       }
       break;
     case "ScreenShake":
-      if (typeof value !== "object" || typeof (value as any).intensity !== "number" || typeof (value as any).duration !== "number" || typeof (value as any).remaining !== "number") {
+      if (!isRecord(value) || typeof value.intensity !== "number" || typeof value.duration !== "number" || typeof value.remaining !== "number") {
         throw new Error(`[World] Resource "ScreenShake" does not match the expected shape { intensity: number, duration: number, remaining: number }.`);
       }
       break;

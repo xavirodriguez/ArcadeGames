@@ -109,7 +109,7 @@ export abstract class BaseGame<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
-> implements IGame<TState, TInput>, Simulation {
+> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
   /** Current simulation tick from the underlying ECS `World`. */
   public get tick(): number {
     return this.world.tick;

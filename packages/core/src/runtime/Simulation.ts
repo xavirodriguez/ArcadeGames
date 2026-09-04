@@ -18,7 +18,7 @@ export interface Simulation {
   /**
    * High-level state representation of the simulation.
    */
-  readonly state: any;
+  readonly state: unknown;
 
   /**
    * Advances the simulation by exactly one fixed timestep tick using the provided input frame.

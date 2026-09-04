@@ -69,6 +69,11 @@
     "unknownCount": 0,
     "total": 2
   },
+  "packages/core/src/network/types.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
+  },
   "packages/core/src/physics/collision/BroadPhase.ts": {
     "anyCount": 0,
     "unknownCount": 2,
@@ -135,9 +140,9 @@
     "total": 2
   },
   "packages/core/src/runtime/BaseGame.ts": {
-    "anyCount": 0,
-    "unknownCount": 3,
-    "total": 3
+    "anyCount": 13,
+    "unknownCount": 0,
+    "total": 13
   },
   "packages/core/src/runtime/GameSession.ts": {
     "anyCount": 7,
@@ -354,6 +359,11 @@
     "unknownCount": 0,
     "total": 1
   },
+  "packages/core/tests/SnapshotMetadataBuilder.test.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
   "packages/core/tests/SpatialCullingSystem.test.ts": {
     "anyCount": 1,
     "unknownCount": 0,
@@ -383,6 +393,11 @@
     "anyCount": 7,
     "unknownCount": 0,
     "total": 7
+  },
+  "packages/core/tests/deferredSpawning.test.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
   },
   "packages/core/tests/determinism.test.ts": {
     "anyCount": 4,
@@ -729,6 +744,11 @@
     "unknownCount": 0,
     "total": 1
   },
+  "src/games/geometrywars/entities/GeometryWarsEntities.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
   "src/games/geometrywars/scenes/GeometryWarsGameScene.ts": {
     "anyCount": 8,
     "unknownCount": 3,
@@ -895,9 +915,9 @@
     "total": 25
   },
   "src/games/shared/spawn/systems/SpawnDirectorSystem.ts": {
-    "anyCount": 9,
+    "anyCount": 10,
     "unknownCount": 0,
-    "total": 9
+    "total": 10
   },
   "src/games/shared/story/DialogueSystem.ts": {
     "anyCount": 14,

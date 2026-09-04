@@ -303,6 +303,7 @@ const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any)
 function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
   if (world.isUpdating) {
     const entity = world.reserveEntityId();
+    world.commands.createEntity(entity);
     world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
     return entity;
   }

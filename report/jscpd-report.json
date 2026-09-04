@@ -1852,11 +1852,11 @@
     },
     {
       "firstFile": {
-        "end": 320,
+        "end": 321,
         "endLoc": {
           "column": 6,
-          "line": 320,
-          "position": 11108
+          "line": 321,
+          "position": 11149
         },
         "name": "asteroids/EntityFactory.ts",
         "start": 300,
@@ -1867,15 +1867,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "};\n\n// TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/** @public */\nexport const createPowerUp = (config: {",
+      "fragment": "};\n\n// TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.createEntity(entity);\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/** @public */\nexport const createPowerUp = (config: {",
       "isNew": false,
-      "lines": 21,
+      "lines": 22,
       "secondFile": {
-        "end": 92,
+        "end": 93,
         "endLoc": {
           "column": 6,
-          "line": 92,
-          "position": 3023
+          "line": 93,
+          "position": 3064
         },
         "name": "flappybird/EntityFactory.ts",
         "start": 67,
@@ -1885,7 +1885,7 @@
           "position": 2283
         }
       },
-      "tokens": 120
+      "tokens": 129
     },
     {
       "firstFile": {
@@ -4183,11 +4183,11 @@
     },
     {
       "firstFile": {
-        "end": 92,
+        "end": 93,
         "endLoc": {
           "column": 15,
-          "line": 92,
-          "position": 3032
+          "line": 93,
+          "position": 3073
         },
         "name": "flappybird/EntityFactory.ts",
         "start": 67,
@@ -4198,15 +4198,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "import { BlueprintRegistry } from \"@tiny-aster/core\";\n\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/**\n * Crea la entidad del pájaro (jugador).\n *\n * @remarks\n * Incluye física de gravedad, manejo de entrada y un buffer de entrada especializado\n * para facilitar el timing del salto (jump timing).\n */\nexport function createBird(options: CreateBirdParams): Entity {",
+      "fragment": "import { BlueprintRegistry } from \"@tiny-aster/core\";\n\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.createEntity(entity);\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/**\n * Crea la entidad del pájaro (jugador).\n *\n * @remarks\n * Incluye física de gravedad, manejo de entrada y un buffer de entrada especializado\n * para facilitar el timing del salto (jump timing).\n */\nexport function createBird(options: CreateBirdParams): Entity {",
       "isNew": false,
-      "lines": 26,
+      "lines": 27,
       "secondFile": {
-        "end": 35,
+        "end": 36,
         "endLoc": {
           "column": 12,
-          "line": 35,
-          "position": 1370
+          "line": 36,
+          "position": 1411
         },
         "name": "pong/EntityFactory.ts",
         "start": 8,
@@ -4216,7 +4216,7 @@
           "position": 431
         }
       },
-      "tokens": 127
+      "tokens": 136
     },
     {
       "firstFile": {
@@ -5774,228 +5774,6 @@
     },
     {
       "firstFile": {
-        "end": 354,
-        "endLoc": {
-          "column": 29,
-          "line": 354,
-          "position": 15128
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 337,
-        "startLoc": {
-          "column": 28,
-          "line": 337,
-          "position": 14336
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {\n    const isUpdating = world.isUpdating;\n    const commands = world.getCommandBuffer();\n    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>(\"BlueprintRegistry\");\n\n    let entity: number;\n    if (isUpdating) {\n      entity = world.reserveEntityId();\n      commands.createEntity(entity);\n      const mockWorld = new Proxy(world, {\n        get(target, prop, receiver) {\n          if (prop === \"addComponent\") {\n            return (ent: number, comp: any) => commands.addComponent(ent, comp);\n          }\n          return Reflect.get(target, prop, receiver);\n        }\n      });\n      blueprintRegistry?.get(\"seeker\")?.spawn(mockWorld, entity, { x, y });",
-      "isNew": false,
-      "lines": 18,
-      "secondFile": {
-        "end": 380,
-        "endLoc": {
-          "column": 29,
-          "line": 380,
-          "position": 16321
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 363,
-        "startLoc": {
-          "column": 28,
-          "line": 363,
-          "position": 15529
-        }
-      },
-      "tokens": 150
-    },
-    {
-      "firstFile": {
-        "end": 354,
-        "endLoc": {
-          "column": 29,
-          "line": 354,
-          "position": 15128
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 337,
-        "startLoc": {
-          "column": 28,
-          "line": 337,
-          "position": 14336
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {\n    const isUpdating = world.isUpdating;\n    const commands = world.getCommandBuffer();\n    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>(\"BlueprintRegistry\");\n\n    let entity: number;\n    if (isUpdating) {\n      entity = world.reserveEntityId();\n      commands.createEntity(entity);\n      const mockWorld = new Proxy(world, {\n        get(target, prop, receiver) {\n          if (prop === \"addComponent\") {\n            return (ent: number, comp: any) => commands.addComponent(ent, comp);\n          }\n          return Reflect.get(target, prop, receiver);\n        }\n      });\n      blueprintRegistry?.get(\"seeker\")?.spawn(mockWorld, entity, { x, y });",
-      "isNew": false,
-      "lines": 18,
-      "secondFile": {
-        "end": 405,
-        "endLoc": {
-          "column": 29,
-          "line": 405,
-          "position": 17344
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 388,
-        "startLoc": {
-          "column": 32,
-          "line": 388,
-          "position": 16552
-        }
-      },
-      "tokens": 150
-    },
-    {
-      "firstFile": {
-        "end": 354,
-        "endLoc": {
-          "column": 29,
-          "line": 354,
-          "position": 15128
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 337,
-        "startLoc": {
-          "column": 28,
-          "line": 337,
-          "position": 14336
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {\n    const isUpdating = world.isUpdating;\n    const commands = world.getCommandBuffer();\n    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>(\"BlueprintRegistry\");\n\n    let entity: number;\n    if (isUpdating) {\n      entity = world.reserveEntityId();\n      commands.createEntity(entity);\n      const mockWorld = new Proxy(world, {\n        get(target, prop, receiver) {\n          if (prop === \"addComponent\") {\n            return (ent: number, comp: any) => commands.addComponent(ent, comp);\n          }\n          return Reflect.get(target, prop, receiver);\n        }\n      });\n      blueprintRegistry?.get(\"seeker\")?.spawn(mockWorld, entity, { x, y });",
-      "isNew": false,
-      "lines": 18,
-      "secondFile": {
-        "end": 430,
-        "endLoc": {
-          "column": 29,
-          "line": 430,
-          "position": 18373
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 413,
-        "startLoc": {
-          "column": 28,
-          "line": 413,
-          "position": 17581
-        }
-      },
-      "tokens": 150
-    },
-    {
-      "firstFile": {
-        "end": 354,
-        "endLoc": {
-          "column": 29,
-          "line": 354,
-          "position": 15128
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 337,
-        "startLoc": {
-          "column": 118,
-          "line": 337,
-          "position": 14426
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {\n    const isUpdating = world.isUpdating;\n    const commands = world.getCommandBuffer();\n    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>(\"BlueprintRegistry\");\n\n    let entity: number;\n    if (isUpdating) {\n      entity = world.reserveEntityId();\n      commands.createEntity(entity);\n      const mockWorld = new Proxy(world, {\n        get(target, prop, receiver) {\n          if (prop === \"addComponent\") {\n            return (ent: number, comp: any) => commands.addComponent(ent, comp);\n          }\n          return Reflect.get(target, prop, receiver);\n        }\n      });\n      blueprintRegistry?.get(\"seeker\")?.spawn(mockWorld, entity, { x, y });",
-      "isNew": false,
-      "lines": 18,
-      "secondFile": {
-        "end": 455,
-        "endLoc": {
-          "column": 29,
-          "line": 455,
-          "position": 19434
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 438,
-        "startLoc": {
-          "column": 160,
-          "line": 438,
-          "position": 18732
-        }
-      },
-      "tokens": 133
-    },
-    {
-      "firstFile": {
-        "end": 354,
-        "endLoc": {
-          "column": 29,
-          "line": 354,
-          "position": 15128
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 337,
-        "startLoc": {
-          "column": 126,
-          "line": 337,
-          "position": 14434
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {\n    const isUpdating = world.isUpdating;\n    const commands = world.getCommandBuffer();\n    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>(\"BlueprintRegistry\");\n\n    let entity: number;\n    if (isUpdating) {\n      entity = world.reserveEntityId();\n      commands.createEntity(entity);\n      const mockWorld = new Proxy(world, {\n        get(target, prop, receiver) {\n          if (prop === \"addComponent\") {\n            return (ent: number, comp: any) => commands.addComponent(ent, comp);\n          }\n          return Reflect.get(target, prop, receiver);\n        }\n      });\n      blueprintRegistry?.get(\"seeker\")?.spawn(mockWorld, entity, { x, y });",
-      "isNew": false,
-      "lines": 18,
-      "secondFile": {
-        "end": 481,
-        "endLoc": {
-          "column": 29,
-          "line": 481,
-          "position": 20648
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 464,
-        "startLoc": {
-          "column": 111,
-          "line": 464,
-          "position": 19954
-        }
-      },
-      "tokens": 131
-    },
-    {
-      "firstFile": {
-        "end": 481,
-        "endLoc": {
-          "column": 29,
-          "line": 481,
-          "position": 20648
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 464,
-        "startLoc": {
-          "column": 35,
-          "line": 464,
-          "position": 19878
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public static createSpawnDirector(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {\n    const isUpdating = world.isUpdating;\n    const commands = world.getCommandBuffer();\n    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>(\"BlueprintRegistry\");\n\n    let entity: number;\n    if (isUpdating) {\n      entity = world.reserveEntityId();\n      commands.createEntity(entity);\n      const mockWorld = new Proxy(world, {\n        get(target, prop, receiver) {\n          if (prop === \"addComponent\") {\n            return (ent: number, comp: any) => commands.addComponent(ent, comp);\n          }\n          return Reflect.get(target, prop, receiver);\n        }\n      });\n      blueprintRegistry?.get(\"spawn_director\")?.spawn(mockWorld, entity, {});",
-      "isNew": false,
-      "lines": 18,
-      "secondFile": {
-        "end": 507,
-        "endLoc": {
-          "column": 29,
-          "line": 507,
-          "position": 21826
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 490,
-        "startLoc": {
-          "column": 31,
-          "line": 490,
-          "position": 21056
-        }
-      },
-      "tokens": 142
-    },
-    {
-      "firstFile": {
         "end": 41,
         "endLoc": {
           "column": 33,
@@ -7217,11 +6995,11 @@
     },
     {
       "firstFile": {
-        "end": 35,
+        "end": 36,
         "endLoc": {
           "column": 12,
-          "line": 35,
-          "position": 1370
+          "line": 36,
+          "position": 1411
         },
         "name": "pong/EntityFactory.ts",
         "start": 5,
@@ -7232,15 +7010,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "import { CollisionLayers } from \"../shared/types/CollisionLayers\";\n\n// TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: c53d5ed5\nimport { BlueprintRegistry } from \"@tiny-aster/core\";\n\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/**\n * Factoría para la creación de entidades de Pong.\n *\n * @responsibility Instanciar la bola, las paletas y el estado global con los componentes correctos.\n *\n * @remarks\n * Encapsula la configuración de dimensiones, velocidades iniciales y máscaras de colisión\n * necesarias para el comportamiento de rebote característico de Pong.\n */\nexport const PongEntityFactory = {",
+      "fragment": "import { CollisionLayers } from \"../shared/types/CollisionLayers\";\n\n// TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: c53d5ed5\nimport { BlueprintRegistry } from \"@tiny-aster/core\";\n\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.createEntity(entity);\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/**\n * Factoría para la creación de entidades de Pong.\n *\n * @responsibility Instanciar la bola, las paletas y el estado global con los componentes correctos.\n *\n * @remarks\n * Encapsula la configuración de dimensiones, velocidades iniciales y máscaras de colisión\n * necesarias para el comportamiento de rebote característico de Pong.\n */\nexport const PongEntityFactory = {",
       "isNew": false,
-      "lines": 31,
+      "lines": 32,
       "secondFile": {
-        "end": 79,
+        "end": 80,
         "endLoc": {
           "column": 15,
-          "line": 79,
-          "position": 2892
+          "line": 80,
+          "position": 2933
         },
         "name": "space-invaders/EntityFactory.ts",
         "start": 54,
@@ -7250,7 +7028,7 @@
           "position": 2044
         }
       },
-      "tokens": 128
+      "tokens": 137
     },
     {
       "firstFile": {
@@ -9400,32 +9178,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-04T13:15:53.359Z",
+    "detectionDate": "2026-09-04T14:30:39.439Z",
     "formats": {
       "typescript": {
-        "clones": 254,
-        "duplicatedLines": 2975,
-        "duplicatedTokens": 21490,
-        "lines": 50934,
+        "clones": 248,
+        "duplicatedLines": 2876,
+        "duplicatedTokens": 20661,
+        "lines": 50763,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 5.8408921349197,
-        "percentageTokens": 7.920419867022453,
+        "percentage": 5.665543801587771,
+        "percentageTokens": 7.648029968757866,
         "sources": 318,
-        "tokens": 271324
+        "tokens": 270148
       }
     },
     "total": {
-      "clones": 254,
-      "duplicatedLines": 2975,
-      "duplicatedTokens": 21490,
-      "lines": 50934,
+      "clones": 248,
+      "duplicatedLines": 2876,
+      "duplicatedTokens": 20661,
+      "lines": 50763,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 5.8408921349197,
-      "percentageTokens": 7.920419867022453,
+      "percentage": 5.665543801587771,
+      "percentageTokens": 7.648029968757866,
       "sources": 318,
-      "tokens": 271324
+      "tokens": 270148
     }
   }
 }

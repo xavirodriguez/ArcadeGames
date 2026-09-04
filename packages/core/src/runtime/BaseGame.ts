@@ -18,6 +18,12 @@ import { IAssetProvider } from "../assets/AssetLoader";
 import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
 import { Theme } from "../theme/Theme";
 import { createDeferredEntity } from "../ecs/EntityHelpers";
+import {
+  enterGameplayFreeze,
+  exitGameplayFreeze,
+  isGameplayFrozen,
+  getGameplayFreezeRemaining
+} from "./GameplayFreezeMixin";
 
 /**
  * Enumeration of lifecycle execution states for a `BaseGame` instance.
@@ -583,16 +589,14 @@ export abstract class BaseGame<
    * @param duration - Optional freeze duration in seconds. If omitted, freeze persists until manually exited.
    */
   public enterGameplayFreeze(duration?: number): void {
-    this.world.setResource("GameplayFreeze", {
-      remaining: duration !== undefined ? duration : undefined
-    });
+    enterGameplayFreeze(this.world, duration);
   }
 
   /**
    * Exits soft pause / gameplay freeze state, deleting the `GameplayFreeze` world resource.
    */
   public exitGameplayFreeze(): void {
-    this.world.deleteResource("GameplayFreeze");
+    exitGameplayFreeze(this.world);
   }
 
   /**
@@ -601,7 +605,7 @@ export abstract class BaseGame<
    * @returns `true` if frozen, `false` otherwise.
    */
   public isGameplayFrozen(): boolean {
-    return this.world.getResource("GameplayFreeze") !== undefined;
+    return isGameplayFrozen(this.world);
   }
 
   /**
@@ -610,8 +614,7 @@ export abstract class BaseGame<
    * @returns Remaining freeze duration in seconds or `undefined`.
    */
   public getGameplayFreezeRemaining(): number | undefined {
-    const freeze = this.world.getResource<{ remaining?: number }>("GameplayFreeze");
-    return freeze ? freeze.remaining : undefined;
+    return getGameplayFreezeRemaining(this.world);
   }
 
   /**

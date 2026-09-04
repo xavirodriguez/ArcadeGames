@@ -4,18 +4,7 @@ import { colors } from "../../../theme/colors";
 // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-20. Considerar extraer a función compartida. Ref: 20bf4f89
 import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
 
-let Skia: any = null;
-try {
-  Skia = require("@shopify/react-native-skia").Skia;
-} catch {}
-
-let cachedPaint: any = null;
-function getPaint(): any {
-  if (!cachedPaint && Skia) {
-    cachedPaint = Skia.Paint();
-  }
-  return cachedPaint;
-}
+import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 // Memory-safe caching for zero-allocation player ship pathing
 const cachedPlayerPaths = new WeakMap<any, { chassis: any; cockpit: any; reflection: any }>();

@@ -224,6 +224,14 @@ export interface AssistRule {
 export type AsteroidsRoleKey = CommonRoleKey | "player-ship" | "player-bullet" | "asteroid" | "asteroid-large" | "asteroid-medium" | "asteroid-small";
 
 // @public
+export interface AudioAsset {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    path: string;
+}
+
+// @public
 export interface AuthoritativeServerState {
     vx: number;
     vy: number;
@@ -1422,6 +1430,9 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
 }
 
 // @public
+export function enterGameplayFreeze(world: World<any>, duration?: number): void;
+
+// @public
 export type Entity = number;
 
 // @public
@@ -1490,6 +1501,9 @@ export interface EvidenceDefinition {
 }
 
 // @public
+export function exitGameplayFreeze(world: World<any>): void;
+
+// @public
 export class ExponentialSmoothingModel<TRegistry extends MultiplayerRegistry = MultiplayerRegistry> implements IInterpolationModel<TRegistry> {
     constructor(smoothingFactor?: number);
     interpolate(world: World<TRegistry>, entity: number, targetState: {
@@ -1536,6 +1550,9 @@ export function finalizePolyManifold(manifold: CollisionManifold, minOverlap: nu
     x: number;
     y: number;
 }>): CollisionManifold;
+
+// @public
+export function findMatchingEntityInTriggersOrCollisions<TComponents extends Record<string, any>>(world: World<TComponents>, entity: Entity, predicate: (other: Entity) => boolean): Entity | null;
 
 // @public
 export type FlappyBirdRoleKey = CommonRoleKey | "bird" | "pipe" | "ground";
@@ -1708,6 +1725,9 @@ export function getForwardVector(rotation: number): {
     x: number;
     y: number;
 };
+
+// @public
+export function getGameplayFreezeRemaining(world: World<any>): number | undefined;
 
 // @public
 export function getHorizontalDirectionToPlayer(world: World<any>, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
@@ -2014,6 +2034,9 @@ export class IrisTransition implements ITransitionEffect {
 }
 
 // @public
+export function isGameplayFrozen(world: World<any>): boolean;
+
+// @public
 export interface IStateReplicator<TComponents extends ComponentRegistry = ComponentRegistry> {
     // (undocumented)
     getLocalId(serverId: string): number | undefined;
@@ -2152,6 +2175,9 @@ export class LinearPredictionModel<TRegistry extends MultiplayerRegistry = Multi
     queryComponents?: Extract<keyof TRegistry, string>[];
     simulate(world: World<TRegistry>, entity: number, _input: TInput, dt: number): void;
 }
+
+// @public
+export function loadAudioAssets(audio: IAudioPlayer, assets: AudioAsset[]): Promise<void>;
 
 // @public
 export interface LocalPredictionOptions<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = InputPayload> {
@@ -2872,6 +2898,74 @@ export class NullAudioPlayer implements IAudioPlayer {
     setSFXVolume(_v: number): void;
     // (undocumented)
     stopBGM(): void;
+}
+
+// @public
+export abstract class NullBaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, unknown>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> implements IGame<TState, TInput, TComponents, TEvents> {
+    // (undocumented)
+    destroy(): void;
+    // (undocumented)
+    enterGameplayFreeze(duration?: number): void;
+    // (undocumented)
+    protected _eventBus: EventBus<TEvents>;
+    // (undocumented)
+    exitGameplayFreeze(): void;
+    // (undocumented)
+    getEventBus(): EventBus<TEvents>;
+    // (undocumented)
+    getGameLoop(): GameLoop;
+    // (undocumented)
+    getGameplayFreezeRemaining(): number | undefined;
+    // (undocumented)
+    abstract getGameState(): TState;
+    // (undocumented)
+    getInputSystem(): IInputSystem<TInput>;
+    // (undocumented)
+    getSeed(): number;
+    // (undocumented)
+    getWorld(): World<TComponents, TEvents>;
+    // (undocumented)
+    hash(): string;
+    // (undocumented)
+    init(): Promise<void>;
+    // (undocumented)
+    initializeRenderer(): void;
+    // (undocumented)
+    protected _inputSystem: NullInputSystem<TInput>;
+    // (undocumented)
+    isGameOver(): boolean;
+    // (undocumented)
+    isGameplayFrozen(): boolean;
+    // (undocumented)
+    isPausedState(): boolean;
+    // (undocumented)
+    protected _loop: GameLoop;
+    // (undocumented)
+    pause(): void;
+    // (undocumented)
+    restart(): Promise<void>;
+    // (undocumented)
+    restore(_snapshot: WorldSnapshot): void;
+    // (undocumented)
+    resume(): void;
+    // (undocumented)
+    setInputState(_input: Partial<TInput>): void;
+    // (undocumented)
+    snapshot(): WorldSnapshot;
+    // (undocumented)
+    start(): void;
+    // (undocumented)
+    get state(): TState;
+    // (undocumented)
+    step(_input: CompactInputFrame): void;
+    // (undocumented)
+    stop(): void;
+    // (undocumented)
+    subscribe(_cb: (state: TState) => void): () => void;
+    // (undocumented)
+    get tick(): number;
+    // (undocumented)
+    protected _world: World<TComponents, TEvents, BlueprintRegistryMap<TComponents, EventRegistry>>;
 }
 
 // @public
@@ -4525,6 +4619,11 @@ export class TilemapRenderSystem extends System<CoreComponentRegistry> {
 }
 
 // @public
+export function timedTransition(durationKey: string, nextState: string): {
+    onUpdate: (world: World<any>, entity: Entity, data: Record<string, unknown>, elapsed: number) => string | undefined;
+};
+
+// @public
 export class TimeScale {
     constructor(scale?: number, remainingDuration?: number);
     pause(): void;
@@ -4826,6 +4925,11 @@ export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;
 
 // @public
 export function zeroOutVelocityX(world: World<any>, entity: Entity): void;
+
+// @public
+export function zeroVelocityXOnEnter(): {
+    onEnter: (world: World<any>, entity: Entity, data: Record<string, unknown>) => void;
+};
 
 // (No @packageDocumentation comment for this package)
 

@@ -4,7 +4,9 @@ import { StateMachineDefinition } from "./StateMachineSystem";
 import {
   checkPlayerDetectionToAlert,
   zeroOutVelocityX,
-  getHorizontalDirectionToPlayer
+  getHorizontalDirectionToPlayer,
+  zeroVelocityXOnEnter,
+  timedTransition
 } from "./EnemyBehaviorHelpers";
 
 /**
@@ -56,26 +58,12 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
         }
       },
       Alert: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.alertDuration as number) ?? 0.5;
-          if (elapsed >= dur) {
-            return "Windup";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("alertDuration", "Windup")
       },
       Windup: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.windupDuration as number) ?? 0.5;
-          if (elapsed >= dur) {
-            return "Attack";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("windupDuration", "Attack")
       },
       Attack: {
         onEnter(world, entity, data) {
@@ -98,15 +86,8 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
         }
       },
       Recovery: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.recoveryDuration as number) ?? 0.5;
-          if (elapsed >= dur) {
-            return "Patrol";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("recoveryDuration", "Patrol")
       }
     }
   };
@@ -130,26 +111,12 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
         }
       },
       Alert: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.alertDuration as number) ?? 0.5;
-          if (elapsed >= dur) {
-            return "Windup";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("alertDuration", "Windup")
       },
       Windup: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.windupDuration as number) ?? 0.5;
-          if (elapsed >= dur) {
-            return "Attack";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("windupDuration", "Attack")
       },
       Attack: {
         onEnter(world, entity, data) {
@@ -177,15 +144,8 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
         }
       },
       Recovery: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.recoveryDuration as number) ?? 0.5;
-          if (elapsed >= dur) {
-            return "Idle";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("recoveryDuration", "Idle")
       }
     }
   };
@@ -203,26 +163,12 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
         }
       },
       Alert: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.alertDuration as number) ?? 0.4;
-          if (elapsed >= dur) {
-            return "Windup";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("alertDuration", "Windup")
       },
       Windup: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.windupDuration as number) ?? 0.6;
-          if (elapsed >= dur) {
-            return "Attack";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("windupDuration", "Attack")
       },
       Attack: {
         onEnter(world, entity, data) {
@@ -249,15 +195,8 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
         }
       },
       Recovery: {
-        onEnter(world, entity, _data) {
-          zeroOutVelocityX(world, entity);
-        },
-        onUpdate(_world, _entity, data, elapsed) {
-          const dur = (data.recoveryDuration as number) ?? 0.8;
-          if (elapsed >= dur) {
-            return "Idle";
-          }
-        }
+        ...zeroVelocityXOnEnter(),
+        ...timedTransition("recoveryDuration", "Idle")
       }
     }
   };

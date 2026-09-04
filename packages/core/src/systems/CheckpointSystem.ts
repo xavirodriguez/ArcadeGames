@@ -2,6 +2,7 @@ import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { CoreComponentRegistry, RunState } from "../ecs/CoreComponents";
 import { Entity } from "../ecs/Entity";
+import { findMatchingEntityInTriggersOrCollisions } from "../physics/collision/collisionHelpers";
 
 /**
  * System that manages activating checkpoints as players overlap RespawnPoints.
@@ -19,6 +20,7 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
 
     // Fast player entity lookup: single player fast-path or direct index check
     const singlePlayer = players.length === 1 ? players[0] : null;
+    const isPlayer = (other: Entity) => singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1;
 
     for (let i = 0; i < checkpoints.length; i++) {
       const checkpointEntity = checkpoints[i];
@@ -30,62 +32,17 @@ export class CheckpointSystem extends System<CoreComponentRegistry> {
         continue;
       }
 
-      let triggeredBy: Entity | null = null;
-
-      // Safe for determinism/rollback. Single player fast-path or indexed matching avoids repeated linear scans (players.includes), achieving O(1) entity overlap lookup per trigger.
-      // 1. Check if checkpoint has CollisionEvents
-      if (world.hasComponent(checkpointEntity, "CollisionEvents")) {
-        // TODO(refactor): código duplicado detectado (bloque) con platformer/systems/PlatformerGoalSystem.ts:28-53. Considerar extraer a función compartida. Ref: fcf9a970
-        const events = world.getComponent(checkpointEntity, "CollisionEvents")!;
-        if (events.activeTriggers) {
-          for (let j = 0; j < events.activeTriggers.length; j++) {
-            const other = events.activeTriggers[j];
-            if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
-              triggeredBy = other;
-              break;
-            }
-          }
-        }
-        if (!triggeredBy && events.collisions) {
-          for (let j = 0; j < events.collisions.length; j++) {
-            const other = events.collisions[j].otherEntity;
-            if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
-              triggeredBy = other;
-              break;
-            }
-          }
-        }
-      }
+      // 1. Check if checkpoint has CollisionEvents pointing to a player
+      let triggeredBy = findMatchingEntityInTriggersOrCollisions(world, checkpointEntity, isPlayer);
 
       // 2. Check if players have CollisionEvents pointing to this checkpoint
-      // TODO(refactor): código duplicado detectado (bloque) con systems/CollectibleSystem.ts:62-70. Considerar extraer a función compartida. Ref: 22e0c446
       if (!triggeredBy) {
         for (let p = 0; p < players.length; p++) {
           const playerEntity = players[p];
-          if (world.hasComponent(playerEntity, "CollisionEvents")) {
-            const events = world.getComponent(playerEntity, "CollisionEvents")!;
-            let found = false;
-            if (events.activeTriggers) {
-              for (let j = 0; j < events.activeTriggers.length; j++) {
-                // TODO(refactor): código duplicado detectado (bloque) con systems/CollectibleSystem.ts:71-79. Considerar extraer a función compartida. Ref: b8d65f39
-                if (events.activeTriggers[j] === checkpointEntity) {
-                  found = true;
-                  break;
-                }
-              }
-            }
-            if (!found && events.collisions) {
-              for (let j = 0; j < events.collisions.length; j++) {
-                if (events.collisions[j].otherEntity === checkpointEntity) {
-                  found = true;
-                  break;
-                }
-              }
-            }
-            if (found) {
-              triggeredBy = playerEntity;
-              break;
-            }
+          const found = findMatchingEntityInTriggersOrCollisions(world, playerEntity, (other) => other === checkpointEntity);
+          if (found !== null) {
+            triggeredBy = playerEntity;
+            break;
           }
         }
       }

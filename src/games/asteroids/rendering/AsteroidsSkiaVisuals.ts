@@ -4,18 +4,7 @@ import { colors } from "../../../theme/colors";
 // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:2-15. Considerar extraer a función compartida. Ref: ab23c6ab
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 
-let Skia: any = null;
-try {
-  Skia = require("@shopify/react-native-skia").Skia;
-} catch {}
-
-let cachedPaint: any = null;
-function getPaint(): any {
-  if (!cachedPaint && Skia) {
-    cachedPaint = Skia.Paint();
-  }
-  return cachedPaint;
-}
+import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 // Memory-safe WeakMaps keyed by render components for zero-allocation Skia Path caching
 const cachedShipPaths = new WeakMap<any, { ship: any; cockpit: any }>();

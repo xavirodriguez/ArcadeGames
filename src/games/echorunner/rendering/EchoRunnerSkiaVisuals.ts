@@ -2,18 +2,7 @@ import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/co
 // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-17. Considerar extraer a función compartida. Ref: ab23c6ab
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 
-let Skia: any = null;
-try {
-  Skia = require("@shopify/react-native-skia").Skia;
-} catch {}
-
-let cachedPaint: any = null;
-function getPaint(): any {
-  if (!cachedPaint && Skia) {
-    cachedPaint = Skia.Paint();
-  }
-  return cachedPaint;
-}
+import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {

@@ -2,6 +2,7 @@ import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
 import { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
 import { SoADeserializer } from "./SoADeserializer";
+import { restoreWorldMetadata, rebuildQueries, InternalWorldAccess } from "./SnapshotInternalAccess";
 
 /**
  * Structure of Arrays (SoA) restoration utility.
@@ -24,32 +25,31 @@ export class SnapshotRestoreSoA {
    * @param type - Component type key string.
    * @param soaData - SoA component block data.
    */
-  // TODO(refactor): código duplicado detectado (método) con snapshots/SnapshotRestore.ts:66-75. Considerar extraer a función compartida. Ref: b99eff15
   public static restoreSoAComponent<TComponents extends ComponentRegistry>(
     world: World<TComponents>,
     type: string,
     soaData: SoAComponentBlock
   ): void {
+    const internal = world as unknown as InternalWorldAccess<TComponents>;
     const storage = new Map<number, any>();
     const index = new Set<number>();
     const versions = new Map<number, number>();
 
-    world["componentMaps"].set(type, storage);
-    world["componentIndex"].set(type, index);
-    world["componentVersions"].set(type, versions);
+    internal.componentMaps.set(type, storage);
+    internal.componentIndex.set(type, index);
+    internal.componentVersions.set(type, versions);
 
     const entities = soaData.entities;
 
     SoADeserializer.hydrateEntities(entities, soaData, type, (entityId, component) => {
-      // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestore.ts:83-93. Considerar extraer a función compartida. Ref: 8e9d4aa2
       storage.set(entityId, component);
       index.add(entityId);
-      versions.set(entityId, world["_stateVersion"]);
+      versions.set(entityId, internal._stateVersion);
 
-      let componentSet = world["entityComponentSets"].get(entityId);
+      let componentSet = internal.entityComponentSets.get(entityId);
       if (!componentSet) {
         componentSet = new Set();
-        world["entityComponentSets"].set(entityId, componentSet);
+        internal.entityComponentSets.set(entityId, componentSet);
       }
       componentSet.add(type);
     });
@@ -75,32 +75,10 @@ export class SnapshotRestoreSoA {
     state: WorldSnapshot
   ): void {
     if (!state.isSoA) {
-      // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestore.ts:40-64. Considerar extraer a función compartida. Ref: 8f7a2df1
       throw new Error("[SnapshotRestoreSoA] State snapshot is not formatted as SoA.");
     }
 
-    world["activeEntities"] = new Set(state.entities);
-    world["nextEntityId"] = state.nextEntityId;
-    world["freeEntities"] = [...state.freeEntities];
-    if (state.generations) {
-      (world as any).generations = Array.from(state.generations);
-    } else {
-      (world as any).generations = [];
-    }
-    world["_structureVersion"] = state.structureVersion;
-    world["_stateVersion"] = state.stateVersion;
-    world["_tick"] = state.tick;
-
-    if (state.rngState !== undefined) {
-      world.gameplayRandom.setSeed(state.rngState);
-    } else if (state.seed !== undefined) {
-      world.gameplayRandom.setSeed(state.seed);
-    }
-
-    world["entityComponentSets"].clear();
-    world["componentMaps"].clear();
-    world["componentIndex"].clear();
-    world["componentVersions"].clear();
+    restoreWorldMetadata(world, state);
 
     const soaComponentData = state.soaComponentData;
 
@@ -108,8 +86,6 @@ export class SnapshotRestoreSoA {
       this.restoreSoAComponent(world, type, soaComponentData[type]);
     }
 
-    world["queries"].forEach(query => {
-      query.rebuild(world["activeEntities"], world["entityComponentSets"]);
-    });
+    rebuildQueries(world);
   }
 }

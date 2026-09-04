@@ -2,6 +2,7 @@ import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
 import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
+import { findMatchingEntityInTriggersOrCollisions } from "../collision/collisionHelpers";
 
 /**
  * System managing characters landing on and being dynamically carried by moving platforms.
@@ -102,36 +103,17 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
 
         let landedPlatform: Entity | undefined = undefined;
 
-        // Safe for determinism/rollback. Sequential indexed loops replace array spreading/mapping [...activeTriggers, ...colPairs], eliminating per-character per-tick heap allocations while evaluating identical contact entities.
         // Try detecting landing through CollisionEvents (triggers or physical contacts) if available
-        const collisionEvents = world.getComponent(charEntity, "CollisionEvents" as any) as any;
-        if (collisionEvents) {
-          if (collisionEvents.activeTriggers) {
-            for (let j = 0; j < collisionEvents.activeTriggers.length; j++) {
-              // TODO(refactor): código duplicado detectado (bloque) con physics/systems/PlatformCarrySystem.ts:123-132. Considerar extraer a función compartida. Ref: 659ec6d9
-              const contactEntity = collisionEvents.activeTriggers[j];
-              if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
-                const platVel = world.getComponent(contactEntity, "Velocity")!;
-                if (charVel.vy >= platVel.vy) {
-                  landedPlatform = contactEntity;
-                  break;
-                }
-              }
-            }
+        const matched = findMatchingEntityInTriggersOrCollisions(world, charEntity, (contactEntity) => {
+          if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
+            const platVel = world.getComponent(contactEntity, "Velocity")!;
+            return charVel.vy >= platVel.vy;
           }
-          if (landedPlatform === undefined && collisionEvents.collisions) {
-            for (let j = 0; j < collisionEvents.collisions.length; j++) {
-              // TODO(refactor): código duplicado detectado (bloque) con physics/systems/PlatformCarrySystem.ts:112-121. Considerar extraer a función compartida. Ref: 1c1310b3
-              const contactEntity = collisionEvents.collisions[j].otherEntity;
-              if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
-                const platVel = world.getComponent(contactEntity, "Velocity")!;
-                if (charVel.vy >= platVel.vy) {
-                  landedPlatform = contactEntity;
-                  break;
-                }
-              }
-            }
-          }
+          return false;
+        });
+
+        if (matched !== null) {
+          landedPlatform = matched;
         }
 
         // If CollisionEvents did not yield a result, fall back to our ultra-robust manual AABB containment math

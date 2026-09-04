@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
@@ -309,22 +309,13 @@ export class FlappyBirdGame
   }
 
   private async onPreloadAssets(): Promise<void> {
-    const audio = this.audio;
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:322-335. Considerar extraer a función compartida. Ref: ed520f42
     const assets = [
       { id: "flap", path: "/audio/flap.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },
       { id: "score", path: "/audio/score.mp3" },
       { id: "game_over", path: "/audio/game_over.mp3" },
     ];
-    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:79-88. Considerar extraer a función compartida. Ref: 379c1d5e
-    for (const asset of assets) {
-      try {
-        await audio.loadSFX(asset.id, asset.path);
-      } catch (e) {
-        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
-      }
-    }
+    await loadAudioAssets(this.audio, assets);
   }
 
   public setMultiplayerMode(active: boolean) {
@@ -527,61 +518,16 @@ export class FlappyBirdGame
   }
 }
 
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/AsteroidsGame.ts:521-538. Considerar extraer a función compartida. Ref: 6d05e6b9
-export class NullFlappyBirdGame implements IFlappyBirdGame {
-  public get tick() { return 0; }
-  public get state() { return this.getGameState(); }
-  public step(input: any) {}
-  public snapshot() {
-    return {
-      tick: 0,
-      entities: [],
-      componentData: {},
-      stateVersion: 0,
-      structureVersion: 0,
-      seed: 0,
-      nextEntityId: 0,
-      freeEntities: []
-    } as any;
-  }
-  public restore(snapshot: any) {}
-  public hash() { return "00000000"; }
-
+export class NullFlappyBirdGame extends NullBaseGame<FlappyBirdState, FlappyBirdInput, FlappyBirdComponentRegistry> implements IFlappyBirdGame {
   public isMultiplayer = false;
   public gameId = "flappybird";
-  private _world = new World<FlappyBirdComponentRegistry>();
-  private _loop = new GameLoop();
-  public async init() {}
-  public start() {} public stop() {} public pause() {} public resume() {}
-  public async restart() {} public destroy() {}
-  // TODO(refactor): código duplicado detectado (método) con space-invaders/SpaceInvadersGame.ts:923-928. Considerar extraer a función compartida. Ref: 15e23d78
-  public getWorld() { return this._world; }
-  public getGameLoop() { return this._loop; }
-  public getEventBus() { return new EventBus(); }
-  public isPausedState() { return false; }
-  public isGameOver() { return false; }
-  public getGameState() { return INITIAL_FLAPPY_STATE; }
-  public getSeed() { return 0; }
-  public setInputState(input: Partial<FlappyBirdInput>) {}
-  public setInput(input: Partial<FlappyBirdInput>) {}
-  public subscribe(cb: (state: FlappyBirdState) => void) { return () => {}; }
-  public initializeRenderer() {}
-  // TODO(refactor): código duplicado detectado (método) con asteroids/AsteroidsGame.ts:552-568. Considerar extraer a función compartida. Ref: dc6bca3d
-  public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
-  public enterGameplayFreeze(duration?: number): void {
-    this._world.setResource("GameplayFreeze", {
-      remaining: duration !== undefined ? duration : undefined
-    });
+
+  public override getGameState(): FlappyBirdState {
+    return INITIAL_FLAPPY_STATE;
   }
-  public exitGameplayFreeze(): void {
-    this._world.deleteResource("GameplayFreeze");
-  }
-  public isGameplayFrozen(): boolean {
-    return this._world.getResource("GameplayFreeze") !== undefined;
-  }
-  public getGameplayFreezeRemaining(): number | undefined {
-    const freeze = this._world.getResource<{ remaining?: number }>("GameplayFreeze");
-    return freeze ? freeze.remaining : undefined;
+
+  public setInput(input: Partial<FlappyBirdInput>): void {
+    this.setInputState(input);
   }
 }
 

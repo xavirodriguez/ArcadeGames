@@ -21,13 +21,7 @@ import {
   drawSkiaAsteroidsBullet as skiaDrawAsteroidsBullet
 } from "./AsteroidsSkiaVisuals";
 
-// Dynamically import Skia safely to support Node-based Jest tests without throwing
-let Skia: any = null;
-try {
-  Skia = require("@shopify/react-native-skia").Skia;
-} catch {
-  // Silent fallback in test environments
-}
+import { Skia } from "../../shared/rendering/SkiaContext";
 
 
 

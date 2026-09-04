@@ -2,6 +2,7 @@ import { ShapeDrawer, EffectDrawer, TransformComponent, World, Entity, RenderCom
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
+import { getDrawable } from "../../shared/rendering/renderingUtils";
 
 // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:123-149. Considerar extraer a función compartida. Ref: a6905ddf
 export function spawnVisualParticle(
@@ -87,19 +88,16 @@ function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry
  */
 // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongCanvasVisuals.ts:15-23. Considerar extraer a función compartida. Ref: 0f5b5e6b
 export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
-  // TODO(refactor): código duplicado detectado (método) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:240-260. Considerar extraer a función compartida. Ref: 05c62a03
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:206-216. Considerar extraer a función compartida. Ref: b246837f
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const drawable = getDrawable(world, entity, 16);
+    if (!drawable) return;
+    const { render, size } = drawable;
 
     const transform = world.getComponent(entity, "Transform") as TransformComponent;
     if (!transform) return;
 
     const player = world.getComponent(entity, "Player");
     if (!player) return;
-
-    const size = render.size ?? 16;
     const color = render.color ?? colors.cyan;
     // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:218-229. Considerar extraer a función compartida. Ref: 8ad13b3a
     const x = transform.worldX ?? transform.x;
@@ -201,10 +199,9 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
  */
 export const drawParticle: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-
-    const size = render.size ?? 3;
+    const drawable = getDrawable(world, entity, 3);
+    if (!drawable) return;
+    const { render, size } = drawable;
     const color = render.color ?? colors.white;
 
     ctx.save();
@@ -223,10 +220,9 @@ export const drawParticle: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCom
 // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:247-253. Considerar extraer a función compartida. Ref: 4309fb19
 export const drawChaser: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-
-    const size = render.size ?? 14;
+    const drawable = getDrawable(world, entity, 14);
+    if (!drawable) return;
+    const { render, size } = drawable;
     const color = render.color ?? colors.pink;
 
     ctx.save();
@@ -254,10 +250,9 @@ export const drawChaser: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
 // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:223-229. Considerar extraer a función compartida. Ref: 1e0fb40f
 export const drawEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-
-    const size = render.size ?? 14;
+    const drawable = getDrawable(world, entity, 14);
+    if (!drawable) return;
+    const { render, size } = drawable;
     const color = render.color ?? "#ffaa00";
 
     ctx.save();
@@ -283,10 +278,9 @@ export const drawEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
  */
 export const drawGrunt: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-
-    const size = render.size ?? 10;
+    const drawable = getDrawable(world, entity, 10);
+    if (!drawable) return;
+    const { render, size } = drawable;
     // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:395-405. Considerar extraer a función compartida. Ref: cd9567aa
     const color = render.color ?? colors.cyan;
 
@@ -313,10 +307,9 @@ export const drawGrunt: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompon
  */
 export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-
-    const size = render.size ?? 4;
+    const drawable = getDrawable(world, entity, 4);
+    if (!drawable) return;
+    const { render, size } = drawable;
     const color = render.color ?? colors.gold;
 
     ctx.save();
@@ -342,11 +335,9 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
 // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:363-369. Considerar extraer a función compartida. Ref: fc8f753a
 export const drawEnemySeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-
-    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:400-410. Considerar extraer a función compartida. Ref: 6cb74890
-    const size = render.size ?? 12;
+    const drawable = getDrawable(world, entity, 12);
+    if (!drawable) return;
+    const { render, size } = drawable;
     const color = render.color ?? colors.pink;
 
     ctx.save();
@@ -373,10 +364,9 @@ export const drawEnemySeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWars
  */
 export const drawEnemyEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-
-    const size = render.size ?? 12;
+    const drawable = getDrawable(world, entity, 12);
+    if (!drawable) return;
+    const { render, size } = drawable;
     const color = render.color ?? colors.green;
 
     ctx.save();
@@ -399,11 +389,9 @@ export const drawEnemyEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWars
  */
 export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-
-    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:349-359. Considerar extraer a función compartida. Ref: 3fa54020
-    const size = render.size ?? 8;
+    const drawable = getDrawable(world, entity, 8);
+    if (!drawable) return;
+    const { render, size } = drawable;
     // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:289-299. Considerar extraer a función compartida. Ref: c15c9151
     const color = render.color ?? colors.pink;
 

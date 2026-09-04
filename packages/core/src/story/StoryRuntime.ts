@@ -1,5 +1,7 @@
-import { World } from "../ecs/World";
-import { EventBus } from "../events/EventBus";
+import { World, BlueprintRegistryMap } from "../ecs/World";
+import type { ComponentRegistry } from "../ecs/Component";
+import type { CoreComponentRegistry } from "../ecs/CoreComponents";
+import { EventBus, type EventRegistry } from "../events/EventBus";
 import {
   StoryGraph,
   StoryNode,
@@ -71,7 +73,7 @@ import { NarrativeTimelineEngine } from "./NarrativeTimelineEngine";
 export class StoryRuntime {
   private graph: StoryGraph | null = null;
   private state: StoryState;
-  private world?: World;
+  private world?: World<ComponentRegistry, EventRegistry, BlueprintRegistryMap<ComponentRegistry>>;
   private eventBus?: EventBus;
   private relationshipEngine?: RelationshipEngine;
   private deductionEngine?: DeductionEngine;
@@ -347,8 +349,10 @@ export class StoryRuntime {
    *
    * @param world - The ECS world hosting narrative event listeners and seed-based RNG.
    */
-  public bindWorld(world: World): void {
-    this.world = world;
+  public bindWorld<TComponents extends ComponentRegistry = CoreComponentRegistry>(
+    world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>
+  ): void {
+    this.world = world as World<ComponentRegistry, EventRegistry, BlueprintRegistryMap<ComponentRegistry>>;
     const bus = world.getResource<EventBus>("EventBus") || world.getEventBus();
     if (bus) {
       this.bindEventBus(bus);

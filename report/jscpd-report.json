@@ -298,18 +298,18 @@
     },
     {
       "firstFile": {
-        "end": 259,
+        "end": 258,
         "endLoc": {
           "column": 77,
-          "line": 259,
-          "position": 9166
+          "line": 258,
+          "position": 9298
         },
         "name": "scenes/SceneManager.ts",
-        "start": 244,
+        "start": 243,
         "startLoc": {
           "column": 6,
-          "line": 244,
-          "position": 8580
+          "line": 243,
+          "position": 8712
         }
       },
       "format": "typescript",
@@ -317,36 +317,36 @@
       "isNew": false,
       "lines": 16,
       "secondFile": {
-        "end": 335,
+        "end": 336,
         "endLoc": {
           "column": 75,
-          "line": 335,
-          "position": 11819
+          "line": 336,
+          "position": 12069
         },
         "name": "scenes/SceneManager.ts",
-        "start": 320,
+        "start": 321,
         "startLoc": {
           "column": 4,
-          "line": 320,
-          "position": 11259
+          "line": 321,
+          "position": 11509
         }
       },
       "tokens": 106
     },
     {
       "firstFile": {
-        "end": 304,
+        "end": 303,
         "endLoc": {
           "column": 25,
-          "line": 304,
-          "position": 10733
+          "line": 303,
+          "position": 10865
         },
         "name": "scenes/SceneManager.ts",
-        "start": 283,
+        "start": 282,
         "startLoc": {
           "column": 29,
-          "line": 283,
-          "position": 10041
+          "line": 282,
+          "position": 10173
         }
       },
       "format": "typescript",
@@ -354,36 +354,36 @@
       "isNew": false,
       "lines": 22,
       "secondFile": {
-        "end": 421,
+        "end": 422,
         "endLoc": {
           "column": 23,
-          "line": 421,
-          "position": 14910
+          "line": 422,
+          "position": 15166
         },
         "name": "scenes/SceneManager.ts",
-        "start": 401,
+        "start": 402,
         "startLoc": {
           "column": 18,
-          "line": 401,
-          "position": 14253
+          "line": 402,
+          "position": 14509
         }
       },
       "tokens": 117
     },
     {
       "firstFile": {
-        "end": 450,
+        "end": 451,
         "endLoc": {
           "column": 13,
-          "line": 450,
-          "position": 15855
+          "line": 451,
+          "position": 16111
         },
         "name": "scenes/SceneManager.ts",
-        "start": 437,
+        "start": 438,
         "startLoc": {
           "column": 26,
-          "line": 437,
-          "position": 15312
+          "line": 438,
+          "position": 15568
         }
       },
       "format": "typescript",
@@ -391,36 +391,36 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 563,
+        "end": 564,
         "endLoc": {
           "column": 13,
-          "line": 563,
-          "position": 19491
+          "line": 564,
+          "position": 19747
         },
         "name": "scenes/SceneManager.ts",
-        "start": 550,
+        "start": 551,
         "startLoc": {
           "column": 21,
-          "line": 550,
-          "position": 18948
+          "line": 551,
+          "position": 19204
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 504,
+        "end": 505,
         "endLoc": {
           "column": 26,
-          "line": 504,
-          "position": 17571
+          "line": 505,
+          "position": 17827
         },
         "name": "scenes/SceneManager.ts",
-        "start": 492,
+        "start": 493,
         "startLoc": {
           "column": 8,
-          "line": 492,
-          "position": 17207
+          "line": 493,
+          "position": 17463
         }
       },
       "format": "typescript",
@@ -428,18 +428,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 575,
+        "end": 576,
         "endLoc": {
           "column": 26,
-          "line": 575,
-          "position": 19850
+          "line": 576,
+          "position": 20106
         },
         "name": "scenes/SceneManager.ts",
-        "start": 563,
+        "start": 564,
         "startLoc": {
           "column": 8,
-          "line": 563,
-          "position": 19486
+          "line": 564,
+          "position": 19742
         }
       },
       "tokens": 75
@@ -9178,32 +9178,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-04T14:56:54.823Z",
+    "detectionDate": "2026-09-04T16:07:14.187Z",
     "formats": {
       "typescript": {
         "clones": 248,
         "duplicatedLines": 2876,
         "duplicatedTokens": 20661,
-        "lines": 50803,
+        "lines": 50834,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 5.661083006909041,
-        "percentageTokens": 7.638953077801893,
+        "percentage": 5.657630719597121,
+        "percentageTokens": 7.633082973433281,
         "sources": 318,
-        "tokens": 270469
+        "tokens": 270677
       }
     },
     "total": {
       "clones": 248,
       "duplicatedLines": 2876,
       "duplicatedTokens": 20661,
-      "lines": 50803,
+      "lines": 50834,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 5.661083006909041,
-      "percentageTokens": 7.638953077801893,
+      "percentage": 5.657630719597121,
+      "percentageTokens": 7.633082973433281,
       "sources": 318,
-      "tokens": 270469
+      "tokens": 270677
     }
   }
 }

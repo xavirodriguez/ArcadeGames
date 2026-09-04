@@ -44,11 +44,6 @@
     "unknownCount": 3,
     "total": 14
   },
-  "packages/core/src/network/LocalPredictionSystem.ts": {
-    "anyCount": 16,
-    "unknownCount": 0,
-    "total": 16
-  },
   "packages/core/src/network/NetworkController.ts": {
     "anyCount": 0,
     "unknownCount": 3,
@@ -153,11 +148,6 @@
     "anyCount": 1,
     "unknownCount": 0,
     "total": 1
-  },
-  "packages/core/src/scenes/SceneManager.ts": {
-    "anyCount": 5,
-    "unknownCount": 0,
-    "total": 5
   },
   "packages/core/src/scenes/transitions/PixelateTransition.ts": {
     "anyCount": 3,
@@ -441,8 +431,8 @@
   },
   "packages/renderer-canvas/src/CanvasRenderer.ts": {
     "anyCount": 0,
-    "unknownCount": 7,
-    "total": 7
+    "unknownCount": 6,
+    "total": 6
   },
   "packages/renderer-canvas/src/CanvasShapeDrawers.ts": {
     "anyCount": 0,

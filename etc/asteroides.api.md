@@ -2011,6 +2011,7 @@ export interface IStateReplicator<TComponents extends ComponentRegistry = Compon
 
 // @public
 export interface ITransitionEffect {
+    drawsBothScenes?: boolean;
     render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
 }
 
@@ -2146,8 +2147,8 @@ export interface LocalPredictionOptions<TRegistry extends MultiplayerRegistry = 
 }
 
 // @public
-export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = MultiplayerRegistry> extends System<TRegistry> {
-    constructor(networkManager: NetworkManager<TRegistry>, optionsOrSimulateFn?: LocalPredictionOptions<TRegistry> | ((world: World<TRegistry>, input: any, dt: number) => void), queryComponents?: Extract<keyof TRegistry, string>[], reconcileQueryComponents?: Extract<keyof TRegistry, string>[], reconcileFn?: (world: World<TRegistry>, entity: number, input: any, dt: number) => void);
+export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = Record<string, unknown>> extends System<TRegistry> {
+    constructor(networkManager: NetworkManager<TRegistry>, optionsOrSimulateFn?: LocalPredictionOptions<TRegistry, TInput> | ((world: World<TRegistry>, input: TInput, dt: number) => void), queryComponents?: Extract<keyof TRegistry, string>[], reconcileQueryComponents?: Extract<keyof TRegistry, string>[], reconcileFn?: (world: World<TRegistry>, entity: number, input: TInput, dt: number) => void);
     // (undocumented)
     dispose(): void;
     // (undocumented)
@@ -3624,7 +3625,7 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
 }
 
 // @public
-export interface SceneEventRegistry extends Record<string, any> {
+export interface SceneEventRegistry extends Record<string, unknown> {
     // (undocumented)
     "scene:error": {
         action: string;
@@ -4281,7 +4282,7 @@ export class StoryRuntime {
     bindEventBus(eventBus: EventBus): void;
     bindRelationshipEngine(engine: RelationshipEngine): void;
     bindTimelineEngine(engine: NarrativeTimelineEngine): void;
-    bindWorld(world: World): void;
+    bindWorld<TComponents extends ComponentRegistry = CoreComponentRegistry>(world: World<TComponents, EventRegistry, BlueprintRegistryMap<TComponents>>): void;
     discoverEvidence(evidenceId: string): void;
     emitStateChanged(): void;
     evaluateCondition(condition: StoryCondition): boolean;
@@ -4550,6 +4551,16 @@ export interface TransformComponent extends Component {
 }
 
 // @public
+export interface TransformLike {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
 export interface TransitionContext<TComponents extends ComponentRegistry = CoreComponentRegistry> {
     executeLifecycle: (token: number) => Promise<void>;
     options?: TransitionOptions;
@@ -4618,6 +4629,16 @@ export interface VelocityComponent extends Component {
     angularVelocity: number;
     type: "Velocity";
     vx: number;
+    vy: number;
+}
+
+// @public
+export interface VelocityLike {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    vx: number;
+    // (undocumented)
     vy: number;
 }
 

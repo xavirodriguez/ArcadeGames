@@ -69,11 +69,6 @@
     "unknownCount": 0,
     "total": 2
   },
-  "packages/core/src/network/types.ts": {
-    "anyCount": 6,
-    "unknownCount": 0,
-    "total": 6
-  },
   "packages/core/src/physics/collision/BroadPhase.ts": {
     "anyCount": 0,
     "unknownCount": 2,
@@ -140,9 +135,9 @@
     "total": 2
   },
   "packages/core/src/runtime/BaseGame.ts": {
-    "anyCount": 13,
-    "unknownCount": 0,
-    "total": 13
+    "anyCount": 0,
+    "unknownCount": 3,
+    "total": 3
   },
   "packages/core/src/runtime/GameSession.ts": {
     "anyCount": 7,

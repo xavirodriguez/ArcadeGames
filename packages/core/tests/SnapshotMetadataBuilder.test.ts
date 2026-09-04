@@ -16,7 +16,7 @@ describe("SnapshotMetadataBuilder", () => {
     const e1 = world.createEntity();
     const e2 = world.createEntity();
 
-    const internal = world as unknown as TestInternalWorldAccess;
+    const internal = (world as object as TestInternalWorldAccess);
     const metadataAoS = buildSnapshotMetadata(world, internal, internal.activeEntities);
 
     expect(metadataAoS.entities).toEqual([e1, e2].sort((a, b) => a - b));

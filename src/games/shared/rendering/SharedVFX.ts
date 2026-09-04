@@ -1,10 +1,33 @@
 import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils } from "@tiny-aster/core";
-// Dynamically import Skia safely to support Node-based Jest tests without throwing
-let Skia: any = null;
-try {
-  Skia = require("@shopify/react-native-skia").Skia;
-} catch {
-  // Silent fallback in test environments
+import { Skia } from "./SkiaContext";
+
+/**
+ * Returns screen dimensions and state for VFX drawers.
+ * @public
+ */
+export function getScreenAndVFXState(world: World<any>): {
+  width: number;
+  height: number;
+  state: VFXWorldState;
+} {
+  const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+  const state = getVFXState(world);
+  return {
+    width: screen.width,
+    height: screen.height,
+    state
+  };
+}
+
+/**
+ * Reads width and height from a Canvas Rendering Context safely.
+ * @public
+ */
+export function readCanvasSize(ctx: CanvasRenderingContext2D): { width: number; height: number } {
+  return {
+    width: ctx.canvas ? ctx.canvas.width : 800,
+    height: ctx.canvas ? ctx.canvas.height : 600
+  };
 }
 
 // -------------------------------------------------------------

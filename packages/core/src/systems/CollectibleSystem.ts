@@ -2,6 +2,7 @@ import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { CoreComponentRegistry, RunState } from "../ecs/CoreComponents";
 import { Entity } from "../ecs/Entity";
+import { findMatchingEntityInTriggersOrCollisions } from "../physics/collision/collisionHelpers";
 
 /**
  * System that manages collecting collectibles and managing persistent vs non-persistent states.
@@ -21,6 +22,7 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
 
     // Fast player entity lookup: single player fast-path or direct index check
     const singlePlayer = players.length === 1 ? players[0] : null;
+    const isPlayer = (other: Entity) => singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1;
 
     for (let i = 0; i < collectibles.length; i++) {
       const collEntity = collectibles[i];
@@ -33,61 +35,17 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
         continue;
       }
 
-      let collectedBy: Entity | null = null;
-
-      // Safe for determinism/rollback. Single player fast-path or indexed matching avoids repeated linear scans (players.includes), achieving O(1) entity overlap lookup per trigger.
-      // 1. Check if collectible has CollisionEvents
-      if (world.hasComponent(collEntity, "CollisionEvents")) {
-        const events = world.getComponent(collEntity, "CollisionEvents")!;
-        if (events.activeTriggers) {
-          for (let j = 0; j < events.activeTriggers.length; j++) {
-            const other = events.activeTriggers[j];
-            if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
-              collectedBy = other;
-              break;
-            }
-          }
-        }
-        if (!collectedBy && events.collisions) {
-          for (let j = 0; j < events.collisions.length; j++) {
-            const other = events.collisions[j].otherEntity;
-            if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
-              collectedBy = other;
-              break;
-            }
-          }
-        }
-      }
+      // 1. Check if collectible has CollisionEvents pointing to a player
+      let collectedBy = findMatchingEntityInTriggersOrCollisions(world, collEntity, isPlayer);
 
       // 2. Check if players have CollisionEvents pointing to this collectible
-      // TODO(refactor): código duplicado detectado (bloque) con systems/CheckpointSystem.ts:62-70. Considerar extraer a función compartida. Ref: 22e0c446
       if (!collectedBy) {
         for (let p = 0; p < players.length; p++) {
           const playerEntity = players[p];
-          if (world.hasComponent(playerEntity, "CollisionEvents")) {
-            const events = world.getComponent(playerEntity, "CollisionEvents")!;
-            let found = false;
-            if (events.activeTriggers) {
-              for (let j = 0; j < events.activeTriggers.length; j++) {
-                // TODO(refactor): código duplicado detectado (bloque) con systems/CheckpointSystem.ts:71-79. Considerar extraer a función compartida. Ref: 8f4acd46
-                if (events.activeTriggers[j] === collEntity) {
-                  found = true;
-                  break;
-                }
-              }
-            }
-            if (!found && events.collisions) {
-              for (let j = 0; j < events.collisions.length; j++) {
-                if (events.collisions[j].otherEntity === collEntity) {
-                  found = true;
-                  break;
-                }
-              }
-            }
-            if (found) {
-              collectedBy = playerEntity;
-              break;
-            }
+          const found = findMatchingEntityInTriggersOrCollisions(world, playerEntity, (other) => other === collEntity);
+          if (found !== null) {
+            collectedBy = playerEntity;
+            break;
           }
         }
       }

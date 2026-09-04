@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
@@ -516,21 +516,13 @@ export class SpaceInvadersGame
   }
 
   private async onPreloadAssets(): Promise<void> {
-    const audio = this.audio;
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:305-317. Considerar extraer a función compartida. Ref: ccfdff17
     const assets = [
       { id: "shoot", path: "/audio/shoot.mp3" },
       { id: "explosion", path: "/audio/explosion.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },
       { id: "game_over", path: "/audio/game_over.mp3" },
     ];
-    for (const asset of assets) {
-      try {
-        await audio.loadSFX(asset.id, asset.path);
-      } catch (e) {
-        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
-      }
-    }
+    await loadAudioAssets(this.audio, assets);
   }
 
   public initializeRenderer(renderer: Renderer<any, any>): void {
@@ -903,70 +895,23 @@ export class SpaceInvadersGame
   }
 }
 
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/AsteroidsGame.ts:521-540. Considerar extraer a función compartida. Ref: 6c40f071
-export class NullSpaceInvadersGame implements ISpaceInvadersGame {
-  public get tick() { return 0; }
-  public get state() { return this.getGameState(); }
-  public step(input: any) {}
-  public snapshot() {
-    return {
-      tick: 0,
-      entities: [],
-      componentData: {},
-      stateVersion: 0,
-      structureVersion: 0,
-      seed: 0,
-      nextEntityId: 0,
-      freeEntities: []
-    } as any;
-  }
-  public restore(snapshot: any) {}
-  public hash() { return "00000000"; }
-
+export class NullSpaceInvadersGame extends NullBaseGame<GameStateComponent, InputState, SpaceInvadersComponentRegistry> implements ISpaceInvadersGame {
   public isMultiplayer = false;
   public gameId = "space-invaders";
-  private _world = new World<SpaceInvadersComponentRegistry>();
-  private _loop = new GameLoop();
-  // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:547-552. Considerar extraer a función compartida. Ref: 15e23d78
-  public getWorld() { return this._world; }
-  public getGameLoop() { return this._loop; }
-  public getEventBus() { return new EventBus(); }
-  public isPausedState() { return false; }
-  public isGameOver() { return false; }
-  public getGameState() { return INITIAL_GAME_STATE; }
-  public getSeed() { return 0; }
-  public async init() {}
-  public start() {}
-  public pause() {}
-  public resume() {}
-  public destroy() {}
-  public async restart() {}
-  public subscribe(cb: (state: GameStateComponent) => void) { return () => {}; }
-  public setInputState(input: Partial<InputState>) {}
-  // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:556-573. Considerar extraer a función compartida. Ref: 76136ba1
-  public setInput(input: Partial<InputState>) {}
-  public initializeRenderer() {}
-  public getInputSystem(): InputSystem { return new UnifiedInputSystem(); }
-  public enterGameplayFreeze(duration?: number): void {
-    this._world.setResource("GameplayFreeze", {
-      remaining: duration !== undefined ? duration : undefined
-    });
+
+  public override getGameState(): GameStateComponent {
+    return INITIAL_GAME_STATE;
   }
-  public exitGameplayFreeze(): void {
-    this._world.deleteResource("GameplayFreeze");
+
+  public setInput(input: Partial<InputState>): void {
+    this.setInputState(input);
   }
-  public isGameplayFrozen(): boolean {
-    return this._world.getResource("GameplayFreeze") !== undefined;
-  }
-  public getGameplayFreezeRemaining(): number | undefined {
-    const freeze = this._world.getResource<{ remaining?: number }>("GameplayFreeze");
-    return freeze ? freeze.remaining : undefined;
-  }
-  public selectRunMutator(mutatorId: string) {}
-  public startRecordingReplay() {}
-  public stopRecordingReplay() { return null; }
-  public startPlaybackReplay(serialized: string) {}
-  public stopPlaybackReplay() {}
+
+  public selectRunMutator(_mutatorId: string): void {}
+  public startRecordingReplay(): void {}
+  public stopRecordingReplay(): string | null { return null; }
+  public startPlaybackReplay(_serialized: string): void {}
+  public stopPlaybackReplay(): void {}
 }
 
 export const SpaceInvadersDefinition = {

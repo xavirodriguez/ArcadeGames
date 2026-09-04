@@ -3,18 +3,7 @@ import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-17. Considerar extraer a función compartida. Ref: 1ea2a5b9
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 
-let Skia: any = null;
-try {
-  Skia = require("@shopify/react-native-skia").Skia;
-} catch {}
-
-let cachedPaint: any = null;
-function getPaint(): any {
-  if (!cachedPaint && Skia) {
-    cachedPaint = Skia.Paint();
-  }
-  return cachedPaint;
-}
+import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 // ============================================================================
 // ZERO-ALLOCATION FILE-LEVEL PRE-ALLOCATED VISUAL PARTICLE POOL

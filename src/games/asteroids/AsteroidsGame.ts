@@ -45,7 +45,8 @@ import {
   TTLComponent,
   BoundaryComponent,
   WebAudioPlayer,
-  WebAssetProvider
+  WebAssetProvider,
+  NullBaseGame
 } from "@tiny-aster/core";
 
 import { ComboSystem } from "@tiny-aster/core";
@@ -490,52 +491,9 @@ export class AsteroidsGame
 }
 
 /** @public */
-// TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:510-527. Considerar extraer a función compartida. Ref: 6d05e6b9
-export class NullAsteroidsGame implements IAsteroidsGame {
-  public get tick() { return 0; }
-  public get state() { return this.getGameState(); }
-  public step(input: any) {}
-  public snapshot() {
-    return {
-      tick: 0,
-      entities: [],
-      componentData: {},
-      stateVersion: 0,
-      structureVersion: 0,
-      seed: 0,
-      nextEntityId: 0,
-      freeEntities: []
-    } as any;
-  }
-  public restore(snapshot: any) {}
-  public hash() { return "00000000"; }
-
-  private _world = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
-  private _loop = new GameLoop();
-  public getWorld() { return this._world; }
-  public getGameLoop() { return this._loop; }
-  public isPausedState() { return false; }
-  public isGameOver() { return false; }
-  public getGameState() { return INITIAL_GAME_STATE; }
-  public getSeed() { return 0; }
-  public subscribe(_listener: unknown) { return () => {}; }
-  public initializeRenderer() {}
-  // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:558-574. Considerar extraer a función compartida. Ref: dc6bca3d
-  public setInputState(_input: Partial<InputState>) {}
-  public enterGameplayFreeze(duration?: number): void {
-    this._world.setResource("GameplayFreeze", {
-      remaining: duration !== undefined ? duration : undefined
-    });
-  }
-  public exitGameplayFreeze(): void {
-    this._world.deleteResource("GameplayFreeze");
-  }
-  public isGameplayFrozen(): boolean {
-    return this._world.getResource("GameplayFreeze") !== undefined;
-  }
-  public getGameplayFreezeRemaining(): number | undefined {
-    const freeze = this._world.getResource<{ remaining?: number }>("GameplayFreeze");
-    return freeze ? freeze.remaining : undefined;
+export class NullAsteroidsGame extends NullBaseGame<GameStateComponent, InputState, AsteroidsComponentRegistry, AsteroidsEventRegistry> implements IAsteroidsGame {
+  public override getGameState(): GameStateComponent {
+    return INITIAL_GAME_STATE;
   }
 }
 

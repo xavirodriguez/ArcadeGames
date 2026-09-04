@@ -1,6 +1,7 @@
 import { World } from "../ecs/World";
 import { System } from "../ecs/System";
 import { CoreComponentRegistry, TransformComponent } from "../ecs/CoreComponents";
+import { findMatchingEntityInTriggersOrCollisions } from "../physics/collision/collisionHelpers";
 
 /**
  * System that detects triggers between Hitboxes and Hurtboxes, filtering multiple hits.
@@ -15,31 +16,14 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
 
     for (let i = 0; i < len; i++) {
       const hitboxEntity = hitboxes[i];
-      const hitbox = world.getComponent(hitboxEntity, "Hitbox")!;
-      const events = world.getComponent(hitboxEntity, "CollisionEvents")!;
-
-      const activeTriggers = events.activeTriggers;
-      const collisions = events.collisions;
 
       let activeHurtboxCount = 0;
-
-      if (activeTriggers) {
-        const trigLen = activeTriggers.length;
-        for (let j = 0; j < trigLen; j++) {
-          if (this.processHitOverlap(world, hitboxEntity, activeTriggers[j])) {
-            activeHurtboxCount++;
-          }
+      findMatchingEntityInTriggersOrCollisions(world, hitboxEntity, (otherEntity) => {
+        if (this.processHitOverlap(world, hitboxEntity, otherEntity)) {
+          activeHurtboxCount++;
         }
-      }
-
-      if (collisions) {
-        const colLen = collisions.length;
-        for (let j = 0; j < colLen; j++) {
-          if (this.processHitOverlap(world, hitboxEntity, collisions[j].otherEntity)) {
-            activeHurtboxCount++;
-          }
-        }
-      }
+        return false;
+      });
 
       const currentHitEntities = world.getComponent(hitboxEntity, "Hitbox")?.hitEntities;
       if (activeHurtboxCount === 0 && currentHitEntities && currentHitEntities.length > 0) {

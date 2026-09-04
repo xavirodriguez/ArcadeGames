@@ -40,6 +40,46 @@ export function zeroOutVelocityX(world: World<any>, entity: Entity): void {
 }
 
 /**
+ * Pure state definition factory for zeroing horizontal velocity on enter.
+ * @public
+ */
+export function zeroVelocityXOnEnter(): {
+  onEnter: (world: World<any>, entity: Entity, data: Record<string, unknown>) => void;
+} {
+  return {
+    onEnter(world: World<any>, entity: Entity, _data: Record<string, unknown>): void {
+      zeroOutVelocityX(world, entity);
+    }
+  };
+}
+
+/**
+ * Pure state definition factory for transitioning to the next state after elapsed time.
+ * @public
+ */
+export function timedTransition(
+  durationKey: string,
+  nextState: string
+): {
+  onUpdate: (
+    world: World<any>,
+    entity: Entity,
+    data: Record<string, unknown>,
+    elapsed: number
+  ) => string | undefined;
+} {
+  return {
+    onUpdate(_world: World<any>, _entity: Entity, data: Record<string, unknown>, elapsed: number): string | undefined {
+      const dur = (data[durationKey] as number) ?? 0.5;
+      if (elapsed >= dur) {
+        return nextState;
+      }
+      return undefined;
+    }
+  };
+}
+
+/**
  * Calculates the horizontal direction multiplier (-1 or 1) towards the detected player entity.
  *
  * @param world - The ECS World simulation container.

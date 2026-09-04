@@ -12,18 +12,7 @@ import {
 // DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
 // Solo se extrajeron los cálculos puros a src/games/shared/rendering/geometry.ts. Ver docs/tech-debt/duplication.md
 
-let Skia: any = null;
-try {
-  Skia = require("@shopify/react-native-skia").Skia;
-} catch {}
-
-let cachedPaint: any = null;
-function getPaint(): any {
-  if (!cachedPaint && Skia) {
-    cachedPaint = Skia.Paint();
-  }
-  return cachedPaint;
-}
+import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 // Zero-allocation shader cache for React Native Skia bridge
 const skiaShaderCache = new Map<string, any>();

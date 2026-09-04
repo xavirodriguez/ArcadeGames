@@ -7,18 +7,7 @@ import { computeNeonPulse } from "../../shared/rendering/ProceduralShapeUtils";
 // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-20. Considerar extraer a función compartida. Ref: 594220cc
 import { CanvasMotionTrail } from "../../shared/rendering/CanvasNeonUtils";
 
-let Skia: any = null;
-try {
-  Skia = require("@shopify/react-native-skia").Skia;
-} catch {}
-
-let cachedPaint: any = null;
-function getPaint(): any {
-  if (!cachedPaint && Skia) {
-    cachedPaint = Skia.Paint();
-  }
-  return cachedPaint;
-}
+import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
 

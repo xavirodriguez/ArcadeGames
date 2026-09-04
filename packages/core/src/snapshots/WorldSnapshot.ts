@@ -63,6 +63,7 @@ export interface AoSWorldSnapshot extends BaseWorldSnapshot {
    * Map-of-maps storing serialized component data.
    */
   componentData: ComponentDataSnapshot;
+  soaComponentData?: never;
 }
 
 /**
@@ -82,7 +83,18 @@ export interface SoAWorldSnapshot extends BaseWorldSnapshot {
    * Continuous TypedArray block mapping for each serialized component type.
    */
   soaComponentData: Record<string, SoAComponentTypeData>;
+  componentData?: never;
 }
+
+/**
+ * Partial update descriptor representing changes to a world snapshot.
+ * @public
+ */
+export type SnapshotDelta = Partial<BaseWorldSnapshot> & {
+  isSoA?: boolean;
+  componentData?: ComponentDataSnapshot;
+  soaComponentData?: Record<string, Partial<SoAComponentTypeData>>;
+};
 
 /**
  * Represents a serializable snapshot of the world state.

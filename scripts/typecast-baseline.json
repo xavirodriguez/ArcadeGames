@@ -55,9 +55,9 @@
     "total": 3
   },
   "packages/core/src/network/NetworkManager.ts": {
-    "anyCount": 9,
+    "anyCount": 1,
     "unknownCount": 1,
-    "total": 10
+    "total": 2
   },
   "packages/core/src/network/RemoteInterpolationSystem.ts": {
     "anyCount": 4,

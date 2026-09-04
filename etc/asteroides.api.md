@@ -296,14 +296,14 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
         getEventLog: () => {
             timestamp: number;
             event: string;
-            payload: any;
+            payload: unknown;
         }[];
         getColliderShapes: () => {
             type: "circle" | "aabb";
             x: number;
             y: number;
             isTrigger: boolean;
-            shape: any;
+            shape: unknown;
         }[];
         clearEventLog: () => void;
     };
@@ -344,7 +344,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
     protected setupCommonArcadeResources(canvas?: HTMLCanvasElement): void;
     snapshot(): WorldSnapshot;
     start(): void;
-    get state(): any;
+    get state(): TState;
     step(input: CompactInputFrame): void;
     stop(): void;
     subscribe(cb: (state: TState) => void): () => void;
@@ -1920,6 +1920,14 @@ export class InputMapper<TExtra extends string = never> {
 }
 
 // @public
+export interface InputPayload {
+    // (undocumented)
+    actions: Set<string>;
+    // (undocumented)
+    axes: Record<string, number>;
+}
+
+// @public
 export interface InputProvider<TExtra extends string = never> {
     dispose?(): void;
     getInputState(): CanonicalInputState<TExtra>;
@@ -1986,7 +1994,7 @@ export interface InvulnerableComponent extends Component {
 }
 
 // @public
-export interface IPredictionModel<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = any> {
+export interface IPredictionModel<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = InputPayload> {
     applyAuthoritativeState(world: World<TRegistry>, entity: number, state: AuthoritativeServerState): void;
     queryComponents?: Extract<keyof TRegistry, string>[];
     simulate(world: World<TRegistry>, entity: number, input: TInput, dt: number): void;
@@ -2136,7 +2144,7 @@ export interface LevelPlan {
 }
 
 // @public
-export class LinearPredictionModel<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = any> implements IPredictionModel<TRegistry, TInput> {
+export class LinearPredictionModel<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = InputPayload> implements IPredictionModel<TRegistry, TInput> {
     constructor();
     applyAuthoritativeState(world: World<TRegistry>, entity: number, state: AuthoritativeServerState): void;
     queryComponents?: Extract<keyof TRegistry, string>[];
@@ -2144,7 +2152,7 @@ export class LinearPredictionModel<TRegistry extends MultiplayerRegistry = Multi
 }
 
 // @public
-export interface LocalPredictionOptions<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = any> {
+export interface LocalPredictionOptions<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = InputPayload> {
     predictionModel?: IPredictionModel<TRegistry, TInput>;
     queryComponents?: Extract<keyof TRegistry, string>[];
     // @deprecated
@@ -2788,7 +2796,7 @@ export class NetworkDeltaSystem<TComponents extends ComponentRegistry = Componen
 }
 
 // @public
-export class NetworkManager<TComponents extends ComponentRegistry = ComponentRegistry, TServerEvents extends Record<string, any> = Record<string, any>, TClientEvents extends Record<string, any> = Record<string, any>> {
+export class NetworkManager<TComponents extends ComponentRegistry = ComponentRegistry, TServerEvents extends Record<string, unknown> = Record<string, unknown>, TClientEvents extends Record<string, unknown> = Record<string, unknown>> {
     constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>);
     // (undocumented)
     getReplicator(): IStateReplicator<TComponents>;
@@ -2799,7 +2807,7 @@ export class NetworkManager<TComponents extends ComponentRegistry = ComponentReg
     // (undocumented)
     processServerUpdate(_tick: number, snapshot: WorldSnapshot, _sessionId?: string): void;
     // (undocumented)
-    static registerGame<TComponents extends ComponentRegistry = ComponentRegistry, TServer extends Record<string, any> = Record<string, any>, TClient extends Record<string, any> = Record<string, any>>(_gameId: string, _game: unknown, options?: RegisterGameOptions<TComponents, TServer, TClient>): NetworkManager<TComponents, TServer, TClient>;
+    static registerGame<TComponents extends ComponentRegistry = ComponentRegistry, TServer extends Record<string, unknown> = Record<string, unknown>, TClient extends Record<string, unknown> = Record<string, unknown>>(_gameId: string, _game: unknown, options?: RegisterGameOptions<TComponents, TServer, TClient>): NetworkManager<TComponents, TServer, TClient>;
     // (undocumented)
     reset(): void;
     // (undocumented)
@@ -2812,7 +2820,7 @@ export class NetworkManager<TComponents extends ComponentRegistry = ComponentReg
 export class NetworkReplicationUtils {
     // (undocumented)
     static applyDelta(base: WorldSnapshot, delta: SnapshotDelta): void;
-    static processSoAPacket(soaComponentData: Record<string, any>): ComponentDataSnapshot;
+    static processSoAPacket(soaComponentData: Record<string, SoAComponentTypeData>): ComponentDataSnapshot;
 }
 
 // @public
@@ -3007,7 +3015,10 @@ export interface PatrolComponent extends Component {
 }
 
 // @public
-export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry & {
+    Transform: TransformComponent;
+    Velocity: VelocityComponent;
+} = CoreComponentRegistry> extends System<TRegistry> {
     setCandidates(entities: Entity[] | null): void;
     update(world: World<TRegistry>, deltaTime: number): void;
 }
@@ -3285,10 +3296,7 @@ export interface ReclaimableComponent<TWorld extends World = World> extends Comp
 }
 
 // @public
-export interface ReconciledInput<TInput = {
-    actions: Set<string>;
-    axes: Record<string, number>;
-}> {
+export interface ReconciledInput<TInput = InputPayload> {
     dt: number;
     input: TInput;
     state: {
@@ -3304,7 +3312,7 @@ export interface ReconciledInput<TInput = {
 export function registerEnemyStateMachines(world: World<CoreComponentRegistry>): void;
 
 // @public
-export interface RegisterGameOptions<TComponents extends ComponentRegistry = ComponentRegistry, TServerEvents extends Record<string, any> = Record<string, any>, TClientEvents extends Record<string, any> = Record<string, any>> {
+export interface RegisterGameOptions<TComponents extends ComponentRegistry = ComponentRegistry, TServerEvents extends Record<string, unknown> = Record<string, unknown>, TClientEvents extends Record<string, unknown> = Record<string, unknown>> {
     // (undocumented)
     [key: string]: unknown;
     // (undocumented)
@@ -3947,15 +3955,15 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
         margin?: number;
         enabled?: boolean;
     });
-    static filterInViewport(world: World, entities: ReadonlyArray<Entity>, margin?: number): Entity[];
-    static getViewport(world: World): {
+    static filterInViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entities: ReadonlyArray<Entity>, margin?: number): Entity[];
+    static getViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>): {
         minX: number;
         minY: number;
         maxX: number;
         maxY: number;
     };
     isEnabled(): boolean;
-    static isEntityInViewport(world: World, entity: Entity, margin?: number): boolean;
+    static isEntityInViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entity: Entity, margin?: number): boolean;
     setEnabled(enabled: boolean): void;
     setMargin(margin: number): void;
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;

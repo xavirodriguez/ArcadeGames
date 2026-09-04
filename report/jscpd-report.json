@@ -261,43 +261,6 @@
     },
     {
       "firstFile": {
-        "end": 147,
-        "endLoc": {
-          "column": 14,
-          "line": 147,
-          "position": 5673
-        },
-        "name": "rendering/Camera2D.ts",
-        "start": 124,
-        "startLoc": {
-          "column": 11,
-          "line": 124,
-          "position": 4828
-        }
-      },
-      "format": "typescript",
-      "fragment": "    screenY: number,\n    cameraEntity?: number\n  ): { x: number; y: number } {\n    let camEnt = cameraEntity;\n    if (camEnt === undefined) {\n      const cameras = world.query(\"Camera2D\");\n      for (let i = 0; i < cameras.length; i++) {\n        const cam = world.getComponent(cameras[i], \"Camera2D\") as Camera2DComponent | undefined;\n        if (cam?.isMain) {\n          camEnt = cameras[i];\n          break;\n        }\n      }\n    }\n\n    if (camEnt !== undefined) {\n      const cam = world.getComponent(camEnt, \"Camera2D\") as Camera2DComponent | undefined;\n      if (cam) {\n        const visualOffset = world.getComponent(camEnt, \"VisualOffset\") as VisualOffsetComponent | undefined;\n        const offsetX = visualOffset?.offsetX ?? 0;\n        const offsetY = visualOffset?.offsetY ?? 0;\n        const zoom = cam.zoom || 1;\n        return {\n          x: (screenX / zoom) + cam.x + offsetX,",
-      "isNew": false,
-      "lines": 24,
-      "secondFile": {
-        "end": 185,
-        "endLoc": {
-          "column": 14,
-          "line": 185,
-          "position": 6971
-        },
-        "name": "rendering/Camera2D.ts",
-        "start": 162,
-        "startLoc": {
-          "column": 10,
-          "line": 162,
-          "position": 6126
-        }
-      },
-      "tokens": 172
-    },
-    {
-      "firstFile": {
         "end": 258,
         "endLoc": {
           "column": 77,
@@ -724,18 +687,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 48,
+        "end": 54,
         "endLoc": {
           "column": 9,
-          "line": 48,
-          "position": 1643
+          "line": 54,
+          "position": 1923
         },
         "name": "scenes/transitions/PixelateTransition.ts",
-        "start": 35,
+        "start": 41,
         "startLoc": {
           "column": 32,
-          "line": 35,
-          "position": 1145
+          "line": 41,
+          "position": 1425
         }
       },
       "tokens": 55
@@ -1408,114 +1371,114 @@
     },
     {
       "firstFile": {
-        "end": 50,
+        "end": 94,
         "endLoc": {
-          "column": 18,
-          "line": 50,
-          "position": 2963
+          "column": 74,
+          "line": 94,
+          "position": 4616
         },
         "name": "systems/SpatialCullingSystem.ts",
-        "start": 44,
+        "start": 84,
         "startLoc": {
-          "column": 4,
-          "line": 44,
-          "position": 2701
+          "column": 13,
+          "line": 84,
+          "position": 4118
         }
       },
       "format": "typescript",
-      "fragment": "    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\");\n    const screenWidth = screen?.width ?? 800;\n    const screenHeight = screen?.height ?? 600;\n\n    const cameras = world.query(\"Camera2D\");\n    let viewX = 0;\n    let viewY = 0;",
+      "fragment": "  ): boolean {\n    const viewport = this.getViewport(world);\n    const minX = viewport.minX - margin;\n    const minY = viewport.minY - margin;\n    const maxX = viewport.maxX + margin;\n    const maxY = viewport.maxY + margin;\n\n    const localPlayerType = \"LocalPlayer\" as Extract<keyof TRegistry, string>;\n    const playerType = \"Player\" as Extract<keyof TRegistry, string>;\n    const tagType = \"Tag\" as Extract<keyof TRegistry, string>;\n    const transformType = \"Transform\" as Extract<keyof TRegistry, string>;",
       "isNew": false,
-      "lines": 7,
+      "lines": 11,
       "secondFile": {
-        "end": 200,
+        "end": 138,
         "endLoc": {
-          "column": 18,
-          "line": 200,
-          "position": 9143
+          "column": 74,
+          "line": 138,
+          "position": 6587
         },
         "name": "systems/SpatialCullingSystem.ts",
-        "start": 193,
+        "start": 128,
         "startLoc": {
-          "column": 4,
-          "line": 193,
-          "position": 8812
+          "column": 14,
+          "line": 128,
+          "position": 6089
         }
       },
-      "tokens": 59
+      "tokens": 99
     },
     {
       "firstFile": {
-        "end": 103,
+        "end": 116,
         "endLoc": {
           "column": 3,
-          "line": 103,
-          "position": 5007
+          "line": 116,
+          "position": 5595
         },
         "name": "systems/SpatialCullingSystem.ts",
-        "start": 85,
+        "start": 98,
         "startLoc": {
           "column": 4,
-          "line": 85,
-          "position": 4283
+          "line": 98,
+          "position": 4863
         }
       },
       "format": "typescript",
-      "fragment": "    const isLocalPlayer = world.hasComponent(entity, \"LocalPlayer\") || world.hasComponent(entity, \"Player\");\n\n    const tagComponent = world.getComponent(entity, \"Tag\") as TagComponent | undefined;\n    const isTagPlayer = tagComponent && (\n      (tagComponent.tags as string[] | undefined)?.includes(\"LocalPlayer\") ||\n      (tagComponent.tags as string[] | undefined)?.includes(\"Player\")\n    );\n\n    if (isLocalPlayer || isTagPlayer) {\n      return true;\n    }\n\n    const trans = world.getComponent(entity, \"Transform\") as TransformComponent | undefined;\n    if (!trans) return false;\n    const x = trans.worldX ?? trans.x;\n    const y = trans.worldY ?? trans.y;\n\n    return x >= minX && x <= maxX && y >= minY && y <= maxY;\n  }",
+      "fragment": "    const isLocalPlayer = world.hasComponent(entity, localPlayerType) || world.hasComponent(entity, playerType);\n\n    const tagComponent = world.getComponent(entity, tagType) as TagComponent | undefined;\n    const isTagPlayer = tagComponent && (\n      (tagComponent.tags as string[] | undefined)?.includes(\"LocalPlayer\") ||\n      (tagComponent.tags as string[] | undefined)?.includes(\"Player\")\n    );\n\n    if (isLocalPlayer || isTagPlayer) {\n      return true;\n    }\n\n    const trans = world.getComponent(entity, transformType) as TransformComponent | undefined;\n    if (!trans) return false;\n    const x = trans.worldX ?? trans.x;\n    const y = trans.worldY ?? trans.y;\n\n    return x >= minX && x <= maxX && y >= minY && y <= maxY;\n  }",
       "isNew": false,
       "lines": 19,
       "secondFile": {
-        "end": 141,
+        "end": 163,
         "endLoc": {
           "column": 5,
-          "line": 141,
-          "position": 6918
+          "line": 163,
+          "position": 7889
         },
         "name": "systems/SpatialCullingSystem.ts",
-        "start": 123,
+        "start": 145,
         "startLoc": {
           "column": 6,
-          "line": 123,
-          "position": 6166
+          "line": 145,
+          "position": 7129
         }
       },
       "tokens": 153
     },
     {
       "firstFile": {
-        "end": 131,
+        "end": 106,
         "endLoc": {
-          "column": 41,
-          "line": 131,
-          "position": 6609
+          "column": 39,
+          "line": 106,
+          "position": 5300
         },
         "name": "systems/SpatialCullingSystem.ts",
-        "start": 120,
+        "start": 100,
         "startLoc": {
-          "column": 39,
-          "line": 120,
-          "position": 5914
+          "column": 59,
+          "line": 100,
+          "position": 5032
         }
       },
       "format": "typescript",
-      "fragment": "    return entities.filter((entity) => {\n      // Exclude check for players/important tags to ensure they are never culled\n      // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:85-103. Considerar extraer a función compartida. Ref: a9574295\n      const isLocalPlayer = world.hasComponent(entity, \"LocalPlayer\") || world.hasComponent(entity, \"Player\");\n\n      const tagComponent = world.getComponent(entity, \"Tag\") as TagComponent | undefined;\n      const isTagPlayer = tagComponent && (\n        (tagComponent.tags as string[] | undefined)?.includes(\"LocalPlayer\") ||\n        (tagComponent.tags as string[] | undefined)?.includes(\"Player\")\n      );\n\n      if (isLocalPlayer || isTagPlayer) {",
+      "fragment": "    const tagComponent = world.getComponent(entity, tagType) as TagComponent | undefined;\n    const isTagPlayer = tagComponent && (\n      (tagComponent.tags as string[] | undefined)?.includes(\"LocalPlayer\") ||\n      (tagComponent.tags as string[] | undefined)?.includes(\"Player\")\n    );\n\n    if (isLocalPlayer || isTagPlayer) {",
       "isNew": false,
-      "lines": 12,
+      "lines": 7,
       "secondFile": {
-        "end": 231,
+        "end": 253,
         "endLoc": {
           "column": 41,
-          "line": 231,
-          "position": 10478
+          "line": 253,
+          "position": 11449
         },
         "name": "systems/SpatialCullingSystem.ts",
-        "start": 221,
+        "start": 247,
         "startLoc": {
-          "column": 38,
-          "line": 221,
-          "position": 9945
+          "column": 59,
+          "line": 247,
+          "position": 11171
         }
       },
-      "tokens": 86
+      "tokens": 54
     },
     {
       "firstFile": {
@@ -8919,32 +8882,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-04T16:07:14.187Z",
+    "detectionDate": "2026-09-04T17:49:45.473Z",
     "formats": {
       "typescript": {
-        "clones": 248,
-        "duplicatedLines": 2876,
-        "duplicatedTokens": 20661,
-        "lines": 50834,
+        "clones": 240,
+        "duplicatedLines": 2682,
+        "duplicatedTokens": 19641,
+        "lines": 50701,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 5.657630719597121,
-        "percentageTokens": 7.633082973433281,
-        "sources": 318,
-        "tokens": 270677
+        "percentage": 5.289836492376876,
+        "percentageTokens": 7.278838706330118,
+        "sources": 319,
+        "tokens": 269837
       }
     },
     "total": {
-      "clones": 248,
-      "duplicatedLines": 2876,
-      "duplicatedTokens": 20661,
-      "lines": 50834,
+      "clones": 240,
+      "duplicatedLines": 2682,
+      "duplicatedTokens": 19641,
+      "lines": 50701,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 5.657630719597121,
-      "percentageTokens": 7.633082973433281,
-      "sources": 318,
-      "tokens": 270677
+      "percentage": 5.289836492376876,
+      "percentageTokens": 7.278838706330118,
+      "sources": 319,
+      "tokens": 269837
     }
   }
 }

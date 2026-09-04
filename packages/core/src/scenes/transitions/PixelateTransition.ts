@@ -1,10 +1,16 @@
 import { RenderContext } from "../../rendering/Renderer";
 import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
 
-let offscreenCanvas: any = null;
-let offscreenCtx: any = null;
+let offscreenCanvas: HTMLCanvasElement | null = null;
+let offscreenCtx: CanvasRenderingContext2D | null = null;
 
-function getOffscreen(width: number, height: number) {
+interface VendorPrefixedContext2D {
+  mozImageSmoothingEnabled?: boolean;
+  webkitImageSmoothingEnabled?: boolean;
+  msImageSmoothingEnabled?: boolean;
+}
+
+function getOffscreen(width: number, height: number): { canvas: HTMLCanvasElement | null; ctx: CanvasRenderingContext2D | null } {
   if (typeof document === "undefined") {
     return { canvas: null, ctx: null };
   }
@@ -75,9 +81,10 @@ export class PixelateTransition implements ITransitionEffect {
 
     // 3. Draw tiny offscreen image back stretched to fill main canvas without smoothing
     ctx.imageSmoothingEnabled = false;
-    (ctx as any).mozImageSmoothingEnabled = false;
-    (ctx as any).webkitImageSmoothingEnabled = false;
-    (ctx as any).msImageSmoothingEnabled = false;
+    const vendorCtx = ctx as unknown as VendorPrefixedContext2D;
+    vendorCtx.mozImageSmoothingEnabled = false;
+    vendorCtx.webkitImageSmoothingEnabled = false;
+    vendorCtx.msImageSmoothingEnabled = false;
 
     ctx.drawImage(off, 0, 0, w, h, 0, 0, width, height);
     ctx.restore();

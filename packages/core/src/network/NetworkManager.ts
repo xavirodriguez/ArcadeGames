@@ -68,7 +68,7 @@ export class NetworkReplicator<TComponents extends ComponentRegistry = Component
         const typeKey = type as Extract<keyof TComponents, string>;
         if (world.hasComponent(actualLocalId, typeKey)) {
           world.mutateComponent(actualLocalId, typeKey, (existing) => {
-            Object.assign(existing as any, componentToSet);
+            Object.assign(existing as unknown as Record<string, unknown>, componentToSet);
           });
         } else {
           world.addComponent(actualLocalId, componentToSet);
@@ -111,8 +111,8 @@ export class Replicator<TComponents extends ComponentRegistry = ComponentRegistr
  */
 export interface RegisterGameOptions<
   TComponents extends ComponentRegistry = ComponentRegistry,
-  TServerEvents extends Record<string, any> = Record<string, any>,
-  TClientEvents extends Record<string, any> = Record<string, any>
+  TServerEvents extends Record<string, unknown> = Record<string, unknown>,
+  TClientEvents extends Record<string, unknown> = Record<string, unknown>
 > {
   transport?: NetworkTransport<TServerEvents, TClientEvents>;
   world?: INetworkableWorld<TComponents>;
@@ -125,8 +125,8 @@ export interface RegisterGameOptions<
  */
 export class NetworkManager<
   TComponents extends ComponentRegistry = ComponentRegistry,
-  TServerEvents extends Record<string, any> = Record<string, any>,
-  TClientEvents extends Record<string, any> = Record<string, any>
+  TServerEvents extends Record<string, unknown> = Record<string, unknown>,
+  TClientEvents extends Record<string, unknown> = Record<string, unknown>
 > {
   private transport: NetworkTransport<TServerEvents, TClientEvents>;
   private replicator: IStateReplicator<TComponents> = new NetworkReplicator<TComponents>();
@@ -138,8 +138,8 @@ export class NetworkManager<
 
   public static registerGame<
     TComponents extends ComponentRegistry = ComponentRegistry,
-    TServer extends Record<string, any> = Record<string, any>,
-    TClient extends Record<string, any> = Record<string, any>
+    TServer extends Record<string, unknown> = Record<string, unknown>,
+    TClient extends Record<string, unknown> = Record<string, unknown>
   >(_gameId: string, _game: unknown, options: RegisterGameOptions<TComponents, TServer, TClient> = {}): NetworkManager<TComponents, TServer, TClient> {
     const manager = new NetworkManager<TComponents, TServer, TClient>(options.transport || new NullTransport<TServer, TClient>());
     if (options.world) {
@@ -194,7 +194,7 @@ export class NetworkReplicationUtils {
    * @param soaComponentData - Raw SoA component block map.
    * @returns Reconstructed component data dictionary.
    */
-  public static processSoAPacket(soaComponentData: Record<string, any>): ComponentDataSnapshot {
+  public static processSoAPacket(soaComponentData: Record<string, SoAComponentTypeData>): ComponentDataSnapshot {
     const componentData: ComponentDataSnapshot = {};
     for (const type in soaComponentData) {
       componentData[type] = {};

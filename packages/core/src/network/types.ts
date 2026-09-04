@@ -1,5 +1,15 @@
-import { CoreComponentRegistry } from "../ecs/CoreComponents";
+import { CoreComponentRegistry, TransformComponent, VelocityComponent } from "../ecs/CoreComponents";
 import { World } from "../ecs/World";
+
+/**
+ * Default input payload structure for network prediction and reconciliation.
+ *
+ * @public
+ */
+export interface InputPayload {
+    actions: Set<string>;
+    axes: Record<string, number>;
+}
 
 /**
  * Registry interface for multiplayer components.
@@ -21,10 +31,7 @@ export interface MultiplayerRegistry extends CoreComponentRegistry {
  *
  * @public
  */
-export interface ReconciledInput<TInput = {
-    actions: Set<string>;
-    axes: Record<string, number>;
-}> {
+export interface ReconciledInput<TInput = InputPayload> {
     /** The simulation tick index. */
     tick: number;
     /** The input payload captured at this tick. */
@@ -58,7 +65,7 @@ export interface AuthoritativeServerState {
  */
 export interface IPredictionModel<
     TRegistry extends MultiplayerRegistry = MultiplayerRegistry,
-    TInput = any
+    TInput = InputPayload
 > {
     /**
      * Optional array of component names required for querying local prediction entities.
@@ -125,7 +132,7 @@ export interface IInterpolationModel<
  */
 export interface LocalPredictionOptions<
     TRegistry extends MultiplayerRegistry = MultiplayerRegistry,
-    TInput = any
+    TInput = InputPayload
 > {
     /** The prediction model strategy instance. */
     predictionModel?: IPredictionModel<TRegistry, TInput>;
@@ -170,7 +177,7 @@ export interface RemoteInterpolationOptions<
  */
 export class LinearPredictionModel<
     TRegistry extends MultiplayerRegistry = MultiplayerRegistry,
-    TInput = any
+    TInput = InputPayload
 > implements IPredictionModel<TRegistry, TInput> {
     /** Component names queried for linear prediction. */
     public queryComponents?: Extract<keyof TRegistry, string>[] = [
@@ -178,7 +185,7 @@ export class LinearPredictionModel<
         "LocalPlayer",
         "Velocity",
         "Input"
-    ] as any;
+    ] as Array<Extract<keyof TRegistry, string>>;
 
     /**
      * Creates an instance of LinearPredictionModel.
@@ -194,8 +201,10 @@ export class LinearPredictionModel<
         _input: TInput,
         dt: number
     ): void {
-        const vel = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
-        const mutT = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
+        const velKey = "Velocity" as Extract<keyof TRegistry, string>;
+        const transKey = "Transform" as Extract<keyof TRegistry, string>;
+        const vel = world.getComponent(entity, velKey) as VelocityComponent | undefined;
+        const mutT = world.getMutableComponent(entity, transKey) as TransformComponent | undefined;
         if (mutT && vel) {
             mutT.x += vel.vx * dt;
             mutT.y += vel.vy * dt;
@@ -210,13 +219,15 @@ export class LinearPredictionModel<
         entity: number,
         state: AuthoritativeServerState
     ): void {
-        const mutTrans = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
+        const transKey = "Transform" as Extract<keyof TRegistry, string>;
+        const velKey = "Velocity" as Extract<keyof TRegistry, string>;
+        const mutTrans = world.getMutableComponent(entity, transKey) as TransformComponent | undefined;
         if (mutTrans) {
             mutTrans.x = state.x;
             mutTrans.y = state.y;
         }
 
-        const mutVel = world.getMutableComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
+        const mutVel = world.getMutableComponent(entity, velKey) as VelocityComponent | undefined;
         if (mutVel) {
             mutVel.vx = state.vx;
             mutVel.vy = state.vy;
@@ -236,7 +247,7 @@ export class ExponentialSmoothingModel<
     public queryComponents?: Extract<keyof TRegistry, string>[] = [
         "Transform",
         "RemotePlayer"
-    ] as any;
+    ] as Array<Extract<keyof TRegistry, string>>;
 
     /**
      * Creates an instance of ExponentialSmoothingModel.
@@ -259,19 +270,21 @@ export class ExponentialSmoothingModel<
         }
 
         const alpha = 1 - Math.pow(1 - this.smoothingFactor, deltaTime * 60);
+        const transKey = "Transform" as Extract<keyof TRegistry, string>;
 
-        world.mutateComponent(entity, "Transform" as Extract<keyof TRegistry, string>, (t: any) => {
+        world.mutateComponent(entity, transKey, (t) => {
+            const trans = t as unknown as TransformComponent;
             if (targetState.targetX !== undefined) {
-                t.x += (targetState.targetX - t.x) * alpha;
+                trans.x += (targetState.targetX - trans.x) * alpha;
             }
             if (targetState.targetY !== undefined) {
-                t.y += (targetState.targetY - t.y) * alpha;
+                trans.y += (targetState.targetY - trans.y) * alpha;
             }
-            if (targetState.targetRotation !== undefined && t.rotation !== undefined) {
-                let diffRot = targetState.targetRotation - t.rotation;
+            if (targetState.targetRotation !== undefined && trans.rotation !== undefined) {
+                let diffRot = targetState.targetRotation - trans.rotation;
                 while (diffRot > Math.PI) diffRot -= Math.PI * 2;
                 while (diffRot < -Math.PI) diffRot += Math.PI * 2;
-                t.rotation += diffRot * alpha;
+                trans.rotation += diffRot * alpha;
             }
         });
     }

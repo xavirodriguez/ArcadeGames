@@ -1112,114 +1112,77 @@
     },
     {
       "firstFile": {
-        "end": 94,
+        "end": 123,
         "endLoc": {
           "column": 74,
-          "line": 94,
-          "position": 4616
+          "line": 123,
+          "position": 5592
         },
         "name": "systems/SpatialCullingSystem.ts",
-        "start": 84,
-        "startLoc": {
-          "column": 13,
-          "line": 84,
-          "position": 4118
-        }
-      },
-      "format": "typescript",
-      "fragment": "  ): boolean {\n    const viewport = this.getViewport(world);\n    const minX = viewport.minX - margin;\n    const minY = viewport.minY - margin;\n    const maxX = viewport.maxX + margin;\n    const maxY = viewport.maxY + margin;\n\n    const localPlayerType = \"LocalPlayer\" as Extract<keyof TRegistry, string>;\n    const playerType = \"Player\" as Extract<keyof TRegistry, string>;\n    const tagType = \"Tag\" as Extract<keyof TRegistry, string>;\n    const transformType = \"Transform\" as Extract<keyof TRegistry, string>;",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 138,
-        "endLoc": {
-          "column": 74,
-          "line": 138,
-          "position": 6587
-        },
-        "name": "systems/SpatialCullingSystem.ts",
-        "start": 128,
-        "startLoc": {
-          "column": 14,
-          "line": 128,
-          "position": 6089
-        }
-      },
-      "tokens": 99
-    },
-    {
-      "firstFile": {
-        "end": 116,
-        "endLoc": {
-          "column": 3,
-          "line": 116,
-          "position": 5595
-        },
-        "name": "systems/SpatialCullingSystem.ts",
-        "start": 98,
+        "start": 117,
         "startLoc": {
           "column": 4,
-          "line": 98,
-          "position": 4863
+          "line": 117,
+          "position": 5311
         }
       },
       "format": "typescript",
-      "fragment": "    const isLocalPlayer = world.hasComponent(entity, localPlayerType) || world.hasComponent(entity, playerType);\n\n    const tagComponent = world.getComponent(entity, tagType) as TagComponent | undefined;\n    const isTagPlayer = tagComponent && (\n      (tagComponent.tags as string[] | undefined)?.includes(\"LocalPlayer\") ||\n      (tagComponent.tags as string[] | undefined)?.includes(\"Player\")\n    );\n\n    if (isLocalPlayer || isTagPlayer) {\n      return true;\n    }\n\n    const trans = world.getComponent(entity, transformType) as TransformComponent | undefined;\n    if (!trans) return false;\n    const x = trans.worldX ?? trans.x;\n    const y = trans.worldY ?? trans.y;\n\n    return x >= minX && x <= maxX && y >= minY && y <= maxY;\n  }",
-      "isNew": false,
-      "lines": 19,
-      "secondFile": {
-        "end": 163,
-        "endLoc": {
-          "column": 5,
-          "line": 163,
-          "position": 7889
-        },
-        "name": "systems/SpatialCullingSystem.ts",
-        "start": 145,
-        "startLoc": {
-          "column": 6,
-          "line": 145,
-          "position": 7129
-        }
-      },
-      "tokens": 153
-    },
-    {
-      "firstFile": {
-        "end": 106,
-        "endLoc": {
-          "column": 39,
-          "line": 106,
-          "position": 5300
-        },
-        "name": "systems/SpatialCullingSystem.ts",
-        "start": 100,
-        "startLoc": {
-          "column": 59,
-          "line": 100,
-          "position": 5032
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const tagComponent = world.getComponent(entity, tagType) as TagComponent | undefined;\n    const isTagPlayer = tagComponent && (\n      (tagComponent.tags as string[] | undefined)?.includes(\"LocalPlayer\") ||\n      (tagComponent.tags as string[] | undefined)?.includes(\"Player\")\n    );\n\n    if (isLocalPlayer || isTagPlayer) {",
+      "fragment": "    const viewport = this.getViewport(world);\n    const minX = viewport.minX - margin;\n    const minY = viewport.minY - margin;\n    const maxX = viewport.maxX + margin;\n    const maxY = viewport.maxY + margin;\n\n    const transformType = \"Transform\" as Extract<keyof TRegistry, string>;",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 253,
+        "end": 149,
         "endLoc": {
-          "column": 41,
-          "line": 253,
-          "position": 11449
+          "column": 74,
+          "line": 149,
+          "position": 6642
         },
         "name": "systems/SpatialCullingSystem.ts",
-        "start": 247,
+        "start": 143,
         "startLoc": {
-          "column": 59,
-          "line": 247,
-          "position": 11171
+          "column": 4,
+          "line": 143,
+          "position": 6361
         }
       },
-      "tokens": 54
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 130,
+        "endLoc": {
+          "column": 3,
+          "line": 130,
+          "position": 5861
+        },
+        "name": "systems/SpatialCullingSystem.ts",
+        "start": 124,
+        "startLoc": {
+          "column": 4,
+          "line": 124,
+          "position": 5597
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const trans = world.getComponent(entity, transformType) as TransformComponent | undefined;\n    if (!trans) return false;\n    const x = trans.worldX ?? trans.x;\n    const y = trans.worldY ?? trans.y;\n\n    return x >= minX && x <= maxX && y >= minY && y <= maxY;\n  }",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 162,
+        "endLoc": {
+          "column": 5,
+          "line": 162,
+          "position": 7043
+        },
+        "name": "systems/SpatialCullingSystem.ts",
+        "start": 156,
+        "startLoc": {
+          "column": 6,
+          "line": 156,
+          "position": 6769
+        }
+      },
+      "tokens": 64
     },
     {
       "firstFile": {

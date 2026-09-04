@@ -114,6 +114,52 @@ describe("Spatial Culling System Tests", () => {
       const margin = 100;
       expect(SpatialCullingSystem.isEntityInViewport(world, entityInMargin, margin)).toBe(true);
     });
+
+    it("debería reconocer entidades de jugador mediante isPlayerEntity y nunca descartarlas en culling", () => {
+      world.setResource("ScreenConfig", { width: 800, height: 600 });
+
+      const localPlayer = world.createEntity();
+      world.addComponent(localPlayer, { type: "LocalPlayer" });
+      world.addComponent(localPlayer, {
+        type: "Transform",
+        x: 5000,
+        y: 5000,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 5000,
+        worldY: 5000,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false,
+      });
+
+      const taggedPlayer = world.createEntity();
+      world.addComponent(taggedPlayer, { type: "Tag", tags: ["Player"] });
+      world.addComponent(taggedPlayer, {
+        type: "Transform",
+        x: -5000,
+        y: -5000,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: -5000,
+        worldY: -5000,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false,
+      });
+
+      expect(SpatialCullingSystem.isPlayerEntity(world, localPlayer)).toBe(true);
+      expect(SpatialCullingSystem.isPlayerEntity(world, taggedPlayer)).toBe(true);
+      expect(SpatialCullingSystem.isEntityInViewport(world, localPlayer)).toBe(true);
+      expect(SpatialCullingSystem.isEntityInViewport(world, taggedPlayer)).toBe(true);
+
+      const filtered = SpatialCullingSystem.filterInViewport(world, [localPlayer, taggedPlayer]);
+      expect(filtered).toEqual([localPlayer, taggedPlayer]);
+    });
   });
 
   describe("System Integration (Culling in Physics & Collision)", () => {

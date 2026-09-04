@@ -1,7 +1,16 @@
 import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
 import { ComponentRegistry } from "../../ecs/Component";
-import { CoreComponentRegistry } from "../../ecs/CoreComponents";
+import {
+  CoreComponentRegistry,
+  TilemapComponent,
+  TransformComponent,
+  VelocityComponent,
+  Collider2DComponent,
+  PlatformerGroundStateComponent,
+  HealthComponent
+} from "../../ecs/CoreComponents";
+import { TagComponent } from "../../ecs/TagComponent";
 import { Entity } from "../../ecs/Entity";
 
 /**
@@ -50,8 +59,8 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     if (tilemapEntities.length === 0) return;
 
     const tilemapEntity = tilemapEntities[0];
-    const tilemap = world.getComponent(tilemapEntity, "Tilemap" as Extract<keyof TRegistry, string>) as any;
-    const tilemapTransform = world.getComponent(tilemapEntity, "Transform" as Extract<keyof TRegistry, string>) as any;
+    const tilemap = world.getComponent(tilemapEntity, "Tilemap" as Extract<keyof TRegistry, string>) as TilemapComponent | undefined;
+    const tilemapTransform = world.getComponent(tilemapEntity, "Transform" as Extract<keyof TRegistry, string>) as TransformComponent | undefined;
     if (!tilemap) return;
 
     const tilemapX = tilemapTransform ? tilemapTransform.x : 0;
@@ -72,12 +81,12 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       const hasTileColliderTag = this.hasTileColliderTag(world, entity);
       if (!hasTileColliderTag) continue;
 
-      const collider = world.getComponent(entity, collider2DType) as any;
+      const collider = world.getComponent(entity, collider2DType) as Collider2DComponent | undefined;
       if (!collider || !collider.enabled || collider.isTrigger) continue;
       if (collider.shape.type !== "aabb") continue;
 
-      const vel = world.getMutableComponent(entity, velocityType) as any;
-      const trans = world.getMutableComponent(entity, transformType) as any;
+      const vel = world.getMutableComponent(entity, velocityType) as VelocityComponent | undefined;
+      const trans = world.getMutableComponent(entity, transformType) as TransformComponent | undefined;
       if (!vel || !trans) continue;
 
       const halfW = collider.shape.halfWidth;
@@ -211,9 +220,9 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
 
       if (world.hasComponent(entity, groundStateType)) {
         const targetIceMultiplier = onIce ? 0.2 : 1.0;
-        const currentGround = world.getComponent(entity, groundStateType) as any;
+        const currentGround = world.getComponent(entity, groundStateType) as PlatformerGroundStateComponent | undefined;
         if (!currentGround || currentGround.isGrounded !== isGrounded || currentGround.iceMultiplier !== targetIceMultiplier) {
-          const mutableGround = world.getMutableComponent(entity, groundStateType) as any;
+          const mutableGround = world.getMutableComponent(entity, groundStateType) as PlatformerGroundStateComponent | undefined;
           if (mutableGround) {
             mutableGround.isGrounded = isGrounded;
             mutableGround.iceMultiplier = targetIceMultiplier;
@@ -223,9 +232,10 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     }
   }
 
-  private hasTileColliderTag(world: World<any>, entity: Entity): boolean {
-    if (world.hasComponent(entity, "Tag")) {
-      const tagComp = world.getComponent(entity, "Tag") as any;
+  private hasTileColliderTag(world: World<TRegistry>, entity: Entity): boolean {
+    const tagKey = "Tag" as Extract<keyof TRegistry, string>;
+    if (world.hasComponent(entity, tagKey)) {
+      const tagComp = world.getComponent(entity, tagKey) as TagComponent | undefined;
       if (tagComp && tagComp.tags && tagComp.tags.includes("TileCollider")) {
         return true;
       }
@@ -233,9 +243,10 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     return false;
   }
 
-  private handleSpikeCollision(world: World<any>, entity: Entity): void {
-    if (world.hasComponent(entity, "Health")) {
-      const h = world.getMutableComponent(entity, "Health") as any;
+  private handleSpikeCollision(world: World<TRegistry>, entity: Entity): void {
+    const healthKey = "Health" as Extract<keyof TRegistry, string>;
+    if (world.hasComponent(entity, healthKey)) {
+      const h = world.getMutableComponent(entity, healthKey) as HealthComponent | undefined;
       if (h) {
         h.current = Math.max(0, h.current - 1);
       }

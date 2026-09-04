@@ -6,11 +6,21 @@ import { PowerUpComponent } from "../types/ArcadeTypes";
  * such as PowerUp and Collider2D without polluting @tiny-aster/core boundaries.
  * @public
  */
-export class ArcadeEntityBuilder extends EntityBuilder {
+import { ComponentRegistry, CoreComponentRegistry, BlueprintRegistryMap, EventRegistry } from "@tiny-aster/core";
+
+export class ArcadeEntityBuilder<
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+> extends EntityBuilder<TComponents, TEvents, TBlueprints> {
   /**
    * Creates a new ArcadeEntityBuilder in the given World.
    */
-  public static override create(world: World<any>): ArcadeEntityBuilder {
+  public static override create<
+    TComponents extends ComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {
     const entity = world.createEntity();
     return new ArcadeEntityBuilder(world, entity, false);
   }
@@ -18,14 +28,22 @@ export class ArcadeEntityBuilder extends EntityBuilder {
   /**
    * Wraps an existing entity ID in an ArcadeEntityBuilder.
    */
-  public static override fromEntity(world: World<any>, entity: Entity): ArcadeEntityBuilder {
+  public static override fromEntity<
+    TComponents extends ComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {
     return new ArcadeEntityBuilder(world, entity, false);
   }
 
   /**
    * Creates an ArcadeEntityBuilder using deferred command buffer updates.
    */
-  public static override createDeferred(world: World<any>): ArcadeEntityBuilder {
+  public static override createDeferred<
+    TComponents extends ComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {
     const entity = world.createEntity();
     return new ArcadeEntityBuilder(world, entity, true);
   }

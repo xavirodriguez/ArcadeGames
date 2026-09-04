@@ -3,6 +3,19 @@ import { Simulation } from "./Simulation";
 import { CompactInputFrame } from "../input/InputFrame";
 import { DeterministicReplayRecorder } from "../replay/DeterministicReplay";
 import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
+import { EventBus } from "../events/EventBus";
+import { GameLoop } from "../loop/GameLoop";
+
+/**
+ * Interface extension representing optional IGame/BaseGame capabilities present on simulation instances.
+ */
+type GameSessionSimulation = Simulation & {
+  kernel?: ArcadeKernel;
+  getGameLoop?: () => GameLoop | undefined;
+  isGameOver?: () => boolean;
+  getEventBus?: () => EventBus<any> | undefined;
+  eventBus?: EventBus<any>;
+};
 
 /**
  * Orchestrates a live, active gameplay session for a given `GameDefinition`.
@@ -51,14 +64,15 @@ export class GameSession {
     this.gameDefinition = gameDefinition;
     this.seed = seed;
     this.simulation = gameDefinition.createSimulation(seed);
-    this.kernel = kernel ?? (this.simulation as any).kernel ?? new ArcadeKernel();
+    const sim = this.simulation as GameSessionSimulation;
+    this.kernel = kernel ?? sim.kernel ?? new ArcadeKernel();
 
     this.recorder = new DeterministicReplayRecorder(gameDefinition.name, seed);
     this.recorder.captureInitialState(this.simulation);
 
     // Ensure that if the simulation has a legacy game loop, we disable its automatic ticker
-    if (this.simulation && typeof (this.simulation as any).getGameLoop === "function") {
-      const loop = (this.simulation as any).getGameLoop();
+    if (sim && typeof sim.getGameLoop === "function") {
+      const loop = sim.getGameLoop();
       if (loop && typeof loop.stopInternalLoop === "function") {
         loop.stopInternalLoop();
       }
@@ -86,7 +100,8 @@ export class GameSession {
     this.inputHistory.push({ ...input });
 
     // 3. Transition to GAME_OVER if simulation is over and kernel is in PLAYING
-    const isGameOverFn = (this.simulation as any).isGameOver;
+    const sim = this.simulation as GameSessionSimulation;
+    const isGameOverFn = sim.isGameOver;
     if (typeof isGameOverFn === "function" && isGameOverFn.call(this.simulation)) {
       if (this.kernel.getState() === ArcadeState.PLAYING) {
         this.kernel.transitionTo(ArcadeState.GAME_OVER);
@@ -94,7 +109,7 @@ export class GameSession {
     }
 
     // 4. Broadcast events that occurred this frame (as pure side-effects, e.g. for audio/visual presentation)
-    const eventBus = (this.simulation as any).eventBus || (typeof (this.simulation as any).getEventBus === "function" ? (this.simulation as any).getEventBus() : undefined);
+    const eventBus = sim.eventBus || (typeof sim.getEventBus === "function" ? sim.getEventBus() : undefined);
     if (eventBus && typeof eventBus.emit === "function") {
       eventBus.emit("session:tick", { tick: this.simulation.tick, state: this.simulation.state });
     }

@@ -1,5 +1,7 @@
-import { World } from "../ecs/World";
-import { EventBus } from "../events/EventBus";
+import { World, BlueprintRegistryMap } from "../ecs/World";
+import { ComponentRegistry } from "../ecs/Component";
+import { CoreComponentRegistry } from "../ecs/CoreComponents";
+import { EventRegistry, EventBus } from "../events/EventBus";
 import { IInputSystem } from "../input/InputSystem";
 import { GameLoop } from "../loop/GameLoop";
 import { Simulation } from "./Simulation";
@@ -42,13 +44,16 @@ export interface IGameLifecycleHooks {
  */
 export interface IGame<
   TState = unknown,
-  TInput extends Record<string, any> = Record<string, any>
+  TInput extends Record<string, any> = Record<string, any>,
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > extends Simulation {
   /** Returns the active `World` container instance. */
-  getWorld(): World<any, any, any>;
+  getWorld(): World<TComponents, TEvents, TBlueprints>;
 
   /** Returns the central `EventBus` instance used for event communications. */
-  getEventBus(): EventBus<any>;
+  getEventBus(): EventBus<TEvents>;
 
   /** Returns the underlying `GameLoop` ticker driving the simulation. */
   getGameLoop(): GameLoop;

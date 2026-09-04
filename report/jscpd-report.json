@@ -2,6 +2,43 @@
   "duplicates": [
     {
       "firstFile": {
+        "end": 44,
+        "endLoc": {
+          "column": 43,
+          "line": 44,
+          "position": 1724
+        },
+        "name": "ecs/EntityBuilder.ts",
+        "start": 38,
+        "startLoc": {
+          "column": 22,
+          "line": 38,
+          "position": 1321
+        }
+      },
+      "format": "typescript",
+      "fragment": "  public static create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {\n    const entity = world.createEntity();\n    return new EntityBuilder(world, entity, false);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 67,
+        "endLoc": {
+          "column": 43,
+          "line": 67,
+          "position": 2786
+        },
+        "name": "ecs/EntityBuilder.ts",
+        "start": 61,
+        "startLoc": {
+          "column": 30,
+          "line": 61,
+          "position": 2383
+        }
+      },
+      "tokens": 64
+    },
+    {
+      "firstFile": {
         "end": 58,
         "endLoc": {
           "column": 87,
@@ -187,18 +224,18 @@
     },
     {
       "firstFile": {
-        "end": 114,
+        "end": 123,
         "endLoc": {
           "column": 20,
-          "line": 114,
-          "position": 4679
+          "line": 123,
+          "position": 5008
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 107,
+        "start": 116,
         "startLoc": {
           "column": 67,
-          "line": 107,
-          "position": 4403
+          "line": 116,
+          "position": 4732
         }
       },
       "format": "typescript",
@@ -206,36 +243,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 152,
+        "end": 161,
         "endLoc": {
           "column": 20,
-          "line": 152,
-          "position": 6132
+          "line": 161,
+          "position": 6461
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 145,
+        "start": 154,
         "startLoc": {
           "column": 26,
-          "line": 145,
-          "position": 5856
+          "line": 154,
+          "position": 6185
         }
       },
       "tokens": 62
     },
     {
       "firstFile": {
-        "end": 177,
+        "end": 186,
         "endLoc": {
           "column": 13,
-          "line": 177,
-          "position": 7194
+          "line": 186,
+          "position": 7523
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 164,
+        "start": 173,
         "startLoc": {
           "column": 40,
-          "line": 164,
-          "position": 6690
+          "line": 173,
+          "position": 7019
         }
       },
       "format": "typescript",
@@ -243,18 +280,18 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 193,
+        "end": 202,
         "endLoc": {
           "column": 13,
-          "line": 193,
-          "position": 7919
+          "line": 202,
+          "position": 8248
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 180,
+        "start": 189,
         "startLoc": {
           "column": 25,
-          "line": 180,
-          "position": 7415
+          "line": 189,
+          "position": 7744
         }
       },
       "tokens": 90
@@ -7106,6 +7143,43 @@
     },
     {
       "firstFile": {
+        "end": 25,
+        "endLoc": {
+          "column": 49,
+          "line": 25,
+          "position": 1248
+        },
+        "name": "shared/arcade/builders/ArcadeEntityBuilder.ts",
+        "start": 19,
+        "startLoc": {
+          "column": 31,
+          "line": 19,
+          "position": 833
+        }
+      },
+      "format": "typescript",
+      "fragment": "  public static override create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {\n    const entity = world.createEntity();\n    return new ArcadeEntityBuilder(world, entity, false);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 48,
+        "endLoc": {
+          "column": 49,
+          "line": 48,
+          "position": 2314
+        },
+        "name": "shared/arcade/builders/ArcadeEntityBuilder.ts",
+        "start": 42,
+        "startLoc": {
+          "column": 39,
+          "line": 42,
+          "position": 1899
+        }
+      },
+      "tokens": 64
+    },
+    {
+      "firstFile": {
         "end": 47,
         "endLoc": {
           "column": 7,
@@ -8882,32 +8956,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-04T17:49:45.473Z",
+    "detectionDate": "2026-09-04T19:02:35.687Z",
     "formats": {
       "typescript": {
-        "clones": 240,
-        "duplicatedLines": 2682,
-        "duplicatedTokens": 19641,
-        "lines": 50701,
+        "clones": 242,
+        "duplicatedLines": 2694,
+        "duplicatedTokens": 19769,
+        "lines": 50787,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 5.289836492376876,
-        "percentageTokens": 7.278838706330118,
+        "percentage": 5.304507058893024,
+        "percentageTokens": 7.312426946010328,
         "sources": 319,
-        "tokens": 269837
+        "tokens": 270348
       }
     },
     "total": {
-      "clones": 240,
-      "duplicatedLines": 2682,
-      "duplicatedTokens": 19641,
-      "lines": 50701,
+      "clones": 242,
+      "duplicatedLines": 2694,
+      "duplicatedTokens": 19769,
+      "lines": 50787,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 5.289836492376876,
-      "percentageTokens": 7.278838706330118,
+      "percentage": 5.304507058893024,
+      "percentageTokens": 7.312426946010328,
       "sources": 319,
-      "tokens": 269837
+      "tokens": 270348
     }
   }
 }

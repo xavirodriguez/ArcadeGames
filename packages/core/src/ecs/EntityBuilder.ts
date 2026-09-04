@@ -1,4 +1,7 @@
-import { World } from "./World";
+import { World, BlueprintRegistryMap } from "./World";
+import { ComponentRegistry, Component } from "./Component";
+import { CoreComponentRegistry } from "./CoreComponents";
+import { EventRegistry } from "../events/EventBus";
 import { Entity } from "./Entity";
 import {
   TransformComponent,
@@ -14,12 +17,16 @@ import {
  * Restricts builder operations strictly to platform-agnostic core components.
  * @public
  */
-export class EntityBuilder {
-  protected readonly world: World<any>;
+export class EntityBuilder<
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+> {
+  protected readonly world: World<TComponents, TEvents, TBlueprints>;
   protected readonly entity: Entity;
   protected readonly useCommandBuffer: boolean;
 
-  protected constructor(world: World<any>, entity: Entity, useCommandBuffer = false) {
+  protected constructor(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, useCommandBuffer = false) {
     this.world = world;
     this.entity = entity;
     this.useCommandBuffer = useCommandBuffer;
@@ -28,7 +35,11 @@ export class EntityBuilder {
   /**
    * Creates a new Entity in the given World and initializes an EntityBuilder instance.
    */
-  public static create(world: World<any>): EntityBuilder {
+  public static create<
+    TComponents extends ComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {
     const entity = world.createEntity();
     return new EntityBuilder(world, entity, false);
   }
@@ -36,14 +47,22 @@ export class EntityBuilder {
   /**
    * Constructs an EntityBuilder wrapping an existing Entity ID in the World.
    */
-  public static fromEntity(world: World<any>, entity: Entity): EntityBuilder {
+  public static fromEntity<
+    TComponents extends ComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity): EntityBuilder<TComponents, TEvents, TBlueprints> {
     return new EntityBuilder(world, entity, false);
   }
 
   /**
    * Creates an EntityBuilder that queues component additions onto the World's command buffer.
    */
-  public static createDeferred(world: World<any>): EntityBuilder {
+  public static createDeferred<
+    TComponents extends ComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {
     const entity = world.createEntity();
     return new EntityBuilder(world, entity, true);
   }
@@ -172,11 +191,22 @@ export class EntityBuilder {
     return this.entity;
   }
 
-  protected addComponent(component: any): void {
+  protected addComponent(
+    component:
+      | TransformComponent
+      | VelocityComponent
+      | RenderComponent
+      | ColliderComponent
+      | TTLComponent
+      | CollisionEventsComponent
+      | Component
+  ): void {
+    type K = Extract<keyof TComponents, string>;
+    const typedComp = component as TComponents[K] & { type: K };
     if (this.useCommandBuffer) {
-      this.world.getCommandBuffer().addComponent(this.entity, component);
+      this.world.getCommandBuffer().addComponent(this.entity, typedComp);
     } else {
-      this.world.addComponent(this.entity, component);
+      this.world.addComponent(this.entity, typedComp);
     }
   }
 }
@@ -185,7 +215,11 @@ export class EntityBuilder {
  * Factory helper function to instantiate an EntityBuilder.
  * @public
  */
-export function createEntityBuilder(world: World<any>, entity?: Entity): EntityBuilder {
+export function createEntityBuilder<
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+>(world: World<TComponents, TEvents, TBlueprints>, entity?: Entity): EntityBuilder<TComponents, TEvents, TBlueprints> {
   return entity !== undefined
     ? EntityBuilder.fromEntity(world, entity)
     : EntityBuilder.create(world);

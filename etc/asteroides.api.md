@@ -260,7 +260,7 @@ export const BaseConfigSchema: z.ZodObject<{
 }, z.core.$strip>;
 
 // @public
-export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput>, Simulation {
+export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
     constructor(config?: BaseGameConfig<TComponents, TEvents, TInput>);
     applyServerStateUpdate(update: WorldSnapshot | {
         resources?: Record<string, any>;
@@ -1122,7 +1122,7 @@ export function createEmptyCanonicalInputState<TExtra extends string = never>():
 export function createEmptyRawInputState(): RawInputState;
 
 // @public
-export function createEntityBuilder(world: World<any>, entity?: Entity): EntityBuilder;
+export function createEntityBuilder<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity?: Entity): EntityBuilder<TComponents, TEvents, TBlueprints>;
 
 // @public
 export class CrossfadeTransition implements ITransitionEffect {
@@ -1423,16 +1423,16 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
 export type Entity = number;
 
 // @public
-export class EntityBuilder {
-    protected constructor(world: World<any>, entity: Entity, useCommandBuffer?: boolean);
+export class EntityBuilder<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
+    protected constructor(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, useCommandBuffer?: boolean);
     // (undocumented)
-    protected addComponent(component: any): void;
+    protected addComponent(component: TransformComponent | VelocityComponent | RenderComponent | ColliderComponent | TTLComponent | CollisionEventsComponent | Component): void;
     build(): Entity;
-    static create(world: World<any>): EntityBuilder;
-    static createDeferred(world: World<any>): EntityBuilder;
+    static create<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints>;
+    static createDeferred<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints>;
     // (undocumented)
     protected readonly entity: Entity;
-    static fromEntity(world: World<any>, entity: Entity): EntityBuilder;
+    static fromEntity<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity): EntityBuilder<TComponents, TEvents, TBlueprints>;
     // (undocumented)
     protected readonly useCommandBuffer: boolean;
     withCollider(config: Partial<Omit<ColliderComponent, "type">>): this;
@@ -1442,7 +1442,7 @@ export class EntityBuilder {
     withTTL(remaining: number, onCompleteEvent?: string): this;
     withVelocity(config?: Partial<Omit<VelocityComponent, "type">>): this;
     // (undocumented)
-    protected readonly world: World<any>;
+    protected readonly world: World<TComponents, TEvents, TBlueprints>;
 }
 
 // @public
@@ -1809,17 +1809,17 @@ export interface IEntityPool {
 }
 
 // @public
-export interface IGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>> extends Simulation {
+export interface IGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> extends Simulation {
     destroy(): void;
     enterGameplayFreeze(duration?: number): void;
     exitGameplayFreeze(): void;
-    getEventBus(): EventBus<any>;
+    getEventBus(): EventBus<TEvents>;
     getGameLoop(): GameLoop;
     getGameplayFreezeRemaining(): number | undefined;
     getGameState(): TState;
     getInputSystem(): IInputSystem<TInput>;
     getSeed(): number;
-    getWorld(): World<any, any, any>;
+    getWorld(): World<TComponents, TEvents, TBlueprints>;
     init(): Promise<void>;
     isGameOver(): boolean;
     isGameplayFrozen(): boolean;
@@ -3872,7 +3872,7 @@ export interface Simulation {
     hash(): string;
     restore(snapshot: WorldSnapshot): void;
     snapshot(): WorldSnapshot;
-    readonly state: any;
+    readonly state: unknown;
     step(input: CompactInputFrame): void;
     readonly tick: number;
 }

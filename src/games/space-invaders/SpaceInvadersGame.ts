@@ -54,7 +54,11 @@ export class SpaceInvadersGame
 
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any, audio?: any, theme?: Theme } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
-    const loadedBaseConfig = ConfigService.load<SpaceInvadersConfig>("space-invaders", SpaceInvadersConfigSchema, spaceInvadersConfigRaw);
+    const loadedBaseConfig = ConfigService.load<SpaceInvadersConfig>(
+      "space-invaders",
+      SpaceInvadersConfigSchema,
+      config.gameOptions?.rawConfig ?? spaceInvadersConfigRaw
+    );
     super({
       pauseKey: loadedBaseConfig.KEYS.PAUSE,
       restartKey: loadedBaseConfig.KEYS.RESTART,

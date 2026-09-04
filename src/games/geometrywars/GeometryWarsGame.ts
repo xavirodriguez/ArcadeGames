@@ -7,10 +7,11 @@ import {
   Camera2DSystem,
   TransformComponent,
   WebAudioPlayer,
-  GameDefinition
+  GameDefinition,
+  ConfigService
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, GeometryWarsStateComponent, GeometryWarsInput, GeometryWarsBlueprintRegistry } from "./types/GeometryWarsRegistry";
-import { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
+import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { colors } from "../../theme/colors";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -49,10 +50,11 @@ export class GeometryWarsGame extends BaseGame<
     this.isHeadless = options.headless || false;
     this.isMultiplayer = options.isMultiplayer || false;
 
-    this.config = {
-      ...DEFAULT_CONFIG,
-      ...((options.gameOptions as any) || {})
-    };
+    this.config = ConfigService.load<GeometryWarsConfig>(
+      this.gameId,
+      GeometryWarsConfigSchema,
+      options.gameOptions?.rawConfig ?? DEFAULT_CONFIG
+    );
   }
 
   protected override async onRegisterSystems(): Promise<void> {

@@ -155,7 +155,7 @@ export interface StoryCondition {
   /** Key name of the event, flag, or state variable being evaluated. */
   key?: string;
   /** Target value expected for state variable or flag comparisons. */
-  value?: number | string | boolean;
+  value?: any;
   /** Comparison operator used for numeric or array evaluations. */
   operator?: "==" | "!=" | ">" | ">=" | "<" | "<=" | "contains";
   /** Probability threshold (0.0 to 1.0) for 'random' condition evaluation. */
@@ -245,7 +245,7 @@ export interface StoryNode {
   /** Marks this node as a checkpoint location for save state restore and rewind. */
   checkpoint?: boolean;
   /** Generic key-value store for custom gameplay metadata or extended runtime parameters. */
-  meta?: Record<string, unknown>;
+  meta?: Record<string, any>;
   /** Dialogue payload if node type is 'dialogue'. */
   dialogue?: Dialogue;
   /** Cutscene payload if node type is 'cutscene'. */
@@ -259,7 +259,7 @@ export interface StoryNode {
   /** Custom event payload automatically dispatched via `EventBus` upon entering this node. */
   emitEvent?: {
     name: string;
-    payload?: Record<string, number | string | boolean>;
+    payload?: Record<string, any>;
   };
   /** Outgoing transitions evaluated sequentially by priority. */
   transitions?: StoryTransition[];
@@ -463,7 +463,7 @@ export interface NarrativeEvent {
   /** List of consequent event IDs produced by this event. */
   readonly consequences?: readonly string[];
   /** Additional event metadata. */
-  readonly payload?: Record<string, unknown>;
+  readonly payload?: Record<string, any>;
 }
 
 /**
@@ -508,7 +508,7 @@ export interface NarrativePresentationModel {
     enabled: boolean;
   }>;
   /** Visual theme or background effect metadata. */
-  themeMeta?: Record<string, unknown>;
+  themeMeta?: Record<string, any>;
 }
 
 /**
@@ -524,7 +524,7 @@ export interface StoryState {
   /** Dynamic boolean flag map set by narrative consequences or event triggers. */
   flags: Record<string, boolean>;
   /** Dynamic variable dictionary storing numeric, string, or boolean state. */
-  variables: Record<string, number | string | boolean>;
+  variables: Record<string, number | string | boolean | any>;
   /** History log of choice IDs selected by player across choices. */
   selectedChoices: string[];
   /** Active objective progress lookup indexed by objective ID. */

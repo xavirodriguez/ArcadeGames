@@ -1,5 +1,4 @@
 import { World, ComponentRegistry, BlueprintRegistryMap, ComponentType } from "../ecs/World";
-import { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { Entity } from "../ecs/Entity";
 import { EventRegistry, EventBus } from "../events/EventBus";
 import { BlueprintRegistry } from "../ecs/BlueprintRegistry";
@@ -51,8 +50,7 @@ export enum GameLifecycleState {
 export interface BaseGameConfig<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
-  TInput extends Record<string, any> = Record<string, any>,
-  TBlueprints extends BlueprintRegistryMap<TComponents, TEvents> = BlueprintRegistryMap<TComponents, TEvents>
+  TInput extends Record<string, any> = Record<string, any>
 > {
   /** Key code to toggle pause state (e.g. `"KeyP"`). */
   pauseKey?: string;
@@ -77,7 +75,7 @@ export interface BaseGameConfig<
   /** Optional custom input system instance implementing `IInputSystem<TInput>`. Defaults to `NullInputSystem`. */
   inputSystem?: IInputSystem<TInput>;
   /** Factory callback to construct a custom `SceneManager` instance. */
-  sceneManagerFactory?: (world: World<TComponents, TEvents, TBlueprints>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
+  sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
   /** Optional `ArcadeKernel` state machine instance. Defaults to a new `ArcadeKernel`. */
   arcadeKernel?: ArcadeKernel;
   /** Disables the automatic loop ticker when true, delegating frame updates to an external driver (such as `GameSession`). */
@@ -117,7 +115,7 @@ export abstract class BaseGame<
   }
 
   /** High-level game state representation. */
-  public get state(): TState {
+  public get state(): any {
     return this.getGameState();
   }
 
@@ -228,22 +226,21 @@ export abstract class BaseGame<
         for (let i = 0; i < systems.length; i++) {
           const sys = systems[i];
           const name = sys.constructor.name || `System_${i}`;
-          timings[name] = (sys as unknown as { lastExecutionTimeMs?: number }).lastExecutionTimeMs ?? 0.01;
+          timings[name] = (sys as any).lastExecutionTimeMs ?? 0.01;
         }
         return timings;
       },
       getEntitySnapshot: () => {
-        const coreWorld = this.world as unknown as World<CoreComponentRegistry>;
-        const allEntities = coreWorld.getAllEntities();
+        const allEntities = this.world.getAllEntities();
         const snapshot: Array<{ id: number; components: Record<string, unknown> }> = [];
         for (let i = 0; i < allEntities.length; i++) {
           const entity = allEntities[i];
-          if (!coreWorld.isAlive(entity)) continue;
-          const types = coreWorld.getEntityComponentTypes(entity);
+          if (!this.world.isAlive(entity)) continue;
+          const types = this.world.getEntityComponentTypes(entity);
           const components: Record<string, unknown> = {};
           for (let j = 0; j < types.length; j++) {
-            const t = types[j] as keyof CoreComponentRegistry & string;
-            components[t] = coreWorld.getComponent(entity, t);
+            const t = types[j] as any;
+            components[t] = this.world.getComponent(entity, t);
           }
           snapshot.push({ id: entity, components });
         }
@@ -253,13 +250,12 @@ export abstract class BaseGame<
         return this._debugEventLog;
       },
       getColliderShapes: () => {
-        const shapes: Array<{ type: "circle" | "aabb"; x: number; y: number; isTrigger: boolean; shape: unknown }> = [];
-        const coreWorld = this.world as unknown as World<CoreComponentRegistry>;
-        const entitiesWithCollider = coreWorld.query("Collider2D", "Transform");
+        const shapes: Array<{ type: "circle" | "aabb"; x: number; y: number; isTrigger: boolean; shape: any }> = [];
+        const entitiesWithCollider = this.world.query("Collider2D" as any, "Transform" as any);
         for (let i = 0; i < entitiesWithCollider.length; i++) {
           const e = entitiesWithCollider[i];
-          const col = coreWorld.getComponent(e, "Collider2D");
-          const trans = coreWorld.getComponent(e, "Transform");
+          const col = this.world.getComponent(e, "Collider2D" as any) as any;
+          const trans = this.world.getComponent(e, "Transform" as any) as any;
           if (col && trans && col.enabled !== false) {
             if (col.shape?.type === "circle" || col.shape?.type === "aabb") {
               shapes.push({
@@ -344,7 +340,7 @@ export abstract class BaseGame<
     this.world.setResource("BlueprintRegistry", this.blueprints);
     this.world.setResource("EventBus", this.eventBus);
     this.world.setResource("InputSystem", this.unifiedInput);
-    this.world.setResource("Audio", this.audio);
+    this.world.setResource("Audio" as any, this.audio);
     this.world.setResource("SceneManager", this.sceneManager);
     this.world.setResource("headless", this._config.headless);
     this.world.setResource("ArcadeKernel", this.kernel);
@@ -374,9 +370,7 @@ export abstract class BaseGame<
     // Subscribe to game over events to transition the kernel
     this.boundGameOverListener = this.eventBus.on("game:over", (payload) => {
       if (this.kernel.getState() === ArcadeState.PLAYING) {
-        const stateObj = typeof payload?.state === "object" && payload.state !== null ? payload.state as { score?: number } : undefined;
-        const score = payload?.score ?? stateObj?.score;
-        this.kernel.transitionTo(ArcadeState.GAME_OVER, { score });
+        this.kernel.transitionTo(ArcadeState.GAME_OVER, { score: (payload?.state as any)?.score });
       }
     });
   }
@@ -456,7 +450,7 @@ export abstract class BaseGame<
     }
 
     const timeoutMs = this._config.initTimeout ?? 10000;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let timeoutId: any;
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error("Game initialization timed out"));
@@ -465,11 +459,11 @@ export abstract class BaseGame<
 
     const initPromise = (async () => {
       await this.onRegisterSystems();
-      if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
+      if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
         return;
       }
       await this.onInitializeEntities();
-      if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
+      if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
         return;
       }
     })();
@@ -729,7 +723,7 @@ export abstract class BaseGame<
     }
 
     await this.onBeforeRestart();
-    if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
+    if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
       return;
     }
     this.destroy();

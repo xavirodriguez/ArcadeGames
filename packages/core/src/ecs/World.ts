@@ -817,11 +817,6 @@ function assertResourceShape(name: string, value: unknown): void {
   if (value === undefined || value === null) return;
 
   switch (name) {
-    case "Audio":
-      if (typeof value !== "object" || value === null) {
-        throw new Error(`[World] Resource "Audio" must be an object.`);
-      }
-      break;
     case "Theme": {
       const themeVal = value as Record<string, unknown>;
       if (typeof themeVal !== "object" || themeVal === null) {

@@ -1,4 +1,4 @@
-import { CoreComponentRegistry, TransformComponent, VelocityComponent } from "../ecs/CoreComponents";
+import { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { World } from "../ecs/World";
 
 /**
@@ -21,22 +21,10 @@ export interface MultiplayerRegistry extends CoreComponentRegistry {
  *
  * @public
  */
-/**
- * Default input payload structure for network input reconciliation.
- *
- * @public
- */
-export type DefaultInputPayload = {
+export interface ReconciledInput<TInput = {
     actions: Set<string>;
     axes: Record<string, number>;
-};
-
-/**
- * Represents a historical input tick queued for prediction reconciliation.
- *
- * @public
- */
-export interface ReconciledInput<TInput = DefaultInputPayload> {
+}> {
     /** The simulation tick index. */
     tick: number;
     /** The input payload captured at this tick. */
@@ -70,7 +58,7 @@ export interface AuthoritativeServerState {
  */
 export interface IPredictionModel<
     TRegistry extends MultiplayerRegistry = MultiplayerRegistry,
-    TInput = DefaultInputPayload
+    TInput = any
 > {
     /**
      * Optional array of component names required for querying local prediction entities.
@@ -137,7 +125,7 @@ export interface IInterpolationModel<
  */
 export interface LocalPredictionOptions<
     TRegistry extends MultiplayerRegistry = MultiplayerRegistry,
-    TInput = DefaultInputPayload
+    TInput = any
 > {
     /** The prediction model strategy instance. */
     predictionModel?: IPredictionModel<TRegistry, TInput>;
@@ -182,7 +170,7 @@ export interface RemoteInterpolationOptions<
  */
 export class LinearPredictionModel<
     TRegistry extends MultiplayerRegistry = MultiplayerRegistry,
-    TInput = DefaultInputPayload
+    TInput = any
 > implements IPredictionModel<TRegistry, TInput> {
     /** Component names queried for linear prediction. */
     public queryComponents?: Extract<keyof TRegistry, string>[] = [
@@ -190,7 +178,7 @@ export class LinearPredictionModel<
         "LocalPlayer",
         "Velocity",
         "Input"
-    ] as Extract<keyof TRegistry, string>[];
+    ] as any;
 
     /**
      * Creates an instance of LinearPredictionModel.
@@ -206,9 +194,8 @@ export class LinearPredictionModel<
         _input: TInput,
         dt: number
     ): void {
-        const coreWorld = world as World<CoreComponentRegistry>;
-        const vel = coreWorld.getComponent(entity, "Velocity");
-        const mutT = coreWorld.getMutableComponent(entity, "Transform");
+        const vel = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
+        const mutT = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
         if (mutT && vel) {
             mutT.x += vel.vx * dt;
             mutT.y += vel.vy * dt;
@@ -223,14 +210,13 @@ export class LinearPredictionModel<
         entity: number,
         state: AuthoritativeServerState
     ): void {
-        const coreWorld = world as World<CoreComponentRegistry>;
-        const mutTrans = coreWorld.getMutableComponent(entity, "Transform");
+        const mutTrans = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
         if (mutTrans) {
             mutTrans.x = state.x;
             mutTrans.y = state.y;
         }
 
-        const mutVel = coreWorld.getMutableComponent(entity, "Velocity");
+        const mutVel = world.getMutableComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
         if (mutVel) {
             mutVel.vx = state.vx;
             mutVel.vy = state.vy;
@@ -250,7 +236,7 @@ export class ExponentialSmoothingModel<
     public queryComponents?: Extract<keyof TRegistry, string>[] = [
         "Transform",
         "RemotePlayer"
-    ] as Extract<keyof TRegistry, string>[];
+    ] as any;
 
     /**
      * Creates an instance of ExponentialSmoothingModel.
@@ -274,7 +260,7 @@ export class ExponentialSmoothingModel<
 
         const alpha = 1 - Math.pow(1 - this.smoothingFactor, deltaTime * 60);
 
-        (world as World<CoreComponentRegistry>).mutateComponent(entity, "Transform", (t) => {
+        world.mutateComponent(entity, "Transform" as Extract<keyof TRegistry, string>, (t: any) => {
             if (targetState.targetX !== undefined) {
                 t.x += (targetState.targetX - t.x) * alpha;
             }

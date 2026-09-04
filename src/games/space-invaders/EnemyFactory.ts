@@ -1,5 +1,4 @@
-import { World } from "@tiny-aster/core";
-import { Entity, Component } from "@tiny-aster/core";
+import { World, Entity, Component, createDeferredEntity } from "@tiny-aster/core";
 import { EnemyBlueprints } from "./config/EnemyBlueprints";
 import { EnemyTagComponent } from "./components/EnemyTagComponent";
 import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent, FactionComponent, Theme, resolveThemeColor } from "@tiny-aster/core";
@@ -60,7 +59,7 @@ export class EnemyFactory {
             }
           }
         }
-      : this.createBaseEntity(world, deferred);
+      : createDeferredEntity(world, deferred);
 
     // 1. Transform
     add({
@@ -202,26 +201,4 @@ export class EnemyFactory {
     return entity;
   }
 
-  /**
-   * Internal helper for entity creation logic.
-   */
-  private static createBaseEntity(world: World, deferred?: boolean): { entity: Entity, add: (comp: Component) => void } {
-    const isDeferred = !!(deferred || world.isUpdating);
-    const commands = world.getCommandBuffer();
-
-    if (isDeferred) {
-      const entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      return {
-        entity,
-        add: (comp: Component) => commands.addComponent(entity, comp)
-      };
-    }
-
-    const entity = world.createEntity();
-    return {
-      entity,
-      add: (comp: Component) => world.addComponent(entity, comp)
-    };
-  }
 }

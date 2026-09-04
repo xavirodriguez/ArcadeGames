@@ -9,7 +9,9 @@ import {
   EntityBuilder,
   HealthComponent,
   BoundaryComponent,
-  SpriteComponent
+  SpriteComponent,
+  createDeferredEntity,
+  spawnBlueprintEntity
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../shared/types/CollisionLayers";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
@@ -272,51 +274,8 @@ export function registerAsteroidsBlueprints(
   world.setResource("BlueprintRegistry", registry);
 }
 
-// Generadores de entidades genéricas que admiten cualquier tipo de componente dinámico.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createBaseEntity = (world: World<any>): { entity: number, add: (comp: any) => void } => {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:26-42. Considerar extraer a función compartida. Ref: 8db4e6a4
-    if (isUpdating) {
-        const entity = world.reserveEntityId();
-        commands.createEntity(entity);
-        return {
-            entity,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            add: (comp: any) => {
-                commands.addComponent(entity, comp);
-            }
-        };
-    }
-
-    const entity = world.createEntity();
-    return {
-        entity,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        add: (comp: any) => world.addComponent(entity, comp)
-    };
-};
 
 // TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa
-function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  if (world.isUpdating) {
-    const entity = world.reserveEntityId();
-    world.commands.createEntity(entity);
-    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
-    return entity;
-  }
-
-  const entity = world.createEntity();
-  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
-  const blueprint = registry?.get(blueprintId);
-  if (blueprint) {
-    blueprint.spawn(world, entity, args);
-  }
-  return entity;
-}
-
 /** @public */
 export const createPowerUp = (config: {
   world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
@@ -324,7 +283,7 @@ export const createPowerUp = (config: {
   y: number;
   lootType: string;
 }): number => {
-  return spawnEntity(config.world, "powerup", {
+  return spawnBlueprintEntity(config.world, "powerup", {
     x: config.x,
     y: config.y,
     lootType: config.lootType
@@ -333,7 +292,7 @@ export const createPowerUp = (config: {
 
 /** @public */
 export const createShip = (config: { world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, x: number, y: number }): number => {
-    return spawnEntity(config.world, "ship", { x: config.x, y: config.y });
+    return spawnBlueprintEntity(config.world, "ship", { x: config.x, y: config.y });
 };
 
 /**
@@ -406,7 +365,7 @@ export function createBullet(
     life = worldOrConfig.ttl ?? bulletTtl;
   }
 
-  return spawnEntity(world, "bullet", {
+  return spawnBlueprintEntity(world, "bullet", {
     x: posX,
     y: posY,
     vx: vxVal,
@@ -427,7 +386,7 @@ export const createAsteroid = (config: {
     vy?: number;
     angularVelocity?: number;
 }): number => {
-    return spawnEntity(config.world, "asteroid", {
+    return spawnBlueprintEntity(config.world, "asteroid", {
         x: config.x,
         y: config.y,
         size: config.size,

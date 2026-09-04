@@ -22,6 +22,7 @@ export * from "./ecs/WorldCommandBuffer";
 export * from "./ecs/BlueprintRegistry";
 export * from "./ecs/CoreComponents";
 export * from "./ecs/TagComponent";
+export * from "./ecs/EntityHelpers";
 export * from "./snapshots/WorldSnapshot";
 export * from "./snapshots/SnapshotMetadataBuilder";
 export * from "./snapshots/SnapshotSerializer";

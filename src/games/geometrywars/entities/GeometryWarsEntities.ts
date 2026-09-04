@@ -6,7 +6,8 @@ import {
   Theme,
   resolveThemeColor,
   EntityBuilder,
-  HealthComponent
+  HealthComponent,
+  spawnBlueprintEntity
 } from "@tiny-aster/core";
 import { CollisionLayers } from "../../shared/types/CollisionLayers";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
@@ -328,57 +329,36 @@ export function registerGeometryWarsBlueprints(
   world.setResource("BlueprintRegistry", registry);
 }
 
-function spawnEntity(
-  world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>,
-  blueprintId: string,
-  args: any
-): number {
-  if (world.isUpdating) {
-    const entity = world.reserveEntityId();
-    world.commands.createEntity(entity);
-    world.commands.spawnFromBlueprintForEntity(entity, blueprintId as any, args);
-    return entity;
-  }
-
-  const entity = world.createEntity();
-  const registry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-  const blueprint = registry?.get(blueprintId);
-  if (blueprint) {
-    blueprint.spawn(world, entity, args);
-  }
-  return entity;
-}
-
 /**
  * Factory functions for spawning Geometry Wars entities.
  * @public
  */
 export class GeometryWarsEntityFactory {
   public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    return spawnEntity(world, "seeker", { x, y });
+    return spawnBlueprintEntity(world, "seeker", { x, y });
   }
 
   public static createEvader(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    return spawnEntity(world, "evader", { x, y });
+    return spawnBlueprintEntity(world, "evader", { x, y });
   }
 
   public static createFastSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    return spawnEntity(world, "fast_seeker", { x, y });
+    return spawnBlueprintEntity(world, "fast_seeker", { x, y });
   }
 
   public static createPlayer(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    return spawnEntity(world, "player", { x, y });
+    return spawnBlueprintEntity(world, "player", { x, y });
   }
 
   public static createBullet(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number, vx: number, vy: number, rotation: number): number {
-    return spawnEntity(world, "bullet", { x, y, vx, vy, rotation });
+    return spawnBlueprintEntity(world, "bullet", { x, y, vx, vy, rotation });
   }
 
   public static createSpawnDirector(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
-    return spawnEntity(world, "spawn_director", {});
+    return spawnBlueprintEntity(world, "spawn_director", {});
   }
 
   public static createGameState(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
-    return spawnEntity(world, "state", {});
+    return spawnBlueprintEntity(world, "state", {});
   }
 }

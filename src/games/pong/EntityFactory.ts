@@ -1,28 +1,8 @@
-import { World } from "@tiny-aster/core";
+import { World, spawnBlueprintEntity } from "@tiny-aster/core";
 import { PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
 import { TransformComponent, VelocityComponent, ColliderComponent } from "@tiny-aster/core";
 
 import { CollisionLayers } from "../shared/types/CollisionLayers";
-
-// TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: c53d5ed5
-import { BlueprintRegistry } from "@tiny-aster/core";
-
-function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  if (world.isUpdating) {
-    const entity = world.reserveEntityId();
-    world.commands.createEntity(entity);
-    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
-    return entity;
-  }
-
-  const entity = world.createEntity();
-  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
-  const blueprint = registry?.get(blueprintId);
-  if (blueprint) {
-    blueprint.spawn(world, entity, args);
-  }
-  return entity;
-}
 
 /**
  * Factoría para la creación de entidades de Pong.
@@ -39,7 +19,7 @@ export const PongEntityFactory = {
    * Uses `gameplayRandom` to determine initial vertical direction.
    */
   createBall(world: World<any>) {
-    return spawnEntity(world, "ball", {});
+    return spawnBlueprintEntity(world, "ball", {});
   },
 
   /**
@@ -48,10 +28,10 @@ export const PongEntityFactory = {
    * @param side - Which side of the screen the paddle belongs to.
    */
   createPaddle(world: World<any>, side: "left" | "right") {
-    return spawnEntity(world, "paddle", { side });
+    return spawnBlueprintEntity(world, "paddle", { side });
   },
 
   createGameState(world: World<any>) {
-    return spawnEntity(world, "state", {});
+    return spawnBlueprintEntity(world, "state", {});
   }
 };

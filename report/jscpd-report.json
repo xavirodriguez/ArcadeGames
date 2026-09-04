@@ -1556,43 +1556,6 @@
     },
     {
       "firstFile": {
-        "end": 76,
-        "endLoc": {
-          "column": 11,
-          "line": 76,
-          "position": 2830
-        },
-        "name": "utils/ComponentSetPool.ts",
-        "start": 68,
-        "startLoc": {
-          "column": 36,
-          "line": 68,
-          "position": 2530
-        }
-      },
-      "format": "typescript",
-      "fragment": "        commands.createEntity(entity);\n\n        this.activeEntities.add(entity);\n\n        for (const key in components) {\n          const comp = components[key];\n          if (comp.type === \"Reclaimable\") {\n            (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);\n          }",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 93,
-        "endLoc": {
-          "column": 7,
-          "line": 93,
-          "position": 3479
-        },
-        "name": "utils/ComponentSetPool.ts",
-        "start": 84,
-        "startLoc": {
-          "column": 38,
-          "line": 84,
-          "position": 3126
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
         "end": 399,
         "endLoc": {
           "column": 26,
@@ -1741,18 +1704,18 @@
     },
     {
       "firstFile": {
-        "end": 109,
+        "end": 111,
         "endLoc": {
           "column": 115,
-          "line": 109,
-          "position": 4060
+          "line": 111,
+          "position": 4108
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 104,
+        "start": 106,
         "startLoc": {
           "column": 45,
-          "line": 104,
-          "position": 3896
+          "line": 106,
+          "position": 3944
         }
       },
       "format": "typescript",
@@ -1760,36 +1723,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 88,
+        "end": 89,
         "endLoc": {
           "column": 115,
-          "line": 88,
-          "position": 3632
+          "line": 89,
+          "position": 3656
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 83,
+        "start": 84,
         "startLoc": {
           "column": 61,
-          "line": 83,
-          "position": 3468
+          "line": 84,
+          "position": 3492
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 227,
+        "end": 229,
         "endLoc": {
           "column": 13,
-          "line": 227,
-          "position": 8117
+          "line": 229,
+          "position": 8165
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 214,
+        "start": 216,
         "startLoc": {
           "column": 28,
-          "line": 214,
-          "position": 7639
+          "line": 216,
+          "position": 7687
         }
       },
       "format": "typescript",
@@ -1797,95 +1760,21 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 134,
+        "end": 135,
         "endLoc": {
           "column": 13,
-          "line": 134,
-          "position": 5833
+          "line": 135,
+          "position": 5857
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 129,
+        "start": 130,
         "startLoc": {
           "column": 29,
-          "line": 129,
-          "position": 5591
+          "line": 130,
+          "position": 5615
         }
       },
       "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 300,
-        "endLoc": {
-          "column": 2,
-          "line": 300,
-          "position": 10406
-        },
-        "name": "asteroids/EntityFactory.ts",
-        "start": 282,
-        "startLoc": {
-          "column": 18,
-          "line": 282,
-          "position": 9873
-        }
-      },
-      "format": "typescript",
-      "fragment": "    if (isUpdating) {\n        const entity = world.reserveEntityId();\n        commands.createEntity(entity);\n        return {\n            entity,\n            // eslint-disable-next-line @typescript-eslint/no-explicit-any\n            add: (comp: any) => {\n                commands.addComponent(entity, comp);\n            }\n        };\n    }\n\n    const entity = world.createEntity();\n    return {\n        entity,\n        // eslint-disable-next-line @typescript-eslint/no-explicit-any\n        add: (comp: any) => world.addComponent(entity, comp)\n    };\n};",
-      "isNew": false,
-      "lines": 19,
-      "secondFile": {
-        "end": 44,
-        "endLoc": {
-          "column": 2,
-          "line": 44,
-          "position": 1758
-        },
-        "name": "flappybird/EntityFactory.ts",
-        "start": 28,
-        "startLoc": {
-          "column": 18,
-          "line": 28,
-          "position": 1371
-        }
-      },
-      "tokens": 77
-    },
-    {
-      "firstFile": {
-        "end": 321,
-        "endLoc": {
-          "column": 6,
-          "line": 321,
-          "position": 11149
-        },
-        "name": "asteroids/EntityFactory.ts",
-        "start": 300,
-        "startLoc": {
-          "column": 1,
-          "line": 300,
-          "position": 10405
-        }
-      },
-      "format": "typescript",
-      "fragment": "};\n\n// TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.createEntity(entity);\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/** @public */\nexport const createPowerUp = (config: {",
-      "isNew": false,
-      "lines": 22,
-      "secondFile": {
-        "end": 93,
-        "endLoc": {
-          "column": 6,
-          "line": 93,
-          "position": 3064
-        },
-        "name": "flappybird/EntityFactory.ts",
-        "start": 67,
-        "startLoc": {
-          "column": 52,
-          "line": 67,
-          "position": 2283
-        }
-      },
-      "tokens": 129
     },
     {
       "firstFile": {
@@ -4146,80 +4035,6 @@
     },
     {
       "firstFile": {
-        "end": 44,
-        "endLoc": {
-          "column": 2,
-          "line": 44,
-          "position": 1758
-        },
-        "name": "flappybird/EntityFactory.ts",
-        "start": 7,
-        "startLoc": {
-          "column": 127,
-          "line": 7,
-          "position": 581
-        }
-      },
-      "format": "typescript",
-      "fragment": "import { Collider2DComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent } from \"@tiny-aster/core\";\n\n/**\n * Entity factory for the Flappy Bird game domain.\n *\n * Coordinates the creation of the bird, pipes, and ground.\n * Manages the spatial layout of pipes and ensures proper collision masking\n * for the \"flap and avoid\" gameplay.\n *\n * @packageDocumentation\n */\n\n/**\n * Helper to handle deferred or immediate entity creation and component attachment.\n */\nconst createBaseEntity = (world: World<any>, deferred?: boolean): { entity: Entity, add: (comp: any) => void } => {\n    const isUpdating = world.isUpdating;\n    const isDeferred = !!(deferred || isUpdating);\n    const commands = world.getCommandBuffer();\n\n    // TODO(refactor): código duplicado detectado (bloque) con asteroids/EntityFactory.ts:279-297. Considerar extraer a función compartida. Ref: 8db4e6a4\n    if (isDeferred) {\n        const entity = world.reserveEntityId();\n        commands.createEntity(entity);\n        return {\n            entity,\n            add: (comp: any) => {\n                commands.addComponent(entity, comp);\n            }\n        };\n    }\n\n    const entity = world.createEntity();\n    return {\n        entity,\n        add: (comp: any) => world.addComponent(entity, comp)\n    };\n};",
-      "isNew": false,
-      "lines": 38,
-      "secondFile": {
-        "end": 54,
-        "endLoc": {
-          "column": 2,
-          "line": 54,
-          "position": 2045
-        },
-        "name": "space-invaders/EntityFactory.ts",
-        "start": 19,
-        "startLoc": {
-          "column": 45,
-          "line": 19,
-          "position": 1020
-        }
-      },
-      "tokens": 142
-    },
-    {
-      "firstFile": {
-        "end": 93,
-        "endLoc": {
-          "column": 15,
-          "line": 93,
-          "position": 3073
-        },
-        "name": "flappybird/EntityFactory.ts",
-        "start": 67,
-        "startLoc": {
-          "column": 0,
-          "line": 67,
-          "position": 2231
-        }
-      },
-      "format": "typescript",
-      "fragment": "import { BlueprintRegistry } from \"@tiny-aster/core\";\n\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.createEntity(entity);\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/**\n * Crea la entidad del pájaro (jugador).\n *\n * @remarks\n * Incluye física de gravedad, manejo de entrada y un buffer de entrada especializado\n * para facilitar el timing del salto (jump timing).\n */\nexport function createBird(options: CreateBirdParams): Entity {",
-      "isNew": false,
-      "lines": 27,
-      "secondFile": {
-        "end": 36,
-        "endLoc": {
-          "column": 12,
-          "line": 36,
-          "position": 1411
-        },
-        "name": "pong/EntityFactory.ts",
-        "start": 8,
-        "startLoc": {
-          "column": 0,
-          "line": 8,
-          "position": 431
-        }
-      },
-      "tokens": 136
-    },
-    {
-      "firstFile": {
         "end": 75,
         "endLoc": {
           "column": 35,
@@ -5404,18 +5219,18 @@
     },
     {
       "firstFile": {
-        "end": 123,
+        "end": 124,
         "endLoc": {
           "column": 28,
-          "line": 123,
-          "position": 5292
+          "line": 124,
+          "position": 5316
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 117,
+        "start": 118,
         "startLoc": {
           "column": 34,
-          "line": 117,
-          "position": 4878
+          "line": 118,
+          "position": 4902
         }
       },
       "format": "typescript",
@@ -5423,36 +5238,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 150,
+        "end": 151,
         "endLoc": {
           "column": 28,
-          "line": 150,
-          "position": 6642
+          "line": 151,
+          "position": 6666
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 144,
+        "start": 145,
         "startLoc": {
           "column": 34,
-          "line": 144,
-          "position": 6228
+          "line": 145,
+          "position": 6252
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 123,
+        "end": 124,
         "endLoc": {
           "column": 28,
-          "line": 123,
-          "position": 5292
+          "line": 124,
+          "position": 5316
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 117,
+        "start": 118,
         "startLoc": {
           "column": 34,
-          "line": 117,
-          "position": 4878
+          "line": 118,
+          "position": 4902
         }
       },
       "format": "typescript",
@@ -5460,36 +5275,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 176,
+        "end": 177,
         "endLoc": {
           "column": 28,
-          "line": 176,
-          "position": 7812
+          "line": 177,
+          "position": 7836
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 170,
+        "start": 171,
         "startLoc": {
           "column": 33,
-          "line": 170,
-          "position": 7402
+          "line": 171,
+          "position": 7426
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 123,
+        "end": 124,
         "endLoc": {
           "column": 28,
-          "line": 123,
-          "position": 5292
+          "line": 124,
+          "position": 5316
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 117,
+        "start": 118,
         "startLoc": {
           "column": 34,
-          "line": 117,
-          "position": 4878
+          "line": 118,
+          "position": 4902
         }
       },
       "format": "typescript",
@@ -5497,36 +5312,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 231,
+        "end": 232,
         "endLoc": {
           "column": 28,
-          "line": 231,
-          "position": 9820
+          "line": 232,
+          "position": 9844
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 225,
+        "start": 226,
         "startLoc": {
           "column": 28,
-          "line": 225,
-          "position": 9406
+          "line": 226,
+          "position": 9430
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 123,
+        "end": 124,
         "endLoc": {
           "column": 47,
-          "line": 123,
-          "position": 5311
+          "line": 124,
+          "position": 5335
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 117,
+        "start": 118,
         "startLoc": {
           "column": 34,
-          "line": 117,
-          "position": 4878
+          "line": 118,
+          "position": 4902
         }
       },
       "format": "typescript",
@@ -5534,36 +5349,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 266,
+        "end": 267,
         "endLoc": {
           "column": 47,
-          "line": 266,
-          "position": 11430
+          "line": 267,
+          "position": 11454
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 260,
+        "start": 261,
         "startLoc": {
           "column": 28,
-          "line": 260,
-          "position": 11001
+          "line": 261,
+          "position": 11025
         }
       },
       "tokens": 73
     },
     {
       "firstFile": {
-        "end": 123,
+        "end": 124,
         "endLoc": {
           "column": 28,
-          "line": 123,
-          "position": 5292
+          "line": 124,
+          "position": 5316
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 117,
+        "start": 118,
         "startLoc": {
           "column": 34,
-          "line": 117,
-          "position": 4878
+          "line": 118,
+          "position": 4902
         }
       },
       "format": "typescript",
@@ -5571,36 +5386,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 300,
+        "end": 301,
         "endLoc": {
           "column": 28,
-          "line": 300,
-          "position": 12981
+          "line": 301,
+          "position": 13005
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 294,
+        "start": 295,
         "startLoc": {
           "column": 33,
-          "line": 294,
-          "position": 12571
+          "line": 295,
+          "position": 12595
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 137,
+        "end": 138,
         "endLoc": {
           "column": 17,
-          "line": 137,
-          "position": 5918
+          "line": 138,
+          "position": 5942
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 123,
+        "start": 124,
         "startLoc": {
           "column": 70,
-          "line": 123,
-          "position": 5334
+          "line": 124,
+          "position": 5358
         }
       },
       "format": "typescript",
@@ -5608,36 +5423,36 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 164,
+        "end": 165,
         "endLoc": {
           "column": 17,
-          "line": 164,
-          "position": 7266
+          "line": 165,
+          "position": 7290
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 150,
+        "start": 151,
         "startLoc": {
           "column": 68,
-          "line": 150,
-          "position": 6682
+          "line": 151,
+          "position": 6706
         }
       },
       "tokens": 115
     },
     {
       "firstFile": {
-        "end": 137,
+        "end": 138,
         "endLoc": {
           "column": 17,
-          "line": 137,
-          "position": 5918
+          "line": 138,
+          "position": 5942
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 125,
+        "start": 126,
         "startLoc": {
           "column": 53,
-          "line": 125,
-          "position": 5425
+          "line": 126,
+          "position": 5449
         }
       },
       "format": "typescript",
@@ -5645,36 +5460,36 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 190,
+        "end": 191,
         "endLoc": {
           "column": 17,
-          "line": 190,
-          "position": 8437
+          "line": 191,
+          "position": 8461
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 178,
+        "start": 179,
         "startLoc": {
           "column": 53,
-          "line": 178,
-          "position": 7944
+          "line": 179,
+          "position": 7968
         }
       },
       "tokens": 93
     },
     {
       "firstFile": {
-        "end": 240,
+        "end": 241,
         "endLoc": {
           "column": 55,
-          "line": 240,
-          "position": 10355
+          "line": 241,
+          "position": 10379
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 231,
+        "start": 232,
         "startLoc": {
           "column": 70,
-          "line": 231,
-          "position": 9862
+          "line": 232,
+          "position": 9886
         }
       },
       "format": "typescript",
@@ -5682,36 +5497,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 275,
+        "end": 276,
         "endLoc": {
           "column": 55,
-          "line": 275,
-          "position": 11947
+          "line": 276,
+          "position": 11971
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 266,
+        "start": 267,
         "startLoc": {
           "column": 71,
-          "line": 266,
-          "position": 11454
+          "line": 267,
+          "position": 11478
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 251,
+        "end": 252,
         "endLoc": {
           "column": 13,
-          "line": 251,
-          "position": 10785
+          "line": 252,
+          "position": 10809
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 240,
+        "start": 241,
         "startLoc": {
           "column": 65,
-          "line": 240,
-          "position": 10365
+          "line": 241,
+          "position": 10389
         }
       },
       "format": "typescript",
@@ -5719,36 +5534,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 286,
+        "end": 287,
         "endLoc": {
           "column": 13,
-          "line": 286,
-          "position": 12377
+          "line": 287,
+          "position": 12401
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 275,
+        "start": 276,
         "startLoc": {
           "column": 65,
-          "line": 275,
-          "position": 11957
+          "line": 276,
+          "position": 11981
         }
       },
       "tokens": 76
     },
     {
       "firstFile": {
-        "end": 288,
+        "end": 289,
         "endLoc": {
           "column": 17,
-          "line": 288,
-          "position": 12436
+          "line": 289,
+          "position": 12460
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 268,
+        "start": 269,
         "startLoc": {
           "column": 53,
-          "line": 268,
-          "position": 11545
+          "line": 269,
+          "position": 11569
         }
       },
       "format": "typescript",
@@ -5756,18 +5571,18 @@
       "isNew": false,
       "lines": 21,
       "secondFile": {
-        "end": 321,
+        "end": 322,
         "endLoc": {
           "column": 17,
-          "line": 321,
-          "position": 13832
+          "line": 322,
+          "position": 13856
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 302,
+        "start": 303,
         "startLoc": {
           "column": 53,
-          "line": 302,
-          "position": 13118
+          "line": 303,
+          "position": 13142
         }
       },
       "tokens": 128
@@ -6992,43 +6807,6 @@
         }
       },
       "tokens": 80
-    },
-    {
-      "firstFile": {
-        "end": 36,
-        "endLoc": {
-          "column": 12,
-          "line": 36,
-          "position": 1411
-        },
-        "name": "pong/EntityFactory.ts",
-        "start": 5,
-        "startLoc": {
-          "column": 65,
-          "line": 5,
-          "position": 277
-        }
-      },
-      "format": "typescript",
-      "fragment": "import { CollisionLayers } from \"../shared/types/CollisionLayers\";\n\n// TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: c53d5ed5\nimport { BlueprintRegistry } from \"@tiny-aster/core\";\n\nfunction spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {\n  if (world.isUpdating) {\n    const entity = world.reserveEntityId();\n    world.commands.createEntity(entity);\n    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);\n    return entity;\n  }\n\n  const entity = world.createEntity();\n  const registry = world.getResource<BlueprintRegistry<any, any, any>>(\"BlueprintRegistry\");\n  const blueprint = registry?.get(blueprintId);\n  if (blueprint) {\n    blueprint.spawn(world, entity, args);\n  }\n  return entity;\n}\n\n/**\n * Factoría para la creación de entidades de Pong.\n *\n * @responsibility Instanciar la bola, las paletas y el estado global con los componentes correctos.\n *\n * @remarks\n * Encapsula la configuración de dimensiones, velocidades iniciales y máscaras de colisión\n * necesarias para el comportamiento de rebote característico de Pong.\n */\nexport const PongEntityFactory = {",
-      "isNew": false,
-      "lines": 32,
-      "secondFile": {
-        "end": 80,
-        "endLoc": {
-          "column": 15,
-          "line": 80,
-          "position": 2933
-        },
-        "name": "space-invaders/EntityFactory.ts",
-        "start": 54,
-        "startLoc": {
-          "column": 1,
-          "line": 54,
-          "position": 2044
-        }
-      },
-      "tokens": 137
     },
     {
       "firstFile": {
@@ -9178,32 +8956,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-04T14:56:54.823Z",
+    "detectionDate": "2026-09-04T15:25:19.965Z",
     "formats": {
       "typescript": {
-        "clones": 248,
-        "duplicatedLines": 2876,
-        "duplicatedTokens": 20661,
-        "lines": 50803,
+        "clones": 242,
+        "duplicatedLines": 2735,
+        "duplicatedTokens": 19980,
+        "lines": 50609,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 5.661083006909041,
-        "percentageTokens": 7.638953077801893,
-        "sources": 318,
-        "tokens": 270469
+        "percentage": 5.4041771226461695,
+        "percentageTokens": 7.42565977990612,
+        "sources": 319,
+        "tokens": 269067
       }
     },
     "total": {
-      "clones": 248,
-      "duplicatedLines": 2876,
-      "duplicatedTokens": 20661,
-      "lines": 50803,
+      "clones": 242,
+      "duplicatedLines": 2735,
+      "duplicatedTokens": 19980,
+      "lines": 50609,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 5.661083006909041,
-      "percentageTokens": 7.638953077801893,
-      "sources": 318,
-      "tokens": 270469
+      "percentage": 5.4041771226461695,
+      "percentageTokens": 7.42565977990612,
+      "sources": 319,
+      "tokens": 269067
     }
   }
 }

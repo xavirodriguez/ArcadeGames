@@ -11,7 +11,16 @@ import {
 } from "./types";
 
 // Tipos auxiliares de componentes esperados por el sistema de físicas/predicción
+/**
+ * Helper transform interface for network prediction.
+ * @public
+ */
 export interface TransformLike { x: number; y: number; [key: string]: unknown; }
+
+/**
+ * Helper velocity interface for network prediction.
+ * @public
+ */
 export interface VelocityLike { vx: number; vy: number; [key: string]: unknown; }
 /**
  * System responsible for client-side local prediction and input reconciliation.

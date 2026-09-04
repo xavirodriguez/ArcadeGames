@@ -10,21 +10,27 @@ import {
     LinearPredictionModel
 } from "./types";
 
+// Tipos auxiliares de componentes esperados por el sistema de físicas/predicción
+export interface TransformLike { x: number; y: number; [key: string]: unknown; }
+export interface VelocityLike { vx: number; vy: number; [key: string]: unknown; }
 /**
  * System responsible for client-side local prediction and input reconciliation.
  * Runs in SystemPhase.Input phase.
  *
  * @public
  */
-export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = MultiplayerRegistry> extends System<TRegistry> {
-    private inputQueue: ReconciledInput<unknown>[] = [];
+export class LocalPredictionSystem<
+    TRegistry extends MultiplayerRegistry = MultiplayerRegistry,
+    TInput = Record<string, unknown>
+> extends System<TRegistry> {
+    private inputQueue: ReconciledInput<TInput>[] = [];
     private lastProcessedTick = 0;
 
-    private predictionModel?: IPredictionModel<TRegistry, any>;
+    private predictionModel?: IPredictionModel<TRegistry, TInput>;
     /** @deprecated Use predictionModel instead. */
-    private simulateFn?: (world: World<TRegistry>, input: any, dt: number) => void;
+    private simulateFn?: (world: World<TRegistry>, input: TInput, dt: number) => void;
     /** @deprecated Use predictionModel instead. */
-    private reconcileFn?: (world: World<TRegistry>, entity: number, input: any, dt: number) => void;
+    private reconcileFn?: (world: World<TRegistry>, entity: number, input: TInput, dt: number) => void;
 
     private queryComponents: Extract<keyof TRegistry, string>[];
     private reconcileQueryComponents: Extract<keyof TRegistry, string>[];
@@ -40,10 +46,10 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
      */
     constructor(
         private networkManager: NetworkManager<TRegistry>,
-        optionsOrSimulateFn?: LocalPredictionOptions<TRegistry> | ((world: World<TRegistry>, input: any, dt: number) => void),
+        optionsOrSimulateFn?: LocalPredictionOptions<TRegistry, TInput> | ((world: World<TRegistry>, input: TInput, dt: number) => void),
         queryComponents?: Extract<keyof TRegistry, string>[],
         reconcileQueryComponents?: Extract<keyof TRegistry, string>[],
-        reconcileFn?: (world: World<TRegistry>, entity: number, input: any, dt: number) => void
+        reconcileFn?: (world: World<TRegistry>, entity: number, input: TInput, dt: number) => void
     ) {
         super();
         if (typeof optionsOrSimulateFn === "object" && optionsOrSimulateFn !== null) {
@@ -51,17 +57,22 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
             this.predictionModel = options.predictionModel;
             this.simulateFn = options.simulateFn;
             this.reconcileFn = options.reconcileFn;
-            this.queryComponents = (options.queryComponents ?? (options.predictionModel?.queryComponents as any) ?? ["Transform", "LocalPlayer", "Velocity", "Input"]) as any;
-            this.reconcileQueryComponents = (options.reconcileQueryComponents ?? ["Transform", "LocalPlayer", "Velocity"]) as any;
+            this.queryComponents = options.queryComponents 
+                ?? (options.predictionModel?.queryComponents as Extract<keyof TRegistry, string>[]) 
+                ?? (["Transform", "LocalPlayer", "Velocity", "Input"] as Extract<keyof TRegistry, string>[]);
+            this.reconcileQueryComponents = options.reconcileQueryComponents 
+                ?? (["Transform", "LocalPlayer", "Velocity"] as Extract<keyof TRegistry, string>[]);
         } else {
             this.simulateFn = optionsOrSimulateFn;
-            this.queryComponents = (queryComponents ?? ["Transform", "LocalPlayer", "Velocity", "Input"]) as any;
-            this.reconcileQueryComponents = (reconcileQueryComponents ?? ["Transform", "LocalPlayer", "Velocity"]) as any;
+            this.queryComponents = queryComponents 
+                ?? (["Transform", "LocalPlayer", "Velocity", "Input"] as Extract<keyof TRegistry, string>[]);
+            this.reconcileQueryComponents = reconcileQueryComponents 
+                ?? (["Transform", "LocalPlayer", "Velocity"] as Extract<keyof TRegistry, string>[]);
             this.reconcileFn = reconcileFn;
         }
 
         if (!this.predictionModel && !this.simulateFn && !this.reconcileFn) {
-            this.predictionModel = new LinearPredictionModel<TRegistry>();
+            this.predictionModel = new LinearPredictionModel<TRegistry, TInput>();
         }
     }
 
@@ -69,14 +80,15 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
         if (world.getResource("IsPaused") === true) return;
         const dtSec = deltaTime;
 
-        const localQuery = world.query(...(this.queryComponents as any));
+        const localQuery = world.query(...this.queryComponents);
         const qLen = localQuery.length;
-        // Safe for determinism/rollback. Sequential indexed loop replaces for..of iterator.
+
         for (let i = 0; i < qLen; i++) {
             const entity = localQuery[i];
-            const input     = world.getComponent(entity, "Input" as Extract<keyof TRegistry, string>) as any;
-            const velocity  = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
-            const transform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
+            const input = world.getComponent(entity, "Input" as Extract<keyof TRegistry, string>) as TInput | undefined;
+            const velocity = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as VelocityLike | undefined;
+            const transform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as TransformLike | undefined;
+            
             if (!input || !velocity || !transform) continue;
 
             if (this.predictionModel) {
@@ -85,8 +97,10 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
                 this.simulateFn(world, input, dtSec);
             }
 
-            const finalVelocity  = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
-            const finalTransform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
+            const finalVelocity = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as VelocityLike | undefined;
+            const finalTransform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as TransformLike | undefined;
+
+            if (!finalVelocity || !finalTransform) continue;
 
             this.inputQueue.push({
                 tick: this.lastProcessedTick++,
@@ -116,7 +130,6 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
         }
 
         try {
-            // Safe for determinism/rollback. In-place filter/trim avoids allocating new array per reconciliation step.
             let writeIdx = 0;
             const qLen = this.inputQueue.length;
             for (let i = 0; i < qLen; i++) {
@@ -126,7 +139,7 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
             }
             this.inputQueue.length = writeIdx;
 
-            const localQuery = world.query(...(this.reconcileQueryComponents as any));
+            const localQuery = world.query(...this.reconcileQueryComponents);
             const entLen = localQuery.length;
             for (let i = 0; i < entLen; i++) {
                 const entity = localQuery[i];
@@ -139,14 +152,13 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
                         this.predictionModel.simulate(world, entity, item.input, item.dt);
                     }
                 } else {
-                    // Safe for determinism/rollback. Replacing mutateComponent with direct getMutableComponent eliminates callback closure allocations per reconciliation frame.
-                    const mutTrans = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
+                    const mutTrans = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as TransformLike | undefined;
                     if (mutTrans) {
                         mutTrans.x = serverState.x;
                         mutTrans.y = serverState.y;
                     }
 
-                    const mutVel = world.getMutableComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
+                    const mutVel = world.getMutableComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as VelocityLike | undefined;
                     if (mutVel) {
                         mutVel.vx = serverState.vx;
                         mutVel.vy = serverState.vy;
@@ -164,8 +176,8 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
                         if (this.reconcileFn) {
                             this.reconcileFn(world, entity, item.input, itemDtSec);
                         } else {
-                            const currentVelocity = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as any;
-                            const mutT = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as any;
+                            const currentVelocity = world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as VelocityLike | undefined;
+                            const mutT = world.getMutableComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as TransformLike | undefined;
                             if (mutT && currentVelocity) {
                                 mutT.x += currentVelocity.vx * itemDtSec;
                                 mutT.y += currentVelocity.vy * itemDtSec;

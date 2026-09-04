@@ -70,6 +70,8 @@ export interface AnimatorComponent extends Component {
 export interface AoSWorldSnapshot extends BaseWorldSnapshot {
     componentData: ComponentDataSnapshot;
     isSoA?: false;
+    // (undocumented)
+    soaComponentData?: never;
 }
 
 // @public
@@ -2808,7 +2810,7 @@ export class NetworkManager<TComponents extends ComponentRegistry = ComponentReg
 // @public (undocumented)
 export class NetworkReplicationUtils {
     // (undocumented)
-    static applyDelta(base: WorldSnapshot, delta: Partial<WorldSnapshot>): void;
+    static applyDelta(base: WorldSnapshot, delta: SnapshotDelta): void;
     static processSoAPacket(soaComponentData: Record<string, any>): ComponentDataSnapshot;
 }
 
@@ -3875,6 +3877,13 @@ export class SnapshotBuffer {
 }
 
 // @public
+export type SnapshotDelta = Partial<BaseWorldSnapshot> & {
+    isSoA?: boolean;
+    componentData?: ComponentDataSnapshot;
+    soaComponentData?: Record<string, Partial<SoAComponentTypeData>>;
+};
+
+// @public
 export class SnapshotRestore {
     static restore<TComponents extends ComponentRegistry>(world: World<TComponents>, state: WorldSnapshot): void;
 }
@@ -3922,6 +3931,8 @@ export class SoADeserializer {
 
 // @public
 export interface SoAWorldSnapshot extends BaseWorldSnapshot {
+    // (undocumented)
+    componentData?: never;
     isSoA: true;
     soaComponentData: Record<string, SoAComponentTypeData>;
 }

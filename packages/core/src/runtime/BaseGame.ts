@@ -116,7 +116,7 @@ export abstract class BaseGame<
   }
 
   /** High-level game state representation. */
-  public get state(): any {
+  public get state(): TState {
     return this.getGameState();
   }
 
@@ -206,7 +206,7 @@ export abstract class BaseGame<
   /** Target HTML canvas element when running in browser environment. */
   protected canvas?: HTMLCanvasElement;
   private resizeListenerBound?: () => void;
-  private _debugEventLog: Array<{ timestamp: number; event: string; payload: any }> = [];
+  private _debugEventLog: Array<{ timestamp: number; event: string; payload: unknown }> = [];
 
   /**
    * Diagnostics and debug manager interface consumed by developer overlays.
@@ -225,9 +225,9 @@ export abstract class BaseGame<
         const timings: Record<string, number> = {};
         const systems = this.world.schedule.getSystems();
         for (let i = 0; i < systems.length; i++) {
-          const sys = systems[i];
+          const sys = systems[i] as unknown as { constructor: { name?: string }; lastExecutionTimeMs?: number };
           const name = sys.constructor.name || `System_${i}`;
-          timings[name] = (sys as any).lastExecutionTimeMs ?? 0.01;
+          timings[name] = sys.lastExecutionTimeMs ?? 0.01;
         }
         return timings;
       },
@@ -240,7 +240,7 @@ export abstract class BaseGame<
           const types = this.world.getEntityComponentTypes(entity);
           const components: Record<string, unknown> = {};
           for (let j = 0; j < types.length; j++) {
-            const t = types[j] as any;
+            const t = types[j] as Extract<keyof TComponents, string>;
             components[t] = this.world.getComponent(entity, t);
           }
           snapshot.push({ id: entity, components });
@@ -251,12 +251,14 @@ export abstract class BaseGame<
         return this._debugEventLog;
       },
       getColliderShapes: () => {
-        const shapes: Array<{ type: "circle" | "aabb"; x: number; y: number; isTrigger: boolean; shape: any }> = [];
-        const entitiesWithCollider = this.world.query("Collider2D" as any, "Transform" as any);
+        const shapes: Array<{ type: "circle" | "aabb"; x: number; y: number; isTrigger: boolean; shape: unknown }> = [];
+        const colKey = "Collider2D" as Extract<keyof TComponents, string>;
+        const transKey = "Transform" as Extract<keyof TComponents, string>;
+        const entitiesWithCollider = this.world.query(colKey, transKey);
         for (let i = 0; i < entitiesWithCollider.length; i++) {
           const e = entitiesWithCollider[i];
-          const col = this.world.getComponent(e, "Collider2D" as any) as any;
-          const trans = this.world.getComponent(e, "Transform" as any) as any;
+          const col = this.world.getComponent(e, colKey) as { enabled?: boolean; isTrigger?: boolean; shape?: { type?: string } } | undefined;
+          const trans = this.world.getComponent(e, transKey) as { x: number; y: number } | undefined;
           if (col && trans && col.enabled !== false) {
             if (col.shape?.type === "circle" || col.shape?.type === "aabb") {
               shapes.push({
@@ -306,7 +308,7 @@ export abstract class BaseGame<
     this.world.gameplayRandom.lock();
 
     const originalEmit = this.eventBus.emit.bind(this.eventBus);
-    this.eventBus.emit = (event: any, payload?: any) => {
+    this.eventBus.emit = (event: string, payload?: unknown) => {
       this._debugEventLog.push({
         timestamp: performance.now(),
         event: String(event),
@@ -315,7 +317,7 @@ export abstract class BaseGame<
       if (this._debugEventLog.length > 100) {
         this._debugEventLog.shift();
       }
-      return originalEmit(event, payload);
+      return originalEmit(event as Parameters<typeof originalEmit>[0], payload as Parameters<typeof originalEmit>[1]);
     };
 
     this.eventBus.on("PlaySFX", (payload) => {
@@ -341,7 +343,7 @@ export abstract class BaseGame<
     this.world.setResource("BlueprintRegistry", this.blueprints);
     this.world.setResource("EventBus", this.eventBus);
     this.world.setResource("InputSystem", this.unifiedInput);
-    this.world.setResource("Audio" as any, this.audio);
+    this.world.setResource("Audio", this.audio);
     this.world.setResource("SceneManager", this.sceneManager);
     this.world.setResource("headless", this._config.headless);
     this.world.setResource("ArcadeKernel", this.kernel);
@@ -371,7 +373,8 @@ export abstract class BaseGame<
     // Subscribe to game over events to transition the kernel
     this.boundGameOverListener = this.eventBus.on("game:over", (payload) => {
       if (this.kernel.getState() === ArcadeState.PLAYING) {
-        this.kernel.transitionTo(ArcadeState.GAME_OVER, { score: (payload?.state as any)?.score });
+        const score = (payload as { state?: { score?: number } } | undefined)?.state?.score;
+        this.kernel.transitionTo(ArcadeState.GAME_OVER, { score });
       }
     });
   }
@@ -451,7 +454,7 @@ export abstract class BaseGame<
     }
 
     const timeoutMs = this._config.initTimeout ?? 10000;
-    let timeoutId: any;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutId = setTimeout(() => {
         reject(new Error("Game initialization timed out"));
@@ -460,11 +463,11 @@ export abstract class BaseGame<
 
     const initPromise = (async () => {
       await this.onRegisterSystems();
-      if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
+      if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
         return;
       }
       await this.onInitializeEntities();
-      if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
+      if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
         return;
       }
     })();
@@ -685,8 +688,8 @@ export abstract class BaseGame<
     if ("tick" in update && "entities" in update) {
       this.world.restore(update as WorldSnapshot);
     }
-    if ("resources" in update && update.resources && typeof update.resources === "object") {
-      Object.entries(update.resources).forEach(([key, val]) => {
+    if ("resources" in update && update.resources && typeof update.resources === "object" && update.resources !== null) {
+      Object.entries(update.resources as Record<string, unknown>).forEach(([key, val]) => {
         this.world.setResource(key, val);
       });
     }
@@ -724,7 +727,7 @@ export abstract class BaseGame<
     }
 
     await this.onBeforeRestart();
-    if ((this.lifecycleState as any) === GameLifecycleState.DESTROYED) {
+    if (this.lifecycleState === GameLifecycleState.DESTROYED) {
       return;
     }
     this.destroy();

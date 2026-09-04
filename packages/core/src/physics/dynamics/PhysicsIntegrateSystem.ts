@@ -1,7 +1,7 @@
 import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
 import { ComponentRegistry } from "../../ecs/Component";
-import { CoreComponentRegistry } from "../../ecs/CoreComponents";
+import { CoreComponentRegistry, TransformComponent, VelocityComponent } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
 import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
 
@@ -18,7 +18,9 @@ import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
  *
  * @public
  */
-export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+export class PhysicsIntegrateSystem<
+  TRegistry extends ComponentRegistry & { Transform: TransformComponent; Velocity: VelocityComponent } = CoreComponentRegistry
+> extends System<TRegistry> {
   private candidateEntities: Entity[] | null = null;
 
   /**
@@ -45,24 +47,24 @@ export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry = CoreCo
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
     let candidatesList = this.candidateEntities !== null ? this.candidateEntities : (resourceCandidates !== undefined ? resourceCandidates : null);
 
-    const transformType = "Transform" as Extract<keyof TRegistry, string>;
-    const velocityType = "Velocity" as Extract<keyof TRegistry, string>;
+    const transformKey = "Transform" as Extract<keyof TRegistry, string>;
+    const velocityKey = "Velocity" as Extract<keyof TRegistry, string>;
 
     if (candidatesList === null && world.getResource("SpatialCullingEnabled") === true) {
       const margin = world.getResource<number>("SpatialCullingMargin") ?? 100;
-      const entities = world.query(transformType, velocityType);
-      candidatesList = SpatialCullingSystem.filterInViewport(world as any, entities, margin);
+      const entities = world.query(transformKey, velocityKey);
+      candidatesList = SpatialCullingSystem.filterInViewport(world, entities, margin);
     }
 
     if (candidatesList !== null) {
       for (const entity of candidatesList) {
-        const v = world.getComponent(entity, velocityType) as any;
+        const v = world.getComponent(entity, velocityKey) as VelocityComponent | undefined;
         if (!v) continue;
-        const t = world.getComponent(entity, transformType) as any;
+        const t = world.getComponent(entity, transformKey) as TransformComponent | undefined;
         if (!t) continue;
 
         // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
-        const trans = world.getMutableComponent(entity, transformType) as any;
+        const trans = world.getMutableComponent(entity, transformKey) as TransformComponent | undefined;
         if (trans) {
           trans.x += v.vx * deltaTime;
           trans.y += v.vy * deltaTime;
@@ -73,13 +75,13 @@ export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry = CoreCo
         }
       }
     } else {
-      const entities = world.query(transformType, velocityType);
+      const entities = world.query(transformKey, velocityKey);
       for (const entity of entities) {
-        const v = world.getComponent(entity, velocityType) as any;
+        const v = world.getComponent(entity, velocityKey) as VelocityComponent | undefined;
         if (!v) continue;
 
         // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
-        const t = world.getMutableComponent(entity, transformType) as any;
+        const t = world.getMutableComponent(entity, transformKey) as TransformComponent | undefined;
         if (t) {
           t.x += v.vx * deltaTime;
           t.y += v.vy * deltaTime;

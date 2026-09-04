@@ -26,9 +26,11 @@ export class BlueprintRegistry<
 
   register<TId extends keyof TBlueprints & string>(
     id: TId,
-    blueprint: TBlueprints[TId]
+    blueprint: 0 extends 1 & TBlueprints
+      ? BlueprintDefinition<TComponents, TEvents, unknown>
+      : TBlueprints[TId]
   ): void {
-    this.blueprints.set(id, blueprint);
+    this.blueprints.set(id, blueprint as BlueprintDefinition<TComponents, TEvents, unknown>);
   }
 
   get<TId extends keyof TBlueprints & string>(

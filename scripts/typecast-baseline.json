@@ -30,9 +30,9 @@
     "total": 2
   },
   "packages/core/src/ecs/Query.ts": {
-    "anyCount": 4,
-    "unknownCount": 0,
-    "total": 4
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
   },
   "packages/core/src/ecs/Schedule.ts": {
     "anyCount": 2,
@@ -89,22 +89,12 @@
     "unknownCount": 0,
     "total": 2
   },
-  "packages/core/src/physics/systems/PlatformerGravitySystem.ts": {
-    "anyCount": 3,
-    "unknownCount": 0,
-    "total": 3
-  },
   "packages/core/src/physics/systems/PlatformerMovementSystem.ts": {
     "anyCount": 4,
     "unknownCount": 0,
     "total": 4
   },
   "packages/core/src/physics/utils/ShipPhysics.ts": {
-    "anyCount": 1,
-    "unknownCount": 0,
-    "total": 1
-  },
-  "packages/core/src/rendering/Camera2D.ts": {
     "anyCount": 1,
     "unknownCount": 0,
     "total": 1
@@ -123,11 +113,6 @@
     "anyCount": 2,
     "unknownCount": 0,
     "total": 2
-  },
-  "packages/core/src/runtime/BaseGame.ts": {
-    "anyCount": 0,
-    "unknownCount": 1,
-    "total": 1
   },
   "packages/core/src/scenes/CYOAScene.ts": {
     "anyCount": 1,
@@ -209,20 +194,10 @@
     "unknownCount": 0,
     "total": 1
   },
-  "packages/core/src/systems/PlatformerCoyoteSystem.ts": {
-    "anyCount": 7,
-    "unknownCount": 0,
-    "total": 7
-  },
   "packages/core/src/systems/RespawnSystem.ts": {
     "anyCount": 1,
     "unknownCount": 0,
     "total": 1
-  },
-  "packages/core/src/systems/SegmentGenerator.ts": {
-    "anyCount": 3,
-    "unknownCount": 0,
-    "total": 3
   },
   "packages/core/src/tests/BoltPerformance.test.ts": {
     "anyCount": 7,

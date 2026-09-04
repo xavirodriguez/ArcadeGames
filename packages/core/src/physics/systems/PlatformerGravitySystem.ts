@@ -2,7 +2,6 @@ import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
 import { ComponentRegistry } from "../../ecs/Component";
 import { CoreComponentRegistry } from "../../ecs/CoreComponents";
-import { Entity } from "../../ecs/Entity";
 
 /**
  * Platformer gravity system applying asymmetrical jump gravity dynamics.
@@ -27,7 +26,6 @@ export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreC
     if (world.getResource("IsPaused") === true) return;
     const configType = "PlatformerGravityConfig" as Extract<keyof TRegistry, string>;
     const velocityType = "Velocity" as Extract<keyof TRegistry, string>;
-    const groundStateType = "PlatformerGroundState" as Extract<keyof TRegistry, string>;
 
     const entities = world.query(configType, velocityType);
     const len = entities.length;
@@ -35,8 +33,8 @@ export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreC
     // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
-      const config = world.getComponent(entity, configType) as any;
-      const vel = world.getComponent(entity, velocityType) as any;
+      const config = world.getComponent(entity, configType) as CoreComponentRegistry["PlatformerGravityConfig"] | undefined;
+      const vel = world.getComponent(entity, velocityType) as CoreComponentRegistry["Velocity"] | undefined;
 
       if (!config || !vel) continue;
 
@@ -49,7 +47,7 @@ export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreC
       }
 
       // Safe for determinism/rollback. Replacing mutateComponent with direct getMutableComponent eliminates callback closure allocations per frame.
-      const mutableVel = world.getMutableComponent(entity, velocityType) as any;
+      const mutableVel = world.getMutableComponent(entity, velocityType) as CoreComponentRegistry["Velocity"] | undefined;
       if (mutableVel) {
         mutableVel.vy += gravity * deltaTime;
       }

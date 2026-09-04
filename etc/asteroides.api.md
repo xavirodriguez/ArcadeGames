@@ -260,13 +260,15 @@ export const BaseConfigSchema: z.ZodObject<{
 }, z.core.$strip>;
 
 // @public
-export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
-    constructor(config?: BaseGameConfig<TComponents, TEvents, TInput>);
+export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, unknown>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
+    constructor(config?: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>);
     applyServerStateUpdate(update: WorldSnapshot | {
-        resources?: Record<string, any>;
+        resources?: Record<string, unknown>;
     }): void;
     audio: IAudioPlayer;
-    blueprints: BlueprintRegistry<TComponents, TBlueprints>;
+    blueprints: BlueprintRegistry<TComponents, TEvents, [
+    TBlueprints
+    ] extends [BlueprintRegistryMap<TComponents, TEvents>] ? TBlueprints : BlueprintRegistryMap<TComponents, TEvents>>;
     protected calculateScreenConfig(): {
         width: number;
         height: number;
@@ -274,7 +276,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
     };
     protected canvas?: HTMLCanvasElement;
     // (undocumented)
-    protected _config: BaseGameConfig<TComponents, TEvents, TInput>;
+    protected _config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>;
     protected createBaseEntity(deferred?: boolean): {
         entity: Entity;
         add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & {
@@ -358,7 +360,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
 }
 
 // @public
-export interface BaseGameConfig<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends Record<string, any> = Record<string, any>> {
+export interface BaseGameConfig<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends Record<string, any> = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
     arcadeKernel?: ArcadeKernel;
     assetProvider?: IAssetProvider;
     audio?: IAudioPlayer;
@@ -371,8 +373,8 @@ export interface BaseGameConfig<TComponents extends ComponentRegistry = Componen
     manualLoop?: boolean;
     pauseKey?: string;
     restartKey?: string;
-    sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
-    schedule?: Schedule<TComponents, TEvents>;
+    sceneManagerFactory?: (world: World<TComponents, TEvents, TBlueprints>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
+    schedule?: Schedule<TComponents, TEvents, TBlueprints>;
     seed?: number;
     theme?: Theme;
 }
@@ -445,7 +447,7 @@ export class BlueprintRegistry<TComponents extends ComponentRegistry = Component
     // (undocumented)
     has<TId extends keyof TBlueprints & string>(id: TId): boolean;
     // (undocumented)
-    register<TId extends keyof TBlueprints & string>(id: TId, blueprint: TBlueprints[TId]): void;
+    register<TId extends keyof TBlueprints & string>(id: TId, blueprint: 0 extends 1 & TBlueprints ? BlueprintDefinition<TComponents, TEvents, unknown> : TBlueprints[TId]): void;
 }
 
 // @public
@@ -514,13 +516,13 @@ export interface Camera2DComponent extends Component {
 
 // @public
 export class Camera2DSystem extends System<CoreComponentRegistry> {
-    static screenToWorld(world: World<any>, screenX: number, screenY: number, cameraEntity?: number): {
+    static screenToWorld(world: World<CoreComponentRegistry>, screenX: number, screenY: number, cameraEntity?: number): {
         x: number;
         y: number;
     };
     // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
-    static worldToScreen(world: World<any>, worldX: number, worldY: number, cameraEntity?: number): {
+    static worldToScreen(world: World<CoreComponentRegistry>, worldX: number, worldY: number, cameraEntity?: number): {
         x: number;
         y: number;
     };
@@ -3566,7 +3568,7 @@ export function resolveTransitionEffect(effect?: string | ITransitionEffect): IT
 // @public
 export interface RespawnableComponent extends Component {
     blueprintKey: string;
-    initialArgs: any;
+    initialArgs: Record<string, unknown>;
     type: "Respawnable";
 }
 
@@ -3735,7 +3737,7 @@ export class ScreenShakeSystem extends System<CoreComponentRegistry> {
 // @public
 export class SegmentGenerator {
     static generatePlan(templates: SegmentTemplate[], grammar: string[], seed: number): LevelPlan;
-    static instantiatePlan(world: World<CoreComponentRegistry>, plan: LevelPlan, tileSize: number, tileDefinitions: any): void;
+    static instantiatePlan(world: World<CoreComponentRegistry>, plan: LevelPlan, tileSize: number, tileDefinitions?: Record<number, TileDefinition>): void;
 }
 
 // @public
@@ -3765,7 +3767,7 @@ export interface SegmentInstance {
 // @public
 export interface SegmentSpawnPoint {
     // (undocumented)
-    args?: any;
+    args?: Record<string, unknown>;
     // (undocumented)
     type: string;
     // (undocumented)
@@ -4498,7 +4500,7 @@ export interface TileDefinition {
     damage?: number;
     friction?: number;
     kind?: "normal" | "ice" | "spike" | "bounce";
-    oneWay: boolean;
+    oneWay?: boolean;
     solid: boolean;
 }
 

@@ -1,4 +1,5 @@
-import { World, ComponentRegistry, BlueprintRegistryMap, ComponentType } from "../ecs/World";
+import { World, ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
+import { ComponentType } from "../ecs/Component";
 import { Entity } from "../ecs/Entity";
 import { EventRegistry, EventBus } from "../events/EventBus";
 import { BlueprintRegistry } from "../ecs/BlueprintRegistry";
@@ -8,7 +9,7 @@ import { Simulation } from "./Simulation";
 import { CompactInputFrame } from "../input/InputFrame";
 import { WorldSnapshot, SoAWorldSnapshot, AoSWorldSnapshot } from "../snapshots/WorldSnapshot";
 import { hashSoA, hashAoS } from "../snapshots/SnapshotHash";
-import { InputSystem, IInputSystem } from "../input/InputSystem";
+import { IInputSystem } from "../input/InputSystem";
 import { NullInputSystem } from "../input/NullInputSystem";
 import { Schedule } from "../ecs/Schedule";
 import { SceneManager } from "../scenes/SceneManager";
@@ -39,19 +40,37 @@ export enum GameLifecycleState {
   ERROR = "ERROR"
 }
 
+interface TimedSystem {
+  constructor: { name?: string };
+  lastExecutionTimeMs?: number;
+}
+
+interface DebugCollider2D {
+  enabled?: boolean;
+  isTrigger?: boolean;
+  shape?: { type?: string };
+}
+
+interface DebugTransform {
+  x: number;
+  y: number;
+}
+
 /**
  * Configuration options for initializing a `BaseGame` instance.
  *
  * @typeParam TComponents - Component registry type.
  * @typeParam TEvents - Event registry type.
  * @typeParam TInput - Input action dictionary type.
+ * @typeParam TBlueprints - Blueprint registry map type.
  *
  * @public
  */
 export interface BaseGameConfig<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
-  TInput extends Record<string, any> = Record<string, any>
+  TInput extends Record<string, any> = Record<string, unknown>,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
   /** Key code to toggle pause state (e.g. `"KeyP"`). */
   pauseKey?: string;
@@ -64,7 +83,7 @@ export interface BaseGameConfig<
   /** Runs the game headlessly without loading visual/audio assets. Ideal for server-side environments. */
   headless?: boolean;
   /** Optional custom `Schedule` instance for execution phase ordering. */
-  schedule?: Schedule<TComponents, TEvents>;
+  schedule?: Schedule<TComponents, TEvents, TBlueprints>;
   /** Initial gameplay seed (for backward compatibility). */
   seed?: number;
   /** Optional audio player injection implementing `IAudioPlayer`. Defaults to `NullAudioPlayer`. */
@@ -76,7 +95,7 @@ export interface BaseGameConfig<
   /** Optional custom input system instance implementing `IInputSystem<TInput>`. Defaults to `NullInputSystem`. */
   inputSystem?: IInputSystem<TInput>;
   /** Factory callback to construct a custom `SceneManager` instance. */
-  sceneManagerFactory?: (world: World<TComponents, TEvents, any>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
+  sceneManagerFactory?: (world: World<TComponents, TEvents, TBlueprints>, eventBus: EventBus<TEvents>) => SceneManager<TComponents>;
   /** Optional `ArcadeKernel` state machine instance. Defaults to a new `ArcadeKernel`. */
   arcadeKernel?: ArcadeKernel;
   /** Disables the automatic loop ticker when true, delegating frame updates to an external driver (such as `GameSession`). */
@@ -105,7 +124,7 @@ export interface BaseGameConfig<
  */
 export abstract class BaseGame<
   TState = unknown,
-  TInput extends Record<string, any> = Record<string, any>,
+  TInput extends Record<string, any> = Record<string, unknown>,
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
@@ -188,10 +207,14 @@ export abstract class BaseGame<
   /** Central `EventBus` for typed event dispatching. */
   public eventBus: EventBus<TEvents>;
   /** Blueprint registry for entity creation and prefab spawning. */
-  public blueprints: BlueprintRegistry<TComponents, TBlueprints>;
+  public blueprints: BlueprintRegistry<
+    TComponents,
+    TEvents,
+    [TBlueprints] extends [BlueprintRegistryMap<TComponents, TEvents>] ? TBlueprints : BlueprintRegistryMap<TComponents, TEvents>
+  >;
   protected loop: GameLoop;
   protected unifiedInput: IInputSystem<TInput>;
-  protected _config: BaseGameConfig<TComponents, TEvents, TInput>;
+  protected _config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>;
   private lifecycleState: GameLifecycleState = GameLifecycleState.UNINITIALIZED;
   private isPaused = false;
   /** High-level state machine kernel for flow and session transition management. */
@@ -225,7 +248,7 @@ export abstract class BaseGame<
         const timings: Record<string, number> = {};
         const systems = this.world.schedule.getSystems();
         for (let i = 0; i < systems.length; i++) {
-          const sys = systems[i] as unknown as { constructor: { name?: string }; lastExecutionTimeMs?: number };
+          const sys = systems[i] as TimedSystem;
           const name = sys.constructor.name || `System_${i}`;
           timings[name] = sys.lastExecutionTimeMs ?? 0.01;
         }
@@ -257,12 +280,12 @@ export abstract class BaseGame<
         const entitiesWithCollider = this.world.query(colKey, transKey);
         for (let i = 0; i < entitiesWithCollider.length; i++) {
           const e = entitiesWithCollider[i];
-          const col = this.world.getComponent(e, colKey) as { enabled?: boolean; isTrigger?: boolean; shape?: { type?: string } } | undefined;
-          const trans = this.world.getComponent(e, transKey) as { x: number; y: number } | undefined;
+          const col = this.world.getComponent(e, colKey) as DebugCollider2D | undefined;
+          const trans = this.world.getComponent(e, transKey) as DebugTransform | undefined;
           if (col && trans && col.enabled !== false) {
             if (col.shape?.type === "circle" || col.shape?.type === "aabb") {
               shapes.push({
-                type: col.shape.type,
+                type: col.shape.type as "circle" | "aabb",
                 x: trans.x,
                 y: trans.y,
                 isTrigger: !!col.isTrigger,
@@ -284,12 +307,16 @@ export abstract class BaseGame<
    *
    * @param config - Game configuration options.
    */
-  constructor(config: BaseGameConfig<TComponents, TEvents, TInput> = {}) {
+  constructor(config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints> = {}) {
     this._config = config;
     this.world = new World<TComponents, TEvents, TBlueprints>(config.schedule);
     this.eventBus = new EventBus<TEvents>();
     this.kernel = config.arcadeKernel ?? new ArcadeKernel(this.eventBus);
-    this.blueprints = new BlueprintRegistry<TComponents, TBlueprints>();
+    this.blueprints = new BlueprintRegistry<
+      TComponents,
+      TEvents,
+      [TBlueprints] extends [BlueprintRegistryMap<TComponents, TEvents>] ? TBlueprints : BlueprintRegistryMap<TComponents, TEvents>
+    >();
     this.loop = new GameLoop({
       step: 1 / 60,
       maxDelta: 0.25,
@@ -321,9 +348,9 @@ export abstract class BaseGame<
     };
 
     this.eventBus.on("PlaySFX", (payload) => {
-      if (payload && payload.name) {
+      if (payload && (payload as { name?: string }).name) {
         // Automatically route global PlaySFX EventBus events to the configured audio player
-        this.audio.playSFX(payload.name);
+        this.audio.playSFX((payload as { name: string }).name);
       }
     });
 
@@ -363,9 +390,10 @@ export abstract class BaseGame<
 
     // Subscribe and store unsubscribe functions
     this.boundStateChangedListener = this.eventBus.on("arcade:state_changed", (data) => {
-      if (data.to === ArcadeState.PAUSED && !this.isPaused) {
+      const stateData = data as { to?: ArcadeState };
+      if (stateData.to === ArcadeState.PAUSED && !this.isPaused) {
         this.pause();
-      } else if (data.to === ArcadeState.PLAYING && this.isPaused) {
+      } else if (stateData.to === ArcadeState.PLAYING && this.isPaused) {
         this.resume();
       }
     });
@@ -684,7 +712,7 @@ export abstract class BaseGame<
    *
    * @param update - Server state payload containing entities or resources.
    */
-  public applyServerStateUpdate(update: WorldSnapshot | { resources?: Record<string, any> }): void {
+  public applyServerStateUpdate(update: WorldSnapshot | { resources?: Record<string, unknown> }): void {
     if ("tick" in update && "entities" in update) {
       this.world.restore(update as WorldSnapshot);
     }

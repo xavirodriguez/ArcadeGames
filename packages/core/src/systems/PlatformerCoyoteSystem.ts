@@ -2,7 +2,6 @@ import { World } from "../ecs/World";
 import { System } from "../ecs/System";
 import { ComponentRegistry } from "../ecs/Component";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
-import { Entity } from "../ecs/Entity";
 
 /**
  * System that manages coyote time and jump buffering.
@@ -22,10 +21,10 @@ export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreCo
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
-      const groundState = world.getComponent(entity, groundStateType) as any;
-      const jumper = world.getComponent(entity, jumperType) as any;
-      const gravityConfig = world.getComponent(entity, gravityConfigType) as any;
-      const vel = world.getComponent(entity, velocityType) as any;
+      const groundState = world.getComponent(entity, groundStateType) as CoreComponentRegistry["PlatformerGroundState"] | undefined;
+      const jumper = world.getComponent(entity, jumperType) as CoreComponentRegistry["PlatformerJumper"] | undefined;
+      const gravityConfig = world.getComponent(entity, gravityConfigType) as CoreComponentRegistry["PlatformerGravityConfig"] | undefined;
+      const vel = world.getComponent(entity, velocityType) as CoreComponentRegistry["Velocity"] | undefined;
 
       if (!groundState || !jumper || !gravityConfig || !vel) continue;
 
@@ -48,12 +47,12 @@ export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreCo
       // Safe for determinism/rollback. Direct getMutableComponent calls and value-gating eliminate closure allocations and redundant stateVersion increments when timers or grounded states remain identical.
       // Check if we can trigger a buffered jump upon landing
       if (isGrounded && nextJumpBufferTimer > 0) {
-        const mutableVel = world.getMutableComponent(entity, velocityType) as any;
+        const mutableVel = world.getMutableComponent(entity, velocityType) as CoreComponentRegistry["Velocity"] | undefined;
         if (mutableVel) {
           mutableVel.vy = -gravityConfig.jumpVelocity;
         }
 
-        const mutableGround = world.getMutableComponent(entity, groundStateType) as any;
+        const mutableGround = world.getMutableComponent(entity, groundStateType) as CoreComponentRegistry["PlatformerGroundState"] | undefined;
         if (mutableGround) {
           mutableGround.isGrounded = false;
         }
@@ -64,7 +63,7 @@ export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreCo
 
       // Write updated timers only when values actually change
       if (jumper.coyoteTimer !== nextCoyoteTimer || jumper.jumpBufferTimer !== nextJumpBufferTimer) {
-        const mutableJumper = world.getMutableComponent(entity, jumperType) as any;
+        const mutableJumper = world.getMutableComponent(entity, jumperType) as CoreComponentRegistry["PlatformerJumper"] | undefined;
         if (mutableJumper) {
           mutableJumper.coyoteTimer = nextCoyoteTimer;
           mutableJumper.jumpBufferTimer = nextJumpBufferTimer;

@@ -2,8 +2,8 @@ import { Entity } from "./Entity";
 import { ComponentRegistry } from "./Component";
 
 // Resolve environment check safely without free variables
-const isDev = typeof (globalThis as any).__DEV__ !== "undefined"
-  ? (globalThis as any).__DEV__
+const isDev = typeof (globalThis as unknown as { __DEV__?: boolean }).__DEV__ !== "undefined"
+  ? (globalThis as unknown as { __DEV__?: boolean }).__DEV__
   : (process.env.NODE_ENV !== "production");
 
 /**
@@ -23,6 +23,7 @@ export class Query<_TComponents extends ComponentRegistry> {
   private entities: Set<Entity> = new Set();
   private sortedEntities: Entity[] = [];
   private isDirty = false;
+  private _sortedEntitiesArray: Entity[] = [];
 
   /**
    * @internal
@@ -74,13 +75,12 @@ export class Query<_TComponents extends ComponentRegistry> {
         Object.freeze(this.sortedEntities);
       } else {
         // In production, reuse the existing array structure to avoid garbage collection overhead.
-        const arr: Entity[] = (this as any)._sortedEntitiesArray || [];
+        const arr: Entity[] = this._sortedEntitiesArray;
         arr.length = 0;
         for (const entity of this.entities) {
           arr.push(entity);
         }
         arr.sort((a, b) => a - b);
-        (this as any)._sortedEntitiesArray = arr;
         this.sortedEntities = arr;
       }
       this.isDirty = false;

@@ -1,4 +1,4 @@
-import { WorldSnapshot, ComponentDataSnapshot } from "../snapshots/WorldSnapshot";
+import { WorldSnapshot, AoSWorldSnapshot, SoAWorldSnapshot, ComponentDataSnapshot, SnapshotDelta, SerializedComponent, SoAComponentTypeData } from "../snapshots/WorldSnapshot";
 import { SoADeserializer } from "../snapshots/SoADeserializer";
 import { NetworkTransport } from "./NetworkTransport";
 import { NullTransport } from "./NullTransport";
@@ -206,58 +206,48 @@ export class NetworkReplicationUtils {
     return componentData;
   }
 
-  public static applyDelta(base: WorldSnapshot, delta: Partial<WorldSnapshot>): void {
-    const d = delta as any;
-    if (d.tick !== undefined) base.tick = d.tick;
-    if (d.stateVersion !== undefined) base.stateVersion = d.stateVersion;
-    if (d.structureVersion !== undefined) base.structureVersion = d.structureVersion;
-    if (d.seed !== undefined) base.seed = d.seed;
-    if (d.rngState !== undefined) base.rngState = d.rngState;
-    if (d.nextEntityId !== undefined) base.nextEntityId = d.nextEntityId;
-    if (d.entities !== undefined) {
-      base.entities = [...d.entities];
-    }
-    if (d.freeEntities !== undefined) {
-      base.freeEntities = [...d.freeEntities];
+  public static applyDelta(base: WorldSnapshot, delta: SnapshotDelta): void {
+    if (delta.tick !== undefined) base.tick = delta.tick;
+    if (delta.stateVersion !== undefined) base.stateVersion = delta.stateVersion;
+    if (delta.structureVersion !== undefined) base.structureVersion = delta.structureVersion;
+    if (delta.seed !== undefined) base.seed = delta.seed;
+    if (delta.rngState !== undefined) base.rngState = delta.rngState;
+    if (delta.nextEntityId !== undefined) base.nextEntityId = delta.nextEntityId;
+    if (delta.entities !== undefined) base.entities = [...delta.entities];
+    if (delta.freeEntities !== undefined) base.freeEntities = [...delta.freeEntities];
+
+    if (delta.isSoA !== undefined && base.isSoA !== delta.isSoA) {
+      (base as { isSoA?: boolean }).isSoA = delta.isSoA;
     }
 
-    if (d.componentData) {
-      if (!base.isSoA) {
-        if (!base.componentData) {
-          (base as any).componentData = {};
+    if (base.isSoA) {
+      if (delta.soaComponentData) {
+        const soaBase = base as SoAWorldSnapshot;
+        if (!soaBase.soaComponentData) soaBase.soaComponentData = {};
+        for (const [type, soaData] of Object.entries(delta.soaComponentData)) {
+          soaBase.soaComponentData[type] = {
+            ...soaBase.soaComponentData[type],
+            ...soaData
+          } as SoAComponentTypeData;
         }
-        for (const [type, entityMap] of Object.entries(d.componentData)) {
-          if (!base.componentData[type]) {
-            base.componentData[type] = {};
-          }
-          for (const [entityId, comp] of Object.entries(entityMap as any)) {
-            const entityIdNum = Number(entityId);
+      }
+    } else {
+      if (delta.componentData) {
+        const aosBase = base as AoSWorldSnapshot;
+        if (!aosBase.componentData) aosBase.componentData = {};
+        for (const [type, entityMap] of Object.entries(delta.componentData)) {
+          if (!aosBase.componentData[type]) aosBase.componentData[type] = {};
+          for (const [entityIdStr, comp] of Object.entries(entityMap)) {
+            const entityIdNum = Number(entityIdStr);
             if (comp === null || comp === undefined) {
-              delete base.componentData[type][entityIdNum];
+              delete aosBase.componentData[type][entityIdNum];
             } else {
-              base.componentData[type][entityIdNum] = {
-                ...base.componentData[type][entityIdNum],
-                ...comp as any
+              aosBase.componentData[type][entityIdNum] = {
+                ...aosBase.componentData[type][entityIdNum],
+                ...comp
               };
             }
           }
-        }
-      }
-    }
-
-    if (d.isSoA !== undefined) {
-      (base as any).isSoA = d.isSoA;
-    }
-    if (d.soaComponentData) {
-      if (base.isSoA) {
-        if (!base.soaComponentData) {
-          (base as any).soaComponentData = {};
-        }
-        for (const [type, soaData] of Object.entries(d.soaComponentData)) {
-          base.soaComponentData[type] = {
-            ...base.soaComponentData[type],
-            ...soaData as any
-          } as any;
         }
       }
     }
@@ -266,7 +256,45 @@ export class NetworkReplicationUtils {
 
 function reconstructComponentData(snapshot: WorldSnapshot): ComponentDataSnapshot {
   if (snapshot.isSoA) {
-    return NetworkReplicationUtils.processSoAPacket(snapshot.soaComponentData);
+    const componentData: ComponentDataSnapshot = {};
+    const soaComponentData = snapshot.soaComponentData;
+
+    for (const type in soaComponentData) {
+      componentData[type] = {};
+      const soaData = soaComponentData[type];
+      const keys = soaData.keys;
+      const numKeys = keys.length;
+      const rawEntities = soaData.entities;
+
+      const entities: number[] = Array.isArray(rawEntities)
+        ? rawEntities
+        : Object.keys(rawEntities || {}).map(Number).filter(n => !isNaN(n));
+
+      const numEntities = entities.length;
+      const valArray = soaData.values;
+      const nonNumericValues = soaData.nonNumericValues;
+      const booleanKeys = soaData.booleanKeys ? new Set(soaData.booleanKeys) : null;
+
+      for (let i = 0; i < numEntities; i++) {
+        const entityId = entities[i];
+        const component: Record<string, unknown> = { type };
+
+        for (let j = 0; j < numKeys; j++) {
+          const key = keys[j];
+          const offset = i * numKeys + j;
+          const nonNumericVal = nonNumericValues ? nonNumericValues[offset] : undefined;
+
+          if (nonNumericVal !== undefined && nonNumericVal !== null) {
+            component[key] = nonNumericVal;
+          } else {
+            const rawVal = valArray[offset];
+            component[key] = booleanKeys && booleanKeys.has(key) ? rawVal === 1 : rawVal;
+          }
+        }
+        componentData[type][entityId] = component as SerializedComponent;
+      }
+    }
+    return componentData;
   }
 
   return snapshot.componentData;

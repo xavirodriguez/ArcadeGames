@@ -1,5 +1,6 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
+import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
@@ -43,20 +44,27 @@ export class FlappyBirdGame
   private gameStateSystem!: FlappyBirdGameStateSystem;
   private networkManager!: NetworkManager<any>;
   public readonly gameId = "flappybird";
-  private config!: typeof FLAPPY_CONFIG;
+  private baseConfig: FlappyBirdConfigType;
+  private config: FlappyBirdConfigType;
   public isMultiplayer = false;
   private activeRendererType: "canvas" | "skia" = "canvas";
 
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, audio?: any, theme?: Theme } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     super({
-      pauseKey: FLAPPY_CONFIG.KEYS.PAUSE,
-      restartKey: FLAPPY_CONFIG.KEYS.RESTART,
+      pauseKey: DEFAULT_FLAPPY_BIRD_CONFIG.KEYS.PAUSE,
+      restartKey: DEFAULT_FLAPPY_BIRD_CONFIG.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
       theme: config.theme ?? createThemeFromGameAccents("flappy-bird"),
       gameOptions: { ...config.gameOptions, seed },
       audio: config.audio || new WebAudioPlayer()
     });
+    this.baseConfig = ConfigService.load<FlappyBirdConfigType>(
+      this.gameId,
+      FlappyBirdConfigSchema,
+      config.gameOptions?.rawConfig ?? {}
+    );
+    this.config = this.baseConfig;
     // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:101-107. Considerar extraer a función compartida. Ref: a8fa2796
     this.isMultiplayer = !!config.isMultiplayer;
   }
@@ -64,8 +72,10 @@ export class FlappyBirdGame
   protected override async onRegisterSystems(): Promise<void> {
     const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
     this.config = mutators.length > 0
-      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...(FLAPPY_CONFIG as any) })
-      : { ...FLAPPY_CONFIG };
+      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })
+      : { ...this.baseConfig };
+    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56
+    this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 

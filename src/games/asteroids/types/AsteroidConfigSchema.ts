@@ -23,3 +23,6 @@ export const AsteroidConfigSchema = BaseConfigSchema.extend({
 
 /** @public */
 export type AsteroidConfig = z.infer<typeof AsteroidConfigSchema>;
+
+/** @public */
+export const DEFAULT_ASTEROID_CONFIG: AsteroidConfig = AsteroidConfigSchema.parse({});

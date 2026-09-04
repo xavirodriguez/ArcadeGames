@@ -6,6 +6,7 @@ import {
   BlueprintDefinition,
   Component,
   CoreComponentRegistry,
+  ConfigService,
   WebAudioPlayer,
   PhysicsIntegrateSystem,
   PlatformerMovementSystem,
@@ -48,6 +49,7 @@ import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/Platformer
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
+import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
 
 export interface PlatformerConfig {
   seed?: number;
@@ -77,26 +79,15 @@ export interface PlatformerBlueprintMap extends Record<string, BlueprintDefiniti
   tilemap: BlueprintDefinition<CoreComponentRegistry, any, { data: number[][]; tileDefinitions: any }>;
 }
 
-export const PLATFORMER_CONFIG = {
-  SCREEN_WIDTH: 800,
-  SCREEN_HEIGHT: 600,
-  TILE_SIZE: 40,
-  PLAYER_SPEED: 200,
-  PLAYER_ACCEL: 800,
-  PLAYER_DECEL: 1200,
-  PLAYER_AIR_ACCEL: 400,
-  PLAYER_AIR_DECEL: 600,
-  PLAYER_JUMP_VEL: 350,
-  PLAYER_MIN_JUMP_VEL: 150,
-  RISE_GRAVITY: 800,
-  FALL_GRAVITY: 1200,
-};
+export const PLATFORMER_CONFIG = DEFAULT_PLATFORMER_CONFIG;
 
 export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, any, PlatformerBlueprintMap> {
   public readonly gameId = "platformer";
   private gameOver = false;
   private levelPlan!: LevelPlan;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
+  private baseConfig: PlatformerConfigType;
+  private config: PlatformerConfigType;
 
   constructor(config: PlatformerConfig = {}) {
     super({
@@ -107,12 +98,24 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
       theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
+    this.baseConfig = ConfigService.load<PlatformerConfigType>(
+      this.gameId,
+      PlatformerConfigSchema,
+      config.gameOptions?.rawConfig ?? {}
+    );
+    this.config = this.baseConfig;
     // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:200-207. Considerar extraer a función compartida. Ref: d29aace1
     this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
   }
 
   // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:309-321. Considerar extraer a función compartida. Ref: b8cff4cf
   protected override async onRegisterSystems(): Promise<void> {
+    const mutators = (this._config.gameOptions?.mutators as Array<{ apply: (cfg: PlatformerConfigType) => PlatformerConfigType }>) || [];
+    this.config = mutators.length > 0
+      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })
+      : { ...this.baseConfig };
+
+    this.world.setResource("GameConfig", this.config);
     // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:207-221. Considerar extraer a función compartida. Ref: 44f1ee7d
     this.setupCommonArcadeResources();
     this.world.setResource("DeathPlaneY", 650);

@@ -79,36 +79,9 @@ export const INITIAL_FLAPPY_STATE: FlappyBirdState = Object.freeze({
   gameOverLogged: false,
 });
 
+import { DEFAULT_FLAPPY_BIRD_CONFIG } from "./FlappyBirdConfigSchema";
+
 /**
  * Global game configuration constants for Flappy Bird.
  */
-export const FLAPPY_CONFIG = {
-  SCREEN_WIDTH: 400,
-  SCREEN_HEIGHT: 600,
-
-  BIRD_X: 100,
-  BIRD_START_Y: 300,
-  BIRD_RADIUS: 15,
-
-  GRAVITY: 800,
-  FLAP_STRENGTH: -300,
-  FLAP_COOLDOWN: 200,
-
-  PIPE_WIDTH: 60,
-  PIPE_SPEED: 150,
-  PIPE_SPAWN_INTERVAL: 2400,
-  GAP_SIZE: 140,
-
-  GROUND_Y: 580,
-
-  NEAR_MISS_THRESHOLD: 12,
-  PIPE_SPAWN_MARGIN: 100,
-  COYOTE_TIME: 0.05,
-  MAX_NEAR_MISS_POINTS: 80,
-
-  KEYS: {
-    FLAP: "Space",
-    PAUSE: "KeyP",
-    RESTART: "KeyR",
-  },
-};
+export const FLAPPY_CONFIG = DEFAULT_FLAPPY_BIRD_CONFIG;

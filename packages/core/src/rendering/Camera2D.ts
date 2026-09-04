@@ -114,16 +114,10 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
     }
   }
 
-  /**
-   * Converts screen coordinates to world coordinates.
-   */
-  // TODO(refactor): código duplicado detectado (método) con rendering/Camera2D.ts:160-183. Considerar extraer a función compartida. Ref: 188e6e2e
-  public static screenToWorld(
+  private static getMainCameraInfo(
     world: World<any>,
-    screenX: number,
-    screenY: number,
     cameraEntity?: number
-  ): { x: number; y: number } {
+  ): { cam: Camera2DComponent; offsetX: number; offsetY: number; zoom: number } | null {
     let camEnt = cameraEntity;
     if (camEnt === undefined) {
       const cameras = world.query("Camera2D");
@@ -143,11 +137,27 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
         const offsetX = visualOffset?.offsetX ?? 0;
         const offsetY = visualOffset?.offsetY ?? 0;
         const zoom = cam.zoom || 1;
-        return {
-          x: (screenX / zoom) + cam.x + offsetX,
-          y: (screenY / zoom) + cam.y + offsetY
-        };
+        return { cam, offsetX, offsetY, zoom };
       }
+    }
+    return null;
+  }
+
+  /**
+   * Converts screen coordinates to world coordinates.
+   */
+  public static screenToWorld(
+    world: World<any>,
+    screenX: number,
+    screenY: number,
+    cameraEntity?: number
+  ): { x: number; y: number } {
+    const info = Camera2DSystem.getMainCameraInfo(world, cameraEntity);
+    if (info) {
+      return {
+        x: (screenX / info.zoom) + info.cam.x + info.offsetX,
+        y: (screenY / info.zoom) + info.cam.y + info.offsetY
+      };
     }
     return { x: screenX, y: screenY };
   }
@@ -155,37 +165,18 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
   /**
    * Converts world coordinates to screen coordinates.
    */
-  // TODO(refactor): código duplicado detectado (método) con rendering/Camera2D.ts:124-147. Considerar extraer a función compartida. Ref: 60333b4f
   public static worldToScreen(
     world: World<any>,
     worldX: number,
     worldY: number,
     cameraEntity?: number
   ): { x: number; y: number } {
-    let camEnt = cameraEntity;
-    if (camEnt === undefined) {
-      const cameras = world.query("Camera2D");
-      for (let i = 0; i < cameras.length; i++) {
-        const cam = world.getComponent(cameras[i], "Camera2D") as Camera2DComponent | undefined;
-        if (cam?.isMain) {
-          camEnt = cameras[i];
-          break;
-        }
-      }
-    }
-
-    if (camEnt !== undefined) {
-      const cam = world.getComponent(camEnt, "Camera2D") as Camera2DComponent | undefined;
-      if (cam) {
-        const visualOffset = world.getComponent(camEnt, "VisualOffset") as VisualOffsetComponent | undefined;
-        const offsetX = visualOffset?.offsetX ?? 0;
-        const offsetY = visualOffset?.offsetY ?? 0;
-        const zoom = cam.zoom || 1;
-        return {
-          x: (worldX - cam.x - offsetX) * zoom,
-          y: (worldY - cam.y - offsetY) * zoom
-        };
-      }
+    const info = Camera2DSystem.getMainCameraInfo(world, cameraEntity);
+    if (info) {
+      return {
+        x: (worldX - info.cam.x - info.offsetX) * info.zoom,
+        y: (worldY - info.cam.y - info.offsetY) * info.zoom
+      };
     }
     return { x: worldX, y: worldY };
   }

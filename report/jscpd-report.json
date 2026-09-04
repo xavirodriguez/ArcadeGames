@@ -1371,43 +1371,6 @@
     },
     {
       "firstFile": {
-        "end": 59,
-        "endLoc": {
-          "column": 7,
-          "line": 59,
-          "position": 2588
-        },
-        "name": "systems/HitDetectionSystem.ts",
-        "start": 30,
-        "startLoc": {
-          "column": 47,
-          "line": 30,
-          "position": 1282
-        }
-      },
-      "format": "typescript",
-      "fragment": "          const otherEntity = activeTriggers[j];\n          if (!world.hasEntity(otherEntity)) continue;\n\n          if (world.hasComponent(otherEntity, \"Hurtbox\")) {\n            activeHurtboxCount++;\n            const currentHitEntities = world.getComponent(hitboxEntity, \"Hitbox\")?.hitEntities ?? [];\n            if (!currentHitEntities.includes(otherEntity)) {\n              // Safe for determinism/rollback. Direct getMutableComponent avoids closure allocation while updating hitEntities list.\n              const hb = world.getMutableComponent(hitboxEntity, \"Hitbox\");\n              if (hb) {\n                if (!hb.hitEntities) hb.hitEntities = [];\n                hb.hitEntities.push(otherEntity);\n              }\n\n              const hitboxTrans = world.getComponent(hitboxEntity, \"Transform\") as TransformComponent | undefined;\n              const hurtboxTrans = world.getComponent(otherEntity, \"Transform\") as TransformComponent | undefined;\n\n              const eventBus = world.getEventBus();\n              if (eventBus) {\n                eventBus.emitDeferred(\"hitbox:hit\", {\n                  hitboxEntity,\n                  hurtboxEntity: otherEntity,\n                  attacker: hitboxTrans?.parentEntity,\n                  victim: hurtboxTrans?.parentEntity\n                });\n              }\n            }\n          }\n        }\n      }",
-      "isNew": false,
-      "lines": 30,
-      "secondFile": {
-        "end": 94,
-        "endLoc": {
-          "column": 7,
-          "line": 94,
-          "position": 4223
-        },
-        "name": "systems/HitDetectionSystem.ts",
-        "start": 65,
-        "startLoc": {
-          "column": 55,
-          "line": 65,
-          "position": 2917
-        }
-      },
-      "tokens": 175
-    },
-    {
-      "firstFile": {
         "end": 25,
         "endLoc": {
           "column": 12,

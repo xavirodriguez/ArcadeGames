@@ -83,3 +83,23 @@ Documentación de bloques de código duplicados identificados mediante `jscpd`, 
 - **Prioridad**: Media
 - **Estado**: Refactorizado
 - **Solución**: Se extrajo el helper privado `createTimeoutPromise` en `SceneManager.ts`.
+
+---
+
+## [DUP-08] HitDetectionSystem Trigger vs Collision Overlap Logic
+- **Archivos**:
+  - `packages/core/src/systems/HitDetectionSystem.ts:30-59` ↔ `packages/core/src/systems/HitDetectionSystem.ts:65-94`
+- **Líneas duplicadas**: 30 líneas
+- **Prioridad**: Media
+- **Estado**: Refactorizado
+- **Solución**: Se extrajo el método privado `processHitOverlap` en `HitDetectionSystem.ts`.
+
+---
+
+## [DUP-09] Camera2D Screen and World Coordinate Transformation Info Resolution
+- **Archivos**:
+  - `packages/core/src/rendering/Camera2D.ts:124-147` ↔ `packages/core/src/rendering/Camera2D.ts:162-185`
+- **Líneas duplicadas**: 24 líneas
+- **Prioridad**: Media
+- **Estado**: Refactorizado
+- **Solución**: Se extrajo el método privado estático `getMainCameraInfo` en `Camera2DSystem.ts`.

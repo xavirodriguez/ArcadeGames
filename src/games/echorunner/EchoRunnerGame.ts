@@ -3,6 +3,7 @@ import {
   BaseGame,
   World,
   System,
+  ConfigService,
   SystemPhase,
   BlueprintDefinition,
   CoreComponentRegistry,
@@ -44,6 +45,7 @@ import {
 } from "@tiny-aster/core";
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
 import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
+import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType } from "./types/EchoRunnerConfigSchema";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState } from "../shared/arcade";
 import defaultLevelData from "./levels/level-01.json";
@@ -192,6 +194,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
   private gameOver = false;
   private levelPlan!: LevelPlan;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
+  private baseConfig: EchoRunnerConfigType;
+  private config: EchoRunnerConfigType;
 
   constructor(config: EchoRunnerConfig = {}) {
     super({
@@ -201,12 +205,24 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
       seed: config.seed,
       audio: new WebAudioPlayer()
     });
+    this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
+      this.gameId,
+      EchoRunnerConfigSchema,
+      config.gameOptions?.rawConfig ?? {}
+    );
+    this.config = this.baseConfig;
     // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:107-114. Considerar extraer a función compartida. Ref: d29aace1
     this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
   }
 
   // TODO(refactor): código duplicado detectado (método) con platformer/PlatformerGame.ts:227-251. Considerar extraer a función compartida. Ref: d39ade6b
   protected override async onRegisterSystems(): Promise<void> {
+    const mutators = (this._config.gameOptions?.mutators as Array<{ apply: (cfg: EchoRunnerConfigType) => EchoRunnerConfigType }>) || [];
+    this.config = mutators.length > 0
+      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })
+      : { ...this.baseConfig };
+
+    this.world.setResource("GameConfig", this.config);
     // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:114-127. Considerar extraer a función compartida. Ref: 44f1ee7d
     this.setupCommonArcadeResources();
     this.world.setResource("DeathPlaneY", 650);

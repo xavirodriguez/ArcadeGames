@@ -31,3 +31,34 @@ export const StandardControlKeysSchema = z.object({
   PAUSE: z.string().default("KeyP"),
   RESTART: z.string().default("KeyR")
 });
+
+/**
+ * Reusable Zod schema shape for player movement physics across platformer/runner games.
+ * @public
+ */
+export const PlayerMovementSchema = z.object({
+  PLAYER_SPEED: z.number().default(200),
+  PLAYER_ACCEL: z.number().default(800),
+  PLAYER_DECEL: z.number().default(1200),
+  PLAYER_AIR_ACCEL: z.number().default(400),
+  PLAYER_AIR_DECEL: z.number().default(600)
+});
+
+/**
+ * Reusable Zod schema shape for jumping and gravity physics.
+ * @public
+ */
+export const JumpPhysicsSchema = z.object({
+  PLAYER_JUMP_VEL: z.number().default(350),
+  PLAYER_MIN_JUMP_VEL: z.number().default(150),
+  RISE_GRAVITY: z.number().default(800),
+  FALL_GRAVITY: z.number().default(1200)
+});
+
+/**
+ * Reusable Zod schema shape for tile grid dimensions.
+ * @public
+ */
+export const TileGridSchema = z.object({
+  TILE_SIZE: z.number().default(40)
+});

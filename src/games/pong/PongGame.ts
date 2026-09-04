@@ -108,6 +108,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
       ? mutators.reduce((cfg, m) => (m as any).apply(cfg), { ...this.baseConfig }) as PongConfig
       : { ...this.baseConfig };
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:76-84. Considerar extraer a función compartida. Ref: 75010e56
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };

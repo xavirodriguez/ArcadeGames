@@ -1,6 +1,7 @@
 import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { ParticleEmitterComponent, ParticleEmitterConfig, Entity, CoreComponentRegistry } from "../ecs/CoreComponents";
+import { createDeferredEntity } from "../ecs/EntityHelpers";
 
 /** @public */
 export interface ParticleParams {
@@ -124,7 +125,6 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
 
 /** @public */
 export function createEmitter(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity {
-  const commands = world.getCommandBuffer();
   const component = {
     type: "ParticleEmitter",
     config,
@@ -132,14 +132,7 @@ export function createEmitter(world: World<CoreComponentRegistry>, config: Parti
     elapsed: 0,
   } as ParticleEmitterComponent;
 
-  if (world.isUpdating) {
-    const entity = world.reserveEntityId();
-    commands.createEntity(entity);
-    commands.addComponent(entity, component);
-    return entity;
-  } else {
-    const entity = world.createEntity();
-    commands.addComponent(entity, component);
-    return entity;
-  }
+  const { entity, add } = createDeferredEntity(world);
+  add(component);
+  return entity;
 }

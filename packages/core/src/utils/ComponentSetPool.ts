@@ -2,6 +2,7 @@ import { World } from "../ecs/World";
 import { Component } from "../ecs/Component";
 import { Entity, ReclaimableComponent, ReleaseContext, ComponentSetReleaseContext } from "../ecs/CoreComponents";
 import { ObjectPool } from "./ObjectPool";
+import { createDeferredEntity } from "../ecs/EntityHelpers";
 
 /**
  * Generic ComponentSetPool that manages a pool of component sets.
@@ -58,41 +59,16 @@ export class ComponentSetPool<T extends Record<string, Component>> {
       }
     }
 
-    if (world.isUpdating) {
-        // Reserve ID immediately but defer activation
-        const entity = world.reserveEntityId();
-        const commands = world.getCommandBuffer();
-
-        // CommandBuffer creation logic
-        // TODO(refactor): código duplicado detectado (bloque) con utils/ComponentSetPool.ts:82-91. Considerar extraer a función compartida. Ref: 45dd26fe
-        commands.createEntity(entity);
-
-        this.activeEntities.add(entity);
-
-        for (const key in components) {
-          const comp = components[key];
-          if (comp.type === "Reclaimable") {
-            (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);
-          }
-          commands.addComponent(entity, comp);
-        }
-
-        return { entity, components };
-    }
-
-    // TODO(refactor): código duplicado detectado (bloque) con utils/ComponentSetPool.ts:68-76. Considerar extraer a función compartida. Ref: 4eed773c
-    const entity = world.createEntity();
+    const { entity, add } = createDeferredEntity(world);
     this.activeEntities.add(entity);
 
     for (const key in components) {
       const comp = components[key];
-
       // Automatically wire up Reclaimable components to return to this pool
       if (comp.type === "Reclaimable") {
         (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);
       }
-
-      world.addComponent(entity, comp);
+      add(comp as any);
     }
 
     return { entity, components };

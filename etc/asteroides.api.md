@@ -1102,6 +1102,14 @@ export interface CoreEvents {
     };
 }
 
+// @public
+export function createDeferredEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, deferred?: boolean): {
+    entity: Entity;
+    add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & {
+        type: K;
+    }) => void;
+};
+
 // @public (undocumented)
 export function createEmitter(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity;
 
@@ -3954,6 +3962,9 @@ export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
     // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
+
+// @public
+export function spawnBlueprintEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>, TId extends Extract<keyof TBlueprints, string> = Extract<keyof TBlueprints, string>>(world: World<TComponents, TEvents, TBlueprints>, blueprintId: TId, args: BlueprintArgs<TBlueprints, TId>): Entity;
 
 // @public (undocumented)
 export interface SpriteComponent extends Component {

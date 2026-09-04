@@ -1,5 +1,4 @@
-import { World } from "@tiny-aster/core";
-import { Entity, Component } from "@tiny-aster/core";
+import { World, Entity, Component, createDeferredEntity, spawnBlueprintEntity } from "@tiny-aster/core";
 import { SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG, SpaceInvadersComponentRegistry } from "./types/SpaceInvadersTypes";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
@@ -27,58 +26,13 @@ import { EnemyFactory } from "./EnemyFactory";
  * @packageDocumentation
  */
 
-/**
- * Helper to handle deferred or immediate entity creation and component attachment.
- */
-const createBaseEntity = (world: World<any>, deferred?: boolean): { entity: Entity, add: (comp: any) => void } => {
-    const isUpdating = world.isUpdating;
-    const isDeferred = !!(deferred || isUpdating);
-    const commands = world.getCommandBuffer();
-
-    if (isDeferred) {
-        const entity = world.reserveEntityId();
-        commands.createEntity(entity);
-        return {
-            entity,
-            add: (comp: any) => {
-                commands.addComponent(entity, comp);
-            }
-        };
-    }
-
-    const entity = world.createEntity();
-    return {
-        entity,
-        add: (comp: any) => world.addComponent(entity, comp)
-    };
-};
-
-// TODO(refactor): código duplicado detectado (bloque) con pong/EntityFactory.ts:5-34. Considerar extraer a función compartida. Ref: ff1b45eb
-import { BlueprintRegistry } from "@tiny-aster/core";
-
-function spawnEntity(world: World<any, any, any>, blueprintId: string, args: any): number {
-  if (world.isUpdating) {
-    const entity = world.reserveEntityId();
-    world.commands.createEntity(entity);
-    world.commands.spawnFromBlueprintForEntity(entity, blueprintId, args);
-    return entity;
-  }
-
-  const entity = world.createEntity();
-  const registry = world.getResource<BlueprintRegistry<any, any, any>>("BlueprintRegistry");
-  const blueprint = registry?.get(blueprintId);
-  if (blueprint) {
-    blueprint.spawn(world, entity, args);
-  }
-  return entity;
-}
 
 /**
  * Creates the player ship entity.
  * Includes input handling, health, and boundary constraints.
  */
 export function createPlayer(world: World<any>, x: number, y: number, deferred?: boolean): Entity {
-  return spawnEntity(world, "player", { x, y });
+  return spawnBlueprintEntity(world, "player", { x, y });
 }
 
 /**
@@ -86,7 +40,7 @@ export function createPlayer(world: World<any>, x: number, y: number, deferred?:
  * Points are assigned based on the row (classic Space Invaders scoring).
  */
 export function createInvader(world: World<any>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
-  return spawnEntity(world, "invader", { x, y, row, col });
+  return spawnBlueprintEntity(world, "invader", { x, y, row, col });
 }
 
 /**
@@ -131,21 +85,21 @@ export function createEnemyBullet(world: World<any>, x: number, y: number, pool:
  * Creates a single destructible block of a shield/bunker.
  */
 export function createShieldSegment(world: World<any>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
-  return spawnEntity(world, "shield", { x, y, row, col });
+  return spawnBlueprintEntity(world, "shield", { x, y, row, col });
 }
 
 /**
  * Creates the global game state entity.
  */
 export function createGameState(world: World<any>, deferred?: boolean): Entity {
-  return spawnEntity(world, "state", {});
+  return spawnBlueprintEntity(world, "state", {});
 }
 
 /**
  * Creates the singleton entity that coordinates the invader grid movement.
  */
 export function createFormationController(world: World<any>, deferred?: boolean): Entity {
-  return spawnEntity(world, "formation", {});
+  return spawnBlueprintEntity(world, "formation", {});
 }
 
 /**

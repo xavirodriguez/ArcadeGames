@@ -328,187 +328,57 @@ export function registerGeometryWarsBlueprints(
   world.setResource("BlueprintRegistry", registry);
 }
 
+function spawnEntity(
+  world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>,
+  blueprintId: string,
+  args: any
+): number {
+  if (world.isUpdating) {
+    const entity = world.reserveEntityId();
+    world.commands.createEntity(entity);
+    world.commands.spawnFromBlueprintForEntity(entity, blueprintId as any, args);
+    return entity;
+  }
+
+  const entity = world.createEntity();
+  const registry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
+  const blueprint = registry?.get(blueprintId);
+  if (blueprint) {
+    blueprint.spawn(world, entity, args);
+  }
+  return entity;
+}
+
 /**
  * Factory functions for spawning Geometry Wars entities.
  * @public
  */
 export class GeometryWarsEntityFactory {
-  // TODO(refactor): código duplicado detectado (método) con geometrywars/entities/GeometryWarsEntities.ts:350-367. Considerar extraer a función compartida. Ref: ae35df01
   public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("seeker")?.spawn(mockWorld, entity, { x, y });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("seeker")?.spawn(world, entity, { x, y });
-    }
-    return entity;
+    return spawnEntity(world, "seeker", { x, y });
   }
 
-  // TODO(refactor): código duplicado detectado (método) con geometrywars/entities/GeometryWarsEntities.ts:333-350. Considerar extraer a función compartida. Ref: 054a220d
   public static createEvader(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("evader")?.spawn(mockWorld, entity, { x, y });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("evader")?.spawn(world, entity, { x, y });
-    }
-    return entity;
+    return spawnEntity(world, "evader", { x, y });
   }
 
   public static createFastSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("fast_seeker")?.spawn(mockWorld, entity, { x, y });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("fast_seeker")?.spawn(world, entity, { x, y });
-    }
-    return entity;
+    return spawnEntity(world, "fast_seeker", { x, y });
   }
 
   public static createPlayer(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("player")?.spawn(mockWorld, entity, { x, y });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("player")?.spawn(world, entity, { x, y });
-    }
-    return entity;
+    return spawnEntity(world, "player", { x, y });
   }
 
   public static createBullet(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number, vx: number, vy: number, rotation: number): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("bullet")?.spawn(mockWorld, entity, { x, y, vx, vy, rotation });
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("bullet")?.spawn(world, entity, { x, y, vx, vy, rotation });
-    }
-    return entity;
+    return spawnEntity(world, "bullet", { x, y, vx, vy, rotation });
   }
 
-  // TODO(refactor): código duplicado detectado (método) con geometrywars/entities/GeometryWarsEntities.ts:475-492. Considerar extraer a función compartida. Ref: 0165ce82
   public static createSpawnDirector(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("spawn_director")?.spawn(mockWorld, entity, {});
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("spawn_director")?.spawn(world, entity, {});
-    }
-    return entity;
+    return spawnEntity(world, "spawn_director", {});
   }
 
-  // TODO(refactor): código duplicado detectado (método) con geometrywars/entities/GeometryWarsEntities.ts:459-476. Considerar extraer a función compartida. Ref: c2956842
   public static createGameState(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
-    const isUpdating = world.isUpdating;
-    const commands = world.getCommandBuffer();
-    const blueprintRegistry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry");
-
-    let entity: number;
-    if (isUpdating) {
-      entity = world.reserveEntityId();
-      commands.createEntity(entity);
-      const mockWorld = new Proxy(world, {
-        get(target, prop, receiver) {
-          if (prop === "addComponent") {
-            return (ent: number, comp: any) => commands.addComponent(ent, comp);
-          }
-          return Reflect.get(target, prop, receiver);
-        }
-      });
-      blueprintRegistry?.get("state")?.spawn(mockWorld, entity, {});
-    } else {
-      entity = world.createEntity();
-      blueprintRegistry?.get("state")?.spawn(world, entity, {});
-    }
-    return entity;
+    return spawnEntity(world, "state", {});
   }
 }

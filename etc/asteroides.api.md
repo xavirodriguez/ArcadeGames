@@ -3966,6 +3966,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     };
     isEnabled(): boolean;
     static isEntityInViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entity: Entity, margin?: number): boolean;
+    static isPlayerEntity<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entity: Entity): boolean;
     setEnabled(enabled: boolean): void;
     setMargin(margin: number): void;
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;

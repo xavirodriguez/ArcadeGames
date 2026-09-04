@@ -480,6 +480,20 @@ export class BroadPhase {
 // @public
 export const browserFrameScheduler: FrameScheduler;
 
+// @public
+export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(world: World<TComponents>, internal: InternalWorldSnapshotAccess, activeEntities: Set<Entity>, options?: {
+    isSoA?: false;
+}): BaseWorldSnapshot & {
+    isSoA?: false;
+};
+
+// @public
+export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(world: World<TComponents>, internal: InternalWorldSnapshotAccess, activeEntities: Set<Entity>, options: {
+    isSoA: true;
+}): BaseWorldSnapshot & {
+    isSoA: true;
+};
+
 // @public (undocumented)
 export interface Camera2DComponent extends Component {
     followEntity?: Entity;
@@ -583,6 +597,9 @@ export interface CharacterMemory {
     type: "playerChoice" | "event" | "lie" | "promise" | "betrayal" | "assistance";
     weight?: number;
 }
+
+// @public
+export function checkPlayerDetectionToAlert(sensor?: PlayerSensorComponent): "Alert" | undefined;
 
 // @public
 export class CheckpointSystem extends System<CoreComponentRegistry> {
@@ -1666,6 +1683,12 @@ export type GeometryWarsRoleKey = CommonRoleKey | "chaser" | "evader" | "grunt" 
 export function getColliderWorldBounds(transform: PhysicsTransformLike, collider: ColliderLike): AABB;
 
 // @public
+export function getDirectionToDetectedPlayer(world: World<any>, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): {
+    x: number;
+    y: number;
+} | null;
+
+// @public
 export function getEasingFunction(easingOption?: EasingFunction | string): EasingFunction;
 
 // @public
@@ -1673,6 +1696,9 @@ export function getForwardVector(rotation: number): {
     x: number;
     y: number;
 };
+
+// @public
+export function getHorizontalDirectionToPlayer(world: World<any>, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
 
 // @public
 export interface GroundDetectorComponent extends Component {
@@ -1924,6 +1950,16 @@ export class InterestManagerSystem<TComponents extends ComponentRegistry = Compo
     onRegister(world: World<TComponents, TEvents>): void;
     // (undocumented)
     update(world: World<TComponents, TEvents>, deltaTime: number): void;
+}
+
+// @public
+export interface InternalWorldSnapshotAccess {
+    // (undocumented)
+    freeEntities: number[];
+    // (undocumented)
+    generations?: number[];
+    // (undocumented)
+    nextEntityId: number;
 }
 
 // @public
@@ -4734,6 +4770,9 @@ export interface WorldLike<TComponents extends ComponentRegistry = ComponentRegi
 
 // @public
 export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;
+
+// @public
+export function zeroOutVelocityX(world: World<any>, entity: Entity): void;
 
 // (No @packageDocumentation comment for this package)
 

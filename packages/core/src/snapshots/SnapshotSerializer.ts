@@ -1,8 +1,8 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
 import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
-// TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotSerializerSoA.ts:4-30. Considerar extraer a función compartida. Ref: 37b385bf
 import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
+import { buildSnapshotMetadata } from "./SnapshotMetadataBuilder";
 
 /**
  * Internal interface to access private world state for serialization.
@@ -13,6 +13,7 @@ interface InternalWorldAccess<_TComponents extends ComponentRegistry> {
   componentMaps: Map<string, Map<number, unknown>>;
   nextEntityId: number;
   freeEntities: number[];
+  generations?: number[];
 }
 
 /**
@@ -89,18 +90,9 @@ export class SnapshotSerializer {
       }
     });
 
-    // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotSerializerSoA.ts:126-134. Considerar extraer a función compartida. Ref: 9b0e72d4
     return {
-      entities: Array.from(activeEntities).sort((a, b) => a - b),
-      componentData,
-      nextEntityId: internal.nextEntityId,
-      freeEntities: [...internal.freeEntities],
-      generations: (world as any).generations ? Array.from((world as any).generations) : [],
-      structureVersion: world.structureVersion,
-      stateVersion: world.stateVersion,
-      seed: world.gameplayRandom.getSeed(),
-      rngState: world.gameplayRandom.getSeed(),
-      tick: world.tick
+      ...buildSnapshotMetadata(world, internal, activeEntities),
+      componentData
     };
   }
 

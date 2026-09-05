@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * An classic 8/16-bit retro Iris Wipe circular transition.
@@ -7,20 +8,23 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/FadeTransition.ts:10-25. Considerar extraer a función compartida. Ref: 0946b729
-export class IrisTransition implements ITransitionEffect {
+export class IrisTransition extends BaseTransitionEffect {
   /**
-   * Renders the circular wipe effect.
+   * Paints the circular wipe effect.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const canvas = ctx.canvas;
-    if (!canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
+  protected paint(
+    ctx: RenderContext,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     const color = options?.color ?? "#000000";
 
     const cx = options?.centerX ?? (width / 2);
@@ -45,12 +49,10 @@ export class IrisTransition implements ITransitionEffect {
       currentRadius = maxRadius * t;
     }
 
-    ctx.save();
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.rect(0, 0, width, height);
     ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2, true);
     ctx.fill("evenodd");
-    ctx.restore();
   }
 }

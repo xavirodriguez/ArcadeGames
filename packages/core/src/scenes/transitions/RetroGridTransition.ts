@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseOffscreenTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * A highly retro grid transition.
@@ -7,32 +8,30 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/CRTGlitchTransition.ts:10-30. Considerar extraer a función compartida. Ref: 9d160410
-export class RetroGridTransition implements ITransitionEffect {
+export class RetroGridTransition extends BaseOffscreenTransitionEffect {
   /**
-   * Set flag to indicate that both scenes should be drawn.
-   */
-  public readonly drawsBothScenes = true;
-
-  /**
-   * Renders the sequencial grid scaleout transition.
+   * Paints the sequential grid scaleout transition.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
+   * @param offscreenCanvas - The offscreen canvas containing the outgoing scene.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const off = options?.offscreenCanvas;
-    const canvas = ctx.canvas;
-    if (!off || !canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
+  protected paintOffscreen(
+    ctx: RenderContext,
+    offscreenCanvas: CanvasImageSource | HTMLCanvasElement,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     const blockSize = options?.blockSize ?? 40;
 
     const cols = Math.ceil(width / blockSize);
     const rows = Math.ceil(height / blockSize);
 
-    ctx.save();
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         // Compute threshold from coordinates to stagger the sequence
@@ -47,9 +46,8 @@ export class RetroGridTransition implements ITransitionEffect {
         const w = blockSize * cellProgress;
         const h = blockSize * cellProgress;
 
-        ctx.drawImage(off, c * blockSize, r * blockSize, blockSize, blockSize, cx - w / 2, cy - h / 2, w, h);
+        ctx.drawImage(offscreenCanvas, c * blockSize, r * blockSize, blockSize, blockSize, cx - w / 2, cy - h / 2, w, h);
       }
     }
-    ctx.restore();
   }
 }

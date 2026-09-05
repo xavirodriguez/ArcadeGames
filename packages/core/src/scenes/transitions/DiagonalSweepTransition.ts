@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseOffscreenTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * A sleek retro diagonal sweep wipe.
@@ -7,31 +8,29 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/CRTGlitchTransition.ts:10-30. Considerar extraer a función compartida. Ref: f24ffc5b
-export class DiagonalSweepTransition implements ITransitionEffect {
+export class DiagonalSweepTransition extends BaseOffscreenTransitionEffect {
   /**
-   * Set flag to indicate that both scenes should be drawn.
-   */
-  public readonly drawsBothScenes = true;
-
-  /**
-   * Renders the diagonal sweep wipe.
+   * Paints the diagonal sweep wipe.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
+   * @param offscreenCanvas - The offscreen canvas containing the outgoing scene.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const off = options?.offscreenCanvas;
-    const canvas = ctx.canvas;
-    if (!off || !canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
+  protected paintOffscreen(
+    ctx: RenderContext,
+    offscreenCanvas: CanvasImageSource | HTMLCanvasElement,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     // Diagonal frontier sweep line
     const maxDist = width + height;
     const currentDist = maxDist * (1 - progress);
 
-    ctx.save();
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(currentDist, 0);
@@ -39,7 +38,6 @@ export class DiagonalSweepTransition implements ITransitionEffect {
     ctx.closePath();
     ctx.clip();
 
-    ctx.drawImage(off, 0, 0);
-    ctx.restore();
+    ctx.drawImage(offscreenCanvas, 0, 0);
   }
 }

@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * Scanline / CRT Wipe transition.
@@ -7,20 +8,23 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/FadeTransition.ts:10-25. Considerar extraer a función compartida. Ref: 9360e5da
-export class ScanlineWipeTransition implements ITransitionEffect {
+export class ScanlineWipeTransition extends BaseTransitionEffect {
   /**
-   * Renders the Scanline CRT sweep effect.
+   * Paints the Scanline CRT sweep effect.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const canvas = ctx.canvas;
-    if (!canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
+  protected paint(
+    ctx: RenderContext,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     const color = options?.color ?? "#000000";
     const lineColor = options?.lineColor ?? "#00FFFF";
     const lineWidth = options?.lineWidth ?? 4;
@@ -37,8 +41,6 @@ export class ScanlineWipeTransition implements ITransitionEffect {
       sweepY = height * t;
       isOutPhase = false;
     }
-
-    ctx.save();
 
     // 1. Draw solid color coverage area
     ctx.fillStyle = color;
@@ -70,7 +72,5 @@ export class ScanlineWipeTransition implements ITransitionEffect {
       ctx.lineTo(width, sweepY);
       ctx.stroke();
     }
-
-    ctx.restore();
   }
 }

@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseOffscreenTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * A classic curtain-split transition.
@@ -7,33 +8,30 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/CRTGlitchTransition.ts:10-28. Considerar extraer a función compartida. Ref: e9dcf478
-export class CurtainTransition implements ITransitionEffect {
+export class CurtainTransition extends BaseOffscreenTransitionEffect {
   /**
-   * Set flag to indicate that both scenes should be drawn.
-   */
-  public readonly drawsBothScenes = true;
-
-  /**
-   * Renders the curtain split visual.
+   * Paints the curtain split visual.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
+   * @param offscreenCanvas - The offscreen canvas containing the outgoing scene.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const off = options?.offscreenCanvas;
-    const canvas = ctx.canvas;
-    if (!off || !canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
+  protected paintOffscreen(
+    ctx: RenderContext,
+    offscreenCanvas: CanvasImageSource | HTMLCanvasElement,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     const shift = progress * (width / 2);
 
-    ctx.save();
     // Left half
-    ctx.drawImage(off, 0, 0, width / 2, height, -shift, 0, width / 2, height);
+    ctx.drawImage(offscreenCanvas, 0, 0, width / 2, height, -shift, 0, width / 2, height);
     // Right half
-    ctx.drawImage(off, width / 2, 0, width / 2, height, width / 2 + shift, 0, width / 2, height);
-    ctx.restore();
+    ctx.drawImage(offscreenCanvas, width / 2, 0, width / 2, height, width / 2 + shift, 0, width / 2, height);
   }
 }

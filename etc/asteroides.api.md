@@ -409,8 +409,24 @@ export abstract class BaseGameStateSystem<TGameState = unknown, TComponents exte
 }
 
 // @public
+export abstract class BaseOffscreenTransitionEffect extends BaseTransitionEffect {
+    readonly drawsBothScenes: boolean;
+    protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
+    protected abstract paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
+    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+}
+
+// @public
 export interface BaseShape {
     type: ShapeType;
+}
+
+// @public
+export abstract class BaseTransitionEffect implements ITransitionEffect {
+    protected readonly autoSave: boolean;
+    readonly drawsBothScenes?: boolean;
+    protected abstract paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
+    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -1193,15 +1209,13 @@ export function createEmptyRawInputState(): RawInputState;
 export function createEntityBuilder<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity?: Entity): EntityBuilder<TComponents, TEvents, TBlueprints>;
 
 // @public
-export class CrossfadeTransition implements ITransitionEffect {
-    readonly drawsBothScenes = true;
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class CrossfadeTransition extends BaseOffscreenTransitionEffect {
+    protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
-export class CRTGlitchTransition implements ITransitionEffect {
-    readonly drawsBothScenes = true;
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class CRTGlitchTransition extends BaseOffscreenTransitionEffect {
+    protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -1214,9 +1228,8 @@ export const CURRENT_CAMPAIGN_ENVELOPE_VERSION = 1;
 export const CURRENT_STORY_SCHEMA_VERSION = 3;
 
 // @public
-export class CurtainTransition implements ITransitionEffect {
-    readonly drawsBothScenes = true;
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class CurtainTransition extends BaseOffscreenTransitionEffect {
+    protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -1266,10 +1279,9 @@ export class CYOAScene extends Scene {
 }
 
 // @public
-export class DangerPulseTransition implements ITransitionEffect {
+export class DangerPulseTransition extends BaseTransitionEffect {
     readonly drawsBothScenes = false;
-    // (undocumented)
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+    protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public (undocumented)
@@ -1351,9 +1363,8 @@ export class DeterministicReplayRecorder {
 }
 
 // @public
-export class DiagonalSweepTransition implements ITransitionEffect {
-    readonly drawsBothScenes = true;
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class DiagonalSweepTransition extends BaseOffscreenTransitionEffect {
+    protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -1383,8 +1394,10 @@ export interface DialogueNodeBuilder extends CommonNodeBuilderMethods<DialogueNo
 }
 
 // @public
-export class DitherTransition implements ITransitionEffect {
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class DitherTransition extends BaseTransitionEffect {
+    // (undocumented)
+    protected readonly autoSave = false;
+    protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -1607,8 +1620,10 @@ export interface FactionComponent extends Component {
 }
 
 // @public
-export class FadeTransition implements ITransitionEffect {
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class FadeTransition extends BaseTransitionEffect {
+    // (undocumented)
+    protected readonly autoSave = false;
+    protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public (undocumented)
@@ -2136,8 +2151,8 @@ export interface IPrefabPool<TParams> {
 }
 
 // @public
-export class IrisTransition implements ITransitionEffect {
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class IrisTransition extends BaseTransitionEffect {
+    protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -3265,8 +3280,10 @@ export class PhysicsUtils {
 }
 
 // @public
-export class PixelateTransition implements ITransitionEffect {
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class PixelateTransition extends BaseTransitionEffect {
+    // (undocumented)
+    protected readonly autoSave = false;
+    protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -3454,9 +3471,8 @@ export class Query<_TComponents extends ComponentRegistry> {
 }
 
 // @public
-export class RadialWipeTransition implements ITransitionEffect {
-    readonly drawsBothScenes = true;
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class RadialWipeTransition extends BaseOffscreenTransitionEffect {
+    protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -3794,9 +3810,8 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
 }
 
 // @public
-export class RetroGridTransition implements ITransitionEffect {
-    readonly drawsBothScenes = true;
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class RetroGridTransition extends BaseOffscreenTransitionEffect {
+    protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public
@@ -3828,8 +3843,8 @@ export interface SATOverlapState {
 }
 
 // @public
-export class ScanlineWipeTransition implements ITransitionEffect {
-    render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+export class ScanlineWipeTransition extends BaseTransitionEffect {
+    protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
 // @public

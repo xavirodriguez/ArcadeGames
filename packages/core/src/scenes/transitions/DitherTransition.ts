@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * A dithered checkered fade utilizing a standard 4x4 Bayer matrix.
@@ -7,8 +8,9 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/DangerPulseTransition.ts:28-36. Considerar extraer a función compartida. Ref: f320351e
-export class DitherTransition implements ITransitionEffect {
+export class DitherTransition extends BaseTransitionEffect {
+  protected override readonly autoSave = false;
+
   private static readonly BAYER_4X4 = [
     [ 0,  8,  2, 10],
     [12,  4, 14,  6],
@@ -17,17 +19,21 @@ export class DitherTransition implements ITransitionEffect {
   ];
 
   /**
-   * Renders the dithered bayer grid effect.
+   * Paints the dithered bayer grid effect.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const canvas = ctx.canvas;
-    if (!canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
+  protected paint(
+    ctx: RenderContext,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     const color = options?.color ?? "#000000";
     const blockSize = options?.blockSize ?? 8;
 

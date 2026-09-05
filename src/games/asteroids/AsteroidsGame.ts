@@ -68,6 +68,7 @@ import { AsteroidConfigSchema, AsteroidConfig } from "./types/AsteroidConfigSche
 import { GameStateComponent, InputState } from "./types/AsteroidTypes";
 import { getStoryBeatForLevel } from "./story/StoryBeats";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
+import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import asteroidsConfigRaw from "./config/asteroids.json";
 
@@ -118,10 +119,7 @@ export class AsteroidsGame
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mutators = (this._config.gameOptions?.mutators as any[]) || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.config = mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig } as any);
+    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("PowerUpEffects", new PowerUpRegistry());

@@ -1,9 +1,11 @@
 import { Entity } from "./Entity";
 import { ComponentRegistry } from "./Component";
 
+declare const __DEV__: boolean | undefined;
+
 // Resolve environment check safely without free variables
-const isDev = typeof (globalThis as unknown as { __DEV__?: boolean }).__DEV__ !== "undefined"
-  ? (globalThis as unknown as { __DEV__?: boolean }).__DEV__
+const isDev = typeof __DEV__ !== "undefined"
+  ? __DEV__
   : (process.env.NODE_ENV !== "production");
 
 /**

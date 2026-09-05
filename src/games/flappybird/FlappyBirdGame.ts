@@ -15,6 +15,7 @@ import {
   createGround
 } from "./EntityFactory";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
+import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { AchievementSystem } from "../shared/arcade";
 
 /**
@@ -70,10 +71,7 @@ export class FlappyBirdGame
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
-    this.config = mutators.length > 0
-      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })
-      : { ...this.baseConfig };
+    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
     // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
@@ -243,7 +241,8 @@ export class FlappyBirdGame
     this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
-    this.world.addSystem(new MutatorSystem(mutators) as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
+    const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as any[];
+    this.world.addSystem(new MutatorSystem(activeMutators) as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
     // Visual / Presentation
     this.world.addSystem(new JuiceSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Presentation });

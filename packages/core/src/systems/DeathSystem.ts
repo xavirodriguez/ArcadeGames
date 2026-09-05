@@ -1,7 +1,7 @@
 import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
-import { getGameplaySystemContext } from "./systemHelpers";
+import { getGameplaySystemContextAndEntities } from "./systemHelpers";
 
 /**
  * System that monitors player health and position to detect death.
@@ -10,11 +10,9 @@ import { getGameplaySystemContext } from "./systemHelpers";
  */
 export class DeathSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
-    const ctx = getGameplaySystemContext(world);
+    const ctx = getGameplaySystemContextAndEntities(world, "PlatformerInput", "Transform");
     if (!ctx) return;
-    const { runState, eventBus } = ctx;
-
-    const players = world.query("PlatformerInput", "Transform");
+    const { runState, eventBus, entities: players } = ctx;
     const deathPlaneY = world.getResource<number>("DeathPlaneY") ?? 1000;
 
     for (let i = 0; i < players.length; i++) {

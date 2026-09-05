@@ -2,11 +2,11 @@
   "duplicates": [
     {
       "firstFile": {
-        "end": 44,
+        "end": 43,
         "endLoc": {
-          "column": 43,
-          "line": 44,
-          "position": 1724
+          "column": 93,
+          "line": 43,
+          "position": 1733
         },
         "name": "ecs/EntityBuilder.ts",
         "start": 38,
@@ -17,25 +17,25 @@
         }
       },
       "format": "typescript",
-      "fragment": "  public static create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {\n    const entity = world.createEntity();\n    return new EntityBuilder(world, entity, false);",
+      "fragment": "  public static create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {\n    return createBuilderInstance((w, e, cb) => new EntityBuilder(w, e, cb), world, undefined, false);",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 67,
+        "end": 65,
         "endLoc": {
-          "column": 43,
-          "line": 67,
-          "position": 2786
+          "column": 93,
+          "line": 65,
+          "position": 2851
         },
         "name": "ecs/EntityBuilder.ts",
-        "start": 61,
+        "start": 60,
         "startLoc": {
           "column": 30,
-          "line": 61,
-          "position": 2383
+          "line": 60,
+          "position": 2439
         }
       },
-      "tokens": 64
+      "tokens": 72
     },
     {
       "firstFile": {
@@ -1112,92 +1112,18 @@
     },
     {
       "firstFile": {
-        "end": 28,
+        "end": 139,
         "endLoc": {
           "column": 7,
-          "line": 28,
-          "position": 1358
+          "line": 139,
+          "position": 5404
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 19,
-        "startLoc": {
-          "column": 50,
-          "line": 19,
-          "position": 1081
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const tick = Math.floor((world.tick * 5) / 12);\n\n    ctx.save();\n\n    // Hit Flash Transparency Pulse & Glow (R11)\n    const isHitFlashing = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;\n    if (isHitFlashing) {\n      if ((render.hitFlashFrames! >> 1) % 2 === 0) {\n        ctx.globalAlpha = 0.3;\n      }",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 150,
-        "endLoc": {
-          "column": 7,
-          "line": 150,
-          "position": 5800
-        },
-        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 143,
-        "startLoc": {
-          "column": 43,
-          "line": 143,
-          "position": 5547
-        }
-      },
-      "tokens": 50
-    },
-    {
-      "firstFile": {
-        "end": 39,
-        "endLoc": {
-          "column": 26,
-          "line": 39,
-          "position": 1883
-        },
-        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 30,
-        "startLoc": {
-          "column": 16,
-          "line": 30,
-          "position": 1548
-        }
-      },
-      "format": "typescript",
-      "fragment": "      baseColor = colors.white;\n    }\n\n    // Invulnerability Pulse\n    const hasInvulnerable = world.hasComponent(entity, \"Invulnerable\");\n    if (hasInvulnerable) {\n      const inv = world.getComponent(entity, \"Invulnerable\");\n      if (inv && inv.remaining > 0) {\n        const pulse = Math.floor(inv.remaining * 10) % 2;\n        if (pulse === 0) {",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 47,
-        "endLoc": {
-          "column": 26,
-          "line": 47,
-          "position": 2394
-        },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 38,
-        "startLoc": {
-          "column": 15,
-          "line": 38,
-          "position": 2059
-        }
-      },
-      "tokens": 69
-    },
-    {
-      "firstFile": {
-        "end": 143,
-        "endLoc": {
-          "column": 7,
-          "line": 143,
-          "position": 5511
-        },
-        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 131,
+        "start": 127,
         "startLoc": {
           "column": 4,
-          "line": 131,
-          "position": 4962
+          "line": 127,
+          "position": 4855
         }
       },
       "format": "typescript",
@@ -6070,40 +5996,40 @@
     },
     {
       "firstFile": {
-        "end": 25,
+        "end": 32,
         "endLoc": {
-          "column": 49,
-          "line": 25,
-          "position": 1248
+          "column": 99,
+          "line": 32,
+          "position": 1262
         },
         "name": "shared/arcade/builders/ArcadeEntityBuilder.ts",
-        "start": 19,
+        "start": 27,
         "startLoc": {
           "column": 31,
-          "line": 19,
-          "position": 833
+          "line": 27,
+          "position": 838
         }
       },
       "format": "typescript",
-      "fragment": "  public static override create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {\n    const entity = world.createEntity();\n    return new ArcadeEntityBuilder(world, entity, false);",
+      "fragment": "  public static override create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {\n    return createBuilderInstance((w, e, cb) => new ArcadeEntityBuilder(w, e, cb), world, undefined, false);",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 48,
+        "end": 54,
         "endLoc": {
-          "column": 49,
-          "line": 48,
-          "position": 2314
+          "column": 99,
+          "line": 54,
+          "position": 2384
         },
         "name": "shared/arcade/builders/ArcadeEntityBuilder.ts",
-        "start": 42,
+        "start": 49,
         "startLoc": {
           "column": 39,
-          "line": 42,
-          "position": 1899
+          "line": 49,
+          "position": 1960
         }
       },
-      "tokens": 64
+      "tokens": 72
     },
     {
       "firstFile": {
@@ -7291,18 +7217,18 @@
     },
     {
       "firstFile": {
-        "end": 139,
+        "end": 140,
         "endLoc": {
           "column": 47,
-          "line": 139,
-          "position": 4867
+          "line": 140,
+          "position": 4970
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 132,
+        "start": 133,
         "startLoc": {
           "column": 7,
-          "line": 132,
-          "position": 4438
+          "line": 133,
+          "position": 4541
         }
       },
       "format": "typescript",
@@ -7310,36 +7236,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 153,
+        "end": 154,
         "endLoc": {
           "column": 47,
-          "line": 153,
-          "position": 6646
+          "line": 154,
+          "position": 6749
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 146,
+        "start": 147,
         "startLoc": {
           "column": 10,
-          "line": 146,
-          "position": 6217
+          "line": 147,
+          "position": 6320
         }
       },
       "tokens": 79
     },
     {
       "firstFile": {
-        "end": 198,
+        "end": 199,
         "endLoc": {
           "column": 49,
-          "line": 198,
-          "position": 6720
+          "line": 199,
+          "position": 6823
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 183,
+        "start": 184,
         "startLoc": {
           "column": 32,
-          "line": 183,
-          "position": 6206
+          "line": 184,
+          "position": 6309
         }
       },
       "format": "typescript",
@@ -7347,110 +7273,73 @@
       "isNew": false,
       "lines": 16,
       "secondFile": {
-        "end": 210,
+        "end": 211,
         "endLoc": {
           "column": 49,
-          "line": 210,
-          "position": 8653
+          "line": 211,
+          "position": 8756
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 195,
+        "start": 196,
         "startLoc": {
           "column": 34,
-          "line": 195,
-          "position": 8197
+          "line": 196,
+          "position": 8300
         }
       },
       "tokens": 83
     },
     {
       "firstFile": {
-        "end": 334,
+        "end": 322,
         "endLoc": {
           "column": 49,
-          "line": 334,
-          "position": 11338
+          "line": 322,
+          "position": 11116
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 310,
+        "start": 311,
         "startLoc": {
           "column": 32,
-          "line": 310,
-          "position": 10574
+          "line": 311,
+          "position": 10677
         }
       },
       "format": "typescript",
-      "fragment": "    const { size = 80 } = render;\n\n    const boss = world.getComponent(entity, \"Boss\");\n    const health = world.getComponent(entity, \"Health\");\n\n    const currentHp = health ? health.current : (boss ? boss.hp : 50);\n    const maxHp = health ? health.max : (boss ? boss.maxHp : 50);\n    const hpRatio = Math.max(0, Math.min(1.0, currentHp / maxHp));\n\n    // Determine Boss Phase based on HP ratio\n    let phase = 1;\n    let baseColor: string = colors.magentaHot;\n    let accentColor: string = colors.cyan;\n\n    if (hpRatio <= 0.33) {\n      phase = 3;\n      baseColor = colors.redHot;\n      accentColor = colors.orange;\n    } else if (hpRatio <= 0.66) {\n      phase = 2;\n      baseColor = colors.gold;\n      accentColor = colors.orangeDark;\n    }\n\n    const flash = applyHitFlash(render, baseColor);",
+      "fragment": "    const { size = 80 } = render;\n\n    const boss = world.getComponent(entity, \"Boss\");\n    const health = world.getComponent(entity, \"Health\");\n\n    const currentHp = health ? health.current : (boss ? boss.hp : 50);\n    const maxHp = health ? health.max : (boss ? boss.maxHp : 50);\n    const hpRatio = calculateShieldHpRatio(currentHp, maxHp);\n\n    const { phase, baseColor, accentColor } = calculateBossPhase(hpRatio);\n\n    const flash = applyHitFlash(render, baseColor);",
       "isNew": false,
-      "lines": 25,
+      "lines": 12,
       "secondFile": {
-        "end": 338,
+        "end": 327,
         "endLoc": {
           "column": 49,
-          "line": 338,
-          "position": 13461
+          "line": 327,
+          "position": 13285
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 316,
+        "start": 317,
         "startLoc": {
           "column": 34,
-          "line": 316,
-          "position": 12744
+          "line": 317,
+          "position": 12847
         }
       },
-      "tokens": 164
+      "tokens": 95
     },
     {
       "firstFile": {
-        "end": 438,
-        "endLoc": {
-          "column": 57,
-          "line": 438,
-          "position": 14486
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 433,
-        "startLoc": {
-          "column": 29,
-          "line": 433,
-          "position": 14285
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const color = flash.color;\n\n    const shield = world.getComponent(entity, \"Shield\");\n    const hp = shield ? shield.hp : 3;\n    const maxHp = shield ? shield.maxHp : 3;\n    const ratio = Math.max(0, Math.min(1.0, hp / maxHp));",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 424,
-        "endLoc": {
-          "column": 57,
-          "line": 424,
-          "position": 16418
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 419,
-        "startLoc": {
-          "column": 33,
-          "line": 419,
-          "position": 16217
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 501,
+        "end": 489,
         "endLoc": {
           "column": 23,
-          "line": 501,
-          "position": 16686
+          "line": 489,
+          "position": 16459
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 490,
+        "start": 478,
         "startLoc": {
           "column": 48,
-          "line": 490,
-          "position": 16351
+          "line": 478,
+          "position": 16124
         }
       },
       "format": "typescript",
@@ -7458,36 +7347,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 500,
+        "end": 489,
         "endLoc": {
           "column": 23,
-          "line": 500,
-          "position": 19001
+          "line": 489,
+          "position": 18820
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 489,
+        "start": 478,
         "startLoc": {
           "column": 49,
-          "line": 489,
-          "position": 18666
+          "line": 478,
+          "position": 18485
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 516,
+        "end": 504,
         "endLoc": {
           "column": 63,
-          "line": 516,
-          "position": 17364
+          "line": 504,
+          "position": 17137
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 503,
+        "start": 491,
         "startLoc": {
           "column": 25,
-          "line": 503,
-          "position": 16901
+          "line": 491,
+          "position": 16674
         }
       },
       "format": "typescript",
@@ -7495,36 +7384,36 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 514,
+        "end": 503,
         "endLoc": {
           "column": 63,
-          "line": 514,
-          "position": 19665
+          "line": 503,
+          "position": 19484
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 502,
+        "start": 491,
         "startLoc": {
           "column": 57,
-          "line": 502,
-          "position": 19253
+          "line": 491,
+          "position": 19072
         }
       },
       "tokens": 74
     },
     {
       "firstFile": {
-        "end": 28,
+        "end": 29,
         "endLoc": {
           "column": 35,
-          "line": 28,
-          "position": 1776
+          "line": 29,
+          "position": 1879
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 22,
+        "start": 23,
         "startLoc": {
           "column": 40,
-          "line": 22,
-          "position": 1517
+          "line": 23,
+          "position": 1620
         }
       },
       "format": "typescript",
@@ -7532,36 +7421,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 195,
+        "end": 196,
         "endLoc": {
           "column": 35,
-          "line": 195,
-          "position": 8198
+          "line": 196,
+          "position": 8301
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 188,
+        "start": 189,
         "startLoc": {
           "column": 41,
-          "line": 188,
-          "position": 7755
+          "line": 189,
+          "position": 7858
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 28,
+        "end": 29,
         "endLoc": {
           "column": 31,
-          "line": 28,
-          "position": 1772
+          "line": 29,
+          "position": 1875
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 22,
+        "start": 23,
         "startLoc": {
           "column": 40,
-          "line": 22,
-          "position": 1517
+          "line": 23,
+          "position": 1620
         }
       },
       "format": "typescript",
@@ -7569,55 +7458,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 269,
+        "end": 270,
         "endLoc": {
           "column": 31,
-          "line": 269,
-          "position": 11054
+          "line": 270,
+          "position": 11157
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 263,
+        "start": 264,
         "startLoc": {
           "column": 40,
-          "line": 263,
-          "position": 10799
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 28,
-        "endLoc": {
-          "column": 31,
-          "line": 28,
-          "position": 1772
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 22,
-        "startLoc": {
-          "column": 40,
-          "line": 22,
-          "position": 1517
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 316,
-        "endLoc": {
-          "column": 31,
-          "line": 316,
-          "position": 12741
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 38,
-          "line": 309,
-          "position": 12302
+          "line": 264,
+          "position": 10902
         }
       },
       "tokens": 55
@@ -7626,53 +7478,16 @@
       "firstFile": {
         "end": 29,
         "endLoc": {
-          "column": 9,
-          "line": 29,
-          "position": 1786
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 22,
-        "startLoc": {
-          "column": 40,
-          "line": 22,
-          "position": 1517
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;\n    const flash = applyHitFlash(render, render.color || colors.green, render.opacity ?? 1.0);",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 416,
-        "endLoc": {
-          "column": 9,
-          "line": 416,
-          "position": 15881
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 409,
-        "startLoc": {
-          "column": 40,
-          "line": 409,
-          "position": 15612
-        }
-      },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
-        "end": 28,
-        "endLoc": {
           "column": 31,
-          "line": 28,
-          "position": 1772
+          "line": 29,
+          "position": 1875
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 22,
+        "start": 23,
         "startLoc": {
           "column": 40,
-          "line": 22,
-          "position": 1517
+          "line": 23,
+          "position": 1620
         }
       },
       "format": "typescript",
@@ -7680,18 +7495,92 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 487,
+        "end": 317,
         "endLoc": {
           "column": 31,
-          "line": 487,
-          "position": 18429
+          "line": 317,
+          "position": 12844
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 481,
+        "start": 310,
+        "startLoc": {
+          "column": 38,
+          "line": 310,
+          "position": 12405
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
+        "end": 30,
+        "endLoc": {
+          "column": 9,
+          "line": 30,
+          "position": 1889
+        },
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "start": 23,
+        "startLoc": {
+          "column": 40,
+          "line": 23,
+          "position": 1620
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;\n    const flash = applyHitFlash(render, render.color || colors.green, render.opacity ?? 1.0);",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 405,
+        "endLoc": {
+          "column": 9,
+          "line": 405,
+          "position": 15705
+        },
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "start": 398,
+        "startLoc": {
+          "column": 40,
+          "line": 398,
+          "position": 15436
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 29,
+        "endLoc": {
+          "column": 31,
+          "line": 29,
+          "position": 1875
+        },
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "start": 23,
+        "startLoc": {
+          "column": 40,
+          "line": 23,
+          "position": 1620
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 476,
+        "endLoc": {
+          "column": 31,
+          "line": 476,
+          "position": 18248
+        },
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "start": 470,
         "startLoc": {
           "column": 42,
-          "line": 481,
-          "position": 18174
+          "line": 470,
+          "position": 17993
         }
       },
       "tokens": 55
@@ -7883,32 +7772,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-05T12:54:39.977Z",
+    "detectionDate": "2026-09-05T16:22:06.288Z",
     "formats": {
       "typescript": {
-        "clones": 213,
-        "duplicatedLines": 2335,
-        "duplicatedTokens": 17310,
-        "lines": 50868,
+        "clones": 210,
+        "duplicatedLines": 2297,
+        "duplicatedTokens": 17082,
+        "lines": 50956,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 4.590312180545726,
-        "percentageTokens": 6.416886308789022,
-        "sources": 328,
-        "tokens": 269757
+        "percentage": 4.507810660177408,
+        "percentageTokens": 6.322568705468677,
+        "sources": 330,
+        "tokens": 270175
       }
     },
     "total": {
-      "clones": 213,
-      "duplicatedLines": 2335,
-      "duplicatedTokens": 17310,
-      "lines": 50868,
+      "clones": 210,
+      "duplicatedLines": 2297,
+      "duplicatedTokens": 17082,
+      "lines": 50956,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 4.590312180545726,
-      "percentageTokens": 6.416886308789022,
-      "sources": 328,
-      "tokens": 269757
+      "percentage": 4.507810660177408,
+      "percentageTokens": 6.322568705468677,
+      "sources": 330,
+      "tokens": 270175
     }
   }
 }

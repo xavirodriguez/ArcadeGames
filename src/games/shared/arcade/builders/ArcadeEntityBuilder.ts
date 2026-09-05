@@ -1,4 +1,14 @@
-import { EntityBuilder, World, Entity, Collider2DComponent } from "@tiny-aster/core";
+import {
+  EntityBuilder,
+  World,
+  Entity,
+  Collider2DComponent,
+  ComponentRegistry,
+  CoreComponentRegistry,
+  BlueprintRegistryMap,
+  EventRegistry,
+  createBuilderInstance
+} from "@tiny-aster/core";
 import { PowerUpComponent } from "../types/ArcadeTypes";
 
 /**
@@ -6,8 +16,6 @@ import { PowerUpComponent } from "../types/ArcadeTypes";
  * such as PowerUp and Collider2D without polluting @tiny-aster/core boundaries.
  * @public
  */
-import { ComponentRegistry, CoreComponentRegistry, BlueprintRegistryMap, EventRegistry } from "@tiny-aster/core";
-
 export class ArcadeEntityBuilder<
   TComponents extends ComponentRegistry = CoreComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
@@ -21,8 +29,7 @@ export class ArcadeEntityBuilder<
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {
-    const entity = world.createEntity();
-    return new ArcadeEntityBuilder(world, entity, false);
+    return createBuilderInstance((w, e, cb) => new ArcadeEntityBuilder(w, e, cb), world, undefined, false);
   }
 
   /**
@@ -33,7 +40,7 @@ export class ArcadeEntityBuilder<
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {
-    return new ArcadeEntityBuilder(world, entity, false);
+    return createBuilderInstance((w, e, cb) => new ArcadeEntityBuilder(w, e, cb), world, entity, false);
   }
 
   /**
@@ -44,8 +51,7 @@ export class ArcadeEntityBuilder<
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {
-    const entity = world.createEntity();
-    return new ArcadeEntityBuilder(world, entity, true);
+    return createBuilderInstance((w, e, cb) => new ArcadeEntityBuilder(w, e, cb), world, undefined, true);
   }
 
   /**

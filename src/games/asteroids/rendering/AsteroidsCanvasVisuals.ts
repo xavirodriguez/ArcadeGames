@@ -3,6 +3,7 @@ import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
+import { calculateHitFlashPulse, calculateInvulnerabilityPulse } from "../../shared/rendering/asteroidsMath";
 
 /**
  * Procedural player ship shape drawer for HTML5 Canvas.
@@ -21,24 +22,19 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     ctx.save();
 
     // Hit Flash Transparency Pulse & Glow (R11)
-    const isHitFlashing = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+    const flashState = calculateHitFlashPulse(render.hitFlashFrames, baseColor, 1.0);
+    const isHitFlashing = flashState.isFlashing;
     if (isHitFlashing) {
-      if ((render.hitFlashFrames! >> 1) % 2 === 0) {
-        ctx.globalAlpha = 0.3;
-      }
-      // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:45-54. Considerar extraer a función compartida. Ref: c4bcd449
-      baseColor = colors.white;
+      ctx.globalAlpha = flashState.opacity;
+      baseColor = flashState.color;
     }
 
     // Invulnerability Pulse
-    const hasInvulnerable = world.hasComponent(entity, "Invulnerable");
-    if (hasInvulnerable) {
+    if (world.hasComponent(entity, "Invulnerable")) {
       const inv = world.getComponent(entity, "Invulnerable");
-      if (inv && inv.remaining > 0) {
-        const pulse = Math.floor(inv.remaining * 10) % 2;
-        if (pulse === 0) {
-          ctx.globalAlpha = 0.3;
-        }
+      const invState = calculateInvulnerabilityPulse(inv?.remaining, ctx.globalAlpha);
+      if (invState.isInvulnerable) {
+        ctx.globalAlpha = invState.opacity;
       }
     }
 

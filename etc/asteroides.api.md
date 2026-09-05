@@ -1114,6 +1114,11 @@ export interface CoreEvents {
     };
 }
 
+// Warning: (ae-internal-missing-underscore) The name "createBuilderInstance" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function createBuilderInstance<TBuilder extends EntityBuilder<TComponents, TEvents, TBlueprints>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(factory: (world: World<TComponents, TEvents, TBlueprints>, entity: Entity, useCommandBuffer: boolean) => TBuilder, world: World<TComponents, TEvents, TBlueprints>, entity?: Entity, useCommandBuffer?: boolean): TBuilder;
+
 // @public
 export function createDeferredEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, deferred?: boolean): {
     entity: Entity;
@@ -1748,6 +1753,11 @@ export function getGameplayFreezeRemaining(world: World<any>): number | undefine
 
 // @public
 export function getGameplaySystemContext<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>): GameplaySystemContext | null;
+
+// @public
+export function getGameplaySystemContextAndEntities<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, ...componentTypes: Array<Extract<keyof TRegistry, string>>): (GameplaySystemContext & {
+    entities: ReadonlyArray<Entity>;
+}) | null;
 
 // @public
 export function getHorizontalDirectionToPlayer(world: World<any>, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;

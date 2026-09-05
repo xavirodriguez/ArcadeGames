@@ -761,18 +761,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 89,
+        "end": 175,
         "endLoc": {
           "column": 115,
-          "line": 89,
-          "position": 3656
+          "line": 175,
+          "position": 6188
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 84,
+        "start": 170,
         "startLoc": {
           "column": 61,
-          "line": 84,
-          "position": 3492
+          "line": 170,
+          "position": 6024
         }
       },
       "tokens": 52
@@ -798,18 +798,18 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 135,
+        "end": 49,
         "endLoc": {
-          "column": 13,
-          "line": 135,
-          "position": 5857
+          "column": 9,
+          "line": 49,
+          "position": 1642
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 130,
+        "start": 44,
         "startLoc": {
-          "column": 29,
-          "line": 130,
-          "position": 5615
+          "column": 25,
+          "line": 44,
+          "position": 1416
         }
       },
       "tokens": 57
@@ -3776,373 +3776,151 @@
     },
     {
       "firstFile": {
-        "end": 124,
+        "end": 208,
         "endLoc": {
-          "column": 28,
-          "line": 124,
-          "position": 5316
+          "column": 14,
+          "line": 208,
+          "position": 7442
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 118,
+        "start": 203,
         "startLoc": {
           "column": 34,
-          "line": 118,
-          "position": 4902
+          "line": 203,
+          "position": 7261
         }
       },
       "format": "typescript",
-      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:148-162. Considerar extraer a función compartida. Ref: 8eb4bd52\n      EntityBuilder.fromEntity(w, entity)\n        .withTransform({ x: args.x, y: args.y })\n        .withVelocity()\n        .withRender({ shape: \"gw_chaser\", size: 14, color: colors.pink, order: 1 })",
+      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnBasicEnemy(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 151,
+        "end": 223,
         "endLoc": {
-          "column": 28,
-          "line": 151,
-          "position": 6666
+          "column": 14,
+          "line": 223,
+          "position": 7811
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 145,
+        "start": 218,
         "startLoc": {
           "column": 34,
-          "line": 145,
-          "position": 6252
+          "line": 218,
+          "position": 7630
         }
       },
-      "tokens": 69
+      "tokens": 55
     },
     {
       "firstFile": {
-        "end": 124,
+        "end": 208,
         "endLoc": {
-          "column": 28,
-          "line": 124,
-          "position": 5316
+          "column": 14,
+          "line": 208,
+          "position": 7442
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 118,
+        "start": 203,
         "startLoc": {
           "column": 34,
-          "line": 118,
-          "position": 4902
+          "line": 203,
+          "position": 7261
         }
       },
       "format": "typescript",
-      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:148-162. Considerar extraer a función compartida. Ref: 8eb4bd52\n      EntityBuilder.fromEntity(w, entity)\n        .withTransform({ x: args.x, y: args.y })\n        .withVelocity()\n        .withRender({ shape: \"gw_chaser\", size: 14, color: colors.pink, order: 1 })",
+      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnBasicEnemy(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 177,
+        "end": 238,
         "endLoc": {
-          "column": 28,
-          "line": 177,
-          "position": 7836
+          "column": 14,
+          "line": 238,
+          "position": 8177
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 171,
+        "start": 233,
         "startLoc": {
           "column": 33,
-          "line": 171,
-          "position": 7426
+          "line": 233,
+          "position": 7996
         }
       },
-      "tokens": 69
+      "tokens": 55
     },
     {
       "firstFile": {
-        "end": 124,
+        "end": 282,
         "endLoc": {
-          "column": 28,
-          "line": 124,
-          "position": 5316
+          "column": 14,
+          "line": 282,
+          "position": 9378
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 118,
+        "start": 277,
         "startLoc": {
-          "column": 34,
-          "line": 118,
-          "position": 4902
+          "column": 28,
+          "line": 277,
+          "position": 9196
         }
       },
       "format": "typescript",
-      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:148-162. Considerar extraer a función compartida. Ref: 8eb4bd52\n      EntityBuilder.fromEntity(w, entity)\n        .withTransform({ x: args.x, y: args.y })\n        .withVelocity()\n        .withRender({ shape: \"gw_chaser\", size: 14, color: colors.pink, order: 1 })",
+      "fragment": "  registry.register(\"seeker\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnSeekerEnemy(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_seeker\",",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 232,
+        "end": 299,
         "endLoc": {
-          "column": 28,
-          "line": 232,
-          "position": 9844
+          "column": 14,
+          "line": 299,
+          "position": 9787
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 226,
+        "start": 294,
         "startLoc": {
           "column": 28,
-          "line": 226,
-          "position": 9430
+          "line": 294,
+          "position": 9605
         }
       },
-      "tokens": 69
+      "tokens": 55
     },
     {
       "firstFile": {
-        "end": 124,
+        "end": 282,
         "endLoc": {
-          "column": 47,
-          "line": 124,
-          "position": 5335
+          "column": 14,
+          "line": 282,
+          "position": 9378
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 118,
+        "start": 277,
         "startLoc": {
-          "column": 34,
-          "line": 118,
-          "position": 4902
+          "column": 28,
+          "line": 277,
+          "position": 9196
         }
       },
       "format": "typescript",
-      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:148-162. Considerar extraer a función compartida. Ref: 8eb4bd52\n      EntityBuilder.fromEntity(w, entity)\n        .withTransform({ x: args.x, y: args.y })\n        .withVelocity()\n        .withRender({ shape: \"gw_chaser\", size: 14, color: colors.pink, order: 1 })",
+      "fragment": "  registry.register(\"seeker\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnSeekerEnemy(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_seeker\",",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 267,
+        "end": 316,
         "endLoc": {
-          "column": 47,
-          "line": 267,
-          "position": 11454
+          "column": 14,
+          "line": 316,
+          "position": 10205
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 261,
-        "startLoc": {
-          "column": 28,
-          "line": 261,
-          "position": 11025
-        }
-      },
-      "tokens": 73
-    },
-    {
-      "firstFile": {
-        "end": 124,
-        "endLoc": {
-          "column": 28,
-          "line": 124,
-          "position": 5316
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 118,
-        "startLoc": {
-          "column": 34,
-          "line": 118,
-          "position": 4902
-        }
-      },
-      "format": "typescript",
-      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:148-162. Considerar extraer a función compartida. Ref: 8eb4bd52\n      EntityBuilder.fromEntity(w, entity)\n        .withTransform({ x: args.x, y: args.y })\n        .withVelocity()\n        .withRender({ shape: \"gw_chaser\", size: 14, color: colors.pink, order: 1 })",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 301,
-        "endLoc": {
-          "column": 28,
-          "line": 301,
-          "position": 13005
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 295,
+        "start": 311,
         "startLoc": {
           "column": 33,
-          "line": 295,
-          "position": 12595
+          "line": 311,
+          "position": 10023
         }
       },
-      "tokens": 69
-    },
-    {
-      "firstFile": {
-        "end": 138,
-        "endLoc": {
-          "column": 17,
-          "line": 138,
-          "position": 5942
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 124,
-        "startLoc": {
-          "column": 70,
-          "line": 124,
-          "position": 5358
-        }
-      },
-      "format": "typescript",
-      "fragment": "        .withRender({ shape: \"gw_chaser\", size: 14, color: colors.pink, order: 1 })\n        .withCollider({\n          shape: { type: ShapeType.Circle, radius: 7 } as CircleShape,\n          layer: CollisionLayers.ENEMY,\n          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE\n        })\n        .withCollisionEvents();\n\n      w.addComponent(entity, { type: \"Health\", current: 1, max: 1 } as HealthComponent);\n      w.addComponent(entity, { type: \"Faction\", faction: \"enemy\", value: \"enemy\" } as FactionComponent);\n      w.addComponent(entity, {\n        type: \"Steering\",\n        mode: \"seek\",\n        targetFaction: \"player\",\n        maxSpeed: 140,",
-      "isNew": false,
-      "lines": 15,
-      "secondFile": {
-        "end": 165,
-        "endLoc": {
-          "column": 17,
-          "line": 165,
-          "position": 7290
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 151,
-        "startLoc": {
-          "column": 68,
-          "line": 151,
-          "position": 6706
-        }
-      },
-      "tokens": 115
-    },
-    {
-      "firstFile": {
-        "end": 138,
-        "endLoc": {
-          "column": 17,
-          "line": 138,
-          "position": 5942
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 126,
-        "startLoc": {
-          "column": 53,
-          "line": 126,
-          "position": 5449
-        }
-      },
-      "format": "typescript",
-      "fragment": "          shape: { type: ShapeType.Circle, radius: 7 } as CircleShape,\n          layer: CollisionLayers.ENEMY,\n          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE\n        })\n        .withCollisionEvents();\n\n      w.addComponent(entity, { type: \"Health\", current: 1, max: 1 } as HealthComponent);\n      w.addComponent(entity, { type: \"Faction\", faction: \"enemy\", value: \"enemy\" } as FactionComponent);\n      w.addComponent(entity, {\n        type: \"Steering\",\n        mode: \"seek\",\n        targetFaction: \"player\",\n        maxSpeed: 140,",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 191,
-        "endLoc": {
-          "column": 17,
-          "line": 191,
-          "position": 8461
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 179,
-        "startLoc": {
-          "column": 53,
-          "line": 179,
-          "position": 7968
-        }
-      },
-      "tokens": 93
-    },
-    {
-      "firstFile": {
-        "end": 241,
-        "endLoc": {
-          "column": 55,
-          "line": 241,
-          "position": 10379
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 232,
-        "startLoc": {
-          "column": 70,
-          "line": 232,
-          "position": 9886
-        }
-      },
-      "format": "typescript",
-      "fragment": "        .withRender({ shape: \"gw_seeker\", size: 12, color: colors.pink, order: 3 })\n        .withCollider({\n          shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,\n          layer: CollisionLayers.ENEMY,\n          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE\n        })\n        .withCollisionEvents();\n\n      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:266-277. Considerar extraer a función compartida. Ref: dc09f747\n      w.addComponent(entity, { type: \"Health\", current: 2, max: 2, invulnerableRemaining: 0 } as HealthComponent);",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 276,
-        "endLoc": {
-          "column": 55,
-          "line": 276,
-          "position": 11971
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 267,
-        "startLoc": {
-          "column": 71,
-          "line": 267,
-          "position": 11478
-        }
-      },
-      "tokens": 61
-    },
-    {
-      "firstFile": {
-        "end": 252,
-        "endLoc": {
-          "column": 13,
-          "line": 252,
-          "position": 10809
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 241,
-        "startLoc": {
-          "column": 65,
-          "line": 241,
-          "position": 10389
-        }
-      },
-      "format": "typescript",
-      "fragment": "      w.addComponent(entity, { type: \"Health\", current: 2, max: 2, invulnerableRemaining: 0 } as HealthComponent);\n      w.addComponent(entity, { type: \"Faction\", faction: \"enemy\", value: \"enemy\" } as FactionComponent);\n      w.addComponent(entity, {\n        type: \"Damage\",\n        amount: 1,\n        category: \"enemy_contact\",\n        friendlyFire: false,\n        consumption: \"none\"\n      } as DamageComponent);\n      w.addComponent(entity, {\n        type: \"Steering\",\n        mode: \"seek\",",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 287,
-        "endLoc": {
-          "column": 13,
-          "line": 287,
-          "position": 12401
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 276,
-        "startLoc": {
-          "column": 65,
-          "line": 276,
-          "position": 11981
-        }
-      },
-      "tokens": 76
-    },
-    {
-      "firstFile": {
-        "end": 289,
-        "endLoc": {
-          "column": 17,
-          "line": 289,
-          "position": 12460
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 269,
-        "startLoc": {
-          "column": 53,
-          "line": 269,
-          "position": 11569
-        }
-      },
-      "format": "typescript",
-      "fragment": "          shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,\n          layer: CollisionLayers.ENEMY,\n          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE\n        })\n        .withCollisionEvents();\n\n      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:238-249. Considerar extraer a función compartida. Ref: c080a7fa\n      w.addComponent(entity, { type: \"Health\", current: 1, max: 1, invulnerableRemaining: 0 } as HealthComponent);\n      w.addComponent(entity, { type: \"Faction\", faction: \"enemy\", value: \"enemy\" } as FactionComponent);\n      w.addComponent(entity, {\n        type: \"Damage\",\n        amount: 1,\n        category: \"enemy_contact\",\n        friendlyFire: false,\n        consumption: \"none\"\n      } as DamageComponent);\n      w.addComponent(entity, {\n        type: \"Steering\",\n        mode: \"flee\",\n        targetFaction: \"player\",\n        maxSpeed: 100,",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 322,
-        "endLoc": {
-          "column": 17,
-          "line": 322,
-          "position": 13856
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 303,
-        "startLoc": {
-          "column": 53,
-          "line": 303,
-          "position": 13142
-        }
-      },
-      "tokens": 128
+      "tokens": 55
     },
     {
       "firstFile": {
@@ -6844,80 +6622,6 @@
         }
       },
       "tokens": 69
-    },
-    {
-      "firstFile": {
-        "end": 66,
-        "endLoc": {
-          "column": 4,
-          "line": 66,
-          "position": 3011
-        },
-        "name": "space-invaders/config/EnemyBlueprints.ts",
-        "start": 59,
-        "startLoc": {
-          "column": 32,
-          "line": 59,
-          "position": 2605
-        }
-      },
-      "format": "typescript",
-      "fragment": "    displayName: 'Invader Scout',\n    render: { shape: 'invader', size: 24, color: '#FFFFFF', zIndex: 15 },\n    physics: { maxSpeed: 85 },\n    collision: { radius: 12, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE | CollisionLayers.DEBRIS, isTrigger: false },\n    stats: { health: 1, points: 10 },\n    tags: ['enemy', 'invader', 'Invader'],\n    invader: { archetype: 'basic', fireRate: 0.8 }\n  },",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 78,
-        "endLoc": {
-          "column": 4,
-          "line": 78,
-          "position": 3516
-        },
-        "name": "space-invaders/config/EnemyBlueprints.ts",
-        "start": 71,
-        "startLoc": {
-          "column": 32,
-          "line": 71,
-          "position": 3110
-        }
-      },
-      "tokens": 96
-    },
-    {
-      "firstFile": {
-        "end": 68,
-        "endLoc": {
-          "column": 15,
-          "line": 68,
-          "position": 3028
-        },
-        "name": "space-invaders/config/EnemyBlueprints.ts",
-        "start": 61,
-        "startLoc": {
-          "column": 4,
-          "line": 61,
-          "position": 2685
-        }
-      },
-      "format": "typescript",
-      "fragment": "    physics: { maxSpeed: 85 },\n    collision: { radius: 12, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE | CollisionLayers.DEBRIS, isTrigger: false },\n    stats: { health: 1, points: 10 },\n    tags: ['enemy', 'invader', 'Invader'],\n    invader: { archetype: 'basic', fireRate: 0.8 }\n  },\n\n  basic_invader: {",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 80,
-        "endLoc": {
-          "column": 15,
-          "line": 80,
-          "position": 3533
-        },
-        "name": "space-invaders/config/EnemyBlueprints.ts",
-        "start": 73,
-        "startLoc": {
-          "column": 4,
-          "line": 73,
-          "position": 3190
-        }
-      },
-      "tokens": 75
     },
     {
       "firstFile": {

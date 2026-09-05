@@ -3,7 +3,6 @@ import {
   ShapeType,
   BlueprintRegistry,
   CircleShape,
-  Theme,
   resolveThemeColor,
   EntityBuilder,
   HealthComponent,
@@ -15,13 +14,100 @@ import { colors } from "../../../theme/colors";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { FactionComponent, DamageComponent } from "../../shared/combat/components/CombatComponents";
 import { SpawnDirectorComponent } from "../../shared/spawn/components/SpawnComponents";
-import { ComboComponent } from "@tiny-aster/core";
+
+interface BasicEnemyParams {
+  x: number;
+  y: number;
+  shape: string;
+  size: number;
+  color: string;
+  radius: number;
+  maxSpeed: number;
+  maxAcceleration: number;
+  steeringMode?: "seek" | "flee";
+}
+
+function spawnBasicEnemy(
+  w: World<any, any, any>,
+  entity: number,
+  params: BasicEnemyParams
+): void {
+  EntityBuilder.fromEntity(w, entity)
+    .withTransform({ x: params.x, y: params.y })
+    .withVelocity()
+    .withRender({ shape: params.shape, size: params.size, color: params.color, order: 1 })
+    .withCollider({
+      shape: { type: ShapeType.Circle, radius: params.radius } as CircleShape,
+      layer: CollisionLayers.ENEMY,
+      mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+    })
+    .withCollisionEvents();
+
+  w.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
+  w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+  w.addComponent(entity, {
+    type: "Steering",
+    mode: params.steeringMode ?? "seek",
+    targetFaction: "player",
+    maxSpeed: params.maxSpeed,
+    maxAcceleration: params.maxAcceleration
+  } as GeometryWarsComponentRegistry["Steering"]);
+}
+
+interface SeekerEnemyParams {
+  x: number;
+  y: number;
+  shape: string;
+  size: number;
+  color: string;
+  radius: number;
+  health?: number;
+  maxSpeed: number;
+  maxAcceleration: number;
+  steeringMode?: "seek" | "flee";
+  arrivalRadius?: number;
+}
+
+function spawnSeekerEnemy(
+  w: World<any, any, any>,
+  entity: number,
+  params: SeekerEnemyParams
+): void {
+  EntityBuilder.fromEntity(w, entity)
+    .withTransform({ x: params.x, y: params.y })
+    .withVelocity()
+    .withRender({ shape: params.shape, size: params.size, color: params.color, order: 3 })
+    .withCollider({
+      shape: { type: ShapeType.Circle, radius: params.radius } as CircleShape,
+      layer: CollisionLayers.ENEMY,
+      mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+    })
+    .withCollisionEvents();
+
+  const health = params.health ?? 1;
+  w.addComponent(entity, { type: "Health", current: health, max: health, invulnerableRemaining: 0 } as HealthComponent);
+  w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+  w.addComponent(entity, {
+    type: "Damage",
+    amount: 1,
+    category: "enemy_contact",
+    friendlyFire: false,
+    consumption: "none"
+  } as DamageComponent);
+  w.addComponent(entity, {
+    type: "Steering",
+    mode: params.steeringMode ?? "seek",
+    targetFaction: "player",
+    maxSpeed: params.maxSpeed,
+    maxAcceleration: params.maxAcceleration,
+    ...(params.arrivalRadius !== undefined ? { arrivalRadius: params.arrivalRadius } : {})
+  } as GeometryWarsComponentRegistry["Steering"]);
+}
 
 /**
  * Registers Geometry Wars blueprints.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/EntityFactory.ts:103-108. Considerar extraer a función compartida. Ref: 969af9ba
 export function registerGeometryWarsBlueprints(
   world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>
 ): void {
@@ -114,83 +200,48 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
-  // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:141-146. Considerar extraer a función compartida. Ref: 9b01a12f
   registry.register("enemy_chaser", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:148-162. Considerar extraer a función compartida. Ref: 8eb4bd52
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withVelocity()
-        .withRender({ shape: "gw_chaser", size: 14, color: colors.pink, order: 1 })
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius: 7 } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-        })
-        .withCollisionEvents();
-
-      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
+      spawnBasicEnemy(w, entity, {
+        x: args.x,
+        y: args.y,
+        shape: "gw_chaser",
+        size: 14,
+        color: colors.pink,
+        radius: 7,
         maxSpeed: 140,
         maxAcceleration: 150
-      } as GeometryWarsComponentRegistry["Steering"]);
+      });
     }
   });
 
-  // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:117-122. Considerar extraer a función compartida. Ref: 25380fc7
   registry.register("enemy_evader", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:121-135. Considerar extraer a función compartida. Ref: 7ccae71e
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withVelocity()
-        .withRender({ shape: "gw_evader", size: 14, color: "#ffaa00", order: 1 })
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius: 7 } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-        })
-        .withCollisionEvents();
-
-      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
+      spawnBasicEnemy(w, entity, {
+        x: args.x,
+        y: args.y,
+        shape: "gw_evader",
+        size: 14,
+        color: "#ffaa00",
+        radius: 7,
         maxSpeed: 120,
         maxAcceleration: 100
-      } as GeometryWarsComponentRegistry["Steering"]);
+      });
     }
   });
 
-  registry.register("enemy_grunt", // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:123-135. Considerar extraer a función compartida. Ref: 1e580194
-  {
+  registry.register("enemy_grunt", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withVelocity()
-        .withRender({ shape: "gw_grunt", size: 10, color: colors.cyan, order: 1 })
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius: 5 } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-        })
-        .withCollisionEvents();
-
-      w.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
+      spawnBasicEnemy(w, entity, {
+        x: args.x,
+        y: args.y,
+        shape: "gw_grunt",
+        size: 10,
+        color: colors.cyan,
+        radius: 5,
         maxSpeed: 250,
         maxAcceleration: 280
-      } as GeometryWarsComponentRegistry["Steering"]);
+      });
     }
   });
 
@@ -225,104 +276,52 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("seeker", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:258-266. Considerar extraer a función compartida. Ref: 6f2c8975
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withVelocity()
-        .withRender({ shape: "gw_seeker", size: 12, color: colors.pink, order: 3 })
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-        })
-        .withCollisionEvents();
-
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:266-277. Considerar extraer a función compartida. Ref: dc09f747
-      w.addComponent(entity, { type: "Health", current: 2, max: 2, invulnerableRemaining: 0 } as HealthComponent);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
-      w.addComponent(entity, {
-        type: "Damage",
-        amount: 1,
-        category: "enemy_contact",
-        friendlyFire: false,
-        consumption: "none"
-      } as DamageComponent);
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
+      spawnSeekerEnemy(w, entity, {
+        x: args.x,
+        y: args.y,
+        shape: "gw_seeker",
+        size: 12,
+        color: colors.pink,
+        radius: 6,
+        health: 2,
         maxSpeed: 120,
         maxAcceleration: 80,
         arrivalRadius: 10
-      } as GeometryWarsComponentRegistry["Steering"]);
+      });
     }
   });
 
-  registry.register("evader", // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:292-311. Considerar extraer a función compartida. Ref: 2b752fae
-  {
+  registry.register("evader", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withVelocity()
-        .withRender({ shape: "gw_evader", size: 12, color: colors.green, order: 3 })
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius: 6 } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-        })
-        .withCollisionEvents();
-
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:238-249. Considerar extraer a función compartida. Ref: c080a7fa
-      w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 } as HealthComponent);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
-      w.addComponent(entity, {
-        type: "Damage",
-        amount: 1,
-        category: "enemy_contact",
-        friendlyFire: false,
-        consumption: "none"
-      } as DamageComponent);
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "flee",
-        targetFaction: "player",
+      spawnSeekerEnemy(w, entity, {
+        x: args.x,
+        y: args.y,
+        shape: "gw_evader",
+        size: 12,
+        color: colors.green,
+        radius: 6,
+        health: 1,
         maxSpeed: 100,
-        maxAcceleration: 60
-      } as GeometryWarsComponentRegistry["Steering"]);
+        maxAcceleration: 60,
+        steeringMode: "flee"
+      });
     }
   });
 
-  registry.register("fast_seeker", // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:266-285. Considerar extraer a función compartida. Ref: b15da619
-  {
+  registry.register("fast_seeker", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withVelocity()
-        .withRender({ shape: "gw_fast_seeker", size: 8, color: colors.pink, order: 3 })
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius: 4 } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-        })
-        .withCollisionEvents();
-
-      w.addComponent(entity, { type: "Health", current: 1, max: 1, invulnerableRemaining: 0 } as HealthComponent);
-      w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
-      w.addComponent(entity, {
-        type: "Damage",
-        amount: 1,
-        category: "enemy_contact",
-        friendlyFire: false,
-        consumption: "none"
-      } as DamageComponent);
-      w.addComponent(entity, {
-        type: "Steering",
-        mode: "seek",
-        targetFaction: "player",
+      spawnSeekerEnemy(w, entity, {
+        x: args.x,
+        y: args.y,
+        shape: "gw_fast_seeker",
+        size: 8,
+        color: colors.pink,
+        radius: 4,
+        health: 1,
         maxSpeed: 200,
         maxAcceleration: 150,
         arrivalRadius: 5
-      } as GeometryWarsComponentRegistry["Steering"]);
+      });
     }
   });
 

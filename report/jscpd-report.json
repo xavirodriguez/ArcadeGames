@@ -1528,9 +1528,9 @@
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 220,
         "startLoc": {
-          "column": 31,
-          "line": 222,
-          "position": 7649
+          "column": 12,
+          "line": 220,
+          "position": 7460
         }
       },
       "format": "typescript",
@@ -1547,12 +1547,12 @@
         "name": "platformer/PlatformerGame.ts",
         "start": 113,
         "startLoc": {
-          "column": 31,
-          "line": 115,
-          "position": 4298
+          "column": 12,
+          "line": 113,
+          "position": 4109
         }
       },
-      "tokens": 115
+      "tokens": 119
     },
     {
       "firstFile": {
@@ -3221,155 +3221,7 @@
     },
     {
       "firstFile": {
-        "end": 80,
-        "endLoc": {
-          "column": 30,
-          "line": 80,
-          "position": 4813
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 69,
-        "startLoc": {
-          "column": 47,
-          "line": 69,
-          "position": 4199
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.isMultiplayer = !!config.isMultiplayer;\n  }\n\n  protected override async onRegisterSystems(): Promise<void> {\n    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];\n    this.config = mutators.length > 0\n      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })\n      : { ...this.baseConfig };\n    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56\n    this.world.setResource(\"GameConfig\", this.config);\n    this.setupCommonArcadeResources();\n    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 71,
-        "endLoc": {
-          "column": 27,
-          "line": 71,
-          "position": 2749
-        },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 59,
-        "startLoc": {
-          "column": 33,
-          "line": 59,
-          "position": 2246
-        }
-      },
-      "tokens": 115
-    },
-    {
-      "firstFile": {
-        "end": 75,
-        "endLoc": {
-          "column": 35,
-          "line": 75,
-          "position": 4472
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 69,
-        "startLoc": {
-          "column": 47,
-          "line": 69,
-          "position": 4199
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.isMultiplayer = !!config.isMultiplayer;\n  }\n\n  protected override async onRegisterSystems(): Promise<void> {\n    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];\n    this.config = mutators.length > 0\n      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 108,
-        "endLoc": {
-          "column": 35,
-          "line": 108,
-          "position": 4646
-        },
-        "name": "pong/PongGame.ts",
-        "start": 102,
-        "startLoc": {
-          "column": 53,
-          "line": 102,
-          "position": 4373
-        }
-      },
-      "tokens": 68
-    },
-    {
-      "firstFile": {
-        "end": 75,
-        "endLoc": {
-          "column": 55,
-          "line": 75,
-          "position": 4492
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 70,
-        "startLoc": {
-          "column": 2,
-          "line": 70,
-          "position": 4203
-        }
-      },
-      "format": "typescript",
-      "fragment": "  }\n\n  protected override async onRegisterSystems(): Promise<void> {\n    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];\n    this.config = mutators.length > 0\n      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 114,
-        "endLoc": {
-          "column": 55,
-          "line": 114,
-          "position": 6315
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 108,
-        "startLoc": {
-          "column": 2,
-          "line": 108,
-          "position": 5871
-        }
-      },
-      "tokens": 76
-    },
-    {
-      "firstFile": {
-        "end": 85,
-        "endLoc": {
-          "column": 29,
-          "line": 85,
-          "position": 4955
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 76,
-        "startLoc": {
-          "column": 6,
-          "line": 76,
-          "position": 4517
-        }
-      },
-      "format": "typescript",
-      "fragment": "      : { ...this.baseConfig };\n    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56\n    this.world.setResource(\"GameConfig\", this.config);\n    this.setupCommonArcadeResources();\n    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };\n\n    await this.onPreloadAssets();\n\n    // Register blueprints\n    this.blueprints.register(\"bird\", {",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 119,
-        "endLoc": {
-          "column": 29,
-          "line": 119,
-          "position": 5163
-        },
-        "name": "pong/PongGame.ts",
-        "start": 109,
-        "startLoc": {
-          "column": 6,
-          "line": 109,
-          "position": 4714
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 372,
+        "end": 371,
         "endLoc": {
           "column": 93,
           "line": 371,
@@ -8031,32 +7883,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-05T10:09:45.730Z",
+    "detectionDate": "2026-09-05T12:54:39.977Z",
     "formats": {
       "typescript": {
-        "clones": 220,
-        "duplicatedLines": 2366,
-        "duplicatedTokens": 17759,
-        "lines": 50844,
+        "clones": 213,
+        "duplicatedLines": 2335,
+        "duplicatedTokens": 17310,
+        "lines": 50868,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 4.653449767917552,
-        "percentageTokens": 6.579088730082873,
-        "sources": 327,
-        "tokens": 269931
+        "percentage": 4.590312180545726,
+        "percentageTokens": 6.416886308789022,
+        "sources": 328,
+        "tokens": 269757
       }
     },
     "total": {
-      "clones": 220,
-      "duplicatedLines": 2366,
-      "duplicatedTokens": 17759,
-      "lines": 50844,
+      "clones": 213,
+      "duplicatedLines": 2335,
+      "duplicatedTokens": 17310,
+      "lines": 50868,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 4.653449767917552,
-      "percentageTokens": 6.579088730082873,
-      "sources": 327,
-      "tokens": 269931
+      "percentage": 4.590312180545726,
+      "percentageTokens": 6.416886308789022,
+      "sources": 328,
+      "tokens": 269757
     }
   }
 }

@@ -268,7 +268,7 @@ export const BaseConfigSchema: z.ZodObject<{
 }, z.core.$strip>;
 
 // @public
-export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, unknown>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
+export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
     constructor(config?: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>);
     applyServerStateUpdate(update: WorldSnapshot | {
         resources?: Record<string, unknown>;
@@ -368,7 +368,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
 }
 
 // @public
-export interface BaseGameConfig<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends Record<string, any> = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
+export interface BaseGameConfig<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends Record<string, any> = Record<string, any>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
     arcadeKernel?: ArcadeKernel;
     assetProvider?: IAssetProvider;
     audio?: IAudioPlayer;
@@ -2671,7 +2671,7 @@ export interface NarrativeEvent {
     readonly causedBy?: readonly string[];
     readonly consequences?: readonly string[];
     readonly id: string;
-    readonly payload?: Record<string, any>;
+    readonly payload?: Record<string, unknown>;
     readonly step: number;
     readonly timestamp: number;
     readonly title: string;
@@ -2708,7 +2708,7 @@ export interface NarrativePresentationModel {
         emotion?: string;
     };
     style: string;
-    themeMeta?: Record<string, any>;
+    themeMeta?: Record<string, unknown>;
     title: string;
 }
 
@@ -2901,7 +2901,7 @@ export class NullAudioPlayer implements IAudioPlayer {
 }
 
 // @public
-export abstract class NullBaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, unknown>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> implements IGame<TState, TInput, TComponents, TEvents> {
+export abstract class NullBaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> implements IGame<TState, TInput, TComponents, TEvents> {
     // (undocumented)
     destroy(): void;
     // (undocumented)
@@ -4182,7 +4182,7 @@ export interface StoryCondition {
     not?: StoryCondition;
     operator?: "==" | "!=" | ">" | ">=" | "<" | "<=" | "contains";
     type?: StoryConditionType;
-    value?: any;
+    value?: number | string | boolean;
 }
 
 // @public
@@ -4334,11 +4334,11 @@ export interface StoryNode {
     effects?: StoryEffect[];
     emitEvent?: {
         name: string;
-        payload?: Record<string, any>;
+        payload?: Record<string, number | string | boolean>;
     };
     id: string;
     isEndNode?: boolean;
-    meta?: Record<string, any>;
+    meta?: Record<string, unknown>;
     objective?: StoryObjective;
     sceneToLoad?: string;
     title?: string;
@@ -4505,7 +4505,7 @@ export interface StoryState {
     history: string[];
     objectives: Record<string, StoryObjective>;
     selectedChoices: string[];
-    variables: Record<string, number | string | boolean | any>;
+    variables: Record<string, number | string | boolean>;
 }
 
 // @public

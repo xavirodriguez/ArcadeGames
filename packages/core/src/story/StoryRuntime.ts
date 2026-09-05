@@ -19,15 +19,10 @@ import { RelationshipEngine } from "./RelationshipEngine";
  */
 function cloneStoryState(state: StoryState): StoryState {
   const flags: Record<string, boolean> = { ...state.flags };
-  const variables: Record<string, any> = {};
+  const variables: Record<string, number | string | boolean> = {};
   if (state.variables) {
     for (const k in state.variables) {
-      const v = state.variables[k];
-      if (typeof v === "object" && v !== null) {
-        variables[k] = Array.isArray(v) ? [...v] : { ...v };
-      } else {
-        variables[k] = v;
-      }
+      variables[k] = state.variables[k];
     }
   }
   const objectives: Record<string, any> = {};
@@ -602,8 +597,8 @@ export class StoryRuntime {
     }
 
     // Emit scene change event if node specifies sceneToLoad
-    if (node.sceneToLoad || node.meta?.sceneToLoad) {
-      const sceneToLoad = node.sceneToLoad || node.meta?.sceneToLoad;
+    const sceneToLoad = node.sceneToLoad || (typeof node.meta?.sceneToLoad === "string" ? node.meta.sceneToLoad : undefined);
+    if (sceneToLoad) {
       if (this.eventBus) {
         this.eventBus.emit("story:scene_change", {
           sceneToLoad,

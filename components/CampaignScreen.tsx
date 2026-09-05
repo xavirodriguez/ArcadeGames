@@ -271,7 +271,8 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     if (graph) {
       runtime.loadGraph(graph, true);
       const entryNode = runtime.getCurrentNode();
-      const initialScene = entryNode?.sceneToLoad || entryNode?.meta?.sceneToLoad || defaultGameId;
+      const sceneFromMeta = typeof entryNode?.meta?.sceneToLoad === "string" ? entryNode.meta.sceneToLoad : undefined;
+      const initialScene = entryNode?.sceneToLoad || sceneFromMeta || defaultGameId;
       switchGame(initialScene);
     } else {
       switchGame(defaultGameId);
@@ -300,7 +301,8 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     if (graph && runtimeRef.current) {
       runtimeRef.current.loadGraph(graph, true);
       const entryNode = runtimeRef.current.getCurrentNode();
-      const initialScene = entryNode?.sceneToLoad || entryNode?.meta?.sceneToLoad || defaultGameId;
+      const sceneFromMeta = typeof entryNode?.meta?.sceneToLoad === "string" ? entryNode.meta.sceneToLoad : undefined;
+      const initialScene = entryNode?.sceneToLoad || sceneFromMeta || defaultGameId;
       switchGame(initialScene);
     }
   }, [graph, defaultGameId, switchGame]);
@@ -338,7 +340,8 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       if (envelope) {
         const runtime = runtimeRef.current!;
         const restoredNode = runtime.getCurrentNode();
-        const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || restoredNode?.meta?.sceneToLoad || defaultGameId;
+        const sceneFromMeta = typeof restoredNode?.meta?.sceneToLoad === "string" ? restoredNode.meta.sceneToLoad : undefined;
+        const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || sceneFromMeta || defaultGameId;
         await switchGame(targetGame, envelope.activeGameSeed);
         setStatusMessage("Campaign Loaded Successfully!");
       }

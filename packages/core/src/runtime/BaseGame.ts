@@ -75,7 +75,7 @@ interface DebugTransform {
 export interface BaseGameConfig<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
-  TInput extends Record<string, any> = Record<string, unknown>,
+  TInput extends Record<string, any> = Record<string, any>,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
   /** Key code to toggle pause state (e.g. `"KeyP"`). */
@@ -130,7 +130,7 @@ export interface BaseGameConfig<
  */
 export abstract class BaseGame<
   TState = unknown,
-  TInput extends Record<string, any> = Record<string, unknown>,
+  TInput extends Record<string, any> = Record<string, any>,
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
@@ -845,7 +845,7 @@ export abstract class BaseGame<
   public setInputState(input: Partial<TInput>): void {
     if (this.unifiedInput) {
       Object.entries(input).forEach(([action, pressed]) => {
-        this.unifiedInput.setOverride(action, !!pressed);
+        this.unifiedInput.setOverride(action as keyof TInput & string, !!pressed);
       });
     }
   }

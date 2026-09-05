@@ -26,7 +26,7 @@ import {
  */
 export abstract class NullBaseGame<
   TState = unknown,
-  TInput extends Record<string, any> = Record<string, unknown>,
+  TInput extends Record<string, any> = Record<string, any>,
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry
 > implements IGame<TState, TInput, TComponents, TEvents> {

@@ -185,7 +185,7 @@ export class LinearPredictionModel<
         "LocalPlayer",
         "Velocity",
         "Input"
-    ] as Array<Extract<keyof TRegistry, string>>;
+    ] as Extract<keyof TRegistry, string>[];
 
     /**
      * Creates an instance of LinearPredictionModel.
@@ -247,7 +247,7 @@ export class ExponentialSmoothingModel<
     public queryComponents?: Extract<keyof TRegistry, string>[] = [
         "Transform",
         "RemotePlayer"
-    ] as Array<Extract<keyof TRegistry, string>>;
+    ] as Extract<keyof TRegistry, string>[];
 
     /**
      * Creates an instance of ExponentialSmoothingModel.

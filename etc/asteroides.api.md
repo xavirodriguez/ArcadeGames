@@ -524,13 +524,13 @@ export interface Camera2DComponent extends Component {
 
 // @public
 export class Camera2DSystem extends System<CoreComponentRegistry> {
-    static screenToWorld(world: World<CoreComponentRegistry>, screenX: number, screenY: number, cameraEntity?: number): {
+    static screenToWorld<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, screenX: number, screenY: number, cameraEntity?: number): {
         x: number;
         y: number;
     };
     // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
-    static worldToScreen(world: World<CoreComponentRegistry>, worldX: number, worldY: number, cameraEntity?: number): {
+    static worldToScreen<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, worldX: number, worldY: number, cameraEntity?: number): {
         x: number;
         y: number;
     };

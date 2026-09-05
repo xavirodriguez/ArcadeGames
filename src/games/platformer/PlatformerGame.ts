@@ -40,6 +40,7 @@ import {
   EntityBuilder
 } from "@tiny-aster/core";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
+import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
 import { PlatformerDamageSystem } from "./systems/PlatformerDamageSystem";
 import { PlatformerDashSystem } from "./systems/PlatformerDashSystem";
@@ -110,10 +111,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
   // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:309-321. Considerar extraer a función compartida. Ref: b8cff4cf
   protected override async onRegisterSystems(): Promise<void> {
-    const mutators = (this._config.gameOptions?.mutators as Array<{ apply: (cfg: PlatformerConfigType) => PlatformerConfigType }>) || [];
-    this.config = mutators.length > 0
-      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })
-      : { ...this.baseConfig };
+    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
     // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:207-221. Considerar extraer a función compartida. Ref: 44f1ee7d

@@ -1,18 +1,18 @@
 import { System } from "../ecs/System";
 import { World } from "../ecs/World";
-import { CoreComponentRegistry, RunState } from "../ecs/CoreComponents";
+import { CoreComponentRegistry } from "../ecs/CoreComponents";
+import { getGameplaySystemContext } from "./systemHelpers";
 
 /**
  * System that monitors player health and position to detect death.
  * It marks the player as Dead, updates the RunState, and dispatches the "PlayerDied" event.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con systems/CollectibleSystem.ts:10-17. Considerar extraer a función compartida. Ref: 63111e4a
 export class DeathSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
-    const runState = world.getResource<RunState>("RunState");
-    const eventBus = world.getEventBus();
+    const ctx = getGameplaySystemContext(world);
+    if (!ctx) return;
+    const { runState, eventBus } = ctx;
 
     const players = world.query("PlatformerInput", "Transform");
     const deathPlaneY = world.getResource<number>("DeathPlaneY") ?? 1000;

@@ -4,7 +4,7 @@ import { Shape, ShapeType, ConvexPolygonShape } from "../shapes/Shapes";
 import { NarrowPhase } from "../collision/NarrowPhase";
 import { ComponentRegistry } from "../../ecs/Component";
 import { EventRegistry } from "../../events/EventBus";
-import { PhysicsTransformLike, ColliderLike } from "../PhysicsTypes";
+import { PhysicsTransformLike, ColliderLike, getColliderWorldCenter } from "../PhysicsTypes";
 import { getColliderWorldBounds } from "../utils/PhysicsTransform";
 
 /**
@@ -48,11 +48,7 @@ export class PhysicsQuery {
         continue;
       }
 
-      // TODO(refactor): código duplicado detectado (bloque) con physics/utils/PhysicsTransform.ts:18-24. Considerar extraer a función compartida. Ref: dbf8ef00
-      const worldX = transform.worldX ?? transform.x;
-      const worldY = transform.worldY ?? transform.y;
-      const cx = worldX + (collider.offsetX ?? 0);
-      const cy = worldY + (collider.offsetY ?? 0);
+      const { cx, cy } = getColliderWorldCenter(transform, collider);
 
       const shape = collider.shape;
       if (shape.type === ShapeType.Circle) {
@@ -134,10 +130,7 @@ export class PhysicsQuery {
       const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;
       if (!transform || !collider || !collider.enabled) continue;
 
-      const worldX = transform.worldX ?? transform.x;
-      const worldY = transform.worldY ?? transform.y;
-      const cx = worldX + (collider.offsetX ?? 0);
-      const cy = worldY + (collider.offsetY ?? 0);
+      const { cx, cy } = getColliderWorldCenter(transform, collider);
       const rot = transform.worldRotation ?? transform.rotation ?? 0;
 
       const manifold = NarrowPhase.test(shape, x, y, 0, collider.shape, cx, cy, rot);

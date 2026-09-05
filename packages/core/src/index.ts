@@ -199,5 +199,6 @@ export * from "./systems/EnemySensorSystem";
 export * from "./systems/EnemyBehaviorHelpers";
 export * from "./systems/EnemyBehaviorRegistry";
 export * from "./systems/SegmentGenerator";
+export * from "./systems/systemHelpers";
 
 export type { DeepReadonly } from "./ecs/Component";

@@ -25,6 +25,7 @@ import { PongGameStateSystem } from "./systems/PongGameStateSystem";
 import { ComboSystem } from "@tiny-aster/core";
 import { AchievementSystem } from "../shared/arcade";
 import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorRegistry";
+import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 
 registerMutatorHook((world: World, mutatorId: string) => {
@@ -103,10 +104,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
-    this.config = mutators.length > 0
-      ? mutators.reduce((cfg, m) => (m as any).apply(cfg), { ...this.baseConfig }) as PongConfig
-      : { ...this.baseConfig };
+    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:76-84. Considerar extraer a función compartida. Ref: 75010e56
     this.world.setResource("GameConfig", this.config);
@@ -261,7 +259,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
     // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:424-429. Considerar extraer a función compartida. Ref: 6ae02dab
-    this.world.addSystem(new MutatorSystem(mutators as any), { phase: SystemPhase.Simulation });
+    const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as any[];
+    this.world.addSystem(new MutatorSystem(activeMutators), { phase: SystemPhase.Simulation });
 
     // Visual / Presentation
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });

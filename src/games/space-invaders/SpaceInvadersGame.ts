@@ -3,6 +3,7 @@ import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "../shared/arcade";
 import { EnemyFactory } from "./EnemyFactory";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
+import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -109,10 +110,7 @@ export class SpaceInvadersGame
 
   // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:61-66. Considerar extraer a función compartida. Ref: debee144
   protected override async onRegisterSystems(): Promise<void> {
-    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
-    this.config = mutators.length > 0
-      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...(this.baseConfig as any) }) as SpaceInvadersConfig
-      : { ...(this.baseConfig as any) } as SpaceInvadersConfig;
+    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();

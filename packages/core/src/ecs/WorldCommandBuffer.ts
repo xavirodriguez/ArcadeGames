@@ -38,6 +38,27 @@ export class WorldCommandBuffer<
   private commands: Command<TComponents, TEvents, TBlueprints>[] = [];
   private commandsPool: Command<TComponents, TEvents, TBlueprints>[] = [];
 
+  private trySpawnBlueprint<TId extends keyof TBlueprints & string>(
+    world: World<TComponents, TEvents, TBlueprints>,
+    entity: number,
+    blueprintId: TId,
+    args: BlueprintArgs<TBlueprints, TId>,
+    contextSuffix: string = ""
+  ): void {
+    const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
+    const blueprint = registry?.get(blueprintId);
+    if (blueprint) {
+      try {
+        blueprint.spawn(world, entity, args);
+      } catch (err) {
+        console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}'${contextSuffix}:`, err);
+        throw err;
+      }
+    } else {
+      console.warn(`[WorldCommandBuffer] Blueprint '${blueprintId}' not found in registry.`);
+    }
+  }
+
   /**
    * Schedules an entity to be spawned from a blueprint.
    */
@@ -47,20 +68,8 @@ export class WorldCommandBuffer<
   ): void {
     this.commands.push({
       execute: (world) => {
-        // TODO(refactor): código duplicado detectado (bloque) con ecs/WorldCommandBuffer.ts:77-84. Considerar extraer a función compartida. Ref: 8922af63
         const entity = world.createEntity();
-        const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
-        const blueprint = registry?.get(blueprintId);
-        if (blueprint) {
-          try {
-            blueprint.spawn(world, entity, args);
-          } catch (err) {
-            console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}':`, err);
-            throw err;
-          }
-        } else {
-          console.warn(`[WorldCommandBuffer] Blueprint '${blueprintId}' not found in registry.`);
-        }
+        this.trySpawnBlueprint(world, entity, blueprintId, args);
       }
     });
   }
@@ -75,20 +84,8 @@ export class WorldCommandBuffer<
   ): void {
     this.commands.push({
       execute: (world) => {
-        // TODO(refactor): código duplicado detectado (bloque) con ecs/WorldCommandBuffer.ts:51-58. Considerar extraer a función compartida. Ref: fa28c3fa
         world.activateEntity(entity);
-        const registry = world.getResource<BlueprintRegistry<TComponents, TEvents, TBlueprints>>("BlueprintRegistry");
-        const blueprint = registry?.get(blueprintId);
-        if (blueprint) {
-          try {
-            blueprint.spawn(world, entity, args);
-          } catch (err) {
-            console.error(`[WorldCommandBuffer] Error spawning blueprint '${blueprintId}' for entity ${entity}:`, err);
-            throw err;
-          }
-        } else {
-          console.warn(`[WorldCommandBuffer] Blueprint '${blueprintId}' not found in registry.`);
-        }
+        this.trySpawnBlueprint(world, entity, blueprintId, args, ` for entity ${entity}`);
       }
     });
   }

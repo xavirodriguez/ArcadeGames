@@ -38,6 +38,7 @@ export * from "./scenes/CutsceneScene";
 export * from "./scenes/CYOAScene";
 export * from "./scenes/SceneManager";
 export * from "./scenes/TransitionTypes";
+export * from "./scenes/transitions/BaseTransitionEffect";
 export * from "./scenes/transitions/FadeTransition";
 export * from "./scenes/transitions/IrisTransition";
 export * from "./scenes/transitions/DitherTransition";

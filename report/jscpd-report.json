@@ -298,336 +298,40 @@
     },
     {
       "firstFile": {
-        "end": 29,
+        "end": 63,
         "endLoc": {
-          "column": 40,
-          "line": 29,
-          "position": 1129
-        },
-        "name": "scenes/transitions/CRTGlitchTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 33,
-          "line": 11,
-          "position": 485
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class CRTGlitchTransition implements ITransitionEffect {\n  /**\n   * Set flag to indicate that both scenes should be drawn.\n   */\n  public readonly drawsBothScenes = true;\n\n  /**\n   * Renders the signal glitch effect.\n   * @param ctx - The CanvasRenderingContext2D or RenderContext.\n   * @param progress - Transition progress from 0.0 to 1.0.\n   * @param options - Visual configurations.\n   */\n  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const off = options?.offscreenCanvas;\n    const canvas = ctx.canvas;\n    if (!off || !canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;",
-      "isNew": false,
-      "lines": 19,
-      "secondFile": {
-        "end": 29,
-        "endLoc": {
-          "column": 40,
-          "line": 29,
-          "position": 1131
-        },
-        "name": "scenes/transitions/CurtainTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 31,
-          "line": 11,
-          "position": 487
-        }
-      },
-      "tokens": 70
-    },
-    {
-      "firstFile": {
-        "end": 31,
-        "endLoc": {
-          "column": 7,
-          "line": 31,
-          "position": 1138
-        },
-        "name": "scenes/transitions/CRTGlitchTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 33,
-          "line": 11,
-          "position": 485
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class CRTGlitchTransition implements ITransitionEffect {\n  /**\n   * Set flag to indicate that both scenes should be drawn.\n   */\n  public readonly drawsBothScenes = true;\n\n  /**\n   * Renders the signal glitch effect.\n   * @param ctx - The CanvasRenderingContext2D or RenderContext.\n   * @param progress - Transition progress from 0.0 to 1.0.\n   * @param options - Visual configurations.\n   */\n  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const off = options?.offscreenCanvas;\n    const canvas = ctx.canvas;\n    if (!off || !canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;\n\n    ctx.save();",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 31,
-        "endLoc": {
-          "column": 9,
-          "line": 31,
-          "position": 1168
-        },
-        "name": "scenes/transitions/DiagonalSweepTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 37,
-          "line": 11,
-          "position": 479
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
-        "end": 31,
-        "endLoc": {
-          "column": 7,
-          "line": 31,
-          "position": 1138
-        },
-        "name": "scenes/transitions/CRTGlitchTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 33,
-          "line": 11,
-          "position": 485
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class CRTGlitchTransition implements ITransitionEffect {\n  /**\n   * Set flag to indicate that both scenes should be drawn.\n   */\n  public readonly drawsBothScenes = true;\n\n  /**\n   * Renders the signal glitch effect.\n   * @param ctx - The CanvasRenderingContext2D or RenderContext.\n   * @param progress - Transition progress from 0.0 to 1.0.\n   * @param options - Visual configurations.\n   */\n  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const off = options?.offscreenCanvas;\n    const canvas = ctx.canvas;\n    if (!off || !canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;\n\n    ctx.save();",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 31,
-        "endLoc": {
-          "column": 9,
-          "line": 31,
-          "position": 1104
-        },
-        "name": "scenes/transitions/RadialWipeTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 34,
-          "line": 11,
-          "position": 452
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
-        "end": 31,
-        "endLoc": {
-          "column": 7,
-          "line": 31,
-          "position": 1138
-        },
-        "name": "scenes/transitions/CRTGlitchTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 33,
-          "line": 11,
-          "position": 485
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class CRTGlitchTransition implements ITransitionEffect {\n  /**\n   * Set flag to indicate that both scenes should be drawn.\n   */\n  public readonly drawsBothScenes = true;\n\n  /**\n   * Renders the signal glitch effect.\n   * @param ctx - The CanvasRenderingContext2D or RenderContext.\n   * @param progress - Transition progress from 0.0 to 1.0.\n   * @param options - Visual configurations.\n   */\n  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const off = options?.offscreenCanvas;\n    const canvas = ctx.canvas;\n    if (!off || !canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;\n\n    ctx.save();",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 30,
-        "endLoc": {
-          "column": 9,
-          "line": 30,
-          "position": 1155
-        },
-        "name": "scenes/transitions/RetroGridTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 33,
-          "line": 11,
-          "position": 486
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
-        "end": 37,
-        "endLoc": {
-          "column": 9,
-          "line": 37,
-          "position": 1367
-        },
-        "name": "scenes/transitions/DangerPulseTransition.ts",
-        "start": 28,
-        "startLoc": {
-          "column": 30,
-          "line": 28,
-          "position": 962
-        }
-      },
-      "format": "typescript",
-      "fragment": "  private cachedColor?: string;\n\n  // TODO(refactor): código duplicado detectado (método) con scenes/transitions/DitherTransition.ts:16-30. Considerar extraer a función compartida. Ref: f320351e\n  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const canvas = ctx.canvas;\n    if (!canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;\n    const cx = options?.centerX ?? (width / 2);",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 31,
-        "endLoc": {
-          "column": 9,
-          "line": 31,
-          "position": 1114
+          "column": 13,
+          "line": 63,
+          "position": 1782
         },
         "name": "scenes/transitions/DitherTransition.ts",
-        "start": 17,
+        "start": 57,
         "startLoc": {
-          "column": 3,
-          "line": 17,
-          "position": 647
-        }
-      },
-      "tokens": 53
-    },
-    {
-      "firstFile": {
-        "end": 37,
-        "endLoc": {
-          "column": 41,
-          "line": 37,
-          "position": 1399
-        },
-        "name": "scenes/transitions/DangerPulseTransition.ts",
-        "start": 31,
-        "startLoc": {
-          "column": 2,
-          "line": 31,
-          "position": 1132
+          "column": 25,
+          "line": 57,
+          "position": 1595
         }
       },
       "format": "typescript",
-      "fragment": "  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const canvas = ctx.canvas;\n    if (!canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;\n    const cx = options?.centerX ?? (width / 2);",
+      "fragment": "    ctx.fillStyle = color;\n    const cols = Math.ceil(width / blockSize);\n    const rows = Math.ceil(height / blockSize);\n\n    for (let r = 0; r < rows; r++) {\n      for (let c = 0; c < cols; c++) {\n        const val = DitherTransition.BAYER_4X4[r % 4][c % 4];",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 25,
+        "end": 38,
         "endLoc": {
+          "column": 13,
+          "line": 38,
+          "position": 1327
+        },
+        "name": "scenes/transitions/RetroGridTransition.ts",
+        "start": 30,
+        "startLoc": {
           "column": 46,
-          "line": 25,
-          "position": 1166
-        },
-        "name": "scenes/transitions/FadeTransition.ts",
-        "start": 19,
-        "startLoc": {
-          "column": 2,
-          "line": 19,
-          "position": 894
+          "line": 30,
+          "position": 1069
         }
       },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 27,
-        "endLoc": {
-          "column": 7,
-          "line": 27,
-          "position": 1175
-        },
-        "name": "scenes/transitions/FadeTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 28,
-          "line": 11,
-          "position": 468
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class FadeTransition implements ITransitionEffect {\n  /**\n   * Renders the fade transition effect.\n   * @param ctx - The CanvasRenderingContext2D or RenderContext.\n   * @param progress - Transition progress from 0.0 to 1.0.\n   * @param options - Visual configurations.\n   */\n  // TODO(refactor): código duplicado detectado (método) con scenes/transitions/DangerPulseTransition.ts:31-37. Considerar extraer a función compartida. Ref: 9c531bec\n  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const canvas = ctx.canvas;\n    if (!canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;\n    const color = options?.color ?? \"#000000\";\n\n    let opacity = 0;",
-      "isNew": false,
-      "lines": 17,
-      "secondFile": {
-        "end": 26,
-        "endLoc": {
-          "column": 9,
-          "line": 26,
-          "position": 1020
-        },
-        "name": "scenes/transitions/IrisTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 28,
-          "line": 11,
-          "position": 483
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 25,
-        "endLoc": {
-          "column": 9,
-          "line": 25,
-          "position": 1129
-        },
-        "name": "scenes/transitions/FadeTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 28,
-          "line": 11,
-          "position": 468
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class FadeTransition implements ITransitionEffect {\n  /**\n   * Renders the fade transition effect.\n   * @param ctx - The CanvasRenderingContext2D or RenderContext.\n   * @param progress - Transition progress from 0.0 to 1.0.\n   * @param options - Visual configurations.\n   */\n  // TODO(refactor): código duplicado detectado (método) con scenes/transitions/DangerPulseTransition.ts:31-37. Considerar extraer a función compartida. Ref: 9c531bec\n  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const canvas = ctx.canvas;\n    if (!canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;\n    const color = options?.color ?? \"#000000\";",
-      "isNew": false,
-      "lines": 15,
-      "secondFile": {
-        "end": 54,
-        "endLoc": {
-          "column": 9,
-          "line": 54,
-          "position": 1923
-        },
-        "name": "scenes/transitions/PixelateTransition.ts",
-        "start": 41,
-        "startLoc": {
-          "column": 32,
-          "line": 41,
-          "position": 1425
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 27,
-        "endLoc": {
-          "column": 7,
-          "line": 27,
-          "position": 1175
-        },
-        "name": "scenes/transitions/FadeTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 28,
-          "line": 11,
-          "position": 468
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class FadeTransition implements ITransitionEffect {\n  /**\n   * Renders the fade transition effect.\n   * @param ctx - The CanvasRenderingContext2D or RenderContext.\n   * @param progress - Transition progress from 0.0 to 1.0.\n   * @param options - Visual configurations.\n   */\n  // TODO(refactor): código duplicado detectado (método) con scenes/transitions/DangerPulseTransition.ts:31-37. Considerar extraer a función compartida. Ref: 9c531bec\n  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {\n    const canvas = ctx.canvas;\n    if (!canvas) return;\n\n    const width = canvas.width ?? 800;\n    const height = canvas.height ?? 600;\n    const color = options?.color ?? \"#000000\";\n\n    let opacity = 0;",
-      "isNew": false,
-      "lines": 17,
-      "secondFile": {
-        "end": 25,
-        "endLoc": {
-          "column": 9,
-          "line": 25,
-          "position": 1011
-        },
-        "name": "scenes/transitions/ScanlineWipeTransition.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 36,
-          "line": 11,
-          "position": 470
-        }
-      },
-      "tokens": 64
+      "tokens": 56
     },
     {
       "firstFile": {
@@ -7476,32 +7180,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-05T17:40:17.860Z",
+    "detectionDate": "2026-09-05T18:24:02.260Z",
     "formats": {
       "typescript": {
         "clones": 202,
-        "duplicatedLines": 2207,
-        "duplicatedTokens": 16309,
-        "lines": 51029,
+        "duplicatedLines": 2164,
+        "duplicatedTokens": 16559,
+        "lines": 52149,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 4.324991671402536,
-        "percentageTokens": 6.043772790608045,
-        "sources": 330,
-        "tokens": 269848
+        "percentage": 4.149648123645708,
+        "percentageTokens": 6.034598999274784,
+        "sources": 334,
+        "tokens": 274401
       }
     },
     "total": {
       "clones": 202,
-      "duplicatedLines": 2207,
-      "duplicatedTokens": 16309,
-      "lines": 51029,
+      "duplicatedLines": 2164,
+      "duplicatedTokens": 16559,
+      "lines": 52149,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 4.324991671402536,
-      "percentageTokens": 6.043772790608045,
-      "sources": 330,
-      "tokens": 269848
+      "percentage": 4.149648123645708,
+      "percentageTokens": 6.034598999274784,
+      "sources": 334,
+      "tokens": 274401
     }
   }
 }

@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * A standard fade-to-color transition.
@@ -7,21 +8,25 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/IrisTransition.ts:10-25. Considerar extraer a función compartida. Ref: 0946b729
-export class FadeTransition implements ITransitionEffect {
+export class FadeTransition extends BaseTransitionEffect {
+  protected override readonly autoSave = false;
+
   /**
-   * Renders the fade transition effect.
+   * Paints the fade transition effect.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  // TODO(refactor): código duplicado detectado (método) con scenes/transitions/DangerPulseTransition.ts:31-37. Considerar extraer a función compartida. Ref: 9c531bec
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const canvas = ctx.canvas;
-    if (!canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
+  protected paint(
+    ctx: RenderContext,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     const color = options?.color ?? "#000000";
 
     let opacity = 0;

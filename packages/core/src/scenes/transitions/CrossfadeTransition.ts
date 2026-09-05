@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseOffscreenTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * A smooth cross-dissolve/blending transition between scenes.
@@ -7,25 +8,26 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-export class CrossfadeTransition implements ITransitionEffect {
+export class CrossfadeTransition extends BaseOffscreenTransitionEffect {
   /**
-   * Set flag to indicate that both scenes should be drawn.
-   */
-  public readonly drawsBothScenes = true;
-
-  /**
-   * Renders the crossfade transition effect.
+   * Paints the crossfade transition effect.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
+   * @param offscreenCanvas - The offscreen canvas containing the outgoing scene.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const off = options?.offscreenCanvas;
-    if (!off) return;
-
-    ctx.save();
+  protected paintOffscreen(
+    ctx: RenderContext,
+    offscreenCanvas: CanvasImageSource | HTMLCanvasElement,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     ctx.globalAlpha = Math.max(0, Math.min(1, 1 - progress));
-    ctx.drawImage(off, 0, 0);
-    ctx.restore();
+    ctx.drawImage(offscreenCanvas, 0, 0);
   }
 }

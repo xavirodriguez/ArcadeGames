@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseTransitionEffect } from "./BaseTransitionEffect";
 
 let offscreenCanvas: HTMLCanvasElement | null = null;
 let offscreenCtx: CanvasRenderingContext2D | null = null;
@@ -37,20 +38,25 @@ function getOffscreen(width: number, height: number): { canvas: HTMLCanvasElemen
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/FadeTransition.ts:10-23. Considerar extraer a función compartida. Ref: 9c415b60
-export class PixelateTransition implements ITransitionEffect {
+export class PixelateTransition extends BaseTransitionEffect {
+  protected override readonly autoSave = false;
+
   /**
-   * Renders the pixelated scale mosaic effect.
+   * Paints the pixelated scale mosaic effect.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const canvas = ctx.canvas;
-    if (!canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
+  protected paint(
+    ctx: RenderContext,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     const maxPixelSize = options?.maxPixelSize ?? 32;
 
     let blockSize = 1;
@@ -74,7 +80,7 @@ export class PixelateTransition implements ITransitionEffect {
     ctx.save();
     // 1. Copy full canvas down to tiny size on offscreen
     octx.clearRect(0, 0, width, height);
-    octx.drawImage(canvas, 0, 0, width, height, 0, 0, w, h);
+    octx.drawImage(ctx.canvas, 0, 0, width, height, 0, 0, w, h);
 
     // 2. Clear main canvas
     ctx.clearRect(0, 0, width, height);

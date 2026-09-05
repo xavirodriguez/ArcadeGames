@@ -1,5 +1,6 @@
 import { RenderContext } from "../../rendering/Renderer";
-import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
+import { TransitionOptions } from "../TransitionTypes";
+import { BaseOffscreenTransitionEffect } from "./BaseTransitionEffect";
 
 /**
  * A retro CRT/Signal Glitch transition effect.
@@ -7,29 +8,25 @@ import { ITransitionEffect, TransitionOptions } from "../TransitionTypes";
  *
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/CurtainTransition.ts:10-28. Considerar extraer a función compartida. Ref: e9dcf478
-export class CRTGlitchTransition implements ITransitionEffect {
+export class CRTGlitchTransition extends BaseOffscreenTransitionEffect {
   /**
-   * Set flag to indicate that both scenes should be drawn.
-   */
-  public readonly drawsBothScenes = true;
-
-  /**
-   * Renders the signal glitch effect.
+   * Paints the signal glitch effect.
+   *
    * @param ctx - The CanvasRenderingContext2D or RenderContext.
+   * @param offscreenCanvas - The offscreen canvas containing the outgoing scene.
    * @param progress - Transition progress from 0.0 to 1.0.
+   * @param width - Canvas width.
+   * @param height - Canvas height.
    * @param options - Visual configurations.
    */
-  public render(ctx: RenderContext, progress: number, options?: TransitionOptions): void {
-    const off = options?.offscreenCanvas;
-    const canvas = ctx.canvas;
-    if (!off || !canvas) return;
-
-    const width = canvas.width ?? 800;
-    const height = canvas.height ?? 600;
-
-    ctx.save();
-
+  protected paintOffscreen(
+    ctx: RenderContext,
+    offscreenCanvas: CanvasImageSource | HTMLCanvasElement,
+    progress: number,
+    width: number,
+    height: number,
+    options?: TransitionOptions
+  ): void {
     // 1. Draw horizontal displacement slices
     const sliceHeight = options?.sliceHeight ?? 8;
     const numSlices = Math.ceil(height / sliceHeight);
@@ -45,7 +42,7 @@ export class CRTGlitchTransition implements ITransitionEffect {
       // Add occasional static jump/glitch
       const offset = (Math.sin(y * 0.5 + progress * 100) > 0.8) ? wave * 2 : wave;
 
-      ctx.drawImage(off, 0, y, width, sliceHeight, offset, y, width, sliceHeight);
+      ctx.drawImage(offscreenCanvas, 0, y, width, sliceHeight, offset, y, width, sliceHeight);
     }
 
     // 2. Draw rolling horizontal interference line
@@ -61,7 +58,5 @@ export class CRTGlitchTransition implements ITransitionEffect {
       ctx.fillStyle = "rgba(0, 0, 255, 0.1)";
       ctx.fillRect(-2, 0, width, height);
     }
-
-    ctx.restore();
   }
 }

@@ -117,6 +117,24 @@ describe("Game Config Schemas and ConfigService Integration", () => {
           KEYS: "invalid_keys_object"
         });
       }).toThrow(/Configuration validation failed for game "flappybird"/);
+
+      expect(() => {
+        ConfigService.load("echorunner", EchoRunnerConfigSchema, {
+          TILE_SIZE: "forty"
+        });
+      }).toThrow(/Configuration validation failed for game "echorunner"/);
+
+      expect(() => {
+        ConfigService.load("asteroids", AsteroidConfigSchema, {
+          INITIAL_ASTEROID_COUNT: "five"
+        });
+      }).toThrow(/Configuration validation failed for game "asteroids"/);
+
+      expect(() => {
+        ConfigService.load("geometrywars", GeometryWarsConfigSchema, {
+          INITIAL_LIVES: "three"
+        });
+      }).toThrow(/Configuration validation failed for game "geometrywars"/);
     });
   });
 });

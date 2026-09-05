@@ -40,7 +40,7 @@ export function getGameplaySystemContextAndEntities<
 >(
   world: World<TRegistry>,
   ...componentTypes: Array<Extract<keyof TRegistry, string>>
-): (GameplaySystemContext & { entities: Entity[] }) | null {
+): (GameplaySystemContext & { entities: ReadonlyArray<Entity> }) | null {
   const ctx = getGameplaySystemContext(world);
   if (!ctx) return null;
   const entities = componentTypes.length > 0 ? world.query(...componentTypes) : [];

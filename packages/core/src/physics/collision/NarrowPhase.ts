@@ -16,6 +16,18 @@ function getPolygonWorldVertices(vertices: Array<{ x: number; y: number }>, cx: 
   }));
 }
 
+function projectVerticesOnAxis(verts: Array<{ x: number; y: number }>, axis: { x: number; y: number }): { minProj: number; maxProj: number } {
+  let minProj = Infinity;
+  let maxProj = -Infinity;
+  for (let j = 0; j < verts.length; j++) {
+    const v = verts[j];
+    const dot = v.x * axis.x + v.y * axis.y;
+    if (dot < minProj) minProj = dot;
+    if (dot > maxProj) maxProj = dot;
+  }
+  return { minProj, maxProj };
+}
+
 function getBoxWorldVertices(width: number, height: number, cx: number, cy: number, rot: number): Array<{ x: number; y: number }> {
   const halfW = width / 2;
   const halfH = height / 2;
@@ -49,25 +61,10 @@ function testPolygonVsPolygon(
 
   for (let i = 0; i < axes.length; i++) {
     const axis = axes[i];
-    let minProjA = Infinity;
-    let maxProjA = -Infinity;
-    for (let j = 0; j < vertsA.length; j++) {
-      const v = vertsA[j];
-      const dot = v.x * axis.x + v.y * axis.y;
-      if (dot < minProjA) minProjA = dot;
-      if (dot > maxProjA) maxProjA = dot;
-    }
+    const projA = projectVerticesOnAxis(vertsA, axis);
+    const projB = projectVerticesOnAxis(vertsB, axis);
 
-    let minProjB = Infinity;
-    let maxProjB = -Infinity;
-    for (let j = 0; j < vertsB.length; j++) {
-      const v = vertsB[j];
-      const dot = v.x * axis.x + v.y * axis.y;
-      if (dot < minProjB) minProjB = dot;
-      if (dot > maxProjB) maxProjB = dot;
-    }
-
-    if (!checkProjectionOverlap(minProjA, maxProjA, minProjB, maxProjB, axis, state)) {
+    if (!checkProjectionOverlap(projA.minProj, projA.maxProj, projB.minProj, projB.maxProj, axis, state)) {
       return manifold;
     }
   }
@@ -114,20 +111,13 @@ function testPolygonVsCircle(
 
   for (let i = 0; i < axes.length; i++) {
     const axis = axes[i];
-    let minProjA = Infinity;
-    let maxProjA = -Infinity;
-    for (let j = 0; j < verts.length; j++) {
-      const v = verts[j];
-      const dot = v.x * axis.x + v.y * axis.y;
-      if (dot < minProjA) minProjA = dot;
-      if (dot > maxProjA) maxProjA = dot;
-    }
+    const projA = projectVerticesOnAxis(verts, axis);
 
     const circleCenterDot = cx * axis.x + cy * axis.y;
     const minProjB = circleCenterDot - radius;
     const maxProjB = circleCenterDot + radius;
 
-    if (!checkProjectionOverlap(minProjA, maxProjA, minProjB, maxProjB, axis, state)) {
+    if (!checkProjectionOverlap(projA.minProj, projA.maxProj, minProjB, maxProjB, axis, state)) {
       return manifold;
     }
   }

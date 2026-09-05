@@ -112,3 +112,37 @@ export const MUTATORS: Mutator[] = rawMutators.map(mutator => ({
     return parsed.data as Record<string, unknown>;
   }
 }));
+
+/**
+ * Applies a list of mutators sequentially over a base game configuration.
+ *
+ * @param baseConfig - Initial base configuration object.
+ * @param mutators - List of mutator objects each providing an `apply(config)` function.
+ * @returns Mutated configuration object.
+ * @public
+ */
+export function applyMutators<TConfig extends Record<string, any>>(
+  baseConfig: TConfig,
+  mutators?: Array<{ apply: (cfg: any) => any }> | null
+): TConfig {
+  if (!mutators || mutators.length === 0) {
+    return { ...baseConfig };
+  }
+  return mutators.reduce((cfg, m) => m.apply(cfg), { ...baseConfig });
+}
+
+/**
+ * Resolves active mutators from gameOptions and applies them sequentially over a base game configuration.
+ *
+ * @param baseConfig - Initial base configuration object.
+ * @param gameOptions - Game configuration options containing optional `mutators` or `activeMutators`.
+ * @returns Mutated configuration object.
+ * @public
+ */
+export function resolveAndApplyMutators<TConfig extends Record<string, any>>(
+  baseConfig: TConfig,
+  gameOptions?: { mutators?: any[]; activeMutators?: any[] } | null
+): TConfig {
+  const mutators = gameOptions?.mutators || gameOptions?.activeMutators || [];
+  return applyMutators(baseConfig, mutators);
+}

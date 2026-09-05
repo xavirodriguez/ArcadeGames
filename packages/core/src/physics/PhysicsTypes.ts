@@ -42,3 +42,19 @@ export interface ColliderLike {
   /** Center offset Y relative to transform origin. */
   offsetY?: number;
 }
+
+/**
+ * Computes the world-space center coordinates for a transform and collider.
+ * @public
+ */
+export function getColliderWorldCenter(
+  transform: PhysicsTransformLike,
+  collider: ColliderLike
+): { cx: number; cy: number } {
+  const worldX = transform.worldX ?? transform.x;
+  const worldY = transform.worldY ?? transform.y;
+  return {
+    cx: worldX + (collider.offsetX ?? 0),
+    cy: worldY + (collider.offsetY ?? 0),
+  };
+}

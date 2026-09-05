@@ -1555,6 +1555,9 @@ export function finalizePolyManifold(manifold: CollisionManifold, minOverlap: nu
 export function findMatchingEntityInTriggersOrCollisions<TComponents extends Record<string, any>>(world: World<TComponents>, entity: Entity, predicate: (other: Entity) => boolean): Entity | null;
 
 // @public
+export function findTriggeringPlayer<TComponents extends Record<string, any>>(world: World<TComponents>, targetEntity: Entity, players: ReadonlyArray<Entity>): Entity | null;
+
+// @public
 export type FlappyBirdRoleKey = CommonRoleKey | "bird" | "pipe" | "ground";
 
 // @public
@@ -1689,6 +1692,14 @@ export interface GameplayFreeze {
 }
 
 // @public
+export interface GameplaySystemContext {
+    // (undocumented)
+    eventBus: EventBus<any> | undefined;
+    // (undocumented)
+    runState: RunState | undefined;
+}
+
+// @public
 export type GameRoleKey = AsteroidsRoleKey | SpaceInvadersRoleKey | PongRoleKey | FlappyBirdRoleKey | PlatformerRoleKey | GeometryWarsRoleKey;
 
 // @public
@@ -1712,6 +1723,12 @@ export type GeometryWarsRoleKey = CommonRoleKey | "chaser" | "evader" | "grunt" 
 export function getColliderWorldBounds(transform: PhysicsTransformLike, collider: ColliderLike): AABB;
 
 // @public
+export function getColliderWorldCenter(transform: PhysicsTransformLike, collider: ColliderLike): {
+    cx: number;
+    cy: number;
+};
+
+// @public
 export function getDirectionToDetectedPlayer(world: World<any>, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): {
     x: number;
     y: number;
@@ -1728,6 +1745,9 @@ export function getForwardVector(rotation: number): {
 
 // @public
 export function getGameplayFreezeRemaining(world: World<any>): number | undefined;
+
+// @public
+export function getGameplaySystemContext<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>): GameplaySystemContext | null;
 
 // @public
 export function getHorizontalDirectionToPlayer(world: World<any>, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;

@@ -484,6 +484,10 @@ export interface BoxShape extends BaseShape {
 }
 
 // @public
+export interface BranchNodeBuilder extends CommonNodeBuilderMethods<BranchNodeBuilder> {
+}
+
+// @public
 export class BroadPhase {
     static getShapeBounds(transform: Readonly<TransformComponent>, collider: Readonly<ColliderComponent>): AABB;
     static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry>): Array<[Entity, Entity]>;
@@ -624,6 +628,23 @@ export function checkProjectionOverlap(minA: number, maxA: number, minB: number,
     x: number;
     y: number;
 }, state: SATOverlapState): boolean;
+
+// @public
+export interface ChoiceNodeBuilder extends CommonNodeBuilderMethods<ChoiceNodeBuilder> {
+    // (undocumented)
+    addChoice(choice: StoryChoice): ChoiceNodeBuilder;
+    // (undocumented)
+    addChoice(id: string, titleKey: string, targetNodeId: string, options?: {
+        descriptionKey?: string;
+        condition?: StoryCondition;
+        effects?: StoryEffect[];
+        rewindPolicy?: RewindPolicy;
+    }): ChoiceNodeBuilder;
+    // (undocumented)
+    addDialogueLine(line: DialogueLine): ChoiceNodeBuilder;
+    // (undocumented)
+    setDialogue(dialogue: Dialogue): ChoiceNodeBuilder;
+}
 
 // @public
 export interface CircleShape extends BaseShape {
@@ -778,6 +799,28 @@ export interface Command<TComponents extends ComponentRegistry, TEvents extends 
 }
 
 // @public
+export interface CommonNodeBuilderMethods<TBuilder> {
+    // (undocumented)
+    addEffect(effect: StoryEffect): TBuilder;
+    // (undocumented)
+    addTransition(targetNodeId: string, condition?: StoryCondition, priority?: number): TBuilder;
+    // (undocumented)
+    build(): StoryNode;
+    // (undocumented)
+    setCheckpoint(checkpoint?: boolean): TBuilder;
+    // (undocumented)
+    setEmitEvent(name: string, payload?: Record<string, number | string | boolean>): TBuilder;
+    // (undocumented)
+    setIsEndNode(isEndNode?: boolean): TBuilder;
+    // (undocumented)
+    setMeta(meta: Record<string, unknown>): TBuilder;
+    // (undocumented)
+    setSceneToLoad(sceneToLoad: string): TBuilder;
+    // (undocumented)
+    setTitle(title: string): TBuilder;
+}
+
+// @public
 export type CommonRoleKey = "primary" | "secondary" | "accent" | "player" | "enemy" | "bullet" | "boss" | "shield";
 
 // @public
@@ -849,6 +892,16 @@ export function computeShipPhysics(transform: {
     vx: number;
     vy: number;
     rotation: number;
+};
+
+// @public
+export const cond: {
+    flag: (key: string, value?: boolean) => StoryCondition;
+    variable: (key: string, operator: NonNullable<StoryCondition["operator"]>, value: number | string | boolean) => StoryCondition;
+    event: (eventName: string) => StoryCondition;
+    all: (...conditions: StoryCondition[]) => StoryCondition;
+    any: (...conditions: StoryCondition[]) => StoryCondition;
+    not: (condition: StoryCondition) => StoryCondition;
 };
 
 // @public
@@ -1176,6 +1229,14 @@ export interface Cutscene {
 }
 
 // @public
+export interface CutsceneNodeBuilder extends CommonNodeBuilderMethods<CutsceneNodeBuilder> {
+    // (undocumented)
+    addDialogueLine(line: DialogueLine): CutsceneNodeBuilder;
+    // (undocumented)
+    setCutscene(cutscene: Cutscene): CutsceneNodeBuilder;
+}
+
+// @public
 export class CutsceneScene extends Scene {
     constructor(world: World, lines: string[], onComplete?: () => void);
     advance(): void;
@@ -1309,6 +1370,16 @@ export interface DialogueLine {
     id?: string;
     speakerName?: string;
     textKey: string;
+}
+
+// @public
+export interface DialogueNodeBuilder extends CommonNodeBuilderMethods<DialogueNodeBuilder> {
+    // (undocumented)
+    addDialogueLine(line: DialogueLine): DialogueNodeBuilder;
+    // (undocumented)
+    setAutoAdvance(autoAdvance: boolean): DialogueNodeBuilder;
+    // (undocumented)
+    setDialogue(dialogue: Dialogue): DialogueNodeBuilder;
 }
 
 // @public
@@ -1694,6 +1765,12 @@ export interface GameplayEvent {
 // @public
 export interface GameplayFreeze {
     remaining?: number;
+}
+
+// @public
+export interface GameplayNodeBuilder extends CommonNodeBuilderMethods<GameplayNodeBuilder> {
+    // (undocumented)
+    setObjective(objective: StoryObjective): GameplayNodeBuilder;
 }
 
 // @public
@@ -3024,6 +3101,12 @@ export class NullTransport<TServerEvents extends Record<string, unknown> = Recor
 }
 
 // @public
+export interface ObjectiveNodeBuilder extends CommonNodeBuilderMethods<ObjectiveNodeBuilder> {
+    // (undocumented)
+    setObjective(objective: StoryObjective): ObjectiveNodeBuilder;
+}
+
+// @public
 export class ObjectPool<T> {
     constructor(factory: () => T, reset?: (obj: T) => void, initialSize?: number);
     // (undocumented)
@@ -4304,6 +4387,33 @@ export interface StoryGraph {
 }
 
 // @public
+export class StoryGraphBuilder {
+    constructor(id?: string, title?: string, entryNodeId?: string);
+    // (undocumented)
+    addCharacter(keyOrCharacter: string | StoryCharacter, character?: StoryCharacter): this;
+    addNode(nodeOrBuilder: StoryNode | {
+        build(): StoryNode;
+    }): this;
+    build(validationOptions?: StoryGraphValidationOptions, builderOptions?: {
+        strict?: boolean;
+    }): StoryGraph;
+    static graph(id?: string, title?: string, entryNodeId?: string): StoryGraphBuilder;
+    // (undocumented)
+    setEntryNodeId(entryNodeId: string): this;
+    // (undocumented)
+    setId(id: string): this;
+    // (undocumented)
+    setTitle(title: string): this;
+}
+
+// @public
+export class StoryGraphBuildError extends Error {
+    constructor(message: string, errors?: StoryGraphValidationError[], warnings?: StoryGraphValidationError[]);
+    readonly errors: StoryGraphValidationError[];
+    readonly warnings: StoryGraphValidationError[];
+}
+
+// @public
 export interface StoryGraphValidationError {
     message: string;
     nodeId?: string;
@@ -4374,6 +4484,58 @@ export interface StoryNode {
     title?: string;
     transitions?: StoryTransition[];
     type: StoryNodeType;
+}
+
+// @public
+export class StoryNodeBuilder implements DialogueNodeBuilder, ChoiceNodeBuilder, CutsceneNodeBuilder, GameplayNodeBuilder, ObjectiveNodeBuilder, BranchNodeBuilder {
+    constructor(id: string);
+    // (undocumented)
+    addChoice(choiceOrId: StoryChoice | string, titleKey?: string, targetNodeId?: string, options?: {
+        descriptionKey?: string;
+        condition?: StoryCondition;
+        effects?: StoryEffect[];
+        rewindPolicy?: RewindPolicy;
+    }): this;
+    // (undocumented)
+    addDialogueLine(line: DialogueLine): this;
+    // (undocumented)
+    addEffect(effect: StoryEffect): this;
+    // (undocumented)
+    addTransition(targetNodeId: string, condition?: StoryCondition, priority?: number): this;
+    // (undocumented)
+    asBranch(): BranchNodeBuilder;
+    // (undocumented)
+    asChoice(): ChoiceNodeBuilder;
+    // (undocumented)
+    asCutscene(): CutsceneNodeBuilder;
+    // (undocumented)
+    asDialogue(): DialogueNodeBuilder;
+    // (undocumented)
+    asGameplay(): GameplayNodeBuilder;
+    // (undocumented)
+    asObjective(): ObjectiveNodeBuilder;
+    build(): StoryNode;
+    static node(id: string): StoryNodeBuilder;
+    // (undocumented)
+    setAutoAdvance(autoAdvance: boolean): this;
+    // (undocumented)
+    setCheckpoint(checkpoint?: boolean): this;
+    // (undocumented)
+    setCutscene(cutscene: Cutscene): this;
+    // (undocumented)
+    setDialogue(dialogue: Dialogue): this;
+    // (undocumented)
+    setEmitEvent(name: string, payload?: Record<string, number | string | boolean>): this;
+    // (undocumented)
+    setIsEndNode(isEndNode?: boolean): this;
+    // (undocumented)
+    setMeta(meta: Record<string, unknown>): this;
+    // (undocumented)
+    setObjective(objective: StoryObjective): this;
+    // (undocumented)
+    setSceneToLoad(sceneToLoad: string): this;
+    // (undocumented)
+    setTitle(title: string): this;
 }
 
 // @public

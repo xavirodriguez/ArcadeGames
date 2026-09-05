@@ -47,6 +47,7 @@ import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore,
 import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType } from "./types/EchoRunnerConfigSchema";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
+import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState } from "../shared/arcade";
 import defaultLevelData from "./levels/level-01.json";
 
@@ -217,10 +218,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
 
   // TODO(refactor): código duplicado detectado (método) con platformer/PlatformerGame.ts:227-251. Considerar extraer a función compartida. Ref: d39ade6b
   protected override async onRegisterSystems(): Promise<void> {
-    const mutators = (this._config.gameOptions?.mutators as Array<{ apply: (cfg: EchoRunnerConfigType) => EchoRunnerConfigType }>) || [];
-    this.config = mutators.length > 0
-      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })
-      : { ...this.baseConfig };
+    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
     // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:114-127. Considerar extraer a función compartida. Ref: 44f1ee7d

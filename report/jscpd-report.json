@@ -1676,9 +1676,9 @@
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 222,
         "startLoc": {
-          "column": 24,
+          "column": 31,
           "line": 222,
-          "position": 7642
+          "position": 7649
         }
       },
       "format": "typescript",
@@ -1695,12 +1695,12 @@
         "name": "platformer/PlatformerGame.ts",
         "start": 115,
         "startLoc": {
-          "column": 24,
+          "column": 31,
           "line": 115,
-          "position": 4291
+          "position": 4298
         }
       },
-      "tokens": 119
+      "tokens": 115
     },
     {
       "firstFile": {
@@ -3369,6 +3369,43 @@
     },
     {
       "firstFile": {
+        "end": 80,
+        "endLoc": {
+          "column": 30,
+          "line": 80,
+          "position": 4813
+        },
+        "name": "flappybird/FlappyBirdGame.ts",
+        "start": 69,
+        "startLoc": {
+          "column": 47,
+          "line": 69,
+          "position": 4199
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.isMultiplayer = !!config.isMultiplayer;\n  }\n\n  protected override async onRegisterSystems(): Promise<void> {\n    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];\n    this.config = mutators.length > 0\n      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })\n      : { ...this.baseConfig };\n    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56\n    this.world.setResource(\"GameConfig\", this.config);\n    this.setupCommonArcadeResources();\n    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 71,
+        "endLoc": {
+          "column": 27,
+          "line": 71,
+          "position": 2749
+        },
+        "name": "geometrywars/GeometryWarsGame.ts",
+        "start": 59,
+        "startLoc": {
+          "column": 33,
+          "line": 59,
+          "position": 2246
+        }
+      },
+      "tokens": 115
+    },
+    {
+      "firstFile": {
         "end": 75,
         "endLoc": {
           "column": 35,
@@ -3499,18 +3536,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 175,
+        "end": 182,
         "endLoc": {
           "column": 93,
-          "line": 175,
-          "position": 6365
+          "line": 182,
+          "position": 6720
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 168,
+        "start": 175,
         "startLoc": {
           "column": 4,
-          "line": 168,
-          "position": 6017
+          "line": 175,
+          "position": 6372
         }
       },
       "tokens": 78
@@ -3573,18 +3610,18 @@
       "isNew": false,
       "lines": 23,
       "secondFile": {
-        "end": 265,
+        "end": 272,
         "endLoc": {
           "column": 128,
-          "line": 265,
-          "position": 11365
+          "line": 272,
+          "position": 11720
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 245,
+        "start": 252,
         "startLoc": {
           "column": 6,
-          "line": 245,
-          "position": 10607
+          "line": 252,
+          "position": 10962
         }
       },
       "tokens": 161
@@ -3647,18 +3684,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 279,
+        "end": 286,
         "endLoc": {
           "column": 14,
-          "line": 279,
-          "position": 12349
+          "line": 286,
+          "position": 12704
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 272,
+        "start": 279,
         "startLoc": {
           "column": 62,
-          "line": 272,
-          "position": 11912
+          "line": 279,
+          "position": 12267
         }
       },
       "tokens": 124
@@ -3684,18 +3721,18 @@
       "isNew": false,
       "lines": 22,
       "secondFile": {
-        "end": 306,
+        "end": 313,
         "endLoc": {
           "column": 8,
-          "line": 306,
-          "position": 13684
+          "line": 313,
+          "position": 14039
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 286,
+        "start": 293,
         "startLoc": {
           "column": 244,
-          "line": 286,
-          "position": 13200
+          "line": 293,
+          "position": 13555
         }
       },
       "tokens": 97
@@ -4257,18 +4294,18 @@
     },
     {
       "firstFile": {
-        "end": 91,
+        "end": 98,
         "endLoc": {
           "column": 3,
-          "line": 91,
-          "position": 3505
+          "line": 98,
+          "position": 3860
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 81,
+        "start": 88,
         "startLoc": {
           "column": 56,
-          "line": 81,
-          "position": 3109
+          "line": 88,
+          "position": 3464
         }
       },
       "format": "typescript",
@@ -4294,18 +4331,18 @@
     },
     {
       "firstFile": {
-        "end": 141,
+        "end": 148,
         "endLoc": {
           "column": 36,
-          "line": 141,
-          "position": 5169
+          "line": 148,
+          "position": 5524
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 128,
+        "start": 135,
         "startLoc": {
           "column": 2,
-          "line": 128,
-          "position": 4690
+          "line": 135,
+          "position": 5045
         }
       },
       "format": "typescript",
@@ -4331,18 +4368,18 @@
     },
     {
       "firstFile": {
-        "end": 234,
+        "end": 241,
         "endLoc": {
           "column": 55,
-          "line": 234,
-          "position": 9738
+          "line": 241,
+          "position": 10093
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 228,
+        "start": 235,
         "startLoc": {
           "column": 92,
-          "line": 228,
-          "position": 9463
+          "line": 235,
+          "position": 9818
         }
       },
       "format": "typescript",
@@ -4368,18 +4405,18 @@
     },
     {
       "firstFile": {
-        "end": 278,
+        "end": 285,
         "endLoc": {
           "column": 5,
-          "line": 278,
-          "position": 12334
+          "line": 285,
+          "position": 12689
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 272,
+        "start": 279,
         "startLoc": {
           "column": 60,
-          "line": 272,
-          "position": 11910
+          "line": 279,
+          "position": 12265
         }
       },
       "format": "typescript",
@@ -4387,18 +4424,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 289,
+        "end": 296,
         "endLoc": {
           "column": 5,
-          "line": 289,
-          "position": 13281
+          "line": 296,
+          "position": 13636
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 282,
+        "start": 289,
         "startLoc": {
           "column": 61,
-          "line": 282,
-          "position": 12687
+          "line": 289,
+          "position": 13042
         }
       },
       "tokens": 121
@@ -8142,32 +8179,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-04T22:28:44.636Z",
+    "detectionDate": "2026-09-05T04:01:36.989Z",
     "formats": {
       "typescript": {
         "clones": 221,
-        "duplicatedLines": 2388,
-        "duplicatedTokens": 17942,
-        "lines": 50860,
+        "duplicatedLines": 2377,
+        "duplicatedTokens": 17870,
+        "lines": 50856,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 4.695241840346048,
-        "percentageTokens": 6.642675729909442,
+        "percentage": 4.673981437785119,
+        "percentageTokens": 6.617415615915865,
         "sources": 327,
-        "tokens": 270102
+        "tokens": 270045
       }
     },
     "total": {
       "clones": 221,
-      "duplicatedLines": 2388,
-      "duplicatedTokens": 17942,
-      "lines": 50860,
+      "duplicatedLines": 2377,
+      "duplicatedTokens": 17870,
+      "lines": 50856,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 4.695241840346048,
-      "percentageTokens": 6.642675729909442,
+      "percentage": 4.673981437785119,
+      "percentageTokens": 6.617415615915865,
       "sources": 327,
-      "tokens": 270102
+      "tokens": 270045
     }
   }
 }

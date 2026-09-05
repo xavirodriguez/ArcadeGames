@@ -30,6 +30,7 @@ export class GeometryWarsGame extends BaseGame<
   GeometryWarsBlueprintRegistry
 > {
   public readonly gameId = "geometrywars";
+  private baseConfig: GeometryWarsConfig;
   private config: GeometryWarsConfig;
   private currentScene!: GeometryWarsGameScene;
   private isHeadless = false;
@@ -50,14 +51,20 @@ export class GeometryWarsGame extends BaseGame<
     this.isHeadless = options.headless || false;
     this.isMultiplayer = options.isMultiplayer || false;
 
-    this.config = ConfigService.load<GeometryWarsConfig>(
+    this.baseConfig = ConfigService.load<GeometryWarsConfig>(
       this.gameId,
       GeometryWarsConfigSchema,
       options.gameOptions?.rawConfig ?? DEFAULT_CONFIG
     );
+    this.config = this.baseConfig;
   }
 
   protected override async onRegisterSystems(): Promise<void> {
+    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
+    this.config = mutators.length > 0
+      ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })
+      : { ...this.baseConfig };
+
     // 1. Set resources on the world
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();

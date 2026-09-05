@@ -4,7 +4,11 @@ import {
   StoryGraphBuildError,
   cond,
   StoryNode,
-  StoryGraph
+  StoryGraph,
+  DialogueNodeBuilder,
+  ChoiceNodeBuilder,
+  CutsceneNodeBuilder,
+  GameplayNodeBuilder
 } from "../index";
 
 describe("StoryBuilders and StoryConditionHelpers", () => {
@@ -41,17 +45,20 @@ describe("StoryBuilders and StoryConditionHelpers", () => {
 
   describe("2. Terminal types restriction compile-time test", () => {
     it("verifies type-level restrictions on specialized node builders", () => {
-      const dialogueBuilder = StoryNodeBuilder.node("d1").asDialogue();
-      // @ts-expect-error asChoice should not exist on DialogueNodeBuilder
-      dialogueBuilder.asChoice;
+      const dialogueBuilder: DialogueNodeBuilder = StoryNodeBuilder.node("d1").asDialogue();
+      const checkChoice = (builder: ChoiceNodeBuilder) => builder;
+      // @ts-expect-error asChoice/ChoiceNodeBuilder methods should not exist on DialogueNodeBuilder
+      checkChoice(dialogueBuilder);
 
-      const choiceBuilder = StoryNodeBuilder.node("c1").asChoice();
-      // @ts-expect-error asCutscene should not exist on ChoiceNodeBuilder
-      choiceBuilder.asCutscene;
+      const choiceBuilder: ChoiceNodeBuilder = StoryNodeBuilder.node("c1").asChoice();
+      const checkCutscene = (builder: CutsceneNodeBuilder) => builder;
+      // @ts-expect-error asCutscene/CutsceneNodeBuilder methods should not exist on ChoiceNodeBuilder
+      checkCutscene(choiceBuilder);
 
-      const cutsceneBuilder = StoryNodeBuilder.node("cs1").asCutscene();
-      // @ts-expect-error asGameplay should not exist on CutsceneNodeBuilder
-      cutsceneBuilder.asGameplay;
+      const cutsceneBuilder: CutsceneNodeBuilder = StoryNodeBuilder.node("cs1").asCutscene();
+      const checkGameplay = (builder: GameplayNodeBuilder) => builder;
+      // @ts-expect-error asGameplay/GameplayNodeBuilder methods should not exist on CutsceneNodeBuilder
+      checkGameplay(cutsceneBuilder);
 
       // Ensure builders still build properly
       const d2 = StoryNodeBuilder.node("d2").asDialogue().addDialogueLine({ textKey: "hi" });

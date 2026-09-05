@@ -137,6 +137,7 @@ export interface ObjectiveNodeBuilder
  *
  * @public
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface BranchNodeBuilder
   extends CommonNodeBuilderMethods<BranchNodeBuilder> {}
 

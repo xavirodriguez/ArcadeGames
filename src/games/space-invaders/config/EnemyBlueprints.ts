@@ -1,93 +1,166 @@
-import { EntityBlueprint } from '../types/BlueprintTypes';
+import { EntityBlueprint, InvaderBlueprint, AsteroidBlueprint, ProjectileBlueprint, AsteroidSize } from '../types/BlueprintTypes';
 import { CollisionLayers } from '../../shared/types/CollisionLayers';
 
-export const EnemyBlueprints: Record<string, EntityBlueprint> = // TODO(refactor): código duplicado detectado (bloque) con space-invaders/config/EnemyBlueprints.ts:70-77. Considerar extraer a función compartida. Ref: 148e3771
-{
+interface InvaderBlueprintConfig {
+  id: string;
+  displayName: string;
+  color: string;
+  points: number;
+  archetype: 'basic' | 'elite' | 'scout';
+  fireRate: number;
+  health?: number;
+  maxSpeed?: number;
+  tags?: readonly string[];
+}
+
+function createInvaderBlueprint(config: InvaderBlueprintConfig): InvaderBlueprint {
+  return {
+    id: config.id,
+    kind: 'invader',
+    displayName: config.displayName,
+    render: { shape: 'invader', size: 24, color: config.color, zIndex: 15 },
+    physics: { maxSpeed: config.maxSpeed ?? 85 },
+    collision: {
+      radius: 12,
+      layer: CollisionLayers.ENEMY,
+      mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE | CollisionLayers.DEBRIS,
+      isTrigger: false
+    },
+    stats: { health: config.health ?? 1, points: config.points },
+    tags: config.tags ?? ['enemy', 'invader', 'Invader'],
+    invader: { archetype: config.archetype, fireRate: config.fireRate }
+  };
+}
+
+interface AsteroidBlueprintConfig {
+  id: string;
+  displayName: string;
+  size: AsteroidSize;
+  radius: number;
+  color: string;
+  maxSpeed: number;
+  points: number;
+  splitsInto: readonly string[];
+  splitCount: number;
+}
+
+function createAsteroidBlueprint(config: AsteroidBlueprintConfig): AsteroidBlueprint {
+  return {
+    id: config.id,
+    kind: 'asteroid',
+    displayName: config.displayName,
+    render: { shape: 'polygon', size: config.radius, color: config.color, zIndex: 10 },
+    physics: { maxSpeed: config.maxSpeed, boundaryBehavior: "wrap" },
+    collision: {
+      radius: config.radius,
+      layer: CollisionLayers.ENEMY,
+      mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
+      isTrigger: false
+    },
+    stats: { health: 1, points: config.points },
+    tags: ['asteroid', 'Asteroid'],
+    asteroid: { size: config.size, splitsInto: config.splitsInto, splitCount: config.splitCount }
+  };
+}
+
+interface ProjectileBlueprintConfig {
+  id: string;
+  displayName: string;
+  color: string;
+  maxSpeed: number;
+  ttl: number;
+  mask: number;
+  tags: readonly string[];
+  ownerType: 'player' | 'enemy';
+}
+
+function createProjectileBlueprint(config: ProjectileBlueprintConfig): ProjectileBlueprint {
+  return {
+    id: config.id,
+    kind: 'projectile',
+    displayName: config.displayName,
+    render: { shape: 'circle', size: 2, color: config.color, zIndex: 25 },
+    physics: { maxSpeed: config.maxSpeed, ttl: config.ttl },
+    collision: {
+      radius: 2,
+      layer: CollisionLayers.PROJECTILE,
+      mask: config.mask,
+      isTrigger: true
+    },
+    stats: { health: 1, points: 0 },
+    tags: config.tags,
+    projectile: { ownerType: config.ownerType, damage: 1 }
+  };
+}
+
+export const EnemyBlueprints: Record<string, EntityBlueprint> = {
   // --- Asteroids ---
-  large_asteroid: {
+  large_asteroid: createAsteroidBlueprint({
     id: 'large_asteroid',
-    kind: 'asteroid',
     displayName: 'Large Asteroid',
-    render: { shape: 'polygon', size: 30, color: '#555555', zIndex: 10 },
-    physics: { maxSpeed: 100, boundaryBehavior: "wrap" },
-    collision: { radius: 30, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE, isTrigger: false },
-    stats: { health: 1, points: 20 },
-    tags: ['asteroid', 'Asteroid'],
-    asteroid: { size: 'large', splitsInto: ['medium_asteroid'], splitCount: 2 }
-  },
+    size: 'large',
+    radius: 30,
+    color: '#555555',
+    maxSpeed: 100,
+    points: 20,
+    splitsInto: ['medium_asteroid'],
+    splitCount: 2
+  }),
 
-  medium_asteroid: {
+  medium_asteroid: createAsteroidBlueprint({
     id: 'medium_asteroid',
-    kind: 'asteroid',
     displayName: 'Medium Asteroid',
-    render: { shape: 'polygon', size: 20, color: '#8B4513', zIndex: 10 },
-    physics: { maxSpeed: 150, boundaryBehavior: "wrap" },
-    collision: { radius: 20, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE, isTrigger: false },
-    stats: { health: 1, points: 50 },
-    tags: ['asteroid', 'Asteroid'],
-    asteroid: { size: 'medium', splitsInto: ['small_asteroid'], splitCount: 2 }
-  },
+    size: 'medium',
+    radius: 20,
+    color: '#8B4513',
+    maxSpeed: 150,
+    points: 50,
+    splitsInto: ['small_asteroid'],
+    splitCount: 2
+  }),
 
-  small_asteroid: {
+  small_asteroid: createAsteroidBlueprint({
     id: 'small_asteroid',
-    kind: 'asteroid',
     displayName: 'Small Asteroid',
-    render: { shape: 'polygon', size: 10, color: '#AAAAAA', zIndex: 10 },
-    physics: { maxSpeed: 200, boundaryBehavior: "wrap" },
-    collision: { radius: 10, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE, isTrigger: false },
-    stats: { health: 1, points: 100 },
-    tags: ['asteroid', 'Asteroid'],
-    asteroid: { size: 'small', splitsInto: [], splitCount: 0 }
-  },
+    size: 'small',
+    radius: 10,
+    color: '#AAAAAA',
+    maxSpeed: 200,
+    points: 100,
+    splitsInto: [],
+    splitCount: 0
+  }),
 
   // --- Invaders ---
-  invader_commander: {
+  invader_commander: createInvaderBlueprint({
     id: 'invader_commander',
-    kind: 'invader',
     displayName: 'Invader Commander',
-    render: { shape: 'invader', size: 24, color: '#FF00FF', zIndex: 15 },
-    physics: { maxSpeed: 85 },
-    collision: { radius: 12, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE | CollisionLayers.DEBRIS, isTrigger: false },
-    stats: { health: 1, points: 30 },
-    tags: ['enemy', 'invader', 'Invader'],
-    invader: { archetype: 'basic', fireRate: 0.8 }
-  },
+    color: '#FF00FF',
+    points: 30,
+    archetype: 'basic',
+    fireRate: 0.8
+  }),
 
-  invader_scout: {
+  invader_scout: createInvaderBlueprint({
     id: 'invader_scout',
-    kind: 'invader',
     displayName: 'Invader Scout',
-    render: { shape: 'invader', size: 24, color: '#FFFFFF', zIndex: 15 },
-    physics: { maxSpeed: 85 },
-    collision: { radius: 12, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE | CollisionLayers.DEBRIS, isTrigger: false },
-    stats: { health: 1, points: 10 },
-    tags: ['enemy', 'invader', 'Invader'],
-    invader: { archetype: 'basic', fireRate: 0.8 }
-  },
+    color: '#FFFFFF',
+    points: 10,
+    archetype: 'basic',
+    fireRate: 0.8
+  }),
 
-  basic_invader: {
-    id: 'basic_invader',
-    kind: 'invader',
-    displayName: 'Basic Invader',
-    render: { shape: 'invader', size: 24, color: '#FFFFFF', zIndex: 15 },
-    physics: { maxSpeed: 85 },
-    collision: { radius: 12, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE | CollisionLayers.DEBRIS, isTrigger: false },
-    stats: { health: 1, points: 10 },
-    tags: ['enemy', 'invader', 'Invader'],
-    invader: { archetype: 'basic', fireRate: 0.8 }
-  },
-
-  elite_invader: {
+  elite_invader: createInvaderBlueprint({
     id: 'elite_invader',
-    kind: 'invader',
     displayName: 'Elite Invader',
-    render: { shape: 'invader', size: 24, color: '#00FFFF', zIndex: 15 },
-    physics: { maxSpeed: 110 },
-    collision: { radius: 12, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE | CollisionLayers.DEBRIS, isTrigger: false },
-    stats: { health: 3, points: 50 },
-    tags: ['enemy', 'invader', 'Invader', 'Elite'],
-    invader: { archetype: 'elite', fireRate: 1.4 }
-  },
+    color: '#00FFFF',
+    points: 50,
+    archetype: 'elite',
+    fireRate: 1.4,
+    health: 3,
+    maxSpeed: 110,
+    tags: ['enemy', 'invader', 'Invader', 'Elite']
+  }),
 
   // --- UFOs ---
   ufo_scout: {
@@ -103,27 +176,25 @@ export const EnemyBlueprints: Record<string, EntityBlueprint> = // TODO(refactor
   },
 
   // --- Projectiles ---
-  player_bullet: {
+  player_bullet: createProjectileBlueprint({
     id: 'player_bullet',
-    kind: 'projectile',
     displayName: 'Player Bullet',
-    render: { shape: 'circle', size: 2, color: '#FFFFFF', zIndex: 25 },
-    physics: { maxSpeed: 300, ttl: 2000 },
-    collision: { radius: 2, layer: CollisionLayers.PROJECTILE, mask: CollisionLayers.ENEMY, isTrigger: true },
-    stats: { health: 1, points: 0 },
+    color: '#FFFFFF',
+    maxSpeed: 300,
+    ttl: 2000,
+    mask: CollisionLayers.ENEMY,
     tags: ['bullet', 'player_projectile'],
-    projectile: { ownerType: 'player', damage: 1 }
-  },
+    ownerType: 'player'
+  }),
 
-  enemy_bullet: {
+  enemy_bullet: createProjectileBlueprint({
     id: 'enemy_bullet',
-    kind: 'projectile',
     displayName: 'Enemy Bullet',
-    render: { shape: 'circle', size: 2, color: '#FF0000', zIndex: 25 },
-    physics: { maxSpeed: 200, ttl: 3000 },
-    collision: { radius: 2, layer: CollisionLayers.PROJECTILE, mask: CollisionLayers.PLAYER, isTrigger: true },
-    stats: { health: 1, points: 0 },
+    color: '#FF0000',
+    maxSpeed: 200,
+    ttl: 3000,
+    mask: CollisionLayers.PLAYER,
     tags: ['bullet', 'enemy_projectile'],
-    projectile: { ownerType: 'enemy', damage: 1 }
-  }
+    ownerType: 'enemy'
+  })
 } as const;

@@ -2,7 +2,7 @@ import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { findTriggeringPlayer } from "../physics/collision/collisionHelpers";
-import { getGameplaySystemContext } from "./systemHelpers";
+import { getGameplaySystemContextAndEntities } from "./systemHelpers";
 
 /**
  * System that manages collecting collectibles and managing persistent vs non-persistent states.
@@ -10,12 +10,10 @@ import { getGameplaySystemContext } from "./systemHelpers";
  */
 export class CollectibleSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
-    const ctx = getGameplaySystemContext(world);
+    const ctx = getGameplaySystemContextAndEntities(world, "Collectible");
     if (!ctx) return;
-    const { runState, eventBus } = ctx;
+    const { runState, eventBus, entities: collectibles } = ctx;
 
-    // Query collectibles
-    const collectibles = world.query("Collectible");
     const players = world.query("PlatformerInput");
     if (collectibles.length === 0 || players.length === 0) return;
 

@@ -40,8 +40,7 @@ export class EntityBuilder<
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {
-    const entity = world.createEntity();
-    return new EntityBuilder(world, entity, false);
+    return createBuilderInstance((w, e, cb) => new EntityBuilder(w, e, cb), world, undefined, false);
   }
 
   /**
@@ -52,7 +51,7 @@ export class EntityBuilder<
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity): EntityBuilder<TComponents, TEvents, TBlueprints> {
-    return new EntityBuilder(world, entity, false);
+    return createBuilderInstance((w, e, cb) => new EntityBuilder(w, e, cb), world, entity, false);
   }
 
   /**
@@ -63,8 +62,7 @@ export class EntityBuilder<
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {
-    const entity = world.createEntity();
-    return new EntityBuilder(world, entity, true);
+    return createBuilderInstance((w, e, cb) => new EntityBuilder(w, e, cb), world, undefined, true);
   }
 
   /**
@@ -209,6 +207,25 @@ export class EntityBuilder<
       this.world.addComponent(this.entity, typedComp);
     }
   }
+}
+
+/**
+ * Generic helper function to instantiate an EntityBuilder or subclass instance.
+ * @internal
+ */
+export function createBuilderInstance<
+  TBuilder extends EntityBuilder<TComponents, TEvents, TBlueprints>,
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+>(
+  factory: (world: World<TComponents, TEvents, TBlueprints>, entity: Entity, useCommandBuffer: boolean) => TBuilder,
+  world: World<TComponents, TEvents, TBlueprints>,
+  entity?: Entity,
+  useCommandBuffer: boolean = false
+): TBuilder {
+  const targetEntity = entity !== undefined ? entity : world.createEntity();
+  return factory(world, targetEntity, useCommandBuffer);
 }
 
 /**

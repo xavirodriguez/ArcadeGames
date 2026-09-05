@@ -3,6 +3,7 @@ import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-20. Considerar extraer a función compartida. Ref: 20bf4f89
 import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
+import { calculateBossPhase, calculateShieldHpRatio } from "../../shared/rendering/spaceInvadersMath";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
@@ -319,21 +320,9 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
 
     const currentHp = health ? health.current : (boss ? boss.hp : 50);
     const maxHp = health ? health.max : (boss ? boss.maxHp : 50);
-    const hpRatio = Math.max(0, Math.min(1.0, currentHp / maxHp));
+    const hpRatio = calculateShieldHpRatio(currentHp, maxHp);
 
-    let phase = 1;
-    let baseColor: string = colors.magentaHot;
-    let accentColor: string = colors.cyan;
-
-    if (hpRatio <= 0.33) {
-      phase = 3;
-      baseColor = colors.redHot;
-      accentColor = colors.orange;
-    } else if (hpRatio <= 0.66) {
-      phase = 2;
-      baseColor = colors.gold;
-      accentColor = colors.orangeDark;
-    }
+    const { phase, baseColor, accentColor } = calculateBossPhase(hpRatio);
 
     const flash = applyHitFlash(render, baseColor, render.opacity ?? 1.0);
     const colorStr = flash.color;
@@ -421,7 +410,7 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
     const shield = world.getComponent(entity, "Shield");
     const hp = shield ? shield.hp : 3;
     const maxHp = shield ? shield.maxHp : 3;
-    const ratio = Math.max(0, Math.min(1.0, hp / maxHp));
+    const ratio = calculateShieldHpRatio(hp, maxHp);
 
     canvas.save();
 

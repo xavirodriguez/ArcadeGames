@@ -121,15 +121,18 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
     }
   }
 
-  private static getMainCameraInfo(
-    world: World<CoreComponentRegistry>,
+  private static getMainCameraInfo<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>,
     cameraEntity?: number
   ): { cam: Camera2DComponent; offsetX: number; offsetY: number; zoom: number } | null {
+    const camType = "Camera2D" as Extract<keyof TRegistry, string>;
+    const offsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
+
     let camEnt = cameraEntity;
     if (camEnt === undefined) {
-      const cameras = world.query("Camera2D");
+      const cameras = world.query(camType);
       for (let i = 0; i < cameras.length; i++) {
-        const cam = world.getComponent(cameras[i], "Camera2D") as Camera2DComponent | undefined;
+        const cam = world.getComponent(cameras[i], camType) as Camera2DComponent | undefined;
         if (cam?.isMain) {
           camEnt = cameras[i];
           break;
@@ -138,9 +141,9 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
     }
 
     if (camEnt !== undefined) {
-      const cam = world.getComponent(camEnt, "Camera2D") as Camera2DComponent | undefined;
+      const cam = world.getComponent(camEnt, camType) as Camera2DComponent | undefined;
       if (cam) {
-        const visualOffset = world.getComponent(camEnt, "VisualOffset") as VisualOffsetComponent | undefined;
+        const visualOffset = world.getComponent(camEnt, offsetType) as VisualOffsetComponent | undefined;
         const offsetX = visualOffset?.offsetX ?? 0;
         const offsetY = visualOffset?.offsetY ?? 0;
         const zoom = cam.zoom || 1;
@@ -153,8 +156,8 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
   /**
    * Converts screen coordinates to world coordinates.
    */
-  public static screenToWorld(
-    world: World<CoreComponentRegistry>,
+  public static screenToWorld<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>,
     screenX: number,
     screenY: number,
     cameraEntity?: number
@@ -172,8 +175,8 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
   /**
    * Converts world coordinates to screen coordinates.
    */
-  public static worldToScreen(
-    world: World<CoreComponentRegistry>,
+  public static worldToScreen<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>,
     worldX: number,
     worldY: number,
     cameraEntity?: number

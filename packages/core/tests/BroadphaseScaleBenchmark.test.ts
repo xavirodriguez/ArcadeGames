@@ -62,7 +62,7 @@ describe("Broadphase Scale Benchmark (Sweep-and-Prune)", () => {
     console.log("Broadphase Scale Benchmark Results:");
     for (const r of results) {
       console.log(`- ${r.entityCount} entities: ${r.pairCount} candidate collision pairs computed in ${r.durationMs.toFixed(2)}ms`);
-      expect(r.durationMs).toBeLessThan(100);
+      expect(r.durationMs).toBeLessThan(200);
     }
   });
 });

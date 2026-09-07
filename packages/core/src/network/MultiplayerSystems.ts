@@ -50,7 +50,7 @@ export class BinaryCompression {
     public static pack(packet: unknown): Uint8Array {
         return packr.pack(packet);
     }
-    public static unpack<T = any>(packet: Uint8Array | ArrayBuffer | Buffer): T {
+    public static unpack<T = unknown>(packet: Uint8Array | ArrayBuffer | Buffer): T {
         const buf = packet instanceof Uint8Array ? packet : new Uint8Array(packet);
         return packr.unpack(buf) as T;
     }

@@ -20,7 +20,7 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
  * Main game class for Geometry Wars.
  * @public
  */
-import { NetworkManager, WorldSnapshot, InputFrame } from "@tiny-aster/core";
+import { NetworkManager, WorldSnapshot, InputFrame, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer } from "@tiny-aster/core";
 
 export class GeometryWarsGame extends BaseGame<
   GeometryWarsStateComponent, // GameState description returned to HUD
@@ -161,6 +161,65 @@ export class GeometryWarsGame extends BaseGame<
     this.runSimulationStep(deltaTime, false);
   }
 
+  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<Record<string, unknown>, any, GeometryWarsComponentRegistry>[] = [
+    {
+      serverIdPrefix: "player",
+      localPlayerPolicy: "skip",
+      getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; angle: number }>,
+      spawn: (world, entity, state) => {
+        const commands = world.getCommandBuffer();
+        commands.addComponent(entity, { type: "Player" } as any);
+        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
+        commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: colors.cyan, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
+        commands.addComponent(entity, { type: "Health", current: state.alive ? 1 : 0, max: 1 } as any);
+      },
+      sync: (world, entity, state) => {
+        world.mutateComponent(entity, "Transform", (t: any) => {
+          t.x = state.x;
+          t.y = state.y;
+          t.rotation = state.angle;
+        });
+
+        world.mutateComponent(entity, "Render", (render: any) => {
+          render.rotation = state.angle;
+          render.color = state.alive ? colors.cyan : "gray";
+        });
+      }
+    },
+    {
+      serverIdPrefix: "enemy",
+      getStateMap: (root) => root.enemies as Record<string, { x: number; y: number; angle: number; type: string }>,
+      spawn: (world, entity, state) => {
+        const commands = world.getCommandBuffer();
+        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
+        commands.addComponent(entity, { type: "Render", shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
+      },
+      sync: (world, entity, state) => {
+        world.mutateComponent(entity, "Transform", (t: any) => {
+          t.x = state.x;
+          t.y = state.y;
+          t.rotation = state.angle;
+        });
+      }
+    },
+    {
+      serverIdPrefix: "bullet",
+      getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; angle: number }>,
+      spawn: (world, entity, state) => {
+        const commands = world.getCommandBuffer();
+        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
+        commands.addComponent(entity, { type: "Render", shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, visible: true, opacity: 1, order: 2, hitFlashFrames: 0, angularVelocity: 0 } as any);
+      },
+      sync: (world, entity, state) => {
+        world.mutateComponent(entity, "Transform", (t: any) => {
+          t.x = state.x;
+          t.y = state.y;
+          t.rotation = state.angle;
+        });
+      }
+    }
+  ];
+
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
 
@@ -171,139 +230,38 @@ export class GeometryWarsGame extends BaseGame<
       });
     }
 
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:359-366. Considerar extraer a función compartida. Ref: 4e9c55a5
     const world = this.getWorld();
-    const commands = world.getCommandBuffer();
     const replicator = this.networkManager.getReplicator();
-
     const currentServerEntities = new Set<string>();
 
-    if (state.players && typeof state.players === 'object') {
-      const players = state.players as Record<string, { x: number, y: number, alive: boolean, angle: number }>;
-      Object.entries(players).forEach(([sessionId, playerState]) => {
-        // Skip updating local player via snapshot to prevent jitter over local prediction, or let reconciliation handle it
-        if (localSessionId && sessionId === localSessionId) {
-          return;
-        }
+    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {
+      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);
+    });
 
-        const serverId = `player_${sessionId}`;
-        currentServerEntities.add(serverId);
-
-        const entity = replicator.resolveEntity(serverId, world);
-        if (!world.hasComponent(entity, "Transform")) {
-          commands.addComponent(entity, { type: "Player" } as any);
-          commands.addComponent(entity, { type: "Transform", x: playerState.x, y: playerState.y, rotation: playerState.angle, scaleX: 1, scaleY: 1, worldX: playerState.x, worldY: playerState.y, worldRotation: playerState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: colors.cyan, rotation: playerState.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
-          commands.addComponent(entity, { type: "Health", current: playerState.alive ? 1 : 0, max: 1 } as any);
-        }
-
-        world.mutateComponent(entity, "Transform", (t: any) => {
-          t.x = playerState.x;
-          t.y = playerState.y;
-          t.rotation = playerState.angle;
-        });
-
-        world.mutateComponent(entity, "Render", (render: any) => {
-          render.rotation = playerState.angle;
-          render.color = playerState.alive ? colors.cyan : "gray";
-        });
-      });
-    }
-
-    if (state.enemies && typeof state.enemies === 'object') {
-      const enemies = state.enemies as Record<string, { x: number, y: number, angle: number, type: string }>;
-      Object.entries(enemies).forEach(([id, enemyState]) => {
-        const serverId = `enemy_${id}`;
-        currentServerEntities.add(serverId);
-
-        const entity = replicator.resolveEntity(serverId, world);
-        if (!world.hasComponent(entity, "Transform")) {
-          commands.addComponent(entity, { type: "Transform", x: enemyState.x, y: enemyState.y, rotation: enemyState.angle, scaleX: 1, scaleY: 1, worldX: enemyState.x, worldY: enemyState.y, worldRotation: enemyState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: enemyState.type || "gw_seeker", size: 12, color: colors.pink, rotation: enemyState.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
-        }
-
-        world.mutateComponent(entity, "Transform", (t: any) => {
-          t.x = enemyState.x;
-          t.y = enemyState.y;
-          t.rotation = enemyState.angle;
-        });
-      });
-    }
-
-    if (state.bullets && typeof state.bullets === 'object') {
-      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:826-832. Considerar extraer a función compartida. Ref: 31cad89a
-      const bullets = state.bullets as Record<string, { x: number, y: number, angle: number }>;
-      Object.entries(bullets).forEach(([id, bulletState]) => {
-        const serverId = `bullet_${id}`;
-        currentServerEntities.add(serverId);
-
-        const entity = replicator.resolveEntity(serverId, world);
-        if (!world.hasComponent(entity, "Transform")) {
-          commands.addComponent(entity, { type: "Transform", x: bulletState.x, y: bulletState.y, rotation: bulletState.angle, scaleX: 1, scaleY: 1, worldX: bulletState.x, worldY: bulletState.y, worldRotation: bulletState.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-          commands.addComponent(entity, { type: "Render", shape: "gw_bullet", size: 4, color: colors.gold, rotation: bulletState.angle, visible: true, opacity: 1, order: 2, hitFlashFrames: 0, angularVelocity: 0 } as any);
-        }
-
-        world.mutateComponent(entity, "Transform", (t: any) => {
-          t.x = bulletState.x;
-          t.y = bulletState.y;
-          // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:407-427. Considerar extraer a función compartida. Ref: 95603026
-          t.rotation = bulletState.angle;
-        });
-      });
-    }
-
-    // Sync with NetworkManager for interpolation
-    const snapshot: WorldSnapshot = {
-        tick: (state.tick as number) || 0,
-        entities: [],
-        componentData: { Transform: {} },
-        stateVersion: 0,
-        structureVersion: 0,
-        seed: 0,
-        nextEntityId: 0,
-        freeEntities: []
-    };
-
+    const entries: InterpolationSnapshotEntry[] = [];
     if (state.players) {
-        Object.entries(state.players).forEach(([sessionId, p]: [string, Record<string, unknown>]) => {
+        Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
             const entityId = replicator.getLocalId(`player_${sessionId}`);
-            if (entityId !== undefined) {
-                snapshot.entities.push(entityId);
-                snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: (p as any).y, rotation: (p as any).angle, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: (p as any).angle, worldScaleX: 1, worldScaleY: 1, dirty: false };
-            }
+            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
         });
     }
     if (state.enemies) {
-        Object.entries(state.enemies).forEach(([id, p]: [string, Record<string, unknown>]) => {
-            // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:424-432. Considerar extraer a función compartida. Ref: 879d9b3e
+        Object.entries(state.enemies as Record<string, any>).forEach(([id, p]) => {
             const entityId = replicator.getLocalId(`enemy_${id}`);
-            if (entityId !== undefined) {
-                snapshot.entities.push(entityId);
-                snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: (p as any).y, rotation: (p as any).angle, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: (p as any).angle, worldScaleX: 1, worldScaleY: 1, dirty: false };
-            }
+            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
         });
     }
     if (state.bullets) {
-        Object.entries(state.bullets).forEach(([id, p]: [string, Record<string, unknown>]) => {
-            // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:270-276. Considerar extraer a función compartida. Ref: f5f3779b
+        Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
             const entityId = replicator.getLocalId(`bullet_${id}`);
-            if (entityId !== undefined) {
-                snapshot.entities.push(entityId);
-                // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:436-456. Considerar extraer a función compartida. Ref: 8e72a4b2
-                snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: (p as any).y, rotation: (p as any).angle, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: (p as any).angle, worldScaleX: 1, worldScaleY: 1, dirty: false };
-            }
+            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
         });
     }
 
+    const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);
     this.networkManager.processServerUpdate(snapshot.tick, snapshot);
 
-    // Cleanup removed entities
-    replicator.getMappings().forEach((entity: number, serverId: string) => {
-      if (!currentServerEntities.has(serverId)) {
-        commands.removeEntity(entity);
-        replicator.removeMapping(serverId);
-      }
-    });
+    pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());
 
     if (!world.isUpdating) {
         world.flush();

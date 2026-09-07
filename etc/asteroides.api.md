@@ -513,6 +513,9 @@ export class BroadPhase {
 export const browserFrameScheduler: FrameScheduler;
 
 // @public
+export function buildInterpolationSnapshot(tick: number, entries: InterpolationSnapshotEntry[]): WorldSnapshot;
+
+// @public
 export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(world: World<TComponents>, internal: InternalWorldSnapshotAccess, activeEntities: Set<Entity>, options?: {
     isSoA?: false;
 }): BaseWorldSnapshot & {
@@ -1549,12 +1552,27 @@ export class EntityBuilder<TComponents extends ComponentRegistry = CoreComponent
 }
 
 // @public
+export interface EntityRemover {
+    // (undocumented)
+    removeEntity(entity: number): void;
+}
+
+// @public
 export interface EntitySnapshot {
     angle?: number;
     tick: number;
     timestamp: number;
     x: number;
     y: number;
+}
+
+// @public
+export interface EntitySyncDescriptor<TServerState = Record<string, unknown>, TItemState = unknown, TComponents extends ComponentRegistry = ComponentRegistry> {
+    getStateMap: (root: TServerState) => Record<string, TItemState> | undefined;
+    localPlayerPolicy?: LocalPlayerSyncPolicy;
+    serverIdPrefix: string;
+    spawn: (world: World<TComponents, any, any>, entity: number, state: TItemState, key: string) => void;
+    sync: (world: World<TComponents, any, any>, entity: number, state: TItemState, key: string) => void;
 }
 
 // @public
@@ -2126,6 +2144,18 @@ export interface InternalWorldSnapshotAccess {
 }
 
 // @public
+export interface InterpolationSnapshotEntry {
+    // (undocumented)
+    entityId: number;
+    // (undocumented)
+    rotation?: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
 export class InvulnerabilitySystem extends System<CoreComponentRegistry> {
     // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
@@ -2301,6 +2331,9 @@ export class LinearPredictionModel<TRegistry extends MultiplayerRegistry = Multi
 
 // @public
 export function loadAudioAssets(audio: IAudioPlayer, assets: AudioAsset[]): Promise<void>;
+
+// @public
+export type LocalPlayerSyncPolicy = "skip" | "mark" | "none";
 
 // @public
 export interface LocalPredictionOptions<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = InputPayload> {
@@ -3450,6 +3483,9 @@ export abstract class ProjectilePool<T extends ProjectileComponents = Projectile
     constructor(config: PrefabConfig<T, P>);
     acquire(world: World, params: P): Entity;
 }
+
+// @public
+export function pruneStaleEntities(replicator: IStateReplicator<any>, currentServerEntities: Set<string>, commands: EntityRemover): void;
 
 // @public
 export interface QualitativeRelationshipStatus {
@@ -4737,6 +4773,9 @@ export interface StoryTransition {
 }
 
 // @public
+export function syncEntitiesFromServer<TServerState = Record<string, unknown>, TItemState = unknown, TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, replicator: IStateReplicator<TComponents>, descriptor: EntitySyncDescriptor<TServerState, TItemState, TComponents>, rootState: TServerState, currentServerEntities: Set<string>, localSessionId?: string): void;
+
+// @public
 export abstract class System<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> {
     dispose(): void;
     onRegister(_world: World<TComponents, TEvents>): void;
@@ -4847,6 +4886,9 @@ export class TimeScale {
     scale: number;
     setTemporary(scale: number, durationSeconds: number): void;
 }
+
+// @public
+export function toTransformComponent(x: number, y: number, rotation?: number): TransformComponent;
 
 // @public (undocumented)
 export interface TrailComponent extends Component {

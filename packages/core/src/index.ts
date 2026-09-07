@@ -165,6 +165,9 @@ export * from "./network/MultiplayerSystems";
 export * from "./network/NetTypes";
 export * from "./network/NetworkController";
 export * from "./network/ReplaySystem";
+export * from "./network/pruneStaleEntities";
+export * from "./network/interpolationSnapshot";
+export * from "./network/EntitySyncEngine";
 
 // Theme & Config
 export * from "./theme/Theme";

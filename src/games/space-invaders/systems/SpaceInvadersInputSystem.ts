@@ -4,6 +4,7 @@ import { InputComponent, SpaceInvadersComponentRegistry } from "../types/SpaceIn
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { PlayerBulletPool } from "../EntityPool";
 import { createPlayerBullet } from "../EntityFactory";
+import { isIntermissionOrPaused } from "../utils/SpaceInvadersUpdateUtils";
 
 const InputUtils = {
   isPressed(inputState: { buttons: Record<string, boolean> }, button: string): boolean {
@@ -40,7 +41,7 @@ export class SpaceInvadersInputSystem extends System<SpaceInvadersComponentRegis
     }
 
     const gameState = world.getSingleton("GameState");
-    if (gameState && (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) {
+    if (gameState && isIntermissionOrPaused(world, gameState)) {
       // Force velocity to 0 so player doesn't slide/drift
       const entities = world.query("Player", "Velocity");
       entities.forEach((entity) => {

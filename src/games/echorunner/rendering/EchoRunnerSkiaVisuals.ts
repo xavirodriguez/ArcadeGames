@@ -3,6 +3,14 @@ import { ECHO_PALETTE } from "./EchoRunnerPalette";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import {
+  calculateEchoPlayerPose,
+  resolveHopperVisualState,
+  resolveSentinelVisualState,
+  resolveWatcherVisualState,
+  resolveChargerVisualState,
+  resolveMemoryFragmentColors
+} from "./EchoRunnerVisualUtils";
 
 export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
@@ -115,35 +123,7 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     }
 
     // 3. Pose calculations
-    let tiltAngle = 0;
-    let hoverY = 0;
-    let leftLegX = -size * 0.15;
-    let leftLegY = size * 0.5;
-    let rightLegX = size * 0.15;
-    let rightLegY = size * 0.5;
-
-    if (!isGrounded) {
-      if (vy < -20) {
-        tiltAngle = -0.12;
-        leftLegY = size * 0.35;
-        rightLegY = size * 0.35;
-      } else {
-        tiltAngle = 0.08;
-        leftLegX = -size * 0.22;
-        rightLegX = size * 0.22;
-        leftLegY = size * 0.45;
-        rightLegY = size * 0.45;
-      }
-    } else if (Math.abs(vx) > 15) {
-      tiltAngle = Math.min(Math.max(vx * 0.0008, -0.2), 0.2);
-      const stride = Math.sin(world.tick * 0.4);
-      leftLegX = -size * 0.15 + stride * 4;
-      leftLegY = size * 0.5 - Math.abs(stride) * 2;
-      rightLegX = size * 0.15 - stride * 4;
-      rightLegY = size * 0.5 - Math.abs(stride) * 2;
-    } else {
-      hoverY = Math.sin(world.tick * 0.12) * 1.5;
-    }
+    const { tiltAngle, hoverY, leftLegX, leftLegY, rightLegX, rightLegY } = calculateEchoPlayerPose(size, isGrounded, vx, vy, world.tick);
 
     canvas.translate(0, hoverY);
     canvas.rotate((tiltAngle * 180) / Math.PI, 0, 0);
@@ -258,9 +238,7 @@ export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
 
     const runState = world.getResource<any>("RunState");
     const collectedCount = runState?.collectedTemporalIds?.length || 0;
-    const isRestoredProgression = collectedCount >= 5;
-    const strokeColor = isRestoredProgression ? ECHO_PALETTE.restorationCyan : ECHO_PALETTE.corruptionPurple;
-    const fillColor = isRestoredProgression ? ECHO_PALETTE.restorationCyanGlow : ECHO_PALETTE.corruptionPurpleGlow;
+    const { strokeColor, fillColor } = resolveMemoryFragmentColors(collectedCount);
 
     const paint = getPaint();
     canvas.save();
@@ -458,9 +436,7 @@ export const drawSkiaSentinel: ShapeDrawer<any, CoreComponentRegistry> = {
       return;
     }
 
-    const isAlert = state === "Alert" || state === "Windup";
-    const isAttack = state === "Attack";
-    const glowColor = isAlert ? ECHO_PALETTE.corruptionAmber : (isAttack ? ECHO_PALETTE.corruptionCrimson : ECHO_PALETTE.corruptionPurple);
+    const { isAlert, isAttack, glowColor } = resolveSentinelVisualState(state);
 
     if (isAlert) {
       const pulse = Math.sin(world.tick * 0.5) * 3;
@@ -540,9 +516,7 @@ export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
       return;
     }
 
-    const isAlert = state === "Alert" || state === "Windup" || state === "Compress";
-    const isAttack = state === "Attack";
-    const glowColor = isAttack ? ECHO_PALETTE.restorationCyan : (isAlert ? ECHO_PALETTE.corruptionAmber : "#10b981");
+    const { isAlert, isAttack, glowColor, scaleX, scaleY } = resolveHopperVisualState(state);
 
     if (isAlert) {
       paint.reset();
@@ -556,16 +530,6 @@ export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
       path.lineTo(size * 0.2, -size * 0.95);
       path.close();
       canvas.drawPath(path, paint);
-    }
-
-    let scaleX = 1;
-    let scaleY = 1;
-    if (isAlert) {
-      scaleX = 1.3;
-      scaleY = 0.7;
-    } else if (isAttack) {
-      scaleX = 0.8;
-      scaleY = 1.25;
     }
 
     canvas.scale(scaleX, scaleY);
@@ -625,9 +589,7 @@ export const drawSkiaWatcher: ShapeDrawer<any, CoreComponentRegistry> = {
       return;
     }
 
-    const isAlert = state === "Alert" || state === "Windup";
-    const isAttack = state === "Attack";
-    const glowColor = isAttack ? ECHO_PALETTE.corruptionCrimson : (isAlert ? ECHO_PALETTE.corruptionAmber : "#3b82f6");
+    const { isAlert, isAttack, glowColor } = resolveWatcherVisualState(state);
 
     if (isAlert || isAttack) {
       paint.reset();
@@ -703,10 +665,7 @@ export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
       return;
     }
 
-    const isStunned = state === "Recovery" || state === "Stunned";
-    const isAlert = state === "Alert" || state === "Windup";
-    const isAttack = state === "Attack";
-    const glowColor = isStunned ? ECHO_PALETTE.restorationGold : (isAlert ? ECHO_PALETTE.corruptionAmber : ECHO_PALETTE.corruptionCrimson);
+    const { isStunned, isAlert, isAttack, glowColor } = resolveChargerVisualState(state);
 
     if (isAlert) {
       paint.reset();

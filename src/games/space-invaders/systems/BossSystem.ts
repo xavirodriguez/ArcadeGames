@@ -1,6 +1,7 @@
 import { System, World, HealthComponent, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent } from "@tiny-aster/core";
 import { GameStateComponent, BossComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { FactionComponent, spawnScorePopup } from "@tiny-aster/gameplay-kit";
+import { isIntermissionOrPaused } from "../utils/SpaceInvadersUpdateUtils";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { createEmitter } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
@@ -43,13 +44,11 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInva
 
   // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/SpaceInvadersFormationSystem.ts:21-30. Considerar extraer a función compartida. Ref: d157968e
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
     const gameState = world.getSingleton("GameState");
-    if (!gameState || gameState.isGameOver) return;
-    if (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0) return;
+    if (isIntermissionOrPaused(world, gameState)) return;
 
     const bosses = world.query("Boss", "Transform", "Render");
     bosses.forEach(entity => {

@@ -1,4 +1,4 @@
-import { System, World, Entity, EventBus, ComponentRegistry } from "@tiny-aster/core";
+import { System, World, Entity, EventBus, ComponentRegistry, WorldUtils } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent } from "../components/CombatComponents";
 
 /**
@@ -33,11 +33,10 @@ export class CombatSystem<
           const entityB = collision.otherEntity;
 
           // Double Security A: Process each pair exactly once
-          // TODO(refactor): código duplicado detectado (bloque) con shared/combat/systems/CombatSystem.ts:52-62. Considerar extraer a función compartida. Ref: 35215b09
           if (entityA >= entityB) continue;
 
           // Double Security B: Ensure both entities still exist and aren't already queued for destruction
-          if (!this.entityExists(world, entityA) || !this.entityExists(world, entityB)) continue;
+          if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;
           if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
 
           // Resolve damage in both directions (A damages B, and B damages A)
@@ -50,11 +49,10 @@ export class CombatSystem<
       if (colComp.triggersEntered) {
         for (const entityB of colComp.triggersEntered) {
           // Double Security A: Process each pair exactly once
-          // TODO(refactor): código duplicado detectado (bloque) con shared/combat/systems/CombatSystem.ts:37-47. Considerar extraer a función compartida. Ref: 4ceb0047
           if (entityA >= entityB) continue;
 
           // Double Security B: Ensure both entities still exist and aren't already queued for destruction
-          if (!this.entityExists(world, entityA) || !this.entityExists(world, entityB)) continue;
+          if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;
           if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
 
           // Resolve damage in both directions (A damages B, and B damages A)
@@ -160,9 +158,6 @@ export class CombatSystem<
    * Helper to verify if an entity exists in the world.
    */
   private entityExists(world: World<TComponents, TEvents>, entity: Entity): boolean {
-    if (typeof (world as any).hasEntity === "function") {
-      return (world as any).hasEntity(entity);
-    }
-    return world.hasComponent(entity, "Transform" as any);
+    return WorldUtils.isEntityActive(world, entity);
   }
 }

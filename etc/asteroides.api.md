@@ -75,6 +75,9 @@ export interface AoSWorldSnapshot extends BaseWorldSnapshot {
 }
 
 // @public
+export function applyInputFrameToEntity<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents>, entityId: number, input: Pick<InputFrame, "actions" | "axes">): void;
+
+// @public
 export const ARCADE_DEBUG_RUN_VERSION = 1;
 
 // @public
@@ -736,6 +739,13 @@ export interface ColliderLike {
     offsetX?: number;
     offsetY?: number;
     shape: Shape;
+}
+
+// @public
+export interface ColliderQueryResult {
+    collider: ColliderLike;
+    entity: Entity;
+    transform: PhysicsTransformLike;
 }
 
 // @public
@@ -3510,6 +3520,9 @@ export class Query<_TComponents extends ComponentRegistry> {
 }
 
 // @public
+export function queryActiveColliders<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>): Generator<ColliderQueryResult>;
+
+// @public
 export class RadialWipeTransition extends BaseOffscreenTransitionEffect {
     protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
@@ -5195,6 +5208,12 @@ export interface WorldLike<TComponents extends ComponentRegistry = ComponentRegi
 
 // @public
 export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;
+
+// @public
+export class WorldUtils {
+    static isAliveAndTracked<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, entity: Entity): boolean;
+    static isEntityActive<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, entity: Entity): boolean;
+}
 
 // @public
 export function zeroOutVelocityX(world: World, entity: Entity): void;

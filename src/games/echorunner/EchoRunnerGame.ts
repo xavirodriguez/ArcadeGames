@@ -48,7 +48,7 @@ import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoR
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
-import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState } from "@tiny-aster/gameplay-kit";
+import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -421,36 +421,17 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     // Register State Machine Behaviors
     registerEnemyStateMachines(this.world);
 
-    // Register all platformer & combat systems
+    // Input systems
     this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:383-387. Considerar extraer a función compartida. Ref: 584bc078
     this.world.addSystem(new EchoRunnerAttackSystem(), { phase: SystemPhase.Input });
 
-    this.world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new MovingPlatformSystem(), { phase: SystemPhase.Simulation });
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:386-392. Considerar extraer a función compartida. Ref: 17f2bdf2
-    this.world.addSystem(new PlatformCarrySystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new EnemySensorSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new StateMachineSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new CheckpointSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new DeathSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new RespawnSystem(), { phase: SystemPhase.Simulation });
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:393-397. Considerar extraer a función compartida. Ref: 14b9d33b
+    // Common platformer / runner systems
+    registerCommonPlatformerSystems(this.world, { includeMovingPlatforms: true });
+
+    // Game-specific simulation systems
     this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });
 
-    this.world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
-
-    this.world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new CollectibleSystem(), { phase: SystemPhase.Collision });
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:399-402. Considerar extraer a función compartida. Ref: d0f615e5
-    this.world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });
-
-    // Presentation Systems
-    this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:261-267. Considerar extraer a función compartida. Ref: 6ae02dab
-    this.world.addSystem(new TilemapRenderSystem(), { phase: SystemPhase.Presentation });
+    // Game-specific presentation systems
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });

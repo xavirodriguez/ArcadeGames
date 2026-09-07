@@ -45,7 +45,7 @@ import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
 import { PlatformerDamageSystem } from "./systems/PlatformerDamageSystem";
 import { PlatformerDashSystem } from "./systems/PlatformerDashSystem";
 import { PlatformerWallJumpSystem } from "./systems/PlatformerWallJumpSystem";
-import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState } from "@tiny-aster/gameplay-kit";
+import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
 import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -389,31 +389,23 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
       }
     });
 
-    // Add Systems
+    // Add Input Systems
     this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new PlatformerDashSystem(), { phase: SystemPhase.Input });
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:402-407. Considerar extraer a función compartida. Ref: 584bc078
+
+    // Register common platformer systems
+    registerCommonPlatformerSystems(this.world);
+
+    // Game-specific simulation systems
     this.world.addSystem(new PlatformerWallJumpSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new EnemySensorSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new StateMachineSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new CheckpointSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new DeathSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new RespawnSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new PlatformerDamageSystem(), { phase: SystemPhase.Simulation });
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:414-420. Considerar extraer a función compartida. Ref: 14b9d33b
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
-    this.world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new CollectibleSystem(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Collision });
-    this.world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:420-425. Considerar extraer a función compartida. Ref: d0f615e5
     this.world.addSystem(new PlatformerGoalSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new TilemapRenderSystem(), { phase: SystemPhase.Presentation });
+
+    // Game-specific collision systems
+    this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Collision });
+
+    // Game-specific presentation systems
     this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
 
     await this.onPreloadAssets();

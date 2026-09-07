@@ -2,6 +2,7 @@ import { System, World } from "@tiny-aster/core";
 import { TransformComponent, VelocityComponent, RenderComponent, Component } from "@tiny-aster/core";
 import { GameStateComponent, KamikazeComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
+import { isIntermissionOrPaused } from "../utils/SpaceInvadersUpdateUtils";
 
 export class KamikazeSystem extends System<SpaceInvadersComponentRegistry> {
   private spawnCooldown = 5000;
@@ -10,13 +11,11 @@ export class KamikazeSystem extends System<SpaceInvadersComponentRegistry> {
 
   // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/BossSystem.ts:43-50. Considerar extraer a función compartida. Ref: 210f5f08
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
     const gameState = world.getSingleton("GameState");
-    if (!gameState || gameState.isGameOver) return;
-    if (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0) return;
+    if (isIntermissionOrPaused(world, gameState) || !gameState) return;
 
     this.timer += deltaTime;
 

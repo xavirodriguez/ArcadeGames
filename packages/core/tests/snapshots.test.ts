@@ -105,7 +105,7 @@ describe("World Snapshots", () => {
       const binary = BinaryCompression.pack(snapshot);
       expect(binary).toBeInstanceOf(Uint8Array);
 
-      const unpacked = BinaryCompression.unpack(binary);
+      const unpacked = BinaryCompression.unpack<SoAWorldSnapshot>(binary);
       expect(unpacked.isSoA).toBe(true);
       expect(unpacked.soaComponentData).toBeDefined();
 

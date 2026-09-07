@@ -44,7 +44,7 @@ export interface IGameLifecycleHooks {
  */
 export interface IGame<
   TState = unknown,
-  TInput extends Record<string, any> = Record<string, any>,
+  TInput extends object = Record<string, unknown>,
   TComponents extends ComponentRegistry = CoreComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>

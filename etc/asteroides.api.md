@@ -268,7 +268,7 @@ export const BaseConfigSchema: z.ZodObject<{
 }, z.core.$strip>;
 
 // @public
-export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
+export abstract class BaseGame<TState = unknown, TInput extends object = Record<string, unknown>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
     constructor(config?: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>);
     applyServerStateUpdate(update: WorldSnapshot | {
         resources?: Record<string, unknown>;
@@ -368,7 +368,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
 }
 
 // @public
-export interface BaseGameConfig<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends Record<string, any> = Record<string, any>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
+export interface BaseGameConfig<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends object = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
     arcadeKernel?: ArcadeKernel;
     assetProvider?: IAssetProvider;
     audio?: IAudioPlayer;
@@ -447,7 +447,7 @@ export class BinaryCompression {
     // (undocumented)
     static pack(packet: unknown): Uint8Array;
     // (undocumented)
-    static unpack<T = any>(packet: Uint8Array | ArrayBuffer | Buffer): T;
+    static unpack<T = unknown>(packet: Uint8Array | ArrayBuffer | Buffer): T;
 }
 
 // @public
@@ -1954,7 +1954,7 @@ export interface IEntityPool {
 }
 
 // @public
-export interface IGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> extends Simulation {
+export interface IGame<TState = unknown, TInput extends object = Record<string, unknown>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> extends Simulation {
     destroy(): void;
     enterGameplayFreeze(duration?: number): void;
     exitGameplayFreeze(): void;
@@ -1997,7 +1997,7 @@ export interface IHierarchicalComponent extends Component {
 }
 
 // @public
-export interface IInputSystem<TInput extends Record<string, any>> {
+export interface IInputSystem<TInput extends object = Record<string, unknown>> {
     bind(action: keyof TInput & string, keys: string[]): void;
     clearOverride(action: keyof TInput & string): void;
     dispose?(): void;
@@ -2097,7 +2097,7 @@ export interface InputStateComponent extends Component {
 }
 
 // @public
-export type InputSystem = IInputSystem<Record<string, any>>;
+export type InputSystem = IInputSystem<Record<string, unknown>>;
 
 // @public
 export class InputValidator {
@@ -3024,7 +3024,7 @@ export class NullAudioPlayer implements IAudioPlayer {
 }
 
 // @public
-export abstract class NullBaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry> implements IGame<TState, TInput, TComponents, TEvents> {
+export abstract class NullBaseGame<TState = unknown, TInput extends object = Record<string, unknown>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry> implements IGame<TState, TInput, TComponents, TEvents> {
     // (undocumented)
     destroy(): void;
     // (undocumented)
@@ -3098,7 +3098,7 @@ export class NullHapticDevice implements IHapticDevice {
 }
 
 // @public
-export class NullInputSystem<TInput extends Record<string, any> = Record<string, any>> implements IInputSystem<TInput> {
+export class NullInputSystem<TInput extends object = Record<string, unknown>> implements IInputSystem<TInput> {
     bind(_action: keyof TInput & string, _keys: string[]): void;
     clearOverride(action: keyof TInput & string): void;
     dispose(): void;

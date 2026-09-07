@@ -754,6 +754,21 @@ export class SpaceInvadersGame
       spawn: (world, entity, state) => {
         this.blueprints.get("player")?.spawn(world, entity, { x: state.x, y: state.y });
       },
+      onLocalPlayerMark: (world, entity) => {
+        const commands = world.getCommandBuffer();
+        if (!world.hasComponent(entity, "LocalPlayer")) {
+          commands.addComponent(entity, { type: "LocalPlayer" });
+        }
+        if (!world.hasComponent(entity, "Input")) {
+          commands.addComponent(entity, {
+            type: "Input",
+            moveLeft: false,
+            moveRight: false,
+            shoot: false,
+            shootCooldownRemaining: 0,
+          });
+        }
+      },
       sync: (world, entity, state) => {
         world.mutateComponent(entity, "Render", render => {
           render.color = state.alive ? "green" : "red";

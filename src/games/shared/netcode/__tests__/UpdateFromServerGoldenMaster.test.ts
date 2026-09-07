@@ -2,6 +2,9 @@ import { NullAudioPlayer } from "@tiny-aster/core";
 import { FlappyBirdGame } from "../../../flappybird/FlappyBirdGame";
 import { GeometryWarsGame } from "../../../geometrywars/GeometryWarsGame";
 import { SpaceInvadersGame } from "../../../space-invaders/SpaceInvadersGame";
+import { FlappyBirdComponentRegistry } from "../../../flappybird/types/FlappyBirdTypes";
+import { GeometryWarsComponentRegistry } from "../../../geometrywars/types/GeometryWarsRegistry";
+import { SpaceInvadersComponentRegistry } from "../../../space-invaders/types/SpaceInvadersTypes";
 
 describe("UpdateFromServer Golden Master Tests", () => {
   describe("FlappyBirdGame.updateFromServer", () => {
@@ -25,11 +28,12 @@ describe("UpdateFromServer Golden Master Tests", () => {
       const world = game.getWorld();
       const entities = world.query("Transform");
 
+      const compNames: Array<keyof FlappyBirdComponentRegistry & string> = ["Transform", "Render", "Bird", "Pipe"];
       const entitySnapshots = entities.map((id: number) => {
         const components: Record<string, unknown> = {};
-        for (const compName of ["Transform", "Render", "Bird", "Pipe"]) {
-          if (world.hasComponent(id, compName as any)) {
-            components[compName] = world.getComponent(id, compName as any);
+        for (const compName of compNames) {
+          if (world.hasComponent(id, compName)) {
+            components[compName] = world.getComponent(id, compName);
           }
         }
         return { id, components };
@@ -65,11 +69,12 @@ describe("UpdateFromServer Golden Master Tests", () => {
       const world = game.getWorld();
       const entities = world.query("Transform");
 
+      const compNames: Array<keyof GeometryWarsComponentRegistry & string> = ["Transform", "Render", "Player", "Health", "Enemy", "Bullet"];
       const entitySnapshots = entities.map((id: number) => {
         const components: Record<string, unknown> = {};
-        for (const compName of ["Transform", "Render", "Player", "Health", "Enemy", "Bullet"]) {
-          if (world.hasComponent(id, compName as any)) {
-            components[compName] = world.getComponent(id, compName as any);
+        for (const compName of compNames) {
+          if (world.hasComponent(id, compName)) {
+            components[compName] = world.getComponent(id, compName);
           }
         }
         return { id, components };
@@ -110,11 +115,12 @@ describe("UpdateFromServer Golden Master Tests", () => {
 
       const entities = world.query("Transform");
 
+      const compNames: Array<keyof SpaceInvadersComponentRegistry & string> = ["Transform", "Render", "Player", "LocalPlayer", "Input", "Invader", "PlayerBullet", "EnemyBullet", "Health", "Faction", "Damage", "Boundary"];
       const entitySnapshots = entities.map((id: number) => {
         const components: Record<string, unknown> = {};
-        for (const compName of ["Transform", "Render", "Player", "LocalPlayer", "Input", "Invader", "PlayerBullet", "EnemyBullet", "Health", "Faction", "Damage", "Boundary"]) {
-          if (world.hasComponent(id, compName as any)) {
-            components[compName] = world.getComponent(id, compName as any);
+        for (const compName of compNames) {
+          if (world.hasComponent(id, compName)) {
+            components[compName] = world.getComponent(id, compName);
           }
         }
         return { id, components };

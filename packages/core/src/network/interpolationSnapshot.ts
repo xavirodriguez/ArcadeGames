@@ -50,26 +50,39 @@ export function buildInterpolationSnapshot(
   tick: number,
   entries: InterpolationSnapshotEntry[]
 ): WorldSnapshot {
+  const transformMap: Record<number, SerializedComponent> = {};
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    const comp = toTransformComponent(entry.x, entry.y, entry.rotation ?? 0);
+    // Explicitly assign properties to satisfy SerializedComponent index signature without unsafe typecast
+    const serialized: SerializedComponent = {
+      type: comp.type,
+      x: comp.x,
+      y: comp.y,
+      rotation: comp.rotation,
+      scaleX: comp.scaleX,
+      scaleY: comp.scaleY,
+      worldX: comp.worldX,
+      worldY: comp.worldY,
+      worldRotation: comp.worldRotation,
+      worldScaleX: comp.worldScaleX,
+      worldScaleY: comp.worldScaleY,
+      dirty: comp.dirty
+    };
+    transformMap[entry.entityId] = serialized;
+  }
+
   const snapshot: WorldSnapshot = {
     tick,
-    entities: [],
-    componentData: { Transform: {} },
+    entities: entries.map((e) => e.entityId),
+    componentData: { Transform: transformMap },
     stateVersion: 0,
     structureVersion: 0,
     seed: 0,
     nextEntityId: 0,
     freeEntities: [],
   };
-
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    snapshot.entities.push(entry.entityId);
-    snapshot.componentData["Transform"][entry.entityId] = toTransformComponent(
-      entry.x,
-      entry.y,
-      entry.rotation ?? 0
-    ) as unknown as SerializedComponent;
-  }
 
   return snapshot;
 }

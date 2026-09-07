@@ -1,10 +1,10 @@
-import { World, ComponentRegistry } from "../ecs/World";
+import { World, ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
 import { IStateReplicator, WorldLike } from "./NetworkManager";
 
 /**
  * Local player synchronization policy during network updates.
  * - `"skip"`: Skip Transform synchronization and component spawning for the local player entity.
- * - `"mark"`: Synchronize entity and attach `LocalPlayer` and default `Input` components.
+ * - `"mark"`: Synchronize entity and invoke `onLocalPlayerMark` hook to attach local player components.
  * - `"none"`: Do not distinguish local player from remote entities.
  * @public
  */
@@ -16,12 +16,16 @@ export type LocalPlayerSyncPolicy = "skip" | "mark" | "none";
  * @typeParam TServerState - Raw server state map representation for this entity collection.
  * @typeParam TItemState - Individual entity server state object format.
  * @typeParam TComponents - World component registry type.
+ * @typeParam TEvents - Event registry type.
+ * @typeParam TBlueprints - Blueprint registry map type.
  * @public
  */
 export interface EntitySyncDescriptor<
   TServerState = Record<string, unknown>,
   TItemState = unknown,
-  TComponents extends ComponentRegistry = ComponentRegistry
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends Record<string, unknown> = Record<string, unknown>,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
   /** Server ID string prefix used to construct network server IDs (e.g., `"player"`, `"enemy"`, `"bullet"`). */
   serverIdPrefix: string;
@@ -32,20 +36,27 @@ export interface EntitySyncDescriptor<
    * If a blueprint is registered in `blueprints`, this can delegate to `blueprints.get(...)?.spawn(...)`.
    */
   spawn: (
-    world: World<TComponents, any, any>,
+    world: World<TComponents, TEvents, TBlueprints>,
     entity: number,
     state: TItemState,
     key: string
   ) => void;
   /** Performs per-tick mutations or component updates on resolved entity. */
   sync: (
-    world: World<TComponents, any, any>,
+    world: World<TComponents, TEvents, TBlueprints>,
     entity: number,
     state: TItemState,
     key: string
   ) => void;
   /** Local player synchronization behavior policy. Defaults to `"none"`. */
   localPlayerPolicy?: LocalPlayerSyncPolicy;
+  /**
+   * Optional hook invoked when `localPlayerPolicy` is `"mark"` and current entity matches `localSessionId`.
+   */
+  onLocalPlayerMark?: (
+    world: World<TComponents, TEvents, TBlueprints>,
+    entity: number
+  ) => void;
 }
 
 /**
@@ -64,11 +75,13 @@ export interface EntitySyncDescriptor<
 export function syncEntitiesFromServer<
   TServerState = Record<string, unknown>,
   TItemState = unknown,
-  TComponents extends ComponentRegistry = ComponentRegistry
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends Record<string, unknown> = Record<string, unknown>,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 >(
-  world: World<TComponents, any, any>,
+  world: World<TComponents, TEvents, TBlueprints>,
   replicator: IStateReplicator<TComponents>,
-  descriptor: EntitySyncDescriptor<TServerState, TItemState, TComponents>,
+  descriptor: EntitySyncDescriptor<TServerState, TItemState, TComponents, TEvents, TBlueprints>,
   rootState: TServerState,
   currentServerEntities: Set<string>,
   localSessionId?: string
@@ -77,7 +90,7 @@ export function syncEntitiesFromServer<
   if (!stateMap || typeof stateMap !== "object") return;
 
   const policy = descriptor.localPlayerPolicy ?? "none";
-  const commands = world.getCommandBuffer();
+  const transformKey = "Transform" as Extract<keyof TComponents, string>;
 
   Object.entries(stateMap).forEach(([key, itemState]) => {
     if (!itemState) return;
@@ -90,8 +103,8 @@ export function syncEntitiesFromServer<
       return;
     }
 
-    const entity = replicator.resolveEntity(serverId, world as unknown as WorldLike<TComponents>);
-    const isFirstTime = !world.hasComponent(entity, "Transform" as any);
+    const entity = replicator.resolveEntity(serverId, world as WorldLike<TComponents>);
+    const isFirstTime = !world.hasComponent(entity, transformKey);
 
     if (isFirstTime) {
       descriptor.spawn(world, entity, itemState, key);
@@ -99,19 +112,8 @@ export function syncEntitiesFromServer<
 
     // Local player "mark" policy
     if (policy === "mark" && localSessionId && key === localSessionId) {
-      if (!world.hasComponent(entity, "LocalPlayer" as any)) {
-        commands.addComponent(entity, { type: "LocalPlayer" } as any);
-      }
-      if (!world.hasComponent(entity, "Input" as any)) {
-        commands.addComponent(entity, {
-          type: "Input",
-          actions: new Set<string>(),
-          axes: {},
-          moveLeft: false,
-          moveRight: false,
-          shoot: false,
-          shootCooldownRemaining: 0,
-        } as any);
+      if (descriptor.onLocalPlayerMark) {
+        descriptor.onLocalPlayerMark(world, entity);
       }
     }
 

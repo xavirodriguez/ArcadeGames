@@ -1567,12 +1567,13 @@ export interface EntitySnapshot {
 }
 
 // @public
-export interface EntitySyncDescriptor<TServerState = Record<string, unknown>, TItemState = unknown, TComponents extends ComponentRegistry = ComponentRegistry> {
+export interface EntitySyncDescriptor<TServerState = Record<string, unknown>, TItemState = unknown, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends Record<string, unknown> = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
     getStateMap: (root: TServerState) => Record<string, TItemState> | undefined;
     localPlayerPolicy?: LocalPlayerSyncPolicy;
+    onLocalPlayerMark?: (world: World<TComponents, TEvents, TBlueprints>, entity: number) => void;
     serverIdPrefix: string;
-    spawn: (world: World<TComponents, any, any>, entity: number, state: TItemState, key: string) => void;
-    sync: (world: World<TComponents, any, any>, entity: number, state: TItemState, key: string) => void;
+    spawn: (world: World<TComponents, TEvents, TBlueprints>, entity: number, state: TItemState, key: string) => void;
+    sync: (world: World<TComponents, TEvents, TBlueprints>, entity: number, state: TItemState, key: string) => void;
 }
 
 // @public
@@ -4773,7 +4774,7 @@ export interface StoryTransition {
 }
 
 // @public
-export function syncEntitiesFromServer<TServerState = Record<string, unknown>, TItemState = unknown, TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, replicator: IStateReplicator<TComponents>, descriptor: EntitySyncDescriptor<TServerState, TItemState, TComponents>, rootState: TServerState, currentServerEntities: Set<string>, localSessionId?: string): void;
+export function syncEntitiesFromServer<TServerState = Record<string, unknown>, TItemState = unknown, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends Record<string, unknown> = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, replicator: IStateReplicator<TComponents>, descriptor: EntitySyncDescriptor<TServerState, TItemState, TComponents, TEvents, TBlueprints>, rootState: TServerState, currentServerEntities: Set<string>, localSessionId?: string): void;
 
 // @public
 export abstract class System<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> {

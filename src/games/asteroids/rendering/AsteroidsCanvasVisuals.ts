@@ -3,7 +3,7 @@ import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
-import { calculateHitFlashPulse, calculateInvulnerabilityPulse } from "../../shared/rendering/asteroidsMath";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 /**
  * Procedural player ship shape drawer for HTML5 Canvas.
@@ -16,13 +16,12 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 
     const size = render.size || 15;
     let baseColor = render.color || colors.cyan;
-    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:139-146. Considerar extraer a función compartida. Ref: d2e141bf
     const tick = Math.floor((world.tick * 5) / 12);
 
     ctx.save();
 
     // Hit Flash Transparency Pulse & Glow (R11)
-    const flashState = calculateHitFlashPulse(render.hitFlashFrames, baseColor, 1.0);
+    const flashState = resolveHitFlash(render, baseColor, 1.0);
     const isHitFlashing = flashState.isFlashing;
     if (isHitFlashing) {
       ctx.globalAlpha = flashState.opacity;
@@ -32,7 +31,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     // Invulnerability Pulse
     if (world.hasComponent(entity, "Invulnerable")) {
       const inv = world.getComponent(entity, "Invulnerable");
-      const invState = calculateInvulnerabilityPulse(inv?.remaining, ctx.globalAlpha);
+      const invState = resolveInvulnerabilityPulse(inv?.remaining, ctx.globalAlpha, { mode: "time" });
       if (invState.isInvulnerable) {
         ctx.globalAlpha = invState.opacity;
       }
@@ -136,15 +135,15 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
     }
 
     // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:19-28. Considerar extraer a función compartida. Ref: 8e471d6c
-    let color = render.color || colors.pink; // Neon pink default (R9)
+    let baseColor = render.color || colors.pink; // Neon pink default (R9)
     ctx.save();
 
-    const isHitFlashing = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+    const flashState = resolveHitFlash(render, baseColor, 1.0);
+    const isHitFlashing = flashState.isFlashing;
+    let color = baseColor;
     if (isHitFlashing) {
-      if ((render.hitFlashFrames! >> 1) % 2 === 0) {
-        ctx.globalAlpha = 0.3;
-      }
-      color = colors.white;
+      ctx.globalAlpha = flashState.opacity;
+      color = flashState.color;
     }
 
     ctx.strokeStyle = color;

@@ -1,6 +1,6 @@
 import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-17. Considerar extraer a función compartida. Ref: ab23c6ab
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
@@ -96,7 +96,8 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     canvas.save();
 
     // 1. Hit Flash effect
-    if (isHitFlash) {
+    const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
+    if (flashState.isFlashing) {
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Fill);
@@ -108,9 +109,9 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
 
     // 2. Invulnerability translucency
     let alpha = 1.0;
-    if (isInvulnerable) {
-      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:147-179. Considerar extraer a función compartida. Ref: bb4edea1
-      alpha = 0.4 + 0.5 * Math.sin(world.tick * 0.8);
+    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
+    if (invState.isInvulnerable) {
+      alpha = invState.opacity;
     }
 
     // 3. Pose calculations

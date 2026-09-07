@@ -190,7 +190,9 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
             } else if (oldVy < 0) {
               trans.y = tileBottom + halfH - offsetY;
               vel.vy = 0;
-              this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
+              if (tileDef.kind === "spike") {
+                this.handleSpikeCollision(world, entity);
+              }
               return true;
             }
           }

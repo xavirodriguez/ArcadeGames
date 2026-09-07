@@ -16,15 +16,24 @@ export function applyInputFrameToEntity<TComponents extends ComponentRegistry = 
   input: Pick<InputFrame, "actions" | "axes">
 ): void {
   const inputType = "Input" as Extract<keyof TComponents, string>;
+  type InputComponentType = TComponents[Extract<keyof TComponents, string>] & {
+    type: Extract<keyof TComponents, string>;
+    actions: Set<string>;
+    axes: Record<string, number>;
+  };
+
   if (!world.hasComponent(entityId, inputType)) {
-    world.addComponent(entityId, {
+    const defaultInput = {
       type: "Input",
       actions: new Set<string>(),
       axes: {}
-    } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
+    } as InputComponentType;
+    world.addComponent(entityId, defaultInput);
   }
-  world.mutateComponent(entityId, inputType, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
-    inputComp.actions = new Set<string>(input.actions || []);
-    inputComp.axes = { ...input.axes };
-  }) as unknown as (component: TComponents[Extract<keyof TComponents, string>]) => void);
+
+  world.mutateComponent(entityId, inputType, (inputComp) => {
+    const comp = inputComp as InputComponentType;
+    comp.actions = new Set<string>(input.actions || []);
+    comp.axes = { ...input.axes };
+  });
 }

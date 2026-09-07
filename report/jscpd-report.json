@@ -39,43 +39,6 @@
     },
     {
       "firstFile": {
-        "end": 44,
-        "endLoc": {
-          "column": 5,
-          "line": 44,
-          "position": 1871
-        },
-        "name": "network/NetworkController.ts",
-        "start": 39,
-        "startLoc": {
-          "column": 11,
-          "line": 39,
-          "position": 1640
-        }
-      },
-      "format": "typescript",
-      "fragment": "      this.world.addComponent(entityId, {\n        type: \"Input\",\n        actions: new Set<string>(),\n        axes: {}\n      } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });\n    }",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 77,
-        "endLoc": {
-          "column": 7,
-          "line": 77,
-          "position": 2008
-        },
-        "name": "network/ReplaySystem.ts",
-        "start": 72,
-        "startLoc": {
-          "column": 8,
-          "line": 72,
-          "position": 1767
-        }
-      },
-      "tokens": 54
-    },
-    {
-      "firstFile": {
         "end": 154,
         "endLoc": {
           "column": 12,
@@ -110,43 +73,6 @@
         }
       },
       "tokens": 66
-    },
-    {
-      "firstFile": {
-        "end": 46,
-        "endLoc": {
-          "column": 11,
-          "line": 46,
-          "position": 2473
-        },
-        "name": "physics/query/PhysicsQuery.ts",
-        "start": 36,
-        "startLoc": {
-          "column": 51,
-          "line": 36,
-          "position": 1855
-        }
-      },
-      "format": "typescript",
-      "fragment": "  >(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number): Entity[] {\n    const results: Entity[] = [];\n    const colliderType = \"Collider\" as Extract<keyof TComponents, string>;\n    const transformType = \"Transform\" as Extract<keyof TComponents, string>;\n    const entities = world.query(colliderType, transformType);\n    for (const entity of entities) {\n      const transform = world.getComponent(entity, transformType) as unknown as PhysicsTransformLike | undefined;\n      const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;\n      if (!transform || !collider || !collider.enabled) continue;\n\n      const bounds = getColliderWorldBounds(transform, collider);",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 133,
-        "endLoc": {
-          "column": 11,
-          "line": 133,
-          "position": 6354
-        },
-        "name": "physics/query/PhysicsQuery.ts",
-        "start": 123,
-        "startLoc": {
-          "column": 65,
-          "line": 123,
-          "position": 5736
-        }
-      },
-      "tokens": 122
     },
     {
       "firstFile": {
@@ -187,40 +113,40 @@
     },
     {
       "firstFile": {
-        "end": 186,
+        "end": 180,
         "endLoc": {
           "column": 13,
-          "line": 186,
-          "position": 7523
+          "line": 180,
+          "position": 7224
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 173,
+        "start": 172,
         "startLoc": {
           "column": 40,
-          "line": 173,
-          "position": 7019
+          "line": 172,
+          "position": 6843
         }
       },
       "format": "typescript",
-      "fragment": "            if (isDescending && wasAbove) {\n              trans.y = tileTop - halfH - offsetY;\n              vel.vy = 0;\n              isGrounded = true;\n              if (tileDef.kind === \"ice\") {\n                onIce = true;\n              } else if (tileDef.kind === \"bounce\") {\n                vel.vy = -oldVy * (tileDef.bounce ?? 0.8);\n                isGrounded = false;\n              } else if (tileDef.kind === \"spike\") {\n                this.handleSpikeCollision(world, entity);\n              }\n              return true;\n            }",
+      "fragment": "            if (isDescending && wasAbove) {\n              trans.y = tileTop - halfH - offsetY;\n              vel.vy = 0;\n              isGrounded = true;\n              const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);\n              if (res.onIce !== undefined) onIce = res.onIce;\n              if (res.isGrounded !== undefined) isGrounded = res.isGrounded;\n              return true;\n            }",
       "isNew": false,
-      "lines": 14,
+      "lines": 9,
       "secondFile": {
-        "end": 202,
+        "end": 190,
         "endLoc": {
           "column": 13,
-          "line": 202,
-          "position": 8248
+          "line": 190,
+          "position": 7650
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 189,
+        "start": 182,
         "startLoc": {
           "column": 25,
-          "line": 189,
-          "position": 7744
+          "line": 182,
+          "position": 7269
         }
       },
-      "tokens": 90
+      "tokens": 72
     },
     {
       "firstFile": {
@@ -668,43 +594,6 @@
     },
     {
       "firstFile": {
-        "end": 25,
-        "endLoc": {
-          "column": 12,
-          "line": 25,
-          "position": 978
-        },
-        "name": "systems/ModifierSystem.ts",
-        "start": 5,
-        "startLoc": {
-          "column": 83,
-          "line": 5,
-          "position": 362
-        }
-      },
-      "format": "typescript",
-      "fragment": "import { ModifierComponent, ModifierEffect } from \"../components/ModifierComponent\";\n\n/**\n * Legacy compatibility interface for entity mutators.\n * @public\n */\nexport interface Mutator<TComponents extends ComponentRegistry = ComponentRegistry, K extends keyof TComponents & string = keyof TComponents & string> {\n  componentType: K;\n  mutate: (component: TComponents[K], world: World<TComponents>) => void;\n}\n\n/**\n * Component-based system that processes entity modifier components and handles modifier lifetimes.\n *\n * @remarks\n * Consolidates tick-by-tick component mutations, property modifier calculations, and\n * duration expirations into a single unified system.\n *\n * @public\n */\nexport class ModifierSystem<TComponents extends ComponentRegistry = ComponentRegistry> extends System<TComponents> {",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 24,
-        "endLoc": {
-          "column": 12,
-          "line": 24,
-          "position": 943
-        },
-        "name": "systems/MutatorSystem.ts",
-        "start": 4,
-        "startLoc": {
-          "column": 52,
-          "line": 4,
-          "position": 278
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
         "end": 123,
         "endLoc": {
           "column": 74,
@@ -802,14 +691,14 @@
         "endLoc": {
           "column": 26,
           "line": 700,
-          "position": 29191
+          "position": 29313
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 688,
         "startLoc": {
           "column": 26,
           "line": 688,
-          "position": 28848
+          "position": 28970
         }
       },
       "tokens": 52
@@ -1131,18 +1020,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 193,
+        "end": 192,
         "endLoc": {
           "column": 30,
-          "line": 193,
-          "position": 7462
+          "line": 192,
+          "position": 7298
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 185,
+        "start": 184,
         "startLoc": {
           "column": 8,
-          "line": 185,
-          "position": 7155
+          "line": 184,
+          "position": 6991
         }
       },
       "tokens": 57
@@ -1246,14 +1135,14 @@
         "endLoc": {
           "column": 9,
           "line": 78,
-          "position": 4676
+          "position": 4798
         },
         "name": "flappybird/FlappyBirdGame.ts",
         "start": 70,
         "startLoc": {
           "column": 47,
           "line": 70,
-          "position": 4270
+          "position": 4392
         }
       },
       "tokens": 52
@@ -1320,14 +1209,14 @@
         "endLoc": {
           "column": 27,
           "line": 117,
-          "position": 6352
+          "position": 6474
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 109,
         "startLoc": {
           "column": 2,
           "line": 109,
-          "position": 5922
+          "position": 6044
         }
       },
       "tokens": 55
@@ -2925,262 +2814,151 @@
     },
     {
       "firstFile": {
-        "end": 375,
+        "end": 407,
         "endLoc": {
-          "column": 93,
-          "line": 375,
-          "position": 16788
+          "column": 9,
+          "line": 407,
+          "position": 18521
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 367,
+        "start": 398,
         "startLoc": {
-          "column": 4,
-          "line": 367,
-          "position": 16273
+          "column": 118,
+          "line": 398,
+          "position": 18300
         }
       },
       "format": "typescript",
-      "fragment": "    const world = this.getWorld();\n    const commands = world.getCommandBuffer();\n    const replicator = this.networkManager.getReplicator();\n\n    const currentServerEntities = new Set<string>();\n\n    if (state.players && typeof state.players === 'object') {\n      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:774-780. Considerar extraer a función compartida. Ref: 7a271799\n      const players = state.players as Record<string, { x: number, y: number, alive: boolean, velocityY: number }>;",
+      "fragment": "        commands.addComponent(entity, { type: \"Pipe\", gapY: state.gapY, gapSize: 140, scored: false } as PipeComponent);\n      },\n      sync: () => {}\n    }\n  ];\n\n  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {\n    if (!this.isMultiplayer || !state) return;\n    const world = this.getWorld();\n    const replicator = this.networkManager.getReplicator();",
       "isNew": false,
-      "lines": 9,
+      "lines": 10,
       "secondFile": {
-        "end": 182,
+        "end": 811,
         "endLoc": {
-          "column": 93,
-          "line": 182,
-          "position": 6720
-        },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 175,
-        "startLoc": {
-          "column": 4,
-          "line": 175,
-          "position": 6372
-        }
-      },
-      "tokens": 78
-    },
-    {
-      "firstFile": {
-        "end": 381,
-        "endLoc": {
-          "column": 55,
-          "line": 381,
-          "position": 17096
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 375,
-        "startLoc": {
-          "column": 112,
-          "line": 375,
-          "position": 16807
-        }
-      },
-      "format": "typescript",
-      "fragment": "      const players = state.players as Record<string, { x: number, y: number, alive: boolean, velocityY: number }>;\n      Object.entries(players).forEach(([sessionId, playerState]) => {\n        const serverId = `player_${sessionId}`;\n        currentServerEntities.add(serverId);\n\n        const entity = replicator.resolveEntity(serverId, world);\n        if (!world.hasComponent(entity, \"Transform\")) {",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 793,
-        "endLoc": {
-          "column": 55,
-          "line": 793,
-          "position": 32613
+          "column": 9,
+          "line": 811,
+          "position": 33308
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 787,
+        "start": 800,
         "startLoc": {
-          "column": 113,
-          "line": 787,
-          "position": 32324
+          "column": 84,
+          "line": 800,
+          "position": 33008
         }
       },
-      "tokens": 60
+      "tokens": 54
     },
     {
       "firstFile": {
-        "end": 439,
+        "end": 418,
         "endLoc": {
-          "column": 128,
-          "line": 439,
-          "position": 20415
+          "column": 79,
+          "line": 418,
+          "position": 19123
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 417,
+        "start": 406,
         "startLoc": {
-          "column": 6,
-          "line": 417,
-          "position": 19322
+          "column": 4,
+          "line": 406,
+          "position": 18481
         }
       },
       "format": "typescript",
-      "fragment": "      });\n    }\n\n    // Sync with NetworkManager for interpolation\n    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:761-773. Considerar extraer a función compartida. Ref: 6b235ffa\n    const snapshot: WorldSnapshot = {\n        tick: (state.tick as number) || 0,\n        entities: [],\n        componentData: { Transform: {} },\n        stateVersion: 0,\n        structureVersion: 0,\n        seed: 0,\n        nextEntityId: 0,\n        freeEntities: []\n    };\n\n    if (state.players) {\n        Object.entries(state.players).forEach(([sessionId, p]: [string, Record<string, unknown>]) => {\n            // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:264-271. Considerar extraer a función compartida. Ref: 879d9b3e\n            const entityId = replicator.getLocalId(`player_${sessionId}`);\n            if (entityId !== undefined) {\n                snapshot.entities.push(entityId);\n                snapshot.componentData[\"Transform\"][entityId] = { type: \"Transform\", x: (p as any).x, y: (p as any).y, rotation: 0, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };",
+      "fragment": "    const world = this.getWorld();\n    const replicator = this.networkManager.getReplicator();\n    const currentServerEntities = new Set<string>();\n\n    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {\n      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);\n    });\n\n    const entries: InterpolationSnapshotEntry[] = [];\n    if (state.players) {\n        Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {\n            const entityId = replicator.getLocalId(`player_${sessionId}`);\n            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });",
       "isNew": false,
-      "lines": 23,
+      "lines": 13,
       "secondFile": {
-        "end": 272,
+        "end": 245,
         "endLoc": {
-          "column": 128,
-          "line": 272,
-          "position": 11720
+          "column": 79,
+          "line": 245,
+          "position": 10302
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 252,
+        "start": 233,
         "startLoc": {
-          "column": 6,
-          "line": 252,
-          "position": 10962
+          "column": 4,
+          "line": 233,
+          "position": 9660
         }
       },
-      "tokens": 161
+      "tokens": 138
     },
     {
       "firstFile": {
-        "end": 433,
-        "endLoc": {
-          "column": 21,
-          "line": 433,
-          "position": 19843
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 422,
-        "startLoc": {
-          "column": 4,
-          "line": 422,
-          "position": 19552
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const snapshot: WorldSnapshot = {\n        tick: (state.tick as number) || 0,\n        entities: [],\n        componentData: { Transform: {} },\n        stateVersion: 0,\n        structureVersion: 0,\n        seed: 0,\n        nextEntityId: 0,\n        freeEntities: []\n    };\n\n    if (state.players) {",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 785,
-        "endLoc": {
-          "column": 21,
-          "line": 785,
-          "position": 32010
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 773,
-        "startLoc": {
-          "column": 4,
-          "line": 773,
-          "position": 31697
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 444,
-        "endLoc": {
-          "column": 36,
-          "line": 444,
-          "position": 20642
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 436,
-        "startLoc": {
-          "column": 70,
-          "line": 436,
-          "position": 20190
-        }
-      },
-      "format": "typescript",
-      "fragment": "            const entityId = replicator.getLocalId(`player_${sessionId}`);\n            if (entityId !== undefined) {\n                snapshot.entities.push(entityId);\n                snapshot.componentData[\"Transform\"][entityId] = { type: \"Transform\", x: (p as any).x, y: (p as any).y, rotation: 0, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };\n            }\n        });\n    }\n    if (state.pipes) {\n        Object.entries(state.pipes).forEach(([id, p]: [string, Record<string, unknown>]) => {",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 286,
+        "end": 421,
         "endLoc": {
           "column": 14,
-          "line": 286,
-          "position": 12704
-        },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 279,
-        "startLoc": {
-          "column": 62,
-          "line": 279,
-          "position": 12267
-        }
-      },
-      "tokens": 124
-    },
-    {
-      "firstFile": {
-        "end": 470,
-        "endLoc": {
-          "column": 8,
-          "line": 470,
-          "position": 21873
+          "line": 421,
+          "position": 19160
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 449,
+        "start": 407,
         "startLoc": {
-          "column": 192,
-          "line": 449,
-          "position": 21224
+          "column": 4,
+          "line": 407,
+          "position": 18516
         }
       },
       "format": "typescript",
-      "fragment": "                snapshot.componentData[\"Transform\"][entityId] = { type: \"Transform\", x: (p as any).x, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };\n            }\n        });\n    }\n\n    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:842-865. Considerar extraer a función compartida. Ref: a1d6c8d1\n    this.networkManager.processServerUpdate(snapshot.tick, snapshot);\n\n    // Cleanup removed entities\n    replicator.getMappings().forEach((entity: number, serverId: string) => {\n      if (!currentServerEntities.has(serverId)) {\n        commands.removeEntity(entity);\n        replicator.removeMapping(serverId);\n      }\n    });\n\n    if (!world.isUpdating) {\n        world.flush();\n    }\n  }\n\n  public initializeRenderer(renderer: Renderer<any, any>): void {",
+      "fragment": "    const replicator = this.networkManager.getReplicator();\n    const currentServerEntities = new Set<string>();\n\n    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {\n      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);\n    });\n\n    const entries: InterpolationSnapshotEntry[] = [];\n    if (state.players) {\n        Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {\n            const entityId = replicator.getLocalId(`player_${sessionId}`);\n            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });\n        });\n    }\n    if (state.pipes) {",
       "isNew": false,
-      "lines": 22,
+      "lines": 15,
       "secondFile": {
-        "end": 313,
+        "end": 837,
         "endLoc": {
-          "column": 8,
-          "line": 313,
-          "position": 14039
-        },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 293,
-        "startLoc": {
-          "column": 244,
-          "line": 293,
-          "position": 13555
-        }
-      },
-      "tokens": 97
-    },
-    {
-      "firstFile": {
-        "end": 470,
-        "endLoc": {
-          "column": 8,
-          "line": 470,
-          "position": 21873
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 455,
-        "startLoc": {
-          "column": 67,
-          "line": 455,
-          "position": 21539
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.networkManager.processServerUpdate(snapshot.tick, snapshot);\n\n    // Cleanup removed entities\n    replicator.getMappings().forEach((entity: number, serverId: string) => {\n      if (!currentServerEntities.has(serverId)) {\n        commands.removeEntity(entity);\n        replicator.removeMapping(serverId);\n      }\n    });\n\n    if (!world.isUpdating) {\n        world.flush();\n    }\n  }\n\n  public initializeRenderer(renderer: Renderer<any, any>): void {",
-      "isNew": false,
-      "lines": 16,
-      "secondFile": {
-        "end": 880,
-        "endLoc": {
-          "column": 8,
-          "line": 880,
-          "position": 37098
+          "column": 14,
+          "line": 837,
+          "position": 34277
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 857,
+        "start": 823,
         "startLoc": {
-          "column": 83,
-          "line": 857,
-          "position": 36006
+          "column": 4,
+          "line": 823,
+          "position": 33645
         }
       },
-      "tokens": 67
+      "tokens": 140
+    },
+    {
+      "firstFile": {
+        "end": 438,
+        "endLoc": {
+          "column": 8,
+          "line": 438,
+          "position": 19733
+        },
+        "name": "flappybird/FlappyBirdGame.ts",
+        "start": 424,
+        "startLoc": {
+          "column": 78,
+          "line": 424,
+          "position": 19395
+        }
+      },
+      "format": "typescript",
+      "fragment": "            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: 0 });\n        });\n    }\n\n    const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);\n    this.networkManager.processServerUpdate(snapshot.tick, snapshot);\n\n    pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());\n\n    if (!world.isUpdating) {\n        world.flush();\n    }\n  }\n\n  public initializeRenderer(renderer: Renderer<any, any>): void {",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 271,
+        "endLoc": {
+          "column": 8,
+          "line": 271,
+          "position": 11255
+        },
+        "name": "geometrywars/GeometryWarsGame.ts",
+        "start": 257,
+        "startLoc": {
+          "column": 99,
+          "line": 257,
+          "position": 10917
+        }
+      },
+      "tokens": 68
     },
     {
       "firstFile": {
@@ -3869,18 +3647,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 485,
+        "end": 456,
         "endLoc": {
           "column": 83,
-          "line": 485,
-          "position": 18450
+          "line": 456,
+          "position": 16711
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 478,
+        "start": 450,
         "startLoc": {
           "column": 47,
-          "line": 478,
-          "position": 18075
+          "line": 450,
+          "position": 16511
         }
       },
       "tokens": 51
@@ -3928,14 +3706,14 @@
         "endLoc": {
           "column": 3,
           "line": 98,
-          "position": 3860
+          "position": 3982
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 88,
         "startLoc": {
           "column": 56,
           "line": 88,
-          "position": 3464
+          "position": 3586
         }
       },
       "format": "typescript",
@@ -3965,14 +3743,14 @@
         "endLoc": {
           "column": 36,
           "line": 148,
-          "position": 5524
+          "position": 5646
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 135,
         "startLoc": {
           "column": 2,
           "line": 135,
-          "position": 5045
+          "position": 5167
         }
       },
       "format": "typescript",
@@ -3984,91 +3762,128 @@
         "endLoc": {
           "column": 36,
           "line": 101,
-          "position": 5623
+          "position": 5745
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 89,
         "startLoc": {
           "column": 2,
           "line": 89,
-          "position": 5306
+          "position": 5428
         }
       },
       "tokens": 63
     },
     {
       "firstFile": {
-        "end": 241,
+        "end": 181,
         "endLoc": {
-          "column": 55,
-          "line": 241,
-          "position": 10093
+          "column": 11,
+          "line": 181,
+          "position": 7266
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 235,
+        "start": 174,
         "startLoc": {
-          "column": 92,
-          "line": 235,
-          "position": 9818
+          "column": 93,
+          "line": 174,
+          "position": 7044
         }
       },
       "format": "typescript",
-      "fragment": "      const bullets = state.bullets as Record<string, { x: number, y: number, angle: number }>;\n      Object.entries(bullets).forEach(([id, bulletState]) => {\n        const serverId = `bullet_${id}`;\n        currentServerEntities.add(serverId);\n\n        const entity = replicator.resolveEntity(serverId, world);\n        if (!world.hasComponent(entity, \"Transform\")) {",
+      "fragment": "        commands.addComponent(entity, { type: \"Health\", current: state.alive ? 1 : 0, max: 1 } as any);\n      },\n      sync: (world, entity, state) => {\n        world.mutateComponent(entity, \"Transform\", (t: any) => {\n          t.x = state.x;\n          t.y = state.y;\n          t.rotation = state.angle;\n        });",
       "isNew": false,
-      "lines": 7,
+      "lines": 8,
       "secondFile": {
-        "end": 846,
+        "end": 202,
         "endLoc": {
-          "column": 55,
-          "line": 846,
-          "position": 35243
+          "column": 11,
+          "line": 202,
+          "position": 8395
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 840,
+        "name": "geometrywars/GeometryWarsGame.ts",
+        "start": 195,
         "startLoc": {
-          "column": 94,
-          "line": 840,
-          "position": 34968
+          "column": 218,
+          "line": 195,
+          "position": 8173
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 285,
+        "end": 204,
         "endLoc": {
           "column": 5,
-          "line": 285,
-          "position": 12689
+          "line": 204,
+          "position": 8409
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 279,
+        "start": 195,
         "startLoc": {
-          "column": 60,
-          "line": 279,
-          "position": 12265
+          "column": 178,
+          "line": 195,
+          "position": 8133
         }
       },
       "format": "typescript",
-      "fragment": "            const entityId = replicator.getLocalId(`enemy_${id}`);\n            if (entityId !== undefined) {\n                snapshot.entities.push(entityId);\n                snapshot.componentData[\"Transform\"][entityId] = { type: \"Transform\", x: (p as any).x, y: (p as any).y, rotation: (p as any).angle, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: (p as any).angle, worldScaleX: 1, worldScaleY: 1, dirty: false };\n            }\n        });\n    }",
+      "fragment": "        commands.addComponent(entity, { type: \"Render\", shape: state.type || \"gw_seeker\", size: 12, color: colors.pink, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);\n      },\n      sync: (world, entity, state) => {\n        world.mutateComponent(entity, \"Transform\", (t: any) => {\n          t.x = state.x;\n          t.y = state.y;\n          t.rotation = state.angle;\n        });\n      }\n    },",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 220,
+        "endLoc": {
+          "column": 5,
+          "line": 220,
+          "position": 9328
+        },
+        "name": "geometrywars/GeometryWarsGame.ts",
+        "start": 211,
+        "startLoc": {
+          "column": 163,
+          "line": 211,
+          "position": 9052
+        }
+      },
+      "tokens": 70
+    },
+    {
+      "firstFile": {
+        "end": 257,
+        "endLoc": {
+          "column": 79,
+          "line": 257,
+          "position": 10897
+        },
+        "name": "geometrywars/GeometryWarsGame.ts",
+        "start": 251,
+        "startLoc": {
+          "column": 99,
+          "line": 251,
+          "position": 10619
+        }
+      },
+      "format": "typescript",
+      "fragment": "            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });\n        });\n    }\n    if (state.bullets) {\n        Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {\n            const entityId = replicator.getLocalId(`bullet_${id}`);\n            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 296,
+        "end": 847,
         "endLoc": {
-          "column": 5,
-          "line": 296,
-          "position": 13636
+          "column": 75,
+          "line": 847,
+          "position": 34809
         },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 289,
+        "name": "space-invaders/SpaceInvadersGame.ts",
+        "start": 841,
         "startLoc": {
-          "column": 61,
-          "line": 289,
-          "position": 13042
+          "column": 76,
+          "line": 841,
+          "position": 34543
         }
       },
-      "tokens": 121
+      "tokens": 77
     },
     {
       "firstFile": {
@@ -6296,14 +6111,14 @@
         "endLoc": {
           "column": 29,
           "line": 239,
-          "position": 11007
+          "position": 11129
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 234,
         "startLoc": {
           "column": 44,
           "line": 234,
-          "position": 10717
+          "position": 10839
         }
       },
       "format": "typescript",
@@ -6315,14 +6130,14 @@
         "endLoc": {
           "column": 29,
           "line": 272,
-          "position": 12555
+          "position": 12677
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 267,
         "startLoc": {
           "column": 43,
           "line": 267,
-          "position": 12265
+          "position": 12387
         }
       },
       "tokens": 69
@@ -6385,18 +6200,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 154,
+        "end": 151,
         "endLoc": {
           "column": 47,
-          "line": 154,
-          "position": 6749
+          "line": 151,
+          "position": 6204
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 147,
+        "start": 144,
         "startLoc": {
           "column": 10,
-          "line": 147,
-          "position": 6320
+          "line": 144,
+          "position": 5775
         }
       },
       "tokens": 79
@@ -6405,9 +6220,9 @@
       "firstFile": {
         "end": 396,
         "endLoc": {
-          "column": 49,
+          "column": 17,
           "line": 396,
-          "position": 12489
+          "position": 12457
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 381,
@@ -6422,21 +6237,21 @@
       "isNew": false,
       "lines": 16,
       "secondFile": {
-        "end": 211,
+        "end": 204,
         "endLoc": {
-          "column": 49,
-          "line": 211,
-          "position": 8756
+          "column": 17,
+          "line": 204,
+          "position": 7735
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 196,
+        "start": 188,
         "startLoc": {
-          "column": 34,
-          "line": 196,
-          "position": 8300
+          "column": 23,
+          "line": 188,
+          "position": 7310
         }
       },
-      "tokens": 83
+      "tokens": 78
     },
     {
       "firstFile": {
@@ -6459,18 +6274,18 @@
       "isNew": false,
       "lines": 27,
       "secondFile": {
-        "end": 294,
+        "end": 287,
         "endLoc": {
           "column": 5,
-          "line": 294,
-          "position": 12099
+          "line": 287,
+          "position": 10958
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 271,
+        "start": 264,
         "startLoc": {
-          "column": 33,
-          "line": 271,
-          "position": 11343
+          "column": 27,
+          "line": 264,
+          "position": 10202
         }
       },
       "tokens": 160
@@ -6479,9 +6294,9 @@
       "firstFile": {
         "end": 545,
         "endLoc": {
-          "column": 49,
+          "column": 17,
           "line": 545,
-          "position": 18160
+          "position": 18128
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 534,
@@ -6496,21 +6311,21 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 350,
+        "end": 340,
         "endLoc": {
-          "column": 49,
-          "line": 350,
-          "position": 14377
+          "column": 17,
+          "line": 340,
+          "position": 12938
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 340,
+        "start": 329,
         "startLoc": {
-          "column": 34,
-          "line": 340,
-          "position": 13939
+          "column": 23,
+          "line": 329,
+          "position": 12531
         }
       },
-      "tokens": 95
+      "tokens": 90
     },
     {
       "firstFile": {
@@ -6533,18 +6348,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 512,
+        "end": 499,
         "endLoc": {
           "column": 23,
-          "line": 512,
-          "position": 19912
+          "line": 499,
+          "position": 17876
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 501,
+        "start": 488,
         "startLoc": {
-          "column": 49,
-          "line": 501,
-          "position": 19577
+          "column": 32,
+          "line": 488,
+          "position": 17541
         }
       },
       "tokens": 68
@@ -6570,383 +6385,87 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 526,
+        "end": 512,
         "endLoc": {
           "column": 63,
-          "line": 526,
-          "position": 20576
+          "line": 512,
+          "position": 18356
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 514,
+        "start": 500,
         "startLoc": {
           "column": 57,
-          "line": 514,
-          "position": 20164
+          "line": 500,
+          "position": 17944
         }
       },
       "tokens": 74
     },
     {
       "firstFile": {
-        "end": 29,
+        "end": 355,
         "endLoc": {
-          "column": 35,
-          "line": 29,
-          "position": 1879
+          "column": 27,
+          "line": 355,
+          "position": 13344
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 23,
+        "start": 348,
         "startLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 1620
+          "column": 23,
+          "line": 348,
+          "position": 13149
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 196,
-        "endLoc": {
-          "column": 35,
-          "line": 196,
-          "position": 8301
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 189,
-        "startLoc": {
-          "column": 41,
-          "line": 189,
-          "position": 7858
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 29,
-        "endLoc": {
-          "column": 31,
-          "line": 29,
-          "position": 1875
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 23,
-        "startLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 1620
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 271,
-        "endLoc": {
-          "column": 31,
-          "line": 271,
-          "position": 11341
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 264,
-        "startLoc": {
-          "column": 40,
-          "line": 264,
-          "position": 10902
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 29,
-        "endLoc": {
-          "column": 31,
-          "line": 29,
-          "position": 1875
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 23,
-        "startLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 1620
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 340,
-        "endLoc": {
-          "column": 31,
-          "line": 340,
-          "position": 13936
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 333,
-        "startLoc": {
-          "column": 38,
-          "line": 333,
-          "position": 13497
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 30,
-        "endLoc": {
-          "column": 9,
-          "line": 30,
-          "position": 1889
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 23,
-        "startLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 1620
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;\n    const flash = applyHitFlash(render, render.color || colors.green, render.opacity ?? 1.0);",
+      "fragment": "    const s = size / 20;\n\n    const paint = getPaint();\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia!.PaintStyle.Fill);\n    paint.setColor(Skia!.Color(colorStr));\n    paint.setAlphaf(opacity);",
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 428,
+        "end": 435,
         "endLoc": {
-          "column": 9,
-          "line": 428,
-          "position": 16797
+          "column": 27,
+          "line": 435,
+          "position": 15767
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 421,
+        "start": 426,
         "startLoc": {
-          "column": 40,
-          "line": 421,
-          "position": 16528
+          "column": 17,
+          "line": 426,
+          "position": 15507
         }
       },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
-        "end": 29,
-        "endLoc": {
-          "column": 31,
-          "line": 29,
-          "position": 1875
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 23,
-        "startLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 1620
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 499,
-        "endLoc": {
-          "column": 31,
-          "line": 499,
-          "position": 19340
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 493,
-        "startLoc": {
-          "column": 42,
-          "line": 493,
-          "position": 19085
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 53,
-        "endLoc": {
-          "column": 9,
-          "line": 53,
-          "position": 2523
-        },
-        "name": "space-invaders/systems/BossSystem.ts",
-        "start": 43,
-        "startLoc": {
-          "column": 2,
-          "line": 43,
-          "position": 2020
-        }
-      },
-      "format": "typescript",
-      "fragment": "  }\n\n  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/SpaceInvadersFormationSystem.ts:21-30. Considerar extraer a función compartida. Ref: d157968e\n  public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {\n    if (!this.config) {\n        this.config = world.getResource<SpaceInvadersConfig>(\"GameConfig\")!;\n    }\n    const gameState = world.getSingleton(\"GameState\");\n    if (isIntermissionOrPaused(world, gameState)) return;\n\n    const bosses = world.query(\"Boss\", \"Transform\", \"Render\");",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 33,
-        "endLoc": {
-          "column": 9,
-          "line": 33,
-          "position": 1539
-        },
-        "name": "space-invaders/systems/SpaceInvadersFormationSystem.ts",
-        "start": 23,
-        "startLoc": {
-          "column": 2,
-          "line": 23,
-          "position": 1216
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 51,
-        "endLoc": {
-          "column": 48,
-          "line": 51,
-          "position": 2503
-        },
-        "name": "space-invaders/systems/BossSystem.ts",
-        "start": 46,
-        "startLoc": {
-          "column": 2,
-          "line": 46,
-          "position": 2206
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {\n    if (!this.config) {\n        this.config = world.getResource<SpaceInvadersConfig>(\"GameConfig\")!;\n    }\n    const gameState = world.getSingleton(\"GameState\");\n    if (isIntermissionOrPaused(world, gameState)) return;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 18,
-        "endLoc": {
-          "column": 48,
-          "line": 18,
-          "position": 1066
-        },
-        "name": "space-invaders/systems/KamikazeSystem.ts",
-        "start": 13,
-        "startLoc": {
-          "column": 2,
-          "line": 13,
-          "position": 769
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 261,
-        "endLoc": {
-          "column": 8,
-          "line": 261,
-          "position": 10208
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 255,
-        "startLoc": {
-          "column": 81,
-          "line": 255,
-          "position": 9964
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public override update(world: World<SpaceInvadersComponentRegistry>, _deltaTime: number): void {\n    if (world.getResource(\"IsPaused\") === true) return;\n    if (!this.config) {\n        this.config = world.getResource<SpaceInvadersConfig>(\"GameConfig\")!;\n    }\n    const gameState = world.getSingleton(\"GameState\");\n    if (!gameState || gameState.isGameOver) return;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 44,
-        "endLoc": {
-          "column": 8,
-          "line": 44,
-          "position": 1743
-        },
-        "name": "space-invaders/systems/SpaceInvadersInputSystem.ts",
-        "start": 37,
-        "startLoc": {
-          "column": 71,
-          "line": 37,
-          "position": 1498
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 274,
-        "endLoc": {
-          "column": 6,
-          "line": 274,
-          "position": 10942
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 266,
-        "startLoc": {
-          "column": 34,
-          "line": 266,
-          "position": 10655
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.destroyedEntities.clear();\n\n    // Helper to check if entity exists and is active\n    const hasEntity = (entity: number): boolean => {\n      if (typeof (world as any).hasEntity === \"function\") {\n        return (world as any).hasEntity(entity);\n      }\n      return world.hasComponent(entity, \"Transform\");\n    };",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 321,
-        "endLoc": {
-          "column": 6,
-          "line": 321,
-          "position": 12751
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 313,
-        "startLoc": {
-          "column": 70,
-          "line": 313,
-          "position": 12464
-        }
-      },
-      "tokens": 52
+      "tokens": 51
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-07T10:56:07.639Z",
+    "detectionDate": "2026-09-07T18:01:27.405Z",
     "formats": {
       "typescript": {
-        "clones": 187,
-        "duplicatedLines": 2008,
-        "duplicatedTokens": 15024,
-        "lines": 52212,
+        "clones": 174,
+        "duplicatedLines": 1883,
+        "duplicatedTokens": 14090,
+        "lines": 52465,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.8458591894583622,
-        "percentageTokens": 5.466512878542554,
-        "sources": 321,
-        "tokens": 274837
+        "percentage": 3.589059372915277,
+        "percentageTokens": 5.115711661208455,
+        "sources": 329,
+        "tokens": 275426
       }
     },
     "total": {
-      "clones": 187,
-      "duplicatedLines": 2008,
-      "duplicatedTokens": 15024,
-      "lines": 52212,
+      "clones": 174,
+      "duplicatedLines": 1883,
+      "duplicatedTokens": 14090,
+      "lines": 52465,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.8458591894583622,
-      "percentageTokens": 5.466512878542554,
-      "sources": 321,
-      "tokens": 274837
+      "percentage": 3.589059372915277,
+      "percentageTokens": 5.115711661208455,
+      "sources": 329,
+      "tokens": 275426
     }
   }
 }

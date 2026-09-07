@@ -23,6 +23,7 @@ export * from "./ecs/BlueprintRegistry";
 export * from "./ecs/CoreComponents";
 export * from "./ecs/TagComponent";
 export * from "./ecs/EntityHelpers";
+export * from "./ecs/WorldUtils";
 export * from "./snapshots/WorldSnapshot";
 export * from "./snapshots/SnapshotMetadataBuilder";
 export * from "./snapshots/SnapshotSerializer";
@@ -115,6 +116,7 @@ export * from "./physics/utils/ShipPhysics";
 export * from "./physics/utils/ForwardVector";
 export * from "./physics/shapes/Shapes";
 export * from "./physics/query/PhysicsQuery";
+export * from "./physics/query/PhysicsQueryHelper";
 export * from "./physics/dynamics/PhysicsIntegrateSystem";
 export * from "./physics/dynamics/PhysicsSolveSystem";
 

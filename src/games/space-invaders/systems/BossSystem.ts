@@ -1,16 +1,13 @@
-import { System, World, HealthComponent, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent } from "@tiny-aster/core";
+import { World, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent } from "@tiny-aster/core";
 import { GameStateComponent, BossComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { FactionComponent, spawnScorePopup } from "@tiny-aster/gameplay-kit";
-import { isIntermissionOrPaused } from "../utils/SpaceInvadersUpdateUtils";
-import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
+import { GameSystem } from "./GameSystem";
 import { createEmitter } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { Juice } from "@tiny-aster/core";
 import { spawnLayeredExplosion } from "../rendering/SpaceInvadersCanvasVisuals";
 
-export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry> {
-  private config?: SpaceInvadersConfig;
-
+export class BossSystem extends GameSystem {
   public override onRegister(world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>): void {
     const eventBus = world.getEventBus();
     if (eventBus) {
@@ -42,13 +39,9 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInva
     }
   }
 
-  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/SpaceInvadersFormationSystem.ts:21-30. Considerar extraer a función compartida. Ref: d157968e
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
-    if (!this.config) {
-        this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
-    }
-    const gameState = world.getSingleton("GameState");
-    if (isIntermissionOrPaused(world, gameState)) return;
+    if (!this.shouldUpdate(world)) return;
+    this.getGameConfig(world);
 
     const bosses = world.query("Boss", "Transform", "Render");
     bosses.forEach(entity => {

@@ -4,8 +4,9 @@ import { Shape, ShapeType, ConvexPolygonShape } from "../shapes/Shapes";
 import { NarrowPhase } from "../collision/NarrowPhase";
 import { ComponentRegistry } from "../../ecs/Component";
 import { EventRegistry } from "../../events/EventBus";
-import { PhysicsTransformLike, ColliderLike, getColliderWorldCenter } from "../PhysicsTypes";
+import { getColliderWorldCenter } from "../PhysicsTypes";
 import { getColliderWorldBounds } from "../utils/PhysicsTransform";
+import { queryActiveColliders } from "./PhysicsQueryHelper";
 
 /**
  * Utility for performing physics-based spatial queries on the ECS world.
@@ -28,21 +29,13 @@ export class PhysicsQuery {
    * @param y - Target world-space Y coordinate.
    * @returns Array of entity IDs overlapping the query point.
    */
-  // TODO(refactor): código duplicado detectado (método) con physics/query/PhysicsQuery.ts:124-134. Considerar extraer a función compartida. Ref: aee69b7e
   public static pointCast<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number): Entity[] {
     const results: Entity[] = [];
-    const colliderType = "Collider" as Extract<keyof TComponents, string>;
-    const transformType = "Transform" as Extract<keyof TComponents, string>;
-    const entities = world.query(colliderType, transformType);
-    for (const entity of entities) {
-      const transform = world.getComponent(entity, transformType) as unknown as PhysicsTransformLike | undefined;
-      const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;
-      if (!transform || !collider || !collider.enabled) continue;
-
+    for (const { entity, transform, collider } of queryActiveColliders(world)) {
       const bounds = getColliderWorldBounds(transform, collider);
       if (x < bounds.minX || x > bounds.maxX || y < bounds.minY || y > bounds.maxY) {
         continue;
@@ -115,21 +108,13 @@ export class PhysicsQuery {
    * @param y - World-space position Y of the query shape center.
    * @returns Array of entity IDs overlapping the query shape.
    */
-  // TODO(refactor): código duplicado detectado (método) con physics/query/PhysicsQuery.ts:36-46. Considerar extraer a función compartida. Ref: 75a89c85
   public static shapeCast<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, shape: Shape, x: number, y: number): Entity[] {
     const results: Entity[] = [];
-    const colliderType = "Collider" as Extract<keyof TComponents, string>;
-    const transformType = "Transform" as Extract<keyof TComponents, string>;
-    const entities = world.query(colliderType, transformType);
-    for (const entity of entities) {
-      const transform = world.getComponent(entity, transformType) as unknown as PhysicsTransformLike | undefined;
-      const collider = world.getComponent(entity, colliderType) as unknown as ColliderLike | undefined;
-      if (!transform || !collider || !collider.enabled) continue;
-
+    for (const { entity, transform, collider } of queryActiveColliders(world)) {
       const { cx, cy } = getColliderWorldCenter(transform, collider);
       const rot = transform.worldRotation ?? transform.rotation ?? 0;
 

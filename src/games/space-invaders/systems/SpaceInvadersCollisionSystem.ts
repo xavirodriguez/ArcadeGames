@@ -1,4 +1,4 @@
-import { World, ComponentType, Juice, CoreComponentRegistry, createEmitter } from "@tiny-aster/core";
+import { World, ComponentType, Juice, CoreComponentRegistry, createEmitter, WorldUtils } from "@tiny-aster/core";
 import { System } from "@tiny-aster/core";
 import { Entity } from "@tiny-aster/core";
 import { EventBus } from "@tiny-aster/core";
@@ -181,7 +181,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const gameState = world.getSingleton("GameState");
       if (gameState) {
         // Mutate Combo component
-        // TODO(refactor): código duplicado detectado (bloque) con asteroids/systems/AsteroidCollisionSystem.ts:55-63. Considerar extraer a función compartida. Ref: 76e7c40a
         let nextCombo = 0;
         let nextMultiplier = 1;
 
@@ -251,7 +250,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
-  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/BossSystem.ts:43-49. Considerar extraer a función compartida. Ref: ddc87c59
   public override update(world: World<SpaceInvadersComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
@@ -262,16 +260,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
     const entitiesWithEvents = world.query("CollisionEvents");
     // Safe for determinism/rollback. Reusing instance Set avoids per-tick heap allocations during collision resolution.
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:270-278. Considerar extraer a función compartida. Ref: 30754ba9
     this.destroyedEntities.clear();
-
-    // Helper to check if entity exists and is active
-    const hasEntity = (entity: number): boolean => {
-      if (typeof (world as any).hasEntity === "function") {
-        return (world as any).hasEntity(entity);
-      }
-      return world.hasComponent(entity, "Transform");
-    };
 
     const len = entitiesWithEvents.length;
     for (let i = 0; i < len; i++) {
@@ -286,7 +275,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         if (entityA >= entityB) continue;
 
         // Double Security B: Ensure both entities still exist
-        if (!hasEntity(entityA) || !hasEntity(entityB)) continue;
+        if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;
 
         // Double Security C: Ensure they haven't already been destroyed in this update step
         if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
@@ -309,18 +298,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     e2: Entity,
     destroyedEntities: Set<number>
   ): void {
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:225-233. Considerar extraer a función compartida. Ref: 553b6473
     if (destroyedEntities.has(e1) || destroyedEntities.has(e2)) return;
 
-    // Helper to check if entity exists and is active
-    const hasEntity = (entity: number): boolean => {
-      if (typeof (world as any).hasEntity === "function") {
-        return (world as any).hasEntity(entity);
-      }
-      return world.hasComponent(entity, "Transform");
-    };
-
-    if (!hasEntity(e1) || !hasEntity(e2)) return;
+    if (!WorldUtils.isEntityActive(world, e1) || !WorldUtils.isEntityActive(world, e2)) return;
 
     const gameState = world.getSingleton("GameState");
     if (!gameState) return;
@@ -343,10 +323,10 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const bullet = (bulletShield as Record<string, Entity>).PlayerBullet || (bulletShield as Record<string, Entity>).EnemyBullet;
       const shield = (bulletShield as Record<string, Entity>).Shield;
 
-      if (hasEntity(shield) && !destroyedEntities.has(shield)) {
+      if (WorldUtils.isEntityActive(world, shield) && !destroyedEntities.has(shield)) {
         this.damageShield(world, shield, destroyedEntities);
       }
-      if (hasEntity(bullet) && !destroyedEntities.has(bullet)) {
+      if (WorldUtils.isEntityActive(world, bullet) && !destroyedEntities.has(bullet)) {
         destroyedEntities.add(bullet);
         this.removeBulletSafely(world, bullet);
       }
@@ -370,7 +350,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     const invaderShield = this.matchPair(world, e1, e2, "Invader", "Shield");
     if (invaderShield) {
       const shield = invaderShield.Shield;
-      if (hasEntity(shield)) {
+      if (WorldUtils.isEntityActive(world, shield)) {
         this.damageShield(world, shield, destroyedEntities);
       }
       return;
@@ -405,7 +385,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
   }
 
   private createExplosion(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, color: string): void {
-    // Solución: Usar el stream diseñado para la reproducción determinista en la fase de simulación
     const rng = world.gameplayRandom;
 
     // Layer 1: Immediate flash (ECS particles)
@@ -433,13 +412,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
   }
 
   private removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: Entity): void {
-    if (typeof (world as any).isAlive === "function" && !(world as any).isAlive(bullet)) {
-      return;
-    }
-    if (typeof (world as any).hasEntity === "function" && !(world as any).hasEntity(bullet)) {
-      return;
-    }
-    if (!world.hasComponent(bullet, "Transform")) {
+    if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, "Transform")) {
       return;
     }
     const reclaimable = world.getComponent(bullet, "Reclaimable");
@@ -473,7 +446,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
-  // TODO(refactor): código duplicado detectado (método) con flappybird/systems/FlappyBirdCollisionSystem.ts:237-243. Considerar extraer a función compartida. Ref: 9ee5aed7
   private matchPair<T1 extends ComponentType<SpaceInvadersComponentRegistry>, T2 extends ComponentType<SpaceInvadersComponentRegistry>>(
     world: World<SpaceInvadersComponentRegistry>,
     entityA: Entity,
@@ -481,7 +453,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     type1: T1,
     type2: T2
   ): Record<T1 | T2, Entity> | undefined {
-    // Safe for determinism/rollback. Reusing static pair object and clearing stale keys avoids object literal allocations per pair check while preventing property pollution.
     if (world.hasComponent(entityA, type1) && world.hasComponent(entityB, type2)) {
       this.clearPairResult();
       this.pairResult[type1 as string] = entityA;

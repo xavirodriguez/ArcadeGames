@@ -169,35 +169,23 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
             const isDescending = oldVy >= 0;
             const wasAbove = prevPlayerBottom <= tileTop + 1.0;
 
-            // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:176-189. Considerar extraer a función compartida. Ref: d056ddc2
             if (isDescending && wasAbove) {
               trans.y = tileTop - halfH - offsetY;
               vel.vy = 0;
               isGrounded = true;
-              if (tileDef.kind === "ice") {
-                onIce = true;
-              } else if (tileDef.kind === "bounce") {
-                vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-                isGrounded = false;
-              } else if (tileDef.kind === "spike") {
-                this.handleSpikeCollision(world, entity);
-              }
+              const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
+              if (res.onIce !== undefined) onIce = res.onIce;
+              if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
               return true;
             }
           } else {
-            // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:163-176. Considerar extraer a función compartida. Ref: a710136f
             if (oldVy > 0) {
               trans.y = tileTop - halfH - offsetY;
               vel.vy = 0;
               isGrounded = true;
-              if (tileDef.kind === "ice") {
-                onIce = true;
-              } else if (tileDef.kind === "bounce") {
-                vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-                isGrounded = false;
-              } else if (tileDef.kind === "spike") {
-                this.handleSpikeCollision(world, entity);
-              }
+              const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
+              if (res.onIce !== undefined) onIce = res.onIce;
+              if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
               return true;
             } else if (oldVy < 0) {
               trans.y = tileBottom + halfH - offsetY;
@@ -209,12 +197,8 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
             }
           }
         } else {
-          if (tileDef.kind === "spike") {
-            this.handleSpikeCollision(world, entity);
-          } else if (tileDef.kind === "bounce") {
-            vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-            isGrounded = false;
-          }
+          const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
+          if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
         }
       });
 
@@ -242,6 +226,43 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     }
     return false;
   }
+
+  private applyTileKindEffect(
+    world: World<TRegistry>,
+    entity: Entity,
+    vel: VelocityComponent,
+    oldVy: number,
+    tileDef: { kind?: string; bounce?: number }
+  ): { isGrounded?: boolean; onIce?: boolean } {
+    if (!tileDef.kind) return {};
+    const handler = this.tileKindHandlers[tileDef.kind];
+    if (handler) {
+      return handler({ world, entity, vel, oldVy, tileDef, system: this });
+    }
+    return {};
+  }
+
+  private tileKindHandlers: Record<
+    string,
+    (ctx: {
+      world: World<TRegistry>;
+      entity: Entity;
+      vel: VelocityComponent;
+      oldVy: number;
+      tileDef: { kind?: string; bounce?: number };
+      system: TileCollisionSystem<TRegistry>;
+    }) => { isGrounded?: boolean; onIce?: boolean }
+  > = {
+    ice: () => ({ onIce: true }),
+    bounce: ({ vel, oldVy, tileDef }) => {
+      vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
+      return { isGrounded: false };
+    },
+    spike: ({ world, entity, system }) => {
+      system.handleSpikeCollision(world, entity);
+      return {};
+    }
+  };
 
   private handleSpikeCollision(world: World<TRegistry>, entity: Entity): void {
     const healthKey = "Health" as Extract<keyof TRegistry, string>;

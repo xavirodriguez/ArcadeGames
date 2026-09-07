@@ -5,6 +5,7 @@ import { NetworkManager } from "./NetworkManager";
 import { NullTransport } from "./NullTransport";
 import { InputFrame, ServerUpdatePayload, DeltaSnapshotPayload, FullSnapshotPayload } from "./NetTypes";
 import { WorldSnapshot } from "../snapshots/WorldSnapshot";
+import { applyInputFrameToEntity } from "./InputComponentFactory";
 
 /**
  * Handles replication, prediction, and server updates for games.
@@ -34,18 +35,7 @@ export class NetworkController<
   }
 
   public applyInputToEntity(entityId: number, input: InputFrame) {
-    const inputType = "Input" as Extract<keyof TComponents, string>;
-    if (!this.world.hasComponent(entityId, inputType)) {
-      this.world.addComponent(entityId, {
-        type: "Input",
-        actions: new Set<string>(),
-        axes: {}
-      } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
-    }
-    this.world.mutateComponent(entityId, inputType, ((inputComp: { actions: Set<string>; axes: Record<string, number> }) => {
-      inputComp.actions = new Set<string>(input.actions || []);
-      inputComp.axes = { ...input.axes };
-    }) as unknown as (component: TComponents[Extract<keyof TComponents, string>]) => void);
+    applyInputFrameToEntity(this.world, entityId, input);
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {

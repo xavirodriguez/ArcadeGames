@@ -163,6 +163,7 @@ export * from "./network/RemoteInterpolationSystem";
 export * from "./network/types";
 export * from "./network/MultiplayerSystems";
 export * from "./network/NetTypes";
+export * from "./network/InputComponentFactory";
 export * from "./network/NetworkController";
 export * from "./network/ReplaySystem";
 export * from "./network/pruneStaleEntities";

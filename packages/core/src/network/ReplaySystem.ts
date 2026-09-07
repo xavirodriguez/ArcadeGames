@@ -1,5 +1,6 @@
 import { World } from "../ecs/World";
 import { InputFrame } from "./NetTypes";
+import { applyInputFrameToEntity } from "./InputComponentFactory";
 
 /**
  * Records input frames sequentially during simulation to generate a replay file.
@@ -67,19 +68,7 @@ export class ReplayPlayer {
   public applyInputForTick<TComponents extends import("../ecs/Component").ComponentRegistry>(world: World<TComponents>, entityId: number, tick: number): boolean {
     const frame = this.inputs.find(i => i.tick === tick);
     if (frame) {
-      const inputType = "Input" as Extract<keyof TComponents, string>;
-      if (!world.hasComponent(entityId, inputType)) {
-        world.addComponent(entityId, {
-          type: "Input",
-          actions: new Set<string>(),
-          axes: {}
-        } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
-      }
-      world.mutateComponent(entityId, inputType, (inputComp) => {
-        const ic = inputComp as unknown as { actions: Set<string>; axes: Record<string, number> };
-        ic.actions = new Set<string>(frame.actions || []);
-        ic.axes = { ...frame.axes };
-      });
+      applyInputFrameToEntity(world, entityId, frame);
       return true;
     }
     return false;

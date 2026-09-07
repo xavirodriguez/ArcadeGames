@@ -5848,425 +5848,18 @@
     },
     {
       "firstFile": {
-        "end": 250,
-        "endLoc": {
-          "column": 37,
-          "line": 250,
-          "position": 7271
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 245,
-        "startLoc": {
-          "column": 36,
-          "line": 245,
-          "position": 6832
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {\n  draw(ctx, world) {\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:277-283. Considerar extraer a función compartida. Ref: 2cbbd41e\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 404,
-        "endLoc": {
-          "column": 37,
-          "line": 404,
-          "position": 12901
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 399,
-        "startLoc": {
-          "column": 37,
-          "line": 399,
-          "position": 12462
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 250,
-        "endLoc": {
-          "column": 9,
-          "line": 250,
-          "position": 7243
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 245,
-        "startLoc": {
-          "column": 36,
-          "line": 245,
-          "position": 6832
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {\n  draw(ctx, world) {\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:277-283. Considerar extraer a función compartida. Ref: 2cbbd41e\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 474,
-        "endLoc": {
-          "column": 9,
-          "line": 474,
-          "position": 15583
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 469,
-        "startLoc": {
-          "column": 43,
-          "line": 469,
-          "position": 15172
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 250,
-        "endLoc": {
-          "column": 9,
-          "line": 250,
-          "position": 7243
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 245,
-        "startLoc": {
-          "column": 36,
-          "line": 245,
-          "position": 6832
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {\n  draw(ctx, world) {\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:277-283. Considerar extraer a función compartida. Ref: 2cbbd41e\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 934,
-        "endLoc": {
-          "column": 9,
-          "line": 934,
-          "position": 31516
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 928,
-        "startLoc": {
-          "column": 35,
-          "line": 928,
-          "position": 31104
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 250,
-        "endLoc": {
-          "column": 9,
-          "line": 250,
-          "position": 7243
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 245,
-        "startLoc": {
-          "column": 36,
-          "line": 245,
-          "position": 6832
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {\n  draw(ctx, world) {\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:277-283. Considerar extraer a función compartida. Ref: 2cbbd41e\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 1169,
-        "endLoc": {
-          "column": 9,
-          "line": 1169,
-          "position": 38684
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1165,
-        "startLoc": {
-          "column": 35,
-          "line": 1165,
-          "position": 38432
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 254,
-        "endLoc": {
-          "column": 7,
-          "line": 254,
-          "position": 7310
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 248,
-        "startLoc": {
-          "column": 4,
-          "line": 248,
-          "position": 7080
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);\n\n    state.timePhase += 0.04;\n\n    ctx.save();",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 307,
-        "endLoc": {
-          "column": 10,
-          "line": 307,
-          "position": 9049
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 301,
-        "startLoc": {
-          "column": 4,
-          "line": 301,
-          "position": 8816
-        }
-      },
-      "tokens": 54
-    },
-    {
-      "firstFile": {
-        "end": 303,
-        "endLoc": {
-          "column": 37,
-          "line": 303,
-          "position": 9007
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 297,
-        "startLoc": {
-          "column": 40,
-          "line": 297,
-          "position": 8563
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:223-229. Considerar extraer a función compartida. Ref: a687d1d0\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 436,
-        "endLoc": {
-          "column": 37,
-          "line": 436,
-          "position": 14107
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 431,
-        "startLoc": {
-          "column": 41,
-          "line": 431,
-          "position": 13822
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
-        "end": 303,
-        "endLoc": {
-          "column": 9,
-          "line": 303,
-          "position": 8979
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 297,
-        "startLoc": {
-          "column": 40,
-          "line": 297,
-          "position": 8563
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:223-229. Considerar extraer a función compartida. Ref: a687d1d0\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 519,
-        "endLoc": {
-          "column": 9,
-          "line": 519,
-          "position": 17184
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 514,
-        "startLoc": {
-          "column": 47,
-          "line": 514,
-          "position": 16927
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 302,
-        "endLoc": {
-          "column": 11,
-          "line": 302,
-          "position": 8943
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 297,
-        "startLoc": {
-          "column": 40,
-          "line": 297,
-          "position": 8563
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:223-229. Considerar extraer a función compartida. Ref: a687d1d0\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 891,
-        "endLoc": {
-          "column": 11,
-          "line": 891,
-          "position": 29940
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 887,
-        "startLoc": {
-          "column": 40,
-          "line": 887,
-          "position": 29719
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 303,
-        "endLoc": {
-          "column": 9,
-          "line": 303,
-          "position": 8979
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 297,
-        "startLoc": {
-          "column": 40,
-          "line": 297,
-          "position": 8563
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:223-229. Considerar extraer a función compartida. Ref: a687d1d0\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 962,
-        "endLoc": {
-          "column": 9,
-          "line": 962,
-          "position": 32470
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 956,
-        "startLoc": {
-          "column": 39,
-          "line": 956,
-          "position": 32212
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 303,
-        "endLoc": {
-          "column": 9,
-          "line": 303,
-          "position": 8979
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 297,
-        "startLoc": {
-          "column": 40,
-          "line": 297,
-          "position": 8563
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:223-229. Considerar extraer a función compartida. Ref: a687d1d0\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 1189,
-        "endLoc": {
-          "column": 9,
-          "line": 1189,
-          "position": 39262
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1184,
-        "startLoc": {
-          "column": 39,
-          "line": 1184,
-          "position": 39005
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 408,
-        "endLoc": {
-          "column": 5,
-          "line": 408,
-          "position": 12980
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 402,
-        "startLoc": {
-          "column": 4,
-          "line": 402,
-          "position": 12710
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const state = getVFXState(world);\n\n    if (!state.starsInitialized) {\n      initializeStars(world, state);\n    }",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 440,
-        "endLoc": {
-          "column": 5,
-          "line": 440,
-          "position": 14186
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 434,
-        "startLoc": {
-          "column": 4,
-          "line": 434,
-          "position": 13916
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 420,
+        "end": 491,
         "endLoc": {
           "column": 46,
-          "line": 420,
-          "position": 13458
+          "line": 491,
+          "position": 15465
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 411,
+        "start": 482,
         "startLoc": {
           "column": 12,
-          "line": 411,
-          "position": 13153
+          "line": 482,
+          "position": 15160
         }
       },
       "format": "typescript",
@@ -6274,73 +5867,73 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 453,
+        "end": 522,
         "endLoc": {
           "column": 46,
-          "line": 453,
-          "position": 14699
+          "line": 522,
+          "position": 16576
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 444,
+        "start": 513,
         "startLoc": {
           "column": 28,
-          "line": 444,
-          "position": 14394
+          "line": 513,
+          "position": 16271
         }
       },
       "tokens": 83
     },
     {
       "firstFile": {
-        "end": 481,
+        "end": 548,
         "endLoc": {
           "column": 5,
-          "line": 481,
-          "position": 15840
+          "line": 548,
+          "position": 17587
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 472,
+        "start": 541,
         "startLoc": {
           "column": 4,
-          "line": 472,
-          "position": 15420
+          "line": 541,
+          "position": 17297
         }
       },
       "format": "typescript",
-      "fragment": "    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n    const centerX = width / 2;\n    const centerY = height / 2;\n    const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);\n    const state = getVFXState(world);\n\n    if (!state.warpLinesInitialized) {\n      initializeLines(world, state, maxRadius);\n    }",
+      "fragment": "    const { width, height, state } = getScreenAndVFXState(world);\n    const centerX = width / 2;\n    const centerY = height / 2;\n    const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);\n\n    if (!state.warpLinesInitialized) {\n      initializeLines(world, state, maxRadius);\n    }",
       "isNew": false,
-      "lines": 10,
+      "lines": 8,
       "secondFile": {
-        "end": 526,
+        "end": 591,
         "endLoc": {
           "column": 5,
-          "line": 526,
-          "position": 17441
+          "line": 591,
+          "position": 19058
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 517,
+        "start": 584,
         "startLoc": {
           "column": 4,
-          "line": 517,
-          "position": 17021
+          "line": 584,
+          "position": 18768
         }
       },
-      "tokens": 96
+      "tokens": 62
     },
     {
       "firstFile": {
-        "end": 501,
+        "end": 568,
         "endLoc": {
           "column": 78,
-          "line": 501,
-          "position": 16713
+          "line": 568,
+          "position": 18460
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 485,
+        "start": 552,
         "startLoc": {
           "column": 23,
-          "line": 485,
-          "position": 16040
+          "line": 552,
+          "position": 17787
         }
       },
       "format": "typescript",
@@ -6348,36 +5941,73 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 548,
+        "end": 613,
         "endLoc": {
           "column": 78,
-          "line": 548,
-          "position": 18399
+          "line": 613,
+          "position": 20016
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 532,
+        "start": 597,
         "startLoc": {
           "column": 29,
-          "line": 532,
-          "position": 17726
+          "line": 597,
+          "position": 19343
         }
       },
       "tokens": 191
     },
     {
       "firstFile": {
-        "end": 613,
+        "end": 634,
         "endLoc": {
-          "column": 31,
-          "line": 613,
-          "position": 20473
+          "column": 77,
+          "line": 634,
+          "position": 20778
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 607,
+        "start": 628,
+        "startLoc": {
+          "column": 4,
+          "line": 628,
+          "position": 20472
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 35;\n    const radius = size * 1.3;\n    const timePhase = getVFXState(world).timePhase;\n    const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 679,
+        "endLoc": {
+          "column": 77,
+          "line": 679,
+          "position": 22207
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 673,
+        "startLoc": {
+          "column": 4,
+          "line": 673,
+          "position": 21901
+        }
+      },
+      "tokens": 61
+    },
+    {
+      "firstFile": {
+        "end": 676,
+        "endLoc": {
+          "column": 31,
+          "line": 676,
+          "position": 22042
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 670,
         "startLoc": {
           "column": 41,
-          "line": 607,
-          "position": 20231
+          "line": 670,
+          "position": 21800
         }
       },
       "format": "typescript",
@@ -6385,36 +6015,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1031,
+        "end": 1063,
         "endLoc": {
           "column": 31,
-          "line": 1031,
-          "position": 34763
+          "line": 1063,
+          "position": 35086
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1025,
+        "start": 1057,
         "startLoc": {
           "column": 41,
-          "line": 1025,
-          "position": 34521
+          "line": 1057,
+          "position": 34844
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 613,
+        "end": 676,
         "endLoc": {
           "column": 31,
-          "line": 613,
-          "position": 20473
+          "line": 676,
+          "position": 22042
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 607,
+        "start": 670,
         "startLoc": {
           "column": 41,
-          "line": 607,
-          "position": 20231
+          "line": 670,
+          "position": 21800
         }
       },
       "format": "typescript",
@@ -6422,36 +6052,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1356,
+        "end": 1381,
         "endLoc": {
           "column": 31,
-          "line": 1356,
-          "position": 44624
+          "line": 1381,
+          "position": 44647
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1350,
+        "start": 1375,
         "startLoc": {
           "column": 39,
-          "line": 1350,
-          "position": 44382
+          "line": 1375,
+          "position": 44405
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 613,
+        "end": 676,
         "endLoc": {
           "column": 31,
-          "line": 613,
-          "position": 20473
+          "line": 676,
+          "position": 22042
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 607,
+        "start": 670,
         "startLoc": {
           "column": 41,
-          "line": 607,
-          "position": 20231
+          "line": 670,
+          "position": 21800
         }
       },
       "format": "typescript",
@@ -6459,110 +6089,110 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1427,
+        "end": 1436,
         "endLoc": {
           "column": 31,
-          "line": 1427,
-          "position": 46633
+          "line": 1436,
+          "position": 46329
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1421,
+        "start": 1430,
         "startLoc": {
           "column": 40,
-          "line": 1421,
-          "position": 46391
+          "line": 1430,
+          "position": 46087
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 678,
+        "end": 729,
         "endLoc": {
           "column": 30,
-          "line": 678,
-          "position": 22889
+          "line": 729,
+          "position": 24092
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 661,
+        "start": 722,
         "startLoc": {
           "column": 34,
-          "line": 661,
-          "position": 22106
+          "line": 722,
+          "position": 23627
         }
       },
       "format": "typescript",
-      "fragment": "export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {\n  draw(ctx, world, entity) {\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:696-714. Considerar extraer a función compartida. Ref: 4acbb34e\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const ttl = world.getComponent(entity, \"TTL\") as TTLComponent | undefined;\n    let progress = 0.5;\n\n    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 1.0;\n      progress = 1.0 - (ttl.remaining / totalLife);\n    } else {\n      progress = (getVFXState(world).timePhase % 2) / 2;\n    }\n\n    const alpha = 1.0 - progress;\n    if (alpha <= 0.01) return;",
+      "fragment": "export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {\n  draw(ctx, world, entity) {\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:696-714. Considerar extraer a función compartida. Ref: 4acbb34e\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;",
       "isNew": false,
-      "lines": 18,
+      "lines": 8,
       "secondFile": {
-        "end": 1477,
+        "end": 1467,
         "endLoc": {
           "column": 30,
-          "line": 1477,
-          "position": 48321
+          "line": 1467,
+          "position": 47499
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 1461,
         "startLoc": {
           "column": 36,
           "line": 1461,
-          "position": 47697
+          "position": 47193
         }
       },
-      "tokens": 134
+      "tokens": 63
     },
     {
       "firstFile": {
-        "end": 682,
+        "end": 733,
         "endLoc": {
           "column": 47,
-          "line": 682,
-          "position": 23014
+          "line": 733,
+          "position": 24217
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 664,
+        "start": 725,
         "startLoc": {
           "column": 4,
-          "line": 664,
-          "position": 22361
+          "line": 725,
+          "position": 23882
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const ttl = world.getComponent(entity, \"TTL\") as TTLComponent | undefined;\n    let progress = 0.5;\n\n    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 1.0;\n      progress = 1.0 - (ttl.remaining / totalLife);\n    } else {\n      progress = (getVFXState(world).timePhase % 2) / 2;\n    }\n\n    const alpha = 1.0 - progress;\n    if (alpha <= 0.01) return;\n\n    const baseSize = render.size || 20;\n    const maxRadius = baseSize * 4;\n    const currentRadius = maxRadius * progress;",
+      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;\n\n    const baseSize = render.size || 20;\n    const maxRadius = baseSize * 4;\n    const currentRadius = maxRadius * progress;",
       "isNew": false,
-      "lines": 19,
+      "lines": 9,
       "secondFile": {
-        "end": 742,
+        "end": 783,
         "endLoc": {
           "column": 47,
-          "line": 742,
-          "position": 25063
+          "line": 783,
+          "position": 25948
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 724,
+        "start": 775,
         "startLoc": {
           "column": 4,
-          "line": 724,
-          "position": 24410
+          "line": 775,
+          "position": 25613
         }
       },
-      "tokens": 139
+      "tokens": 68
     },
     {
       "firstFile": {
-        "end": 711,
+        "end": 762,
         "endLoc": {
           "column": 48,
-          "line": 711,
-          "position": 23986
+          "line": 762,
+          "position": 25189
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 703,
+        "start": 754,
         "startLoc": {
           "column": 27,
-          "line": 703,
-          "position": 23648
+          "line": 754,
+          "position": 24851
         }
       },
       "format": "typescript",
@@ -6570,110 +6200,73 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 771,
+        "end": 812,
         "endLoc": {
           "column": 48,
-          "line": 771,
-          "position": 26127
+          "line": 812,
+          "position": 27012
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 763,
+        "start": 804,
         "startLoc": {
           "column": 31,
-          "line": 763,
-          "position": 25789
+          "line": 804,
+          "position": 26674
         }
       },
       "tokens": 87
     },
     {
       "firstFile": {
-        "end": 738,
+        "end": 779,
         "endLoc": {
           "column": 30,
-          "line": 738,
-          "position": 24938
+          "line": 779,
+          "position": 25823
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 720,
+        "start": 771,
         "startLoc": {
           "column": 38,
-          "line": 720,
-          "position": 24150
+          "line": 771,
+          "position": 25353
         }
       },
       "format": "typescript",
-      "fragment": "export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:627-645. Considerar extraer a función compartida. Ref: 1cf0b2c5\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const ttl = world.getComponent(entity, \"TTL\") as TTLComponent | undefined;\n    let progress = 0.5;\n\n    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 1.0;\n      progress = 1.0 - (ttl.remaining / totalLife);\n    } else {\n      progress = (getVFXState(world).timePhase % 2) / 2;\n    }\n\n    const alpha = 1.0 - progress;\n    if (alpha <= 0.01) return;",
+      "fragment": "export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:627-645. Considerar extraer a función compartida. Ref: 1cf0b2c5\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;",
       "isNew": false,
-      "lines": 19,
+      "lines": 9,
       "secondFile": {
-        "end": 1512,
+        "end": 1492,
         "endLoc": {
           "column": 30,
-          "line": 1512,
-          "position": 49479
+          "line": 1492,
+          "position": 48339
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1495,
+        "start": 1485,
         "startLoc": {
           "column": 40,
-          "line": 1495,
-          "position": 48850
+          "line": 1485,
+          "position": 48028
         }
       },
-      "tokens": 141
+      "tokens": 70
     },
     {
       "firstFile": {
-        "end": 857,
-        "endLoc": {
-          "column": 5,
-          "line": 857,
-          "position": 28832
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 851,
-        "startLoc": {
-          "column": 4,
-          "line": 851,
-          "position": 28567
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { height } = screen;\n    const state = getVFXState(world);\n\n    if (!state.matrixInitialized) {\n      initializeMatrix(world, state);\n    }",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 896,
-        "endLoc": {
-          "column": 5,
-          "line": 896,
-          "position": 30078
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 890,
-        "startLoc": {
-          "column": 4,
-          "line": 890,
-          "position": 29813
-        }
-      },
-      "tokens": 62
-    },
-    {
-      "firstFile": {
-        "end": 866,
+        "end": 905,
         "endLoc": {
           "column": 21,
-          "line": 866,
-          "position": 29179
+          "line": 905,
+          "position": 29934
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 860,
+        "start": 899,
         "startLoc": {
           "column": 12,
-          "line": 860,
-          "position": 29005
+          "line": 899,
+          "position": 29760
         }
       },
       "format": "typescript",
@@ -6681,73 +6274,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 906,
+        "end": 943,
         "endLoc": {
           "column": 21,
-          "line": 906,
-          "position": 30460
+          "line": 943,
+          "position": 31085
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 900,
+        "start": 937,
         "startLoc": {
           "column": 28,
-          "line": 900,
-          "position": 30286
+          "line": 937,
+          "position": 30911
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 937,
-        "endLoc": {
-          "column": 7,
-          "line": 937,
-          "position": 31630
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 931,
-        "startLoc": {
-          "column": 4,
-          "line": 931,
-          "position": 31352
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n\n    const rng = world.renderRandom;\n    if (rng.next() < 0.96) return; // Keep glitches highly responsive & sparse\n\n    ctx.save();",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 965,
-        "endLoc": {
-          "column": 10,
-          "line": 965,
-          "position": 32543
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 959,
-        "startLoc": {
-          "column": 4,
-          "line": 959,
-          "position": 32306
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 946,
+        "end": 982,
         "endLoc": {
           "column": 44,
-          "line": 946,
-          "position": 32047
+          "line": 982,
+          "position": 32573
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 941,
+        "start": 977,
         "startLoc": {
           "column": 29,
-          "line": 941,
-          "position": 31871
+          "line": 977,
+          "position": 32397
         }
       },
       "format": "typescript",
@@ -6755,36 +6311,73 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 974,
+        "end": 1009,
         "endLoc": {
           "column": 44,
-          "line": 974,
-          "position": 33003
+          "line": 1009,
+          "position": 33430
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 970,
+        "start": 1005,
         "startLoc": {
           "column": 41,
-          "line": 970,
-          "position": 32828
+          "line": 1005,
+          "position": 33255
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 1219,
+        "end": 1029,
         "endLoc": {
-          "column": 5,
-          "line": 1219,
-          "position": 40379
+          "column": 66,
+          "line": 1029,
+          "position": 34157
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1211,
+        "start": 1024,
         "startLoc": {
           "column": 4,
-          "line": 1211,
-          "position": 40111
+          "line": 1024,
+          "position": 33893
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 10;\n    const timePhase = getVFXState(world).timePhase;\n    const { plumeLength } = computeThrusterPlume(timePhase, size);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 1065,
+        "endLoc": {
+          "column": 66,
+          "line": 1065,
+          "position": 35209
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 1060,
+        "startLoc": {
+          "column": 4,
+          "line": 1060,
+          "position": 34945
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 1247,
+        "endLoc": {
+          "column": 5,
+          "line": 1247,
+          "position": 40454
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 1239,
+        "startLoc": {
+          "column": 4,
+          "line": 1239,
+          "position": 40186
         }
       },
       "format": "typescript",
@@ -6792,36 +6385,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 1274,
+        "end": 1302,
         "endLoc": {
           "column": 5,
-          "line": 1274,
-          "position": 42048
+          "line": 1302,
+          "position": 42123
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1266,
+        "start": 1294,
         "startLoc": {
           "column": 4,
-          "line": 1266,
-          "position": 41780
+          "line": 1294,
+          "position": 41855
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 1250,
+        "end": 1278,
         "endLoc": {
           "column": 65,
-          "line": 1250,
-          "position": 41386
+          "line": 1278,
+          "position": 41461
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1242,
+        "start": 1270,
         "startLoc": {
           "column": 29,
-          "line": 1242,
-          "position": 41081
+          "line": 1270,
+          "position": 41156
         }
       },
       "format": "typescript",
@@ -6829,21 +6422,95 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 1305,
+        "end": 1333,
         "endLoc": {
           "column": 65,
-          "line": 1305,
-          "position": 43076
+          "line": 1333,
+          "position": 43151
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1296,
+        "start": 1324,
         "startLoc": {
           "column": 42,
-          "line": 1296,
-          "position": 42790
+          "line": 1324,
+          "position": 42865
         }
       },
       "tokens": 73
+    },
+    {
+      "firstFile": {
+        "end": 1355,
+        "endLoc": {
+          "column": 64,
+          "line": 1355,
+          "position": 43951
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 1350,
+        "startLoc": {
+          "column": 4,
+          "line": 1350,
+          "position": 43689
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 15;\n    const timePhase = getVFXState(world).timePhase;\n    const segments = computeCometTrailSegments(timePhase, size);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 1383,
+        "endLoc": {
+          "column": 64,
+          "line": 1383,
+          "position": 44768
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 1378,
+        "startLoc": {
+          "column": 4,
+          "line": 1378,
+          "position": 44506
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 1412,
+        "endLoc": {
+          "column": 58,
+          "line": 1412,
+          "position": 45720
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 1407,
+        "startLoc": {
+          "column": 4,
+          "line": 1407,
+          "position": 45464
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 20;\n    const timePhase = getVFXState(world).timePhase;\n    const layers = computeHologramLayers(timePhase, size);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 1438,
+        "endLoc": {
+          "column": 58,
+          "line": 1438,
+          "position": 46444
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 1433,
+        "startLoc": {
+          "column": 4,
+          "line": 1433,
+          "position": 46188
+        }
+      },
+      "tokens": 52
     },
     {
       "firstFile": {

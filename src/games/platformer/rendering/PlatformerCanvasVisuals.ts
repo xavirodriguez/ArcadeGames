@@ -1,5 +1,6 @@
 import { ShapeDrawer, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
+import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:113-119. Considerar extraer a función compartida. Ref: 16b8cacf
 export const drawPlatformerPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
@@ -9,10 +10,9 @@ export const drawPlatformerPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCom
     const size = render.size || 20;
 
     const health = world.getComponent(entity, "Health" as any) as any;
-    if (health && health.invulnerableRemaining && health.invulnerableRemaining > 0) {
-      if (Math.floor(world.tick / 4) % 2 === 0) {
-        return;
-      }
+    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0 });
+    if (invState.isInvulnerable && invState.opacity === 0) {
+      return;
     }
 
     ctx.save();

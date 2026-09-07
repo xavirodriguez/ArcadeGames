@@ -5,6 +5,7 @@ import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { EnemyBulletPool } from "../EntityPool";
 import { createEnemyBullet } from "../EntityFactory";
 import { RandomService } from "@tiny-aster/core";
+import { isIntermissionOrPaused } from "../utils/SpaceInvadersUpdateUtils";
 
 /**
  * System that manages the movement and firing of the invader formation.
@@ -22,13 +23,12 @@ export class SpaceInvadersFormationSystem extends System<SpaceInvadersComponentR
   }
 
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
 
     const gameState = world.getSingleton("GameState");
-    if (gameState && (gameState.isGameOver || gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) return;
+    if (isIntermissionOrPaused(world, gameState)) return;
 
     const formationEntities = world.query("Formation");
     if (formationEntities.length === 0) return;

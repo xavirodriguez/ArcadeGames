@@ -14,6 +14,7 @@ import {
   BACKGROUND_NEBULAE,
   MegastructureData
 } from "./FlappyBirdBackgroundData";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 // DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
 // Solo se extrajeron los cálculos puros a src/games/shared/rendering/geometry.ts. Ver docs/tech-debt/duplication.md
@@ -296,15 +297,12 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     state.lastIsAlive = isAlive;
     state.lastNearMissTimer = birdComp.nearMissTimer;
 
-    let globalOpacity = 1.0;
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {
-        ctx.globalAlpha = 0.35;
-      }
-    }
+    const flashState = resolveHitFlash(render, render.color || "yellow", 1.0, 0.35);
+    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "interval", multiplier: 0.01, dimOpacity: 0.35 });
 
-    if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
-      globalOpacity = (Math.floor(health.invulnerableRemaining / 100) % 2 === 0) ? 0.35 : 1.0;
+    let globalOpacity = flashState.isFlashing ? flashState.opacity : 1.0;
+    if (invState.isInvulnerable) {
+      globalOpacity = invState.opacity;
     }
 
     ctx.save();

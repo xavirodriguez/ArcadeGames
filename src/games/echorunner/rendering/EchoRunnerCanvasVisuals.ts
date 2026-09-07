@@ -1,5 +1,14 @@
 import { ShapeDrawer, EffectDrawer, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import {
+  calculateEchoPlayerPose,
+  resolveHopperVisualState,
+  resolveSentinelVisualState,
+  resolveWatcherVisualState,
+  resolveChargerVisualState,
+  resolveMemoryFragmentColors
+} from "./EchoRunnerVisualUtils";
 
 const gradientCache = new Map<number, CanvasGradient>();
 let lastCtx: CanvasRenderingContext2D | null = null;
@@ -134,7 +143,8 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.save();
 
     // 1. Hit Flash effect (bright white flash)
-    if (isHitFlash) {
+    const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
+    if (flashState.isFlashing) {
       ctx.fillStyle = ECHO_PALETTE.restorationWhite;
       ctx.shadowColor = ECHO_PALETTE.corruptionCrimson;
       ctx.shadowBlur = 15;
@@ -146,41 +156,13 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     }
 
     // 2. Invulnerability translucency flickering
-    if (isInvulnerable) {
-      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:124-156. Considerar extraer a función compartida. Ref: bb4edea1
-      ctx.globalAlpha = 0.4 + 0.5 * Math.sin(world.tick * 0.8);
+    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
+    if (invState.isInvulnerable) {
+      ctx.globalAlpha = invState.opacity;
     }
 
     // 3. Pose calculations
-    let tiltAngle = 0;
-    let hoverY = 0;
-    let leftLegX = -size * 0.15;
-    let leftLegY = size * 0.5;
-    let rightLegX = size * 0.15;
-    let rightLegY = size * 0.5;
-
-    if (!isGrounded) {
-      if (vy < -20) {
-        tiltAngle = -0.12;
-        leftLegY = size * 0.35;
-        rightLegY = size * 0.35;
-      } else {
-        tiltAngle = 0.08;
-        leftLegX = -size * 0.22;
-        rightLegX = size * 0.22;
-        leftLegY = size * 0.45;
-        rightLegY = size * 0.45;
-      }
-    } else if (Math.abs(vx) > 15) {
-      tiltAngle = Math.min(Math.max(vx * 0.0008, -0.2), 0.2);
-      const stride = Math.sin(world.tick * 0.4);
-      leftLegX = -size * 0.15 + stride * 4;
-      leftLegY = size * 0.5 - Math.abs(stride) * 2;
-      rightLegX = size * 0.15 - stride * 4;
-      rightLegY = size * 0.5 - Math.abs(stride) * 2;
-    } else {
-      hoverY = Math.sin(world.tick * 0.12) * 1.5;
-    }
+    const { tiltAngle, hoverY, leftLegX, leftLegY, rightLegX, rightLegY } = calculateEchoPlayerPose(size, isGrounded, vx, vy, world.tick);
 
     ctx.translate(0, hoverY);
     ctx.rotate(tiltAngle);
@@ -297,10 +279,7 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
 
     const runState = world.getResource<any>("RunState");
     const collectedCount = runState?.collectedTemporalIds?.length || 0;
-    // Shift color from corrupted purple towards restored cyan as fragment count increases
-    const isRestoredProgression = collectedCount >= 5;
-    const strokeColor = isRestoredProgression ? ECHO_PALETTE.restorationCyan : ECHO_PALETTE.corruptionPurple;
-    const fillColor = isRestoredProgression ? ECHO_PALETTE.restorationCyanGlow : ECHO_PALETTE.corruptionPurpleGlow;
+    const { strokeColor, fillColor } = resolveMemoryFragmentColors(collectedCount);
 
     ctx.save();
     ctx.translate(0, hoverOffset);
@@ -471,9 +450,7 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
       return;
     }
 
-    const isAlert = state === "Alert" || state === "Windup";
-    const isAttack = state === "Attack";
-    const glowColor = isAlert ? ECHO_PALETTE.corruptionAmber : (isAttack ? ECHO_PALETTE.corruptionCrimson : ECHO_PALETTE.corruptionPurple);
+    const { isAlert, isAttack, glowColor } = resolveSentinelVisualState(state);
     ctx.shadowColor = glowColor;
     ctx.shadowBlur = 10;
 
@@ -555,9 +532,7 @@ export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegi
       return;
     }
 
-    const isAlert = state === "Alert" || state === "Windup" || state === "Compress";
-    const isAttack = state === "Attack";
-    const glowColor = isAttack ? ECHO_PALETTE.restorationCyan : (isAlert ? ECHO_PALETTE.corruptionAmber : "#10b981");
+    const { isAlert, isAttack, glowColor, scaleX, scaleY } = resolveHopperVisualState(state);
     ctx.shadowColor = glowColor;
     ctx.shadowBlur = 8;
 
@@ -574,17 +549,6 @@ export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegi
     ctx.fillStyle = ECHO_PALETTE.archiveSlate;
     ctx.strokeStyle = glowColor;
     ctx.lineWidth = 2;
-
-    let scaleX = 1;
-    let scaleY = 1;
-
-    if (isAlert) {
-      scaleX = 1.3;
-      scaleY = 0.7;
-    } else if (isAttack) {
-      scaleX = 0.8;
-      scaleY = 1.25;
-    }
 
     ctx.scale(scaleX, scaleY);
 
@@ -633,9 +597,7 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
       return;
     }
 
-    const isAlert = state === "Alert" || state === "Windup";
-    const isAttack = state === "Attack";
-    const glowColor = isAttack ? ECHO_PALETTE.corruptionCrimson : (isAlert ? ECHO_PALETTE.corruptionAmber : "#3b82f6");
+    const { isAlert, isAttack, glowColor } = resolveWatcherVisualState(state);
 
     ctx.shadowColor = glowColor;
     ctx.shadowBlur = 10;
@@ -703,10 +665,7 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
       return;
     }
 
-    const isStunned = state === "Recovery" || state === "Stunned";
-    const isAlert = state === "Alert" || state === "Windup";
-    const isAttack = state === "Attack";
-    const glowColor = isStunned ? ECHO_PALETTE.restorationGold : (isAlert ? ECHO_PALETTE.corruptionAmber : ECHO_PALETTE.corruptionCrimson);
+    const { isStunned, isAlert, isAttack, glowColor } = resolveChargerVisualState(state);
 
     ctx.shadowColor = glowColor;
     ctx.shadowBlur = 12;

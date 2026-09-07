@@ -1038,55 +1038,55 @@
     },
     {
       "firstFile": {
-        "end": 139,
+        "end": 138,
         "endLoc": {
           "column": 7,
-          "line": 139,
-          "position": 5404
+          "line": 138,
+          "position": 5212
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 127,
+        "start": 126,
         "startLoc": {
           "column": 4,
-          "line": 127,
-          "position": 4855
+          "line": 126,
+          "position": 4663
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    const collider = world.getComponent(entity, \"Collider\");\n    if (!render) return;\n\n    let radius = 25;\n    if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {\n      radius = (collider.shape as CircleShape).radius;\n    } else if (render.size) {\n      radius = render.size / 2;\n    }\n\n    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:19-28. Considerar extraer a función compartida. Ref: 8e471d6c\n    let color = render.color || colors.pink; // Neon pink default (R9)",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    const collider = world.getComponent(entity, \"Collider\");\n    if (!render) return;\n\n    let radius = 25;\n    if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {\n      radius = (collider.shape as CircleShape).radius;\n    } else if (render.size) {\n      radius = render.size / 2;\n    }\n\n    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:19-28. Considerar extraer a función compartida. Ref: 8e471d6c\n    let baseColor = render.color || colors.pink; // Neon pink default (R9)",
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 144,
+        "end": 140,
         "endLoc": {
           "column": 7,
-          "line": 144,
-          "position": 5966
+          "line": 140,
+          "position": 5846
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 133,
+        "start": 129,
         "startLoc": {
           "column": 4,
-          "line": 133,
-          "position": 5590
+          "line": 129,
+          "position": 5470
         }
       },
       "tokens": 86
     },
     {
       "firstFile": {
-        "end": 24,
+        "end": 25,
         "endLoc": {
           "column": 31,
-          "line": 24,
-          "position": 1393
+          "line": 25,
+          "position": 1492
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 18,
+        "start": 19,
         "startLoc": {
           "column": 40,
-          "line": 18,
-          "position": 1173
+          "line": 19,
+          "position": 1272
         }
       },
       "format": "typescript",
@@ -1094,58 +1094,21 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 197,
+        "end": 192,
         "endLoc": {
           "column": 31,
-          "line": 197,
-          "position": 7621
+          "line": 192,
+          "position": 7492
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 191,
+        "start": 186,
         "startLoc": {
           "column": 36,
-          "line": 191,
-          "position": 7401
+          "line": 186,
+          "position": 7272
         }
       },
       "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 42,
-        "endLoc": {
-          "column": 9,
-          "line": 42,
-          "position": 2120
-        },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 26,
-        "startLoc": {
-          "column": 46,
-          "line": 26,
-          "position": 1617
-        }
-      },
-      "format": "typescript",
-      "fragment": "    let colorStr = render.color || colors.cyan; // Glowing cyan default\n\n    canvas.save();\n\n    let opacity = 1.0;\n\n    // Hit Flash Transparency Pulse\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      if ((render.hitFlashFrames >> 1) % 2 === 0) {\n        opacity = 0.3;\n      }\n      // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:30-39. Considerar extraer a función compartida. Ref: c4bcd449\n      colorStr = colors.white;\n    }\n\n    // Invulnerability Pulse\n    const hasInvulnerable = world.hasComponent(entity, \"Invulnerable\");",
-      "isNew": false,
-      "lines": 17,
-      "secondFile": {
-        "end": 155,
-        "endLoc": {
-          "column": 9,
-          "line": 155,
-          "position": 6263
-        },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 144,
-        "startLoc": {
-          "column": 46,
-          "line": 144,
-          "position": 6005
-        }
-      },
-      "tokens": 53
     },
     {
       "firstFile": {
@@ -2000,18 +1963,18 @@
     },
     {
       "firstFile": {
-        "end": 51,
+        "end": 52,
         "endLoc": {
           "column": 7,
-          "line": 51,
-          "position": 2000
+          "line": 52,
+          "position": 2099
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 44,
+        "start": 45,
         "startLoc": {
           "column": 4,
-          "line": 44,
-          "position": 1632
+          "line": 45,
+          "position": 1731
         }
       },
       "format": "typescript",
@@ -2023,32 +1986,32 @@
         "endLoc": {
           "column": 9,
           "line": 17,
-          "position": 1016
+          "position": 949
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 11,
         "startLoc": {
           "column": 4,
           "line": 11,
-          "position": 682
+          "position": 615
         }
       },
       "tokens": 73
     },
     {
       "firstFile": {
-        "end": 122,
+        "end": 123,
         "endLoc": {
           "column": 9,
-          "line": 122,
-          "position": 4599
+          "line": 123,
+          "position": 4698
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 115,
+        "start": 116,
         "startLoc": {
           "column": 27,
-          "line": 115,
-          "position": 4182
+          "line": 116,
+          "position": 4281
         }
       },
       "format": "typescript",
@@ -2056,36 +2019,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 11,
+        "end": 12,
         "endLoc": {
           "column": 9,
-          "line": 11,
-          "position": 576
+          "line": 12,
+          "position": 658
         },
         "name": "platformer/rendering/PlatformerCanvasVisuals.ts",
-        "start": 5,
+        "start": 6,
         "startLoc": {
           "column": 33,
-          "line": 5,
-          "position": 333
+          "line": 6,
+          "position": 415
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 132,
+        "end": 133,
         "endLoc": {
           "column": 88,
-          "line": 132,
-          "position": 5311
+          "line": 133,
+          "position": 5410
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 118,
+        "start": 119,
         "startLoc": {
           "column": 4,
-          "line": 118,
-          "position": 4456
+          "line": 119,
+          "position": 4555
         }
       },
       "format": "typescript",
@@ -2097,32 +2060,32 @@
         "endLoc": {
           "column": 88,
           "line": 93,
-          "position": 4304
+          "position": 4237
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 78,
         "startLoc": {
           "column": 4,
           "line": 78,
-          "position": 3274
+          "position": 3207
         }
       },
       "tokens": 173
     },
     {
       "firstFile": {
-        "end": 183,
+        "end": 185,
         "endLoc": {
           "column": 5,
-          "line": 183,
-          "position": 6919
+          "line": 185,
+          "position": 7076
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 151,
+        "start": 153,
         "startLoc": {
           "column": 22,
-          "line": 151,
-          "position": 5944
+          "line": 153,
+          "position": 6101
         }
       },
       "format": "typescript",
@@ -2130,36 +2093,36 @@
       "isNew": false,
       "lines": 33,
       "secondFile": {
-        "end": 145,
+        "end": 146,
         "endLoc": {
           "column": 5,
-          "line": 145,
-          "position": 5915
+          "line": 146,
+          "position": 5904
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 113,
+        "start": 114,
         "startLoc": {
           "column": 12,
-          "line": 113,
-          "position": 4940
+          "line": 114,
+          "position": 4929
         }
       },
       "tokens": 239
     },
     {
       "firstFile": {
-        "end": 303,
+        "end": 305,
         "endLoc": {
           "column": 115,
-          "line": 303,
-          "position": 11169
+          "line": 305,
+          "position": 11326
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 292,
+        "start": 294,
         "startLoc": {
           "column": 4,
-          "line": 292,
-          "position": 10444
+          "line": 294,
+          "position": 10601
         }
       },
       "format": "typescript",
@@ -2167,36 +2130,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 262,
+        "end": 263,
         "endLoc": {
           "column": 115,
-          "line": 262,
-          "position": 10604
+          "line": 263,
+          "position": 10593
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 252,
+        "start": 253,
         "startLoc": {
           "column": 4,
-          "line": 252,
-          "position": 9970
+          "line": 253,
+          "position": 9959
         }
       },
       "tokens": 113
     },
     {
       "firstFile": {
-        "end": 347,
+        "end": 349,
         "endLoc": {
           "column": 9,
-          "line": 347,
-          "position": 12534
+          "line": 349,
+          "position": 12691
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 341,
+        "start": 343,
         "startLoc": {
           "column": 27,
-          "line": 341,
-          "position": 12117
+          "line": 343,
+          "position": 12274
         }
       },
       "format": "typescript",
@@ -2204,36 +2167,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 545,
+        "end": 547,
         "endLoc": {
           "column": 9,
-          "line": 545,
-          "position": 19531
+          "line": 547,
+          "position": 19688
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 538,
+        "start": 540,
         "startLoc": {
           "column": 23,
-          "line": 538,
-          "position": 18937
+          "line": 540,
+          "position": 19094
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 350,
+        "end": 352,
         "endLoc": {
           "column": 7,
-          "line": 350,
-          "position": 12624
+          "line": 352,
+          "position": 12781
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 344,
+        "start": 346,
         "startLoc": {
           "column": 4,
-          "line": 344,
-          "position": 12392
+          "line": 346,
+          "position": 12549
         }
       },
       "format": "typescript",
@@ -2241,36 +2204,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 315,
+        "end": 316,
         "endLoc": {
           "column": 9,
-          "line": 315,
-          "position": 12198
+          "line": 316,
+          "position": 12187
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 309,
+        "start": 310,
         "startLoc": {
           "column": 4,
-          "line": 309,
-          "position": 11964
+          "line": 310,
+          "position": 11953
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 387,
+        "end": 389,
         "endLoc": {
           "column": 35,
-          "line": 387,
-          "position": 13948
+          "line": 389,
+          "position": 14105
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 382,
+        "start": 384,
         "startLoc": {
           "column": 31,
-          "line": 382,
-          "position": 13541
+          "line": 384,
+          "position": 13698
         }
       },
       "format": "typescript",
@@ -2282,32 +2245,32 @@
         "endLoc": {
           "column": 35,
           "line": 48,
-          "position": 1794
+          "position": 1927
         },
         "name": "platformer/rendering/PlatformerCanvasVisuals.ts",
         "start": 44,
         "startLoc": {
           "column": 31,
           "line": 44,
-          "position": 1562
+          "position": 1695
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 390,
+        "end": 392,
         "endLoc": {
           "column": 105,
-          "line": 390,
-          "position": 14194
+          "line": 392,
+          "position": 14351
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 385,
+        "start": 387,
         "startLoc": {
           "column": 4,
-          "line": 385,
-          "position": 13816
+          "line": 387,
+          "position": 13973
         }
       },
       "format": "typescript",
@@ -2315,36 +2278,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 359,
+        "end": 360,
         "endLoc": {
           "column": 105,
-          "line": 359,
-          "position": 13957
+          "line": 360,
+          "position": 13946
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 354,
+        "start": 355,
         "startLoc": {
           "column": 4,
-          "line": 354,
-          "position": 13579
+          "line": 355,
+          "position": 13568
         }
       },
       "tokens": 77
     },
     {
       "firstFile": {
-        "end": 461,
+        "end": 463,
         "endLoc": {
           "column": 88,
-          "line": 461,
-          "position": 16690
+          "line": 463,
+          "position": 16847
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 455,
+        "start": 457,
         "startLoc": {
           "column": 4,
-          "line": 455,
-          "position": 16168
+          "line": 457,
+          "position": 16325
         }
       },
       "format": "typescript",
@@ -2352,36 +2315,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 445,
+        "end": 446,
         "endLoc": {
           "column": 88,
-          "line": 445,
-          "position": 17426
+          "line": 446,
+          "position": 17415
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 439,
+        "start": 440,
         "startLoc": {
           "column": 4,
-          "line": 439,
-          "position": 16906
+          "line": 440,
+          "position": 16895
         }
       },
       "tokens": 75
     },
     {
       "firstFile": {
-        "end": 468,
+        "end": 470,
         "endLoc": {
           "column": 26,
-          "line": 468,
-          "position": 16833
+          "line": 470,
+          "position": 16990
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 460,
+        "start": 462,
         "startLoc": {
           "column": 49,
-          "line": 460,
-          "position": 16600
+          "line": 462,
+          "position": 16757
         }
       },
       "format": "typescript",
@@ -2389,36 +2352,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 630,
+        "end": 632,
         "endLoc": {
           "column": 26,
-          "line": 630,
-          "position": 22318
+          "line": 632,
+          "position": 22475
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 622,
+        "start": 624,
         "startLoc": {
           "column": 47,
-          "line": 622,
-          "position": 22085
+          "line": 624,
+          "position": 22242
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 547,
+        "end": 549,
         "endLoc": {
           "column": 88,
-          "line": 547,
-          "position": 19732
+          "line": 549,
+          "position": 19889
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 541,
+        "start": 543,
         "startLoc": {
           "column": 4,
-          "line": 541,
-          "position": 19212
+          "line": 543,
+          "position": 19369
         }
       },
       "format": "typescript",
@@ -2426,36 +2389,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 527,
+        "end": 528,
         "endLoc": {
           "column": 88,
-          "line": 527,
-          "position": 20797
+          "line": 528,
+          "position": 20786
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 521,
+        "start": 522,
         "startLoc": {
           "column": 4,
-          "line": 521,
-          "position": 20279
+          "line": 522,
+          "position": 20268
         }
       },
       "tokens": 75
     },
     {
       "firstFile": {
-        "end": 553,
+        "end": 555,
         "endLoc": {
           "column": 10,
-          "line": 553,
-          "position": 19836
+          "line": 555,
+          "position": 19993
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 544,
+        "start": 546,
         "startLoc": {
           "column": 34,
-          "line": 544,
-          "position": 19520
+          "line": 546,
+          "position": 19677
         }
       },
       "format": "typescript",
@@ -2463,36 +2426,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 629,
+        "end": 631,
         "endLoc": {
           "column": 10,
-          "line": 629,
-          "position": 22279
+          "line": 631,
+          "position": 22436
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 619,
+        "start": 621,
         "startLoc": {
           "column": 34,
-          "line": 619,
-          "position": 21786
+          "line": 621,
+          "position": 21943
         }
       },
       "tokens": 64
     },
     {
       "firstFile": {
-        "end": 553,
+        "end": 555,
         "endLoc": {
           "column": 30,
-          "line": 553,
-          "position": 19856
+          "line": 555,
+          "position": 20013
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 544,
+        "start": 546,
         "startLoc": {
           "column": 34,
-          "line": 544,
-          "position": 19520
+          "line": 546,
+          "position": 19677
         }
       },
       "format": "typescript",
@@ -2500,36 +2463,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 699,
+        "end": 701,
         "endLoc": {
           "column": 10,
-          "line": 699,
-          "position": 24699
+          "line": 701,
+          "position": 24856
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 689,
+        "start": 691,
         "startLoc": {
           "column": 34,
-          "line": 689,
-          "position": 24360
+          "line": 691,
+          "position": 24517
         }
       },
       "tokens": 70
     },
     {
       "firstFile": {
-        "end": 623,
+        "end": 625,
         "endLoc": {
           "column": 88,
-          "line": 623,
-          "position": 22175
+          "line": 625,
+          "position": 22332
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 616,
+        "start": 618,
         "startLoc": {
           "column": 4,
-          "line": 616,
-          "position": 21478
+          "line": 618,
+          "position": 21635
         }
       },
       "format": "typescript",
@@ -2537,36 +2500,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 612,
+        "end": 613,
         "endLoc": {
           "column": 88,
-          "line": 612,
-          "position": 23885
+          "line": 613,
+          "position": 23874
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 606,
+        "start": 607,
         "startLoc": {
           "column": 4,
-          "line": 606,
-          "position": 23367
+          "line": 607,
+          "position": 23356
         }
       },
       "tokens": 75
     },
     {
       "firstFile": {
-        "end": 692,
+        "end": 694,
         "endLoc": {
           "column": 88,
-          "line": 692,
-          "position": 24572
+          "line": 694,
+          "position": 24729
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 687,
+        "start": 689,
         "startLoc": {
           "column": 4,
-          "line": 687,
-          "position": 24229
+          "line": 689,
+          "position": 24386
         }
       },
       "format": "typescript",
@@ -2574,36 +2537,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 689,
+        "end": 690,
         "endLoc": {
           "column": 88,
-          "line": 689,
-          "position": 26819
+          "line": 690,
+          "position": 26808
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 684,
+        "start": 685,
         "startLoc": {
           "column": 4,
-          "line": 684,
-          "position": 26476
+          "line": 685,
+          "position": 26465
         }
       },
       "tokens": 75
     },
     {
       "firstFile": {
-        "end": 709,
+        "end": 711,
         "endLoc": {
           "column": 139,
-          "line": 709,
-          "position": 25294
+          "line": 711,
+          "position": 25451
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 702,
+        "start": 704,
         "startLoc": {
           "column": 9,
-          "line": 702,
-          "position": 24953
+          "line": 704,
+          "position": 25110
         }
       },
       "format": "typescript",
@@ -2611,36 +2574,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 708,
+        "end": 709,
         "endLoc": {
           "column": 139,
-          "line": 708,
-          "position": 27676
+          "line": 709,
+          "position": 27665
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 701,
+        "start": 702,
         "startLoc": {
           "column": 12,
-          "line": 701,
-          "position": 27335
+          "line": 702,
+          "position": 27324
         }
       },
       "tokens": 58
     },
     {
       "firstFile": {
-        "end": 762,
+        "end": 764,
         "endLoc": {
           "column": 11,
-          "line": 762,
-          "position": 27122
+          "line": 764,
+          "position": 27279
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 757,
+        "start": 759,
         "startLoc": {
           "column": 25,
-          "line": 757,
-          "position": 26903
+          "line": 759,
+          "position": 27060
         }
       },
       "format": "typescript",
@@ -2648,18 +2611,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 765,
+        "end": 766,
         "endLoc": {
           "column": 14,
-          "line": 765,
-          "position": 29976
+          "line": 766,
+          "position": 29965
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 760,
+        "start": 761,
         "startLoc": {
           "column": 31,
-          "line": 760,
-          "position": 29754
+          "line": 761,
+          "position": 29743
         }
       },
       "tokens": 69
@@ -2670,14 +2633,14 @@
         "endLoc": {
           "column": 31,
           "line": 80,
-          "position": 3402
+          "position": 3335
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 31,
           "line": 74,
-          "position": 2992
+          "position": 2925
         }
       },
       "format": "typescript",
@@ -2685,18 +2648,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 254,
+        "end": 255,
         "endLoc": {
           "column": 31,
-          "line": 254,
-          "position": 10098
+          "line": 255,
+          "position": 10087
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 248,
+        "start": 249,
         "startLoc": {
           "column": 35,
-          "line": 248,
-          "position": 9688
+          "line": 249,
+          "position": 9677
         }
       },
       "tokens": 56
@@ -2707,14 +2670,14 @@
         "endLoc": {
           "column": 31,
           "line": 80,
-          "position": 3402
+          "position": 3335
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 31,
           "line": 74,
-          "position": 2992
+          "position": 2925
         }
       },
       "format": "typescript",
@@ -2722,18 +2685,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 311,
+        "end": 312,
         "endLoc": {
           "column": 31,
-          "line": 311,
-          "position": 12092
+          "line": 312,
+          "position": 12081
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 305,
+        "start": 306,
         "startLoc": {
           "column": 31,
-          "line": 305,
-          "position": 11682
+          "line": 306,
+          "position": 11671
         }
       },
       "tokens": 56
@@ -2744,14 +2707,14 @@
         "endLoc": {
           "column": 31,
           "line": 80,
-          "position": 3402
+          "position": 3335
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 31,
           "line": 74,
-          "position": 2992
+          "position": 2925
         }
       },
       "format": "typescript",
@@ -2759,18 +2722,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 356,
+        "end": 357,
         "endLoc": {
           "column": 31,
-          "line": 356,
-          "position": 13707
+          "line": 357,
+          "position": 13696
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 350,
+        "start": 351,
         "startLoc": {
           "column": 35,
-          "line": 350,
-          "position": 13297
+          "line": 351,
+          "position": 13286
         }
       },
       "tokens": 56
@@ -2781,14 +2744,14 @@
         "endLoc": {
           "column": 31,
           "line": 80,
-          "position": 3402
+          "position": 3335
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 31,
           "line": 74,
-          "position": 2992
+          "position": 2925
         }
       },
       "format": "typescript",
@@ -2796,18 +2759,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 406,
+        "end": 407,
         "endLoc": {
           "column": 31,
-          "line": 406,
-          "position": 15886
+          "line": 407,
+          "position": 15875
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 401,
+        "start": 402,
         "startLoc": {
           "column": 32,
-          "line": 401,
-          "position": 15653
+          "line": 402,
+          "position": 15642
         }
       },
       "tokens": 56
@@ -2818,14 +2781,14 @@
         "endLoc": {
           "column": 31,
           "line": 80,
-          "position": 3402
+          "position": 3335
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 31,
           "line": 74,
-          "position": 2992
+          "position": 2925
         }
       },
       "format": "typescript",
@@ -2833,18 +2796,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 441,
+        "end": 442,
         "endLoc": {
           "column": 31,
-          "line": 441,
-          "position": 17034
+          "line": 442,
+          "position": 17023
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 435,
+        "start": 436,
         "startLoc": {
           "column": 29,
-          "line": 435,
-          "position": 16624
+          "line": 436,
+          "position": 16613
         }
       },
       "tokens": 56
@@ -2855,14 +2818,14 @@
         "endLoc": {
           "column": 9,
           "line": 82,
-          "position": 3417
+          "position": 3350
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 31,
           "line": 74,
-          "position": 2992
+          "position": 2925
         }
       },
       "format": "typescript",
@@ -2870,18 +2833,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 525,
+        "end": 526,
         "endLoc": {
           "column": 9,
-          "line": 525,
-          "position": 20596
+          "line": 526,
+          "position": 20585
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 517,
+        "start": 518,
         "startLoc": {
           "column": 27,
-          "line": 517,
-          "position": 19997
+          "line": 518,
+          "position": 19986
         }
       },
       "tokens": 59
@@ -2892,14 +2855,14 @@
         "endLoc": {
           "column": 31,
           "line": 80,
-          "position": 3402
+          "position": 3335
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 31,
           "line": 74,
-          "position": 2992
+          "position": 2925
         }
       },
       "format": "typescript",
@@ -2907,18 +2870,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 609,
+        "end": 610,
         "endLoc": {
           "column": 31,
-          "line": 609,
-          "position": 23670
+          "line": 610,
+          "position": 23659
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 602,
+        "start": 603,
         "startLoc": {
           "column": 28,
-          "line": 602,
-          "position": 23085
+          "line": 603,
+          "position": 23074
         }
       },
       "tokens": 56
@@ -2929,14 +2892,14 @@
         "endLoc": {
           "column": 31,
           "line": 80,
-          "position": 3402
+          "position": 3335
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 31,
           "line": 74,
-          "position": 2992
+          "position": 2925
         }
       },
       "format": "typescript",
@@ -2944,110 +2907,110 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 686,
+        "end": 687,
         "endLoc": {
           "column": 31,
-          "line": 686,
-          "position": 26604
+          "line": 687,
+          "position": 26593
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 680,
+        "start": 681,
         "startLoc": {
           "column": 28,
-          "line": 680,
-          "position": 26194
+          "line": 681,
+          "position": 26183
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 104,
+        "end": 105,
         "endLoc": {
           "column": 36,
-          "line": 104,
-          "position": 4603
+          "line": 105,
+          "position": 4624
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 92,
+        "start": 100,
         "startLoc": {
-          "column": 101,
-          "line": 92,
-          "position": 4214
+          "column": 29,
+          "line": 100,
+          "position": 4422
         }
       },
       "format": "typescript",
-      "fragment": "    const isInvulnerable = health && health.invulnerableRemaining && health.invulnerableRemaining > 0;\n    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;\n\n    const paint = getPaint();\n    canvas.save();\n\n    // 1. Hit Flash effect\n    if (isHitFlash) {\n      paint.reset();\n      paint.setAntiAlias(true);\n      paint.setStyle(Skia.PaintStyle.Fill);\n      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));\n      canvas.drawCircle(0, 0, size * 0.65, paint);",
+      "fragment": "    if (flashState.isFlashing) {\n      paint.reset();\n      paint.setAntiAlias(true);\n      paint.setStyle(Skia.PaintStyle.Fill);\n      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));\n      canvas.drawCircle(0, 0, size * 0.65, paint);",
       "isNew": false,
-      "lines": 13,
+      "lines": 6,
       "secondFile": {
-        "end": 455,
+        "end": 456,
         "endLoc": {
           "column": 36,
-          "line": 455,
-          "position": 17698
+          "line": 456,
+          "position": 17687
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 444,
+        "start": 451,
         "startLoc": {
-          "column": 49,
-          "line": 444,
-          "position": 17336
+          "column": 18,
+          "line": 451,
+          "position": 17485
         }
       },
-      "tokens": 82
+      "tokens": 50
     },
     {
       "firstFile": {
-        "end": 104,
+        "end": 456,
         "endLoc": {
           "column": 13,
-          "line": 104,
-          "position": 4580
+          "line": 456,
+          "position": 17664
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 92,
+        "start": 445,
         "startLoc": {
-          "column": 101,
-          "line": 92,
-          "position": 4214
+          "column": 49,
+          "line": 445,
+          "position": 17325
         }
       },
       "format": "typescript",
-      "fragment": "    const isInvulnerable = health && health.invulnerableRemaining && health.invulnerableRemaining > 0;\n    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;\n\n    const paint = getPaint();\n    canvas.save();\n\n    // 1. Hit Flash effect\n    if (isHitFlash) {\n      paint.reset();\n      paint.setAntiAlias(true);\n      paint.setStyle(Skia.PaintStyle.Fill);\n      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));\n      canvas.drawCircle(0, 0, size * 0.65, paint);",
+      "fragment": "    const state = sm ? sm.currentState : \"Patrol\";\n    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;\n\n    const paint = getPaint();\n    canvas.save();\n\n    if (isHitFlash) {\n      paint.reset();\n      paint.setAntiAlias(true);\n      paint.setStyle(Skia.PaintStyle.Fill);\n      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));\n      canvas.drawCircle(0, 0, size * 0.5, paint);",
       "isNew": false,
-      "lines": 13,
+      "lines": 12,
       "secondFile": {
-        "end": 537,
+        "end": 538,
         "endLoc": {
           "column": 13,
-          "line": 537,
-          "position": 21046
+          "line": 538,
+          "position": 21035
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 526,
+        "start": 527,
         "startLoc": {
           "column": 47,
-          "line": 526,
-          "position": 20707
+          "line": 527,
+          "position": 20696
         }
       },
       "tokens": 74
     },
     {
       "firstFile": {
-        "end": 537,
+        "end": 538,
         "endLoc": {
           "column": 41,
-          "line": 537,
-          "position": 21074
+          "line": 538,
+          "position": 21063
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 524,
+        "start": 525,
         "startLoc": {
           "column": 34,
-          "line": 524,
-          "position": 20585
+          "line": 525,
+          "position": 20574
         }
       },
       "format": "typescript",
@@ -3055,36 +3018,36 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 622,
+        "end": 623,
         "endLoc": {
           "column": 36,
-          "line": 622,
-          "position": 24157
+          "line": 623,
+          "position": 24146
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 609,
+        "start": 610,
         "startLoc": {
           "column": 34,
-          "line": 609,
-          "position": 23673
+          "line": 610,
+          "position": 23662
         }
       },
       "tokens": 109
     },
     {
       "firstFile": {
-        "end": 537,
+        "end": 538,
         "endLoc": {
           "column": 43,
-          "line": 537,
-          "position": 21076
+          "line": 538,
+          "position": 21065
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 524,
+        "start": 525,
         "startLoc": {
           "column": 34,
-          "line": 524,
-          "position": 20585
+          "line": 525,
+          "position": 20574
         }
       },
       "format": "typescript",
@@ -3092,18 +3055,18 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 699,
+        "end": 700,
         "endLoc": {
           "column": 43,
-          "line": 699,
-          "position": 27098
+          "line": 700,
+          "position": 27087
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 686,
+        "start": 687,
         "startLoc": {
           "column": 34,
-          "line": 686,
-          "position": 26607
+          "line": 687,
+          "position": 26596
         }
       },
       "tokens": 110
@@ -3480,11 +3443,11 @@
     },
     {
       "firstFile": {
-        "end": 16,
+        "end": 17,
         "endLoc": {
-          "column": 36,
-          "line": 16,
-          "position": 579
+          "column": 98,
+          "line": 17,
+          "position": 678
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 1,
@@ -3495,15 +3458,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "import { ShapeDrawer, EffectDrawer, TransformComponent } from \"@tiny-aster/core\";\nimport { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield,\n  calculateSquashAndStretch,\n  calculateFlappyPipeGeometry\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";",
+      "fragment": "import { ShapeDrawer, EffectDrawer, TransformComponent } from \"@tiny-aster/core\";\nimport { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield,\n  calculateSquashAndStretch,\n  calculateFlappyPipeGeometry\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";\nimport { resolveHitFlash, resolveInvulnerabilityPulse } from \"../../shared/rendering/RenderUtils\";",
       "isNew": false,
-      "lines": 16,
+      "lines": 17,
       "secondFile": {
-        "end": 16,
+        "end": 17,
         "endLoc": {
-          "column": 36,
-          "line": 16,
-          "position": 579
+          "column": 98,
+          "line": 17,
+          "position": 678
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 1,
@@ -3513,22 +3476,22 @@
           "position": 0
         }
       },
-      "tokens": 55
+      "tokens": 64
     },
     {
       "firstFile": {
-        "end": 125,
+        "end": 126,
         "endLoc": {
           "column": 1,
-          "line": 125,
-          "position": 3665
+          "line": 126,
+          "position": 3764
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 38,
+        "start": 39,
         "startLoc": {
           "column": 0,
-          "line": 38,
-          "position": 1599
+          "line": 39,
+          "position": 1698
         }
       },
       "format": "typescript",
@@ -3536,36 +3499,36 @@
       "isNew": false,
       "lines": 88,
       "secondFile": {
-        "end": 129,
+        "end": 130,
         "endLoc": {
           "column": 1,
-          "line": 129,
-          "position": 3426
+          "line": 130,
+          "position": 3525
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 44,
+        "start": 45,
         "startLoc": {
           "column": 0,
-          "line": 44,
-          "position": 1702
+          "line": 45,
+          "position": 1801
         }
       },
       "tokens": 438
     },
     {
       "firstFile": {
-        "end": 95,
+        "end": 96,
         "endLoc": {
           "column": 8,
-          "line": 95,
-          "position": 2849
+          "line": 96,
+          "position": 2948
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 86,
+        "start": 87,
         "startLoc": {
           "column": 19,
-          "line": 86,
-          "position": 2680
+          "line": 87,
+          "position": 2779
         }
       },
       "format": "typescript",
@@ -3573,36 +3536,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 63,
+        "end": 64,
         "endLoc": {
           "column": 8,
-          "line": 63,
-          "position": 1863
+          "line": 64,
+          "position": 1962
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 54,
+        "start": 55,
         "startLoc": {
           "column": 21,
-          "line": 54,
-          "position": 1694
+          "line": 55,
+          "position": 1793
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 115,
+        "end": 116,
         "endLoc": {
           "column": 8,
-          "line": 115,
-          "position": 3446
+          "line": 116,
+          "position": 3545
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 104,
+        "start": 105,
         "startLoc": {
           "column": 2,
-          "line": 104,
-          "position": 3017
+          "line": 105,
+          "position": 3116
         }
       },
       "format": "typescript",
@@ -3610,36 +3573,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 84,
+        "end": 85,
         "endLoc": {
           "column": 8,
-          "line": 84,
-          "position": 2483
+          "line": 85,
+          "position": 2582
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 73,
+        "start": 74,
         "startLoc": {
           "column": 2,
-          "line": 73,
-          "position": 2055
+          "line": 74,
+          "position": 2154
         }
       },
       "tokens": 78
     },
     {
       "firstFile": {
-        "end": 115,
+        "end": 116,
         "endLoc": {
           "column": 8,
-          "line": 115,
-          "position": 3446
+          "line": 116,
+          "position": 3545
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 106,
+        "start": 107,
         "startLoc": {
           "column": 27,
-          "line": 106,
-          "position": 3268
+          "line": 107,
+          "position": 3367
         }
       },
       "format": "typescript",
@@ -3665,18 +3628,18 @@
     },
     {
       "firstFile": {
-        "end": 213,
+        "end": 214,
         "endLoc": {
           "column": 56,
-          "line": 213,
-          "position": 6485
+          "line": 214,
+          "position": 6584
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 204,
+        "start": 205,
         "startLoc": {
           "column": 4,
-          "line": 204,
-          "position": 5957
+          "line": 205,
+          "position": 6056
         }
       },
       "format": "typescript",
@@ -3684,36 +3647,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 247,
+        "end": 248,
         "endLoc": {
           "column": 56,
-          "line": 247,
-          "position": 7358
+          "line": 248,
+          "position": 7457
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 239,
+        "start": 240,
         "startLoc": {
           "column": 4,
-          "line": 239,
-          "position": 7005
+          "line": 240,
+          "position": 7104
         }
       },
       "tokens": 76
     },
     {
       "firstFile": {
-        "end": 232,
+        "end": 233,
         "endLoc": {
           "column": 11,
-          "line": 232,
-          "position": 7079
+          "line": 233,
+          "position": 7178
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 213,
+        "start": 214,
         "startLoc": {
           "column": 55,
-          "line": 213,
-          "position": 6484
+          "line": 214,
+          "position": 6583
         }
       },
       "format": "typescript",
@@ -3721,36 +3684,36 @@
       "isNew": false,
       "lines": 20,
       "secondFile": {
-        "end": 269,
+        "end": 270,
         "endLoc": {
           "column": 11,
-          "line": 269,
-          "position": 8223
+          "line": 270,
+          "position": 8322
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 250,
+        "start": 251,
         "startLoc": {
           "column": 45,
-          "line": 250,
-          "position": 7628
+          "line": 251,
+          "position": 7727
         }
       },
       "tokens": 99
     },
     {
       "firstFile": {
-        "end": 242,
+        "end": 243,
         "endLoc": {
           "column": 36,
-          "line": 242,
-          "position": 7680
+          "line": 243,
+          "position": 7779
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 233,
+        "start": 234,
         "startLoc": {
           "column": 52,
-          "line": 233,
-          "position": 7175
+          "line": 234,
+          "position": 7274
         }
       },
       "format": "typescript",
@@ -3758,36 +3721,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 279,
+        "end": 280,
         "endLoc": {
           "column": 36,
-          "line": 279,
-          "position": 8836
+          "line": 280,
+          "position": 8935
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 270,
+        "start": 271,
         "startLoc": {
           "column": 58,
-          "line": 270,
-          "position": 8331
+          "line": 271,
+          "position": 8430
         }
       },
       "tokens": 118
     },
     {
       "firstFile": {
-        "end": 250,
+        "end": 251,
         "endLoc": {
           "column": 11,
-          "line": 250,
-          "position": 8014
+          "line": 251,
+          "position": 8113
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 242,
+        "start": 243,
         "startLoc": {
           "column": 41,
-          "line": 242,
-          "position": 7685
+          "line": 243,
+          "position": 7784
         }
       },
       "format": "typescript",
@@ -3795,36 +3758,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 288,
+        "end": 289,
         "endLoc": {
           "column": 11,
-          "line": 288,
-          "position": 9351
+          "line": 289,
+          "position": 9450
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 279,
+        "start": 280,
         "startLoc": {
           "column": 43,
-          "line": 279,
-          "position": 8843
+          "line": 280,
+          "position": 8942
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 270,
+        "end": 271,
         "endLoc": {
           "column": 11,
-          "line": 270,
-          "position": 9187
+          "line": 271,
+          "position": 9286
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 254,
+        "start": 255,
         "startLoc": {
           "column": 6,
-          "line": 254,
-          "position": 8386
+          "line": 255,
+          "position": 8485
         }
       },
       "format": "typescript",
@@ -3832,73 +3795,73 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 305,
+        "end": 306,
         "endLoc": {
           "column": 11,
-          "line": 305,
-          "position": 10326
+          "line": 306,
+          "position": 10425
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 288,
+        "start": 289,
         "startLoc": {
           "column": 6,
-          "line": 288,
-          "position": 9346
+          "line": 289,
+          "position": 9445
         }
       },
       "tokens": 179
     },
     {
       "firstFile": {
-        "end": 301,
+        "end": 306,
         "endLoc": {
-          "column": 10,
-          "line": 301,
-          "position": 10861
+          "column": 5,
+          "line": 306,
+          "position": 11243
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 274,
+        "start": 275,
         "startLoc": {
           "column": 6,
-          "line": 274,
-          "position": 9559
+          "line": 275,
+          "position": 9658
         }
       },
       "format": "typescript",
-      "fragment": "      const sCount = 8 + world.renderRandom.nextInt(0, 4);\n      for (let i = 0; i < sCount; i++) {\n        const angleVal = world.renderRandom.next() * Math.PI * 2;\n        const speedVal = world.renderRandom.nextRange(40, 120);\n        const pVx = Math.cos(angleVal) * speedVal;\n        const pVy = Math.sin(angleVal) * speedVal;\n        const lifeVal = world.renderRandom.nextRange(0.6, 1.1);\n        const sizeVal = world.renderRandom.nextRange(3, 6);\n        spawnVisualParticle(\"shard\", x, y, pVx, pVy, lifeVal, sizeVal, \"#5A6173\", angleVal, world.renderRandom.nextRange(-4, 4));\n      }\n      for (let i = 0; i < 12; i++) {\n        const angleVal = world.renderRandom.next() * Math.PI * 2;\n        const speedVal = world.renderRandom.nextRange(80, 200);\n        const pVx = Math.cos(angleVal) * speedVal;\n        const pVy = Math.sin(angleVal) * speedVal;\n        const lifeVal = world.renderRandom.nextRange(0.25, 0.5);\n        const sizeVal = world.renderRandom.nextRange(2, 5);\n        spawnVisualParticle(\"spark\", x, y, pVx, pVy, lifeVal, sizeVal, \"#FF3300\", angleVal);\n      }\n    }\n\n    state.lastVy = vy;\n    state.lastIsAlive = isAlive;\n    state.lastNearMissTimer = birdComp.nearMissTimer;\n\n    let globalOpacity = 1.0;\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      if (Math.floor(render.hitFlashFrames / 2) % 2 === 0) {",
+      "fragment": "      const sCount = 8 + world.renderRandom.nextInt(0, 4);\n      for (let i = 0; i < sCount; i++) {\n        const angleVal = world.renderRandom.next() * Math.PI * 2;\n        const speedVal = world.renderRandom.nextRange(40, 120);\n        const pVx = Math.cos(angleVal) * speedVal;\n        const pVy = Math.sin(angleVal) * speedVal;\n        const lifeVal = world.renderRandom.nextRange(0.6, 1.1);\n        const sizeVal = world.renderRandom.nextRange(3, 6);\n        spawnVisualParticle(\"shard\", x, y, pVx, pVy, lifeVal, sizeVal, \"#5A6173\", angleVal, world.renderRandom.nextRange(-4, 4));\n      }\n      for (let i = 0; i < 12; i++) {\n        const angleVal = world.renderRandom.next() * Math.PI * 2;\n        const speedVal = world.renderRandom.nextRange(80, 200);\n        const pVx = Math.cos(angleVal) * speedVal;\n        const pVy = Math.sin(angleVal) * speedVal;\n        const lifeVal = world.renderRandom.nextRange(0.25, 0.5);\n        const sizeVal = world.renderRandom.nextRange(2, 5);\n        spawnVisualParticle(\"spark\", x, y, pVx, pVy, lifeVal, sizeVal, \"#FF3300\", angleVal);\n      }\n    }\n\n    state.lastVy = vy;\n    state.lastIsAlive = isAlive;\n    state.lastNearMissTimer = birdComp.nearMissTimer;\n\n    const flashState = resolveHitFlash(render, render.color || \"yellow\", 1.0, 0.35);\n    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: \"interval\", multiplier: 0.01, dimOpacity: 0.35 });\n\n    let globalOpacity = flashState.isFlashing ? flashState.opacity : 1.0;\n    if (invState.isInvulnerable) {\n      globalOpacity = invState.opacity;\n    }",
       "isNew": false,
-      "lines": 28,
+      "lines": 32,
       "secondFile": {
-        "end": 332,
+        "end": 337,
         "endLoc": {
-          "column": 10,
-          "line": 332,
-          "position": 11623
+          "column": 5,
+          "line": 337,
+          "position": 12005
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 305,
+        "start": 306,
         "startLoc": {
           "column": 6,
-          "line": 305,
-          "position": 10321
+          "line": 306,
+          "position": 10420
         }
       },
-      "tokens": 309
+      "tokens": 360
     },
     {
       "firstFile": {
-        "end": 488,
+        "end": 486,
         "endLoc": {
           "column": 9,
-          "line": 488,
-          "position": 17545
+          "line": 486,
+          "position": 17629
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 469,
+        "start": 467,
         "startLoc": {
           "column": 4,
-          "line": 469,
-          "position": 16990
+          "line": 467,
+          "position": 17074
         }
       },
       "format": "typescript",
@@ -3906,36 +3869,36 @@
       "isNew": false,
       "lines": 20,
       "secondFile": {
-        "end": 470,
+        "end": 468,
         "endLoc": {
           "column": 9,
-          "line": 470,
-          "position": 16596
+          "line": 468,
+          "position": 16691
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 452,
+        "start": 450,
         "startLoc": {
           "column": 4,
-          "line": 452,
-          "position": 16087
+          "line": 450,
+          "position": 16182
         }
       },
       "tokens": 107
     },
     {
       "firstFile": {
-        "end": 774,
+        "end": 772,
         "endLoc": {
           "column": 11,
-          "line": 774,
-          "position": 27767
+          "line": 772,
+          "position": 27851
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 767,
+        "start": 765,
         "startLoc": {
           "column": 36,
-          "line": 767,
-          "position": 27437
+          "line": 765,
+          "position": 27521
         }
       },
       "format": "typescript",
@@ -3943,36 +3906,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 730,
+        "end": 728,
         "endLoc": {
           "column": 11,
-          "line": 730,
-          "position": 26253
+          "line": 728,
+          "position": 26348
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 723,
+        "start": 721,
         "startLoc": {
           "column": 61,
-          "line": 723,
-          "position": 25923
+          "line": 721,
+          "position": 26018
         }
       },
       "tokens": 78
     },
     {
       "firstFile": {
-        "end": 808,
+        "end": 806,
         "endLoc": {
           "column": 5,
-          "line": 808,
-          "position": 29288
+          "line": 806,
+          "position": 29372
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 786,
+        "start": 784,
         "startLoc": {
           "column": 4,
-          "line": 786,
-          "position": 28226
+          "line": 784,
+          "position": 28310
         }
       },
       "format": "typescript",
@@ -3980,36 +3943,36 @@
       "isNew": false,
       "lines": 23,
       "secondFile": {
-        "end": 770,
+        "end": 768,
         "endLoc": {
           "column": 5,
-          "line": 770,
-          "position": 27930
+          "line": 768,
+          "position": 28025
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 748,
+        "start": 746,
         "startLoc": {
           "column": 4,
-          "line": 748,
-          "position": 26868
+          "line": 746,
+          "position": 26963
         }
       },
       "tokens": 217
     },
     {
       "firstFile": {
-        "end": 850,
+        "end": 848,
         "endLoc": {
           "column": 64,
-          "line": 850,
-          "position": 30959
+          "line": 848,
+          "position": 31043
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 839,
+        "start": 837,
         "startLoc": {
           "column": 4,
-          "line": 839,
-          "position": 30375
+          "line": 837,
+          "position": 30459
         }
       },
       "format": "typescript",
@@ -4017,36 +3980,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 809,
+        "end": 807,
         "endLoc": {
           "column": 64,
-          "line": 809,
-          "position": 29547
+          "line": 807,
+          "position": 29642
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 798,
+        "start": 796,
         "startLoc": {
           "column": 4,
-          "line": 798,
-          "position": 28963
+          "line": 796,
+          "position": 29058
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 859,
+        "end": 857,
         "endLoc": {
           "column": 48,
-          "line": 859,
-          "position": 31316
+          "line": 857,
+          "position": 31400
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 854,
+        "start": 852,
         "startLoc": {
           "column": 25,
-          "line": 854,
-          "position": 31088
+          "line": 852,
+          "position": 31172
         }
       },
       "format": "typescript",
@@ -4054,36 +4017,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 821,
+        "end": 819,
         "endLoc": {
           "column": 48,
-          "line": 821,
-          "position": 29982
+          "line": 819,
+          "position": 30077
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 816,
+        "start": 814,
         "startLoc": {
           "column": 31,
-          "line": 816,
-          "position": 29754
+          "line": 814,
+          "position": 29849
         }
       },
       "tokens": 67
     },
     {
       "firstFile": {
-        "end": 498,
+        "end": 496,
         "endLoc": {
           "column": 35,
-          "line": 498,
-          "position": 17632
+          "line": 496,
+          "position": 17727
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 492,
+        "start": 490,
         "startLoc": {
           "column": 70,
-          "line": 492,
-          "position": 17448
+          "line": 490,
+          "position": 17543
         }
       },
       "format": "typescript",
@@ -4091,18 +4054,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 531,
+        "end": 529,
         "endLoc": {
           "column": 35,
-          "line": 531,
-          "position": 18845
+          "line": 529,
+          "position": 18940
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 525,
+        "start": 523,
         "startLoc": {
           "column": 80,
-          "line": 525,
-          "position": 18661
+          "line": 523,
+          "position": 18756
         }
       },
       "tokens": 50
@@ -4479,18 +4442,18 @@
     },
     {
       "firstFile": {
-        "end": 42,
+        "end": 43,
         "endLoc": {
           "column": 33,
-          "line": 42,
-          "position": 1960
+          "line": 43,
+          "position": 2059
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 16,
+        "start": 17,
         "startLoc": {
           "column": 9,
-          "line": 16,
-          "position": 740
+          "line": 17,
+          "position": 839
         }
       },
       "format": "typescript",
@@ -4498,36 +4461,36 @@
       "isNew": false,
       "lines": 27,
       "secondFile": {
-        "end": 143,
+        "end": 144,
         "endLoc": {
           "column": 33,
-          "line": 143,
-          "position": 4571
+          "line": 144,
+          "position": 4670
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 116,
+        "start": 117,
         "startLoc": {
           "column": 0,
-          "line": 116,
-          "position": 3350
+          "line": 117,
+          "position": 3449
         }
       },
       "tokens": 168
     },
     {
       "firstFile": {
-        "end": 65,
+        "end": 66,
         "endLoc": {
           "column": 43,
-          "line": 65,
-          "position": 2794
+          "line": 66,
+          "position": 2893
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 51,
+        "start": 52,
         "startLoc": {
           "column": 8,
-          "line": 51,
-          "position": 2178
+          "line": 52,
+          "position": 2277
         }
       },
       "format": "typescript",
@@ -4535,36 +4498,36 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 166,
+        "end": 167,
         "endLoc": {
           "column": 43,
-          "line": 166,
-          "position": 5407
+          "line": 167,
+          "position": 5506
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 152,
+        "start": 153,
         "startLoc": {
           "column": 8,
-          "line": 152,
-          "position": 4791
+          "line": 153,
+          "position": 4890
         }
       },
       "tokens": 118
     },
     {
       "firstFile": {
-        "end": 114,
+        "end": 115,
         "endLoc": {
           "column": 51,
-          "line": 114,
-          "position": 4918
+          "line": 115,
+          "position": 5017
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 103,
+        "start": 104,
         "startLoc": {
           "column": 4,
-          "line": 103,
-          "position": 4242
+          "line": 104,
+          "position": 4341
         }
       },
       "format": "typescript",
@@ -4572,36 +4535,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 221,
+        "end": 222,
         "endLoc": {
           "column": 53,
-          "line": 221,
-          "position": 7952
+          "line": 222,
+          "position": 8051
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 210,
+        "start": 211,
         "startLoc": {
           "column": 6,
-          "line": 210,
-          "position": 7256
+          "line": 211,
+          "position": 7355
         }
       },
       "tokens": 151
     },
     {
       "firstFile": {
-        "end": 143,
+        "end": 144,
         "endLoc": {
           "column": 65,
-          "line": 143,
-          "position": 5919
+          "line": 144,
+          "position": 6018
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 123,
+        "start": 124,
         "startLoc": {
           "column": 8,
-          "line": 123,
-          "position": 5178
+          "line": 124,
+          "position": 5277
         }
       },
       "format": "typescript",
@@ -4609,18 +4572,18 @@
       "isNew": false,
       "lines": 21,
       "secondFile": {
-        "end": 250,
+        "end": 251,
         "endLoc": {
           "column": 67,
-          "line": 250,
-          "position": 9009
+          "line": 251,
+          "position": 9108
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 230,
+        "start": 231,
         "startLoc": {
           "column": 10,
-          "line": 230,
-          "position": 8232
+          "line": 231,
+          "position": 8331
         }
       },
       "tokens": 158
@@ -4631,14 +4594,14 @@
         "endLoc": {
           "column": 33,
           "line": 226,
-          "position": 8227
+          "position": 8407
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 221,
         "startLoc": {
           "column": 23,
           "line": 221,
-          "position": 7971
+          "position": 8151
         }
       },
       "format": "typescript",
@@ -4650,14 +4613,14 @@
         "endLoc": {
           "column": 33,
           "line": 256,
-          "position": 9089
+          "position": 9269
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 251,
         "startLoc": {
           "column": 23,
           "line": 251,
-          "position": 8833
+          "position": 9013
         }
       },
       "tokens": 53
@@ -4668,14 +4631,14 @@
         "endLoc": {
           "column": 27,
           "line": 295,
-          "position": 10158
+          "position": 10338
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 285,
         "startLoc": {
           "column": 45,
           "line": 285,
-          "position": 9958
+          "position": 10138
         }
       },
       "format": "typescript",
@@ -4687,14 +4650,14 @@
         "endLoc": {
           "column": 27,
           "line": 406,
-          "position": 13127
+          "position": 13307
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 396,
         "startLoc": {
           "column": 45,
           "line": 396,
-          "position": 12927
+          "position": 13107
         }
       },
       "tokens": 55
@@ -4705,14 +4668,14 @@
         "endLoc": {
           "column": 41,
           "line": 341,
-          "position": 11432
+          "position": 11612
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 336,
         "startLoc": {
           "column": 28,
           "line": 336,
-          "position": 11168
+          "position": 11348
         }
       },
       "format": "typescript",
@@ -4724,14 +4687,14 @@
         "endLoc": {
           "column": 41,
           "line": 370,
-          "position": 12120
+          "position": 12300
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 365,
         "startLoc": {
           "column": 28,
           "line": 365,
-          "position": 11856
+          "position": 12036
         }
       },
       "tokens": 55
@@ -4742,14 +4705,14 @@
         "endLoc": {
           "column": 15,
           "line": 350,
-          "position": 11599
+          "position": 11779
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 338,
         "startLoc": {
           "column": 50,
           "line": 338,
-          "position": 11322
+          "position": 11502
         }
       },
       "format": "typescript",
@@ -4761,14 +4724,14 @@
         "endLoc": {
           "column": 15,
           "line": 405,
-          "position": 13090
+          "position": 13270
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 392,
         "startLoc": {
           "column": 49,
           "line": 392,
-          "position": 12632
+          "position": 12812
         }
       },
       "tokens": 69
@@ -4779,14 +4742,14 @@
         "endLoc": {
           "column": 5,
           "line": 455,
-          "position": 15101
+          "position": 15281
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 428,
         "startLoc": {
           "column": 36,
           "line": 428,
-          "position": 14033
+          "position": 14213
         }
       },
       "format": "typescript",
@@ -4798,14 +4761,14 @@
         "endLoc": {
           "column": 5,
           "line": 633,
-          "position": 20900
+          "position": 21090
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 606,
         "startLoc": {
           "column": 31,
           "line": 606,
-          "position": 19832
+          "position": 20022
         }
       },
       "tokens": 185
@@ -4816,14 +4779,14 @@
         "endLoc": {
           "column": 5,
           "line": 477,
-          "position": 15907
+          "position": 16087
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 467,
         "startLoc": {
           "column": 31,
           "line": 467,
-          "position": 15599
+          "position": 15779
         }
       },
       "format": "typescript",
@@ -4835,32 +4798,32 @@
         "endLoc": {
           "column": 5,
           "line": 494,
-          "position": 16559
+          "position": 16739
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 484,
         "startLoc": {
           "column": 32,
           "line": 484,
-          "position": 16251
+          "position": 16431
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 63,
+        "end": 64,
         "endLoc": {
           "column": 8,
-          "line": 63,
-          "position": 1863
+          "line": 64,
+          "position": 1962
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 51,
+        "start": 52,
         "startLoc": {
           "column": 27,
-          "line": 51,
-          "position": 1470
+          "line": 52,
+          "position": 1569
         }
       },
       "format": "typescript",
@@ -4886,18 +4849,18 @@
     },
     {
       "firstFile": {
-        "end": 199,
+        "end": 200,
         "endLoc": {
           "column": 9,
-          "line": 199,
-          "position": 6596
+          "line": 200,
+          "position": 6695
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 31,
-          "line": 191,
-          "position": 6195
+          "line": 192,
+          "position": 6294
         }
       },
       "format": "typescript",
@@ -4909,32 +4872,32 @@
         "endLoc": {
           "column": 9,
           "line": 325,
-          "position": 11008
+          "position": 11198
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 318,
         "startLoc": {
           "column": 29,
           "line": 318,
-          "position": 10787
+          "position": 10977
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 199,
+        "end": 200,
         "endLoc": {
           "column": 41,
-          "line": 199,
-          "position": 6628
+          "line": 200,
+          "position": 6727
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 31,
-          "line": 191,
-          "position": 6195
+          "line": 192,
+          "position": 6294
         }
       },
       "format": "typescript",
@@ -4946,32 +4909,32 @@
         "endLoc": {
           "column": 31,
           "line": 355,
-          "position": 12059
+          "position": 12249
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 347,
         "startLoc": {
           "column": 27,
           "line": 347,
-          "position": 11637
+          "position": 11827
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 200,
+        "end": 201,
         "endLoc": {
           "column": 8,
-          "line": 200,
-          "position": 6680
+          "line": 201,
+          "position": 6779
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 31,
-          "line": 191,
-          "position": 6195
+          "line": 192,
+          "position": 6294
         }
       },
       "format": "typescript",
@@ -4983,32 +4946,32 @@
         "endLoc": {
           "column": 33,
           "line": 395,
-          "position": 13452
+          "position": 13642
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 386,
         "startLoc": {
           "column": 27,
           "line": 386,
-          "position": 12992
+          "position": 13182
         }
       },
       "tokens": 65
     },
     {
       "firstFile": {
-        "end": 199,
+        "end": 200,
         "endLoc": {
           "column": 41,
-          "line": 199,
-          "position": 6628
+          "line": 200,
+          "position": 6727
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 31,
-          "line": 191,
-          "position": 6195
+          "line": 192,
+          "position": 6294
         }
       },
       "format": "typescript",
@@ -5020,32 +4983,32 @@
         "endLoc": {
           "column": 31,
           "line": 429,
-          "position": 14231
+          "position": 14421
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 422,
         "startLoc": {
           "column": 26,
           "line": 422,
-          "position": 13988
+          "position": 14178
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 199,
+        "end": 200,
         "endLoc": {
           "column": 41,
-          "line": 199,
-          "position": 6628
+          "line": 200,
+          "position": 6727
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 31,
-          "line": 191,
-          "position": 6195
+          "line": 192,
+          "position": 6294
         }
       },
       "format": "typescript",
@@ -5057,32 +5020,32 @@
         "endLoc": {
           "column": 31,
           "line": 465,
-          "position": 15220
+          "position": 15410
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 458,
         "startLoc": {
           "column": 27,
           "line": 458,
-          "position": 14977
+          "position": 15167
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 199,
+        "end": 200,
         "endLoc": {
           "column": 41,
-          "line": 199,
-          "position": 6628
+          "line": 200,
+          "position": 6727
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 31,
-          "line": 191,
-          "position": 6195
+          "line": 192,
+          "position": 6294
         }
       },
       "format": "typescript",
@@ -5094,32 +5057,32 @@
         "endLoc": {
           "column": 31,
           "line": 495,
-          "position": 16094
+          "position": 16284
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 488,
         "startLoc": {
           "column": 32,
           "line": 488,
-          "position": 15851
+          "position": 16041
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 200,
+        "end": 201,
         "endLoc": {
           "column": 8,
-          "line": 200,
-          "position": 6680
+          "line": 201,
+          "position": 6779
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 31,
-          "line": 191,
-          "position": 6195
+          "line": 192,
+          "position": 6294
         }
       },
       "format": "typescript",
@@ -5131,32 +5094,32 @@
         "endLoc": {
           "column": 33,
           "line": 533,
-          "position": 17334
+          "position": 17524
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 524,
         "startLoc": {
           "column": 32,
           "line": 524,
-          "position": 16874
+          "position": 17064
         }
       },
       "tokens": 65
     },
     {
       "firstFile": {
-        "end": 199,
+        "end": 200,
         "endLoc": {
           "column": 41,
-          "line": 199,
-          "position": 6628
+          "line": 200,
+          "position": 6727
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 31,
-          "line": 191,
-          "position": 6195
+          "line": 192,
+          "position": 6294
         }
       },
       "format": "typescript",
@@ -5168,32 +5131,32 @@
         "endLoc": {
           "column": 31,
           "line": 564,
-          "position": 18229
+          "position": 18419
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 557,
         "startLoc": {
           "column": 36,
           "line": 557,
-          "position": 17986
+          "position": 18176
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 202,
+        "end": 203,
         "endLoc": {
           "column": 9,
-          "line": 202,
-          "position": 6710
+          "line": 203,
+          "position": 6809
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 191,
+        "start": 192,
         "startLoc": {
           "column": 79,
-          "line": 191,
-          "position": 6243
+          "line": 192,
+          "position": 6342
         }
       },
       "format": "typescript",
@@ -5223,14 +5186,14 @@
         "endLoc": {
           "column": 12,
           "line": 347,
-          "position": 11622
+          "position": 11812
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 334,
         "startLoc": {
           "column": 39,
           "line": 334,
-          "position": 11397
+          "position": 11587
         }
       },
       "format": "typescript",
@@ -5242,14 +5205,14 @@
         "endLoc": {
           "column": 12,
           "line": 557,
-          "position": 17962
+          "position": 18152
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 542,
         "startLoc": {
           "column": 28,
           "line": 542,
-          "position": 17697
+          "position": 17887
         }
       },
       "tokens": 51
@@ -5260,14 +5223,14 @@
         "endLoc": {
           "column": 25,
           "line": 365,
-          "position": 12457
+          "position": 12647
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 355,
         "startLoc": {
           "column": 34,
           "line": 355,
-          "position": 12062
+          "position": 12252
         }
       },
       "format": "typescript",
@@ -5279,14 +5242,14 @@
         "endLoc": {
           "column": 25,
           "line": 505,
-          "position": 16492
+          "position": 16682
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 495,
         "startLoc": {
           "column": 34,
           "line": 495,
-          "position": 16097
+          "position": 16287
         }
       },
       "tokens": 51
@@ -5297,14 +5260,14 @@
         "endLoc": {
           "column": 16,
           "line": 369,
-          "position": 12554
+          "position": 12744
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 357,
         "startLoc": {
           "column": 43,
           "line": 357,
-          "position": 12286
+          "position": 12476
         }
       },
       "format": "typescript",
@@ -5316,14 +5279,14 @@
         "endLoc": {
           "column": 16,
           "line": 407,
-          "position": 13730
+          "position": 13920
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 395,
         "startLoc": {
           "column": 43,
           "line": 395,
-          "position": 13462
+          "position": 13652
         }
       },
       "tokens": 72
@@ -5334,14 +5297,14 @@
         "endLoc": {
           "column": 38,
           "line": 440,
-          "position": 14673
+          "position": 14863
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 431,
         "startLoc": {
           "column": 43,
           "line": 431,
-          "position": 14458
+          "position": 14648
         }
       },
       "format": "typescript",
@@ -5353,14 +5316,14 @@
         "endLoc": {
           "column": 38,
           "line": 476,
-          "position": 15661
+          "position": 15851
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 467,
         "startLoc": {
           "column": 43,
           "line": 467,
-          "position": 15446
+          "position": 15636
         }
       },
       "tokens": 57
@@ -5371,14 +5334,14 @@
         "endLoc": {
           "column": 16,
           "line": 443,
-          "position": 14726
+          "position": 14916
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 431,
         "startLoc": {
           "column": 43,
           "line": 431,
-          "position": 14458
+          "position": 14648
         }
       },
       "format": "typescript",
@@ -5390,14 +5353,14 @@
         "endLoc": {
           "column": 16,
           "line": 509,
-          "position": 16589
+          "position": 16779
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 497,
         "startLoc": {
           "column": 43,
           "line": 497,
-          "position": 16321
+          "position": 16511
         }
       },
       "tokens": 72
@@ -5408,14 +5371,14 @@
         "endLoc": {
           "column": 14,
           "line": 442,
-          "position": 14689
+          "position": 14879
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 431,
         "startLoc": {
           "column": 43,
           "line": 431,
-          "position": 14458
+          "position": 14648
         }
       },
       "format": "typescript",
@@ -5427,14 +5390,14 @@
         "endLoc": {
           "column": 11,
           "line": 545,
-          "position": 17751
+          "position": 17941
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 533,
         "startLoc": {
           "column": 43,
           "line": 533,
-          "position": 17344
+          "position": 17534
         }
       },
       "tokens": 59
@@ -5445,14 +5408,14 @@
         "endLoc": {
           "column": 28,
           "line": 444,
-          "position": 14764
+          "position": 14954
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 431,
         "startLoc": {
           "column": 43,
           "line": 431,
-          "position": 14458
+          "position": 14648
         }
       },
       "format": "typescript",
@@ -5464,14 +5427,14 @@
         "endLoc": {
           "column": 28,
           "line": 579,
-          "position": 18761
+          "position": 18951
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 566,
         "startLoc": {
           "column": 43,
           "line": 566,
-          "position": 18455
+          "position": 18645
         }
       },
       "tokens": 86
@@ -5482,14 +5445,14 @@
         "endLoc": {
           "column": 5,
           "line": 663,
-          "position": 21941
+          "position": 22131
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 651,
         "startLoc": {
           "column": 31,
           "line": 651,
-          "position": 21551
+          "position": 21741
         }
       },
       "format": "typescript",
@@ -5501,14 +5464,14 @@
         "endLoc": {
           "column": 5,
           "line": 683,
-          "position": 22692
+          "position": 22882
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 671,
         "startLoc": {
           "column": 32,
           "line": 671,
-          "position": 22302
+          "position": 22492
         }
       },
       "tokens": 80
@@ -7217,32 +7180,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-07T00:50:44.393Z",
+    "detectionDate": "2026-09-07T09:46:44.126Z",
     "formats": {
       "typescript": {
-        "clones": 204,
-        "duplicatedLines": 2189,
-        "duplicatedTokens": 16626,
-        "lines": 52084,
+        "clones": 194,
+        "duplicatedLines": 2086,
+        "duplicatedTokens": 15780,
+        "lines": 52151,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 4.202826203824591,
-        "percentageTokens": 6.039164120986695,
-        "sources": 318,
-        "tokens": 275303
+        "percentage": 3.999923299649096,
+        "percentageTokens": 5.7313667021396375,
+        "sources": 319,
+        "tokens": 275327
       }
     },
     "total": {
-      "clones": 204,
-      "duplicatedLines": 2189,
-      "duplicatedTokens": 16626,
-      "lines": 52084,
+      "clones": 194,
+      "duplicatedLines": 2086,
+      "duplicatedTokens": 15780,
+      "lines": 52151,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 4.202826203824591,
-      "percentageTokens": 6.039164120986695,
-      "sources": 318,
-      "tokens": 275303
+      "percentage": 3.999923299649096,
+      "percentageTokens": 5.7313667021396375,
+      "sources": 319,
+      "tokens": 275327
     }
   }
 }

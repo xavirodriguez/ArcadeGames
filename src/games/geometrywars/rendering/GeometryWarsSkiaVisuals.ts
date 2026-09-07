@@ -2,6 +2,7 @@ import { ShapeDrawer, EffectDrawer, TransformComponent, World, Entity, RenderCom
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-17. Considerar extraer a función compartida. Ref: 1ea2a5b9
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
@@ -268,10 +269,9 @@ export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry>
 
     let visualOpacity = render.opacity ?? 1.0;
     // Invulnerability flashing blinking feedback in Skia
-    if (player.invulnRemaining > 0) {
-      if (Math.floor(world.tick / 4) % 2 === 0) {
-        visualOpacity = 0.3;
-      }
+    const invState = resolveInvulnerabilityPulse(player.invulnRemaining, visualOpacity, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
+    if (invState.isInvulnerable) {
+      visualOpacity = invState.opacity;
     }
 
     // 1. Draw glowing neon stroke outline using a Skia path

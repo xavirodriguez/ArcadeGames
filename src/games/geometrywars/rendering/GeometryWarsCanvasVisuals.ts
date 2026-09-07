@@ -3,6 +3,7 @@ import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { getDrawable } from "../../shared/rendering/renderingUtils";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:123-149. Considerar extraer a función compartida. Ref: a6905ddf
 export function spawnVisualParticle(
@@ -158,10 +159,9 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
     ctx.save();
 
     // Invulnerability flashing blinking feedback
-    if (player.invulnRemaining > 0) {
-      if (Math.floor(world.tick / 4) % 2 === 0) {
-        ctx.globalAlpha = 0.3;
-      }
+    const invState = resolveInvulnerabilityPulse(player.invulnRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
+    if (invState.isInvulnerable) {
+      ctx.globalAlpha = invState.opacity;
     }
 
     ctx.strokeStyle = color;

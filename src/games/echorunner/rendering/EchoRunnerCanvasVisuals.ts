@@ -1,5 +1,6 @@
 import { ShapeDrawer, EffectDrawer, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 const gradientCache = new Map<number, CanvasGradient>();
 let lastCtx: CanvasRenderingContext2D | null = null;
@@ -134,7 +135,8 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.save();
 
     // 1. Hit Flash effect (bright white flash)
-    if (isHitFlash) {
+    const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
+    if (flashState.isFlashing) {
       ctx.fillStyle = ECHO_PALETTE.restorationWhite;
       ctx.shadowColor = ECHO_PALETTE.corruptionCrimson;
       ctx.shadowBlur = 15;
@@ -146,9 +148,9 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     }
 
     // 2. Invulnerability translucency flickering
-    if (isInvulnerable) {
-      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:124-156. Considerar extraer a función compartida. Ref: bb4edea1
-      ctx.globalAlpha = 0.4 + 0.5 * Math.sin(world.tick * 0.8);
+    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
+    if (invState.isInvulnerable) {
+      ctx.globalAlpha = invState.opacity;
     }
 
     // 3. Pose calculations

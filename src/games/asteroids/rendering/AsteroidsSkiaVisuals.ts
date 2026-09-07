@@ -3,6 +3,7 @@ import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
 // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:2-15. Considerar extraer a función compartida. Ref: ab23c6ab
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
@@ -30,23 +31,18 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     let opacity = 1.0;
 
     // Hit Flash Transparency Pulse
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if ((render.hitFlashFrames >> 1) % 2 === 0) {
-        opacity = 0.3;
-      }
-      // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:30-39. Considerar extraer a función compartida. Ref: c4bcd449
-      colorStr = colors.white;
+    const flashState = resolveHitFlash(render, colorStr, 1.0);
+    if (flashState.isFlashing) {
+      opacity = flashState.opacity;
+      colorStr = flashState.color;
     }
 
     // Invulnerability Pulse
-    const hasInvulnerable = world.hasComponent(entity, "Invulnerable");
-    if (hasInvulnerable) {
+    if (world.hasComponent(entity, "Invulnerable")) {
       const inv = world.getComponent(entity, "Invulnerable");
-      if (inv && inv.remaining > 0) {
-        const pulse = Math.floor(inv.remaining * 10) % 2;
-        if (pulse === 0) {
-          opacity = 0.3;
-        }
+      const invState = resolveInvulnerabilityPulse(inv?.remaining, opacity, { mode: "time" });
+      if (invState.isInvulnerable) {
+        opacity = invState.opacity;
       }
     }
 
@@ -145,11 +141,10 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
     canvas.save();
 
     let opacity = 1.0;
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      if ((render.hitFlashFrames >> 1) % 2 === 0) {
-        opacity = 0.3;
-      }
-      colorStr = colors.white;
+    const flashState = resolveHitFlash(render, colorStr, 1.0);
+    if (flashState.isFlashing) {
+      opacity = flashState.opacity;
+      colorStr = flashState.color;
     }
 
     const paint = getPaint();

@@ -1,12 +1,8 @@
 import { RenderComponent, World } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
-import { colors } from "../../../theme/colors";
+import { resolveHitFlash, HitFlashState } from "../../shared/rendering/RenderUtils";
 
-export interface HitFlashState {
-  color: string;
-  opacity: number;
-  isFlashing: boolean;
-}
+export type { HitFlashState };
 
 /**
  * Calculates hit flash presentation properties (color and opacity) for an entity.
@@ -17,21 +13,7 @@ export function applyHitFlash(
   baseColor: string,
   baseOpacity: number = 1.0
 ): HitFlashState {
-  if (!render) {
-    return { color: baseColor, opacity: baseOpacity, isFlashing: false };
-  }
-
-  const frames = render.hitFlashFrames ?? 0;
-  if (frames > 0) {
-    const isDimmed = Math.floor(frames / 2) % 2 === 0;
-    return {
-      color: colors.white,
-      opacity: isDimmed ? 0.3 : baseOpacity,
-      isFlashing: true
-    };
-  }
-
-  return { color: baseColor, opacity: baseOpacity, isFlashing: false };
+  return resolveHitFlash(render, baseColor, baseOpacity);
 }
 
 /**

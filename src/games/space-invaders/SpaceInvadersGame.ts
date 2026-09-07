@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
 import { EnemyFactory } from "./EnemyFactory";
@@ -746,6 +746,63 @@ export class SpaceInvadersGame
     this.setInputState(input);
   }
 
+  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<Record<string, unknown>, any, SpaceInvadersComponentRegistry>[] = [
+    {
+      serverIdPrefix: "player",
+      localPlayerPolicy: "mark",
+      getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; sessionId?: string }>,
+      spawn: (world, entity, state) => {
+        this.blueprints.get("player")?.spawn(world, entity, { x: state.x, y: state.y });
+      },
+      onLocalPlayerMark: (world, entity) => {
+        const commands = world.getCommandBuffer();
+        if (!world.hasComponent(entity, "LocalPlayer")) {
+          commands.addComponent(entity, { type: "LocalPlayer" });
+        }
+        if (!world.hasComponent(entity, "Input")) {
+          commands.addComponent(entity, {
+            type: "Input",
+            moveLeft: false,
+            moveRight: false,
+            shoot: false,
+            shootCooldownRemaining: 0,
+          });
+        }
+      },
+      sync: (world, entity, state) => {
+        world.mutateComponent(entity, "Render", render => {
+          render.color = state.alive ? "green" : "red";
+        });
+      }
+    },
+    {
+      serverIdPrefix: "invader",
+      getStateMap: (root) => {
+        if (!root.invaders || typeof root.invaders !== "object") return undefined;
+        const result: Record<string, { x: number; y: number; alive: boolean; id: string }> = {};
+        for (const [id, inv] of Object.entries(root.invaders as Record<string, any>)) {
+          if (inv && inv.alive) {
+            result[id] = inv;
+          }
+        }
+        return result;
+      },
+      spawn: (world, entity, state) => {
+        this.blueprints.get("invader")?.spawn(world, entity, { x: state.x, y: state.y, row: 0, col: 0 });
+      },
+      sync: () => {}
+    },
+    {
+      serverIdPrefix: "bullet",
+      getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; ownerId: string }>,
+      spawn: (world, entity, state) => {
+        const bpName = state.ownerId === "player" ? "player_bullet" : "enemy_bullet";
+        this.blueprints.get(bpName)?.spawn(world, entity, { x: state.x, y: state.y });
+      },
+      sync: () => {}
+    }
+  ];
+
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
     const world = this.getWorld();
@@ -764,105 +821,37 @@ export class SpaceInvadersGame
     }
 
     const replicator = this.networkManager.getReplicator();
-    const commands = world.getCommandBuffer();
-
     const currentServerEntities = new Set<string>();
 
-    // Sync with NetworkManager for interpolation
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:411-422. Considerar extraer a función compartida. Ref: 6b235ffa
-    const snapshot: WorldSnapshot = {
-        tick: (state.tick as number) || 0,
-        entities: [],
-        componentData: { Transform: {} },
-        stateVersion: 0,
-        structureVersion: 0,
-        seed: 0,
-        nextEntityId: 0,
-        freeEntities: []
-    };
+    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {
+      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);
+    });
 
-    // Update Players
-    if (state.players && typeof state.players === 'object') {
-      // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:366-372. Considerar extraer a función compartida. Ref: 7a271799
-      const players = state.players as Record<string, { x: number, y: number, alive: boolean, sessionId?: string }>;
-      Object.entries(players).forEach(([sessionId, playerState]) => {
-        const serverId = `player_${sessionId}`;
-        currentServerEntities.add(serverId);
-
-        const entity = replicator.resolveEntity(serverId, world);
-        if (!world.hasComponent(entity, "Transform")) {
-          this.blueprints.get("player")?.spawn(world, entity, { x: playerState.x, y: playerState.y });
-        }
-
-        if (sessionId === localSessionId && !world.hasComponent(entity, "LocalPlayer" as any)) {
-          commands.addComponent(entity, { type: "LocalPlayer" } as any);
-          if (!world.hasComponent(entity, "Input" as any)) {
-            commands.addComponent(entity, {
-              type: "Input",
-              moveLeft: false,
-              moveRight: false,
-              shoot: false,
-              shootCooldownRemaining: 0,
-            } as any);
-          }
-        }
-
-        snapshot.entities.push(entity);
-        snapshot.componentData["Transform"][entity] = { type: "Transform", x: playerState.x, y: playerState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: playerState.x, worldY: playerState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
-
-        world.mutateComponent(entity, "Render", render => {
-          render.color = playerState.alive ? "green" : "red";
-        });
+    const entries: InterpolationSnapshotEntry[] = [];
+    if (state.players) {
+      Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
+        const entityId = replicator.getLocalId(`player_${sessionId}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
+      });
+    }
+    if (state.invaders) {
+      Object.entries(state.invaders as Record<string, any>).forEach(([id, p]) => {
+        if (!p.alive) return;
+        const entityId = replicator.getLocalId(`invader_${id}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
+      });
+    }
+    if (state.bullets) {
+      Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
+        const entityId = replicator.getLocalId(`bullet_${id}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
       });
     }
 
-    // Update Invaders
-    if (state.invaders && typeof state.invaders === 'object') {
-      const invaders = state.invaders as Record<string, { x: number, y: number, alive: boolean, id: string }>;
-      Object.entries(invaders).forEach(([id, invaderState]) => {
-        if (!invaderState.alive) return;
-        const serverId = `invader_${id}`;
-        currentServerEntities.add(serverId);
-
-        const entity = replicator.resolveEntity(serverId, world);
-        if (!world.hasComponent(entity, "Transform")) {
-          this.blueprints.get("invader")?.spawn(world, entity, { x: invaderState.x, y: invaderState.y, row: 0, col: 0 });
-        }
-
-        snapshot.entities.push(entity);
-        snapshot.componentData["Transform"][entity] = { type: "Transform", x: invaderState.x, y: invaderState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: invaderState.x, worldY: invaderState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
-      });
-    }
-
-    // Update Bullets
-    if (state.bullets && typeof state.bullets === 'object') {
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:222-228. Considerar extraer a función compartida. Ref: 31cad89a
-      const bullets = state.bullets as Record<string, { x: number, y: number, ownerId: string }>;
-      Object.entries(bullets).forEach(([id, bulletState]) => {
-        const serverId = `bullet_${id}`;
-        currentServerEntities.add(serverId);
-
-        const entity = replicator.resolveEntity(serverId, world);
-        if (!world.hasComponent(entity, "Transform")) {
-          const bpName = bulletState.ownerId === "player" ? "player_bullet" : "enemy_bullet";
-          this.blueprints.get(bpName)?.spawn(world, entity, { x: bulletState.x, y: bulletState.y });
-        }
-
-        snapshot.entities.push(entity);
-        snapshot.componentData["Transform"][entity] = { type: "Transform", x: bulletState.x, y: bulletState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: bulletState.x, worldY: bulletState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
-      });
-    }
-
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:441-456. Considerar extraer a función compartida. Ref: a1d6c8d1
+    const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);
     this.networkManager.processServerUpdate(snapshot.tick, snapshot, localSessionId);
 
-    // Cleanup removed entities
-    replicator.getMappings().forEach((entity: number, serverId: string) => {
-      if (!currentServerEntities.has(serverId)) {
-        commands.removeEntity(entity);
-        replicator.removeMapping(serverId);
-      }
-    });
+    pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());
 
     // Deferred CommandBuffer Flush Lifecycle:
     // When updateFromServer is executed out-of-band (e.g., upon receiving a server network snapshot message

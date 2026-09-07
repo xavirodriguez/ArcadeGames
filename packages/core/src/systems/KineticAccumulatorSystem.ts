@@ -15,8 +15,8 @@ import { FactionComponent } from "../ai/FactionComponent";
  * Fires `"kinetic:burst"` events via EventBus when burst is activated.
  */
 export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
-  // Pre-allocated array to track active grazes per accumulator without hot loop allocations
-  private _grazedEntities: Set<string> = new Set();
+  // Numeric composite key (entity & 0x3FFFFFF) * 67108864 + (hostileEntity & 0x3FFFFFF) avoids string allocations
+  private _grazedEntities: Set<number> = new Set();
 
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
@@ -33,23 +33,31 @@ export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
       const faction = world.getComponent(entity, "Faction") as FactionComponent | undefined;
       if (!transform || !velocity) continue;
 
-      const acc = world.getMutableComponent(entity, "KineticAccumulator");
+      const acc = world.getComponent(entity, "KineticAccumulator");
       if (!acc) continue;
+
+      let mutAcc: KineticAccumulatorComponent | undefined;
 
       // If burst is requested by input or state trigger while ready, trigger burst shockwave
       if (acc.isBurstReady && acc.isBurstActive) {
-        acc.storedEnergy = 0;
-        acc.isBurstReady = false;
-        acc.isBurstActive = false;
-        world.getEventBus().emit("kinetic:burst" as never, {
-          entity,
-          x: transform.x,
-          y: transform.y,
-          radius: acc.burstRadius,
-        });
+        mutAcc = world.getMutableComponent(entity, "KineticAccumulator");
+        if (mutAcc) {
+          mutAcc.storedEnergy = 0;
+          mutAcc.isBurstReady = false;
+          mutAcc.isBurstActive = false;
+          world.getEventBus().emit("kinetic:burst" as never, {
+            entity,
+            x: transform.x,
+            y: transform.y,
+            radius: acc.burstRadius,
+          });
+        }
       } else if (acc.isBurstActive) {
         // Reset unfulfilled burst request
-        acc.isBurstActive = false;
+        mutAcc = world.getMutableComponent(entity, "KineticAccumulator");
+        if (mutAcc) {
+          mutAcc.isBurstActive = false;
+        }
       }
 
       // 1. Accumulate energy from movement speed
@@ -58,7 +66,10 @@ export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
         const speed = Math.sqrt(speedSq);
         // Normalize against base speed factor of 100px/s
         const normalizedSpeed = speed / 100;
-        acc.storedEnergy = Math.min(acc.maxEnergy, acc.storedEnergy + acc.chargeOnMoveRate * normalizedSpeed * deltaTime);
+        mutAcc ??= world.getMutableComponent(entity, "KineticAccumulator");
+        if (mutAcc) {
+          mutAcc.storedEnergy = Math.min(mutAcc.maxEnergy, mutAcc.storedEnergy + mutAcc.chargeOnMoveRate * normalizedSpeed * deltaTime);
+        }
       }
 
       // 2. Graze / Near-Miss detection against hostile targets
@@ -82,10 +93,13 @@ export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
           const distSq = dx * dx + dy * dy;
 
           if (distSq <= grazeRadiusSq) {
-            const grazeKey = `${entity}:${hostileEntity}`;
+            const grazeKey = (entity & 0x3FFFFFF) * 67108864 + (hostileEntity & 0x3FFFFFF);
             if (!this._grazedEntities.has(grazeKey)) {
               this._grazedEntities.add(grazeKey);
-              acc.storedEnergy = Math.min(acc.maxEnergy, acc.storedEnergy + acc.grazeChargeAmount);
+              mutAcc ??= world.getMutableComponent(entity, "KineticAccumulator");
+              if (mutAcc) {
+                mutAcc.storedEnergy = Math.min(mutAcc.maxEnergy, mutAcc.storedEnergy + mutAcc.grazeChargeAmount);
+              }
               world.getEventBus().emit("kinetic:graze" as never, {
                 entity,
                 hostileEntity,
@@ -97,8 +111,15 @@ export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
         }
       }
 
-      // Update burst readiness state
-      acc.isBurstReady = acc.storedEnergy >= acc.maxEnergy;
+      // Update burst readiness state when state changes
+      const currentEnergy = mutAcc ? mutAcc.storedEnergy : acc.storedEnergy;
+      const isReadyNow = currentEnergy >= acc.maxEnergy;
+      if (acc.isBurstReady !== isReadyNow) {
+        mutAcc ??= world.getMutableComponent(entity, "KineticAccumulator");
+        if (mutAcc) {
+          mutAcc.isBurstReady = isReadyNow;
+        }
+      }
     }
   }
 

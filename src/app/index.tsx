@@ -17,7 +17,7 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "platformer" | "cyoa" | "blindstation" | "campaign";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign";
   href: Href<string>;
 }
 
@@ -30,6 +30,7 @@ const GAMES: GameEntry[] = [
   { id: "geometrywars", key: "geometrywars", href: "/geometrywars" },
   { id: "echorunner", key: "echorunner", href: "/echorunner" },
   { id: "platformer", key: "platformer", href: "/platformer" },
+  { id: "frogger", key: "frogger", href: "/frogger" },
   { id: "cyoa", key: "cyoa", href: "/cyoa" },
   { id: "blindstation", key: "blindstation", href: "/blindstation" },
 ];
@@ -74,6 +75,7 @@ export default function HomeScreen() {
       const path = gameId === "asteroids" ? "/asteroids" :
                  gameId === "pong" ? "/pong" :
                  gameId === "flappybird" ? "/flappybird" :
+                 gameId === "frogger" ? "/frogger" :
                  "/space-invaders";
 
       // For MVP we just navigate to asteroids with the seed

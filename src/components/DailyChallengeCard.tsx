@@ -18,7 +18,7 @@ export const DailyChallengeCard: React.FC<DailyChallengeCardProps> = ({ onPlay }
 
   useEffect(() => {
     // Reproducible daily game rotation based on seed
-    const availableGames = ["asteroids", "pong", "flappybird", "space-invaders"];
+    const availableGames = ["asteroids", "pong", "flappybird", "space-invaders", "frogger"];
     const dateKey = DailyChallengeService.getDateKey();
     const dateNum = parseInt(dateKey, 10);
     const todayGameId = availableGames[dateNum % availableGames.length];

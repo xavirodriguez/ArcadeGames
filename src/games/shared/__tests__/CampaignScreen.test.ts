@@ -9,7 +9,7 @@ describe("CampaignScreen Component & Resolver Tests", () => {
     registerDefaultCampaignGames();
   });
 
-  it("resolves registered GameDefinition for all 7 minigames", () => {
+  it("resolves registered GameDefinition for all registered minigames", () => {
     const gameIds = [
       "asteroids",
       "echorunner",
@@ -17,7 +17,8 @@ describe("CampaignScreen Component & Resolver Tests", () => {
       "flappybird",
       "pong",
       "geometrywars",
-      "platformer"
+      "platformer",
+      "frogger"
     ];
 
     for (const id of gameIds) {

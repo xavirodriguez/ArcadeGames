@@ -348,8 +348,12 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     protected onApplyInputFrame(input: CompactInputFrame): void;
     protected onBeforeRestart(): Promise<void>;
     protected onInitializeEntities(): Promise<void>;
+    protected onPause(): void;
     protected onPreloadAssets(): Promise<void>;
     protected onRegisterSystems(): Promise<void>;
+    protected onResume(): void;
+    protected onStart(): void;
+    protected onStop(): void;
     pause(): void;
     protected registerResizeListener(): void;
     restart(seed?: number): Promise<void>;

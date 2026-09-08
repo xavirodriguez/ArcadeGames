@@ -481,10 +481,6 @@ export class FlappyBirdGame
   public isGameOver(): boolean {
     return this.getGameState().isGameOver;
   }
-
-  public getWorld(): World<FlappyBirdComponentRegistry> {
-    return this.world;
-  }
 }
 
 export class NullFlappyBirdGame extends NullBaseGame<FlappyBirdState, FlappyBirdInput, FlappyBirdComponentRegistry> implements IFlappyBirdGame {

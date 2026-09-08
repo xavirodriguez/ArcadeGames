@@ -544,6 +544,7 @@ export abstract class BaseGame<
     }
     this.lifecycleState = GameLifecycleState.RUNNING;
     this.loop.start();
+    this.onStart();
   }
 
   /**
@@ -562,6 +563,7 @@ export abstract class BaseGame<
     if (this.kernel.getState() === ArcadeState.PLAYING) {
       this.kernel.transitionTo(ArcadeState.PAUSED);
     }
+    this.onPause();
   }
 
   /**
@@ -580,6 +582,7 @@ export abstract class BaseGame<
     if (this.kernel.getState() === ArcadeState.PAUSED) {
       this.kernel.transitionTo(ArcadeState.PLAYING);
     }
+    this.onResume();
   }
 
   /**
@@ -641,6 +644,7 @@ export abstract class BaseGame<
     if (this.lifecycleState !== GameLifecycleState.RUNNING && this.lifecycleState !== GameLifecycleState.PAUSED) return;
     this.lifecycleState = GameLifecycleState.STOPPED;
     this.loop.stop();
+    this.onStop();
   }
 
   /**
@@ -832,6 +836,34 @@ export abstract class BaseGame<
    * Executed at the beginning of `restart()`.
    */
   protected async onBeforeRestart(): Promise<void> {
+    // Overridden by subclasses if needed
+  }
+
+  /**
+   * Template method hook for subclasses to execute custom logic when starting the game loop.
+   */
+  protected onStart(): void {
+    // Overridden by subclasses if needed
+  }
+
+  /**
+   * Template method hook for subclasses to execute custom logic when pausing the game loop.
+   */
+  protected onPause(): void {
+    // Overridden by subclasses if needed
+  }
+
+  /**
+   * Template method hook for subclasses to execute custom logic when resuming the game loop.
+   */
+  protected onResume(): void {
+    // Overridden by subclasses if needed
+  }
+
+  /**
+   * Template method hook for subclasses to execute custom logic when stopping the game loop.
+   */
+  protected onStop(): void {
     // Overridden by subclasses if needed
   }
 

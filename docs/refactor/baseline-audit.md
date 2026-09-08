@@ -1,72 +1,92 @@
 # Auditoría Baseline de `BaseGame` y Subclases
 
-Este documento constituye el informe de auditoría de la Fase 0 para `packages/core/src/runtime/BaseGame.ts` y las subclases de juegos en `src/games/*`.
+Este documento presenta la auditoría baseline de `packages/core/src/runtime/BaseGame.ts` y las subclases de juegos concretos que lo extienden (`AsteroidsGame`, `PongGame`, `SpaceInvadersGame`, `GeometryWarsGame`, `FlappyBirdGame` y `EchoRunnerGame`).
 
 ---
 
-## Auditoría de Miembros de `BaseGame`
+## Tabla de Clasificación de Miembros de BaseGame
 
-A continuación se clasifican todos los miembros públicos y protegidos de `BaseGame` en las cuatro categorías principales:
-- **DEFINITION**: describe el juego (hooks abstractos, config, blueprints).
-- **SIMULATION**: mecánica del juego, ECS, estado, snapshot, restore, hash, input, tick, RNG, lifecycle de simulación.
-- **PRESENTATION**: renderizado, gestión de escenas, viewport, resizing, VFX visuales.
-- **SERVICE**: audio, red, depuración, diagnósticos, almacenamiento.
+Categorías utilizadas:
+- **DEFINITION**: describe el juego (hooks abstractos, configuración, registrador de blueprints, mutadores).
+- **SIMULATION**: mecánica y estado del juego (step, snapshot, restore, hash, input, tick, RNG, congelamiento/pausa de simulación, kernel de estados).
+- **PRESENTATION**: renderizado y capa visual (sceneManager, canvas, GameLoop, resize listeners, VFX).
+- **SERVICE**: infraestructura y utilidades transversales (audio, red, diagnósticos/debugManager, eventBus).
+
+### Resoluciones de Taxonomía Definitiva (Fase 3)
+
+1. **`eventBus` -> SERVICE**: Bus central de eventos (`EventBus<TEvents>`). Sirve como canal de comunicación transversal entre el runtime de simulación, la capa de presentación y los subscriptores de audio o red. No es un estado ECS serializable de la simulación.
+2. **`kernel` -> SIMULATION**: Máquina de estados de sesión (`ArcadeKernel`) que gestiona transiciones entre `PLAYING`, `PAUSED` y `GAME_OVER`. Determina directamente la validez del estado de avance de la simulación.
+3. **`loop` / `getGameLoop()` -> PRESENTATION**: Runner del bucle de tiempo `GameLoop` (60 FPS) utilizado para el renderizado e hilo de cliente. En ejecuciones deterministas de servidor o impulsadas por `GameSession`, el loop interno se deshabilita (`manualLoop`).
+4. **`unifiedInput` / `getInputSystem()` -> SIMULATION**: Sistema unificado de entrada (`IInputSystem<TInput>`) responsable de decodificar y proveer las acciones e intenciones de los jugadores que alimentan los ticks de simulación (`step()`).
+
+---
+
+### Propiedades, Getters y Setters Públicos/Protegidos
 
 | Miembro | Categoría | Descripción | Sobreescrito / Duplicado en Subclases |
-| :--- | :--- | :--- | :--- |
-| `tick` (getter) | SIMULATION | Devuelve el tick actual del `World` ECS. | Ninguno. |
-| `state` (getter) | SIMULATION | Devuelve la representación de estado del juego llamando a `getGameState()`. | Ninguno. |
-| `step(input)` | SIMULATION | Avanza la simulación 1 tick (1/60s) aplicando el frame de input. | Ninguno. |
+|---|---|---|---|
+| `tick` | SIMULATION | Getter de número de tick actual del `World`. | Ninguno. |
+| `state` | SIMULATION | Getter del estado de alto nivel (`getGameState()`). | Ninguno. |
+| `world` | SIMULATION | Instancia principal del `World` ECS. | Ninguno. Unificado a través de `BaseGame.world`. |
+| `eventBus` | SERVICE | Bus central de eventos de tipo `EventBus<TEvents>`. | Ninguno. |
+| `blueprints` | DEFINITION | Registro de planos de entidades `BlueprintRegistry`. | Ninguno. |
+| `loop` | PRESENTATION | Runner del bucle de juego `GameLoop`. | Ninguno. |
+| `unifiedInput` | SIMULATION | Sistema unificado de entrada `IInputSystem<TInput>`. | Ninguno. |
+| `_config` | DEFINITION | Opciones de configuración base del juego `BaseGameConfig`. | Accedido/re-asignado en `onRegisterSystems` de varias subclases. |
+| `kernel` | SIMULATION | Máquina de estados de sesión/flujo `ArcadeKernel`. | Ninguno. |
+| `sceneManager` | PRESENTATION | Gestor de escenas de presentación `SceneManager`. | Usado/destruido explícitamente en `SpaceInvadersGame` y `GeometryWarsGame`. |
+| `audio` | SERVICE | Reproductor de audio `IAudioPlayer`. | Ninguno. |
+| `canvas` | PRESENTATION | Elemento HTMLCanvasElement objetivo de renderizado. | Ninguno. |
+| `debugManager` | SERVICE | Interface de diagnósticos y métricas para overlays. | Ninguno. |
+
+### Métodos Públicos y Protegidos
+
+| Miembro | Categoría | Descripción | Sobreescrito / Duplicado en Subclases (Archivo y Líneas) |
+|---|---|---|---|
+| `step(input)` | SIMULATION | Avanza la simulación exactamente 1 tick con un frame de input compacto. | Ninguno. |
 | `onApplyInputFrame(input)` | SIMULATION | Hook protegido para decodificar bitmasks de entrada. | Ninguno. |
-| `snapshot()` | SIMULATION | Captura un `WorldSnapshot` del `World`. | Ninguno. |
-| `restore(snapshot)` | SIMULATION | Restaura el estado del `World` desde un snapshot. | Ninguno. |
-| `hash()` | SIMULATION | Calcula un hash FNV-1a binario/AoS del estado de simulación. | Ninguno. |
-| `world` | SIMULATION | Instancia primaria del contenedor ECS `World`. | `SpaceInvadersGame` (L563), `GeometryWarsGame` (L297), `FlappyBirdGame` (L490) duplican esto mediante un getter `getWorld()`. |
-| `eventBus` | SIMULATION | Instancia central de `EventBus`. | Ninguno. |
-| `blueprints` | DEFINITION | Registro central de blueprints/prefabs. | Ninguno. |
-| `loop` | SIMULATION / PRESENTATION | Ticker `GameLoop` interno (60 FPS). | Ninguno. |
-| `unifiedInput` | SIMULATION / SERVICE | Sistema unificado de entrada (`IInputSystem`). | Ninguno. |
-| `_config` | DEFINITION | Configuración base del juego (`BaseGameConfig`). | Ninguno. |
-| `kernel` | SIMULATION / SERVICE | Máquina de estados de sesión (`ArcadeKernel`). | Ninguno. |
-| `sceneManager` | PRESENTATION | Gestor de escenas y transiciones narrativas/visuales. | Ninguno. |
-| `audio` | SERVICE | Interfaz de reproducción de audio (`IAudioPlayer`). | Ninguno. |
-| `canvas` | PRESENTATION | Referencia opcional al elemento Canvas HTML. | Ninguno. |
-| `debugManager` (getter) | SERVICE | Interfaz para diagnósticos, timings, event logs y colisionadores. | Ninguno. |
-| `getWorld()` | SIMULATION | Getter para obtener la instancia de `World`. | Sobreescrito/redefinido en `SpaceInvadersGame.ts` (L563), `GeometryWarsGame.ts` (L297) [retorna `scene.getWorld()`], `FlappyBirdGame.ts` (L490). |
-| `getEventBus()` | SIMULATION | Getter para obtener el `EventBus`. | Ninguno. |
-| `getInputSystem()` | SIMULATION / SERVICE | Getter para obtener el `IInputSystem`. | Ninguno. |
-| `getGameLoop()` | SIMULATION | Getter para obtener el `GameLoop`. | Ninguno. |
-| `getLastError()` | SIMULATION / SERVICE | Devuelve el último error capturado por el ticker. | Ninguno. |
-| `subscribeError(cb)` | SERVICE | Suscripción a excepciones no capturadas del loop. | Ninguno. |
-| `init()` | SIMULATION / LIFECYCLE | Plantilla asíncrona de inicialización (`onRegisterSystems` -> `onInitializeEntities` -> `start`). | Ninguno. |
-| `start()` | SIMULATION / LIFECYCLE | Arranca la ejecución del bucle de juego. | Sobreescrito en `AsteroidsGame.ts` (L386) [solo agrega `console.log`], `SpaceInvadersGame.ts` (L701) [solo agrega `console.log`]. |
-| `pause()` | SIMULATION / LIFECYCLE | Pausa el bucle y asigna la del recurso `"IsPaused"`. | Sobreescrito en `AsteroidsGame.ts` (L397) [duplica `super.pause()` + log], `SpaceInvadersGame.ts` (L710) [duplica `setResource` + log]. |
-| `resume()` | SIMULATION / LIFECYCLE | Reanuda el bucle y remueve el recurso `"IsPaused"`. | Sobreescrito en `AsteroidsGame.ts` (L402) [duplica `super.resume()` + log], `SpaceInvadersGame.ts` (L716) [duplica `setResource` + log]. |
+| `snapshot()` | SIMULATION | Captura un `WorldSnapshot` serializable. | Ninguno. |
+| `restore(snapshot)` | SIMULATION | Restaura el estado desde un `WorldSnapshot`. | Ninguno. |
+| `hash()` | SIMULATION | Calcula hash FNV-1a determinista del estado. | Ninguno. |
+| `getWorld()` | SIMULATION | Devuelve la instancia del `World`. | Sobreescrito únicamente en `GeometryWarsGame.ts` para delegación explícita a `currentScene.getWorld()`. Eliminados los overrides redundantes de `SpaceInvadersGame` y `FlappyBirdGame`. |
+| `getEventBus()` | SERVICE | Devuelve el `EventBus`. | Ninguno. |
+| `getInputSystem()` | SIMULATION | Devuelve el sistema de entrada unificado. | Ninguno. |
+| `getGameLoop()` | PRESENTATION | Devuelve el `GameLoop`. | Ninguno. |
+| `getLastError()` | SERVICE | Devuelve el último error capturado por el bucle. | Ninguno. |
+| `subscribeError(cb)` | SERVICE | Suscribe listener a errores no manejados del bucle. | Ninguno. |
+| `init()` | DEFINITION / SIMULATION | Template method de inicialización asíncrona. | Ninguno. |
+| `start()` | SIMULATION | Inicia la ejecución del bucle e invoca `onStart()`. | Lógica personalizada delegada a hook `onStart()` en `AsteroidsGame` y `SpaceInvadersGame`. |
+| `pause()` | SIMULATION | Pausa el bucle, asigna recurso `"IsPaused"` e invoca `onPause()`. | Lógica personalizada delegada a hook `onPause()` en `AsteroidsGame` y `SpaceInvadersGame`. |
+| `resume()` | SIMULATION | Reanuda el bucle, remueve recurso `"IsPaused"` e invoca `onResume()`. | Lógica personalizada delegada a hook `onResume()` en `AsteroidsGame` y `SpaceInvadersGame`. |
+| `stop()` | SIMULATION | Detiene la ejecución del bucle e invoca `onStop()`. | Corregido omitir `super.stop()`. Lógica delegada a hook `onStop()` en `SpaceInvadersGame`. |
+| `onStart()` | SIMULATION | Hook protegido invocado al iniciar la ejecución. | Sobreescrito en `AsteroidsGame.ts` y `SpaceInvadersGame.ts`. |
+| `onPause()` | SIMULATION | Hook protegido invocado al pausar la ejecución. | Sobreescrito en `AsteroidsGame.ts` y `SpaceInvadersGame.ts`. |
+| `onResume()` | SIMULATION | Hook protegido invocado al reanudar la ejecución. | Sobreescrito en `AsteroidsGame.ts` y `SpaceInvadersGame.ts`. |
+| `onStop()` | SIMULATION | Hook protegido invocado al detener la ejecución. | Sobreescrito en `SpaceInvadersGame.ts`. |
 | `isPausedState()` | SIMULATION | Indica si el juego está en estado pausado. | Ninguno. |
-| `enterGameplayFreeze(duration)` | SIMULATION | Congelamiento suave de simulación. | Ninguno. |
-| `exitGameplayFreeze()` | SIMULATION | Salida de congelamiento suave. | Ninguno. |
-| `isGameplayFrozen()` | SIMULATION | Consulta de congelamiento de gameplay. | Ninguno. |
-| `getGameplayFreezeRemaining()` | SIMULATION | Tiempo restante de congelamiento. | Ninguno. |
-| `getLifecycleState()` | SIMULATION / LIFECYCLE | Devuelve el estado actual (`GameLifecycleState`). | Ninguno. |
-| `stop()` | SIMULATION / LIFECYCLE | Detiene la ejecución del ticker. | Definido independientemente / sobreescrito en `SpaceInvadersGame.ts` (L706) [agrega log sin llamar a `super.stop()`]. |
-| `calculateScreenConfig()` | PRESENTATION | Computa dimensiones de pantalla/canvas y ratio de píxeles. | Ninguno. |
-| `handleScreenResize()` | PRESENTATION | Recalcula la config de pantalla y actualiza recurso `"ScreenConfig"`. | Ninguno. |
-| `registerResizeListener()` | PRESENTATION | Registra el listener de evento `resize` de ventana. | Ninguno. |
-| `unregisterResizeListener()` | PRESENTATION | Remueve el listener de evento `resize`. | Ninguno. |
-| `setupCommonArcadeResources()` | PRESENTATION | Configura pantalla y listener de resize. | Invocado explícitamente en `AsteroidsGame` (L122), `SpaceInvadersGame` (L87), `PongGame` (L111), `GeometryWarsGame` (L71), `FlappyBirdGame` (L65), `EchoRunnerGame` (L231). |
-| `applyServerStateUpdate(update)` | SERVICE | Aplica actualizaciones del servidor al `World` y ejecuta `flush()`. | Sobreescrito/no usado directamente en subclases; varias subclases (`SpaceInvadersGame` L605, `GeometryWarsGame` L152, `FlappyBirdGame` L301, `PongGame` L374) implementan su propia versión `updateFromServer`. |
-| `destroy()` | SIMULATION / LIFECYCLE | Destruye el loop, horarios y listeners. | Sobreescrito en `AsteroidsGame.ts` (L391) [llama a `super.destroy()` y limpia pools]. |
-| `restart(seed)` | SIMULATION / LIFECYCLE | Reinicia la sesión recreando el `World` e invocando `init()`. | Ninguno. |
-| `subscribe(cb)` | PRESENTATION / SERVICE | Suscribe callbacks a updates de renderizado. | Ninguno. |
-| `update(dt)` | SIMULATION | Método abstracto para avanzar la lógica por frame. | Implementado por todos los juegos. |
-| `onRegisterSystems()` | DEFINITION | Hook protegido para registrar sistemas en la agenda. | Implementado por todos los juegos. |
-| `onInitializeEntities()` | DEFINITION | Hook protegido para spawnear entidades iniciales. | Implementado por todos los juegos. |
-| `onBeforeRestart()` | DEFINITION / LIFECYCLE | Hook protegido para teardown pre-reinico. | Implementado en `PongGame.ts` (L302), `SpaceInvadersGame.ts` (L408), `FlappyBirdGame.ts` (L267). |
-| `getGameState()` | SIMULATION | Método abstracto que retorna la foto de estado del juego. | Implementado por todos los juegos. |
-| `getSeed()` | SIMULATION | Devuelve la semilla RNG de la sesión. | Ninguno. |
-| `isGameOver()` | SIMULATION | Método abstracto que indica si terminó la partida. | Implementado por todos los juegos. |
-| `setInputState(input)` | SIMULATION / SERVICE | Inyecta estado de entrada en entidades/jugadores. | Sobreescrito en `AsteroidsGame.ts` (L385/L425), `SpaceInvadersGame.ts` (L571), `GeometryWarsGame.ts` (L308), `FlappyBirdGame.ts` (L287), `EchoRunnerGame.ts` (L497). |
-| `createBaseEntity(deferred)` | SIMULATION / DEFINITION | Helper protegido para crear entidades directas o diferidas. | Ninguno. |
+| `enterGameplayFreeze(duration)` | SIMULATION | Soft pause / congelamiento temporal de gameplay. | Ninguno. |
+| `exitGameplayFreeze()` | SIMULATION | Sale del congelamiento de gameplay. | Ninguno. |
+| `isGameplayFrozen()` | SIMULATION | Indica si el gameplay está congelado. | Ninguno. |
+| `getGameplayFreezeRemaining()` | SIMULATION | Devuelve el tiempo restante de congelamiento. | Ninguno. |
+| `getLifecycleState()` | SIMULATION | Devuelve el `GameLifecycleState` actual. | Ninguno. |
+| `calculateScreenConfig()` | PRESENTATION | Calcula dimensiones de pantalla y pixelRatio. | Ninguno. |
+| `handleScreenResize()` | PRESENTATION | Actualiza el recurso `"ScreenConfig"` en el world. | Ninguno. |
+| `registerResizeListener()` | PRESENTATION | Adjunta listener de evento `"resize"` de ventana. | Ninguno. |
+| `unregisterResizeListener()` | PRESENTATION | Remueve listener de evento `"resize"`. | Ninguno. |
+| `setupCommonArcadeResources(canvas)` | PRESENTATION | Configura recursos comunes de arcade y pantalla. | Invocado explícitamente en `onRegisterSystems` de subclases. |
+| `applyServerStateUpdate(update)` | SERVICE / SIMULATION | Aplica snapshot/recursos de servidor y hace `flush()`. | Utilizado como implementación heredada o complementado por controladores de red locales. |
+| `destroy()` | SIMULATION / SERVICE | Limpia sistemas, eventos, listeners y bucle. | Sobreescrito en `AsteroidsGame.ts` (llama a `super.destroy()` y limpia pools de proyectiles/partículas). |
+| `restart(seed)` | SIMULATION | Reinicia la sesión recreando el `World`. | Ninguno. |
+| `subscribe(cb)` | PRESENTATION | Suscribe callback a ticks de renderizado del bucle. | Ninguno. |
+| `update(dt)` | SIMULATION | Método abstracto ejecutado cada tick de simulación. | Implementado obligatoriamente en los 6 juegos. |
+| `onRegisterSystems()` | DEFINITION | Hook protegido para registrar sistemas en el Schedule. | Implementado obligatoriamente en los 6 juegos. |
+| `onInitializeEntities()` | DEFINITION | Hook protegido para spawnear entidades e instancias iniciales. | Implementado en los 6 juegos. |
+| `onBeforeRestart()` | DEFINITION / SIMULATION | Hook protegido ejecutado antes del restart. | Sobreescrito en `PongGame.ts`, `SpaceInvadersGame.ts`, `FlappyBirdGame.ts`. |
+| `getGameState()` | SIMULATION | Método abstracto que devuelve el objeto de estado del juego. | Implementado obligatoriamente en los 6 juegos. |
+| `getSeed()` | SIMULATION | Devuelve la semilla inicial de aleatoriedad. | Ninguno. |
+| `isGameOver()` | SIMULATION | Método abstracto que indica si el juego ha terminado. | Implementado obligatoriamente en los 6 juegos. |
+| `setInputState(input)` | SIMULATION | Ajusta anulaciones de entrada en el sistema de input. | Sobreescrito en subclases concretas. |
+| `createBaseEntity(deferred)` | SIMULATION | Helper protegido para instanciar entidad base. | Ninguno. |
 
 ---
 
@@ -100,4 +120,20 @@ Satisface la interfaz `Simulation` únicamente por **duck typing**, ya que `Base
 5. **Difusión de Eventos:** Emite eventos `session:tick` sobre el `eventBus` de la simulación para notificar a capas de presentación y audio.
 
 **Conclusión:**
-`GameSession` ya cumple el rol de orquestador de ejecución (`GameInstance`). No existe una pieza faltante en esa capa. El problema estructural actual estriba en que la `Simulation` producida por `GameDefinition.createSimulation()` es en realidad un `BaseGame` monolítico con presentación y servicios embebidos.
+`GameSession` ya actúa como el runtime / runner concreto de un `GameDefinition`.
+
+---
+
+## Plan de Extracción Incremental (Fase 4 - Hoja de Ruta Futura)
+
+Para desacoplar completamente la simulación pura de los servicios y la capa gráfica sin romper retrocompatibilidad, se adoptará el patrón **Strangler Fig**:
+
+### Paso 4.1: Extracción de miembros SERVICE / PRESENTATION puros
+Crear un contenedor compuesto `GamePresentationShell` (o `GameShell`) que envuelva una instancia pura de `Simulation`:
+- Mover candidatos seguros que no tienen dependencias cruzadas con la física ni la lógica ECS: `audio`, `debugManager`, `canvas`, `sceneManager`, `calculateScreenConfig()`, `handleScreenResize()`, `registerResizeListener()`, `unregisterResizeListener()`, `setupCommonArcadeResources()`.
+- La instancia pura de `Simulation` retendrá únicamente `world`, `blueprints`, `unifiedInput`, `kernel`, `step()`, `snapshot()`, `restore()`, `hash()`, `update()`, y sus sistemas ECS de simulación/física/reglas.
+
+### Paso 4.2: Abstracción de miembros híbridos SIMULATION / SERVICE
+Tratar al final los miembros con acoplamiento o divergencias conocidas:
+- `applyServerStateUpdate`: separar el manejo de red local del pipeline determinista del `World`.
+- `getWorld()` delegation en `GeometryWarsGame`: formalizar si la simulación multi-escena posee un getter reactivo de `activeWorld` en `BaseGame` o si las escenas operan sobre un único `World` global reutilizado.

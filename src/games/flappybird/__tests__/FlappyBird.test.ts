@@ -12,6 +12,10 @@ describe("Flappy Bird Gameplay, Input and Collision Mechanics", () => {
     world = game.getWorld();
   });
 
+  test("should return game.world directly from game.getWorld()", () => {
+    expect(game.getWorld()).toBe(game.world);
+  });
+
   afterEach(() => {
     game.destroy();
   });

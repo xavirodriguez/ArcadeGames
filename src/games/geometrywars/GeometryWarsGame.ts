@@ -262,7 +262,16 @@ export class GeometryWarsGame extends BaseGame<
     }
   }
 
-  public getWorld(): World<GeometryWarsComponentRegistry> {
+  /**
+   * Returns the primary ECS `World` container instance.
+   *
+   * @remarks
+   * Overrides `BaseGame.getWorld()` because `GeometryWarsGameScene` manages its own isolated
+   * `World` instance for active gameplay simulation, camera entities, and spatial partitioning.
+   *
+   * @returns Active scene `World` if initialized, or fallback base `World`.
+   */
+  public override getWorld(): World<GeometryWarsComponentRegistry> {
     const scene = this.currentScene;
     if (scene) {
       return scene.getWorld() as World<GeometryWarsComponentRegistry>;

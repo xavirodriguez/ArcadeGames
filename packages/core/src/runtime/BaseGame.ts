@@ -18,6 +18,8 @@ import { IAssetProvider } from "../assets/AssetLoader";
 import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
 import { Theme } from "../theme/Theme";
 import { createDeferredEntity } from "../ecs/EntityHelpers";
+import { computeDebugManager, DebugManager } from "./DebugManager";
+import { calculateScreenConfig } from "./GamePresentationShell";
 import {
   enterGameplayFreeze,
   exitGameplayFreeze,
@@ -44,22 +46,6 @@ export enum GameLifecycleState {
   DESTROYED = "DESTROYED",
   /** Initialization timed out or threw an unhandled error. */
   ERROR = "ERROR"
-}
-
-interface TimedSystem {
-  constructor: { name?: string };
-  lastExecutionTimeMs?: number;
-}
-
-interface DebugCollider2D {
-  enabled?: boolean;
-  isTrigger?: boolean;
-  shape?: { type?: string };
-}
-
-interface DebugTransform {
-  x: number;
-  y: number;
 }
 
 /**
@@ -241,72 +227,8 @@ export abstract class BaseGame<
   /**
    * Diagnostics and debug manager interface consumed by developer overlays.
    */
-  public get debugManager() {
-    return {
-      getFrameStats: () => {
-        return {
-          fps: 60,
-          frameTime: 16.67,
-          tick: this.world.tick,
-          alpha: 1.0
-        };
-      },
-      getSystemTimings: (): Record<string, number> => {
-        const timings: Record<string, number> = {};
-        const systems = this.world.schedule.getSystems();
-        for (let i = 0; i < systems.length; i++) {
-          const sys = systems[i] as TimedSystem;
-          const name = sys.constructor.name || `System_${i}`;
-          timings[name] = sys.lastExecutionTimeMs ?? 0.01;
-        }
-        return timings;
-      },
-      getEntitySnapshot: () => {
-        const allEntities = this.world.getAllEntities();
-        const snapshot: Array<{ id: number; components: Record<string, unknown> }> = [];
-        for (let i = 0; i < allEntities.length; i++) {
-          const entity = allEntities[i];
-          if (!this.world.isAlive(entity)) continue;
-          const types = this.world.getEntityComponentTypes(entity);
-          const components: Record<string, unknown> = {};
-          for (let j = 0; j < types.length; j++) {
-            const t = types[j] as Extract<keyof TComponents, string>;
-            components[t] = this.world.getComponent(entity, t);
-          }
-          snapshot.push({ id: entity, components });
-        }
-        return snapshot;
-      },
-      getEventLog: () => {
-        return this._debugEventLog;
-      },
-      getColliderShapes: () => {
-        const shapes: Array<{ type: "circle" | "aabb"; x: number; y: number; isTrigger: boolean; shape: unknown }> = [];
-        const colKey = "Collider2D" as Extract<keyof TComponents, string>;
-        const transKey = "Transform" as Extract<keyof TComponents, string>;
-        const entitiesWithCollider = this.world.query(colKey, transKey);
-        for (let i = 0; i < entitiesWithCollider.length; i++) {
-          const e = entitiesWithCollider[i];
-          const col = this.world.getComponent(e, colKey) as DebugCollider2D | undefined;
-          const trans = this.world.getComponent(e, transKey) as DebugTransform | undefined;
-          if (col && trans && col.enabled !== false) {
-            if (col.shape?.type === "circle" || col.shape?.type === "aabb") {
-              shapes.push({
-                type: col.shape.type as "circle" | "aabb",
-                x: trans.x,
-                y: trans.y,
-                isTrigger: !!col.isTrigger,
-                shape: col.shape
-              });
-            }
-          }
-        }
-        return shapes;
-      },
-      clearEventLog: () => {
-        this._debugEventLog = [];
-      }
-    };
+  public get debugManager(): DebugManager {
+    return computeDebugManager(this.world, this._debugEventLog);
   }
 
   /**
@@ -660,20 +582,7 @@ export abstract class BaseGame<
    * @returns `ScreenConfig` object `{ width, height, pixelRatio }`.
    */
   protected calculateScreenConfig(): { width: number; height: number; pixelRatio: number } {
-    let width = 800;
-    let height = 600;
-    let pixelRatio = 1;
-
-    if (this.canvas) {
-      width = this.canvas.clientWidth || this.canvas.width || width;
-      height = this.canvas.clientHeight || this.canvas.height || height;
-    } else if (typeof window !== "undefined") {
-      width = window.innerWidth || width;
-      height = window.innerHeight || height;
-      pixelRatio = window.devicePixelRatio || 1;
-    }
-
-    return { width, height, pixelRatio };
+    return calculateScreenConfig(this.canvas);
   }
 
   /**

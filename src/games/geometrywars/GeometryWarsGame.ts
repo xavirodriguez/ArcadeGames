@@ -69,7 +69,7 @@ export class GeometryWarsGame extends BaseGame<
     this.world.setResource("BlueprintRegistry", this.blueprints);
 
     // 2. Initialize and transition to main gameplay scene
-    this.currentScene = new GeometryWarsGameScene(this.config, this.isHeadless);
+    this.currentScene = new GeometryWarsGameScene(this.config, this.isHeadless, this.world);
     const sceneManager = this.world.getResource<SceneManager>("SceneManager") || new SceneManager(this.world);
     sceneManager.transitionTo(this.currentScene, { effect: "crt", duration: 400 });
   }
@@ -262,22 +262,6 @@ export class GeometryWarsGame extends BaseGame<
     }
   }
 
-  /**
-   * Returns the primary ECS `World` container instance.
-   *
-   * @remarks
-   * Overrides `BaseGame.getWorld()` because `GeometryWarsGameScene` manages its own isolated
-   * `World` instance for active gameplay simulation, camera entities, and spatial partitioning.
-   *
-   * @returns Active scene `World` if initialized, or fallback base `World`.
-   */
-  public override getWorld(): World<GeometryWarsComponentRegistry> {
-    const scene = this.currentScene;
-    if (scene) {
-      return scene.getWorld() as World<GeometryWarsComponentRegistry>;
-    }
-    return this.world;
-  }
 
   /**
    * Twin-stick Input Bridge.

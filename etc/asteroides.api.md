@@ -294,32 +294,7 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
             type: K;
         }) => void;
     };
-    get debugManager(): {
-        getFrameStats: () => {
-            fps: number;
-            frameTime: number;
-            tick: number;
-            alpha: number;
-        };
-        getSystemTimings: () => Record<string, number>;
-        getEntitySnapshot: () => {
-            id: number;
-            components: Record<string, unknown>;
-        }[];
-        getEventLog: () => {
-            timestamp: number;
-            event: string;
-            payload: unknown;
-        }[];
-        getColliderShapes: () => {
-            type: "circle" | "aabb";
-            x: number;
-            y: number;
-            isTrigger: boolean;
-            shape: unknown;
-        }[];
-        clearEventLog: () => void;
-    };
+    get debugManager(): DebugManager;
     // (undocumented)
     destroy(): void;
     enterGameplayFreeze(duration?: number): void;
@@ -560,6 +535,13 @@ export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(wor
     isSoA: true;
 }): BaseWorldSnapshot & {
     isSoA: true;
+};
+
+// @public
+export function calculateScreenConfig(canvas?: HTMLCanvasElement): {
+    width: number;
+    height: number;
+    pixelRatio: number;
 };
 
 // @public (undocumented)
@@ -930,6 +912,13 @@ export interface ComponentSetReleaseContext<T extends Record<string, Component>,
 
 // @public
 export type ComponentType<TRegistry extends ComponentRegistry> = Extract<keyof TRegistry, string>;
+
+// @public
+export function computeDebugManager<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, eventLog?: Array<{
+    timestamp: number;
+    event: string;
+    payload: unknown;
+}>): DebugManager;
 
 // @public
 export function computeShipPhysics(transform: {
@@ -1337,6 +1326,34 @@ export interface DeadComponent extends Component {
 export class DeathSystem extends System<CoreComponentRegistry> {
     // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
+}
+
+// @public
+export interface DebugManager {
+    clearEventLog: () => void;
+    getColliderShapes: () => Array<{
+        type: "circle" | "aabb";
+        x: number;
+        y: number;
+        isTrigger: boolean;
+        shape: unknown;
+    }>;
+    getEntitySnapshot: () => Array<{
+        id: number;
+        components: Record<string, unknown>;
+    }>;
+    getEventLog: () => Array<{
+        timestamp: number;
+        event: string;
+        payload: unknown;
+    }>;
+    getFrameStats: () => {
+        fps: number;
+        frameTime: number;
+        tick: number;
+        alpha: number;
+    };
+    getSystemTimings: () => Record<string, number>;
 }
 
 // @public
@@ -1854,6 +1871,31 @@ export interface GameplaySystemContext {
     eventBus: EventBus | undefined;
     // (undocumented)
     runState: RunState | undefined;
+}
+
+// @public
+export class GamePresentationShell<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends object = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
+    constructor(game: BaseGame<unknown, TInput, TComponents, TEvents, TBlueprints>, options?: GamePresentationShellOptions);
+    audio: IAudioPlayer;
+    calculateScreenConfig(): {
+        width: number;
+        height: number;
+        pixelRatio: number;
+    };
+    canvas?: HTMLCanvasElement;
+    destroy(): void;
+    readonly game: BaseGame<unknown, TInput, TComponents, TEvents, TBlueprints>;
+    handleScreenResize(): void;
+    registerResizeListener(): void;
+    sceneManager: SceneManager<TComponents>;
+    setupCommonArcadeResources(canvas?: HTMLCanvasElement): void;
+    unregisterResizeListener(): void;
+}
+
+// @public
+export interface GamePresentationShellOptions {
+    audio?: IAudioPlayer;
+    canvas?: HTMLCanvasElement;
 }
 
 // @public
@@ -4214,6 +4256,9 @@ export const SHIP_FORWARD_AXIS: {
 
 // @public
 export interface Simulation {
+    applyServerStateUpdate?(update: WorldSnapshot | {
+        resources?: Record<string, unknown>;
+    }): void;
     hash(): string;
     restore(snapshot: WorldSnapshot): void;
     snapshot(): WorldSnapshot;

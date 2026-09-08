@@ -40,9 +40,13 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
   private particlePool: GWParticlePool;
   private isHeadless: boolean;
 
-  constructor(config: GeometryWarsConfig, isHeadless = false) {
-    const world = new World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>();
-    super(world);
+  constructor(
+    config: GeometryWarsConfig,
+    isHeadless = false,
+    world?: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>
+  ) {
+    const targetWorld = world || new World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>();
+    super(targetWorld);
     this.config = config;
     this.isHeadless = isHeadless;
     this.bulletPool = new GWBulletPool();

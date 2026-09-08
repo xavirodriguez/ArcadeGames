@@ -2800,14 +2800,14 @@
         "endLoc": {
           "column": 79,
           "line": 239,
-          "position": 10163
+          "position": 10175
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 227,
         "startLoc": {
           "column": 4,
           "line": 227,
-          "position": 9521
+          "position": 9533
         }
       },
       "tokens": 138
@@ -2870,18 +2870,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 274,
+        "end": 270,
         "endLoc": {
           "column": 8,
-          "line": 274,
-          "position": 11477
+          "line": 270,
+          "position": 11236
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 251,
         "startLoc": {
           "column": 99,
           "line": 251,
-          "position": 10778
+          "position": 10790
         }
       },
       "tokens": 68
@@ -3632,14 +3632,14 @@
         "endLoc": {
           "column": 3,
           "line": 92,
-          "position": 3843
+          "position": 3855
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 82,
         "startLoc": {
           "column": 56,
           "line": 82,
-          "position": 3447
+          "position": 3459
         }
       },
       "format": "typescript",
@@ -3669,14 +3669,14 @@
         "endLoc": {
           "column": 36,
           "line": 142,
-          "position": 5507
+          "position": 5519
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 129,
         "startLoc": {
           "column": 2,
           "line": 129,
-          "position": 5028
+          "position": 5040
         }
       },
       "format": "typescript",
@@ -3706,14 +3706,14 @@
         "endLoc": {
           "column": 11,
           "line": 175,
-          "position": 7127
+          "position": 7139
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 168,
         "startLoc": {
           "column": 93,
           "line": 168,
-          "position": 6905
+          "position": 6917
         }
       },
       "format": "typescript",
@@ -3725,14 +3725,14 @@
         "endLoc": {
           "column": 11,
           "line": 196,
-          "position": 8256
+          "position": 8268
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 189,
         "startLoc": {
           "column": 218,
           "line": 189,
-          "position": 8034
+          "position": 8046
         }
       },
       "tokens": 60
@@ -3743,14 +3743,14 @@
         "endLoc": {
           "column": 5,
           "line": 198,
-          "position": 8270
+          "position": 8282
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 189,
         "startLoc": {
           "column": 178,
           "line": 189,
-          "position": 7994
+          "position": 8006
         }
       },
       "format": "typescript",
@@ -3762,14 +3762,14 @@
         "endLoc": {
           "column": 5,
           "line": 214,
-          "position": 9189
+          "position": 9201
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 205,
         "startLoc": {
           "column": 163,
           "line": 205,
-          "position": 8913
+          "position": 8925
         }
       },
       "tokens": 70
@@ -3780,14 +3780,14 @@
         "endLoc": {
           "column": 79,
           "line": 251,
-          "position": 10758
+          "position": 10770
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 245,
         "startLoc": {
           "column": 99,
           "line": 245,
-          "position": 10480
+          "position": 10492
         }
       },
       "format": "typescript",
@@ -5959,6 +5959,43 @@
     },
     {
       "firstFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 2,
+          "line": 36,
+          "position": 1074
+        },
+        "name": "space-invaders/SpaceInvadersAdapter.ts",
+        "start": 22,
+        "startLoc": {
+          "column": 49,
+          "line": 22,
+          "position": 735
+        }
+      },
+      "format": "typescript",
+      "fragment": "    return new SpaceInvadersGameAdapter({ seed });\n  },\n  inputSchema: {\n    actions: [\"moveLeft\", \"moveRight\", \"shoot\"]\n  },\n  assets: {\n    sprites: [],\n    sounds: [\n      { id: \"shoot\", path: \"/audio/shoot.mp3\" },\n      { id: \"hit\", path: \"/audio/hit.mp3\" },\n      { id: \"explosion\", path: \"/audio/explosion.mp3\" },\n      { id: \"game_over\", path: \"/audio/game_over.mp3\" }\n    ]\n  }\n};",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 917,
+        "endLoc": {
+          "column": 2,
+          "line": 917,
+          "position": 37463
+        },
+        "name": "space-invaders/SpaceInvadersGame.ts",
+        "start": 903,
+        "startLoc": {
+          "column": 15,
+          "line": 903,
+          "position": 37124
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
         "end": 233,
         "endLoc": {
           "column": 29,
@@ -6227,675 +6264,9 @@
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 714,
         "startLoc": {
-          "column": 27,
-          "line": 703,
-          "position": 23648
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.globalAlpha = alpha;\n\n    for (let i = 0; i < 8; i++) {\n      const angle = rng.nextRange(0, Math.PI * 2);\n      const distFactor = rng.nextRange(0.6, 1.4);\n      const sparkDist = currentRadius * distFactor;\n      const sparkX = Math.cos(angle) * sparkDist;\n      const sparkY = Math.sin(angle) * sparkDist;\n      const sparkSize = rng.nextRange(1.5, 3.5);",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 771,
-        "endLoc": {
-          "column": 48,
-          "line": 771,
-          "position": 26127
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 763,
-        "startLoc": {
-          "column": 31,
-          "line": 763,
-          "position": 25789
-        }
-      },
-      "tokens": 87
-    },
-    {
-      "firstFile": {
-        "end": 738,
-        "endLoc": {
-          "column": 30,
-          "line": 738,
-          "position": 24938
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 720,
-        "startLoc": {
-          "column": 38,
-          "line": 720,
-          "position": 24150
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:627-645. Considerar extraer a función compartida. Ref: 1cf0b2c5\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const ttl = world.getComponent(entity, \"TTL\") as TTLComponent | undefined;\n    let progress = 0.5;\n\n    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 1.0;\n      progress = 1.0 - (ttl.remaining / totalLife);\n    } else {\n      progress = (getVFXState(world).timePhase % 2) / 2;\n    }\n\n    const alpha = 1.0 - progress;\n    if (alpha <= 0.01) return;",
-      "isNew": false,
-      "lines": 19,
-      "secondFile": {
-        "end": 1512,
-        "endLoc": {
-          "column": 30,
-          "line": 1512,
-          "position": 49479
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1495,
-        "startLoc": {
-          "column": 40,
-          "line": 1495,
-          "position": 48850
-        }
-      },
-      "tokens": 141
-    },
-    {
-      "firstFile": {
-        "end": 857,
-        "endLoc": {
-          "column": 5,
-          "line": 857,
-          "position": 28832
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 851,
-        "startLoc": {
-          "column": 4,
-          "line": 851,
-          "position": 28567
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { height } = screen;\n    const state = getVFXState(world);\n\n    if (!state.matrixInitialized) {\n      initializeMatrix(world, state);\n    }",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 896,
-        "endLoc": {
-          "column": 5,
-          "line": 896,
-          "position": 30078
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 890,
-        "startLoc": {
-          "column": 4,
-          "line": 890,
-          "position": 29813
-        }
-      },
-      "tokens": 62
-    },
-    {
-      "firstFile": {
-        "end": 866,
-        "endLoc": {
-          "column": 21,
-          "line": 866,
-          "position": 29179
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 860,
-        "startLoc": {
-          "column": 12,
-          "line": 860,
-          "position": 29005
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.save();\n\n    for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {\n      const col = state.matrixColumns[i];\n      col.y += col.speed;\n      if (col.y > height) {\n        col.y = -150;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 906,
-        "endLoc": {
-          "column": 21,
-          "line": 906,
-          "position": 30460
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 900,
-        "startLoc": {
-          "column": 28,
-          "line": 900,
-          "position": 30286
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 937,
-        "endLoc": {
-          "column": 7,
-          "line": 937,
-          "position": 31630
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 931,
-        "startLoc": {
-          "column": 4,
-          "line": 931,
-          "position": 31352
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") || { width: 800, height: 600 };\n    const { width, height } = screen;\n\n    const rng = world.renderRandom;\n    if (rng.next() < 0.96) return; // Keep glitches highly responsive & sparse\n\n    ctx.save();",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 965,
-        "endLoc": {
-          "column": 10,
-          "line": 965,
-          "position": 32543
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 959,
-        "startLoc": {
-          "column": 4,
-          "line": 959,
-          "position": 32306
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 946,
-        "endLoc": {
-          "column": 44,
-          "line": 946,
-          "position": 32047
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 941,
-        "startLoc": {
-          "column": 29,
-          "line": 941,
-          "position": 31871
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.fillStyle = \"#ffffff\";\n\n    for (let i = 0; i < glitchLines; i++) {\n      const y = rng.nextRange(10, height - 10);\n      const h = rng.nextRange(1, 4);\n      const offset = rng.nextRange(-15, 15);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 974,
-        "endLoc": {
-          "column": 44,
-          "line": 974,
-          "position": 33003
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 970,
-        "startLoc": {
-          "column": 41,
-          "line": 970,
-          "position": 32828
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 1219,
-        "endLoc": {
-          "column": 5,
-          "line": 1219,
-          "position": 40379
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1211,
-        "startLoc": {
-          "column": 4,
-          "line": 1211,
-          "position": 40111
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const baseSize = render.size || 30;\n    const state = getVFXState(world);\n\n    if (!state.vortexInitialized) {\n      initializeVortex(world, state);\n    }",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 1274,
-        "endLoc": {
-          "column": 5,
-          "line": 1274,
-          "position": 42048
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1266,
-        "startLoc": {
-          "column": 4,
-          "line": 1266,
-          "position": 41780
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 1250,
-        "endLoc": {
-          "column": 65,
-          "line": 1250,
-          "position": 41386
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1242,
-        "startLoc": {
-          "column": 29,
-          "line": 1242,
-          "position": 41081
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.fillStyle = \"#ff00ff\";\n    for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {\n      const p = state.accretionParticles[i];\n      p.angle -= p.speed; // Swirl\n      p.radius -= 0.2; // Fall in\n\n      if (p.radius < 5) {\n        const rng = world.renderRandom;\n        p.radius = rng.nextRange(baseSize * 0.8, baseSize * 1.5);",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 1305,
-        "endLoc": {
-          "column": 65,
-          "line": 1305,
-          "position": 43076
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1296,
-        "startLoc": {
-          "column": 42,
-          "line": 1296,
-          "position": 42790
-        }
-      },
-      "tokens": 73
-    },
-    {
-      "firstFile": {
-        "end": 108,
-        "endLoc": {
-          "column": 12,
-          "line": 108,
-          "position": 5125
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 96,
-        "startLoc": {
-          "column": 4,
-          "line": 96,
-          "position": 4667
-        }
-      },
-      "format": "typescript",
-      "fragment": "    }));\n  }\n\n  // TODO(refactor): código duplicado detectado (método) con space-invaders/EntityPool.ts:115-126. Considerar extraer a función compartida. Ref: 8fca2904\n  public acquireInvaderBullet(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {\n    return this.acquire(world, { x, y, dx, dy, size, color, ttl });\n  }\n}\n\n/**\n * Standardized Enemy Bullet Pool for Space Invaders.\n */\nexport class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 129,
-        "endLoc": {
-          "column": 12,
-          "line": 129,
-          "position": 5797
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 118,
-        "startLoc": {
-          "column": 4,
-          "line": 118,
-          "position": 5500
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
-        "end": 36,
-        "endLoc": {
-          "column": 2,
-          "line": 36,
-          "position": 1074
-        },
-        "name": "space-invaders/SpaceInvadersAdapter.ts",
-        "start": 22,
-        "startLoc": {
-          "column": 49,
-          "line": 22,
-          "position": 735
-        }
-      },
-      "format": "typescript",
-      "fragment": "    return new SpaceInvadersGameAdapter({ seed });\n  },\n  inputSchema: {\n    actions: [\"moveLeft\", \"moveRight\", \"shoot\"]\n  },\n  assets: {\n    sprites: [],\n    sounds: [\n      { id: \"shoot\", path: \"/audio/shoot.mp3\" },\n      { id: \"hit\", path: \"/audio/hit.mp3\" },\n      { id: \"explosion\", path: \"/audio/explosion.mp3\" },\n      { id: \"game_over\", path: \"/audio/game_over.mp3\" }\n    ]\n  }\n};",
-      "isNew": false,
-      "lines": 15,
-      "secondFile": {
-        "end": 933,
-        "endLoc": {
-          "column": 2,
-          "line": 933,
-          "position": 38270
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 919,
-        "startLoc": {
-          "column": 15,
-          "line": 919,
-          "position": 37931
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
-        "end": 239,
-        "endLoc": {
-          "column": 29,
-          "line": 239,
-          "position": 11036
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 234,
-        "startLoc": {
-          "column": 44,
-          "line": 234,
-          "position": 10746
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.blueprints.register(\"player_bullet\", {\n      spawn: (world, entity, args: { x: number, y: number }) => {\n        const config = world.getResource<SpaceInvadersConfig>(\"GameConfig\") || GAME_CONFIG;\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withVelocity({ vy: -config.PLAYER_BULLET_SPEED })",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 272,
-        "endLoc": {
-          "column": 29,
-          "line": 272,
-          "position": 12594
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 267,
-        "startLoc": {
-          "column": 43,
-          "line": 267,
-          "position": 12304
-        }
-      },
-      "tokens": 69
-    },
-    {
-      "firstFile": {
-        "end": 140,
-        "endLoc": {
-          "column": 47,
-          "line": 140,
-          "position": 4970
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 133,
-        "startLoc": {
-          "column": 7,
-          "line": 133,
-          "position": 4541
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.restore();\n\n    // 4. Glowing defensive neon invulnerability bubble shield (Pulsing blue/cyan)\n    const health = world.getComponent(entity, \"Health\");\n    if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {\n      const shieldPulse = 1.0 + 0.08 * Math.sin(tick / 4);\n      const shieldAlpha = 0.35 + 0.15 * Math.sin(tick / 4 + Math.PI);\n      const radius = size * 0.72 * shieldPulse;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 154,
-        "endLoc": {
-          "column": 47,
-          "line": 154,
-          "position": 6749
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 147,
-        "startLoc": {
-          "column": 10,
-          "line": 147,
-          "position": 6320
-        }
-      },
-      "tokens": 79
-    },
-    {
-      "firstFile": {
-        "end": 199,
-        "endLoc": {
-          "column": 49,
-          "line": 199,
-          "position": 6823
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 184,
-        "startLoc": {
-          "column": 32,
-          "line": 184,
-          "position": 6309
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const { size = 15 } = render;\n\n    let baseColor = render.color || colors.white;\n    const invaderComp = world.getComponent(entity, \"Invader\");\n    if (invaderComp) {\n      const row = invaderComp.row;\n      if (row === 0) {\n        baseColor = colors.magentaHot; // Row 0 (Commanders): Hot Magenta\n      } else if (row <= 2) {\n        baseColor = colors.cyan; // Rows 1-2 (Scouts): Electric Cyan\n      } else {\n        baseColor = colors.gold; // Rows 3-4 (Grunts): Cyber Gold\n      }\n    }\n\n    const flash = applyHitFlash(render, baseColor);",
-      "isNew": false,
-      "lines": 16,
-      "secondFile": {
-        "end": 211,
-        "endLoc": {
-          "column": 49,
-          "line": 211,
-          "position": 8756
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 196,
-        "startLoc": {
-          "column": 34,
-          "line": 196,
-          "position": 8300
-        }
-      },
-      "tokens": 83
-    },
-    {
-      "firstFile": {
-        "end": 322,
-        "endLoc": {
-          "column": 49,
-          "line": 322,
-          "position": 11116
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 311,
-        "startLoc": {
-          "column": 32,
-          "line": 311,
-          "position": 10677
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const { size = 80 } = render;\n\n    const boss = world.getComponent(entity, \"Boss\");\n    const health = world.getComponent(entity, \"Health\");\n\n    const currentHp = health ? health.current : (boss ? boss.hp : 50);\n    const maxHp = health ? health.max : (boss ? boss.maxHp : 50);\n    const hpRatio = calculateShieldHpRatio(currentHp, maxHp);\n\n    const { phase, baseColor, accentColor } = calculateBossPhase(hpRatio);\n\n    const flash = applyHitFlash(render, baseColor);",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 327,
-        "endLoc": {
-          "column": 49,
-          "line": 327,
-          "position": 13285
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 317,
-        "startLoc": {
-          "column": 34,
-          "line": 317,
-          "position": 12847
-        }
-      },
-      "tokens": 95
-    },
-    {
-      "firstFile": {
-        "end": 489,
-        "endLoc": {
-          "column": 23,
-          "line": 489,
-          "position": 16459
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 478,
-        "startLoc": {
-          "column": 48,
-          "line": 478,
-          "position": 16124
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const { size = 2, color = \"white\" } = render;\n\n    const ttl = world.getComponent(entity, \"TTL\");\n    let progress = 0.5;\n\n    if (ttl && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 0.5;\n      progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));\n    }\n\n    // Zero-allocation heat-dissipation color shifting\n    let particleColor = color;",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 489,
-        "endLoc": {
-          "column": 23,
-          "line": 489,
-          "position": 18820
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 478,
-        "startLoc": {
-          "column": 49,
-          "line": 478,
-          "position": 18485
-        }
-      },
-      "tokens": 68
-    },
-    {
-      "firstFile": {
-        "end": 504,
-        "endLoc": {
-          "column": 63,
-          "line": 504,
-          "position": 17137
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 491,
-        "startLoc": {
           "column": 25,
-          "line": 491,
-          "position": 16674
-        }
-      },
-      "format": "typescript",
-      "fragment": "    if (color === \"white\") {\n      if (progress < 0.2) {\n        particleColor = colors.white; // Hot white\n      } else if (progress < 0.45) {\n        particleColor = colors.yellow; // Yellow flare\n      } else if (progress < 0.7) {\n        particleColor = colors.orange; // Dissipating Orange\n      } else {\n        particleColor = colors.red; // Red ember\n      }\n    }\n\n    // Scale down proportionally to remaining life\n    const currentSize = Math.max(0.5, size * (1.1 - progress));",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 503,
-        "endLoc": {
-          "column": 63,
-          "line": 503,
-          "position": 19484
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 491,
-        "startLoc": {
-          "column": 57,
-          "line": 491,
-          "position": 19072
-        }
-      },
-      "tokens": 74
-    },
-    {
-      "firstFile": {
-        "end": 29,
-        "endLoc": {
-          "column": 35,
-          "line": 29,
-          "position": 1879
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 23,
-        "startLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 1620
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 196,
-        "endLoc": {
-          "column": 35,
-          "line": 196,
-          "position": 8301
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 189,
-        "startLoc": {
-          "column": 41,
-          "line": 189,
-          "position": 7858
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 29,
-        "endLoc": {
-          "column": 31,
-          "line": 29,
-          "position": 1875
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 23,
-        "startLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 1620
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 40;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 270,
-        "endLoc": {
-          "column": 31,
-          "line": 270,
-          "position": 11157
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 264,
-        "startLoc": {
-          "column": 40,
-          "line": 264,
-          "position": 10902
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 29,
-        "endLoc": {
-          "column": 31,
-          "line": 29,
-          "position": 1875
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 23,
-        "startLoc": {
-          "column": 40,
-          "line": 23,
-          "position": 1620
+          "line": 714,
+          "position": 23718
         }
       },
       "format": "typescript",
@@ -6958,32 +6329,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-08T16:01:53.952Z",
+    "detectionDate": "2026-09-08T16:47:01.031Z",
     "formats": {
       "typescript": {
-        "clones": 170,
-        "duplicatedLines": 1789,
-        "duplicatedTokens": 13603,
-        "lines": 53054,
+        "clones": 171,
+        "duplicatedLines": 1803,
+        "duplicatedTokens": 13674,
+        "lines": 53445,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.372036038752969,
-        "percentageTokens": 4.885327855311263,
-        "sources": 332,
-        "tokens": 278446
+        "percentage": 3.3735616053887174,
+        "percentageTokens": 4.882995932622227,
+        "sources": 340,
+        "tokens": 280033
       }
     },
     "total": {
-      "clones": 170,
-      "duplicatedLines": 1789,
-      "duplicatedTokens": 13603,
-      "lines": 53054,
+      "clones": 171,
+      "duplicatedLines": 1803,
+      "duplicatedTokens": 13674,
+      "lines": 53445,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.372036038752969,
-      "percentageTokens": 4.885327855311263,
-      "sources": 332,
-      "tokens": 278446
+      "percentage": 3.3735616053887174,
+      "percentageTokens": 4.882995932622227,
+      "sources": 340,
+      "tokens": 280033
     }
   }
 }

@@ -2703,6 +2703,43 @@
     },
     {
       "firstFile": {
+        "end": 78,
+        "endLoc": {
+          "column": 79,
+          "line": 78,
+          "position": 4844
+        },
+        "name": "flappybird/FlappyBirdGame.ts",
+        "start": 70,
+        "startLoc": {
+          "column": 47,
+          "line": 70,
+          "position": 4378
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.isMultiplayer = !!config.isMultiplayer;\n  }\n\n  protected override async onRegisterSystems(): Promise<void> {\n    this.config = applyMutators(this.baseConfig, this._config.gameOptions);\n    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56\n    this.world.setResource(\"GameConfig\", this.config);\n    this.setupCommonArcadeResources();\n    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 85,
+        "endLoc": {
+          "column": 79,
+          "line": 85,
+          "position": 2776
+        },
+        "name": "frogger/FroggerGame.ts",
+        "start": 78,
+        "startLoc": {
+          "column": 17,
+          "line": 78,
+          "position": 2456
+        }
+      },
+      "tokens": 70
+    },
+    {
+      "firstFile": {
         "end": 81,
         "endLoc": {
           "column": 29,
@@ -3588,6 +3625,302 @@
         }
       },
       "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 71,
+        "endLoc": {
+          "column": 22,
+          "line": 71,
+          "position": 3278
+        },
+        "name": "frogger/EntityFactory.ts",
+        "start": 63,
+        "startLoc": {
+          "column": 96,
+          "line": 63,
+          "position": 3021
+        }
+      },
+      "format": "typescript",
+      "fragment": "      const width = args.vehicleType === \"truck\" ? config.GRID_SIZE * 2 : config.GRID_SIZE * 1.2;\n      const height = config.GRID_SIZE - 10;\n      const vx = args.speed * args.direction;\n\n      EntityBuilder.fromEntity(w, entity)\n        .withTransform({ x: args.x, y })\n        .withVelocity({ vx, vy: 0 })\n        .withRender({\n          shape: args.vehicleType === \"truck\" ? \"truck\" : \"car\",",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 116,
+        "endLoc": {
+          "column": 22,
+          "line": 116,
+          "position": 4849
+        },
+        "name": "frogger/EntityFactory.ts",
+        "start": 108,
+        "startLoc": {
+          "column": 50,
+          "line": 108,
+          "position": 4592
+        }
+      },
+      "tokens": 61
+    },
+    {
+      "firstFile": {
+        "end": 95,
+        "endLoc": {
+          "column": 13,
+          "line": 95,
+          "position": 4010
+        },
+        "name": "frogger/EntityFactory.ts",
+        "start": 74,
+        "startLoc": {
+          "column": 18,
+          "line": 74,
+          "position": 3433
+        }
+      },
+      "format": "typescript",
+      "fragment": "          order: 5,\n        })\n        .withCollider({\n          shape: { type: ShapeType.Box, width, height } as BoxShape,\n          layer: CollisionLayers.ENEMY,\n          mask: CollisionLayers.PLAYER,\n        })\n        .withCollisionEvents();\n\n      w.addComponent(entity, {\n        type: \"Boundary\",\n        width: config.SCREEN_WIDTH,\n        height: config.SCREEN_HEIGHT,\n        minX: -width,\n        maxX: config.SCREEN_WIDTH + width,\n        minY: 0,\n        maxY: config.SCREEN_HEIGHT,\n        mode: \"wrap\",\n      } as BoundaryComponent);\n\n      w.addComponent(entity, {\n        type: \"Vehicle\",",
+      "isNew": false,
+      "lines": 22,
+      "secondFile": {
+        "end": 140,
+        "endLoc": {
+          "column": 13,
+          "line": 140,
+          "position": 5576
+        },
+        "name": "frogger/EntityFactory.ts",
+        "start": 119,
+        "startLoc": {
+          "column": 18,
+          "line": 119,
+          "position": 4999
+        }
+      },
+      "tokens": 106
+    },
+    {
+      "firstFile": {
+        "end": 349,
+        "endLoc": {
+          "column": 5,
+          "line": 349,
+          "position": 12618
+        },
+        "name": "frogger/FroggerGame.ts",
+        "start": 343,
+        "startLoc": {
+          "column": 19,
+          "line": 343,
+          "position": 12366
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const assets = [\n      { id: \"jump\", path: \"/audio/jump.mp3\" },\n      { id: \"drown\", path: \"/audio/drown.mp3\" },\n      { id: \"hit\", path: \"/audio/hit.mp3\" },\n      { id: \"goal\", path: \"/audio/goal.mp3\" },\n      { id: \"game_over\", path: \"/audio/game_over.mp3\" },\n    ];",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 401,
+        "endLoc": {
+          "column": 5,
+          "line": 401,
+          "position": 13964
+        },
+        "name": "frogger/FroggerGame.ts",
+        "start": 395,
+        "startLoc": {
+          "column": 12,
+          "line": 395,
+          "position": 13712
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 151,
+        "endLoc": {
+          "column": 48,
+          "line": 151,
+          "position": 4099
+        },
+        "name": "frogger/rendering/FroggerCanvasVisuals.ts",
+        "start": 144,
+        "startLoc": {
+          "column": 13,
+          "line": 144,
+          "position": 3873
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.save();\n\n    // Draw shell segments along length\n    const segmentCount = Math.floor(width / 35);\n    const step = width / segmentCount;\n\n    for (let i = 0; i < segmentCount; i++) {\n      const segX = -halfW + i * step + step / 2;",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 104,
+        "endLoc": {
+          "column": 48,
+          "line": 104,
+          "position": 3464
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 98,
+        "startLoc": {
+          "column": 45,
+          "line": 98,
+          "position": 3278
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 177,
+        "endLoc": {
+          "column": 26,
+          "line": 177,
+          "position": 4799
+        },
+        "name": "frogger/rendering/FroggerCanvasVisuals.ts",
+        "start": 172,
+        "startLoc": {
+          "column": 4,
+          "line": 172,
+          "position": 4591
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const pad = world.getComponent(entity, \"GoalLilyPad\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !pad) return;\n\n    const size = render.size || 36;\n    const half = size / 2;",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 118,
+        "endLoc": {
+          "column": 26,
+          "line": 118,
+          "position": 3874
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 113,
+        "startLoc": {
+          "column": 4,
+          "line": 113,
+          "position": 3666
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 37,
+        "endLoc": {
+          "column": 32,
+          "line": 37,
+          "position": 1367
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 31,
+        "startLoc": {
+          "column": 24,
+          "line": 31,
+          "position": 1148
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const width = render.size || 48;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 55,
+        "endLoc": {
+          "column": 32,
+          "line": 55,
+          "position": 1918
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 49,
+        "startLoc": {
+          "column": 26,
+          "line": 49,
+          "position": 1699
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 37,
+        "endLoc": {
+          "column": 32,
+          "line": 37,
+          "position": 1367
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 31,
+        "startLoc": {
+          "column": 24,
+          "line": 31,
+          "position": 1148
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const width = render.size || 48;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 76,
+        "endLoc": {
+          "column": 32,
+          "line": 76,
+          "position": 2622
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 70,
+        "startLoc": {
+          "column": 24,
+          "line": 70,
+          "position": 2403
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 38,
+        "endLoc": {
+          "column": 9,
+          "line": 38,
+          "position": 1381
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 31,
+        "startLoc": {
+          "column": 24,
+          "line": 31,
+          "position": 1148
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const width = render.size || 48;\n    const height = 30;",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 95,
+        "endLoc": {
+          "column": 9,
+          "line": 95,
+          "position": 3175
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 88,
+        "startLoc": {
+          "column": 27,
+          "line": 88,
+          "position": 2942
+        }
+      },
+      "tokens": 54
     },
     {
       "firstFile": {

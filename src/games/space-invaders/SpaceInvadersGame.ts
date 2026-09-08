@@ -3,7 +3,7 @@ import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
 import { EnemyFactory } from "./EnemyFactory";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
-import { resolveAndApplyMutators } from "../../config/MutatorConfig";
+import { loadAndMutateConfig } from "../shared/configHelper";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -43,7 +43,6 @@ export class SpaceInvadersGame
   implements ISpaceInvadersGame {
 
   public isMultiplayer = false;
-  private isHeadless = false;
   private playerBulletPool!: PlayerBulletPool;
   private enemyBulletPool!: EnemyBulletPool;
   private particlePool!: ParticlePool;
@@ -72,7 +71,6 @@ export class SpaceInvadersGame
     });
     this.baseConfig = loadedBaseConfig;
     this.config = this.baseConfig;
-    this.isHeadless = !!config.headless;
     this.isMultiplayer = !!config.isMultiplayer;
     this.network = new NetworkController<SpaceInvadersComponentRegistry>(this.world);
   }
@@ -110,16 +108,12 @@ export class SpaceInvadersGame
 
   // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:61-66. Considerar extraer a función compartida. Ref: debee144
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
+    this.config = loadAndMutateConfig(this.gameId, SpaceInvadersConfigSchema, spaceInvadersConfigRaw, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this.world.setResource("IsHeadless", this.isHeadless);
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
-
-    if (!this.isHeadless) {
-      await this.onPreloadAssets();
-    }
 
     if (!this.playerBulletPool) this.playerBulletPool = new PlayerBulletPool();
     if (!this.enemyBulletPool) this.enemyBulletPool = new EnemyBulletPool();
@@ -519,7 +513,7 @@ export class SpaceInvadersGame
       }
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const assets = [
       { id: "shoot", path: "/audio/shoot.mp3" },
       { id: "explosion", path: "/audio/explosion.mp3" },

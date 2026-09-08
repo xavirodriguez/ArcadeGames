@@ -15,7 +15,7 @@ import {
   createGround
 } from "./EntityFactory";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
-import { resolveAndApplyMutators } from "../../config/MutatorConfig";
+import { applyMutators } from "../shared/configHelper";
 import { AchievementSystem } from "@tiny-aster/gameplay-kit";
 
 /**
@@ -71,13 +71,11 @@ export class FlappyBirdGame
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
+    this.config = applyMutators(this.baseConfig, this._config.gameOptions);
     // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
-
-    await this.onPreloadAssets();
 
     // Register blueprints
     this.blueprints.register("bird", {
@@ -311,7 +309,7 @@ export class FlappyBirdGame
       this.world.update(dt);
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const assets = [
       { id: "flap", path: "/audio/flap.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },

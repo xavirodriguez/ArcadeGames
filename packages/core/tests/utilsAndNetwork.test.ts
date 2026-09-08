@@ -3,6 +3,7 @@ import {
   NullTransport,
   NetworkManager,
   ClientAckTracker,
+  ReplicationStateTracker,
   NetworkDeltaSystem,
   NetworkBudgetManager,
   BinaryCompression,
@@ -92,30 +93,149 @@ describe("NetworkManager & NetworkReplicationUtils", () => {
 });
 
 describe("MultiplayerSystems", () => {
-  it("should cover stub classes in MultiplayerSystems", () => {
-    const tracker = new ClientAckTracker();
-    expect(() => tracker.recordAck("session", 1, 10)).not.toThrow();
-    expect(tracker.nextSequence("session")).toBe(0);
-    expect(tracker.getLastAckedSequence("session")).toBe(0);
-    expect(tracker.getIdleTime("session")).toBe(0);
-
-    const replicationTracker = {};
-    const deltaSystem = new NetworkDeltaSystem(replicationTracker);
-    expect(deltaSystem.generateDelta({} as any, "session", 1, 0, new Set(), false)).toEqual({
-      kind: "delta",
-      tick: 0,
-      delta: {}
+  describe("ClientAckTracker", () => {
+    it("should auto-increment sequences starting at 1 per session", () => {
+      const ackTracker = new ClientAckTracker();
+      expect(ackTracker.nextSequence("sessionA")).toBe(1);
+      expect(ackTracker.nextSequence("sessionA")).toBe(2);
+      expect(ackTracker.nextSequence("sessionB")).toBe(1);
     });
 
-    const budgetManager = new NetworkBudgetManager();
-    const interest = [{ id: 1 }];
-    expect(budgetManager.prioritize("session", interest)).toBe(interest);
+    it("should record acks only when sequence increases and calculate idle time", () => {
+      const ackTracker = new ClientAckTracker();
+      expect(ackTracker.getLastAckedSequence("p1")).toBe(0);
 
-    const mockWorld = {};
-    const interestManager = new InterestManagerSystem();
-    expect(() => interestManager.update(mockWorld as any, 0.16)).not.toThrow();
-    expect(() => interestManager.onRegister(mockWorld as any)).not.toThrow();
-    expect(() => interestManager.dispose()).not.toThrow();
+      ackTracker.recordAck("p1", 5, 100);
+      expect(ackTracker.getLastAckedSequence("p1")).toBe(5);
+
+      // Reordered or older ack should not regress lastAck
+      ackTracker.recordAck("p1", 3, 101);
+      expect(ackTracker.getLastAckedSequence("p1")).toBe(5);
+
+      // Higher sequence updates lastAck
+      ackTracker.recordAck("p1", 10, 102);
+      expect(ackTracker.getLastAckedSequence("p1")).toBe(10);
+
+      expect(ackTracker.getIdleTime("p1")).toBeGreaterThanOrEqual(0);
+      expect(ackTracker.getIdleTime("unknown")).toBeGreaterThan(10000);
+    });
+  });
+
+  describe("ReplicationStateTracker", () => {
+    it("should record sent versions, retrieve baseline and prune old sequences", () => {
+      const stateTracker = new ReplicationStateTracker();
+      stateTracker.recordSent("p1", 1, 10, 2);
+      stateTracker.recordSent("p1", 2, 12, 2);
+      stateTracker.recordSent("p1", 3, 15, 3);
+
+      expect(stateTracker.getBaselineVersion("p1", 0)).toBeUndefined();
+      expect(stateTracker.getBaselineVersion("p1", 2)).toEqual({ stateVersion: 12, structureVersion: 2 });
+
+      stateTracker.prune("p1", 3);
+      expect(stateTracker.getBaselineVersion("p1", 1)).toBeUndefined();
+      expect(stateTracker.getBaselineVersion("p1", 2)).toBeUndefined();
+      expect(stateTracker.getBaselineVersion("p1", 3)).toEqual({ stateVersion: 15, structureVersion: 3 });
+    });
+  });
+
+  describe("NetworkBudgetManager", () => {
+    it("should prioritize selfEntityId and sort remaining by distance ascending", () => {
+      const budgetManager = new NetworkBudgetManager();
+      const interest = [
+        { entityId: "10", distance: 100 },
+        { entityId: "20", distance: 10 },
+        { entityId: "30", distance: 50 },
+      ];
+
+      const result = budgetManager.prioritize("sess1", interest, "30");
+      expect(result[0].entityId).toBe("30");
+      expect(result[1].entityId).toBe("20");
+      expect(result[2].entityId).toBe("10");
+    });
+
+    it("should respect MAX_ENTITIES_PER_TICK and rotate tail quota for far entities", () => {
+      const budgetManager = new NetworkBudgetManager();
+      const items = Array.from({ length: 30 }, (_, i) => ({
+        entityId: (i + 1).toString(),
+        distance: (i + 1) * 10
+      }));
+
+      const page1 = budgetManager.prioritize("sess1", items, "1");
+      expect(page1.length).toBeLessThanOrEqual(20);
+      expect(page1[0].entityId).toBe("1");
+
+      const page2 = budgetManager.prioritize("sess1", items, "1");
+      expect(page2.length).toBeLessThanOrEqual(20);
+
+      // Verify that far entities rotate between calls
+      const page1FarIds = page1.slice(16).map(e => e.entityId);
+      const page2FarIds = page2.slice(16).map(e => e.entityId);
+      expect(page1FarIds).not.toEqual(page2FarIds);
+    });
+  });
+
+  describe("InterestManagerSystem", () => {
+    it("should register resource, compute euclidean distances for players and dispose resource", () => {
+      const world = new World();
+      const interestSystem = new InterestManagerSystem();
+
+      interestSystem.onRegister(world);
+      expect(world.getResource("DetailedInterestMap")).toBeInstanceOf(Map);
+
+      const shipEntity = world.createEntity();
+      world.addComponent(shipEntity, { type: "Ship", sessionId: "client-1" } as any);
+      world.addComponent(shipEntity, { type: "Transform", x: 0, y: 0 } as any);
+
+      const asteroidEntity = world.createEntity();
+      world.addComponent(asteroidEntity, { type: "Asteroid", size: "large" } as any);
+      world.addComponent(asteroidEntity, { type: "Transform", x: 30, y: 40 } as any);
+
+      interestSystem.update(world, 0.016);
+
+      const interestMap = world.getResource<Map<string, Array<{ entityId: string; distance: number }>>>("DetailedInterestMap");
+      expect(interestMap).toBeDefined();
+
+      const p1Interest = interestMap!.get("client-1");
+      expect(p1Interest).toBeDefined();
+      expect(p1Interest!.length).toBe(2);
+
+      const asteroidItem = p1Interest!.find(i => i.entityId === asteroidEntity.toString());
+      expect(asteroidItem).toBeDefined();
+      expect(asteroidItem!.distance).toBeCloseTo(50, 5);
+
+      interestSystem.dispose();
+      expect(world.getResource("DetailedInterestMap")).toBeUndefined();
+    });
+  });
+
+  describe("NetworkDeltaSystem", () => {
+    it("should generate full snapshot on forceFull, missing baseline, or structure version mismatch", () => {
+      const world = new World();
+      const tracker = new ReplicationStateTracker();
+      const deltaSystem = new NetworkDeltaSystem(tracker);
+
+      const e1 = world.createEntity();
+      world.addComponent(e1, { type: "Transform", x: 10, y: 20 } as any);
+
+      // Baseline missing -> full snapshot
+      const res1 = deltaSystem.generateDelta(world, "s1", 1, 0, new Set([e1]), false);
+      expect(res1.kind).toBe("full");
+
+      // Record state
+      tracker.recordSent("s1", 1, world.stateVersion, world.structureVersion);
+
+      // Baseline matches and state unchanged -> delta snapshot
+      const res2 = deltaSystem.generateDelta(world, "s1", 2, 1, new Set([e1]), false);
+      expect(res2.kind).toBe("delta");
+      expect((res2 as any).delta.entities).toEqual([e1]);
+
+      // Structural change (add entity) -> forces full snapshot
+      const e2 = world.createEntity();
+      world.addComponent(e2, { type: "Transform", x: 100, y: 200 } as any);
+
+      const res3 = deltaSystem.generateDelta(world, "s1", 3, 1, new Set([e1, e2]), false);
+      expect(res3.kind).toBe("full");
+    });
   });
 
   it("should serialize and deserialize using BinaryCompression", () => {

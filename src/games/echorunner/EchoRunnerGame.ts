@@ -47,6 +47,7 @@ import {
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
 import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
+import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
@@ -189,7 +190,7 @@ class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
   }
 }
 
-export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, any, any> {
+export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, any, any> {
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;
@@ -220,22 +221,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:114-127. Considerar extraer a función compartida. Ref: 44f1ee7d
-    this.setupCommonArcadeResources();
-    this.world.setResource("DeathPlaneY", 650);
-
-    // Initializing high-fidelity RunState resource
-    const runState: RunState = {
-      attempt: 1,
-      lives: 3,
-      activeCheckpoint: null,
-      elapsedTime: 0,
-      deaths: 0,
-      collectedPermanentIds: [],
-      collectedTemporalIds: []
-    };
-    this.world.setResource("RunState", runState);
-    this.world.setResource("AudioPlayer", this.audio);
+    await super.onRegisterSystems();
 
     // Register blueprints
     this.blueprints.register("pulse_hitbox", {
@@ -435,8 +421,6 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
 
-    await this.onPreloadAssets();
-
     // Listen to Hit Detection events
     const eventBus = this.world.getEventBus();
     if (eventBus) {
@@ -574,7 +558,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     mutatePlatformerInputState(this.getWorld(), input);
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const assets = [
       { id: "pulse", path: "/audio/shoot.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },

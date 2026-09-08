@@ -51,6 +51,7 @@ import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawC
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
+import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 
 export interface PlatformerConfig {
   seed?: number;
@@ -82,7 +83,7 @@ export interface PlatformerBlueprintMap extends Record<string, BlueprintDefiniti
 
 export const PLATFORMER_CONFIG = DEFAULT_PLATFORMER_CONFIG;
 
-export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, any, PlatformerBlueprintMap> {
+export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, any, PlatformerBlueprintMap> {
   public readonly gameId = "platformer";
   private gameOver = false;
   private levelPlan!: LevelPlan;
@@ -114,21 +115,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:207-221. Considerar extraer a función compartida. Ref: 44f1ee7d
-    this.setupCommonArcadeResources();
-    this.world.setResource("DeathPlaneY", 650);
-
-    const runState: RunState = {
-      attempt: 1,
-      lives: 3,
-      activeCheckpoint: null,
-      elapsedTime: 0,
-      deaths: 0,
-      collectedPermanentIds: [],
-      collectedTemporalIds: []
-    };
-    this.world.setResource("RunState", runState);
-    this.world.setResource("AudioPlayer", this.audio);
+    await super.onRegisterSystems();
 
     // Register PowerUp effects
     const powerUpRegistry = new PowerUpRegistry({
@@ -407,8 +394,6 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
     // Game-specific presentation systems
     this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
-
-    await this.onPreloadAssets();
   }
 
   public initializeRenderer(renderer: Renderer<any, any>): void {
@@ -465,7 +450,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     });
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const assets = [
       { id: "jump", path: "/audio/flap.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },

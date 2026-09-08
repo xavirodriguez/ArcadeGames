@@ -24,7 +24,8 @@ export function createDeferredEntity<
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 >(
   world: World<TComponents, TEvents, TBlueprints>,
-  deferred?: boolean
+  deferred?: boolean,
+  entityId?: Entity
 ): {
   entity: Entity;
   add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & { type: K }) => void;
@@ -33,7 +34,7 @@ export function createDeferredEntity<
   const commands = world.getCommandBuffer();
 
   if (isDeferred) {
-    const entity = world.reserveEntityId();
+    const entity = entityId !== undefined ? entityId : world.reserveEntityId();
     commands.createEntity(entity);
     return {
       entity,
@@ -41,7 +42,7 @@ export function createDeferredEntity<
     };
   }
 
-  const entity = world.createEntity();
+  const entity = entityId !== undefined ? entityId : world.createEntity();
   return {
     entity,
     add: (comp) => world.addComponent(entity, comp)

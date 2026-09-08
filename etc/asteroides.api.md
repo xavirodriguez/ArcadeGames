@@ -1206,7 +1206,7 @@ export interface CoreEvents {
 export function createBuilderInstance<TBuilder extends EntityBuilder<TComponents, TEvents, TBlueprints>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(factory: (world: World<TComponents, TEvents, TBlueprints>, entity: Entity, useCommandBuffer: boolean) => TBuilder, world: World<TComponents, TEvents, TBlueprints>, entity?: Entity, useCommandBuffer?: boolean): TBuilder;
 
 // @public
-export function createDeferredEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, deferred?: boolean): {
+export function createDeferredEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, deferred?: boolean, entityId?: Entity): {
     entity: Entity;
     add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & {
         type: K;
@@ -2227,6 +2227,7 @@ export interface ITransitionEffect {
 // @public
 export class Juice {
     static add(world: World<CoreComponentRegistry>, entity: Entity, anim: {
+        componentType?: string;
         property: string;
         target: number;
         duration: number;
@@ -2241,6 +2242,7 @@ export class Juice {
 
 // @public (undocumented)
 export interface JuiceAnimation {
+    componentType?: string;
     delay?: number;
     duration: number;
     easing?: string;
@@ -3329,6 +3331,7 @@ export class PhysicsUtils {
     static circleOverlap(x1: number, y1: number, r1: number, x2: number, y2: number, r2: number): boolean;
     static clamp(value: number, min: number, max: number): number;
     static lerp(a: number, b: number, t: number): number;
+    static tickTimer(remaining: number, deltaTime: number): number;
 }
 
 // @public

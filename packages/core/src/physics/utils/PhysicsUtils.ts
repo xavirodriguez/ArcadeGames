@@ -45,4 +45,15 @@ export class PhysicsUtils {
   public static lerp(a: number, b: number, t: number): number {
     return a + (b - a) * t;
   }
+
+  /**
+   * Decrements a remaining duration timer by deltaTime down to a lower bound of 0.
+   *
+   * @param remaining - Current remaining duration timer in seconds.
+   * @param deltaTime - Elapsed frame time step in seconds.
+   * @returns Decremented remaining time clamped to 0.
+   */
+  public static tickTimer(remaining: number, deltaTime: number): number {
+    return remaining > 0 ? Math.max(0, remaining - deltaTime) : 0;
+  }
 }

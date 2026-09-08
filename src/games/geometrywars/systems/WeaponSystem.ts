@@ -1,4 +1,4 @@
-import { System, World, TransformComponent } from "@tiny-aster/core";
+import { System, World, TransformComponent, PhysicsUtils } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { GWBulletPool } from "../EntityPool";
@@ -42,8 +42,7 @@ export class WeaponSystem extends System<GeometryWarsComponentRegistry> {
       // 1. Decrement cooldown
       let nextCooldown = mutWeapon.cooldownRemaining;
       if (nextCooldown > 0) {
-        nextCooldown -= deltaTime;
-        if (nextCooldown < 0) nextCooldown = 0;
+        nextCooldown = PhysicsUtils.tickTimer(nextCooldown, deltaTime);
         mutWeapon.cooldownRemaining = nextCooldown;
       }
 

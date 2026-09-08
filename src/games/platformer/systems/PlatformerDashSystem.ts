@@ -1,4 +1,4 @@
-import { System, World, CoreComponentRegistry, Component } from "@tiny-aster/core";
+import { System, World, CoreComponentRegistry, Component, PhysicsUtils } from "@tiny-aster/core";
 
 export interface DashUnlockedComponent extends Component {
   type: "DashUnlocked";
@@ -24,15 +24,12 @@ export class PlatformerDashSystem extends System<CoreComponentRegistry> {
       if (!dash || !input || !vel || !trans) continue;
 
       if (dash.cooldown > 0) {
-        dash.cooldown -= deltaTime;
-        if (dash.cooldown < 0) dash.cooldown = 0;
+        dash.cooldown = PhysicsUtils.tickTimer(dash.cooldown, deltaTime);
       }
 
       if (dash.dashTimeRemaining > 0) {
-        dash.dashTimeRemaining -= deltaTime;
-        if (dash.dashTimeRemaining <= 0) {
-          dash.dashTimeRemaining = 0;
-        } else {
+        dash.dashTimeRemaining = PhysicsUtils.tickTimer(dash.dashTimeRemaining, deltaTime);
+        if (dash.dashTimeRemaining > 0) {
           // Maintain horizontal dash velocity
           const dir = input.moveDir !== 0 ? Math.sign(input.moveDir) : (trans.scaleX >= 0 ? 1 : -1);
           vel.vx = dir * dash.dashSpeed;

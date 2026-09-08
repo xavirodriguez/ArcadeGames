@@ -1,4 +1,4 @@
-import { World, Juice, CoreComponentRegistry, createEmitter } from "@tiny-aster/core";
+import { World, Juice, CoreComponentRegistry, createEmitter, PhysicsUtils } from "@tiny-aster/core";
 import { TransformComponent, VelocityComponent } from "@tiny-aster/core";
 import { InputComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { PlayerBulletPool } from "../EntityPool";
@@ -96,7 +96,7 @@ export class SpaceInvadersInputSystem extends GameSystem {
 
         // Handle shooting timer
         if (nextShootCooldownRemaining > 0) {
-          nextShootCooldownRemaining -= deltaTime;
+          nextShootCooldownRemaining = PhysicsUtils.tickTimer(nextShootCooldownRemaining, deltaTime);
         }
 
         if (nextShoot && nextShootCooldownRemaining <= 0) {

@@ -1038,30 +1038,30 @@
     },
     {
       "firstFile": {
-        "end": 152,
+        "end": 136,
         "endLoc": {
-          "column": 18,
-          "line": 152,
-          "position": 5204
+          "column": 20,
+          "line": 136,
+          "position": 4682
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 126,
         "startLoc": {
           "column": 4,
-          "line": 126,
-          "position": 4250
+          "line": 125,
+          "position": 4194
         }
       },
       "format": "typescript",
-      "fragment": "    const players = world.query(\"PlatformerInput\", \"Health\", \"Transform\");\n    const enemies = world.query(\"Enemy\", \"Transform\");\n\n    for (let p = 0; p < players.length; p++) {\n      const player = players[p];\n      const pHealth = world.getComponent(player, \"Health\")!;\n      const pTrans = world.getComponent(player, \"Transform\")!;\n\n      // Handle invulnerability blink timers\n      let invRemaining = pHealth.invulnerableRemaining ?? 0;\n      if (invRemaining > 0) {\n        invRemaining -= deltaTime;\n        if (invRemaining < 0) invRemaining = 0;\n        world.mutateComponent(player, \"Health\", (h) => {\n          h.invulnerableRemaining = invRemaining;\n        });\n      }\n\n      if (invRemaining > 0) continue;\n\n      // Contact check with all active enemies\n      let hit = false;\n      for (let e = 0; e < enemies.length; e++) {\n        const enemy = enemies[e];\n        const eTrans = world.getComponent(enemy, \"Transform\")!;\n\n        const dx = player !== undefined ? pTrans.x - eTrans.x : 0;",
+      "fragment": "    const players = world.query(\"PlatformerInput\", \"Health\", \"Transform\");\n    const enemies = world.query(\"Enemy\", \"Transform\");\n\n    for (let p = 0; p < players.length; p++) {\n      const player = players[p];\n      const pHealth = world.getComponent(player, \"Health\")!;\n      const pTrans = world.getComponent(player, \"Transform\")!;\n\n      // Handle invulnerability blink timers\n      let invRemaining = pHealth.invulnerableRemaining ?? 0;\n      if (invRemaining > 0) {\n        invRemaining = PhysicsUtils.tickTimer(invRemaining, deltaTime);",
       "isNew": false,
-      "lines": 27,
+      "lines": 12,
       "secondFile": {
-        "end": 31,
+        "end": 18,
         "endLoc": {
-          "column": 18,
-          "line": 31,
-          "position": 1310
+          "column": 20,
+          "line": 18,
+          "position": 892
         },
         "name": "platformer/systems/PlatformerDamageSystem.ts",
         "start": 8,
@@ -1071,22 +1071,59 @@
           "position": 449
         }
       },
-      "tokens": 184
+      "tokens": 94
     },
     {
       "firstFile": {
-        "end": 225,
+        "end": 150,
         "endLoc": {
-          "column": 36,
-          "line": 225,
-          "position": 7842
+          "column": 18,
+          "line": 150,
+          "position": 5137
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 212,
+        "start": 136,
+        "startLoc": {
+          "column": 70,
+          "line": 136,
+          "position": 4732
+        }
+      },
+      "format": "typescript",
+      "fragment": "        invRemaining = PhysicsUtils.tickTimer(invRemaining, deltaTime);\n        world.mutateComponent(player, \"Health\", (h) => {\n          h.invulnerableRemaining = invRemaining;\n        });\n      }\n\n      if (invRemaining > 0) continue;\n\n      // Contact check with all active enemies\n      let hit = false;\n      for (let e = 0; e < enemies.length; e++) {\n        const enemy = enemies[e];\n        const eTrans = world.getComponent(enemy, \"Transform\")!;\n\n        const dx = player !== undefined ? pTrans.x - eTrans.x : 0;",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 31,
+        "endLoc": {
+          "column": 18,
+          "line": 31,
+          "position": 1310
+        },
+        "name": "platformer/systems/PlatformerDamageSystem.ts",
+        "start": 19,
+        "startLoc": {
+          "column": 46,
+          "line": 19,
+          "position": 953
+        }
+      },
+      "tokens": 78
+    },
+    {
+      "firstFile": {
+        "end": 238,
+        "endLoc": {
+          "column": 54,
+          "line": 238,
+          "position": 8336
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 210,
         "startLoc": {
           "column": 28,
-          "line": 212,
-          "position": 7047
+          "line": 210,
+          "position": 6968
         }
       },
       "format": "typescript",
@@ -1104,26 +1141,174 @@
         "start": 105,
         "startLoc": {
           "column": 28,
-          "line": 105,
-          "position": 3668
+          "line": 104,
+          "position": 3585
+        }
+      },
+      "tokens": 172
+    },
+    {
+      "firstFile": {
+        "end": 225,
+        "endLoc": {
+          "column": 9,
+          "line": 225,
+          "position": 7933
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 215,
+        "startLoc": {
+          "column": 145,
+          "line": 215,
+          "position": 7357
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);\n  }\n\n  // TODO(refactor): código duplicado detectado (método) con platformer/PlatformerGame.ts:227-251. Considerar extraer a función compartida. Ref: d39ade6b\n  protected override async onRegisterSystems(): Promise<void> {\n    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);\n\n    this.world.setResource(\"GameConfig\", this.config);\n    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:114-127. Considerar extraer a función compartida. Ref: 44f1ee7d\n    this.setupCommonArcadeResources();\n    this.world.setResource(\"DeathPlaneY\", 650);",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 78,
+        "endLoc": {
+          "column": 9,
+          "line": 78,
+          "position": 4798
+        },
+        "name": "flappybird/FlappyBirdGame.ts",
+        "start": 70,
+        "startLoc": {
+          "column": 47,
+          "line": 70,
+          "position": 4392
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 232,
+        "endLoc": {
+          "column": 21,
+          "line": 232,
+          "position": 8143
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 215,
+        "startLoc": {
+          "column": 144,
+          "line": 215,
+          "position": 7356
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);\n  }\n\n  // TODO(refactor): código duplicado detectado (método) con platformer/PlatformerGame.ts:227-251. Considerar extraer a función compartida. Ref: d39ade6b\n  protected override async onRegisterSystems(): Promise<void> {\n    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);\n\n    this.world.setResource(\"GameConfig\", this.config);\n    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:114-127. Considerar extraer a función compartida. Ref: 44f1ee7d\n    this.setupCommonArcadeResources();\n    this.world.setResource(\"DeathPlaneY\", 650);\n\n    // Initializing high-fidelity RunState resource\n    const runState: RunState = {\n      attempt: 1,\n      lives: 3,\n      activeCheckpoint: null,\n      elapsedTime: 0,",
+      "isNew": false,
+      "lines": 18,
+      "secondFile": {
+        "end": 117,
+        "endLoc": {
+          "column": 29,
+          "line": 117,
+          "position": 5024
+        },
+        "name": "pong/PongGame.ts",
+        "start": 103,
+        "startLoc": {
+          "column": 52,
+          "line": 103,
+          "position": 4443
+        }
+      },
+      "tokens": 84
+    },
+    {
+      "firstFile": {
+        "end": 225,
+        "endLoc": {
+          "column": 27,
+          "line": 225,
+          "position": 7951
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 216,
+        "startLoc": {
+          "column": 2,
+          "line": 216,
+          "position": 7361
+        }
+      },
+      "format": "typescript",
+      "fragment": "  }\n\n  // TODO(refactor): código duplicado detectado (método) con platformer/PlatformerGame.ts:227-251. Considerar extraer a función compartida. Ref: d39ade6b\n  protected override async onRegisterSystems(): Promise<void> {\n    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);\n\n    this.world.setResource(\"GameConfig\", this.config);\n    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:114-127. Considerar extraer a función compartida. Ref: 44f1ee7d\n    this.setupCommonArcadeResources();\n    this.world.setResource(\"DeathPlaneY\", 650);",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 117,
+        "endLoc": {
+          "column": 27,
+          "line": 117,
+          "position": 6474
+        },
+        "name": "space-invaders/SpaceInvadersGame.ts",
+        "start": 109,
+        "startLoc": {
+          "column": 2,
+          "line": 109,
+          "position": 6044
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
+        "end": 241,
+        "endLoc": {
+          "column": 8,
+          "line": 241,
+          "position": 8373
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 219,
+        "startLoc": {
+          "column": 12,
+          "line": 219,
+          "position": 7533
+        }
+      },
+      "format": "typescript",
+      "fragment": "  protected override async onRegisterSystems(): Promise<void> {\n    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);\n\n    this.world.setResource(\"GameConfig\", this.config);\n    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:114-127. Considerar extraer a función compartida. Ref: 44f1ee7d\n    this.setupCommonArcadeResources();\n    this.world.setResource(\"DeathPlaneY\", 650);\n\n    // Initializing high-fidelity RunState resource\n    const runState: RunState = {\n      attempt: 1,\n      lives: 3,\n      activeCheckpoint: null,\n      elapsedTime: 0,\n      deaths: 0,\n      collectedPermanentIds: [],\n      collectedTemporalIds: []\n    };\n    this.world.setResource(\"RunState\", runState);\n    this.world.setResource(\"AudioPlayer\", this.audio);\n\n    // Register blueprints\n    this.blueprints.register(\"pulse_hitbox\", {",
+      "isNew": false,
+      "lines": 23,
+      "secondFile": {
+        "end": 134,
+        "endLoc": {
+          "column": 9,
+          "line": 134,
+          "position": 4944
+        },
+        "name": "platformer/PlatformerGame.ts",
+        "start": 113,
+        "startLoc": {
+          "column": 12,
+          "line": 113,
+          "position": 4150
         }
       },
       "tokens": 101
     },
     {
       "firstFile": {
-        "end": 259,
+        "end": 272,
         "endLoc": {
           "column": 65,
-          "line": 259,
-          "position": 9082
+          "line": 272,
+          "position": 9576
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 254,
+        "start": 267,
         "startLoc": {
           "column": 69,
-          "line": 254,
-          "position": 8911
+          "line": 267,
+          "position": 9405
         }
       },
       "format": "typescript",
@@ -1149,18 +1334,18 @@
     },
     {
       "firstFile": {
-        "end": 291,
+        "end": 304,
         "endLoc": {
           "column": 30,
-          "line": 291,
-          "position": 10476
+          "line": 304,
+          "position": 10970
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 276,
+        "start": 289,
         "startLoc": {
           "column": 106,
-          "line": 276,
-          "position": 9921
+          "line": 289,
+          "position": 10415
         }
       },
       "format": "typescript",
@@ -1186,18 +1371,18 @@
     },
     {
       "firstFile": {
-        "end": 300,
+        "end": 313,
         "endLoc": {
           "column": 53,
-          "line": 300,
-          "position": 10860
+          "line": 313,
+          "position": 11354
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 294,
+        "start": 307,
         "startLoc": {
           "column": 8,
-          "line": 294,
-          "position": 10543
+          "line": 307,
+          "position": 11037
         }
       },
       "format": "typescript",
@@ -1223,18 +1408,18 @@
     },
     {
       "firstFile": {
-        "end": 318,
+        "end": 331,
         "endLoc": {
           "column": 41,
-          "line": 318,
-          "position": 11812
+          "line": 331,
+          "position": 12306
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 312,
+        "start": 325,
         "startLoc": {
           "column": 106,
-          "line": 312,
-          "position": 11580
+          "line": 325,
+          "position": 12074
         }
       },
       "format": "typescript",
@@ -1260,18 +1445,18 @@
     },
     {
       "firstFile": {
-        "end": 331,
+        "end": 344,
         "endLoc": {
           "column": 9,
-          "line": 331,
-          "position": 12229
+          "line": 344,
+          "position": 12723
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 318,
+        "start": 331,
         "startLoc": {
           "column": 106,
-          "line": 318,
-          "position": 11877
+          "line": 331,
+          "position": 12371
         }
       },
       "format": "typescript",
@@ -1297,18 +1482,18 @@
     },
     {
       "firstFile": {
-        "end": 336,
+        "end": 349,
         "endLoc": {
           "column": 30,
-          "line": 336,
-          "position": 12644
+          "line": 349,
+          "position": 13138
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 331,
+        "start": 344,
         "startLoc": {
           "column": 51,
-          "line": 331,
-          "position": 12271
+          "line": 344,
+          "position": 12765
         }
       },
       "format": "typescript",
@@ -1316,55 +1501,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 353,
+        "end": 366,
         "endLoc": {
           "column": 30,
-          "line": 353,
-          "position": 13210
+          "line": 366,
+          "position": 13704
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 349,
+        "start": 362,
         "startLoc": {
           "column": 47,
-          "line": 349,
-          "position": 12999
-        }
-      },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
-        "end": 336,
-        "endLoc": {
-          "column": 30,
-          "line": 336,
-          "position": 12644
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 331,
-        "startLoc": {
-          "column": 51,
-          "line": 331,
-          "position": 12271
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.blueprints.register(\"collectible_fragment\", {\n      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:189-208. Considerar extraer a función compartida. Ref: fbd854ae\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withRender({ shape: \"fragment\", size: 16, order: 1 });",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 370,
-        "endLoc": {
-          "column": 30,
-          "line": 370,
-          "position": 13766
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 366,
-        "startLoc": {
-          "column": 46,
-          "line": 366,
-          "position": 13555
+          "line": 362,
+          "position": 13493
         }
       },
       "tokens": 58
@@ -1373,16 +1521,53 @@
       "firstFile": {
         "end": 349,
         "endLoc": {
-          "column": 29,
+          "column": 30,
           "line": 349,
-          "position": 12981
+          "position": 13138
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 334,
+        "start": 344,
+        "startLoc": {
+          "column": 51,
+          "line": 344,
+          "position": 12765
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.blueprints.register(\"collectible_fragment\", {\n      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:189-208. Considerar extraer a función compartida. Ref: fbd854ae\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withRender({ shape: \"fragment\", size: 16, order: 1 });",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 383,
+        "endLoc": {
+          "column": 30,
+          "line": 383,
+          "position": 14260
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 379,
+        "startLoc": {
+          "column": 46,
+          "line": 379,
+          "position": 14049
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 362,
+        "endLoc": {
+          "column": 29,
+          "line": 362,
+          "position": 13475
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 347,
         "startLoc": {
           "column": 21,
-          "line": 334,
-          "position": 12536
+          "line": 347,
+          "position": 13030
         }
       },
       "format": "typescript",
@@ -1408,18 +1593,18 @@
     },
     {
       "firstFile": {
-        "end": 383,
+        "end": 396,
         "endLoc": {
           "column": 29,
-          "line": 383,
-          "position": 14106
+          "line": 396,
+          "position": 14600
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 360,
+        "start": 373,
         "startLoc": {
           "column": 27,
-          "line": 360,
-          "position": 13412
+          "line": 373,
+          "position": 13906
         }
       },
       "format": "typescript",
@@ -1445,18 +1630,18 @@
     },
     {
       "firstFile": {
-        "end": 423,
+        "end": 436,
         "endLoc": {
           "column": 88,
-          "line": 423,
-          "position": 15739
+          "line": 436,
+          "position": 16233
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 418,
+        "start": 431,
         "startLoc": {
           "column": 52,
-          "line": 418,
-          "position": 15399
+          "line": 431,
+          "position": 15893
         }
       },
       "format": "typescript",
@@ -1482,18 +1667,18 @@
     },
     {
       "firstFile": {
-        "end": 495,
+        "end": 510,
         "endLoc": {
           "column": 82,
-          "line": 495,
-          "position": 18490
+          "line": 510,
+          "position": 19019
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 484,
+        "start": 499,
         "startLoc": {
           "column": 63,
-          "line": 484,
-          "position": 17992
+          "line": 499,
+          "position": 18521
         }
       },
       "format": "typescript",
@@ -1519,18 +1704,18 @@
     },
     {
       "firstFile": {
-        "end": 529,
+        "end": 544,
         "endLoc": {
           "column": 7,
-          "line": 529,
-          "position": 19705
+          "line": 544,
+          "position": 20234
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 515,
+        "start": 530,
         "startLoc": {
           "column": 4,
-          "line": 515,
-          "position": 19356
+          "line": 530,
+          "position": 19885
         }
       },
       "format": "typescript",
@@ -2981,18 +3166,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 64,
+        "end": 63,
         "endLoc": {
           "column": 8,
-          "line": 64,
-          "position": 1962
+          "line": 63,
+          "position": 1672
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 55,
+        "start": 54,
         "startLoc": {
           "column": 21,
-          "line": 55,
-          "position": 1793
+          "line": 54,
+          "position": 1503
         }
       },
       "tokens": 51
@@ -3018,18 +3203,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 85,
+        "end": 83,
         "endLoc": {
           "column": 8,
-          "line": 85,
-          "position": 2582
+          "line": 83,
+          "position": 2118
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 74,
+        "start": 73,
         "startLoc": {
           "column": 2,
-          "line": 74,
-          "position": 2154
+          "line": 73,
+          "position": 1864
         }
       },
       "tokens": 78
@@ -3924,55 +4109,55 @@
     },
     {
       "firstFile": {
-        "end": 43,
+        "end": 41,
         "endLoc": {
           "column": 33,
-          "line": 43,
-          "position": 2059
+          "line": 41,
+          "position": 1663
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 17,
+        "start": 16,
         "startLoc": {
           "column": 9,
-          "line": 17,
-          "position": 839
+          "line": 16,
+          "position": 640
         }
       },
       "format": "typescript",
-      "fragment": "): void {}\n\n// ============================================================================\n// DECOUPLED BULLET DEATH & TRAIL MONITOR\n// ============================================================================\n\nconst LAST_BULLETS_MAP = new Map<number, { x: number; y: number }>();\nconst CURRENT_BULLETS_SET = new Set<number>();\n\n// TODO(refactor): código duplicado detectado (función) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:158-172. Considerar extraer a función compartida. Ref: bf14de5c\nfunction monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry>): void {\n  CURRENT_BULLETS_SET.clear();\n\n  // Find all active bullets in this frame\n  const entities = world.query(\"Transform\", \"Render\");\n  for (const ent of entities) {\n    const render = world.getComponent(ent, \"Render\")!;\n    if (render.shape === \"gw_bullet\" && render.visible) {\n      CURRENT_BULLETS_SET.add(ent);\n      const transform = world.getComponent(ent, \"Transform\")!;\n      const bx = transform.worldX ?? transform.x;\n      const by = transform.worldY ?? transform.y;\n\n      LAST_BULLETS_MAP.set(ent, { x: bx, y: by });\n\n      // Spawn a continuous subtle neon yellow trail spark particle\n      if (world.tick % 2 === 0) {",
+      "fragment": "): void {}\n\n// ============================================================================\n// DECOUPLED BULLET DEATH & TRAIL MONITOR\n// ============================================================================\n\nconst LAST_BULLETS_MAP = new Map<number, { x: number; y: number }>();\nconst CURRENT_BULLETS_SET = new Set<number>();\n\nfunction monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry>): void {\n  CURRENT_BULLETS_SET.clear();\n\n  // Find all active bullets in this frame\n  const entities = world.query(\"Transform\", \"Render\");\n  for (const ent of entities) {\n    const render = getRenderGuard(world, ent);\n    if (render && render.shape === \"gw_bullet\") {\n      CURRENT_BULLETS_SET.add(ent);\n      const transform = getDrawableTransform(world, ent)!;\n      const bx = transform.worldX ?? transform.x;\n      const by = transform.worldY ?? transform.y;\n\n      LAST_BULLETS_MAP.set(ent, { x: bx, y: by });\n\n      // Spawn a continuous subtle neon yellow trail spark particle\n      if (world.tick % 2 === 0) {",
       "isNew": false,
-      "lines": 27,
+      "lines": 26,
       "secondFile": {
-        "end": 144,
+        "end": 140,
         "endLoc": {
           "column": 33,
-          "line": 144,
-          "position": 4670
+          "line": 140,
+          "position": 3849
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 117,
+        "start": 114,
         "startLoc": {
           "column": 0,
-          "line": 117,
-          "position": 3449
+          "line": 114,
+          "position": 2825
         }
       },
-      "tokens": 168
+      "tokens": 161
     },
     {
       "firstFile": {
-        "end": 66,
+        "end": 64,
         "endLoc": {
           "column": 43,
-          "line": 66,
-          "position": 2893
+          "line": 64,
+          "position": 2497
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 52,
+        "start": 50,
         "startLoc": {
           "column": 8,
-          "line": 52,
-          "position": 2277
+          "line": 50,
+          "position": 1881
         }
       },
       "format": "typescript",
@@ -3980,73 +4165,73 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 167,
+        "end": 163,
         "endLoc": {
           "column": 43,
-          "line": 167,
-          "position": 5506
+          "line": 163,
+          "position": 4685
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 153,
+        "start": 149,
         "startLoc": {
           "column": 8,
-          "line": 153,
-          "position": 4890
+          "line": 149,
+          "position": 4069
         }
       },
       "tokens": 118
     },
     {
       "firstFile": {
-        "end": 115,
+        "end": 111,
         "endLoc": {
           "column": 51,
-          "line": 115,
-          "position": 5017
+          "line": 111,
+          "position": 4257
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 104,
+        "start": 99,
         "startLoc": {
-          "column": 4,
-          "line": 104,
-          "position": 4341
+          "column": 45,
+          "line": 99,
+          "position": 3575
         }
       },
       "format": "typescript",
-      "fragment": "    const x = transform.worldX ?? transform.x;\n    const y = transform.worldY ?? transform.y;\n\n    // Trigger thruster smoke/engine particles trailing behind on movement\n    const velocity = world.getComponent(entity, \"Velocity\");\n    if (velocity && (Math.abs(velocity.vx) > 10 || Math.abs(velocity.vy) > 10)) {\n      if (world.tick % 3 === 0) {\n        const angle = Math.atan2(velocity.vy, velocity.vx) + Math.PI; // opposite direction\n        const spreadAngle = angle + (world.renderRandom.next() - 0.5) * 0.4;\n        const pSpeed = world.renderRandom.nextRange(30, 80);\n        const pvx = Math.cos(spreadAngle) * pSpeed;\n        const pvy = Math.sin(spreadAngle) * pSpeed;",
+      "fragment": "    const color = render.color ?? colors.cyan;\n    const x = transform.worldX ?? transform.x;\n    const y = transform.worldY ?? transform.y;\n\n    // Trigger thruster smoke/engine particles trailing behind on movement\n    const velocity = world.getComponent(entity, \"Velocity\");\n    if (velocity && (Math.abs(velocity.vx) > 10 || Math.abs(velocity.vy) > 10)) {\n      if (world.tick % 3 === 0) {\n        const angle = Math.atan2(velocity.vy, velocity.vx) + Math.PI; // opposite direction\n        const spreadAngle = angle + (world.renderRandom.next() - 0.5) * 0.4;\n        const pSpeed = world.renderRandom.nextRange(30, 80);\n        const pvx = Math.cos(spreadAngle) * pSpeed;\n        const pvy = Math.sin(spreadAngle) * pSpeed;",
       "isNew": false,
-      "lines": 12,
+      "lines": 13,
       "secondFile": {
-        "end": 222,
+        "end": 214,
         "endLoc": {
-          "column": 53,
-          "line": 222,
-          "position": 8051
+          "column": 51,
+          "line": 214,
+          "position": 6434
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 211,
+        "start": 201,
         "startLoc": {
-          "column": 6,
-          "line": 211,
-          "position": 7355
+          "column": 43,
+          "line": 201,
+          "position": 5751
         }
       },
-      "tokens": 151
+      "tokens": 152
     },
     {
       "firstFile": {
-        "end": 144,
+        "end": 140,
         "endLoc": {
           "column": 65,
-          "line": 144,
-          "position": 6018
+          "line": 140,
+          "position": 5258
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 124,
+        "start": 120,
         "startLoc": {
           "column": 8,
-          "line": 124,
-          "position": 5277
+          "line": 120,
+          "position": 4517
         }
       },
       "format": "typescript",
@@ -4054,36 +4239,36 @@
       "isNew": false,
       "lines": 21,
       "secondFile": {
-        "end": 251,
+        "end": 243,
         "endLoc": {
-          "column": 67,
-          "line": 251,
-          "position": 9108
+          "column": 65,
+          "line": 243,
+          "position": 7437
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 231,
+        "start": 223,
         "startLoc": {
-          "column": 10,
-          "line": 231,
-          "position": 8331
+          "column": 8,
+          "line": 223,
+          "position": 6696
         }
       },
       "tokens": 158
     },
     {
       "firstFile": {
-        "end": 226,
+        "end": 221,
         "endLoc": {
           "column": 33,
-          "line": 226,
-          "position": 8425
+          "line": 221,
+          "position": 7488
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 221,
+        "start": 216,
         "startLoc": {
           "column": 23,
-          "line": 221,
-          "position": 8169
+          "line": 216,
+          "position": 7232
         }
       },
       "format": "typescript",
@@ -4091,36 +4276,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 256,
+        "end": 250,
         "endLoc": {
           "column": 33,
-          "line": 256,
-          "position": 9287
+          "line": 250,
+          "position": 8173
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 251,
+        "start": 245,
         "startLoc": {
           "column": 23,
-          "line": 251,
-          "position": 9031
+          "line": 245,
+          "position": 7917
         }
       },
       "tokens": 53
     },
     {
       "firstFile": {
-        "end": 295,
+        "end": 288,
         "endLoc": {
           "column": 27,
-          "line": 295,
-          "position": 10356
+          "line": 288,
+          "position": 9061
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 285,
+        "start": 278,
         "startLoc": {
           "column": 45,
-          "line": 285,
-          "position": 10156
+          "line": 278,
+          "position": 8861
         }
       },
       "format": "typescript",
@@ -4128,36 +4313,36 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 406,
+        "end": 397,
         "endLoc": {
           "column": 27,
-          "line": 406,
-          "position": 13325
+          "line": 397,
+          "position": 11672
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 396,
+        "start": 387,
         "startLoc": {
           "column": 45,
-          "line": 396,
-          "position": 13125
+          "line": 387,
+          "position": 11472
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 341,
+        "end": 333,
         "endLoc": {
           "column": 41,
-          "line": 341,
-          "position": 11630
+          "line": 333,
+          "position": 10158
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 336,
+        "start": 328,
         "startLoc": {
           "column": 28,
-          "line": 336,
-          "position": 11366
+          "line": 328,
+          "position": 9894
         }
       },
       "format": "typescript",
@@ -4165,36 +4350,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 370,
+        "end": 362,
         "endLoc": {
           "column": 41,
-          "line": 370,
-          "position": 12318
+          "line": 362,
+          "position": 10846
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 365,
+        "start": 357,
         "startLoc": {
           "column": 28,
-          "line": 365,
-          "position": 12054
+          "line": 357,
+          "position": 10582
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 350,
+        "end": 342,
         "endLoc": {
           "column": 15,
-          "line": 350,
-          "position": 11797
+          "line": 342,
+          "position": 10325
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 338,
+        "start": 330,
         "startLoc": {
           "column": 50,
-          "line": 338,
-          "position": 11520
+          "line": 330,
+          "position": 10048
         }
       },
       "format": "typescript",
@@ -4202,116 +4387,116 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 405,
+        "end": 396,
         "endLoc": {
           "column": 15,
-          "line": 405,
-          "position": 13288
+          "line": 396,
+          "position": 11635
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 392,
+        "start": 384,
         "startLoc": {
           "column": 49,
-          "line": 392,
-          "position": 12830
+          "line": 384,
+          "position": 11358
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 455,
+        "end": 445,
         "endLoc": {
           "column": 5,
-          "line": 455,
-          "position": 15299
+          "line": 445,
+          "position": 13443
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 428,
+        "start": 418,
         "startLoc": {
           "column": 36,
-          "line": 428,
-          "position": 14231
+          "line": 418,
+          "position": 12399
         }
       },
       "format": "typescript",
-      "fragment": "    const { width, height } = screen;\n\n    // 2. Monitor bullet states for trail and explosion spawns\n    monitorBulletsAndSpawnTrails(world);\n\n    // 3. Fetch Player coordinates for real-time grid displacement\n    let playerX = width / 2;\n    let playerY = height / 2;\n    const players = world.query(\"Player\", \"Transform\");\n    if (players.length > 0) {\n      const transform = world.getComponent(players[0], \"Transform\")!;\n      playerX = transform.worldX ?? transform.x;\n      playerY = transform.worldY ?? transform.y;\n    }\n\n    // 4. Collect active bullets coordinates (up to 100) to displace the grid\n    let bulletCount = 0;\n    const entities = world.query(\"Transform\", \"Render\");\n    for (const ent of entities) {\n      if (bulletCount >= 100) break;\n      const render = world.getComponent(ent, \"Render\")!;\n      if (render.shape === \"gw_bullet\" && render.visible) {\n        const trans = world.getComponent(ent, \"Transform\")!;\n        BULLET_COORDS[bulletCount].x = trans.worldX ?? trans.x;\n        BULLET_COORDS[bulletCount].y = trans.worldY ?? trans.y;\n        bulletCount++;\n      }\n    }",
+      "fragment": "    const { width, height } = screen;\n\n    // 2. Monitor bullet states for trail and explosion spawns\n    monitorBulletsAndSpawnTrails(world);\n\n    // 3. Fetch Player coordinates for real-time grid displacement\n    let playerX = width / 2;\n    let playerY = height / 2;\n    const players = world.query(\"Player\", \"Transform\");\n    if (players.length > 0) {\n      const transform = getDrawableTransform(world, players[0])!;\n      playerX = transform.worldX ?? transform.x;\n      playerY = transform.worldY ?? transform.y;\n    }\n\n    // 4. Collect active bullets coordinates (up to 100) to displace the grid\n    let bulletCount = 0;\n    const entities = world.query(\"Transform\", \"Render\");\n    for (const ent of entities) {\n      if (bulletCount >= 100) break;\n      const render = getRenderGuard(world, ent);\n      if (render && render.shape === \"gw_bullet\") {\n        const trans = getDrawableTransform(world, ent)!;\n        BULLET_COORDS[bulletCount].x = trans.worldX ?? trans.x;\n        BULLET_COORDS[bulletCount].y = trans.worldY ?? trans.y;\n        bulletCount++;\n      }\n    }",
       "isNew": false,
       "lines": 28,
       "secondFile": {
-        "end": 633,
+        "end": 612,
         "endLoc": {
           "column": 5,
-          "line": 633,
-          "position": 21108
+          "line": 612,
+          "position": 17180
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 606,
+        "start": 585,
         "startLoc": {
           "column": 31,
-          "line": 606,
-          "position": 20040
+          "line": 585,
+          "position": 16136
         }
       },
-      "tokens": 185
+      "tokens": 176
     },
     {
       "firstFile": {
-        "end": 477,
+        "end": 466,
         "endLoc": {
           "column": 5,
-          "line": 477,
-          "position": 16105
+          "line": 466,
+          "position": 14066
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 467,
+        "start": 456,
         "startLoc": {
-          "column": 31,
-          "line": 467,
-          "position": 15797
+          "column": 36,
+          "line": 456,
+          "position": 13758
         }
       },
       "format": "typescript",
-      "fragment": "      let x = 0; x <= width; x += 25) {\n        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);\n        if (first) {\n          ctx.moveTo(displaced.x, displaced.y);\n          first = false;\n        } else {\n          ctx.lineTo(displaced.x, displaced.y);\n        }\n      }\n      ctx.stroke();\n    }",
+      "fragment": "      for (let x = 0; x <= width; x += 25) {\n        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);\n        if (first) {\n          ctx.moveTo(displaced.x, displaced.y);\n          first = false;\n        } else {\n          ctx.lineTo(displaced.x, displaced.y);\n        }\n      }\n      ctx.stroke();\n    }",
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 494,
+        "end": 482,
         "endLoc": {
           "column": 5,
-          "line": 494,
-          "position": 16757
+          "line": 482,
+          "position": 14535
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 484,
+        "start": 472,
         "startLoc": {
-          "column": 32,
-          "line": 484,
-          "position": 16449
+          "column": 37,
+          "line": 472,
+          "position": 14227
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 64,
+        "end": 63,
         "endLoc": {
           "column": 8,
-          "line": 64,
-          "position": 1962
+          "line": 63,
+          "position": 1672
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 52,
         "startLoc": {
           "column": 27,
           "line": 52,
-          "position": 1569
+          "position": 1456
         }
       },
       "format": "typescript",
-      "fragment": "    const p = PARTICLE_POOL[i];\n    if (!p.active) {\n      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:78-87. Considerar extraer a función compartida. Ref: 2e7d453d\n      p.active = true;\n      p.x = x;\n      p.y = y;\n      p.vx = vx;\n      p.vy = vy;\n      p.life = maxLife;\n      p.maxLife = maxLife;\n      p.size = size;\n      p.color = color;\n      p.skColor = Skia ? Skia.Color(color) : null;",
+      "fragment": "    const p = PARTICLE_POOL[i];\n    if (!p.active) {\n      p.active = true;\n      p.x = x;\n      p.y = y;\n      p.vx = vx;\n      p.vy = vy;\n      p.life = maxLife;\n      p.maxLife = maxLife;\n      p.size = size;\n      p.color = color;\n      p.skColor = Skia ? Skia.Color(color) : null;",
       "isNew": false,
-      "lines": 13,
+      "lines": 12,
       "secondFile": {
         "end": 66,
         "endLoc": {
@@ -4331,351 +4516,277 @@
     },
     {
       "firstFile": {
-        "end": 200,
+        "end": 316,
         "endLoc": {
-          "column": 9,
-          "line": 200,
-          "position": 6695
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
-        "startLoc": {
           "column": 31,
-          "line": 192,
-          "position": 6294
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 325,
-        "endLoc": {
-          "column": 9,
-          "line": 325,
-          "position": 11216
+          "line": 316,
+          "position": 9526
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 318,
+        "start": 309,
         "startLoc": {
           "column": 29,
-          "line": 318,
-          "position": 10995
-        }
-      },
-      "tokens": 50
-    },
-    {
-      "firstFile": {
-        "end": 200,
-        "endLoc": {
-          "column": 41,
-          "line": 200,
-          "position": 6727
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
-        "startLoc": {
-          "column": 31,
-          "line": 192,
-          "position": 6294
+          "line": 309,
+          "position": 9292
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;",
+      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
       "isNew": false,
-      "lines": 9,
+      "lines": 8,
       "secondFile": {
-        "end": 355,
+        "end": 344,
         "endLoc": {
           "column": 31,
-          "line": 355,
-          "position": 12267
+          "line": 344,
+          "position": 10188
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 347,
+        "start": 337,
         "startLoc": {
           "column": 27,
-          "line": 347,
-          "position": 11845
+          "line": 337,
+          "position": 9954
         }
       },
-      "tokens": 56
+      "tokens": 51
     },
     {
       "firstFile": {
-        "end": 201,
-        "endLoc": {
-          "column": 8,
-          "line": 201,
-          "position": 6779
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
-        "startLoc": {
-          "column": 31,
-          "line": 192,
-          "position": 6294
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 395,
+        "end": 317,
         "endLoc": {
           "column": 33,
-          "line": 395,
-          "position": 13660
+          "line": 317,
+          "position": 9563
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 386,
+        "start": 309,
         "startLoc": {
-          "column": 27,
-          "line": 386,
-          "position": 13200
-        }
-      },
-      "tokens": 65
-    },
-    {
-      "firstFile": {
-        "end": 200,
-        "endLoc": {
-          "column": 41,
-          "line": 200,
-          "position": 6727
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
-        "startLoc": {
-          "column": 31,
-          "line": 192,
-          "position": 6294
+          "column": 29,
+          "line": 309,
+          "position": 9292
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;",
+      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;\n    const color = render.color ?? \"#ffffff\";",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 429,
+        "end": 381,
         "endLoc": {
-          "column": 31,
-          "line": 429,
-          "position": 14439
+          "column": 33,
+          "line": 381,
+          "position": 11039
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 422,
+        "start": 373,
+        "startLoc": {
+          "column": 27,
+          "line": 373,
+          "position": 10767
+        }
+      },
+      "tokens": 60
+    },
+    {
+      "firstFile": {
+        "end": 316,
+        "endLoc": {
+          "column": 31,
+          "line": 316,
+          "position": 9526
+        },
+        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "start": 309,
+        "startLoc": {
+          "column": 29,
+          "line": 309,
+          "position": 9292
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 415,
+        "endLoc": {
+          "column": 31,
+          "line": 415,
+          "position": 11809
+        },
+        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "start": 408,
         "startLoc": {
           "column": 26,
-          "line": 422,
-          "position": 14196
+          "line": 408,
+          "position": 11575
         }
       },
-      "tokens": 56
+      "tokens": 51
     },
     {
       "firstFile": {
-        "end": 200,
+        "end": 316,
         "endLoc": {
-          "column": 41,
-          "line": 200,
-          "position": 6727
+          "column": 31,
+          "line": 316,
+          "position": 9526
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
+        "start": 309,
         "startLoc": {
-          "column": 31,
-          "line": 192,
-          "position": 6294
+          "column": 29,
+          "line": 309,
+          "position": 9292
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;",
+      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
       "isNew": false,
-      "lines": 9,
+      "lines": 8,
       "secondFile": {
-        "end": 465,
+        "end": 450,
         "endLoc": {
           "column": 31,
-          "line": 465,
-          "position": 15428
+          "line": 450,
+          "position": 12610
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 458,
+        "start": 443,
         "startLoc": {
           "column": 27,
-          "line": 458,
-          "position": 15185
+          "line": 443,
+          "position": 12376
         }
       },
-      "tokens": 56
+      "tokens": 51
     },
     {
       "firstFile": {
-        "end": 200,
+        "end": 316,
         "endLoc": {
-          "column": 41,
-          "line": 200,
-          "position": 6727
+          "column": 31,
+          "line": 316,
+          "position": 9526
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
+        "start": 309,
         "startLoc": {
-          "column": 31,
-          "line": 192,
-          "position": 6294
+          "column": 29,
+          "line": 309,
+          "position": 9292
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;",
+      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
       "isNew": false,
-      "lines": 9,
+      "lines": 8,
       "secondFile": {
-        "end": 495,
+        "end": 479,
         "endLoc": {
           "column": 31,
-          "line": 495,
-          "position": 16302
+          "line": 479,
+          "position": 13296
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 488,
+        "start": 472,
         "startLoc": {
           "column": 32,
-          "line": 488,
-          "position": 16059
+          "line": 472,
+          "position": 13062
         }
       },
-      "tokens": 56
+      "tokens": 51
     },
     {
       "firstFile": {
-        "end": 201,
-        "endLoc": {
-          "column": 8,
-          "line": 201,
-          "position": 6779
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
-        "startLoc": {
-          "column": 31,
-          "line": 192,
-          "position": 6294
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 533,
+        "end": 317,
         "endLoc": {
           "column": 33,
-          "line": 533,
-          "position": 17542
+          "line": 317,
+          "position": 9563
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 524,
+        "start": 309,
         "startLoc": {
-          "column": 32,
-          "line": 524,
-          "position": 17082
-        }
-      },
-      "tokens": 65
-    },
-    {
-      "firstFile": {
-        "end": 200,
-        "endLoc": {
-          "column": 41,
-          "line": 200,
-          "position": 6727
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
-        "startLoc": {
-          "column": 31,
-          "line": 192,
-          "position": 6294
+          "column": 29,
+          "line": 309,
+          "position": 9292
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;",
+      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;\n    const color = render.color ?? \"#ffffff\";",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 564,
+        "end": 515,
         "endLoc": {
-          "column": 31,
-          "line": 564,
-          "position": 18437
+          "column": 33,
+          "line": 515,
+          "position": 14169
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 557,
+        "start": 507,
         "startLoc": {
-          "column": 36,
-          "line": 557,
-          "position": 18194
+          "column": 32,
+          "line": 507,
+          "position": 13897
         }
       },
-      "tokens": 56
+      "tokens": 60
     },
     {
       "firstFile": {
-        "end": 203,
+        "end": 316,
         "endLoc": {
-          "column": 9,
-          "line": 203,
-          "position": 6809
+          "column": 31,
+          "line": 316,
+          "position": 9526
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 192,
+        "start": 309,
         "startLoc": {
-          "column": 79,
-          "line": 192,
-          "position": 6342
+          "column": 29,
+          "line": 309,
+          "position": 9292
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:91-101. Considerar extraer a función compartida. Ref: b246837f\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const player = world.getComponent(entity, \"Player\");",
+      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
       "isNew": false,
-      "lines": 12,
+      "lines": 8,
       "secondFile": {
-        "end": 81,
+        "end": 545,
         "endLoc": {
-          "column": 9,
-          "line": 81,
-          "position": 3205
+          "column": 31,
+          "line": 545,
+          "position": 14876
         },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 71,
+        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "start": 538,
         "startLoc": {
-          "column": 69,
-          "line": 71,
-          "position": 2756
+          "column": 36,
+          "line": 538,
+          "position": 14642
         }
       },
-      "tokens": 65
+      "tokens": 51
     },
     {
       "firstFile": {
-        "end": 347,
+        "end": 337,
         "endLoc": {
           "column": 12,
-          "line": 347,
-          "position": 11830
+          "line": 337,
+          "position": 9939
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 334,
+        "start": 324,
         "startLoc": {
           "column": 39,
-          "line": 334,
-          "position": 11605
+          "line": 324,
+          "position": 9714
         }
       },
       "format": "typescript",
@@ -4683,73 +4794,73 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 557,
+        "end": 538,
         "endLoc": {
           "column": 12,
-          "line": 557,
-          "position": 18170
+          "line": 538,
+          "position": 14618
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 542,
+        "start": 523,
         "startLoc": {
           "column": 28,
-          "line": 542,
-          "position": 17905
+          "line": 523,
+          "position": 14353
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 365,
+        "end": 353,
         "endLoc": {
           "column": 25,
-          "line": 365,
-          "position": 12665
+          "line": 353,
+          "position": 10407
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 355,
+        "start": 344,
         "startLoc": {
           "column": 34,
-          "line": 355,
-          "position": 12270
+          "line": 344,
+          "position": 10191
         }
       },
       "format": "typescript",
-      "fragment": "    const size = render.size ?? 14;\n    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:401-413. Considerar extraer a función compartida. Ref: 3eeb12d9\n    const color = render.color ?? \"#ff00ff\";\n\n    const paint = getPaint();\n    canvas.save();\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(2.0);",
+      "fragment": "    const size = render.size ?? 14;\n    const color = render.color ?? \"#ff00ff\";\n\n    const paint = getPaint();\n    canvas.save();\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(2.0);",
       "isNew": false,
-      "lines": 11,
+      "lines": 10,
       "secondFile": {
-        "end": 505,
+        "end": 488,
         "endLoc": {
           "column": 25,
-          "line": 505,
-          "position": 16700
+          "line": 488,
+          "position": 13515
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 495,
+        "start": 479,
         "startLoc": {
           "column": 34,
-          "line": 495,
-          "position": 16305
+          "line": 479,
+          "position": 13299
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 369,
+        "end": 357,
         "endLoc": {
           "column": 16,
-          "line": 369,
-          "position": 12762
+          "line": 357,
+          "position": 10504
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 357,
+        "start": 345,
         "startLoc": {
           "column": 43,
-          "line": 357,
-          "position": 12494
+          "line": 345,
+          "position": 10236
         }
       },
       "format": "typescript",
@@ -4757,36 +4868,36 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 407,
+        "end": 393,
         "endLoc": {
           "column": 16,
-          "line": 407,
-          "position": 13938
+          "line": 393,
+          "position": 11317
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 395,
+        "start": 381,
         "startLoc": {
           "column": 43,
-          "line": 395,
-          "position": 13670
+          "line": 381,
+          "position": 11049
         }
       },
       "tokens": 72
     },
     {
       "firstFile": {
-        "end": 440,
+        "end": 425,
         "endLoc": {
           "column": 38,
-          "line": 440,
-          "position": 14881
+          "line": 425,
+          "position": 12072
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 431,
+        "start": 416,
         "startLoc": {
           "column": 43,
-          "line": 431,
-          "position": 14666
+          "line": 416,
+          "position": 11857
         }
       },
       "format": "typescript",
@@ -4794,36 +4905,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 476,
+        "end": 460,
         "endLoc": {
           "column": 38,
-          "line": 476,
-          "position": 15869
+          "line": 460,
+          "position": 12872
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 467,
+        "start": 451,
         "startLoc": {
           "column": 43,
-          "line": 467,
-          "position": 15654
+          "line": 451,
+          "position": 12657
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 443,
+        "end": 428,
         "endLoc": {
           "column": 16,
-          "line": 443,
-          "position": 14934
+          "line": 428,
+          "position": 12125
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 431,
+        "start": 416,
         "startLoc": {
           "column": 43,
-          "line": 431,
-          "position": 14666
+          "line": 416,
+          "position": 11857
         }
       },
       "format": "typescript",
@@ -4831,36 +4942,36 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 509,
+        "end": 492,
         "endLoc": {
           "column": 16,
-          "line": 509,
-          "position": 16797
+          "line": 492,
+          "position": 13612
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 497,
+        "start": 480,
         "startLoc": {
           "column": 43,
-          "line": 497,
-          "position": 16529
+          "line": 480,
+          "position": 13344
         }
       },
       "tokens": 72
     },
     {
       "firstFile": {
-        "end": 442,
+        "end": 427,
         "endLoc": {
           "column": 14,
-          "line": 442,
-          "position": 14897
+          "line": 427,
+          "position": 12088
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 431,
+        "start": 416,
         "startLoc": {
           "column": 43,
-          "line": 431,
-          "position": 14666
+          "line": 416,
+          "position": 11857
         }
       },
       "format": "typescript",
@@ -4868,36 +4979,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 545,
+        "end": 526,
         "endLoc": {
           "column": 11,
-          "line": 545,
-          "position": 17959
+          "line": 526,
+          "position": 14407
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 533,
+        "start": 515,
         "startLoc": {
           "column": 43,
-          "line": 533,
-          "position": 17552
+          "line": 515,
+          "position": 14179
         }
       },
       "tokens": 59
     },
     {
       "firstFile": {
-        "end": 444,
+        "end": 429,
         "endLoc": {
           "column": 28,
-          "line": 444,
-          "position": 14972
+          "line": 429,
+          "position": 12163
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 431,
+        "start": 416,
         "startLoc": {
           "column": 43,
-          "line": 431,
-          "position": 14666
+          "line": 416,
+          "position": 11857
         }
       },
       "format": "typescript",
@@ -4905,55 +5016,55 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 579,
+        "end": 559,
         "endLoc": {
           "column": 28,
-          "line": 579,
-          "position": 18969
+          "line": 559,
+          "position": 15229
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 566,
+        "start": 546,
         "startLoc": {
           "column": 43,
-          "line": 566,
-          "position": 18663
+          "line": 546,
+          "position": 14923
         }
       },
       "tokens": 86
     },
     {
       "firstFile": {
-        "end": 663,
+        "end": 641,
         "endLoc": {
           "column": 5,
-          "line": 663,
-          "position": 22149
+          "line": 641,
+          "position": 18040
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 651,
+        "start": 629,
         "startLoc": {
-          "column": 31,
-          "line": 651,
-          "position": 21759
+          "column": 36,
+          "line": 629,
+          "position": 17650
         }
       },
       "format": "typescript",
-      "fragment": "      let x = 0; x <= width; x += 25) {\n        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);\n        if (first) {\n          lastX = displaced.x;\n          lastY = displaced.y;\n          first = false;\n        } else {\n          canvas.drawLine(lastX, lastY, displaced.x, displaced.y, paint);\n          lastX = displaced.x;\n          lastY = displaced.y;\n        }\n      }\n    }",
+      "fragment": "      for (let x = 0; x <= width; x += 25) {\n        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);\n        if (first) {\n          lastX = displaced.x;\n          lastY = displaced.y;\n          first = false;\n        } else {\n          canvas.drawLine(lastX, lastY, displaced.x, displaced.y, paint);\n          lastX = displaced.x;\n          lastY = displaced.y;\n        }\n      }\n    }",
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 683,
+        "end": 660,
         "endLoc": {
           "column": 5,
-          "line": 683,
-          "position": 22900
+          "line": 660,
+          "position": 18610
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 671,
+        "start": 648,
         "startLoc": {
-          "column": 32,
-          "line": 671,
-          "position": 22510
+          "column": 37,
+          "line": 648,
+          "position": 18220
         }
       },
       "tokens": 80
@@ -6329,32 +6440,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-08T11:05:49.919Z",
+    "detectionDate": "2026-09-08T11:42:38.891Z",
     "formats": {
       "typescript": {
-        "clones": 171,
-        "duplicatedLines": 1818,
-        "duplicatedTokens": 13780,
-        "lines": 52666,
+        "clones": 173,
+        "duplicatedLines": 1855,
+        "duplicatedTokens": 13931,
+        "lines": 52869,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.451942429651008,
-        "percentageTokens": 4.990656101058975,
-        "sources": 332,
-        "tokens": 276116
+        "percentage": 3.5086723788987877,
+        "percentageTokens": 5.00974546709916,
+        "sources": 329,
+        "tokens": 278078
       }
     },
     "total": {
-      "clones": 171,
-      "duplicatedLines": 1818,
-      "duplicatedTokens": 13780,
-      "lines": 52666,
+      "clones": 173,
+      "duplicatedLines": 1855,
+      "duplicatedTokens": 13931,
+      "lines": 52869,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.451942429651008,
-      "percentageTokens": 4.990656101058975,
-      "sources": 332,
-      "tokens": 276116
+      "percentage": 3.5086723788987877,
+      "percentageTokens": 5.00974546709916,
+      "sources": 329,
+      "tokens": 278078
     }
   }
 }

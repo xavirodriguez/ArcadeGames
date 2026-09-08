@@ -4,7 +4,7 @@ import { z } from "zod";
  * Definitions and configurations for game mutators.
  */
 
-export type GameId = 'asteroids' | 'flappybird' | 'pong' | 'space-invaders';
+export type GameId = 'asteroids' | 'flappybird' | 'pong' | 'space-invaders' | 'frogger';
 
 /**
  * Schema to enforce strict, safe physical boundaries on mutated parameters,
@@ -74,17 +74,28 @@ const rawMutators: Mutator[] = [
     apply: (cfg) => ({ ...cfg, ENEMY_SFX_ENABLED: false })
   },
   {
+    id: 'fast_traffic',
+    name: 'Tráfico Rápido',
+    description: 'Los vehículos y troncos se mueven un 50% más rápido.',
+    games: ['frogger'],
+    apply: (cfg) => ({
+      ...cfg,
+      TRAFFIC_SPEED_MULTIPLIER: 1.5,
+    })
+  },
+  {
     id: 'speed_run',
     name: 'Speed Run',
     description: 'Todo se mueve un 50% más rápido.',
-    games: ['asteroids', 'space-invaders', 'flappybird'],
+    games: ['asteroids', 'space-invaders', 'flappybird', 'frogger'],
     apply: (cfg) => ({
       ...cfg,
       GLOBAL_SPEED_MULTIPLIER: 1.5,
       SHIP_THRUST: ((cfg.SHIP_THRUST as number) || 0) * 1.5,
       ASTEROID_SPEED: ((cfg.ASTEROID_SPEED as number) || 0) * 1.5,
       PIPE_SPEED: ((cfg.PIPE_SPEED as number) || 0) * 1.5,
-      INVADER_SPEED: ((cfg.INVADER_SPEED as number) || 0) * 1.5
+      INVADER_SPEED: ((cfg.INVADER_SPEED as number) || 0) * 1.5,
+      TRAFFIC_SPEED_MULTIPLIER: 1.5
     })
   },
   {

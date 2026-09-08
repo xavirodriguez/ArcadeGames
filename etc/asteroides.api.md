@@ -1757,7 +1757,7 @@ export class GameDefinitionRegistry {
 }
 
 // @public
-export type GameId = "asteroids" | "echorunner" | "space-invaders" | "flappybird" | "pong" | "geometrywars" | "platformer";
+export type GameId = "asteroids" | "echorunner" | "space-invaders" | "flappybird" | "pong" | "geometrywars" | "platformer" | "frogger";
 
 // @public
 export enum GameLifecycleState {

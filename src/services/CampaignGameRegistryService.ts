@@ -6,6 +6,7 @@ import { GeometryWarsDefinition } from "../games/geometrywars/GeometryWarsGame";
 import { PongDefinition } from "../games/pong/PongGame";
 import { FlappyBirdDefinition } from "../games/flappybird/FlappyBirdGame";
 import { PlatformerDefinition } from "../games/platformer/PlatformerGame";
+import { FroggerDefinition } from "../games/frogger/FroggerGame";
 
 let isRegistered = false;
 
@@ -24,4 +25,5 @@ export function registerDefaultCampaignGames(): void {
   GameDefinitionRegistry.register("pong", PongDefinition);
   GameDefinitionRegistry.register("geometrywars", GeometryWarsDefinition);
   GameDefinitionRegistry.register("platformer", PlatformerDefinition);
+  GameDefinitionRegistry.register("frogger", FroggerDefinition);
 }

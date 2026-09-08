@@ -10,6 +10,7 @@ export const en = {
     cyoa: "THE CAVE // CYOA",
     blindstation: "THE BLIND STATION",
     platformer: "PLATFORMER // 2D",
+    frogger: "FROGGER // CROSSING",
     campaign: "STORY CAMPAIGN (POC)",
     level: "LEVEL",
   },
@@ -93,6 +94,9 @@ export const en = {
     final_score: "Final Score",
     syncing_level: "Loading Platformer Level...",
   },
+  frogger: {
+    instructions: "W/A/S/D or Arrows: Jump Up/Down/Left/Right",
+  },
   mutators: {
     heavy_gravity: {
       name: "Heavy Gravity",
@@ -121,6 +125,10 @@ export const en = {
     tiny_ship: {
       name: "Tiny Ship",
       description: "Your ship is half the size but much more agile.",
+    },
+    fast_traffic: {
+      name: "Fast Traffic",
+      description: "Vehicles and logs move 50% faster.",
     },
   },
   blindstation: {

@@ -425,11 +425,12 @@ export class GeometryWarsGame extends BaseGame<
   }
 }
 
+import { GeometryWarsGameAdapter } from "./GeometryWarsAdapter";
+
 export const GeometryWarsDefinition: GameDefinition = {
   name: "geometrywars",
   createSimulation: (seed: number) => {
-    const game = new GeometryWarsGame({ gameOptions: { seed } });
-    return game;
+    return new GeometryWarsGameAdapter({ seed });
   },
   inputSchema: {
     actions: [

@@ -518,11 +518,12 @@ registerMutatorHook("story_fragment", (world: World) => {
   }
 });
 
+import { FlappyBirdGameAdapter } from "./FlappyBirdAdapter";
+
 export const FlappyBirdDefinition = {
   name: "flappybird",
   createSimulation: (seed: number) => {
-    const game = new FlappyBirdGame({ gameOptions: { seed } });
-    return game;
+    return new FlappyBirdGameAdapter({ seed });
   },
   inputSchema: {
     actions: ["flap", "glide"]

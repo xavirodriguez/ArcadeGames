@@ -2800,14 +2800,14 @@
         "endLoc": {
           "column": 79,
           "line": 239,
-          "position": 10163
+          "position": 10175
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 227,
         "startLoc": {
           "column": 4,
           "line": 227,
-          "position": 9521
+          "position": 9533
         }
       },
       "tokens": 138
@@ -2870,18 +2870,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 274,
+        "end": 270,
         "endLoc": {
           "column": 8,
-          "line": 274,
-          "position": 11477
+          "line": 270,
+          "position": 11236
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 251,
         "startLoc": {
           "column": 99,
           "line": 251,
-          "position": 10778
+          "position": 10790
         }
       },
       "tokens": 68
@@ -3632,14 +3632,14 @@
         "endLoc": {
           "column": 3,
           "line": 92,
-          "position": 3843
+          "position": 3855
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 82,
         "startLoc": {
           "column": 56,
           "line": 82,
-          "position": 3447
+          "position": 3459
         }
       },
       "format": "typescript",
@@ -3669,14 +3669,14 @@
         "endLoc": {
           "column": 36,
           "line": 142,
-          "position": 5507
+          "position": 5519
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 129,
         "startLoc": {
           "column": 2,
           "line": 129,
-          "position": 5028
+          "position": 5040
         }
       },
       "format": "typescript",
@@ -3706,14 +3706,14 @@
         "endLoc": {
           "column": 11,
           "line": 175,
-          "position": 7127
+          "position": 7139
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 168,
         "startLoc": {
           "column": 93,
           "line": 168,
-          "position": 6905
+          "position": 6917
         }
       },
       "format": "typescript",
@@ -3725,14 +3725,14 @@
         "endLoc": {
           "column": 11,
           "line": 196,
-          "position": 8256
+          "position": 8268
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 189,
         "startLoc": {
           "column": 218,
           "line": 189,
-          "position": 8034
+          "position": 8046
         }
       },
       "tokens": 60
@@ -3743,14 +3743,14 @@
         "endLoc": {
           "column": 5,
           "line": 198,
-          "position": 8270
+          "position": 8282
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 189,
         "startLoc": {
           "column": 178,
           "line": 189,
-          "position": 7994
+          "position": 8006
         }
       },
       "format": "typescript",
@@ -3762,14 +3762,14 @@
         "endLoc": {
           "column": 5,
           "line": 214,
-          "position": 9189
+          "position": 9201
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 205,
         "startLoc": {
           "column": 163,
           "line": 205,
-          "position": 8913
+          "position": 8925
         }
       },
       "tokens": 70
@@ -3780,14 +3780,14 @@
         "endLoc": {
           "column": 79,
           "line": 251,
-          "position": 10758
+          "position": 10770
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 245,
         "startLoc": {
           "column": 99,
           "line": 245,
-          "position": 10480
+          "position": 10492
         }
       },
       "format": "typescript",
@@ -5953,6 +5953,43 @@
           "column": 4,
           "line": 119,
           "position": 5626
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 2,
+          "line": 36,
+          "position": 1074
+        },
+        "name": "space-invaders/SpaceInvadersAdapter.ts",
+        "start": 22,
+        "startLoc": {
+          "column": 49,
+          "line": 22,
+          "position": 735
+        }
+      },
+      "format": "typescript",
+      "fragment": "    return new SpaceInvadersGameAdapter({ seed });\n  },\n  inputSchema: {\n    actions: [\"moveLeft\", \"moveRight\", \"shoot\"]\n  },\n  assets: {\n    sprites: [],\n    sounds: [\n      { id: \"shoot\", path: \"/audio/shoot.mp3\" },\n      { id: \"hit\", path: \"/audio/hit.mp3\" },\n      { id: \"explosion\", path: \"/audio/explosion.mp3\" },\n      { id: \"game_over\", path: \"/audio/game_over.mp3\" }\n    ]\n  }\n};",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 917,
+        "endLoc": {
+          "column": 2,
+          "line": 917,
+          "position": 37463
+        },
+        "name": "space-invaders/SpaceInvadersGame.ts",
+        "start": 903,
+        "startLoc": {
+          "column": 15,
+          "line": 903,
+          "position": 37124
         }
       },
       "tokens": 71

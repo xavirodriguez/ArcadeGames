@@ -47,4 +47,11 @@ export interface Simulation {
    * @returns Hexadecimal string representation of the state hash.
    */
   hash(): string;
+
+  /**
+   * Applies server state update payload to world entities and immediately flushes queued command buffer mutations.
+   *
+   * @param update - Server state payload containing entities or resources.
+   */
+  applyServerStateUpdate?(update: WorldSnapshot | { resources?: Record<string, unknown> }): void;
 }

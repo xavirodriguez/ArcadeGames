@@ -699,10 +699,6 @@ export class SpaceInvadersGame
     };
   }
 
-  public getWorld(): World<SpaceInvadersComponentRegistry> {
-    return this.world;
-  }
-
   public setMultiplayerMode(active: boolean) {
     this.isMultiplayer = active;
   }
@@ -864,24 +860,19 @@ export class SpaceInvadersGame
     return this.getGameState().isGameOver;
   }
 
-  public override start(): void {
-    super.start();
+  protected override onStart(): void {
     if (__DEV__) console.log("[SpaceInvadersGame] Simulation started");
   }
 
-  public stop(): void {
+  protected override onStop(): void {
     if (__DEV__) console.log("[SpaceInvadersGame] Simulation stopped");
   }
 
-  public override pause(): void {
-    super.pause();
-    this.getWorld().setResource("IsPaused", true);
+  protected override onPause(): void {
     if (__DEV__) console.log("[SpaceInvadersGame] Simulation paused");
   }
 
-  public override resume(): void {
-    super.resume();
-    this.getWorld().setResource("IsPaused", false);
+  protected override onResume(): void {
     if (__DEV__) console.log("[SpaceInvadersGame] Simulation resumed");
   }
 }

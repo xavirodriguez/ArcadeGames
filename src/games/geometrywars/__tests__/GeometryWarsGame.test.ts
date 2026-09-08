@@ -9,9 +9,10 @@ describe("GeometryWarsGame Headless Smoke Test", () => {
     await (game as any).onRegisterSystems();
     await (game as any).onInitializeEntities();
 
-    // 3. Verify player and game state are initialized
+    // 3. Verify player and game state are initialized and getWorld() delegates to currentScene
     const sceneWorld = (game as any).currentScene.getWorld();
     expect(sceneWorld).toBeDefined();
+    expect(game.getWorld()).toBe(sceneWorld);
 
     const playerEntities = sceneWorld.query("Player");
     expect(playerEntities.length).toBe(1);

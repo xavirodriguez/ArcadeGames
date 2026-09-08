@@ -457,8 +457,7 @@ export class AsteroidsGame
     }
   }
 
-  public override start(): void {
-    super.start();
+  protected override onStart(): void {
     if (__DEV__) console.log("[AsteroidsGame] Simulation started");
   }
 
@@ -468,13 +467,11 @@ export class AsteroidsGame
     this.particlePool?.clear();
   }
 
-  public override pause(): void {
-    super.pause();
+  protected override onPause(): void {
     if (__DEV__) console.log("[AsteroidsGame] Simulation paused");
   }
 
-  public override resume(): void {
-    super.resume();
+  protected override onResume(): void {
     if (__DEV__) console.log("[AsteroidsGame] Simulation resumed");
   }
 

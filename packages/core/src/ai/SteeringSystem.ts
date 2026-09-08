@@ -22,12 +22,15 @@ export class SteeringSystem<
     const velocityType = "Velocity" as Extract<keyof TRegistry, string>;
 
     const entities = world.query(steeringType, transformType, velocityType);
+    const len = entities.length;
 
-    for (const entity of entities) {
-      const steering = world.getComponent(entity, steeringType) as unknown as SteeringComponent | undefined;
+    // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
+      const steering = world.getComponent(entity, steeringType) as SteeringComponent | undefined;
       if (!steering) continue;
 
-      const currentT = world.getComponent(entity, transformType) as unknown as TransformComponent | undefined;
+      const currentT = world.getComponent(entity, transformType) as TransformComponent | undefined;
       if (!currentT) continue;
 
       let targetX = 0;
@@ -40,14 +43,16 @@ export class SteeringSystem<
         const factionEntities = world.query(factionType, transformType);
         let closestEntity: Entity | undefined = undefined;
         let minDistanceSq = Infinity;
+        const factionLen = factionEntities.length;
 
-        for (const potentialTarget of factionEntities) {
+        for (let j = 0; j < factionLen; j++) {
+          const potentialTarget = factionEntities[j];
           if (potentialTarget === entity) continue;
 
-          const factionComp = world.getComponent(potentialTarget, factionType) as unknown as FactionComponent | undefined;
+          const factionComp = world.getComponent(potentialTarget, factionType) as FactionComponent | undefined;
           if (!factionComp || factionComp.value !== steering.targetFaction) continue;
 
-          const targetT = world.getComponent(potentialTarget, transformType) as unknown as TransformComponent | undefined;
+          const targetT = world.getComponent(potentialTarget, transformType) as TransformComponent | undefined;
           if (!targetT) continue;
 
           const dx = targetT.x - currentT.x;
@@ -66,11 +71,10 @@ export class SteeringSystem<
 
         if (closestEntity !== undefined) {
           if (steering.targetEntity !== closestEntity) {
-            world.mutateComponent(entity, steeringType, (s) => {
-              (s as unknown as SteeringComponent).targetEntity = closestEntity;
-            });
+            const mutS = world.getMutableComponent(entity, steeringType) as SteeringComponent | undefined;
+            if (mutS) mutS.targetEntity = closestEntity;
           }
-          const targetT = world.getComponent(closestEntity, transformType) as unknown as TransformComponent | undefined;
+          const targetT = world.getComponent(closestEntity, transformType) as TransformComponent | undefined;
           if (targetT) {
             targetX = targetT.x;
             targetY = targetT.y;
@@ -78,14 +82,13 @@ export class SteeringSystem<
           }
         } else {
           if (steering.targetEntity !== undefined) {
-            world.mutateComponent(entity, steeringType, (s) => {
-              (s as unknown as SteeringComponent).targetEntity = undefined;
-            });
+            const mutS = world.getMutableComponent(entity, steeringType) as SteeringComponent | undefined;
+            if (mutS) mutS.targetEntity = undefined;
           }
         }
       } else if (steering.targetEntity !== undefined) {
         if (world.hasEntity(steering.targetEntity)) {
-          const targetT = world.getComponent(steering.targetEntity, transformType) as unknown as TransformComponent | undefined;
+          const targetT = world.getComponent(steering.targetEntity, transformType) as TransformComponent | undefined;
           if (targetT) {
             targetX = targetT.x;
             targetY = targetT.y;
@@ -93,24 +96,26 @@ export class SteeringSystem<
           }
         } else {
           // Explicit target was destroyed, clean it up
-          world.mutateComponent(entity, steeringType, (s) => {
-            (s as unknown as SteeringComponent).targetEntity = undefined;
-          });
+          const mutS = world.getMutableComponent(entity, steeringType) as SteeringComponent | undefined;
+          if (mutS) mutS.targetEntity = undefined;
         }
       }
 
       // 2. Apply steering mechanics
       if (!targetFound) {
-        // No target → do not move
-        world.mutateComponent(entity, velocityType, (v) => {
-          const vel = v as unknown as VelocityComponent;
-          vel.vx = 0;
-          vel.vy = 0;
-        });
+        // No target → do not move. Check read-only velocity first to avoid unnecessary stateVersion bumps on stopped entities.
+        const currentV = world.getComponent(entity, velocityType) as VelocityComponent | undefined;
+        if (currentV && (currentV.vx !== 0 || currentV.vy !== 0)) {
+          const mutV = world.getMutableComponent(entity, velocityType) as VelocityComponent | undefined;
+          if (mutV) {
+            mutV.vx = 0;
+            mutV.vy = 0;
+          }
+        }
         continue;
       }
 
-      const currentV = world.getComponent(entity, velocityType) as unknown as VelocityComponent | undefined;
+      const currentV = world.getComponent(entity, velocityType) as VelocityComponent | undefined;
       if (!currentV) continue;
 
       const maxSpeed = steering.maxSpeed;
@@ -155,19 +160,19 @@ export class SteeringSystem<
         forceY = (forceY / forceLength) * maxAcceleration;
       }
 
-      // Mutate velocity
-      world.mutateComponent(entity, velocityType, (v) => {
-        const vel = v as unknown as VelocityComponent;
-        vel.vx += forceX * deltaTime;
-        vel.vy += forceY * deltaTime;
+      // Mutate velocity directly without callback closure allocations
+      const mutV = world.getMutableComponent(entity, velocityType) as VelocityComponent | undefined;
+      if (mutV) {
+        mutV.vx += forceX * deltaTime;
+        mutV.vy += forceY * deltaTime;
 
         // Cap final velocity to maxSpeed
-        const speed = Math.sqrt(vel.vx * vel.vx + vel.vy * vel.vy);
+        const speed = Math.sqrt(mutV.vx * mutV.vx + mutV.vy * mutV.vy);
         if (speed > maxSpeed && speed > 0) {
-          vel.vx = (vel.vx / speed) * maxSpeed;
-          vel.vy = (vel.vy / speed) * maxSpeed;
+          mutV.vx = (mutV.vx / speed) * maxSpeed;
+          mutV.vy = (mutV.vy / speed) * maxSpeed;
         }
-      });
+      }
     }
   }
 }

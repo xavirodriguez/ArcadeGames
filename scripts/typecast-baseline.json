@@ -4,11 +4,6 @@
     "unknownCount": 0,
     "total": 8
   },
-  "packages/core/src/ai/SteeringSystem.ts": {
-    "anyCount": 0,
-    "unknownCount": 12,
-    "total": 12
-  },
   "packages/core/src/assets/WebAssetProvider.ts": {
     "anyCount": 0,
     "unknownCount": 2,
@@ -168,11 +163,6 @@
     "anyCount": 0,
     "unknownCount": 6,
     "total": 6
-  },
-  "packages/core/src/systems/ModifierSystem.ts": {
-    "anyCount": 0,
-    "unknownCount": 1,
-    "total": 1
   },
   "packages/core/src/tests/BoltPerformance.test.ts": {
     "anyCount": 7,
@@ -400,9 +390,9 @@
     "total": 51
   },
   "packages/gameplay-kit/src/combat/systems/CombatSystem.ts": {
-    "anyCount": 16,
+    "anyCount": 15,
     "unknownCount": 0,
-    "total": 16
+    "total": 15
   },
   "packages/gameplay-kit/src/spawn/__tests__/SpawnDirectorSystem.test.ts": {
     "anyCount": 25,

@@ -23,13 +23,18 @@ export class CombatSystem<
     this.destroyedEntities.clear();
 
     // Step 1: Iterate over collision pairs (both physical collisions and trigger entry overlaps)
-    for (const entityA of entitiesWithEvents) {
+    const len = entitiesWithEvents.length;
+    // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
+    for (let i = 0; i < len; i++) {
+      const entityA = entitiesWithEvents[i];
       const colComp = world.getComponent(entityA, "CollisionEvents" as any) as any;
       if (!colComp) continue;
 
       // Process physical collisions
       if (colComp.collisions) {
-        for (const collision of colComp.collisions) {
+        const cLen = colComp.collisions.length;
+        for (let j = 0; j < cLen; j++) {
+          const collision = colComp.collisions[j];
           const entityB = collision.otherEntity;
 
           // Double Security A: Process each pair exactly once
@@ -47,7 +52,9 @@ export class CombatSystem<
 
       // Process trigger entry overlaps (e.g. for trigger-based projectiles or bullet/enemy overlaps)
       if (colComp.triggersEntered) {
-        for (const entityB of colComp.triggersEntered) {
+        const tLen = colComp.triggersEntered.length;
+        for (let j = 0; j < tLen; j++) {
+          const entityB = colComp.triggersEntered[j];
           // Double Security A: Process each pair exactly once
           if (entityA >= entityB) continue;
 
@@ -107,9 +114,12 @@ export class CombatSystem<
     const dmgAmount = damageComp.amount;
     const nextHealth = Math.max(0, prevHealth - dmgAmount);
 
-    world.mutateComponent(target, "Health" as any, (h: any) => {
-      h.current = nextHealth;
-    });
+    // Safe for determinism/rollback. Fetching getMutableComponent directly avoids per-hit callback closure allocations.
+    const healthKey = "Health" as Extract<keyof TComponents, string>;
+    const mutableHealth = world.getMutableComponent(target, healthKey) as { current: number } | undefined;
+    if (mutableHealth) {
+      mutableHealth.current = nextHealth;
+    }
 
     const eventBus = world.getEventBus() as EventBus;
 

@@ -76,74 +76,74 @@
     },
     {
       "firstFile": {
-        "end": 123,
+        "end": 127,
         "endLoc": {
-          "column": 20,
-          "line": 123,
-          "position": 5008
+          "column": 22,
+          "line": 127,
+          "position": 5160
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 116,
+        "start": 119,
         "startLoc": {
-          "column": 67,
-          "line": 116,
-          "position": 4732
+          "column": 15,
+          "line": 119,
+          "position": 4818
         }
       },
       "format": "typescript",
-      "fragment": "      let maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);\n\n      forEachTileInBounds(minTileX, minTileY, maxTileX, maxTileY, (tx, ty) => {\n        const tileId = tilemap.data[ty] && tilemap.data[ty][tx];\n        if (tileId === undefined || tileId === 0) return;\n\n        const tileDef = tileDefinitions[tileId];\n        if (!tileDef || !tileDef.solid || tileDef.oneWay) return;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 161,
-        "endLoc": {
-          "column": 20,
-          "line": 161,
-          "position": 6461
-        },
-        "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 154,
-        "startLoc": {
-          "column": 26,
-          "line": 154,
-          "position": 6185
-        }
-      },
-      "tokens": 62
-    },
-    {
-      "firstFile": {
-        "end": 180,
-        "endLoc": {
-          "column": 13,
-          "line": 180,
-          "position": 7224
-        },
-        "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 172,
-        "startLoc": {
-          "column": 40,
-          "line": 172,
-          "position": 6843
-        }
-      },
-      "format": "typescript",
-      "fragment": "            if (isDescending && wasAbove) {\n              trans.y = tileTop - halfH - offsetY;\n              vel.vy = 0;\n              isGrounded = true;\n              const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);\n              if (res.onIce !== undefined) onIce = res.onIce;\n              if (res.isGrounded !== undefined) isGrounded = res.isGrounded;\n              return true;\n            }",
+      "fragment": "      xTileLoop: for (let ty = minTileY; ty <= maxTileY; ty++) {\n        const row = tilemap.data[ty];\n        if (!row) continue;\n        for (let tx = minTileX; tx <= maxTileX; tx++) {\n          const tileId = row[tx];\n          if (tileId === undefined || tileId === 0) continue;\n\n          const tileDef = tileDefinitions[tileId];\n          if (!tileDef || !tileDef.solid || tileDef.oneWay) continue;",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 190,
+        "end": 170,
         "endLoc": {
-          "column": 13,
-          "line": 190,
-          "position": 7650
+          "column": 22,
+          "line": 170,
+          "position": 6809
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 182,
+        "start": 162,
         "startLoc": {
-          "column": 25,
-          "line": 182,
-          "position": 7269
+          "column": 15,
+          "line": 162,
+          "position": 6467
+        }
+      },
+      "tokens": 80
+    },
+    {
+      "firstFile": {
+        "end": 189,
+        "endLoc": {
+          "column": 15,
+          "line": 189,
+          "position": 7610
+        },
+        "name": "physics/systems/TileCollisionSystem.ts",
+        "start": 181,
+        "startLoc": {
+          "column": 42,
+          "line": 181,
+          "position": 7209
+        }
+      },
+      "format": "typescript",
+      "fragment": "              if (isDescending && wasAbove) {\n                trans.y = tileTop - halfH - offsetY;\n                vel.vy = 0;\n                isGrounded = true;\n                const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);\n                if (res.onIce !== undefined) onIce = res.onIce;\n                if (res.isGrounded !== undefined) isGrounded = res.isGrounded;\n                break yTileLoop;\n              }",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 199,
+        "endLoc": {
+          "column": 15,
+          "line": 199,
+          "position": 8060
+        },
+        "name": "physics/systems/TileCollisionSystem.ts",
+        "start": 191,
+        "startLoc": {
+          "column": 27,
+          "line": 191,
+          "position": 7659
         }
       },
       "tokens": 72
@@ -6440,32 +6440,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-07T18:01:27.405Z",
+    "detectionDate": "2026-09-08T02:51:00.999Z",
     "formats": {
       "typescript": {
         "clones": 174,
-        "duplicatedLines": 1883,
-        "duplicatedTokens": 14090,
-        "lines": 52465,
+        "duplicatedLines": 1884,
+        "duplicatedTokens": 14108,
+        "lines": 52506,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.589059372915277,
-        "percentageTokens": 5.115711661208455,
+        "percentage": 3.5881613529882297,
+        "percentageTokens": 5.116933611884866,
         "sources": 329,
-        "tokens": 275426
+        "tokens": 275712
       }
     },
     "total": {
       "clones": 174,
-      "duplicatedLines": 1883,
-      "duplicatedTokens": 14090,
-      "lines": 52465,
+      "duplicatedLines": 1884,
+      "duplicatedTokens": 14108,
+      "lines": 52506,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.589059372915277,
-      "percentageTokens": 5.115711661208455,
+      "percentage": 3.5881613529882297,
+      "percentageTokens": 5.116933611884866,
       "sources": 329,
-      "tokens": 275426
+      "tokens": 275712
     }
   }
 }

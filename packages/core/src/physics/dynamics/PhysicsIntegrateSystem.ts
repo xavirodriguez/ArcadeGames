@@ -56,40 +56,28 @@ export class PhysicsIntegrateSystem<
       candidatesList = SpatialCullingSystem.filterInViewport(world, entities, margin);
     }
 
-    if (candidatesList !== null) {
-      for (const entity of candidatesList) {
-        const v = world.getComponent(entity, velocityKey) as VelocityComponent | undefined;
-        if (!v) continue;
-        const t = world.getComponent(entity, transformKey) as TransformComponent | undefined;
-        if (!t) continue;
+    const entitiesToProcess = candidatesList !== null ? candidatesList : world.query(transformKey, velocityKey);
+    const len = entitiesToProcess.length;
 
-        // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
-        const trans = world.getMutableComponent(entity, transformKey) as TransformComponent | undefined;
-        if (trans) {
-          trans.x += v.vx * deltaTime;
-          trans.y += v.vy * deltaTime;
-          if (v.angularVelocity) {
-            trans.rotation += v.angularVelocity * deltaTime;
-          }
-          trans.dirty = true;
-        }
-      }
-    } else {
-      const entities = world.query(transformKey, velocityKey);
-      for (const entity of entities) {
-        const v = world.getComponent(entity, velocityKey) as VelocityComponent | undefined;
-        if (!v) continue;
+    // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
+    for (let i = 0; i < len; i++) {
+      const entity = entitiesToProcess[i];
+      const v = world.getComponent(entity, velocityKey) as VelocityComponent | undefined;
+      if (!v) continue;
+      if (v.vx === 0 && v.vy === 0 && (!v.angularVelocity || v.angularVelocity === 0)) continue;
 
-        // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
-        const t = world.getMutableComponent(entity, transformKey) as TransformComponent | undefined;
-        if (t) {
-          t.x += v.vx * deltaTime;
-          t.y += v.vy * deltaTime;
-          if (v.angularVelocity) {
-            t.rotation += v.angularVelocity * deltaTime;
-          }
-          t.dirty = true;
+      const t = world.getComponent(entity, transformKey) as TransformComponent | undefined;
+      if (!t) continue;
+
+      // Safe for determinism/rollback because getMutableComponent triggers the same clone-on-frozen (dev) and stateVersion bump as mutateComponent but avoids per-tick callback allocation.
+      const trans = world.getMutableComponent(entity, transformKey) as TransformComponent | undefined;
+      if (trans) {
+        trans.x += v.vx * deltaTime;
+        trans.y += v.vy * deltaTime;
+        if (v.angularVelocity) {
+          trans.rotation += v.angularVelocity * deltaTime;
         }
+        trans.dirty = true;
       }
     }
   }

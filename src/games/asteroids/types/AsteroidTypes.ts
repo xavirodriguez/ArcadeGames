@@ -57,6 +57,7 @@ export interface InputState {
     shoot: boolean;
     hyperspace?: boolean;
     rotationAmount?: number;
+    [key: string]: unknown;
 }
 
 /** @public */

@@ -1,9 +1,9 @@
-import { World, ComponentType, Juice } from "@tiny-aster/core";
+import { World, ComponentType, Juice, CoreComponentRegistry, createEmitter, WorldUtils } from "@tiny-aster/core";
 import { System } from "@tiny-aster/core";
 import { Entity } from "@tiny-aster/core";
 import { EventBus } from "@tiny-aster/core";
 import { TransformComponent, HealthComponent, RenderComponent, TTLComponent } from "@tiny-aster/core";
-import { spawnScorePopup } from "../../shared/arcade/helpers/spawnScorePopup";
+import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import {
   GameStateComponent,
   InvaderComponent,
@@ -17,6 +17,7 @@ import {
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { ParticlePool } from "../EntityPool";
 import { createSharedParticle } from "../../shared/rendering/SharedVFX";
+import { spawnLayeredExplosion } from "../rendering/SpaceInvadersCanvasVisuals";
 
 /**
  * System that handles game-specific collision reactions and combat side-effects.
@@ -74,14 +75,16 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       });
 
       // Apply Squash & Stretch to Player ship on hit
-      Juice.squash(world as any, target, 0.7, 1.4, 300);
+      Juice.squash(world as World<CoreComponentRegistry>, target, 0.7, 1.4, 300);
+
+      // Contextual heavy screen shake on player hit
+      Juice.shake(world as World<CoreComponentRegistry>, 10, 300);
 
       const health = world.getComponent(target, "Health");
       world.mutateSingleton("GameState", (gs) => {
         if (health) {
           gs.lives = health.current;
         }
-        gs.screenShake = { intensity: 10, duration: 0.3, elapsed: 0, totalDuration: 0.3 };
         if (health && health.current <= 0) {
           gs.isGameOver = true;
             const eventBus = world.getEventBus();
@@ -111,8 +114,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           render.hitFlashFrames = 5;
         });
 
-        // Apply Squash & Stretch to Boss on hit
-        Juice.squash(world as any, target, 1.2, 0.8, 200);
+        // Apply hit-stop (50ms) and Squash & Stretch to Boss on hit
+        world.setResource("GameplayFreeze", { remaining: 0.05 });
+        Juice.squash(world as World<CoreComponentRegistry>, target, 1.2, 0.8, 200);
 
         const pos = world.getComponent(target, "Transform");
         if (pos) {
@@ -134,6 +138,33 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       world.mutateComponent(target, "Render", (render) => {
         render.hitFlashFrames = 4;
       });
+
+      // Apply micro freeze-frame hit-stop (40ms) and Squash & Stretch deformation on invader hit
+      world.setResource("GameplayFreeze", { remaining: 0.04 });
+      Juice.squash(world as World<CoreComponentRegistry>, target, 1.25, 0.75, 120);
+
+      const pos = world.getComponent(target, "Transform");
+      if (pos) {
+        // Small spark burst emitter (3-6 sparks)
+        const sparkEmitter = createEmitter(world, {
+          type: "spark",
+          x: pos.x,
+          y: pos.y,
+          rate: 0,
+          burst: true,
+          count: 5,
+          lifetime: [0.15, 0.3],
+          speed: [80, 180],
+          size: [2, 4],
+          color: ["#00FFFF", "#FFFFFF", "#FFFF00"],
+          angle: [0, 360],
+          loop: false
+        });
+        world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
+
+        this.createExplosion(world, pos.x, pos.y, "#00FFFF");
+      }
+
       const eventBus = world.getEventBus();
       if (eventBus && !world.isReSimulating) {
         eventBus.emitDeferred("PlaySFX", { name: "hit" });
@@ -150,7 +181,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const gameState = world.getSingleton("GameState");
       if (gameState) {
         // Mutate Combo component
-        // TODO(refactor): código duplicado detectado (bloque) con asteroids/systems/AsteroidCollisionSystem.ts:55-63. Considerar extraer a función compartida. Ref: 76e7c40a
         let nextCombo = 0;
         let nextMultiplier = 1;
 
@@ -180,13 +210,23 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         if (pos) {
           const explosionX = pos.x;
           const explosionY = pos.y;
-          const comboText = `x${nextMultiplier}`;
 
           this.createExplosion(world, explosionX, explosionY, "#FFFFFF");
 
-          // Floating combo popup
-          spawnScorePopup(world, explosionX, explosionY, comboText, "#FFFF00");
+          // Dynamic popup text & color based on combo multiplier
+          let popupColor = "#FFFF00";
+          if (nextMultiplier >= 6) popupColor = "#FFD700"; // Gold
+          else if (nextMultiplier >= 4) popupColor = "#FF00FF"; // Magenta
+          else if (nextMultiplier >= 2) popupColor = "#00FFFF"; // Cyan
+
+          const popupText = nextMultiplier > 1 ? `+${scoreGain} (x${nextMultiplier})` : `+${scoreGain}`;
+          spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
         }
+
+        // Contextual screen shake: light for single kills, medium for fast combo chains
+        const shakeIntensity = nextCombo >= 5 ? 5.5 : 2.5;
+        const shakeDuration = nextCombo >= 5 ? 180 : 100;
+        Juice.shake(world as World<CoreComponentRegistry>, shakeIntensity, shakeDuration);
 
         const eventBus = world.getEventBus();
         if (eventBus) {
@@ -210,7 +250,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
-  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/BossSystem.ts:43-49. Considerar extraer a función compartida. Ref: ddc87c59
   public override update(world: World<SpaceInvadersComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     if (!this.config) {
@@ -221,16 +260,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
     const entitiesWithEvents = world.query("CollisionEvents");
     // Safe for determinism/rollback. Reusing instance Set avoids per-tick heap allocations during collision resolution.
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:270-278. Considerar extraer a función compartida. Ref: 30754ba9
     this.destroyedEntities.clear();
-
-    // Helper to check if entity exists and is active
-    const hasEntity = (entity: number): boolean => {
-      if (typeof (world as any).hasEntity === "function") {
-        return (world as any).hasEntity(entity);
-      }
-      return world.hasComponent(entity, "Transform");
-    };
 
     const len = entitiesWithEvents.length;
     for (let i = 0; i < len; i++) {
@@ -245,7 +275,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         if (entityA >= entityB) continue;
 
         // Double Security B: Ensure both entities still exist
-        if (!hasEntity(entityA) || !hasEntity(entityB)) continue;
+        if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;
 
         // Double Security C: Ensure they haven't already been destroyed in this update step
         if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
@@ -268,18 +298,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     e2: Entity,
     destroyedEntities: Set<number>
   ): void {
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:225-233. Considerar extraer a función compartida. Ref: 553b6473
     if (destroyedEntities.has(e1) || destroyedEntities.has(e2)) return;
 
-    // Helper to check if entity exists and is active
-    const hasEntity = (entity: number): boolean => {
-      if (typeof (world as any).hasEntity === "function") {
-        return (world as any).hasEntity(entity);
-      }
-      return world.hasComponent(entity, "Transform");
-    };
-
-    if (!hasEntity(e1) || !hasEntity(e2)) return;
+    if (!WorldUtils.isEntityActive(world, e1) || !WorldUtils.isEntityActive(world, e2)) return;
 
     const gameState = world.getSingleton("GameState");
     if (!gameState) return;
@@ -302,10 +323,10 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const bullet = (bulletShield as Record<string, Entity>).PlayerBullet || (bulletShield as Record<string, Entity>).EnemyBullet;
       const shield = (bulletShield as Record<string, Entity>).Shield;
 
-      if (hasEntity(shield) && !destroyedEntities.has(shield)) {
+      if (WorldUtils.isEntityActive(world, shield) && !destroyedEntities.has(shield)) {
         this.damageShield(world, shield, destroyedEntities);
       }
-      if (hasEntity(bullet) && !destroyedEntities.has(bullet)) {
+      if (WorldUtils.isEntityActive(world, bullet) && !destroyedEntities.has(bullet)) {
         destroyedEntities.add(bullet);
         this.removeBulletSafely(world, bullet);
       }
@@ -329,7 +350,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     const invaderShield = this.matchPair(world, e1, e2, "Invader", "Shield");
     if (invaderShield) {
       const shield = invaderShield.Shield;
-      if (hasEntity(shield)) {
+      if (WorldUtils.isEntityActive(world, shield)) {
         this.damageShield(world, shield, destroyedEntities);
       }
       return;
@@ -364,9 +385,9 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
   }
 
   private createExplosion(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, color: string): void {
-    // Solución: Usar el stream diseñado para la reproducción determinista en la fase de simulación
     const rng = world.gameplayRandom;
 
+    // Layer 1: Immediate flash (ECS particles)
     for (let i = 0; i < this.config!.PARTICLE_COUNT; i++) {
       const angle = rng.next() * Math.PI * 2;
       const speed = rng.next() * 100 + 50;
@@ -383,16 +404,15 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         this.config!.PARTICLE_TTL_BASE
       );
     }
+
+    // Layers 2, 3, 4: Visual-only pool (Expanding ring, debris with gravity, residual smoke)
+    if (!world.isReSimulating) {
+      spawnLayeredExplosion(x, y, color, 1.0);
+    }
   }
 
   private removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: Entity): void {
-    if (typeof (world as any).isAlive === "function" && !(world as any).isAlive(bullet)) {
-      return;
-    }
-    if (typeof (world as any).hasEntity === "function" && !(world as any).hasEntity(bullet)) {
-      return;
-    }
-    if (!world.hasComponent(bullet, "Transform")) {
+    if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, "Transform")) {
       return;
     }
     const reclaimable = world.getComponent(bullet, "Reclaimable");
@@ -426,7 +446,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
-  // TODO(refactor): código duplicado detectado (método) con flappybird/systems/FlappyBirdCollisionSystem.ts:237-243. Considerar extraer a función compartida. Ref: 9ee5aed7
   private matchPair<T1 extends ComponentType<SpaceInvadersComponentRegistry>, T2 extends ComponentType<SpaceInvadersComponentRegistry>>(
     world: World<SpaceInvadersComponentRegistry>,
     entityA: Entity,
@@ -434,7 +453,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     type1: T1,
     type2: T2
   ): Record<T1 | T2, Entity> | undefined {
-    // Safe for determinism/rollback. Reusing static pair object and clearing stale keys avoids object literal allocations per pair check while preventing property pollution.
     if (world.hasComponent(entityA, type1) && world.hasComponent(entityB, type2)) {
       this.clearPairResult();
       this.pairResult[type1 as string] = entityA;

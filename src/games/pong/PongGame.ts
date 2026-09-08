@@ -23,9 +23,9 @@ import {
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
 import { ComboSystem } from "@tiny-aster/core";
-import { AchievementSystem } from "../shared/arcade";
+import { AchievementSystem } from "@tiny-aster/gameplay-kit";
 import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorRegistry";
-import { resolveAndApplyMutators } from "../../config/MutatorConfig";
+import { loadAndMutateConfig } from "../shared/configHelper";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 
 registerMutatorHook((world: World, mutatorId: string) => {
@@ -45,7 +45,7 @@ import { PongEntityFactory } from "./EntityFactory";
 import { NetworkController } from "./input/NetworkController";
 import { type PongState, type PongInput, type PongComponentRegistry } from "./types";
 import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
-import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import pongConfigRaw from "./config/pong.json";
@@ -104,14 +104,12 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
+    this.config = loadAndMutateConfig(this.gameId, PongConfigSchema, pongConfigRaw, this._config.gameOptions);
 
     // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:76-84. Considerar extraer a función compartida. Ref: 75010e56
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
-
-    await this.onPreloadAssets();
 
     // Register blueprints
     this.blueprints.register("ball", {
@@ -318,7 +316,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.update(dt);
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const audio = this.audio;
     // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:304-317. Considerar extraer a función compartida. Ref: ed520f42
     const assets = [

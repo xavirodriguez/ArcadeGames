@@ -45,12 +45,13 @@ import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
 import { PlatformerDamageSystem } from "./systems/PlatformerDamageSystem";
 import { PlatformerDashSystem } from "./systems/PlatformerDashSystem";
 import { PlatformerWallJumpSystem } from "./systems/PlatformerWallJumpSystem";
-import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState } from "../shared/arcade";
+import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
 import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
+import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 
 export interface PlatformerConfig {
   seed?: number;
@@ -82,7 +83,7 @@ export interface PlatformerBlueprintMap extends Record<string, BlueprintDefiniti
 
 export const PLATFORMER_CONFIG = DEFAULT_PLATFORMER_CONFIG;
 
-export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, any, PlatformerBlueprintMap> {
+export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, any, PlatformerBlueprintMap> {
   public readonly gameId = "platformer";
   private gameOver = false;
   private levelPlan!: LevelPlan;
@@ -114,21 +115,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:207-221. Considerar extraer a función compartida. Ref: 44f1ee7d
-    this.setupCommonArcadeResources();
-    this.world.setResource("DeathPlaneY", 650);
-
-    const runState: RunState = {
-      attempt: 1,
-      lives: 3,
-      activeCheckpoint: null,
-      elapsedTime: 0,
-      deaths: 0,
-      collectedPermanentIds: [],
-      collectedTemporalIds: []
-    };
-    this.world.setResource("RunState", runState);
-    this.world.setResource("AudioPlayer", this.audio);
+    await super.onRegisterSystems();
 
     // Register PowerUp effects
     const powerUpRegistry = new PowerUpRegistry({
@@ -314,13 +301,15 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as { type: string; [key: string]: unknown });
         world.addComponent(entity, { type: "Sprite", assetKey, anchor: { x: 0.5, y: 0.5 } } as { type: string; [key: string]: unknown });
+        const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
+
         world.addComponent(entity, {
           type: "PlatformerMovementConfig",
-          acceleration: PLATFORMER_CONFIG.PLAYER_ACCEL,
-          maxSpeed: PLATFORMER_CONFIG.PLAYER_SPEED,
-          deceleration: PLATFORMER_CONFIG.PLAYER_DECEL,
-          airAcceleration: PLATFORMER_CONFIG.PLAYER_AIR_ACCEL,
-          airDeceleration: PLATFORMER_CONFIG.PLAYER_AIR_DECEL
+          acceleration: config.PLAYER_ACCEL,
+          maxSpeed: config.PLAYER_SPEED,
+          deceleration: config.PLAYER_DECEL,
+          airAcceleration: config.PLAYER_AIR_ACCEL,
+          airDeceleration: config.PLAYER_AIR_DECEL
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerInput",
@@ -341,10 +330,10 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
         world.addComponent(entity, { type: "WallJumpUnlocked", unlocked: true } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerGravityConfig",
-          riseGravity: PLATFORMER_CONFIG.RISE_GRAVITY,
-          fallGravity: PLATFORMER_CONFIG.FALL_GRAVITY,
-          jumpVelocity: PLATFORMER_CONFIG.PLAYER_JUMP_VEL,
-          minJumpVelocity: PLATFORMER_CONFIG.PLAYER_MIN_JUMP_VEL
+          riseGravity: config.RISE_GRAVITY,
+          fallGravity: config.FALL_GRAVITY,
+          jumpVelocity: config.PLAYER_JUMP_VEL,
+          minJumpVelocity: config.PLAYER_MIN_JUMP_VEL
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerJumper",
@@ -374,46 +363,37 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
 
     this.blueprints.register("tilemap", {
       spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
+        const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: 0, y: 0 });
 
         world.addComponent(entity, {
           type: "Tilemap",
           data: args.data,
-          tileSize: PLATFORMER_CONFIG.TILE_SIZE,
+          tileSize: config.TILE_SIZE,
           tileDefinitions: args.tileDefinitions
         } as { type: string; [key: string]: unknown });
       }
     });
 
-    // Add Systems
+    // Add Input Systems
     this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new PlatformerDashSystem(), { phase: SystemPhase.Input });
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:402-407. Considerar extraer a función compartida. Ref: 584bc078
-    this.world.addSystem(new PlatformerWallJumpSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new EnemySensorSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new StateMachineSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new CheckpointSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new DeathSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new RespawnSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerDamageSystem(), { phase: SystemPhase.Simulation });
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:414-420. Considerar extraer a función compartida. Ref: 14b9d33b
-    this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
-    this.world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new CollectibleSystem(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Collision });
-    this.world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:420-425. Considerar extraer a función compartida. Ref: d0f615e5
-    this.world.addSystem(new PlatformerGoalSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new TilemapRenderSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
 
-    await this.onPreloadAssets();
+    // Register common platformer systems
+    registerCommonPlatformerSystems(this.world);
+
+    // Game-specific simulation systems
+    this.world.addSystem(new PlatformerWallJumpSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new PlatformerDamageSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new PlatformerGoalSystem(), { phase: SystemPhase.Simulation });
+
+    // Game-specific collision systems
+    this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Collision });
+
+    // Game-specific presentation systems
+    this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
   }
 
   public initializeRenderer(renderer: Renderer<any, any>): void {
@@ -442,8 +422,9 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     const levelSeed = this.getSeed() || 41873;
     this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
 
+    const config = this.world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
     this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
-    SegmentGenerator.instantiatePlan(this.world, this.levelPlan, PLATFORMER_CONFIG.TILE_SIZE, tileDefinitions);
+    SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
     this.world.flush();
 
     // Spawn player
@@ -469,7 +450,7 @@ export class PlatformerGame extends BaseGame<PlatformerGameState, PlatformerInpu
     });
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const assets = [
       { id: "jump", path: "/audio/flap.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },

@@ -49,7 +49,7 @@ export interface GameLoopConfig {
  * - **Watchdog Protection**: In manual mode, a watchdog timer monitors tick intervals. If no `tick()` is received within `watchdogTimeout` ms (default 5000ms), `onWatchdogTimeout` fires to alert of driver stalls.
  * - **Spiral of Death Mitigation**: Clamps `deltaTime` to `maxDelta` (default 0.25s) to avoid unrecoverable simulation lag cascades under heavy loads.
  * - **Delta Units**: Update callbacks receive delta time strictly in seconds (e.g. `1/60 ~ 0.01667`).
- * - **Render Interpolation**: Render callbacks receive an `alpha` factor (`0.0 <= alpha < 1.0`) representing fractional leftover time in the accumulator for sub-frame visual interpolation.
+ * - **Render Interpolation**: Render callbacks receive an `alpha` factor (`0.0 \<= alpha \< 1.0`) representing fractional leftover time in the accumulator for sub-frame visual interpolation.
  *
  * @public
  */
@@ -69,7 +69,7 @@ export class GameLoop {
   private frameHandle: unknown;
 
   private lastTickTime = 0;
-  private watchdogIntervalId: any = undefined;
+  private watchdogIntervalId: ReturnType<typeof setInterval> | undefined = undefined;
   private readonly watchdogTimeout: number;
   private readonly onWatchdogTimeout?: () => void;
 
@@ -203,7 +203,7 @@ export class GameLoop {
 
       const alpha = this.accumulator / this.step;
       this.renderSubscribers.forEach(sub => sub(alpha));
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.stop();
       this.lastError = error instanceof Error ? error : new Error(String(error));
       console.error("[GameLoop] Critical exception in tick, stopping loop:", this.lastError);

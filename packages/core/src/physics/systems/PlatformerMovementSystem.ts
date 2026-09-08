@@ -1,7 +1,7 @@
 import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
 import { ComponentRegistry } from "../../ecs/Component";
-import { CoreComponentRegistry } from "../../ecs/CoreComponents";
+import { CoreComponentRegistry, PlatformerInputComponent, PlatformerMovementConfigComponent, VelocityComponent, PlatformerGroundStateComponent } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
 
 /**
@@ -29,13 +29,16 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
     const groundStateType = "PlatformerGroundState" as Extract<keyof TRegistry, string>;
 
     const entities = world.query(inputType, configType, velocityType);
+    const len = entities.length;
 
-    for (const entity of entities) {
-      const input = world.getComponent(entity, inputType) as any;
-      const config = world.getComponent(entity, configType) as any;
-      const vel = world.getComponent(entity, velocityType) as any;
+    // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
+      const input = world.getComponent(entity, inputType) as unknown as PlatformerInputComponent | undefined;
+      const config = world.getComponent(entity, configType) as unknown as PlatformerMovementConfigComponent | undefined;
+      const vel = world.getComponent(entity, velocityType) as unknown as VelocityComponent | undefined;
       const groundState = world.hasComponent(entity, groundStateType)
-        ? (world.getComponent(entity, groundStateType) as any)
+        ? (world.getComponent(entity, groundStateType) as unknown as PlatformerGroundStateComponent | undefined)
         : null;
 
       if (!input || !config || !vel) continue;
@@ -51,13 +54,17 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
 
       const targetSpeed = input.moveDir * config.maxSpeed;
 
-      world.mutateComponent(entity, velocityType, (v: any) => {
-        if (input.moveDir !== 0) {
-          v.vx = this.moveTowards(v.vx, targetSpeed, effectiveAccel * deltaTime);
-        } else {
-          v.vx = this.moveTowards(v.vx, 0, effectiveDecel * deltaTime);
+      const newVx = input.moveDir !== 0
+        ? this.moveTowards(vel.vx, targetSpeed, effectiveAccel * deltaTime)
+        : this.moveTowards(vel.vx, 0, effectiveDecel * deltaTime);
+
+      if (vel.vx !== newVx) {
+        // Safe for determinism/rollback. Avoids per-tick closure allocations and stateVersion bumps when horizontal velocity is unchanged.
+        const mutableVel = world.getMutableComponent(entity, velocityType) as unknown as VelocityComponent | undefined;
+        if (mutableVel) {
+          mutableVel.vx = newVx;
         }
-      });
+      }
     }
   }
 

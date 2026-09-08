@@ -31,12 +31,12 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
                 const easedProgress = this.getEasedValue(progress, anim.easing);
 
                 if (anim.startValue === undefined && anim.property) {
-                    anim.startValue = this.getCurrentValue(anim.property, offset, render);
+                    anim.startValue = this.getCurrentValue(world, entity, anim.property, anim.componentType, offset, render);
                 }
 
                 if (anim.target !== undefined && anim.startValue !== undefined && anim.property) {
                     const value = anim.startValue + (anim.target - anim.startValue) * easedProgress;
-                    this.applyValue(world, entity, anim.property, value);
+                    this.applyValue(world, entity, anim.property, value, anim.componentType);
                 }
 
                 if (progress >= 1) {
@@ -51,7 +51,22 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
         }
     }
 
-    private getCurrentValue(prop: string, offset?: import("../index").DeepReadonly<VisualOffsetComponent>, render?: import("../index").DeepReadonly<RenderComponent>): number {
+    private getCurrentValue(
+        world: World<CoreComponentRegistry>,
+        entity: number,
+        prop: string,
+        componentType?: string,
+        offset?: import("../index").DeepReadonly<VisualOffsetComponent>,
+        render?: import("../index").DeepReadonly<RenderComponent>
+    ): number {
+        if (componentType) {
+            const comp = world.getComponent(entity, componentType as any);
+            if (comp) {
+                return (comp as unknown as Record<string, number>)[prop] ?? 0;
+            }
+            return 0;
+        }
+
         if (offset && (prop === "offsetX" || prop === "offsetY" || prop === "x" || prop === "y" || prop === "scaleX" || prop === "scaleY")) {
             const key = (prop === "x" || prop === "y") ? (prop === "x" ? "offsetX" : "offsetY") : prop;
             return (offset as unknown as Record<string, number>)[key] ?? 0;
@@ -62,7 +77,27 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
         return 0;
     }
 
-    private applyValue(world: World<CoreComponentRegistry>, entity: number, prop: string, value: number): void {
+    private applyValue(
+        world: World<CoreComponentRegistry>,
+        entity: number,
+        prop: string,
+        value: number,
+        componentType?: string
+    ): void {
+        if (componentType) {
+            const comp = world.getComponent(entity, componentType as any);
+            if (comp) {
+                const currentVal = (comp as unknown as Record<string, number>)[prop] ?? 0;
+                if (Math.abs(currentVal - value) > 0.0001) {
+                    const mutComp = world.getMutableComponent(entity, componentType as any);
+                    if (mutComp) {
+                        (mutComp as unknown as Record<string, number>)[prop] = value;
+                    }
+                }
+            }
+            return;
+        }
+
         if (prop === "scaleX" || prop === "scaleY" || prop === "x" || prop === "y") {
             const key = (prop === "x" || prop === "y") ? (prop === "x" ? "offsetX" : "offsetY") : prop;
             const currentOffset = world.getComponent(entity, "VisualOffset");

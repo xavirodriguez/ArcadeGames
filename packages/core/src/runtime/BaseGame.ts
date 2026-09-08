@@ -75,7 +75,7 @@ interface DebugTransform {
 export interface BaseGameConfig<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
-  TInput extends Record<string, any> = Record<string, any>,
+  TInput extends object = Record<string, unknown>,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
   /** Key code to toggle pause state (e.g. `"KeyP"`). */
@@ -130,7 +130,7 @@ export interface BaseGameConfig<
  */
 export abstract class BaseGame<
   TState = unknown,
-  TInput extends Record<string, any> = Record<string, any>,
+  TInput extends object = Record<string, unknown>,
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
@@ -218,6 +218,7 @@ export abstract class BaseGame<
     TEvents,
     [TBlueprints] extends [BlueprintRegistryMap<TComponents, TEvents>] ? TBlueprints : BlueprintRegistryMap<TComponents, TEvents>
   >;
+  public readonly isHeadless: boolean;
   protected loop: GameLoop;
   protected unifiedInput: IInputSystem<TInput>;
   protected _config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>;
@@ -333,6 +334,7 @@ export abstract class BaseGame<
       ? config.sceneManagerFactory(this.world, this.eventBus)
       : new SceneManager<TComponents>(this.world, this.eventBus);
     this.audio = config.audio || new NullAudioPlayer();
+    this.isHeadless = config.headless !== undefined ? config.headless : (typeof window === "undefined");
 
     // Set the initial gameplay random seed from config/options
     const initialSeed = (config.gameOptions?.seed as number) ?? config.seed ?? Math.floor(Math.random() * 0xFFFFFFFF);
@@ -378,7 +380,7 @@ export abstract class BaseGame<
     this.world.setResource("InputSystem", this.unifiedInput);
     this.world.setResource("Audio", this.audio);
     this.world.setResource("SceneManager", this.sceneManager);
-    this.world.setResource("headless", this._config.headless);
+    this.world.setResource("headless", this.isHeadless);
     this.world.setResource("ArcadeKernel", this.kernel);
     this.world.setResource("Theme", this._config.theme ?? { spriteMap: {}, colorMap: {} });
   }
@@ -500,6 +502,12 @@ export abstract class BaseGame<
       if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
         return;
       }
+      if (!this.isHeadless) {
+        await this.onPreloadAssets();
+        if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
+          return;
+        }
+      }
       await this.onInitializeEntities();
       if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
         return;
@@ -589,14 +597,14 @@ export abstract class BaseGame<
    * @param duration - Optional freeze duration in seconds. If omitted, freeze persists until manually exited.
    */
   public enterGameplayFreeze(duration?: number): void {
-    enterGameplayFreeze(this.world, duration);
+    enterGameplayFreeze(this.world as unknown as World, duration);
   }
 
   /**
    * Exits soft pause / gameplay freeze state, deleting the `GameplayFreeze` world resource.
    */
   public exitGameplayFreeze(): void {
-    exitGameplayFreeze(this.world);
+    exitGameplayFreeze(this.world as unknown as World);
   }
 
   /**
@@ -605,7 +613,7 @@ export abstract class BaseGame<
    * @returns `true` if frozen, `false` otherwise.
    */
   public isGameplayFrozen(): boolean {
-    return isGameplayFrozen(this.world);
+    return isGameplayFrozen(this.world as unknown as World);
   }
 
   /**
@@ -614,7 +622,7 @@ export abstract class BaseGame<
    * @returns Remaining freeze duration in seconds or `undefined`.
    */
   public getGameplayFreezeRemaining(): number | undefined {
-    return getGameplayFreezeRemaining(this.world);
+    return getGameplayFreezeRemaining(this.world as unknown as World);
   }
 
   /**
@@ -803,6 +811,13 @@ export abstract class BaseGame<
    */
   protected async onRegisterSystems(): Promise<void> {
     // Overridden by subclasses to register systems
+  }
+
+  /**
+   * Template method hook for subclasses to preload audio/visual assets. Executed during `init()` if not headless.
+   */
+  protected async onPreloadAssets(): Promise<void> {
+    // Overridden by subclasses to preload assets
   }
 
   /**

@@ -47,19 +47,7 @@ export class EnemyFactory {
       throw new Error(`EnemyFactory: Blueprint "${blueprintId}" not found.`);
     }
 
-    const isDeferred = !!(deferred || world.isUpdating);
-    const { entity, add } = entityId !== undefined
-      ? {
-          entity: entityId,
-          add: (comp: Component) => {
-            if (isDeferred) {
-              world.getCommandBuffer().addComponent(entityId, comp);
-            } else {
-              world.addComponent(entityId, comp);
-            }
-          }
-        }
-      : createDeferredEntity(world, deferred);
+    const { entity, add } = createDeferredEntity(world, deferred, entityId);
 
     // 1. Transform
     add({

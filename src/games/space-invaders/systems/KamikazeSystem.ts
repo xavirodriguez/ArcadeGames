@@ -1,27 +1,22 @@
-import { System, World } from "@tiny-aster/core";
+import { World } from "@tiny-aster/core";
 import { TransformComponent, VelocityComponent, RenderComponent, Component } from "@tiny-aster/core";
 import { GameStateComponent, KamikazeComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
-import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
+import { GameSystem } from "./GameSystem";
 
-export class KamikazeSystem extends System<SpaceInvadersComponentRegistry> {
+export class KamikazeSystem extends GameSystem {
   private spawnCooldown = 5000;
   private timer = 0;
-  private config?: SpaceInvadersConfig;
 
-  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/BossSystem.ts:43-50. Considerar extraer a función compartida. Ref: 210f5f08
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
-    if (!this.config) {
-        this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
-    }
+    if (!this.shouldUpdate(world)) return;
+    const config = this.getGameConfig(world);
     const gameState = world.getSingleton("GameState");
-    if (!gameState || gameState.isGameOver) return;
-    if (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0) return;
+    if (!gameState) return;
 
     this.timer += deltaTime;
 
     const invaders = world.query("Invader");
-    const totalInvaders = this.config.INVADER_ROWS * this.config.INVADER_COLS;
+    const totalInvaders = config.INVADER_ROWS * config.INVADER_COLS;
 
     // Trigger kamikazes if enough invaders are dead and cooldown passed
     if (invaders.length < totalInvaders * 0.6 && this.timer > this.spawnCooldown && gameState.kamikazesActive < 2) {

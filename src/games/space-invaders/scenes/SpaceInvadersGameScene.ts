@@ -15,17 +15,18 @@ import {
 } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 import { ComboSystem } from "@tiny-aster/core";
-import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem } from "../../shared/arcade";
+import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem } from "@tiny-aster/gameplay-kit";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersInputSystem } from "../systems/SpaceInvadersInputSystem";
 import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationSystem";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
 import { SpaceInvadersRenderSystem } from "../systems/SpaceInvadersRenderSystem";
+import { ComboHUDRenderSystem } from "../systems/ComboHUDRenderSystem";
 import { InvulnerabilitySystem } from "../systems/InvulnerabilitySystem";
-import { CombatSystem } from "../../shared/combat/systems/CombatSystem";
+import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { WaveTransitionSystem } from "../systems/WaveTransitionSystem";
-import { SpawnDirectorSystem } from "../../shared/spawn/systems/SpawnDirectorSystem";
+import { SpawnDirectorSystem } from "@tiny-aster/gameplay-kit";
 import { KamikazeSystem } from "../systems/KamikazeSystem";
 import { BossSystem } from "../systems/BossSystem";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "../EntityPool";
@@ -39,6 +40,7 @@ import {
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { ISpaceInvadersGame } from "../types/GameInterfaces";
+import { getFormationSize } from "../utils/SpaceInvadersFormationUtils";
 
 /**
  * Main gameplay scene for Space Invaders.
@@ -80,8 +82,6 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     const startY = config.INVADER_START_Y;
     const spacingX = config.INVADER_SPACING_X;
     const spacingY = config.INVADER_SPACING_Y;
-    const rows = config.INVADER_ROWS;
-    const cols = config.INVADER_COLS;
 
     for (let lvl = 1; lvl <= maxLevels; lvl++) {
       const isBoss = lvl % 5 === 0;
@@ -90,18 +90,22 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
           id: `level_${lvl}`,
           cooldown: 2.0,
           isBossWave: true,
+          totalInvaders: 0,
           spawns: [
             { blueprintId: "boss", args: { level: lvl }, delay: 0.0 }
           ]
         });
       } else {
+        const { rows, cols } = getFormationSize(lvl, config);
+        const totalInvaders = rows * cols;
+        const offsetX = ((config.INVADER_COLS - cols) * spacingX) / 2;
         const spawns: any[] = [];
         for (let row = 0; row < rows; row++) {
           for (let col = 0; col < cols; col++) {
             spawns.push({
               blueprintId: "invader",
               args: {
-                x: startX + col * spacingX,
+                x: startX + offsetX + col * spacingX,
                 y: startY + row * spacingY,
                 row,
                 col
@@ -113,6 +117,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
         waveDefs.push({
           id: `level_${lvl}`,
           cooldown: 2.0,
+          totalInvaders,
           spawns
         });
       }
@@ -170,6 +175,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation, group: "presentation" }); // No trails
     this.world.addSystem(new SpaceInvadersRenderSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
+    this.world.addSystem(new ComboHUDRenderSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
 
     // 2. Initial entities
     if (this.game.isMultiplayer) return; // Wait for server state

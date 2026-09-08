@@ -33,13 +33,33 @@ export class ModifierSystem<TComponents extends ComponentRegistry = ComponentReg
   public override update(world: World<TComponents>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     // 1. Process active ModifierComponents
-    const entities = world.query("modifier" as Extract<keyof TComponents, string>);
-    for (const entity of entities) {
-      const modifierComp = (world as any).getMutableComponent(entity, "modifier") as ModifierComponent | undefined;
-      if (!modifierComp || !modifierComp.modifiers || modifierComp.modifiers.length === 0) continue;
+    const modifierKey = "modifier" as Extract<keyof TComponents, string>;
+    const entities = world.query(modifierKey);
+    const len = entities.length;
+
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
+      // Read component first to avoid stateVersion updates on entities with empty/static modifiers
+      const readComp = world.getComponent(entity, modifierKey) as ModifierComponent | undefined;
+      if (!readComp || !readComp.modifiers || readComp.modifiers.length === 0) continue;
+
+      let hasDuration = false;
+      const modLen = readComp.modifiers.length;
+      for (let j = 0; j < modLen; j++) {
+        const mod = readComp.modifiers[j];
+        if (typeof mod.duration === "number" && mod.duration > 0) {
+          hasDuration = true;
+          break;
+        }
+      }
+      if (!hasDuration) continue;
+
+      const modifierComp = world.getMutableComponent(entity, modifierKey) as ModifierComponent | undefined;
+      if (!modifierComp) continue;
 
       let hasExpired = false;
-      for (const mod of modifierComp.modifiers) {
+      for (let j = 0; j < modifierComp.modifiers.length; j++) {
+        const mod = modifierComp.modifiers[j];
         if (typeof mod.duration === "number" && mod.duration > 0) {
           mod.elapsed = (mod.elapsed ?? 0) + deltaTime;
           if (mod.elapsed >= mod.duration) {
@@ -49,19 +69,31 @@ export class ModifierSystem<TComponents extends ComponentRegistry = ComponentReg
       }
 
       if (hasExpired) {
-        modifierComp.modifiers = modifierComp.modifiers.filter(m => !(typeof m.duration === "number" && m.duration > 0 && (m.elapsed ?? 0) >= m.duration));
+        let writeIdx = 0;
+        const totalMods = modifierComp.modifiers.length;
+        for (let j = 0; j < totalMods; j++) {
+          const m = modifierComp.modifiers[j];
+          if (!(typeof m.duration === "number" && m.duration > 0 && (m.elapsed ?? 0) >= m.duration)) {
+            modifierComp.modifiers[writeIdx++] = m;
+          }
+        }
+        modifierComp.modifiers.length = writeIdx;
       }
     }
 
     // 2. Process legacy function mutators
-    for (const mutator of this.legacyMutators) {
+    const mutatorLen = this.legacyMutators.length;
+    for (let i = 0; i < mutatorLen; i++) {
+      const mutator = this.legacyMutators[i];
       if (mutator && mutator.componentType && typeof mutator.mutate === "function") {
         const compType = mutator.componentType as Extract<keyof TComponents, string>;
         const matched = world.query(compType);
-        for (const entity of matched) {
-          world.mutateComponent(entity, compType, (comp) => {
+        const matchLen = matched.length;
+        for (let j = 0; j < matchLen; j++) {
+          const comp = world.getMutableComponent(matched[j], compType);
+          if (comp) {
             mutator.mutate(comp, world);
-          });
+          }
         }
       }
     }

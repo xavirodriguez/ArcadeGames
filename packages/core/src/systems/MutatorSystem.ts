@@ -21,6 +21,7 @@ export interface Mutator<TComponents extends ComponentRegistry = ComponentRegist
  * directly; use the {@link WorldCommandBuffer} for safer modifications.
  * @public
  */
+/*
 export class MutatorSystem<TComponents extends ComponentRegistry = ComponentRegistry> extends System<TComponents> {
   private mutators: Mutator<TComponents>[];
 
@@ -28,7 +29,7 @@ export class MutatorSystem<TComponents extends ComponentRegistry = ComponentRegi
       super();
       this.mutators = mutators;
   }
-
+ 
   public update(world: World<TComponents>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     for (const mutator of this.mutators) {
@@ -47,3 +48,4 @@ export class MutatorSystem<TComponents extends ComponentRegistry = ComponentRegi
   public override onRegister(world: World<TComponents>): void {}
   public override dispose(): void {}
 }
+*/

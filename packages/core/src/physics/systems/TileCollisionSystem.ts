@@ -115,28 +115,33 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:143-150. Considerar extraer a función compartida. Ref: 07552814
       let maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);
 
-      forEachTileInBounds(minTileX, minTileY, maxTileX, maxTileY, (tx, ty) => {
-        const tileId = tilemap.data[ty] && tilemap.data[ty][tx];
-        if (tileId === undefined || tileId === 0) return;
+      // Direct nested loop eliminates closure allocation per frame
+      xTileLoop: for (let ty = minTileY; ty <= maxTileY; ty++) {
+        const row = tilemap.data[ty];
+        if (!row) continue;
+        for (let tx = minTileX; tx <= maxTileX; tx++) {
+          const tileId = row[tx];
+          if (tileId === undefined || tileId === 0) continue;
 
-        const tileDef = tileDefinitions[tileId];
-        if (!tileDef || !tileDef.solid || tileDef.oneWay) return;
+          const tileDef = tileDefinitions[tileId];
+          if (!tileDef || !tileDef.solid || tileDef.oneWay) continue;
 
-        const tileLeft = tilemapX + tx * tileSize;
-        const tileRight = tileLeft + tileSize;
+          const tileLeft = tilemapX + tx * tileSize;
+          const tileRight = tileLeft + tileSize;
 
-        if (vel.vx > 0) {
-          trans.x = tileLeft - halfW - offsetX;
-          vel.vx = 0;
-          currentX = trans.x;
-          return true;
-        } else if (vel.vx < 0) {
-          trans.x = tileRight + halfW - offsetX;
-          vel.vx = 0;
-          currentX = trans.x;
-          return true;
+          if (vel.vx > 0) {
+            trans.x = tileLeft - halfW - offsetX;
+            vel.vx = 0;
+            currentX = trans.x;
+            break xTileLoop;
+          } else if (vel.vx < 0) {
+            trans.x = tileRight + halfW - offsetX;
+            vel.vx = 0;
+            currentX = trans.x;
+            break xTileLoop;
+          }
         }
-      });
+      }
 
       // --- Resolve Y axis ---
       currentY = trans.y;
@@ -153,70 +158,59 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:107-114. Considerar extraer a función compartida. Ref: eeeb3706
       const oldVy = vel.vy;
 
-      forEachTileInBounds(minTileX, minTileY, maxTileX, maxTileY, (tx, ty) => {
-        const tileId = tilemap.data[ty] && tilemap.data[ty][tx];
-        if (tileId === undefined || tileId === 0) return;
+      // Direct nested loop eliminates closure allocation per frame
+      yTileLoop: for (let ty = minTileY; ty <= maxTileY; ty++) {
+        const row = tilemap.data[ty];
+        if (!row) continue;
+        for (let tx = minTileX; tx <= maxTileX; tx++) {
+          const tileId = row[tx];
+          if (tileId === undefined || tileId === 0) continue;
 
-        const tileDef = tileDefinitions[tileId];
-        if (!tileDef) return;
+          const tileDef = tileDefinitions[tileId];
+          if (!tileDef) continue;
 
-        const tileTop = tilemapY + ty * tileSize;
-        const tileBottom = tileTop + tileSize;
+          const tileTop = tilemapY + ty * tileSize;
+          const tileBottom = tileTop + tileSize;
 
-        if (tileDef.solid) {
-          if (tileDef.oneWay) {
-            const prevPlayerBottom = prevY + offsetY + halfH;
-            const isDescending = oldVy >= 0;
-            const wasAbove = prevPlayerBottom <= tileTop + 1.0;
+          if (tileDef.solid) {
+            if (tileDef.oneWay) {
+              const prevPlayerBottom = prevY + offsetY + halfH;
+              const isDescending = oldVy >= 0;
+              const wasAbove = prevPlayerBottom <= tileTop + 1.0;
 
-            // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:176-189. Considerar extraer a función compartida. Ref: d056ddc2
-            if (isDescending && wasAbove) {
-              trans.y = tileTop - halfH - offsetY;
-              vel.vy = 0;
-              isGrounded = true;
-              if (tileDef.kind === "ice") {
-                onIce = true;
-              } else if (tileDef.kind === "bounce") {
-                vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-                isGrounded = false;
-              } else if (tileDef.kind === "spike") {
-                this.handleSpikeCollision(world, entity);
+              if (isDescending && wasAbove) {
+                trans.y = tileTop - halfH - offsetY;
+                vel.vy = 0;
+                isGrounded = true;
+                const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
+                if (res.onIce !== undefined) onIce = res.onIce;
+                if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
+                break yTileLoop;
               }
-              return true;
+            } else {
+              if (oldVy > 0) {
+                trans.y = tileTop - halfH - offsetY;
+                vel.vy = 0;
+                isGrounded = true;
+                const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
+                if (res.onIce !== undefined) onIce = res.onIce;
+                if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
+                break yTileLoop;
+              } else if (oldVy < 0) {
+                trans.y = tileBottom + halfH - offsetY;
+                vel.vy = 0;
+                if (tileDef.kind === "spike") {
+                  this.handleSpikeCollision(world, entity);
+                }
+                break yTileLoop;
+              }
             }
           } else {
-            // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:163-176. Considerar extraer a función compartida. Ref: a710136f
-            if (oldVy > 0) {
-              trans.y = tileTop - halfH - offsetY;
-              vel.vy = 0;
-              isGrounded = true;
-              if (tileDef.kind === "ice") {
-                onIce = true;
-              } else if (tileDef.kind === "bounce") {
-                vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-                isGrounded = false;
-              } else if (tileDef.kind === "spike") {
-                this.handleSpikeCollision(world, entity);
-              }
-              return true;
-            } else if (oldVy < 0) {
-              trans.y = tileBottom + halfH - offsetY;
-              vel.vy = 0;
-              if (tileDef.kind === "spike") {
-                this.handleSpikeCollision(world, entity);
-              }
-              return true;
-            }
-          }
-        } else {
-          if (tileDef.kind === "spike") {
-            this.handleSpikeCollision(world, entity);
-          } else if (tileDef.kind === "bounce") {
-            vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
-            isGrounded = false;
+            const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
+            if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
           }
         }
-      });
+      }
 
       if (world.hasComponent(entity, groundStateType)) {
         const targetIceMultiplier = onIce ? 0.2 : 1.0;
@@ -242,6 +236,43 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     }
     return false;
   }
+
+  private applyTileKindEffect(
+    world: World<TRegistry>,
+    entity: Entity,
+    vel: VelocityComponent,
+    oldVy: number,
+    tileDef: { kind?: string; bounce?: number }
+  ): { isGrounded?: boolean; onIce?: boolean } {
+    if (!tileDef.kind) return {};
+    const handler = this.tileKindHandlers[tileDef.kind];
+    if (handler) {
+      return handler({ world, entity, vel, oldVy, tileDef, system: this });
+    }
+    return {};
+  }
+
+  private tileKindHandlers: Record<
+    string,
+    (ctx: {
+      world: World<TRegistry>;
+      entity: Entity;
+      vel: VelocityComponent;
+      oldVy: number;
+      tileDef: { kind?: string; bounce?: number };
+      system: TileCollisionSystem<TRegistry>;
+    }) => { isGrounded?: boolean; onIce?: boolean }
+  > = {
+    ice: () => ({ onIce: true }),
+    bounce: ({ vel, oldVy, tileDef }) => {
+      vel.vy = -oldVy * (tileDef.bounce ?? 0.8);
+      return { isGrounded: false };
+    },
+    spike: ({ world, entity, system }) => {
+      system.handleSpikeCollision(world, entity);
+      return {};
+    }
+  };
 
   private handleSpikeCollision(world: World<TRegistry>, entity: Entity): void {
     const healthKey = "Health" as Extract<keyof TRegistry, string>;

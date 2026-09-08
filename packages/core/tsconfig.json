@@ -18,7 +18,9 @@
         "baseUrl": ".",
         "paths": {
             "@tiny-aster/core": ["./src/index.ts"],
-            "@tiny-aster/core/*": ["./src/*"]
+            "@tiny-aster/core/*": ["./src/*"],
+            "@tiny-aster/gameplay-kit": ["../gameplay-kit/src/index.ts"],
+            "@tiny-aster/gameplay-kit/*": ["../gameplay-kit/src/*"]
         }
     },
     "include": [

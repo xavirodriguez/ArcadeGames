@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
@@ -15,8 +15,8 @@ import {
   createGround
 } from "./EntityFactory";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
-import { resolveAndApplyMutators } from "../../config/MutatorConfig";
-import { AchievementSystem } from "../shared/arcade";
+import { applyMutators } from "../shared/configHelper";
+import { AchievementSystem } from "@tiny-aster/gameplay-kit";
 
 /**
  * Controlador principal del juego Flappy Bird.
@@ -26,7 +26,7 @@ import { AchievementSystem } from "../shared/arcade";
  * Utiliza un sistema de gravedad simple y una única acción de entrada ("jump").
  */
 import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
-import { CollisionLayers } from "../shared/types/CollisionLayers";
+import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBirdCanvasVisuals";
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -71,17 +71,16 @@ export class FlappyBirdGame
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
+    this.config = applyMutators(this.baseConfig, this._config.gameOptions);
     // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
-    await this.onPreloadAssets();
-
     // Register blueprints
     this.blueprints.register("bird", {
       spawn: (world, entity, args: { x: number, y: number }) => {
+        const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
         const tint = resolveThemeColor(world, "bird", "player");
 
         EntityBuilder.fromEntity(world, entity)
@@ -89,11 +88,11 @@ export class FlappyBirdGame
           .withVelocity()
           .withRender({
             shape: "bird",
-            size: FLAPPY_CONFIG.BIRD_RADIUS,
+            size: config.BIRD_RADIUS,
             color: tint
           })
           .withCollider({
-            shape: { type: ShapeType.Circle, radius: (FLAPPY_CONFIG.BIRD_RADIUS - 2) * 0.85 } as CircleShape,
+            shape: { type: ShapeType.Circle, radius: (config.BIRD_RADIUS - 2) * 0.85 } as CircleShape,
             layer: CollisionLayers.PLAYER,
             mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS,
             offsetX: 0,
@@ -148,11 +147,12 @@ export class FlappyBirdGame
 
     this.blueprints.register("pipe", {
       spawn: (world, entity, args: { x: number, gapY: number }) => {
+        const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
         const pipeColor = resolveThemeColor(world, "pipe", "enemy");
 
-        const halfGap = FLAPPY_CONFIG.GAP_SIZE / 2;
-        const pipeWidth = FLAPPY_CONFIG.PIPE_WIDTH;
-        const pipeSpeed = FLAPPY_CONFIG.PIPE_SPEED;
+        const halfGap = config.GAP_SIZE / 2;
+        const pipeWidth = config.PIPE_WIDTH;
+        const pipeSpeed = config.PIPE_SPEED;
 
         // Top Pipe
         const topY = args.gapY - halfGap;
@@ -167,11 +167,11 @@ export class FlappyBirdGame
           })
           .withCollisionEvents();
 
-        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: false });
+        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: config.GAP_SIZE, scored: false });
 
         // Bottom Pipe
         const bottomY = args.gapY + halfGap;
-        const bottomHeight = FLAPPY_CONFIG.SCREEN_HEIGHT - bottomY;
+        const bottomHeight = config.SCREEN_HEIGHT - bottomY;
         EntityBuilder.create(world)
           .withTransform({ x: args.x, y: bottomY + bottomHeight / 2 })
           .withVelocity({ vx: -pipeSpeed, vy: 0 })
@@ -183,23 +183,24 @@ export class FlappyBirdGame
           })
           .withCollisionEvents();
 
-        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: FLAPPY_CONFIG.GAP_SIZE, scored: true });
+        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: config.GAP_SIZE, scored: true });
       }
     });
 
     this.blueprints.register("ground", {
       spawn: (world, entity, _args: {}) => {
+        const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
         const groundColor = resolveThemeColor(world, "ground");
 
         EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: FLAPPY_CONFIG.SCREEN_WIDTH / 2, y: FLAPPY_CONFIG.GROUND_Y })
+          .withTransform({ x: config.SCREEN_WIDTH / 2, y: config.GROUND_Y })
           .withCollider({
-            shape: { type: ShapeType.Box, width: FLAPPY_CONFIG.SCREEN_WIDTH, height: FLAPPY_CONFIG.SCREEN_HEIGHT - FLAPPY_CONFIG.GROUND_Y } as BoxShape,
+            shape: { type: ShapeType.Box, width: config.SCREEN_WIDTH, height: config.SCREEN_HEIGHT - config.GROUND_Y } as BoxShape,
             layer: CollisionLayers.DEBRIS,
             mask: CollisionLayers.PLAYER
           })
           .withCollisionEvents()
-          .withRender({ shape: "ground", size: FLAPPY_CONFIG.SCREEN_WIDTH, color: groundColor, order: 0 });
+          .withRender({ shape: "ground", size: config.SCREEN_WIDTH, color: groundColor, order: 0 });
 
         world.addComponent(entity, { type: "Ground" });
       }
@@ -291,8 +292,9 @@ export class FlappyBirdGame
 
   protected override async onInitializeEntities(): Promise<void> {
     if (this.isMultiplayer) return;
+    const config = this.world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
     createGameState(this.world);
-    createBird({ world: this.world, x: FLAPPY_CONFIG.BIRD_X, y: FLAPPY_CONFIG.BIRD_START_Y });
+    createBird({ world: this.world, x: config.BIRD_X, y: config.BIRD_START_Y });
     createGround(this.world);
   }
 
@@ -307,7 +309,7 @@ export class FlappyBirdGame
       this.world.update(dt);
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const assets = [
       { id: "flap", path: "/audio/flap.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },
@@ -357,106 +359,74 @@ export class FlappyBirdGame
     this.setInputState(input);
   }
 
-  public updateFromServer(state: Record<string, unknown>) {
-    if (!this.isMultiplayer || !state) return;
-    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:163-170. Considerar extraer a función compartida. Ref: 4e9c55a5
-    const world = this.getWorld();
-    const commands = world.getCommandBuffer();
-    const replicator = this.networkManager.getReplicator();
-
-    const currentServerEntities = new Set<string>();
-
-    if (state.players && typeof state.players === 'object') {
-      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:774-780. Considerar extraer a función compartida. Ref: 7a271799
-      const players = state.players as Record<string, { x: number, y: number, alive: boolean, velocityY: number }>;
-      Object.entries(players).forEach(([sessionId, playerState]) => {
-        const serverId = `player_${sessionId}`;
-        currentServerEntities.add(serverId);
-
-        const entity = replicator.resolveEntity(serverId, world);
-        if (!world.hasComponent(entity, "Transform")) {
-          commands.addComponent(entity, { type: "Transform", x: playerState.x, y: playerState.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: playerState.x, worldY: playerState.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-          commands.addComponent(entity, { type: "Render", shape: "bird", size: 15, color: "yellow", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
-          commands.addComponent(entity, {
-            type: "Bird",
-            velocityY: playerState.velocityY,
-            isAlive: playerState.alive,
-            isGliding: false,
-            nearMissTimer: 0
-          } as BirdComponent);
-        }
-
+  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<Record<string, unknown>, any, FlappyBirdComponentRegistry>[] = [
+    {
+      serverIdPrefix: "player",
+      getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; velocityY: number }>,
+      spawn: (world, entity, state) => {
+        const commands = world.getCommandBuffer();
+        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        commands.addComponent(entity, { type: "Render", shape: "bird", size: 15, color: "yellow", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
+        commands.addComponent(entity, {
+          type: "Bird",
+          velocityY: state.velocityY,
+          isAlive: state.alive,
+          isGliding: false,
+          nearMissTimer: 0
+        } as BirdComponent);
+      },
+      sync: (world, entity, state) => {
         world.mutateComponent(entity, "Bird", bird => {
-          bird.isAlive = playerState.alive;
-          bird.velocityY = playerState.velocityY;
+          bird.isAlive = state.alive;
+          bird.velocityY = state.velocityY;
         });
 
         world.mutateComponent(entity, "Render", render => {
-          render.color = playerState.alive ? "yellow" : "gray";
+          render.color = state.alive ? "yellow" : "gray";
         });
-      });
+      }
+    },
+    {
+      serverIdPrefix: "pipe",
+      getStateMap: (root) => root.pipes as Record<string, { x: number; gapY: number; id: string }>,
+      spawn: (world, entity, state) => {
+        const commands = world.getCommandBuffer();
+        commands.addComponent(entity, { type: "Transform", x: state.x, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: state.x, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
+        commands.addComponent(entity, { type: "Render", shape: "pipe", size: 60, color: "green", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
+        commands.addComponent(entity, { type: "Pipe", gapY: state.gapY, gapSize: 140, scored: false } as PipeComponent);
+      },
+      sync: () => {}
     }
+  ];
 
-    if (state.pipes && typeof state.pipes === 'object') {
-      const pipes = state.pipes as Record<string, { x: number, gapY: number, id: string }>;
-      Object.entries(pipes).forEach(([id, pipeState]) => {
-        const serverId = `pipe_${id}`;
-        currentServerEntities.add(serverId);
+  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
+    if (!this.isMultiplayer || !state) return;
+    const world = this.getWorld();
+    const replicator = this.networkManager.getReplicator();
+    const currentServerEntities = new Set<string>();
 
-        const entity = replicator.resolveEntity(serverId, world);
-        if (!world.hasComponent(entity, "Transform")) {
-          commands.addComponent(entity, { type: "Transform", x: pipeState.x, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: pipeState.x, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
-          commands.addComponent(entity, { type: "Render", shape: "pipe", size: 60, color: "green", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
-          // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:238-258. Considerar extraer a función compartida. Ref: 95603026
-          commands.addComponent(entity, { type: "Pipe", gapY: pipeState.gapY, gapSize: 140, scored: false } as PipeComponent);
-        }
-      });
-    }
+    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {
+      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);
+    });
 
-    // Sync with NetworkManager for interpolation
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:761-773. Considerar extraer a función compartida. Ref: 6b235ffa
-    const snapshot: WorldSnapshot = {
-        tick: (state.tick as number) || 0,
-        entities: [],
-        componentData: { Transform: {} },
-        stateVersion: 0,
-        structureVersion: 0,
-        seed: 0,
-        nextEntityId: 0,
-        freeEntities: []
-    };
-
+    const entries: InterpolationSnapshotEntry[] = [];
     if (state.players) {
-        Object.entries(state.players).forEach(([sessionId, p]: [string, Record<string, unknown>]) => {
-            // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:264-271. Considerar extraer a función compartida. Ref: 879d9b3e
+        Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
             const entityId = replicator.getLocalId(`player_${sessionId}`);
-            if (entityId !== undefined) {
-                snapshot.entities.push(entityId);
-                snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: (p as any).y, rotation: 0, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: (p as any).y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
-            }
+            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
         });
     }
     if (state.pipes) {
-        Object.entries(state.pipes).forEach(([id, p]: [string, Record<string, unknown>]) => {
+        Object.entries(state.pipes as Record<string, any>).forEach(([id, p]) => {
             const entityId = replicator.getLocalId(`pipe_${id}`);
-            if (entityId !== undefined) {
-                snapshot.entities.push(entityId);
-                // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:276-296. Considerar extraer a función compartida. Ref: 8e72a4b2
-                snapshot.componentData["Transform"][entityId] = { type: "Transform", x: (p as any).x, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: (p as any).x, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
-            }
+            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: 0 });
         });
     }
 
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:842-865. Considerar extraer a función compartida. Ref: a1d6c8d1
+    const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);
     this.networkManager.processServerUpdate(snapshot.tick, snapshot);
 
-    // Cleanup removed entities
-    replicator.getMappings().forEach((entity: number, serverId: string) => {
-      if (!currentServerEntities.has(serverId)) {
-        commands.removeEntity(entity);
-        replicator.removeMapping(serverId);
-      }
-    });
+    pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());
 
     if (!world.isUpdating) {
         world.flush();

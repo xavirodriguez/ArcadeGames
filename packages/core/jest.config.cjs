@@ -5,6 +5,8 @@ module.exports = {
   moduleNameMapper: {
     '^@tiny-aster/core$': '<rootDir>/src/index.ts',
     '^@tiny-aster/core/(.*)$': '<rootDir>/src/$1',
+    '^@tiny-aster/gameplay-kit$': '<rootDir>/../gameplay-kit/src/index.ts',
+    '^@tiny-aster/gameplay-kit/(.*)$': '<rootDir>/../gameplay-kit/src/$1',
     '^@/(.*)$': '<rootDir>/../../$1',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },

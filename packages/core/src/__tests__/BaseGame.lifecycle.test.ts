@@ -249,7 +249,7 @@ describe("BaseGame lifecycle", () => {
 
     class OrderTestGame extends BaseGame<any, any, any, any, any> {
       constructor() {
-        super();
+        super({ headless: false });
         this.loop = {
           start: jest.fn(),
           stop: jest.fn(),
@@ -268,6 +268,10 @@ describe("BaseGame lifecycle", () => {
         invocationOrder.push("onRegisterSystems");
       }
 
+      protected override async onPreloadAssets(): Promise<void> {
+        invocationOrder.push("onPreloadAssets");
+      }
+
       protected override async onInitializeEntities(): Promise<void> {
         invocationOrder.push("onInitializeEntities");
       }
@@ -281,7 +285,7 @@ describe("BaseGame lifecycle", () => {
     expect(invocationOrder).toEqual([]);
 
     await game.init();
-    expect(invocationOrder).toEqual(["onRegisterSystems", "onInitializeEntities"]);
+    expect(invocationOrder).toEqual(["onRegisterSystems", "onPreloadAssets", "onInitializeEntities"]);
 
     // Clear and test restart
     invocationOrder.length = 0;
@@ -289,6 +293,7 @@ describe("BaseGame lifecycle", () => {
     expect(invocationOrder).toEqual([
       "onBeforeRestart",
       "onRegisterSystems",
+      "onPreloadAssets",
       "onInitializeEntities"
     ]);
   });

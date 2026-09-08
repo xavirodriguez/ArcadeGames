@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "lib": [
+            "ESNext",
+            "dom"
+        ],
+        "strict": true,
+        "declaration": true,
+        "sourceMap": true,
+        "outDir": "./dist",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@tiny-aster/gameplay-kit": ["./src/index.ts"],
+            "@tiny-aster/gameplay-kit/*": ["./src/*"],
+            "@tiny-aster/core": ["../core/src/index.ts"],
+            "@tiny-aster/core/*": ["../core/src/*"]
+        }
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
+}

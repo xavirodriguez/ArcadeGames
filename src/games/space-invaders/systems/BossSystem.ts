@@ -1,14 +1,13 @@
-import { System, World, HealthComponent, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent } from "@tiny-aster/core";
+import { World, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent, PhysicsUtils } from "@tiny-aster/core";
 import { GameStateComponent, BossComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
-import { FactionComponent } from "../../shared/combat/components/CombatComponents";
-import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
+import { FactionComponent, spawnScorePopup } from "@tiny-aster/gameplay-kit";
+import { GameSystem } from "./GameSystem";
 import { createEmitter } from "@tiny-aster/core";
-import { CollisionLayers } from "../../shared/types/CollisionLayers";
+import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { Juice } from "@tiny-aster/core";
+import { spawnLayeredExplosion } from "../rendering/SpaceInvadersCanvasVisuals";
 
-export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry> {
-  private config?: SpaceInvadersConfig;
-
+export class BossSystem extends GameSystem {
   public override onRegister(world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>): void {
     const eventBus = world.getEventBus();
     if (eventBus) {
@@ -40,15 +39,9 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInva
     }
   }
 
-  // TODO(refactor): código duplicado detectado (método) con space-invaders/systems/SpaceInvadersFormationSystem.ts:21-30. Considerar extraer a función compartida. Ref: d157968e
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
-    if (!this.config) {
-        this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
-    }
-    const gameState = world.getSingleton("GameState");
-    if (!gameState || gameState.isGameOver) return;
-    if (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0) return;
+    if (!this.shouldUpdate(world)) return;
+    this.getGameConfig(world);
 
     const bosses = world.query("Boss", "Transform", "Render");
     bosses.forEach(entity => {
@@ -59,7 +52,7 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInva
           b.timer += deltaTime;
 
           if (b.furyDuration && b.furyDuration > 0) {
-            b.furyDuration -= deltaTime;
+            b.furyDuration = PhysicsUtils.tickTimer(b.furyDuration, deltaTime);
             if (b.furyDuration <= 0) {
               b.fury = Math.max(0, (b.fury ?? 0) - 20);
               if ((b.fury ?? 0) > 0) {
@@ -149,7 +142,11 @@ export class BossSystem extends System<SpaceInvadersComponentRegistry, SpaceInva
         lifetime: [1.0, 2.0],
         loop: false
     });
+    if (!world.isReSimulating) {
+      spawnLayeredExplosion(pos.x, pos.y, "#FF00FF", 2.2); // Intense boss explosion
+    }
     Juice.shake(world, 10, 1000);
+    spawnScorePopup(world, pos.x, pos.y, "+5000", "#FFD700");
 
     world.mutateSingleton("GameState", gs => {
         gs.score += 5000;

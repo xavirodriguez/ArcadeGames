@@ -498,6 +498,8 @@ export interface HapticRequestComponent<TPattern extends string = string> extend
 export interface JuiceAnimation {
   /** Animation type descriptor. */
   type: string;
+  /** Optional target component type discriminator. */
+  componentType?: string;
   /** Target component property key. */
   property?: string;
   /** Total animation duration in seconds. */

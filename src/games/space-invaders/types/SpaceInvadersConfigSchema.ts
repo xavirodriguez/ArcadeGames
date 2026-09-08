@@ -1,6 +1,6 @@
 import { BaseConfigSchema } from "@tiny-aster/core";
 import { z } from "zod";
-import { ComboConfigSchema, ScreenDimensionsSchema } from "../../shared/arcade/types/ArcadeConfigSchema";
+import { ComboConfigSchema, ScreenDimensionsSchema } from "@tiny-aster/gameplay-kit";
 
 export const SpaceInvadersConfigSchema = BaseConfigSchema.extend({
   ...ScreenDimensionsSchema.shape,
@@ -37,6 +37,9 @@ export const SpaceInvadersConfigSchema = BaseConfigSchema.extend({
 
   INVADER_ROWS: z.number().default(5),
   INVADER_COLS: z.number().default(11),
+  INVADER_MIN_ROWS: z.number().default(3),
+  INVADER_MIN_COLS: z.number().default(8),
+  INVADER_FULL_FORMATION_LEVEL: z.number().default(12),
   INVADER_SPACING_X: z.number().default(50),
   INVADER_SPACING_Y: z.number().default(40),
   INVADER_START_X: z.number().default(100),
@@ -58,6 +61,7 @@ export const SpaceInvadersConfigSchema = BaseConfigSchema.extend({
   SHIELD_SEGMENT_SIZE: z.number().default(15),
 
   LEVEL_SPEED_MULTIPLIER: z.number().default(1.1),
+  LEVEL_FIRE_RATE_MULTIPLIER: z.number().default(0.97),
   MAX_DELTA_TIME: z.number().default(100),
 
   PARTICLE_COUNT: z.number().default(8),

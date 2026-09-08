@@ -23,6 +23,7 @@ export * from "./ecs/BlueprintRegistry";
 export * from "./ecs/CoreComponents";
 export * from "./ecs/TagComponent";
 export * from "./ecs/EntityHelpers";
+export * from "./ecs/WorldUtils";
 export * from "./snapshots/WorldSnapshot";
 export * from "./snapshots/SnapshotMetadataBuilder";
 export * from "./snapshots/SnapshotSerializer";
@@ -116,6 +117,7 @@ export * from "./physics/utils/ShipPhysics";
 export * from "./physics/utils/ForwardVector";
 export * from "./physics/shapes/Shapes";
 export * from "./physics/query/PhysicsQuery";
+export * from "./physics/query/PhysicsQueryHelper";
 export * from "./physics/dynamics/PhysicsIntegrateSystem";
 export * from "./physics/dynamics/PhysicsSolveSystem";
 
@@ -164,8 +166,12 @@ export * from "./network/RemoteInterpolationSystem";
 export * from "./network/types";
 export * from "./network/MultiplayerSystems";
 export * from "./network/NetTypes";
+export * from "./network/InputComponentFactory";
 export * from "./network/NetworkController";
 export * from "./network/ReplaySystem";
+export * from "./network/pruneStaleEntities";
+export * from "./network/interpolationSnapshot";
+export * from "./network/EntitySyncEngine";
 
 // Theme & Config
 export * from "./theme/Theme";

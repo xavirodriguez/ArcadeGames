@@ -75,6 +75,9 @@ export interface AoSWorldSnapshot extends BaseWorldSnapshot {
 }
 
 // @public
+export function applyInputFrameToEntity<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents>, entityId: number, input: Pick<InputFrame, "actions" | "axes">): void;
+
+// @public
 export const ARCADE_DEBUG_RUN_VERSION = 1;
 
 // @public
@@ -104,7 +107,7 @@ export interface ArcadeGameAdapter {
 
 // @public
 export class ArcadeKernel {
-    constructor(eventBus?: EventBus<any>);
+    constructor(eventBus?: EventBus);
     getState(): ArcadeState;
     transitionTo(nextState: ArcadeState, payload?: Record<string, unknown>): void;
 }
@@ -161,7 +164,7 @@ export type AssetDescriptor = z.infer<typeof AssetDescriptorSchema>;
 // @public
 export const AssetDescriptorSchema: z.ZodObject<{
     id: z.ZodString;
-    path: z.ZodAny;
+    path: z.ZodUnknown;
     type: z.ZodEnum<{
         audio: "audio";
         image: "image";
@@ -182,7 +185,7 @@ export class AssetLoader {
     load(assets: AssetDescriptor[]): Promise<void>;
     // (undocumented)
     loadAll(): Promise<void>;
-    parseAtlas(atlasJson: any): Map<string, {
+    parseAtlas(atlasJson: unknown): Map<string, {
         x: number;
         y: number;
         w: number;
@@ -268,7 +271,7 @@ export const BaseConfigSchema: z.ZodObject<{
 }, z.core.$strip>;
 
 // @public
-export abstract class BaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
+export abstract class BaseGame<TState = unknown, TInput extends object = Record<string, unknown>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> implements IGame<TState, TInput, TComponents, TEvents, TBlueprints>, Simulation {
     constructor(config?: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>);
     applyServerStateUpdate(update: WorldSnapshot | {
         resources?: Record<string, unknown>;
@@ -336,6 +339,8 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
     init(): Promise<void>;
     abstract isGameOver(): boolean;
     isGameplayFrozen(): boolean;
+    // (undocumented)
+    readonly isHeadless: boolean;
     isPausedState(): boolean;
     readonly kernel: ArcadeKernel;
     // (undocumented)
@@ -343,6 +348,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
     protected onApplyInputFrame(input: CompactInputFrame): void;
     protected onBeforeRestart(): Promise<void>;
     protected onInitializeEntities(): Promise<void>;
+    protected onPreloadAssets(): Promise<void>;
     protected onRegisterSystems(): Promise<void>;
     pause(): void;
     protected registerResizeListener(): void;
@@ -368,7 +374,7 @@ export abstract class BaseGame<TState = unknown, TInput extends Record<string, a
 }
 
 // @public
-export interface BaseGameConfig<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends Record<string, any> = Record<string, any>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
+export interface BaseGameConfig<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TInput extends object = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
     arcadeKernel?: ArcadeKernel;
     assetProvider?: IAssetProvider;
     audio?: IAudioPlayer;
@@ -468,9 +474,9 @@ export interface BaseWorldSnapshot {
 // @public (undocumented)
 export class BinaryCompression {
     // (undocumented)
-    static pack(packet: any): Uint8Array;
+    static pack(packet: unknown): Uint8Array;
     // (undocumented)
-    static unpack<T = any>(packet: Uint8Array | ArrayBuffer | Buffer): T;
+    static unpack<T = unknown>(packet: Uint8Array | ArrayBuffer | Buffer): T;
 }
 
 // @public
@@ -536,6 +542,9 @@ export class BroadPhase {
 export const browserFrameScheduler: FrameScheduler;
 
 // @public
+export function buildInterpolationSnapshot(tick: number, entries: InterpolationSnapshotEntry[]): WorldSnapshot;
+
+// @public
 export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(world: World<TComponents>, internal: InternalWorldSnapshotAccess, activeEntities: Set<Entity>, options?: {
     isSoA?: false;
 }): BaseWorldSnapshot & {
@@ -580,12 +589,12 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
 }
 
 // @public
-export type CampaignGameFactory = (options?: Record<string, any>) => BaseGame<any, any, any, any, any>;
+export type CampaignGameFactory = (options?: Record<string, unknown>) => BaseGame;
 
 // @public
 export class CampaignGameResolver {
     static registerGame(gameId: string, factory: CampaignGameFactory): void;
-    static resolveGame(gameId: string, options?: Record<string, any>): BaseGame<any, any, any, any, any>;
+    static resolveGame(gameId: string, options?: Record<string, unknown>): BaseGame;
 }
 
 // @public
@@ -700,7 +709,7 @@ export class ClientAckTracker {
     // (undocumented)
     nextSequence(sessionId: string): number;
     // (undocumented)
-    recordAck(sessionId: string, sequence: number, tick: number): void;
+    recordAck(sessionId: string, sequence: number, _tick: number): void;
 }
 
 // @public
@@ -756,6 +765,13 @@ export interface ColliderLike {
     offsetX?: number;
     offsetY?: number;
     shape: Shape;
+}
+
+// @public
+export interface ColliderQueryResult {
+    collider: ColliderLike;
+    entity: Entity;
+    transform: PhysicsTransformLike;
 }
 
 // @public
@@ -898,6 +914,7 @@ export class ComponentSetPool<T extends Record<string, Component>> {
         entity: Entity;
         components: T;
     };
+    clear(): void;
     release(context: ComponentSetReleaseContext<T>): void;
     get size(): number;
 }
@@ -917,7 +934,7 @@ export function computeShipPhysics(transform: {
     vx: number;
     vy: number;
 }, input: {
-    actions: any;
+    actions: Set<string> | string[] | Record<string, boolean>;
     axes: Record<string, number>;
     rotationAmount?: number;
     rotateLeft?: boolean;
@@ -1212,7 +1229,7 @@ export interface CoreEvents {
 export function createBuilderInstance<TBuilder extends EntityBuilder<TComponents, TEvents, TBlueprints>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(factory: (world: World<TComponents, TEvents, TBlueprints>, entity: Entity, useCommandBuffer: boolean) => TBuilder, world: World<TComponents, TEvents, TBlueprints>, entity?: Entity, useCommandBuffer?: boolean): TBuilder;
 
 // @public
-export function createDeferredEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, deferred?: boolean): {
+export function createDeferredEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, deferred?: boolean, entityId?: Entity): {
     entity: Entity;
     add: <K extends ComponentType<TComponents>>(comp: TComponents[K] & {
         type: K;
@@ -1542,7 +1559,7 @@ export class EnemySensorSystem extends System<CoreComponentRegistry> {
 }
 
 // @public
-export function enterGameplayFreeze(world: World<any>, duration?: number): void;
+export function enterGameplayFreeze(world: World, duration?: number): void;
 
 // @public
 export type Entity = number;
@@ -1571,12 +1588,28 @@ export class EntityBuilder<TComponents extends ComponentRegistry = CoreComponent
 }
 
 // @public
+export interface EntityRemover {
+    // (undocumented)
+    removeEntity(entity: number): void;
+}
+
+// @public
 export interface EntitySnapshot {
     angle?: number;
     tick: number;
     timestamp: number;
     x: number;
     y: number;
+}
+
+// @public
+export interface EntitySyncDescriptor<TServerState = Record<string, unknown>, TItemState = unknown, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends Record<string, unknown> = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
+    getStateMap: (root: TServerState) => Record<string, TItemState> | undefined;
+    localPlayerPolicy?: LocalPlayerSyncPolicy;
+    onLocalPlayerMark?: (world: World<TComponents, TEvents, TBlueprints>, entity: number) => void;
+    serverIdPrefix: string;
+    spawn: (world: World<TComponents, TEvents, TBlueprints>, entity: number, state: TItemState, key: string) => void;
+    sync: (world: World<TComponents, TEvents, TBlueprints>, entity: number, state: TItemState, key: string) => void;
 }
 
 // @public
@@ -1613,7 +1646,7 @@ export interface EvidenceDefinition {
 }
 
 // @public
-export function exitGameplayFreeze(world: World<any>): void;
+export function exitGameplayFreeze(world: World): void;
 
 // @public
 export class ExponentialSmoothingModel<TRegistry extends MultiplayerRegistry = MultiplayerRegistry> implements IInterpolationModel<TRegistry> {
@@ -1666,10 +1699,10 @@ export function finalizePolyManifold(manifold: CollisionManifold, minOverlap: nu
 }>): CollisionManifold;
 
 // @public
-export function findMatchingEntityInTriggersOrCollisions<TComponents extends Record<string, any>>(world: World<TComponents>, entity: Entity, predicate: (other: Entity) => boolean): Entity | null;
+export function findMatchingEntityInTriggersOrCollisions<TComponents extends ComponentRegistry>(world: World<TComponents>, entity: Entity, predicate: (other: Entity) => boolean): Entity | null;
 
 // @public
-export function findTriggeringPlayer<TComponents extends Record<string, any>>(world: World<TComponents>, targetEntity: Entity, players: ReadonlyArray<Entity>): Entity | null;
+export function findTriggeringPlayer<TComponents extends ComponentRegistry>(world: World<TComponents>, targetEntity: Entity, players: ReadonlyArray<Entity>): Entity | null;
 
 // @public
 export type FlappyBirdRoleKey = CommonRoleKey | "bird" | "pipe" | "ground";
@@ -1814,7 +1847,7 @@ export interface GameplayNodeBuilder extends CommonNodeBuilderMethods<GameplayNo
 // @public
 export interface GameplaySystemContext {
     // (undocumented)
-    eventBus: EventBus<any> | undefined;
+    eventBus: EventBus | undefined;
     // (undocumented)
     runState: RunState | undefined;
 }
@@ -1849,7 +1882,7 @@ export function getColliderWorldCenter(transform: PhysicsTransformLike, collider
 };
 
 // @public
-export function getDirectionToDetectedPlayer(world: World<any>, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): {
+export function getDirectionToDetectedPlayer(world: World, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): {
     x: number;
     y: number;
 } | null;
@@ -1864,7 +1897,7 @@ export function getForwardVector(rotation: number): {
 };
 
 // @public
-export function getGameplayFreezeRemaining(world: World<any>): number | undefined;
+export function getGameplayFreezeRemaining(world: World): number | undefined;
 
 // @public
 export function getGameplaySystemContext<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>): GameplaySystemContext | null;
@@ -1875,7 +1908,7 @@ export function getGameplaySystemContextAndEntities<TRegistry extends CoreCompon
 }) | null;
 
 // @public
-export function getHorizontalDirectionToPlayer(world: World<any>, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
+export function getHorizontalDirectionToPlayer(world: World, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
 
 // @public
 export interface GroundDetectorComponent extends Component {
@@ -1996,7 +2029,7 @@ export interface IEntityPool {
 }
 
 // @public
-export interface IGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> extends Simulation {
+export interface IGame<TState = unknown, TInput extends object = Record<string, unknown>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> extends Simulation {
     destroy(): void;
     enterGameplayFreeze(duration?: number): void;
     exitGameplayFreeze(): void;
@@ -2023,6 +2056,7 @@ export interface IGame<TState = unknown, TInput extends Record<string, any> = Re
 export interface IGameLifecycleHooks {
     onBeforeRestart(): Promise<void>;
     onInitializeEntities(): Promise<void>;
+    onPreloadAssets(): Promise<void>;
     onRegisterSystems(): Promise<void>;
 }
 
@@ -2039,7 +2073,7 @@ export interface IHierarchicalComponent extends Component {
 }
 
 // @public
-export interface IInputSystem<TInput extends Record<string, any>> {
+export interface IInputSystem<TInput extends object = Record<string, unknown>> {
     bind(action: keyof TInput & string, keys: string[]): void;
     clearOverride(action: keyof TInput & string): void;
     dispose?(): void;
@@ -2139,7 +2173,7 @@ export interface InputStateComponent extends Component {
 }
 
 // @public
-export type InputSystem = IInputSystem<Record<string, any>>;
+export type InputSystem = IInputSystem<Record<string, unknown>>;
 
 // @public
 export class InputValidator {
@@ -2154,7 +2188,7 @@ export class InterestManagerSystem<TComponents extends ComponentRegistry = Compo
     // (undocumented)
     onRegister(world: World<TComponents, TEvents>): void;
     // (undocumented)
-    update(world: World<TComponents, TEvents>, deltaTime: number): void;
+    update(world: World<TComponents, TEvents>, _deltaTime: number): void;
 }
 
 // @public
@@ -2165,6 +2199,18 @@ export interface InternalWorldSnapshotAccess {
     generations?: number[];
     // (undocumented)
     nextEntityId: number;
+}
+
+// @public
+export interface InterpolationSnapshotEntry {
+    // (undocumented)
+    entityId: number;
+    // (undocumented)
+    rotation?: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
 }
 
 // @public
@@ -2199,7 +2245,7 @@ export class IrisTransition extends BaseTransitionEffect {
 }
 
 // @public
-export function isGameplayFrozen(world: World<any>): boolean;
+export function isGameplayFrozen(world: World): boolean;
 
 // @public
 export interface IStateReplicator<TComponents extends ComponentRegistry = ComponentRegistry> {
@@ -2224,6 +2270,7 @@ export interface ITransitionEffect {
 // @public
 export class Juice {
     static add(world: World<CoreComponentRegistry>, entity: Entity, anim: {
+        componentType?: string;
         property: string;
         target: number;
         duration: number;
@@ -2238,6 +2285,7 @@ export class Juice {
 
 // @public (undocumented)
 export interface JuiceAnimation {
+    componentType?: string;
     delay?: number;
     duration: number;
     easing?: string;
@@ -2345,6 +2393,9 @@ export class LinearPredictionModel<TRegistry extends MultiplayerRegistry = Multi
 export function loadAudioAssets(audio: IAudioPlayer, assets: AudioAsset[]): Promise<void>;
 
 // @public
+export type LocalPlayerSyncPolicy = "skip" | "mark" | "none";
+
+// @public
 export interface LocalPredictionOptions<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = InputPayload> {
     predictionModel?: IPredictionModel<TRegistry, TInput>;
     queryComponents?: Extract<keyof TRegistry, string>[];
@@ -2370,6 +2421,9 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
 
 // @public
 export function maskOf(...layers: number[]): number;
+
+// @public
+export const MAX_ENTITIES_PER_TICK = 20;
 
 // @public
 export class MemoryStorageProvider implements IMetaStorageProvider {
@@ -2534,7 +2588,7 @@ export const MiniGameEncounterSchema: z.ZodObject<{
     outcomeRules: z.ZodArray<z.ZodObject<{
         id: z.ZodString;
         priority: z.ZodNumber;
-        condition: z.ZodType<any, unknown, z.core.$ZodTypeInternals<any, unknown>>;
+        condition: z.ZodType<OutcomeCondition, unknown, z.core.$ZodTypeInternals<OutcomeCondition, unknown>>;
         effects: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
             type: z.ZodLiteral<"setFlag">;
             key: z.ZodString;
@@ -2631,7 +2685,7 @@ export interface MiniGameOutcomeRule {
 export const MiniGameOutcomeRuleSchema: z.ZodObject<{
     id: z.ZodString;
     priority: z.ZodNumber;
-    condition: z.ZodType<any, unknown, z.core.$ZodTypeInternals<any, unknown>>;
+    condition: z.ZodType<OutcomeCondition, unknown, z.core.$ZodTypeInternals<OutcomeCondition, unknown>>;
     effects: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         type: z.ZodLiteral<"setFlag">;
         key: z.ZodString;
@@ -2949,7 +3003,7 @@ export class NarrativeTimelineEngine {
         title: string;
         causedBy?: string[];
         consequences?: string[];
-        payload?: Record<string, any>;
+        payload?: Record<string, unknown>;
     }): NarrativeEvent;
     truncateAfter(targetEventId: string | null): void;
 }
@@ -2957,7 +3011,7 @@ export class NarrativeTimelineEngine {
 // @public (undocumented)
 export class NetworkBudgetManager {
     // (undocumented)
-    prioritize(sessionId: string, interest: any[], selfEntityId?: string): any[];
+    prioritize<T = unknown>(sessionId: string, interest: T[], selfEntityId?: string): T[];
 }
 
 // @public
@@ -3066,7 +3120,7 @@ export class NullAudioPlayer implements IAudioPlayer {
 }
 
 // @public
-export abstract class NullBaseGame<TState = unknown, TInput extends Record<string, any> = Record<string, any>, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> implements IGame<TState, TInput, TComponents, TEvents> {
+export abstract class NullBaseGame<TState = unknown, TInput extends object = Record<string, unknown>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry> implements IGame<TState, TInput, TComponents, TEvents> {
     // (undocumented)
     destroy(): void;
     // (undocumented)
@@ -3140,7 +3194,7 @@ export class NullHapticDevice implements IHapticDevice {
 }
 
 // @public
-export class NullInputSystem<TInput extends Record<string, any> = Record<string, any>> implements IInputSystem<TInput> {
+export class NullInputSystem<TInput extends object = Record<string, unknown>> implements IInputSystem<TInput> {
     bind(_action: keyof TInput & string, _keys: string[]): void;
     clearOverride(action: keyof TInput & string): void;
     dispose(): void;
@@ -3193,7 +3247,7 @@ export type OutcomeCondition = OutcomeLeafCondition | {
 };
 
 // @public
-export const OutcomeConditionSchema: z.ZodType<any>;
+export const OutcomeConditionSchema: z.ZodType<OutcomeCondition>;
 
 // @public
 export type OutcomeLeafCondition = {
@@ -3320,6 +3374,7 @@ export class PhysicsUtils {
     static circleOverlap(x1: number, y1: number, r1: number, x2: number, y2: number, r2: number): boolean;
     static clamp(value: number, min: number, max: number): number;
     static lerp(a: number, b: number, t: number): number;
+    static tickTimer(remaining: number, deltaTime: number): number;
 }
 
 // @public
@@ -3442,6 +3497,7 @@ export interface PrefabConfig<T extends Record<string, Component>, I> {
 export class PrefabPool<T extends Record<string, Component>, I> {
     constructor(config: PrefabConfig<T, I>);
     acquire(world: World, params: I): Entity;
+    clear(): void;
     release(context: ReleaseContext): void;
     get size(): number;
 }
@@ -3493,6 +3549,9 @@ export abstract class ProjectilePool<T extends ProjectileComponents = Projectile
 }
 
 // @public
+export function pruneStaleEntities(replicator: IStateReplicator<any>, currentServerEntities: Set<string>, commands: EntityRemover): void;
+
+// @public
 export interface QualitativeRelationshipStatus {
     descriptors: string[];
     keyMemories: CharacterMemory[];
@@ -3512,6 +3571,9 @@ export class Query<_TComponents extends ComponentRegistry> {
     // (undocumented)
     remove(entity: Entity): void;
 }
+
+// @public
+export function queryActiveColliders<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>): Generator<ColliderQueryResult>;
 
 // @public
 export class RadialWipeTransition extends BaseOffscreenTransitionEffect {
@@ -3710,21 +3772,24 @@ export interface RenderComponent extends Component {
 }
 
 // @public
-export type RenderContext = CanvasRenderingContext2D | any;
+export type RenderContext = CanvasRenderingContext2D | {
+    canvas?: HTMLCanvasElement;
+    [key: string]: unknown;
+};
 
 // @public
 export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistry, TContext = RenderContext> {
     // (undocumented)
-    registerBackgroundEffect(name: string, drawer: EffectDrawer<any, TRegistry>): void;
+    registerBackgroundEffect(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
     // (undocumented)
-    registerShape(name: string, drawer: ShapeDrawer<any, TRegistry>): void;
+    registerShape(name: string, drawer: ShapeDrawer<TContext, TRegistry>): void;
     render(world: World<TRegistry>, ctx: TContext, interpolation?: number): void;
     // (undocumented)
     readonly type: string;
 }
 
 // @public
-export type RendererRegistrationCallback = (renderer: Renderer<any, RenderContext>) => void;
+export type RendererRegistrationCallback = (renderer: Renderer<ComponentRegistry, RenderContext>) => void;
 
 // @public
 export interface RendererRegistrationConfig {
@@ -3736,7 +3801,7 @@ export interface RendererRegistrationConfig {
 
 // @public
 export class RendererUtils {
-    static registerAssets<T extends ComponentRegistry>(renderer: Renderer<T, any>, config: RendererRegistrationConfig): void;
+    static registerAssets<T extends ComponentRegistry>(renderer: Renderer<T, RenderContext>, config: RendererRegistrationConfig): void;
 }
 
 // @public
@@ -3796,7 +3861,7 @@ export interface ReplayFrame {
 // @public
 export class ReplayPlayer {
     constructor(serialized: string);
-    applyInputForTick(world: World<any>, entityId: number, tick: number): boolean;
+    applyInputForTick<TComponents extends ComponentRegistry>(world: World<TComponents>, entityId: number, tick: number): boolean;
     getSeed(): number;
     isFinished(currentTick: number): boolean;
 }
@@ -3812,6 +3877,15 @@ export class ReplayRecorder {
 
 // @public (undocumented)
 export class ReplicationStateTracker {
+    // (undocumented)
+    getBaselineVersion(sessionId: string, ack: number): {
+        stateVersion: number;
+        structureVersion: number;
+    } | undefined;
+    // (undocumented)
+    prune(sessionId: string, ack: number): void;
+    // (undocumented)
+    recordSent(sessionId: string, sequence: number, stateVersion: number, structureVersion: number): void;
 }
 
 // @public
@@ -4201,8 +4275,8 @@ export interface SoAComponentTypeData extends SoAComponentBlock {
 
 // @public
 export class SoADeserializer {
-    static hydrateComponent(soaData: SoAComponentBlock, entityIndex: number, componentType: string): Record<string, any>;
-    static hydrateEntities(entities: any, soaData: SoAComponentBlock, componentType: string, onHydrated: (entityId: number, component: Record<string, any>) => void): void;
+    static hydrateComponent(soaData: SoAComponentBlock, entityIndex: number, componentType: string): Record<string, unknown>;
+    static hydrateEntities(entities: ArrayLike<number> | Record<string | number, unknown>, soaData: SoAComponentBlock, componentType: string, onHydrated: (entityId: number, component: Record<string, unknown>) => void): void;
 }
 
 // @public
@@ -4520,7 +4594,7 @@ export interface StoryManifest {
 
 // @public
 export class StoryMigrations {
-    static migrateStoryPackage(raw: any, targetVersion?: number): StoryPackage;
+    static migrateStoryPackage(raw: unknown, targetVersion?: number): StoryPackage;
 }
 
 // @public
@@ -4671,7 +4745,7 @@ export class StoryRuntime {
             timestamp: Date;
         }>;
         variables: Record<string, {
-            value: any;
+            value: number | string | boolean;
             timestamp: Date;
         }>;
         selectedChoices: string[];
@@ -4680,18 +4754,18 @@ export class StoryRuntime {
         recent: (count: number) => Array<{
             type: string;
             timestamp: Date;
-            payload?: Record<string, any>;
+            payload?: Record<string, unknown>;
         }>;
         all: () => Array<{
             type: string;
             timestamp: Date;
-            payload?: Record<string, any>;
+            payload?: Record<string, unknown>;
         }>;
     };
     getTimelineEngine(): NarrativeTimelineEngine | undefined;
-    getVariable(key: string): any;
+    getVariable(key: string): number | string | boolean | undefined;
     getVersion(): number;
-    handleEvent(eventName: string, payload: any): void;
+    handleEvent(eventName: string, payload: unknown): void;
     loadGraph(graph: StoryGraph, startAtEntry?: boolean): void;
     navigateToNode(nodeId: string): boolean;
     rewind(targetNodeId: string): boolean;
@@ -4700,7 +4774,7 @@ export class StoryRuntime {
     setFlag(key: string, value?: boolean): void;
     setObjective(objective: StoryObjective): void;
     setState(state: StoryState): void;
-    setVariable(key: string, value: any): void;
+    setVariable(key: string, value: number | string | boolean | undefined): void;
 }
 
 // @public
@@ -4773,6 +4847,9 @@ export interface StoryTransition {
     priority?: number;
     targetNodeId: string;
 }
+
+// @public
+export function syncEntitiesFromServer<TServerState = Record<string, unknown>, TItemState = unknown, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends Record<string, unknown> = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, replicator: IStateReplicator<TComponents>, descriptor: EntitySyncDescriptor<TServerState, TItemState, TComponents, TEvents, TBlueprints>, rootState: TServerState, currentServerEntities: Set<string>, localSessionId?: string): void;
 
 // @public
 export abstract class System<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> {
@@ -4871,7 +4948,7 @@ export class TilemapRenderSystem extends System<CoreComponentRegistry> {
 
 // @public
 export function timedTransition(durationKey: string, nextState: string): {
-    onUpdate: (world: World<any>, entity: Entity, data: Record<string, unknown>, elapsed: number) => string | undefined;
+    onUpdate: (world: World, entity: Entity, data: Record<string, unknown>, elapsed: number) => string | undefined;
 };
 
 // @public
@@ -4885,6 +4962,9 @@ export class TimeScale {
     scale: number;
     setTemporary(scale: number, durationSeconds: number): void;
 }
+
+// @public
+export function toTransformComponent(x: number, y: number, rotation?: number): TransformComponent;
 
 // @public (undocumented)
 export interface TrailComponent extends Component {
@@ -4942,11 +5022,28 @@ export interface TransitionContext<TComponents extends ComponentRegistry = CoreC
 
 // @public
 export interface TransitionOptions {
-    [key: string]: any;
+    [key: string]: unknown;
+    angle?: number;
+    blockSize?: number;
+    centerX?: number;
+    centerY?: number;
     color?: string;
+    direction?: string;
     duration?: number;
     easing?: EasingFunction | string;
     effect?: string | ITransitionEffect;
+    frequency?: number;
+    intensity?: number;
+    lineColor?: string;
+    lineThickness?: number;
+    lineWidth?: number;
+    maxPixelSize?: number;
+    offscreenCanvas?: CanvasImageSource | HTMLCanvasElement | {
+        width?: number;
+        height?: number;
+        [key: string]: unknown;
+    };
+    sliceHeight?: number;
     timeout?: number;
 }
 
@@ -5175,11 +5272,17 @@ export interface WorldLike<TComponents extends ComponentRegistry = ComponentRegi
 export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;
 
 // @public
-export function zeroOutVelocityX(world: World<any>, entity: Entity): void;
+export class WorldUtils {
+    static isAliveAndTracked<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, entity: Entity): boolean;
+    static isEntityActive<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, entity: Entity): boolean;
+}
+
+// @public
+export function zeroOutVelocityX(world: World, entity: Entity): void;
 
 // @public
 export function zeroVelocityXOnEnter(): {
-    onEnter: (world: World<any>, entity: Entity, data: Record<string, unknown>) => void;
+    onEnter: (world: World, entity: Entity, data: Record<string, unknown>) => void;
 };
 
 // (No @packageDocumentation comment for this package)

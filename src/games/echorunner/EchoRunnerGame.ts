@@ -3,6 +3,7 @@ import {
   BaseGame,
   World,
   System,
+  PhysicsUtils,
   ConfigService,
   SystemPhase,
   BlueprintDefinition,
@@ -45,10 +46,11 @@ import {
 } from "@tiny-aster/core";
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
 import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
-import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType } from "./types/EchoRunnerConfigSchema";
+import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
+import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
-import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState } from "../shared/arcade";
+import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -71,8 +73,7 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
       // Manage attack cooldowns
       let cd = input.pulseCooldown ?? 0;
       if (cd > 0) {
-        cd -= deltaTime;
-        if (cd < 0) cd = 0;
+        cd = PhysicsUtils.tickTimer(cd, deltaTime);
         world.mutateComponent(player, "PlatformerInput" as any, (inp: any) => {
           inp.pulseCooldown = cd;
         });
@@ -133,8 +134,7 @@ class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
       // Handle invulnerability blink timers
       let invRemaining = pHealth.invulnerableRemaining ?? 0;
       if (invRemaining > 0) {
-        invRemaining -= deltaTime;
-        if (invRemaining < 0) invRemaining = 0;
+        invRemaining = PhysicsUtils.tickTimer(invRemaining, deltaTime);
         world.mutateComponent(player, "Health", (h) => {
           h.invulnerableRemaining = invRemaining;
         });
@@ -190,7 +190,7 @@ class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
   }
 }
 
-export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, any, any> {
+export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, any, any> {
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;
@@ -221,22 +221,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:114-127. Considerar extraer a función compartida. Ref: 44f1ee7d
-    this.setupCommonArcadeResources();
-    this.world.setResource("DeathPlaneY", 650);
-
-    // Initializing high-fidelity RunState resource
-    const runState: RunState = {
-      attempt: 1,
-      lives: 3,
-      activeCheckpoint: null,
-      elapsedTime: 0,
-      deaths: 0,
-      collectedPermanentIds: [],
-      collectedTemporalIds: []
-    };
-    this.world.setResource("RunState", runState);
-    this.world.setResource("AudioPlayer", this.audio);
+    await super.onRegisterSystems();
 
     // Register blueprints
     this.blueprints.register("pulse_hitbox", {
@@ -287,13 +272,15 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
         world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
         world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
+        const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
+
         world.addComponent(entity, {
           type: "PlatformerMovementConfig",
-          acceleration: ECHO_CONFIG.PLAYER_ACCEL,
-          maxSpeed: ECHO_CONFIG.PLAYER_SPEED,
-          deceleration: ECHO_CONFIG.PLAYER_DECEL,
-          airAcceleration: ECHO_CONFIG.PLAYER_AIR_ACCEL,
-          airDeceleration: ECHO_CONFIG.PLAYER_AIR_DECEL
+          acceleration: config.PLAYER_ACCEL,
+          maxSpeed: config.PLAYER_SPEED,
+          deceleration: config.PLAYER_DECEL,
+          airAcceleration: config.PLAYER_AIR_ACCEL,
+          airDeceleration: config.PLAYER_AIR_DECEL
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerInput",
@@ -306,19 +293,19 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerGravityConfig",
-          riseGravity: ECHO_CONFIG.RISE_GRAVITY,
-          fallGravity: ECHO_CONFIG.FALL_GRAVITY,
-          jumpVelocity: ECHO_CONFIG.PLAYER_JUMP_VEL,
-          minJumpVelocity: ECHO_CONFIG.PLAYER_MIN_JUMP_VEL,
-          apexThreshold: ECHO_CONFIG.APEX_THRESHOLD,
-          apexGravityMultiplier: ECHO_CONFIG.APEX_GRAVITY_MULTIPLIER
+          riseGravity: config.RISE_GRAVITY,
+          fallGravity: config.FALL_GRAVITY,
+          jumpVelocity: config.PLAYER_JUMP_VEL,
+          minJumpVelocity: config.PLAYER_MIN_JUMP_VEL,
+          apexThreshold: config.APEX_THRESHOLD,
+          apexGravityMultiplier: config.APEX_GRAVITY_MULTIPLIER
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerJumper",
           coyoteTimer: 0,
           jumpBufferTimer: 0,
-          coyoteTimeMax: ECHO_CONFIG.COYOTE_TIME_MAX,
-          jumpBufferMax: ECHO_CONFIG.JUMP_BUFFER_MAX
+          coyoteTimeMax: config.COYOTE_TIME_MAX,
+          jumpBufferMax: config.JUMP_BUFFER_MAX
         } as { type: string; [key: string]: unknown });
         // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:362-374. Considerar extraer a función compartida. Ref: b8cff4cf
         world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false, iceMultiplier: 1.0 } as { type: string; [key: string]: unknown });
@@ -327,13 +314,14 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
 
     this.blueprints.register("tilemap", {
       spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
+        const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: 0, y: 0 });
 
         world.addComponent(entity, {
           type: "Tilemap",
           data: args.data,
-          tileSize: ECHO_CONFIG.TILE_SIZE,
+          tileSize: config.TILE_SIZE,
           tileDefinitions: args.tileDefinitions
         } as { type: string; [key: string]: unknown });
       }
@@ -418,41 +406,20 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     // Register State Machine Behaviors
     registerEnemyStateMachines(this.world);
 
-    // Register all platformer & combat systems
+    // Input systems
     this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:383-387. Considerar extraer a función compartida. Ref: 584bc078
     this.world.addSystem(new EchoRunnerAttackSystem(), { phase: SystemPhase.Input });
 
-    this.world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new MovingPlatformSystem(), { phase: SystemPhase.Simulation });
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:386-392. Considerar extraer a función compartida. Ref: 17f2bdf2
-    this.world.addSystem(new PlatformCarrySystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new EnemySensorSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new StateMachineSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new CheckpointSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new DeathSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new RespawnSystem(), { phase: SystemPhase.Simulation });
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:393-397. Considerar extraer a función compartida. Ref: 14b9d33b
+    // Common platformer / runner systems
+    registerCommonPlatformerSystems(this.world, { includeMovingPlatforms: true });
+
+    // Game-specific simulation systems
     this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });
 
-    this.world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
-
-    this.world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new CollectibleSystem(), { phase: SystemPhase.Collision });
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:399-402. Considerar extraer a función compartida. Ref: d0f615e5
-    this.world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });
-
-    // Presentation Systems
-    this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:261-267. Considerar extraer a función compartida. Ref: 6ae02dab
-    this.world.addSystem(new TilemapRenderSystem(), { phase: SystemPhase.Presentation });
+    // Game-specific presentation systems
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
-
-    await this.onPreloadAssets();
 
     // Listen to Hit Detection events
     const eventBus = this.world.getEventBus();
@@ -530,7 +497,8 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
 
     // Instantiate Plan
-    SegmentGenerator.instantiatePlan(this.world, this.levelPlan, ECHO_CONFIG.TILE_SIZE, tileDefinitions);
+    const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
+    SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
 
     // Spawn Player
     const playerEntity = this.world.createEntity();
@@ -590,7 +558,7 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
     mutatePlatformerInputState(this.getWorld(), input);
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const assets = [
       { id: "pulse", path: "/audio/shoot.mp3" },
       { id: "hit", path: "/audio/hit.mp3" },

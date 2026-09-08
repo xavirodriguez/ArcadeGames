@@ -211,7 +211,7 @@ describe("Rollback & Resimulation Stability", () => {
     expect(packed).toBeInstanceOf(Uint8Array);
 
     // Unpack from binary
-    const unpacked = BinaryCompression.unpack(packed);
+    const unpacked = BinaryCompression.unpack<SoAWorldSnapshot>(packed);
     expect(unpacked.isSoA).toBe(true);
     expect(unpacked.soaComponentData).toBeDefined();
 

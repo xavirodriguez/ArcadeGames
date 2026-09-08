@@ -1,9 +1,9 @@
 import { World, SystemPhase, CollisionEventsComponent, BlueprintRegistry, EventBus } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS } from "../../../utils/MutatorRegistry";
-import { CombatSystem } from "../../shared/combat/systems/CombatSystem";
+import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
-import { ComboSystem } from "../../shared/arcade";
+import { ComboSystem } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { createGameState } from "../EntityFactory";
 import { ParticlePool, EnemyBulletPool } from "../EntityPool";
@@ -222,6 +222,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
     world.addComponent(dummyBoss, { type: "Boss", hp: 10, maxHp: 10, timer: 0, phase: 1 });
 
     const addKill = (bulletId: number) => {
+      world.deleteResource("GameplayFreeze");
       const invader = world.createEntity();
       world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 });
       world.addComponent(invader, { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });

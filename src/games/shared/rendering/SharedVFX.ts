@@ -144,15 +144,96 @@ function getVFXState(world: World<any>): VFXWorldState {
 }
 
 // -------------------------------------------------------------
+// Cache Helpers
+// -------------------------------------------------------------
+function getOrCreateCached<T>(
+  state: VFXWorldState,
+  cacheKey: "cachedCRTGradient" | "cachedSkiaShader",
+  width: number,
+  height: number,
+  create: () => T
+): T {
+  if (!state[cacheKey] || state.lastCRTWidth !== width || state.lastCRTHeight !== height) {
+    state[cacheKey] = create();
+    state.lastCRTWidth = width;
+    state.lastCRTHeight = height;
+  }
+  return state[cacheKey] as T;
+}
+
+// -------------------------------------------------------------
+// Pure Calculation Helpers
+// -------------------------------------------------------------
+function computeHologramLayers(timePhase: number, size: number) {
+  const glitchOffset = 2 + 1.5 * Math.sin(timePhase * 10);
+  return [
+    { x: -glitchOffset, radius: size, color: "#00ffff", alpha: 0.4 },
+    { x: glitchOffset, radius: size, color: "#ff00ff", alpha: 0.4 },
+    { x: 0, radius: size * 0.9, color: "#ffffff", alpha: 0.9 }
+  ];
+}
+
+interface TrailSegment {
+  alpha: number;
+  offset: number;
+  wiggle: number;
+  radius: number;
+}
+
+function computeCometTrailSegments(timePhase: number, size: number): TrailSegment[] {
+  const segments: TrailSegment[] = [];
+  for (let i = 0; i < TRAIL_LENGTH; i++) {
+    const alpha = 0.5 * (1.0 - i / TRAIL_LENGTH);
+    const offset = (i + 1) * 3;
+    const wiggle = 2 * Math.sin(timePhase * 4 + i);
+    const radius = size * (1.0 - i / TRAIL_LENGTH);
+    segments.push({ alpha, offset, wiggle, radius });
+  }
+  return segments;
+}
+
+function computeEffectProgress(world: World<any>, entity: any): { progress: number; alpha: number } {
+  const ttl = world.getComponent(entity, "TTL") as TTLComponent | undefined;
+  let progress = 0.5;
+
+  if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {
+    const totalLife = ttl.timeLeft || 1.0;
+    progress = 1.0 - (ttl.remaining / totalLife);
+  } else {
+    progress = (getVFXState(world).timePhase % 2) / 2;
+  }
+
+  const alpha = 1.0 - progress;
+  return { progress, alpha };
+}
+
+function computeShieldBubbleParams(timePhase: number) {
+  const pulseFactor = 1.0 + 0.06 * Math.sin(timePhase);
+  const pulseAlpha = 0.4 + 0.15 * Math.sin(timePhase + Math.PI);
+  return { pulseFactor, pulseAlpha };
+}
+
+function computeThrusterPlume(timePhase: number, size: number) {
+  const flicker = 1.0 + 0.15 * Math.sin(timePhase * 5);
+  const plumeLength = size * 2.2 * flicker;
+  return { plumeLength };
+}
+
+// -------------------------------------------------------------
 // Initializers
 // -------------------------------------------------------------
+function pickColor(rng: any, colors: string[]): { color: string; skColor: any } {
+  const color = colors[rng.nextInt(0, colors.length)];
+  return { color, skColor: Skia ? Skia.Color(color) : null };
+}
+
 function initializeStars(world: World<any>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = ["#ffffff", "#aaf0ff", "#ffe0aa", "#ffcccc"];
 
   state.stars = [];
   for (let i = 0; i < STAR_COUNT; i++) {
-    const color = colors[rng.nextInt(0, colors.length)];
+    const { color, skColor } = pickColor(rng, colors);
     state.stars.push({
       x: rng.nextRange(0, 800),
       y: rng.nextRange(0, 600),
@@ -161,7 +242,7 @@ function initializeStars(world: World<any>, state: VFXWorldState) {
       twinklePhase: rng.nextRange(0, Math.PI * 2),
       twinkleSpeed: rng.nextRange(0.02, 0.08),
       color,
-      skColor: Skia ? Skia.Color(color) : null
+      skColor
     });
   }
   state.starsInitialized = true;
@@ -173,14 +254,14 @@ function initializeLines(world: World<any>, state: VFXWorldState, maxRadius: num
 
   state.lines = [];
   for (let i = 0; i < WARP_LINE_COUNT; i++) {
-    const color = colors[rng.nextInt(0, colors.length)];
+    const { color, skColor } = pickColor(rng, colors);
     state.lines.push({
       angle: rng.nextRange(0, Math.PI * 2),
       radius: rng.nextRange(10, maxRadius),
       length: rng.nextRange(15, 60),
       speed: rng.nextRange(4, 12),
       color,
-      skColor: Skia ? Skia.Color(color) : null
+      skColor
     });
   }
   state.warpLinesInitialized = true;
@@ -192,14 +273,15 @@ function initializeNebulae(world: World<any>, state: VFXWorldState) {
 
   state.nebulae = [];
   for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
+    const color = colors[i % colors.length];
     state.nebulae.push({
       x: rng.nextRange(50, 750),
       y: rng.nextRange(50, 550),
       vx: rng.nextRange(-0.05, 0.05),
       vy: rng.nextRange(-0.05, 0.05),
       radius: rng.nextRange(100, 220),
-      color: colors[i % colors.length],
-      skColor: Skia ? Skia.Color(colors[i % colors.length]) : null
+      color,
+      skColor: Skia ? Skia.Color(color) : null
     });
   }
   state.nebulaeInitialized = true;
@@ -245,9 +327,7 @@ function initializeVortex(world: World<any>, state: VFXWorldState) {
 export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
     // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:277-283. Considerar extraer a función compartida. Ref: 2cbbd41e
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
-    const state = getVFXState(world);
+    const { width, height, state } = getScreenAndVFXState(world);
 
     state.timePhase += 0.04;
 
@@ -261,7 +341,7 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Com
     }
 
     // 2. Radial vignette gradient caching
-    if (!state.cachedCRTGradient || state.lastCRTWidth !== width || state.lastCRTHeight !== height) {
+    const gradient = getOrCreateCached(state, "cachedCRTGradient", width, height, () => {
       const centerX = width / 2;
       const centerY = height / 2;
       const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
@@ -272,13 +352,10 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Com
       );
       grad.addColorStop(0, "rgba(0, 0, 0, 0)");
       grad.addColorStop(1, "rgba(0, 0, 0, 0.6)");
+      return grad;
+    });
 
-      state.cachedCRTGradient = grad;
-      state.lastCRTWidth = width;
-      state.lastCRTHeight = height;
-    }
-
-    ctx.fillStyle = state.cachedCRTGradient;
+    ctx.fillStyle = gradient;
     ctx.globalAlpha = 1.0;
     ctx.fillRect(0, 0, width, height);
 
@@ -298,9 +375,7 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
   draw(canvas, world) {
     if (!Skia) return;
     // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:223-229. Considerar extraer a función compartida. Ref: a687d1d0
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
-    const state = getVFXState(world);
+    const { width, height, state } = getScreenAndVFXState(world);
 
     state.timePhase += 0.04;
 
@@ -314,23 +389,21 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
       canvas.drawRect(Skia.XYWHRect(0, y, width, 2), paint);
     }
 
-    if (!state.cachedSkiaShader || state.lastCRTWidth !== width || state.lastCRTHeight !== height) {
+    const shader = getOrCreateCached(state, "cachedSkiaShader", width, height, () => {
       const centerX = width / 2;
       const centerY = height / 2;
       const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
 
-      state.cachedSkiaShader = Skia.Shader.MakeRadialGradient(
+      return Skia.Shader.MakeRadialGradient(
         Skia.Point(centerX, centerY),
         maxRadius,
         [Skia.Color("rgba(0,0,0,0)"), Skia.Color("rgba(0,0,0,0.6)")],
         [0.4, 1.0],
         Skia.TileMode.Clamp
       );
-      state.lastCRTWidth = width;
-      state.lastCRTHeight = height;
-    }
+    });
 
-    paint.setShader(state.cachedSkiaShader);
+    paint.setShader(shader);
     paint.setAlphaf(1.0);
     canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
@@ -399,9 +472,7 @@ export function createSharedParticle(
 export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
     // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:404-410. Considerar extraer a función compartida. Ref: 5267edd1
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
-    const state = getVFXState(world);
+    const { width, height, state } = getScreenAndVFXState(world);
 
     if (!state.starsInitialized) {
       initializeStars(world, state);
@@ -431,9 +502,7 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
 export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
-    const state = getVFXState(world);
+    const { width, height, state } = getScreenAndVFXState(world);
 
     if (!state.starsInitialized) {
       initializeStars(world, state);
@@ -469,12 +538,10 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> 
 export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
     // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:484-493. Considerar extraer a función compartida. Ref: d45cd223
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
+    const { width, height, state } = getScreenAndVFXState(world);
     const centerX = width / 2;
     const centerY = height / 2;
     const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-    const state = getVFXState(world);
 
     if (!state.warpLinesInitialized) {
       initializeLines(world, state, maxRadius);
@@ -514,12 +581,10 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
 export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
+    const { width, height, state } = getScreenAndVFXState(world);
     const centerX = width / 2;
     const centerY = height / 2;
     const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-    const state = getVFXState(world);
 
     if (!state.warpLinesInitialized) {
       initializeLines(world, state, maxRadius);
@@ -566,11 +631,9 @@ export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, Com
     const size = render.size || 35;
     const radius = size * 1.3;
     const timePhase = getVFXState(world).timePhase;
+    const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);
 
     ctx.save();
-
-    const pulseFactor = 1.0 + 0.06 * Math.sin(timePhase);
-    const pulseAlpha = 0.4 + 0.15 * Math.sin(timePhase + Math.PI);
 
     ctx.strokeStyle = "#00f0ff";
     ctx.globalAlpha = pulseAlpha;
@@ -613,11 +676,9 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, ComponentRegistry> =
     const size = render.size || 35;
     const radius = size * 1.3;
     const timePhase = getVFXState(world).timePhase;
+    const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);
 
     canvas.save();
-
-    const pulseFactor = 1.0 + 0.06 * Math.sin(timePhase);
-    const pulseAlpha = 0.4 + 0.15 * Math.sin(timePhase + Math.PI);
 
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -664,17 +725,7 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, Compon
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
 
-    const ttl = world.getComponent(entity, "TTL") as TTLComponent | undefined;
-    let progress = 0.5;
-
-    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {
-      const totalLife = ttl.timeLeft || 1.0;
-      progress = 1.0 - (ttl.remaining / totalLife);
-    } else {
-      progress = (getVFXState(world).timePhase % 2) / 2;
-    }
-
-    const alpha = 1.0 - progress;
+    const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
     const baseSize = render.size || 20;
@@ -724,17 +775,7 @@ export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
 
-    const ttl = world.getComponent(entity, "TTL") as TTLComponent | undefined;
-    let progress = 0.5;
-
-    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {
-      const totalLife = ttl.timeLeft || 1.0;
-      progress = 1.0 - (ttl.remaining / totalLife);
-    } else {
-      progress = (getVFXState(world).timePhase % 2) / 2;
-    }
-
-    const alpha = 1.0 - progress;
+    const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
     const baseSize = render.size || 20;
@@ -848,9 +889,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegi
 export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
     // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:848-854. Considerar extraer a función compartida. Ref: 6a369da9
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { height } = screen;
-    const state = getVFXState(world);
+    const { height, state } = getScreenAndVFXState(world);
 
     if (!state.matrixInitialized) {
       initializeMatrix(world, state);
@@ -887,9 +926,7 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Com
 export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { height } = screen;
-    const state = getVFXState(world);
+    const { height, state } = getScreenAndVFXState(world);
 
     if (!state.matrixInitialized) {
       initializeMatrix(world, state);
@@ -928,8 +965,7 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, ComponentRegistry> =
 export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
     // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:914-920. Considerar extraer a función compartida. Ref: 90aca425
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
+    const { width, height } = getScreenAndVFXState(world);
 
     const rng = world.renderRandom;
     if (rng.next() < 0.96) return; // Keep glitches highly responsive & sparse
@@ -956,8 +992,7 @@ export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, Comp
 export const SkiaCRTGlitchShudderEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
+    const { width, height } = getScreenAndVFXState(world);
 
     const rng = world.renderRandom;
     if (rng.next() < 0.96) return;
@@ -991,12 +1026,9 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Com
 
     const size = render.size || 10;
     const timePhase = getVFXState(world).timePhase;
+    const { plumeLength } = computeThrusterPlume(timePhase, size);
 
     ctx.save();
-
-    // Plume flickers analytically using deterministic sine waves
-    const flicker = 1.0 + 0.15 * Math.sin(timePhase * 5);
-    const plumeLength = size * 2.2 * flicker;
 
     // Inner fiery cone
     ctx.fillStyle = "#ff5500";
@@ -1030,11 +1062,9 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, ComponentRegistry> =
 
     const size = render.size || 10;
     const timePhase = getVFXState(world).timePhase;
+    const { plumeLength } = computeThrusterPlume(timePhase, size);
 
     canvas.save();
-
-    const flicker = 1.0 + 0.15 * Math.sin(timePhase * 5);
-    const plumeLength = size * 2.2 * flicker;
 
     const paint = Skia.Paint();
 
@@ -1164,9 +1194,8 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<any, ComponentRegistry> = {
 // -------------------------------------------------------------
 export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
-    const timePhase = getVFXState(world).timePhase;
+    const { width, height, state } = getScreenAndVFXState(world);
+    const timePhase = state.timePhase;
 
     ctx.save();
 
@@ -1184,9 +1213,8 @@ export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, Comp
 export const SkiaScreenBorderGlowEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const { width, height } = screen;
-    const timePhase = getVFXState(world).timePhase;
+    const { width, height, state } = getScreenAndVFXState(world);
+    const timePhase = state.timePhase;
 
     canvas.save();
 
@@ -1324,6 +1352,7 @@ export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, Compo
 
     const size = render.size || 15;
     const timePhase = getVFXState(world).timePhase;
+    const segments = computeCometTrailSegments(timePhase, size);
 
     ctx.save();
 
@@ -1331,15 +1360,11 @@ export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, Compo
     ctx.strokeStyle = "#00ffcc";
     ctx.lineWidth = 1;
 
-    for (let i = 0; i < TRAIL_LENGTH; i++) {
-      const alpha = 0.5 * (1.0 - i / TRAIL_LENGTH);
-      ctx.globalAlpha = alpha;
-
-      const offset = (i + 1) * 3;
-      const wiggle = 2 * Math.sin(timePhase * 4 + i);
-
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      ctx.globalAlpha = seg.alpha;
       ctx.beginPath();
-      ctx.arc(wiggle, offset, size * (1.0 - i / TRAIL_LENGTH), 0, Math.PI * 2);
+      ctx.arc(seg.wiggle, seg.offset, seg.radius, 0, Math.PI * 2);
       ctx.stroke();
     }
 
@@ -1355,6 +1380,7 @@ export const SkiaCometMotionTrailEffect: ShapeDrawer<any, ComponentRegistry> = {
 
     const size = render.size || 15;
     const timePhase = getVFXState(world).timePhase;
+    const segments = computeCometTrailSegments(timePhase, size);
 
     canvas.save();
 
@@ -1363,14 +1389,10 @@ export const SkiaCometMotionTrailEffect: ShapeDrawer<any, ComponentRegistry> = {
     paint.setColor(Skia.Color("#00ffcc"));
     paint.setStrokeWidth(1);
 
-    for (let i = 0; i < TRAIL_LENGTH; i++) {
-      const alpha = 0.5 * (1.0 - i / TRAIL_LENGTH);
-      paint.setAlphaf(alpha);
-
-      const offset = (i + 1) * 3;
-      const wiggle = 2 * Math.sin(timePhase * 4 + i);
-
-      canvas.drawCircle(wiggle, offset, size * (1.0 - i / TRAIL_LENGTH), paint);
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      paint.setAlphaf(seg.alpha);
+      canvas.drawCircle(seg.wiggle, seg.offset, seg.radius, paint);
     }
 
     canvas.restore();
@@ -1387,32 +1409,19 @@ export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
 
     const size = render.size || 20;
     const timePhase = getVFXState(world).timePhase;
+    const layers = computeHologramLayers(timePhase, size);
 
     ctx.save();
-
-    const glitchOffset = 2 + 1.5 * Math.sin(timePhase * 10);
-
-    // Cyan Ghost Layer
-    ctx.strokeStyle = "#00ffff";
-    ctx.globalAlpha = 0.4;
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(-glitchOffset, 0, size, 0, Math.PI * 2);
-    ctx.stroke();
 
-    // Magenta Ghost Layer
-    ctx.strokeStyle = "#ff00ff";
-    ctx.globalAlpha = 0.4;
-    ctx.beginPath();
-    ctx.arc(glitchOffset, 0, size, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Center Primary Core
-    ctx.strokeStyle = "#ffffff";
-    ctx.globalAlpha = 0.9;
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
-    ctx.stroke();
+    for (let i = 0; i < layers.length; i++) {
+      const layer = layers[i];
+      ctx.strokeStyle = layer.color;
+      ctx.globalAlpha = layer.alpha;
+      ctx.beginPath();
+      ctx.arc(layer.x, 0, layer.radius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     ctx.restore();
   }
@@ -1426,29 +1435,20 @@ export const SkiaRGBHologramGlitchEffect: ShapeDrawer<any, ComponentRegistry> = 
 
     const size = render.size || 20;
     const timePhase = getVFXState(world).timePhase;
+    const layers = computeHologramLayers(timePhase, size);
 
     canvas.save();
-
-    const glitchOffset = 2 + 1.5 * Math.sin(timePhase * 10);
 
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(2);
 
-    // Cyan Ghost
-    paint.setColor(Skia.Color("#00ffff"));
-    paint.setAlphaf(0.4);
-    canvas.drawCircle(-glitchOffset, 0, size, paint);
-
-    // Magenta Ghost
-    paint.setColor(Skia.Color("#ff00ff"));
-    paint.setAlphaf(0.4);
-    canvas.drawCircle(glitchOffset, 0, size, paint);
-
-    // White Core
-    paint.setColor(Skia.Color("#ffffff"));
-    paint.setAlphaf(0.9);
-    canvas.drawCircle(0, 0, size * 0.9, paint);
+    for (let i = 0; i < layers.length; i++) {
+      const layer = layers[i];
+      paint.setColor(Skia.Color(layer.color));
+      paint.setAlphaf(layer.alpha);
+      canvas.drawCircle(layer.x, 0, layer.radius, paint);
+    }
 
     canvas.restore();
   }
@@ -1463,17 +1463,7 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
 
-    const ttl = world.getComponent(entity, "TTL") as TTLComponent | undefined;
-    let progress = 0.5;
-
-    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {
-      const totalLife = ttl.timeLeft || 1.0;
-      progress = 1.0 - (ttl.remaining / totalLife);
-    } else {
-      progress = (getVFXState(world).timePhase % 2) / 2;
-    }
-
-    const alpha = 1.0 - progress;
+    const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
     ctx.save();
@@ -1498,17 +1488,7 @@ export const SkiaFloatingTextScoreEffect: ShapeDrawer<any, ComponentRegistry> = 
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
 
-    const ttl = world.getComponent(entity, "TTL") as TTLComponent | undefined;
-    let progress = 0.5;
-
-    if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {
-      const totalLife = ttl.timeLeft || 1.0;
-      progress = 1.0 - (ttl.remaining / totalLife);
-    } else {
-      progress = (getVFXState(world).timePhase % 2) / 2;
-    }
-
-    const alpha = 1.0 - progress;
+    const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
     canvas.save();

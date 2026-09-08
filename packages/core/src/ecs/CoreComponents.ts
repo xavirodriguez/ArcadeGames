@@ -227,9 +227,12 @@ export interface StateMachineComponent extends Component {
   previousState?: string;
 }
 
-/** @public */
+/**
+ * Configuration parameters for spawning particle emitters.
+ * @public
+ */
 export interface ParticleEmitterConfig {
-  /** Particle type descriptor. */
+  /** Particle type descriptor or sprite/shape key. */
   type: string;
   /** X origin coordinate. */
   x: number;
@@ -257,7 +260,10 @@ export interface ParticleEmitterConfig {
   loop?: boolean;
 }
 
-/** @public */
+/**
+ * Component managing particle emission state and parameters.
+ * @public
+ */
 export interface ParticleEmitterComponent extends Component {
   /** Component discriminator type. */
   type: "ParticleEmitter";
@@ -430,7 +436,10 @@ export interface MovingPlatformComponent extends Component {
   elapsed: number;
 }
 
-/** @public */
+/**
+ * Component tracking entities that have been damaged or struck during an attack cycle.
+ * @public
+ */
 export interface HitboxComponent extends Component {
   /** Component discriminator type. */
   type: "Hitbox";
@@ -438,31 +447,40 @@ export interface HitboxComponent extends Component {
   hitEntities?: Entity[];
 }
 
-/** @public */
+/**
+ * Tag component marking entities capable of taking damage from hitboxes.
+ * @public
+ */
 export interface HurtboxComponent extends Component {
   /** Component discriminator type. */
   type: "Hurtbox";
 }
 
-/** @public */
+/**
+ * Component applying screen shake offset to active camera.
+ * @public
+ */
 export interface ScreenShakeComponent extends Component {
   /** Component discriminator type. */
   type: "ScreenShake";
-  /** Shake displacement intensity. */
+  /** Shake displacement intensity in world units. */
   intensity: number;
-  /** Total shake duration. */
+  /** Total shake duration in seconds. */
   duration: number;
-  /** Remaining shake duration. */
+  /** Remaining shake duration in seconds. */
   remaining: number;
 }
 
-/** @public */
+/**
+ * Component specifying temporary rendering position offsets.
+ * @public
+ */
 export interface VisualOffsetComponent extends Component {
   /** Component discriminator type. */
   type: "VisualOffset";
-  /** Render offset X. */
+  /** Render offset X in pixels. */
   offsetX: number;
-  /** Render offset Y. */
+  /** Render offset Y in pixels. */
   offsetY: number;
 }
 
@@ -484,57 +502,69 @@ export interface DeadComponent extends Component {
   type: "Dead";
 }
 
-/** @public */
+/**
+ * Component requesting a haptic vibration feedback pattern.
+ * @public
+ */
 export interface HapticRequestComponent<TPattern extends string = string> extends Component {
   /** Component discriminator type. */
   type: "HapticRequest";
-  /** Vibration pattern name or string. */
+  /** Vibration pattern name or string identifier. */
   pattern: TPattern;
-  /** Vibration intensity scaling. */
+  /** Vibration intensity scaling factor between 0.0 and 1.0. */
   intensity?: number;
 }
 
-/** @public */
+/**
+ * Individual procedural juice animation clip descriptor.
+ * @public
+ */
 export interface JuiceAnimation {
-  /** Animation type descriptor. */
+  /** Animation type descriptor (e.g. "scale", "flash", "offset"). */
   type: string;
   /** Optional target component type discriminator. */
   componentType?: string;
-  /** Target component property key. */
+  /** Target component property key to interpolate. */
   property?: string;
   /** Total animation duration in seconds. */
   duration: number;
   /** Elapsed duration in seconds. */
   elapsed: number;
-  /** Target end value. */
+  /** Target end value for relative animations. */
   target?: number;
   /** Initial starting value. */
   startValue?: number;
-  /** Ending value. */
+  /** Ending target value. */
   endValue?: number;
   /** Delay before animation starts in seconds. */
   delay?: number;
   /** Easing function name. */
   easing?: string;
-  /** Repeat count or infinity option. */
+  /** Repeat count or negative value for looping. */
   repeat?: number;
 }
 
-/** @public */
+/**
+ * Component holding procedural juice visual animations on an entity.
+ * @public
+ */
 export interface JuiceComponent extends Component {
   /** Component discriminator type. */
   type: "Juice";
-  /** Whether juice animations are active. */
+  /** Whether juice animations are currently processing. */
   active: boolean;
   /** List of active juice animation clips. */
   animations: JuiceAnimation[];
 }
 
-/** @public */
+/**
+ * Component containing per-frame collision and trigger detection results.
+ * @public
+ */
 export interface CollisionEventsComponent extends Component {
   /** Component discriminator type. */
   type: "CollisionEvents";
-  /** List of active physical collision encounters. */
+  /** List of active physical collision encounters this frame. */
   collisions: Collision[];
   /** Active trigger overlap entities. */
   activeTriggers: Entity[];
@@ -544,7 +574,10 @@ export interface CollisionEventsComponent extends Component {
   triggersExited: Entity[];
 }
 
-/** @public */
+/**
+ * Component specifying full physical collision geometry and layers.
+ * @public
+ */
 export interface ColliderComponent extends Component {
   /** Component discriminator type. */
   type: "Collider";
@@ -556,11 +589,11 @@ export interface ColliderComponent extends Component {
   mask: CollisionMask;
   /** Whether collider is active. */
   enabled: boolean;
-  /** Whether collider acts as a trigger sensor. */
+  /** Whether collider acts as a trigger sensor without solid resolution. */
   isTrigger: boolean;
-  /** Center offset X. */
+  /** Center offset X relative to transform position. */
   offsetX?: number;
-  /** Center offset Y. */
+  /** Center offset Y relative to transform position. */
   offsetY?: number;
 }
 
@@ -584,7 +617,10 @@ export interface SpriteComponent extends Component {
   tint?: string;
 }
 
-/** @public */
+/**
+ * Component maintaining motion trajectory history points for visual trails.
+ * @public
+ */
 export interface TrailComponent extends Component {
   /** Component discriminator type. */
   type: "Trail";
@@ -606,7 +642,10 @@ export interface IHierarchicalComponent extends Component {
   children: Entity[];
 }
 
-/** @public */
+/**
+ * Simplified 2D collider component for circle and AABB bounding checks.
+ * @public
+ */
 export interface Collider2DComponent extends Component {
   /** Component discriminator type. */
   type: "Collider2D";
@@ -616,13 +655,13 @@ export interface Collider2DComponent extends Component {
   layer: number;
   /** Collision mask bitfield. */
   mask: number;
-  /** Center offset X. */
+  /** Center offset X relative to entity center. */
   offsetX: number;
-  /** Center offset Y. */
+  /** Center offset Y relative to entity center. */
   offsetY: number;
-  /** Whether collider is a trigger sensor. */
+  /** Whether collider acts as a trigger sensor. */
   isTrigger: boolean;
-  /** Whether collider is enabled. */
+  /** Whether collider is enabled for physical queries. */
   enabled: boolean;
 }
 

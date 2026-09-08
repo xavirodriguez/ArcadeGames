@@ -3,8 +3,35 @@ import { World } from "../ecs/World";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { ComboComponent } from "../components/ComboComponent";
 
-/** @public */
+/**
+ * System that processes combo streak decay and reset timers across entities.
+ *
+ * @remarks
+ * In each tick, {@link ComboSystem} queries entities with a {@link ComboComponent}.
+ * If the world is paused (`IsPaused === true`) or an entity's combo timer has expired, processing is skipped.
+ * Otherwise, `timerRemaining` is decremented by `deltaTime`. Upon reaching zero, the combo count is reset
+ * to 0 and multiplier to 1.
+ *
+ * Mutable components are acquired only when `timerRemaining > 0` to preserve determinism and avoid unnecessary
+ * state version increments during rollback/resimulation.
+ *
+ * @example
+ * ```ts
+ * const comboSystem = new ComboSystem();
+ * world.addSystem(comboSystem);
+ * // Execution during world tick updates active combo timers:
+ * comboSystem.update(world, 0.016);
+ * ```
+ *
+ * @public
+ */
 export class ComboSystem<TComponents extends CoreComponentRegistry = CoreComponentRegistry> extends System<TComponents> {
+  /**
+   * Updates all active combo timers and resets expired combo streaks.
+   *
+   * @param world - The ECS world containing active entities and components.
+   * @param deltaTime - Elapsed frame time in seconds.
+   */
   public update(world: World<TComponents>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     type ComboKey = Extract<keyof TComponents, string> & "Combo";
@@ -29,5 +56,8 @@ export class ComboSystem<TComponents extends CoreComponentRegistry = CoreCompone
     }
   }
 
+  /**
+   * Cleans up any resources held by the combo system upon disposal.
+   */
   public dispose(): void {}
 }

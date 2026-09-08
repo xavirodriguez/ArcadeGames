@@ -2,8 +2,33 @@ import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
 
-/** @public */
+/**
+ * System that evaluates screen shake timers and applies visual offsets to the primary camera.
+ *
+ * @remarks
+ * In each tick, {@link ScreenShakeSystem} queries entities with a `ScreenShake` component and calculates the maximum
+ * active shake intensity. Randomized render displacement is generated using `world.renderRandom` (ensuring gameplay determinism
+ * is uninfluenced) and applied as a `VisualOffset` component on the primary `Camera2D` entity (`isMain === true`).
+ *
+ * Execution is skipped during netcode rollback re-simulation (`world.isReSimulating === true`).
+ *
+ * @example
+ * ```ts
+ * const screenShakeSystem = new ScreenShakeSystem();
+ * world.addSystem(screenShakeSystem);
+ * // Execution during tick applies camera visual offset:
+ * screenShakeSystem.update(world, 0.016);
+ * ```
+ *
+ * @public
+ */
 export class ScreenShakeSystem extends System<CoreComponentRegistry> {
+  /**
+   * Updates screen shake remaining durations and applies calculated camera visual displacement.
+   *
+   * @param world - Target ECS world containing entities and components.
+   * @param deltaTime - Time elapsed in seconds since last frame update.
+   */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.isReSimulating) return;
 

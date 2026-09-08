@@ -699,6 +699,10 @@ export class SpaceInvadersGame
     };
   }
 
+  public getWorld(): World<SpaceInvadersComponentRegistry> {
+    return this.world;
+  }
+
   public setMultiplayerMode(active: boolean) {
     this.isMultiplayer = active;
   }

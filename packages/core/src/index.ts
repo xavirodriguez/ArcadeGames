@@ -74,7 +74,6 @@ export * from "./runtime/NullBaseGame";
 export * from "./runtime/GameplayFreezeMixin";
 export * from "./runtime/IGame";
 export * from "./runtime/Simulation";
-export * from "./runtime/BaseGameSimulationAdapter";
 export * from "./runtime/GameDefinition";
 export * from "./runtime/GameDefinitionRegistry";
 export * from "./runtime/GameSession";

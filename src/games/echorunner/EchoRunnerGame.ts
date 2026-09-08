@@ -649,12 +649,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   }
 }
 
-import { EchoRunnerGameAdapter } from "./EchoRunnerAdapter";
-
 export const EchoRunnerDefinition = {
   name: "echorunner",
   createSimulation: (seed: number) => {
-    return new EchoRunnerGameAdapter({ seed });
+    return new EchoRunnerGame({ seed });
   },
   inputSchema: {
     actions: ["left", "right", "jump", "pulse"]

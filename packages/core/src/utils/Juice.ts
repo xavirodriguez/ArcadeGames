@@ -67,6 +67,7 @@ export class Juice {
    * Adds a general juice animation to an entity.
    */
   public static add(world: World<CoreComponentRegistry>, entity: Entity, anim: {
+    componentType?: string;
     property: string;
     target: number;
     duration: number;
@@ -77,7 +78,7 @@ export class Juice {
     if (!world.hasComponent(entity, "Juice")) {
         world.addComponent(entity, { type: "Juice", active: true, animations: [] });
     }
-    if (!world.hasComponent(entity, "VisualOffset")) {
+    if (!anim.componentType && !world.hasComponent(entity, "VisualOffset")) {
         world.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0 } as import("../ecs/CoreComponents").VisualOffsetComponent);
     }
 

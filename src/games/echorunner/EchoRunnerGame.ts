@@ -3,6 +3,7 @@ import {
   BaseGame,
   World,
   System,
+  PhysicsUtils,
   ConfigService,
   SystemPhase,
   BlueprintDefinition,
@@ -71,8 +72,7 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
       // Manage attack cooldowns
       let cd = input.pulseCooldown ?? 0;
       if (cd > 0) {
-        cd -= deltaTime;
-        if (cd < 0) cd = 0;
+        cd = PhysicsUtils.tickTimer(cd, deltaTime);
         world.mutateComponent(player, "PlatformerInput" as any, (inp: any) => {
           inp.pulseCooldown = cd;
         });
@@ -133,8 +133,7 @@ class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
       // Handle invulnerability blink timers
       let invRemaining = pHealth.invulnerableRemaining ?? 0;
       if (invRemaining > 0) {
-        invRemaining -= deltaTime;
-        if (invRemaining < 0) invRemaining = 0;
+        invRemaining = PhysicsUtils.tickTimer(invRemaining, deltaTime);
         world.mutateComponent(player, "Health", (h) => {
           h.invulnerableRemaining = invRemaining;
         });

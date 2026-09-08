@@ -1,4 +1,4 @@
-import { World, System, computeShipPhysics, getForwardVector } from "@tiny-aster/core";
+import { World, System, computeShipPhysics, getForwardVector, PhysicsUtils } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import { createBullet } from "../EntityFactory";
@@ -82,8 +82,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           if (ship && ship.shootCooldownRemaining > 0) {
               const mutShip = world.getMutableComponent(entity, "Ship");
               if (mutShip) {
-                  mutShip.shootCooldownRemaining -= dtSec;
-                  if (mutShip.shootCooldownRemaining < 0) mutShip.shootCooldownRemaining = 0;
+                  mutShip.shootCooldownRemaining = PhysicsUtils.tickTimer(mutShip.shootCooldownRemaining, dtSec);
               }
           }
 
@@ -127,8 +126,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               if (activeShip.hyperspaceCooldownRemaining && activeShip.hyperspaceCooldownRemaining > 0) {
                   const mutShip = world.getMutableComponent(entity, "Ship");
                   if (mutShip && mutShip.hyperspaceCooldownRemaining !== undefined) {
-                      mutShip.hyperspaceCooldownRemaining -= dtSec;
-                      if (mutShip.hyperspaceCooldownRemaining < 0) mutShip.hyperspaceCooldownRemaining = 0;
+                      mutShip.hyperspaceCooldownRemaining = PhysicsUtils.tickTimer(mutShip.hyperspaceCooldownRemaining, dtSec);
                   }
               }
           }
@@ -159,8 +157,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               } else {
                   const mutShip = world.getMutableComponent(entity, "Ship");
                   if (mutShip && mutShip.hyperspacePrepTime !== undefined) {
-                      mutShip.hyperspacePrepTime -= dtSec;
-                      if (mutShip.hyperspacePrepTime < 0) mutShip.hyperspacePrepTime = 0;
+                      mutShip.hyperspacePrepTime = PhysicsUtils.tickTimer(mutShip.hyperspacePrepTime, dtSec);
                   }
               }
 

@@ -39,7 +39,7 @@ describe("renderingUtils", () => {
     it("should return RenderComponent if visible is true", () => {
       const world = new World();
       const entity = world.createEntity();
-      const renderComp = {
+      const renderComp: import("@tiny-aster/core").RenderComponent = {
         type: "Render",
         visible: true,
         opacity: 1,
@@ -50,7 +50,7 @@ describe("renderingUtils", () => {
         color: "#ff0000",
         size: 20
       };
-      world.addComponent(entity, renderComp as any);
+      world.addComponent(entity, renderComp);
       expect(getRenderGuard(world, entity)).toEqual(renderComp);
     });
   });
@@ -65,7 +65,7 @@ describe("renderingUtils", () => {
     it("should return TransformComponent if present", () => {
       const world = new World();
       const entity = world.createEntity();
-      const transformComp = {
+      const transformComp: import("@tiny-aster/core").TransformComponent = {
         type: "Transform",
         x: 10,
         y: 20,
@@ -79,7 +79,7 @@ describe("renderingUtils", () => {
         worldScaleY: 1,
         dirty: false
       };
-      world.addComponent(entity, transformComp as any);
+      world.addComponent(entity, transformComp);
       expect(getDrawableTransform(world, entity)).toEqual(transformComp);
     });
   });
@@ -88,7 +88,7 @@ describe("renderingUtils", () => {
     it("should return fallback size and color when not provided on RenderComponent", () => {
       const world = new World();
       const entity = world.createEntity();
-      world.addComponent(entity, {
+      const renderComp: import("@tiny-aster/core").RenderComponent = {
         type: "Render",
         visible: true,
         opacity: 1,
@@ -96,7 +96,8 @@ describe("renderingUtils", () => {
         rotation: 0,
         angularVelocity: 0,
         hitFlashFrames: 0
-      } as any);
+      };
+      world.addComponent(entity, renderComp);
 
       const drawable = getDrawable(world, entity, 15, "#00ff00");
       expect(drawable).not.toBeNull();

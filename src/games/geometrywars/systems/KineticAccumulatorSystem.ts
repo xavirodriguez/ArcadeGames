@@ -1,4 +1,4 @@
-import { System, World, ComboComponent, Juice, TransformComponent, RenderComponent, TTLComponent, CoreComponentRegistry } from "@tiny-aster/core";
+import { System, World, ComboComponent, Juice, TransformComponent, RenderComponent, TTLComponent, CoreComponentRegistry, PhysicsUtils } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { GWParticlePool } from "../EntityPool";
@@ -89,9 +89,8 @@ export class KineticAccumulatorSystem extends System<GeometryWarsComponentRegist
 
       // 3. Overdrive Decay
       if (mutAcc.isBurstActive) {
-        mutAcc.overdriveRemaining -= deltaTime;
+        mutAcc.overdriveRemaining = PhysicsUtils.tickTimer(mutAcc.overdriveRemaining, deltaTime);
         if (mutAcc.overdriveRemaining <= 0) {
-          mutAcc.overdriveRemaining = 0;
           mutAcc.isBurstActive = false;
         }
       }

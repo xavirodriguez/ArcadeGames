@@ -1,4 +1,4 @@
-import { World, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent } from "@tiny-aster/core";
+import { World, EventBus, TransformComponent, RenderComponent, Component, ColliderComponent, CircleShape, ShapeType, CollisionEventsComponent, PhysicsUtils } from "@tiny-aster/core";
 import { GameStateComponent, BossComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { FactionComponent, spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import { GameSystem } from "./GameSystem";
@@ -52,7 +52,7 @@ export class BossSystem extends GameSystem {
           b.timer += deltaTime;
 
           if (b.furyDuration && b.furyDuration > 0) {
-            b.furyDuration -= deltaTime;
+            b.furyDuration = PhysicsUtils.tickTimer(b.furyDuration, deltaTime);
             if (b.furyDuration <= 0) {
               b.fury = Math.max(0, (b.fury ?? 0) - 20);
               if ((b.fury ?? 0) > 0) {

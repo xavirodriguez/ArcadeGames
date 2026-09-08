@@ -510,7 +510,7 @@ describe("FeedbackSystem", () => {
   });
 });
 
-import { browserFrameScheduler, ConfigService, RenderCommandBufferImpl, PhysicsUtils } from "../src";
+import { browserFrameScheduler, ConfigService, RenderCommandBufferImpl, PhysicsUtils, Juice, JuiceSystem } from "../src";
 
 describe("browserFrameScheduler", () => {
   it("should get time, request and cancel frames", (done) => {
@@ -563,6 +563,62 @@ describe("PhysicsUtils", () => {
     expect(PhysicsUtils.clamp(15, 10, 20)).toBe(15);
 
     expect(PhysicsUtils.lerp(10, 20, 0.5)).toBe(15);
+  });
+
+  describe("tickTimer", () => {
+    it("should decrement positive value correctly", () => {
+      expect(PhysicsUtils.tickTimer(1.0, 0.16)).toBeCloseTo(0.84, 5);
+    });
+
+    it("should clamp to 0 when remaining is equal to or less than deltaTime", () => {
+      expect(PhysicsUtils.tickTimer(0.1, 0.16)).toBe(0);
+      expect(PhysicsUtils.tickTimer(0.16, 0.16)).toBe(0);
+    });
+
+    it("should return 0 when remaining is already 0 or negative", () => {
+      expect(PhysicsUtils.tickTimer(0, 0.16)).toBe(0);
+      expect(PhysicsUtils.tickTimer(-0.5, 0.16)).toBe(0);
+    });
+
+    it("should handle large deltaTime greater than remaining", () => {
+      expect(PhysicsUtils.tickTimer(0.5, 5.0)).toBe(0);
+    });
+  });
+});
+
+describe("JuiceSystem Generalized Animation", () => {
+  it("should animate a property on an arbitrary component using componentType", () => {
+    const world = new World<CoreComponentRegistry>();
+    const system = new JuiceSystem();
+
+    const entity = world.createEntity();
+    world.addComponent(entity, {
+      type: "Friction",
+      value: 0.0
+    } as import("../src").CoreComponentRegistry["Friction"]);
+
+    Juice.add(world, entity, {
+      componentType: "Friction",
+      property: "value",
+      target: 1.0,
+      duration: 100 // 0.1 seconds
+    });
+
+    // Advance halfway (0.05 seconds)
+    system.update(world, 0.05);
+
+    const frictionMid = world.getComponent(entity, "Friction");
+    expect(frictionMid).toBeDefined();
+    expect(frictionMid!.value).toBeCloseTo(0.5, 2);
+
+    // Advance to completion (0.05 seconds more)
+    system.update(world, 0.05);
+
+    const frictionEnd = world.getComponent(entity, "Friction");
+    expect(frictionEnd!.value).toBeCloseTo(1.0, 2);
+
+    const juiceComp = world.getComponent(entity, "Juice");
+    expect(juiceComp?.animations.length).toBe(0);
   });
 });
 

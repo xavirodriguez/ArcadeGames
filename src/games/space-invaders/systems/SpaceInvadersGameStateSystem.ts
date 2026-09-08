@@ -1,4 +1,4 @@
-import { World, BaseGame, BaseGameStateSystem } from "@tiny-aster/core";
+import { World, BaseGame, BaseGameStateSystem, PhysicsUtils } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { spawnInvaderWave } from "../EntityFactory";
@@ -117,21 +117,21 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
     // A. Handle ready countdown
     if (gameState.readyRemaining > 0) {
       world.mutateSingleton("GameState", (gs) => {
-        gs.readyRemaining = Math.max(0, gs.readyRemaining - deltaTime);
+        gs.readyRemaining = PhysicsUtils.tickTimer(gs.readyRemaining, deltaTime);
       });
     }
 
     // B. Handle intermission countdown
     if (gameState.intermissionRemaining > 0) {
       world.mutateSingleton("GameState", (gs) => {
-        gs.intermissionRemaining = Math.max(0, gs.intermissionRemaining - deltaTime);
+        gs.intermissionRemaining = PhysicsUtils.tickTimer(gs.intermissionRemaining, deltaTime);
       });
     }
 
     // C. Handle continue countdown
     if (gameState.continueCountdownRemaining > 0) {
       world.mutateSingleton("GameState", (gs) => {
-        gs.continueCountdownRemaining = Math.max(0, gs.continueCountdownRemaining - deltaTime);
+        gs.continueCountdownRemaining = PhysicsUtils.tickTimer(gs.continueCountdownRemaining, deltaTime);
         if (gs.continueCountdownRemaining <= 0) {
           // Time expired! Final game over!
           gs.isGameOver = true;

@@ -68,7 +68,7 @@ import { AsteroidConfigSchema, AsteroidConfig } from "./types/AsteroidConfigSche
 import { GameStateComponent, InputState } from "./types/AsteroidTypes";
 import { getStoryBeatForLevel } from "./story/StoryBeats";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
-import { resolveAndApplyMutators } from "../../config/MutatorConfig";
+import { loadAndMutateConfig } from "../shared/configHelper";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import asteroidsConfigRaw from "./config/asteroids.json";
 
@@ -91,7 +91,6 @@ export class AsteroidsGame
   public readonly gameId = "asteroids";
   private baseConfig: AsteroidConfig;
   private config: AsteroidConfig;
-  private isHeadless: boolean;
   public mode: "deathmatch" | "story" = "deathmatch";
 
   public get networkManager(): NetworkManager<any> | undefined { return this.network.networkManager; }
@@ -109,7 +108,6 @@ export class AsteroidsGame
       config.theme = createThemeFromGameAccents("asteroids");
     }
     super(config);
-    this.isHeadless = config.headless !== undefined ? config.headless : (typeof window === "undefined");
     this.mode = (config.gameOptions as any)?.mode || "deathmatch";
     this.network = new NetworkController<AsteroidsComponentRegistry>(this.world);
     this.isMultiplayer = config.isMultiplayer || false;
@@ -119,7 +117,7 @@ export class AsteroidsGame
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
+    this.config = loadAndMutateConfig(this.gameId, AsteroidConfigSchema, asteroidsConfigRaw, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("PowerUpEffects", new PowerUpRegistry());
@@ -147,12 +145,6 @@ export class AsteroidsGame
       }
     }
 
-    if (!this.isHeadless) {
-        if (!this.assetLoader.hasProvider()) {
-          throw new Error("AsteroidsGame initialization failed: no asset provider was configured");
-        }
-        await this.onPreloadAssets();
-    }
 
     // Register blueprints using centralized helper
     registerAsteroidsBlueprints(this.world, this.blueprints);
@@ -307,7 +299,7 @@ export class AsteroidsGame
    * Asset loading may fail due to network or filesystem issues. Failure to
    * preload assets may result in visual or audio artifacts during gameplay.
    */
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const loader = this.assetLoader;
     try {
       if (loader) {

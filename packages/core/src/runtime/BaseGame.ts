@@ -218,6 +218,7 @@ export abstract class BaseGame<
     TEvents,
     [TBlueprints] extends [BlueprintRegistryMap<TComponents, TEvents>] ? TBlueprints : BlueprintRegistryMap<TComponents, TEvents>
   >;
+  public readonly isHeadless: boolean;
   protected loop: GameLoop;
   protected unifiedInput: IInputSystem<TInput>;
   protected _config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>;
@@ -333,6 +334,7 @@ export abstract class BaseGame<
       ? config.sceneManagerFactory(this.world, this.eventBus)
       : new SceneManager<TComponents>(this.world, this.eventBus);
     this.audio = config.audio || new NullAudioPlayer();
+    this.isHeadless = config.headless !== undefined ? config.headless : (typeof window === "undefined");
 
     // Set the initial gameplay random seed from config/options
     const initialSeed = (config.gameOptions?.seed as number) ?? config.seed ?? Math.floor(Math.random() * 0xFFFFFFFF);
@@ -378,7 +380,7 @@ export abstract class BaseGame<
     this.world.setResource("InputSystem", this.unifiedInput);
     this.world.setResource("Audio", this.audio);
     this.world.setResource("SceneManager", this.sceneManager);
-    this.world.setResource("headless", this._config.headless);
+    this.world.setResource("headless", this.isHeadless);
     this.world.setResource("ArcadeKernel", this.kernel);
     this.world.setResource("Theme", this._config.theme ?? { spriteMap: {}, colorMap: {} });
   }
@@ -499,6 +501,12 @@ export abstract class BaseGame<
       await this.onRegisterSystems();
       if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
         return;
+      }
+      if (!this.isHeadless) {
+        await this.onPreloadAssets();
+        if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
+          return;
+        }
       }
       await this.onInitializeEntities();
       if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
@@ -803,6 +811,13 @@ export abstract class BaseGame<
    */
   protected async onRegisterSystems(): Promise<void> {
     // Overridden by subclasses to register systems
+  }
+
+  /**
+   * Template method hook for subclasses to preload audio/visual assets. Executed during `init()` if not headless.
+   */
+  protected async onPreloadAssets(): Promise<void> {
+    // Overridden by subclasses to preload assets
   }
 
   /**

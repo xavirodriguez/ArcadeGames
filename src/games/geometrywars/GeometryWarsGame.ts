@@ -33,7 +33,6 @@ export class GeometryWarsGame extends BaseGame<
   private baseConfig: GeometryWarsConfig;
   private config: GeometryWarsConfig;
   private currentScene!: GeometryWarsGameScene;
-  private isHeadless = false;
   public isMultiplayer = false;
   private networkManager!: NetworkManager<any>;
 
@@ -48,7 +47,6 @@ export class GeometryWarsGame extends BaseGame<
       audio: options.audio || new WebAudioPlayer()
     });
 
-    this.isHeadless = options.headless || false;
     this.isMultiplayer = options.isMultiplayer || false;
 
     this.baseConfig = ConfigService.load<GeometryWarsConfig>(
@@ -70,17 +68,13 @@ export class GeometryWarsGame extends BaseGame<
     this.setupCommonArcadeResources();
     this.world.setResource("BlueprintRegistry", this.blueprints);
 
-    if (!this.isHeadless) {
-      await this.onPreloadAssets();
-    }
-
     // 2. Initialize and transition to main gameplay scene
     this.currentScene = new GeometryWarsGameScene(this.config, this.isHeadless);
     const sceneManager = this.world.getResource<SceneManager>("SceneManager") || new SceneManager(this.world);
     sceneManager.transitionTo(this.currentScene, { effect: "crt", duration: 400 });
   }
 
-  private async onPreloadAssets(): Promise<void> {
+  protected override async onPreloadAssets(): Promise<void> {
     const audio = this.audio;
     const assets = [
       { id: "shoot", path: "/audio/shoot.mp3" },

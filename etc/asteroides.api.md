@@ -339,6 +339,8 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     init(): Promise<void>;
     abstract isGameOver(): boolean;
     isGameplayFrozen(): boolean;
+    // (undocumented)
+    readonly isHeadless: boolean;
     isPausedState(): boolean;
     readonly kernel: ArcadeKernel;
     // (undocumented)
@@ -346,6 +348,7 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     protected onApplyInputFrame(input: CompactInputFrame): void;
     protected onBeforeRestart(): Promise<void>;
     protected onInitializeEntities(): Promise<void>;
+    protected onPreloadAssets(): Promise<void>;
     protected onRegisterSystems(): Promise<void>;
     pause(): void;
     protected registerResizeListener(): void;
@@ -2010,6 +2013,7 @@ export interface IGame<TState = unknown, TInput extends object = Record<string, 
 export interface IGameLifecycleHooks {
     onBeforeRestart(): Promise<void>;
     onInitializeEntities(): Promise<void>;
+    onPreloadAssets(): Promise<void>;
     onRegisterSystems(): Promise<void>;
 }
 

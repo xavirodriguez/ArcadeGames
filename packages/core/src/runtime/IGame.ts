@@ -23,6 +23,12 @@ export interface IGameLifecycleHooks {
 
   /**
    * Hook called during game initialization (`init()`) after system registration.
+   * Used to preload audio and visual assets before entity initialization.
+   */
+  onPreloadAssets(): Promise<void>;
+
+  /**
+   * Hook called during game initialization (`init()`) after system registration and asset preloading.
    * Used to populate the `World` with initial entities, resources, and active scenes.
    */
   onInitializeEntities(): Promise<void>;

@@ -681,10 +681,12 @@ export class EchoRunnerGame extends BaseGame<EchoRunnerGameState, EchoRunnerInpu
   }
 }
 
+import { EchoRunnerGameAdapter } from "./EchoRunnerAdapter";
+
 export const EchoRunnerDefinition = {
   name: "echorunner",
   createSimulation: (seed: number) => {
-    return new EchoRunnerGame({ seed });
+    return new EchoRunnerGameAdapter({ seed });
   },
   inputSchema: {
     actions: ["left", "right", "jump", "pulse"]

@@ -1,11 +1,13 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
+import { Skia } from "../../shared/rendering/SkiaContext";
 
 export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
-  draw(canvas, world, entity, Skia) {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
     const render = world.getComponent(entity, "Render");
-    if (!render || !Skia) return;
+    if (!render) return;
 
     const size = render.size || 32;
     const half = size / 2;
@@ -27,9 +29,10 @@ export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 };
 
 export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
-  draw(canvas, world, entity, Skia) {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
     const render = world.getComponent(entity, "Render");
-    if (!render || !Skia) return;
+    if (!render) return;
 
     const width = render.size || 48;
     const height = 30;
@@ -44,9 +47,10 @@ export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 };
 
 export const drawTruckSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
-  draw(canvas, world, entity, Skia) {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
     const render = world.getComponent(entity, "Render");
-    if (!render || !Skia) return;
+    if (!render) return;
 
     const width = render.size || 80;
     const height = 32;
@@ -64,9 +68,10 @@ export const drawTruckSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 };
 
 export const drawLogSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
-  draw(canvas, world, entity, Skia) {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
     const render = world.getComponent(entity, "Render");
-    if (!render || !Skia) return;
+    if (!render) return;
 
     const width = render.size || 120;
     const height = 30;
@@ -81,9 +86,10 @@ export const drawLogSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 };
 
 export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
-  draw(canvas, world, entity, Skia) {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
     const render = world.getComponent(entity, "Render");
-    if (!render || !Skia) return;
+    if (!render) return;
 
     const width = render.size || 80;
     const halfW = width / 2;
@@ -102,10 +108,11 @@ export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 };
 
 export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
-  draw(canvas, world, entity, Skia) {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
     const pad = world.getComponent(entity, "GoalLilyPad");
     const render = world.getComponent(entity, "Render");
-    if (!render || !pad || !Skia) return;
+    if (!render || !pad) return;
 
     const size = render.size || 36;
     const half = size / 2;
@@ -117,7 +124,7 @@ export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 };
 
 export const froggerBackgroundSkiaEffect: EffectDrawer<any, FroggerComponentRegistry> = {
-  draw(canvas, world, Skia) {
+  draw(canvas, world) {
     if (!Skia) return;
     const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
     const w = config.SCREEN_WIDTH;

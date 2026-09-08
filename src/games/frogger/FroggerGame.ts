@@ -71,7 +71,10 @@ export class FroggerGame extends BaseGame<
     args: Parameters<FroggerBlueprintMap[K]["spawn"]>[2]
   ): number {
     const entity = this.world.createEntity();
-    this.blueprints.get(name as string)?.spawn(this.world, entity, args as any);
+    const bp = this.blueprints.get(name as string);
+    if (bp) {
+      bp.spawn(this.world, entity, args);
+    }
     return entity;
   }
 
@@ -90,30 +93,30 @@ export class FroggerGame extends BaseGame<
     this.unifiedInput.bind("moveRight", [this.config.KEYS.MOVE_RIGHT, "KeyD"]);
 
     if (this.unifiedInput instanceof System) {
-      this.world.addSystem(this.unifiedInput as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Input });
+      this.world.addSystem(this.unifiedInput as System<FroggerComponentRegistry>, { phase: SystemPhase.Input });
     }
 
     this.gameStateSystem = new FroggerGameStateSystem(this);
 
-    this.world.addSystem(new FroggerInputSystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
-    this.world.addSystem(new MovementSystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
-    this.world.addSystem(new BoundarySystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
-    this.world.addSystem(new CollisionSystem2D() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Collision });
-    this.world.addSystem(new FroggerLogCarrySystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
-    this.world.addSystem(this.gameStateSystem as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.GameRules });
+    this.world.addSystem(new FroggerInputSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new MovementSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new BoundarySystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new CollisionSystem2D() as System<FroggerComponentRegistry>, { phase: SystemPhase.Collision });
+    this.world.addSystem(new FroggerLogCarrySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
 
     // Transversal gameplay systems
-    this.world.addSystem(new ComboSystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
-    this.world.addSystem(new PowerUpSystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
-    this.world.addSystem(new LootSystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
-    this.world.addSystem(new AchievementSystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ComboSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new PowerUpSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new LootSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new AchievementSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
 
     const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as any[];
-    this.world.addSystem(new MutatorSystem(activeMutators) as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new MutatorSystem(activeMutators) as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
 
     // Presentation systems
-    this.world.addSystem(new JuiceSystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Presentation });
-    this.world.addSystem(new ScreenShakeSystem() as unknown as System<FroggerComponentRegistry>, { phase: SystemPhase.Presentation });
+    this.world.addSystem(new JuiceSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ScreenShakeSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Presentation });
   }
 
   protected override async onInitializeEntities(): Promise<void> {

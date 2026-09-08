@@ -1,4 +1,5 @@
 import { Component, CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
+import { PowerUpComponent, LootTableComponent } from "@tiny-aster/gameplay-kit";
 
 export interface FroggerComponent extends Component {
   type: "Frogger";
@@ -62,6 +63,8 @@ export interface FroggerComponentRegistry extends CoreComponentRegistry {
   GoalLilyPad: GoalLilyPadComponent;
   FroggerState: FroggerStateComponent;
   FroggerInput: FroggerInputComponent;
+  PowerUp: PowerUpComponent;
+  LootTable: LootTableComponent;
 }
 
 export interface FroggerState {

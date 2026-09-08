@@ -42,7 +42,7 @@ export interface ActionBinding<TExtra extends string = never> {
     };
 }
 
-// @public (undocumented)
+// @public
 export interface AnimationDefinition {
     frameRate: number;
     frames: number[];
@@ -56,7 +56,7 @@ export class AnimationSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface AnimatorComponent extends Component {
     animations: Record<string, AnimationDefinition>;
     current: string | null;
@@ -1285,7 +1285,7 @@ export class DangerPulseTransition extends BaseTransitionEffect {
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
-// @public (undocumented)
+// @public
 export interface DeadComponent extends Component {
     type: "Dead";
 }
@@ -5031,7 +5031,7 @@ export type TriggerCallback<TRegistry extends ComponentRegistry = CoreComponentR
 export interface TTLComponent extends Component {
     onCompleteEvent?: string;
     remaining: number;
-    // @deprecated (undocumented)
+    // @deprecated
     timeLeft: number;
     type: "TTL";
 }

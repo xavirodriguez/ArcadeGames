@@ -75,7 +75,18 @@ export interface TTLComponent extends Component {
   /** Component discriminator type. */
   type: "TTL";
   /**
-   * @deprecated Use `TTLComponent.remaining` instead.
+   * Remaining time to live in seconds.
+   *
+   * @deprecated Standardized component properties use `remaining`. Use {@link TTLComponent.remaining} instead.
+   *
+   * @example
+   * ```ts
+   * // Before (deprecated)
+   * const time = ttl.timeLeft;
+   *
+   * // After
+   * const time = ttl.remaining;
+   * ```
    */
   timeLeft: number;
   /** Remaining time to live in seconds. */
@@ -85,7 +96,17 @@ export interface TTLComponent extends Component {
 }
 
 /**
- * Context provided when releasing an entity back to a pool.
+ * Context provided when releasing an entity back to an object pool.
+ *
+ * @example
+ * ```ts
+ * const context: ReleaseContext = {
+ *   world,
+ *   entity: 42
+ * };
+ * pool.release(context);
+ * ```
+ *
  * @public
  */
 export interface ReleaseContext<
@@ -98,7 +119,18 @@ export interface ReleaseContext<
 }
 
 /**
- * Extended release context for component-set pools.
+ * Extended release context for component-set pools holding pre-allocated component containers.
+ *
+ * @example
+ * ```ts
+ * const context: ComponentSetReleaseContext<MyComponentSet> = {
+ *   world,
+ *   entity: 42,
+ *   container: mySet
+ * };
+ * pool.release(context);
+ * ```
+ *
  * @public
  */
 export interface ComponentSetReleaseContext<
@@ -110,7 +142,24 @@ export interface ComponentSetReleaseContext<
 }
 
 /**
- * Component marking pooled entities that can be reclaimed.
+ * Component marking pooled entities that can be reclaimed by an object pool.
+ *
+ * @remarks
+ * Managed by pooling systems to track recycled entity IDs and fire release callbacks.
+ *
+ * @example
+ * ```ts
+ * const reclaimable: ReclaimableComponent = {
+ *   type: "Reclaimable",
+ *   poolName: "bullets",
+ *   poolId: "bullet-pool-1",
+ *   onReclaim: ({ world, entity }) => {
+ *     world.removeEntity(entity);
+ *   }
+ * };
+ * world.addComponent(entity, reclaimable);
+ * ```
+ *
  * @public
  */
 export interface ReclaimableComponent<TWorld extends World = World> extends Component {
@@ -126,10 +175,27 @@ export interface ReclaimableComponent<TWorld extends World = World> extends Comp
 
 /**
  * Interface for object pools releasing entity structures.
+ *
+ * @remarks
+ * Implementations handle returning entities and associated components to reusable pools.
+ *
+ * @example
+ * ```ts
+ * class BulletPool implements IEntityPool {
+ *   release(context: ReleaseContext): void {
+ *     context.world.removeEntity(context.entity);
+ *   }
+ * }
+ * ```
+ *
  * @public
  */
 export interface IEntityPool {
-  /** Releases an entity using the given release context. */
+  /**
+   * Releases an entity using the given release context.
+   *
+   * @param context - The release context containing world and entity target.
+   */
   release(context: ReleaseContext): void;
 }
 
@@ -181,7 +247,11 @@ export interface InputStateComponent extends Component {
   buttons: Record<string, boolean>;
 }
 
-/** @public */
+/**
+ * Definition structure for a sprite frame animation sequence.
+ *
+ * @public
+ */
 export interface AnimationDefinition {
   /** Sequence of sprite frame indices. */
   frames: number[];
@@ -193,7 +263,29 @@ export interface AnimationDefinition {
   onCompleteEvent?: string;
 }
 
-/** @public */
+/**
+ * Component managing sprite sheet animation playback on an entity.
+ *
+ * @remarks
+ * Driven by `AnimationSystem` to advance active animation frames and emit completion events.
+ *
+ * @example
+ * ```ts
+ * const animator: AnimatorComponent = {
+ *   type: "Animator",
+ *   isPlaying: true,
+ *   animations: {
+ *     run: { frames: [0, 1, 2, 3], frameRate: 12, loop: true }
+ *   },
+ *   current: "run",
+ *   elapsed: 0,
+ *   frame: 0
+ * };
+ * world.addComponent(entity, animator);
+ * ```
+ *
+ * @public
+ */
 export interface AnimatorComponent extends Component {
   /** Component discriminator type. */
   type: "Animator";
@@ -438,6 +530,19 @@ export interface MovingPlatformComponent extends Component {
 
 /**
  * Component tracking entities that have been damaged or struck during an attack cycle.
+ *
+ * @remarks
+ * Prevents multiple damage hits from being applied to the same target entity in a single attack frame/wave.
+ *
+ * @example
+ * ```ts
+ * const hitbox: HitboxComponent = {
+ *   type: "Hitbox",
+ *   hitEntities: []
+ * };
+ * world.addComponent(entity, hitbox);
+ * ```
+ *
  * @public
  */
 export interface HitboxComponent extends Component {
@@ -449,6 +554,18 @@ export interface HitboxComponent extends Component {
 
 /**
  * Tag component marking entities capable of taking damage from hitboxes.
+ *
+ * @remarks
+ * Queried alongside {@link HealthComponent} during damage detection.
+ *
+ * @example
+ * ```ts
+ * const hurtbox: HurtboxComponent = {
+ *   type: "Hurtbox"
+ * };
+ * world.addComponent(entity, hurtbox);
+ * ```
+ *
  * @public
  */
 export interface HurtboxComponent extends Component {
@@ -457,7 +574,22 @@ export interface HurtboxComponent extends Component {
 }
 
 /**
- * Component applying screen shake offset to active camera.
+ * Component applying screen shake offset and decay to active camera viewports.
+ *
+ * @remarks
+ * Used by camera rendering and screen shake systems to calculate camera displacement.
+ *
+ * @example
+ * ```ts
+ * const shake: ScreenShakeComponent = {
+ *   type: "ScreenShake",
+ *   intensity: 10,
+ *   duration: 0.5,
+ *   remaining: 0.5
+ * };
+ * world.addComponent(entity, shake);
+ * ```
+ *
  * @public
  */
 export interface ScreenShakeComponent extends Component {
@@ -472,7 +604,21 @@ export interface ScreenShakeComponent extends Component {
 }
 
 /**
- * Component specifying temporary rendering position offsets.
+ * Component specifying temporary rendering position offsets without affecting physics or spatial transforms.
+ *
+ * @remarks
+ * Used for visual feedback like recoil, hit reactions, or juice effects.
+ *
+ * @example
+ * ```ts
+ * const offset: VisualOffsetComponent = {
+ *   type: "VisualOffset",
+ *   offsetX: 2.5,
+ *   offsetY: -1.0
+ * };
+ * world.addComponent(entity, offset);
+ * ```
+ *
  * @public
  */
 export interface VisualOffsetComponent extends Component {
@@ -496,7 +642,19 @@ export interface SpatialNodeComponent extends Component {
   active?: boolean;
 }
 
-/** @public */
+/**
+ * Tag component marking entities that are dead and scheduled for cleanup.
+ *
+ * @example
+ * ```ts
+ * const dead: DeadComponent = {
+ *   type: "Dead"
+ * };
+ * world.addComponent(entity, dead);
+ * ```
+ *
+ * @public
+ */
 export interface DeadComponent extends Component {
   /** Component discriminator type. */
   type: "Dead";
@@ -504,6 +662,20 @@ export interface DeadComponent extends Component {
 
 /**
  * Component requesting a haptic vibration feedback pattern.
+ *
+ * @remarks
+ * Processed by feedback or haptic systems to trigger platform vibration devices.
+ *
+ * @example
+ * ```ts
+ * const haptic: HapticRequestComponent = {
+ *   type: "HapticRequest",
+ *   pattern: "heavy",
+ *   intensity: 0.8
+ * };
+ * world.addComponent(entity, haptic);
+ * ```
+ *
  * @public
  */
 export interface HapticRequestComponent<TPattern extends string = string> extends Component {
@@ -517,6 +689,10 @@ export interface HapticRequestComponent<TPattern extends string = string> extend
 
 /**
  * Individual procedural juice animation clip descriptor.
+ *
+ * @remarks
+ * Defines interpolation properties for procedural scale, bounce, flash, or custom component animations.
+ *
  * @public
  */
 export interface JuiceAnimation {
@@ -546,6 +722,22 @@ export interface JuiceAnimation {
 
 /**
  * Component holding procedural juice visual animations on an entity.
+ *
+ * @remarks
+ * Processed by `JuiceSystem` to interpolate target component properties over time.
+ *
+ * @example
+ * ```ts
+ * const juice: JuiceComponent = {
+ *   type: "Juice",
+ *   active: true,
+ *   animations: [
+ *     { type: "scale", duration: 0.2, elapsed: 0, target: 1.2 }
+ *   ]
+ * };
+ * world.addComponent(entity, juice);
+ * ```
+ *
  * @public
  */
 export interface JuiceComponent extends Component {
@@ -558,7 +750,23 @@ export interface JuiceComponent extends Component {
 }
 
 /**
- * Component containing per-frame collision and trigger detection results.
+ * Component containing per-frame collision and trigger detection results for an entity.
+ *
+ * @remarks
+ * Updated every frame by collision systems. Holds active physical collisions and trigger enter/exit events.
+ *
+ * @example
+ * ```ts
+ * const events: CollisionEventsComponent = {
+ *   type: "CollisionEvents",
+ *   collisions: [],
+ *   activeTriggers: [],
+ *   triggersEntered: [],
+ *   triggersExited: []
+ * };
+ * world.addComponent(entity, events);
+ * ```
+ *
  * @public
  */
 export interface CollisionEventsComponent extends Component {
@@ -575,7 +783,24 @@ export interface CollisionEventsComponent extends Component {
 }
 
 /**
- * Component specifying full physical collision geometry and layers.
+ * Component specifying full physical collision geometry, layer masks, and trigger settings.
+ *
+ * @remarks
+ * Used by 2D physics and broadphase systems for collision queries and physical response.
+ *
+ * @example
+ * ```ts
+ * const collider: ColliderComponent = {
+ *   type: "Collider",
+ *   shape: { kind: "circle", radius: 12 },
+ *   layer: 1,
+ *   mask: 2,
+ *   enabled: true,
+ *   isTrigger: false
+ * };
+ * world.addComponent(entity, collider);
+ * ```
+ *
  * @public
  */
 export interface ColliderComponent extends Component {
@@ -619,6 +844,22 @@ export interface SpriteComponent extends Component {
 
 /**
  * Component maintaining motion trajectory history points for visual trails.
+ *
+ * @remarks
+ * Used by particle and rendering systems to render motion trails behind entities.
+ *
+ * @example
+ * ```ts
+ * const trail: TrailComponent = {
+ *   type: "Trail",
+ *   points: [{ x: 10, y: 20 }],
+ *   maxLength: 10,
+ *   currentIndex: 0,
+ *   count: 1
+ * };
+ * world.addComponent(entity, trail);
+ * ```
+ *
  * @public
  */
 export interface TrailComponent extends Component {
@@ -644,6 +885,25 @@ export interface IHierarchicalComponent extends Component {
 
 /**
  * Simplified 2D collider component for circle and AABB bounding checks.
+ *
+ * @remarks
+ * Lightweight alternative to {@link ColliderComponent} for simplified bounding queries.
+ *
+ * @example
+ * ```ts
+ * const collider2D: Collider2DComponent = {
+ *   type: "Collider2D",
+ *   shape: { type: "circle", radius: 10 },
+ *   layer: 1,
+ *   mask: 1,
+ *   offsetX: 0,
+ *   offsetY: 0,
+ *   isTrigger: false,
+ *   enabled: true
+ * };
+ * world.addComponent(entity, collider2D);
+ * ```
+ *
  * @public
  */
 export interface Collider2DComponent extends Component {
@@ -766,6 +1026,18 @@ export interface CoreComponentRegistry extends ComponentRegistry {
 
 /**
  * Component representing a respawn point.
+ *
+ * @example
+ * ```ts
+ * const respawnPoint: RespawnPointComponent = {
+ *   type: "RespawnPoint",
+ *   x: 100,
+ *   y: 200,
+ *   checkpointId: "cp_1"
+ * };
+ * world.addComponent(entity, respawnPoint);
+ * ```
+ *
  * @public
  */
 export interface RespawnPointComponent extends Component {
@@ -782,6 +1054,17 @@ export interface RespawnPointComponent extends Component {
 /**
  * Component used to mark entities that can be destroyed and respawned.
  * It stores original spawning blueprint name and arguments.
+ *
+ * @example
+ * ```ts
+ * const respawnable: RespawnableComponent = {
+ *   type: "Respawnable",
+ *   blueprintKey: "enemy_charger",
+ *   initialArgs: { x: 50, y: 50 }
+ * };
+ * world.addComponent(entity, respawnable);
+ * ```
+ *
  * @public
  */
 export interface RespawnableComponent extends Component {
@@ -795,6 +1078,20 @@ export interface RespawnableComponent extends Component {
 
 /**
  * Component representing a generic collectible.
+ *
+ * @example
+ * ```ts
+ * const collectible: CollectibleComponent = {
+ *   type: "Collectible",
+ *   kind: "coin",
+ *   value: 10,
+ *   persistent: false,
+ *   collectOnce: true,
+ *   id: "coin_1"
+ * };
+ * world.addComponent(entity, collectible);
+ * ```
+ *
  * @public
  */
 export interface CollectibleComponent extends Component {
@@ -813,7 +1110,17 @@ export interface CollectibleComponent extends Component {
 }
 
 /**
- * Component representing an enemy.
+ * Component representing an enemy archetype classification.
+ *
+ * @example
+ * ```ts
+ * const enemy: EnemyComponent = {
+ *   type: "Enemy",
+ *   kind: "patrol"
+ * };
+ * world.addComponent(entity, enemy);
+ * ```
+ *
  * @public
  */
 export interface EnemyComponent extends Component {
@@ -824,7 +1131,20 @@ export interface EnemyComponent extends Component {
 }
 
 /**
- * Component for enemies that patrol between horizontal coordinates.
+ * Component for enemies that patrol horizontally between two X coordinates.
+ *
+ * @example
+ * ```ts
+ * const patrol: PatrolComponent = {
+ *   type: "Patrol",
+ *   startX: 100,
+ *   endX: 300,
+ *   direction: 1,
+ *   patrolSpeed: 50
+ * };
+ * world.addComponent(entity, patrol);
+ * ```
+ *
  * @public
  */
 export interface PatrolComponent extends Component {
@@ -841,7 +1161,20 @@ export interface PatrolComponent extends Component {
 }
 
 /**
- * Component for horizontal ground and wall detection.
+ * Component for horizontal ground and wall raycast/sensor detection.
+ *
+ * @example
+ * ```ts
+ * const groundDetector: GroundDetectorComponent = {
+ *   type: "GroundDetector",
+ *   hasGroundAhead: true,
+ *   hasWallAhead: false,
+ *   sensorOffsetX: 10,
+ *   sensorOffsetY: 20
+ * };
+ * world.addComponent(entity, groundDetector);
+ * ```
+ *
  * @public
  */
 export interface GroundDetectorComponent extends Component {
@@ -858,7 +1191,17 @@ export interface GroundDetectorComponent extends Component {
 }
 
 /**
- * Component for players or targeting sensors.
+ * Component for player detection sensors.
+ *
+ * @example
+ * ```ts
+ * const sensor: PlayerSensorComponent = {
+ *   type: "PlayerSensor",
+ *   visionRange: 150
+ * };
+ * world.addComponent(entity, sensor);
+ * ```
+ *
  * @public
  */
 export interface PlayerSensorComponent extends Component {
@@ -872,6 +1215,20 @@ export interface PlayerSensorComponent extends Component {
 
 /**
  * Interface representing the global run state for platformer progression.
+ *
+ * @example
+ * ```ts
+ * const runState: RunState = {
+ *   attempt: 1,
+ *   lives: 3,
+ *   activeCheckpoint: "cp_1",
+ *   elapsedTime: 45.2,
+ *   deaths: 0,
+ *   collectedPermanentIds: [],
+ *   collectedTemporalIds: ["coin_1"]
+ * };
+ * ```
+ *
  * @public
  */
 export interface RunState {

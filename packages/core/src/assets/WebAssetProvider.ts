@@ -1,13 +1,27 @@
 import { IAssetProvider } from "./AssetLoader";
 
 /**
- * Default browser/HTML5 implementation of `IAssetProvider`.
- * Uses HTMLImageElement, HTMLAudioElement, and document.fonts / FontFace API for web environments.
+ * Default browser and HTML5 implementation of {@link IAssetProvider}.
+ *
+ * @remarks
+ * Uses standard browser APIs (`HTMLImageElement`, `HTMLAudioElement`, `FontFace`, and `fetch`) when executing
+ * in web browser contexts, with fallback object stubs when running in Node.js, unit tests, or server environments.
+ *
+ * @example
+ * ```ts
+ * const provider = new WebAssetProvider();
+ * const img = await provider.loadImage("assets/sprites/ship.png");
+ * const audio = await provider.loadAudio("assets/audio/laser.wav");
+ * ```
+ *
  * @public
  */
 export class WebAssetProvider implements IAssetProvider {
   /**
-   * Loads an image using browser `Image` constructor or returns a mock/resolved handle in non-browser environments.
+   * Loads an image using the browser `Image` constructor or returns a mock handle in non-browser contexts.
+   *
+   * @param path - Image asset URL string, import object, or resource handle.
+   * @returns Promise resolving to an `HTMLImageElement` in browser or mock image object in server/headless contexts.
    */
   public async loadImage(path: string | unknown): Promise<unknown> {
     if (typeof Image === "undefined") {
@@ -36,7 +50,10 @@ export class WebAssetProvider implements IAssetProvider {
   }
 
   /**
-   * Loads an audio element using browser `Audio` constructor or fallback object.
+   * Loads an audio element using the browser `Audio` constructor or fallback object.
+   *
+   * @param path - Audio asset URL string, import object, or resource handle.
+   * @returns Promise resolving to an `HTMLAudioElement` in browser or mock audio handle in server/headless contexts.
    */
   public async loadAudio(path: string | unknown): Promise<unknown> {
     if (typeof Audio === "undefined") {
@@ -59,7 +76,10 @@ export class WebAssetProvider implements IAssetProvider {
   }
 
   /**
-   * Loads a font using the FontFace API or document.fonts if available.
+   * Loads a font using the browser `FontFace` API and registers it with `document.fonts`.
+   *
+   * @param path - Font file URL or font name handle.
+   * @returns Promise resolving to the loaded `FontFace` instance or fallback handle.
    */
   public async loadFont(path: string | unknown): Promise<unknown> {
     if (typeof document === "undefined" || !("FontFace" in window)) {
@@ -81,7 +101,10 @@ export class WebAssetProvider implements IAssetProvider {
   }
 
   /**
-   * Generic loader (e.g. JSON via fetch).
+   * Generic resource loader that fetches and parses JSON resources from specified paths.
+   *
+   * @param path - Target JSON asset URL string or handle.
+   * @returns Promise resolving to parsed JSON data object or empty object if fetch is unavailable.
    */
   public async load(path: string | unknown): Promise<unknown> {
     if (typeof fetch === "undefined") {

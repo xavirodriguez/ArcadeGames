@@ -1,6 +1,41 @@
-import { World, ClientAckTracker, ReplicationStateTracker, NetworkDeltaSystem, NetworkBudgetManager, InterestManagerSystem } from "@tiny-aster/core";
+import { World, ClientAckTracker, ReplicationStateTracker, NetworkDeltaSystem, NetworkBudgetManager, InterestManagerSystem, TransformComponent } from "@tiny-aster/core";
 import { DeltaReplicationStrategy } from "../DeltaReplicationStrategy";
 import { BudgetReplicationStrategy } from "../BudgetReplicationStrategy";
+
+interface MockHealthComponent {
+  type: "Health";
+  current: number;
+  max: number;
+}
+
+interface MockShipComponent {
+  type: "Ship";
+  sessionId: string;
+}
+
+interface MockAsteroidComponent {
+  type: "Asteroid";
+  size: string;
+}
+
+interface MockRoom {
+  world: World;
+  ackTracker: ClientAckTracker;
+  deltaSystem: NetworkDeltaSystem;
+  budgetManager: NetworkBudgetManager;
+  newClients: Set<string>;
+  playerEntities: Map<string, number>;
+}
+
+function makeTransform(x: number, y: number): TransformComponent {
+  return {
+    type: "Transform",
+    x, y,
+    rotation: 0, scaleX: 1, scaleY: 1,
+    worldX: x, worldY: y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1,
+    dirty: false
+  };
+}
 
 describe("Replication Strategies Integration", () => {
   it("DeltaReplicationStrategy should produce smaller payloads on delta ticks compared to full initial snapshot", () => {
@@ -10,7 +45,7 @@ describe("Replication Strategies Integration", () => {
     const deltaSystem = new NetworkDeltaSystem(tracker);
     const budgetManager = new NetworkBudgetManager();
 
-    const mockRoom: any = {
+    const mockRoom: MockRoom = {
       world,
       ackTracker,
       deltaSystem,
@@ -22,8 +57,8 @@ describe("Replication Strategies Integration", () => {
     // Create 10 entities with components
     for (let i = 0; i < 10; i++) {
       const entity = world.createEntity();
-      world.addComponent(entity, { type: "Transform", x: i * 10, y: i * 10 } as any);
-      world.addComponent(entity, { type: "Health", current: 100, max: 100 } as any);
+      world.addComponent(entity, makeTransform(i * 10, i * 10));
+      world.addComponent(entity, { type: "Health", current: 100, max: 100 } as MockHealthComponent);
     }
 
     const mockClient = {
@@ -44,8 +79,8 @@ describe("Replication Strategies Integration", () => {
     ackTracker.recordAck("client-1", 1, 1);
 
     // Tick 2: Mutate only 1 component on 1 entity
-    world.mutateComponent(1 as any, "Transform", (t: any) => {
-      t.x = 999;
+    world.mutateComponent(1, "Transform", (t) => {
+      (t as TransformComponent).x = 999;
     });
 
     mockClient.send.mockClear();
@@ -70,19 +105,19 @@ describe("Replication Strategies Integration", () => {
     interestSystem.onRegister(world);
 
     const playerEntity = world.createEntity();
-    world.addComponent(playerEntity, { type: "Ship", sessionId: "client-1" } as any);
-    world.addComponent(playerEntity, { type: "Transform", x: 0, y: 0 } as any);
+    world.addComponent(playerEntity, { type: "Ship", sessionId: "client-1" } as MockShipComponent);
+    world.addComponent(playerEntity, makeTransform(0, 0));
 
     // Create 30 distant entities
     for (let i = 0; i < 30; i++) {
       const e = world.createEntity();
-      world.addComponent(e, { type: "Asteroid", size: "large" } as any);
-      world.addComponent(e, { type: "Transform", x: (i + 1) * 20, y: 0 } as any);
+      world.addComponent(e, { type: "Asteroid", size: "large" } as MockAsteroidComponent);
+      world.addComponent(e, makeTransform((i + 1) * 20, 0));
     }
 
     interestSystem.update(world, 0.016);
 
-    const mockRoom: any = {
+    const mockRoom: MockRoom = {
       world,
       ackTracker,
       deltaSystem,

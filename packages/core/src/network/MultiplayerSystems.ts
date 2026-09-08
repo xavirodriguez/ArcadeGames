@@ -202,6 +202,27 @@ export class NetworkDeltaSystem<
  */
 export const MAX_ENTITIES_PER_TICK = 20;
 
+interface InterestItem {
+  entityId?: string | number;
+  distance?: number;
+}
+
+function getItemEntityId(item: unknown): string | undefined {
+  if (typeof item === "object" && item !== null && "entityId" in item) {
+    const val = (item as InterestItem).entityId;
+    return val !== undefined ? String(val) : undefined;
+  }
+  return undefined;
+}
+
+function getItemDistance(item: unknown): number {
+  if (typeof item === "object" && item !== null && "distance" in item) {
+    const val = (item as InterestItem).distance;
+    if (typeof val === "number") return val;
+  }
+  return Infinity;
+}
+
 /** @public */
 export class NetworkBudgetManager {
   private cursors = new Map<string, number>();
@@ -210,21 +231,19 @@ export class NetworkBudgetManager {
     if (!interest || interest.length === 0) {
       return [];
     }
-    if (interest.length === 1 && (!selfEntityId || (interest[0] as any)?.entityId?.toString() === selfEntityId)) {
+    if (interest.length === 1 && (!selfEntityId || getItemEntityId(interest[0]) === selfEntityId)) {
       return interest;
     }
 
     if (interest.length <= MAX_ENTITIES_PER_TICK) {
       const sorted = [...interest].sort((a, b) => {
-        const idA = (a as any)?.entityId?.toString();
-        const idB = (b as any)?.entityId?.toString();
+        const idA = getItemEntityId(a);
+        const idB = getItemEntityId(b);
         if (selfEntityId) {
           if (idA === selfEntityId) return -1;
           if (idB === selfEntityId) return 1;
         }
-        const distA = typeof (a as any)?.distance === "number" ? (a as any).distance : Infinity;
-        const distB = typeof (b as any)?.distance === "number" ? (b as any).distance : Infinity;
-        return distA - distB;
+        return getItemDistance(a) - getItemDistance(b);
       });
       return sorted;
     }
@@ -234,7 +253,7 @@ export class NetworkBudgetManager {
 
     for (let i = 0; i < interest.length; i++) {
       const item = interest[i];
-      const id = (item as any)?.entityId?.toString();
+      const id = getItemEntityId(item);
       if (selfEntityId && id === selfEntityId && !selfItem) {
         selfItem = item;
       } else {
@@ -242,11 +261,7 @@ export class NetworkBudgetManager {
       }
     }
 
-    otherItems.sort((a, b) => {
-      const distA = typeof (a as any)?.distance === "number" ? (a as any).distance : Infinity;
-      const distB = typeof (b as any)?.distance === "number" ? (b as any).distance : Infinity;
-      return distA - distB;
-    });
+    otherItems.sort((a, b) => getItemDistance(a) - getItemDistance(b));
 
     const farQuota = Math.max(1, Math.floor(MAX_ENTITIES_PER_TICK * 0.2));
     const availableSlots = MAX_ENTITIES_PER_TICK - (selfItem ? 1 : 0);
@@ -322,30 +337,37 @@ export class InterestManagerSystem<
       let playerSessionId: string | undefined;
       const compTypes = world.getEntityComponentTypes(playerEntity);
       for (const type of compTypes) {
-        const comp = world.getComponent(playerEntity, type as any) as Record<string, unknown> | undefined;
-        if (comp && typeof comp.sessionId === "string") {
-          playerSessionId = comp.sessionId;
-          break;
+        const comp = world.getComponent(playerEntity, type as Extract<keyof TComponents, string>);
+        if (comp && typeof comp === "object" && "sessionId" in comp) {
+          const sid = (comp as { sessionId?: string }).sessionId;
+          if (typeof sid === "string") {
+            playerSessionId = sid;
+            break;
+          }
         }
       }
 
       if (!playerSessionId) continue;
 
-      const playerTransform = world.getComponent(playerEntity, "Transform" as any) as { x?: number; y?: number } | undefined;
-      const px = playerTransform?.x ?? 0;
-      const py = playerTransform?.y ?? 0;
+      const playerTransformComp = world.getComponent(playerEntity, "Transform" as Extract<keyof TComponents, string>);
+      const px = (playerTransformComp && typeof playerTransformComp === "object" && "x" in playerTransformComp && typeof (playerTransformComp as { x?: number }).x === "number") ? (playerTransformComp as { x: number }).x : 0;
+      const py = (playerTransformComp && typeof playerTransformComp === "object" && "y" in playerTransformComp && typeof (playerTransformComp as { y?: number }).y === "number") ? (playerTransformComp as { y: number }).y : 0;
 
       const interestList: Array<{ entityId: string; distance: number }> = [];
 
       for (let j = 0; j < allEntities.length; j++) {
         const targetEntity = allEntities[j];
-        const targetTransform = world.getComponent(targetEntity, "Transform" as any) as { x?: number; y?: number } | undefined;
+        const targetTransformComp = world.getComponent(targetEntity, "Transform" as Extract<keyof TComponents, string>);
 
-        if (targetTransform && typeof targetTransform.x === "number" && typeof targetTransform.y === "number") {
-          const dx = targetTransform.x - px;
-          const dy = targetTransform.y - py;
-          const dist = Math.hypot(dx, dy);
-          interestList.push({ entityId: targetEntity.toString(), distance: dist });
+        if (targetTransformComp && typeof targetTransformComp === "object" && "x" in targetTransformComp && "y" in targetTransformComp) {
+          const tx = (targetTransformComp as { x?: number }).x;
+          const ty = (targetTransformComp as { y?: number }).y;
+          if (typeof tx === "number" && typeof ty === "number") {
+            const dx = tx - px;
+            const dy = ty - py;
+            const dist = Math.hypot(dx, dy);
+            interestList.push({ entityId: targetEntity.toString(), distance: dist });
+          }
         }
       }
 

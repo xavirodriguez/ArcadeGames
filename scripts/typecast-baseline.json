@@ -355,9 +355,9 @@
     "total": 2
   },
   "packages/core/tests/utilsAndNetwork.test.ts": {
-    "anyCount": 21,
+    "anyCount": 18,
     "unknownCount": 0,
-    "total": 21
+    "total": 18
   },
   "packages/gameplay-kit/src/arcade/__tests__/DifficultyDirectorSystem.test.ts": {
     "anyCount": 6,

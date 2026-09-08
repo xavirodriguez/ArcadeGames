@@ -11,7 +11,8 @@ import {
   NetworkReplicationUtils,
   ObjectPool,
   RandomService,
-  ComponentSetPool
+  ComponentSetPool,
+  CoreComponentRegistry
 } from "../src";
 
 import {
@@ -176,19 +177,19 @@ describe("MultiplayerSystems", () => {
 
   describe("InterestManagerSystem", () => {
     it("should register resource, compute euclidean distances for players and dispose resource", () => {
-      const world = new World();
+      const world = new World<CoreComponentRegistry>();
       const interestSystem = new InterestManagerSystem();
 
       interestSystem.onRegister(world);
       expect(world.getResource("DetailedInterestMap")).toBeInstanceOf(Map);
 
       const shipEntity = world.createEntity();
-      world.addComponent(shipEntity, { type: "Ship", sessionId: "client-1" } as any);
-      world.addComponent(shipEntity, { type: "Transform", x: 0, y: 0 } as any);
+      world.addComponent(shipEntity, { type: "Ship", sessionId: "client-1" } as CoreComponentRegistry["Ship"]);
+      world.addComponent(shipEntity, { type: "Transform", x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: 0, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
 
       const asteroidEntity = world.createEntity();
-      world.addComponent(asteroidEntity, { type: "Asteroid", size: "large" } as any);
-      world.addComponent(asteroidEntity, { type: "Transform", x: 30, y: 40 } as any);
+      world.addComponent(asteroidEntity, { type: "Asteroid", size: "large", points: 20 } as CoreComponentRegistry["Asteroid"]);
+      world.addComponent(asteroidEntity, { type: "Transform", x: 30, y: 40, rotation: 0, scaleX: 1, scaleY: 1, worldX: 30, worldY: 40, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
 
       interestSystem.update(world, 0.016);
 
@@ -210,12 +211,12 @@ describe("MultiplayerSystems", () => {
 
   describe("NetworkDeltaSystem", () => {
     it("should generate full snapshot on forceFull, missing baseline, or structure version mismatch", () => {
-      const world = new World();
+      const world = new World<CoreComponentRegistry>();
       const tracker = new ReplicationStateTracker();
       const deltaSystem = new NetworkDeltaSystem(tracker);
 
       const e1 = world.createEntity();
-      world.addComponent(e1, { type: "Transform", x: 10, y: 20 } as any);
+      world.addComponent(e1, { type: "Transform", x: 10, y: 20, rotation: 0, scaleX: 1, scaleY: 1, worldX: 10, worldY: 20, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
 
       // Baseline missing -> full snapshot
       const res1 = deltaSystem.generateDelta(world, "s1", 1, 0, new Set([e1]), false);
@@ -227,11 +228,13 @@ describe("MultiplayerSystems", () => {
       // Baseline matches and state unchanged -> delta snapshot
       const res2 = deltaSystem.generateDelta(world, "s1", 2, 1, new Set([e1]), false);
       expect(res2.kind).toBe("delta");
-      expect((res2 as any).delta.entities).toEqual([e1]);
+      if (res2.kind === "delta") {
+        expect(res2.delta.entities).toEqual([e1]);
+      }
 
       // Structural change (add entity) -> forces full snapshot
       const e2 = world.createEntity();
-      world.addComponent(e2, { type: "Transform", x: 100, y: 200 } as any);
+      world.addComponent(e2, { type: "Transform", x: 100, y: 200, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 200, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false });
 
       const res3 = deltaSystem.generateDelta(world, "s1", 3, 1, new Set([e1, e2]), false);
       expect(res3.kind).toBe("full");

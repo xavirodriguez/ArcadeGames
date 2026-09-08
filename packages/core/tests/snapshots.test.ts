@@ -60,8 +60,11 @@ describe("World Snapshots", () => {
     const e1 = world.createEntity();
     const e2 = world.createEntity();
 
-    world.addComponent(e1, { type: "Transform", x: 10, y: 20 } as any);
-    world.addComponent(e2, { type: "Transform", x: 30, y: 40 } as any);
+    const t1: TransformComponent = { type: "Transform", x: 10, y: 20, rotation: 0, scaleX: 1, scaleY: 1, worldX: 10, worldY: 20, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
+    const t2: TransformComponent = { type: "Transform", x: 30, y: 40, rotation: 0, scaleX: 1, scaleY: 1, worldX: 30, worldY: 40, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
+
+    world.addComponent(e1, t1);
+    world.addComponent(e2, t2);
 
     const tracker = new ReplicationStateTracker();
     const deltaSystem = new NetworkDeltaSystem(tracker);
@@ -86,14 +89,17 @@ describe("World Snapshots", () => {
     const seq2 = 2;
     const secondPayload = deltaSystem.generateDelta(world, "sess-A", seq2, seq1, new Set([e1]), false);
     expect(secondPayload.kind).toBe("full");
-    expect((secondPayload as any).fullWorldState.entities).toEqual([e1]);
+    if (secondPayload.kind === "full") {
+      expect(secondPayload.fullWorldState.entities).toEqual([e1]);
+    }
   });
 
   it("should reconstruct world state matching world.snapshot() after applying NetworkReplicationUtils.applyDelta", () => {
     const world = new World<CoreComponentRegistry>();
     const e1 = world.createEntity();
 
-    world.addComponent(e1, { type: "Transform", x: 10, y: 20 } as any);
+    const t1: TransformComponent = { type: "Transform", x: 10, y: 20, rotation: 0, scaleX: 1, scaleY: 1, worldX: 10, worldY: 20, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
+    world.addComponent(e1, t1);
 
     const tracker = new ReplicationStateTracker();
     const deltaSystem = new NetworkDeltaSystem(tracker);
@@ -102,7 +108,8 @@ describe("World Snapshots", () => {
     const fullRes = deltaSystem.generateDelta(world, "client1", 1, 0, new Set([e1]), false);
     expect(fullRes.kind).toBe("full");
 
-    const baseSnapshot = (fullRes as any).fullWorldState as AoSWorldSnapshot;
+    if (fullRes.kind !== "full") return;
+    const baseSnapshot = fullRes.fullWorldState as AoSWorldSnapshot;
 
     // Mutate entity component
     world.mutateComponent(e1, "Transform", (t) => {
@@ -113,8 +120,9 @@ describe("World Snapshots", () => {
     const deltaRes = deltaSystem.generateDelta(world, "client1", 2, 1, new Set([e1]), false);
     expect(deltaRes.kind).toBe("delta");
 
+    if (deltaRes.kind !== "delta") return;
     // Apply delta to base snapshot
-    NetworkReplicationUtils.applyDelta(baseSnapshot, (deltaRes as any).delta);
+    NetworkReplicationUtils.applyDelta(baseSnapshot, deltaRes.delta);
 
     const targetSnapshot = world.snapshot() as AoSWorldSnapshot;
     expect(baseSnapshot.componentData["Transform"][e1].x).toBe(targetSnapshot.componentData["Transform"][e1].x);

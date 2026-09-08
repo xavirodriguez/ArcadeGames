@@ -686,7 +686,7 @@ export class ClientAckTracker {
     // (undocumented)
     nextSequence(sessionId: string): number;
     // (undocumented)
-    recordAck(sessionId: string, sequence: number, tick: number): void;
+    recordAck(sessionId: string, sequence: number, _tick: number): void;
 }
 
 // @public
@@ -2145,7 +2145,7 @@ export class InterestManagerSystem<TComponents extends ComponentRegistry = Compo
     // (undocumented)
     onRegister(world: World<TComponents, TEvents>): void;
     // (undocumented)
-    update(world: World<TComponents, TEvents>, deltaTime: number): void;
+    update(world: World<TComponents, TEvents>, _deltaTime: number): void;
 }
 
 // @public
@@ -2376,6 +2376,9 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
 
 // @public
 export function maskOf(...layers: number[]): number;
+
+// @public
+export const MAX_ENTITIES_PER_TICK = 20;
 
 // @public
 export class MemoryStorageProvider implements IMetaStorageProvider {
@@ -2963,7 +2966,7 @@ export class NarrativeTimelineEngine {
 // @public (undocumented)
 export class NetworkBudgetManager {
     // (undocumented)
-    prioritize<T = unknown>(sessionId: string, interest: T[], _selfEntityId?: string): T[];
+    prioritize<T = unknown>(sessionId: string, interest: T[], selfEntityId?: string): T[];
 }
 
 // @public
@@ -3828,6 +3831,15 @@ export class ReplayRecorder {
 
 // @public (undocumented)
 export class ReplicationStateTracker {
+    // (undocumented)
+    getBaselineVersion(sessionId: string, ack: number): {
+        stateVersion: number;
+        structureVersion: number;
+    } | undefined;
+    // (undocumented)
+    prune(sessionId: string, ack: number): void;
+    // (undocumented)
+    recordSent(sessionId: string, sequence: number, stateVersion: number, structureVersion: number): void;
 }
 
 // @public

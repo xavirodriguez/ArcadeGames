@@ -96,6 +96,10 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
     });
     await gameSimulation.init();
     const world = gameSimulation.getWorld();
+    // Note: The coupling between 'binary' replication mode and SoA snapshots is intentional:
+    // SoA (Structure of Arrays) layout minimizes GC allocations and optimizes binary msgpack compression.
+    // Supporting true delta replication in 'binary'/SoA mode would require implementing SnapshotSerializerSoA.deltaSnapshot
+    // (diffing Float64Array/Int32Array continuous buffers), which is evaluated as a potential future phase.
     if (this.REPLICATION_MODE === 'binary') {
       world.setResource("UseSoASnapshots", true);
     }

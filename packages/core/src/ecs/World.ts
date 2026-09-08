@@ -873,6 +873,21 @@ function assertResourceShape(name: string, value: unknown): void {
         throw new Error(`[World] Resource "SpatialCullingCandidates" must be an array of entities.`);
       }
       break;
+    case "DetailedInterestMap":
+      if (!(value instanceof Map)) {
+        throw new Error(`[World] Resource "DetailedInterestMap" must be a Map.`);
+      }
+      for (const [key, list] of value.entries()) {
+        if (typeof key !== "string" || !Array.isArray(list)) {
+          throw new Error(`[World] Resource "DetailedInterestMap" must map strings to arrays of interest items.`);
+        }
+        for (const item of list) {
+          if (!isRecord(item) || typeof item.entityId !== "string" || (item.distance !== undefined && typeof item.distance !== "number")) {
+            throw new Error(`[World] Resource "DetailedInterestMap" items must have entityId: string and optional distance: number.`);
+          }
+        }
+      }
+      break;
   }
 }
 

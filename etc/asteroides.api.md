@@ -177,13 +177,9 @@ export const AssetDescriptorSchema: z.ZodObject<{
 // @public
 export class AssetLoader {
     constructor(provider?: IAssetProvider | undefined);
-    // (undocumented)
     get<T>(id: string): T;
-    // (undocumented)
     hasProvider(): boolean;
-    // (undocumented)
     load(assets: AssetDescriptor[]): Promise<void>;
-    // (undocumented)
     loadAll(): Promise<void>;
     parseAtlas(atlasJson: unknown): Map<string, {
         x: number;
@@ -191,9 +187,7 @@ export class AssetLoader {
         w: number;
         h: number;
     }>;
-    // (undocumented)
     queueAssets(assets: AssetDescriptor[]): void;
-    // (undocumented)
     setProvider(provider: IAssetProvider): void;
 }
 
@@ -732,7 +726,7 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface Collider2DComponent extends Component {
     enabled: boolean;
     isTrigger: boolean;
@@ -751,7 +745,7 @@ export interface Collider2DComponent extends Component {
     type: "Collider2D";
 }
 
-// @public (undocumented)
+// @public
 export interface ColliderComponent extends Component {
     enabled: boolean;
     isTrigger: boolean;
@@ -793,7 +787,7 @@ export interface Collision {
 // @public
 export type CollisionCallback<TRegistry extends ComponentRegistry = CoreComponentRegistry> = (world: World<TRegistry>, entityA: Entity, entityB: Entity, manifold: CollisionManifold) => void;
 
-// @public (undocumented)
+// @public
 export interface CollisionEventsComponent extends Component {
     activeTriggers: Entity[];
     collisions: Collision[];
@@ -833,21 +827,18 @@ export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreCom
 // @public
 export type CombinedEvents<TEvents extends EventRegistry> = CoreEvents & TEvents;
 
-// @public (undocumented)
+// @public
 export interface ComboComponent extends Component {
     combo: number;
     multiplier: number;
     timerDuration: number;
     timerRemaining: number;
-    // (undocumented)
     type: "Combo";
 }
 
-// @public (undocumented)
+// @public
 export class ComboSystem<TComponents extends CoreComponentRegistry = CoreComponentRegistry> extends System<TComponents> {
-    // (undocumented)
     dispose(): void;
-    // (undocumented)
     update(world: World<TComponents>, deltaTime: number): void;
 }
 
@@ -1923,7 +1914,7 @@ export interface GroundDetectorComponent extends Component {
     type: "GroundDetector";
 }
 
-// @public (undocumented)
+// @public
 export interface HapticRequestComponent<TPattern extends string = string> extends Component {
     intensity?: number;
     pattern: TPattern;
@@ -1956,7 +1947,7 @@ export class HierarchySystem extends AbstractHierarchySystem<CoreComponentRegist
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface HitboxComponent extends Component {
     hitEntities?: Entity[];
     type: "Hitbox";
@@ -1968,42 +1959,29 @@ export class HitDetectionSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface HurtboxComponent extends Component {
     type: "Hurtbox";
 }
 
-// @public (undocumented)
+// @public
 export interface IAssetProvider {
-    // (undocumented)
     load?(path: string): Promise<unknown>;
-    // (undocumented)
     loadAudio(path: string): Promise<unknown>;
-    // (undocumented)
     loadFont(path: string): Promise<unknown>;
-    // (undocumented)
     loadImage(path: string): Promise<unknown>;
 }
 
-// @public (undocumented)
+// @public
 export interface IAudioPlayer {
-    // (undocumented)
     loadSFX(id: string, options: unknown): Promise<void>;
-    // (undocumented)
     pauseBGM(): void;
-    // (undocumented)
     playBGM(id: string, options?: unknown): void;
-    // (undocumented)
     playSFX(id: string, options?: unknown): void;
-    // (undocumented)
     playSpatialSFX(id: string, x: number, y: number, listenerX: number, listenerY: number, maxDistance: number): void;
-    // (undocumented)
     setBGMVolume(v: number): void;
-    // (undocumented)
     setMasterVolume(v: number): void;
-    // (undocumented)
     setSFXVolume(v: number): void;
-    // (undocumented)
     stopBGM(): void;
 }
 
@@ -2287,7 +2265,7 @@ export class Juice {
     static squash(world: World<CoreComponentRegistry>, entity: Entity, sx: number, sy: number, duration: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface JuiceAnimation {
     componentType?: string;
     delay?: number;
@@ -2302,7 +2280,7 @@ export interface JuiceAnimation {
     type: string;
 }
 
-// @public (undocumented)
+// @public
 export interface JuiceComponent extends Component {
     active: boolean;
     animations: JuiceAnimation[];
@@ -3103,23 +3081,14 @@ export interface NetworkTransport<TServerEvents extends Record<string, unknown> 
 
 // @public
 export class NullAudioPlayer implements IAudioPlayer {
-    // (undocumented)
     loadSFX(_id: string, _options: unknown): Promise<void>;
-    // (undocumented)
     pauseBGM(): void;
-    // (undocumented)
     playBGM(_id: string, _options?: unknown): void;
-    // (undocumented)
     playSFX(_id: string, _options?: unknown): void;
-    // (undocumented)
     playSpatialSFX(_id: string, _x: number, _y: number, _listenerX: number, _listenerY: number, _maxDistance: number): void;
-    // (undocumented)
     setBGMVolume(_v: number): void;
-    // (undocumented)
     setMasterVolume(_v: number): void;
-    // (undocumented)
     setSFXVolume(_v: number): void;
-    // (undocumented)
     stopBGM(): void;
 }
 
@@ -3275,7 +3244,7 @@ export class OutcomeRuleEngine {
 // @public
 export function packEntity(index: number, generation: number): Entity;
 
-// @public (undocumented)
+// @public
 export interface ParticleEmitterComponent extends Component {
     active: boolean | number;
     config: ParticleEmitterConfig;
@@ -3283,7 +3252,7 @@ export interface ParticleEmitterComponent extends Component {
     type: "ParticleEmitter";
 }
 
-// @public (undocumented)
+// @public
 export interface ParticleEmitterConfig {
     angle?: [number, number];
     burst?: boolean;
@@ -4063,7 +4032,7 @@ export class Schedule<TComponents extends ComponentRegistry = ComponentRegistry,
     update(world: World<TComponents, TEvents, TBlueprints>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface ScreenShakeComponent extends Component {
     duration: number;
     intensity: number;
@@ -4071,9 +4040,8 @@ export interface ScreenShakeComponent extends Component {
     type: "ScreenShake";
 }
 
-// @public (undocumented)
+// @public
 export class ScreenShakeSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -4970,7 +4938,7 @@ export class TimeScale {
 // @public
 export function toTransformComponent(x: number, y: number, rotation?: number): TransformComponent;
 
-// @public (undocumented)
+// @public
 export interface TrailComponent extends Component {
     count: number;
     currentIndex: number;
@@ -5137,7 +5105,7 @@ export class VisualNovelPresenter implements NarrativePresenter {
     buildViewModel(context: NarrativePresentationContext): NarrativePresentationModel;
 }
 
-// @public (undocumented)
+// @public
 export interface VisualOffsetComponent extends Component {
     offsetX: number;
     offsetY: number;

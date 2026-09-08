@@ -4,7 +4,8 @@
  * @internal
  *
  * @remarks
- * This cloner performs a recursive copy of objects and arrays.
+ * This utility class is intended for internal engine operations within `@tiny-aster/core` and must not be consumed directly outside the core package.
+ * It performs a recursive copy of objects and arrays.
  * It is primarily intended for serializable data and has several known limitations:
  * - Circular references: Will cause a stack overflow.
  * - Class instances: Preserves own properties but loses prototype, methods, and private state.

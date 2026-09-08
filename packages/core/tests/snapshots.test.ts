@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry, TransformComponent, BinaryCompression, AoSWorldSnapshot, SoAWorldSnapshot, hashSoA } from "../src";
+import { World, CoreComponentRegistry, TransformComponent, BinaryCompression, AoSWorldSnapshot, SoAWorldSnapshot, hashSoA, ReplicationStateTracker, NetworkDeltaSystem, NetworkReplicationUtils } from "../src";
 
 describe("World Snapshots", () => {
   it("should capture and restore world state", () => {
@@ -53,6 +53,80 @@ describe("World Snapshots", () => {
 
     const delta2 = world.deltaSnapshot(version1);
     expect((delta2 as any).componentData!["Transform"][entity].x).toBe(100);
+  });
+
+  it("should not report entity deletions in deltaSnapshot componentData (tombstone limitation) and force full snapshot on structureVersion mismatch", () => {
+    const world = new World<CoreComponentRegistry>();
+    const e1 = world.createEntity();
+    const e2 = world.createEntity();
+
+    const t1: TransformComponent = { type: "Transform", x: 10, y: 20, rotation: 0, scaleX: 1, scaleY: 1, worldX: 10, worldY: 20, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
+    const t2: TransformComponent = { type: "Transform", x: 30, y: 40, rotation: 0, scaleX: 1, scaleY: 1, worldX: 30, worldY: 40, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
+
+    world.addComponent(e1, t1);
+    world.addComponent(e2, t2);
+
+    const tracker = new ReplicationStateTracker();
+    const deltaSystem = new NetworkDeltaSystem(tracker);
+
+    // Initial full sync
+    const seq1 = 1;
+    const initialPayload = deltaSystem.generateDelta(world, "sess-A", seq1, 0, new Set([e1, e2]), false);
+    expect(initialPayload.kind).toBe("full");
+
+    const v1State = world.stateVersion;
+    const v1Struct = world.structureVersion;
+
+    // Delete e2 - structural change
+    world.removeEntity(e2);
+    expect(world.structureVersion).toBeGreaterThan(v1Struct);
+
+    // deltaSnapshot alone cannot report entity deletions in componentData (no tombstones)
+    const rawDelta = world.deltaSnapshot(v1State);
+    expect(rawDelta.componentData?.["Transform"]?.[e2]).toBeUndefined();
+
+    // NetworkDeltaSystem detects structureVersion mismatch and forces full snapshot
+    const seq2 = 2;
+    const secondPayload = deltaSystem.generateDelta(world, "sess-A", seq2, seq1, new Set([e1]), false);
+    expect(secondPayload.kind).toBe("full");
+    if (secondPayload.kind === "full") {
+      expect(secondPayload.fullWorldState.entities).toEqual([e1]);
+    }
+  });
+
+  it("should reconstruct world state matching world.snapshot() after applying NetworkReplicationUtils.applyDelta", () => {
+    const world = new World<CoreComponentRegistry>();
+    const e1 = world.createEntity();
+
+    const t1: TransformComponent = { type: "Transform", x: 10, y: 20, rotation: 0, scaleX: 1, scaleY: 1, worldX: 10, worldY: 20, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
+    world.addComponent(e1, t1);
+
+    const tracker = new ReplicationStateTracker();
+    const deltaSystem = new NetworkDeltaSystem(tracker);
+
+    // Baseline full snapshot
+    const fullRes = deltaSystem.generateDelta(world, "client1", 1, 0, new Set([e1]), false);
+    expect(fullRes.kind).toBe("full");
+
+    if (fullRes.kind !== "full") return;
+    const baseSnapshot = fullRes.fullWorldState as AoSWorldSnapshot;
+
+    // Mutate entity component
+    world.mutateComponent(e1, "Transform", (t) => {
+      t.x = 99;
+    });
+
+    // Generate delta
+    const deltaRes = deltaSystem.generateDelta(world, "client1", 2, 1, new Set([e1]), false);
+    expect(deltaRes.kind).toBe("delta");
+
+    if (deltaRes.kind !== "delta") return;
+    // Apply delta to base snapshot
+    NetworkReplicationUtils.applyDelta(baseSnapshot, deltaRes.delta);
+
+    const targetSnapshot = world.snapshot() as AoSWorldSnapshot;
+    expect(baseSnapshot.componentData["Transform"][e1].x).toBe(targetSnapshot.componentData["Transform"][e1].x);
+    expect(baseSnapshot.entities).toEqual(targetSnapshot.entities);
   });
 
   describe("SoA Snapshots", () => {

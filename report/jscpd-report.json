@@ -5959,43 +5959,6 @@
     },
     {
       "firstFile": {
-        "end": 36,
-        "endLoc": {
-          "column": 2,
-          "line": 36,
-          "position": 1074
-        },
-        "name": "space-invaders/SpaceInvadersAdapter.ts",
-        "start": 22,
-        "startLoc": {
-          "column": 49,
-          "line": 22,
-          "position": 735
-        }
-      },
-      "format": "typescript",
-      "fragment": "    return new SpaceInvadersGameAdapter({ seed });\n  },\n  inputSchema: {\n    actions: [\"moveLeft\", \"moveRight\", \"shoot\"]\n  },\n  assets: {\n    sprites: [],\n    sounds: [\n      { id: \"shoot\", path: \"/audio/shoot.mp3\" },\n      { id: \"hit\", path: \"/audio/hit.mp3\" },\n      { id: \"explosion\", path: \"/audio/explosion.mp3\" },\n      { id: \"game_over\", path: \"/audio/game_over.mp3\" }\n    ]\n  }\n};",
-      "isNew": false,
-      "lines": 15,
-      "secondFile": {
-        "end": 917,
-        "endLoc": {
-          "column": 2,
-          "line": 917,
-          "position": 37463
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 903,
-        "startLoc": {
-          "column": 15,
-          "line": 903,
-          "position": 37124
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
         "end": 233,
         "endLoc": {
           "column": 29,
@@ -6329,32 +6292,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-08T16:20:34.486Z",
+    "detectionDate": "2026-09-08T20:26:50.248Z",
     "formats": {
       "typescript": {
         "clones": 170,
         "duplicatedLines": 1789,
         "duplicatedTokens": 13603,
-        "lines": 53058,
+        "lines": 53947,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.3717818236646693,
-        "percentageTokens": 4.88504715185555,
-        "sources": 332,
-        "tokens": 278462
+        "percentage": 3.3162177692920833,
+        "percentageTokens": 4.873775554807134,
+        "sources": 334,
+        "tokens": 279106
       }
     },
     "total": {
       "clones": 170,
       "duplicatedLines": 1789,
       "duplicatedTokens": 13603,
-      "lines": 53058,
+      "lines": 53947,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.3717818236646693,
-      "percentageTokens": 4.88504715185555,
-      "sources": 332,
-      "tokens": 278462
+      "percentage": 3.3162177692920833,
+      "percentageTokens": 4.873775554807134,
+      "sources": 334,
+      "tokens": 279106
     }
   }
 }

@@ -8,12 +8,12 @@ import { ComboComponent } from "../components/ComboComponent";
  *
  * @remarks
  * In each tick, {@link ComboSystem} queries entities with a {@link ComboComponent}.
- * If the world is paused (`IsPaused === true`) or an entity's combo timer has expired, processing is skipped.
- * Otherwise, `timerRemaining` is decremented by `deltaTime`. Upon reaching zero, the combo count is reset
- * to 0 and multiplier to 1.
+ * If the world is paused (`IsPaused === true`) or an entity's combo timer has already expired (`timerRemaining <= 0`),
+ * processing is skipped. Otherwise, `timerRemaining` is decremented by `deltaTime`. Upon reaching zero or below,
+ * `timerRemaining` is capped at 0, the combo count is reset to 0, and the multiplier is reset to 1.
  *
  * Mutable components are acquired only when `timerRemaining > 0` to preserve determinism and avoid unnecessary
- * state version increments during rollback/resimulation.
+ * `stateVersion` increments during rollback and re-simulation.
  *
  * @example
  * ```ts
@@ -30,7 +30,7 @@ export class ComboSystem<TComponents extends CoreComponentRegistry = CoreCompone
    * Updates all active combo timers and resets expired combo streaks.
    *
    * @param world - The ECS world containing active entities and components.
-   * @param deltaTime - Elapsed frame time in seconds.
+   * @param deltaTime - Elapsed frame time in seconds (e.g., `0.016`).
    */
   public update(world: World<TComponents>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;

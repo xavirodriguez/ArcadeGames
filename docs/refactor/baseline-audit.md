@@ -1,4 +1,4 @@
-# Auditoría Baseline de `BaseGame` y Subclases
+# Baseline Audit: BaseGame y Subclases de Juego
 
 Este documento presenta la auditoría baseline de `packages/core/src/runtime/BaseGame.ts` y las subclases de juegos concretos que lo extienden (`AsteroidsGame`, `PongGame`, `SpaceInvadersGame`, `GeometryWarsGame`, `FlappyBirdGame` y `EchoRunnerGame`).
 
@@ -92,32 +92,45 @@ Categorías utilizadas:
 
 ## Estado actual de la frontera Definition/Simulation
 
-### 1. ¿`AsteroidsDefinition.createSimulation()` devuelve una instancia "pura" de `Simulation`, o devuelve una instancia completa de `BaseGame`?
+### 1. ¿`AsteroidsDefinition.createSimulation()` devuelve una instancia "pura" de `Simulation`?
 
-**Respuesta:**
-`AsteroidsDefinition.createSimulation()` (en `src/games/asteroids/AsteroidsDefinition.ts`, líneas 5-8) **NO** devuelve una instancia "pura" de `Simulation`.
+**No**. `AsteroidsDefinition.createSimulation()` devuelve una instancia completa de `AsteroidsGame`, la cual extiende de `BaseGame`.
 
-Devuelve una instancia completa de `AsteroidsGame` (creada mediante `new AsteroidsGame({ gameOptions: { seed } })`), la cual extiende `BaseGame`. Esta instancia incluye de forma acoplada:
-- Capa de presentación (gestor de assets `AssetLoader`, `SceneManager`, renderers de canvas visuales, utilidades VFX).
-- Capa de servicios (reproductor de audio `WebAudioPlayer`, controlador de red `NetworkController`).
-- Ticker e hilo de loop interno (`GameLoop`).
+**Evidencia de código (`src/games/asteroids/AsteroidsDefinition.ts`):**
+```typescript
+export const AsteroidsDefinition: GameDefinition = {
+  name: "asteroids",
+  createSimulation: (seed: number) => {
+    const game = new AsteroidsGame({ gameOptions: { seed } });
+    return game;
+  },
+  // ...
+};
+```
 
-Satisface la interfaz `Simulation` únicamente por **duck typing**, ya que `BaseGame` implementa los métodos requeridos (`tick`, `state`, `step(input)`, `snapshot()`, `restore()`, `hash()`).
+**Análisis:**
+`AsteroidsGame` satisface la interfaz `Simulation` únicamente por *duck typing* (ya que `BaseGame` implementa los miembros requeridos por la interfaz `Simulation`: `step`, `snapshot`, `restore`, `hash`, `tick`, `state`). Sin embargo, al instanciarse `AsteroidsGame`, se cargan e inicializan acopladamente:
+- **Presentación:** Sistemas de renderizado (`ScreenShakeSystem`, `JuiceSystem`, `RenderUpdateSystem`, `TrailSystem`, `ParticleSystem`, `AnimationSystem`), administradores de escena (`SceneManager`), y listeners de redimensionamiento de ventana.
+- **Servicios:** Reproductor de audio (`WebAudioPlayer`), cargador e inyector de assets (`AssetLoader`, `WebAssetProvider`), controlador de red multijugador (`NetworkController`, `NetworkManager`).
+
+Por lo tanto, hoy en día "crear una simulación" implica instanciar una aplicación de juego completa con todos sus servicios y capa gráfica incluidos.
 
 ---
 
-### 2. ¿Qué responsabilidades de GameInstance (si existiera) ya cubre `packages/core/src/runtime/GameSession.ts` hoy?
+### 2. ¿Qué responsabilidades de `GameInstance` (si existiera) ya cubre `packages/core/src/runtime/GameSession.ts` hoy?
 
-**Respuesta:**
-`packages/core/src/runtime/GameSession.ts` **ya cubre la totalidad del rol de orquestación y ejecución de un juego**:
+`packages/core/src/runtime/GameSession.ts` **ya cubre la gran mayoría del rol de orquestación y ejecución de sesión** que hipotéticamente se le asignaría a un `GameInstance`:
 
-1. **Gestión de Lifecycle:** Posee y gestiona el estado de sesión mediante una instancia de `ArcadeKernel` (`this.kernel`).
-2. **Orquestación de Ticking Desacoplado:** `GameSession.playTick(input)` se encarga de:
-   - Avanzar la simulación explícitamente via `simulation.step(input)`.
-   - Desactivar automáticamente cualquier loop/ticker interno legacy presente en la simulación (`sim.getGameLoop().stopInternalLoop()`) para evitar doble ticking.
-3. **Grabación de Replays Deterministas:** Integra directamente `DeterministicReplayRecorder` y mantiene el historial de entradas (`inputHistory`).
-4. **Evaluación de Fin de Juego:** Evalúa la condición `simulation.isGameOver()` tras cada tick y realiza la transición a `ArcadeState.GAME_OVER` en el `ArcadeKernel`.
-5. **Difusión de Eventos:** Emite eventos `session:tick` sobre el `eventBus` de la simulación para notificar a capas de presentación y audio.
+**Evidencia de código (`packages/core/src/runtime/GameSession.ts`):**
+1. **Ownership de la simulación y definición:** Almacena la `gameDefinition` y crea/mantiene la instancia de `Simulation` (`this.simulation = gameDefinition.createSimulation(seed)`).
+2. **Lifecycle y máquina de estados:** Posee y gestiona la máquina de estados `ArcadeKernel` (`this.kernel`), controlando estados como `PLAYING`, `PAUSED`, `GAME_OVER`.
+3. **Grabación de Replays deterministas y entrada:** Mantiene un `DeterministicReplayRecorder` e `inputHistory`, registrando la semilla inicial, capturando el estado inicial (`captureInitialState`) y grabando cada cuadro de entrada procesado.
+4. **Ejecución y desacoplamiento de ticker:** Su método `playTick(input)` se encarga de:
+   - Avanzar la simulación exactamente un paso (`this.simulation.step(input)`).
+   - Registrar la entrada en el recorder y el historial.
+   - Evaluar la condición de `isGameOver` para transicionar el `kernel` a `ArcadeState.GAME_OVER`.
+   - Emitir eventos de tick (`session:tick`) a través del `EventBus` para notificar a la capa de presentación/audio sin acoplamiento directo.
+5. **Control de tiempo externo:** En su constructor, desactiva automáticamente cualquier bucle de tiempo interno heredado (`sim.getGameLoop().stopInternalLoop()`), asumiendo el control de los pasos de simulación impulsados externamente.
 
 **Conclusión:**
 `GameSession` ya actúa como el runtime / runner concreto de un `GameDefinition`.

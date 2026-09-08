@@ -1,25 +1,11 @@
-import { BaseGameSimulationAdapter } from "@tiny-aster/core";
+import { GameDefinition } from "@tiny-aster/core";
 import { AsteroidsGame } from "./AsteroidsGame";
 
-/**
- * Adapter bridging AsteroidsGame simulation steps to GameDefinition and Simulation interfaces.
- * @public
- */
-export class AsteroidsGameAdapter extends BaseGameSimulationAdapter<AsteroidsGame> {
-  constructor(options: { seed?: number; mode?: "deathmatch" | "story"; gameOptions?: Record<string, unknown> } = {}) {
-    const game = new AsteroidsGame({
-      gameOptions: { seed: options.seed, mode: options.mode || "deathmatch", ...options.gameOptions },
-      headless: true
-    });
-    game.start();
-    super(game);
-  }
-}
-
-export const AsteroidsDefinition = {
+export const AsteroidsDefinition: GameDefinition = {
   name: "asteroids",
   createSimulation: (seed: number) => {
-    return new AsteroidsGameAdapter({ seed });
+    const game = new AsteroidsGame({ gameOptions: { seed } });
+    return game;
   },
   inputSchema: {
     actions: ["thrust", "left", "right", "fire", "hyperspace"]

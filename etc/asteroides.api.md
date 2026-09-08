@@ -366,29 +366,6 @@ export interface BaseGameConfig<TComponents extends ComponentRegistry = Componen
     theme?: Theme;
 }
 
-// @public
-export abstract class BaseGameSimulationAdapter<TGame extends IBaseGameSimulation = IBaseGameSimulation> implements Simulation {
-    constructor(game: TGame);
-    // (undocumented)
-    protected game: TGame;
-    // (undocumented)
-    get gameInstance(): TGame;
-    // (undocumented)
-    hash(): string;
-    // (undocumented)
-    isGameOver(): boolean;
-    // (undocumented)
-    restore(snapshot: WorldSnapshot): void;
-    // (undocumented)
-    snapshot(): WorldSnapshot;
-    // (undocumented)
-    get state(): unknown;
-    // (undocumented)
-    step(input: unknown): void;
-    // (undocumented)
-    get tick(): number;
-}
-
 // @public (undocumented)
 export abstract class BaseGameStateSystem<TGameState = unknown, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> extends System<TComponents, TEvents> {
     constructor(singletonType: string);
@@ -2025,26 +2002,6 @@ export interface IAudioPlayer {
     setMasterVolume(v: number): void;
     setSFXVolume(v: number): void;
     stopBGM(): void;
-}
-
-// @public
-export interface IBaseGameSimulation {
-    // (undocumented)
-    getGameState(): unknown;
-    // (undocumented)
-    hash(): string;
-    // (undocumented)
-    isGameOver(): boolean;
-    // (undocumented)
-    restore(snapshot: WorldSnapshot): void;
-    // (undocumented)
-    snapshot(): WorldSnapshot;
-    // (undocumented)
-    start(): void;
-    // (undocumented)
-    step(input: unknown): void;
-    // (undocumented)
-    tick: number;
 }
 
 // @public

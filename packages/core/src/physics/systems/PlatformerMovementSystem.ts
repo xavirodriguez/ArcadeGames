@@ -29,8 +29,11 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
     const groundStateType = "PlatformerGroundState" as Extract<keyof TRegistry, string>;
 
     const entities = world.query(inputType, configType, velocityType);
+    const len = entities.length;
 
-    for (const entity of entities) {
+    // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
+    for (let i = 0; i < len; i++) {
+      const entity = entities[i];
       const input = world.getComponent(entity, inputType) as unknown as PlatformerInputComponent | undefined;
       const config = world.getComponent(entity, configType) as unknown as PlatformerMovementConfigComponent | undefined;
       const vel = world.getComponent(entity, velocityType) as unknown as VelocityComponent | undefined;
@@ -51,14 +54,17 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
 
       const targetSpeed = input.moveDir * config.maxSpeed;
 
-      world.mutateComponent(entity, velocityType, (v) => {
-        const mutableVel = v as unknown as VelocityComponent;
-        if (input.moveDir !== 0) {
-          mutableVel.vx = this.moveTowards(mutableVel.vx, targetSpeed, effectiveAccel * deltaTime);
-        } else {
-          mutableVel.vx = this.moveTowards(mutableVel.vx, 0, effectiveDecel * deltaTime);
+      const newVx = input.moveDir !== 0
+        ? this.moveTowards(vel.vx, targetSpeed, effectiveAccel * deltaTime)
+        : this.moveTowards(vel.vx, 0, effectiveDecel * deltaTime);
+
+      if (vel.vx !== newVx) {
+        // Safe for determinism/rollback. Avoids per-tick closure allocations and stateVersion bumps when horizontal velocity is unchanged.
+        const mutableVel = world.getMutableComponent(entity, velocityType) as unknown as VelocityComponent | undefined;
+        if (mutableVel) {
+          mutableVel.vx = newVx;
         }
-      });
+      }
     }
   }
 

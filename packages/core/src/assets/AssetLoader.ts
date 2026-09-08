@@ -16,11 +16,55 @@ export const AssetDescriptorSchema = z.object({
  */
 export type AssetDescriptor = z.infer<typeof AssetDescriptorSchema>;
 
-/** @public */
+/**
+ * Platform adapter interface providing low-level resource loading methods for images, audio, fonts, and raw data.
+ *
+ * @remarks
+ * Concrete implementations adapt platform-specific resource mechanisms (HTML Image / Web Audio for browser,
+ * Expo/Skia/Async asset resolve for mobile). Used by {@link AssetLoader}.
+ *
+ * @example
+ * ```ts
+ * class CustomProvider implements IAssetProvider {
+ *   async loadImage(path: string): Promise<unknown> { return fetch(path).then(r => r.blob()); }
+ *   async loadAudio(path: string): Promise<unknown> { return fetch(path).then(r => r.arrayBuffer()); }
+ *   async loadFont(path: string): Promise<unknown> { return true; }
+ * }
+ * ```
+ *
+ * @public
+ */
 export interface IAssetProvider {
+  /**
+   * Loads an image or texture resource from the specified path or URI.
+   *
+   * @param path - Relative or absolute path / URI pointing to the image asset.
+   * @returns A promise resolving to the platform-specific image element or object.
+   */
   loadImage(path: string): Promise<unknown>;
+
+  /**
+   * Loads an audio clip resource from the specified path or URI.
+   *
+   * @param path - Relative or absolute path / URI pointing to the audio asset.
+   * @returns A promise resolving to the platform-specific audio object or buffer.
+   */
   loadAudio(path: string): Promise<unknown>;
+
+  /**
+   * Loads a font resource from the specified path or URI.
+   *
+   * @param path - Relative or absolute path / URI pointing to the font asset.
+   * @returns A promise resolving when the font is loaded and registered.
+   */
   loadFont(path: string): Promise<unknown>;
+
+  /**
+   * Optional generic asset or JSON resource loader.
+   *
+   * @param path - Path or URI to the raw JSON or custom asset data.
+   * @returns A promise resolving to the parsed data object.
+   */
   load?(path: string): Promise<unknown>;
 }
 
@@ -36,22 +80,53 @@ export interface IAssetProvider {
  * **Resource Management**: The `AssetLoader` caches resources indefinitely.
  * Manual clearing may be required for long-running sessions to prevent
  * excessive memory usage.
+ *
+ * @example
+ * ```ts
+ * const loader = new AssetLoader(provider);
+ * loader.queueAssets([
+ *   { id: "ship", path: "assets/ship.png", type: "image" }
+ * ]);
+ * await loader.loadAll();
+ * const shipImage = loader.get<HTMLImageElement>("ship");
+ * ```
+ *
  * @public
  */
 export class AssetLoader {
   private cache = new Map<string, unknown>();
   private queue: AssetDescriptor[] = [];
 
+  /**
+   * Creates an instance of AssetLoader with an optional platform provider.
+   *
+   * @param provider - Platform resource loading provider implementing {@link IAssetProvider}.
+   */
   constructor(private provider?: IAssetProvider) {}
 
+  /**
+   * Assigns or updates the platform asset provider.
+   *
+   * @param provider - Platform resource loader implementing {@link IAssetProvider}.
+   */
   public setProvider(provider: IAssetProvider) {
     this.provider = provider;
   }
 
+  /**
+   * Checks whether a platform provider has been registered.
+   *
+   * @returns `true` if an {@link IAssetProvider} is set, `false` otherwise.
+   */
   public hasProvider(): boolean {
     return this.provider !== undefined;
   }
 
+  /**
+   * Validates and adds asset descriptors to the internal pending loading queue.
+   *
+   * @param assets - Array of asset descriptors matching {@link AssetDescriptorSchema}.
+   */
   public queueAssets(assets: AssetDescriptor[]) {
     for (const asset of assets) {
       AssetDescriptorSchema.parse(asset);
@@ -59,6 +134,13 @@ export class AssetLoader {
     this.queue.push(...assets);
   }
 
+  /**
+   * Asynchronously loads a specific array of asset descriptors using the registered provider.
+   *
+   * @param assets - Array of asset descriptors to load immediately.
+   * @returns Promise resolving when all specified assets have loaded and cached.
+   * @throws Error if no asset provider is registered prior to calling `load`.
+   */
   public async load(assets: AssetDescriptor[]): Promise<void> {
     for (const asset of assets) {
       AssetDescriptorSchema.parse(asset);
@@ -95,6 +177,11 @@ export class AssetLoader {
     await Promise.all(promises);
   }
 
+  /**
+   * Asynchronously processes and loads all queued asset descriptors.
+   *
+   * @returns Promise resolving when all queued assets have loaded.
+   */
   public async loadAll(): Promise<void> {
     if (this.queue.length === 0) return;
     await this.load(this.queue);
@@ -140,6 +227,12 @@ export class AssetLoader {
     return framesMap;
   }
 
+  /**
+   * Retrieves a loaded asset from cache by its identifier.
+   *
+   * @param id - Unique asset identifier.
+   * @returns The cached asset object cast to `T`.
+   */
   public get<T>(id: string): T {
     return this.cache.get(id) as T;
   }

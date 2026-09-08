@@ -211,7 +211,11 @@ export class EntityBuilder<
 
 /**
  * Generic helper function to instantiate an EntityBuilder or subclass instance.
+ *
  * @internal
+ *
+ * @remarks
+ * This function is intended for internal engine operations within `@tiny-aster/core` and should not be consumed directly outside the core package.
  */
 export function createBuilderInstance<
   TBuilder extends EntityBuilder<TComponents, TEvents, TBlueprints>,

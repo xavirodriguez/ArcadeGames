@@ -555,9 +555,9 @@
     "total": 4
   },
   "src/games/asteroids/EntityFactory.ts": {
-    "anyCount": 2,
+    "anyCount": 1,
     "unknownCount": 0,
-    "total": 2
+    "total": 1
   },
   "src/games/asteroids/__tests__/AsteroidCollisionSystem.test.ts": {
     "anyCount": 1,

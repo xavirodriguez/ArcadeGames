@@ -1,5 +1,5 @@
-import { World, HealthComponent } from "@tiny-aster/core";
-import { FactionComponent } from "@tiny-aster/gameplay-kit";
+import { World, HealthComponent, Component } from "@tiny-aster/core";
+import { FactionComponent, LootTableComponent } from "@tiny-aster/gameplay-kit";
 
 /**
  * Options for attaching standard enemy default components.
@@ -46,5 +46,5 @@ export function attachEnemyDefaults(
   world.addComponent(entity, {
     type: "LootTable",
     tableId
-  } as any);
+  } as LootTableComponent);
 }

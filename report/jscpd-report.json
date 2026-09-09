@@ -7365,7 +7365,7 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-09T20:27:44.357Z",
+    "detectionDate": "2026-09-09T20:39:28.441Z",
     "formats": {
       "typescript": {
         "clones": 199,
@@ -7375,9 +7375,9 @@
         "newClones": 0,
         "newDuplicatedLines": 0,
         "percentage": 3.5400539271114204,
-        "percentageTokens": 5.15981461903147,
+        "percentageTokens": 5.159746002194222,
         "sources": 358,
-        "tokens": 300786
+        "tokens": 300790
       }
     },
     "total": {
@@ -7388,9 +7388,9 @@
       "newClones": 0,
       "newDuplicatedLines": 0,
       "percentage": 3.5400539271114204,
-      "percentageTokens": 5.15981461903147,
+      "percentageTokens": 5.159746002194222,
       "sources": 358,
-      "tokens": 300786
+      "tokens": 300790
     }
   }
 }

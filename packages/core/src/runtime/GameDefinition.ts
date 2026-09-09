@@ -55,9 +55,10 @@ export interface GameDefinition {
    * Factory method to instantiate a new, deterministic simulation instance initialized with the given seed.
    *
    * @param seed - The random seed used to initialize deterministic simulation behavior.
+   * @param options - Optional configuration options, including narrative modifiers or game options.
    * @returns A fresh `Simulation` instance.
    */
-  createSimulation(seed: number): Simulation;
+  createSimulation(seed: number, options?: Record<string, unknown>): Simulation;
 
   /**
    * Declared input schema for the game's logical inputs.

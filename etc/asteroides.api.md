@@ -299,6 +299,10 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     getInputSystem(): IInputSystem<TInput>;
     getLastError(): Error | null;
     getLifecycleState(): GameLifecycleState;
+    getMiniGameResult(options?: {
+        runId?: string;
+        gameId?: string;
+    }): MiniGameResult;
     getSeed(): number;
     getWorld(): World<TComponents, TEvents, TBlueprints>;
     protected handleScreenResize(): void;
@@ -1739,7 +1743,7 @@ export interface FullSnapshotPayload {
 // @public
 export interface GameDefinition {
     readonly assets: AssetManifest;
-    createSimulation(seed: number): Simulation;
+    createSimulation(seed: number, options?: Record<string, unknown>): Simulation;
     readonly inputSchema: InputSchema;
     readonly name: GameId | string;
 }
@@ -2529,6 +2533,12 @@ export interface MiniGameEncounter {
 
 // @public
 export type MiniGameEncounterDSL = z.infer<typeof MiniGameEncounterSchema>;
+
+// @public
+export class MiniGameEncounterRegistry {
+    register(encounter: MiniGameEncounter): void;
+    resolve(gameId: string, encounterId?: string): MiniGameEncounter;
+}
 
 // @public
 export const MiniGameEncounterSchema: z.ZodObject<{

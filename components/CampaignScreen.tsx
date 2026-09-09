@@ -5,7 +5,6 @@ import {
   EventBus,
   BaseGame,
   StoryGraph,
-  StoryNode,
   StoryChoice,
   GameDefinitionRegistry,
   CampaignSaveManager,
@@ -13,10 +12,11 @@ import {
   ArcadeKernel,
   ArcadeState,
   MiniGameResult,
-  OutcomeRuleEngine,
-  StoryEffectApplier,
   StoryEffect,
-  RandomService
+  RandomService,
+  ArcadeOrchestrator,
+  MiniGameEncounterRegistry,
+  MiniGameRunContext
 } from "@tiny-aster/core";
 import {
   asteroidsPOCEncounter,
@@ -27,6 +27,7 @@ import {
 } from "../src/games/shared/story/StoryEncounters";
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
+import { useTranslation } from "../src/hooks/useTranslation";
 import { CanvasRenderer } from "./CanvasRenderer";
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
 import { applyEndingRewards } from "../src/games/shared/story/EndingRewards";
@@ -61,6 +62,27 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   arcadeKernel: customArcadeKernel,
   onError
 }) => {
+  const { t } = useTranslation();
+
+  // Helper to safely resolve localized text keys or fallback gracefully
+  const getLocalizedText = useCallback((key?: string): string => {
+    if (!key) return "";
+    const parts = key.split(".");
+    if (parts.length > 1) {
+      let curr: any = t;
+      for (const part of parts) {
+        if (curr && typeof curr === "object" && part in curr) {
+          curr = curr[part];
+        } else {
+          return key;
+        }
+      }
+      return typeof curr === "string" ? curr : key;
+    }
+    const campaignDict = (t as any)?.campaign || {};
+    return campaignDict[key] || key;
+  }, [t]);
+
   // Ensure default campaign games and game definitions are registered on mount
   useEffect(() => {
     registerDefaultCampaignGames();
@@ -91,6 +113,27 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     saveManagerRef.current = customSaveManager ?? new CampaignSaveManager();
   }
 
+  const encounterRegistryRef = useRef<MiniGameEncounterRegistry | null>(null);
+  if (!encounterRegistryRef.current) {
+    const registry = new MiniGameEncounterRegistry();
+    registry.register(asteroidsPOCEncounter);
+    registry.register(spaceInvadersPOCEncounter);
+    registry.register(flappyBirdPOCEncounter);
+    registry.register(asteroidsReduxPOCEncounter);
+    registry.register(spaceInvadersReduxPOCEncounter);
+    encounterRegistryRef.current = registry;
+  }
+
+  const arcadeOrchestratorRef = useRef<ArcadeOrchestrator | null>(null);
+  if (!arcadeOrchestratorRef.current) {
+    arcadeOrchestratorRef.current = new ArcadeOrchestrator({
+      runtime: runtimeRef.current!,
+      kernel: sharedKernelRef.current!
+    });
+  }
+
+  const activeRunContextRef = useRef<MiniGameRunContext | null>(null);
+
   const [activeGame, setActiveGame] = useState<BaseGame | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string>("Initializing Campaign...");
@@ -116,11 +159,8 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const currentGameRef = useRef<BaseGame | null>(null);
   currentGameRef.current = activeGame;
 
-  const ruleEngineRef = useRef<OutcomeRuleEngine>(new OutcomeRuleEngine());
-  const effectApplierRef = useRef<StoryEffectApplier>(new StoryEffectApplier());
-
   /**
-   * Submits gameplay outcome results, applies narrative effects, updates story variables,
+   * Submits gameplay outcome results via ArcadeOrchestrator, updates story variables,
    * completes current node objective, and advances narrative transitions.
    */
   const handleGameplayResult = useCallback((result: MiniGameResult) => {
@@ -129,24 +169,12 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
     setLastResult(result);
 
-    // 1. Determine encounter and evaluate outcome rules
-    const currentNode = runtime.getCurrentNode();
-    let outcomeRules = asteroidsPOCEncounter.outcomeRules;
-    if (result.gameId === "space-invaders") {
-      outcomeRules = currentNode?.meta?.encounterId === "poc-spaceinvaders-redux-1"
-        ? spaceInvadersReduxPOCEncounter.outcomeRules
-        : spaceInvadersPOCEncounter.outcomeRules;
-    } else if (result.gameId === "flappybird") {
-      outcomeRules = flappyBirdPOCEncounter.outcomeRules;
-    } else if (currentNode?.meta?.encounterId === "poc-asteroids-redux-1") {
-      outcomeRules = asteroidsReduxPOCEncounter.outcomeRules;
-    }
-
-    const effects = ruleEngineRef.current.evaluate(result, outcomeRules);
-    effectApplierRef.current.applyEffects(runtime, effects);
+    // 1. Submit result to single pipeline ArcadeOrchestrator (evaluates rules + applies effects)
+    const effects = arcadeOrchestratorRef.current?.submitResult(result) ?? [];
     setLastAppliedEffects(effects);
 
     // 2. Complete objective for current gameplay node upon minigame conclusion
+    const currentNode = runtime.getCurrentNode();
     if (currentNode?.objective) {
       runtime.applyEffect({
         type: "completeObjective",
@@ -182,7 +210,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
   /**
    * Switches the active minigame by resolving the target gameId via GameDefinitionRegistry
-   * and instantiating the BaseGame simulation instance.
+   * and instantiating the BaseGame simulation instance with narrative modifiers.
    */
   const switchGame = useCallback(async (gameId: string, overrideSeed?: number) => {
     setIsLoading(true);
@@ -194,6 +222,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         currentGameRef.current.destroy();
         setActiveGame(null);
       }
+      arcadeOrchestratorRef.current?.reset();
 
       let newGame: BaseGame;
       const normalizedId = GameDefinitionRegistry.normalizeId(gameId);
@@ -204,11 +233,41 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       activeGameIdRef.current = gameId;
       activeGameSeedRef.current = seed;
 
+      const runtime = runtimeRef.current;
+      const activeNode = runtime?.getCurrentNode();
+      const snapshot = runtime?.getState() ?? {
+        graphId: null,
+        currentNodeId: null,
+        flags: {},
+        variables: {},
+        selectedChoices: [],
+        objectives: {},
+        history: []
+      };
+
+      // Resolve encounter definition from registry without hardcoded if/else logic
+      const encounterIdMeta = typeof activeNode?.meta?.encounterId === "string" ? activeNode.meta.encounterId : undefined;
+      const encounter = encounterRegistryRef.current!.resolve(normalizedId, encounterIdMeta);
+
+      // Start run in ArcadeOrchestrator to calculate narrative modifiers via MiniGameModifierResolver
+      const runContext = arcadeOrchestratorRef.current!.startRun(
+        encounter,
+        snapshot,
+        activeNode?.id,
+        seed
+      );
+      activeRunContextRef.current = runContext;
+
       const definition = GameDefinitionRegistry.resolve(normalizedId);
-      // Create pure simulation instance passing seed and shared campaign kernel
-      newGame = definition.createSimulation(seed) as BaseGame;
+      // Create simulation passing seed, shared campaign kernel, and narrative modifiers
+      newGame = definition.createSimulation(seed, {
+        modifiers: runContext.modifiers,
+        gameOptions: { seed }
+      }) as BaseGame;
 
       await newGame.init();
+
+      arcadeOrchestratorRef.current!.notifyPlaying();
 
       if (sharedKernelRef.current && sharedKernelRef.current.getState() !== ArcadeState.PLAYING) {
         try {
@@ -231,6 +290,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       console.error("[CampaignScreen] Failed to switch game:", err);
       const errorObj = err instanceof Error ? err : new Error(String(err));
       setLoadError({ error: errorObj, gameId, seed: overrideSeed });
+      arcadeOrchestratorRef.current?.reportError(errorObj);
       if (onError) {
         onError(errorObj);
       }
@@ -256,28 +316,31 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       }
     });
 
-    // Handle minigame completion via game:over event
-    const unsubGameOver = eventBus.on("game:over", (payload: any) => {
+    // Handle minigame completion via game:over event using real MiniGameResult
+    const unsubGameOver = eventBus.on("game:over", () => {
       if (!isSubscribed) return;
 
       const currentGame = currentGameRef.current;
       const activeGameId = activeGameIdRef.current || "asteroids";
-      const statePayload = payload?.state || (currentGame ? currentGame.getGameState() : undefined);
-      const score = payload?.score ?? statePayload?.score ?? 0;
-      const isGameOver = statePayload?.isGameOver ?? true;
-      const isVictory = statePayload?.isVictory ?? statePayload?.victory ?? (score >= 1000);
+      const activeRunContext = activeRunContextRef.current;
 
-      const durationMs = Math.max(0, Date.now() - sessionStartTimeRef.current);
-
-      const result: MiniGameResult = {
-        runId: `run_${Date.now()}`,
-        gameId: GameDefinitionRegistry.normalizeId(activeGameId),
-        score,
-        completed: isVictory || !isGameOver,
-        durationMs,
-        metrics: statePayload?.metrics || {},
-        secretsFound: []
-      };
+      let result: MiniGameResult;
+      if (currentGame && typeof currentGame.getMiniGameResult === "function") {
+        result = currentGame.getMiniGameResult({
+          runId: activeRunContext?.runId,
+          gameId: GameDefinitionRegistry.normalizeId(activeGameId)
+        });
+      } else {
+        result = {
+          runId: activeRunContext?.runId || `run_${Date.now()}`,
+          gameId: GameDefinitionRegistry.normalizeId(activeGameId),
+          score: 0,
+          completed: false,
+          durationMs: Math.max(0, Date.now() - sessionStartTimeRef.current),
+          metrics: {},
+          secretsFound: []
+        };
+      }
 
       handleGameplayResult(result);
     });
@@ -314,6 +377,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   // Restart campaign handler
   const handleRestartCampaign = useCallback(() => {
     if (graph && runtimeRef.current) {
+      arcadeOrchestratorRef.current?.reset();
       runtimeRef.current.loadGraph(graph, true);
       const entryNode = runtimeRef.current.getCurrentNode();
       const sceneFromMeta = typeof entryNode?.meta?.sceneToLoad === "string" ? entryNode.meta.sceneToLoad : undefined;
@@ -321,6 +385,26 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       switchGame(initialScene);
     }
   }, [graph, defaultGameId, switchGame]);
+
+  // Retry minigame handler with checkpoint restoration
+  const handleRetryMinigame = useCallback(() => {
+    if (!loadError) return;
+    const runtime = runtimeRef.current;
+    const activeNode = runtime?.getCurrentNode();
+
+    // Restore checkpoint if specified on current node
+    const checkpointId = typeof activeNode?.meta?.checkpointId === "string"
+      ? activeNode.meta.checkpointId
+      : activeNode?.checkpoint && activeNode?.id
+        ? activeNode.id
+        : undefined;
+
+    if (checkpointId) {
+      runtime?.forkAt(checkpointId);
+    }
+
+    switchGame(loadError.gameId, loadError.seed);
+  }, [loadError, switchGame]);
 
   // Save campaign state handler
   const handleSave = useCallback(async () => {
@@ -334,14 +418,14 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
           activeGameSeed: activeGameSeedRef.current || undefined
         }
       );
-      setStatusMessage("Campaign Saved Successfully!");
+      setStatusMessage(getLocalizedText("campaign.save_success") || "Campaign Saved Successfully!");
     } catch (err: unknown) {
       console.error("[CampaignScreen] Save failed:", err);
       if (onError) {
         onError(err instanceof Error ? err : new Error(String(err)));
       }
     }
-  }, [slotId, onError]);
+  }, [slotId, getLocalizedText, onError]);
 
   // Load campaign state handler
   const handleLoad = useCallback(async () => {
@@ -353,12 +437,13 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       );
 
       if (envelope) {
+        arcadeOrchestratorRef.current?.reset();
         const runtime = runtimeRef.current!;
         const restoredNode = runtime.getCurrentNode();
         const sceneFromMeta = typeof restoredNode?.meta?.sceneToLoad === "string" ? restoredNode.meta.sceneToLoad : undefined;
         const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || sceneFromMeta || defaultGameId;
         await switchGame(targetGame, envelope.activeGameSeed);
-        setStatusMessage("Campaign Loaded Successfully!");
+        setStatusMessage(getLocalizedText("campaign.load_success") || "Campaign Loaded Successfully!");
       }
     } catch (err: unknown) {
       console.error("[CampaignScreen] Load failed:", err);
@@ -366,7 +451,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         onError(err instanceof Error ? err : new Error(String(err)));
       }
     }
-  }, [slotId, defaultGameId, switchGame, onError]);
+  }, [slotId, defaultGameId, switchGame, getLocalizedText, onError]);
 
   return (
     <View style={styles.container}>
@@ -378,7 +463,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         />
       ) : (
         <View style={styles.placeholderContainer}>
-          <Text style={styles.placeholderText}>No Active Game Loaded</Text>
+          <Text style={styles.placeholderText}>
+            {getLocalizedText("campaign.no_game_loaded") || "No Active Game Loaded"}
+          </Text>
         </View>
       )}
 
@@ -393,31 +480,48 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       {/* Error Retry Overlay */}
       {loadError && !isLoading && (
         <View style={styles.errorOverlay}>
-          <Text style={styles.errorTitle}>⚠️ Error al cargar minijuego</Text>
+          <Text style={styles.errorTitle}>
+            ⚠️ {getLocalizedText("campaign.error_loading") || "Error loading minigame"}
+          </Text>
           <Text style={styles.errorMessage}>{loadError.error.message}</Text>
           <TouchableOpacity
             style={styles.retryButton}
-            onPress={() => switchGame(loadError.gameId, loadError.seed)}
+            onPress={handleRetryMinigame}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={getLocalizedText("campaign.retry") || "Retry"}
+            accessibilityHint="Restores narrative checkpoint and retries minigame"
           >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text style={styles.retryButtonText}>
+              {getLocalizedText("campaign.retry") || "Reintentar"}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Narrative Dialogue & Choices Overlay Layer */}
+      {/* Narrative Dialogue, Cutscene & Choices Overlay Layer */}
       {currentNode && !isEndNode && (
         <View style={styles.narrativeOverlay}>
           {currentNode.title && (
             <Text style={styles.nodeTitle}>{currentNode.title}</Text>
           )}
 
+          {/* Dialogue Lines */}
           {currentNode.dialogue?.lines?.map((line, idx) => (
             <Text key={line.id || `line_${idx}`} style={styles.dialogueText}>
               {line.speakerName ? `${line.speakerName}: ` : ""}
-              {line.textKey}
+              {getLocalizedText(line.textKey)}
             </Text>
           ))}
+
+          {/* Cutscene Dialogue Lines */}
+          {currentNode.type === "cutscene" &&
+            currentNode.cutscene?.dialogueQueue?.map((line, idx) => (
+              <Text key={`cs_${idx}`} style={styles.cutsceneDialogue}>
+                {line.speakerName ? `${line.speakerName}: ` : ""}
+                {getLocalizedText(line.textKey)}
+              </Text>
+            ))}
 
           {/* Available Narrative Choices */}
           <View style={styles.choicesContainer}>
@@ -427,10 +531,13 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
                 style={styles.choiceButton}
                 onPress={() => handleSelectChoice(choice.id)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={getLocalizedText(choice.titleKey)}
+                accessibilityHint={choice.descriptionKey ? getLocalizedText(choice.descriptionKey) : undefined}
               >
-                <Text style={styles.choiceText}>{choice.titleKey}</Text>
+                <Text style={styles.choiceText}>{getLocalizedText(choice.titleKey)}</Text>
                 {choice.descriptionKey && (
-                  <Text style={styles.choiceSubtext}>{choice.descriptionKey}</Text>
+                  <Text style={styles.choiceSubtext}>{getLocalizedText(choice.descriptionKey)}</Text>
                 )}
               </TouchableOpacity>
             ))}
@@ -441,19 +548,32 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       {/* Terminal Node / Campaign Completion Overlay */}
       {isEndNode && currentNode && (
         <View style={styles.endNodeOverlay}>
-          <Text style={styles.endNodeTitle}>🏆 Campaign Completed</Text>
+          <Text style={styles.endNodeTitle}>
+            🏆 {getLocalizedText("campaign.completed_title") || "Campaign Completed"}
+          </Text>
           {currentNode.dialogue?.lines?.map((line, idx) => (
             <Text key={line.id || `line_${idx}`} style={styles.dialogueText}>
               {line.speakerName ? `${line.speakerName}: ` : ""}
-              {line.textKey}
+              {getLocalizedText(line.textKey)}
+            </Text>
+          ))}
+          {currentNode.cutscene?.dialogueQueue?.map((line, idx) => (
+            <Text key={`end_cs_${idx}`} style={styles.cutsceneDialogue}>
+              {line.speakerName ? `${line.speakerName}: ` : ""}
+              {getLocalizedText(line.textKey)}
             </Text>
           ))}
           <TouchableOpacity
             style={styles.restartButton}
             onPress={handleRestartCampaign}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
+            accessibilityHint="Restarts campaign from initial story graph entry node"
           >
-            <Text style={styles.restartButtonText}>Restart Campaign</Text>
+            <Text style={styles.restartButtonText}>
+              {getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -463,16 +583,41 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         <TouchableOpacity
           style={styles.toolbarButton}
           onPress={() => setShowDashboard(!showDashboard)}
+          accessibilityRole="button"
+          accessibilityLabel={
+            showDashboard
+              ? getLocalizedText("campaign.hide_debug") || "Hide Debug"
+              : getLocalizedText("campaign.debug_narrative") || "Narrative Debug"
+          }
+          accessibilityHint="Toggles the narrative introspection debug panel"
         >
           <Text style={styles.toolbarText}>
-            {showDashboard ? "Hide Debug" : "📖 Narrative Debug"}
+            {showDashboard
+              ? `📖 ${getLocalizedText("campaign.hide_debug") || "Hide Debug"}`
+              : `📖 ${getLocalizedText("campaign.debug_narrative") || "Narrative Debug"}`}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.toolbarButton} onPress={handleSave}>
-          <Text style={styles.toolbarText}>Save</Text>
+        <TouchableOpacity
+          style={styles.toolbarButton}
+          onPress={handleSave}
+          accessibilityRole="button"
+          accessibilityLabel={getLocalizedText("campaign.save") || "Save"}
+          accessibilityHint="Saves current campaign progression"
+        >
+          <Text style={styles.toolbarText}>
+            {getLocalizedText("campaign.save") || "Save"}
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.toolbarButton} onPress={handleLoad}>
-          <Text style={styles.toolbarText}>Load</Text>
+        <TouchableOpacity
+          style={styles.toolbarButton}
+          onPress={handleLoad}
+          accessibilityRole="button"
+          accessibilityLabel={getLocalizedText("campaign.load") || "Load"}
+          accessibilityHint="Loads saved campaign progression"
+        >
+          <Text style={styles.toolbarText}>
+            {getLocalizedText("campaign.load") || "Load"}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -540,6 +685,13 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 14,
     marginBottom: 6,
+    lineHeight: 20,
+  },
+  cutsceneDialogue: {
+    color: "#88eeff",
+    fontSize: 14,
+    marginBottom: 6,
+    fontStyle: "italic",
     lineHeight: 20,
   },
   choicesContainer: {

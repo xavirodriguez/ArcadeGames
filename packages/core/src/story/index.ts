@@ -1,5 +1,6 @@
 export * from "./StoryTypes";
 export * from "./ArcadeIntegrationTypes";
+export * from "./MiniGameEncounterRegistry";
 export * from "./StoryRuntime";
 export * from "./MiniGameModifierResolver";
 export * from "./OutcomeRuleEngine";

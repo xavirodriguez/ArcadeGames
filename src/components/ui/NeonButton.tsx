@@ -1,7 +1,7 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from "react-native";
-import { colors, typography, radius, spacing, effects } from "@/theme";
-import { usePressedButton } from "@/hooks/usePressedButton";
+import { colors, typography, radius, spacing, effects } from "../../theme";
+import { usePressedButton } from "../../hooks/usePressedButton";
 
 interface NeonButtonProps {
   children: string;

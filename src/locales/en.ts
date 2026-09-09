@@ -50,6 +50,11 @@ export const en = {
     hide_debug: "Hide Debug",
     save: "Save",
     load: "Load",
+    heroic_active: "⚔️ HEROIC MODE ACTIVE",
+    tactical_active: "🛡️ TACTICAL ASSIST ACTIVE",
+    shield_boost: "🛡️ SHIELD BOOST",
+    extra_lives_active: "❤️ EXTRA LIVES BONUS",
+    objective: "OBJECTIVE",
   },
   asteroids: {
     instructions: "↑ Thrust  ←→ Rotate  Space Shoot  Shift Hyperspace",

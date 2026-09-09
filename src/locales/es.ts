@@ -50,6 +50,11 @@ export const es = {
     hide_debug: "Ocultar Depuración",
     save: "Guardar",
     load: "Cargar",
+    heroic_active: "⚔️ MODO HEROICO ACTIVO",
+    tactical_active: "🛡️ ASISTENCIA TÁCTICA ACTIVA",
+    shield_boost: "🛡️ MEJORA DE ESCUDO",
+    extra_lives_active: "❤️ BONO DE VIDAS EXTRA",
+    objective: "OBJETIVO",
   },
   asteroids: {
     instructions: "↑ Empujar  ←→ Rotar  Espacio Disparar  Shift Hiperspacio",

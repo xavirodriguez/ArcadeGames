@@ -16,7 +16,8 @@ import {
   RandomService,
   ArcadeOrchestrator,
   MiniGameEncounterRegistry,
-  MiniGameRunContext
+  MiniGameRunContext,
+  MidGameNarrativeDirector
 } from "@tiny-aster/core";
 import {
   asteroidsPOCEncounter,
@@ -31,6 +32,10 @@ import { useTranslation } from "../src/hooks/useTranslation";
 import { CanvasRenderer } from "./CanvasRenderer";
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
 import { applyEndingRewards } from "../src/games/shared/story/EndingRewards";
+import { DialogueBoxComponent } from "../src/components/ui/DialogueBoxComponent";
+import { NeonButton } from "../src/components/ui/NeonButton";
+import { colors } from "../src/theme/colors";
+import { spacing } from "../src/theme/spacing";
 
 export interface CampaignScreenProps {
   /** Initial StoryGraph asset to start campaign. */
@@ -101,6 +106,11 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const runtimeRef = useRef<StoryRuntime | null>(null);
   if (!runtimeRef.current) {
     runtimeRef.current = new StoryRuntime();
+  }
+
+  const midGameDirectorRef = useRef<MidGameNarrativeDirector | null>(null);
+  if (!midGameDirectorRef.current) {
+    midGameDirectorRef.current = new MidGameNarrativeDirector();
   }
 
   const metaServiceRef = useRef<MetaProgressionService | null>(null);
@@ -199,7 +209,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   }, []);
 
   // Reactively synchronized StoryRuntime state hook
-  const { currentNode } = useStoryRuntime(runtimeRef.current, eventBusRef.current);
+  const { currentNode, flags } = useStoryRuntime(runtimeRef.current, eventBusRef.current);
   const availableChoices: StoryChoice[] = currentNode?.choices || [];
   const isEndNode = Boolean(
     currentNode &&
@@ -235,7 +245,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
       const runtime = runtimeRef.current;
       const activeNode = runtime?.getCurrentNode();
-      const snapshot = runtime?.getState() ?? {
+      const currentSnapshot = runtime?.getState() ?? {
         graphId: null,
         currentNodeId: null,
         flags: {},
@@ -252,7 +262,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       // Start run in ArcadeOrchestrator to calculate narrative modifiers via MiniGameModifierResolver
       const runContext = arcadeOrchestratorRef.current!.startRun(
         encounter,
-        snapshot,
+        currentSnapshot,
         activeNode?.id,
         seed
       );
@@ -262,7 +272,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       // Create simulation passing seed, shared campaign kernel, and narrative modifiers
       newGame = definition.createSimulation(seed, {
         modifiers: runContext.modifiers,
-        gameOptions: { seed }
+        gameOptions: { seed, modifiers: runContext.modifiers }
       }) as BaseGame;
 
       await newGame.init();
@@ -304,8 +314,10 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     let isSubscribed = true;
     const eventBus = eventBusRef.current!;
     const runtime = runtimeRef.current!;
+    const midGameDirector = midGameDirectorRef.current!;
 
     runtime.bindEventBus(eventBus);
+    midGameDirector.bindEventBus(eventBus, runtime);
 
     // Handle scene / gameplay change requests from story runtime
     const unsubScene = eventBus.on("story:scene_change", (data: { sceneToLoad?: unknown; gameId?: unknown }) => {
@@ -341,6 +353,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
           secretsFound: []
         };
       }
+
+      // Allow MidGameNarrativeDirector to process performance variables
+      midGameDirector.processMiniGameResult(result, runtime);
 
       handleGameplayResult(result);
     });
@@ -453,6 +468,15 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     }
   }, [slotId, defaultGameId, switchGame, getLocalizedText, onError]);
 
+  // Cutscene or dialogue queue assembly
+  const activeCutsceneQueue = currentNode?.type === "cutscene"
+    ? currentNode.cutscene?.dialogueQueue
+    : undefined;
+
+  const activeDialogueQueue = currentNode?.type === "dialogue" && currentNode.dialogue?.lines
+    ? currentNode.dialogue.lines
+    : undefined;
+
   return (
     <View style={styles.container}>
       {/* Active Minigame Rendering Layer */}
@@ -472,7 +496,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       {/* Loading Overlay */}
       {isLoading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#00ffcc" />
+          <ActivityIndicator size="large" color={colors.cyan} />
           <Text style={styles.loadingText}>{statusMessage}</Text>
         </View>
       )}
@@ -484,18 +508,14 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
             ⚠️ {getLocalizedText("campaign.error_loading") || "Error loading minigame"}
           </Text>
           <Text style={styles.errorMessage}>{loadError.error.message}</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
+          <NeonButton
+            variant="pink"
             onPress={handleRetryMinigame}
-            activeOpacity={0.8}
-            accessibilityRole="button"
             accessibilityLabel={getLocalizedText("campaign.retry") || "Retry"}
             accessibilityHint="Restores narrative checkpoint and retries minigame"
           >
-            <Text style={styles.retryButtonText}>
-              {getLocalizedText("campaign.retry") || "Reintentar"}
-            </Text>
-          </TouchableOpacity>
+            {getLocalizedText("campaign.retry") || "Reintentar"}
+          </NeonButton>
         </View>
       )}
 
@@ -503,43 +523,77 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       {currentNode && !isEndNode && (
         <View style={styles.narrativeOverlay}>
           {currentNode.title && (
-            <Text style={styles.nodeTitle}>{currentNode.title}</Text>
+            <Text style={styles.nodeTitle}>{getLocalizedText(currentNode.title)}</Text>
           )}
 
-          {/* Dialogue Lines */}
-          {currentNode.dialogue?.lines?.map((line, idx) => (
-            <Text key={line.id || `line_${idx}`} style={styles.dialogueText}>
-              {line.speakerName ? `${line.speakerName}: ` : ""}
-              {getLocalizedText(line.textKey)}
-            </Text>
-          ))}
-
-          {/* Cutscene Dialogue Lines */}
-          {currentNode.type === "cutscene" &&
-            currentNode.cutscene?.dialogueQueue?.map((line, idx) => (
-              <Text key={`cs_${idx}`} style={styles.cutsceneDialogue}>
-                {line.speakerName ? `${line.speakerName}: ` : ""}
-                {getLocalizedText(line.textKey)}
-              </Text>
+          {/* Active State Badges */}
+          <View style={styles.badgeContainer}>
+            {flags?.heroicEntry === true && (
+              <View style={styles.stateBadge}>
+                <Text style={styles.badgeText}>
+                  {getLocalizedText("campaign.heroic_active") || "⚔️ MODO HEROICO ACTIVO"}
+                </Text>
+              </View>
+            )}
+            {flags?.heroicEntry === false && (
+              <View style={[styles.stateBadge, { borderColor: colors.blue }]}>
+                <Text style={[styles.badgeText, { color: colors.blueLight }]}>
+                  {getLocalizedText("campaign.tactical_active") || "🛡️ ASISTENCIA TÁCTICA ACTIVA"}
+                </Text>
+              </View>
+            )}
+            {activeRunContextRef.current?.modifiers?.map((mod) => (
+              <View key={mod.id} style={[styles.stateBadge, { borderColor: colors.green }]}>
+                <Text style={[styles.badgeText, { color: colors.green }]}>
+                  ⚡ {mod.name || mod.targetProperty}
+                </Text>
+              </View>
             ))}
+          </View>
+
+          {/* Active Objective Box */}
+          {currentNode.objective && (
+            <View style={styles.objectiveBox}>
+              <Text style={styles.objectiveTitle}>
+                🎯 {getLocalizedText(currentNode.objective.titleKey)}
+              </Text>
+              <Text style={styles.objectiveProgress}>
+                {currentNode.objective.currentCount} / {currentNode.objective.targetCount}
+              </Text>
+            </View>
+          )}
+
+          {/* Typewriter Dialogue Box for Cutscene */}
+          {activeCutsceneQueue && activeCutsceneQueue.length > 0 && (
+            <DialogueBoxComponent
+              dialogueQueue={activeCutsceneQueue}
+              getLocalizedText={getLocalizedText}
+              onComplete={() => runtimeRef.current?.evaluateTransitions()}
+            />
+          )}
+
+          {/* Typewriter Dialogue Box for Dialogue */}
+          {activeDialogueQueue && activeDialogueQueue.length > 0 && (
+            <DialogueBoxComponent
+              dialogueQueue={activeDialogueQueue}
+              getLocalizedText={getLocalizedText}
+            />
+          )}
 
           {/* Available Narrative Choices */}
           <View style={styles.choicesContainer}>
             {availableChoices.map((choice) => (
-              <TouchableOpacity
+              <NeonButton
                 key={choice.id}
-                style={styles.choiceButton}
+                variant="cyan"
+                bordered
                 onPress={() => handleSelectChoice(choice.id)}
-                activeOpacity={0.8}
-                accessibilityRole="button"
                 accessibilityLabel={getLocalizedText(choice.titleKey)}
                 accessibilityHint={choice.descriptionKey ? getLocalizedText(choice.descriptionKey) : undefined}
+                style={styles.choiceButton}
               >
-                <Text style={styles.choiceText}>{getLocalizedText(choice.titleKey)}</Text>
-                {choice.descriptionKey && (
-                  <Text style={styles.choiceSubtext}>{getLocalizedText(choice.descriptionKey)}</Text>
-                )}
-              </TouchableOpacity>
+                {getLocalizedText(choice.titleKey)}
+              </NeonButton>
             ))}
           </View>
         </View>
@@ -563,18 +617,15 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
               {getLocalizedText(line.textKey)}
             </Text>
           ))}
-          <TouchableOpacity
-            style={styles.restartButton}
+          <NeonButton
+            variant="green"
             onPress={handleRestartCampaign}
-            activeOpacity={0.8}
-            accessibilityRole="button"
             accessibilityLabel={getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
             accessibilityHint="Restarts campaign from initial story graph entry node"
+            style={styles.restartButton}
           >
-            <Text style={styles.restartButtonText}>
-              {getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
-            </Text>
-          </TouchableOpacity>
+            {getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
+          </NeonButton>
         </View>
       )}
 
@@ -638,169 +689,171 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: colors.background,
   },
   placeholderContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#050510",
+    backgroundColor: colors.backgroundDark,
   },
   placeholderText: {
-    color: "#666",
+    color: colors.textMuted,
     fontSize: 16,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    backgroundColor: colors.overlay,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 100,
   },
   loadingText: {
-    color: "#00ffcc",
-    marginTop: 12,
+    color: colors.cyan,
+    marginTop: spacing.md,
     fontSize: 14,
     fontWeight: "bold",
   },
   narrativeOverlay: {
     position: "absolute",
     bottom: 40,
-    left: 20,
-    right: 20,
-    backgroundColor: "rgba(10, 15, 30, 0.9)",
-    borderColor: "#00ffcc",
+    left: spacing.lg,
+    right: spacing.lg,
+    backgroundColor: "rgba(10, 15, 30, 0.92)",
+    borderColor: colors.cyan,
     borderWidth: 1,
     borderRadius: 8,
-    padding: 16,
+    padding: spacing.md,
     zIndex: 50,
   },
   nodeTitle: {
-    color: "#00ffcc",
+    color: colors.cyan,
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: spacing.xs,
+  },
+  badgeContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    marginVertical: spacing.xs,
+  },
+  stateBadge: {
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+    borderColor: colors.cyan,
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingVertical: 2,
+    paddingHorizontal: spacing.xs,
+  },
+  badgeText: {
+    color: colors.cyan,
+    fontSize: 11,
+    fontWeight: "bold",
+  },
+  objectiveBox: {
+    backgroundColor: "rgba(255, 215, 0, 0.1)",
+    borderColor: colors.gold,
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: spacing.xs,
+    marginVertical: spacing.xs,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  objectiveTitle: {
+    color: colors.gold,
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  objectiveProgress: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: "600",
   },
   dialogueText: {
-    color: "#ffffff",
+    color: colors.white,
     fontSize: 14,
-    marginBottom: 6,
+    marginBottom: spacing.xs,
     lineHeight: 20,
   },
   cutsceneDialogue: {
-    color: "#88eeff",
+    color: colors.cyan,
     fontSize: 14,
-    marginBottom: 6,
+    marginBottom: spacing.xs,
     fontStyle: "italic",
     lineHeight: 20,
   },
   choicesContainer: {
-    marginTop: 12,
-    gap: 8,
+    marginTop: spacing.sm,
+    gap: spacing.xs,
   },
   choiceButton: {
-    backgroundColor: "rgba(0, 255, 204, 0.15)",
-    borderColor: "#00ffcc",
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  choiceText: {
-    color: "#00ffcc",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  choiceSubtext: {
-    color: "#88ccff",
-    fontSize: 12,
-    marginTop: 2,
+    minWidth: "100%",
+    paddingVertical: spacing.sm,
   },
   toolbar: {
     position: "absolute",
     top: 20,
     right: 20,
     flexDirection: "row",
-    gap: 10,
+    gap: spacing.xs,
     zIndex: 60,
   },
   toolbarButton: {
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    borderColor: "#00ffcc",
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    borderColor: colors.cyan,
     borderWidth: 1,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     borderRadius: 4,
   },
   toolbarText: {
-    color: "#00ffcc",
+    color: colors.cyan,
     fontSize: 12,
     fontWeight: "bold",
   },
   endNodeOverlay: {
     position: "absolute",
     bottom: 40,
-    left: 20,
-    right: 20,
+    left: spacing.lg,
+    right: spacing.lg,
     backgroundColor: "rgba(20, 10, 35, 0.95)",
-    borderColor: "#ffcc00",
+    borderColor: colors.gold,
     borderWidth: 2,
     borderRadius: 8,
-    padding: 20,
+    padding: spacing.lg,
     alignItems: "center",
     zIndex: 70,
   },
   endNodeTitle: {
-    color: "#ffcc00",
+    color: colors.gold,
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: spacing.sm,
   },
   restartButton: {
-    marginTop: 16,
-    backgroundColor: "rgba(255, 204, 0, 0.2)",
-    borderColor: "#ffcc00",
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  restartButtonText: {
-    color: "#ffcc00",
-    fontSize: 14,
-    fontWeight: "bold",
+    marginTop: spacing.md,
   },
   errorOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(30, 5, 5, 0.95)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    padding: spacing.xl,
     zIndex: 110,
   },
   errorTitle: {
-    color: "#ff4444",
+    color: colors.red,
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: spacing.xs,
   },
   errorMessage: {
-    color: "#ffffff",
+    color: colors.white,
     fontSize: 14,
     textAlign: "center",
-    marginBottom: 20,
-  },
-  retryButton: {
-    backgroundColor: "rgba(255, 68, 68, 0.2)",
-    borderColor: "#ff4444",
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  retryButtonText: {
-    color: "#ff4444",
-    fontSize: 14,
-    fontWeight: "bold",
+    marginBottom: spacing.md,
   },
 });

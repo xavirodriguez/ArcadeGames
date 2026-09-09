@@ -15,6 +15,7 @@ import {
   asteroidsReduxPOCEncounter,
   spaceInvadersReduxPOCEncounter
 } from "./StoryEncounters";
+import { applyEndingRewards } from "./EndingRewards";
 
 /**
  * Controller class managing the Multi-Game Story Proof-of-Concept campaign session.
@@ -128,10 +129,7 @@ export class MultiGameStoryProofOfConcept {
       this.metaService.recordRunCompletion(newCurrentNode.id);
 
       // Unlock permanent campaign rewards from MutatorRegistry (BENEFICIAL_MUTATORS) for victories
-      if (newCurrentNode.id === "ending_flawless" || newCurrentNode.id === "ending_pyrrhic") {
-        this.metaService.unlockModifier("hyper_drift");
-        this.metaService.unlockModifier("shield_pulse");
-      }
+      applyEndingRewards(newCurrentNode.id, this.metaService);
     }
   }
 }

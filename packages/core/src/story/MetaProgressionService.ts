@@ -87,6 +87,11 @@ export class MetaProgressionService {
   private readonly storage: IMetaStorageProvider;
   private autoSave: boolean;
 
+  /**
+   * Indicates whether the most recent attempt to persist meta-progression state to storage failed.
+   */
+  public lastSaveFailed = false;
+
   constructor(
     initialState: MetaProgressionState = DEFAULT_META_PROGRESSION_STATE,
     storage?: IMetaStorageProvider,
@@ -151,8 +156,10 @@ export class MetaProgressionService {
   public async saveToStorage(): Promise<void> {
     try {
       await this.storage.setItem(this.storageKey, JSON.stringify(this.state));
-    } catch {
-      // Storage fallback
+      this.lastSaveFailed = false;
+    } catch (error) {
+      this.lastSaveFailed = true;
+      console.error("Failed to persist meta-progression state:", error);
     }
   }
 

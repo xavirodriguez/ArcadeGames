@@ -2437,6 +2437,7 @@ export class MetaProgressionService {
     incrementMiniGameMastery(gameId: string, amount?: number): Promise<void>;
     isAutoSaveEnabled(): boolean;
     isNewGamePlusUnlocked(): boolean;
+    lastSaveFailed: boolean;
     loadFromStorage(): Promise<MetaProgressionState>;
     loadState(state: MetaProgressionState): void;
     migrate(rawState: unknown): MetaProgressionState;

@@ -72,4 +72,35 @@ describe("MetaProgression & New Game+ Test Suite", () => {
     await service.unlockModifier("hyper_drift");
     expect(service.getState().unlockedModifiers.filter((m) => m === "hyper_drift").length).toBe(1);
   });
+
+  it("handles storage write errors gracefully and toggles lastSaveFailed flag", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const failingStorage = {
+      getItem: jest.fn(),
+      setItem: jest.fn().mockImplementation(() => {
+        throw new Error("Disk full or storage quota exceeded");
+      })
+    };
+
+    const service = new MetaProgressionService(undefined, failingStorage, false);
+    expect(service.lastSaveFailed).toBe(false);
+
+    await service.saveToStorage();
+
+    expect(service.lastSaveFailed).toBe(true);
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to persist meta-progression state:", expect.any(Error));
+
+    // Subsequent successful save clears the flag
+    const workingStorage = {
+      getItem: jest.fn(),
+      setItem: jest.fn()
+    };
+    const recoveringService = new MetaProgressionService(undefined, workingStorage, false);
+    recoveringService.lastSaveFailed = true;
+
+    await recoveringService.saveToStorage();
+    expect(recoveringService.lastSaveFailed).toBe(false);
+
+    consoleSpy.mockRestore();
+  });
 });

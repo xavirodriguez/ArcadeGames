@@ -15,7 +15,8 @@ import {
   MiniGameResult,
   OutcomeRuleEngine,
   StoryEffectApplier,
-  StoryEffect
+  StoryEffect,
+  RandomService
 } from "@tiny-aster/core";
 import {
   asteroidsPOCEncounter,
@@ -28,6 +29,7 @@ import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegist
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
 import { CanvasRenderer } from "./CanvasRenderer";
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
+import { applyEndingRewards } from "../src/games/shared/story/EndingRewards";
 
 export interface CampaignScreenProps {
   /** Initial StoryGraph asset to start campaign. */
@@ -99,6 +101,18 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
   const activeGameIdRef = useRef<string | null>(null);
   const activeGameSeedRef = useRef<number | null>(null);
+  const sessionStartTimeRef = useRef<number>(0);
+  const campaignPrngRef = useRef<RandomService | null>(null);
+  if (!campaignPrngRef.current) {
+    let seedValue = 0;
+    for (let i = 0; i < slotId.length; i++) {
+      seedValue = (seedValue << 5) - seedValue + slotId.charCodeAt(i);
+      seedValue |= 0;
+    }
+    const initialPrngSeed = Math.abs(seedValue) || 123456789;
+    campaignPrngRef.current = new RandomService(initialPrngSeed);
+  }
+
   const currentGameRef = useRef<BaseGame | null>(null);
   currentGameRef.current = activeGame;
 
@@ -152,10 +166,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     const newCurrentNode = runtime.getCurrentNode();
     if (newCurrentNode?.isEndNode && metaServiceRef.current) {
       metaServiceRef.current.recordRunCompletion(newCurrentNode.id);
-      if (newCurrentNode.id === "ending_flawless" || newCurrentNode.id === "ending_pyrrhic") {
-        metaServiceRef.current.unlockModifier("hyper_drift");
-        metaServiceRef.current.unlockModifier("shield_pulse");
-      }
+      applyEndingRewards(newCurrentNode.id, metaServiceRef.current);
     }
   }, []);
 
@@ -186,8 +197,10 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
       let newGame: BaseGame;
       const normalizedId = GameDefinitionRegistry.normalizeId(gameId);
-      const seed = overrideSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+      const seed = overrideSeed ?? campaignPrngRef.current!.nextInt(1, 0x7FFFFFFF);
+      console.log(`[CampaignScreen] Deterministic session seed generated for (${gameId}): ${seed}`);
 
+      sessionStartTimeRef.current = Date.now();
       activeGameIdRef.current = gameId;
       activeGameSeedRef.current = seed;
 
@@ -254,12 +267,14 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       const isGameOver = statePayload?.isGameOver ?? true;
       const isVictory = statePayload?.isVictory ?? statePayload?.victory ?? (score >= 1000);
 
+      const durationMs = Math.max(0, Date.now() - sessionStartTimeRef.current);
+
       const result: MiniGameResult = {
         runId: `run_${Date.now()}`,
         gameId: GameDefinitionRegistry.normalizeId(activeGameId),
         score,
         completed: isVictory || !isGameOver,
-        durationMs: 30000,
+        durationMs,
         metrics: statePayload?.metrics || {},
         secretsFound: []
       };

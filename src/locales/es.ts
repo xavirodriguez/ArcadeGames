@@ -10,6 +10,7 @@ export const es = {
     cyoa: "LA CUEVA // CYOA",
     blindstation: "LA ESTACIÓN CIEGA",
     platformer: "PLATAFORMAS // 2D",
+    frogger: "FROGGER // CROSSING",
     campaign: "CAMPAÑA HISTORIA (POC)",
     level: "NIVEL",
   },
@@ -93,6 +94,9 @@ export const es = {
     final_score: "Puntaje Final",
     syncing_level: "Cargando Nivel de Plataformas...",
   },
+  frogger: {
+    instructions: "W/A/S/D o Flechas: Saltar Arriba/Abajo/Izquierda/Derecha",
+  },
   mutators: {
     heavy_gravity: {
       name: "Gravedad Pesada",
@@ -121,6 +125,10 @@ export const es = {
     tiny_ship: {
       name: "Nave Enana",
       description: "Tu nave es la mitad de grande pero mucho más ágil.",
+    },
+    fast_traffic: {
+      name: "Tráfico Rápido",
+      description: "Los vehículos y troncos se mueven un 50% más rápido.",
     },
   },
   blindstation: {

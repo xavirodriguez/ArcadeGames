@@ -73,4 +73,28 @@ describe("SpaceInvadersGame Headless Mode", () => {
 
     game.destroy();
   });
+
+  it("should properly manage start, pause, resume, and stop lifecycle transitions", async () => {
+    const game = new SpaceInvadersGame({
+      headless: true,
+      isMultiplayer: false,
+      gameOptions: { seed: 1234 }
+    });
+
+    await game.init();
+    expect(game.getLifecycleState()).toBe(GameLifecycleState.RUNNING);
+
+    game.pause();
+    expect(game.getLifecycleState()).toBe(GameLifecycleState.PAUSED);
+    expect(game.isPausedState()).toBe(true);
+
+    game.resume();
+    expect(game.getLifecycleState()).toBe(GameLifecycleState.RUNNING);
+    expect(game.isPausedState()).toBe(false);
+
+    game.stop();
+    expect(game.getLifecycleState()).toBe(GameLifecycleState.STOPPED);
+
+    game.destroy();
+  });
 });

@@ -17,6 +17,7 @@ import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
 import { IAssetProvider } from "../assets/AssetLoader";
 import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
 import { Theme } from "../theme/Theme";
+import { MiniGameResult } from "../story/ArcadeIntegrationTypes";
 import { createDeferredEntity } from "../ecs/EntityHelpers";
 import { computeDebugManager, DebugManager } from "./DebugManager";
 import { calculateScreenConfig } from "./GamePresentationShell";
@@ -214,6 +215,7 @@ export abstract class BaseGame<
   public readonly kernel: ArcadeKernel;
   private boundStateChangedListener?: () => void;
   private boundGameOverListener?: () => void;
+  private sessionStartTimeMs: number = Date.now();
 
   /** Scene manager for data-driven scene lifecycle and narrative transitions. */
   public sceneManager: SceneManager<TComponents>;
@@ -464,6 +466,7 @@ export abstract class BaseGame<
     ) {
       return;
     }
+    this.sessionStartTimeMs = Date.now();
     this.lifecycleState = GameLifecycleState.RUNNING;
     this.loop.start();
     this.onStart();
@@ -792,6 +795,37 @@ export abstract class BaseGame<
    * Returns whether the game has reached a terminal game-over state.
    */
   public abstract isGameOver(): boolean;
+
+  /**
+   * Constructs a structured MiniGameResult payload from actual game state, metrics, secrets, and session duration.
+   *
+   * @param options - Optional runId and gameId overrides.
+   * @returns Real MiniGameResult payload.
+   */
+  public getMiniGameResult(options?: { runId?: string; gameId?: string }): MiniGameResult {
+    const gameState = (this.getGameState() as Record<string, unknown> | null) ?? {};
+    const score = typeof gameState.score === "number" ? gameState.score : 0;
+    const isGameOver = this.isGameOver();
+    const isVictory = Boolean(gameState.isVictory ?? gameState.victory ?? false);
+    const completed = isVictory || (!isGameOver && score > 0);
+    const durationMs = Math.max(0, Date.now() - this.sessionStartTimeMs);
+    const metrics = (gameState.metrics as Record<string, number> | undefined) ?? {};
+    const secretsFound = Array.isArray(gameState.unlockedSecrets)
+      ? (gameState.unlockedSecrets as string[])
+      : Array.isArray(gameState.secretsFound)
+        ? (gameState.secretsFound as string[])
+        : [];
+
+    return {
+      runId: options?.runId ?? `run_${Date.now()}`,
+      gameId: options?.gameId ?? "unknown",
+      score,
+      completed,
+      durationMs,
+      metrics,
+      secretsFound
+    };
+  }
 
   /**
    * Decoupled input bridge to set local action overrides in the unified input system.

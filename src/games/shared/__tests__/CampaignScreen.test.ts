@@ -74,4 +74,27 @@ describe("CampaignScreen Component & Resolver Tests", () => {
       }
     }
   });
+
+  it("verifies MidGameNarrativeDirector updates performance variables on StoryRuntime upon game:over", () => {
+    const { StoryRuntime, EventBus, MidGameNarrativeDirector } = require("@tiny-aster/core");
+    const runtime = new StoryRuntime(proofOfConceptStoryGraph);
+    const bus = new EventBus();
+    const director = new MidGameNarrativeDirector();
+    director.bindEventBus(bus, runtime);
+
+    bus.emit("game:over", {
+      runId: "run_test_1",
+      gameId: "asteroids",
+      score: 2500,
+      completed: true,
+      durationMs: 12000,
+      metrics: {},
+      secretsFound: []
+    });
+
+    const vars = runtime.getState().variables;
+    expect(vars.lastMinigameScore).toBe(2500);
+    expect(vars.lastMinigameCompleted).toBe(true);
+    expect(vars.playerPerformance).toBe("perfect");
+  });
 });

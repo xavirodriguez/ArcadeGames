@@ -4,12 +4,12 @@ import { Component } from "../ecs/Component";
  * Component representing active combo streak status, multiplier, and decay timer for an entity.
  *
  * @remarks
- * Used by {@link ComboSystem} to track continuous hit streaks, apply score/damage multipliers, and decrement
- * the combo timer over time. When {@link ComboComponent.timerRemaining} reaches 0, the combo streak decays
- * and resets (`combo = 0`, `multiplier = 1`).
+ * Used by `ComboSystem` to track continuous hit streaks, apply score/damage multipliers, and decrement
+ * the combo timer over time. When `timerRemaining` reaches 0, the combo streak decays and resets
+ * (`combo = 0`, `multiplier = 1`).
  *
- * Multiplier accumulation formula is typically managed by gameplay collision/scoring systems (e.g. `1 + combo * 0.1`
- * or exponential scaling), while {@link ComboSystem} handles the per-tick timer decay and reset sequence.
+ * Multiplier accumulation formula is typically managed by gameplay collision/scoring systems (e.g., `1 + combo * 0.1`
+ * or exponential scaling), while `ComboSystem` handles the per-tick timer decay and reset sequence.
  *
  * @example
  * ```ts

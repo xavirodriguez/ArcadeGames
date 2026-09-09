@@ -7,7 +7,7 @@ import { ComboComponent } from "../components/ComboComponent";
  * System that processes combo streak decay and reset timers across entities.
  *
  * @remarks
- * In each tick, {@link ComboSystem} queries entities with a {@link ComboComponent}.
+ * In each tick, `ComboSystem` queries entities with a `ComboComponent`.
  * If the world is paused (`IsPaused === true`) or an entity's combo timer has already expired (`timerRemaining <= 0`),
  * processing is skipped. Otherwise, `timerRemaining` is decremented by `deltaTime`. Upon reaching zero or below,
  * `timerRemaining` is capped at 0, the combo count is reset to 0, and the multiplier is reset to 1.

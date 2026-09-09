@@ -4,7 +4,30 @@ import { Shape } from "../physics/shapes/Shapes";
 import { CollisionLayer, CollisionMask, Collision } from "../physics/collision/CollisionTypes";
 import { World } from "./World";
 
-/** @public */
+/**
+ * Component storing 2D spatial position, rotation, scale, and hierarchical world-space transforms.
+ *
+ * @example
+ * ```ts
+ * const transform: TransformComponent = {
+ *   type: "Transform",
+ *   x: 100,
+ *   y: 150,
+ *   rotation: 0,
+ *   scaleX: 1,
+ *   scaleY: 1,
+ *   worldX: 100,
+ *   worldY: 150,
+ *   worldRotation: 0,
+ *   worldScaleX: 1,
+ *   worldScaleY: 1,
+ *   dirty: false
+ * };
+ * world.addComponent(entity, transform);
+ * ```
+ *
+ * @public
+ */
 export interface TransformComponent extends Component {
   /** Component discriminator type. */
   type: "Transform";
@@ -34,7 +57,22 @@ export interface TransformComponent extends Component {
   parentEntity?: Entity;
 }
 
-/** @public */
+/**
+ * Component storing linear velocity vector and angular velocity.
+ *
+ * @example
+ * ```ts
+ * const velocity: VelocityComponent = {
+ *   type: "Velocity",
+ *   vx: 50,
+ *   vy: -20,
+ *   angularVelocity: 0.5
+ * };
+ * world.addComponent(entity, velocity);
+ * ```
+ *
+ * @public
+ */
 export interface VelocityComponent extends Component {
   /** Component discriminator type. */
   type: "Velocity";
@@ -46,7 +84,20 @@ export interface VelocityComponent extends Component {
   angularVelocity: number;
 }
 
-/** @public */
+/**
+ * Component applying linear motion damping over time.
+ *
+ * @example
+ * ```ts
+ * const friction: FrictionComponent = {
+ *   type: "Friction",
+ *   value: 0.98
+ * };
+ * world.addComponent(entity, friction);
+ * ```
+ *
+ * @public
+ */
 export interface FrictionComponent extends Component {
   /** Component discriminator type. */
   type: "Friction";
@@ -54,7 +105,22 @@ export interface FrictionComponent extends Component {
   value: number;
 }
 
-/** @public */
+/**
+ * Component specifying playfield boundary constraints and out-of-bounds behavior.
+ *
+ * @example
+ * ```ts
+ * const boundary: BoundaryComponent = {
+ *   type: "Boundary",
+ *   width: 800,
+ *   height: 600,
+ *   mode: "wrap"
+ * };
+ * world.addComponent(entity, boundary);
+ * ```
+ *
+ * @public
+ */
 export interface BoundaryComponent extends Component {
   /** Component discriminator type. */
   type: "Boundary";
@@ -199,7 +265,27 @@ export interface IEntityPool {
   release(context: ReleaseContext): void;
 }
 
-/** @public */
+/**
+ * Component managing visual rendering parameters including visibility, color, opacity, Z-order, and hit flash effects.
+ *
+ * @example
+ * ```ts
+ * const render: RenderComponent = {
+ *   type: "Render",
+ *   visible: true,
+ *   opacity: 1.0,
+ *   order: 0,
+ *   rotation: 0,
+ *   angularVelocity: 0,
+ *   hitFlashFrames: 0,
+ *   color: "#ff0000",
+ *   size: 16
+ * };
+ * world.addComponent(entity, render);
+ * ```
+ *
+ * @public
+ */
 export interface RenderComponent extends Component {
   /** Component discriminator type. */
   type: "Render";
@@ -225,7 +311,21 @@ export interface RenderComponent extends Component {
   size?: number;
 }
 
-/** @public */
+/**
+ * Component tracking entity health points, maximum capacity, and temporary invulnerability duration.
+ *
+ * @example
+ * ```ts
+ * const health: HealthComponent = {
+ *   type: "Health",
+ *   current: 100,
+ *   max: 100
+ * };
+ * world.addComponent(entity, health);
+ * ```
+ *
+ * @public
+ */
 export interface HealthComponent extends Component {
   /** Component discriminator type. */
   type: "Health";
@@ -237,7 +337,21 @@ export interface HealthComponent extends Component {
   invulnerableRemaining?: number;
 }
 
-/** @public */
+/**
+ * Component storing snapshot input state mapping analog axes and button actions.
+ *
+ * @example
+ * ```ts
+ * const inputState: InputStateComponent = {
+ *   type: "InputState",
+ *   axes: { moveX: 1.0, moveY: 0.0 },
+ *   buttons: { shoot: true, jump: false }
+ * };
+ * world.addComponent(entity, inputState);
+ * ```
+ *
+ * @public
+ */
 export interface InputStateComponent extends Component {
   /** Component discriminator type. */
   type: "InputState";
@@ -301,7 +415,24 @@ export interface AnimatorComponent extends Component {
   frame: number;
 }
 
-/** @public */
+/**
+ * Component holding state machine execution context, current state name, timers, and arbitrary state data.
+ *
+ * @example
+ * ```ts
+ * const fsm: StateMachineComponent = {
+ *   type: "StateMachine",
+ *   currentState: "idle",
+ *   elapsedInState: 0,
+ *   data: {},
+ *   machineId: "player_fsm",
+ *   elapsedMs: 0
+ * };
+ * world.addComponent(entity, fsm);
+ * ```
+ *
+ * @public
+ */
 export interface StateMachineComponent extends Component {
   /** Component discriminator type. */
   type: "StateMachine";
@@ -367,7 +498,20 @@ export interface ParticleEmitterComponent extends Component {
   elapsed: number;
 }
 
-/** @public */
+/**
+ * Definition structure describing collision behavior, material properties, and special effects for tile types.
+ *
+ * @example
+ * ```ts
+ * const iceTile: TileDefinition = {
+ *   solid: true,
+ *   friction: 0.1,
+ *   kind: "ice"
+ * };
+ * ```
+ *
+ * @public
+ */
 export interface TileDefinition {
   /** Whether the tile is solid for physical collisions. */
   solid: boolean;
@@ -383,7 +527,21 @@ export interface TileDefinition {
   kind?: "normal" | "ice" | "spike" | "bounce";
 }
 
-/** @public */
+/**
+ * Component storing 2D grid matrix tilemap data and tile definition mappings for collision and rendering.
+ *
+ * @example
+ * ```ts
+ * const tilemap: TilemapComponent = {
+ *   type: "Tilemap",
+ *   data: [[1, 1], [0, 1]],
+ *   tileSize: 16
+ * };
+ * world.addComponent(entity, tilemap);
+ * ```
+ *
+ * @public
+ */
 export interface TilemapComponent extends Component {
   /** Component discriminator type. */
   type: "Tilemap";
@@ -402,7 +560,24 @@ export interface TilemapComponent extends Component {
   tileDefinitions?: Record<number, TileDefinition>;
 }
 
-/** @public */
+/**
+ * Component defining platformer locomotion parameters such as acceleration, deceleration, and max speed.
+ *
+ * @example
+ * ```ts
+ * const config: PlatformerMovementConfigComponent = {
+ *   type: "PlatformerMovementConfig",
+ *   acceleration: 800,
+ *   maxSpeed: 200,
+ *   deceleration: 1000,
+ *   airAcceleration: 400,
+ *   airDeceleration: 200
+ * };
+ * world.addComponent(entity, config);
+ * ```
+ *
+ * @public
+ */
 export interface PlatformerMovementConfigComponent extends Component {
   /** Component discriminator type. */
   type: "PlatformerMovementConfig";
@@ -418,7 +593,23 @@ export interface PlatformerMovementConfigComponent extends Component {
   airDeceleration: number;
 }
 
-/** @public */
+/**
+ * Component storing normalized platformer input state (move direction and jump action flags).
+ *
+ * @example
+ * ```ts
+ * const input: PlatformerInputComponent = {
+ *   type: "PlatformerInput",
+ *   moveDir: 1,
+ *   jumpPressed: true,
+ *   jumpHeld: true,
+ *   jumpReleased: false
+ * };
+ * world.addComponent(entity, input);
+ * ```
+ *
+ * @public
+ */
 export interface PlatformerInputComponent extends Component {
   /** Component discriminator type. */
   type: "PlatformerInput";
@@ -432,7 +623,23 @@ export interface PlatformerInputComponent extends Component {
   jumpReleased: boolean;
 }
 
-/** @public */
+/**
+ * Component specifying variable jump gravity parameters, apex thresholds, and jump impulses.
+ *
+ * @example
+ * ```ts
+ * const gravityConfig: PlatformerGravityConfigComponent = {
+ *   type: "PlatformerGravityConfig",
+ *   riseGravity: 980,
+ *   fallGravity: 1200,
+ *   jumpVelocity: -350,
+ *   minJumpVelocity: -150
+ * };
+ * world.addComponent(entity, gravityConfig);
+ * ```
+ *
+ * @public
+ */
 export interface PlatformerGravityConfigComponent extends Component {
   /** Component discriminator type. */
   type: "PlatformerGravityConfig";
@@ -450,7 +657,23 @@ export interface PlatformerGravityConfigComponent extends Component {
   apexGravityMultiplier?: number;
 }
 
-/** @public */
+/**
+ * Component managing jump buffers, coyote time timers, and multi-jump availability.
+ *
+ * @example
+ * ```ts
+ * const jumper: PlatformerJumperComponent = {
+ *   type: "PlatformerJumper",
+ *   coyoteTimer: 0.1,
+ *   jumpBufferTimer: 0,
+ *   coyoteTimeMax: 0.15,
+ *   jumpBufferMax: 0.1
+ * };
+ * world.addComponent(entity, jumper);
+ * ```
+ *
+ * @public
+ */
 export interface PlatformerJumperComponent extends Component {
   /** Component discriminator type. */
   type: "PlatformerJumper";
@@ -468,7 +691,20 @@ export interface PlatformerJumperComponent extends Component {
   jumpsRemaining?: number;
 }
 
-/** @public */
+/**
+ * Component tracking entity grounded status, carrier platform IDs, and surface friction modifiers.
+ *
+ * @example
+ * ```ts
+ * const groundState: PlatformerGroundStateComponent = {
+ *   type: "PlatformerGroundState",
+ *   isGrounded: true
+ * };
+ * world.addComponent(entity, groundState);
+ * ```
+ *
+ * @public
+ */
 export interface PlatformerGroundStateComponent extends Component {
   /** Component discriminator type. */
   type: "PlatformerGroundState";
@@ -480,7 +716,25 @@ export interface PlatformerGroundStateComponent extends Component {
   carrierEntity?: Entity;
 }
 
-/** @public */
+/**
+ * Component configuring 2D camera viewport position, follow target, zoom, deadzones, and smoothing.
+ *
+ * @example
+ * ```ts
+ * const camera: Camera2DComponent = {
+ *   type: "Camera2D",
+ *   zoom: 1.0,
+ *   targetX: 400,
+ *   targetY: 300,
+ *   x: 400,
+ *   y: 300,
+ *   isMain: true
+ * };
+ * world.addComponent(entity, camera);
+ * ```
+ *
+ * @public
+ */
 export interface Camera2DComponent extends Component {
   /** Component discriminator type. */
   type: "Camera2D";
@@ -508,7 +762,26 @@ export interface Camera2DComponent extends Component {
   verticalDeadzone?: number;
 }
 
-/** @public */
+/**
+ * Component managing sinusoidal motion trajectories for moving platforms.
+ *
+ * @example
+ * ```ts
+ * const platform: MovingPlatformComponent = {
+ *   type: "MovingPlatform",
+ *   pattern: "sine",
+ *   startX: 100,
+ *   startY: 200,
+ *   amplitudeX: 50,
+ *   amplitudeY: 0,
+ *   frequency: 1.5,
+ *   elapsed: 0
+ * };
+ * world.addComponent(entity, platform);
+ * ```
+ *
+ * @public
+ */
 export interface MovingPlatformComponent extends Component {
   /** Component discriminator type. */
   type: "MovingPlatform";
@@ -630,7 +903,22 @@ export interface VisualOffsetComponent extends Component {
   offsetY: number;
 }
 
-/** @public */
+/**
+ * Component marking spatial grid partition coordinates for broadphase spatial queries.
+ *
+ * @example
+ * ```ts
+ * const node: SpatialNodeComponent = {
+ *   type: "SpatialNode",
+ *   gridX: 4,
+ *   gridY: 3,
+ *   active: true
+ * };
+ * world.addComponent(entity, node);
+ * ```
+ *
+ * @public
+ */
 export interface SpatialNodeComponent extends Component {
   /** Component discriminator type. */
   type: "SpatialNode";
@@ -822,7 +1110,23 @@ export interface ColliderComponent extends Component {
   offsetY?: number;
 }
 
-/** @public */
+/**
+ * Component specifying 2D sprite image rendering source, texture atlas coordinates, anchors, and flips.
+ *
+ * @example
+ * ```ts
+ * const sprite: SpriteComponent = {
+ *   type: "Sprite",
+ *   assetKey: "ship_idle",
+ *   anchor: { x: 0.5, y: 0.5 },
+ *   flipX: false,
+ *   flipY: false
+ * };
+ * world.addComponent(entity, sprite);
+ * ```
+ *
+ * @public
+ */
 export interface SpriteComponent extends Component {
   /** Component discriminator type. */
   type: "Sprite";
@@ -875,7 +1179,19 @@ export interface TrailComponent extends Component {
   count: number;
 }
 
-/** @public */
+/**
+ * Interface contract for hierarchical component structures linking parent and child entities.
+ *
+ * @example
+ * ```ts
+ * const hierarchy: IHierarchicalComponent = {
+ *   type: "Transform",
+ *   children: []
+ * };
+ * ```
+ *
+ * @public
+ */
 export interface IHierarchicalComponent extends Component {
   /** Parent entity ID. */
   parentEntity?: Entity;

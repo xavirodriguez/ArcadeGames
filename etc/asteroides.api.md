@@ -222,9 +222,7 @@ export type AsteroidsRoleKey = CommonRoleKey | "player-ship" | "player-bullet" |
 
 // @public
 export interface AudioAsset {
-    // (undocumented)
     id: string;
-    // (undocumented)
     path: string;
 }
 
@@ -456,7 +454,7 @@ export class BlueprintRegistry<TComponents extends ComponentRegistry = Component
 // @public
 export type BlueprintRegistryMap<TComponents extends ComponentRegistry, TEvents extends EventRegistry = EventRegistry> = Record<string, BlueprintDefinition<TComponents, TEvents, unknown>>;
 
-// @public (undocumented)
+// @public
 export interface BoundaryComponent extends Component {
     bounceX?: boolean;
     bounceY?: boolean;
@@ -515,7 +513,7 @@ export function calculateScreenConfig(canvas?: HTMLCanvasElement): {
     pixelRatio: number;
 };
 
-// @public (undocumented)
+// @public
 export interface Camera2DComponent extends Component {
     followEntity?: Entity;
     isMain?: boolean;
@@ -1714,7 +1712,7 @@ export interface FrameScheduler {
     requestFrame(callback: (time: number) => void): unknown;
 }
 
-// @public (undocumented)
+// @public
 export interface FrictionComponent extends Component {
     type: "Friction";
     value: number;
@@ -1952,7 +1950,7 @@ export function hashAoS(snapshot: {
 // @public
 export function hashSoA(snapshot: SoAWorldSnapshot): string;
 
-// @public (undocumented)
+// @public
 export interface HealthComponent extends Component {
     current: number;
     invulnerableRemaining?: number;
@@ -2047,7 +2045,7 @@ export interface IHapticDevice {
     vibrate(pattern: string): void;
 }
 
-// @public (undocumented)
+// @public
 export interface IHierarchicalComponent extends Component {
     children: Entity[];
     parentEntity?: Entity;
@@ -2146,7 +2144,7 @@ export interface InputSource {
     nextInput(tick: number): CompactInputFrame;
 }
 
-// @public (undocumented)
+// @public
 export interface InputStateComponent extends Component {
     axes: Record<string, number>;
     buttons: Record<string, boolean>;
@@ -2774,7 +2772,7 @@ export class ModifierSystem<TComponents extends ComponentRegistry = ComponentReg
 export class MovementSystem extends PhysicsIntegrateSystem {
 }
 
-// @public (undocumented)
+// @public
 export interface MovingPlatformComponent extends Component {
     amplitudeX: number;
     amplitudeY: number;
@@ -3368,7 +3366,7 @@ export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreCo
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface PlatformerGravityConfigComponent extends Component {
     apexGravityMultiplier?: number;
     apexThreshold?: number;
@@ -3384,7 +3382,7 @@ export class PlatformerGravitySystem<TRegistry extends ComponentRegistry = CoreC
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface PlatformerGroundStateComponent extends Component {
     carrierEntity?: Entity;
     iceMultiplier?: number;
@@ -3392,7 +3390,7 @@ export interface PlatformerGroundStateComponent extends Component {
     type: "PlatformerGroundState";
 }
 
-// @public (undocumented)
+// @public
 export interface PlatformerInputComponent extends Component {
     jumpHeld: boolean;
     jumpPressed: boolean;
@@ -3401,7 +3399,7 @@ export interface PlatformerInputComponent extends Component {
     type: "PlatformerInput";
 }
 
-// @public (undocumented)
+// @public
 export interface PlatformerJumperComponent extends Component {
     coyoteTimeMax: number;
     coyoteTimer: number;
@@ -3412,7 +3410,7 @@ export interface PlatformerJumperComponent extends Component {
     type: "PlatformerJumper";
 }
 
-// @public (undocumented)
+// @public
 export interface PlatformerMovementConfigComponent extends Component {
     acceleration: number;
     airAcceleration: number;
@@ -3729,7 +3727,7 @@ export enum RenderCommandType {
     DrawText = "DrawText"
 }
 
-// @public (undocumented)
+// @public
 export interface RenderComponent extends Component {
     angularVelocity: number;
     color?: string;
@@ -4286,7 +4284,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface SpatialNodeComponent extends Component {
     active?: boolean;
     gridX: number;
@@ -4303,7 +4301,7 @@ export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
 // @public
 export function spawnBlueprintEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>, TId extends Extract<keyof TBlueprints, string> = Extract<keyof TBlueprints, string>>(world: World<TComponents, TEvents, TBlueprints>, blueprintId: TId, args: BlueprintArgs<TBlueprints, TId>): Entity;
 
-// @public (undocumented)
+// @public
 export interface SpriteComponent extends Component {
     anchor?: {
         x: number;
@@ -4333,7 +4331,7 @@ export interface StateDefinition {
     onUpdate?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>, elapsed: number) => string | void;
 }
 
-// @public (undocumented)
+// @public
 export interface StateMachineComponent extends Component {
     currentState: string;
     data: Record<string, unknown>;
@@ -4891,7 +4889,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface TileDefinition {
     bounce?: number;
     damage?: number;
@@ -4901,7 +4899,7 @@ export interface TileDefinition {
     solid: boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface TilemapComponent extends Component {
     data: number[][];
     tileDefinitions?: Record<number, TileDefinition>;
@@ -4959,7 +4957,7 @@ export class TrailSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface TransformComponent extends Component {
     dirty: boolean;
     parentEntity?: Entity;
@@ -5067,7 +5065,7 @@ export type UpdateCallback = (dt: number) => void;
 // @public
 export function validateSegmentTemplates(templates: SegmentTemplate[], grammar?: string[]): string[];
 
-// @public (undocumented)
+// @public
 export interface VelocityComponent extends Component {
     angularVelocity: number;
     type: "Velocity";

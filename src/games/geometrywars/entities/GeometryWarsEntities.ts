@@ -9,6 +9,7 @@ import {
   spawnBlueprintEntity
 } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
+import { attachEnemyDefaults } from "../../shared/enemyHelpers";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
@@ -43,8 +44,7 @@ function spawnBasicEnemy(
     })
     .withCollisionEvents();
 
-  w.addComponent(entity, { type: "Health", current: 1, max: 1 } as HealthComponent);
-  w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+  attachEnemyDefaults(w, entity, { currentHp: 1, maxHp: 1, faction: "enemy" });
   w.addComponent(entity, {
     type: "Steering",
     mode: params.steeringMode ?? "seek",

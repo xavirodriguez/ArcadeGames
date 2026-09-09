@@ -82,7 +82,7 @@ Documentación de bloques de código duplicados identificados mediante `jscpd`, 
 - **Líneas duplicadas**: 48 líneas
 - **Prioridad**: Media
 - **Estado**: Refactorizado
-- **Solución**: Se extrajo el helper privado `createTimeoutPromise` en `SceneManager.ts`.
+- **Solución**: Se consolidó la lógica de transición mediante `createTimeoutPromise` y la pipeline unificada `executeTransitionPipeline` en `SceneManager.ts`, limpiando comentarios TODO obsoletos.
 
 ---
 

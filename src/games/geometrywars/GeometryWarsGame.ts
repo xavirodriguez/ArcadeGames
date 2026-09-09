@@ -128,23 +128,8 @@ export class GeometryWarsGame extends BaseGame<
     }
   }
 
-  // TODO(refactor): código duplicado detectado (método) con space-invaders/SpaceInvadersGame.ts:83-95. Considerar extraer a función compartida. Ref: 1390215f
   public runSimulationStep(deltaTime: number, isResimulating: boolean) {
-    const activeWorld = this.getWorld();
-    const random = activeWorld.gameplayRandom;
-    const wasLocked = random ? random.isLocked() : false;
-
-    if (random) {
-      random.unlock();
-    }
-
-    try {
-      activeWorld.update(deltaTime);
-    } finally {
-      if (random && wasLocked) {
-        random.lock();
-      }
-    }
+    this.runDeterministicStep(deltaTime, this.getWorld());
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {

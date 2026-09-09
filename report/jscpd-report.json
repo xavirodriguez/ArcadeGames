@@ -150,18 +150,18 @@
     },
     {
       "firstFile": {
-        "end": 258,
+        "end": 257,
         "endLoc": {
           "column": 77,
-          "line": 258,
-          "position": 9298
+          "line": 257,
+          "position": 9144
         },
         "name": "scenes/SceneManager.ts",
-        "start": 243,
+        "start": 242,
         "startLoc": {
           "column": 6,
-          "line": 243,
-          "position": 8712
+          "line": 242,
+          "position": 8558
         }
       },
       "format": "typescript",
@@ -169,110 +169,110 @@
       "isNew": false,
       "lines": 16,
       "secondFile": {
-        "end": 336,
+        "end": 333,
         "endLoc": {
           "column": 75,
-          "line": 336,
-          "position": 12069
+          "line": 333,
+          "position": 11607
         },
         "name": "scenes/SceneManager.ts",
-        "start": 321,
+        "start": 318,
         "startLoc": {
           "column": 4,
-          "line": 321,
-          "position": 11509
+          "line": 318,
+          "position": 11047
         }
       },
       "tokens": 106
     },
     {
       "firstFile": {
-        "end": 303,
+        "end": 301,
         "endLoc": {
           "column": 25,
-          "line": 303,
-          "position": 10865
+          "line": 301,
+          "position": 10555
         },
         "name": "scenes/SceneManager.ts",
-        "start": 282,
+        "start": 280,
         "startLoc": {
-          "column": 29,
-          "line": 282,
-          "position": 10173
+          "column": 31,
+          "line": 280,
+          "position": 9863
         }
       },
       "format": "typescript",
-      "fragment": "        catch (error: unknown) {\n          if (myToken !== this.transitionToken) return;\n          this.transitionToken++;\n\n          const isTimeout = error instanceof Error && error.message === timeoutMsg;\n\n          if (eventBus) {\n            if (scene) {\n              if (isTimeout) {\n                eventBus.emit(\"scene:transition:timeout\", { scene, error });\n              } else {\n                eventBus.emit(\"scene:transition:error\", { scene, error });\n              }\n            }\n            eventBus.emit(\"scene:error\", { action: context.type, error });\n          }\n\n          this.currentScene = oldScene;\n          this.sceneStack = oldStack;\n          this.state = oldState;\n\n          if (oldScene) {",
+      "fragment": "        } catch (error: unknown) {\n          if (myToken !== this.transitionToken) return;\n          this.transitionToken++;\n\n          const isTimeout = error instanceof Error && error.message === timeoutMsg;\n\n          if (eventBus) {\n            if (scene) {\n              if (isTimeout) {\n                eventBus.emit(\"scene:transition:timeout\", { scene, error });\n              } else {\n                eventBus.emit(\"scene:transition:error\", { scene, error });\n              }\n            }\n            eventBus.emit(\"scene:error\", { action: context.type, error });\n          }\n\n          this.currentScene = oldScene;\n          this.sceneStack = oldStack;\n          this.state = oldState;\n\n          if (oldScene) {",
       "isNew": false,
       "lines": 22,
       "secondFile": {
-        "end": 422,
+        "end": 418,
         "endLoc": {
           "column": 23,
-          "line": 422,
-          "position": 15166
+          "line": 418,
+          "position": 14550
         },
         "name": "scenes/SceneManager.ts",
-        "start": 402,
+        "start": 398,
         "startLoc": {
-          "column": 18,
-          "line": 402,
-          "position": 14509
+          "column": 20,
+          "line": 398,
+          "position": 13893
         }
       },
       "tokens": 117
     },
     {
       "firstFile": {
-        "end": 451,
+        "end": 446,
         "endLoc": {
           "column": 13,
-          "line": 451,
-          "position": 16111
+          "line": 446,
+          "position": 15339
         },
         "name": "scenes/SceneManager.ts",
-        "start": 438,
+        "start": 434,
         "startLoc": {
           "column": 26,
-          "line": 438,
-          "position": 15568
+          "line": 434,
+          "position": 14952
         }
       },
       "format": "typescript",
-      "fragment": "      type: \"transitionTo\",\n      options,\n      executeLifecycle: // TODO(refactor): código duplicado detectado (función) con scenes/SceneManager.ts:544-556. Considerar extraer a función compartida. Ref: bdc2aedc\n      async (token) => {\n        if (this.currentScene) {\n          this.state = SceneState.UNLOADING;\n          const oldSceneRef = this.currentScene;\n          await runLifecycleAsync(async () => {\n            await oldSceneRef.onExit(oldSceneRef.getWorld());\n          });\n        }\n        if (token !== this.transitionToken) return;\n\n        this.transitionProgress = 0.3;",
+      "fragment": "      type: \"transitionTo\",\n      options,\n      executeLifecycle: async (token) => {\n        if (this.currentScene) {\n          this.state = SceneState.UNLOADING;\n          const oldSceneRef = this.currentScene;\n          await runLifecycleAsync(async () => {\n            await oldSceneRef.onExit(oldSceneRef.getWorld());\n          });\n        }\n        if (token !== this.transitionToken) return;\n\n        this.transitionProgress = 0.3;",
       "isNew": false,
-      "lines": 14,
+      "lines": 13,
       "secondFile": {
-        "end": 564,
+        "end": 557,
         "endLoc": {
           "column": 13,
-          "line": 564,
-          "position": 19747
+          "line": 557,
+          "position": 18663
         },
         "name": "scenes/SceneManager.ts",
-        "start": 551,
+        "start": 545,
         "startLoc": {
           "column": 21,
-          "line": 551,
-          "position": 19204
+          "line": 545,
+          "position": 18276
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 505,
+        "end": 499,
         "endLoc": {
           "column": 26,
-          "line": 505,
-          "position": 17827
+          "line": 499,
+          "position": 16899
         },
         "name": "scenes/SceneManager.ts",
-        "start": 493,
+        "start": 487,
         "startLoc": {
           "column": 8,
-          "line": 493,
-          "position": 17463
+          "line": 487,
+          "position": 16535
         }
       },
       "format": "typescript",
@@ -280,18 +280,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 576,
+        "end": 569,
         "endLoc": {
           "column": 26,
-          "line": 576,
-          "position": 20106
+          "line": 569,
+          "position": 19022
         },
         "name": "scenes/SceneManager.ts",
-        "start": 564,
+        "start": 557,
         "startLoc": {
           "column": 8,
-          "line": 564,
-          "position": 19742
+          "line": 557,
+          "position": 18658
         }
       },
       "tokens": 75
@@ -1538,36 +1538,36 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 694,
+        "end": 677,
         "endLoc": {
           "column": 26,
-          "line": 694,
-          "position": 29217
+          "line": 677,
+          "position": 28576
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 682,
+        "start": 665,
         "startLoc": {
           "column": 26,
-          "line": 682,
-          "position": 28874
+          "line": 665,
+          "position": 28233
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 112,
+        "end": 113,
         "endLoc": {
           "column": 115,
-          "line": 112,
-          "position": 4114
+          "line": 113,
+          "position": 4176
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 107,
+        "start": 108,
         "startLoc": {
           "column": 45,
-          "line": 107,
-          "position": 3950
+          "line": 108,
+          "position": 4012
         }
       },
       "format": "typescript",
@@ -1579,54 +1579,17 @@
         "endLoc": {
           "column": 115,
           "line": 175,
-          "position": 6134
+          "position": 6093
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 170,
         "startLoc": {
           "column": 61,
           "line": 170,
-          "position": 5970
+          "position": 5929
         }
       },
       "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 230,
-        "endLoc": {
-          "column": 13,
-          "line": 230,
-          "position": 8171
-        },
-        "name": "asteroids/EntityFactory.ts",
-        "start": 217,
-        "startLoc": {
-          "column": 28,
-          "line": 217,
-          "position": 7693
-        }
-      },
-      "format": "typescript",
-      "fragment": "      } as BoundaryComponent);\n      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:127-132. Considerar extraer a función compartida. Ref: 040950df\n      w.addComponent(entity, {\n        type: \"Health\",\n        current: 1,\n        max: 1\n      } as HealthComponent);\n      w.addComponent(entity, {\n        type: \"Faction\",\n        faction: \"enemy\",\n        value: \"enemy\"\n      } as FactionComponent);\n      w.addComponent(entity, {\n        type: \"LootTable\",",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 49,
-        "endLoc": {
-          "column": 9,
-          "line": 49,
-          "position": 1588
-        },
-        "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 44,
-        "startLoc": {
-          "column": 25,
-          "line": 44,
-          "position": 1362
-        }
-      },
-      "tokens": 57
     },
     {
       "firstFile": {
@@ -2019,18 +1982,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 289,
+        "end": 263,
         "endLoc": {
           "column": 65,
-          "line": 289,
-          "position": 10330
+          "line": 263,
+          "position": 9031
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 284,
+        "start": 258,
         "startLoc": {
           "column": 71,
-          "line": 284,
-          "position": 10159
+          "line": 258,
+          "position": 8860
         }
       },
       "tokens": 51
@@ -2056,18 +2019,18 @@
       "isNew": false,
       "lines": 16,
       "secondFile": {
-        "end": 319,
+        "end": 293,
         "endLoc": {
           "column": 30,
-          "line": 319,
-          "position": 11930
+          "line": 293,
+          "position": 10631
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 304,
+        "start": 278,
         "startLoc": {
           "column": 105,
-          "line": 304,
-          "position": 11375
+          "line": 278,
+          "position": 10076
         }
       },
       "tokens": 85
@@ -2093,18 +2056,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 336,
+        "end": 310,
         "endLoc": {
           "column": 53,
-          "line": 336,
-          "position": 12663
+          "line": 310,
+          "position": 11364
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 330,
+        "start": 304,
         "startLoc": {
           "column": 78,
-          "line": 330,
-          "position": 12346
+          "line": 304,
+          "position": 11047
         }
       },
       "tokens": 51
@@ -2130,18 +2093,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 366,
+        "end": 340,
         "endLoc": {
           "column": 41,
-          "line": 366,
-          "position": 13919
+          "line": 340,
+          "position": 12620
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 360,
+        "start": 334,
         "startLoc": {
           "column": 8,
-          "line": 360,
-          "position": 13687
+          "line": 334,
+          "position": 12388
         }
       },
       "tokens": 62
@@ -2167,18 +2130,18 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 380,
+        "end": 354,
         "endLoc": {
           "column": 9,
-          "line": 380,
-          "position": 14360
+          "line": 354,
+          "position": 13061
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 366,
+        "start": 340,
         "startLoc": {
           "column": 105,
-          "line": 366,
-          "position": 13983
+          "line": 340,
+          "position": 12684
         }
       },
       "tokens": 74
@@ -2259,11 +2222,11 @@
     },
     {
       "firstFile": {
-        "end": 348,
+        "end": 339,
         "endLoc": {
-          "column": 29,
-          "line": 348,
-          "position": 12985
+          "column": 14,
+          "line": 339,
+          "position": 12767
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 333,
@@ -2274,62 +2237,99 @@
         }
       },
       "format": "typescript",
-      "fragment": "        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withRender({ shape: \"fragment\", size: 16, order: 1 });\n\n        world.addComponent(entity, {\n          type: \"Collectible\",\n          kind: \"fragment\",\n          value: 10,\n          persistent: false,\n          collectOnce: false,\n          id: args.id\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    this.blueprints.register(\"collectible_core\", {",
+      "fragment": "        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withRender({ shape: \"fragment\", size: 16, order: 1 });\n\n        world.addComponent(entity, {\n          type: \"Collectible\",\n          kind: \"fragment\",",
       "isNew": false,
-      "lines": 16,
+      "lines": 7,
       "secondFile": {
-        "end": 201,
+        "end": 195,
         "endLoc": {
-          "column": 29,
-          "line": 201,
-          "position": 7073
+          "column": 16,
+          "line": 195,
+          "position": 6651
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 181,
+        "start": 185,
         "startLoc": {
-          "column": 27,
-          "line": 181,
-          "position": 6424
+          "column": 29,
+          "line": 185,
+          "position": 6360
         }
       },
-      "tokens": 101
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 380,
+        "endLoc": {
+          "column": 55,
+          "line": 380,
+          "position": 14079
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 363,
+        "startLoc": {
+          "column": 5,
+          "line": 363,
+          "position": 13509
+        }
+      },
+      "format": "typescript",
+      "fragment": "    });\n\n    this.blueprints.register(\"checkpoint_node\", {\n      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withRender({ shape: \"node\", size: 32, order: 1 });\n\n        world.addComponent(entity, {\n          type: \"RespawnPoint\",\n          x: args.x,\n          y: args.y - 10,\n          checkpointId: args.id\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    registerPlatformerEnemyBlueprints(this.blueprints);",
+      "isNew": false,
+      "lines": 18,
+      "secondFile": {
+        "end": 223,
+        "endLoc": {
+          "column": 55,
+          "line": 223,
+          "position": 7552
+        },
+        "name": "platformer/PlatformerGame.ts",
+        "start": 206,
+        "startLoc": {
+          "column": 63,
+          "line": 206,
+          "position": 6982
+        }
+      },
+      "tokens": 137
     },
     {
       "firstFile": {
         "end": 382,
         "endLoc": {
-          "column": 29,
+          "column": 8,
           "line": 382,
-          "position": 14110
+          "position": 14089
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 359,
+        "start": 366,
         "startLoc": {
-          "column": 27,
-          "line": 359,
-          "position": 13416
+          "column": 29,
+          "line": 366,
+          "position": 13592
         }
       },
       "format": "typescript",
-      "fragment": "          collectOnce: true,\n          id: args.id\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    this.blueprints.register(\"checkpoint_node\", {\n      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withRender({ shape: \"node\", size: 32, order: 1 });\n\n        world.addComponent(entity, {\n          type: \"RespawnPoint\",\n          x: args.x,\n          y: args.y - 10,\n          checkpointId: args.id\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    registerPlatformerEnemyBlueprints(this.blueprints);\n\n    this.blueprints.register(\"moving_platform\", {",
+      "fragment": "      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withRender({ shape: \"node\", size: 32, order: 1 });\n\n        world.addComponent(entity, {\n          type: \"RespawnPoint\",\n          x: args.x,\n          y: args.y - 10,\n          checkpointId: args.id\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    registerPlatformerEnemyBlueprints(this.blueprints);\n\n    this.blueprints.register(\"moving_platform\", {",
       "isNew": false,
-      "lines": 24,
+      "lines": 17,
       "secondFile": {
-        "end": 240,
+        "end": 225,
         "endLoc": {
-          "column": 29,
-          "line": 240,
-          "position": 8413
+          "column": 9,
+          "line": 225,
+          "position": 7563
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 216,
+        "start": 209,
         "startLoc": {
-          "column": 28,
-          "line": 216,
-          "position": 7561
+          "column": 29,
+          "line": 209,
+          "position": 7065
         }
       },
-      "tokens": 168
+      "tokens": 119
     },
     {
       "firstFile": {
@@ -2389,18 +2389,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 423,
+        "end": 397,
         "endLoc": {
           "column": 82,
-          "line": 423,
-          "position": 16573
+          "line": 397,
+          "position": 15274
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 414,
+        "start": 388,
         "startLoc": {
           "column": 61,
-          "line": 414,
-          "position": 16140
+          "line": 388,
+          "position": 14841
         }
       },
       "tokens": 92
@@ -2426,18 +2426,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 450,
+        "end": 424,
         "endLoc": {
           "column": 7,
-          "line": 450,
-          "position": 17588
+          "line": 424,
+          "position": 16289
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 436,
+        "start": 410,
         "startLoc": {
           "column": 4,
-          "line": 436,
-          "position": 17239
+          "line": 410,
+          "position": 15940
         }
       },
       "tokens": 70
@@ -3647,18 +3647,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 805,
+        "end": 788,
         "endLoc": {
           "column": 9,
-          "line": 805,
-          "position": 33212
+          "line": 788,
+          "position": 32571
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 794,
+        "start": 777,
         "startLoc": {
           "column": 84,
-          "line": 794,
-          "position": 32912
+          "line": 777,
+          "position": 32271
         }
       },
       "tokens": 54
@@ -3684,18 +3684,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 239,
+        "end": 224,
         "endLoc": {
           "column": 79,
-          "line": 239,
-          "position": 10175
+          "line": 224,
+          "position": 9744
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 227,
+        "start": 212,
         "startLoc": {
           "column": 4,
-          "line": 227,
-          "position": 9533
+          "line": 212,
+          "position": 9102
         }
       },
       "tokens": 138
@@ -3721,18 +3721,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 831,
+        "end": 814,
         "endLoc": {
           "column": 14,
-          "line": 831,
-          "position": 34181
+          "line": 814,
+          "position": 33540
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 817,
+        "start": 800,
         "startLoc": {
           "column": 4,
-          "line": 817,
-          "position": 33549
+          "line": 800,
+          "position": 32908
         }
       },
       "tokens": 140
@@ -3758,18 +3758,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 270,
+        "end": 255,
         "endLoc": {
           "column": 8,
-          "line": 270,
-          "position": 11236
+          "line": 255,
+          "position": 10805
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 251,
+        "start": 236,
         "startLoc": {
           "column": 99,
-          "line": 251,
-          "position": 10790
+          "line": 236,
+          "position": 10359
         }
       },
       "tokens": 68
@@ -4849,55 +4849,18 @@
     },
     {
       "firstFile": {
-        "end": 142,
-        "endLoc": {
-          "column": 36,
-          "line": 142,
-          "position": 5519
-        },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 129,
-        "startLoc": {
-          "column": 2,
-          "line": 129,
-          "position": 5040
-        }
-      },
-      "format": "typescript",
-      "fragment": "  }\n\n  // TODO(refactor): código duplicado detectado (método) con space-invaders/SpaceInvadersGame.ts:83-95. Considerar extraer a función compartida. Ref: 1390215f\n  public runSimulationStep(deltaTime: number, isResimulating: boolean) {\n    const activeWorld = this.getWorld();\n    const random = activeWorld.gameplayRandom;\n    const wasLocked = random ? random.isLocked() : false;\n\n    if (random) {\n      random.unlock();\n    }\n\n    try {\n      activeWorld.update(deltaTime);",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 99,
-        "endLoc": {
-          "column": 36,
-          "line": 99,
-          "position": 5666
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 87,
-        "startLoc": {
-          "column": 2,
-          "line": 87,
-          "position": 5349
-        }
-      },
-      "tokens": 63
-    },
-    {
-      "firstFile": {
-        "end": 175,
+        "end": 160,
         "endLoc": {
           "column": 11,
-          "line": 175,
-          "position": 7139
+          "line": 160,
+          "position": 6708
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 168,
+        "start": 153,
         "startLoc": {
           "column": 93,
-          "line": 168,
-          "position": 6917
+          "line": 153,
+          "position": 6486
         }
       },
       "format": "typescript",
@@ -4905,36 +4868,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 196,
+        "end": 181,
         "endLoc": {
           "column": 11,
-          "line": 196,
-          "position": 8268
+          "line": 181,
+          "position": 7837
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 189,
+        "start": 174,
         "startLoc": {
           "column": 218,
-          "line": 189,
-          "position": 8046
+          "line": 174,
+          "position": 7615
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 198,
+        "end": 183,
         "endLoc": {
           "column": 5,
-          "line": 198,
-          "position": 8282
+          "line": 183,
+          "position": 7851
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 189,
+        "start": 174,
         "startLoc": {
           "column": 178,
-          "line": 189,
-          "position": 8006
+          "line": 174,
+          "position": 7575
         }
       },
       "format": "typescript",
@@ -4942,36 +4905,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 214,
+        "end": 199,
         "endLoc": {
           "column": 5,
-          "line": 214,
-          "position": 9201
+          "line": 199,
+          "position": 8770
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 205,
+        "start": 190,
         "startLoc": {
           "column": 163,
-          "line": 205,
-          "position": 8925
+          "line": 190,
+          "position": 8494
         }
       },
       "tokens": 70
     },
     {
       "firstFile": {
-        "end": 251,
+        "end": 236,
         "endLoc": {
           "column": 79,
-          "line": 251,
-          "position": 10770
+          "line": 236,
+          "position": 10339
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 245,
+        "start": 230,
         "startLoc": {
           "column": 99,
-          "line": 245,
-          "position": 10492
+          "line": 230,
+          "position": 10061
         }
       },
       "format": "typescript",
@@ -4979,18 +4942,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 841,
+        "end": 824,
         "endLoc": {
           "column": 75,
-          "line": 841,
-          "position": 34713
+          "line": 824,
+          "position": 34072
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 835,
+        "start": 818,
         "startLoc": {
           "column": 76,
-          "line": 835,
-          "position": 34447
+          "line": 818,
+          "position": 33806
         }
       },
       "tokens": 77
@@ -5001,14 +4964,14 @@
         "endLoc": {
           "column": 14,
           "line": 208,
-          "position": 7388
+          "position": 7347
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 203,
         "startLoc": {
           "column": 34,
           "line": 203,
-          "position": 7207
+          "position": 7166
         }
       },
       "format": "typescript",
@@ -5020,14 +4983,14 @@
         "endLoc": {
           "column": 14,
           "line": 223,
-          "position": 7757
+          "position": 7716
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 218,
         "startLoc": {
           "column": 34,
           "line": 218,
-          "position": 7576
+          "position": 7535
         }
       },
       "tokens": 55
@@ -5038,14 +5001,14 @@
         "endLoc": {
           "column": 14,
           "line": 208,
-          "position": 7388
+          "position": 7347
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 203,
         "startLoc": {
           "column": 34,
           "line": 203,
-          "position": 7207
+          "position": 7166
         }
       },
       "format": "typescript",
@@ -5057,14 +5020,14 @@
         "endLoc": {
           "column": 14,
           "line": 238,
-          "position": 8123
+          "position": 8082
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 233,
         "startLoc": {
           "column": 33,
           "line": 233,
-          "position": 7942
+          "position": 7901
         }
       },
       "tokens": 55
@@ -5075,14 +5038,14 @@
         "endLoc": {
           "column": 14,
           "line": 282,
-          "position": 9324
+          "position": 9283
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 277,
         "startLoc": {
           "column": 28,
           "line": 277,
-          "position": 9142
+          "position": 9101
         }
       },
       "format": "typescript",
@@ -5094,14 +5057,14 @@
         "endLoc": {
           "column": 14,
           "line": 299,
-          "position": 9733
+          "position": 9692
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 294,
         "startLoc": {
           "column": 28,
           "line": 294,
-          "position": 9551
+          "position": 9510
         }
       },
       "tokens": 55
@@ -5112,14 +5075,14 @@
         "endLoc": {
           "column": 14,
           "line": 282,
-          "position": 9324
+          "position": 9283
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 277,
         "startLoc": {
           "column": 28,
           "line": 277,
-          "position": 9142
+          "position": 9101
         }
       },
       "format": "typescript",
@@ -5131,14 +5094,14 @@
         "endLoc": {
           "column": 14,
           "line": 316,
-          "position": 10151
+          "position": 10110
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
         "start": 311,
         "startLoc": {
           "column": 33,
           "line": 311,
-          "position": 9969
+          "position": 9928
         }
       },
       "tokens": 55
@@ -6181,80 +6144,6 @@
     },
     {
       "firstFile": {
-        "end": 191,
-        "endLoc": {
-          "column": 15,
-          "line": 191,
-          "position": 6698
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 178,
-        "startLoc": {
-          "column": 51,
-          "line": 178,
-          "position": 6153
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.blueprints.register(\"collectible_fragment\", {\n      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:324-339. Considerar extraer a función compartida. Ref: fbd854ae\n        ArcadeEntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withRender({\n            shape: \"fragment\",\n            size: 16,\n            order: 1\n          });\n\n        world.addComponent(entity, {\n          type: \"Collectible\",\n          kind: \"fragment\",",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 213,
-        "endLoc": {
-          "column": 15,
-          "line": 213,
-          "position": 7474
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 201,
-        "startLoc": {
-          "column": 47,
-          "line": 201,
-          "position": 7091
-        }
-      },
-      "tokens": 83
-    },
-    {
-      "firstFile": {
-        "end": 249,
-        "endLoc": {
-          "column": 23,
-          "line": 249,
-          "position": 8802
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 240,
-        "startLoc": {
-          "column": 50,
-          "line": 240,
-          "position": 8434
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.blueprints.register(\"powerup_double_jump\", {\n      spawn: (world, entity, args: { x: number; y: number }) => {\n        ArcadeEntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withCollider2D({\n            shape: { type: \"aabb\", halfWidth: 12, halfHeight: 12 },\n            isTrigger: true\n          })\n          .withCollisionEvents()\n          .withPowerUp(\"double_jump\")",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 268,
-        "endLoc": {
-          "column": 23,
-          "line": 268,
-          "position": 9515
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 259,
-        "startLoc": {
-          "column": 43,
-          "line": 259,
-          "position": 9147
-        }
-      },
-      "tokens": 80
-    },
-    {
-      "firstFile": {
         "end": 33,
         "endLoc": {
           "column": 55,
@@ -7143,18 +7032,18 @@
     },
     {
       "firstFile": {
-        "end": 233,
+        "end": 216,
         "endLoc": {
           "column": 29,
-          "line": 233,
-          "position": 11022
+          "line": 216,
+          "position": 10381
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 228,
+        "start": 211,
         "startLoc": {
           "column": 44,
-          "line": 228,
-          "position": 10732
+          "line": 211,
+          "position": 10091
         }
       },
       "format": "typescript",
@@ -7162,18 +7051,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 266,
+        "end": 249,
         "endLoc": {
           "column": 29,
-          "line": 266,
-          "position": 12570
+          "line": 249,
+          "position": 11929
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 261,
+        "start": 244,
         "startLoc": {
           "column": 43,
-          "line": 261,
-          "position": 12280
+          "line": 244,
+          "position": 11639
         }
       },
       "tokens": 69
@@ -7476,32 +7365,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-09T19:24:55.439Z",
+    "detectionDate": "2026-09-09T20:27:44.357Z",
     "formats": {
       "typescript": {
-        "clones": 202,
-        "duplicatedLines": 2083,
-        "duplicatedTokens": 15762,
-        "lines": 57483,
+        "clones": 199,
+        "duplicatedLines": 2035,
+        "duplicatedTokens": 15520,
+        "lines": 57485,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.623680044534906,
-        "percentageTokens": 5.238929346579672,
-        "sources": 357,
-        "tokens": 300863
+        "percentage": 3.5400539271114204,
+        "percentageTokens": 5.15981461903147,
+        "sources": 358,
+        "tokens": 300786
       }
     },
     "total": {
-      "clones": 202,
-      "duplicatedLines": 2083,
-      "duplicatedTokens": 15762,
-      "lines": 57483,
+      "clones": 199,
+      "duplicatedLines": 2035,
+      "duplicatedTokens": 15520,
+      "lines": 57485,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.623680044534906,
-      "percentageTokens": 5.238929346579672,
-      "sources": 357,
-      "tokens": 300863
+      "percentage": 3.5400539271114204,
+      "percentageTokens": 5.15981461903147,
+      "sources": 358,
+      "tokens": 300786
     }
   }
 }

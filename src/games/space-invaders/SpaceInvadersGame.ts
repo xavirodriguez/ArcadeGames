@@ -82,28 +82,11 @@ export class SpaceInvadersGame
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
-    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:125-137. Considerar extraer a función compartida. Ref: 1390215f
     this.network.predictLocalPlayer(input, deltaTime);
   }
 
   public runSimulationStep(deltaTime: number, isResimulating: boolean) {
-    const activeWorld = this.getWorld();
-    const random = activeWorld.gameplayRandom;
-    const wasLocked = random ? random.isLocked() : false;
-
-    if (random) {
-      random.unlock();
-    }
-
-    try {
-      activeWorld.update(deltaTime);
-      activeWorld.getEventBus()?.flushDeferred();
-    } finally {
-      if (random && wasLocked) {
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:62-67. Considerar extraer a función compartida. Ref: d7216a61
-        random.lock();
-      }
-    }
+    this.runDeterministicStep(deltaTime, this.getWorld());
   }
 
   // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:61-66. Considerar extraer a función compartida. Ref: debee144

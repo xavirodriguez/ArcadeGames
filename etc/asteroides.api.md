@@ -330,6 +330,7 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     restart(seed?: number): Promise<void>;
     restore(snapshot: WorldSnapshot): void;
     resume(): void;
+    protected runDeterministicStep(deltaTime: number, targetWorld?: World<TComponents, TEvents, TBlueprints>): void;
     sceneManager: SceneManager<TComponents>;
     setInputState(input: Partial<TInput>): void;
     protected setupCommonArcadeResources(canvas?: HTMLCanvasElement): void;

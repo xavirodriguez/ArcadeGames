@@ -175,49 +175,35 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     registerEnemyStateMachines(this.world);
 
     // Blueprints
-    this.blueprints.register("collectible_fragment", {
-      spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:324-339. Considerar extraer a función compartida. Ref: fbd854ae
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withRender({
-            shape: "fragment",
-            size: 16,
-            order: 1
-          });
+    const registerCollectibleBlueprint = (
+      id: string,
+      kind: string,
+      value: number
+    ) => {
+      this.blueprints.register(id, {
+        spawn: (world, entity, args: { x: number; y: number; id: string }) => {
+          ArcadeEntityBuilder.fromEntity(world, entity)
+            .withTransform({ x: args.x, y: args.y })
+            .withRender({
+              shape: "fragment",
+              size: 16,
+              order: 1
+            });
 
-        world.addComponent(entity, {
-          type: "Collectible",
-          kind: "fragment",
-          value: 10,
-          persistent: false,
-          collectOnce: false,
-          id: args.id
-        } as { type: string; [key: string]: unknown });
-      }
-    });
+          world.addComponent(entity, {
+            type: "Collectible",
+            kind,
+            value,
+            persistent: false,
+            collectOnce: false,
+            id: args.id
+          } as { type: string; [key: string]: unknown });
+        }
+      });
+    };
 
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:187-199. Considerar extraer a función compartida. Ref: 10f25666
-    this.blueprints.register("collectible_coin", {
-      spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withRender({
-            shape: "fragment",
-            size: 16,
-            order: 1
-          });
-
-        world.addComponent(entity, {
-          type: "Collectible",
-          kind: "coin",
-          value: 20,
-          persistent: false,
-          collectOnce: false,
-          id: args.id
-        } as { type: string; [key: string]: unknown });
-      }
-    });
+    registerCollectibleBlueprint("collectible_fragment", "fragment", 10);
+    registerCollectibleBlueprint("collectible_coin", "coin", 20);
 
     this.blueprints.register("checkpoint_node", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
@@ -236,43 +222,31 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
 
     registerPlatformerEnemyBlueprints(this.blueprints);
 
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:264-273. Considerar extraer a función compartida. Ref: 6d4548db
-    this.blueprints.register("powerup_double_jump", {
-      spawn: (world, entity, args: { x: number; y: number }) => {
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withCollider2D({
-            shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
-            isTrigger: true
-          })
-          .withCollisionEvents()
-          .withPowerUp("double_jump")
-          .withRender({
-            shape: "fragment",
-            size: 18,
-            order: 1
-          });
-      }
-    });
+    const registerPowerUpBlueprint = (
+      id: string,
+      powerUpKind: string
+    ) => {
+      this.blueprints.register(id, {
+        spawn: (world, entity, args: { x: number; y: number }) => {
+          ArcadeEntityBuilder.fromEntity(world, entity)
+            .withTransform({ x: args.x, y: args.y })
+            .withCollider2D({
+              shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
+              isTrigger: true
+            })
+            .withCollisionEvents()
+            .withPowerUp(powerUpKind)
+            .withRender({
+              shape: "fragment",
+              size: 18,
+              order: 1
+            });
+        }
+      });
+    };
 
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:252-261. Considerar extraer a función compartida. Ref: 5171adb5
-    this.blueprints.register("powerup_dash", {
-      spawn: (world, entity, args: { x: number; y: number }) => {
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withCollider2D({
-            shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
-            isTrigger: true
-          })
-          .withCollisionEvents()
-          .withPowerUp("dash_unlock")
-          .withRender({
-            shape: "fragment",
-            size: 18,
-            order: 1
-          });
-      }
-    });
+    registerPowerUpBlueprint("powerup_double_jump", "double_jump");
+    registerPowerUpBlueprint("powerup_dash", "dash_unlock");
 
     this.blueprints.register("goal", {
       spawn: (world, entity, args: { x: number; y: number }) => {

@@ -143,6 +143,31 @@ export abstract class BaseGame<
   }
 
   /**
+   * Runs a single deterministic simulation step with gameplayRandom unlocking and locking.
+   *
+   * @param deltaTime - Delta time in seconds.
+   * @param targetWorld - Optional world instance override (defaults to `this.world`).
+   */
+  protected runDeterministicStep(deltaTime: number, targetWorld?: World<TComponents, TEvents, TBlueprints>): void {
+    const activeWorld = targetWorld ?? this.world;
+    const random = activeWorld.gameplayRandom;
+    const wasLocked = random ? random.isLocked() : false;
+
+    if (random) {
+      random.unlock();
+    }
+
+    try {
+      activeWorld.update(deltaTime);
+      activeWorld.getEventBus()?.flushDeferred();
+    } finally {
+      if (random && wasLocked) {
+        random.lock();
+      }
+    }
+  }
+
+  /**
    * Internal hook for decoding compact input bitmasks into input system actions.
    *
    * @param input - Compact input frame to process.

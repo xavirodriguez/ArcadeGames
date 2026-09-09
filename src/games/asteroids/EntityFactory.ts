@@ -17,6 +17,7 @@ import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
+import { attachEnemyDefaults } from "../shared/enemyHelpers";
 import { PowerUpComponent } from "@tiny-aster/gameplay-kit";
 import { BulletPool } from "./EntityPool";
 
@@ -215,21 +216,12 @@ export function registerAsteroidsBlueprints(
         height: screen.height,
         mode: "wrap"
       } as BoundaryComponent);
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:127-132. Considerar extraer a función compartida. Ref: 040950df
-      w.addComponent(entity, {
-        type: "Health",
-        current: 1,
-        max: 1
-      } as HealthComponent);
-      w.addComponent(entity, {
-        type: "Faction",
+      attachEnemyDefaults(w, entity, {
+        currentHp: 1,
+        maxHp: 1,
         faction: "enemy",
-        value: "enemy"
-      } as FactionComponent);
-      w.addComponent(entity, {
-        type: "LootTable",
         tableId: "default"
-      } as any);
+      });
       w.addComponent(entity, {
         type: "Collectible",
         kind: "story_fragment",

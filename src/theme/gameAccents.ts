@@ -37,6 +37,11 @@ export const GAME_ACCENTS = {
     secondary: 'gold' as const,
     accent: 'pink' as const,
   },
+  arkanoid: {
+    primary: 'cyan' as const,
+    secondary: 'yellow' as const,
+    accent: 'pink' as const,
+  },
 } as const;
 
 export type GameKey = keyof typeof GAME_ACCENTS;
@@ -85,6 +90,7 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     invader_scout: accentColors.secondary,
     commander: accentColors.accent,
     scout: accentColors.secondary,
+    brick: accentColors.accent,
   };
 
   return {

@@ -1,0 +1,19 @@
+{
+  "WIDTH": 800,
+  "HEIGHT": 600,
+  "PADDLE_WIDTH": 100,
+  "PADDLE_HEIGHT": 16,
+  "PADDLE_Y": 540,
+  "BALL_SIZE": 8,
+  "BALL_SPEED_START": 320,
+  "BALL_SPEED_MAX": 700,
+  "BALL_ACCELERATION": 1.02,
+  "PLAYER_INITIAL_LIVES": 3,
+  "grid": [
+    ["explosive", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "explosive"],
+    ["standard", "regenerable", "standard", "standard", "standard", "standard", "standard", "standard", "regenerable", "standard"],
+    ["standard", "standard", "gravitational", "standard", "standard", "standard", "standard", "gravitational", "standard", "standard"],
+    ["standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard"],
+    ["standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard"]
+  ]
+}

@@ -136,6 +136,15 @@ export class SharedParticlePool extends ProjectilePool<any, ProjectileParams> {
     });
   }
 
+  public override acquire(
+    world: any,
+    params: { x: number; y: number; vx?: number; dx?: number; vy?: number; dy?: number; size: number; color: string; ttl: number }
+  ): number {
+    const dx = params.dx ?? params.vx ?? 0;
+    const dy = params.dy ?? params.vy ?? 0;
+    return super.acquire(world, { x: params.x, y: params.y, dx, dy, size: params.size, color: params.color, ttl: params.ttl });
+  }
+
   public acquireParticle(
     world: any,
     x: number,

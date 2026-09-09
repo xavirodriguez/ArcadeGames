@@ -4858,11 +4858,9 @@ export enum SystemPhase {
     Transform = "Transform"
 }
 
-// @public (undocumented)
+// @public
 export interface TagComponent extends Component {
-    // (undocumented)
     tags: string[];
-    // (undocumented)
     type: "Tag";
 }
 

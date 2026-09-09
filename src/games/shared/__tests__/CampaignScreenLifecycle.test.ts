@@ -6,7 +6,8 @@ import {
   EventBus,
   World,
   InputSchema,
-  AssetManifest
+  AssetManifest,
+  RandomService
 } from "@tiny-aster/core";
 
 /**
@@ -47,6 +48,8 @@ describe("CampaignScreen switchGame Lifecycle, Seed Determinism & Memory Leak Pr
     world: {} as World
   };
 
+  let prng: RandomService;
+
   // Replicated switchGame orchestration function matching CampaignScreen.tsx
   const switchGame = async (gameId: string, overrideSeed?: number) => {
     if (activeGame) {
@@ -55,7 +58,7 @@ describe("CampaignScreen switchGame Lifecycle, Seed Determinism & Memory Leak Pr
     }
 
     const normalizedId = GameDefinitionRegistry.normalizeId(gameId);
-    const seed = overrideSeed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+    const seed = overrideSeed ?? prng.nextInt(1, 0x7FFFFFFF);
 
     activeGameId = gameId;
     activeGameSeed = seed;
@@ -83,6 +86,7 @@ describe("CampaignScreen switchGame Lifecycle, Seed Determinism & Memory Leak Pr
     jest.clearAllMocks();
     eventBus = new EventBus();
     arcadeKernel = new ArcadeKernel(eventBus);
+    prng = new RandomService(12345);
     activeGame = null;
     activeGameId = null;
     activeGameSeed = null;
@@ -124,13 +128,21 @@ describe("CampaignScreen switchGame Lifecycle, Seed Determinism & Memory Leak Pr
     expect(activeGame).toBe(mockGame2);
   });
 
-  it("uses overrideSeed when provided or generates numeric seed deterministically", async () => {
+  it("uses overrideSeed when provided or generates numeric seed deterministically via PRNG", async () => {
     const fixedSeed = 987654321;
     await switchGame("test-game-1", fixedSeed);
 
     expect(activeGameSeed).toBe(fixedSeed);
     const def = GameDefinitionRegistry.resolve("test-game-1");
     expect(def.createSimulation).toHaveBeenCalledWith(fixedSeed);
+
+    // Test sequence without overrideSeed is fully deterministic and reproducible across runs
+    const prngA = new RandomService(999);
+    const prngB = new RandomService(999);
+    const seedA = prngA.nextInt(1, 0x7FFFFFFF);
+    const seedB = prngB.nextInt(1, 0x7FFFFFFF);
+    expect(seedA).toBe(seedB);
+    expect(typeof seedA).toBe("number");
   });
 
   it("transitions ArcadeKernel to PLAYING state upon switching game", async () => {

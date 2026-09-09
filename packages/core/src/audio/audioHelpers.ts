@@ -2,10 +2,21 @@ import { IAudioPlayer } from "../audio/IAudioPlayer";
 
 /**
  * Audio asset entry representing a sound effect identifier and file path.
+ *
+ * @example
+ * ```ts
+ * const sfxAsset: AudioAsset = {
+ *   id: "laser_fire",
+ *   path: "assets/audio/sfx/laser.wav"
+ * };
+ * ```
+ *
  * @public
  */
 export interface AudioAsset {
+  /** Unique string key or identifier for the audio clip. */
   id: string;
+  /** File path, URI, or URL to the audio asset. */
   path: string;
 }
 

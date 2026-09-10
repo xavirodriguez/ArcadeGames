@@ -10,6 +10,7 @@ export interface MegastructureData {
   megaX: number;
   megaY: number;
   beaconAlpha: number;
+  structureOpacity: number;
 }
 
 /**
@@ -36,15 +37,25 @@ export function calculateMegastructureData(
   cycle = 1600
 ): MegastructureData {
   const megaProgress = (tick % cycle) / cycle;
-  const megaIndex = Math.floor(tick / cycle) % 4;
+  const megaIndex = Math.floor(tick / cycle) % 8;
 
   if (megaProgress < 0.6) {
     const megaX = width - (megaProgress / 0.6) * (width + 250);
     const megaY = height * 0.35;
     const beaconAlpha = 0.2 + 0.3 * Math.sin(tick * 0.05);
-    return { visible: true, megaIndex, megaX, megaY, beaconAlpha };
+
+    // Smooth fade in during first 10% of cycle, full opacity until 50%, fade out by 60%
+    let structureOpacity = 1.0;
+    if (megaProgress < 0.1) {
+      structureOpacity = megaProgress / 0.1;
+    } else if (megaProgress > 0.5) {
+      structureOpacity = (0.6 - megaProgress) / 0.1;
+    }
+    structureOpacity = Math.max(0, Math.min(1.0, structureOpacity));
+
+    return { visible: true, megaIndex, megaX, megaY, beaconAlpha, structureOpacity };
   }
-  return { visible: false, megaIndex: 0, megaX: 0, megaY: 0, beaconAlpha: 0 };
+  return { visible: false, megaIndex: 0, megaX: 0, megaY: 0, beaconAlpha: 0, structureOpacity: 0 };
 }
 
 /**

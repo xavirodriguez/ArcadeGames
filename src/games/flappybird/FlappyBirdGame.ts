@@ -33,7 +33,7 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
 export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, any, any>> {
   bird: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number, y: number }>;
-  pipe: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number, gapY: number }>;
+  pipe: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number; gapY: number; visualVariant?: "standard" | "damaged" | "rusted" }>;
   ground: BlueprintDefinition<FlappyBirdComponentRegistry, any, {}>;
   state: BlueprintDefinition<FlappyBirdComponentRegistry, any, {}>;
 }
@@ -146,13 +146,19 @@ export class FlappyBirdGame
     });
 
     this.blueprints.register("pipe", {
-      spawn: (world, entity, args: { x: number, gapY: number }) => {
+      spawn: (world, entity, args: { x: number; gapY: number; visualVariant?: "standard" | "damaged" | "rusted" }) => {
         const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
         const pipeColor = resolveThemeColor(world, "pipe", "enemy");
 
         const halfGap = config.GAP_SIZE / 2;
         const pipeWidth = config.PIPE_WIDTH;
         const pipeSpeed = config.PIPE_SPEED;
+
+        let variant = args.visualVariant;
+        if (!variant) {
+          const rand = world.gameplayRandom.next();
+          variant = rand < 0.5 ? "standard" : rand < 0.8 ? "damaged" : "rusted";
+        }
 
         // Top Pipe
         const topY = args.gapY - halfGap;
@@ -167,7 +173,7 @@ export class FlappyBirdGame
           })
           .withCollisionEvents();
 
-        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: config.GAP_SIZE, scored: false });
+        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: config.GAP_SIZE, scored: false, visualVariant: variant });
 
         // Bottom Pipe
         const bottomY = args.gapY + halfGap;
@@ -183,7 +189,7 @@ export class FlappyBirdGame
           })
           .withCollisionEvents();
 
-        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: config.GAP_SIZE, scored: true });
+        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: config.GAP_SIZE, scored: true, visualVariant: variant });
       }
     });
 

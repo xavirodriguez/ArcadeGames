@@ -13,6 +13,31 @@ describe("Platformer Game Simulation Tests", () => {
     world.flush();
   });
 
+  it("should verify end-to-end simulation chain: input -> velocity -> transform -> camera", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const cameraEntity = world.query("Camera2D")[0];
+
+    const initialTransform = { ...world.getComponent(playerEntity, "Transform")! };
+
+    // Set input right
+    game.setInputState({ moveRight: true });
+    game.update(0.1);
+
+    const inputComp = world.getComponent(playerEntity, "PlatformerInput") as { moveDir: number } | undefined;
+    expect(inputComp?.moveDir).toBe(1);
+
+    const vel = world.getComponent(playerEntity, "Velocity")!;
+    expect(vel.vx).toBeGreaterThan(0);
+
+    const newTransform = world.getComponent(playerEntity, "Transform")!;
+    expect(newTransform.x).toBeGreaterThan(initialTransform.x);
+
+    const cameraComp = world.getComponent(cameraEntity, "Camera2D")!;
+    // Camera target top-left X = (player.x + lookAheadX) - (screenWidth / 2)
+    // 104 + 80 - 400 = -216
+    expect(cameraComp.targetX).toBe(newTransform.x + 80 - 400);
+  });
+
   it("should initialize with level plan and player entity", () => {
     const state = game.getGameState();
     expect(state.attempts).toBe(1);
@@ -27,6 +52,26 @@ describe("Platformer Game Simulation Tests", () => {
     expect(cameras.length).toBe(1);
     const cameraComp = world.getComponent(cameras[0], "Camera2D")!;
     expect(cameraComp.followEntity).toBe(players[0]);
+  });
+
+  it("should execute jump and apply gravity physics", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+
+    // Simulate jump input
+    game.setInputState({ jump: true });
+    game.update(0.016);
+
+    const vel = world.getComponent(playerEntity, "Velocity")!;
+    expect(vel.vy).toBeLessThan(0); // Upward jump velocity
+
+    // Release jump and step forward to observe gravity pulled downward
+    game.setInputState({ jump: false });
+    for (let i = 0; i < 20; i++) {
+      game.update(0.016);
+    }
+
+    const updatedVel = world.getComponent(playerEntity, "Velocity")!;
+    expect(updatedVel.vy).toBeGreaterThan(vel.vy); // Gravity accelerates downwards
   });
 
   it("should process physical movement, dash, and double jump input", () => {
@@ -46,8 +91,8 @@ describe("Platformer Game Simulation Tests", () => {
     expect(vel.vx).toBeGreaterThanOrEqual(400);
 
     // Double jump check
-    const jumper = world.getComponent(playerEntity, "PlatformerJumper") as any;
-    expect(jumper.maxJumps).toBe(2);
+    const jumper = world.getComponent(playerEntity, "PlatformerJumper") as { maxJumps: number } | undefined;
+    expect(jumper?.maxJumps).toBe(2);
   });
 
   it("should complete level when reaching the goal entity", () => {

@@ -12,6 +12,11 @@ import {
   pongStoryGraph,
   flappyBirdStoryGraph,
 } from "../src/games/shared/story/StoryGraphs";
+import {
+  escapeRoute01Encounter,
+  keplerPhase2Encounter,
+  keplerPhase3Encounter
+} from "../src/games/asteroids/story/KeplerEncounters";
 
 interface GraphRegistryEntry {
   id: string;
@@ -62,6 +67,36 @@ const storyGraphRegistry: GraphRegistryEntry[] = [
     id: asteroidsStoryGraph.id,
     sourceFile: "src/games/shared/story/StoryGraphs.ts",
     getGraph: () => asteroidsStoryGraph,
+    encounters: [
+      escapeRoute01Encounter as unknown as MiniGameEncounterDSL,
+      keplerPhase2Encounter as unknown as MiniGameEncounterDSL,
+      keplerPhase3Encounter as unknown as MiniGameEncounterDSL
+    ],
+    options: {
+      declaredFlags: [
+        "escapedDebrisField",
+        "escapeShipDamaged",
+        "ast_path_attack",
+        "ast_path_stealth",
+        "ast_path_investigate",
+        "quarantineBreached",
+        "quarantineFlawless",
+        "blackBoxDecrypted",
+        "keplerFlawlessRun",
+        "coreOvercharged",
+        "swarmMerged",
+        "ending_flawless_unlocked",
+        "ending_pyrrhic_unlocked",
+        "ending_lost_unlocked",
+        "ending_merged_unlocked",
+        "navigationData"
+      ],
+      declaredVariables: [
+        "oxygen",
+        "reactorPower",
+        "narrativeScore"
+      ]
+    }
   },
   {
     id: spaceInvadersStoryGraph.id,

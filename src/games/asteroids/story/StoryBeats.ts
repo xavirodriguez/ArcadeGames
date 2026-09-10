@@ -8,6 +8,18 @@ export interface StoryBeat {
 
 /**
  * Returns the story beat configuration for a given level.
+ *
+ * @deprecated Legacy hardcoded narrative helper. Use `keplersGhostStoryGraph` narrative nodes instead.
+ *
+ * Before:
+ * ```ts
+ * const beat = getStoryBeatForLevel(level);
+ * ```
+ * After:
+ * ```ts
+ * const runtimeNode = runtime.getCurrentNode();
+ * ```
+ *
  * @public
  */
 export function getStoryBeatForLevel(level: number): StoryBeat {
@@ -55,6 +67,18 @@ export function getStoryBeatForLevel(level: number): StoryBeat {
 
 /**
  * Gets the alternative ending text based on the reached level and score.
+ *
+ * @deprecated Legacy hardcoded ending helper. Use `keplersGhostStoryGraph` terminal nodes (`ending_kepler_ghost_*`) instead.
+ *
+ * Before:
+ * ```ts
+ * const text = getStoryEnding(level, score, highScore);
+ * ```
+ * After:
+ * ```ts
+ * const currentNode = runtime.getCurrentNode(); // isEndNode: true
+ * ```
+ *
  * @public
  */
 export function getStoryEnding(level: number, score: number, highScore: number): string {
@@ -73,6 +97,18 @@ export function getStoryEnding(level: number, score: number, highScore: number):
 
 /**
  * Gets the alternative ending text based on the reached level and score (alias/variant).
+ *
+ * @deprecated Legacy hardcoded ending helper. Use `keplersGhostStoryGraph` terminal nodes instead.
+ *
+ * Before:
+ * ```ts
+ * const text = getStoryEndingText(level, score, highScore);
+ * ```
+ * After:
+ * ```ts
+ * const currentNode = runtime.getCurrentNode();
+ * ```
+ *
  * @public
  */
 export function getStoryEndingText(level: number, score: number, highScore: number): string {
@@ -81,6 +117,18 @@ export function getStoryEndingText(level: number, score: number, highScore: numb
 
 /**
  * Returns the lore and transmissions logs of ODISEA-7 based on level.
+ *
+ * @deprecated Legacy hardcoded lore helper. Use `keplersGhostStoryGraph` cutscene dialogue queues instead.
+ *
+ * Before:
+ * ```ts
+ * const logs = getLogsForLevel(level);
+ * ```
+ * After:
+ * ```ts
+ * const dialogue = runtime.getCurrentNode()?.dialogue;
+ * ```
+ *
  * @public
  */
 export function getLogsForLevel(level: number): string[] {

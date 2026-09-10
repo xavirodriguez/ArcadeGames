@@ -54,6 +54,10 @@ export interface FroggerInputComponent extends Component {
   moveDown: boolean;
   moveLeft: boolean;
   moveRight: boolean;
+  prevMoveUp?: boolean;
+  prevMoveDown?: boolean;
+  prevMoveLeft?: boolean;
+  prevMoveRight?: boolean;
 }
 
 export interface FroggerComponentRegistry extends CoreComponentRegistry {
@@ -82,4 +86,11 @@ export interface FroggerInput {
   moveDown?: boolean;
   moveLeft?: boolean;
   moveRight?: boolean;
+}
+
+export interface FroggerEventRegistry extends Record<string, unknown> {
+  "frogger:jump": { gridX: number; gridY: number };
+  "frogger:died": { reason: string; gridX: number; gridY: number };
+  "frogger:goal_reached": { padIndex: number; score: number };
+  "frogger:level_cleared": { level: number; score: number };
 }

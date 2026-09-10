@@ -39,13 +39,19 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
 
       // Safe for determinism/rollback. By fetching read-only Transform first, we keep stateVersion updates and callback allocations to exactly zero for all entities that are safely in bounds.
       if (b.mode === "wrap") {
-        if (t.x < 0 || t.x > b.width || t.y < 0 || t.y > b.height) {
+        const minX = b.minX ?? 0;
+        const maxX = b.maxX ?? b.width;
+        const minY = b.minY ?? 0;
+        const maxY = b.maxY ?? b.height;
+
+        if (t.x < minX || t.x > maxX || t.y < minY || t.y > maxY) {
           const mt = world.getMutableComponent(entity, "Transform");
           if (mt) {
-            if (mt.x < 0) mt.x = b.width;
-            if (mt.x > b.width) mt.x = 0;
-            if (mt.y < 0) mt.y = b.height;
-            if (mt.y > b.height) mt.y = 0;
+            if (mt.x < minX) mt.x = maxX;
+            else if (mt.x > maxX) mt.x = minX;
+
+            if (mt.y < minY) mt.y = maxY;
+            else if (mt.y > maxY) mt.y = minY;
           }
         }
       } else if (b.mode === "destroy") {

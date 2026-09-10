@@ -369,7 +369,7 @@ export interface BaseGameConfig<TComponents extends ComponentRegistry = Componen
     theme?: Theme;
 }
 
-// @public (undocumented)
+// @public
 export abstract class BaseGameStateSystem<TGameState = unknown, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> extends System<TComponents, TEvents> {
     constructor(singletonType: string);
     // (undocumented)
@@ -424,7 +424,7 @@ export interface BaseWorldSnapshot {
     tick: number;
 }
 
-// @public (undocumented)
+// @public
 export class BinaryCompression {
     // (undocumented)
     static pack(packet: unknown): Uint8Array;
@@ -464,6 +464,10 @@ export interface BoundaryComponent extends Component {
     bounceX?: boolean;
     bounceY?: boolean;
     height: number;
+    maxX?: number;
+    maxY?: number;
+    minX?: number;
+    minY?: number;
     mode: "wrap" | "bounce" | "destroy";
     type: "Boundary";
     width: number;
@@ -660,7 +664,7 @@ export interface CircleShape extends BaseShape {
     type: ShapeType.Circle;
 }
 
-// @public (undocumented)
+// @public
 export class ClientAckTracker {
     // (undocumented)
     getIdleTime(sessionId: string): number;
@@ -668,7 +672,6 @@ export class ClientAckTracker {
     getLastAckedSequence(sessionId: string): number;
     // (undocumented)
     nextSequence(sessionId: string): number;
-    // (undocumented)
     recordAck(sessionId: string, sequence: number, _tick: number): void;
 }
 
@@ -1200,7 +1203,7 @@ export function createDeferredEntity<TComponents extends ComponentRegistry = Com
     }) => void;
 };
 
-// @public (undocumented)
+// @public
 export function createEmitter(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity;
 
 // @public
@@ -2165,7 +2168,7 @@ export class InputValidator {
     static validateFrame(clientFrame: CompactInputFrame, lastProcessedTick: number, maxTickDelta?: number): boolean;
 }
 
-// @public (undocumented)
+// @public
 export class InterestManagerSystem<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> extends System<TComponents, TEvents> {
     // (undocumented)
     dispose(): void;
@@ -2217,7 +2220,7 @@ export interface IPredictionModel<TRegistry extends MultiplayerRegistry = Multip
     simulate(world: World<TRegistry>, entity: number, input: TInput, dt: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface IPrefabPool<TParams> {
     // (undocumented)
     acquire(world: World, params: TParams): Entity;
@@ -2999,7 +3002,7 @@ export class NarrativeTimelineEngine {
     truncateAfter(targetEventId: string | null): void;
 }
 
-// @public (undocumented)
+// @public
 export class NetworkBudgetManager {
     // (undocumented)
     prioritize<T = unknown>(sessionId: string, interest: T[], selfEntityId?: string): T[];
@@ -3026,7 +3029,7 @@ export class NetworkController<TComponents extends ComponentRegistry = Component
     updateFromServer(payload: ServerUpdatePayload, localSessionId?: string): void;
 }
 
-// @public (undocumented)
+// @public
 export class NetworkDeltaSystem<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> {
     constructor(tracker: ReplicationStateTracker);
     // (undocumented)
@@ -3281,7 +3284,7 @@ export interface ParticleEmitterConfig {
     y: number;
 }
 
-// @public (undocumented)
+// @public
 export interface ParticleParams {
     // (undocumented)
     color: string;
@@ -3299,12 +3302,10 @@ export interface ParticleParams {
     y: number;
 }
 
-// @public (undocumented)
+// @public
 export class ParticleSystem extends System<CoreComponentRegistry> {
     constructor(particlePool: IPrefabPool<ParticleParams>);
-    // (undocumented)
     emit(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity;
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -3857,7 +3858,7 @@ export class ReplayRecorder {
     serialize(metadata?: Record<string, unknown>): string;
 }
 
-// @public (undocumented)
+// @public
 export class ReplicationStateTracker {
     // (undocumented)
     getBaselineVersion(sessionId: string, ack: number): {

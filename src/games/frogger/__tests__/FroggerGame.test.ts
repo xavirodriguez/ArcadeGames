@@ -24,21 +24,58 @@ describe("FroggerGame Engine & Mechanics", () => {
     expect(state.totalLilyPads).toBe(5);
   });
 
-  it("handles grid jump inputs correctly", () => {
+  it("handles grid jump inputs correctly and enforces discrete hops", () => {
     const world = game.getWorld();
     const froggerEntity = world.query("Frogger")[0];
     let frogger = world.getComponent(froggerEntity, "Frogger");
     expect(frogger?.gridY).toBe(13);
 
-    // Jump Up
+    // Initial press moveUp -> Jump Up once
     game.setInput({ moveUp: true });
     game.update(0.016);
 
     frogger = world.getComponent(froggerEntity, "Frogger");
     expect(frogger?.gridY).toBe(12);
 
+    // Holding moveUp across multiple frames should NOT trigger subsequent jumps
+    for (let i = 0; i < 20; i++) {
+      game.update(0.016);
+    }
+    frogger = world.getComponent(froggerEntity, "Frogger");
+    expect(frogger?.gridY).toBe(12);
+
+    // Releasing moveUp and pressing it again triggers second jump
+    game.setInput({ moveUp: false });
+    game.update(0.016);
+    game.setInput({ moveUp: true });
+    game.update(0.016);
+
+    frogger = world.getComponent(froggerEntity, "Frogger");
+    expect(frogger?.gridY).toBe(11);
+
     const state = game.getGameState();
     expect(state.score).toBeGreaterThan(0);
+  });
+
+  it("wraps vehicle entities smoothly considering minX and maxX boundaries", () => {
+    const world = game.getWorld();
+    const vehicles = world.query("Vehicle", "Transform", "Boundary");
+    expect(vehicles.length).toBeGreaterThan(0);
+
+    const vEntity = vehicles[0];
+    const b = world.getComponent(vEntity, "Boundary");
+    expect(b?.minX).toBeDefined();
+    expect(b?.maxX).toBeDefined();
+
+    // Position entity past minX to trigger wrapping to maxX
+    world.mutateComponent(vEntity, "Transform", (t) => {
+      t.x = (b?.minX ?? 0) - 5;
+    });
+
+    game.update(0.016);
+
+    const updatedTransform = world.getComponent(vEntity, "Transform");
+    expect(updatedTransform?.x).toBe(b?.maxX);
   });
 
   it("carries frogger horizontally when standing on a log in the river", () => {

@@ -44,12 +44,18 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
       const hyperspace = activeKeys.has("ShiftLeft") || activeKeys.has("KeyH");
       const flap = activeKeys.has("Space") || activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
       const glide = activeKeys.has("Space") || activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
+      const moveUp = activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
+      const moveDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
+      const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
+      const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
 
       const fullPayload = {
         rotateLeft,
         rotateRight,
-        moveLeft: rotateLeft,
-        moveRight: rotateRight,
+        moveLeft,
+        moveRight,
+        moveUp,
+        moveDown,
         thrust,
         shoot,
         hyperspace,
@@ -67,8 +73,10 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
           KeyA: ["rotateLeft", "moveLeft"],
           ArrowRight: ["rotateRight", "moveRight"],
           KeyD: ["rotateRight", "moveRight"],
-          ArrowUp: ["thrust", "flap", "glide"],
-          KeyW: ["thrust", "flap", "glide"],
+          ArrowUp: ["thrust", "flap", "glide", "moveUp"],
+          KeyW: ["thrust", "flap", "glide", "moveUp"],
+          ArrowDown: ["moveDown"],
+          KeyS: ["moveDown"],
           Space: ["shoot", "flap", "glide"],
           ShiftLeft: ["hyperspace"],
           KeyH: ["hyperspace"],
@@ -113,6 +121,8 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         rotateRight: false,
         moveLeft: false,
         moveRight: false,
+        moveUp: false,
+        moveDown: false,
         thrust: false,
         shoot: false,
         hyperspace: false,

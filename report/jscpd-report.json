@@ -3573,18 +3573,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 85,
+        "end": 86,
         "endLoc": {
           "column": 79,
-          "line": 85,
-          "position": 2776
+          "line": 86,
+          "position": 2817
         },
         "name": "frogger/FroggerGame.ts",
-        "start": 78,
+        "start": 79,
         "startLoc": {
           "column": 17,
-          "line": 78,
-          "position": 2456
+          "line": 79,
+          "position": 2497
         }
       },
       "tokens": 70
@@ -4553,37 +4553,37 @@
     },
     {
       "firstFile": {
-        "end": 349,
+        "end": 363,
         "endLoc": {
           "column": 5,
-          "line": 349,
-          "position": 12618
+          "line": 363,
+          "position": 13006
         },
         "name": "frogger/FroggerGame.ts",
-        "start": 343,
+        "start": 357,
         "startLoc": {
           "column": 19,
-          "line": 343,
-          "position": 12366
+          "line": 357,
+          "position": 12744
         }
       },
       "format": "typescript",
-      "fragment": "    const assets = [\n      { id: \"jump\", path: \"/audio/jump.mp3\" },\n      { id: \"drown\", path: \"/audio/drown.mp3\" },\n      { id: \"hit\", path: \"/audio/hit.mp3\" },\n      { id: \"goal\", path: \"/audio/goal.mp3\" },\n      { id: \"game_over\", path: \"/audio/game_over.mp3\" },\n    ];",
+      "fragment": "    const assets = [\n      { id: \"jump\", path: \"/audio/hit.mp3\" },\n      { id: \"drown\", path: \"/audio/game_over.mp3\" },\n      { id: \"hit\", path: \"/audio/explosion.mp3\" },\n      { id: \"goal\", path: \"/audio/score.mp3\" },\n      { id: \"game_over\", path: \"/audio/game_over.mp3\" },\n    ];",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 401,
+        "end": 415,
         "endLoc": {
           "column": 5,
-          "line": 401,
-          "position": 13964
+          "line": 415,
+          "position": 14362
         },
         "name": "frogger/FroggerGame.ts",
-        "start": 395,
+        "start": 409,
         "startLoc": {
           "column": 12,
-          "line": 395,
-          "position": 13712
+          "line": 409,
+          "position": 14100
         }
       },
       "tokens": 52
@@ -7328,32 +7328,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-10T11:31:08.144Z",
+    "detectionDate": "2026-09-10T12:40:59.704Z",
     "formats": {
       "typescript": {
         "clones": 198,
         "duplicatedLines": 2035,
         "duplicatedTokens": 15514,
-        "lines": 58436,
+        "lines": 58672,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.4824423300705045,
-        "percentageTokens": 5.073665276755785,
+        "percentage": 3.468434687755659,
+        "percentageTokens": 5.0678478796312625,
         "sources": 360,
-        "tokens": 305775
+        "tokens": 306126
       }
     },
     "total": {
       "clones": 198,
       "duplicatedLines": 2035,
       "duplicatedTokens": 15514,
-      "lines": 58436,
+      "lines": 58672,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.4824423300705045,
-      "percentageTokens": 5.073665276755785,
+      "percentage": 3.468434687755659,
+      "percentageTokens": 5.0678478796312625,
       "sources": 360,
-      "tokens": 305775
+      "tokens": 306126
     }
   }
 }

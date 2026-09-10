@@ -5,18 +5,24 @@ import { TransformComponent, VelocityComponent, ColliderComponent } from "@tiny-
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 
 /**
- * Factoría para la creación de entidades de Pong.
+ * Entity factory for the Pong game domain.
  *
- * @responsibility Instanciar la bola, las paletas y el estado global con los componentes correctos.
+ * @responsibility Instantiate the ball, paddles, and global state with the
+ * correct components.
  *
  * @remarks
- * Encapsula la configuración de dimensiones, velocidades iniciales y máscaras de colisión
- * necesarias para el comportamiento de rebote característico de Pong.
+ * Encapsulates screen dimensions, initial velocities, and collision
+ * layers/masks needed for Pong's characteristic bounce behavior. All three
+ * methods are thin wrappers around blueprints registered elsewhere — see the
+ * "ball"/"paddle"/"state" blueprint definitions for actual component setup.
+ * @packageDocumentation
  */
 export const PongEntityFactory = {
   /**
    * Creates the ball entity at the center of the screen.
-   * Uses `gameplayRandom` to determine initial vertical direction.
+   * @remarks Uses `world.gameplayRandom` to determine initial vertical
+   * direction — this must stay on gameplayRandom, not Math.random, to
+   * preserve replay/rollback determinism.
    */
   createBall(world: World<any>) {
     return spawnBlueprintEntity(world, "ball", {});
@@ -31,6 +37,7 @@ export const PongEntityFactory = {
     return spawnBlueprintEntity(world, "paddle", { side });
   },
 
+  /** Creates the global Pong game-state singleton entity. */
   createGameState(world: World<any>) {
     return spawnBlueprintEntity(world, "state", {});
   }

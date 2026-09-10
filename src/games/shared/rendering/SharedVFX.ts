@@ -94,6 +94,20 @@ interface TrailPoint {
   alpha: number;
 }
 
+interface RingingPlanetState {
+  x: number;
+  y: number;
+  radius: number;
+  ringInnerRadius: number;
+  ringOuterRadius: number;
+  ringTilt: number;
+  craters: { x: number; y: number; radius: number }[];
+  moonX: number;
+  moonY: number;
+  moonRadius: number;
+  moonCraters: { x: number; y: number; radius: number }[];
+}
+
 interface VFXWorldState {
   stars: Star[];
   lines: SpeedLine[];
@@ -101,15 +115,21 @@ interface VFXWorldState {
   matrixColumns: MatrixColumn[];
   accretionParticles: AccretionParticle[];
   trailPoints: TrailPoint[];
+  planet?: RingingPlanetState;
   starsInitialized: boolean;
   warpLinesInitialized: boolean;
   nebulaeInitialized: boolean;
   matrixInitialized: boolean;
   vortexInitialized: boolean;
   trailInitialized: boolean;
+  planetInitialized: boolean;
   timePhase: number; // Incremented exactly once per render tick to be entity-independent
   cachedCRTGradient?: any; // Cached CanvasRadialGradient
   cachedSkiaShader?: any; // Cached Skia Shader
+  cachedPlanetGradient?: any; // Cached CanvasRadialGradient for Ringing Planet
+  cachedPlanetSkiaShader?: any; // Cached Skia Shader for Ringing Planet
+  cachedRingGradient?: any; // Cached CanvasLinearGradient for Planet Rings
+  cachedRingSkiaShader?: any; // Cached Skia Shader for Planet Rings
   lastWidth: number;
   lastHeight: number;
   lastCRTWidth?: number;
@@ -134,6 +154,7 @@ function getVFXState(world: World<any>): VFXWorldState {
       matrixInitialized: false,
       vortexInitialized: false,
       trailInitialized: false,
+      planetInitialized: false,
       timePhase: 0,
       lastWidth: 0,
       lastHeight: 0
@@ -146,9 +167,17 @@ function getVFXState(world: World<any>): VFXWorldState {
 // -------------------------------------------------------------
 // Cache Helpers
 // -------------------------------------------------------------
+type CachedVFXKey =
+  | "cachedCRTGradient"
+  | "cachedSkiaShader"
+  | "cachedPlanetGradient"
+  | "cachedPlanetSkiaShader"
+  | "cachedRingGradient"
+  | "cachedRingSkiaShader";
+
 function getOrCreateCached<T>(
   state: VFXWorldState,
-  cacheKey: "cachedCRTGradient" | "cachedSkiaShader",
+  cacheKey: CachedVFXKey,
   width: number,
   height: number,
   create: () => T
@@ -316,6 +345,56 @@ function initializeVortex(world: World<any>, state: VFXWorldState) {
   state.vortexInitialized = true;
 }
 
+function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
+  const rng = world.renderRandom;
+  const planetX = rng.nextRange(550, 680);
+  const planetY = rng.nextRange(120, 220);
+  const radius = rng.nextRange(50, 75);
+
+  const craters: { x: number; y: number; radius: number }[] = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = rng.nextRange(0, Math.PI * 2);
+    const dist = rng.nextRange(0.1, 0.7) * radius;
+    craters.push({
+      x: Math.cos(angle) * dist,
+      y: Math.sin(angle) * dist,
+      radius: rng.nextRange(0.12, 0.22) * radius
+    });
+  }
+
+  const moonAngle = rng.nextRange(-Math.PI * 0.25, Math.PI * 0.25);
+  const moonDist = radius * rng.nextRange(2.2, 2.8);
+  const moonRadius = radius * rng.nextRange(0.22, 0.32);
+  const moonX = planetX + Math.cos(moonAngle) * moonDist;
+  const moonY = planetY + Math.sin(moonAngle) * moonDist;
+
+  const moonCraters: { x: number; y: number; radius: number }[] = [];
+  for (let i = 0; i < 4; i++) {
+    const angle = rng.nextRange(0, Math.PI * 2);
+    const dist = rng.nextRange(0.1, 0.6) * moonRadius;
+    moonCraters.push({
+      x: Math.cos(angle) * dist,
+      y: Math.sin(angle) * dist,
+      radius: rng.nextRange(0.15, 0.3) * moonRadius
+    });
+  }
+
+  state.planet = {
+    x: planetX,
+    y: planetY,
+    radius,
+    ringInnerRadius: radius * 1.3,
+    ringOuterRadius: radius * 2.1,
+    ringTilt: -0.35,
+    craters,
+    moonX,
+    moonY,
+    moonRadius,
+    moonCraters
+  };
+  state.planetInitialized = true;
+}
+
 // =============================================================
 // I. ORIGINAL 5 EFFECTS (CANVAS & SKIA)
 // =============================================================
@@ -414,6 +493,235 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
       flickerPaint.setAlphaf(0.005 + (randomFlicker - 0.95) * 0.15);
       canvas.drawRect(Skia.XYWHRect(0, 0, width, height), flickerPaint);
     }
+
+    canvas.restore();
+  }
+};
+
+// -------------------------------------------------------------
+// 16. RingingPlanetBackgroundEffect (Canvas & Skia)
+// -------------------------------------------------------------
+export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+  draw(ctx, world) {
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.planetInitialized) {
+      initializeRingingPlanet(world, state);
+    }
+    const planet = state.planet;
+    if (!planet) return;
+
+    ctx.save();
+
+    // 1. Back section of rings (drawn behind planet)
+    ctx.save();
+    ctx.translate(planet.x, planet.y);
+    ctx.rotate(planet.ringTilt);
+    ctx.scale(1.0, 0.32);
+
+    ctx.strokeStyle = "#d4af37";
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = planet.ringOuterRadius - planet.ringInnerRadius;
+    const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, midRingRadius, Math.PI, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Planet body gradient caching
+    const planetGrad = getOrCreateCached(state, "cachedPlanetGradient", width, height, () => {
+      const grad = ctx.createRadialGradient(
+        -planet.radius * 0.3, -planet.radius * 0.3, planet.radius * 0.1,
+        0, 0, planet.radius
+      );
+      grad.addColorStop(0, "#e6c280");
+      grad.addColorStop(0.5, "#a66a38");
+      grad.addColorStop(1, "#3b1e08");
+      return grad;
+    });
+
+    ctx.save();
+    ctx.translate(planet.x, planet.y);
+
+    ctx.fillStyle = planetGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, planet.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Planet Craters
+    ctx.fillStyle = "#261304";
+    ctx.globalAlpha = 0.25;
+    for (let i = 0; i < planet.craters.length; i++) {
+      const crater = planet.craters[i];
+      ctx.beginPath();
+      ctx.arc(crater.x, crater.y, crater.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 3. Front section of rings (drawn over planet)
+    ctx.save();
+    ctx.translate(planet.x, planet.y);
+    ctx.rotate(planet.ringTilt);
+    ctx.scale(1.0, 0.32);
+
+    ctx.strokeStyle = "#f3e5ab";
+    ctx.globalAlpha = 0.6;
+    ctx.lineWidth = planet.ringOuterRadius - planet.ringInnerRadius;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, midRingRadius, 0, Math.PI);
+    ctx.stroke();
+
+    // Ring shadow gap
+    ctx.strokeStyle = "#1a0d03";
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = (planet.ringOuterRadius - planet.ringInnerRadius) * 0.15;
+    ctx.beginPath();
+    ctx.arc(0, 0, midRingRadius * 0.96, 0, Math.PI);
+    ctx.stroke();
+
+    ctx.restore();
+
+    // 4. Cratered Moon
+    ctx.save();
+    ctx.translate(planet.moonX, planet.moonY);
+
+    ctx.fillStyle = "#8a8a8a";
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.arc(0, 0, planet.moonRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Moon craters
+    ctx.fillStyle = "#4a4a4a";
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < planet.moonCraters.length; i++) {
+      const mc = planet.moonCraters[i];
+      ctx.beginPath();
+      ctx.arc(mc.x, mc.y, mc.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.restore();
+  }
+};
+
+export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+  draw(canvas, world) {
+    if (!Skia) return;
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.planetInitialized) {
+      initializeRingingPlanet(world, state);
+    }
+    const planet = state.planet;
+    if (!planet) return;
+
+    canvas.save();
+
+    const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
+    const ringThickness = planet.ringOuterRadius - planet.ringInnerRadius;
+
+    // 1. Back section of rings
+    canvas.save();
+    canvas.translate(planet.x, planet.y);
+    canvas.rotate((planet.ringTilt * 180) / Math.PI, 0, 0);
+    canvas.scale(1.0, 0.32);
+
+    const backRingPaint = Skia.Paint();
+    backRingPaint.setStyle(Skia.PaintStyle.Stroke);
+    backRingPaint.setStrokeWidth(ringThickness);
+    backRingPaint.setColor(Skia.Color("#d4af37"));
+    backRingPaint.setAlphaf(0.35);
+
+    const backRingPath = Skia.Path.Make();
+    backRingPath.addArc(
+      Skia.XYWHRect(-midRingRadius, -midRingRadius, midRingRadius * 2, midRingRadius * 2),
+      180, 180
+    );
+    canvas.drawPath(backRingPath, backRingPaint);
+    canvas.restore();
+
+    // 2. Planet body
+    canvas.save();
+    canvas.translate(planet.x, planet.y);
+
+    const planetShader = getOrCreateCached(state, "cachedPlanetSkiaShader", width, height, () => {
+      return Skia.Shader.MakeRadialGradient(
+        Skia.Point(-planet.radius * 0.3, -planet.radius * 0.3),
+        planet.radius,
+        [Skia.Color("#e6c280"), Skia.Color("#a66a38"), Skia.Color("#3b1e08")],
+        [0.0, 0.5, 1.0],
+        Skia.TileMode.Clamp
+      );
+    });
+
+    const planetPaint = Skia.Paint();
+    planetPaint.setShader(planetShader);
+    canvas.drawCircle(0, 0, planet.radius, planetPaint);
+
+    // Planet craters
+    const craterPaint = Skia.Paint();
+    craterPaint.setColor(Skia.Color("#261304"));
+    craterPaint.setAlphaf(0.25);
+    for (let i = 0; i < planet.craters.length; i++) {
+      const crater = planet.craters[i];
+      canvas.drawCircle(crater.x, crater.y, crater.radius, craterPaint);
+    }
+    canvas.restore();
+
+    // 3. Front section of rings
+    canvas.save();
+    canvas.translate(planet.x, planet.y);
+    canvas.rotate((planet.ringTilt * 180) / Math.PI, 0, 0);
+    canvas.scale(1.0, 0.32);
+
+    const frontRingPaint = Skia.Paint();
+    frontRingPaint.setStyle(Skia.PaintStyle.Stroke);
+    frontRingPaint.setStrokeWidth(ringThickness);
+    frontRingPaint.setColor(Skia.Color("#f3e5ab"));
+    frontRingPaint.setAlphaf(0.6);
+
+    const frontRingPath = Skia.Path.Make();
+    frontRingPath.addArc(
+      Skia.XYWHRect(-midRingRadius, -midRingRadius, midRingRadius * 2, midRingRadius * 2),
+      0, 180
+    );
+    canvas.drawPath(frontRingPath, frontRingPaint);
+
+    // Ring shadow gap
+    const gapPaint = Skia.Paint();
+    gapPaint.setStyle(Skia.PaintStyle.Stroke);
+    gapPaint.setStrokeWidth(ringThickness * 0.15);
+    gapPaint.setColor(Skia.Color("#1a0d03"));
+    gapPaint.setAlphaf(0.4);
+
+    const gapPath = Skia.Path.Make();
+    gapPath.addArc(
+      Skia.XYWHRect(-midRingRadius * 0.96, -midRingRadius * 0.96, midRingRadius * 1.92, midRingRadius * 1.92),
+      0, 180
+    );
+    canvas.drawPath(gapPath, gapPaint);
+    canvas.restore();
+
+    // 4. Cratered Moon
+    canvas.save();
+    canvas.translate(planet.moonX, planet.moonY);
+
+    const moonPaint = Skia.Paint();
+    moonPaint.setColor(Skia.Color("#8a8a8a"));
+    moonPaint.setAlphaf(0.85);
+    canvas.drawCircle(0, 0, planet.moonRadius, moonPaint);
+
+    const moonCraterPaint = Skia.Paint();
+    moonCraterPaint.setColor(Skia.Color("#4a4a4a"));
+    moonCraterPaint.setAlphaf(0.5);
+    for (let i = 0; i < planet.moonCraters.length; i++) {
+      const mc = planet.moonCraters[i];
+      canvas.drawCircle(mc.x, mc.y, mc.radius, moonCraterPaint);
+    }
+    canvas.restore();
 
     canvas.restore();
   }

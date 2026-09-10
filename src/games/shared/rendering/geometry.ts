@@ -66,6 +66,21 @@ export function calculateSquashAndStretch(vy: number, maxStretch = 0.18, velocit
   }
 }
 
+/**
+ * Calculates ship tilt angle (in radians and degrees) based on vertical velocity.
+ */
+export function calculateBirdTiltAngle(
+  vy: number,
+  maxAngleDeg = 25,
+  velocityRef = 600
+): { angleRad: number; angleDeg: number } {
+  const clampedVy = Math.max(-velocityRef, Math.min(velocityRef, vy));
+  const fraction = clampedVy / velocityRef;
+  const angleDeg = fraction * maxAngleDeg;
+  const angleRad = (angleDeg * Math.PI) / 180;
+  return { angleRad, angleDeg };
+}
+
 export interface MegastructureState {
   visible: boolean;
   megaX: number;

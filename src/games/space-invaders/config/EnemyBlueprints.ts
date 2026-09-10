@@ -6,7 +6,7 @@ interface InvaderBlueprintConfig {
   displayName: string;
   color: string;
   points: number;
-  archetype: 'basic' | 'elite' | 'scout';
+  archetype: 'basic' | 'elite' | 'scout' | 'teleporter';
   fireRate: number;
   health?: number;
   maxSpeed?: number;
@@ -160,6 +160,16 @@ export const EnemyBlueprints: Record<string, EntityBlueprint> = {
     health: 3,
     maxSpeed: 110,
     tags: ['enemy', 'invader', 'Invader', 'Elite']
+  }),
+
+  invader_teleporter: createInvaderBlueprint({
+    id: 'invader_teleporter',
+    displayName: 'Invader Teleporter',
+    color: '#00D9FF',
+    points: 40,
+    archetype: 'teleporter',
+    fireRate: 1.0,
+    tags: ['enemy', 'invader', 'Invader', 'Teleporter']
   }),
 
   // --- UFOs ---

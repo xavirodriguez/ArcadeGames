@@ -1,4 +1,4 @@
-import { System, World } from "@tiny-aster/core";
+import { System, World, IInputSystem } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 
@@ -10,7 +10,7 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
 
     const froggerEntity = froggerEntities[0];
     const frogger = world.getMutableComponent(froggerEntity, "Frogger");
-    const input = world.getComponent(froggerEntity, "FroggerInput");
+    const input = world.getMutableComponent(froggerEntity, "FroggerInput");
     const transform = world.getMutableComponent(froggerEntity, "Transform");
     const stateEntity = world.query("FroggerState")[0];
 
@@ -20,6 +20,25 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
       const state = world.getComponent(stateEntity, "FroggerState");
       if (state && state.isGameOver) return;
     }
+
+    const unifiedInput = world.getResource<IInputSystem>("InputSystem");
+
+    const moveUp = input.moveUp || (unifiedInput ? unifiedInput.getAction("moveUp") : false);
+    const moveDown = input.moveDown || (unifiedInput ? unifiedInput.getAction("moveDown") : false);
+    const moveLeft = input.moveLeft || (unifiedInput ? unifiedInput.getAction("moveLeft") : false);
+    const moveRight = input.moveRight || (unifiedInput ? unifiedInput.getAction("moveRight") : false);
+
+    // Discrete rising edge evaluation: hop only on newly pressed state
+    const isUpPressed = moveUp && !input.prevMoveUp;
+    const isDownPressed = moveDown && !input.prevMoveDown;
+    const isLeftPressed = moveLeft && !input.prevMoveLeft;
+    const isRightPressed = moveRight && !input.prevMoveRight;
+
+    // Save current frame inputs as previous
+    input.prevMoveUp = moveUp;
+    input.prevMoveDown = moveDown;
+    input.prevMoveLeft = moveLeft;
+    input.prevMoveRight = moveRight;
 
     if (frogger.cooldownRemaining > 0) {
       frogger.cooldownRemaining -= dt * 60; // Tick countdown based on 60fps
@@ -32,16 +51,16 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
     let dx = 0;
     let dy = 0;
 
-    if (input.moveUp) {
+    if (isUpPressed) {
       dy = -1;
       moved = true;
-    } else if (input.moveDown) {
+    } else if (isDownPressed) {
       dy = 1;
       moved = true;
-    } else if (input.moveLeft) {
+    } else if (isLeftPressed) {
       dx = -1;
       moved = true;
-    } else if (input.moveRight) {
+    } else if (isRightPressed) {
       dx = 1;
       moved = true;
     }

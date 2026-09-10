@@ -3,7 +3,10 @@ import { World } from "../ecs/World";
 import { ParticleEmitterComponent, ParticleEmitterConfig, Entity, CoreComponentRegistry } from "../ecs/CoreComponents";
 import { createDeferredEntity } from "../ecs/EntityHelpers";
 
-/** @public */
+/**  
+ * Shape of the params passed to the particle pool's `acquire()` on each spawn.  
+ * @public  
+ */  
 export interface ParticleParams {
   x: number;
   y: number;
@@ -14,20 +17,63 @@ export interface ParticleParams {
   ttl: number;
 }
 
-/** @public */
+/**  
+ * Minimal pooling contract this system depends on — decouples ParticleSystem  
+ * from any concrete pool implementation (see e.g. gameplay-kit's ParticlePool,  
+ * or per-game pools like BulletPool). Callers inject their own pool via the  
+ * constructor.  
+ * @public  
+ */  
 export interface IPrefabPool<TParams> {
     acquire(world: World, params: TParams): Entity;
 }
 
-/** @public */
+/**  
+ * Simulation-side driver for `ParticleEmitter` components: advances each  
+ * active emitter's elapsed time, fires burst/rate-based spawns, and delegates  
+ * actual entity creation to the injected `IPrefabPool`.  
+ *  
+ * @remarks  
+ * This system only handles *gameplay-affecting* particle emission (the kind  
+ * that goes through the ECS pool and participates in rollback/determinism via  
+ * `world.renderRandom` — see below). It is intentionally separate from the  
+ * purely cosmetic, file-local "visual particle pools" used by several games'  
+ * Canvas/Skia renderers (e.g. FlappyBirdCanvasVisuals.ts, GeometryWarsSkiaVisuals.ts,  
+ * SpaceInvadersCanvasVisuals.ts) — those are presentation-only and never touch  
+ * this system or `IPrefabPool`. Do not conflate the two when refactoring.  
+ *  
+ * Registered at `SystemPhase.Presentation` in games that use it (see  
+ * AsteroidsGame.ts) — it is skipped entirely in headless mode.  
+ * @public  
+ */  
 export class ParticleSystem extends System<CoreComponentRegistry> {
   private particlePool: IPrefabPool<ParticleParams>;
 
+  /**  
+   * @param particlePool - Pool used to acquire/spawn the actual particle  
+   * entities. Must be provided by the caller; there is no default pool.  
+   */  
   constructor(particlePool: IPrefabPool<ParticleParams>) {
     super();
     this.particlePool = particlePool;
   }
 
+    /**  
+   * Advances all active `ParticleEmitter` entities by `deltaTime`.  
+   * @remarks  
+   * - No-ops during re-simulation (`world.isReSimulating`) and while paused  
+   *   (`IsPaused` resource), consistent with other presentation-adjacent systems.  
+   * - Skips emitters whose `SpatialNode.active === false` (culled/inactive).  
+   * - Only calls `getMutableComponent` (bumping `stateVersion`) for emitters  
+   *   that are actually active and enabled — resting/inactive emitters incur  
+   *   zero mutation cost (see Bolt's "Guarding Mutators with Read-Only Checks"  
+   *   pattern in .jules/bolt.md).  
+   * - Burst emitters (`config.burst`) fire all `config.count` particles on the  
+   *   first tick (`elapsed === 0`), then deactivate themselves if not looping  
+   *   and `rate === 0`.  
+   * - Rate-based emitters (`config.rate > 0`) spawn `floor(elapsed * rate)`  
+   *   particles per tick and wrap `elapsed` modulo `1/rate` to avoid drift.  
+   */  
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.isReSimulating) return;
     if (world.getResource("IsPaused") === true) return;
@@ -70,10 +116,26 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
     }
   }
 
+    /**  
+   * Creates a `ParticleEmitter` entity with the given config.  
+   * @remarks Thin wrapper around `createEmitter` — kept as an instance method  
+   * so callers holding a `ParticleSystem` reference don't need a separate import.  
+   */  
   public emit(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity {
     return createEmitter(world, config);
   }
 
+    /**  
+   * Spawns a single particle by sampling all randomized ranges from `config`  
+   * (angle, speed, lifetime, size, color, position jitter) and acquiring an  
+   * entity from `particlePool`.  
+   * @remarks  
+   * Uses `world.renderRandom`, not `world.gameplayRandom` — particle visuals  
+   * are cosmetic and must NOT consume the gameplay RNG stream, or they would  
+   * silently desync replays/rollback for any game using this system. Do not  
+   * change this to `gameplayRandom` without also re-evaluating every  
+   * determinism suite.  
+   */  
   private spawnParticle(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): void {
     const renderRandom = world.renderRandom;
 
@@ -123,7 +185,12 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
   }
 }
 
-/** @public */
+/**  
+ * Creates and registers a `ParticleEmitter` entity (deferred, so it's safe to  
+ * call mid-tick from other systems). Config is stored as-is on the component;  
+ * `elapsed` starts at 0 and `active` starts `true`.  
+ * @public  
+ */  
 export function createEmitter(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity {
   const component = {
     type: "ParticleEmitter",

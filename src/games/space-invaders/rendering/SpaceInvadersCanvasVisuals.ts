@@ -545,10 +545,18 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
     const flash = applyHitFlash(render, baseColor);
     const color = flash.color;
 
+    const scale = phase === 3 ? 1.3 : phase === 2 ? 1.15 : 1.0;
+    const tick = world.tick;
+
     ctx.save();
     ctx.globalAlpha = flash.opacity;
+    if (phase === 3) {
+      const shakeX = Math.sin(tick * 0.8) * 3;
+      const shakeY = Math.cos(tick * 0.9) * 3;
+      ctx.translate(shakeX, shakeY);
+    }
+    ctx.scale(scale, scale);
 
-    const tick = world.tick;
     const s = size / 20;
 
     // 1. Phase 3 Overdrive Energy Aura Glow

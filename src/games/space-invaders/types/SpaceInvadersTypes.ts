@@ -35,10 +35,27 @@ export interface BossComponent extends Component {
  */
 export interface KamikazeComponent extends Component {
   type: "Kamikaze";
+  variant?: "standard" | "splitter" | "trail";
   phase: "diving" | "returning";
   originX: number;
   originY: number;
   diveSpeed: number;
+}
+
+export interface TeleporterComponent extends Component {
+  type: "Teleporter";
+  phasingState: "visible" | "phasing_out" | "phasing_in";
+  timer: number;
+  teleportInterval: number;
+}
+
+export type PlayerRole = "Pioneer" | "Hunter" | "Sentinel" | "Support";
+
+export interface PlayerRoleComponent extends Component {
+  type: "PlayerRole";
+  role: PlayerRole;
+  abilityCooldownRemaining: number;
+  abilityActive: boolean;
 }
 
 /**
@@ -65,6 +82,8 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   GameState: GameStateComponent;
   Boss: BossComponent;
   Kamikaze: KamikazeComponent;
+  Teleporter: TeleporterComponent;
+  PlayerRole: PlayerRoleComponent;
   UIText: UITextComponent;
   Combo: ComboComponent;
   Damage: DamageComponent;
@@ -180,6 +199,10 @@ export interface GameStateComponent extends Component {
   activeRunMutators?: string[];
   isDialogueActive?: boolean;
   dialogueText?: string;
+  bossPhase?: number;
+  upcomingEventName?: string;
+  teleportedFeedback?: boolean;
+  friendlyFireFeedback?: boolean;
 }
 
 /**

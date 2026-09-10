@@ -21,6 +21,13 @@ import { attachEnemyDefaults } from "../shared/enemyHelpers";
 import { PowerUpComponent } from "@tiny-aster/gameplay-kit";
 import { BulletPool } from "./EntityPool";
 
+/**
+ * @param lootType - Loot/power-up identifier (e.g. "shield", "speed_boost").
+ * @returns The hex color used to tint the power-up's visual bubble.
+ * @remarks Hardcoded per-type colors — not sourced from the Theme resource
+ * (see packages/core/src/theme/Theme.ts, PR #314). Consider migrating to
+ * theme.colorMap if power-up colors need to be reskinnable per-theme.
+ */
 function getPowerUpColor(lootType: string): string {
   if (lootType === "shield") return "#00f0ff";
   if (lootType === "speed_boost") return "#ff5d00";
@@ -28,8 +35,13 @@ function getPowerUpColor(lootType: string): string {
 }
 
 /**
- * Registers ship, bullet, and asteroid blueprints.
+ * Registers ship, bullet, asteroid, and powerup blueprints.
  * Keeping them in a single place allows unifying test world runs with game runs.
+ *
+ * @remarks
+ * The "ship" blueprint's initial Combo values are conditioned on the
+ * "HasComboHeadStart" resource — used by story/tutorial modes to start
+ * players with a pre-built combo. If that resource is absent, combo starts at 0.
  * @public
  */
 // TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:82-87. Considerar extraer a función compartida. Ref: 969af9ba
@@ -176,6 +188,8 @@ export function registerAsteroidsBlueprints(
       const randVy = (w.gameplayRandom.next() - 0.5) * 100;
       const randAng = (w.gameplayRandom.next() - 0.5) * 2;
 
+      // Radius by size tier — also drives collision shape and render size.
+      // large=40, medium=20, small=10 (halved on each fragmentation step; see fragmentAsteroid).
       let radius = 40;
       if (args.size === "medium") radius = 20;
       else if (args.size === "small") radius = 10;
@@ -222,6 +236,9 @@ export function registerAsteroidsBlueprints(
         faction: "enemy",
         tableId: "default"
       });
+      // Every asteroid also drops a persistent, collect-once story fragment tied to its
+      // spawn position/size — this is why asteroids carry a Collectible component in
+      // addition to LootTable (loot table is for combat drops, Collectible is for story).
       w.addComponent(entity, {
         type: "Collectible",
         kind: "story_fragment",
@@ -269,7 +286,12 @@ export function registerAsteroidsBlueprints(
 
 
 // TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa
-/** @public */
+/**
+ * @public
+ * @remarks Thin wrapper around the "powerup" blueprint. Prefer calling this over
+ * `spawnBlueprintEntity(world, "powerup", ...)` directly so call sites stay
+ * typed against the blueprint's real argument shape.
+ */
 export const createPowerUp = (config: {
   world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
   x: number;
@@ -283,14 +305,33 @@ export const createPowerUp = (config: {
   });
 };
 
-/** @public */
+/**
+ * @public
+ * @remarks Thin wrapper around the "ship" blueprint — see registerAsteroidsBlueprints
+ * for the actual component setup (Health, Boundary, Combo, etc.).
+ */
 export const createShip = (config: { world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, x: number, y: number }): number => {
     return spawnBlueprintEntity(config.world, "ship", { x: config.x, y: config.y });
 };
 
 /**
  * Factory function to create and initialize a Bullet entity in the Asteroids game.
- * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL (timeLeft & remaining), Collider, CollisionEvents.
+ * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL, Collider, CollisionEvents.
+ *
+ * @remarks
+ * Supports two calling conventions for backward compatibility:
+ * 1. Legacy positional form: `createBullet(world, x, y, rotation, speed, ownerId?, ttl?)`
+ *    — velocity is derived from `rotation`/`speed` via `getForwardVector`.
+ * 2. Preferred config-object form: `createBullet({ world, x, y, vx?, vy?, rotation?, speed?, ownerId?, ttl? })`
+ *    — if `vx`/`vy` are both given they take precedence over `rotation`/`speed`;
+ *    otherwise falls back to the same forward-vector derivation as the legacy form.
+ * New call sites should use the config-object form; the positional form exists only
+ * for callers not yet migrated.
+ *
+ * If a "BulletPool" resource is registered, bullets are acquired from the pool
+ * instead of spawned fresh (see Bolt's pooling notes in .jules/bolt.md) — this is
+ * transparent to callers.
+ *
  * Note: Forward vectors and rotation conventions follow `ForwardVector.ts`.
  * @public
  */
@@ -380,7 +421,10 @@ export function createBullet(
   return spawnBlueprintEntity(world, "bullet", bulletParams);
 }
 
-/** @public */
+/**
+ * @public
+ * @remarks Thin wrapper around the "asteroid" blueprint.
+ */
 export const createAsteroid = (config: {
     world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
     x: number;
@@ -426,7 +470,8 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
         const angle1 = rand.next() * Math.PI * 2;
         const angle2 = angle1 + Math.PI; // opposite directions
 
-        const speed = 80; // speed of fragmentation impulse
+        const speed = 80; // Fragmentation impulse speed added to the parent's velocity,
+                           // in px/s. Tuned by feel — not currently exposed via GameConfig.
 
         for (const angle of [angle1, angle2]) {
             const vx = (velocity ? velocity.vx : 0) + Math.cos(angle) * speed;
@@ -444,7 +489,13 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
     }
 };
 
-/** @public */
+/**
+ * Spawns a wave of `large` asteroids scaled by level.
+ * @remarks Count = INITIAL_ASTEROID_COUNT + (level - 1); each spawn point is
+ * rejection-sampled to stay at least 150px from screen center (where the ship
+ * starts), using `world.gameplayRandom` for determinism.
+ * @public
+ */
 export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, level: number): void => {
     const config = world.getResource<AsteroidConfig>("GameConfig") || {
         SCREEN_WIDTH: 800,

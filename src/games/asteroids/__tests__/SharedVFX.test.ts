@@ -26,6 +26,9 @@ const createMockContext = () => {
     fillText(text: string, x: number, y: number) {
       drawCalls.push(`fillText:${text}`);
     },
+    translate(x: number, y: number) { drawCalls.push(`translate:${x},${y}`); },
+    rotate(angle: number) { drawCalls.push(`rotate:${angle}`); },
+    scale(sx: number, sy: number) { drawCalls.push(`scale:${sx},${sy}`); },
     createRadialGradient(x0: number, y0: number, r0: number, x1: number, y1: number, r1: number) {
       drawCalls.push("createRadialGradient");
       return {
@@ -321,5 +324,19 @@ describe("Deterministic Zero-Allocation Shared VFX (All 15 Effects)", () => {
     SharedVFX.FloatingTextScoreEffect.draw(ctx, world, entity);
     expect(drawCalls.length).toBeGreaterThan(0);
     expect(drawCalls).toContain("fillText:CRITICAL! +100");
+  });
+
+  // -----------------------------------------------------------
+  // 16. RingingPlanetBackgroundEffect
+  // -----------------------------------------------------------
+  it("should draw RingingPlanetBackgroundEffect deterministically and without Math.random", () => {
+    const { ctx, drawCalls } = createMockContext();
+    const initialSeed = world.renderRandom.getSeed();
+
+    SharedVFX.RingingPlanetBackgroundEffect.draw(ctx, world);
+
+    expect(drawCalls.length).toBeGreaterThan(0);
+    expect(drawCalls).toContain("createRadialGradient");
+    expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
   });
 });

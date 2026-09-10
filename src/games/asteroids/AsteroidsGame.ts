@@ -349,6 +349,16 @@ export class AsteroidsGame
     if (this.isHeadless) return;
     initializeAsteroidsRenderer(renderer);
     SharedVFX.registerSharedVFX(renderer);
+
+    if (renderer.type === "canvas") {
+      renderer.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
+      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
+      renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.DriftingNebulaBackgroundEffect);
+    } else if (renderer.type === "skia") {
+      renderer.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
+      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
+      renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
+    }
   }
 
   public getGameState(): GameStateComponent {

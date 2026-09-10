@@ -2,6 +2,7 @@ import { StoryGraph } from "../packages/core/src/story/StoryTypes";
 import { StoryGraphValidator, StoryGraphValidationOptions } from "../packages/core/src/story/StoryGraphValidator";
 import { SemanticValidator, SemanticValidationContext } from "../packages/core/src/story/SemanticValidator";
 import { MiniGameEncounterDSL } from "../packages/core/src/story/EncounterDSLSchema";
+import { MiniGameEncounter } from "../packages/core/src/story/ArcadeIntegrationTypes";
 
 import { caveAdventureGraph } from "../src/games/shared/story/TheCaveAdventure";
 import { BlindStationGraph } from "../src/games/shared/story/BlindStation";
@@ -22,7 +23,7 @@ interface GraphRegistryEntry {
   id: string;
   sourceFile: string;
   getGraph: () => StoryGraph;
-  encounters?: MiniGameEncounterDSL[];
+  encounters?: (MiniGameEncounterDSL | MiniGameEncounter)[];
   options?: StoryGraphValidationOptions;
   semanticContext?: SemanticValidationContext;
 }
@@ -68,9 +69,9 @@ const storyGraphRegistry: GraphRegistryEntry[] = [
     sourceFile: "src/games/shared/story/StoryGraphs.ts",
     getGraph: () => asteroidsStoryGraph,
     encounters: [
-      escapeRoute01Encounter as unknown as MiniGameEncounterDSL,
-      keplerPhase2Encounter as unknown as MiniGameEncounterDSL,
-      keplerPhase3Encounter as unknown as MiniGameEncounterDSL
+      escapeRoute01Encounter,
+      keplerPhase2Encounter,
+      keplerPhase3Encounter
     ],
     options: {
       declaredFlags: [

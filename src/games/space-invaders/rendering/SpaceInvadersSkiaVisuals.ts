@@ -387,7 +387,6 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
       canvas.translate(shakeX, shakeY);
     }
     canvas.scale(scale, scale);
-
     const { vibX, vibY } = calculateBossVibrato(phase, tick);
     canvas.translate(vibX, vibY);
     canvas.scale(scaleMultiplier, scaleMultiplier);

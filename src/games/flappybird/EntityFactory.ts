@@ -34,7 +34,7 @@ export interface CreatePipeParams {
   world: World<any>;
   x: number;
   gapY: number;
-  /** @deprecated Currently unused — spawnBlueprintEntity always spawns immediately. */
+  visualVariant?: "standard" | "damaged" | "rusted";
   deferred?: boolean;
 }
 
@@ -54,7 +54,7 @@ export function createBird(options: CreateBirdParams): Entity {
  * @param options.gapY - The vertical center of the gap between pipes.
  */
 export function createPipe(options: CreatePipeParams): void {
-  spawnBlueprintEntity(options.world, "pipe", { x: options.x, gapY: options.gapY });
+  spawnBlueprintEntity(options.world, "pipe", { x: options.x, gapY: options.gapY, visualVariant: options.visualVariant });
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   StarfieldStar,
   generateStarfield,
   calculateSquashAndStretch,
+  calculateBirdTiltAngle,
   calculateFlappyPipeGeometry
 } from "../../shared/rendering/geometry";
 import {
@@ -232,10 +233,12 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
       const x = transformPos.worldX ?? transformPos.x;
       const y = transformPos.worldY ?? transformPos.y;
-      const nmSparkCount = world.renderRandom.nextInt(5, 9);
+      const nmSparkCount = birdComp.nearMissParticleCount ?? world.renderRandom.nextInt(5, 9);
+      const minS = birdComp.nearMissMinSpeed ?? 60;
+      const maxS = birdComp.nearMissMaxSpeed ?? 120;
       for (let i = 0; i < nmSparkCount; i++) {
         const angleVal = world.renderRandom.next() * Math.PI * 2;
-        const speedVal = world.renderRandom.nextRange(60, 120);
+        const speedVal = world.renderRandom.nextRange(minS, maxS);
         const pVx = Math.cos(angleVal) * speedVal;
         const pVy = Math.sin(angleVal) * speedVal;
         const lifeVal = world.renderRandom.nextRange(0.25, 0.45);
@@ -308,7 +311,10 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.save();
     ctx.globalAlpha = globalOpacity;
 
-    // --- VELOCITY SQUASH AND STRETCH ---
+    // --- VELOCITY TILT AND SQUASH AND STRETCH ---
+    const { angleRad } = calculateBirdTiltAngle(vy);
+    ctx.rotate(angleRad);
+
     const speed = Math.abs(vy);
     const { scaleX, scaleY } = calculateSquashAndStretch(vy);
     ctx.scale(scaleX, scaleY);
@@ -333,16 +339,17 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
     if (isAlive) {
+      const warpFactor = calculateWarpFactor(world);
       const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
       const trailColor = trailConfig?.color || "#00F3FF";
-      const trailWidth = trailConfig?.width || 2.0;
-      const lengthMult = trailConfig?.lengthMultiplier || 1.0;
+      const trailWidth = (trailConfig?.width || 2.0) * warpFactor;
+      const lengthMult = (trailConfig?.lengthMultiplier || 1.0) * warpFactor;
 
       ctx.save();
       ctx.strokeStyle = trailConfig?.enabled ? trailColor : "rgba(0, 243, 255, 0.35)";
       ctx.lineWidth = trailWidth;
       ctx.shadowColor = trailColor;
-      ctx.shadowBlur = trailConfig?.enabled ? 12 : 8;
+      ctx.shadowBlur = trailConfig?.enabled ? 12 * warpFactor : 8 * warpFactor;
       ctx.beginPath();
       ctx.moveTo(-size * 0.55, 0);
       ctx.lineTo(-size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0);
@@ -427,6 +434,20 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.arc(size * 0.25, -size * 0.09, size * 0.06, 0, Math.PI * 2);
     ctx.fill();
 
+    // --- COYOTE TIME DANGER PULSE OVERLAY ---
+    if (render.dangerPulseIntensity && render.dangerPulseIntensity > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(world.tick * 0.4);
+      const alpha = render.dangerPulseIntensity * pulse;
+      ctx.save();
+      ctx.strokeStyle = `rgba(255, 0, 0, ${alpha})`;
+      ctx.lineWidth = 2.2;
+      ctx.shadowColor = "#FF0000";
+      ctx.shadowBlur = 12 * alpha;
+      drawArrowheadPath(ctx, size + 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     ctx.restore(); // Squash-and-stretch pop
 
     // --- TACTICAL NEAR MISS OVERLAY ---
@@ -474,6 +495,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     const pipe = world.getComponent(entity, "Pipe");
     if (!pipe) return;
+    const variant = pipe.visualVariant || "standard";
 
     const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(
       pos.y,
@@ -482,14 +504,28 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       FLAPPY_CONFIG.SCREEN_HEIGHT
     );
 
-    // --- METALLIC PILLAR BODY (#2A2A35) ---
-    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}`, () => {
+    // --- METALLIC PILLAR BODY VARIANT GRADIENT ---
+    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
-      g.addColorStop(0, "#1A1A22");
-      g.addColorStop(0.25, "#2A2A35");
-      g.addColorStop(0.5, "#3F3F50");
-      g.addColorStop(0.75, "#2A2A35");
-      g.addColorStop(1.0, "#121218");
+      if (variant === "damaged") {
+        g.addColorStop(0, "#191B22");
+        g.addColorStop(0.25, "#2C313C");
+        g.addColorStop(0.5, "#424856");
+        g.addColorStop(0.75, "#2C313C");
+        g.addColorStop(1.0, "#13151A");
+      } else if (variant === "rusted") {
+        g.addColorStop(0, "#2A1810");
+        g.addColorStop(0.25, "#4A2B1D");
+        g.addColorStop(0.5, "#6B3E2A");
+        g.addColorStop(0.75, "#4A2B1D");
+        g.addColorStop(1.0, "#1F110B");
+      } else {
+        g.addColorStop(0, "#1A1A22");
+        g.addColorStop(0.25, "#2A2A35");
+        g.addColorStop(0.5, "#3F3F50");
+        g.addColorStop(0.75, "#2A2A35");
+        g.addColorStop(1.0, "#121218");
+      }
       return g;
     });
 
@@ -510,19 +546,47 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.lineTo(-halfWidth + width * 0.7, pipeY + pipeHeight);
     ctx.stroke();
 
+    // Additional surface detail per variant
+    if (variant === "damaged") {
+      ctx.strokeStyle = "#0D0E12";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-halfWidth + width * 0.2, pipeY + pipeHeight * 0.2);
+      ctx.lineTo(-halfWidth + width * 0.4, pipeY + pipeHeight * 0.28);
+      ctx.lineTo(-halfWidth + width * 0.3, pipeY + pipeHeight * 0.38);
+      ctx.stroke();
+    } else if (variant === "rusted") {
+      ctx.fillStyle = "rgba(180, 80, 30, 0.3)";
+      ctx.fillRect(-halfWidth + 4, pipeY + pipeHeight * 0.1, width * 0.4, pipeHeight * 0.3);
+    }
+
     // --- REINFORCED DOCKING COLLAR AT THE GAP MOUTH ---
     const capHeight = 28;
     const capExtraWidth = 12;
     const capWidth = width + capExtraWidth;
     const capHalfWidth = capWidth / 2;
 
-    const collarGrad = getCachedCanvasGradient(ctx, `collar_${capHalfWidth}`, () => {
+    const collarGrad = getCachedCanvasGradient(ctx, `collar_${capHalfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
-      g.addColorStop(0, "#22222D");
-      g.addColorStop(0.3, "#3A3A4A");
-      g.addColorStop(0.55, "#525266");
-      g.addColorStop(0.8, "#3A3A4A");
-      g.addColorStop(1.0, "#181822");
+      if (variant === "damaged") {
+        g.addColorStop(0, "#252833");
+        g.addColorStop(0.3, "#3E4454");
+        g.addColorStop(0.55, "#5A6278");
+        g.addColorStop(0.8, "#3E4454");
+        g.addColorStop(1.0, "#1B1D26");
+      } else if (variant === "rusted") {
+        g.addColorStop(0, "#382015");
+        g.addColorStop(0.3, "#543222");
+        g.addColorStop(0.55, "#734530");
+        g.addColorStop(0.8, "#543222");
+        g.addColorStop(1.0, "#28170F");
+      } else {
+        g.addColorStop(0, "#22222D");
+        g.addColorStop(0.3, "#3A3A4A");
+        g.addColorStop(0.55, "#525266");
+        g.addColorStop(0.8, "#3A3A4A");
+        g.addColorStop(1.0, "#181822");
+      }
       return g;
     });
 
@@ -669,10 +733,11 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
   }
 };
 
-// Helper to draw 4 distinct megastructure silhouette designs in Canvas2D
+// Helper to draw 8 distinct megastructure silhouette designs in Canvas2D
 function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: MegastructureData): void {
-  const { megaIndex, megaX, megaY, beaconAlpha } = data;
+  const { megaIndex, megaX, megaY, beaconAlpha, structureOpacity } = data;
   ctx.save();
+  ctx.globalAlpha = structureOpacity;
   ctx.fillStyle = "rgba(15, 18, 28, 0.65)"; // Dark void silhouette
 
   if (megaIndex === 0) {
@@ -722,7 +787,7 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.beginPath();
     ctx.arc(megaX - 10, megaY - 60, 2.5, 0, Math.PI * 2);
     ctx.fill();
-  } else {
+  } else if (megaIndex === 3) {
     // Design 3: Communications Tower (Tall lattice spire + transmitter dish)
     ctx.fillRect(megaX - 6, megaY - 90, 12, 180);
     ctx.fillRect(megaX - 25, megaY - 40, 50, 6);
@@ -735,6 +800,57 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
     ctx.beginPath();
     ctx.arc(megaX, megaY - 90, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (megaIndex === 4) {
+    // Design 4: Solar Farm Arrays (Grid of angled solar panels)
+    ctx.fillRect(megaX - 80, megaY - 10, 160, 8);
+    ctx.fillRect(megaX - 70, megaY - 50, 30, 40);
+    ctx.fillRect(megaX - 20, megaY - 50, 30, 40);
+    ctx.fillRect(megaX + 30, megaY - 50, 30, 40);
+
+    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.beginPath();
+    ctx.arc(megaX + 75, megaY - 10, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (megaIndex === 5) {
+    // Design 5: Mining Rig Hull (Blocky industrial excavator frame)
+    ctx.fillRect(megaX - 50, megaY - 40, 100, 80);
+    ctx.fillRect(megaX - 80, megaY - 15, 30, 30);
+    ctx.fillRect(megaX + 50, megaY - 25, 40, 50);
+
+    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.beginPath();
+    ctx.arc(megaX - 80, megaY - 15, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (megaIndex === 6) {
+    // Design 6: Orbital Relay Spire (Twin pylons with central power core)
+    ctx.fillRect(megaX - 45, megaY - 80, 10, 160);
+    ctx.fillRect(megaX + 35, megaY - 80, 10, 160);
+    ctx.beginPath();
+    ctx.arc(megaX, megaY, 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.beginPath();
+    ctx.arc(megaX - 40, megaY - 80, 2.5, 0, Math.PI * 2);
+    ctx.arc(megaX + 40, megaY - 80, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Design 7: Derelict Habitat Ring (Dual concentric outer ring arches)
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "rgba(15, 18, 28, 0.65)";
+    ctx.beginPath();
+    ctx.arc(megaX, megaY, 65, 0, Math.PI * 1.2);
+    ctx.stroke();
+
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(megaX, megaY, 40, Math.PI * 0.5, Math.PI * 1.8);
+    ctx.stroke();
+
+    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.beginPath();
+    ctx.arc(megaX + 65, megaY, 2.5, 0, Math.PI * 2);
     ctx.fill();
   }
 

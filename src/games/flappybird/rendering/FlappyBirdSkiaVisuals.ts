@@ -5,6 +5,7 @@ import {
   StarfieldStar,
   generateStarfield,
   calculateSquashAndStretch,
+  calculateBirdTiltAngle,
   calculateFlappyPipeGeometry
 } from "../../shared/rendering/geometry";
 import {
@@ -269,10 +270,12 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
       const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
       const px = transformPos.worldX ?? transformPos.x ?? x;
       const py = transformPos.worldY ?? transformPos.y ?? y;
-      const nmSparkCount = world.renderRandom.nextInt(5, 9);
+      const nmSparkCount = birdComp.nearMissParticleCount ?? world.renderRandom.nextInt(5, 9);
+      const minS = birdComp.nearMissMinSpeed ?? 60;
+      const maxS = birdComp.nearMissMaxSpeed ?? 120;
       for (let i = 0; i < nmSparkCount; i++) {
         const angleVal = world.renderRandom.next() * Math.PI * 2;
-        const speedVal = world.renderRandom.nextRange(60, 120);
+        const speedVal = world.renderRandom.nextRange(minS, maxS);
         const pVx = Math.cos(angleVal) * speedVal;
         const pVy = Math.sin(angleVal) * speedVal;
         const lifeVal = world.renderRandom.nextRange(0.25, 0.45);
@@ -340,17 +343,21 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     canvas.save();
 
-    // Velocity Squash-and-Stretch
+    // Velocity Tilt & Squash-and-Stretch
+    const { angleDeg } = calculateBirdTiltAngle(vy);
+    canvas.rotate(angleDeg, 0, 0);
+
     const speed = Math.abs(vy);
     const { scaleX, scaleY } = calculateSquashAndStretch(vy);
     canvas.scale(scaleX, scaleY);
 
     // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
     if (isAlive) {
+      const warpFactor = calculateWarpFactor(world);
       const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
       const trailColor = trailConfig?.color || "rgba(0, 243, 255, 0.35)";
-      const trailWidth = trailConfig?.width || 2.0;
-      const lengthMult = trailConfig?.lengthMultiplier || 1.0;
+      const trailWidth = (trailConfig?.width || 2.0) * warpFactor;
+      const lengthMult = (trailConfig?.lengthMultiplier || 1.0) * warpFactor;
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
@@ -435,6 +442,21 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     paint.setColor(Skia.Color("#FFFFFF"));
     canvas.drawCircle(size * 0.25, -size * 0.09, size * 0.06, paint);
 
+    // --- COYOTE TIME DANGER PULSE OVERLAY ---
+    if (render.dangerPulseIntensity && render.dangerPulseIntensity > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(world.tick * 0.4);
+      const alpha = render.dangerPulseIntensity * pulse;
+      const dangerPath = getArrowheadPath(size + 2);
+      if (dangerPath) {
+        paint.reset();
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setColor(Skia.Color("#FF0000"));
+        paint.setStrokeWidth(2.2);
+        paint.setAlphaf(alpha);
+        canvas.drawPath(dangerPath, paint);
+      }
+    }
+
     canvas.restore();
   }
 };
@@ -457,6 +479,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     const pipe = world.getComponent(entity, "Pipe");
     if (!pipe) return;
+    const variant = pipe.visualVariant || "standard";
 
     const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(
       pos.y,
@@ -467,22 +490,40 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     const paint = getPaint();
 
-    // Metallic Pillar Body Shader (#2A2A35)
-    const pillarShader = getCachedSkiaShader(`pillar_${halfWidth}`, () =>
-      Skia.Shader.MakeLinearGradient(
+    // Metallic Pillar Body Shader VARIANT
+    const pillarShader = getCachedSkiaShader(`pillar_${halfWidth}_${variant}`, () => {
+      let colors = [
+        Skia.Color("#1A1A22"),
+        Skia.Color("#2A2A35"),
+        Skia.Color("#3F3F50"),
+        Skia.Color("#2A2A35"),
+        Skia.Color("#121218")
+      ];
+      if (variant === "damaged") {
+        colors = [
+          Skia.Color("#191B22"),
+          Skia.Color("#2C313C"),
+          Skia.Color("#424856"),
+          Skia.Color("#2C313C"),
+          Skia.Color("#13151A")
+        ];
+      } else if (variant === "rusted") {
+        colors = [
+          Skia.Color("#2A1810"),
+          Skia.Color("#4A2B1D"),
+          Skia.Color("#6B3E2A"),
+          Skia.Color("#4A2B1D"),
+          Skia.Color("#1F110B")
+        ];
+      }
+      return Skia.Shader.MakeLinearGradient(
         Skia.Point(-halfWidth, 0),
         Skia.Point(halfWidth, 0),
-        [
-          Skia.Color("#1A1A22"),
-          Skia.Color("#2A2A35"),
-          Skia.Color("#3F3F50"),
-          Skia.Color("#2A2A35"),
-          Skia.Color("#121218")
-        ],
+        colors,
         [0, 0.25, 0.5, 0.75, 1.0],
         Skia.TileMode.Clamp
-      )
-    );
+      );
+    });
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setShader(pillarShader);
@@ -495,27 +536,63 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     paint.setStrokeWidth(1.5);
     canvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
 
+    // Additional surface detail per variant
+    if (variant === "damaged") {
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color("#0D0E12"));
+      paint.setStrokeWidth(1.2);
+      const crackPath = Skia.Path.Make();
+      crackPath.moveTo(-halfWidth + width * 0.2, pipeY + pipeHeight * 0.2);
+      crackPath.lineTo(-halfWidth + width * 0.4, pipeY + pipeHeight * 0.28);
+      crackPath.lineTo(-halfWidth + width * 0.3, pipeY + pipeHeight * 0.38);
+      canvas.drawPath(crackPath, paint);
+    } else if (variant === "rusted") {
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("rgba(180, 80, 30, 0.3)"));
+      canvas.drawRect(Skia.XYWHRect(-halfWidth + 4, pipeY + pipeHeight * 0.1, width * 0.4, pipeHeight * 0.3), paint);
+    }
+
     // Docking Collar Cap at gap mouth
     const capHeight = 28;
     const capExtraWidth = 12;
     const capWidth = width + capExtraWidth;
     const capHalfWidth = capWidth / 2;
 
-    const collarShader = getCachedSkiaShader(`collar_${capHalfWidth}`, () =>
-      Skia.Shader.MakeLinearGradient(
+    const collarShader = getCachedSkiaShader(`collar_${capHalfWidth}_${variant}`, () => {
+      let colors = [
+        Skia.Color("#22222D"),
+        Skia.Color("#3A3A4A"),
+        Skia.Color("#525266"),
+        Skia.Color("#3A3A4A"),
+        Skia.Color("#181822")
+      ];
+      if (variant === "damaged") {
+        colors = [
+          Skia.Color("#252833"),
+          Skia.Color("#3E4454"),
+          Skia.Color("#5A6278"),
+          Skia.Color("#3E4454"),
+          Skia.Color("#1B1D26")
+        ];
+      } else if (variant === "rusted") {
+        colors = [
+          Skia.Color("#382015"),
+          Skia.Color("#543222"),
+          Skia.Color("#734530"),
+          Skia.Color("#543222"),
+          Skia.Color("#28170F")
+        ];
+      }
+      return Skia.Shader.MakeLinearGradient(
         Skia.Point(-capHalfWidth, 0),
         Skia.Point(capHalfWidth, 0),
-        [
-          Skia.Color("#22222D"),
-          Skia.Color("#3A3A4A"),
-          Skia.Color("#525266"),
-          Skia.Color("#3A3A4A"),
-          Skia.Color("#181822")
-        ],
+        colors,
         [0, 0.3, 0.55, 0.8, 1.0],
         Skia.TileMode.Clamp
-      )
-    );
+      );
+    });
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setShader(collarShader);
@@ -620,15 +697,16 @@ export const drawSkiaFlappyGround: ShapeDrawer<any, FlappyBirdComponentRegistry>
   }
 };
 
-// Helper to draw 4 distinct megastructure silhouette designs in Skia
+// Helper to draw 8 distinct megastructure silhouette designs in Skia
 function drawSkiaMegastructure(canvas: any, paint: any, data: MegastructureData): void {
   if (!Skia) return;
-  const { megaIndex, megaX, megaY, beaconAlpha } = data;
+  const { megaIndex, megaX, megaY, beaconAlpha, structureOpacity } = data;
   canvas.save();
 
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
   paint.setColor(Skia.Color("rgba(15, 18, 28, 0.65)"));
+  paint.setAlphaf(structureOpacity * 0.65);
 
   if (megaIndex === 0) {
     // Design 0: Radial Station
@@ -639,7 +717,7 @@ function drawSkiaMegastructure(canvas: any, paint: any, data: MegastructureData)
     canvas.drawRect(Skia.XYWHRect(megaX + 74, megaY - 25, 6, 50), paint);
 
     paint.setColor(Skia.Color("#FF0000"));
-    paint.setAlphaf(beaconAlpha);
+    paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX, megaY - 85, 2.5, paint);
   } else if (megaIndex === 1) {
     // Design 1: Ship Wreckage
@@ -655,7 +733,7 @@ function drawSkiaMegastructure(canvas: any, paint: any, data: MegastructureData)
     canvas.drawRect(Skia.XYWHRect(megaX - 90, megaY - 3, 100, 6), paint);
 
     paint.setColor(Skia.Color("#FF0000"));
-    paint.setAlphaf(beaconAlpha);
+    paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX + 70, megaY - 10, 2.5, paint);
   } else if (megaIndex === 2) {
     // Design 2: Broken Ring
@@ -674,9 +752,9 @@ function drawSkiaMegastructure(canvas: any, paint: any, data: MegastructureData)
     canvas.drawRect(Skia.XYWHRect(megaX + 48, megaY - 10, 10, 20), paint);
 
     paint.setColor(Skia.Color("#FF0000"));
-    paint.setAlphaf(beaconAlpha);
+    paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX - 10, megaY - 60, 2.5, paint);
-  } else {
+  } else if (megaIndex === 3) {
     // Design 3: Communications Tower
     canvas.drawRect(Skia.XYWHRect(megaX - 6, megaY - 90, 12, 180), paint);
     canvas.drawRect(Skia.XYWHRect(megaX - 25, megaY - 40, 50, 6), paint);
@@ -691,8 +769,54 @@ function drawSkiaMegastructure(canvas: any, paint: any, data: MegastructureData)
     canvas.drawPath(dishPath, paint);
 
     paint.setColor(Skia.Color("#FF0000"));
-    paint.setAlphaf(beaconAlpha);
+    paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX, megaY - 90, 2.5, paint);
+  } else if (megaIndex === 4) {
+    // Design 4: Solar Farm Arrays
+    canvas.drawRect(Skia.XYWHRect(megaX - 80, megaY - 10, 160, 8), paint);
+    canvas.drawRect(Skia.XYWHRect(megaX - 70, megaY - 50, 30, 40), paint);
+    canvas.drawRect(Skia.XYWHRect(megaX - 20, megaY - 50, 30, 40), paint);
+    canvas.drawRect(Skia.XYWHRect(megaX + 30, megaY - 50, 30, 40), paint);
+
+    paint.setColor(Skia.Color("#FF0000"));
+    paint.setAlphaf(beaconAlpha * structureOpacity);
+    canvas.drawCircle(megaX + 75, megaY - 10, 2.5, paint);
+  } else if (megaIndex === 5) {
+    // Design 5: Mining Rig Hull
+    canvas.drawRect(Skia.XYWHRect(megaX - 50, megaY - 40, 100, 80), paint);
+    canvas.drawRect(Skia.XYWHRect(megaX - 80, megaY - 15, 30, 30), paint);
+    canvas.drawRect(Skia.XYWHRect(megaX + 50, megaY - 25, 40, 50), paint);
+
+    paint.setColor(Skia.Color("#FF0000"));
+    paint.setAlphaf(beaconAlpha * structureOpacity);
+    canvas.drawCircle(megaX - 80, megaY - 15, 2.5, paint);
+  } else if (megaIndex === 6) {
+    // Design 6: Orbital Relay Spire
+    canvas.drawRect(Skia.XYWHRect(megaX - 45, megaY - 80, 10, 160), paint);
+    canvas.drawRect(Skia.XYWHRect(megaX + 35, megaY - 80, 10, 160), paint);
+    canvas.drawCircle(megaX, megaY, 20, paint);
+
+    paint.setColor(Skia.Color("#FF0000"));
+    paint.setAlphaf(beaconAlpha * structureOpacity);
+    canvas.drawCircle(megaX - 40, megaY - 80, 2.5, paint);
+    canvas.drawCircle(megaX + 40, megaY - 80, 2.5, paint);
+  } else {
+    // Design 7: Derelict Habitat Ring
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(10);
+    const ringPath1 = Skia.Path.Make();
+    ringPath1.addArc(Skia.XYWHRect(megaX - 65, megaY - 65, 130, 130), 0, 216);
+    canvas.drawPath(ringPath1, paint);
+
+    paint.setStrokeWidth(6);
+    const ringPath2 = Skia.Path.Make();
+    ringPath2.addArc(Skia.XYWHRect(megaX - 40, megaY - 40, 80, 80), 90, 234);
+    canvas.drawPath(ringPath2, paint);
+
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color("#FF0000"));
+    paint.setAlphaf(beaconAlpha * structureOpacity);
+    canvas.drawCircle(megaX + 65, megaY, 2.5, paint);
   }
 
   canvas.restore();

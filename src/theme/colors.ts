@@ -10,20 +10,35 @@ export const COLORS = {
   bgDark: '#0A0E27',
   bgPanel: 'rgba(10, 14, 39, 0.85)',
 
+  // Space Invaders extended palette tokens
+  primary: '#00FF41',
+  secondary: '#FF006E',
+  tertiary: '#00D9FF',
+  neutral: '#E8E8E8',
+  danger: '#FF4444',
+  boss: '#FFD700',
+
   // Neon / glow accents
   neonCyan: '#00FFFF',
   neonPurple: '#FF00FF',
 } as const;
 
 export const colors = {
-  background: "#06060c",
+  background: "#0A0E27",
   backgroundDark: "#0a0a14",
   backgroundSlate: "#0f172a",
 
-  cyan: "#00f0ff",
-  pink: "#ff0055",
-  green: "#00ff66",
-  gold: "#ffd700",
+  primary: "#00FF41",
+  secondary: "#FF006E",
+  tertiary: "#00D9FF",
+  neutral: "#E8E8E8",
+  danger: "#FF4444",
+  boss: "#FFD700",
+
+  cyan: "#00D9FF",
+  pink: "#FF006E",
+  green: "#00FF41",
+  gold: "#FFD700",
 
   white: "#ffffff",
   textSecondary: "#cccccc",

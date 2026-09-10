@@ -3980,18 +3980,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 91,
+        "end": 327,
         "endLoc": {
           "column": 8,
-          "line": 91,
-          "position": 2679
+          "line": 327,
+          "position": 10444
         },
         "name": "space-invaders/systems/ComboHUDRenderSystem.ts",
-        "start": 82,
+        "start": 318,
         "startLoc": {
           "column": 33,
-          "line": 82,
-          "position": 2501
+          "line": 318,
+          "position": 10266
         }
       },
       "tokens": 57
@@ -7069,55 +7069,18 @@
     },
     {
       "firstFile": {
-        "end": 88,
-        "endLoc": {
-          "column": 23,
-          "line": 88,
-          "position": 2688
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 83,
-        "startLoc": {
-          "column": 28,
-          "line": 83,
-          "position": 2479
-        }
-      },
-      "format": "typescript",
-      "fragment": "  let i = 0; i < debrisCount; i++) {\n    for (let j = 0; j < EXPLOSION_PARTICLE_POOL.length; j++) {\n      const p = EXPLOSION_PARTICLE_POOL[j];\n      if (!p.active) {\n        const angle = nextRnd() * Math.PI * 2;\n        const speed = (60 + nextRnd() * 180) * intensityMultiplier;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 111,
-        "endLoc": {
-          "column": 23,
-          "line": 111,
-          "position": 3507
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 106,
-        "startLoc": {
-          "column": 32,
-          "line": 106,
-          "position": 3298
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 337,
+        "end": 360,
         "endLoc": {
           "column": 47,
-          "line": 337,
-          "position": 10636
+          "line": 360,
+          "position": 11410
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 330,
+        "start": 353,
         "startLoc": {
           "column": 7,
-          "line": 330,
-          "position": 10207
+          "line": 353,
+          "position": 10981
         }
       },
       "format": "typescript",
@@ -7125,73 +7088,73 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 151,
+        "end": 179,
         "endLoc": {
           "column": 47,
-          "line": 151,
-          "position": 6204
+          "line": 179,
+          "position": 7475
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 144,
+        "start": 172,
         "startLoc": {
           "column": 10,
-          "line": 144,
-          "position": 5775
+          "line": 172,
+          "position": 7046
         }
       },
       "tokens": 79
     },
     {
       "firstFile": {
-        "end": 396,
+        "end": 423,
         "endLoc": {
           "column": 17,
-          "line": 396,
-          "position": 12457
+          "line": 423,
+          "position": 13309
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 381,
+        "start": 403,
         "startLoc": {
           "column": 32,
-          "line": 381,
-          "position": 11975
+          "line": 403,
+          "position": 12567
         }
       },
       "format": "typescript",
-      "fragment": "    const { size = 15 } = render;\n\n    let baseColor = render.color || colors.white;\n    const invaderComp = world.getComponent(entity, \"Invader\");\n    if (invaderComp) {\n      const row = invaderComp.row;\n      if (row === 0) {\n        baseColor = colors.magentaHot; // Row 0 (Commanders): Hot Magenta\n      } else if (row <= 2) {\n        baseColor = colors.cyan; // Rows 1-2 (Scouts): Electric Cyan\n      } else {\n        baseColor = colors.gold; // Rows 3-4 (Grunts): Cyber Gold\n      }\n    }\n\n    const flash = applyHitFlash(render, baseColor);",
+      "fragment": "    const { size = 15 } = render;\n\n    let baseColor = render.color || colors.white;\n    const invaderComp = world.getComponent(entity, \"Invader\");\n    const enemyTag = world.getComponent(entity, \"EnemyTag\");\n    const isTeleporter = enemyTag?.variant === \"teleporter\" || render.color === \"#00D9FF\";\n\n    if (invaderComp && !isTeleporter && render.color !== \"#00D9FF\") {\n      const row = invaderComp.row;\n      if (row === 0) {\n        baseColor = colors.magentaHot; // Row 0 (Commanders): Hot Magenta\n      } else if (row <= 2) {\n        baseColor = colors.cyan; // Rows 1-2 (Scouts): Electric Cyan\n      } else {\n        baseColor = colors.gold; // Rows 3-4 (Grunts): Cyber Gold\n      }\n    } else if (isTeleporter) {\n      baseColor = \"#00D9FF\";\n    }\n\n    const flash = applyHitFlash(render, baseColor);",
       "isNew": false,
-      "lines": 16,
+      "lines": 21,
       "secondFile": {
-        "end": 204,
+        "end": 237,
         "endLoc": {
           "column": 17,
-          "line": 204,
-          "position": 7735
+          "line": 237,
+          "position": 9266
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 188,
+        "start": 216,
         "startLoc": {
           "column": 23,
-          "line": 188,
-          "position": 7310
+          "line": 216,
+          "position": 8581
         }
       },
-      "tokens": 78
+      "tokens": 125
     },
     {
       "firstFile": {
-        "end": 486,
+        "end": 520,
         "endLoc": {
           "column": 5,
-          "line": 486,
-          "position": 15597
+          "line": 520,
+          "position": 16645
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 460,
+        "start": 494,
         "startLoc": {
           "column": 31,
-          "line": 460,
-          "position": 14689
+          "line": 494,
+          "position": 15737
         }
       },
       "format": "typescript",
@@ -7199,73 +7162,73 @@
       "isNew": false,
       "lines": 27,
       "secondFile": {
-        "end": 287,
+        "end": 322,
         "endLoc": {
           "column": 5,
-          "line": 287,
-          "position": 10958
+          "line": 322,
+          "position": 12578
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 264,
+        "start": 299,
         "startLoc": {
           "column": 27,
-          "line": 264,
-          "position": 10202
+          "line": 299,
+          "position": 11822
         }
       },
       "tokens": 160
     },
     {
       "firstFile": {
-        "end": 545,
+        "end": 578,
         "endLoc": {
           "column": 17,
-          "line": 545,
-          "position": 18128
+          "line": 578,
+          "position": 19011
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 534,
+        "start": 567,
         "startLoc": {
           "column": 32,
-          "line": 534,
-          "position": 17721
+          "line": 567,
+          "position": 18587
         }
       },
       "format": "typescript",
-      "fragment": "    const { size = 80 } = render;\n\n    const boss = world.getComponent(entity, \"Boss\");\n    const health = world.getComponent(entity, \"Health\");\n\n    const currentHp = health ? health.current : (boss ? boss.hp : 50);\n    const maxHp = health ? health.max : (boss ? boss.maxHp : 50);\n    const hpRatio = calculateShieldHpRatio(currentHp, maxHp);\n\n    const { phase, baseColor, accentColor } = calculateBossPhase(hpRatio);\n\n    const flash = applyHitFlash(render, baseColor);",
+      "fragment": "    const { size = 80 } = render;\n\n    const boss = world.getComponent(entity, \"Boss\");\n    const health = world.getComponent(entity, \"Health\");\n\n    const currentHp = health ? health.current : (boss ? boss.hp : 50);\n    const maxHp = health ? health.max : (boss ? boss.maxHp : 50);\n    const hpRatio = calculateShieldHpRatio(currentHp, maxHp);\n\n    const { phase, baseColor, accentColor, scaleMultiplier } = calculateBossPhase(hpRatio);\n\n    const flash = applyHitFlash(render, baseColor);",
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 340,
+        "end": 375,
         "endLoc": {
           "column": 17,
-          "line": 340,
-          "position": 12938
+          "line": 375,
+          "position": 14575
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 329,
+        "start": 364,
         "startLoc": {
           "column": 23,
-          "line": 329,
-          "position": 12531
+          "line": 364,
+          "position": 14151
         }
       },
-      "tokens": 90
+      "tokens": 92
     },
     {
       "firstFile": {
-        "end": 712,
+        "end": 752,
         "endLoc": {
           "column": 23,
-          "line": 712,
-          "position": 23503
+          "line": 752,
+          "position": 24581
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 701,
+        "start": 741,
         "startLoc": {
           "column": 48,
-          "line": 701,
-          "position": 23168
+          "line": 741,
+          "position": 24246
         }
       },
       "format": "typescript",
@@ -7273,36 +7236,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 499,
+        "end": 538,
         "endLoc": {
           "column": 23,
-          "line": 499,
-          "position": 17876
+          "line": 538,
+          "position": 19662
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 488,
+        "start": 527,
         "startLoc": {
           "column": 32,
-          "line": 488,
-          "position": 17541
+          "line": 527,
+          "position": 19327
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 727,
+        "end": 767,
         "endLoc": {
           "column": 63,
-          "line": 727,
-          "position": 24181
+          "line": 767,
+          "position": 25259
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 714,
+        "start": 754,
         "startLoc": {
           "column": 25,
-          "line": 714,
-          "position": 23718
+          "line": 754,
+          "position": 24796
         }
       },
       "format": "typescript",
@@ -7310,36 +7273,36 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 512,
+        "end": 551,
         "endLoc": {
           "column": 63,
-          "line": 512,
-          "position": 18356
+          "line": 551,
+          "position": 20142
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 500,
+        "start": 539,
         "startLoc": {
           "column": 57,
-          "line": 500,
-          "position": 17944
+          "line": 539,
+          "position": 19730
         }
       },
       "tokens": 74
     },
     {
       "firstFile": {
-        "end": 355,
+        "end": 394,
         "endLoc": {
           "column": 27,
-          "line": 355,
-          "position": 13344
+          "line": 394,
+          "position": 15130
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 348,
+        "start": 387,
         "startLoc": {
           "column": 23,
-          "line": 348,
-          "position": 13149
+          "line": 387,
+          "position": 14935
         }
       },
       "format": "typescript",
@@ -7347,50 +7310,50 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 435,
+        "end": 474,
         "endLoc": {
           "column": 27,
-          "line": 435,
-          "position": 15767
+          "line": 474,
+          "position": 17553
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 426,
+        "start": 465,
         "startLoc": {
           "column": 17,
-          "line": 426,
-          "position": 15507
+          "line": 465,
+          "position": 17293
         }
       },
       "tokens": 51
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-09T23:46:58.007Z",
+    "detectionDate": "2026-09-10T11:31:08.144Z",
     "formats": {
       "typescript": {
-        "clones": 199,
+        "clones": 198,
         "duplicatedLines": 2035,
-        "duplicatedTokens": 15520,
-        "lines": 57485,
+        "duplicatedTokens": 15514,
+        "lines": 58436,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.5400539271114204,
-        "percentageTokens": 5.159746002194222,
-        "sources": 358,
-        "tokens": 300790
+        "percentage": 3.4824423300705045,
+        "percentageTokens": 5.073665276755785,
+        "sources": 360,
+        "tokens": 305775
       }
     },
     "total": {
-      "clones": 199,
+      "clones": 198,
       "duplicatedLines": 2035,
-      "duplicatedTokens": 15520,
-      "lines": 57485,
+      "duplicatedTokens": 15514,
+      "lines": 58436,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.5400539271114204,
-      "percentageTokens": 5.159746002194222,
-      "sources": 358,
-      "tokens": 300790
+      "percentage": 3.4824423300705045,
+      "percentageTokens": 5.073665276755785,
+      "sources": 360,
+      "tokens": 305775
     }
   }
 }

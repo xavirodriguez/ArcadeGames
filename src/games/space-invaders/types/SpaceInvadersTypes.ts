@@ -15,6 +15,7 @@ import { LootTableComponent, PowerUpComponent } from "@tiny-aster/gameplay-kit";
 import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
 import { SpawnDirectorComponent, WaveMemberComponent } from "@tiny-aster/gameplay-kit";
 import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";
+import { EnemyTagComponent } from "../components/EnemyTagComponent";
 
 /**
  * Component for Boss entities.
@@ -35,6 +36,7 @@ export interface BossComponent extends Component {
  */
 export interface KamikazeComponent extends Component {
   type: "Kamikaze";
+  variant?: "standard" | "splitter" | "trail";
   phase: "diving" | "returning";
   originX: number;
   originY: number;
@@ -74,6 +76,7 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   LootTable: LootTableComponent;
   PowerUp: PowerUpComponent;
   DialogueBox: DialogueBoxComponent;
+  EnemyTag: EnemyTagComponent;
 }
 
 /**
@@ -99,6 +102,8 @@ export interface InputComponent extends Component, InputState {
  */
 export interface PlayerComponent extends Component {
   type: "Player";
+  role?: "pioneer" | "hunter" | "sentinel" | "support";
+  playerIndex?: number;
 }
 
 /**
@@ -180,6 +185,12 @@ export interface GameStateComponent extends Component {
   activeRunMutators?: string[];
   isDialogueActive?: boolean;
   dialogueText?: string;
+  activeWaveEvent?: {
+    name: string;
+    type: "formation" | "obstacle" | "kamikaze" | "time";
+    phase: "incoming" | "active" | "cleared";
+    remainingTimer?: number;
+  } | null;
 }
 
 /**

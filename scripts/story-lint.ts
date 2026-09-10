@@ -178,7 +178,7 @@ function runStoryLint(): void {
       };
 
       for (const encounter of entry.encounters) {
-        const semErrors = SemanticValidator.validate(encounter, semContext);
+        const semErrors = SemanticValidator.validate(encounter as MiniGameEncounterDSL, semContext);
         for (const semErr of semErrors) {
           if (semErr.severity === "error") {
             console.error(`  ❌ Semantic Error [${semErr.code}]: ${semErr.message}`);

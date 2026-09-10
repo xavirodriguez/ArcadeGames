@@ -1,6 +1,242 @@
 import { System, World, ShapeDrawer } from "@tiny-aster/core";
 import { ComboComponent } from "@tiny-aster/core";
-import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
+
+export interface MutatorVisualMeta {
+  icon: string;
+  color: string;
+  label: string;
+}
+
+export const MUTATOR_VISUAL_CONFIG: Record<string, MutatorVisualMeta> = {
+  teleport: { icon: "⚡", color: "#00D9FF", label: "Teleport" },
+  friendly_fire: { icon: "🎯", color: "#FF006E", label: "Friendly Fire" },
+  double_wave: { icon: "⧳", color: "#FFD700", label: "Double Wave" },
+  inverse_gravity: { icon: "↓", color: "#00FF41", label: "Inverse Gravity" },
+  explosive_invaders: { icon: "▸", color: "#FF4444", label: "Explosive" },
+  slow_motion: { icon: "◉", color: "#00D9FF", label: "Slow Motion" },
+};
+
+export interface EventCategoryMeta {
+  icon: string;
+  color: string;
+  bgTint: string;
+}
+
+export const EVENT_CATEGORY_CONFIG: Record<string, EventCategoryMeta> = {
+  formation: { icon: "◊", color: "#FFD700", bgTint: "rgba(255, 212, 0, 0.15)" },
+  obstacle: { icon: "▮", color: "#00D9FF", bgTint: "rgba(0, 217, 255, 0.15)" },
+  kamikaze: { icon: "⟹", color: "#FF4444", bgTint: "rgba(255, 68, 68, 0.15)" },
+  time: { icon: "◉", color: "#00FF41", bgTint: "rgba(0, 255, 65, 0.15)" },
+};
+
+export function drawWaveEventBanner(ctx: CanvasRenderingContext2D, world: World<SpaceInvadersComponentRegistry>): void {
+  const gameState = world.getSingleton("GameState");
+  if (!gameState || !gameState.activeWaveEvent) return;
+
+  const event = gameState.activeWaveEvent;
+  const category = EVENT_CATEGORY_CONFIG[event.type] || EVENT_CATEGORY_CONFIG.formation;
+  const tick = world.tick;
+
+  ctx.save();
+
+  if (event.phase === "incoming") {
+    const bannerWidth = 420;
+    const bannerHeight = 36;
+    const centerX = GAME_CONFIG.SCREEN_WIDTH / 2;
+    const bannerY = 25;
+
+    const pulseOpacity = 0.5 + 0.5 * Math.sin(tick * 0.3);
+
+    ctx.fillStyle = category.bgTint;
+    ctx.fillRect(centerX - bannerWidth / 2, bannerY, bannerWidth, bannerHeight);
+
+    ctx.strokeStyle = category.color;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = pulseOpacity;
+    ctx.strokeRect(centerX - bannerWidth / 2, bannerY, bannerWidth, bannerHeight);
+
+    ctx.globalAlpha = 1.0;
+    ctx.font = "bold 16px monospace";
+    ctx.fillStyle = category.color;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = category.color;
+    ctx.shadowBlur = 8;
+    ctx.fillText(`⚠ INCOMING: ${event.name.toUpperCase()}`, centerX, bannerY + bannerHeight / 2);
+  } else if (event.phase === "active") {
+    const centerX = GAME_CONFIG.SCREEN_WIDTH / 2;
+    const titleY = 20;
+
+    ctx.font = "bold 18px monospace";
+    ctx.fillStyle = category.color;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = category.color;
+    ctx.shadowBlur = 10;
+    ctx.fillText(`◆ ${event.name.toUpperCase()} ◆`, centerX, titleY);
+  }
+
+  ctx.restore();
+}
+
+export function drawWaveTimeline(ctx: CanvasRenderingContext2D, currentLevel: number, totalLevels = 25): void {
+  ctx.save();
+  const startX = 100;
+  const startY = 560;
+  const width = 600;
+
+  ctx.strokeStyle = "#444444";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(startX + width, startY);
+  ctx.stroke();
+
+  const step = width / (totalLevels - 1);
+  for (let lvl = 1; lvl <= totalLevels; lvl++) {
+    const x = startX + (lvl - 1) * step;
+    const isBoss = lvl % 5 === 0;
+    const isCurrent = lvl === currentLevel;
+
+    if (isBoss) {
+      ctx.fillStyle = "#FFD700";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("★", x, startY - 8);
+    } else {
+      ctx.fillStyle = lvl < currentLevel ? "#00FF41" : isCurrent ? "#00D9FF" : "#888888";
+      ctx.beginPath();
+      ctx.arc(x, startY, isCurrent ? 4 : 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+}
+
+export function drawActiveMutatorsHUD(ctx: CanvasRenderingContext2D, world: World<SpaceInvadersComponentRegistry>): void {
+  const activeMutators = world.getResource<string[]>("ActiveRunMutators") || [];
+  if (activeMutators.length === 0) return;
+
+  ctx.save();
+  let startX = 20;
+  const startY = 48;
+  const chipHeight = 22;
+  const paddingX = 8;
+
+  ctx.font = "12px monospace";
+  ctx.textBaseline = "middle";
+
+  for (let i = 0; i < activeMutators.length; i++) {
+    const id = activeMutators[i];
+    const meta = MUTATOR_VISUAL_CONFIG[id] || { icon: "◆", color: "#00D9FF", label: id };
+    const text = `${meta.icon} ${meta.label}`;
+    const textWidth = ctx.measureText(text).width;
+    const chipWidth = textWidth + paddingX * 2;
+
+    ctx.fillStyle = "rgba(10, 14, 39, 0.85)";
+    ctx.fillRect(startX, startY, chipWidth, chipHeight);
+
+    ctx.strokeStyle = meta.color;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(startX, startY, chipWidth, chipHeight);
+
+    ctx.fillStyle = "#E8E8E8";
+    ctx.fillText(text, startX + paddingX, startY + chipHeight / 2);
+
+    startX += chipWidth + 8;
+  }
+
+  ctx.restore();
+}
+
+export function drawPlayerRoleBadges(ctx: CanvasRenderingContext2D, world: World<SpaceInvadersComponentRegistry>): void {
+  const players = world.query("Player");
+  if (players.length === 0) return;
+
+  ctx.save();
+  for (let i = 0; i < players.length; i++) {
+    const pEntity = players[i];
+    const pComp = world.getComponent(pEntity, "Player");
+    const role = pComp?.role || "pioneer";
+    const pIdx = pComp?.playerIndex ?? (i + 1);
+
+    const badgeMeta = role === "hunter"
+      ? { shapeIcon: "◆", color: "#FF006E", name: "HUNTER" }
+      : role === "sentinel"
+      ? { shapeIcon: "△", color: "#00D9FF", name: "SENTINEL" }
+      : role === "support"
+      ? { shapeIcon: "⬠", color: "#FFD700", name: "SUPPORT" }
+      : { shapeIcon: "▓", color: "#00FF41", name: "PIONEER" };
+
+    const label = `P${pIdx} • ${badgeMeta.name}`;
+    ctx.font = "bold 11px monospace";
+    ctx.textBaseline = "middle";
+    const textWidth = ctx.measureText(label).width;
+    const badgeWidth = textWidth + 28;
+    const badgeHeight = 22;
+    const badgeX = 20;
+    const badgeY = 20 + i * 26;
+
+    ctx.fillStyle = "rgba(10, 14, 39, 0.85)";
+    ctx.fillRect(badgeX, badgeY, badgeWidth, badgeHeight);
+
+    ctx.strokeStyle = badgeMeta.color;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(badgeX, badgeY, badgeWidth, badgeHeight);
+
+    ctx.fillStyle = badgeMeta.color;
+    ctx.fillText(badgeMeta.shapeIcon, badgeX + 8, badgeY + badgeHeight / 2 + 1);
+
+    ctx.fillStyle = "#E8E8E8";
+    ctx.fillText(label, badgeX + 22, badgeY + badgeHeight / 2 + 1);
+  }
+  ctx.restore();
+}
+
+export function drawKamikazeHUD(ctx: CanvasRenderingContext2D, world: World<SpaceInvadersComponentRegistry>): void {
+  const kamikazes = world.query("Kamikaze");
+  if (kamikazes.length === 0) return;
+
+  let standardCount = 0;
+  let splitterCount = 0;
+  let trailCount = 0;
+
+  for (let i = 0; i < kamikazes.length; i++) {
+    const k = world.getComponent(kamikazes[i], "Kamikaze");
+    if (!k) continue;
+    const variant = k.variant || "standard";
+    if (variant === "splitter") splitterCount++;
+    else if (variant === "trail") trailCount++;
+    else standardCount++;
+  }
+
+  ctx.save();
+  const hudX = 780;
+  const hudY = 560;
+
+  ctx.font = "bold 11px monospace";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "middle";
+
+  const lines: string[] = [];
+  if (standardCount > 0) lines.push(`🔴 Standard x${standardCount}`);
+  if (splitterCount > 0) lines.push(`🟣 Splitter x${splitterCount}`);
+  if (trailCount > 0) lines.push(`⚡ Trail x${trailCount}`);
+
+  for (let j = 0; j < lines.length; j++) {
+    const text = lines[j];
+    ctx.fillStyle = "rgba(10, 14, 39, 0.85)";
+    const textWidth = ctx.measureText(text).width;
+    ctx.fillRect(hudX - textWidth - 8, hudY - j * 18 - 8, textWidth + 8, 16);
+
+    ctx.fillStyle = j === 0 ? "#FF4444" : "#FF006E";
+    ctx.fillText(text, hudX - 4, hudY - j * 18);
+  }
+
+  ctx.restore();
+}
 
 // ============================================================================
 // VISUAL-ONLY SHARD PARTICLE POOL (OUTSIDE ECS)
@@ -166,61 +402,55 @@ export class ComboHUDRenderSystem extends System<SpaceInvadersComponentRegistry>
  */
 export const drawSpaceInvadersComboHUD: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world) {
-    const comboEntities = world.query("Combo");
-    if (comboEntities.length === 0) return;
+    drawPlayerRoleBadges(ctx, world);
+    drawActiveMutatorsHUD(ctx, world);
+    drawWaveEventBanner(ctx, world);
+    drawKamikazeHUD(ctx, world);
 
-    const comboComp = world.getComponent(comboEntities[0], "Combo");
-    if (!comboComp || comboComp.combo <= 0 || comboComp.timerRemaining <= 0) {
-      // Still draw any active glass shatter particles even if combo is 0
-      drawShardParticlesCanvas(ctx);
-      return;
+    const comboEntities = world.query("Combo");
+    if (comboEntities.length > 0) {
+      const comboComp = world.getComponent(comboEntities[0], "Combo");
+      if (comboComp && comboComp.combo > 0 && comboComp.timerRemaining > 0) {
+        const { combo, multiplier, timerRemaining, timerDuration } = comboComp;
+        const duration = timerDuration > 0 ? timerDuration : 2.0;
+        const timerRatio = Math.max(0, Math.min(1, timerRemaining / duration));
+
+        const hudX = 700;
+        const hudY = 70;
+
+        ctx.save();
+
+        const scale = 1.0 + Math.min(0.5, (combo - 1) * 0.05);
+        const pulseOpacity = 0.7 + 0.3 * Math.sin(world.tick * 0.2);
+
+        ctx.translate(hudX, hudY);
+        ctx.scale(scale, scale);
+        ctx.globalAlpha = pulseOpacity;
+
+        ctx.fillStyle = multiplier >= 5 ? "#FFD700" : multiplier >= 3 ? "#FF00FF" : "#00FFFF";
+        ctx.font = "bold 28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 10;
+        ctx.fillText(`${multiplier}x MULTIPLIER`, 0, 0);
+
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(`${combo} COMBO`, 0, 22);
+
+        const barWidth = 100;
+        const barHeight = 4;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.fillRect(-barWidth / 2, 34, barWidth, barHeight);
+
+        ctx.fillStyle = ctx.shadowColor;
+        ctx.fillRect(-barWidth / 2, 34, barWidth * timerRatio, barHeight);
+
+        ctx.restore();
+      }
     }
 
-    const { combo, multiplier, timerRemaining, timerDuration } = comboComp;
-    const duration = timerDuration > 0 ? timerDuration : 2.0;
-    const timerRatio = Math.max(0, Math.min(1, timerRemaining / duration));
-
-    const hudX = 700;
-    const hudY = 70;
-
-    ctx.save();
-
-    // Scale effect based on combo count
-    const scale = 1.0 + Math.min(0.5, (combo - 1) * 0.05);
-
-    // Pulse opacity based on timerRemaining
-    const pulseOpacity = 0.7 + 0.3 * Math.sin(world.tick * 0.2);
-
-    ctx.translate(hudX, hudY);
-    ctx.scale(scale, scale);
-    ctx.globalAlpha = pulseOpacity;
-
-    // Draw Multiplier Text
-    ctx.fillStyle = multiplier >= 5 ? "#FFD700" : multiplier >= 3 ? "#FF00FF" : "#00FFFF";
-    ctx.font = "bold 28px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.shadowBlur = 10;
-    ctx.fillText(`${multiplier}x MULTIPLIER`, 0, 0);
-
-    // Draw Combo count subtitle
-    ctx.font = "bold 14px sans-serif";
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(`${combo} COMBO`, 0, 22);
-
-    // Draw Timer Bar
-    const barWidth = 100;
-    const barHeight = 4;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-    ctx.fillRect(-barWidth / 2, 34, barWidth, barHeight);
-
-    ctx.fillStyle = ctx.shadowColor;
-    ctx.fillRect(-barWidth / 2, 34, barWidth * timerRatio, barHeight);
-
-    ctx.restore();
-
-    // Draw active glass shatter particles
     drawShardParticlesCanvas(ctx);
   }
 };

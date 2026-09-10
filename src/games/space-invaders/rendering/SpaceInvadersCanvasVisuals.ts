@@ -2,7 +2,7 @@ import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateShieldHpRatio } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBossPhase, calculateBossVibrato, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 
 // ============================================================================
 // VISUAL-ONLY EXPLOSION LAYERED PARTICLE POOL (RING, DEBRIS W/ GRAVITY, SMOKE)
@@ -58,69 +58,59 @@ export function spawnLayeredExplosion(
   };
 
   // Layer 2: Expanding Ring
-  for (let j = 0; j < EXPLOSION_PARTICLE_POOL.length; j++) {
-    const p = EXPLOSION_PARTICLE_POOL[j];
-    if (!p.active) {
-      p.active = true;
-      p.type = "ring";
-      p.x = x;
-      p.y = y;
-      p.vx = 0;
-      p.vy = 0;
-      p.radius = 2;
-      p.maxRadius = (35 + nextRnd() * 25) * intensityMultiplier;
-      p.size = 2;
-      p.life = 0.35 * intensityMultiplier;
-      p.maxLife = p.life;
-      p.color = baseColor;
-      break;
-    }
+  const ringP = EXPLOSION_PARTICLE_POOL.find(p => !p.active);
+  if (ringP) {
+    ringP.active = true;
+    ringP.type = "ring";
+    ringP.x = x;
+    ringP.y = y;
+    ringP.vx = 0;
+    ringP.vy = 0;
+    ringP.radius = 2;
+    ringP.maxRadius = (35 + nextRnd() * 25) * intensityMultiplier;
+    ringP.size = 2;
+    ringP.life = 0.35 * intensityMultiplier;
+    ringP.maxLife = ringP.life;
+    ringP.color = baseColor;
   }
 
   // Layer 3: Debris with gravity
   const debrisCount = Math.floor((12 + nextRnd() * 8) * intensityMultiplier);
-  for (// TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:105-110. Considerar extraer a función compartida. Ref: d0b985bf
-  let i = 0; i < debrisCount; i++) {
-    for (let j = 0; j < EXPLOSION_PARTICLE_POOL.length; j++) {
-      const p = EXPLOSION_PARTICLE_POOL[j];
-      if (!p.active) {
-        const angle = nextRnd() * Math.PI * 2;
-        const speed = (60 + nextRnd() * 180) * intensityMultiplier;
-        p.active = true;
-        p.type = "debris";
-        p.x = x;
-        p.y = y;
-        p.vx = Math.cos(angle) * speed;
-        p.vy = Math.sin(angle) * speed - 30; // slight initial upward velocity
-        p.size = 2 + nextRnd() * 3.5;
-        p.life = (0.4 + nextRnd() * 0.4) * intensityMultiplier;
-        p.maxLife = p.life;
-        p.color = nextRnd() > 0.4 ? baseColor : "#FFFFFF";
-        break;
-      }
+  for (let i = 0; i < debrisCount; i++) {
+    const p = EXPLOSION_PARTICLE_POOL.find(part => !part.active);
+    if (p) {
+      const angle = nextRnd() * Math.PI * 2;
+      const speed = (60 + nextRnd() * 180) * intensityMultiplier;
+      p.active = true;
+      p.type = "debris";
+      p.x = x;
+      p.y = y;
+      p.vx = Math.cos(angle) * speed;
+      p.vy = Math.sin(angle) * speed - 30; // slight initial upward velocity
+      p.size = 2 + nextRnd() * 3.5;
+      p.life = (0.4 + nextRnd() * 0.4) * intensityMultiplier;
+      p.maxLife = p.life;
+      p.color = nextRnd() > 0.4 ? baseColor : "#FFFFFF";
     }
   }
 
   // Layer 4: Residual smoke
   const smokeCount = Math.floor((6 + nextRnd() * 6) * intensityMultiplier);
   for (let i = 0; i < smokeCount; i++) {
-    for (let j = 0; j < EXPLOSION_PARTICLE_POOL.length; j++) {
-      const p = EXPLOSION_PARTICLE_POOL[j];
-      if (!p.active) {
-        const angle = nextRnd() * Math.PI * 2;
-        const speed = (15 + nextRnd() * 40) * intensityMultiplier;
-        p.active = true;
-        p.type = "smoke";
-        p.x = x;
-        p.y = y;
-        p.vx = Math.cos(angle) * speed;
-        p.vy = Math.sin(angle) * speed - 15; // gentle smoke drift upward
-        p.size = 4 + nextRnd() * 6;
-        p.life = (0.8 + nextRnd() * 0.6) * intensityMultiplier;
-        p.maxLife = p.life;
-        p.color = "#888888";
-        break;
-      }
+    const p = EXPLOSION_PARTICLE_POOL.find(part => !part.active);
+    if (p) {
+      const angle = nextRnd() * Math.PI * 2;
+      const speed = (15 + nextRnd() * 40) * intensityMultiplier;
+      p.active = true;
+      p.type = "smoke";
+      p.x = x;
+      p.y = y;
+      p.vx = Math.cos(angle) * speed;
+      p.vy = Math.sin(angle) * speed - 15; // gentle smoke drift upward
+      p.size = 4 + nextRnd() * 6;
+      p.life = (0.8 + nextRnd() * 0.6) * intensityMultiplier;
+      p.maxLife = p.life;
+      p.color = "#888888";
     }
   }
 }
@@ -215,7 +205,11 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     if (!render) return;
     const { size = 40 } = render;
 
-    const flash = applyHitFlash(render, render.color || colors.green);
+    const playerComp = world.getComponent(entity, "Player");
+    const role = playerComp?.role || "pioneer";
+    const { roleColor } = resolvePlayerRoleVisual(role);
+
+    const flash = applyHitFlash(render, render.color || roleColor);
     const color = flash.color;
 
     ctx.save();
@@ -228,8 +222,37 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
       ctx.rotate(tilt);
     }
 
-    // 2. Flickering dual-stage thruster plume tail (at the bottom)
+    // Role-specific visual aura / range feedback
     const tick = world.tick;
+    if (role === "hunter") {
+      const auraRadius = size * 1.8 + Math.sin(tick * 0.15) * 4;
+      ctx.strokeStyle = "rgba(255, 0, 110, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, auraRadius, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (role === "sentinel") {
+      ctx.strokeStyle = "rgba(0, 217, 255, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, -size / 2);
+      ctx.lineTo(0, -size * 3);
+      ctx.stroke();
+    } else if (role === "pioneer") {
+      ctx.strokeStyle = "rgba(0, 255, 65, 0.35)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.85, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (role === "support") {
+      ctx.strokeStyle = "rgba(255, 215, 0, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // 2. Flickering dual-stage thruster plume tail (at the bottom)
     const plumeLength = calculateThrusterPlumeLength(tick, size);
 
     // Outer plasma flame
@@ -377,12 +400,14 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:201-216. Considerar extraer a función compartida. Ref: ac0fb50f
     const { size = 15 } = render;
 
     let baseColor = render.color || colors.white;
     const invaderComp = world.getComponent(entity, "Invader");
-    if (invaderComp) {
+    const enemyTag = world.getComponent(entity, "EnemyTag");
+    const isTeleporter = enemyTag?.variant === "teleporter" || render.color === "#00D9FF";
+
+    if (invaderComp && !isTeleporter && render.color !== "#00D9FF") {
       const row = invaderComp.row;
       if (row === 0) {
         baseColor = colors.magentaHot; // Row 0 (Commanders): Hot Magenta
@@ -391,17 +416,26 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
       } else {
         baseColor = colors.gold; // Rows 3-4 (Grunts): Cyber Gold
       }
+    } else if (isTeleporter) {
+      baseColor = "#00D9FF";
     }
 
     const flash = applyHitFlash(render, baseColor);
-    ctx.globalAlpha = flash.opacity;
+    const tick = world.tick;
+
+    const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
+    if (isTeleporter) {
+      ctx.shadowColor = "#00D9FF";
+      ctx.shadowBlur = 8 * shimmerAlpha;
+    }
+
+    ctx.globalAlpha = flash.opacity * shimmerAlpha;
     const color = flash.color;
 
     ctx.fillStyle = color;
 
     // Simple pixelated invader shape
     const s = size / 11;
-    const tick = world.tick;
     // Walk animation toggles legs state organically
     const animPhase = Math.floor(tick / 15) % 2 === 0;
 
@@ -530,7 +564,6 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:321-343. Considerar extraer a función compartida. Ref: 0328253c
     const { size = 80 } = render;
 
     const boss = world.getComponent(entity, "Boss");
@@ -540,7 +573,7 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
     const maxHp = health ? health.max : (boss ? boss.maxHp : 50);
     const hpRatio = calculateShieldHpRatio(currentHp, maxHp);
 
-    const { phase, baseColor, accentColor } = calculateBossPhase(hpRatio);
+    const { phase, baseColor, accentColor, scaleMultiplier } = calculateBossPhase(hpRatio);
 
     const flash = applyHitFlash(render, baseColor);
     const color = flash.color;
@@ -549,16 +582,23 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
     ctx.globalAlpha = flash.opacity;
 
     const tick = world.tick;
+    const { vibX, vibY } = calculateBossVibrato(phase, tick);
+    ctx.translate(vibX, vibY);
+    ctx.scale(scaleMultiplier, scaleMultiplier);
+
     const s = size / 20;
 
-    // 1. Phase 3 Overdrive Energy Aura Glow
+    // 1. Phase Aura Glow
     if (phase === 3) {
-      const auraPulse = 1.0 + 0.15 * Math.sin(tick * 0.4);
-      ctx.shadowColor = colors.redHot;
-      ctx.shadowBlur = 15 * auraPulse;
+      const auraPulse = 1.0 + 0.25 * Math.sin(tick * 0.5);
+      ctx.shadowColor = "#FF4444";
+      ctx.shadowBlur = 20 * auraPulse;
     } else if (phase === 2) {
+      ctx.shadowColor = "#F97316";
+      ctx.shadowBlur = 12;
+    } else {
       ctx.shadowColor = colors.gold;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 6;
     }
 
     // 2. Heavy Armored Mothership Hull Shape

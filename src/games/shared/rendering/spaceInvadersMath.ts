@@ -48,3 +48,28 @@ export function calculateBossPhase(hpRatio: number): BossPhaseState {
     };
   }
 }
+
+export function calculateBossVibrato(phase: number, tick: number): { vibX: number; vibY: number } {
+  let vibX = 0;
+  let vibY = 0;
+  if (phase === 2) {
+    vibX = Math.sin(tick * 0.8) * 2.5;
+    vibY = Math.cos(tick * 0.8) * 2.5;
+  } else if (phase === 3) {
+    vibX = Math.sin(tick * 1.5) * 5.0;
+    vibY = Math.cos(tick * 1.5) * 5.0;
+  }
+  return { vibX, vibY };
+}
+
+export function calculateTeleporterShimmer(isTeleporter: boolean, tick: number): number {
+  if (!isTeleporter) return 1.0;
+  return 0.625 + 0.375 * Math.sin((tick / 36) * Math.PI * 2);
+}
+
+export function resolvePlayerRoleVisual(role?: string): { roleColor: string; shapeIcon: string; name: string } {
+  if (role === "hunter") return { roleColor: "#FF006E", shapeIcon: "◆", name: "HUNTER" };
+  if (role === "sentinel") return { roleColor: "#00D9FF", shapeIcon: "△", name: "SENTINEL" };
+  if (role === "support") return { roleColor: "#FFD700", shapeIcon: "⬠", name: "SUPPORT" };
+  return { roleColor: colors.green, shapeIcon: "▓", name: "PIONEER" };
+}

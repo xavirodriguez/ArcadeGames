@@ -2,7 +2,7 @@ import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderCo
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateShieldHpRatio } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBossPhase, calculateBossVibrato, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
@@ -26,7 +26,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
     const playerComp = world.getComponent(entity, "Player");
     const role = playerComp?.role || "pioneer";
-    const roleColor = role === "hunter" ? "#FF006E" : role === "sentinel" ? "#00D9FF" : role === "support" ? "#FFD700" : colors.green;
+    const { roleColor } = resolvePlayerRoleVisual(role);
 
     const flash = getRenderFlash(render, roleColor, 40);
     const size = flash.size;
@@ -239,10 +239,7 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     const colorStr = flash.color;
 
     const tick = world.tick;
-    let shimmerAlpha = 1.0;
-    if (isTeleporter) {
-      shimmerAlpha = 0.625 + 0.375 * Math.sin((tick / 36) * Math.PI * 2);
-    }
+    const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
     const opacity = flash.opacity * shimmerAlpha;
 
     const s = size / 11;
@@ -383,15 +380,7 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     canvas.save();
 
     const tick = world.tick;
-    let vibX = 0;
-    let vibY = 0;
-    if (phase === 2) {
-      vibX = Math.sin(tick * 0.8) * 2.5;
-      vibY = Math.cos(tick * 0.8) * 2.5;
-    } else if (phase === 3) {
-      vibX = Math.sin(tick * 1.5) * 5.0;
-      vibY = Math.cos(tick * 1.5) * 5.0;
-    }
+    const { vibX, vibY } = calculateBossVibrato(phase, tick);
     canvas.translate(vibX, vibY);
     canvas.scale(scaleMultiplier, scaleMultiplier);
 

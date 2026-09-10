@@ -2,7 +2,7 @@ import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateShieldHpRatio } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBossPhase, calculateBossVibrato, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 
 // ============================================================================
 // VISUAL-ONLY EXPLOSION LAYERED PARTICLE POOL (RING, DEBRIS W/ GRAVITY, SMOKE)
@@ -58,69 +58,59 @@ export function spawnLayeredExplosion(
   };
 
   // Layer 2: Expanding Ring
-  for (let j = 0; j < EXPLOSION_PARTICLE_POOL.length; j++) {
-    const p = EXPLOSION_PARTICLE_POOL[j];
-    if (!p.active) {
-      p.active = true;
-      p.type = "ring";
-      p.x = x;
-      p.y = y;
-      p.vx = 0;
-      p.vy = 0;
-      p.radius = 2;
-      p.maxRadius = (35 + nextRnd() * 25) * intensityMultiplier;
-      p.size = 2;
-      p.life = 0.35 * intensityMultiplier;
-      p.maxLife = p.life;
-      p.color = baseColor;
-      break;
-    }
+  const ringP = EXPLOSION_PARTICLE_POOL.find(p => !p.active);
+  if (ringP) {
+    ringP.active = true;
+    ringP.type = "ring";
+    ringP.x = x;
+    ringP.y = y;
+    ringP.vx = 0;
+    ringP.vy = 0;
+    ringP.radius = 2;
+    ringP.maxRadius = (35 + nextRnd() * 25) * intensityMultiplier;
+    ringP.size = 2;
+    ringP.life = 0.35 * intensityMultiplier;
+    ringP.maxLife = ringP.life;
+    ringP.color = baseColor;
   }
 
   // Layer 3: Debris with gravity
   const debrisCount = Math.floor((12 + nextRnd() * 8) * intensityMultiplier);
-  for (// TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:105-110. Considerar extraer a función compartida. Ref: d0b985bf
-  let i = 0; i < debrisCount; i++) {
-    for (let j = 0; j < EXPLOSION_PARTICLE_POOL.length; j++) {
-      const p = EXPLOSION_PARTICLE_POOL[j];
-      if (!p.active) {
-        const angle = nextRnd() * Math.PI * 2;
-        const speed = (60 + nextRnd() * 180) * intensityMultiplier;
-        p.active = true;
-        p.type = "debris";
-        p.x = x;
-        p.y = y;
-        p.vx = Math.cos(angle) * speed;
-        p.vy = Math.sin(angle) * speed - 30; // slight initial upward velocity
-        p.size = 2 + nextRnd() * 3.5;
-        p.life = (0.4 + nextRnd() * 0.4) * intensityMultiplier;
-        p.maxLife = p.life;
-        p.color = nextRnd() > 0.4 ? baseColor : "#FFFFFF";
-        break;
-      }
+  for (let i = 0; i < debrisCount; i++) {
+    const p = EXPLOSION_PARTICLE_POOL.find(part => !part.active);
+    if (p) {
+      const angle = nextRnd() * Math.PI * 2;
+      const speed = (60 + nextRnd() * 180) * intensityMultiplier;
+      p.active = true;
+      p.type = "debris";
+      p.x = x;
+      p.y = y;
+      p.vx = Math.cos(angle) * speed;
+      p.vy = Math.sin(angle) * speed - 30; // slight initial upward velocity
+      p.size = 2 + nextRnd() * 3.5;
+      p.life = (0.4 + nextRnd() * 0.4) * intensityMultiplier;
+      p.maxLife = p.life;
+      p.color = nextRnd() > 0.4 ? baseColor : "#FFFFFF";
     }
   }
 
   // Layer 4: Residual smoke
   const smokeCount = Math.floor((6 + nextRnd() * 6) * intensityMultiplier);
   for (let i = 0; i < smokeCount; i++) {
-    for (let j = 0; j < EXPLOSION_PARTICLE_POOL.length; j++) {
-      const p = EXPLOSION_PARTICLE_POOL[j];
-      if (!p.active) {
-        const angle = nextRnd() * Math.PI * 2;
-        const speed = (15 + nextRnd() * 40) * intensityMultiplier;
-        p.active = true;
-        p.type = "smoke";
-        p.x = x;
-        p.y = y;
-        p.vx = Math.cos(angle) * speed;
-        p.vy = Math.sin(angle) * speed - 15; // gentle smoke drift upward
-        p.size = 4 + nextRnd() * 6;
-        p.life = (0.8 + nextRnd() * 0.6) * intensityMultiplier;
-        p.maxLife = p.life;
-        p.color = "#888888";
-        break;
-      }
+    const p = EXPLOSION_PARTICLE_POOL.find(part => !part.active);
+    if (p) {
+      const angle = nextRnd() * Math.PI * 2;
+      const speed = (15 + nextRnd() * 40) * intensityMultiplier;
+      p.active = true;
+      p.type = "smoke";
+      p.x = x;
+      p.y = y;
+      p.vx = Math.cos(angle) * speed;
+      p.vy = Math.sin(angle) * speed - 15; // gentle smoke drift upward
+      p.size = 4 + nextRnd() * 6;
+      p.life = (0.8 + nextRnd() * 0.6) * intensityMultiplier;
+      p.maxLife = p.life;
+      p.color = "#888888";
     }
   }
 }
@@ -217,7 +207,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     const playerComp = world.getComponent(entity, "Player");
     const role = playerComp?.role || "pioneer";
-    const roleColor = role === "hunter" ? "#FF006E" : role === "sentinel" ? "#00D9FF" : role === "support" ? "#FFD700" : colors.green;
+    const { roleColor } = resolvePlayerRoleVisual(role);
 
     const flash = applyHitFlash(render, render.color || roleColor);
     const color = flash.color;
@@ -433,10 +423,8 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     const flash = applyHitFlash(render, baseColor);
     const tick = world.tick;
 
-    // Phasing loop for teleporter invaders (600ms = 36 ticks)
-    let shimmerAlpha = 1.0;
+    const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
     if (isTeleporter) {
-      shimmerAlpha = 0.625 + 0.375 * Math.sin((tick / 36) * Math.PI * 2);
       ctx.shadowColor = "#00D9FF";
       ctx.shadowBlur = 8 * shimmerAlpha;
     }
@@ -594,15 +582,7 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
     ctx.globalAlpha = flash.opacity;
 
     const tick = world.tick;
-    let vibX = 0;
-    let vibY = 0;
-    if (phase === 2) {
-      vibX = Math.sin(tick * 0.8) * 2.5;
-      vibY = Math.cos(tick * 0.8) * 2.5;
-    } else if (phase === 3) {
-      vibX = Math.sin(tick * 1.5) * 5.0;
-      vibY = Math.cos(tick * 1.5) * 5.0;
-    }
+    const { vibX, vibY } = calculateBossVibrato(phase, tick);
     ctx.translate(vibX, vibY);
     ctx.scale(scaleMultiplier, scaleMultiplier);
 

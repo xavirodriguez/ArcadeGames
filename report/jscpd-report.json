@@ -1949,54 +1949,17 @@
         "endLoc": {
           "column": 36,
           "line": 118,
-          "position": 4463
+          "position": 4483
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 105,
         "startLoc": {
           "column": 28,
           "line": 105,
-          "position": 3668
+          "position": 3688
         }
       },
       "tokens": 101
-    },
-    {
-      "firstFile": {
-        "end": 258,
-        "endLoc": {
-          "column": 65,
-          "line": 258,
-          "position": 9086
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 253,
-        "startLoc": {
-          "column": 69,
-          "line": 253,
-          "position": 8915
-        }
-      },
-      "format": "typescript",
-      "fragment": "        world.addComponent(entity, { type: \"Hitbox\", hitEntities: [] } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    this.blueprints.register(\"player\", {\n      spawn: (world, entity, args: { x: number; y: number }) => {",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 263,
-        "endLoc": {
-          "column": 65,
-          "line": 263,
-          "position": 9031
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 258,
-        "startLoc": {
-          "column": 71,
-          "line": 258,
-          "position": 8860
-        }
-      },
-      "tokens": 51
     },
     {
       "firstFile": {
@@ -2019,18 +1982,18 @@
       "isNew": false,
       "lines": 16,
       "secondFile": {
-        "end": 293,
+        "end": 296,
         "endLoc": {
           "column": 30,
-          "line": 293,
-          "position": 10631
+          "line": 296,
+          "position": 10461
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 278,
+        "start": 281,
         "startLoc": {
           "column": 105,
-          "line": 278,
-          "position": 10076
+          "line": 281,
+          "position": 9906
         }
       },
       "tokens": 85
@@ -2056,18 +2019,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 310,
+        "end": 313,
         "endLoc": {
           "column": 53,
-          "line": 310,
-          "position": 11364
+          "line": 313,
+          "position": 11194
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 304,
+        "start": 307,
         "startLoc": {
           "column": 78,
-          "line": 304,
-          "position": 11047
+          "line": 307,
+          "position": 10877
         }
       },
       "tokens": 51
@@ -2093,18 +2056,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 340,
+        "end": 343,
         "endLoc": {
           "column": 41,
-          "line": 340,
-          "position": 12620
+          "line": 343,
+          "position": 12450
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 334,
+        "start": 337,
         "startLoc": {
           "column": 8,
-          "line": 334,
-          "position": 12388
+          "line": 337,
+          "position": 12218
         }
       },
       "tokens": 62
@@ -2130,18 +2093,18 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 354,
+        "end": 357,
         "endLoc": {
           "column": 9,
-          "line": 354,
-          "position": 13061
+          "line": 357,
+          "position": 12891
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 340,
+        "start": 343,
         "startLoc": {
           "column": 105,
-          "line": 340,
-          "position": 12684
+          "line": 343,
+          "position": 12514
         }
       },
       "tokens": 74
@@ -2245,14 +2208,14 @@
         "endLoc": {
           "column": 16,
           "line": 195,
-          "position": 6651
+          "position": 6671
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 185,
         "startLoc": {
           "column": 29,
           "line": 185,
-          "position": 6360
+          "position": 6380
         }
       },
       "tokens": 54
@@ -2282,14 +2245,14 @@
         "endLoc": {
           "column": 55,
           "line": 223,
-          "position": 7552
+          "position": 7572
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 206,
         "startLoc": {
           "column": 63,
           "line": 206,
-          "position": 6982
+          "position": 7002
         }
       },
       "tokens": 137
@@ -2319,14 +2282,14 @@
         "endLoc": {
           "column": 9,
           "line": 225,
-          "position": 7563
+          "position": 7583
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 209,
         "startLoc": {
           "column": 29,
           "line": 209,
-          "position": 7065
+          "position": 7085
         }
       },
       "tokens": 119
@@ -2389,18 +2352,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 397,
+        "end": 400,
         "endLoc": {
           "column": 82,
-          "line": 397,
-          "position": 15274
+          "line": 400,
+          "position": 15104
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 388,
+        "start": 391,
         "startLoc": {
           "column": 61,
-          "line": 388,
-          "position": 14841
+          "line": 391,
+          "position": 14671
         }
       },
       "tokens": 92
@@ -2426,18 +2389,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 424,
+        "end": 427,
         "endLoc": {
           "column": 7,
-          "line": 424,
-          "position": 16289
+          "line": 427,
+          "position": 16119
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 410,
+        "start": 413,
         "startLoc": {
           "column": 4,
-          "line": 410,
-          "position": 15940
+          "line": 413,
+          "position": 15770
         }
       },
       "tokens": 70
@@ -6144,6 +6107,43 @@
     },
     {
       "firstFile": {
+        "end": 234,
+        "endLoc": {
+          "column": 47,
+          "line": 234,
+          "position": 7959
+        },
+        "name": "platformer/PlatformerGame.ts",
+        "start": 229,
+        "startLoc": {
+          "column": 33,
+          "line": 229,
+          "position": 7701
+        }
+      },
+      "format": "typescript",
+      "fragment": "      this.blueprints.register(id, {\n        spawn: (world, entity, args: { x: number; y: number }) => {\n          ArcadeEntityBuilder.fromEntity(world, entity)\n            .withTransform({ x: args.x, y: args.y })\n            .withCollider2D({\n              shape: { type: \"aabb\", halfWidth: 12, halfHeight: 12 },",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 256,
+        "endLoc": {
+          "column": 45,
+          "line": 256,
+          "position": 8663
+        },
+        "name": "platformer/PlatformerGame.ts",
+        "start": 251,
+        "startLoc": {
+          "column": 35,
+          "line": 251,
+          "position": 8415
+        }
+      },
+      "tokens": 61
+    },
+    {
+      "firstFile": {
         "end": 33,
         "endLoc": {
           "column": 55,
@@ -7328,32 +7328,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-10T12:40:59.704Z",
+    "detectionDate": "2026-09-10T14:48:01.284Z",
     "formats": {
       "typescript": {
         "clones": 198,
         "duplicatedLines": 2035,
-        "duplicatedTokens": 15514,
-        "lines": 58672,
+        "duplicatedTokens": 15524,
+        "lines": 58617,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.468434687755659,
-        "percentageTokens": 5.0678478796312625,
+        "percentage": 3.471689100431615,
+        "percentageTokens": 5.077898841085056,
         "sources": 360,
-        "tokens": 306126
+        "tokens": 305717
       }
     },
     "total": {
       "clones": 198,
       "duplicatedLines": 2035,
-      "duplicatedTokens": 15514,
-      "lines": 58672,
+      "duplicatedTokens": 15524,
+      "lines": 58617,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.468434687755659,
-      "percentageTokens": 5.0678478796312625,
+      "percentage": 3.471689100431615,
+      "percentageTokens": 5.077898841085056,
       "sources": 360,
-      "tokens": 306126
+      "tokens": 305717
     }
   }
 }

@@ -41,7 +41,7 @@ import {
 } from "@tiny-aster/core";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
-import { PlatformerGoalSystem } from "./systems/PlatformerGoalSystem";
+import { PlatformerGoalSystem, LevelGoalComponent } from "./systems/PlatformerGoalSystem";
 import { PlatformerDamageSystem } from "./systems/PlatformerDamageSystem";
 import { PlatformerDashSystem } from "./systems/PlatformerDashSystem";
 import { PlatformerWallJumpSystem } from "./systems/PlatformerWallJumpSystem";
@@ -250,12 +250,16 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
 
     this.blueprints.register("goal", {
       spawn: (world, entity, args: { x: number; y: number }) => {
-        EntityBuilder.fromEntity(world, entity)
+        ArcadeEntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 16, halfHeight: 24 },
+            isTrigger: true
+          })
+          .withCollisionEvents()
           .withRender({ shape: "goal", size: 32, order: 1 });
 
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:249-254. Considerar extraer a función compartida. Ref: 30c73994
-        world.addComponent(entity, { type: "LevelGoal", reached: false } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "LevelGoal", reached: false } as LevelGoalComponent);
       }
     });
 
@@ -272,9 +276,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
           .withRender({ shape: "player", size: 24, color: tint, order: 2 });
 
         world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
-        world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
-        world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "Sprite", assetKey, anchor: { x: 0.5, y: 0.5 } } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] });
+        world.addComponent(entity, { type: "Sprite", assetKey, anchor: { x: 0.5, y: 0.5 } });
         const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
 
         world.addComponent(entity, {

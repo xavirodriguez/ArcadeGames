@@ -7217,18 +7217,18 @@
     },
     {
       "firstFile": {
-        "end": 752,
+        "end": 760,
         "endLoc": {
           "column": 23,
-          "line": 752,
-          "position": 24581
+          "line": 760,
+          "position": 24835
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 741,
+        "start": 749,
         "startLoc": {
           "column": 48,
-          "line": 741,
-          "position": 24246
+          "line": 749,
+          "position": 24500
         }
       },
       "format": "typescript",
@@ -7236,36 +7236,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 538,
+        "end": 546,
         "endLoc": {
           "column": 23,
-          "line": 538,
-          "position": 19662
+          "line": 546,
+          "position": 19922
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 527,
+        "start": 535,
         "startLoc": {
           "column": 32,
-          "line": 527,
-          "position": 19327
+          "line": 535,
+          "position": 19587
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 767,
+        "end": 775,
         "endLoc": {
           "column": 63,
-          "line": 767,
-          "position": 25259
+          "line": 775,
+          "position": 25513
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 754,
+        "start": 762,
         "startLoc": {
           "column": 25,
-          "line": 754,
-          "position": 24796
+          "line": 762,
+          "position": 25050
         }
       },
       "format": "typescript",
@@ -7273,36 +7273,36 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 551,
+        "end": 559,
         "endLoc": {
           "column": 63,
-          "line": 551,
-          "position": 20142
+          "line": 559,
+          "position": 20402
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 539,
+        "start": 547,
         "startLoc": {
           "column": 57,
-          "line": 539,
-          "position": 19730
+          "line": 547,
+          "position": 19990
         }
       },
       "tokens": 74
     },
     {
       "firstFile": {
-        "end": 394,
+        "end": 402,
         "endLoc": {
           "column": 27,
-          "line": 394,
-          "position": 15130
+          "line": 402,
+          "position": 15390
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 387,
+        "start": 395,
         "startLoc": {
           "column": 23,
-          "line": 387,
-          "position": 14935
+          "line": 395,
+          "position": 15195
         }
       },
       "format": "typescript",
@@ -7310,50 +7310,50 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 474,
+        "end": 482,
         "endLoc": {
           "column": 27,
-          "line": 474,
-          "position": 17553
+          "line": 482,
+          "position": 17813
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 465,
+        "start": 473,
         "startLoc": {
           "column": 17,
-          "line": 465,
-          "position": 17293
+          "line": 473,
+          "position": 17553
         }
       },
       "tokens": 51
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-10T14:48:01.284Z",
+    "detectionDate": "2026-09-10T19:22:48.912Z",
     "formats": {
       "typescript": {
         "clones": 198,
         "duplicatedLines": 2035,
         "duplicatedTokens": 15524,
-        "lines": 58617,
+        "lines": 58721,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.471689100431615,
-        "percentageTokens": 5.077898841085056,
+        "percentage": 3.4655404369816587,
+        "percentageTokens": 5.066926910786966,
         "sources": 360,
-        "tokens": 305717
+        "tokens": 306379
       }
     },
     "total": {
       "clones": 198,
       "duplicatedLines": 2035,
       "duplicatedTokens": 15524,
-      "lines": 58617,
+      "lines": 58721,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.471689100431615,
-      "percentageTokens": 5.077898841085056,
+      "percentage": 3.4655404369816587,
+      "percentageTokens": 5.066926910786966,
       "sources": 360,
-      "tokens": 305717
+      "tokens": 306379
     }
   }
 }

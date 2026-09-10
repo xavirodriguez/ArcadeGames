@@ -9,6 +9,12 @@ import { getGameplaySystemContext } from "./systemHelpers";
  * @public
  */
 export class CheckpointSystem extends System<CoreComponentRegistry> {
+  /**
+   * Detects player trigger overlaps with respawn points and updates active checkpoint in run state.
+   *
+   * @param world - The ECS world containing active entities and run state resources.
+   * @param _deltaTime - Elapsed frame duration in seconds (unused).
+   */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     const ctx = getGameplaySystemContext(world);
     if (!ctx) return;

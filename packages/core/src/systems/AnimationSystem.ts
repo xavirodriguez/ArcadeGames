@@ -3,8 +3,29 @@ import { World } from "../ecs/World";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { EventRegistry } from "../events/EventBus";
 
-/** @public */
+/**
+ * System that manages sprite sheet frame animation progression for entities with `AnimatorComponent`.
+ *
+ * @remarks
+ * In each frame tick, `AnimationSystem` advances elapsed frame durations for active animations, calculates
+ * frame indexing based on frame rates, handles looping, and emits deferred completion events upon non-looping finish.
+ *
+ * @example
+ * ```ts
+ * const animationSystem = new AnimationSystem();
+ * world.addSystem(animationSystem);
+ * animationSystem.update(world, 0.016);
+ * ```
+ *
+ * @public
+ */
 export class AnimationSystem extends System<CoreComponentRegistry> {
+  /**
+   * Updates sprite sheet frame timers and advances frame indices for active animators.
+   *
+   * @param world - The ECS world containing entities and components.
+   * @param deltaTime - Elapsed frame duration in seconds.
+   */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const entities = world.query("Animator");
     const len = entities.length;

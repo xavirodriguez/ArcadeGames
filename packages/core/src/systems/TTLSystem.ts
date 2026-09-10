@@ -15,6 +15,12 @@ import { EventRegistry } from "../events/EventBus";
  * @public
  */
 export class TTLSystem extends System<CoreComponentRegistry> {
+  /**
+   * Decrements entity remaining lifetime and removes or reclaims entities whose TTL has expired.
+   *
+   * @param world - The ECS world containing active entities.
+   * @param deltaTime - Elapsed frame duration in seconds.
+   */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) {
       return;

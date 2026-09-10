@@ -2,6 +2,7 @@ import { StoryGraph } from "../packages/core/src/story/StoryTypes";
 import { StoryGraphValidator, StoryGraphValidationOptions } from "../packages/core/src/story/StoryGraphValidator";
 import { SemanticValidator, SemanticValidationContext } from "../packages/core/src/story/SemanticValidator";
 import { MiniGameEncounterDSL } from "../packages/core/src/story/EncounterDSLSchema";
+import { MiniGameEncounter } from "../packages/core/src/story/ArcadeIntegrationTypes";
 
 import { caveAdventureGraph } from "../src/games/shared/story/TheCaveAdventure";
 import { BlindStationGraph } from "../src/games/shared/story/BlindStation";
@@ -12,12 +13,17 @@ import {
   pongStoryGraph,
   flappyBirdStoryGraph,
 } from "../src/games/shared/story/StoryGraphs";
+import {
+  escapeRoute01Encounter,
+  keplerPhase2Encounter,
+  keplerPhase3Encounter
+} from "../src/games/asteroids/story/KeplerEncounters";
 
 interface GraphRegistryEntry {
   id: string;
   sourceFile: string;
   getGraph: () => StoryGraph;
-  encounters?: MiniGameEncounterDSL[];
+  encounters?: (MiniGameEncounterDSL | MiniGameEncounter)[];
   options?: StoryGraphValidationOptions;
   semanticContext?: SemanticValidationContext;
 }
@@ -62,6 +68,36 @@ const storyGraphRegistry: GraphRegistryEntry[] = [
     id: asteroidsStoryGraph.id,
     sourceFile: "src/games/shared/story/StoryGraphs.ts",
     getGraph: () => asteroidsStoryGraph,
+    encounters: [
+      escapeRoute01Encounter,
+      keplerPhase2Encounter,
+      keplerPhase3Encounter
+    ],
+    options: {
+      declaredFlags: [
+        "escapedDebrisField",
+        "escapeShipDamaged",
+        "ast_path_attack",
+        "ast_path_stealth",
+        "ast_path_investigate",
+        "quarantineBreached",
+        "quarantineFlawless",
+        "blackBoxDecrypted",
+        "keplerFlawlessRun",
+        "coreOvercharged",
+        "swarmMerged",
+        "ending_flawless_unlocked",
+        "ending_pyrrhic_unlocked",
+        "ending_lost_unlocked",
+        "ending_merged_unlocked",
+        "navigationData"
+      ],
+      declaredVariables: [
+        "oxygen",
+        "reactorPower",
+        "narrativeScore"
+      ]
+    }
   },
   {
     id: spaceInvadersStoryGraph.id,

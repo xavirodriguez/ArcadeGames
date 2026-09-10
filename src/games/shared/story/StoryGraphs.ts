@@ -1,82 +1,8 @@
 import { StoryGraph } from "@tiny-aster/core";
+import { keplersGhostStoryGraph } from "../../asteroids/story/KeplersGhostGraph";
 
-export const asteroidsStoryGraph: StoryGraph = {
-  id: "asteroids_story_graph",
-  title: "Asteroids Story Campaign",
-  entryNodeId: "ast_intro_dialogue",
-  nodes: {
-    ast_intro_dialogue: {
-      id: "ast_intro_dialogue",
-      type: "dialogue",
-      dialogue: {
-        id: "diag_ast_intro",
-        lines: [
-          { textKey: "story.asteroids_intro_1" },
-          { textKey: "story.asteroids_intro_2" }
-        ]
-      },
-      transitions: [
-        {
-          targetNodeId: "ast_gameplay_wave1",
-          condition: { type: "event", key: "dialogue:completed" }
-        }
-      ]
-    },
-    ast_gameplay_wave1: {
-      id: "ast_gameplay_wave1",
-      type: "gameplay",
-      objective: {
-        id: "obj_ast_wave1",
-        titleKey: "story.obj_clear_asteroids",
-        targetCount: 1,
-        currentCount: 0,
-        completed: false
-      },
-      transitions: [
-        {
-          targetNodeId: "ast_choice_branch",
-          condition: { type: "objective", key: "obj_ast_wave1" }
-        }
-      ]
-    },
-    ast_choice_branch: {
-      id: "ast_choice_branch",
-      type: "choice",
-      choices: [
-        {
-          id: "ast_choice_attack",
-          titleKey: "story.choice_attack_title",
-          descriptionKey: "story.choice_attack_desc",
-          targetNodeId: "ast_cutscene_aggressive"
-        },
-        {
-          id: "ast_choice_stealth",
-          titleKey: "story.choice_stealth_title",
-          descriptionKey: "story.choice_stealth_desc",
-          targetNodeId: "ast_cutscene_stealth"
-        }
-      ]
-    },
-    ast_cutscene_aggressive: {
-      id: "ast_cutscene_aggressive",
-      type: "cutscene",
-      isEndNode: true,
-      cutscene: {
-        id: "cs_ast_aggr",
-        transitionEffect: "CRTGlitchTransition"
-      }
-    },
-    ast_cutscene_stealth: {
-      id: "ast_cutscene_stealth",
-      type: "cutscene",
-      isEndNode: true,
-      cutscene: {
-        id: "cs_ast_stealth",
-        transitionEffect: "FadeTransition"
-      }
-    }
-  }
-};
+export const asteroidsStoryGraph: StoryGraph = keplersGhostStoryGraph;
+export { keplersGhostStoryGraph };
 
 export const spaceInvadersStoryGraph: StoryGraph = {
   id: "space_invaders_story_graph",

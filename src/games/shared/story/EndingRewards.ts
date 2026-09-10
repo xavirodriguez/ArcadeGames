@@ -7,7 +7,11 @@ import { MetaProgressionService } from "@tiny-aster/core";
  */
 export const ENDING_REWARDS_MAP: Readonly<Record<string, ReadonlyArray<string>>> = {
   ending_flawless: ["hyper_drift", "shield_pulse"],
-  ending_pyrrhic: ["hyper_drift", "shield_pulse"]
+  ending_pyrrhic: ["hyper_drift", "shield_pulse"],
+  ending_kepler_ghost_flawless: ["hyper_drift", "shield_pulse", "bouncing_bullets"],
+  ending_kepler_ghost_pyrrhic: ["hyper_drift", "shield_pulse"],
+  ending_kepler_ghost_lost_signal: ["shield_pulse"],
+  ending_kepler_ghost_merged: ["bouncing_bullets"]
 };
 
 /**

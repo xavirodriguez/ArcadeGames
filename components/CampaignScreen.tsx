@@ -26,6 +26,11 @@ import {
   asteroidsReduxPOCEncounter,
   spaceInvadersReduxPOCEncounter
 } from "../src/games/shared/story/StoryEncounters";
+import {
+  escapeRoute01Encounter,
+  keplerPhase2Encounter,
+  keplerPhase3Encounter
+} from "../src/games/asteroids/story/KeplerEncounters";
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
 import { useTranslation } from "../src/hooks/useTranslation";
@@ -131,6 +136,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     registry.register(flappyBirdPOCEncounter);
     registry.register(asteroidsReduxPOCEncounter);
     registry.register(spaceInvadersReduxPOCEncounter);
+    registry.register(escapeRoute01Encounter);
+    registry.register(keplerPhase2Encounter);
+    registry.register(keplerPhase3Encounter);
     encounterRegistryRef.current = registry;
   }
 

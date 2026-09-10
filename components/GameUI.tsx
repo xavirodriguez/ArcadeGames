@@ -113,6 +113,11 @@ export interface GameUITheme {
     danger?: string;
     panel?: string;
     border?: string;
+    ally?: string;
+    enemy?: string;
+    kamikaze?: string;
+    buff?: string;
+    boss?: string;
   };
 }
 

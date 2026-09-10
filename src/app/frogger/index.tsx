@@ -49,9 +49,16 @@ export default function FroggerScreen() {
 
   const [started, setStarted] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
-  const { game, gameState, handleInput, isReady, highScore, seed, restartWithSeed } = useFroggerGame(started);
+  const { game, gameState, handleInput, isReady, highScore, seed, restartWithSeed } = useFroggerGame(started, false, initialSeed);
 
   useKeyboardControls(game, isReady);
+
+  const handleInitializeRenderer = useCallback(
+    (renderer: any) => {
+      game?.initializeRenderer(renderer);
+    },
+    [game]
+  );
 
   useEffect(() => {
     if (params.seed && params.isDaily === "true" && !started) {
@@ -109,9 +116,6 @@ export default function FroggerScreen() {
         highScore={highScore}
         onStart={() => {
           hapticSelection();
-          if (initialSeed !== undefined) {
-            restartWithSeed(initialSeed);
-          }
           setStarted(true);
         }}
         playerName={playerName}
@@ -165,7 +169,7 @@ export default function FroggerScreen() {
           <CanvasRenderer
             world={game.getWorld()}
             gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+            onInitialize={handleInitializeRenderer}
           />
 
           {/* D-Pad Touch Controls */}

@@ -464,6 +464,10 @@ export interface BoundaryComponent extends Component {
     bounceX?: boolean;
     bounceY?: boolean;
     height: number;
+    maxX?: number;
+    maxY?: number;
+    minX?: number;
+    minY?: number;
     mode: "wrap" | "bounce" | "destroy";
     type: "Boundary";
     width: number;

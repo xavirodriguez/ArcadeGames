@@ -377,7 +377,16 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     const colorStr = flash.color;
     const opacity = flash.opacity;
 
+    const scale = phase === 3 ? 1.3 : phase === 2 ? 1.15 : 1.0;
+    const tick = world.tick;
+
     canvas.save();
+    if (phase === 3) {
+      const shakeX = Math.sin(tick * 0.8) * 3;
+      const shakeY = Math.cos(tick * 0.9) * 3;
+      canvas.translate(shakeX, shakeY);
+    }
+    canvas.scale(scale, scale);
 
     const tick = world.tick;
     const { vibX, vibY } = calculateBossVibrato(phase, tick);

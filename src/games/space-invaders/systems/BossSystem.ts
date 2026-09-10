@@ -74,9 +74,17 @@ export class BossSystem extends GameSystem {
       // Phase changes
       world.mutateComponent(entity, "Boss", b => {
           const hpPercent = b.hp / b.maxHp;
+          const oldPhase = b.phase;
           if (hpPercent < 0.33) b.phase = 3;
           else if (hpPercent < 0.66) b.phase = 2;
           else b.phase = 1;
+
+          if (oldPhase !== b.phase) {
+            const bus = world.getEventBus();
+            if (bus) {
+              bus.emitDeferred("boss:phase_changed" as any, { entity, phase: b.phase, oldPhase });
+            }
+          }
       });
 
       // Counter firing reactive to shield destruction

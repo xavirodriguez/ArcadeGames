@@ -2,7 +2,7 @@ import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderCo
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateShieldHpRatio } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBossPhase, calculateBossVibrato, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
@@ -24,7 +24,11 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    const flash = getRenderFlash(render, colors.green, 40);
+    const playerComp = world.getComponent(entity, "Player");
+    const role = playerComp?.role || "pioneer";
+    const { roleColor } = resolvePlayerRoleVisual(role);
+
+    const flash = getRenderFlash(render, roleColor, 40);
     const size = flash.size;
     const colorStr = flash.color;
     const opacity = flash.opacity;
@@ -42,8 +46,32 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     paint.reset();
     paint.setAntiAlias(true);
 
-    // 2. Flickering dual-stage thruster plume tail (at the bottom)
+    // Role-specific visual aura / range feedback
     const tick = world.tick;
+    if (role === "hunter") {
+      const auraRadius = size * 1.8 + Math.sin(tick * 0.15) * 4;
+      paint.setStyle(Skia!.PaintStyle.Stroke);
+      paint.setColor(Skia!.Color("rgba(255, 0, 110, 0.4)"));
+      paint.setStrokeWidth(1.5);
+      canvas.drawCircle(0, 0, auraRadius, paint);
+    } else if (role === "sentinel") {
+      paint.setStyle(Skia!.PaintStyle.Stroke);
+      paint.setColor(Skia!.Color("rgba(0, 217, 255, 0.5)"));
+      paint.setStrokeWidth(1);
+      canvas.drawLine(0, -size / 2, 0, -size * 3, paint);
+    } else if (role === "pioneer") {
+      paint.setStyle(Skia!.PaintStyle.Stroke);
+      paint.setColor(Skia!.Color("rgba(0, 255, 65, 0.35)"));
+      paint.setStrokeWidth(2);
+      canvas.drawCircle(0, 0, size * 0.85, paint);
+    } else if (role === "support") {
+      paint.setStyle(Skia!.PaintStyle.Stroke);
+      paint.setColor(Skia!.Color("rgba(255, 215, 0, 0.4)"));
+      paint.setStrokeWidth(1.5);
+      canvas.drawCircle(0, 0, size * 0.9, paint);
+    }
+
+    // 2. Flickering dual-stage thruster plume tail (at the bottom)
     const plumeLength = calculateThrusterPlumeLength(tick, size);
 
     // Outer plasma flame
@@ -190,7 +218,10 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     let baseColor = render.color || colors.white;
 
     const invaderComp = world.getComponent(entity, "Invader");
-    if (invaderComp) {
+    const enemyTag = world.getComponent(entity, "EnemyTag");
+    const isTeleporter = enemyTag?.variant === "teleporter" || render.color === "#00D9FF";
+
+    if (invaderComp && !isTeleporter && render.color !== "#00D9FF") {
       const row = invaderComp.row;
       if (row === 0) {
         baseColor = colors.magentaHot; // Hot Magenta
@@ -199,15 +230,19 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
       } else {
         baseColor = colors.gold; // Cyber Gold
       }
+    } else if (isTeleporter) {
+      baseColor = "#00D9FF";
     }
 
     const flash = getRenderFlash(render, baseColor, 15);
     const size = flash.size;
     const colorStr = flash.color;
-    const opacity = flash.opacity;
+
+    const tick = world.tick;
+    const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
+    const opacity = flash.opacity * shimmerAlpha;
 
     const s = size / 11;
-    const tick = world.tick;
     const animPhase = Math.floor(tick / 15) % 2 === 0;
 
     const paint = getPaint();
@@ -335,7 +370,7 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     const maxHp = health ? health.max : (boss ? boss.maxHp : 50);
     const hpRatio = calculateShieldHpRatio(currentHp, maxHp);
 
-    const { phase, baseColor, accentColor } = calculateBossPhase(hpRatio);
+    const { phase, baseColor, accentColor, scaleMultiplier } = calculateBossPhase(hpRatio);
 
     const flash = getRenderFlash(render, baseColor, 80);
     const size = flash.size;
@@ -352,6 +387,11 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
       canvas.translate(shakeX, shakeY);
     }
     canvas.scale(scale, scale);
+
+    const tick = world.tick;
+    const { vibX, vibY } = calculateBossVibrato(phase, tick);
+    canvas.translate(vibX, vibY);
+    canvas.scale(scaleMultiplier, scaleMultiplier);
 
     const s = size / 20;
 

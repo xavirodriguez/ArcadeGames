@@ -55,7 +55,7 @@ export interface AsteroidBlueprint extends BaseBlueprint {
 export interface InvaderBlueprint extends BaseBlueprint {
   readonly kind: 'invader';
   invader: {
-    readonly archetype: 'basic' | 'elite' | 'scout';
+    readonly archetype: 'basic' | 'elite' | 'scout' | 'teleporter';
     readonly fireRate: number;
     readonly formationRank?: number;
   };

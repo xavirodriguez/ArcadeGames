@@ -19,23 +19,26 @@ const INITIAL_FROGGER_STATE: FroggerState = {
  * Custom hook to manage the lifecycle of the Frogger game engine.
  */
 export function useFroggerGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {
-  const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
+  const [activeMutators, setActiveMutators] = useState<Mutator[] | null>(null);
 
   useEffect(() => {
-    MutatorService.isMutatorModeEnabled().then((enabled) => {
-      if (enabled) {
-        setActiveMutators(MutatorService.getActiveMutatorsForGame("frogger"));
-      }
-    });
+    async function loadOptions() {
+      const enabled = await MutatorService.isMutatorModeEnabled();
+      const loaded = enabled ? MutatorService.getActiveMutatorsForGame("frogger") : [];
+      setActiveMutators(loaded);
+    }
+    loadOptions();
   }, []);
 
-  const gameOptions = useMemo(() => ({ activeMutators }), [activeMutators]);
+  const memoizedGameOptions = useMemo(() => ({
+    activeMutators: activeMutators || [],
+  }), [activeMutators]);
 
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<FroggerGame, FroggerState, FroggerInput>(
-      started ? FroggerGame : null,
+      started && activeMutators !== null ? FroggerGame : null,
       isMultiplayer,
-      { gameOptions, initialState: INITIAL_FROGGER_STATE, seed }
+      { gameOptions: memoizedGameOptions, initialState: INITIAL_FROGGER_STATE, seed }
     );
 
   const { highScore, updateHighScore } = useHighScore("frogger-high-score");

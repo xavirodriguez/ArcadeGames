@@ -21,6 +21,7 @@ import {
   FroggerState,
   FroggerInput,
   FroggerComponentRegistry,
+  FroggerEventRegistry,
 } from "./types/FroggerTypes";
 import {
   FroggerConfigSchema,
@@ -39,7 +40,7 @@ export class FroggerGame extends BaseGame<
   FroggerState,
   FroggerInput,
   FroggerComponentRegistry,
-  any,
+  FroggerEventRegistry,
   FroggerBlueprintMap
 > {
   private gameStateSystem!: FroggerGameStateSystem;
@@ -117,6 +118,17 @@ export class FroggerGame extends BaseGame<
     // Presentation systems
     this.world.addSystem(new JuiceSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Presentation });
     this.world.addSystem(new ScreenShakeSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Presentation });
+
+    // Audio SFX event listeners
+    this.eventBus.on("frogger:jump", () => {
+      this.audio.playSFX("jump");
+    });
+    this.eventBus.on("frogger:died", () => {
+      this.audio.playSFX("drown");
+    });
+    this.eventBus.on("frogger:goal_reached", () => {
+      this.audio.playSFX("goal");
+    });
   }
 
   protected override async onInitializeEntities(): Promise<void> {
@@ -243,6 +255,8 @@ export class FroggerGame extends BaseGame<
   }
 
   public override setInputState(input: Partial<FroggerInput>): void {
+    super.setInputState(input);
+
     const froggerEntity = this.world.query("Frogger")[0];
     if (froggerEntity !== undefined) {
       if (!this.world.hasComponent(froggerEntity, "FroggerInput")) {
@@ -341,10 +355,10 @@ export class FroggerGame extends BaseGame<
 
   protected override async onPreloadAssets(): Promise<void> {
     const assets = [
-      { id: "jump", path: "/audio/jump.mp3" },
-      { id: "drown", path: "/audio/drown.mp3" },
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "goal", path: "/audio/goal.mp3" },
+      { id: "jump", path: "/audio/hit.mp3" },
+      { id: "drown", path: "/audio/game_over.mp3" },
+      { id: "hit", path: "/audio/explosion.mp3" },
+      { id: "goal", path: "/audio/score.mp3" },
       { id: "game_over", path: "/audio/game_over.mp3" },
     ];
     await loadAudioAssets(this.audio, assets);
@@ -393,10 +407,10 @@ export const FroggerDefinition: GameDefinition = {
   assets: {
     sprites: [],
     sounds: [
-      { id: "jump", path: "/audio/jump.mp3" },
-      { id: "drown", path: "/audio/drown.mp3" },
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "goal", path: "/audio/goal.mp3" },
+      { id: "jump", path: "/audio/hit.mp3" },
+      { id: "drown", path: "/audio/game_over.mp3" },
+      { id: "hit", path: "/audio/explosion.mp3" },
+      { id: "goal", path: "/audio/score.mp3" },
       { id: "game_over", path: "/audio/game_over.mp3" },
     ],
   },

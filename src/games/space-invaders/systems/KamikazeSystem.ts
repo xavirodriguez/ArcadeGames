@@ -96,16 +96,22 @@ export class KamikazeSystem extends GameSystem {
     const pos = world.getComponent(invader, "Transform");
 
     if (pos && !world.getComponent(invader, "Kamikaze")) {
+      const roll = world.gameplayRandom.next();
+      const variant = roll < 0.5 ? "standard" : roll < 0.8 ? "splitter" : "trail";
+      const color = variant === "standard" ? "#FF4444" : variant === "splitter" ? "#FF006E" : "#FF4444";
+      const speed = variant === "standard" ? 180 : variant === "splitter" ? 130 : 100;
+
       world.getCommandBuffer().addComponent(invader, {
         type: "Kamikaze",
+        variant,
         phase: "diving",
         originX: pos.x,
         originY: pos.y,
-        diveSpeed: 150,
+        diveSpeed: speed,
       } as KamikazeComponent);
 
       world.mutateComponent(invader, "Render", render => {
-          render.color = "#FF4444";
+          render.color = color;
       });
 
       world.mutateSingleton("GameState", gs => {

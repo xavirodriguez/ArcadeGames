@@ -11,7 +11,14 @@ const packr = new Packr({
     structuredClone: true
 });
 
-/** @public */
+/**  
+ * Server-side tracker of what state version/structure version was last sent to  
+ * each client session at each sequence number. Used by `NetworkDeltaSystem` to  
+ * decide whether a client's acked baseline is still valid for a delta, or  
+ * whether a full snapshot must be resent (e.g. after a structural change the  
+ * client never acked).  
+ * @public  
+ */  
 export class ReplicationStateTracker {
   private sessions = new Map<string, Map<number, { stateVersion: number; structureVersion: number }>>();
 
@@ -29,6 +36,11 @@ export class ReplicationStateTracker {
     sessionMap.set(sequence, { stateVersion, structureVersion });
   }
 
+    /**  
+   * @returns The recorded state/structure versions sent at `ack`, or `undefined`  
+   * if `ack <= 0` (no baseline yet) or nothing was recorded for that sequence  
+   * (e.g. already pruned).  
+   */  
   public getBaselineVersion(
     sessionId: string,
     ack: number
@@ -50,7 +62,13 @@ export class ReplicationStateTracker {
     }
   }
 }
-/** @public */
+/**  
+ * Server-side tracker of per-session input-sequence acknowledgement and  
+ * activity, independent of `ReplicationStateTracker` (that one tracks *what  
+ * was sent*; this one tracks *what the client confirmed receiving* and *when  
+ * it was last active*, used for idle/timeout detection).  
+ * @public  
+ */  
 export class ClientAckTracker {
   private sessions = new Map<string, { lastAck: number; currentSeq: number; lastActive: number }>();
 
@@ -62,7 +80,11 @@ export class ClientAckTracker {
     }
     return entry;
   }
-
+  /**  
+   * Records an ack for `sequence`. Out-of-order/duplicate acks (lower than the  
+   * current `lastAck`) are ignored — `lastAck` only ever increases.  
+   * `_tick` is currently unused; kept for call-site symmetry/future use.  
+   */  
   public recordAck(sessionId: string, sequence: number, _tick: number): void {
     const entry = this.getOrCreate(sessionId);
     if (sequence > entry.lastAck) {
@@ -90,13 +112,33 @@ export class ClientAckTracker {
     return Date.now() - entry.lastActive;
   }
 }
-/** @public */
+/**  
+ * Builds the actual `ServerUpdatePayload` sent to a client each tick: either a  
+ * filtered full snapshot or a filtered delta, depending on whether the  
+ * client's last acked baseline is still valid.  
+ *  
+ * @remarks  
+ * A full snapshot is forced when: the caller requests it (`forceFull`), there  
+ * is no baseline yet for this session, or the world's `structureVersion` has  
+ * changed since the baseline (structural changes — e.g. entities added/removed  
+ * in a way delta can't express — always require a full resync).  
+ * Both snapshot forms are filtered down to `interestIds` before sending, so  
+ * bandwidth scales with each client's interest set, not total world size (see  
+ * `InterestManagerSystem`/`NetworkBudgetManager` for how `interestIds` gets built).  
+ * @public  
+ */  
 export class NetworkDeltaSystem<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry
 > {
   constructor(private tracker: ReplicationStateTracker) {}
-
+  /**  
+   * @param sessionId - Target client session.  
+   * @param sequence - Outgoing sequence number for this payload (see `ClientAckTracker.nextSequence`).  
+   * @param baselineAck - Last sequence number the client acked; used to look up the delta baseline.  
+   * @param interestIds - Entities this client is currently allowed to see (post-budget-filter).  
+   * @param forceFull - Bypasses delta logic and always sends a full snapshot.  
+   */  
   public generateDelta(
     world: World<TComponents, TEvents>,
     sessionId: string,
@@ -223,10 +265,24 @@ function getItemDistance(item: unknown): number {
   return Infinity;
 }
 
-/** @public */
+/**  
+ * Selects which entities from a client's full interest list actually get  
+ * replicated this tick, enforcing `MAX_ENTITIES_PER_TICK` as a bandwidth cap.  
+ * See the `@remarks` on `MAX_ENTITIES_PER_TICK` for the prioritization policy  
+ * (self first, then near entities, then a rotating slice of far entities).  
+ * @public  
+ */  
 export class NetworkBudgetManager {
   private cursors = new Map<string, number>();
-
+  /**  
+   * @param sessionId - Used to persist the round-robin cursor for "far" entities  
+   * across calls, so different far entities get a turn over successive ticks  
+   * instead of always favoring the same ones.  
+   * @param interest - Full candidate list for this client this tick, each item  
+   * expected to (optionally) carry `entityId`/`distance`.  
+   * @param selfEntityId - The client's own entity, if any — always included first.  
+   * @returns At most `MAX_ENTITIES_PER_TICK` items, ordered self → near → far.  
+   */  
   public prioritize<T = unknown>(sessionId: string, interest: T[], selfEntityId?: string): T[] {
     if (!interest || interest.length === 0) {
       return [];
@@ -292,7 +348,14 @@ export class NetworkBudgetManager {
     return result.slice(0, MAX_ENTITIES_PER_TICK);
   }
 }
-/** @public */
+/**  
+ * Thin wrapper around `msgpackr` for binary (de)serialization of network  
+ * payloads — used instead of JSON to reduce payload size over the wire.  
+ * `useRecords: false` avoids msgpackr's schema-record optimization (simpler,  
+ * more portable wire format at some size cost); `structuredClone: true` allows  
+ * encoding richer JS structures (e.g. Map/Set) if payloads ever need them.  
+ * @public  
+ */  
 export class BinaryCompression {
     public static pack(packet: unknown): Uint8Array {
         return packr.pack(packet);
@@ -303,7 +366,25 @@ export class BinaryCompression {
     }
 }
 
-/** @public */
+/**  
+ * Server-side system that recomputes, once per tick, which entities are  
+ * "interesting" (visible/relevant) to each connected player session, keyed by  
+ * `sessionId`. Feeds `NetworkBudgetManager.prioritize()` and ultimately  
+ * `NetworkDeltaSystem.generateDelta()`'s `interestIds` parameter.  
+ *  
+ * @remarks  
+ * Interest here is purely Euclidean distance between each player's `Transform`  
+ * and every other entity's `Transform` — an O(players × entities) full  
+ * recompute every tick (see `.agents/devin_audit.md`'s "O(n^2) complexity"  
+ * category if this ever needs spatial partitioning instead). Player identity  
+ * is detected structurally by scanning for any component carrying a  
+ * `sessionId` field, rather than a fixed component name — this is a broad,  
+ * duck-typed check; confirm it's intentional before assuming a narrower  
+ * component-type check would be safe to substitute.  
+ * Registers/clears the `"DetailedInterestMap"` world resource on  
+ * register/dispose respectively, so nothing leaks past this system's lifetime.  
+ * @public  
+ */  
 export class InterestManagerSystem<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry

@@ -847,11 +847,6 @@ export class SpaceInvadersGame
     return this.getGameState().isGameOver;
   }
 
-  public override stop(): void {
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation stopping");
-    super.stop();
-  }
-
   protected override onStart(): void {
     if (__DEV__) console.log("[SpaceInvadersGame] Simulation started");
   }

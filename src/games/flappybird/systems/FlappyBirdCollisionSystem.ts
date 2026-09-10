@@ -41,6 +41,12 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
         const mutableRender = world.getMutableComponent(bird, "Render");
         if (mutableRender) {
           mutableRender.hitFlashFrames = 2;
+          mutableRender.dangerPulseIntensity = Math.max(0, Math.min(1.0, mutableBird ? mutableBird.coyoteTimer / this.config.COYOTE_TIME : 0));
+        }
+      } else {
+        const mutableRender = world.getMutableComponent(bird, "Render");
+        if (mutableRender && mutableRender.dangerPulseIntensity !== undefined && mutableRender.dangerPulseIntensity > 0) {
+          mutableRender.dangerPulseIntensity = 0;
         }
       }
     }
@@ -149,6 +155,22 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
              const particleCount = Math.max(3, Math.round(12 * closeness));
              const minSpeed = Math.round(40 + 40 * closeness);
              const maxSpeed = Math.round(80 + 80 * closeness);
+
+             world.mutateComponent(bird, "Bird", b => {
+               b.nearMissParticleCount = particleCount;
+               b.nearMissMinSpeed = minSpeed;
+               b.nearMissMaxSpeed = maxSpeed;
+             });
+
+             if (eventBus) {
+               eventBus.emitDeferred("flappy:near_miss_particles", {
+                 x: birdPos.x,
+                 y: birdPos.y,
+                 count: particleCount,
+                 minSpeed,
+                 maxSpeed,
+               });
+             }
 
              Juice.shake(world, 2, 100);
            }

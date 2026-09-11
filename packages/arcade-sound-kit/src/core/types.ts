@@ -51,6 +51,23 @@ export interface SoundRecipe {
   bitcrush?: number;
 }
 
+/** Fired by generateSet while generating each recipe. */
+export interface GenerateProgressEvent {
+  /** 1-based index of the recipe currently being processed / just finished. */
+  index: number;
+  total: number;
+  name: string;
+  category: Category;
+  /** 'start' before render, 'done' after the WAV is written. */
+  phase: 'start' | 'done';
+  /** Absolute path of the written file (only on phase 'done'). */
+  file?: string;
+  /** Elapsed milliseconds since generateSet began. */
+  elapsedMs: number;
+}
+
+export type GenerateProgressCallback = (event: GenerateProgressEvent) => void;
+
 export interface GenerateOptions {
   outDir?: string;
   sampleRate?: number;
@@ -63,6 +80,8 @@ export interface GenerateOptions {
   variants?: number;
   /** Write a manifest.json next to the sounds. */
   manifest?: boolean;
+  /** Optional progress callback (used by the CLI for live status). */
+  onProgress?: GenerateProgressCallback;
 }
 
 export interface ManifestEntry {

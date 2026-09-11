@@ -11,6 +11,7 @@ Design SFX as **recipes** (layers of primitives) instead of hand-editing wavefor
 - Automatic **manifest.json** (name, category, duration, loop flag, tags, file path)
 - Better CLI (`--pack`, `--variants`, `--arcade-color`, `--seed`)
 - Improved variation, pitch curves and critical/shield/boss recipes
+- **Live CLI progress** while generating (bar + current sound + elapsed time)
 
 ## Design goals
 
@@ -60,14 +61,52 @@ const shoot = defineSound('shoot', {
 await generateSet([shoot], { outDir: './sounds', seed: 7 });
 ```
 
+### Progress callback
+
+`generateSet` accepts an optional `onProgress` so you can show status in CLIs or UIs:
+
+```js
+await generateSet(arcadePack(), {
+  outDir: './sounds',
+  onProgress: ({ index, total, name, category, phase, file, elapsedMs }) => {
+    if (phase === 'done') {
+      console.log(`${index}/${total} ${category}/${name} (${elapsedMs}ms)`);
+    }
+  },
+});
+```
+
+| Field | Meaning |
+|-------|--------|
+| `index` / `total` | 1-based position in the batch |
+| `name` / `category` | Recipe being generated |
+| `phase` | `'start'` before render, `'done'` after WAV is written |
+| `file` | Absolute path (only on `'done'`) |
+| `elapsedMs` | Time since `generateSet` started |
+
 ## CLI
 
 ```bash
-# Generate the entire arcade pack
+# Generate the entire arcade pack (live progress bar in TTY)
 npx ask-generate generate --pack --out ./sounds --seed 42 --arcade-color
+
+# Quiet (no progress, only summary)
+npx ask-generate generate --pack --quiet
+
+# Verbose (one line per file with full path)
+npx ask-generate generate --pack --verbose
 
 # Generate from a custom recipe file
 npx ask-generate generate examples/arcade.js --out ./custom
+```
+
+Example TTY output:
+
+```text
+Generating full arcade pack (40 sounds)…
+[████████████░░░░░░░░░░░░]  50%  20/40  ✓ combat/explosion_large  (12.3s)
+Wrote 40 file(s) to ./sounds in 24.1s
+Manifest: sounds/manifest.json
 ```
 
 ## Recipe model

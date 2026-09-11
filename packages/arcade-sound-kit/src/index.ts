@@ -4,9 +4,13 @@ export * from './design/recipe';
 export * from './effects/primitives';
 export * from './design/pack';
 
-import fs from 'node:fs';
 import path from 'node:path';
-import { SoundRecipe, GenerateOptions, ManifestEntry } from './core/types';
+import {
+  SoundRecipe,
+  GenerateOptions,
+  ManifestEntry,
+  GenerateProgressEvent,
+} from './core/types';
 import { render } from './core/render';
 import { writeWav, writeManifest, recipeToManifestEntry } from './export/wav';
 import { RNG } from './core/random';
@@ -39,12 +43,35 @@ export async function generateSet(
   const outDir = options.outDir ?? './sounds';
   const sampleRate = options.sampleRate ?? 44100;
   const variants = Math.max(1, options.variants ?? 1);
+  const onProgress = options.onProgress;
   const files: string[] = [];
   const entries: ManifestEntry[] = [];
+  const total = recipes.length;
+  const startedAt = Date.now();
 
-  for (const r of recipes) {
+  const emit = (partial: Omit<GenerateProgressEvent, 'elapsedMs'>) => {
+    if (!onProgress) return;
+    onProgress({
+      ...partial,
+      elapsedMs: Date.now() - startedAt,
+    });
+  };
+
+  for (let i = 0; i < recipes.length; i++) {
+    const r = recipes[i];
+    const index = i + 1;
+
+    emit({
+      index,
+      total,
+      name: r.name,
+      category: r.category,
+      phase: 'start',
+    });
+
     const file = await generateSound(r, options);
     files.push(file);
+
     const rel = path.relative(outDir, file).replace(/\\/g, '/');
     // If variants > 1 the last file is _N; store the pattern without suffix for manifest.
     const baseRel =
@@ -52,6 +79,15 @@ export async function generateSet(
         ? path.join(r.category, `${r.name}.wav`).replace(/\\/g, '/')
         : rel;
     entries.push(recipeToManifestEntry(r, baseRel, variants));
+
+    emit({
+      index,
+      total,
+      name: r.name,
+      category: r.category,
+      phase: 'done',
+      file,
+    });
   }
 
   if (options.manifest !== false) {

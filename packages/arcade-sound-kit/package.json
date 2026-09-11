@@ -1,0 +1,42 @@
+{
+  "name": "@tiny-aster/arcade-sound-kit",
+  "version": "0.2.0",
+  "description": "Procedural sound-design toolkit for arcade games. Recipe-based SFX with layered primitives, variation, loops and offline WAV + manifest export.",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ask-generate": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "generate": "node dist/cli.js generate --pack",
+    "generate:example": "node dist/cli.js generate examples/arcade.js",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "game-audio",
+    "sound-design",
+    "procedural-audio",
+    "arcade",
+    "tonejs",
+    "sfx"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "tone": "^15.1.22",
+    "wavefile": "^11.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}

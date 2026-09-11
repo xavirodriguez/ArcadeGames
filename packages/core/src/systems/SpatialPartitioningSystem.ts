@@ -22,6 +22,12 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
 export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
   private readonly cellSize = 100;
 
+  /**
+   * Calculates spatial grid cell coordinates for entities with transform and spatial node components.
+   *
+   * @param world - The ECS world containing active entities.
+   * @param _deltaTime - Elapsed frame duration in seconds (unused).
+   */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     const entities = world.query("Transform", "SpatialNode");
     const len = entities.length;

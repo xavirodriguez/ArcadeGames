@@ -304,8 +304,10 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
       canvas: (r) => {
         /* eslint-disable @typescript-eslint/no-require-imports */
         const { drawArkanoidBall, drawArkanoidPaddle, drawArkanoidBrick, drawArkanoidBackground } = require("./rendering/ArkanoidCanvasVisuals");
+        r.registerShape("ball", drawArkanoidBall);
         r.registerShape("circle", drawArkanoidBall);
         r.registerShape("paddle", drawArkanoidPaddle);
+        r.registerShape("box", drawArkanoidPaddle);
         r.registerShape("brick", drawArkanoidBrick);
         r.registerBackgroundEffect("arkanoid_bg", drawArkanoidBackground);
 
@@ -315,8 +317,10 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
       skia: (r) => {
         /* eslint-disable @typescript-eslint/no-require-imports */
         const { drawSkiaArkanoidBall, drawSkiaArkanoidPaddle, drawSkiaArkanoidBrick, drawSkiaArkanoidBackground } = require("./rendering/ArkanoidSkiaVisuals");
+        r.registerShape("ball", drawSkiaArkanoidBall);
         r.registerShape("circle", drawSkiaArkanoidBall);
         r.registerShape("paddle", drawSkiaArkanoidPaddle);
+        r.registerShape("box", drawSkiaArkanoidPaddle);
         r.registerShape("brick", drawSkiaArkanoidBrick);
         r.registerBackgroundEffect("arkanoid_bg", drawSkiaArkanoidBackground);
 

@@ -48,6 +48,9 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
       const moveDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
+      const p1Left = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
+      const p1Right = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
+      const p1Launch = activeKeys.has("Space") || activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
 
       const fullPayload = {
         rotateLeft,
@@ -61,6 +64,9 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         hyperspace,
         flap,
         glide,
+        p1Left,
+        p1Right,
+        p1Launch,
       };
 
       let inputPayload: Partial<typeof fullPayload> = fullPayload;
@@ -69,15 +75,15 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         // Only include actions affected by the keys that changed
         const affectedActions = new Set<keyof typeof fullPayload>();
         const keyMap: Record<string, (keyof typeof fullPayload)[]> = {
-          ArrowLeft: ["rotateLeft", "moveLeft"],
-          KeyA: ["rotateLeft", "moveLeft"],
-          ArrowRight: ["rotateRight", "moveRight"],
-          KeyD: ["rotateRight", "moveRight"],
-          ArrowUp: ["thrust", "flap", "glide", "moveUp"],
-          KeyW: ["thrust", "flap", "glide", "moveUp"],
+          ArrowLeft: ["rotateLeft", "moveLeft", "p1Left"],
+          KeyA: ["rotateLeft", "moveLeft", "p1Left"],
+          ArrowRight: ["rotateRight", "moveRight", "p1Right"],
+          KeyD: ["rotateRight", "moveRight", "p1Right"],
+          ArrowUp: ["thrust", "flap", "glide", "moveUp", "p1Launch"],
+          KeyW: ["thrust", "flap", "glide", "moveUp", "p1Launch"],
           ArrowDown: ["moveDown"],
           KeyS: ["moveDown"],
-          Space: ["shoot", "flap", "glide"],
+          Space: ["shoot", "flap", "glide", "p1Launch"],
           ShiftLeft: ["hyperspace"],
           KeyH: ["hyperspace"],
         };
@@ -128,6 +134,9 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         hyperspace: false,
         flap: false,
         glide: false,
+        p1Left: false,
+        p1Right: false,
+        p1Launch: false,
       });
     };
   }, [game, isReady]);

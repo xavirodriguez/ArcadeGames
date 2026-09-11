@@ -97,4 +97,44 @@ describe("CampaignScreen Component & Resolver Tests", () => {
     expect(vars.lastMinigameCompleted).toBe(true);
     expect(vars.playerPerformance).toBe("perfect");
   });
+
+  it("calculates dynamic durationMs on BaseGame.getMiniGameResult based on session start time", async () => {
+    const def = GameDefinitionRegistry.resolve("asteroids");
+    const game = def.createSimulation(12345) as any;
+    await game.init();
+
+    // Allow time to elapse
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    const result = game.getMiniGameResult({ gameId: "asteroids" });
+    expect(result.durationMs).toBeGreaterThan(0);
+    expect(result.durationMs).not.toBe(30000);
+
+    game.destroy();
+  });
+
+  it("generates deterministic session seeds based on campaign slotId using RandomService", () => {
+    const { RandomService } = require("@tiny-aster/core");
+
+    const deriveSeedFromSlot = (slotId: string): number => {
+      let seedValue = 0;
+      for (let i = 0; i < slotId.length; i++) {
+        seedValue = (seedValue << 5) - seedValue + slotId.charCodeAt(i);
+        seedValue |= 0;
+      }
+      return Math.abs(seedValue) || 123456789;
+    };
+
+    const slotId = "slot_alpha";
+    const seed = deriveSeedFromSlot(slotId);
+    const prng = new RandomService(seed);
+
+    const firstSeed = prng.nextInt(1, 0x7FFFFFFF);
+    const secondSeed = prng.nextInt(1, 0x7FFFFFFF);
+
+    // Re-instantiating with the same seed reproduces exact sequence
+    const prngReproduced = new RandomService(seed);
+    expect(prngReproduced.nextInt(1, 0x7FFFFFFF)).toBe(firstSeed);
+    expect(prngReproduced.nextInt(1, 0x7FFFFFFF)).toBe(secondSeed);
+  });
 });

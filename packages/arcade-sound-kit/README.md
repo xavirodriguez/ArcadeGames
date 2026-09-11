@@ -3,15 +3,12 @@
 Procedural sound-design toolkit for arcade games.
 Design SFX as **recipes** (layers of primitives) instead of hand-editing waveforms.
 
-**v0.2.0** adds:
+**v0.2.1** adds:
 
-- Full polished `arcadePack()` covering combat, movement, progression and UI
-- First-class **loop** support (`loop: true` → longer buffer + soft edges for engine crossfades)
-- Optional **arcade colour** (soft saturation) and per-recipe **bitcrush**
-- Automatic **manifest.json** (name, category, duration, loop flag, tags, file path)
-- Better CLI (`--pack`, `--variants`, `--arcade-color`, `--seed`)
-- Improved variation, pitch curves and critical/shield/boss recipes
-- **Live CLI progress** while generating (bar + current sound + elapsed time)
+- Faster offline render (no global `Tone.setContext`, sync `render(false)`, no Limiter, dispose)
+- Default **22.05 kHz / PCM16** WAVs (much smaller assets; override with flags)
+- Prefer `node-web-audio-api` polyfill (Rust DSP) for `pnpm generate`
+- Live CLI progress (from 0.2.0) plus `--sample-rate` / `--bit-depth`
 
 ## Design goals
 
@@ -38,9 +35,10 @@ const {
   subBoom,
   generateSet,
   arcadePack,
+  DEFAULT_SAMPLE_RATE,
 } = require('@tiny-aster/arcade-sound-kit');
 
-// Full pack
+// Full pack (defaults: 22050 Hz, PCM16)
 await generateSet(arcadePack(), {
   outDir: './sounds',
   seed: 42,
@@ -48,27 +46,20 @@ await generateSet(arcadePack(), {
   manifest: true,
 });
 
-// Custom recipe
-const shoot = defineSound('shoot', {
-  category: 'combat',
-  duration: 0.14,
-  layers: layers(
-    tone({ wave: 'triangle', startHz: 1500, endHz: 500, level: -7, decay: 0.11 }),
-    noiseBurst({ level: -18, filter: [1800, 7000], decay: 0.035 })
-  ),
+// High-quality export if needed
+await generateSet(arcadePack(), {
+  outDir: './sounds-hq',
+  sampleRate: 44100,
+  bitDepth: 32,
 });
-
-await generateSet([shoot], { outDir: './sounds', seed: 7 });
 ```
 
 ### Progress callback
 
-`generateSet` accepts an optional `onProgress` so you can show status in CLIs or UIs:
-
 ```js
 await generateSet(arcadePack(), {
   outDir: './sounds',
-  onProgress: ({ index, total, name, category, phase, file, elapsedMs }) => {
+  onProgress: ({ index, total, name, category, phase, elapsedMs }) => {
     if (phase === 'done') {
       console.log(`${index}/${total} ${category}/${name} (${elapsedMs}ms)`);
     }
@@ -76,38 +67,35 @@ await generateSet(arcadePack(), {
 });
 ```
 
-| Field | Meaning |
-|-------|--------|
-| `index` / `total` | 1-based position in the batch |
-| `name` / `category` | Recipe being generated |
-| `phase` | `'start'` before render, `'done'` after WAV is written |
-| `file` | Absolute path (only on `'done'`) |
-| `elapsedMs` | Time since `generateSet` started |
-
 ## CLI
 
 ```bash
-# Generate the entire arcade pack (live progress bar in TTY)
+# Default: 22050 Hz PCM16 + live progress
 npx ask-generate generate --pack --out ./sounds --seed 42 --arcade-color
 
-# Quiet (no progress, only summary)
+# CD-quality float WAV
+npx ask-generate generate --pack --sample-rate 44100 --bit-depth 32
+
+# Quiet / verbose
 npx ask-generate generate --pack --quiet
-
-# Verbose (one line per file with full path)
 npx ask-generate generate --pack --verbose
-
-# Generate from a custom recipe file
-npx ask-generate generate examples/arcade.js --out ./custom
 ```
 
-Example TTY output:
+From the package scripts (uses **node-web-audio-api** Rust polyfill by default):
 
-```text
-Generating full arcade pack (40 sounds)…
-[████████████░░░░░░░░░░░░]  50%  20/40  ✓ combat/explosion_large  (12.3s)
-Wrote 40 file(s) to ./sounds in 24.1s
-Manifest: sounds/manifest.json
+```bash
+pnpm --filter @tiny-aster/arcade-sound-kit generate
+# Fallback pure-JS polyfill:
+pnpm --filter @tiny-aster/arcade-sound-kit generate:js-polyfill
 ```
+
+## Output format
+
+| Setting | Default | Notes |
+|---------|---------|--------|
+| `sampleRate` | `22050` | Enough bandwidth for arcade SFX; ~2× fewer samples than 44.1 kHz |
+| `bitDepth` | `16` | Signed PCM WAV; ~half the size of float32 |
+| Manifest | `manifest.json` | Includes `sampleRate`, `bitDepth`, per-sound paths |
 
 ## Recipe model
 
@@ -133,17 +121,18 @@ SoundRecipe
 ## Architecture
 
 ```text
-recipes → primitives → renderer → (saturation / bitcrush) → WAV + manifest
-                    ↘ variation (seeded RNG)
+recipes → primitives → OfflineContext (per sound, no global setContext)
+                      → render(false) → PCM16 WAV + manifest
 ```
 
 The renderer stays isolated so a future runtime player can consume the same semantic recipes.
 
-## Integration notes (Tiny Aster / ArcadeGames)
+## Performance notes
 
-- Generated WAVs + `manifest.json` are ready to be loaded by `@tiny-aster/core` `WebAudioPlayer` / `AssetLoader`.
-- Loop recipes are tagged `loop: true` in the manifest so the audio system can start them as looping sources.
-- Prefer `seed` + `variants` when you want a small pool of slightly different samples per event (reduces fatigue without runtime synthesis).
+- Each recipe uses its own `Tone.OfflineContext` with `{ context }` on every node — **no** `Tone.setContext`.
+- `ctx.render(false)` avoids async clock yields in Node CLI.
+- Peak normalization happens in `writeWav`, not via `Tone.Limiter`.
+- Prefer `node-web-audio-api` polyfill for generation speed on Node.
 
 ## License
 

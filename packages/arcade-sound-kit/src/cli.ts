@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
-import { arcadePack, generateSet, GenerateProgressEvent } from './index';
+import {
+  arcadePack,
+  generateSet,
+  GenerateProgressEvent,
+  DEFAULT_SAMPLE_RATE,
+} from './index';
 
 function formatMs(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -38,20 +43,23 @@ async function main() {
 
   if (cmd !== 'generate') {
     console.log(`Usage:
-  ask-generate generate --pack [--out ./sounds] [--seed 42] [--variants 1] [--arcade-color] [--quiet] [--verbose]
-  ask-generate generate <recipe-file.js> [--out ./sounds] [--seed 42] [--quiet] [--verbose]
+  ask-generate generate --pack [options]
+  ask-generate generate <recipe-file.js> [options]
 
 Flags:
-  --pack           Generate the full arcadePack()
-  --out <dir>      Output directory (default: ./sounds)
-  --seed <n>       Deterministic seed (default: 42)
-  --variants <n>   Number of variants per recipe (default: 1)
-  --arcade-color   Apply soft saturation for arcade colour
-  --quiet          Suppress progress (only final summary)
-  --verbose        Print full path of each written file
+  --pack              Generate the full arcadePack()
+  --out <dir>         Output directory (default: ./sounds)
+  --seed <n>          Deterministic seed (default: 42)
+  --variants <n>      Number of variants per recipe (default: 1)
+  --sample-rate <n>   Offline sample rate (default: ${DEFAULT_SAMPLE_RATE})
+  --bit-depth <16|32> WAV bit depth (default: 16 PCM)
+  --arcade-color      Apply soft saturation for arcade colour
+  --quiet             Suppress progress (only final summary)
+  --verbose           Print full path of each written file
 
 Examples:
   ask-generate generate --pack
+  ask-generate generate --pack --sample-rate 44100 --bit-depth 32
   ask-generate generate --pack --out ./sounds --arcade-color
   ask-generate generate examples/arcade.js --out ./custom-sounds
 `);
@@ -61,18 +69,31 @@ Examples:
   const outIdx = args.indexOf('--out');
   const seedIdx = args.indexOf('--seed');
   const variantsIdx = args.indexOf('--variants');
+  const sampleRateIdx = args.indexOf('--sample-rate');
+  const bitDepthIdx = args.indexOf('--bit-depth');
   const outDir = outIdx >= 0 ? args[outIdx + 1] : './sounds';
   const seed = seedIdx >= 0 ? Number(args[seedIdx + 1]) : 42;
   const variants = variantsIdx >= 0 ? Number(args[variantsIdx + 1]) : 1;
+  const sampleRate =
+    sampleRateIdx >= 0 ? Number(args[sampleRateIdx + 1]) : DEFAULT_SAMPLE_RATE;
+  const bitDepthRaw = bitDepthIdx >= 0 ? Number(args[bitDepthIdx + 1]) : 16;
+  const bitDepth: 16 | 32 = bitDepthRaw === 32 ? 32 : 16;
   const arcadeColor = args.includes('--arcade-color');
   const quiet = args.includes('--quiet');
   const verbose = args.includes('--verbose');
+
+  if (!Number.isFinite(sampleRate) || sampleRate < 8000) {
+    console.error('Invalid --sample-rate (expected number >= 8000)');
+    process.exit(1);
+  }
 
   let recipes;
   if (args.includes('--pack')) {
     recipes = arcadePack();
     if (!quiet) {
-      console.log(`Generating full arcade pack (${recipes.length} sounds)…`);
+      console.log(
+        `Generating full arcade pack (${recipes.length} sounds) @ ${sampleRate} Hz PCM${bitDepth}…`
+      );
     }
   } else {
     const file = args[1];
@@ -87,7 +108,9 @@ Examples:
       process.exit(1);
     }
     if (!quiet) {
-      console.log(`Generating ${recipes.length} sound(s) from ${file}…`);
+      console.log(
+        `Generating ${recipes.length} sound(s) from ${file} @ ${sampleRate} Hz PCM${bitDepth}…`
+      );
     }
   }
 
@@ -99,12 +122,10 @@ Examples:
     : (ev: GenerateProgressEvent) => {
         const line = renderProgressLine(ev, verbose);
         if (isTTY && !verbose) {
-          // Overwrite the same line for a live progress bar.
           const pad = Math.max(0, lastLineLen - line.length);
           process.stdout.write('\r' + line + ' '.repeat(pad));
           lastLineLen = line.length;
         } else if (ev.phase === 'done') {
-          // Non-TTY or verbose: one line per completed sound.
           if (isTTY && lastLineLen > 0) {
             process.stdout.write('\r' + ' '.repeat(lastLineLen) + '\r');
             lastLineLen = 0;
@@ -118,6 +139,8 @@ Examples:
     outDir,
     seed,
     variants,
+    sampleRate,
+    bitDepth,
     arcadeColor,
     manifest: true,
     onProgress,
@@ -128,7 +151,9 @@ Examples:
     process.stdout.write('\n');
   }
 
-  console.log(`Wrote ${files.length} file(s) to ${outDir} in ${formatMs(elapsed)}`);
+  console.log(
+    `Wrote ${files.length} file(s) to ${outDir} in ${formatMs(elapsed)} (${sampleRate} Hz, PCM${bitDepth})`
+  );
   console.log(`Manifest: ${path.join(outDir, 'manifest.json')}`);
 }
 

@@ -3,6 +3,7 @@ export * from './core/random';
 export * from './design/recipe';
 export * from './effects/primitives';
 export * from './design/pack';
+export { DEFAULT_SAMPLE_RATE } from './core/render';
 
 import path from 'node:path';
 import {
@@ -11,7 +12,7 @@ import {
   ManifestEntry,
   GenerateProgressEvent,
 } from './core/types';
-import { render } from './core/render';
+import { render, DEFAULT_SAMPLE_RATE } from './core/render';
 import { writeWav, writeManifest, recipeToManifestEntry } from './export/wav';
 import { RNG } from './core/random';
 
@@ -20,7 +21,8 @@ export async function generateSound(
   options: GenerateOptions = {}
 ): Promise<string> {
   const out = options.outDir ?? './sounds';
-  const sampleRate = options.sampleRate ?? 44100;
+  const sampleRate = options.sampleRate ?? DEFAULT_SAMPLE_RATE;
+  const bitDepth = options.bitDepth ?? 16;
   const variants = Math.max(1, options.variants ?? 1);
   const baseSeed = options.seed ?? 42;
 
@@ -30,7 +32,7 @@ export async function generateSound(
     const samples = await render(recipe, options, rng);
     const suffix = variants > 1 ? `_${v + 1}` : '';
     const file = path.join(out, recipe.category, `${recipe.name}${suffix}.wav`);
-    writeWav(samples, file, sampleRate, options.peakDb ?? -1);
+    writeWav(samples, file, sampleRate, options.peakDb ?? -1, bitDepth);
     lastFile = file;
   }
   return lastFile;
@@ -41,7 +43,8 @@ export async function generateSet(
   options: GenerateOptions = {}
 ): Promise<string[]> {
   const outDir = options.outDir ?? './sounds';
-  const sampleRate = options.sampleRate ?? 44100;
+  const sampleRate = options.sampleRate ?? DEFAULT_SAMPLE_RATE;
+  const bitDepth = options.bitDepth ?? 16;
   const variants = Math.max(1, options.variants ?? 1);
   const onProgress = options.onProgress;
   const files: string[] = [];
@@ -91,7 +94,7 @@ export async function generateSet(
   }
 
   if (options.manifest !== false) {
-    writeManifest(outDir, sampleRate, entries);
+    writeManifest(outDir, sampleRate, entries, bitDepth);
   }
 
   return files;

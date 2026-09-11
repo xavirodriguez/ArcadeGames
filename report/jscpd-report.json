@@ -1519,18 +1519,18 @@
     },
     {
       "firstFile": {
-        "end": 390,
+        "end": 402,
         "endLoc": {
           "column": 26,
-          "line": 390,
-          "position": 15730
+          "line": 402,
+          "position": 16644
         },
         "name": "asteroids/AsteroidsGame.ts",
-        "start": 378,
+        "start": 390,
         "startLoc": {
           "column": 31,
-          "line": 378,
-          "position": 15387
+          "line": 390,
+          "position": 16301
         }
       },
       "format": "typescript",
@@ -1556,18 +1556,18 @@
     },
     {
       "firstFile": {
-        "end": 113,
+        "end": 125,
         "endLoc": {
           "column": 115,
-          "line": 113,
-          "position": 4176
+          "line": 125,
+          "position": 4804
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 108,
+        "start": 120,
         "startLoc": {
           "column": 45,
-          "line": 108,
-          "position": 4012
+          "line": 120,
+          "position": 4640
         }
       },
       "format": "typescript",
@@ -3521,14 +3521,14 @@
         "endLoc": {
           "column": 79,
           "line": 78,
-          "position": 4844
+          "position": 4895
         },
         "name": "flappybird/FlappyBirdGame.ts",
         "start": 70,
         "startLoc": {
           "column": 47,
           "line": 70,
-          "position": 4378
+          "position": 4429
         }
       },
       "format": "typescript",
@@ -3558,14 +3558,14 @@
         "endLoc": {
           "column": 29,
           "line": 81,
-          "position": 4902
+          "position": 4953
         },
         "name": "flappybird/FlappyBirdGame.ts",
         "start": 74,
         "startLoc": {
           "column": 47,
           "line": 74,
-          "position": 4496
+          "position": 4547
         }
       },
       "format": "typescript",
@@ -3591,18 +3591,18 @@
     },
     {
       "firstFile": {
-        "end": 405,
+        "end": 411,
         "endLoc": {
           "column": 9,
-          "line": 405,
-          "position": 18473
+          "line": 411,
+          "position": 18833
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 396,
+        "start": 402,
         "startLoc": {
           "column": 118,
-          "line": 396,
-          "position": 18252
+          "line": 402,
+          "position": 18612
         }
       },
       "format": "typescript",
@@ -3628,18 +3628,18 @@
     },
     {
       "firstFile": {
-        "end": 416,
+        "end": 422,
         "endLoc": {
           "column": 79,
-          "line": 416,
-          "position": 19075
+          "line": 422,
+          "position": 19435
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 404,
+        "start": 410,
         "startLoc": {
           "column": 4,
-          "line": 404,
-          "position": 18433
+          "line": 410,
+          "position": 18793
         }
       },
       "format": "typescript",
@@ -3665,18 +3665,18 @@
     },
     {
       "firstFile": {
-        "end": 419,
+        "end": 425,
         "endLoc": {
           "column": 14,
-          "line": 419,
-          "position": 19112
+          "line": 425,
+          "position": 19472
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 405,
+        "start": 411,
         "startLoc": {
           "column": 4,
-          "line": 405,
-          "position": 18468
+          "line": 411,
+          "position": 18828
         }
       },
       "format": "typescript",
@@ -3702,18 +3702,18 @@
     },
     {
       "firstFile": {
-        "end": 436,
+        "end": 442,
         "endLoc": {
           "column": 8,
-          "line": 436,
-          "position": 19685
+          "line": 442,
+          "position": 20045
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 422,
+        "start": 428,
         "startLoc": {
           "column": 78,
-          "line": 422,
-          "position": 19347
+          "line": 428,
+          "position": 19707
         }
       },
       "format": "typescript",
@@ -3739,48 +3739,11 @@
     },
     {
       "firstFile": {
-        "end": 45,
-        "endLoc": {
-          "column": 27,
-          "line": 45,
-          "position": 1243
-        },
-        "name": "flappybird/rendering/FlappyBirdBackgroundData.ts",
-        "start": 39,
-        "startLoc": {
-          "column": 48,
-          "line": 39,
-          "position": 1029
-        }
-      },
-      "format": "typescript",
-      "fragment": "  const megaIndex = Math.floor(tick / cycle) % 4;\n\n  if (megaProgress < 0.6) {\n    const megaX = width - (megaProgress / 0.6) * (width + 250);\n    const megaY = height * 0.35;\n    const beaconAlpha = 0.2 + 0.3 * Math.sin(tick * 0.05);\n    return { visible: true, megaIndex, megaX, megaY, beaconAlpha };",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 90,
-        "endLoc": {
-          "column": 27,
-          "line": 90,
-          "position": 2626
-        },
-        "name": "shared/rendering/geometry.ts",
-        "start": 85,
-        "startLoc": {
-          "column": 45,
-          "line": 85,
-          "position": 2413
-        }
-      },
-      "tokens": 54
-    },
-    {
-      "firstFile": {
-        "end": 17,
+        "end": 18,
         "endLoc": {
           "column": 98,
-          "line": 17,
-          "position": 678
+          "line": 18,
+          "position": 704
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 1,
@@ -3791,15 +3754,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "import { ShapeDrawer, EffectDrawer, TransformComponent } from \"@tiny-aster/core\";\nimport { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield,\n  calculateSquashAndStretch,\n  calculateFlappyPipeGeometry\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";\nimport { resolveHitFlash, resolveInvulnerabilityPulse } from \"../../shared/rendering/RenderUtils\";",
+      "fragment": "import { ShapeDrawer, EffectDrawer, TransformComponent } from \"@tiny-aster/core\";\nimport { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield,\n  calculateSquashAndStretch,\n  calculateBirdTiltAngle,\n  calculateFlappyPipeGeometry\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";\nimport { resolveHitFlash, resolveInvulnerabilityPulse } from \"../../shared/rendering/RenderUtils\";",
       "isNew": false,
-      "lines": 17,
+      "lines": 18,
       "secondFile": {
-        "end": 17,
+        "end": 18,
         "endLoc": {
           "column": 98,
-          "line": 17,
-          "position": 678
+          "line": 18,
+          "position": 704
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 1,
@@ -3809,22 +3772,22 @@
           "position": 0
         }
       },
-      "tokens": 64
+      "tokens": 66
     },
     {
       "firstFile": {
-        "end": 126,
+        "end": 127,
         "endLoc": {
           "column": 1,
-          "line": 126,
-          "position": 3764
+          "line": 127,
+          "position": 3790
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 39,
+        "start": 40,
         "startLoc": {
           "column": 0,
-          "line": 39,
-          "position": 1698
+          "line": 40,
+          "position": 1724
         }
       },
       "format": "typescript",
@@ -3832,36 +3795,36 @@
       "isNew": false,
       "lines": 88,
       "secondFile": {
-        "end": 130,
+        "end": 131,
         "endLoc": {
           "column": 1,
-          "line": 130,
-          "position": 3525
+          "line": 131,
+          "position": 3551
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 45,
+        "start": 46,
         "startLoc": {
           "column": 0,
-          "line": 45,
-          "position": 1801
+          "line": 46,
+          "position": 1827
         }
       },
       "tokens": 438
     },
     {
       "firstFile": {
-        "end": 96,
+        "end": 97,
         "endLoc": {
           "column": 8,
-          "line": 96,
-          "position": 2948
+          "line": 97,
+          "position": 2974
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 87,
+        "start": 88,
         "startLoc": {
           "column": 19,
-          "line": 87,
-          "position": 2779
+          "line": 88,
+          "position": 2805
         }
       },
       "format": "typescript",
@@ -3887,18 +3850,18 @@
     },
     {
       "firstFile": {
-        "end": 116,
+        "end": 117,
         "endLoc": {
           "column": 8,
-          "line": 116,
-          "position": 3545
+          "line": 117,
+          "position": 3571
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 105,
+        "start": 106,
         "startLoc": {
           "column": 2,
-          "line": 105,
-          "position": 3116
+          "line": 106,
+          "position": 3142
         }
       },
       "format": "typescript",
@@ -3924,18 +3887,18 @@
     },
     {
       "firstFile": {
-        "end": 116,
+        "end": 117,
         "endLoc": {
           "column": 8,
-          "line": 116,
-          "position": 3545
+          "line": 117,
+          "position": 3571
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 107,
+        "start": 108,
         "startLoc": {
           "column": 27,
-          "line": 107,
-          "position": 3367
+          "line": 108,
+          "position": 3393
         }
       },
       "format": "typescript",
@@ -3961,18 +3924,18 @@
     },
     {
       "firstFile": {
-        "end": 214,
+        "end": 215,
         "endLoc": {
           "column": 56,
-          "line": 214,
-          "position": 6584
+          "line": 215,
+          "position": 6610
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 205,
+        "start": 206,
         "startLoc": {
           "column": 4,
-          "line": 205,
-          "position": 6056
+          "line": 206,
+          "position": 6082
         }
       },
       "format": "typescript",
@@ -3980,36 +3943,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 248,
+        "end": 249,
         "endLoc": {
           "column": 56,
-          "line": 248,
-          "position": 7457
+          "line": 249,
+          "position": 7483
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 240,
+        "start": 241,
         "startLoc": {
           "column": 4,
-          "line": 240,
-          "position": 7104
+          "line": 241,
+          "position": 7130
         }
       },
       "tokens": 76
     },
     {
       "firstFile": {
-        "end": 233,
+        "end": 234,
         "endLoc": {
           "column": 11,
-          "line": 233,
-          "position": 7178
+          "line": 234,
+          "position": 7204
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 214,
+        "start": 215,
         "startLoc": {
           "column": 55,
-          "line": 214,
-          "position": 6583
+          "line": 215,
+          "position": 6609
         }
       },
       "format": "typescript",
@@ -4017,73 +3980,73 @@
       "isNew": false,
       "lines": 20,
       "secondFile": {
-        "end": 270,
+        "end": 271,
         "endLoc": {
           "column": 11,
-          "line": 270,
-          "position": 8322
+          "line": 271,
+          "position": 8348
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 251,
+        "start": 252,
         "startLoc": {
           "column": 45,
-          "line": 251,
-          "position": 7727
+          "line": 252,
+          "position": 7753
         }
       },
       "tokens": 99
     },
     {
       "firstFile": {
-        "end": 243,
+        "end": 246,
         "endLoc": {
           "column": 36,
-          "line": 243,
-          "position": 7779
+          "line": 246,
+          "position": 7947
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 234,
+        "start": 235,
         "startLoc": {
           "column": 52,
-          "line": 234,
-          "position": 7274
+          "line": 235,
+          "position": 7300
         }
       },
       "format": "typescript",
-      "fragment": "      const y = transformPos.worldY ?? transformPos.y;\n      const nmSparkCount = world.renderRandom.nextInt(5, 9);\n      for (let i = 0; i < nmSparkCount; i++) {\n        const angleVal = world.renderRandom.next() * Math.PI * 2;\n        const speedVal = world.renderRandom.nextRange(60, 120);\n        const pVx = Math.cos(angleVal) * speedVal;\n        const pVy = Math.sin(angleVal) * speedVal;\n        const lifeVal = world.renderRandom.nextRange(0.25, 0.45);\n        const sizeVal = world.renderRandom.nextRange(2, 4);\n        spawnVisualParticle(\"spark\", x, y, pVx, pVy, lifeVal, sizeVal, \"#00F3FF\", angleVal);",
+      "fragment": "      const y = transformPos.worldY ?? transformPos.y;\n      const nmSparkCount = birdComp.nearMissParticleCount ?? world.renderRandom.nextInt(5, 9);\n      const minS = birdComp.nearMissMinSpeed ?? 60;\n      const maxS = birdComp.nearMissMaxSpeed ?? 120;\n      for (let i = 0; i < nmSparkCount; i++) {\n        const angleVal = world.renderRandom.next() * Math.PI * 2;\n        const speedVal = world.renderRandom.nextRange(minS, maxS);\n        const pVx = Math.cos(angleVal) * speedVal;\n        const pVy = Math.sin(angleVal) * speedVal;\n        const lifeVal = world.renderRandom.nextRange(0.25, 0.45);\n        const sizeVal = world.renderRandom.nextRange(2, 4);\n        spawnVisualParticle(\"spark\", x, y, pVx, pVy, lifeVal, sizeVal, \"#00F3FF\", angleVal);",
       "isNew": false,
-      "lines": 10,
+      "lines": 12,
       "secondFile": {
-        "end": 280,
+        "end": 283,
         "endLoc": {
           "column": 36,
-          "line": 280,
-          "position": 8935
+          "line": 283,
+          "position": 9103
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 271,
+        "start": 272,
         "startLoc": {
           "column": 58,
-          "line": 271,
-          "position": 8430
+          "line": 272,
+          "position": 8456
         }
       },
-      "tokens": 118
+      "tokens": 140
     },
     {
       "firstFile": {
-        "end": 251,
+        "end": 254,
         "endLoc": {
           "column": 11,
-          "line": 251,
-          "position": 8113
+          "line": 254,
+          "position": 8281
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 243,
+        "start": 246,
         "startLoc": {
           "column": 41,
-          "line": 243,
-          "position": 7784
+          "line": 246,
+          "position": 7952
         }
       },
       "format": "typescript",
@@ -4091,36 +4054,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 289,
+        "end": 292,
         "endLoc": {
           "column": 11,
-          "line": 289,
-          "position": 9450
+          "line": 292,
+          "position": 9618
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 280,
+        "start": 283,
         "startLoc": {
           "column": 43,
-          "line": 280,
-          "position": 8942
+          "line": 283,
+          "position": 9110
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 271,
+        "end": 274,
         "endLoc": {
           "column": 11,
-          "line": 271,
-          "position": 9286
+          "line": 274,
+          "position": 9454
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 255,
+        "start": 258,
         "startLoc": {
           "column": 6,
-          "line": 255,
-          "position": 8485
+          "line": 258,
+          "position": 8653
         }
       },
       "format": "typescript",
@@ -4128,36 +4091,36 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 306,
+        "end": 309,
         "endLoc": {
           "column": 11,
-          "line": 306,
-          "position": 10425
+          "line": 309,
+          "position": 10593
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 289,
+        "start": 292,
         "startLoc": {
           "column": 6,
-          "line": 289,
-          "position": 9445
+          "line": 292,
+          "position": 9613
         }
       },
       "tokens": 179
     },
     {
       "firstFile": {
-        "end": 306,
+        "end": 309,
         "endLoc": {
           "column": 5,
-          "line": 306,
-          "position": 11243
+          "line": 309,
+          "position": 11411
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 275,
+        "start": 278,
         "startLoc": {
           "column": 6,
-          "line": 275,
-          "position": 9658
+          "line": 278,
+          "position": 9826
         }
       },
       "format": "typescript",
@@ -4165,73 +4128,73 @@
       "isNew": false,
       "lines": 32,
       "secondFile": {
-        "end": 337,
+        "end": 340,
         "endLoc": {
           "column": 5,
-          "line": 337,
-          "position": 12005
+          "line": 340,
+          "position": 12173
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 306,
+        "start": 309,
         "startLoc": {
           "column": 6,
-          "line": 306,
-          "position": 10420
+          "line": 309,
+          "position": 10588
         }
       },
       "tokens": 360
     },
     {
       "firstFile": {
-        "end": 486,
+        "end": 508,
         "endLoc": {
           "column": 9,
-          "line": 486,
-          "position": 17629
+          "line": 508,
+          "position": 18551
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 467,
+        "start": 488,
         "startLoc": {
           "column": 4,
-          "line": 467,
-          "position": 17074
+          "line": 488,
+          "position": 17935
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    const pos = world.getComponent(entity, \"Transform\");\n    if (!render || !pos) return;\n\n    const { size = 60 } = render;\n    const width = size;\n    const halfWidth = width / 2;\n\n    const pipe = world.getComponent(entity, \"Pipe\");\n    if (!pipe) return;\n\n    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(\n      pos.y,\n      pipe.gapY,\n      pipe.gapSize,\n      FLAPPY_CONFIG.SCREEN_HEIGHT\n    );\n\n    // --- METALLIC PILLAR BODY (#2A2A35) ---\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}`, () => {",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    const pos = world.getComponent(entity, \"Transform\");\n    if (!render || !pos) return;\n\n    const { size = 60 } = render;\n    const width = size;\n    const halfWidth = width / 2;\n\n    const pipe = world.getComponent(entity, \"Pipe\");\n    if (!pipe) return;\n    const variant = pipe.visualVariant || \"standard\";\n\n    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(\n      pos.y,\n      pipe.gapY,\n      pipe.gapSize,\n      FLAPPY_CONFIG.SCREEN_HEIGHT\n    );\n\n    // --- METALLIC PILLAR BODY VARIANT GRADIENT ---\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {",
       "isNew": false,
-      "lines": 20,
+      "lines": 21,
       "secondFile": {
-        "end": 468,
+        "end": 491,
         "endLoc": {
           "column": 9,
-          "line": 468,
-          "position": 16691
+          "line": 491,
+          "position": 17652
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 450,
+        "start": 472,
         "startLoc": {
           "column": 4,
-          "line": 450,
-          "position": 16182
+          "line": 472,
+          "position": 17089
         }
       },
-      "tokens": 107
+      "tokens": 116
     },
     {
       "firstFile": {
-        "end": 772,
+        "end": 888,
         "endLoc": {
           "column": 11,
-          "line": 772,
-          "position": 27851
+          "line": 888,
+          "position": 32339
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 765,
+        "start": 881,
         "startLoc": {
           "column": 36,
-          "line": 765,
-          "position": 27521
+          "line": 881,
+          "position": 32009
         }
       },
       "format": "typescript",
@@ -4239,36 +4202,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 728,
+        "end": 852,
         "endLoc": {
           "column": 11,
-          "line": 728,
-          "position": 26348
+          "line": 852,
+          "position": 31425
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 721,
+        "start": 845,
         "startLoc": {
           "column": 61,
-          "line": 721,
-          "position": 26018
+          "line": 845,
+          "position": 31095
         }
       },
       "tokens": 78
     },
     {
       "firstFile": {
-        "end": 806,
+        "end": 922,
         "endLoc": {
           "column": 5,
-          "line": 806,
-          "position": 29372
+          "line": 922,
+          "position": 33860
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 784,
+        "start": 900,
         "startLoc": {
           "column": 4,
-          "line": 784,
-          "position": 28310
+          "line": 900,
+          "position": 32798
         }
       },
       "format": "typescript",
@@ -4276,36 +4239,36 @@
       "isNew": false,
       "lines": 23,
       "secondFile": {
-        "end": 768,
+        "end": 892,
         "endLoc": {
           "column": 5,
-          "line": 768,
-          "position": 28025
+          "line": 892,
+          "position": 33102
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 746,
+        "start": 870,
         "startLoc": {
           "column": 4,
-          "line": 746,
-          "position": 26963
+          "line": 870,
+          "position": 32040
         }
       },
       "tokens": 217
     },
     {
       "firstFile": {
-        "end": 848,
+        "end": 964,
         "endLoc": {
           "column": 64,
-          "line": 848,
-          "position": 31043
+          "line": 964,
+          "position": 35531
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 837,
+        "start": 953,
         "startLoc": {
           "column": 4,
-          "line": 837,
-          "position": 30459
+          "line": 953,
+          "position": 34947
         }
       },
       "format": "typescript",
@@ -4313,36 +4276,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 807,
+        "end": 931,
         "endLoc": {
           "column": 64,
-          "line": 807,
-          "position": 29642
+          "line": 931,
+          "position": 34719
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 796,
+        "start": 920,
         "startLoc": {
           "column": 4,
-          "line": 796,
-          "position": 29058
+          "line": 920,
+          "position": 34135
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 857,
+        "end": 973,
         "endLoc": {
           "column": 48,
-          "line": 857,
-          "position": 31400
+          "line": 973,
+          "position": 35888
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 852,
+        "start": 968,
         "startLoc": {
           "column": 25,
-          "line": 852,
-          "position": 31172
+          "line": 968,
+          "position": 35660
         }
       },
       "format": "typescript",
@@ -4350,36 +4313,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 819,
+        "end": 943,
         "endLoc": {
           "column": 48,
-          "line": 819,
-          "position": 30077
+          "line": 943,
+          "position": 35154
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 814,
+        "start": 938,
         "startLoc": {
           "column": 31,
-          "line": 814,
-          "position": 29849
+          "line": 938,
+          "position": 34926
         }
       },
       "tokens": 67
     },
     {
       "firstFile": {
-        "end": 496,
+        "end": 537,
         "endLoc": {
           "column": 35,
-          "line": 496,
-          "position": 17727
+          "line": 537,
+          "position": 19195
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 490,
+        "start": 531,
         "startLoc": {
           "column": 70,
-          "line": 490,
-          "position": 17543
+          "line": 531,
+          "position": 19011
         }
       },
       "format": "typescript",
@@ -4387,36 +4350,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 529,
+        "end": 606,
         "endLoc": {
           "column": 35,
-          "line": 529,
-          "position": 18940
+          "line": 606,
+          "position": 21742
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 523,
+        "start": 600,
         "startLoc": {
           "column": 80,
-          "line": 523,
-          "position": 18756
+          "line": 600,
+          "position": 21558
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 230,
+        "end": 252,
         "endLoc": {
           "column": 83,
-          "line": 230,
-          "position": 8796
+          "line": 252,
+          "position": 9721
         },
         "name": "flappybird/systems/FlappyBirdCollisionSystem.ts",
-        "start": 224,
+        "start": 246,
         "startLoc": {
           "column": 44,
-          "line": 224,
-          "position": 8596
+          "line": 246,
+          "position": 9521
         }
       },
       "format": "typescript",
@@ -6329,18 +6292,92 @@
     },
     {
       "firstFile": {
-        "end": 491,
+        "end": 580,
         "endLoc": {
-          "column": 46,
-          "line": 491,
-          "position": 15465
+          "column": 67,
+          "line": 580,
+          "position": 17435
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 482,
+        "start": 569,
+        "startLoc": {
+          "column": 13,
+          "line": 569,
+          "position": 16965
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.save();\n\n    for (let i = 0; i < state.distantAsteroids.length; i++) {\n      const ast = state.distantAsteroids[i];\n      ast.x += ast.vx;\n      ast.y += ast.vy;\n      ast.rotation += ast.angularVelocity;\n\n      if (ast.x < -ast.radius * 2) ast.x = width + ast.radius * 2;\n      if (ast.x > width + ast.radius * 2) ast.x = -ast.radius * 2;\n      if (ast.y < -ast.radius * 2) ast.y = height + ast.radius * 2;\n      if (ast.y > height + ast.radius * 2) ast.y = -ast.radius * 2;",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 637,
+        "endLoc": {
+          "column": 67,
+          "line": 637,
+          "position": 19075
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 626,
+        "startLoc": {
+          "column": 32,
+          "line": 626,
+          "position": 18605
+        }
+      },
+      "tokens": 155
+    },
+    {
+      "firstFile": {
+        "end": 789,
+        "endLoc": {
+          "column": 9,
+          "line": 789,
+          "position": 23379
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 781,
+        "startLoc": {
+          "column": 73,
+          "line": 781,
+          "position": 23184
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const ringThickness = planet.ringOuterRadius - planet.ringInnerRadius;\n\n    // 1. Back section of rings\n    canvas.save();\n    canvas.translate(planet.x, planet.y);\n    canvas.rotate((planet.ringTilt * 180) / Math.PI, 0, 0);\n    canvas.scale(1.0, 0.32);\n\n    const backRingPaint = Skia.Paint();",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 837,
+        "endLoc": {
+          "column": 9,
+          "line": 837,
+          "position": 24985
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 829,
+        "startLoc": {
+          "column": 20,
+          "line": 829,
+          "position": 24789
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 956,
+        "endLoc": {
+          "column": 46,
+          "line": 956,
+          "position": 29543
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 947,
         "startLoc": {
           "column": 12,
-          "line": 482,
-          "position": 15160
+          "line": 947,
+          "position": 29238
         }
       },
       "format": "typescript",
@@ -6348,36 +6385,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 522,
+        "end": 987,
         "endLoc": {
           "column": 46,
-          "line": 522,
-          "position": 16576
+          "line": 987,
+          "position": 30654
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 513,
+        "start": 978,
         "startLoc": {
           "column": 28,
-          "line": 513,
-          "position": 16271
+          "line": 978,
+          "position": 30349
         }
       },
       "tokens": 83
     },
     {
       "firstFile": {
-        "end": 548,
+        "end": 1013,
         "endLoc": {
           "column": 5,
-          "line": 548,
-          "position": 17587
+          "line": 1013,
+          "position": 31665
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 541,
+        "start": 1006,
         "startLoc": {
           "column": 4,
-          "line": 541,
-          "position": 17297
+          "line": 1006,
+          "position": 31375
         }
       },
       "format": "typescript",
@@ -6385,36 +6422,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 591,
+        "end": 1056,
         "endLoc": {
           "column": 5,
-          "line": 591,
-          "position": 19058
+          "line": 1056,
+          "position": 33136
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 584,
+        "start": 1049,
         "startLoc": {
           "column": 4,
-          "line": 584,
-          "position": 18768
+          "line": 1049,
+          "position": 32846
         }
       },
       "tokens": 62
     },
     {
       "firstFile": {
-        "end": 568,
+        "end": 1033,
         "endLoc": {
           "column": 78,
-          "line": 568,
-          "position": 18460
+          "line": 1033,
+          "position": 32538
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 552,
+        "start": 1017,
         "startLoc": {
           "column": 23,
-          "line": 552,
-          "position": 17787
+          "line": 1017,
+          "position": 31865
         }
       },
       "format": "typescript",
@@ -6422,36 +6459,36 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 613,
+        "end": 1078,
         "endLoc": {
           "column": 78,
-          "line": 613,
-          "position": 20016
+          "line": 1078,
+          "position": 34094
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 597,
+        "start": 1062,
         "startLoc": {
           "column": 29,
-          "line": 597,
-          "position": 19343
+          "line": 1062,
+          "position": 33421
         }
       },
       "tokens": 191
     },
     {
       "firstFile": {
-        "end": 634,
+        "end": 1099,
         "endLoc": {
           "column": 77,
-          "line": 634,
-          "position": 20778
+          "line": 1099,
+          "position": 34856
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 628,
+        "start": 1093,
         "startLoc": {
           "column": 4,
-          "line": 628,
-          "position": 20472
+          "line": 1093,
+          "position": 34550
         }
       },
       "format": "typescript",
@@ -6459,36 +6496,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 679,
+        "end": 1144,
         "endLoc": {
           "column": 77,
-          "line": 679,
-          "position": 22207
+          "line": 1144,
+          "position": 36285
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 673,
+        "start": 1138,
         "startLoc": {
           "column": 4,
-          "line": 673,
-          "position": 21901
+          "line": 1138,
+          "position": 35979
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 676,
+        "end": 1141,
         "endLoc": {
           "column": 31,
-          "line": 676,
-          "position": 22042
+          "line": 1141,
+          "position": 36120
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 670,
+        "start": 1135,
         "startLoc": {
           "column": 41,
-          "line": 670,
-          "position": 21800
+          "line": 1135,
+          "position": 35878
         }
       },
       "format": "typescript",
@@ -6496,36 +6533,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1063,
+        "end": 1528,
         "endLoc": {
           "column": 31,
-          "line": 1063,
-          "position": 35086
+          "line": 1528,
+          "position": 49164
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1057,
+        "start": 1522,
         "startLoc": {
           "column": 41,
-          "line": 1057,
-          "position": 34844
+          "line": 1522,
+          "position": 48922
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 676,
+        "end": 1141,
         "endLoc": {
           "column": 31,
-          "line": 676,
-          "position": 22042
+          "line": 1141,
+          "position": 36120
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 670,
+        "start": 1135,
         "startLoc": {
           "column": 41,
-          "line": 670,
-          "position": 21800
+          "line": 1135,
+          "position": 35878
         }
       },
       "format": "typescript",
@@ -6533,36 +6570,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1381,
+        "end": 1846,
         "endLoc": {
           "column": 31,
-          "line": 1381,
-          "position": 44647
+          "line": 1846,
+          "position": 58725
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1375,
+        "start": 1840,
         "startLoc": {
           "column": 39,
-          "line": 1375,
-          "position": 44405
+          "line": 1840,
+          "position": 58483
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 676,
+        "end": 1141,
         "endLoc": {
           "column": 31,
-          "line": 676,
-          "position": 22042
+          "line": 1141,
+          "position": 36120
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 670,
+        "start": 1135,
         "startLoc": {
           "column": 41,
-          "line": 670,
-          "position": 21800
+          "line": 1135,
+          "position": 35878
         }
       },
       "format": "typescript",
@@ -6570,36 +6607,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1436,
+        "end": 1901,
         "endLoc": {
           "column": 31,
-          "line": 1436,
-          "position": 46329
+          "line": 1901,
+          "position": 60407
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1430,
+        "start": 1895,
         "startLoc": {
           "column": 40,
-          "line": 1430,
-          "position": 46087
+          "line": 1895,
+          "position": 60165
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 729,
+        "end": 1194,
         "endLoc": {
           "column": 30,
-          "line": 729,
-          "position": 24092
+          "line": 1194,
+          "position": 38170
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 722,
+        "start": 1187,
         "startLoc": {
           "column": 34,
-          "line": 722,
-          "position": 23627
+          "line": 1187,
+          "position": 37705
         }
       },
       "format": "typescript",
@@ -6607,36 +6644,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 1467,
+        "end": 1932,
         "endLoc": {
           "column": 30,
-          "line": 1467,
-          "position": 47499
+          "line": 1932,
+          "position": 61577
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1461,
+        "start": 1926,
         "startLoc": {
           "column": 36,
-          "line": 1461,
-          "position": 47193
+          "line": 1926,
+          "position": 61271
         }
       },
       "tokens": 63
     },
     {
       "firstFile": {
-        "end": 733,
+        "end": 1198,
         "endLoc": {
           "column": 47,
-          "line": 733,
-          "position": 24217
+          "line": 1198,
+          "position": 38295
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 725,
+        "start": 1190,
         "startLoc": {
           "column": 4,
-          "line": 725,
-          "position": 23882
+          "line": 1190,
+          "position": 37960
         }
       },
       "format": "typescript",
@@ -6644,36 +6681,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 783,
+        "end": 1248,
         "endLoc": {
           "column": 47,
-          "line": 783,
-          "position": 25948
+          "line": 1248,
+          "position": 40026
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 775,
+        "start": 1240,
         "startLoc": {
           "column": 4,
-          "line": 775,
-          "position": 25613
+          "line": 1240,
+          "position": 39691
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 762,
+        "end": 1227,
         "endLoc": {
           "column": 48,
-          "line": 762,
-          "position": 25189
+          "line": 1227,
+          "position": 39267
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 754,
+        "start": 1219,
         "startLoc": {
           "column": 27,
-          "line": 754,
-          "position": 24851
+          "line": 1219,
+          "position": 38929
         }
       },
       "format": "typescript",
@@ -6681,36 +6718,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 812,
+        "end": 1277,
         "endLoc": {
           "column": 48,
-          "line": 812,
-          "position": 27012
+          "line": 1277,
+          "position": 41090
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 804,
+        "start": 1269,
         "startLoc": {
           "column": 31,
-          "line": 804,
-          "position": 26674
+          "line": 1269,
+          "position": 40752
         }
       },
       "tokens": 87
     },
     {
       "firstFile": {
-        "end": 779,
+        "end": 1244,
         "endLoc": {
           "column": 30,
-          "line": 779,
-          "position": 25823
+          "line": 1244,
+          "position": 39901
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 771,
+        "start": 1236,
         "startLoc": {
           "column": 38,
-          "line": 771,
-          "position": 25353
+          "line": 1236,
+          "position": 39431
         }
       },
       "format": "typescript",
@@ -6718,36 +6755,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 1492,
+        "end": 1957,
         "endLoc": {
           "column": 30,
-          "line": 1492,
-          "position": 48339
+          "line": 1957,
+          "position": 62417
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1485,
+        "start": 1950,
         "startLoc": {
           "column": 40,
-          "line": 1485,
-          "position": 48028
+          "line": 1950,
+          "position": 62106
         }
       },
       "tokens": 70
     },
     {
       "firstFile": {
-        "end": 905,
+        "end": 1370,
         "endLoc": {
           "column": 21,
-          "line": 905,
-          "position": 29934
+          "line": 1370,
+          "position": 44012
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 899,
+        "start": 1364,
         "startLoc": {
           "column": 12,
-          "line": 899,
-          "position": 29760
+          "line": 1364,
+          "position": 43838
         }
       },
       "format": "typescript",
@@ -6755,36 +6792,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 943,
+        "end": 1408,
         "endLoc": {
           "column": 21,
-          "line": 943,
-          "position": 31085
+          "line": 1408,
+          "position": 45163
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 937,
+        "start": 1402,
         "startLoc": {
           "column": 28,
-          "line": 937,
-          "position": 30911
+          "line": 1402,
+          "position": 44989
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 982,
+        "end": 1447,
         "endLoc": {
           "column": 44,
-          "line": 982,
-          "position": 32573
+          "line": 1447,
+          "position": 46651
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 977,
+        "start": 1442,
         "startLoc": {
           "column": 29,
-          "line": 977,
-          "position": 32397
+          "line": 1442,
+          "position": 46475
         }
       },
       "format": "typescript",
@@ -6792,36 +6829,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 1009,
+        "end": 1474,
         "endLoc": {
           "column": 44,
-          "line": 1009,
-          "position": 33430
+          "line": 1474,
+          "position": 47508
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1005,
+        "start": 1470,
         "startLoc": {
           "column": 41,
-          "line": 1005,
-          "position": 33255
+          "line": 1470,
+          "position": 47333
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 1029,
+        "end": 1494,
         "endLoc": {
           "column": 66,
-          "line": 1029,
-          "position": 34157
+          "line": 1494,
+          "position": 48235
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1024,
+        "start": 1489,
         "startLoc": {
           "column": 4,
-          "line": 1024,
-          "position": 33893
+          "line": 1489,
+          "position": 47971
         }
       },
       "format": "typescript",
@@ -6829,36 +6866,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 1065,
+        "end": 1530,
         "endLoc": {
           "column": 66,
-          "line": 1065,
-          "position": 35209
+          "line": 1530,
+          "position": 49287
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1060,
+        "start": 1525,
         "startLoc": {
           "column": 4,
-          "line": 1060,
-          "position": 34945
+          "line": 1525,
+          "position": 49023
         }
       },
       "tokens": 54
     },
     {
       "firstFile": {
-        "end": 1247,
+        "end": 1712,
         "endLoc": {
           "column": 5,
-          "line": 1247,
-          "position": 40454
+          "line": 1712,
+          "position": 54532
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1239,
+        "start": 1704,
         "startLoc": {
           "column": 4,
-          "line": 1239,
-          "position": 40186
+          "line": 1704,
+          "position": 54264
         }
       },
       "format": "typescript",
@@ -6866,36 +6903,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 1302,
+        "end": 1767,
         "endLoc": {
           "column": 5,
-          "line": 1302,
-          "position": 42123
+          "line": 1767,
+          "position": 56201
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1294,
+        "start": 1759,
         "startLoc": {
           "column": 4,
-          "line": 1294,
-          "position": 41855
+          "line": 1759,
+          "position": 55933
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 1278,
+        "end": 1743,
         "endLoc": {
           "column": 65,
-          "line": 1278,
-          "position": 41461
+          "line": 1743,
+          "position": 55539
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1270,
+        "start": 1735,
         "startLoc": {
           "column": 29,
-          "line": 1270,
-          "position": 41156
+          "line": 1735,
+          "position": 55234
         }
       },
       "format": "typescript",
@@ -6903,36 +6940,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 1333,
+        "end": 1798,
         "endLoc": {
           "column": 65,
-          "line": 1333,
-          "position": 43151
+          "line": 1798,
+          "position": 57229
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1324,
+        "start": 1789,
         "startLoc": {
           "column": 42,
-          "line": 1324,
-          "position": 42865
+          "line": 1789,
+          "position": 56943
         }
       },
       "tokens": 73
     },
     {
       "firstFile": {
-        "end": 1355,
+        "end": 1820,
         "endLoc": {
           "column": 64,
-          "line": 1355,
-          "position": 43951
+          "line": 1820,
+          "position": 58029
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1350,
+        "start": 1815,
         "startLoc": {
           "column": 4,
-          "line": 1350,
-          "position": 43689
+          "line": 1815,
+          "position": 57767
         }
       },
       "format": "typescript",
@@ -6940,36 +6977,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 1383,
+        "end": 1848,
         "endLoc": {
           "column": 64,
-          "line": 1383,
-          "position": 44768
+          "line": 1848,
+          "position": 58846
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1378,
+        "start": 1843,
         "startLoc": {
           "column": 4,
-          "line": 1378,
-          "position": 44506
+          "line": 1843,
+          "position": 58584
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 1412,
+        "end": 1877,
         "endLoc": {
           "column": 58,
-          "line": 1412,
-          "position": 45720
+          "line": 1877,
+          "position": 59798
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1407,
+        "start": 1872,
         "startLoc": {
           "column": 4,
-          "line": 1407,
-          "position": 45464
+          "line": 1872,
+          "position": 59542
         }
       },
       "format": "typescript",
@@ -6977,18 +7014,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 1438,
+        "end": 1903,
         "endLoc": {
           "column": 58,
-          "line": 1438,
-          "position": 46444
+          "line": 1903,
+          "position": 60522
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1433,
+        "start": 1898,
         "startLoc": {
           "column": 4,
-          "line": 1433,
-          "position": 46188
+          "line": 1898,
+          "position": 60266
         }
       },
       "tokens": 52
@@ -7217,18 +7254,18 @@
     },
     {
       "firstFile": {
-        "end": 760,
+        "end": 759,
         "endLoc": {
           "column": 23,
-          "line": 760,
-          "position": 24835
+          "line": 759,
+          "position": 24834
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 749,
+        "start": 748,
         "startLoc": {
           "column": 48,
-          "line": 749,
-          "position": 24500
+          "line": 748,
+          "position": 24499
         }
       },
       "format": "typescript",
@@ -7236,36 +7273,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 546,
+        "end": 545,
         "endLoc": {
           "column": 23,
-          "line": 546,
-          "position": 19922
+          "line": 545,
+          "position": 19921
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 535,
+        "start": 534,
         "startLoc": {
           "column": 32,
-          "line": 535,
-          "position": 19587
+          "line": 534,
+          "position": 19586
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 775,
+        "end": 774,
         "endLoc": {
           "column": 63,
-          "line": 775,
-          "position": 25513
+          "line": 774,
+          "position": 25512
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 762,
+        "start": 761,
         "startLoc": {
           "column": 25,
-          "line": 762,
-          "position": 25050
+          "line": 761,
+          "position": 25049
         }
       },
       "format": "typescript",
@@ -7273,36 +7310,36 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 559,
+        "end": 558,
         "endLoc": {
           "column": 63,
-          "line": 559,
-          "position": 20402
+          "line": 558,
+          "position": 20401
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 547,
+        "start": 546,
         "startLoc": {
           "column": 57,
-          "line": 547,
-          "position": 19990
+          "line": 546,
+          "position": 19989
         }
       },
       "tokens": 74
     },
     {
       "firstFile": {
-        "end": 402,
+        "end": 401,
         "endLoc": {
           "column": 27,
-          "line": 402,
-          "position": 15390
+          "line": 401,
+          "position": 15389
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 395,
+        "start": 394,
         "startLoc": {
           "column": 23,
-          "line": 395,
-          "position": 15195
+          "line": 394,
+          "position": 15194
         }
       },
       "format": "typescript",
@@ -7310,50 +7347,50 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 482,
+        "end": 481,
         "endLoc": {
           "column": 27,
-          "line": 482,
-          "position": 17813
+          "line": 481,
+          "position": 17812
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 473,
+        "start": 472,
         "startLoc": {
           "column": 17,
-          "line": 473,
-          "position": 17553
+          "line": 472,
+          "position": 17552
         }
       },
       "tokens": 51
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-10T19:22:48.912Z",
+    "detectionDate": "2026-09-11T04:18:17.190Z",
     "formats": {
       "typescript": {
-        "clones": 198,
-        "duplicatedLines": 2035,
-        "duplicatedTokens": 15524,
-        "lines": 58721,
+        "clones": 199,
+        "duplicatedLines": 2052,
+        "duplicatedTokens": 15709,
+        "lines": 59571,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.4655404369816587,
-        "percentageTokens": 5.066926910786966,
+        "percentage": 3.444629098051065,
+        "percentageTokens": 5.028939853764102,
         "sources": 360,
-        "tokens": 306379
+        "tokens": 312372
       }
     },
     "total": {
-      "clones": 198,
-      "duplicatedLines": 2035,
-      "duplicatedTokens": 15524,
-      "lines": 58721,
+      "clones": 199,
+      "duplicatedLines": 2052,
+      "duplicatedTokens": 15709,
+      "lines": 59571,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.4655404369816587,
-      "percentageTokens": 5.066926910786966,
+      "percentage": 3.444629098051065,
+      "percentageTokens": 5.028939853764102,
       "sources": 360,
-      "tokens": 306379
+      "tokens": 312372
     }
   }
 }

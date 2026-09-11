@@ -40,6 +40,11 @@ export interface IAssetProvider {
    *
    * @param path - Relative or absolute path / URI pointing to the image asset.
    * @returns A promise resolving to the platform-specific image element or object.
+   *
+   * @example
+   * ```ts
+   * const img = await provider.loadImage("assets/sprites/player.png");
+   * ```
    */
   loadImage(path: string): Promise<unknown>;
 
@@ -48,6 +53,11 @@ export interface IAssetProvider {
    *
    * @param path - Relative or absolute path / URI pointing to the audio asset.
    * @returns A promise resolving to the platform-specific audio object or buffer.
+   *
+   * @example
+   * ```ts
+   * const sound = await provider.loadAudio("assets/audio/laser.wav");
+   * ```
    */
   loadAudio(path: string): Promise<unknown>;
 
@@ -56,6 +66,11 @@ export interface IAssetProvider {
    *
    * @param path - Relative or absolute path / URI pointing to the font asset.
    * @returns A promise resolving when the font is loaded and registered.
+   *
+   * @example
+   * ```ts
+   * await provider.loadFont("assets/fonts/Arcade.ttf");
+   * ```
    */
   loadFont(path: string): Promise<unknown>;
 
@@ -64,6 +79,11 @@ export interface IAssetProvider {
    *
    * @param path - Path or URI to the raw JSON or custom asset data.
    * @returns A promise resolving to the parsed data object.
+   *
+   * @example
+   * ```ts
+   * const json = await provider.load?.("assets/config/game.json");
+   * ```
    */
   load?(path: string): Promise<unknown>;
 }
@@ -108,8 +128,14 @@ export class AssetLoader {
    * Assigns or updates the platform asset provider.
    *
    * @param provider - Platform resource loader implementing {@link IAssetProvider}.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * loader.setProvider(new WebAssetProvider());
+   * ```
    */
-  public setProvider(provider: IAssetProvider) {
+  public setProvider(provider: IAssetProvider): void {
     this.provider = provider;
   }
 
@@ -117,6 +143,13 @@ export class AssetLoader {
    * Checks whether a platform provider has been registered.
    *
    * @returns `true` if an {@link IAssetProvider} is set, `false` otherwise.
+   *
+   * @example
+   * ```ts
+   * if (!loader.hasProvider()) {
+   *   loader.setProvider(new WebAssetProvider());
+   * }
+   * ```
    */
   public hasProvider(): boolean {
     return this.provider !== undefined;
@@ -126,8 +159,14 @@ export class AssetLoader {
    * Validates and adds asset descriptors to the internal pending loading queue.
    *
    * @param assets - Array of asset descriptors matching {@link AssetDescriptorSchema}.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * loader.queueAssets([{ id: "sfx_shot", path: "sfx/shot.wav", type: "audio" }]);
+   * ```
    */
-  public queueAssets(assets: AssetDescriptor[]) {
+  public queueAssets(assets: AssetDescriptor[]): void {
     for (const asset of assets) {
       AssetDescriptorSchema.parse(asset);
     }
@@ -140,6 +179,11 @@ export class AssetLoader {
    * @param assets - Array of asset descriptors to load immediately.
    * @returns Promise resolving when all specified assets have loaded and cached.
    * @throws Error if no asset provider is registered prior to calling `load`.
+   *
+   * @example
+   * ```ts
+   * await loader.load([{ id: "bg", path: "bg.png", type: "image" }]);
+   * ```
    */
   public async load(assets: AssetDescriptor[]): Promise<void> {
     for (const asset of assets) {
@@ -181,6 +225,12 @@ export class AssetLoader {
    * Asynchronously processes and loads all queued asset descriptors.
    *
    * @returns Promise resolving when all queued assets have loaded.
+   *
+   * @example
+   * ```ts
+   * loader.queueAssets(descriptors);
+   * await loader.loadAll();
+   * ```
    */
   public async loadAll(): Promise<void> {
     if (this.queue.length === 0) return;
@@ -193,6 +243,12 @@ export class AssetLoader {
    *
    * @param atlasJson - The parsed JSON descriptor from TexturePacker or Aseprite.
    * @returns Map of frame names to source rectangle sub-regions (`{ x, y, w, h }`).
+   *
+   * @example
+   * ```ts
+   * const frames = loader.parseAtlas(atlasData);
+   * const frameRect = frames.get("idle_0.png");
+   * ```
    */
   public parseAtlas(atlasJson: unknown): Map<string, { x: number; y: number; w: number; h: number }> {
     const framesMap = new Map<string, { x: number; y: number; w: number; h: number }>();
@@ -232,6 +288,11 @@ export class AssetLoader {
    *
    * @param id - Unique asset identifier.
    * @returns The cached asset object cast to `T`.
+   *
+   * @example
+   * ```ts
+   * const sprite = loader.get<HTMLImageElement>("player_ship");
+   * ```
    */
   public get<T>(id: string): T {
     return this.cache.get(id) as T;

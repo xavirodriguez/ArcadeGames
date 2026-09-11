@@ -4,9 +4,30 @@ import { Component } from "../ecs/Component";
  * Component attached to entities that store and accumulate kinetic energy
  * from movement velocity and near-miss / graze events.
  *
+ * @remarks
+ * Used by kinetic weapon and barrier systems to build up energy meters during close-quarters gameplay.
+ * When `storedEnergy` reaches `maxEnergy`, `isBurstReady` becomes true, enabling a discharge wave.
+ *
+ * @example
+ * ```ts
+ * const kinetic: KineticAccumulatorComponent = {
+ *   type: "KineticAccumulator",
+ *   storedEnergy: 50,
+ *   maxEnergy: 100,
+ *   chargeOnMoveRate: 5,
+ *   grazeRadius: 30,
+ *   grazeChargeAmount: 15,
+ *   burstRadius: 120,
+ *   isBurstReady: false,
+ *   isBurstActive: false
+ * };
+ * world.addComponent(entity, kinetic);
+ * ```
+ *
  * @public
  */
 export interface KineticAccumulatorComponent extends Component {
+  /** Discriminator type tag identifying this component as a KineticAccumulator. */
   type: "KineticAccumulator";
   /** Current stored energy amount (0 to maxEnergy). */
   storedEnergy: number;

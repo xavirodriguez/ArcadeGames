@@ -36,9 +36,15 @@ export class LocalPredictionSystem<
     private lastProcessedTick = 0;
 
     private predictionModel?: IPredictionModel<TRegistry, TInput>;
-    /** @deprecated Use predictionModel instead. */
+    /**
+     * Legacy simulation callback function.
+     * @deprecated Legacy positional callbacks have been replaced by prediction models. Use `predictionModel` instead.
+     */
     private simulateFn?: (world: World<TRegistry>, input: TInput, dt: number) => void;
-    /** @deprecated Use predictionModel instead. */
+    /**
+     * Legacy reconciliation callback function.
+     * @deprecated Legacy positional callbacks have been replaced by prediction models. Use `predictionModel` instead.
+     */
     private reconcileFn?: (world: World<TRegistry>, entity: number, input: TInput, dt: number) => void;
 
     private queryComponents: Extract<keyof TRegistry, string>[];

@@ -371,21 +371,14 @@ export interface BaseGameConfig<TComponents extends ComponentRegistry = Componen
 // @public
 export abstract class BaseGameStateSystem<TGameState = unknown, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> extends System<TComponents, TEvents> {
     constructor(singletonType: string);
-    // (undocumented)
     protected abstract evaluateGameOverCondition(gameState: TGameState): boolean;
-    // (undocumented)
     protected abstract getGameState(world: World<TComponents, TEvents>): TGameState | undefined;
-    // (undocumented)
     onRegister(world: World<TComponents, TEvents>): void;
-    // (undocumented)
     abstract resetGameOverState(world?: World<TComponents, TEvents>): void;
     // (undocumented)
     protected singletonType: string;
-    // (undocumented)
     update(world: World<TComponents, TEvents>, deltaTime: number): void;
-    // (undocumented)
     protected abstract updateGameState(world: World<TComponents, TEvents>, gameState: TGameState, deltaTime: number): void;
-    // (undocumented)
     protected _world?: World<TComponents, TEvents>;
 }
 
@@ -804,9 +797,8 @@ export class ComboSystem<TComponents extends CoreComponentRegistry = CoreCompone
     update(world: World<TComponents>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface Command<TComponents extends ComponentRegistry, TEvents extends EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents>> {
-    // (undocumented)
     execute(world: World<TComponents, TEvents, TBlueprints>): void;
 }
 
@@ -2203,7 +2195,6 @@ export class InvulnerabilitySystem extends System<CoreComponentRegistry> {
 // @public
 export interface InvulnerableComponent extends Component {
     remaining: number;
-    // (undocumented)
     type: "Invulnerable";
 }
 
@@ -2333,7 +2324,6 @@ export interface KineticAccumulatorComponent extends Component {
     isBurstReady: boolean;
     maxEnergy: number;
     storedEnergy: number;
-    // (undocumented)
     type: "KineticAccumulator";
 }
 
@@ -2729,30 +2719,20 @@ export class ModifierComponent implements Component {
     constructor(initialModifiers?: ModifierEffect[]);
     addModifier(effect: ModifierEffect): void;
     hasModifier(id: string): boolean;
-    // (undocumented)
     modifiers: ModifierEffect[];
     removeModifier(id: string): void;
-    // (undocumented)
     type: string;
-    // (undocumented)
     static readonly type = "modifier";
 }
 
 // @public
 export interface ModifierEffect {
-    // (undocumented)
     duration?: number;
-    // (undocumented)
     elapsed?: number;
-    // (undocumented)
     id: string;
-    // (undocumented)
     targetComponent: string;
-    // (undocumented)
     targetProperty: string;
-    // (undocumented)
     type: "add" | "multiply" | "override";
-    // (undocumented)
     value: number;
 }
 
@@ -5041,7 +5021,6 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
     clearOverride(action: string): void;
     getAction(action: string): boolean;
     setOverride(action: string, pressed: boolean): void;
-    // (undocumented)
     update(_world: World<ComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -5207,15 +5186,12 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
 
 // @public
 export class WorldCommandBuffer<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
-    // (undocumented)
     addComponent<K extends ComponentType<TComponents>>(entity: number, component: TComponents[K] & {
         type: K;
     }): void;
     createEntity(entity: number): void;
     flush(world: World<TComponents, TEvents, TBlueprints>): void;
-    // (undocumented)
     removeComponent<K extends ComponentType<TComponents>>(entity: number, type: K): void;
-    // (undocumented)
     removeEntity(entity: number): void;
     spawnFromBlueprint<TId extends keyof TBlueprints & string>(blueprintId: TId, args: BlueprintArgs<TBlueprints, TId>): void;
     spawnFromBlueprintForEntity<TId extends keyof TBlueprints & string>(entity: number, blueprintId: TId, args: BlueprintArgs<TBlueprints, TId>): void;

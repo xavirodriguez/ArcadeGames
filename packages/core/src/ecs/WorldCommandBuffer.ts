@@ -4,12 +4,38 @@ import { BlueprintArgs, BlueprintRegistry } from "./BlueprintRegistry";
 import { EventRegistry } from "../events/EventBus";
 import { Entity } from "./Entity";
 
-/** @public */
+/**
+ * Command unit encapsulating a deferred world modification.
+ *
+ * @remarks
+ * Encapsulates structural mutations (spawning, component mutation, entity destruction)
+ * to be executed sequentially during `WorldCommandBuffer.flush`.
+ *
+ * @example
+ * ```ts
+ * const customCmd: Command<CoreComponentRegistry, EventRegistry, BlueprintRegistryMap> = {
+ *   execute: (world) => world.removeEntity(targetEntity)
+ * };
+ * ```
+ *
+ * @public
+ */
 export interface Command<
   TComponents extends ComponentRegistry,
   TEvents extends EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents>
 > {
+  /**
+   * Executes the deferred operation against the specified ECS world.
+   *
+   * @param world - Target ECS world instance.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * cmd.execute(world);
+   * ```
+   */
   execute(world: World<TComponents, TEvents, TBlueprints>): void;
 }
 
@@ -28,6 +54,7 @@ export interface Command<
  * **Deferred execution**: Commands are not executed immediately. Changes will only
  * be reflected in the world state after `WorldCommandBuffer.flush` is
  * called (typically at the end of the `World.update` cycle).
+ *
  * @public
  */
 export class WorldCommandBuffer<
@@ -61,6 +88,15 @@ export class WorldCommandBuffer<
 
   /**
    * Schedules an entity to be spawned from a blueprint.
+   *
+   * @param blueprintId - Unique registered blueprint key identifier.
+   * @param args - Arguments passed to the blueprint spawn handler.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * commandBuffer.spawnFromBlueprint("bullet", { x: 10, y: 20 });
+   * ```
    */
   public spawnFromBlueprint<TId extends keyof TBlueprints & string>(
     blueprintId: TId,
@@ -76,6 +112,16 @@ export class WorldCommandBuffer<
 
   /**
    * Schedules a pre-reserved entity ID to be spawned from a blueprint.
+   *
+   * @param entity - Pre-reserved entity ID.
+   * @param blueprintId - Unique registered blueprint key identifier.
+   * @param args - Arguments passed to the blueprint spawn handler.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * commandBuffer.spawnFromBlueprintForEntity(reservedId, "bullet", { x: 10, y: 20 });
+   * ```
    */
   public spawnFromBlueprintForEntity<TId extends keyof TBlueprints & string>(
     entity: number,
@@ -90,6 +136,18 @@ export class WorldCommandBuffer<
     });
   }
 
+  /**
+   * Schedules a component to be attached to a target entity.
+   *
+   * @param entity - Target entity ID.
+   * @param component - Component instance to attach.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * commandBuffer.addComponent(entityId, { type: "Velocity", vx: 100, vy: 0, angularVelocity: 0 });
+   * ```
+   */
   public addComponent<K extends ComponentType<TComponents>>(
     entity: number,
     component: TComponents[K] & { type: K }
@@ -99,6 +157,18 @@ export class WorldCommandBuffer<
     });
   }
 
+  /**
+   * Schedules a component type to be removed from a target entity.
+   *
+   * @param entity - Target entity ID.
+   * @param type - Discriminator type tag of component to remove.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * commandBuffer.removeComponent(entityId, "Velocity");
+   * ```
+   */
   public removeComponent<K extends ComponentType<TComponents>>(
     entity: number,
     type: K
@@ -108,6 +178,17 @@ export class WorldCommandBuffer<
     });
   }
 
+  /**
+   * Schedules an entity and all its attached components to be removed from the world.
+   *
+   * @param entity - Target entity ID to destroy.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * commandBuffer.removeEntity(entityId);
+   * ```
+   */
   public removeEntity(entity: number): void {
     this.commands.push({
       execute: (world) => world.removeEntity(entity)
@@ -115,7 +196,15 @@ export class WorldCommandBuffer<
   }
 
   /**
-   * Executes all buffered commands on the provided world.
+   * Executes all buffered commands on the provided world in order.
+   *
+   * @param world - Target ECS world.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * commandBuffer.flush(world);
+   * ```
    */
   public flush(world: World<TComponents, TEvents, TBlueprints>): void {
     const len = this.commands.length;
@@ -133,10 +222,18 @@ export class WorldCommandBuffer<
   }
 
   /**
-   * Schedules a specific entity ID to be activated in the world.
+   * Schedules a specific pre-reserved entity ID to be activated in the world.
    *
    * @remarks
-   * This is useful when an ID has been pre-reserved via `World.reserveEntityId`.
+   * Useful when an ID has been pre-reserved via `World.reserveEntityId`.
+   *
+   * @param entity - Pre-reserved entity ID to activate.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * commandBuffer.createEntity(reservedId);
+   * ```
    */
   public createEntity(entity: number): void {
     this.commands.push({

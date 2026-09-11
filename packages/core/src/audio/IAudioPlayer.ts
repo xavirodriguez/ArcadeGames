@@ -5,6 +5,9 @@
  * Implementations manage sound effect (SFX) loading and playback, background music (BGM) playback state,
  * volume settings, and 2D spatial audio positioning.
  *
+ * Promises returned by asynchronous operations like `loadSFX` resolve when the underlying audio resources
+ * are buffered and ready for low-latency triggering.
+ *
  * @example
  * ```ts
  * const audioPlayer: IAudioPlayer = new NullAudioPlayer();
@@ -21,6 +24,11 @@ export interface IAudioPlayer {
    * @param id - Unique identifier for the sound effect.
    * @param options - Platform-dependent audio loading options or source path configuration.
    * @returns A promise that resolves when the audio clip is fully loaded and ready for playback.
+   *
+   * @example
+   * ```ts
+   * await audio.loadSFX("explosion", { uri: "assets/sfx/explosion.wav" });
+   * ```
    */
   loadSFX(id: string, options: unknown): Promise<void>;
 
@@ -29,6 +37,12 @@ export interface IAudioPlayer {
    *
    * @param id - Unique identifier of the sound effect to trigger.
    * @param options - Optional playback configuration options (e.g. volume, pitch, loop).
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * audio.playSFX("laser", { volume: 0.8 });
+   * ```
    */
   playSFX(id: string, options?: unknown): void;
 
@@ -37,16 +51,36 @@ export interface IAudioPlayer {
    *
    * @param id - Unique identifier of the background music track.
    * @param options - Optional music playback options.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * audio.playBGM("stage1_theme", { loop: true });
+   * ```
    */
   playBGM(id: string, options?: unknown): void;
 
   /**
    * Stops active background music playback completely.
+   *
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * audio.stopBGM();
+   * ```
    */
   stopBGM(): void;
 
   /**
    * Pauses active background music playback at its current position.
+   *
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * audio.pauseBGM();
+   * ```
    */
   pauseBGM(): void;
 
@@ -54,6 +88,12 @@ export interface IAudioPlayer {
    * Adjusts the global master volume level.
    *
    * @param v - Volume ratio between 0.0 (silent) and 1.0 (full output).
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * audio.setMasterVolume(0.5);
+   * ```
    */
   setMasterVolume(v: number): void;
 
@@ -61,6 +101,12 @@ export interface IAudioPlayer {
    * Adjusts the sound effects (SFX) bus volume level.
    *
    * @param v - Volume ratio between 0.0 (silent) and 1.0 (full output).
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * audio.setSFXVolume(0.8);
+   * ```
    */
   setSFXVolume(v: number): void;
 
@@ -68,6 +114,12 @@ export interface IAudioPlayer {
    * Adjusts the background music (BGM) bus volume level.
    *
    * @param v - Volume ratio between 0.0 (silent) and 1.0 (full output).
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * audio.setBGMVolume(0.6);
+   * ```
    */
   setBGMVolume(v: number): void;
 
@@ -80,6 +132,12 @@ export interface IAudioPlayer {
    * @param listenerX - Audio listener X coordinate in world space.
    * @param listenerY - Audio listener Y coordinate in world space.
    * @param maxDistance - Maximum distance beyond which the audio is completely attenuated.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * audio.playSpatialSFX("engine_hum", 100, 200, 150, 200, 500);
+   * ```
    */
   playSpatialSFX(
     id: string,
@@ -112,7 +170,12 @@ export class NullAudioPlayer implements IAudioPlayer {
    *
    * @param _id - Ignored sound identifier.
    * @param _options - Ignored loading options.
-   * @returns Resolves immediately.
+   * @returns A promise that resolves immediately.
+   *
+   * @example
+   * ```ts
+   * await nullAudio.loadSFX("shot", {});
+   * ```
    */
   public async loadSFX(_id: string, _options: unknown): Promise<void> {}
 
@@ -121,6 +184,12 @@ export class NullAudioPlayer implements IAudioPlayer {
    *
    * @param _id - Ignored sound identifier.
    * @param _options - Ignored playback options.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * nullAudio.playSFX("shot");
+   * ```
    */
   public playSFX(_id: string, _options?: unknown): void {}
 
@@ -129,16 +198,36 @@ export class NullAudioPlayer implements IAudioPlayer {
    *
    * @param _id - Ignored track identifier.
    * @param _options - Ignored playback options.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * nullAudio.playBGM("bgm_main");
+   * ```
    */
   public playBGM(_id: string, _options?: unknown): void {}
 
   /**
    * No-op implementation of background music stopping.
+   *
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * nullAudio.stopBGM();
+   * ```
    */
   public stopBGM(): void {}
 
   /**
    * No-op implementation of background music pausing.
+   *
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * nullAudio.pauseBGM();
+   * ```
    */
   public pauseBGM(): void {}
 
@@ -146,6 +235,12 @@ export class NullAudioPlayer implements IAudioPlayer {
    * No-op implementation of master volume adjustment.
    *
    * @param _v - Ignored volume level.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * nullAudio.setMasterVolume(1.0);
+   * ```
    */
   public setMasterVolume(_v: number): void {}
 
@@ -153,6 +248,12 @@ export class NullAudioPlayer implements IAudioPlayer {
    * No-op implementation of SFX bus volume adjustment.
    *
    * @param _v - Ignored volume level.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * nullAudio.setSFXVolume(1.0);
+   * ```
    */
   public setSFXVolume(_v: number): void {}
 
@@ -160,6 +261,12 @@ export class NullAudioPlayer implements IAudioPlayer {
    * No-op implementation of BGM bus volume adjustment.
    *
    * @param _v - Ignored volume level.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * nullAudio.setBGMVolume(1.0);
+   * ```
    */
   public setBGMVolume(_v: number): void {}
 
@@ -172,6 +279,12 @@ export class NullAudioPlayer implements IAudioPlayer {
    * @param _listenerX - Ignored listener X position.
    * @param _listenerY - Ignored listener Y position.
    * @param _maxDistance - Ignored distance threshold.
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * nullAudio.playSpatialSFX("footstep", 0, 0, 0, 0, 100);
+   * ```
    */
   public playSpatialSFX(
     _id: string,

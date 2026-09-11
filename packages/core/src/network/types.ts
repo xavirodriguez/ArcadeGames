@@ -139,7 +139,16 @@ export interface LocalPredictionOptions<
     /**
      * Legacy simulation callback function.
      *
-     * @deprecated Use `predictionModel` instead.
+     * @deprecated Legacy positional callbacks have been replaced by Strategy prediction models. Use `predictionModel` instead.
+     *
+     * @example
+     * ```ts
+     * // Before (deprecated)
+     * const options: LocalPredictionOptions = { simulateFn: (world, input, dt) => { ... } };
+     *
+     * // After
+     * const options: LocalPredictionOptions = { predictionModel: new LinearPredictionModel() };
+     * ```
      */
     simulateFn?: (world: World<TRegistry>, input: TInput, dt: number) => void;
     /** Component names queried during prediction update phase. */
@@ -149,7 +158,16 @@ export interface LocalPredictionOptions<
     /**
      * Legacy reconciliation callback function.
      *
-     * @deprecated Use `predictionModel` instead.
+     * @deprecated Legacy positional callbacks have been replaced by Strategy prediction models. Use `predictionModel` instead.
+     *
+     * @example
+     * ```ts
+     * // Before (deprecated)
+     * const options: LocalPredictionOptions = { reconcileFn: (world, entity, input, dt) => { ... } };
+     *
+     * // After
+     * const options: LocalPredictionOptions = { predictionModel: new LinearPredictionModel() };
+     * ```
      */
     reconcileFn?: (world: World<TRegistry>, entity: number, input: TInput, dt: number) => void;
 }

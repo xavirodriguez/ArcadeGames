@@ -1,6 +1,6 @@
 {
   "name": "@tiny-aster/arcade-sound-kit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Procedural sound-design toolkit for arcade games. Recipe-based SFX with layered primitives, variation, loops and offline WAV + manifest export.",
   "type": "commonjs",
   "main": "dist/index.js",
@@ -10,8 +10,9 @@
   },
   "scripts": {
     "build": "tsc",
-    "generate": "node --import web-audio-api/polyfill dist/cli.js generate --pack",
-    "generate:example": "node dist/cli.js generate examples/arcade.js",
+    "generate": "node --import node-web-audio-api/polyfill.js dist/cli.js generate --pack",
+    "generate:js-polyfill": "node --import web-audio-api/polyfill dist/cli.js generate --pack",
+    "generate:example": "node --import node-web-audio-api/polyfill.js dist/cli.js generate examples/arcade.js",
     "test": "node --test",
     "typecheck": "tsc --noEmit"
   },

@@ -70,6 +70,7 @@ export type GenerateProgressCallback = (event: GenerateProgressEvent) => void;
 
 export interface GenerateOptions {
   outDir?: string;
+  /** Offline sample rate (default 22050). */
   sampleRate?: number;
   seed?: number;
   normalize?: boolean;
@@ -80,6 +81,8 @@ export interface GenerateOptions {
   variants?: number;
   /** Write a manifest.json next to the sounds. */
   manifest?: boolean;
+  /** WAV bit depth: 16 (default, smaller) or 32 (float). */
+  bitDepth?: 16 | 32;
   /** Optional progress callback (used by the CLI for live status). */
   onProgress?: GenerateProgressCallback;
 }
@@ -97,6 +100,8 @@ export interface ManifestEntry {
 export interface SoundManifest {
   version: string;
   sampleRate: number;
+  /** PCM bit depth of written WAVs (16 or 32). */
+  bitDepth?: 16 | 32;
   generatedAt: string;
   sounds: ManifestEntry[];
 }

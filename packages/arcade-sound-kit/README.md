@@ -1,6 +1,6 @@
 # @tiny-aster/arcade-sound-kit
 
-Procedural sound-design toolkit for arcade games.  
+Procedural sound-design toolkit for arcade games.
 Design SFX as **recipes** (layers of primitives) instead of hand-editing waveforms.
 
 **v0.2.0** adds:

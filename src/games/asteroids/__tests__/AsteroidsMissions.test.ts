@@ -13,6 +13,11 @@ describe("Asteroids Minimissions Test Suite", () => {
       gameOptions: { mode: "deathmatch" }
     });
     await game.init();
+    const world = game.getWorld();
+    world.mutateSingleton("GameState", (gs) => {
+      gs.readyRemaining = 0;
+      gs.intermissionRemaining = 0;
+    });
   });
 
   afterEach(() => {
@@ -31,6 +36,15 @@ describe("Asteroids Minimissions Test Suite", () => {
     const missionSystem = game.getMissionSystem();
     const mission = ASTEROIDS_MINI_MISSIONS.find((m) => m.id === "rey_del_caos")!;
     missionSystem.setActiveMission(world, mission);
+
+    // Move active asteroids far away and freeze them so no collisions or new wave spawns occur
+    const asteroids = world.query("Asteroid");
+    for (const ast of asteroids) {
+      world.mutateComponent(ast, "Transform", (t) => { t.x = 9999; t.y = 9999; });
+      if (world.hasComponent(ast, "Velocity")) {
+        world.mutateComponent(ast, "Velocity", (v) => { v.vx = 0; v.vy = 0; });
+      }
+    }
 
     // Destroy large asteroid at (100, 100)
     world.getEventBus().emit("asteroid:destroyed", { entity: 1, size: "large", x: 100, y: 100 });
@@ -63,8 +77,19 @@ describe("Asteroids Minimissions Test Suite", () => {
     const mission = ASTEROIDS_MINI_MISSIONS.find((m) => m.id === "supervivencia_extrema")!;
     missionSystem.setActiveMission(world, mission);
 
+    // Move active asteroids far away and freeze them so no collisions or new wave spawns occur
+    const asteroids = world.query("Asteroid");
+    for (const ast of asteroids) {
+      world.mutateComponent(ast, "Transform", (t) => { t.x = 9999; t.y = 9999; });
+      if (world.hasComponent(ast, "Velocity")) {
+        world.mutateComponent(ast, "Velocity", (v) => { v.vx = 0; v.vy = 0; });
+      }
+    }
+
     world.mutateSingleton("GameState", (gs) => {
       gs.lives = 1;
+      gs.readyRemaining = 0;
+      gs.intermissionRemaining = 0;
     });
 
     for (let i = 0; i < 16; i++) {
@@ -164,6 +189,15 @@ describe("Asteroids Minimissions Test Suite", () => {
     const missionSystem = game.getMissionSystem();
     const mission = ASTEROIDS_MINI_MISSIONS.find((m) => m.id === "nave_fantasma")!;
     missionSystem.setActiveMission(world, mission);
+
+    // Move active asteroids far away and freeze them so no collisions or new wave spawns occur
+    const asteroids = world.query("Asteroid");
+    for (const ast of asteroids) {
+      world.mutateComponent(ast, "Transform", (t) => { t.x = 9999; t.y = 9999; });
+      if (world.hasComponent(ast, "Velocity")) {
+        world.mutateComponent(ast, "Velocity", (v) => { v.vx = 0; v.vy = 0; });
+      }
+    }
 
     for (let i = 0; i < 15; i++) {
       world.update(1.0);

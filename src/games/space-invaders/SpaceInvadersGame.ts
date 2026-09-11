@@ -847,21 +847,6 @@ export class SpaceInvadersGame
     return this.getGameState().isGameOver;
   }
 
-  protected override onStart(): void {
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation started");
-  }
-
-  protected override onStop(): void {
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation stopped");
-  }
-
-  protected override onPause(): void {
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation paused");
-  }
-
-  protected override onResume(): void {
-    if (__DEV__) console.log("[SpaceInvadersGame] Simulation resumed");
-  }
 }
 
 export class NullSpaceInvadersGame extends NullBaseGame<GameStateComponent, InputState, SpaceInvadersComponentRegistry> implements ISpaceInvadersGame {

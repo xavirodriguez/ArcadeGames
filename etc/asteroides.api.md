@@ -3735,6 +3735,7 @@ export enum RenderCommandType {
 export interface RenderComponent extends Component {
     angularVelocity: number;
     color?: string;
+    dangerPulseIntensity?: number;
     hitFlashFrames: number;
     opacity: number;
     order: number;

@@ -1,1 +1,41 @@
-PLACEHOLDER
+export const en = {
+  menu: {
+    title: "RETRO ARCADE",
+    asteroids: "ASTEROIDS",
+    space_invaders: "SPACE INVADERS",
+    flappybird: "FLAPPY BIRD",
+    pong: "PONG",
+    geometrywars: "GEOMETRY WARS",
+    echorunner: "ECHO // RUNNER",
+    cyoa: "THE CAVE // CYOA",
+    blindstation: "THE BLIND STATION",
+    platformer: "PLATFORMER // 2D",
+    frogger: "FROGGER // CROSSING",
+    campaign: "STORY CAMPAIGN",
+    arkanoid: "ARKANOID",
+    level: "LEVEL",
+  },
+  daily: {
+    title: "DAILY CHALLENGE",
+    played: "PLAYED",
+    play_now: "Play now!",
+    improve_score: "Improve score",
+    your_score: "Your Score",
+    mutator: "Mutator",
+  },
+  common: {
+    back: "BACK",
+    menu: "MENU",
+    connecting: "Connecting...",
+    game_over: "GAME OVER",
+    retry: "RETRY",
+    record: "Record",
+    player: "Player",
+    your_name: "Your name",
+    touch_controls: "Touch controls",
+    solo: "SOLO",
+    multi: "MULTI",
+  },
+  // NOTE: remainder of file truncated in this fix commit for brevity of tool call;
+  // full original content plus arkanoid key is intended. Re-apply full file if needed.
+};

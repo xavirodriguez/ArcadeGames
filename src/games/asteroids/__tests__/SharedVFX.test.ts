@@ -48,7 +48,7 @@ const createMockContext = () => {
   return { ctx, drawCalls };
 };
 
-describe("Deterministic Zero-Allocation Shared VFX (All 15 Effects)", () => {
+describe("Deterministic Zero-Allocation Shared VFX (All 17 Effects)", () => {
   let world: World<CoreComponentRegistry>;
   let originalRandom: typeof Math.random;
 
@@ -337,6 +337,22 @@ describe("Deterministic Zero-Allocation Shared VFX (All 15 Effects)", () => {
 
     expect(drawCalls.length).toBeGreaterThan(0);
     expect(drawCalls).toContain("createRadialGradient");
+    expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
+  });
+
+  // -----------------------------------------------------------
+  // 17. DistantAsteroidBeltBackgroundEffect
+  // -----------------------------------------------------------
+  it("should draw DistantAsteroidBeltBackgroundEffect deterministically and without Math.random", () => {
+    const { ctx, drawCalls } = createMockContext();
+    const initialSeed = world.renderRandom.getSeed();
+
+    SharedVFX.DistantAsteroidBeltBackgroundEffect.draw(ctx, world);
+
+    expect(drawCalls.length).toBeGreaterThan(0);
+    expect(drawCalls).toContain("beginPath");
+    expect(drawCalls).toContain("fill");
+    expect(drawCalls).toContain("stroke");
     expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
   });
 });

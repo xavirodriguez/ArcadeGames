@@ -4,8 +4,29 @@ import { AbstractHierarchySystem } from "./AbstractHierarchySystem";
 
 type Mat3 = [number, number, number, number, number, number];
 
-/** @public */
+/**
+ * System that calculates hierarchical world-space transforms for parented entities.
+ *
+ * @remarks
+ * Evaluates entity parent-child relationships, constructs local and parent 2D transformation matrices, and computes final
+ * world coordinates (`worldX`, `worldY`, `worldRotation`, `worldScaleX`, `worldScaleY`).
+ *
+ * @example
+ * ```ts
+ * const hierarchySystem = new HierarchySystem();
+ * world.addSystem(hierarchySystem);
+ * hierarchySystem.update(world, 0.016);
+ * ```
+ *
+ * @public
+ */
 export class HierarchySystem extends AbstractHierarchySystem<CoreComponentRegistry> {
+  /**
+   * Recalculates dirty transform matrices and updates world space coordinates down the spatial hierarchy.
+   *
+   * @param world - The ECS world containing active entities.
+   * @param _deltaTime - Elapsed frame duration in seconds (unused).
+   */
   public override update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     this.wasDirty.clear();

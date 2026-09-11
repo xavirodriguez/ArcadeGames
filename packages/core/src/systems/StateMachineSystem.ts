@@ -2,15 +2,33 @@ import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
 
-/** @public */
+/**
+ * Definition map of named finite state machine states.
+ * @public
+ */
 export interface StateMachineDefinition {
+  /** Map of state identifiers to state behavior definitions. */
   states: Record<string, StateDefinition>;
 }
 
-/** @public */
+/**
+ * Hook callbacks for entering, updating, and exiting a finite state machine state.
+ * @public
+ */
 export interface StateDefinition {
+  /**
+   * Callback invoked every frame tick while entity remains in this state.
+   *
+   * @param world - Target ECS world.
+   * @param entity - Target entity ID.
+   * @param data - State machine context data.
+   * @param elapsed - Elapsed time in milliseconds within current state.
+   * @returns Optional next state name string to trigger state transition.
+   */
   onUpdate?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>, elapsed: number) => string | void;
+  /** Callback invoked when transitioning into this state. */
   onEnter?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) => void;
+  /** Callback invoked when transitioning out of this state. */
   onExit?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) => void;
 }
 
@@ -27,6 +45,12 @@ export interface StateDefinition {
  * @public
  */
 export class StateMachineSystem extends System<CoreComponentRegistry> {
+  /**
+   * Evaluates active state machines, executes state update hooks, and manages state transitions.
+   *
+   * @param world - The ECS world containing active entities and state machine definitions.
+   * @param deltaTime - Elapsed frame duration in seconds.
+   */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const entities = world.query("StateMachine");

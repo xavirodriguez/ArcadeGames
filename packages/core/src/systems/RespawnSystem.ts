@@ -13,6 +13,12 @@ export class RespawnSystem extends System<CoreComponentRegistry> {
   // Safe for determinism/rollback. Internal buffer reused across player respawns to avoid array allocations during entity respawn reconstruction.
   private itemsToRespawnBuffer: { blueprintKey: string; initialArgs: Record<string, unknown> }[] = [];
 
+  /**
+   * Evaluates dead player entities, resets player transforms and health, and re-spawns segment entities.
+   *
+   * @param world - The ECS world containing active entities and run state resources.
+   * @param _deltaTime - Elapsed frame duration in seconds (unused).
+   */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const runState = world.getResource<RunState>("RunState");

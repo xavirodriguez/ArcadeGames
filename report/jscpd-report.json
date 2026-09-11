@@ -7073,14 +7073,14 @@
         "endLoc": {
           "column": 47,
           "line": 360,
-          "position": 11410
+          "position": 11464
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 353,
         "startLoc": {
           "column": 7,
           "line": 353,
-          "position": 10981
+          "position": 11035
         }
       },
       "format": "typescript",
@@ -7092,14 +7092,14 @@
         "endLoc": {
           "column": 47,
           "line": 179,
-          "position": 7475
+          "position": 7529
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 172,
         "startLoc": {
           "column": 10,
           "line": 172,
-          "position": 7046
+          "position": 7100
         }
       },
       "tokens": 79
@@ -7110,14 +7110,14 @@
         "endLoc": {
           "column": 17,
           "line": 423,
-          "position": 13309
+          "position": 13363
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 403,
         "startLoc": {
           "column": 32,
           "line": 403,
-          "position": 12567
+          "position": 12621
         }
       },
       "format": "typescript",
@@ -7129,69 +7129,32 @@
         "endLoc": {
           "column": 17,
           "line": 237,
-          "position": 9266
+          "position": 9320
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 216,
         "startLoc": {
           "column": 23,
           "line": 216,
-          "position": 8581
+          "position": 8635
         }
       },
       "tokens": 125
     },
     {
       "firstFile": {
-        "end": 520,
-        "endLoc": {
-          "column": 5,
-          "line": 520,
-          "position": 16645
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 494,
-        "startLoc": {
-          "column": 31,
-          "line": 494,
-          "position": 15737
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const { size = 4 } = render;\n\n    const isPlayerBullet = world.hasComponent(entity, \"PlayerBullet\");\n\n    const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;\n    const coreColor = colors.white;\n\n    // Calculate proximity intensity for enemy bullets prior to impact\n    let proximityFactor = 0;\n    if (!isPlayerBullet) {\n      const pos = world.getComponent(entity, \"Transform\");\n      const ttl = world.getComponent(entity, \"TTL\");\n\n      let distFactor = 0;\n      if (pos) {\n        // Player target position is near bottom of screen (~550)\n        // As bullet Y progresses past 300 towards 550, increase proximity intensity\n        distFactor = Math.max(0, Math.min(1.0, (pos.y - 300) / 220));\n      }\n\n      let ttlFactor = 0;\n      if (ttl && ttl.timeLeft) {\n        ttlFactor = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / ttl.timeLeft)));\n      }\n\n      proximityFactor = Math.max(distFactor, ttlFactor);\n    }",
-      "isNew": false,
-      "lines": 27,
-      "secondFile": {
-        "end": 322,
-        "endLoc": {
-          "column": 5,
-          "line": 322,
-          "position": 12578
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 299,
-        "startLoc": {
-          "column": 27,
-          "line": 299,
-          "position": 11822
-        }
-      },
-      "tokens": 160
-    },
-    {
-      "firstFile": {
-        "end": 578,
+        "end": 556,
         "endLoc": {
           "column": 17,
-          "line": 578,
-          "position": 19011
+          "line": 556,
+          "position": 18237
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 567,
+        "start": 545,
         "startLoc": {
           "column": 32,
-          "line": 567,
-          "position": 18587
+          "line": 545,
+          "position": 17813
         }
       },
       "format": "typescript",
@@ -7199,18 +7162,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 375,
+        "end": 357,
         "endLoc": {
           "column": 17,
-          "line": 375,
-          "position": 14575
+          "line": 357,
+          "position": 14135
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 364,
+        "start": 346,
         "startLoc": {
           "column": 23,
-          "line": 364,
-          "position": 14151
+          "line": 346,
+          "position": 13711
         }
       },
       "tokens": 92
@@ -7232,9 +7195,9 @@
         }
       },
       "format": "typescript",
-      "fragment": "    const { size = 2, color = \"white\" } = render;\n\n    const ttl = world.getComponent(entity, \"TTL\");\n    let progress = 0.5;\n\n    if (ttl && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 0.5;\n      progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));\n    }\n\n    // Zero-allocation heat-dissipation color shifting\n    let particleColor = color;",
+      "fragment": "    const { size = 2, color = \"white\" } = render;\n\n    const ttl = world.getComponent(entity, \"TTL\");\n    let progress = 0.5;\n\n    if (ttl && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 0.5;\n      progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));\n    }\n\n    const particleColor = calculateParticleHeatColor(color, progress);",
       "isNew": false,
-      "lines": 12,
+      "lines": 11,
       "secondFile": {
         "end": 545,
         "endLoc": {
@@ -7287,7 +7250,7 @@
           "position": 19989
         }
       },
-      "tokens": 74
+      "tokens": 70
     },
     {
       "firstFile": {

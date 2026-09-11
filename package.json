@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "npx setup-skia-web public && node scripts/fix-canvaskit-wasm.js",
     "clean:artifacts": "find . -type f -path \"*/src/*\" \\( -name \"*.js\" -o -name \"*.js.map\" \\) -not -path \"*/node_modules/*\" -not -path \"*/dist/*\" -delete || true",
     "clean:full": "pnpm run clean:artifacts && rm -rf .turbo node_modules/.cache packages/*/.turbo server/.turbo temp etc/tsdoc-metadata.json dist compiled-js .expo && (watchman watch-del-all 2>/dev/null || true) && (rm -rf $TMPDIR/metro-* $TMPDIR/haste-map-* 2>/dev/null || true)",
     "start": "pnpm turbo run build && pnpm exec expo start",

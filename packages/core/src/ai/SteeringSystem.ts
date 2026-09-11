@@ -13,6 +13,12 @@ import { FactionComponent } from "./FactionComponent";
 export class SteeringSystem<
   TRegistry extends ComponentRegistry = CoreComponentRegistry
 > extends System<TRegistry> {
+  /**
+   * Resolves target coordinates, computes steering force vectors, and adjusts entity velocity.
+   *
+   * @param world - Target ECS world.
+   * @param deltaTime - Elapsed frame duration in seconds.
+   */
   public update(world: World<TRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     if (deltaTime <= 0) return;

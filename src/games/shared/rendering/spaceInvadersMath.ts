@@ -73,3 +73,31 @@ export function resolvePlayerRoleVisual(role?: string): { roleColor: string; sha
   if (role === "support") return { roleColor: "#FFD700", shapeIcon: "⬠", name: "SUPPORT" };
   return { roleColor: colors.green, shapeIcon: "▓", name: "PIONEER" };
 }
+
+export function calculateBulletProximity(world: any, entity: number, isPlayerBullet: boolean): number {
+  if (isPlayerBullet) return 0;
+  const pos = world.getComponent(entity, "Transform");
+  const ttl = world.getComponent(entity, "TTL");
+
+  let distFactor = 0;
+  if (pos) {
+    distFactor = Math.max(0, Math.min(1.0, (pos.y - 300) / 220));
+  }
+
+  let ttlFactor = 0;
+  if (ttl && ttl.timeLeft) {
+    ttlFactor = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / ttl.timeLeft)));
+  }
+
+  return Math.max(distFactor, ttlFactor);
+}
+
+export function calculateParticleHeatColor(colorStr: string, progress: number): string {
+  if (colorStr === "white" || colorStr === colors.white) {
+    if (progress < 0.2) return colors.white;
+    if (progress < 0.45) return colors.yellow;
+    if (progress < 0.7) return colors.orange;
+    return colors.red;
+  }
+  return colorStr;
+}

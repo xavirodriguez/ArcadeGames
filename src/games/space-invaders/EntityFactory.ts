@@ -39,6 +39,7 @@ export function createPlayer(world: World<any>, x: number, y: number, deferred?:
 /**
  * Creates a single invader entity using the data-driven EnemyFactory.
  * Points are assigned based on the row (classic Space Invaders scoring).
+ * @param deferred - Currently unused; reserved parameter, ignored by this function.
  * @remarks Actual component composition lives in `./EnemyFactory`, not here —
  * this function only forwards to the "invader" blueprint.
  */
@@ -92,6 +93,7 @@ export function createEnemyBullet(world: World<any>, x: number, y: number, pool:
 
 /**
  * Creates a single destructible block of a shield/bunker.
+ * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
 export function createShieldSegment(world: World<any>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "shield", { x, y, row, col });
@@ -99,6 +101,7 @@ export function createShieldSegment(world: World<any>, x: number, y: number, row
 
 /**
  * Creates the global game state entity.
+ * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
 export function createGameState(world: World<any>, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "state", {});
@@ -106,6 +109,7 @@ export function createGameState(world: World<any>, deferred?: boolean): Entity {
 
 /**
  * Creates the singleton entity that coordinates the invader grid movement.
+ * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
 export function createFormationController(world: World<any>, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "formation", {});
@@ -114,6 +118,7 @@ export function createFormationController(world: World<any>, deferred?: boolean)
 /**
  * Procedurally spawns a grid of invaders based on GAME_CONFIG spacing
  * (INVADER_START_X/Y, INVADER_SPACING_X/Y, INVADER_ROWS/COLS).
+ * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
 export function spawnInvaderWave(world: World<any>, _level: number, deferred?: boolean): void {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
@@ -142,6 +147,7 @@ export function spawnInvaderWave(world: World<any>, _level: number, deferred?: b
  * Spawns multiple composite bunkers made of individual shield segments,
  * arranged as a rectangular grid per bunker (SHIELD_SEGMENTS_X × SHIELD_SEGMENTS_Y),
  * spaced by SHIELD_SPACING starting at SHIELD_START_X/Y.
+ * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
 export function spawnShields(world: World<any>, deferred?: boolean): void {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;

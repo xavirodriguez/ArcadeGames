@@ -35,6 +35,7 @@ export interface CreatePipeParams {
   x: number;
   gapY: number;
   visualVariant?: "standard" | "damaged" | "rusted";
+  /** @deprecated Currently unused — spawnBlueprintEntity always spawns immediately. */
   deferred?: boolean;
 }
 

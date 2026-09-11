@@ -470,10 +470,6 @@ export function createBullet(
 }
 
 /**
- * @public
- * @remarks Thin wrapper around the "asteroid" blueprint.
- */
-/**
  * Factory function to spawn a UFO entity.
  * Emits "ufo:spawned" on eventBus upon spawn.
  * @public
@@ -500,6 +496,10 @@ export const createUfo = (config: {
   return entity;
 };
 
+/**
+ * @public
+ * @remarks Thin wrapper around the "asteroid" blueprint.
+ */
 export const createAsteroid = (config: {
     world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
     x: number;

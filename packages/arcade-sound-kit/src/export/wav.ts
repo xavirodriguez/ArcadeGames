@@ -19,7 +19,7 @@ export function writeWav(
   const wav = new WaveFile();
   wav.fromScratch(1, sampleRate, '32f', [out]);
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  wav.toFile(file);
+  fs.writeFileSync(file, wav.toBuffer());
 }
 
 export function writeManifest(

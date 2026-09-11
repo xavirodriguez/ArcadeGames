@@ -7110,14 +7110,14 @@
         "endLoc": {
           "column": 47,
           "line": 360,
-          "position": 11410
+          "position": 11464
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 353,
         "startLoc": {
           "column": 7,
           "line": 353,
-          "position": 10981
+          "position": 11035
         }
       },
       "format": "typescript",
@@ -7129,14 +7129,14 @@
         "endLoc": {
           "column": 47,
           "line": 179,
-          "position": 7475
+          "position": 7529
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 172,
         "startLoc": {
           "column": 10,
           "line": 172,
-          "position": 7046
+          "position": 7100
         }
       },
       "tokens": 79
@@ -7147,14 +7147,14 @@
         "endLoc": {
           "column": 17,
           "line": 423,
-          "position": 13309
+          "position": 13363
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 403,
         "startLoc": {
           "column": 32,
           "line": 403,
-          "position": 12567
+          "position": 12621
         }
       },
       "format": "typescript",
@@ -7166,69 +7166,32 @@
         "endLoc": {
           "column": 17,
           "line": 237,
-          "position": 9266
+          "position": 9320
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 216,
         "startLoc": {
           "column": 23,
           "line": 216,
-          "position": 8581
+          "position": 8635
         }
       },
       "tokens": 125
     },
     {
       "firstFile": {
-        "end": 520,
-        "endLoc": {
-          "column": 5,
-          "line": 520,
-          "position": 16645
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 494,
-        "startLoc": {
-          "column": 31,
-          "line": 494,
-          "position": 15737
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const { size = 4 } = render;\n\n    const isPlayerBullet = world.hasComponent(entity, \"PlayerBullet\");\n\n    const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;\n    const coreColor = colors.white;\n\n    // Calculate proximity intensity for enemy bullets prior to impact\n    let proximityFactor = 0;\n    if (!isPlayerBullet) {\n      const pos = world.getComponent(entity, \"Transform\");\n      const ttl = world.getComponent(entity, \"TTL\");\n\n      let distFactor = 0;\n      if (pos) {\n        // Player target position is near bottom of screen (~550)\n        // As bullet Y progresses past 300 towards 550, increase proximity intensity\n        distFactor = Math.max(0, Math.min(1.0, (pos.y - 300) / 220));\n      }\n\n      let ttlFactor = 0;\n      if (ttl && ttl.timeLeft) {\n        ttlFactor = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / ttl.timeLeft)));\n      }\n\n      proximityFactor = Math.max(distFactor, ttlFactor);\n    }",
-      "isNew": false,
-      "lines": 27,
-      "secondFile": {
-        "end": 322,
-        "endLoc": {
-          "column": 5,
-          "line": 322,
-          "position": 12578
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 299,
-        "startLoc": {
-          "column": 27,
-          "line": 299,
-          "position": 11822
-        }
-      },
-      "tokens": 160
-    },
-    {
-      "firstFile": {
-        "end": 578,
+        "end": 556,
         "endLoc": {
           "column": 17,
-          "line": 578,
-          "position": 19011
+          "line": 556,
+          "position": 18237
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 567,
+        "start": 545,
         "startLoc": {
           "column": 32,
-          "line": 567,
-          "position": 18587
+          "line": 545,
+          "position": 17813
         }
       },
       "format": "typescript",
@@ -7236,110 +7199,73 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 375,
+        "end": 357,
         "endLoc": {
           "column": 17,
-          "line": 375,
-          "position": 14575
+          "line": 357,
+          "position": 14135
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 364,
+        "start": 346,
         "startLoc": {
           "column": 23,
-          "line": 364,
-          "position": 14151
+          "line": 346,
+          "position": 13711
         }
       },
       "tokens": 92
     },
     {
       "firstFile": {
-        "end": 759,
+        "end": 736,
         "endLoc": {
-          "column": 23,
-          "line": 759,
-          "position": 24834
+          "column": 53,
+          "line": 736,
+          "position": 24035
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 748,
+        "start": 726,
         "startLoc": {
           "column": 48,
-          "line": 748,
-          "position": 24499
+          "line": 726,
+          "position": 23725
         }
       },
       "format": "typescript",
-      "fragment": "    const { size = 2, color = \"white\" } = render;\n\n    const ttl = world.getComponent(entity, \"TTL\");\n    let progress = 0.5;\n\n    if (ttl && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 0.5;\n      progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));\n    }\n\n    // Zero-allocation heat-dissipation color shifting\n    let particleColor = color;",
+      "fragment": "    const { size = 2, color = \"white\" } = render;\n\n    const ttl = world.getComponent(entity, \"TTL\");\n    let progress = 0.5;\n\n    if (ttl && ttl.remaining !== undefined) {\n      const totalLife = ttl.timeLeft || 0.5;\n      progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));\n    }\n\n    const particleColor = calculateParticleHeatColor(color, progress);",
       "isNew": false,
-      "lines": 12,
+      "lines": 11,
       "secondFile": {
-        "end": 545,
+        "end": 526,
         "endLoc": {
-          "column": 23,
-          "line": 545,
-          "position": 19921
+          "column": 53,
+          "line": 526,
+          "position": 19456
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 534,
+        "start": 516,
         "startLoc": {
           "column": 32,
-          "line": 534,
-          "position": 19586
+          "line": 516,
+          "position": 19146
         }
       },
-      "tokens": 68
+      "tokens": 70
     },
     {
       "firstFile": {
-        "end": 774,
-        "endLoc": {
-          "column": 63,
-          "line": 774,
-          "position": 25512
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 761,
-        "startLoc": {
-          "column": 25,
-          "line": 761,
-          "position": 25049
-        }
-      },
-      "format": "typescript",
-      "fragment": "    if (color === \"white\") {\n      if (progress < 0.2) {\n        particleColor = colors.white; // Hot white\n      } else if (progress < 0.45) {\n        particleColor = colors.yellow; // Yellow flare\n      } else if (progress < 0.7) {\n        particleColor = colors.orange; // Dissipating Orange\n      } else {\n        particleColor = colors.red; // Red ember\n      }\n    }\n\n    // Scale down proportionally to remaining life\n    const currentSize = Math.max(0.5, size * (1.1 - progress));",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 558,
-        "endLoc": {
-          "column": 63,
-          "line": 558,
-          "position": 20401
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 546,
-        "startLoc": {
-          "column": 57,
-          "line": 546,
-          "position": 19989
-        }
-      },
-      "tokens": 74
-    },
-    {
-      "firstFile": {
-        "end": 401,
+        "end": 383,
         "endLoc": {
           "column": 27,
-          "line": 401,
-          "position": 15389
+          "line": 383,
+          "position": 14949
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 394,
+        "start": 376,
         "startLoc": {
           "column": 23,
-          "line": 394,
-          "position": 15194
+          "line": 376,
+          "position": 14754
         }
       },
       "format": "typescript",
@@ -7347,50 +7273,50 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 481,
+        "end": 463,
         "endLoc": {
           "column": 27,
-          "line": 481,
-          "position": 17812
+          "line": 463,
+          "position": 17372
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 472,
+        "start": 454,
         "startLoc": {
           "column": 17,
-          "line": 472,
-          "position": 17552
+          "line": 454,
+          "position": 17112
         }
       },
       "tokens": 51
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-11T04:18:17.190Z",
+    "detectionDate": "2026-09-11T07:31:49.261Z",
     "formats": {
       "typescript": {
-        "clones": 199,
-        "duplicatedLines": 2052,
-        "duplicatedTokens": 15709,
-        "lines": 59571,
+        "clones": 197,
+        "duplicatedLines": 2012,
+        "duplicatedTokens": 15477,
+        "lines": 59732,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.444629098051065,
-        "percentageTokens": 5.028939853764102,
+        "percentage": 3.3683787584544294,
+        "percentageTokens": 4.9566846546782175,
         "sources": 360,
-        "tokens": 312372
+        "tokens": 312245
       }
     },
     "total": {
-      "clones": 199,
-      "duplicatedLines": 2052,
-      "duplicatedTokens": 15709,
-      "lines": 59571,
+      "clones": 197,
+      "duplicatedLines": 2012,
+      "duplicatedTokens": 15477,
+      "lines": 59732,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.444629098051065,
-      "percentageTokens": 5.028939853764102,
+      "percentage": 3.3683787584544294,
+      "percentageTokens": 4.9566846546782175,
       "sources": 360,
-      "tokens": 312372
+      "tokens": 312245
     }
   }
 }

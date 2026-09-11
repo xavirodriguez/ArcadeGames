@@ -49,8 +49,8 @@ export default function ArkanoidScreen() {
 
   const handleInputState = useCallback(
     (input: Partial<{ left: boolean; right: boolean; launch: boolean }>) => {
-      handleInput(input as any);
-      game?.setInputState?.(input as any);
+      handleInput(input);
+      game?.setInputState?.(input);
     },
     [handleInput, game]
   );

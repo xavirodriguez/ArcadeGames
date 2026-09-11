@@ -111,14 +111,20 @@ export async function render(
     const curve = p?.curve ?? 'exponential';
 
     if (l.kind === 'chord') {
-      const poly = new Tone.PolySynth(Tone.Synth, {
+      // PolySynth options overload accepts `context`; the (voice, options)
+      // overload only types voice SynthOptions and rejects `context`.
+      const poly = new Tone.PolySynth({
         context: ctx,
-        oscillator: { type: wave },
-        envelope: {
-          attack: 0.005,
-          decay: l.envelope?.decay ?? 0.1,
-          sustain: 0,
-          release: 0.02,
+        maxPolyphony: 8,
+        voice: Tone.Synth,
+        options: {
+          oscillator: { type: wave },
+          envelope: {
+            attack: 0.005,
+            decay: l.envelope?.decay ?? 0.1,
+            sustain: 0,
+            release: 0.02,
+          },
         },
       }).connect(master);
       disposables.push(poly);

@@ -59,5 +59,5 @@ export class ComboSystem<TComponents extends CoreComponentRegistry = CoreCompone
   /**
    * Cleans up any resources held by the combo system upon disposal.
    */
-  public dispose(): void {}
+  public override dispose(): void {}
 }

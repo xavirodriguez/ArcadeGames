@@ -2,8 +2,29 @@ import { System } from "../ecs/System";
 import { World } from "../ecs/World";
 import { VisualOffsetComponent, RenderComponent, CoreComponentRegistry } from "../ecs/CoreComponents";
 
-/** @public */
+/**
+ * System that manages procedural "juice" visual animations (e.g., scale bounces, hit flashes, visual offsets).
+ *
+ * @remarks
+ * Interpolates target numeric properties on `VisualOffsetComponent`, `RenderComponent`, or arbitrary components specified
+ * via `JuiceAnimation.componentType`. Skips execution during rollback re-simulation (`world.isReSimulating === true`).
+ *
+ * @example
+ * ```ts
+ * const juiceSystem = new JuiceSystem();
+ * world.addSystem(juiceSystem);
+ * juiceSystem.update(world, 0.016);
+ * ```
+ *
+ * @public
+ */
 export class JuiceSystem extends System<CoreComponentRegistry> {
+    /**
+     * Updates elapsed animation timers, evaluates easing curves, and applies interpolated component properties.
+     *
+     * @param world - The ECS world containing active entities and components.
+     * @param deltaTime - Elapsed frame duration in seconds.
+     */
     public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
         if (world.isReSimulating) return;
 

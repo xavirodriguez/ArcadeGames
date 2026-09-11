@@ -144,7 +144,26 @@ export interface BoundaryComponent extends Component {
   maxY?: number;
 }
 
-/** @public */
+/**
+ * Component specifying an entity's remaining time-to-live before automatic destruction or expiration handling.
+ *
+ * @remarks
+ * Processed by `TTLSystem` to decrement `remaining` (and legacy `timeLeft`) by frame `deltaTime`.
+ * Upon reaching zero, `TTLSystem` marks the entity for removal via the world command buffer and optionally emits `onCompleteEvent`.
+ *
+ * @example
+ * ```ts
+ * const ttl: TTLComponent = {
+ *   type: "TTL",
+ *   remaining: 1.5,
+ *   timeLeft: 1.5,
+ *   onCompleteEvent: "particle:expired"
+ * };
+ * world.addComponent(entity, ttl);
+ * ```
+ *
+ * @public
+ */
 export interface TTLComponent extends Component {
   /** Component discriminator type. */
   type: "TTL";

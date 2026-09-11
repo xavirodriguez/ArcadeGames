@@ -2,7 +2,7 @@ import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateBossVibrato, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 
 // ============================================================================
 // VISUAL-ONLY EXPLOSION LAYERED PARTICLE POOL (RING, DEBRIS W/ GRAVITY, SMOKE)
@@ -490,34 +490,12 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:270-293. Considerar extraer a función compartida. Ref: d2d6b392
     const { size = 4 } = render;
 
     const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
-
     const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;
     const coreColor = colors.white;
-
-    // Calculate proximity intensity for enemy bullets prior to impact
-    let proximityFactor = 0;
-    if (!isPlayerBullet) {
-      const pos = world.getComponent(entity, "Transform");
-      const ttl = world.getComponent(entity, "TTL");
-
-      let distFactor = 0;
-      if (pos) {
-        // Player target position is near bottom of screen (~550)
-        // As bullet Y progresses past 300 towards 550, increase proximity intensity
-        distFactor = Math.max(0, Math.min(1.0, (pos.y - 300) / 220));
-      }
-
-      let ttlFactor = 0;
-      if (ttl && ttl.timeLeft) {
-        ttlFactor = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / ttl.timeLeft)));
-      }
-
-      proximityFactor = Math.max(distFactor, ttlFactor);
-    }
+    const proximityFactor = calculateBulletProximity(world, entity, isPlayerBullet);
 
     ctx.save();
 
@@ -755,20 +733,7 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
       progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));
     }
 
-    // Zero-allocation heat-dissipation color shifting
-    let particleColor = color;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:503-515. Considerar extraer a función compartida. Ref: 2c9a8f76
-    if (color === "white") {
-      if (progress < 0.2) {
-        particleColor = colors.white; // Hot white
-      } else if (progress < 0.45) {
-        particleColor = colors.yellow; // Yellow flare
-      } else if (progress < 0.7) {
-        particleColor = colors.orange; // Dissipating Orange
-      } else {
-        particleColor = colors.red; // Red ember
-      }
-    }
+    const particleColor = calculateParticleHeatColor(color, progress);
 
     // Scale down proportionally to remaining life
     const currentSize = Math.max(0.5, size * (1.1 - progress));

@@ -382,13 +382,15 @@ export class AsteroidsGame
     SharedVFX.registerSharedVFX(renderer);
 
     if (renderer.type === "canvas") {
-      renderer.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
-      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
       renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.DriftingNebulaBackgroundEffect);
+      renderer.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
+      renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.DistantAsteroidBeltBackgroundEffect);
+      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
     } else if (renderer.type === "skia") {
-      renderer.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
-      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
       renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
+      renderer.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
+      renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect);
+      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
     }
   }
 
@@ -498,22 +500,10 @@ export class AsteroidsGame
     }
   }
 
-  protected override onStart(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation started");
-  }
-
   public override destroy(): void {
     super.destroy();
     this.bulletPool?.clear();
     this.particlePool?.clear();
-  }
-
-  protected override onPause(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation paused");
-  }
-
-  protected override onResume(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation resumed");
   }
 
 }

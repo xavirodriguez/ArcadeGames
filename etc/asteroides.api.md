@@ -50,9 +50,8 @@ export interface AnimationDefinition {
     onCompleteEvent?: string;
 }
 
-// @public (undocumented)
+// @public
 export class AnimationSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -631,7 +630,6 @@ export function checkPlayerDetectionToAlert(sensor?: PlayerSensorComponent): "Al
 
 // @public
 export class CheckpointSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -687,7 +685,6 @@ export interface CollectibleComponent extends Component {
 
 // @public
 export class CollectibleSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -1677,10 +1674,9 @@ export class FadeTransition extends BaseTransitionEffect {
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
-// @public (undocumented)
+// @public
 export class FeedbackSystem extends System<CoreComponentRegistry> {
     constructor(hapticDevice?: IHapticDevice);
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -1966,9 +1962,8 @@ export interface HealthComponent extends Component {
     type: "Health";
 }
 
-// @public (undocumented)
+// @public
 export class HierarchySystem extends AbstractHierarchySystem<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -2047,9 +2042,8 @@ export interface IGameLifecycleHooks {
     onRegisterSystems(): Promise<void>;
 }
 
-// @public (undocumented)
+// @public
 export interface IHapticDevice {
-    // (undocumented)
     vibrate(pattern: string): void;
 }
 
@@ -2292,9 +2286,8 @@ export interface JuiceComponent extends Component {
     type: "Juice";
 }
 
-// @public (undocumented)
+// @public
 export class JuiceSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -3174,7 +3167,6 @@ export abstract class NullBaseGame<TState = unknown, TInput extends object = Rec
 
 // @public
 export class NullHapticDevice implements IHapticDevice {
-    // (undocumented)
     vibrate(_pattern: string): void;
 }
 
@@ -3743,6 +3735,7 @@ export enum RenderCommandType {
 export interface RenderComponent extends Component {
     angularVelocity: number;
     color?: string;
+    dangerPulseIntensity?: number;
     hitFlashFrames: number;
     opacity: number;
     order: number;
@@ -3905,7 +3898,6 @@ export interface RespawnPointComponent extends Component {
 
 // @public
 export class RespawnSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -4306,7 +4298,6 @@ export interface SpatialNodeComponent extends Component {
 
 // @public
 export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -4333,13 +4324,10 @@ export interface SpriteComponent extends Component {
     type: "Sprite";
 }
 
-// @public (undocumented)
+// @public
 export interface StateDefinition {
-    // (undocumented)
     onEnter?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) => void;
-    // (undocumented)
     onExit?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) => void;
-    // (undocumented)
     onUpdate?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>, elapsed: number) => string | void;
 }
 
@@ -4354,15 +4342,13 @@ export interface StateMachineComponent extends Component {
     type: "StateMachine";
 }
 
-// @public (undocumented)
+// @public
 export interface StateMachineDefinition {
-    // (undocumented)
     states: Record<string, StateDefinition>;
 }
 
 // @public
 export class StateMachineSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -4380,7 +4366,6 @@ export interface SteeringComponent extends Component {
 
 // @public
 export class SteeringSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
-    // (undocumented)
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
@@ -4923,9 +4908,8 @@ export interface TilemapComponent extends Component {
     };
 }
 
-// @public (undocumented)
+// @public
 export class TilemapRenderSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -4963,7 +4947,6 @@ export interface TrailComponent extends Component {
 
 // @public
 export class TrailSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -5036,7 +5019,7 @@ export const TransitionRegistry: Record<string, ITransitionEffect>;
 // @public
 export type TriggerCallback<TRegistry extends ComponentRegistry = CoreComponentRegistry> = (world: World<TRegistry>, entityA: Entity, entityB: Entity) => void;
 
-// @public (undocumented)
+// @public
 export interface TTLComponent extends Component {
     onCompleteEvent?: string;
     remaining: number;
@@ -5047,7 +5030,6 @@ export interface TTLComponent extends Component {
 
 // @public
 export class TTLSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 

@@ -1,5 +1,6 @@
 import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils } from "@tiny-aster/core";
 import { Skia } from "./SkiaContext";
+import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
 
 /**
  * Returns screen dimensions and state for VFX drawers.
@@ -39,6 +40,7 @@ const NEBULA_CLOUD_COUNT = 4;
 const MATRIX_COLUMN_COUNT = 30;
 const ACCRETION_PARTICLE_COUNT = 15;
 const TRAIL_LENGTH = 10;
+const DISTANT_ASTEROID_COUNT = 12;
 
 // -------------------------------------------------------------
 // VFX World State Isolation & Structures
@@ -108,6 +110,20 @@ interface RingingPlanetState {
   moonCraters: { x: number; y: number; radius: number }[];
 }
 
+interface DistantAsteroid {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  rotation: number;
+  angularVelocity: number;
+  points: { x: number; y: number }[];
+  color: string;
+  skColor?: any;
+  skPath?: any;
+}
+
 interface VFXWorldState {
   stars: Star[];
   lines: SpeedLine[];
@@ -115,6 +131,7 @@ interface VFXWorldState {
   matrixColumns: MatrixColumn[];
   accretionParticles: AccretionParticle[];
   trailPoints: TrailPoint[];
+  distantAsteroids: DistantAsteroid[];
   planet?: RingingPlanetState;
   starsInitialized: boolean;
   warpLinesInitialized: boolean;
@@ -123,6 +140,7 @@ interface VFXWorldState {
   vortexInitialized: boolean;
   trailInitialized: boolean;
   planetInitialized: boolean;
+  distantAsteroidsInitialized: boolean;
   timePhase: number; // Incremented exactly once per render tick to be entity-independent
   cachedCRTGradient?: any; // Cached CanvasRadialGradient
   cachedSkiaShader?: any; // Cached Skia Shader
@@ -148,6 +166,7 @@ function getVFXState(world: World<any>): VFXWorldState {
       matrixColumns: [],
       accretionParticles: [],
       trailPoints: [],
+      distantAsteroids: [],
       starsInitialized: false,
       warpLinesInitialized: false,
       nebulaeInitialized: false,
@@ -155,6 +174,7 @@ function getVFXState(world: World<any>): VFXWorldState {
       vortexInitialized: false,
       trailInitialized: false,
       planetInitialized: false,
+      distantAsteroidsInitialized: false,
       timePhase: 0,
       lastWidth: 0,
       lastHeight: 0
@@ -395,6 +415,44 @@ function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
   state.planetInitialized = true;
 }
 
+function initializeDistantAsteroids(world: World<any>, state: VFXWorldState) {
+  const rng = world.renderRandom;
+  const colors = ["#4a4e69", "#3d5a80", "#2b2d42", "#5c677d"];
+
+  state.distantAsteroids = [];
+  for (let i = 0; i < DISTANT_ASTEROID_COUNT; i++) {
+    const { color, skColor } = pickColor(rng, colors);
+    const radius = rng.nextRange(8, 22);
+    const seed = rng.nextInt(0, 100000);
+    const points = computeAsteroidSilhouette(seed, radius, 9);
+
+    let skPath: any = null;
+    if (Skia && points.length > 0) {
+      skPath = Skia.Path.Make();
+      skPath.moveTo(points[0].x, points[0].y);
+      for (let p = 1; p < points.length; p++) {
+        skPath.lineTo(points[p].x, points[p].y);
+      }
+      skPath.close();
+    }
+
+    state.distantAsteroids.push({
+      x: rng.nextRange(0, 800),
+      y: rng.nextRange(0, 600),
+      vx: rng.nextRange(-0.25, -0.05),
+      vy: rng.nextRange(-0.08, 0.08),
+      radius,
+      rotation: rng.nextRange(0, Math.PI * 2),
+      angularVelocity: rng.nextRange(-0.01, 0.01),
+      points,
+      color,
+      skColor,
+      skPath
+    });
+  }
+  state.distantAsteroidsInitialized = true;
+}
+
 // =============================================================
 // I. ORIGINAL 5 EFFECTS (CANVAS & SKIA)
 // =============================================================
@@ -492,6 +550,105 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
       flickerPaint.setColor(Skia.Color("#ffffff"));
       flickerPaint.setAlphaf(0.005 + (randomFlicker - 0.95) * 0.15);
       canvas.drawRect(Skia.XYWHRect(0, 0, width, height), flickerPaint);
+    }
+
+    canvas.restore();
+  }
+};
+
+// -------------------------------------------------------------
+// 17. DistantAsteroidBeltBackgroundEffect (Canvas & Skia)
+// -------------------------------------------------------------
+export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+  draw(ctx, world) {
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.distantAsteroidsInitialized) {
+      initializeDistantAsteroids(world, state);
+    }
+
+    ctx.save();
+
+    for (let i = 0; i < state.distantAsteroids.length; i++) {
+      const ast = state.distantAsteroids[i];
+      ast.x += ast.vx;
+      ast.y += ast.vy;
+      ast.rotation += ast.angularVelocity;
+
+      if (ast.x < -ast.radius * 2) ast.x = width + ast.radius * 2;
+      if (ast.x > width + ast.radius * 2) ast.x = -ast.radius * 2;
+      if (ast.y < -ast.radius * 2) ast.y = height + ast.radius * 2;
+      if (ast.y > height + ast.radius * 2) ast.y = -ast.radius * 2;
+
+      ctx.save();
+      ctx.translate(ast.x, ast.y);
+      ctx.rotate(ast.rotation);
+
+      ctx.fillStyle = ast.color;
+      ctx.strokeStyle = "#8d99ae";
+      ctx.globalAlpha = 0.35;
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      if (ast.points.length > 0) {
+        ctx.moveTo(ast.points[0].x, ast.points[0].y);
+        for (let p = 1; p < ast.points.length; p++) {
+          ctx.lineTo(ast.points[p].x, ast.points[p].y);
+        }
+        ctx.closePath();
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+};
+
+export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+  draw(canvas, world) {
+    if (!Skia) return;
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.distantAsteroidsInitialized) {
+      initializeDistantAsteroids(world, state);
+    }
+
+    canvas.save();
+
+    const fillPaint = Skia.Paint();
+    fillPaint.setAlphaf(0.35);
+
+    const strokePaint = Skia.Paint();
+    strokePaint.setStyle(Skia.PaintStyle.Stroke);
+    strokePaint.setColor(Skia.Color("#8d99ae"));
+    strokePaint.setAlphaf(0.35);
+    strokePaint.setStrokeWidth(1);
+
+    for (let i = 0; i < state.distantAsteroids.length; i++) {
+      const ast = state.distantAsteroids[i];
+      ast.x += ast.vx;
+      ast.y += ast.vy;
+      ast.rotation += ast.angularVelocity;
+
+      if (ast.x < -ast.radius * 2) ast.x = width + ast.radius * 2;
+      if (ast.x > width + ast.radius * 2) ast.x = -ast.radius * 2;
+      if (ast.y < -ast.radius * 2) ast.y = height + ast.radius * 2;
+      if (ast.y > height + ast.radius * 2) ast.y = -ast.radius * 2;
+
+      canvas.save();
+      canvas.translate(ast.x, ast.y);
+      canvas.rotate((ast.rotation * 180) / Math.PI, 0, 0);
+
+      fillPaint.setColor(ast.skColor || Skia.Color("#4a4e69"));
+      fillPaint.setAlphaf(0.35);
+
+      if (ast.skPath) {
+        canvas.drawPath(ast.skPath, fillPaint);
+        canvas.drawPath(ast.skPath, strokePaint);
+      }
+
+      canvas.restore();
     }
 
     canvas.restore();

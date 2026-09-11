@@ -1,74 +1,62 @@
-# Campaign Demo Walkthrough
+# Campaign Mode Demo Walkthrough
 
-This document provides a step-by-step walkthrough to reproduce and verify the multi-game Campaign Mode narrative progression, branching choices, domain modifier resolution, and meta-progression rewards.
+This guide details step-by-step instructions for testing and validating Campaign Mode across both tactical paths.
 
 ---
 
-## 🚀 Setup & Launch
+## 🚀 Setup & Execution
 
-1. Install dependencies and start the app:
+1. **Install dependencies & start development server:**
    ```bash
    pnpm install
    pnpm start
    ```
-2. On the main menu, select **"STORY CAMPAIGN"**.
+
+2. **Run story graph validation:**
+   ```bash
+   pnpm run validate:story
+   ```
 
 ---
 
-## ⚔️ Path 1: Heroic Route (Flawless Victory)
+## 🛤️ Path 1: Heroic Tactical Route
 
-1. **Act 1 - Orbital Deployment:**
-   - Read the introductory dialogue with AI ODYSSEY 7.
-   - Launch Act 1: **Asteroids** (`poc-asteroids-1`).
-   - Achieve 1,000+ points or destroy 3 asteroid waves without taking fatal damage.
-   - The outcome rule evaluates `asteroidsPerfect: true`, setting flag `heroicEntry = true`.
-
-2. **Tactical Choice:**
-   - On the tactical bridge node (`narrative_bridge_choice`), select **"Intercept Flotilla (Space Invaders)"**.
-   - Flag `route_space_invaders = true` is recorded.
-
-3. **Act 2 - Space Invaders:**
-   - Active encounter: `poc-space-invaders-1`.
-   - Modifier rule check: because `heroicEntry == true`, `MiniGameModifierResolver` applies `extraLives: 0` (high difficulty).
-   - Defeat 2 invader waves. Outcome rule evaluates `spaceinvadersScore >= 2000`, setting `reinforcementsReceived = true`.
-
-4. **Act 3 Climax & Terminal Ending:**
-   - Proceed to Act 3 Climax: **Asteroids Redux** (`poc-asteroids-redux-1`).
-   - Clear the final sector.
-   - Branch evaluator routes to `ending_flawless` (`isEndNode = true`).
-   - `MetaProgressionService` records run completion for `ending_flawless` and unlocks modifier `"hyper_drift"`.
+1. **Select Campaign Mode** on main menu.
+2. **Read Intro Dialogue**: AI Odyssey 7 reports sector threat.
+3. **Play Act 1 (Asteroids)**:
+   - Perform clean clearance without losing lives (`heroicEntry = true`).
+4. **Dialogue Choice**: Select **"Intercept Flota de Invasores (Space Invaders)"**.
+5. **Play Act 2 (Space Invaders)**:
+   - Notice `⚔️ HEROIC MODE ACTIVE` badge. Space Invaders runs without extra lives buffer (`extraLives: 0`).
+6. **Complete Objective**: Repel 2 invader waves.
+7. **Play Act 3 (Asteroids Climax)**:
+   - Defeat final sector.
+8. **Ending**: Receive **Ending: Flawless Victory** (`ending_flawless`).
+9. **Metaprogression**: Verify run completion recorded and `hyper_drift` mutator reward unlocked.
 
 ---
 
-## 🛡️ Path 2: Support Route (Pyrrhic Victory)
+## 🛤️ Path 2: Support / Tactical Assist Route
 
-1. **Act 1 - Assisted Deployment:**
-   - Complete Act 1: **Asteroids** with assisted performance (`heroicEntry = false`).
-
-2. **Tactical Choice:**
-   - On the tactical choice node, select **"Navigate Debris Channel (Flappy Bird)"**.
-   - Flag `route_flappy_bird = true` is recorded.
-
-3. **Act 2 - Flappy Bird:**
-   - Active encounter: `poc-flappybird-1`.
-   - Modifier rule check: because `heroicEntry == false`, `MiniGameModifierResolver` applies tactical assist buffs (`thrustAssist: true`).
-   - Pass 10 debris pipe structures.
-
-4. **Act 3 Climax & Terminal Ending:**
-   - Proceed to Act 3 Climax: **Space Invaders Redux** (`poc-spaceinvaders-redux-1`).
-   - Repel the final fleet.
-   - Branch evaluator routes to `ending_pyrrhic` (`isEndNode = true`).
-   - `MetaProgressionService` records run completion for `ending_pyrrhic` and unlocks modifier `"shield_pulse"`.
+1. **Select Campaign Mode** on main menu.
+2. **Read Intro Dialogue**: AI Odyssey 7 reports sector threat.
+3. **Play Act 1 (Asteroids)**:
+   - Fail or take heavy damage (`heroicEntry = false`).
+4. **Dialogue Choice**: Select **"Navegar Canal de Escombros (Flappy Bird)"**.
+5. **Play Act 2 (Flappy Bird)**:
+   - Notice `🛡️ TACTICAL ASSIST ACTIVE` badge and navigation buff applied.
+6. **Complete Objective**: Navigate through 10 debris pipe obstacles.
+7. **Play Act 3 (Space Invaders Climax)**:
+   - Repel final heavy fleet.
+8. **Ending**: Receive **Ending: Pyrrhic Victory** (`ending_pyrrhic`).
 
 ---
 
 ## ✅ Verification Checklist
 
-- [x] **Pipeline Unification:** `CampaignScreen` submits gameplay results exclusively through `ArcadeOrchestrator.submitResult()`.
-- [x] **Encounter Resolution:** `MiniGameEncounterRegistry` resolves encounters dynamically without hardcoded gameId `if/else` checks.
-- [x] **Domain Modifiers:** Narrative flags (`heroicEntry`) translate to minigame domain modifiers (`extraLives`, `navigationAssist`).
-- [x] **Real Telemetry:** `BaseGame.getMiniGameResult()` constructs real scores, durations, and metrics without heuristics.
-- [x] **Localization:** Dialogue, cutscenes, and choices pass through `getLocalizedText()` using `src/locales/en.ts` and `es.ts`.
-- [x] **Accessibility:** All UI buttons contain `accessibilityRole="button"`, `accessibilityLabel`, and `accessibilityHint`.
-- [x] **Cutscene Rendering:** `type: "cutscene"` nodes display speaker names and italicized dialogue lines.
-- [x] **Checkpoint Restoration:** Retry after failure invokes `StoryRuntime.forkAt(checkpointId)` to eliminate ghost state.
+- [x] Story campaign pipeline uses single `ArcadeOrchestrator.submitResult()` entrypoint.
+- [x] Narrative flags correctly compute and pass modifiers into `switchGame()`.
+- [x] All buttons have accessibility labels, roles, and hints.
+- [x] Cutscenes display dialogue queue lines without blank screens.
+- [x] Save and Load operate cleanly across story runtime and metaprogression.
+- [x] Retry restores checkpoint state via `runtime.forkAt(checkpointId)`.

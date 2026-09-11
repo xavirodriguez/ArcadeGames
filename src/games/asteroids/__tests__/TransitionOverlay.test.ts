@@ -13,7 +13,7 @@ describe('Aesthetic Improvements Infrastructure Tests', () => {
     expect(asteroidsAccents.accent).toBe('#ef4444');
 
     const spaceInvadersAccents = getGameAccentColors('space-invaders');
-    expect(spaceInvadersAccents.primary).toBe('#00ff66');
+    expect(spaceInvadersAccents.primary).toBe('#00FF41');
     expect(spaceInvadersAccents.secondary).toBe('#fbbf24');
     expect(spaceInvadersAccents.accent).toBe('#ff0088');
   });

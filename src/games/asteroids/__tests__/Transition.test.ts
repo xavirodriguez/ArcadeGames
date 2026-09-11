@@ -36,10 +36,10 @@ describe('Arcade Transitions & Game Accents Integration', () => {
     expect(asteroidsColors.accent).toBe('#ef4444');
 
     const spaceInvadersColors = getGameAccentColors('space-invaders');
-    expect(spaceInvadersColors.primary).toBe('#00ff66');
+    expect(spaceInvadersColors.primary).toBe('#00FF41');
 
     const flappyBirdColors = getGameAccentColors('flappy-bird');
-    expect(flappyBirdColors.primary).toBe('#ff0055');
+    expect(flappyBirdColors.primary).toBe('#FF006E');
 
     const pongColors = getGameAccentColors('pong');
     expect(pongColors.primary).toBe('#ffffff');

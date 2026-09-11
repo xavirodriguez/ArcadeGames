@@ -51,6 +51,9 @@ import {
 
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem, PowerUpRegistry } from "@tiny-aster/gameplay-kit";
+import { MissionSystem } from "../shared/missions/MissionSystem";
+import { ASTEROIDS_MINI_MISSIONS } from "./AsteroidsMissions";
+import { MutatorRegistry } from "../../utils/MutatorRegistry";
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -84,6 +87,7 @@ export class AsteroidsGame
   implements IAsteroidsGame, INetworkGame {
 
   private gameStateSystem!: AsteroidGameStateSystem;
+  private missionSystem!: MissionSystem;
   private assetLoader!: AssetLoader;
   private bulletPool!: BulletPool;
   private particlePool!: ParticlePool;
@@ -188,6 +192,27 @@ export class AsteroidsGame
     this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
+    this.missionSystem = new MissionSystem();
+    this.world.addSystem(this.missionSystem, { phase: SystemPhase.GameRules });
+
+    this.eventBus.on("mission:completed", (event: any) => {
+      if (this.world.isReSimulating) return;
+      if (event?.reward?.scoreBonus) {
+        const gs = this.world.getSingleton("GameState");
+        if (gs) {
+          this.world.mutateSingleton("GameState", (state) => {
+            state.score += event.reward.scoreBonus;
+          });
+        }
+      }
+      if (event?.reward?.mutatorId) {
+        const mutator = MutatorRegistry.get(event.reward.mutatorId);
+        if (mutator) {
+          mutator.apply(this.world);
+        }
+      }
+    });
+
     if (this.mode === "story") {
       const graph = (this._config.gameOptions as { graphOverride?: StoryGraph })?.graphOverride || asteroidsStoryGraph;
       const storyRuntime = new StoryRuntime(graph);
@@ -282,6 +307,12 @@ export class AsteroidsGame
 
         // Spawn first wave
         spawnAsteroidWave(this.world, 1);
+
+        // Initialize active minimission for Level 1
+        if (this.missionSystem) {
+          const selectedMission = ASTEROIDS_MINI_MISSIONS[0];
+          this.missionSystem.setActiveMission(this.world, selectedMission);
+        }
     } finally {
         this.world.gameplayRandom.lock();
     }

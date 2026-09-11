@@ -10,9 +10,9 @@
   },
   "scripts": {
     "build": "tsc",
-    "generate": "node --import node-web-audio-api/polyfill.js dist/cli.js generate --pack",
-    "generate:js-polyfill": "node --import web-audio-api/polyfill dist/cli.js generate --pack",
-    "generate:example": "node --import node-web-audio-api/polyfill.js dist/cli.js generate examples/arcade.js",
+    "generate": "node --import ./scripts/node-audio-polyfill.mjs dist/cli.js generate --pack",
+    "generate:js-polyfill": "node --import ./scripts/node-audio-polyfill.mjs dist/cli.js generate --pack",
+    "generate:example": "node --import ./scripts/node-audio-polyfill.mjs dist/cli.js generate examples/arcade.js",
     "test": "node --test",
     "typecheck": "tsc --noEmit"
   },
@@ -40,6 +40,7 @@
   },
   "files": [
     "dist",
+    "scripts",
     "README.md"
   ]
 }

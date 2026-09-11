@@ -41,6 +41,7 @@ const MATRIX_COLUMN_COUNT = 30;
 const ACCRETION_PARTICLE_COUNT = 15;
 const TRAIL_LENGTH = 10;
 const DISTANT_ASTEROID_COUNT = 12;
+const MILKY_WAY_DUST_PARTICLE_COUNT = 25;
 
 // -------------------------------------------------------------
 // VFX World State Isolation & Structures
@@ -96,6 +97,22 @@ interface TrailPoint {
   alpha: number;
 }
 
+interface MilkyWayDustParticle {
+  x: number;
+  y: number;
+  size: number;
+  alpha: number;
+  twinklePhase: number;
+  twinkleSpeed: number;
+  color: string;
+  skColor?: any;
+}
+
+interface MilkyWayBandState {
+  angle: number;
+  particles: MilkyWayDustParticle[];
+}
+
 interface RingingPlanetState {
   x: number;
   y: number;
@@ -133,6 +150,7 @@ interface VFXWorldState {
   trailPoints: TrailPoint[];
   distantAsteroids: DistantAsteroid[];
   planet?: RingingPlanetState;
+  milkyWay?: MilkyWayBandState;
   starsInitialized: boolean;
   warpLinesInitialized: boolean;
   nebulaeInitialized: boolean;
@@ -141,6 +159,7 @@ interface VFXWorldState {
   trailInitialized: boolean;
   planetInitialized: boolean;
   distantAsteroidsInitialized: boolean;
+  milkyWayInitialized: boolean;
   timePhase: number; // Incremented exactly once per render tick to be entity-independent
   cachedCRTGradient?: any; // Cached CanvasRadialGradient
   cachedSkiaShader?: any; // Cached Skia Shader
@@ -148,6 +167,8 @@ interface VFXWorldState {
   cachedPlanetSkiaShader?: any; // Cached Skia Shader for Ringing Planet
   cachedRingGradient?: any; // Cached CanvasLinearGradient for Planet Rings
   cachedRingSkiaShader?: any; // Cached Skia Shader for Planet Rings
+  cachedMilkyWayGradient?: any; // Cached CanvasLinearGradient for Diffuse Milky Way
+  cachedMilkyWaySkiaShader?: any; // Cached Skia Shader for Diffuse Milky Way
   lastWidth: number;
   lastHeight: number;
   lastCRTWidth?: number;
@@ -175,6 +196,7 @@ function getVFXState(world: World<any>): VFXWorldState {
       trailInitialized: false,
       planetInitialized: false,
       distantAsteroidsInitialized: false,
+      milkyWayInitialized: false,
       timePhase: 0,
       lastWidth: 0,
       lastHeight: 0
@@ -193,7 +215,9 @@ type CachedVFXKey =
   | "cachedPlanetGradient"
   | "cachedPlanetSkiaShader"
   | "cachedRingGradient"
-  | "cachedRingSkiaShader";
+  | "cachedRingSkiaShader"
+  | "cachedMilkyWayGradient"
+  | "cachedMilkyWaySkiaShader";
 
 function getOrCreateCached<T>(
   state: VFXWorldState,
@@ -363,6 +387,33 @@ function initializeVortex(world: World<any>, state: VFXWorldState) {
     });
   }
   state.vortexInitialized = true;
+}
+
+function initializeMilkyWay(world: World<any>, state: VFXWorldState) {
+  const rng = world.renderRandom;
+  const angle = rng.nextRange(-0.4, -0.2);
+  const colors = ["#ffffff", "#b8c0ff", "#e0aaff", "#ffd6ff", "#9bf6ff"];
+
+  const particles: MilkyWayDustParticle[] = [];
+  for (let i = 0; i < MILKY_WAY_DUST_PARTICLE_COUNT; i++) {
+    const { color, skColor } = pickColor(rng, colors);
+    particles.push({
+      x: rng.nextRange(-200, 1000),
+      y: rng.nextRange(-80, 80),
+      size: rng.nextRange(1.0, 2.8),
+      alpha: rng.nextRange(0.3, 0.8),
+      twinklePhase: rng.nextRange(0, Math.PI * 2),
+      twinkleSpeed: rng.nextRange(0.01, 0.05),
+      color,
+      skColor
+    });
+  }
+
+  state.milkyWay = {
+    angle,
+    particles
+  };
+  state.milkyWayInitialized = true;
 }
 
 function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
@@ -550,6 +601,124 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
       flickerPaint.setColor(Skia.Color("#ffffff"));
       flickerPaint.setAlphaf(0.005 + (randomFlicker - 0.95) * 0.15);
       canvas.drawRect(Skia.XYWHRect(0, 0, width, height), flickerPaint);
+    }
+
+    canvas.restore();
+  }
+};
+
+// -------------------------------------------------------------
+// 18. DiffuseMilkyWayBackgroundEffect (Canvas & Skia)
+// -------------------------------------------------------------
+export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+  draw(ctx, world) {
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.milkyWayInitialized) {
+      initializeMilkyWay(world, state);
+    }
+    const milkyWay = state.milkyWay;
+    if (!milkyWay) return;
+
+    ctx.save();
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const bandHeight = 220;
+
+    ctx.translate(centerX, centerY);
+    ctx.rotate(milkyWay.angle);
+
+    // Reuse/cache radial/linear gradient across frame iterations via getOrCreateCached helper
+    const gradient = getOrCreateCached(state, "cachedMilkyWayGradient", width, height, () => {
+      const grad = ctx.createLinearGradient(0, -bandHeight / 2, 0, bandHeight / 2);
+      grad.addColorStop(0, "rgba(80, 40, 120, 0)");
+      grad.addColorStop(0.2, "rgba(90, 50, 140, 0.08)");
+      grad.addColorStop(0.5, "rgba(140, 90, 190, 0.18)");
+      grad.addColorStop(0.8, "rgba(90, 50, 140, 0.08)");
+      grad.addColorStop(1, "rgba(80, 40, 120, 0)");
+      return grad;
+    });
+
+    // Soft galactic dust band glow
+    ctx.fillStyle = gradient;
+    ctx.fillRect(-width, -bandHeight / 2, width * 2, bandHeight);
+
+    // Inner bright core stream
+    ctx.fillStyle = "rgba(220, 200, 255, 0.05)";
+    ctx.fillRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3);
+
+    // Embedded star dust particles along galactic plane
+    for (let i = 0; i < milkyWay.particles.length; i++) {
+      const p = milkyWay.particles[i];
+      p.twinklePhase += p.twinkleSpeed;
+      const twinkle = 0.5 + 0.5 * Math.sin(p.twinklePhase);
+
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.alpha * twinkle;
+      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    }
+
+    ctx.restore();
+  }
+};
+
+export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+  draw(canvas, world) {
+    if (!Skia) return;
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.milkyWayInitialized) {
+      initializeMilkyWay(world, state);
+    }
+    const milkyWay = state.milkyWay;
+    if (!milkyWay) return;
+
+    canvas.save();
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const bandHeight = 220;
+
+    canvas.translate(centerX, centerY);
+    canvas.rotate((milkyWay.angle * 180) / Math.PI, 0, 0);
+
+    const shader = getOrCreateCached(state, "cachedMilkyWaySkiaShader", width, height, () => {
+      return Skia.Shader.MakeLinearGradient(
+        Skia.Point(0, -bandHeight / 2),
+        Skia.Point(0, bandHeight / 2),
+        [
+          Skia.Color("rgba(80, 40, 120, 0)"),
+          Skia.Color("rgba(90, 50, 140, 0.08)"),
+          Skia.Color("rgba(140, 90, 190, 0.18)"),
+          Skia.Color("rgba(90, 50, 140, 0.08)"),
+          Skia.Color("rgba(80, 40, 120, 0)")
+        ],
+        [0.0, 0.2, 0.5, 0.8, 1.0],
+        Skia.TileMode.Clamp
+      );
+    });
+
+    const bandPaint = Skia.Paint();
+    bandPaint.setShader(shader);
+    canvas.drawRect(Skia.XYWHRect(-width, -bandHeight / 2, width * 2, bandHeight), bandPaint);
+
+    // Inner bright core stream
+    const corePaint = Skia.Paint();
+    corePaint.setColor(Skia.Color("rgba(220, 200, 255, 0.05)"));
+    canvas.drawRect(Skia.XYWHRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3), corePaint);
+
+    // Embedded star dust particles
+    const particlePaint = Skia.Paint();
+    for (let i = 0; i < milkyWay.particles.length; i++) {
+      const p = milkyWay.particles[i];
+      p.twinklePhase += p.twinkleSpeed;
+      const twinkle = 0.5 + 0.5 * Math.sin(p.twinklePhase);
+
+      particlePaint.setColor(p.skColor || Skia.Color("#ffffff"));
+      particlePaint.setAlphaf(p.alpha * twinkle);
+      canvas.drawRect(
+        Skia.XYWHRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size),
+        particlePaint
+      );
     }
 
     canvas.restore();

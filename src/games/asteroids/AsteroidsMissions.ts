@@ -1,5 +1,6 @@
-import { World, TransformComponent } from "@tiny-aster/core";
+import { World, TransformComponent, ComboComponent } from "@tiny-aster/core";
 import { MissionDefinition, ActiveMissionState } from "../shared/missions/MissionTypes";
+import { GameStateComponent } from "./types/AsteroidTypes";
 
 /**
  * Registry of the 12 Asteroids minimissions.
@@ -76,7 +77,7 @@ export const ASTEROIDS_MINI_MISSIONS: MissionDefinition[] = [
       state.customData = { surviveTimer: 0 };
     },
     onUpdate: (world, state, deltaTime) => {
-      const gs = world.getSingleton("GameState") as any;
+      const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
       if (!gs) return;
 
       if (gs.lives === 1) {
@@ -174,7 +175,7 @@ export const ASTEROIDS_MINI_MISSIONS: MissionDefinition[] = [
     onUpdate: (world, state) => {
       const combos = world.query("Combo");
       if (combos.length > 0) {
-        const c = world.getComponent(combos[0], "Combo") as any;
+        const c = world.getComponent(combos[0], "Combo") as ComboComponent | undefined;
         if (c) {
           state.currentCount = c.multiplier;
           if (c.multiplier >= 5) {
@@ -199,7 +200,7 @@ export const ASTEROIDS_MINI_MISSIONS: MissionDefinition[] = [
     onUpdate: (world, state, deltaTime) => {
       const combos = world.query("Combo");
       if (combos.length > 0) {
-        const c = world.getComponent(combos[0], "Combo") as any;
+        const c = world.getComponent(combos[0], "Combo") as ComboComponent | undefined;
         if (c && c.multiplier >= 3) {
           state.customData.holdTimer += deltaTime;
           state.currentCount = Math.min(8, Math.floor(state.customData.holdTimer));
@@ -289,7 +290,7 @@ export const ASTEROIDS_MINI_MISSIONS: MissionDefinition[] = [
     titleKey: "missions.doble_amenaza.title",
     descriptionKey: "missions.doble_amenaza.description",
     title: "Doble Amenaza",
-    description: "Destruye un UFO y un asteroide grande en menos de 10s (o 2 asteroides grandes si no hay UFO).",
+    description: "Destruye un UFO y un asteroide grande en menos de 10s (or 2 asteroides grandes si no hay UFO).",
     conditionType: "composite",
     targetCount: 2,
     eventKeys: ["asteroid:destroyed", "combat:death"],

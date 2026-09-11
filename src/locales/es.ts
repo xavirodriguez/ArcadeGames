@@ -11,6 +11,7 @@ export const es = {
     blindstation: "LA ESTACIÓN CIEGA",
     platformer: "PLATAFORMAS // 2D",
     frogger: "FROGGER // CROSSING",
+    arkanoid: "ARKANOID",
     campaign: "CAMPAÑA HISTORIA",
     level: "NIVEL",
   },

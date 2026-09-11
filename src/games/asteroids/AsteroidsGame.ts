@@ -394,6 +394,10 @@ export class AsteroidsGame
     }
   }
 
+  public getMissionSystem(): MissionSystem {
+    return this.missionSystem;
+  }
+
   public getGameState(): GameStateComponent {
     const state = this.world.getSingleton("GameState");
     if (!state) return INITIAL_GAME_STATE;

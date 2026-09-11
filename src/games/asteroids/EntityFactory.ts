@@ -281,6 +281,54 @@ export function registerAsteroidsBlueprints(
     }
   });
 
+  registry.register("ufo", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx?: number; vy?: number }) => {
+      const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      const tint = resolveThemeColor(w, "ufo", "enemy") || "#ff0055";
+
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          dirty: true
+        })
+        .withVelocity({
+          vx: args.vx ?? 120,
+          vy: args.vy ?? 0
+        })
+        .withRender({
+          shape: "ufo",
+          size: 18,
+          color: tint,
+          order: 3
+        })
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 18 } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents();
+
+      w.addComponent(entity, {
+        type: "Ufo"
+      } as AsteroidsComponentRegistry["Ufo"]);
+
+      w.addComponent(entity, {
+        type: "Boundary",
+        width: screen.width,
+        height: screen.height,
+        mode: "wrap"
+      } as BoundaryComponent);
+
+      attachEnemyDefaults(w, entity, {
+        currentHp: 2,
+        maxHp: 2,
+        faction: "enemy",
+        tableId: "ufo"
+      });
+    }
+  });
+
   world.setResource("BlueprintRegistry", registry);
 }
 
@@ -425,6 +473,33 @@ export function createBullet(
  * @public
  * @remarks Thin wrapper around the "asteroid" blueprint.
  */
+/**
+ * Factory function to spawn a UFO entity.
+ * Emits "ufo:spawned" on eventBus upon spawn.
+ * @public
+ */
+export const createUfo = (config: {
+  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
+  x: number;
+  y: number;
+  vx?: number;
+  vy?: number;
+}): number => {
+  const entity = spawnBlueprintEntity(config.world, "ufo", {
+    x: config.x,
+    y: config.y,
+    vx: config.vx,
+    vy: config.vy
+  });
+
+  const eventBus = config.world.getEventBus();
+  if (eventBus) {
+    eventBus.emit("ufo:spawned", { entity });
+  }
+
+  return entity;
+};
+
 export const createAsteroid = (config: {
     world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
     x: number;

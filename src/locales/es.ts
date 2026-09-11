@@ -59,6 +59,56 @@ export const es = {
   asteroids: {
     instructions: "↑ Empujar  ←→ Rotar  Espacio Disparar  Shift Hiperspacio",
   },
+  missions: {
+    rey_del_caos: {
+      title: "Rey del Caos",
+      description: "Genera una nube de escombros y permanece dentro de su radio durante 5 segundos.",
+    },
+    supervivencia_extrema: {
+      title: "Supervivencia Extrema",
+      description: "Llega a 1 vida y sobrevive durante 15 segundos sin morir.",
+    },
+    caza_cercana: {
+      title: "Caza Cercana",
+      description: "Destruye un asteroide grande a menos de 100px de distancia de tu nave.",
+    },
+    contra_el_reloj: {
+      title: "Contra el Reloj",
+      description: "Destruye 6 asteroides en menos de 20 segundos.",
+    },
+    maestro_multiplicador: {
+      title: "Maestro del Multiplicador",
+      description: "Alcanza un multiplicador de combo de x5 sin reiniciar el combo.",
+    },
+    precision_bajo_presion: {
+      title: "Precisión Bajo Presión",
+      description: "Mantén un multiplicador >= x3 durante 8 segundos consecutivos.",
+    },
+    cazador_nucleos: {
+      title: "Cazador de Núcleos",
+      description: "Destruye 5 asteroides y recolecta 2 power-ups.",
+    },
+    nave_fantasma: {
+      title: "Nave Fantasma",
+      description: "Sobrevive 15 segundos sin disparar una sola bala.",
+    },
+    bailarin_espacial: {
+      title: "Bailarín Espacial",
+      description: "Usa el salto al hiperspacio 3 veces sin morir.",
+    },
+    doble_amenaza: {
+      title: "Doble Amenaza",
+      description: "Destruye un UFO y un asteroide grande en menos de 10s (o 2 asteroides grandes si no hay UFO).",
+    },
+    escudo_perfecto: {
+      title: "Escudo Perfecto",
+      description: "Sobrevive los 5s de un escudo mientras absorbes un impacto.",
+    },
+    escudo_ofensivo: {
+      title: "Escudo Ofensivo",
+      description: "Destruye 3 asteroides mientras tienes el escudo de invulnerabilidad activo.",
+    },
+  },
   pong: {
     instructions: "P1: W/S  P2: Flechas",
     local_mode: "Modo Local",

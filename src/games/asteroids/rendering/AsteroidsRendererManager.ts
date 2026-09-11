@@ -13,12 +13,14 @@ import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import {
   drawAsteroidsPlayerShip as canvasDrawAsteroidsPlayerShip,
   drawAsteroidsAsteroid as canvasDrawAsteroidsAsteroid,
-  drawAsteroidsBullet as canvasDrawAsteroidsBullet
+  drawAsteroidsBullet as canvasDrawAsteroidsBullet,
+  drawAsteroidsMissionHUD as canvasDrawAsteroidsMissionHUD
 } from "./AsteroidsCanvasVisuals";
 import {
   drawSkiaAsteroidsPlayerShip as skiaDrawAsteroidsPlayerShip,
   drawSkiaAsteroidsAsteroid as skiaDrawAsteroidsAsteroid,
-  drawSkiaAsteroidsBullet as skiaDrawAsteroidsBullet
+  drawSkiaAsteroidsBullet as skiaDrawAsteroidsBullet,
+  drawSkiaAsteroidsMissionHUD as skiaDrawAsteroidsMissionHUD
 } from "./AsteroidsSkiaVisuals";
 
 import { Skia } from "../../shared/rendering/SkiaContext";
@@ -36,11 +38,13 @@ export const initializeAsteroidsRenderer = (renderer: Renderer<AsteroidsComponen
       r.registerShape("player_ship", canvasDrawAsteroidsPlayerShip);
       r.registerShape("asteroid", canvasDrawAsteroidsAsteroid);
       r.registerShape("bullet", canvasDrawAsteroidsBullet);
+      r.registerBackgroundEffect("mission_hud", canvasDrawAsteroidsMissionHUD);
     },
     skia: (r) => {
       r.registerShape("player_ship", skiaDrawAsteroidsPlayerShip);
       r.registerShape("asteroid", skiaDrawAsteroidsAsteroid);
       r.registerShape("bullet", skiaDrawAsteroidsBullet);
+      r.registerBackgroundEffect("mission_hud", skiaDrawAsteroidsMissionHUD);
     }
   });
 };

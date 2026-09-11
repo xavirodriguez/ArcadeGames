@@ -9,6 +9,11 @@ config.isCSSEnabled = true;
 // Skia web support
 config.resolver.sourceExts.push('skia');
 
+// Serve CanvasKit WASM as a static asset (setup-skia-web copies it to public/)
+if (!config.resolver.assetExts.includes('wasm')) {
+  config.resolver.assetExts.push('wasm');
+}
+
 // Map ws to a mock in frontend builds to avoid resolving Node-specific stream module using custom resolver
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === 'ws') {

@@ -8,6 +8,12 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
  * @public
  */
 export class TrailSystem extends System<CoreComponentRegistry> {
+  /**
+   * Records current entity transform coordinates into trail ring buffer history points.
+   *
+   * @param world - The ECS world containing active entities.
+   * @param deltaTime - Elapsed frame duration in seconds.
+   */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.isReSimulating) return;
     if (world.getResource("IsPaused") === true) return;

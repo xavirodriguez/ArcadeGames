@@ -9,6 +9,12 @@ import { getGameplaySystemContextAndEntities } from "./systemHelpers";
  * @public
  */
 export class CollectibleSystem extends System<CoreComponentRegistry> {
+  /**
+   * Detects player trigger overlaps with collectible entities, updates run state history, and schedules entity removal.
+   *
+   * @param world - The ECS world containing active entities.
+   * @param _deltaTime - Elapsed frame duration in seconds (unused).
+   */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     const ctx = getGameplaySystemContextAndEntities(world, "Collectible");
     if (!ctx) return;

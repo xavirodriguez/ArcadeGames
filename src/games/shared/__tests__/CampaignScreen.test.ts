@@ -1,6 +1,6 @@
 import React from "react";
 import { CampaignScreen } from "../../../components/CampaignScreen";
-import { GameDefinitionRegistry, CampaignGameResolver } from "@tiny-aster/core";
+import { GameDefinitionRegistry, CampaignGameResolver, BaseGame } from "@tiny-aster/core";
 import { registerDefaultCampaignGames } from "../../../services/CampaignGameRegistryService";
 import { proofOfConceptStoryGraph } from "../story/ProofOfConceptStoryGraph";
 
@@ -100,7 +100,7 @@ describe("CampaignScreen Component & Resolver Tests", () => {
 
   it("calculates dynamic durationMs on BaseGame.getMiniGameResult based on session start time", async () => {
     const def = GameDefinitionRegistry.resolve("asteroids");
-    const game = def.createSimulation(12345) as any;
+    const game = def.createSimulation(12345) as BaseGame;
     await game.init();
 
     // Allow time to elapse

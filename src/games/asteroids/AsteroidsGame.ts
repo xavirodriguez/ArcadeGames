@@ -51,6 +51,8 @@ import {
 
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem, PowerUpRegistry } from "@tiny-aster/gameplay-kit";
+import { MissionSystem } from "../shared/missions/MissionSystem";
+import { ASTEROIDS_MISSIONS, ALL_ASTEROIDS_MISSIONS } from "./AsteroidsMissions";
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -187,6 +189,12 @@ export class AsteroidsGame
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
+
+    const selectedMissionId = (this._config.gameOptions as any)?.selectedMission;
+    const initialMission = selectedMissionId && ASTEROIDS_MISSIONS[selectedMissionId]
+      ? ASTEROIDS_MISSIONS[selectedMissionId]
+      : ALL_ASTEROIDS_MISSIONS[0];
+    this.world.addSystem(new MissionSystem(initialMission), { phase: SystemPhase.GameRules });
 
     if (this.mode === "story") {
       const graph = (this._config.gameOptions as { graphOverride?: StoryGraph })?.graphOverride || asteroidsStoryGraph;

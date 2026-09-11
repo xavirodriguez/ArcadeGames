@@ -264,8 +264,81 @@ export function registerAsteroidsBlueprints(
     }
   });
 
+  registry.register("ufo", {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size?: "large" | "small"; vx?: number; vy?: number }) => {
+      const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      const tint = resolveThemeColor(w, "ufo", "enemy");
+      const ufoSize = args.size ?? "large";
+      const radius = ufoSize === "large" ? 18 : 10;
+      const speed = ufoSize === "large" ? 100 : 160;
+
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          dirty: true
+        })
+        .withVelocity({
+          vx: args.vx ?? (w.gameplayRandom.next() > 0.5 ? speed : -speed),
+          vy: args.vy ?? (w.gameplayRandom.next() - 0.5) * (speed * 0.5)
+        })
+        .withRender({
+          shape: "ufo",
+          size: radius * 2,
+          color: tint
+        })
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius } as CircleShape,
+          layer: CollisionLayers.ENEMY,
+          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+        })
+        .withCollisionEvents();
+
+      w.addComponent(entity, {
+        type: "Ufo",
+        size: ufoSize
+      } as AsteroidsComponentRegistry["Ufo"]);
+
+      w.addComponent(entity, {
+        type: "Boundary",
+        width: screen.width,
+        height: screen.height,
+        mode: "wrap"
+      } as BoundaryComponent);
+
+      attachEnemyDefaults(w, entity, {
+        currentHp: ufoSize === "large" ? 2 : 1,
+        maxHp: ufoSize === "large" ? 2 : 1,
+        faction: "enemy"
+      });
+
+      const eventBus = w.getEventBus();
+      if (eventBus) {
+        eventBus.emitDeferred("ufo:spawned", { entity });
+      }
+    }
+  });
+
   world.setResource("BlueprintRegistry", registry);
 }
+
+/** @public */
+export const createUfo = (config: {
+  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
+  x: number;
+  y: number;
+  size?: "large" | "small";
+  vx?: number;
+  vy?: number;
+}): number => {
+  return spawnBlueprintEntity(config.world, "ufo", {
+    x: config.x,
+    y: config.y,
+    size: config.size,
+    vx: config.vx,
+    vy: config.vy
+  });
+};
 
 
 // TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa

@@ -467,22 +467,10 @@ export class AsteroidsGame
     }
   }
 
-  protected override onStart(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation started");
-  }
-
   public override destroy(): void {
     super.destroy();
     this.bulletPool?.clear();
     this.particlePool?.clear();
-  }
-
-  protected override onPause(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation paused");
-  }
-
-  protected override onResume(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation resumed");
   }
 
 }

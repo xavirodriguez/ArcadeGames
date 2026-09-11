@@ -178,7 +178,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     const registerCollectibleBlueprint = (
       id: string,
       kind: string,
-      value: number
+      value: number,
+      size = 16
     ) => {
       this.blueprints.register(id, {
         spawn: (world, entity, args: { x: number; y: number; id: string }) => {
@@ -186,7 +187,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
             .withTransform({ x: args.x, y: args.y })
             .withRender({
               shape: "fragment",
-              size: 16,
+              size,
               order: 1
             });
 

@@ -393,6 +393,15 @@ export interface InputStateComponent extends Component {
 /**
  * Definition structure for a sprite frame animation sequence.
  *
+ * @example
+ * ```ts
+ * const runAnim: AnimationDefinition = {
+ *   frames: [0, 1, 2, 3],
+ *   frameRate: 12,
+ *   loop: true
+ * };
+ * ```
+ *
  * @public
  */
 export interface AnimationDefinition {
@@ -481,6 +490,21 @@ export interface StateMachineComponent extends Component {
 
 /**
  * Configuration parameters for spawning particle emitters.
+ *
+ * @example
+ * ```ts
+ * const emitterConfig: ParticleEmitterConfig = {
+ *   type: "spark",
+ *   x: 100,
+ *   y: 100,
+ *   count: 20,
+ *   burst: true,
+ *   rate: 10,
+ *   speed: [50, 150],
+ *   lifetime: [0.2, 0.8]
+ * };
+ * ```
+ *
  * @public
  */
 export interface ParticleEmitterConfig {
@@ -514,6 +538,18 @@ export interface ParticleEmitterConfig {
 
 /**
  * Component managing particle emission state and parameters.
+ *
+ * @example
+ * ```ts
+ * const emitter: ParticleEmitterComponent = {
+ *   type: "ParticleEmitter",
+ *   config: emitterConfig,
+ *   active: true,
+ *   elapsed: 0
+ * };
+ * world.addComponent(entity, emitter);
+ * ```
+ *
  * @public
  */
 export interface ParticleEmitterComponent extends Component {
@@ -1009,6 +1045,17 @@ export interface HapticRequestComponent<TPattern extends string = string> extend
  *
  * @remarks
  * Defines interpolation properties for procedural scale, bounce, flash, or custom component animations.
+ *
+ * @example
+ * ```ts
+ * const anim: JuiceAnimation = {
+ *   type: "scale",
+ *   duration: 0.3,
+ *   elapsed: 0,
+ *   target: 1.5,
+ *   easing: "easeOutQuad"
+ * };
+ * ```
  *
  * @public
  */

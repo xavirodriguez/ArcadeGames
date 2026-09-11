@@ -692,8 +692,22 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   /**
-   * Binds a StoryRuntime instance.
-   * @deprecated Use CampaignScreen instead.
+   * Binds a StoryRuntime instance to handle story scene changes.
+   *
+   * @param runtime - Story runtime engine instance.
+   * @param sceneFactory - Factory function mapping scene names to scene instances.
+   * @returns Void.
+   *
+   * @deprecated Narrative progression is now managed by `CampaignScreen` and `MidGameNarrativeDirector`. Use `CampaignScreen` instead.
+   *
+   * @example
+   * ```ts
+   * // Before (deprecated)
+   * sceneManager.bindStoryRuntime(storyRuntime, (name) => createScene(name));
+   *
+   * // After
+   * // Render <CampaignScreen slotId={slotId} /> directly in React navigation
+   * ```
    */
   public bindStoryRuntime(
     runtime: StoryRuntime,

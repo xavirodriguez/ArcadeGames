@@ -216,6 +216,20 @@ export class EntityBuilder<
  *
  * @remarks
  * This function is intended for internal engine operations within `@tiny-aster/core` and should not be consumed directly outside the core package.
+ *
+ * @param factory - Factory construction callback function.
+ * @param world - Target ECS world instance.
+ * @param entity - Optional pre-allocated entity ID.
+ * @param useCommandBuffer - Whether to defer mutations through command buffer.
+ * @returns Instantiated EntityBuilder subclass instance.
+ *
+ * @example
+ * ```ts
+ * const builder = createBuilderInstance(
+ *   (w, e, cb) => new EntityBuilder(w, e, cb),
+ *   world
+ * );
+ * ```
  */
 export function createBuilderInstance<
   TBuilder extends EntityBuilder<TComponents, TEvents, TBlueprints>,

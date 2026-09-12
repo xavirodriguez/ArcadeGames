@@ -89,4 +89,43 @@ describe("Arkanoid Game & Systems Test Suite", () => {
     const state = game.getGameState();
     expect(state.lives).toBe(DEFAULT_ARKANOID_CONFIG.PLAYER_INITIAL_LIVES - 1);
   });
+
+  it("should register ball shape drawers in both Canvas2D and Skia renderers", async () => {
+    game = new ArkanoidGame({ seed: 42, headless: true });
+    await game.init();
+
+    const registeredCanvasShapes: string[] = [];
+    const registeredSkiaShapes: string[] = [];
+
+    const mockCanvasRenderer = {
+      type: "canvas" as const,
+      registerShape: (name: string) => {
+        registeredCanvasShapes.push(name);
+      },
+      registerBackgroundEffect: jest.fn(),
+      render: jest.fn()
+    };
+
+    const mockSkiaRenderer = {
+      type: "skia" as const,
+      registerShape: (name: string) => {
+        registeredSkiaShapes.push(name);
+      },
+      registerBackgroundEffect: jest.fn(),
+      render: jest.fn()
+    };
+
+    game.initializeRenderer(mockCanvasRenderer);
+    game.initializeRenderer(mockSkiaRenderer);
+
+    expect(registeredCanvasShapes).toContain("ball");
+    expect(registeredCanvasShapes).toContain("circle");
+    expect(registeredCanvasShapes).toContain("paddle");
+    expect(registeredCanvasShapes).toContain("box");
+
+    expect(registeredSkiaShapes).toContain("ball");
+    expect(registeredSkiaShapes).toContain("circle");
+    expect(registeredSkiaShapes).toContain("paddle");
+    expect(registeredSkiaShapes).toContain("box");
+  });
 });

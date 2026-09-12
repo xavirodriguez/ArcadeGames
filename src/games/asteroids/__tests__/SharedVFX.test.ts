@@ -379,6 +379,9 @@ describe("Deterministic Zero-Allocation Shared VFX (All 18 Effects)", () => {
     expect(drawCalls).toContain("beginPath");
     expect(drawCalls).toContain("stroke");
     expect(drawCalls).toContain("fill");
+  });
+
+  // -----------------------------------------------------------
   // 19. DiffuseMilkyWayBackgroundEffect
   // -----------------------------------------------------------
   it("should draw DiffuseMilkyWayBackgroundEffect deterministically and without Math.random", () => {

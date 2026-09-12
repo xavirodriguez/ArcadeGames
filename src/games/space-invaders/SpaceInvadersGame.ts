@@ -31,6 +31,8 @@ import { FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, any, any>> {
   player: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
   invader: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
+  invader_teleporter: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
+  elite_invader: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
   shield: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
   state: BlueprintDefinition<SpaceInvadersComponentRegistry, any, {}>;
   formation: BlueprintDefinition<SpaceInvadersComponentRegistry, any, {}>;
@@ -53,7 +55,7 @@ export class SpaceInvadersGame
   private network: NetworkController<SpaceInvadersComponentRegistry>;
 
   constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any, audio?: any, theme?: Theme } = {}) {
-    const seed = config.gameOptions?.seed as number || config.seed;
+    const seed = (config.gameOptions?.seed as number) || config.seed || (Math.floor(Math.random() * 1000000) + 1);
     const loadedBaseConfig = ConfigService.load<SpaceInvadersConfig>(
       "space-invaders",
       SpaceInvadersConfigSchema,
@@ -179,23 +181,24 @@ export class SpaceInvadersGame
       }
     });
 
+    const createLootTable = (speedChance: number, tripleChance: number): SpaceInvadersComponentRegistry["LootTable"] => ({
+      type: "LootTable",
+      tableId: "invader",
+      drops: [
+        { type: "speed", chance: speedChance, config: { value: 1.5, duration: 5000 } },
+        { type: "triple_shot", chance: tripleChance, config: { duration: 8000 } }
+      ]
+    });
+
     this.blueprints.register("invader", {
       spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
         const blueprintId = args.row === 0 ? "invader_commander" : "invader_scout";
         EnemyFactory.createEnemy(world, blueprintId, args.x, args.y, {}, false, entity);
         const points = (5 - args.row) * 10;
 
-        world.addComponent(entity, { type: "Invader", row: args.row, col: args.col, points } as any);
-        world.addComponent(entity, {
-          type: "LootTable",
-          tableId: "invader",
-          drops: [
-            { type: "speed", chance: 0.05, config: { value: 1.5, duration: 5000 } },
-            { type: "triple_shot", chance: 0.05, config: { duration: 8000 } }
-          ]
-        } as any);
+        world.addComponent(entity, { type: "Invader", row: args.row, col: args.col, points } as SpaceInvadersComponentRegistry["Invader"]);
+        world.addComponent(entity, createLootTable(0.05, 0.05));
 
-        // Attach Collectible component directly
         world.addComponent(entity, {
           type: "Collectible",
           kind: "story_fragment",
@@ -203,7 +206,31 @@ export class SpaceInvadersGame
           persistent: true,
           collectOnce: true,
           id: `invader_fragment_${args.row}_${args.col}`
-        } as any);
+        } as SpaceInvadersComponentRegistry["Collectible"]);
+      }
+    });
+
+    this.blueprints.register("invader_teleporter", {
+      spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
+        EnemyFactory.createEnemy(world, "invader_teleporter", args.x, args.y, {}, false, entity);
+        const points = 40;
+        world.addComponent(entity, { type: "Invader", row: args.row, col: args.col, points } as SpaceInvadersComponentRegistry["Invader"]);
+        world.addComponent(entity, {
+          type: "Teleporter",
+          phasingState: "visible",
+          timer: 2.0,
+          teleportInterval: 4.0
+        } as SpaceInvadersComponentRegistry["Teleporter"]);
+        world.addComponent(entity, createLootTable(0.08, 0.08));
+      }
+    });
+
+    this.blueprints.register("elite_invader", {
+      spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
+        EnemyFactory.createEnemy(world, "elite_invader", args.x, args.y, {}, false, entity);
+        const points = 50;
+        world.addComponent(entity, { type: "Invader", row: args.row, col: args.col, points } as SpaceInvadersComponentRegistry["Invader"]);
+        world.addComponent(entity, createLootTable(0.1, 0.1));
       }
     });
 
@@ -524,9 +551,10 @@ export class SpaceInvadersGame
         r.registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
         r.registerShape("shield_block", drawSpaceInvadersShield);
         r.registerShape("particle", drawSpaceInvadersParticle);
+        const { drawSpaceInvadersDynamicBackground, drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
+        r.registerBackgroundEffect("space_invaders_bg", drawSpaceInvadersDynamicBackground);
         const { drawSpaceInvadersComboHUD } = require("./systems/ComboHUDRenderSystem");
         r.registerBackgroundEffect("combo_hud", drawSpaceInvadersComboHUD);
-        const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
         r.registerBackgroundEffect("explosion_vfx", drawExplosionBackgroundEffect);
       },
       skia: (r) => {
@@ -545,6 +573,8 @@ export class SpaceInvadersGame
         r.registerShape("enemy_bullet", drawSkiaSpaceInvadersBullet);
         r.registerShape("shield_block", drawSkiaSpaceInvadersShield);
         r.registerShape("particle", drawSkiaSpaceInvadersParticle);
+        const { drawSkiaSpaceInvadersDynamicBackground } = require("./rendering/SpaceInvadersSkiaVisuals");
+        r.registerBackgroundEffect("space_invaders_bg", drawSkiaSpaceInvadersDynamicBackground);
       }
     });
 

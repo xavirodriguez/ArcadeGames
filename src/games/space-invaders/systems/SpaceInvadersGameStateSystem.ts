@@ -68,18 +68,9 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
               active: true
             });
 
-            const isHeadless = world.getResource("IsHeadless") === true;
-            const autoSelect = world.getResource("AutoSelectMutators") === true;
-
-            if (isHeadless || autoSelect) {
-              if (typeof this.game.selectRunMutator === "function") {
-                this.game.selectRunMutator(choices[0]);
-              }
-            } else {
-              // Pause simulation for manual choice in standalone non-auto mode
-              if (typeof this.game.pause === "function") {
-                this.game.pause();
-              }
+            // Pause simulation
+            if (typeof this.game.pause === "function") {
+              this.game.pause();
             }
           } finally {
             if (wasLocked) rng.lock();
@@ -94,8 +85,6 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         if (world.isReSimulating) return;
         world.mutateSingleton("GameState", (gs) => {
           gs.intermissionRemaining = 3.0; // 3 seconds intermission
-          gs.phase = "WAVE_TRANSITION";
-          gs.waveTransitionRemaining = 0.8;
           eventBus.emitDeferred("stage:cleared", { level: gs.level });
         });
       });

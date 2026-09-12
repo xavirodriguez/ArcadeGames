@@ -2,32 +2,10 @@ import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderCo
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual, resolveInvaderPaletteColor } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
-import * as SharedVFX from "../../shared/rendering/SharedVFX";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
-
-const SKIA_BG_THEMES: Array<(canvas: any, world: World<any>) => void> = [
-  (c, w) => { SharedVFX.SkiaScrollingStarfieldEffect.draw(c, w); SharedVFX.SkiaDriftingNebulaBackgroundEffect.draw(c, w); },
-  (c, w) => { SharedVFX.SkiaRingingPlanetBackgroundEffect.draw(c, w); SharedVFX.SkiaDistantSpaceStationBackgroundEffect.draw(c, w); },
-  (c, w) => { SharedVFX.SkiaMatrixDigitalRainEffect.draw(c, w); SharedVFX.SkiaRetroCRTScanlinesEffect.draw(c, w); },
-  (c, w) => { SharedVFX.SkiaHyperdriveWarpSpeedLinesEffect.draw(c, w); SharedVFX.SkiaCRTGlitchShudderEffect.draw(c, w); },
-  (c, w) => { SharedVFX.SkiaDiffuseMilkyWayBackgroundEffect.draw(c, w); SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect.draw(c, w); },
-  (c, w) => { SharedVFX.SkiaScrollingStarfieldEffect.draw(c, w); SharedVFX.SkiaScreenBorderGlowEffect.draw(c, w); SharedVFX.SkiaDriftingNebulaBackgroundEffect.draw(c, w); },
-];
-
-/**
- * Dynamic background drawer for Skia that shifts SharedVFX themes based on level and seed.
- */
-export const drawSkiaSpaceInvadersDynamicBackground: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
-  draw(canvas, world) {
-    const level = world.getSingleton("GameState")?.level || 1;
-    const themeIndex = (level - 1) % SKIA_BG_THEMES.length;
-    const drawer = SKIA_BG_THEMES[themeIndex] || SKIA_BG_THEMES[0];
-    drawer(canvas, world);
-  }
-};
 
 // Memory-safe caching for zero-allocation player ship pathing
 const cachedPlayerPaths = new WeakMap<any, { chassis: any; cockpit: any; reflection: any }>();
@@ -243,10 +221,15 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     const enemyTag = world.getComponent(entity, "EnemyTag");
     const isTeleporter = enemyTag?.variant === "teleporter" || render.color === "#00D9FF";
 
-    const level = world.getSingleton("GameState")?.level || 1;
-
     if (invaderComp && !isTeleporter && render.color !== "#00D9FF") {
-      baseColor = resolveInvaderPaletteColor(invaderComp.row, level, false);
+      const row = invaderComp.row;
+      if (row === 0) {
+        baseColor = colors.magentaHot; // Hot Magenta
+      } else if (row <= 2) {
+        baseColor = colors.cyan; // Electric Cyan
+      } else {
+        baseColor = colors.gold; // Cyber Gold
+      }
     } else if (isTeleporter) {
       baseColor = "#00D9FF";
     }
@@ -315,11 +298,8 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
     const flash = getRenderFlash(render, colors.cyan, 4);
     const size = flash.size;
     const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
-    const level = world.getSingleton("GameState")?.level || 1;
-    const bulletTheme = (level - 1) % 3;
-    const enemyBulletColor = bulletTheme === 1 ? "#FF2A2A" : (bulletTheme === 2 ? "#00FF66" : colors.redHot);
 
-    const glowColor = isPlayerBullet ? colors.cyan : enemyBulletColor;
+    const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;
     const coreColor = colors.white;
     const proximityFactor = calculateBulletProximity(world, entity, isPlayerBullet);
 

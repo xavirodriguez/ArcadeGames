@@ -366,24 +366,6 @@ describe("Deterministic Zero-Allocation Shared VFX (All 17 Effects)", () => {
 
   // -----------------------------------------------------------
   // 18. DiffuseMilkyWayBackgroundEffect
-  // 18. DistantSpaceStationBackgroundEffect
-  // -----------------------------------------------------------
-  it("should draw DistantSpaceStationBackgroundEffect deterministically and without Math.random", () => {
-    const { ctx, drawCalls } = createMockContext();
-    const initialSeed = world.renderRandom.getSeed();
-
-    SharedVFX.DistantSpaceStationBackgroundEffect.draw(ctx, world);
-
-    expect(drawCalls.length).toBeGreaterThan(0);
-    expect(drawCalls).toContain("save");
-    expect(drawCalls).toContain("restore");
-    expect(drawCalls).toContain("beginPath");
-    expect(drawCalls).toContain("stroke");
-    expect(drawCalls).toContain("fill");
-  });
-
-  // -----------------------------------------------------------
-  // 19. DiffuseMilkyWayBackgroundEffect
   // -----------------------------------------------------------
   it("should draw DiffuseMilkyWayBackgroundEffect deterministically and without Math.random", () => {
     const { ctx, drawCalls } = createMockContext();

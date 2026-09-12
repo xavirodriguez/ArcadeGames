@@ -35,7 +35,7 @@ function getPowerUpColor(lootType: string): string {
 }
 
 /**
- * Registers ship, bullet, asteroid, and powerup blueprints.
+ * Registers ship, bullet, asteroid, powerup, and ufo blueprints.
  * Keeping them in a single place allows unifying test world runs with game runs.
  *
  * @remarks
@@ -282,9 +282,12 @@ export function registerAsteroidsBlueprints(
   });
 
   registry.register("ufo", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx?: number; vy?: number }) => {
+    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size?: "large" | "small"; vx?: number; vy?: number }) => {
       const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
       const tint = resolveThemeColor(w, "ufo", "enemy") || "#ff0055";
+      const ufoSize = args.size ?? "large";
+      const radius = ufoSize === "large" ? 18 : 10;
+      const speed = ufoSize === "large" ? 100 : 160;
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({
@@ -293,24 +296,25 @@ export function registerAsteroidsBlueprints(
           dirty: true
         })
         .withVelocity({
-          vx: args.vx ?? 120,
-          vy: args.vy ?? 0
+          vx: args.vx ?? (w.gameplayRandom.next() > 0.5 ? speed : -speed),
+          vy: args.vy ?? (w.gameplayRandom.next() - 0.5) * (speed * 0.5)
         })
         .withRender({
           shape: "ufo",
-          size: 18,
+          size: radius * 2,
           color: tint,
           order: 3
         })
         .withCollider({
-          shape: { type: ShapeType.Circle, radius: 18 } as CircleShape,
+          shape: { type: ShapeType.Circle, radius } as CircleShape,
           layer: CollisionLayers.ENEMY,
           mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
         })
         .withCollisionEvents();
 
       w.addComponent(entity, {
-        type: "Ufo"
+        type: "Ufo",
+        size: ufoSize
       } as AsteroidsComponentRegistry["Ufo"]);
 
       w.addComponent(entity, {
@@ -321,17 +325,21 @@ export function registerAsteroidsBlueprints(
       } as BoundaryComponent);
 
       attachEnemyDefaults(w, entity, {
-        currentHp: 2,
-        maxHp: 2,
+        currentHp: ufoSize === "large" ? 2 : 1,
+        maxHp: ufoSize === "large" ? 2 : 1,
         faction: "enemy",
         tableId: "ufo"
       });
+
+      const eventBus = w.getEventBus();
+      if (eventBus) {
+        eventBus.emitDeferred("ufo:spawned", { entity });
+      }
     }
   });
 
   world.setResource("BlueprintRegistry", registry);
 }
-
 
 // TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa
 /**
@@ -365,21 +373,6 @@ export const createShip = (config: { world: World<AsteroidsComponentRegistry, As
 /**
  * Factory function to create and initialize a Bullet entity in the Asteroids game.
  * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL, Collider, CollisionEvents.
- *
- * @remarks
- * Supports two calling conventions for backward compatibility:
- * 1. Legacy positional form: `createBullet(world, x, y, rotation, speed, ownerId?, ttl?)`
- *    — velocity is derived from `rotation`/`speed` via `getForwardVector`.
- * 2. Preferred config-object form: `createBullet({ world, x, y, vx?, vy?, rotation?, speed?, ownerId?, ttl? })`
- *    — if `vx`/`vy` are both given they take precedence over `rotation`/`speed`;
- *    otherwise falls back to the same forward-vector derivation as the legacy form.
- * New call sites should use the config-object form; the positional form exists only
- * for callers not yet migrated.
- *
- * If a "BulletPool" resource is registered, bullets are acquired from the pool
- * instead of spawned fresh (see Bolt's pooling notes in .jules/bolt.md) — this is
- * transparent to callers.
- *
  * Note: Forward vectors and rotation conventions follow `ForwardVector.ts`.
  * @public
  */
@@ -478,22 +471,17 @@ export const createUfo = (config: {
   world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
   x: number;
   y: number;
+  size?: "large" | "small";
   vx?: number;
   vy?: number;
 }): number => {
-  const entity = spawnBlueprintEntity(config.world, "ufo", {
+  return spawnBlueprintEntity(config.world, "ufo", {
     x: config.x,
     y: config.y,
+    size: config.size,
     vx: config.vx,
     vy: config.vy
   });
-
-  const eventBus = config.world.getEventBus();
-  if (eventBus) {
-    eventBus.emit("ufo:spawned", { entity });
-  }
-
-  return entity;
 };
 
 /**
@@ -545,8 +533,7 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
         const angle1 = rand.next() * Math.PI * 2;
         const angle2 = angle1 + Math.PI; // opposite directions
 
-        const speed = 80; // Fragmentation impulse speed added to the parent's velocity,
-                           // in px/s. Tuned by feel — not currently exposed via GameConfig.
+        const speed = 80; // Fragmentation impulse speed added to the parent's velocity
 
         for (const angle of [angle1, angle2]) {
             const vx = (velocity ? velocity.vx : 0) + Math.cos(angle) * speed;
@@ -566,9 +553,6 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
 
 /**
  * Spawns a wave of `large` asteroids scaled by level.
- * @remarks Count = INITIAL_ASTEROID_COUNT + (level - 1); each spawn point is
- * rejection-sampled to stay at least 150px from screen center (where the ship
- * starts), using `world.gameplayRandom` for determinism.
  * @public
  */
 export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, level: number): void => {
@@ -586,11 +570,9 @@ export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, Aster
     const rand = world.gameplayRandom;
 
     for (let i = 0; i < count; i++) {
-        // Spawn asteroids away from the center (to avoid spawning on top of the player at the beginning of a wave)
         let x = rand.next() * screen.width;
         let y = rand.next() * screen.height;
 
-        // Ensure it's at least 150px away from the center (where the ship starts)
         const centerX = screen.width / 2;
         const centerY = screen.height / 2;
         while (Math.hypot(x - centerX, y - centerY) < 150) {

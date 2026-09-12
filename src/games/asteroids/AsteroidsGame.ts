@@ -52,7 +52,7 @@ import {
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem, PowerUpRegistry } from "@tiny-aster/gameplay-kit";
 import { MissionSystem } from "../shared/missions/MissionSystem";
-import { ASTEROIDS_MINI_MISSIONS } from "./AsteroidsMissions";
+import { ASTEROIDS_MINI_MISSIONS, ASTEROIDS_MISSIONS } from "./AsteroidsMissions";
 import { MutatorRegistry } from "../../utils/MutatorRegistry";
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
@@ -387,14 +387,12 @@ export class AsteroidsGame
       renderer.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
       renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.DistantAsteroidBeltBackgroundEffect);
       renderer.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
-      renderer.registerBackgroundEffect("distant_space_station", SharedVFX.DistantSpaceStationBackgroundEffect);
     } else if (renderer.type === "skia") {
       renderer.registerBackgroundEffect("diffuse_milky_way", SharedVFX.SkiaDiffuseMilkyWayBackgroundEffect);
       renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
       renderer.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
       renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect);
       renderer.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
-      renderer.registerBackgroundEffect("distant_space_station", SharedVFX.SkiaDistantSpaceStationBackgroundEffect);
     }
   }
 

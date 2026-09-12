@@ -241,6 +241,37 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
         const isAsteroidB = world.hasComponent(entityB, "Asteroid");
         const isShipA = world.hasComponent(entityA, "Ship");
         const isShipB = world.hasComponent(entityB, "Ship");
+        const isUfoA = world.hasComponent(entityA, "Ufo");
+        const isUfoB = world.hasComponent(entityB, "Ufo");
+
+        // Case 0: Bullet-UFO
+        if ((isBulletA && isUfoB) || (isBulletB && isUfoA)) {
+          const bullet = isBulletA ? entityA : entityB;
+          const ufo = isBulletA ? entityB : entityA;
+
+          if (!this.destroyedEntities.has(bullet) && !this.destroyedEntities.has(ufo)) {
+            const ufoComp = world.getComponent(ufo, "Ufo");
+            const points = ufoComp?.size === "small" ? 1000 : 200;
+
+            let scoreGain = points;
+            world.mutateSingleton("GameState", (state) => {
+              state.score += points;
+              scoreGain = points;
+            });
+
+            world.getCommandBuffer().removeEntity(bullet);
+            world.getCommandBuffer().removeEntity(ufo);
+            this.destroyedEntities.add(bullet);
+            this.destroyedEntities.add(ufo);
+
+            const eventBus = world.getEventBus();
+            if (eventBus) {
+              eventBus.emitDeferred("ufo:destroyed", { entity: ufo });
+              eventBus.emitDeferred("score:changed", { newScore: points, delta: scoreGain });
+            }
+          }
+          continue;
+        }
 
         // Case 1: Bullet-Asteroid
         if ((isBulletA && isAsteroidB) || (isBulletB && isAsteroidA)) {

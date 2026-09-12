@@ -118,6 +118,45 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 };
 
 /**
+<<<<<<< HEAD
+ * Procedural retro saucer UFO shape drawer for HTML5 Canvas.
+ */
+export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render) return;
+
+    const size = render.size || 36;
+    const radius = size / 2;
+    const baseColor = render.color || colors.cyan;
+
+    ctx.save();
+
+    const flashState = resolveHitFlash(render, baseColor, 1.0);
+    const isHitFlashing = flashState.isFlashing;
+    let color = baseColor;
+    if (isHitFlashing) {
+      ctx.globalAlpha = flashState.opacity;
+      color = flashState.color;
+    }
+
+    ctx.strokeStyle = color;
+    ctx.shadowColor = isHitFlashing ? colors.white : color;
+    ctx.shadowBlur = isHitFlashing ? 20 : 10;
+    ctx.lineWidth = 2;
+
+    // Draw main saucer body
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius, radius * 0.4, 0, 0, Math.PI * 2);
+    ctx.fillStyle = isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 240, 255, 0.15)";
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw top dome
+    ctx.beginPath();
+    ctx.arc(0, -radius * 0.2, radius * 0.45, Math.PI, 0);
+    ctx.stroke();
+=======
  * Overlay shape drawer for Canvas2D Mission HUD.
  */
 export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
@@ -182,6 +221,7 @@ export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, Ast
 
     ctx.fillStyle = statusColor;
     ctx.fillRect(barX, barY, barW * ratio, barH);
+>>>>>>> origin/master
 
     ctx.restore();
   }

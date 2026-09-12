@@ -10,7 +10,36 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
   private activeMissionState: ActiveMissionState | null = null;
   private registeredEventKeys: Set<string> = new Set();
 
+  constructor(initialMission?: MissionDefinition) {
+    super();
+    if (initialMission) {
+      this.activeMissionState = {
+        id: initialMission.id,
+        titleKey: initialMission.titleKey,
+        descriptionKey: initialMission.descriptionKey,
+        title: initialMission.title,
+        description: initialMission.description,
+        currentCount: 0,
+        targetCount: initialMission.targetCount ?? 1,
+        currentTimer: initialMission.targetTime ?? 0,
+        targetTimer: initialMission.targetTime ?? 0,
+        completed: false,
+        failed: false,
+        reward: initialMission.reward,
+        customData: {},
+        definition: initialMission
+      };
+    }
+  }
+
   public override onRegister(world: World<TComponents>): void {
+    if (this.activeMissionState) {
+      if (this.activeMissionState.definition.onInit) {
+        this.activeMissionState.definition.onInit(world, this.activeMissionState);
+      }
+      world.setResource("ActiveMission", this.activeMissionState);
+    }
+
     const eventBus = world.getEventBus() as EventBus;
     if (!eventBus) return;
 
@@ -36,6 +65,7 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
       "loot:collected",
       "powerup:collected",
       "ufo:spawned",
+      "ufo:destroyed",
       "score:changed",
       "hyperspace:used",
       "combo:updated"
@@ -103,6 +133,12 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
 
     this.activeMissionState.completed = true;
     world.setResource("ActiveMission", this.activeMissionState);
+
+    if (this.activeMissionState.reward?.scoreBonus) {
+      world.mutateSingleton("GameState" as any, (gs: any) => {
+        gs.score += this.activeMissionState!.reward!.scoreBonus!;
+      });
+    }
 
     const eventBus = world.getEventBus() as EventBus;
     if (eventBus) {

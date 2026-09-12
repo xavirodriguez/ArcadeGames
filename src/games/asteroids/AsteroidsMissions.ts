@@ -374,3 +374,21 @@ export const ASTEROIDS_MINI_MISSIONS: MissionDefinition[] = [
     }
   }
 ];
+
+/**
+ * Record map of missions for lookup by ID.
+ * @public
+ */
+export const ASTEROIDS_MISSIONS: Record<string, MissionDefinition> = ASTEROIDS_MINI_MISSIONS.reduce(
+  (acc, mission) => {
+    acc[mission.id] = mission;
+    return acc;
+  },
+  {} as Record<string, MissionDefinition>
+);
+
+/**
+ * Ordered list of mission definitions.
+ * @public
+ */
+export const ALL_ASTEROIDS_MISSIONS: MissionDefinition[] = ASTEROIDS_MINI_MISSIONS;

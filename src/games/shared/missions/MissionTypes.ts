@@ -8,7 +8,15 @@ export type MissionConditionType =
   | "event_count"
   | "continuous_time"
   | "state_threshold"
-  | "composite";
+  | "composite"
+  | "event_counter"
+  | "continuous"
+  | "combo_multiplier"
+  | "time_limit"
+  | "survival"
+  | "distance_event"
+  | "timed_sequence"
+  | "shield_event";
 
 /**
  * Reward awarded upon mission completion.
@@ -20,27 +28,6 @@ export interface MissionReward {
   mutatorId?: string;
   achievementId?: string;
   description?: string;
-}
-
-/**
- * Active runtime state for a mission.
- * @public
- */
-export interface ActiveMissionState {
-  id: string;
-  titleKey: string;
-  descriptionKey: string;
-  title: string;
-  description: string;
-  currentCount: number;
-  targetCount: number;
-  currentTimer: number;
-  targetTimer: number;
-  completed: boolean;
-  failed: boolean;
-  reward?: MissionReward;
-  customData: Record<string, any>;
-  definition: MissionDefinition;
 }
 
 /**
@@ -84,3 +71,30 @@ export interface MissionDefinition {
     state: ActiveMissionState
   ) => void;
 }
+
+/**
+ * Active runtime state for a mission.
+ * @public
+ */
+export interface ActiveMissionState {
+  id: string;
+  titleKey: string;
+  descriptionKey: string;
+  title: string;
+  description: string;
+  currentCount: number;
+  targetCount: number;
+  currentTimer: number;
+  targetTimer: number;
+  completed: boolean;
+  failed: boolean;
+  reward?: MissionReward;
+  customData: Record<string, any>;
+  definition: MissionDefinition;
+}
+
+/**
+ * Alias for backward compatibility with MissionProgress.
+ * @public
+ */
+export type MissionProgress = ActiveMissionState;

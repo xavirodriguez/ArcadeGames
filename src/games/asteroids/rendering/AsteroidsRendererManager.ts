@@ -16,6 +16,7 @@ import {
   drawAsteroidsBullet as canvasDrawAsteroidsBullet,
   drawAsteroidsMissionHUD as canvasDrawAsteroidsMissionHUD
 } from "./AsteroidsCanvasVisuals";
+import { drawAsteroidsMissionHUD } from "./AsteroidsMissionHUD";
 import {
   drawSkiaAsteroidsPlayerShip as skiaDrawAsteroidsPlayerShip,
   drawSkiaAsteroidsAsteroid as skiaDrawAsteroidsAsteroid,

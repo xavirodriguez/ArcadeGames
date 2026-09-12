@@ -23,6 +23,59 @@ export const es = {
     your_score: "Tu Score",
     mutator: "Mutador",
   },
+  missions: {
+    chaos_king: {
+      title: "Rey del Caos",
+      description: "Permanece dentro de la nube de fragmentos durante 3s sin salir.",
+    },
+    extreme_survival: {
+      title: "Supervivencia Extrema",
+      description: "Sobrevive 15 segundos con solo 1 vida restante.",
+    },
+    close_hunt: {
+      title: "Caza Cercana",
+      description: "Destruye un asteroide grande a corta distancia.",
+    },
+    against_clock: {
+      title: "Contra el Reloj",
+      description: "Consigue 1000 puntos en menos de 30 segundos.",
+    },
+    mult_master: {
+      title: "Maestro del Multiplicador",
+      description: "Alcanza un multiplicador de combo x5.",
+    },
+    precision_pressure: {
+      title: "Precisión Bajo Presión",
+      description: "Mantén el multiplicador x3 o más durante 10 segundos.",
+    },
+    core_hunter: {
+      title: "Cazador de Núcleos",
+      description: "Destruye 8 asteroides y recoge 2 power-ups.",
+    },
+    ghost_ship: {
+      title: "Nave Fantasma",
+      description: "Esquiva asteroides durante 20 segundos sin disparar.",
+    },
+    space_dancer: {
+      title: "Bailarín Espacial",
+      description: "Realiza 3 roces cercanos a asteroides sin recibir daño.",
+    },
+    double_threat: {
+      title: "Doble Amenaza",
+      description: "Destruye un UFO y un asteroide grande en 10 segundos.",
+    },
+    perfect_shield: {
+      title: "Escudo Perfecto",
+      description: "Bloquea un impacto directo mientras tu escudo esté activo.",
+    },
+    offensive_shield: {
+      title: "Escudo Ofensivo",
+      description: "Destruye 3 asteroides mientras tienes el escudo activo.",
+    },
+    completed: "¡MISIÓN COMPLETADA!",
+    failed: "MISIÓN FALLIDA",
+    title_label: "MISIÓN",
+  },
   common: {
     back: "ATRÁS",
     menu: "MENÚ",

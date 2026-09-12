@@ -35,7 +35,7 @@ function getPowerUpColor(lootType: string): string {
 }
 
 /**
- * Registers ship, bullet, asteroid, powerup, and ufo blueprints.
+ * Registers ship, bullet, asteroid, and powerup blueprints.
  * Keeping them in a single place allows unifying test world runs with game runs.
  *
  * @remarks
@@ -373,6 +373,21 @@ export const createShip = (config: { world: World<AsteroidsComponentRegistry, As
 /**
  * Factory function to create and initialize a Bullet entity in the Asteroids game.
  * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL, Collider, CollisionEvents.
+ *
+ * @remarks
+ * Supports two calling conventions for backward compatibility:
+ * 1. Legacy positional form: `createBullet(world, x, y, rotation, speed, ownerId?, ttl?)`
+ *    — velocity is derived from `rotation`/`speed` via `getForwardVector`.
+ * 2. Preferred config-object form: `createBullet({ world, x, y, vx?, vy?, rotation?, speed?, ownerId?, ttl? })`
+ *    — if `vx`/`vy` are both given they take precedence over `rotation`/`speed`;
+ *    otherwise falls back to the same forward-vector derivation as the legacy form.
+ * New call sites should use the config-object form; the positional form exists only
+ * for callers not yet migrated.
+ *
+ * If a "BulletPool" resource is registered, bullets are acquired from the pool
+ * instead of spawned fresh (see Bolt's pooling notes in .jules/bolt.md) — this is
+ * transparent to callers.
+ *
  * Note: Forward vectors and rotation conventions follow `ForwardVector.ts`.
  * @public
  */
@@ -484,8 +499,7 @@ export const createUfo = (config: {
   });
 };
 
-/**
- * @public
+/** @public
  * @remarks Thin wrapper around the "asteroid" blueprint.
  */
 export const createAsteroid = (config: {
@@ -533,7 +547,8 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
         const angle1 = rand.next() * Math.PI * 2;
         const angle2 = angle1 + Math.PI; // opposite directions
 
-        const speed = 80; // Fragmentation impulse speed added to the parent's velocity
+        const speed = 80; // Fragmentation impulse speed added to the parent's velocity,
+                           // in px/s. Tuned by feel — not currently exposed via GameConfig.
 
         for (const angle of [angle1, angle2]) {
             const vx = (velocity ? velocity.vx : 0) + Math.cos(angle) * speed;
@@ -553,6 +568,9 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
 
 /**
  * Spawns a wave of `large` asteroids scaled by level.
+ * @remarks Count = INITIAL_ASTEROID_COUNT + (level - 1); each spawn point is
+ * rejection-sampled to stay at least 150px from screen center (where the ship
+ * starts), using `world.gameplayRandom` for determinism.
  * @public
  */
 export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, level: number): void => {

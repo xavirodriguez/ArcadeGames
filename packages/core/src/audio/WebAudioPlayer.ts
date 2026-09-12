@@ -201,7 +201,9 @@ export class WebAudioPlayer implements IAudioPlayer {
         const delta = (Math.random() * 2 - 1) * opts.pitchRange;
         rate *= 1.0 + delta;
       }
-      source.playbackRate.setValueAtTime(rate, this.ctx.currentTime);
+      if (source.playbackRate) {
+        source.playbackRate.setValueAtTime(rate, this.ctx.currentTime);
+      }
 
       if (opts.detune !== undefined && source.detune) {
         source.detune.setValueAtTime(opts.detune, this.ctx.currentTime);

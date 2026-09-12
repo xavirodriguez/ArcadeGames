@@ -1,5 +1,5 @@
 import { World, spawnBlueprintEntity, Entity } from "@tiny-aster/core";
-import { ArkanoidComponentRegistry, ArkanoidEventRegistry, BrickKind } from "./types/ArkanoidTypes";
+import { ArkanoidComponentRegistry, ArkanoidEventRegistry, BrickKind, BrickColorName, CapsuleType } from "./types/ArkanoidTypes";
 import { ArkanoidBlueprintMap } from "./ArkanoidGame";
 
 export class ArkanoidEntityFactory {
@@ -15,9 +15,13 @@ export class ArkanoidEntityFactory {
     world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry, ArkanoidBlueprintMap>,
     x: number,
     y: number,
-    kind: BrickKind = "standard"
+    kind: BrickKind = "standard",
+    color?: BrickColorName,
+    hp?: number,
+    points?: number,
+    powerUp?: CapsuleType
   ): Entity {
-    return spawnBlueprintEntity(world, "brick", { x, y, kind });
+    return spawnBlueprintEntity(world, "brick", { x, y, kind, color, hp, points, powerUp });
   }
 
   public static createGameState(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry, ArkanoidBlueprintMap>): Entity {

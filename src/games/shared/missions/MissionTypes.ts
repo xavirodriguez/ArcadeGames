@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { ComponentRegistry } from "@tiny-aster/core";
 
 /**
@@ -17,7 +16,6 @@ export type MissionConditionType =
 
 /**
  * Rewards granted upon mission completion.
-=======
 import { World } from "@tiny-aster/core";
 
 /**
@@ -32,12 +30,10 @@ export type MissionConditionType =
 
 /**
  * Reward awarded upon mission completion.
->>>>>>> origin/master
  * @public
  */
 export interface MissionReward {
   xp?: number;
-<<<<<<< HEAD
   mutatorId?: string;
   scoreBonus?: number;
   achievementId?: string;
@@ -87,7 +83,6 @@ export interface MissionEventPayload {
   missionId: string;
   progress?: MissionProgress;
   reward?: MissionReward;
-=======
   scoreBonus?: number;
   mutatorId?: string;
   achievementId?: string;
@@ -155,5 +150,5 @@ export interface MissionDefinition {
     world: World<any, any, any>,
     state: ActiveMissionState
   ) => void;
->>>>>>> origin/master
+
 }

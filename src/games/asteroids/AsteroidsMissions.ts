@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { MissionDefinition } from "../shared/missions/MissionTypes";
 
 /**
@@ -118,7 +117,6 @@ export const ASTEROIDS_MISSIONS: Record<string, MissionDefinition> = {
  * @public
  */
 export const ALL_ASTEROIDS_MISSIONS: MissionDefinition[] = Object.values(ASTEROIDS_MISSIONS);
-=======
 import { World, TransformComponent, ComboComponent } from "@tiny-aster/core";
 import { MissionDefinition, ActiveMissionState } from "../shared/missions/MissionTypes";
 import { GameStateComponent } from "./types/AsteroidTypes";
@@ -495,4 +493,4 @@ export const ASTEROIDS_MINI_MISSIONS: MissionDefinition[] = [
     }
   }
 ];
->>>>>>> origin/master
+

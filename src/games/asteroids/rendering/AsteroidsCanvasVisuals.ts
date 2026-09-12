@@ -118,7 +118,6 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 };
 
 /**
-<<<<<<< HEAD
  * Procedural retro saucer UFO shape drawer for HTML5 Canvas.
  */
 export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
@@ -156,7 +155,6 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
     ctx.beginPath();
     ctx.arc(0, -radius * 0.2, radius * 0.45, Math.PI, 0);
     ctx.stroke();
-=======
  * Overlay shape drawer for Canvas2D Mission HUD.
  */
 export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
@@ -221,7 +219,6 @@ export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, Ast
 
     ctx.fillStyle = statusColor;
     ctx.fillRect(barX, barY, barW * ratio, barH);
->>>>>>> origin/master
 
     ctx.restore();
   }

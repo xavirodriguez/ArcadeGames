@@ -282,18 +282,12 @@ export function registerAsteroidsBlueprints(
   });
 
   registry.register("ufo", {
-<<<<<<< HEAD
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size?: "large" | "small"; vx?: number; vy?: number }) => {
       const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
       const tint = resolveThemeColor(w, "ufo", "enemy");
       const ufoSize = args.size ?? "large";
       const radius = ufoSize === "large" ? 18 : 10;
       const speed = ufoSize === "large" ? 100 : 160;
-=======
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx?: number; vy?: number }) => {
-      const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-      const tint = resolveThemeColor(w, "ufo", "enemy") || "#ff0055";
->>>>>>> origin/master
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({
@@ -302,7 +296,6 @@ export function registerAsteroidsBlueprints(
           dirty: true
         })
         .withVelocity({
-<<<<<<< HEAD
           vx: args.vx ?? (w.gameplayRandom.next() > 0.5 ? speed : -speed),
           vy: args.vy ?? (w.gameplayRandom.next() - 0.5) * (speed * 0.5)
         })
@@ -313,7 +306,6 @@ export function registerAsteroidsBlueprints(
         })
         .withCollider({
           shape: { type: ShapeType.Circle, radius } as CircleShape,
-=======
           vx: args.vx ?? 120,
           vy: args.vy ?? 0
         })
@@ -325,19 +317,14 @@ export function registerAsteroidsBlueprints(
         })
         .withCollider({
           shape: { type: ShapeType.Circle, radius: 18 } as CircleShape,
->>>>>>> origin/master
           layer: CollisionLayers.ENEMY,
           mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
         })
         .withCollisionEvents();
 
       w.addComponent(entity, {
-<<<<<<< HEAD
         type: "Ufo",
         size: ufoSize
-=======
-        type: "Ufo"
->>>>>>> origin/master
       } as AsteroidsComponentRegistry["Ufo"]);
 
       w.addComponent(entity, {
@@ -348,7 +335,6 @@ export function registerAsteroidsBlueprints(
       } as BoundaryComponent);
 
       attachEnemyDefaults(w, entity, {
-<<<<<<< HEAD
         currentHp: ufoSize === "large" ? 2 : 1,
         maxHp: ufoSize === "large" ? 2 : 1,
         faction: "enemy"
@@ -358,13 +344,11 @@ export function registerAsteroidsBlueprints(
       if (eventBus) {
         eventBus.emitDeferred("ufo:spawned", { entity });
       }
-=======
         currentHp: 2,
         maxHp: 2,
         faction: "enemy",
         tableId: "ufo"
       });
->>>>>>> origin/master
     }
   });
 

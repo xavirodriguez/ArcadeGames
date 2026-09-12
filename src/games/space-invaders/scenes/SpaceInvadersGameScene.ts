@@ -102,8 +102,15 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
         const spawns: any[] = [];
         for (let row = 0; row < rows; row++) {
           for (let col = 0; col < cols; col++) {
+            let blueprintId = "invader";
+            if (lvl >= 3 && row === 0 && col % 3 === 0) {
+              blueprintId = "invader_teleporter";
+            } else if (lvl >= 2 && row <= 1 && col % 4 === 1) {
+              blueprintId = "elite_invader";
+            }
+
             spawns.push({
-              blueprintId: "invader",
+              blueprintId,
               args: {
                 x: startX + offsetX + col * spacingX,
                 y: startY + row * spacingY,
@@ -137,6 +144,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
       this.world.setResource("InputSystem", inputSystem);
     }
 
+    this.world.setResource("GameInstance", this.game);
     this.world.setResource("PlayerBulletPool", this.playerBulletPool);
     this.world.setResource("EnemyBulletPool", this.enemyBulletPool);
     this.world.setResource("ParticlePool", this.particlePool);

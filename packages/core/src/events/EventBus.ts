@@ -28,7 +28,14 @@ export interface CoreEvents {
   "rock:destroyed": { amount?: number; [key: string]: unknown };
 
   /** Emitted to trigger audio sound effect playback. */
-  "PlaySFX": { name: string };
+  "PlaySFX": {
+    name: string;
+    volume?: number;
+    pitchRange?: number;
+    cooldownMs?: number;
+    detune?: number;
+    playbackRate?: number;
+  };
 
   /** Emitted upon enemy kill combo. */
   "si:kill": { chain: number; [key: string]: unknown };

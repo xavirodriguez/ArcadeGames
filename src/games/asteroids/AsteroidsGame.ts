@@ -46,7 +46,8 @@ import {
   BoundaryComponent,
   WebAudioPlayer,
   WebAssetProvider,
-  NullBaseGame
+  NullBaseGame,
+  preloadSharedAudioManifest
 } from "@tiny-aster/core";
 
 import { ComboSystem } from "@tiny-aster/core";
@@ -337,6 +338,9 @@ export class AsteroidsGame
         await loader.load([
           { id: "ship_sprite", type: "image", path: require("../../../assets/ship.png") }
         ]);
+      }
+      if (this.audio) {
+        await preloadSharedAudioManifest(this.audio);
       }
     } catch (e) {
       console.error("[Asset] Failed to load asset ship_sprite:", e);

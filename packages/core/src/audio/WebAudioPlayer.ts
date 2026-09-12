@@ -12,6 +12,7 @@ import { IAudioPlayer } from "./IAudioPlayer";
 export class WebAudioPlayer implements IAudioPlayer {
   private ctx: AudioContext | null = null;
   private sfxCache = new Map<string, AudioBuffer>();
+  private sfxLastPlayTime = new Map<string, number>();
   private bgmAudio: HTMLAudioElement | null = null;
   private currentBgmUrl: string | null = null;
 
@@ -161,11 +162,28 @@ export class WebAudioPlayer implements IAudioPlayer {
   }
 
   /**
-   * Plays a cached sound effect with low latency.
+   * Plays a cached sound effect with low latency, optional rate-limiting, pitch variation, and volume scaling.
    */
-  public playSFX(id: string, _options?: unknown): void {
+  public playSFX(id: string, options?: unknown): void {
     this.resumeContext();
     if (!this.ctx || this.ctx.state === "closed" || !this.sfxVolumeNode) return;
+
+    const opts = (typeof options === "object" && options !== null ? options : {}) as {
+      volume?: number;
+      pitchRange?: number;
+      cooldownMs?: number;
+      detune?: number;
+      playbackRate?: number;
+    };
+
+    const now = performance.now();
+    if (opts.cooldownMs && opts.cooldownMs > 0) {
+      const last = this.sfxLastPlayTime.get(id) || 0;
+      if (now - last < opts.cooldownMs) {
+        return;
+      }
+    }
+    this.sfxLastPlayTime.set(id, now);
 
     const buffer = this.sfxCache.get(id);
     if (!buffer) {
@@ -175,7 +193,30 @@ export class WebAudioPlayer implements IAudioPlayer {
     try {
       const source = this.ctx.createBufferSource();
       source.buffer = buffer;
-      source.connect(this.sfxVolumeNode);
+
+      // Apply playback rate / pitch variation
+      let rate = opts.playbackRate ?? 1.0;
+      if (opts.pitchRange && opts.pitchRange > 0) {
+        // Random pitch offset within ±pitchRange (e.g., 0.05 for ±5%)
+        const delta = (Math.random() * 2 - 1) * opts.pitchRange;
+        rate *= 1.0 + delta;
+      }
+      source.playbackRate.setValueAtTime(rate, this.ctx.currentTime);
+
+      if (opts.detune !== undefined && source.detune) {
+        source.detune.setValueAtTime(opts.detune, this.ctx.currentTime);
+      }
+
+      // Handle custom per-play volume
+      if (opts.volume !== undefined && opts.volume < 1.0) {
+        const playGain = this.ctx.createGain();
+        playGain.gain.setValueAtTime(Math.max(0, Math.min(1, opts.volume)), this.ctx.currentTime);
+        source.connect(playGain);
+        playGain.connect(this.sfxVolumeNode);
+      } else {
+        source.connect(this.sfxVolumeNode);
+      }
+
       source.start();
     } catch (e) {
       console.warn(`[WebAudioPlayer] Error playing SFX "${id}":`, e);

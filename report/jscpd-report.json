@@ -761,18 +761,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 183,
+        "end": 184,
         "endLoc": {
           "column": 9,
-          "line": 183,
-          "position": 7651
+          "line": 184,
+          "position": 7681
         },
         "name": "asteroids/AsteroidsGame.ts",
-        "start": 179,
+        "start": 180,
         "startLoc": {
           "column": 89,
-          "line": 179,
-          "position": 7390
+          "line": 180,
+          "position": 7420
         }
       },
       "tokens": 65
@@ -1593,18 +1593,18 @@
     },
     {
       "firstFile": {
-        "end": 439,
+        "end": 443,
         "endLoc": {
           "column": 26,
-          "line": 439,
-          "position": 18115
+          "line": 443,
+          "position": 18231
         },
         "name": "asteroids/AsteroidsGame.ts",
-        "start": 427,
+        "start": 431,
         "startLoc": {
           "column": 31,
-          "line": 427,
-          "position": 17772
+          "line": 431,
+          "position": 17888
         }
       },
       "format": "typescript",
@@ -1612,18 +1612,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 677,
+        "end": 673,
         "endLoc": {
           "column": 26,
-          "line": 677,
-          "position": 28576
+          "line": 673,
+          "position": 28401
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 665,
+        "start": 661,
         "startLoc": {
           "column": 26,
-          "line": 665,
-          "position": 28233
+          "line": 661,
+          "position": 28058
         }
       },
       "tokens": 52
@@ -3869,18 +3869,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 788,
+        "end": 784,
         "endLoc": {
           "column": 9,
-          "line": 788,
-          "position": 32571
+          "line": 784,
+          "position": 32396
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 777,
+        "start": 773,
         "startLoc": {
           "column": 84,
-          "line": 777,
-          "position": 32271
+          "line": 773,
+          "position": 32096
         }
       },
       "tokens": 54
@@ -3943,18 +3943,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 814,
+        "end": 810,
         "endLoc": {
           "column": 14,
-          "line": 814,
-          "position": 33540
+          "line": 810,
+          "position": 33365
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 800,
+        "start": 796,
         "startLoc": {
           "column": 4,
-          "line": 800,
-          "position": 32908
+          "line": 796,
+          "position": 32733
         }
       },
       "tokens": 140
@@ -4646,18 +4646,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 456,
+        "end": 467,
         "endLoc": {
           "column": 83,
-          "line": 456,
-          "position": 16711
+          "line": 467,
+          "position": 17201
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 450,
+        "start": 461,
         "startLoc": {
           "column": 47,
-          "line": 450,
-          "position": 16511
+          "line": 461,
+          "position": 17001
         }
       },
       "tokens": 51
@@ -5127,18 +5127,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 824,
+        "end": 820,
         "endLoc": {
           "column": 75,
-          "line": 824,
-          "position": 34072
+          "line": 820,
+          "position": 33897
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 818,
+        "start": 814,
         "startLoc": {
           "column": 76,
-          "line": 818,
-          "position": 33806
+          "line": 814,
+          "position": 33631
         }
       },
       "tokens": 77
@@ -7369,14 +7369,14 @@
         "endLoc": {
           "column": 29,
           "line": 216,
-          "position": 10381
+          "position": 10409
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 211,
         "startLoc": {
           "column": 44,
           "line": 211,
-          "position": 10091
+          "position": 10119
         }
       },
       "format": "typescript",
@@ -7388,14 +7388,14 @@
         "endLoc": {
           "column": 29,
           "line": 249,
-          "position": 11929
+          "position": 11957
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 244,
         "startLoc": {
           "column": 43,
           "line": 244,
-          "position": 11639
+          "position": 11667
         }
       },
       "tokens": 69
@@ -7587,32 +7587,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-12T18:24:32.918Z",
+    "detectionDate": "2026-09-12T18:54:26.364Z",
     "formats": {
       "typescript": {
-        "clones": 205,
-        "duplicatedLines": 2159,
-        "duplicatedTokens": 16390,
-        "lines": 62491,
+        "clones": 203,
+        "duplicatedLines": 2145,
+        "duplicatedTokens": 16276,
+        "lines": 61687,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.4548975052407545,
-        "percentageTokens": 5.024139780826117,
-        "sources": 370,
-        "tokens": 326225
+        "percentage": 3.4772318316663156,
+        "percentageTokens": 5.071637344900007,
+        "sources": 365,
+        "tokens": 320922
       }
     },
     "total": {
-      "clones": 205,
-      "duplicatedLines": 2159,
-      "duplicatedTokens": 16390,
-      "lines": 62491,
+      "clones": 203,
+      "duplicatedLines": 2145,
+      "duplicatedTokens": 16276,
+      "lines": 61687,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.4548975052407545,
-      "percentageTokens": 5.024139780826117,
-      "sources": 370,
-      "tokens": 326225
+      "percentage": 3.4772318316663156,
+      "percentageTokens": 5.071637344900007,
+      "sources": 365,
+      "tokens": 320922
     }
   }
 }

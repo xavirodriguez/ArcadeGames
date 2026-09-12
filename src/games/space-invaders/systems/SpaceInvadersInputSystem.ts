@@ -143,8 +143,7 @@ export class SpaceInvadersInputSystem extends GameSystem {
 
             const eventBus = world.getEventBus();
             if (eventBus) {
-                eventBus.emitDeferred("PlaySFX", { name: "shoot" });
-                eventBus.emitDeferred("PlaySFX", { name: "thump" });
+                eventBus.emitDeferred("PlaySFX", { name: "shoot", pitchRange: 0.05, cooldownMs: 80 });
             }
           }
         }

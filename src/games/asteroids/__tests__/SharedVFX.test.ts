@@ -35,6 +35,14 @@ const createMockContext = () => {
         addColorStop(offset: number, color: string) {
           drawCalls.push(`addColorStop:${offset},${color}`);
         }
+      };
+    },
+    createLinearGradient(x0: number, y0: number, x1: number, y1: number) {
+      drawCalls.push("createLinearGradient");
+      return {
+        addColorStop(offset: number, color: string) {
+          drawCalls.push(`addColorStop:${offset},${color}`);
+        }
       } as any;
     },
     setStrokeStyle(color: string) { this.strokeStyle = color; },
@@ -353,6 +361,21 @@ describe("Deterministic Zero-Allocation Shared VFX (All 17 Effects)", () => {
     expect(drawCalls).toContain("beginPath");
     expect(drawCalls).toContain("fill");
     expect(drawCalls).toContain("stroke");
+    expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
+  });
+
+  // -----------------------------------------------------------
+  // 18. DiffuseMilkyWayBackgroundEffect
+  // -----------------------------------------------------------
+  it("should draw DiffuseMilkyWayBackgroundEffect deterministically and without Math.random", () => {
+    const { ctx, drawCalls } = createMockContext();
+    const initialSeed = world.renderRandom.getSeed();
+
+    SharedVFX.DiffuseMilkyWayBackgroundEffect.draw(ctx, world);
+
+    expect(drawCalls.length).toBeGreaterThan(0);
+    expect(drawCalls).toContain("createLinearGradient");
+    expect(drawCalls).toContain("fillRect:-800,-110,1600,220");
     expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
   });
 });

@@ -3,12 +3,11 @@
 Procedural sound-design toolkit for arcade games.
 Design SFX as **recipes** (layers of primitives) instead of hand-editing waveforms.
 
-**v0.2.1** adds:
+## Features
 
-- Faster offline render (no global `Tone.setContext`, sync `render(false)`, no Limiter, dispose)
+- Pure DSP offline renderer (zero Web Audio or Tone.js dependencies, runs natively in Node)
 - Default **22.05 kHz / PCM16** WAVs (much smaller assets; override with flags)
-- Prefer `node-web-audio-api` polyfill (Rust DSP) for `pnpm generate`
-- Live CLI progress (from 0.2.0) plus `--sample-rate` / `--bit-depth`
+- Live CLI progress plus `--sample-rate` / `--bit-depth` options
 
 ## Design goals
 
@@ -81,12 +80,10 @@ npx ask-generate generate --pack --quiet
 npx ask-generate generate --pack --verbose
 ```
 
-From the package scripts (uses **node-web-audio-api** Rust polyfill by default):
+From the package scripts:
 
 ```bash
 pnpm --filter @tiny-aster/arcade-sound-kit generate
-# Fallback pure-JS polyfill:
-pnpm --filter @tiny-aster/arcade-sound-kit generate:js-polyfill
 ```
 
 ## Output format
@@ -121,18 +118,16 @@ SoundRecipe
 ## Architecture
 
 ```text
-recipes → primitives → OfflineContext (per sound, no global setContext)
-                      → render(false) → PCM16 WAV + manifest
+recipes → primitives → Pure DSP Render Engine
+                      → Float32Array → PCM16 WAV + manifest
 ```
 
 The renderer stays isolated so a future runtime player can consume the same semantic recipes.
 
 ## Performance notes
 
-- Each recipe uses its own `Tone.OfflineContext` with `{ context }` on every node — **no** `Tone.setContext`.
-- `ctx.render(false)` avoids async clock yields in Node CLI.
-- Peak normalization happens in `writeWav`, not via `Tone.Limiter`.
-- Prefer `node-web-audio-api` polyfill for generation speed on Node.
+- Pure offline DSP synthesis without asynchronous clock yields or polyfills.
+- Peak normalization happens in `writeWav`.
 
 ## License
 

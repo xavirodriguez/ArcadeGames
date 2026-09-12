@@ -10,9 +10,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "generate": "node --import ./scripts/node-audio-polyfill.mjs dist/cli.js generate --pack",
-    "generate:js-polyfill": "node --import ./scripts/node-audio-polyfill.mjs dist/cli.js generate --pack",
-    "generate:example": "node --import ./scripts/node-audio-polyfill.mjs dist/cli.js generate examples/arcade.js",
+    "generate": "node dist/cli.js generate --pack",
+    "generate:example": "node dist/cli.js generate examples/arcade.js",
     "test": "node --test",
     "typecheck": "tsc --noEmit"
   },
@@ -21,7 +20,7 @@
     "sound-design",
     "procedural-audio",
     "arcade",
-    "tonejs",
+    "dsp",
     "sfx"
   ],
   "license": "MIT",
@@ -29,10 +28,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "node-web-audio-api": "^2.2.0",
-    "tone": "^15.1.22",
-    "wavefile": "^11.0.0",
-    "web-audio-api": "^1.5.6"
+    "wavefile": "^11.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
@@ -40,7 +36,6 @@
   },
   "files": [
     "dist",
-    "scripts",
     "README.md"
   ]
 }

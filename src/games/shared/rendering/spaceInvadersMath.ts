@@ -67,6 +67,18 @@ export function calculateTeleporterShimmer(isTeleporter: boolean, tick: number):
   return 0.625 + 0.375 * Math.sin((tick / 36) * Math.PI * 2);
 }
 
+export function resolveInvaderPaletteColor(row: number, level: number, isTeleporter: boolean): string {
+  if (isTeleporter) return "#00D9FF";
+  const paletteTheme = (level - 1) % 3;
+  if (paletteTheme === 1) {
+    return row === 0 ? "#FF007F" : (row <= 2 ? "#00FF66" : "#00E5FF");
+  }
+  if (paletteTheme === 2) {
+    return row === 0 ? "#FF2A2A" : (row <= 2 ? "#B026FF" : "#FF9900");
+  }
+  return row === 0 ? colors.magentaHot : (row <= 2 ? colors.cyan : colors.gold);
+}
+
 export function resolvePlayerRoleVisual(role?: string): { roleColor: string; shapeIcon: string; name: string } {
   if (role === "hunter") return { roleColor: "#FF006E", shapeIcon: "◆", name: "HUNTER" };
   if (role === "sentinel") return { roleColor: "#00D9FF", shapeIcon: "△", name: "SENTINEL" };

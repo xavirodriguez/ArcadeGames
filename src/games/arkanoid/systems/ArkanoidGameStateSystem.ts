@@ -1,7 +1,9 @@
 import { System, World, WorldUtils } from "@tiny-aster/core";
-import { ArkanoidComponentRegistry, ArkanoidEventRegistry, BrickKind } from "../types/ArkanoidTypes";
+import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 import { ArkanoidEntityFactory } from "../EntityFactory";
+import { LevelCatalog } from "../domain/LevelCatalog";
+import { DohFactory } from "../boss/DohFactory";
 
 export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private config?: ArkanoidConfig;
@@ -13,13 +15,25 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
     const state = world.getSingleton("ArkanoidState");
     if (!state || state.isGameOver) return;
 
-    if (state.bricksRemaining <= 0) {
+    if (state.level === 33) return;
+
+    if (state.bricksRemaining <= 0 || state.portalActive) {
       const activeBricks = world.query("Brick");
-      if (activeBricks.length === 0) {
-        const nextLevel = state.level + 1;
+      let destructibleCount = 0;
+      for (let i = 0; i < activeBricks.length; i++) {
+        const bComp = world.getComponent(activeBricks[i], "Brick");
+        if (bComp && bComp.material !== "gold" && !bComp.isDestroyed) {
+          destructibleCount++;
+        }
+      }
+
+      if (destructibleCount === 0 || state.portalActive) {
+        const nextLevel = Math.min(33, state.level + 1);
         world.mutateSingleton("ArkanoidState", (s) => {
           s.level = nextLevel;
           s.isVictory = true;
+          s.portalActive = false;
+          s.activePowerUp = null;
         });
 
         const balls = world.query("Ball");
@@ -28,6 +42,7 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
           if (WorldUtils.isEntityActive(world, ball)) {
             world.mutateComponent(ball, "Ball", (b) => {
               b.isAttached = true;
+              b.attachedOffsetX = 0;
             });
             world.mutateComponent(ball, "Velocity", (v) => {
               v.vx = 0;
@@ -51,44 +66,58 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
 
   public spawnLevelBricks(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, level: number): void {
     const config = this.config || DEFAULT_ARKANOID_CONFIG;
-    const rawGrid = world.getResource<string[][]>("LevelGrid");
 
-    let brickCount = 0;
-    if (rawGrid && rawGrid.length > 0) {
-      const rows = rawGrid.length;
-      for (let r = 0; r < rows; r++) {
-        const row = rawGrid[r];
-        for (let c = 0; c < row.length; c++) {
-          const kindStr = row[c];
-          if (kindStr && kindStr !== "none" && kindStr !== "empty") {
-            const x = config.BRICK_OFFSET_LEFT + c * (config.BRICK_WIDTH + config.BRICK_PADDING) + config.BRICK_WIDTH / 2;
-            const y = config.BRICK_OFFSET_TOP + r * (config.BRICK_HEIGHT + config.BRICK_PADDING) + config.BRICK_HEIGHT / 2;
-            ArkanoidEntityFactory.createBrick(world, x, y, kindStr as BrickKind);
-            brickCount++;
-          }
-        }
-      }
-    } else {
-      const rows = Math.min(8, config.BRICK_ROWS + Math.floor(level / 2));
-      const cols = config.BRICK_COLS;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const x = config.BRICK_OFFSET_LEFT + c * (config.BRICK_WIDTH + config.BRICK_PADDING) + config.BRICK_WIDTH / 2;
-          const y = config.BRICK_OFFSET_TOP + r * (config.BRICK_HEIGHT + config.BRICK_PADDING) + config.BRICK_HEIGHT / 2;
+    const existingBricks = world.query("Brick");
+    for (const e of existingBricks) world.getCommandBuffer().removeEntity(e);
 
-          let kind: any = "standard";
-          if (r === 0 && (c === 0 || c === cols - 1)) kind = "explosive";
-          else if (r === 1 && c % 3 === 0) kind = "regenerable";
-          else if (r === 2 && c % 4 === 2) kind = "gravitational";
+    const existingCapsules = world.query("Capsule");
+    for (const e of existingCapsules) world.getCommandBuffer().removeEntity(e);
 
-          ArkanoidEntityFactory.createBrick(world, x, y, kind);
-          brickCount++;
-        }
+    const existingLasers = world.query("LaserProjectile");
+    for (const e of existingLasers) world.getCommandBuffer().removeEntity(e);
+
+    const existingEnemies = world.query("Enemy");
+    for (const e of existingEnemies) world.getCommandBuffer().removeEntity(e);
+
+    const existingBoss = world.query("Boss");
+    for (const e of existingBoss) world.getCommandBuffer().removeEntity(e);
+
+    if (level === 33) {
+      DohFactory.createDoh(world, config.SCREEN_CENTER_X, 120);
+      world.mutateSingleton("ArkanoidState", (s) => {
+        s.bricksRemaining = 999;
+        s.isVictory = false;
+      });
+      return;
+    }
+
+    LevelCatalog.initialize();
+    let levelDef;
+    try {
+      levelDef = LevelCatalog.getLevel(level);
+    } catch {
+      levelDef = LevelCatalog.getLevel(1);
+    }
+
+    let breakableCount = 0;
+    const startX = config.BRICK_OFFSET_LEFT || 60;
+    const startY = config.BRICK_OFFSET_TOP || 80;
+    const colWidth = config.BRICK_WIDTH + config.BRICK_PADDING;
+    const rowHeight = config.BRICK_HEIGHT + config.BRICK_PADDING;
+
+    for (const cell of levelDef.cells) {
+      const x = startX + cell.col * colWidth + config.BRICK_WIDTH / 2;
+      const y = startY + cell.row * rowHeight + config.BRICK_HEIGHT / 2;
+
+      ArkanoidEntityFactory.createBrick(world, x, y, cell.material, cell.color, cell.hp, cell.points, cell.powerUp);
+
+      if (cell.material !== "gold") {
+        breakableCount++;
       }
     }
 
     world.mutateSingleton("ArkanoidState", (s) => {
-      s.bricksRemaining = brickCount;
+      s.bricksRemaining = breakableCount;
       s.isVictory = false;
     });
   }
@@ -101,6 +130,8 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
       s.isGameOver = false;
       s.isVictory = false;
       s.bricksRemaining = 0;
+      s.activePowerUp = null;
+      s.portalActive = false;
     });
   }
 }

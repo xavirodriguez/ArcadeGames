@@ -387,12 +387,14 @@ export class AsteroidsGame
       renderer.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
       renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.DistantAsteroidBeltBackgroundEffect);
       renderer.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
+      renderer.registerBackgroundEffect("distant_space_station", SharedVFX.DistantSpaceStationBackgroundEffect);
     } else if (renderer.type === "skia") {
       renderer.registerBackgroundEffect("diffuse_milky_way", SharedVFX.SkiaDiffuseMilkyWayBackgroundEffect);
       renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
       renderer.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
       renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect);
       renderer.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
+      renderer.registerBackgroundEffect("distant_space_station", SharedVFX.SkiaDistantSpaceStationBackgroundEffect);
     }
   }
 

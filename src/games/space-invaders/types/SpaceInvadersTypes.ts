@@ -178,6 +178,8 @@ export interface FormationComponent extends Component {
  */
 export interface GameStateComponent extends Component {
   type: "GameState";
+  phase?: string;
+  waveTransitionRemaining?: number;
   lives: number;
   score: number;
   level: number;

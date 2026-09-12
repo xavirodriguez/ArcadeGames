@@ -1,6 +1,7 @@
 import { System, World } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { MutatorRegistry } from "../../../utils/MutatorRegistry";
+import { ISpaceInvadersGame } from "../types/GameInterfaces";
 
 /**
  * WaveTransitionSystem manages the breve (e.g. 800ms) intermission in WAVE_TRANSITION phase
@@ -20,6 +21,9 @@ export class WaveTransitionSystem extends System<SpaceInvadersComponentRegistry>
       if (nextRemaining <= 0) {
         state.phase = "MUTATOR_DRAFT";
 
+        const isHeadless = world.getResource("IsHeadless") === true;
+        const autoSelect = world.getResource("AutoSelectMutators") === true;
+
         // Generate draft options for every active Player entity in parallel
         const players = world.query("Player");
         players.forEach(playerEntity => {
@@ -37,7 +41,21 @@ export class WaveTransitionSystem extends System<SpaceInvadersComponentRegistry>
             hasChosen: false,
             selectedMutatorId: null
           } as any);
+
+          if (isHeadless || autoSelect) {
+            const firstChoice = choices[0]?.id;
+            if (firstChoice) {
+              const gameInstance = world.getResource<ISpaceInvadersGame>("GameInstance");
+              if (gameInstance && typeof gameInstance.selectRunMutator === "function") {
+                gameInstance.selectRunMutator(firstChoice);
+              }
+            }
+          }
         });
+
+        if (players.length === 0 || isHeadless || autoSelect) {
+          state.phase = "PLAYING";
+        }
       }
     });
   }

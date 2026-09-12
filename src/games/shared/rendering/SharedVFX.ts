@@ -743,6 +743,12 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
       ctx.beginPath();
       ctx.arc(beacon.x, beacon.y, 3, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    ctx.restore();
+  }
+};
+
 // -------------------------------------------------------------      
 // 19. DiffuseMilkyWayBackgroundEffect (Canvas & Skia)
 // -------------------------------------------------------------
@@ -859,6 +865,12 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
       beaconPaint.setColor(beacon.skColor || Skia.Color("#ff0033"));
       beaconPaint.setAlphaf(alpha);
       canvas.drawCircle(beacon.x, beacon.y, 3, beaconPaint);
+    }
+
+    canvas.restore();
+  }
+};
+
 export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;

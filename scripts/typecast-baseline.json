@@ -840,9 +840,9 @@
     "total": 3
   },
   "src/games/space-invaders/SpaceInvadersGame.ts": {
-    "anyCount": 25,
+    "anyCount": 22,
     "unknownCount": 0,
-    "total": 25
+    "total": 22
   },
   "src/games/space-invaders/__tests__/AchievementAndBossReactivity.test.ts": {
     "anyCount": 10,

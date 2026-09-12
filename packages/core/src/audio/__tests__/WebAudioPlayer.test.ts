@@ -8,8 +8,10 @@ const mockGainNode = {
 };
 
 const mockSourceStart = jest.fn();
+const mockPlaybackRateSetValueAtTime = jest.fn();
 const mockSourceNode = {
   buffer: null,
+  playbackRate: { setValueAtTime: mockPlaybackRateSetValueAtTime },
   connect: jest.fn(),
   start: mockSourceStart
 };

@@ -118,7 +118,6 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 };
 
 /**
-<<<<<<< HEAD
  * Procedural retro saucer UFO shape drawer for HTML5 Canvas.
  */
 export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
@@ -156,7 +155,12 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
     ctx.beginPath();
     ctx.arc(0, -radius * 0.2, radius * 0.45, Math.PI, 0);
     ctx.stroke();
-=======
+
+    ctx.restore();
+  }
+};
+
+/**
  * Overlay shape drawer for Canvas2D Mission HUD.
  */
 export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
@@ -173,14 +177,14 @@ export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, Ast
     ctx.fillStyle = "rgba(10, 14, 39, 0.85)";
     ctx.fillRect(x, y, width, height);
 
-    let statusColor = "#00D9FF";
+    let statusColor: string = colors.cyan;
     let statusText = `🎯 ${activeMission.title.toUpperCase()}`;
 
     if (activeMission.completed) {
-      statusColor = "#00FF41";
+      statusColor = colors.green;
       statusText = `★ ${activeMission.title.toUpperCase()} (COMPLETADA)`;
     } else if (activeMission.failed) {
-      statusColor = "#FF4444";
+      statusColor = colors.pink;
       statusText = `✕ ${activeMission.title.toUpperCase()} (FALLIDA)`;
     }
 
@@ -197,7 +201,7 @@ export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, Ast
     ctx.fillText(statusText, x + 8, y + 6);
 
     ctx.font = "11px monospace";
-    ctx.fillStyle = "#E8E8E8";
+    ctx.fillStyle = colors.white;
     ctx.shadowBlur = 0;
 
     let progressStr = `${activeMission.currentCount} / ${activeMission.targetCount}`;
@@ -221,7 +225,6 @@ export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, Ast
 
     ctx.fillStyle = statusColor;
     ctx.fillRect(barX, barY, barW * ratio, barH);
->>>>>>> origin/master
 
     ctx.restore();
   }

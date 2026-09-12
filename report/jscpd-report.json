@@ -765,14 +765,14 @@
         "endLoc": {
           "column": 9,
           "line": 183,
-          "position": 7631
+          "position": 7651
         },
         "name": "asteroids/AsteroidsGame.ts",
         "start": 179,
         "startLoc": {
           "column": 89,
           "line": 179,
-          "position": 7370
+          "position": 7390
         }
       },
       "tokens": 65
@@ -1523,14 +1523,14 @@
         "endLoc": {
           "column": 26,
           "line": 439,
-          "position": 18095
+          "position": 18115
         },
         "name": "asteroids/AsteroidsGame.ts",
         "start": 427,
         "startLoc": {
           "column": 31,
           "line": 427,
-          "position": 17752
+          "position": 17772
         }
       },
       "format": "typescript",
@@ -1560,14 +1560,14 @@
         "endLoc": {
           "column": 115,
           "line": 125,
-          "position": 4804
+          "position": 4809
         },
         "name": "asteroids/EntityFactory.ts",
         "start": 120,
         "startLoc": {
           "column": 45,
           "line": 120,
-          "position": 4640
+          "position": 4645
         }
       },
       "format": "typescript",
@@ -1590,6 +1590,43 @@
         }
       },
       "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 224,
+        "endLoc": {
+          "column": 13,
+          "line": 224,
+          "position": 8309
+        },
+        "name": "asteroids/EntityFactory.ts",
+        "start": 215,
+        "startLoc": {
+          "column": 8,
+          "line": 215,
+          "position": 8018
+        }
+      },
+      "format": "typescript",
+      "fragment": "        })\n        .withCollider({\n          shape: { type: ShapeType.Circle, radius } as CircleShape,\n          layer: CollisionLayers.ENEMY,\n          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE\n        })\n        .withCollisionEvents();\n\n      w.addComponent(entity, {\n        type: \"Asteroid\",",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 316,
+        "endLoc": {
+          "column": 13,
+          "line": 316,
+          "position": 11357
+        },
+        "name": "asteroids/EntityFactory.ts",
+        "start": 307,
+        "startLoc": {
+          "column": 8,
+          "line": 307,
+          "position": 11066
+        }
+      },
+      "tokens": 51
     },
     {
       "firstFile": {
@@ -1741,18 +1778,92 @@
     },
     {
       "firstFile": {
-        "end": 209,
+        "end": 148,
         "endLoc": {
-          "column": 7,
-          "line": 209,
-          "position": 7489
+          "column": 8,
+          "line": 148,
+          "position": 5133
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 197,
+        "start": 130,
+        "startLoc": {
+          "column": 49,
+          "line": 130,
+          "position": 4669
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const baseColor = render.color || colors.cyan;\n\n    ctx.save();\n\n    const flashState = resolveHitFlash(render, baseColor, 1.0);\n    const isHitFlashing = flashState.isFlashing;\n    let color = baseColor;\n    if (isHitFlashing) {\n      ctx.globalAlpha = flashState.opacity;\n      color = flashState.color;\n    }\n\n    ctx.strokeStyle = color;\n    ctx.shadowColor = isHitFlashing ? colors.white : color;\n    ctx.shadowBlur = isHitFlashing ? 20 : 10;\n    ctx.lineWidth = 2;\n\n    // Draw main saucer body\n    ctx.beginPath();",
+      "isNew": false,
+      "lines": 19,
+      "secondFile": {
+        "end": 267,
+        "endLoc": {
+          "column": 8,
+          "line": 267,
+          "position": 9217
+        },
+        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "start": 252,
+        "startLoc": {
+          "column": 47,
+          "line": 252,
+          "position": 8758
+        }
+      },
+      "tokens": 87
+    },
+    {
+      "firstFile": {
+        "end": 231,
+        "endLoc": {
+          "column": 2,
+          "line": 231,
+          "position": 7689
+        },
+        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "start": 161,
+        "startLoc": {
+          "column": 1,
+          "line": 161,
+          "position": 5480
+        }
+      },
+      "format": "typescript",
+      "fragment": "};\n\n/**\n * Overlay shape drawer for Canvas2D Mission HUD.\n */\nexport const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {\n  draw(ctx, world) {\n    const activeMission = world.getResource<ActiveMissionState>(\"ActiveMission\");\n    if (!activeMission) return;\n\n    ctx.save();\n    const x = 20;\n    const y = 80;\n    const width = 280;\n    const height = 48;\n\n    ctx.fillStyle = \"rgba(10, 14, 39, 0.85)\";\n    ctx.fillRect(x, y, width, height);\n\n    let statusColor: string = colors.cyan;\n    let statusText = `🎯 ${activeMission.title.toUpperCase()}`;\n\n    if (activeMission.completed) {\n      statusColor = colors.green;\n      statusText = `★ ${activeMission.title.toUpperCase()} (COMPLETADA)`;\n    } else if (activeMission.failed) {\n      statusColor = colors.pink;\n      statusText = `✕ ${activeMission.title.toUpperCase()} (FALLIDA)`;\n    }\n\n    ctx.strokeStyle = statusColor;\n    ctx.lineWidth = 1.5;\n    ctx.strokeRect(x, y, width, height);\n\n    ctx.font = \"bold 12px monospace\";\n    ctx.fillStyle = statusColor;\n    ctx.textAlign = \"left\";\n    ctx.textBaseline = \"top\";\n    ctx.shadowColor = statusColor;\n    ctx.shadowBlur = 6;\n    ctx.fillText(statusText, x + 8, y + 6);\n\n    ctx.font = \"11px monospace\";\n    ctx.fillStyle = colors.white;\n    ctx.shadowBlur = 0;\n\n    let progressStr = `${activeMission.currentCount} / ${activeMission.targetCount}`;\n    if (activeMission.targetTimer > 0) {\n      progressStr = `${activeMission.currentTimer.toFixed(1)}s / ${activeMission.targetTimer}s`;\n    }\n    ctx.fillText(progressStr, x + 8, y + 26);\n\n    const barX = x + 130;\n    const barY = y + 28;\n    const barW = width - 140;\n    const barH = 8;\n    const ratio = activeMission.targetCount > 0\n      ? Math.min(1, Math.max(0, activeMission.currentCount / activeMission.targetCount))\n      : activeMission.targetTimer > 0\n      ? Math.min(1, Math.max(0, (activeMission.targetTimer - activeMission.currentTimer) / activeMission.targetTimer))\n      : 0;\n\n    ctx.fillStyle = \"rgba(255, 255, 255, 0.2)\";\n    ctx.fillRect(barX, barY, barW, barH);\n\n    ctx.fillStyle = statusColor;\n    ctx.fillRect(barX, barY, barW * ratio, barH);\n\n    ctx.restore();\n  }\n};",
+      "isNew": false,
+      "lines": 71,
+      "secondFile": {
+        "end": 75,
+        "endLoc": {
+          "column": 2,
+          "line": 75,
+          "position": 2487
+        },
+        "name": "asteroids/rendering/AsteroidsMissionHUD.ts",
+        "start": 4,
+        "startLoc": {
+          "column": 46,
+          "line": 4,
+          "position": 247
+        }
+      },
+      "tokens": 453
+    },
+    {
+      "firstFile": {
+        "end": 252,
+        "endLoc": {
+          "column": 7,
+          "line": 252,
+          "position": 8718
+        },
+        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "start": 240,
         "startLoc": {
           "column": 4,
-          "line": 197,
-          "position": 6940
+          "line": 240,
+          "position": 8169
         }
       },
       "format": "typescript",
@@ -1760,18 +1871,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 181,
+        "end": 223,
         "endLoc": {
           "column": 7,
-          "line": 181,
-          "position": 6985
+          "line": 223,
+          "position": 8234
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 170,
+        "start": 212,
         "startLoc": {
           "column": 4,
-          "line": 170,
-          "position": 6609
+          "line": 212,
+          "position": 7858
         }
       },
       "tokens": 86
@@ -1797,21 +1908,132 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 233,
+        "end": 131,
         "endLoc": {
           "column": 31,
-          "line": 233,
-          "position": 8631
+          "line": 131,
+          "position": 5389
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 227,
+        "start": 125,
         "startLoc": {
-          "column": 36,
-          "line": 227,
-          "position": 8411
+          "column": 33,
+          "line": 125,
+          "position": 5169
         }
       },
       "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 26,
+        "endLoc": {
+          "column": 31,
+          "line": 26,
+          "position": 1579
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 20,
+        "startLoc": {
+          "column": 40,
+          "line": 20,
+          "position": 1359
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const size = render.size || 15;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 275,
+        "endLoc": {
+          "column": 31,
+          "line": 275,
+          "position": 9880
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 269,
+        "startLoc": {
+          "column": 36,
+          "line": 269,
+          "position": 9660
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 39,
+        "endLoc": {
+          "column": 5,
+          "line": 39,
+          "position": 2082
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 26,
+        "startLoc": {
+          "column": 34,
+          "line": 26,
+          "position": 1582
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const size = render.size || 15;\n    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:153-164. Considerar extraer a función compartida. Ref: 1c5b3d23\n    let colorStr = render.color || colors.cyan; // Glowing cyan default\n\n    canvas.save();\n\n    let opacity = 1.0;\n\n    // Hit Flash Transparency Pulse\n    const flashState = resolveHitFlash(render, colorStr, 1.0);\n    if (flashState.isFlashing) {\n      opacity = flashState.opacity;\n      colorStr = flashState.color;\n    }",
+      "isNew": false,
+      "lines": 14,
+      "secondFile": {
+        "end": 142,
+        "endLoc": {
+          "column": 5,
+          "line": 142,
+          "position": 5687
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 132,
+        "startLoc": {
+          "column": 27,
+          "line": 132,
+          "position": 5421
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
+        "end": 150,
+        "endLoc": {
+          "column": 29,
+          "line": 150,
+          "position": 5912
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 133,
+        "startLoc": {
+          "column": 46,
+          "line": 133,
+          "position": 5469
+        }
+      },
+      "format": "typescript",
+      "fragment": "    let colorStr = render.color || colors.cyan;\n\n    canvas.save();\n\n    let opacity = 1.0;\n    const flashState = resolveHitFlash(render, colorStr, 1.0);\n    if (flashState.isFlashing) {\n      opacity = flashState.opacity;\n      colorStr = flashState.color;\n    }\n\n    const paint = getPaint();\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setColor(Skia.Color(colorStr));\n    paint.setStrokeWidth(2);\n    paint.setAlphaf(opacity);",
+      "isNew": false,
+      "lines": 18,
+      "secondFile": {
+        "end": 239,
+        "endLoc": {
+          "column": 29,
+          "line": 239,
+          "position": 8736
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 223,
+        "startLoc": {
+          "column": 46,
+          "line": 223,
+          "position": 8273
+        }
+      },
+      "tokens": 101
     },
     {
       "firstFile": {
@@ -7217,18 +7439,18 @@
     },
     {
       "firstFile": {
-        "end": 736,
+        "end": 737,
         "endLoc": {
           "column": 53,
-          "line": 736,
-          "position": 24035
+          "line": 737,
+          "position": 24036
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 726,
+        "start": 727,
         "startLoc": {
           "column": 48,
-          "line": 726,
-          "position": 23725
+          "line": 727,
+          "position": 23726
         }
       },
       "format": "typescript",
@@ -7236,36 +7458,36 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 526,
+        "end": 527,
         "endLoc": {
           "column": 53,
-          "line": 526,
-          "position": 19456
+          "line": 527,
+          "position": 19457
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 516,
+        "start": 517,
         "startLoc": {
           "column": 32,
-          "line": 516,
-          "position": 19146
+          "line": 517,
+          "position": 19147
         }
       },
       "tokens": 70
     },
     {
       "firstFile": {
-        "end": 383,
+        "end": 384,
         "endLoc": {
           "column": 27,
-          "line": 383,
-          "position": 14949
+          "line": 384,
+          "position": 14950
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 376,
+        "start": 377,
         "startLoc": {
           "column": 23,
-          "line": 376,
-          "position": 14754
+          "line": 377,
+          "position": 14755
         }
       },
       "format": "typescript",
@@ -7273,50 +7495,50 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 463,
+        "end": 464,
         "endLoc": {
           "column": 27,
-          "line": 463,
-          "position": 17372
+          "line": 464,
+          "position": 17373
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 454,
+        "start": 455,
         "startLoc": {
           "column": 17,
-          "line": 454,
-          "position": 17112
+          "line": 455,
+          "position": 17113
         }
       },
       "tokens": 51
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-11T22:32:37.610Z",
+    "detectionDate": "2026-09-12T13:46:12.503Z",
     "formats": {
       "typescript": {
-        "clones": 197,
-        "duplicatedLines": 2012,
-        "duplicatedTokens": 15478,
-        "lines": 61262,
+        "clones": 203,
+        "duplicatedLines": 2145,
+        "duplicatedTokens": 16276,
+        "lines": 61516,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.284254513401456,
-        "percentageTokens": 4.866102025289394,
-        "sources": 363,
-        "tokens": 318078
+        "percentage": 3.486897717666949,
+        "percentageTokens": 5.088762576522158,
+        "sources": 364,
+        "tokens": 319842
       }
     },
     "total": {
-      "clones": 197,
-      "duplicatedLines": 2012,
-      "duplicatedTokens": 15478,
-      "lines": 61262,
+      "clones": 203,
+      "duplicatedLines": 2145,
+      "duplicatedTokens": 16276,
+      "lines": 61516,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.284254513401456,
-      "percentageTokens": 4.866102025289394,
-      "sources": 363,
-      "tokens": 318078
+      "percentage": 3.486897717666949,
+      "percentageTokens": 5.088762576522158,
+      "sources": 364,
+      "tokens": 319842
     }
   }
 }

@@ -52,12 +52,8 @@ import {
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem, PowerUpRegistry } from "@tiny-aster/gameplay-kit";
 import { MissionSystem } from "../shared/missions/MissionSystem";
-<<<<<<< HEAD
 import { ASTEROIDS_MISSIONS, ALL_ASTEROIDS_MISSIONS } from "./AsteroidsMissions";
-=======
-import { ASTEROIDS_MINI_MISSIONS } from "./AsteroidsMissions";
 import { MutatorRegistry } from "../../utils/MutatorRegistry";
->>>>>>> origin/master
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";

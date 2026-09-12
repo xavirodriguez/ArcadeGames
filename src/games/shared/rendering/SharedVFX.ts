@@ -609,6 +609,78 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
 
 // -------------------------------------------------------------
 // 18. DiffuseMilkyWayBackgroundEffect (Canvas & Skia)
+// 18. DistantSpaceStationBackgroundEffect (Canvas & Skia)
+// -------------------------------------------------------------
+export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+  draw(ctx, world) {
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.spaceStationInitialized) {
+      initializeSpaceStation(world, state);
+    }
+    const station = state.spaceStation;
+    if (!station) return;
+
+    station.x += station.vx;
+    station.y += station.vy;
+    station.rotation += station.angularVelocity;
+
+    if (station.x < -100) station.x = width + 100;
+    if (station.x > width + 100) station.x = -100;
+    if (station.y < -100) station.y = height + 100;
+    if (station.y > height + 100) station.y = -100;
+
+    ctx.save();
+    ctx.translate(station.x, station.y);
+    ctx.rotate(station.rotation);
+
+    // 1. Docking Ring
+    ctx.strokeStyle = "#457b9d";
+    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, station.ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 2. Station Modules / Truss Structures
+    ctx.globalAlpha = 0.6;
+    for (let i = 0; i < station.modules.length; i++) {
+      const mod = station.modules[i];
+      ctx.fillStyle = mod.color;
+      ctx.fillRect(mod.x, mod.y, mod.width, mod.height);
+    }
+
+    // 3. Central Core Hub
+    ctx.fillStyle = "#a8dadc";
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.arc(0, 0, station.coreRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#1d3557";
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.arc(0, 0, station.coreRadius * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. Blinking Signal Beacons
+    for (let i = 0; i < station.beacons.length; i++) {
+      const beacon = station.beacons[i];
+      beacon.twinklePhase += beacon.twinkleSpeed;
+      const alpha = 0.3 + 0.7 * Math.abs(Math.sin(beacon.twinklePhase));
+
+      ctx.fillStyle = beacon.color;
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(beacon.x, beacon.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+};
+
+// -------------------------------------------------------------      
+// 19. DiffuseMilkyWayBackgroundEffect (Canvas & Skia)
 // -------------------------------------------------------------
 export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
@@ -659,6 +731,73 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
     }
 
     ctx.restore();
+  }
+};
+
+export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+  draw(canvas, world) {
+    if (!Skia) return;
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.spaceStationInitialized) {
+      initializeSpaceStation(world, state);
+    }
+    const station = state.spaceStation;
+    if (!station) return;
+
+    station.x += station.vx;
+    station.y += station.vy;
+    station.rotation += station.angularVelocity;
+
+    if (station.x < -100) station.x = width + 100;
+    if (station.x > width + 100) station.x = -100;
+    if (station.y < -100) station.y = height + 100;
+    if (station.y > height + 100) station.y = -100;
+
+    canvas.save();
+    canvas.translate(station.x, station.y);
+    canvas.rotate((station.rotation * 180) / Math.PI, 0, 0);
+
+    // 1. Docking Ring
+    const ringPaint = Skia.Paint();
+    ringPaint.setStyle(Skia.PaintStyle.Stroke);
+    ringPaint.setColor(Skia.Color("#457b9d"));
+    ringPaint.setStrokeWidth(2.5);
+    ringPaint.setAlphaf(0.5);
+    canvas.drawCircle(0, 0, station.ringRadius, ringPaint);
+
+    // 2. Station Modules / Truss Structures
+    const modPaint = Skia.Paint();
+    modPaint.setAlphaf(0.6);
+    for (let i = 0; i < station.modules.length; i++) {
+      const mod = station.modules[i];
+      modPaint.setColor(mod.skColor || Skia.Color("#1d3557"));
+      canvas.drawRect(Skia.XYWHRect(mod.x, mod.y, mod.width, mod.height), modPaint);
+    }
+
+    // 3. Central Core Hub
+    const corePaint = Skia.Paint();
+    corePaint.setColor(Skia.Color("#a8dadc"));
+    corePaint.setAlphaf(0.75);
+    canvas.drawCircle(0, 0, station.coreRadius, corePaint);
+
+    const innerCorePaint = Skia.Paint();
+    innerCorePaint.setColor(Skia.Color("#1d3557"));
+    innerCorePaint.setAlphaf(0.9);
+    canvas.drawCircle(0, 0, station.coreRadius * 0.4, innerCorePaint);
+
+    // 4. Blinking Signal Beacons
+    const beaconPaint = Skia.Paint();
+    for (let i = 0; i < station.beacons.length; i++) {
+      const beacon = station.beacons[i];
+      beacon.twinklePhase += beacon.twinkleSpeed;
+      const alpha = 0.3 + 0.7 * Math.abs(Math.sin(beacon.twinklePhase));
+
+      beaconPaint.setColor(beacon.skColor || Skia.Color("#ff0033"));
+      beaconPaint.setAlphaf(alpha);
+      canvas.drawCircle(beacon.x, beacon.y, 3, beaconPaint);
+    }
+
+    canvas.restore();
   }
 };
 

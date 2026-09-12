@@ -2,7 +2,8 @@ import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual, resolveInvaderPaletteColor } from "../../shared/rendering/spaceInvadersMath";
+import * as SharedVFX from "../../shared/rendering/SharedVFX";
 
 // ============================================================================
 // VISUAL-ONLY EXPLOSION LAYERED PARTICLE POOL (RING, DEBRIS W/ GRAVITY, SMOKE)
@@ -188,6 +189,27 @@ export const drawExplosionBackgroundEffect: EffectDrawer<CanvasRenderingContext2
   draw(ctx) {
     updateExplosionParticles();
     drawExplosionParticlesCanvas(ctx);
+  }
+};
+
+const CANVAS_BG_THEMES: Array<(ctx: CanvasRenderingContext2D, world: World<any>) => void> = [
+  (ctx, w) => { SharedVFX.ScrollingStarfieldEffect.draw(ctx, w); SharedVFX.DriftingNebulaBackgroundEffect.draw(ctx, w); },
+  (ctx, w) => { SharedVFX.RingingPlanetBackgroundEffect.draw(ctx, w); SharedVFX.DistantSpaceStationBackgroundEffect.draw(ctx, w); },
+  (ctx, w) => { SharedVFX.MatrixDigitalRainEffect.draw(ctx, w); SharedVFX.RetroCRTScanlinesEffect.draw(ctx, w); },
+  (ctx, w) => { SharedVFX.HyperdriveWarpSpeedLinesEffect.draw(ctx, w); SharedVFX.CRTGlitchShudderEffect.draw(ctx, w); },
+  (ctx, w) => { SharedVFX.DiffuseMilkyWayBackgroundEffect.draw(ctx, w); SharedVFX.DistantAsteroidBeltBackgroundEffect.draw(ctx, w); },
+  (ctx, w) => { SharedVFX.ScrollingStarfieldEffect.draw(ctx, w); SharedVFX.ScreenBorderGlowEffect.draw(ctx, w); SharedVFX.DriftingNebulaBackgroundEffect.draw(ctx, w); },
+];
+
+/**
+ * Dynamic background drawer that shifts SharedVFX themes based on level and seed.
+ */
+export const drawSpaceInvadersDynamicBackground: EffectDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
+  draw(ctx, world) {
+    const level = world.getSingleton("GameState")?.level || 1;
+    const themeIndex = (level - 1) % CANVAS_BG_THEMES.length;
+    const drawer = CANVAS_BG_THEMES[themeIndex] || CANVAS_BG_THEMES[0];
+    drawer(ctx, world);
   }
 };
 
@@ -407,15 +429,10 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     const enemyTag = world.getComponent(entity, "EnemyTag");
     const isTeleporter = enemyTag?.variant === "teleporter" || render.color === "#00D9FF";
 
+    const level = world.getSingleton("GameState")?.level || 1;
+
     if (invaderComp && !isTeleporter && render.color !== "#00D9FF") {
-      const row = invaderComp.row;
-      if (row === 0) {
-        baseColor = colors.magentaHot; // Row 0 (Commanders): Hot Magenta
-      } else if (row <= 2) {
-        baseColor = colors.cyan; // Rows 1-2 (Scouts): Electric Cyan
-      } else {
-        baseColor = colors.gold; // Rows 3-4 (Grunts): Cyber Gold
-      }
+      baseColor = resolveInvaderPaletteColor(invaderComp.row, level, false);
     } else if (isTeleporter) {
       baseColor = "#00D9FF";
     }
@@ -493,7 +510,10 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
     const { size = 4 } = render;
 
     const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
-    const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;
+    const level = world.getSingleton("GameState")?.level || 1;
+    const bulletTheme = (level - 1) % 3;
+    const enemyBulletColor = bulletTheme === 1 ? "#FF2A2A" : (bulletTheme === 2 ? "#00FF66" : colors.redHot);
+    const glowColor = isPlayerBullet ? colors.cyan : enemyBulletColor;
     const coreColor = colors.white;
     const proximityFactor = calculateBulletProximity(world, entity, isPlayerBullet);
 

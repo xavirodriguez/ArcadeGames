@@ -40,11 +40,11 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
       world.setResource("ActiveMission", this.activeMissionState);
     }
 
-    const eventBus = world.getEventBus() as EventBus;
+    const eventBus = world.getEventBus();
     if (!eventBus) return;
 
     // Listen to generic game events and forward to active mission handler
-    const handleEvent = (eventName: string, payload: any) => {
+    const handleEvent = (eventName: string, payload: unknown) => {
       if (world.isReSimulating) return;
       if (!this.activeMissionState || this.activeMissionState.completed || this.activeMissionState.failed) return;
 
@@ -74,7 +74,7 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
     for (const topic of standardTopics) {
       if (!this.registeredEventKeys.has(topic)) {
         this.registeredEventKeys.add(topic);
-        eventBus.on(topic, (payload: any) => handleEvent(topic, payload));
+        eventBus.on(topic, (payload: unknown) => handleEvent(topic, payload));
       }
     }
   }
@@ -107,7 +107,7 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
     this.activeMissionState = state;
     world.setResource("ActiveMission", state);
 
-    const eventBus = world.getEventBus() as EventBus;
+    const eventBus = world.getEventBus();
     if (eventBus) {
       eventBus.emitDeferred("mission:progress", {
         missionId: state.id,
@@ -135,12 +135,17 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
     world.setResource("ActiveMission", this.activeMissionState);
 
     if (this.activeMissionState.reward?.scoreBonus) {
-      world.mutateSingleton("GameState" as any, (gs: any) => {
-        gs.score += this.activeMissionState!.reward!.scoreBonus!;
-      });
+      const gsTag = "GameState" as Extract<keyof TComponents, string>;
+      if (world.query(gsTag).length > 0) {
+        world.mutateSingleton(gsTag, (gs: unknown) => {
+          if (gs && typeof gs === "object" && "score" in gs && typeof (gs as { score: unknown }).score === "number") {
+            (gs as { score: number }).score += this.activeMissionState!.reward!.scoreBonus!;
+          }
+        });
+      }
     }
 
-    const eventBus = world.getEventBus() as EventBus;
+    const eventBus = world.getEventBus();
     if (eventBus) {
       eventBus.emitDeferred("mission:completed", {
         missionId: this.activeMissionState.id,
@@ -155,7 +160,7 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
     this.activeMissionState.failed = true;
     world.setResource("ActiveMission", this.activeMissionState);
 
-    const eventBus = world.getEventBus() as EventBus;
+    const eventBus = world.getEventBus();
     if (eventBus) {
       eventBus.emitDeferred("mission:failed", {
         missionId: this.activeMissionState.id,

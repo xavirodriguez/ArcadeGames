@@ -48,7 +48,7 @@ const createMockContext = () => {
   return { ctx, drawCalls };
 };
 
-describe("Deterministic Zero-Allocation Shared VFX (All 17 Effects)", () => {
+describe("Deterministic Zero-Allocation Shared VFX (All 18 Effects)", () => {
   let world: World<CoreComponentRegistry>;
   let originalRandom: typeof Math.random;
 
@@ -353,6 +353,24 @@ describe("Deterministic Zero-Allocation Shared VFX (All 17 Effects)", () => {
     expect(drawCalls).toContain("beginPath");
     expect(drawCalls).toContain("fill");
     expect(drawCalls).toContain("stroke");
+    expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
+  });
+
+  // -----------------------------------------------------------
+  // 18. DistantSpaceStationBackgroundEffect
+  // -----------------------------------------------------------
+  it("should draw DistantSpaceStationBackgroundEffect deterministically and without Math.random", () => {
+    const { ctx, drawCalls } = createMockContext();
+    const initialSeed = world.renderRandom.getSeed();
+
+    SharedVFX.DistantSpaceStationBackgroundEffect.draw(ctx, world);
+
+    expect(drawCalls.length).toBeGreaterThan(0);
+    expect(drawCalls).toContain("save");
+    expect(drawCalls).toContain("restore");
+    expect(drawCalls).toContain("beginPath");
+    expect(drawCalls).toContain("stroke");
+    expect(drawCalls).toContain("fill");
     expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
   });
 });

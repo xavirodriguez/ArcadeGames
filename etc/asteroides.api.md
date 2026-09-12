@@ -226,6 +226,12 @@ export interface AudioAsset {
 }
 
 // @public
+export interface AudioAssetDefinition {
+    id: string;
+    path: string;
+}
+
+// @public
 export interface AuthoritativeServerState {
     vx: number;
     vy: number;
@@ -1176,6 +1182,11 @@ export interface CoreEvents {
     };
     "PlaySFX": {
         name: string;
+        volume?: number;
+        pitchRange?: number;
+        cooldownMs?: number;
+        detune?: number;
+        playbackRate?: number;
     };
 }
 
@@ -3458,6 +3469,9 @@ export class PrefabPool<T extends Record<string, Component>, I> {
 }
 
 // @public
+export function preloadSharedAudioManifest(audio: IAudioPlayer): Promise<void>;
+
+// @public
 export interface ProjectileComponents extends Record<string, Component> {
     // (undocumented)
     collider: Collider2DComponent;
@@ -4155,6 +4169,9 @@ export enum ShapeType {
     Circle = 0,
     Polygon = 2
 }
+
+// @public
+export const SHARED_AUDIO_MANIFEST: AudioAssetDefinition[];
 
 // @public
 export const SHIP_FORWARD_AXIS: {
@@ -5098,7 +5115,7 @@ export class WebAudioPlayer implements IAudioPlayer {
     loadSFX(id: string, options: unknown): Promise<void>;
     pauseBGM(): void;
     playBGM(id: string, options?: unknown): void;
-    playSFX(id: string, _options?: unknown): void;
+    playSFX(id: string, options?: unknown): void;
     playSpatialSFX(id: string, x: number, y: number, listenerX: number, listenerY: number, maxDistance: number): void;
     setBGMVolume(v: number): void;
     setMasterVolume(v: number): void;

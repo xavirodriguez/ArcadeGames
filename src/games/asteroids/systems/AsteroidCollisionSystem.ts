@@ -195,6 +195,8 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     // Emit deferred events
     const eventBus = world.getEventBus();
     if (eventBus) {
+        const sfxName = size === "large" ? "explosion_large" : "explosion_small";
+        eventBus.emitDeferred("PlaySFX", { name: sfxName, pitchRange: 0.06 });
         eventBus.emitDeferred("asteroid:destroyed", { entity: asteroid, size });
         eventBus.emitDeferred("score:changed", { newScore, delta: scoreGain });
     }
@@ -266,6 +268,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
 
             const eventBus = world.getEventBus();
             if (eventBus) {
+              eventBus.emitDeferred("PlaySFX", { name: "hit_critical", volume: 1.0 });
               eventBus.emitDeferred("ufo:destroyed", { entity: ufo });
               eventBus.emitDeferred("score:changed", { newScore: points, delta: scoreGain });
             }
@@ -381,6 +384,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           // Eventos Diferidos: Todo evento debe emitirse con eventBus.emitDeferred()
           const eventBus = world.getEventBus();
           if (eventBus) {
+            eventBus.emitDeferred("PlaySFX", { name: "explosion_large", volume: 1.0 });
             eventBus.emitDeferred("ship:destroyed", { entity: ship });
           }
         }

@@ -105,11 +105,31 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   ownerId: "player"
               });
 
+              const eventBus = world.getEventBus();
+              if (eventBus) {
+                  eventBus.emitDeferred("PlaySFX", {
+                      name: "shoot",
+                      pitchRange: 0.05,
+                      cooldownMs: 80
+                  });
+              }
+
               if (world.hasComponent(entity, "Ship")) {
                   const mutShip = world.getMutableComponent(entity, "Ship");
                   if (mutShip) {
                       mutShip.shootCooldownRemaining = config.SHIP_SHOOT_COOLDOWN ?? 0.25;
                   }
+              }
+          }
+
+          if (hasAction("thrust")) {
+              const eventBus = world.getEventBus();
+              if (eventBus) {
+                  eventBus.emitDeferred("PlaySFX", {
+                      name: "thrust_loop",
+                      cooldownMs: 150,
+                      volume: 0.6
+                  });
               }
           }
 
@@ -230,6 +250,11 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                       } else if (acts && typeof acts === "object") {
                           (acts as Record<string, boolean>)["hyperspace"] = false;
                       }
+                  }
+
+                  const eventBus = world.getEventBus();
+                  if (eventBus) {
+                      eventBus.emitDeferred("PlaySFX", { name: "wrap", volume: 0.9 });
                   }
               }
           } else if (!isHyperspaceHeld && prepActive) {

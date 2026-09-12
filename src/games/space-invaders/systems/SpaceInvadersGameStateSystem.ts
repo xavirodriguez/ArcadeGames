@@ -85,6 +85,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         if (world.isReSimulating) return;
         world.mutateSingleton("GameState", (gs) => {
           gs.intermissionRemaining = 3.0; // 3 seconds intermission
+          eventBus.emitDeferred("PlaySFX", { name: "wave_start", volume: 0.8 });
           eventBus.emitDeferred("stage:cleared", { level: gs.level });
         });
       });
@@ -107,7 +108,7 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
           });
 
           // Play confirm sound
-          eventBus.emitDeferred("PlaySFX", { name: "shoot" });
+          eventBus.emitDeferred("PlaySFX", { name: "menu_confirm", volume: 0.9 });
         });
       });
     }

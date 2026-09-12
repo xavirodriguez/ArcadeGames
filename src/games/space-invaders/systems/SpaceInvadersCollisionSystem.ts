@@ -233,7 +233,10 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           eventBus.emitDeferred("si:kill", { chain: nextCombo });
           eventBus.emitDeferred("entity:destroyed", { entity: target, type: "Invader" });
           if (!world.isReSimulating) {
-            eventBus.emitDeferred("PlaySFX", { name: "explosion" });
+            eventBus.emitDeferred("PlaySFX", { name: "explosion_small", pitchRange: 0.05 });
+            if (nextCombo > 1 && nextCombo % 5 === 0) {
+              eventBus.emitDeferred("PlaySFX", { name: "combo_up", volume: 0.9 });
+            }
           }
         }
 
@@ -374,10 +377,18 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       s.hp = nextHp;
     });
 
+    const eventBus = world.getEventBus();
+
     if (expired) {
+      if (eventBus && !world.isReSimulating) {
+        eventBus.emitDeferred("PlaySFX", { name: "shield_break", volume: 0.8 });
+      }
       world.getCommandBuffer().removeEntity(shieldEntity);
       destroyedEntities.add(shieldEntity);
     } else {
+      if (eventBus && !world.isReSimulating) {
+        eventBus.emitDeferred("PlaySFX", { name: "shield_hit", volume: 0.6 });
+      }
       world.mutateComponent(shieldEntity, "Render", render => {
         render.hitFlashFrames = 5;
       });

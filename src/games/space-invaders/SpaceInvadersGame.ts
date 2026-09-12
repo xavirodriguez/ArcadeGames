@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
 import { EnemyFactory } from "./EnemyFactory";
@@ -497,13 +497,9 @@ export class SpaceInvadersGame
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    const assets = [
-      { id: "shoot", path: "/audio/shoot.mp3" },
-      { id: "explosion", path: "/audio/explosion.mp3" },
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" },
-    ];
-    await loadAudioAssets(this.audio, assets);
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
+    }
   }
 
   public initializeRenderer(renderer: Renderer<any, any>): void {

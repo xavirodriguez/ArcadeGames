@@ -1,4 +1,5 @@
 import { System, World, ComponentRegistry, EventBus } from "@tiny-aster/core";
+<<<<<<< HEAD
 import { MissionDefinition, MissionProgress, MissionEventPayload } from "./MissionTypes";
 
 /**
@@ -105,6 +106,7 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
         }
       }
     });
+=======
 import { MissionDefinition, ActiveMissionState } from "./MissionTypes";
 
 /**
@@ -232,10 +234,12 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
         reason
       });
     }
+>>>>>>> origin/master
   }
 
   public update(world: World<TComponents>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
+<<<<<<< HEAD
     if (!this.activeMission) return;
 
     // Keep world resource in sync
@@ -605,6 +609,7 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
     const eventBus = world.getEventBus() as EventBus;
     if (eventBus) {
       eventBus.emitDeferred("mission:failed", payload);
+=======
     if (!this.activeMissionState || this.activeMissionState.completed || this.activeMissionState.failed) return;
 
     const def = this.activeMissionState.definition;
@@ -623,6 +628,7 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
       this.completeMission(world);
     } else if (this.activeMissionState.failed) {
       this.failMission(world, "Failed mission condition");
+>>>>>>> origin/master
     }
   }
 }

@@ -120,6 +120,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
 };
 
 /**
+<<<<<<< HEAD
  * Procedural retro saucer UFO shape drawer for React Native Skia.
  */
 export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> = {
@@ -156,6 +157,7 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
     const domePath = Skia.Path.Make();
     domePath.addArc({ x: -radius * 0.45, y: -radius * 0.65, width: radius * 0.9, height: radius * 0.9 }, 180, 180);
     canvas.drawPath(domePath, paint);
+=======
  * Overlay shape drawer for React Native Skia Mission HUD.
  */
 export const drawSkiaAsteroidsMissionHUD: EffectDrawer<any, AsteroidsComponentRegistry> = {
@@ -190,6 +192,8 @@ export const drawSkiaAsteroidsMissionHUD: EffectDrawer<any, AsteroidsComponentRe
     paint.setColor(Skia.Color(statusColor));
     paint.setStrokeWidth(1.5);
     canvas.drawRect(rect, paint);
+>>>>>>> origin/master
+
     canvas.restore();
   }
 };

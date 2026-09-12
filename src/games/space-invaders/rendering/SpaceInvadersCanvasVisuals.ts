@@ -567,7 +567,10 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
       ctx.translate(shakeX, shakeY);
     }
     ctx.scale(scale, scale);
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
     const { vibX, vibY } = calculateBossVibrato(phase, tick);
     ctx.translate(vibX, vibY);
     ctx.scale(scaleMultiplier, scaleMultiplier);

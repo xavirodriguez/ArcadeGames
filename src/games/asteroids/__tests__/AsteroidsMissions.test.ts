@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { World, SystemPhase } from "@tiny-aster/core";
 import { AsteroidsGame } from "../AsteroidsGame";
 import { MissionSystem } from "../../shared/missions/MissionSystem";
@@ -7,6 +8,7 @@ import { createAsteroid } from "../EntityFactory";
 describe("Asteroids Mini-Missions System", () => {
   let game: AsteroidsGame;
   let world: World<any, any>;
+=======
 import { World, EventBus, ComboComponent } from "@tiny-aster/core";
 import { AsteroidsGame } from "../AsteroidsGame";
 import { MissionSystem } from "../../shared/missions/MissionSystem";
@@ -15,6 +17,7 @@ import { ActiveMissionState } from "../../shared/missions/MissionTypes";
 
 describe("Asteroids Minimissions Test Suite", () => {
   let game: AsteroidsGame;
+>>>>>>> origin/master
 
   beforeEach(async () => {
     game = new AsteroidsGame({
@@ -22,6 +25,7 @@ describe("Asteroids Minimissions Test Suite", () => {
       gameOptions: { mode: "deathmatch" }
     });
     await game.init();
+<<<<<<< HEAD
     world = game.world;
 
     // Remove initial wave asteroids completely to prevent collision interference in isolated mission tests
@@ -30,18 +34,20 @@ describe("Asteroids Minimissions Test Suite", () => {
       world.getCommandBuffer().removeEntity(ast);
     }
     world.update(0);
+=======
     const world = game.getWorld();
     world.mutateSingleton("GameState", (gs) => {
       gs.readyRemaining = 0;
       gs.intermissionRemaining = 0;
     });
-
+>>>>>>> origin/master
   });
 
   afterEach(() => {
     game.destroy();
   });
 
+<<<<<<< HEAD
   it("should initialize Level 1 with active MissionSystem and trackable mission", () => {
     game.start();
     const activeMission = world.getResource("ActiveMission") as any;
@@ -65,6 +71,7 @@ describe("Asteroids Minimissions Test Suite", () => {
     expect(comboEntity).toBeDefined();
 
     world.mutateComponent(comboEntity, "Combo", (c: any) => {
+=======
   it("should initialize AsteroidsGame with MissionSystem and ActiveMission resource at level 1", () => {
     const world = game.getWorld();
     const activeMission = world.getResource<ActiveMissionState>("ActiveMission");
@@ -181,11 +188,12 @@ describe("Asteroids Minimissions Test Suite", () => {
 
     const comboEntity = world.query("Combo")[0];
     world.mutateComponent(comboEntity, "Combo", (c: ComboComponent) => {
-
+>>>>>>> origin/master
       c.multiplier = 5;
     });
 
     world.update(0.1);
+<<<<<<< HEAD
     world.getEventBus().flushDeferred();
 
     expect(missionSys.getActiveMission()?.completed).toBe(true);
@@ -369,6 +377,7 @@ describe("Asteroids Minimissions Test Suite", () => {
 
     world.update(0.1);
     expect(missionSys.getActiveMission()?.completed).toBe(true);
+=======
 
     const state = missionSystem.getActiveMission();
     expect(state?.completed).toBe(true);
@@ -499,5 +508,6 @@ describe("Asteroids Minimissions Test Suite", () => {
 
     const state = missionSystem.getActiveMission();
     expect(state?.completed).toBe(true);
+>>>>>>> origin/master
   });
 });

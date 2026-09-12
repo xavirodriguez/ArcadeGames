@@ -2,7 +2,7 @@ import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderCo
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateBossVibrato, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
@@ -301,25 +301,7 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
 
     const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;
     const coreColor = colors.white;
-
-    // Calculate proximity intensity for enemy bullets prior to impact
-    let proximityFactor = 0;
-    if (!isPlayerBullet) {
-      const pos = world.getComponent(entity, "Transform");
-      const ttl = world.getComponent(entity, "TTL");
-
-      let distFactor = 0;
-      if (pos) {
-        distFactor = Math.max(0, Math.min(1.0, (pos.y - 300) / 220));
-      }
-
-      let ttlFactor = 0;
-      if (ttl && ttl.timeLeft) {
-        ttlFactor = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / ttl.timeLeft)));
-      }
-
-      proximityFactor = Math.max(distFactor, ttlFactor);
-    }
+    const proximityFactor = calculateBulletProximity(world, entity, isPlayerBullet);
 
     canvas.save();
 
@@ -387,7 +369,10 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
       canvas.translate(shakeX, shakeY);
     }
     canvas.scale(scale, scale);
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
     const { vibX, vibY } = calculateBossVibrato(phase, tick);
     canvas.translate(vibX, vibY);
     canvas.scale(scaleMultiplier, scaleMultiplier);
@@ -542,19 +527,7 @@ export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersCompon
       progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));
     }
 
-    // Zero-allocation heat-dissipation color shifting
-    let particleColor = colorStr;
-    if (colorStr === "white" || colorStr === colors.white) {
-      if (progress < 0.2) {
-        particleColor = colors.white; // Hot white
-      } else if (progress < 0.45) {
-        particleColor = colors.yellow; // Yellow flare
-      } else if (progress < 0.7) {
-        particleColor = colors.orange; // Dissipating Orange
-      } else {
-        particleColor = colors.red; // Red ember
-      }
-    }
+    const particleColor = calculateParticleHeatColor(colorStr, progress);
 
     const currentSize = Math.max(0.5, size * (1.1 - progress));
 

@@ -7,10 +7,13 @@ import { ComboComponent } from "../components/ComboComponent";
  * System that processes combo streak decay and reset timers across entities.
  *
  * @remarks
- * In each tick, `ComboSystem` queries entities with a `ComboComponent`.
+ * In each tick, `ComboSystem` queries entities holding a `ComboComponent`.
  * If the world is paused (`IsPaused === true`) or an entity's combo timer has already expired (`timerRemaining <= 0`),
  * processing is skipped. Otherwise, `timerRemaining` is decremented by `deltaTime`. Upon reaching zero or below,
- * `timerRemaining` is capped at 0, the combo count is reset to 0, and the multiplier is reset to 1.
+ * `timerRemaining` is capped at 0, the combo streak count resets to 0, and the score/damage multiplier resets to 1.
+ *
+ * Multiplier accumulation (e.g., incrementing `combo` count and increasing `multiplier`) is handled by gameplay
+ * collision or scoring systems, while `ComboSystem` enforces per-tick timer decay and reset sequences.
  *
  * Mutable components are acquired only when `timerRemaining > 0` to preserve determinism and avoid unnecessary
  * `stateVersion` increments during rollback and re-simulation.
@@ -27,10 +30,16 @@ import { ComboComponent } from "../components/ComboComponent";
  */
 export class ComboSystem<TComponents extends CoreComponentRegistry = CoreComponentRegistry> extends System<TComponents> {
   /**
-   * Updates all active combo timers and resets expired combo streaks.
+   * Updates all active combo timers and resets expired combo streaks and multipliers.
    *
    * @param world - The ECS world containing active entities and components.
    * @param deltaTime - Elapsed frame time in seconds (e.g., `0.016`).
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * comboSystem.update(world, 0.016);
+   * ```
    */
   public update(world: World<TComponents>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
@@ -58,6 +67,13 @@ export class ComboSystem<TComponents extends CoreComponentRegistry = CoreCompone
 
   /**
    * Cleans up any resources held by the combo system upon disposal.
+   *
+   * @returns Void.
+   *
+   * @example
+   * ```ts
+   * comboSystem.dispose();
+   * ```
    */
-  public dispose(): void {}
+  public override dispose(): void {}
 }

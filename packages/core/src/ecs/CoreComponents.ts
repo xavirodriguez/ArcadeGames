@@ -144,7 +144,26 @@ export interface BoundaryComponent extends Component {
   maxY?: number;
 }
 
-/** @public */
+/**
+ * Component specifying an entity's remaining time-to-live before automatic destruction or expiration handling.
+ *
+ * @remarks
+ * Processed by `TTLSystem` to decrement `remaining` (and legacy `timeLeft`) by frame `deltaTime`.
+ * Upon reaching zero, `TTLSystem` marks the entity for removal via the world command buffer and optionally emits `onCompleteEvent`.
+ *
+ * @example
+ * ```ts
+ * const ttl: TTLComponent = {
+ *   type: "TTL",
+ *   remaining: 1.5,
+ *   timeLeft: 1.5,
+ *   onCompleteEvent: "particle:expired"
+ * };
+ * world.addComponent(entity, ttl);
+ * ```
+ *
+ * @public
+ */
 export interface TTLComponent extends Component {
   /** Component discriminator type. */
   type: "TTL";
@@ -313,6 +332,8 @@ export interface RenderComponent extends Component {
   angularVelocity: number;
   /** Remaining frames for hit flash visual effect. */
   hitFlashFrames: number;
+  /** Danger pulse effect intensity (0.0 to 1.0) for warning state visuals. */
+  dangerPulseIntensity?: number;
   /** Primitive shape descriptor if no sprite ID is set. */
   shape?: string;
   /** Base rendering scale size or radius. */
@@ -371,6 +392,15 @@ export interface InputStateComponent extends Component {
 
 /**
  * Definition structure for a sprite frame animation sequence.
+ *
+ * @example
+ * ```ts
+ * const runAnim: AnimationDefinition = {
+ *   frames: [0, 1, 2, 3],
+ *   frameRate: 12,
+ *   loop: true
+ * };
+ * ```
  *
  * @public
  */
@@ -460,6 +490,21 @@ export interface StateMachineComponent extends Component {
 
 /**
  * Configuration parameters for spawning particle emitters.
+ *
+ * @example
+ * ```ts
+ * const emitterConfig: ParticleEmitterConfig = {
+ *   type: "spark",
+ *   x: 100,
+ *   y: 100,
+ *   count: 20,
+ *   burst: true,
+ *   rate: 10,
+ *   speed: [50, 150],
+ *   lifetime: [0.2, 0.8]
+ * };
+ * ```
+ *
  * @public
  */
 export interface ParticleEmitterConfig {
@@ -493,6 +538,18 @@ export interface ParticleEmitterConfig {
 
 /**
  * Component managing particle emission state and parameters.
+ *
+ * @example
+ * ```ts
+ * const emitter: ParticleEmitterComponent = {
+ *   type: "ParticleEmitter",
+ *   config: emitterConfig,
+ *   active: true,
+ *   elapsed: 0
+ * };
+ * world.addComponent(entity, emitter);
+ * ```
+ *
  * @public
  */
 export interface ParticleEmitterComponent extends Component {
@@ -988,6 +1045,17 @@ export interface HapticRequestComponent<TPattern extends string = string> extend
  *
  * @remarks
  * Defines interpolation properties for procedural scale, bounce, flash, or custom component animations.
+ *
+ * @example
+ * ```ts
+ * const anim: JuiceAnimation = {
+ *   type: "scale",
+ *   duration: 0.3,
+ *   elapsed: 0,
+ *   target: 1.5,
+ *   easing: "easeOutQuad"
+ * };
+ * ```
  *
  * @public
  */

@@ -3,8 +3,29 @@ import { World } from "../ecs/World";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { SpatialCullingSystem } from "./SpatialCullingSystem";
 
-/** @public */
+/**
+ * System that calculates camera viewport bounds and updates tilemap visible grid cell ranges for optimized rendering.
+ *
+ * @remarks
+ * In each frame, `TilemapRenderSystem` retrieves the active camera viewport from `SpatialCullingSystem`, computes the
+ * bounding tile indices (`minX`, `maxX`, `minY`, `maxY`), and updates the `visibleRange` property on `TilemapComponent`.
+ *
+ * @example
+ * ```ts
+ * const tilemapRenderSystem = new TilemapRenderSystem();
+ * world.addSystem(tilemapRenderSystem);
+ * tilemapRenderSystem.update(world, 0.016);
+ * ```
+ *
+ * @public
+ */
 export class TilemapRenderSystem extends System<CoreComponentRegistry> {
+  /**
+   * Computes visible tile grid cell ranges for active tilemaps based on camera viewport bounds.
+   *
+   * @param world - The ECS world containing active entities and components.
+   * @param _deltaTime - Elapsed frame duration in seconds (unused).
+   */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     const tilemaps = world.query("Tilemap");
     if (tilemaps.length === 0) return;

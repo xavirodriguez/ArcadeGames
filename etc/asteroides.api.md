@@ -50,9 +50,8 @@ export interface AnimationDefinition {
     onCompleteEvent?: string;
 }
 
-// @public (undocumented)
+// @public
 export class AnimationSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -372,21 +371,14 @@ export interface BaseGameConfig<TComponents extends ComponentRegistry = Componen
 // @public
 export abstract class BaseGameStateSystem<TGameState = unknown, TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> extends System<TComponents, TEvents> {
     constructor(singletonType: string);
-    // (undocumented)
     protected abstract evaluateGameOverCondition(gameState: TGameState): boolean;
-    // (undocumented)
     protected abstract getGameState(world: World<TComponents, TEvents>): TGameState | undefined;
-    // (undocumented)
     onRegister(world: World<TComponents, TEvents>): void;
-    // (undocumented)
     abstract resetGameOverState(world?: World<TComponents, TEvents>): void;
     // (undocumented)
     protected singletonType: string;
-    // (undocumented)
     update(world: World<TComponents, TEvents>, deltaTime: number): void;
-    // (undocumented)
     protected abstract updateGameState(world: World<TComponents, TEvents>, gameState: TGameState, deltaTime: number): void;
-    // (undocumented)
     protected _world?: World<TComponents, TEvents>;
 }
 
@@ -631,7 +623,6 @@ export function checkPlayerDetectionToAlert(sensor?: PlayerSensorComponent): "Al
 
 // @public
 export class CheckpointSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -687,7 +678,6 @@ export interface CollectibleComponent extends Component {
 
 // @public
 export class CollectibleSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -807,9 +797,8 @@ export class ComboSystem<TComponents extends CoreComponentRegistry = CoreCompone
     update(world: World<TComponents>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface Command<TComponents extends ComponentRegistry, TEvents extends EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents>> {
-    // (undocumented)
     execute(world: World<TComponents, TEvents, TBlueprints>): void;
 }
 
@@ -1677,10 +1666,9 @@ export class FadeTransition extends BaseTransitionEffect {
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
-// @public (undocumented)
+// @public
 export class FeedbackSystem extends System<CoreComponentRegistry> {
     constructor(hapticDevice?: IHapticDevice);
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -1966,9 +1954,8 @@ export interface HealthComponent extends Component {
     type: "Health";
 }
 
-// @public (undocumented)
+// @public
 export class HierarchySystem extends AbstractHierarchySystem<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -2047,9 +2034,8 @@ export interface IGameLifecycleHooks {
     onRegisterSystems(): Promise<void>;
 }
 
-// @public (undocumented)
+// @public
 export interface IHapticDevice {
-    // (undocumented)
     vibrate(pattern: string): void;
 }
 
@@ -2209,7 +2195,6 @@ export class InvulnerabilitySystem extends System<CoreComponentRegistry> {
 // @public
 export interface InvulnerableComponent extends Component {
     remaining: number;
-    // (undocumented)
     type: "Invulnerable";
 }
 
@@ -2292,9 +2277,8 @@ export interface JuiceComponent extends Component {
     type: "Juice";
 }
 
-// @public (undocumented)
+// @public
 export class JuiceSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -2340,7 +2324,6 @@ export interface KineticAccumulatorComponent extends Component {
     isBurstReady: boolean;
     maxEnergy: number;
     storedEnergy: number;
-    // (undocumented)
     type: "KineticAccumulator";
 }
 
@@ -2736,30 +2719,20 @@ export class ModifierComponent implements Component {
     constructor(initialModifiers?: ModifierEffect[]);
     addModifier(effect: ModifierEffect): void;
     hasModifier(id: string): boolean;
-    // (undocumented)
     modifiers: ModifierEffect[];
     removeModifier(id: string): void;
-    // (undocumented)
     type: string;
-    // (undocumented)
     static readonly type = "modifier";
 }
 
 // @public
 export interface ModifierEffect {
-    // (undocumented)
     duration?: number;
-    // (undocumented)
     elapsed?: number;
-    // (undocumented)
     id: string;
-    // (undocumented)
     targetComponent: string;
-    // (undocumented)
     targetProperty: string;
-    // (undocumented)
     type: "add" | "multiply" | "override";
-    // (undocumented)
     value: number;
 }
 
@@ -3174,7 +3147,6 @@ export abstract class NullBaseGame<TState = unknown, TInput extends object = Rec
 
 // @public
 export class NullHapticDevice implements IHapticDevice {
-    // (undocumented)
     vibrate(_pattern: string): void;
 }
 
@@ -3743,6 +3715,7 @@ export enum RenderCommandType {
 export interface RenderComponent extends Component {
     angularVelocity: number;
     color?: string;
+    dangerPulseIntensity?: number;
     hitFlashFrames: number;
     opacity: number;
     order: number;
@@ -3905,7 +3878,6 @@ export interface RespawnPointComponent extends Component {
 
 // @public
 export class RespawnSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -4306,7 +4278,6 @@ export interface SpatialNodeComponent extends Component {
 
 // @public
 export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -4333,13 +4304,10 @@ export interface SpriteComponent extends Component {
     type: "Sprite";
 }
 
-// @public (undocumented)
+// @public
 export interface StateDefinition {
-    // (undocumented)
     onEnter?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) => void;
-    // (undocumented)
     onExit?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) => void;
-    // (undocumented)
     onUpdate?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>, elapsed: number) => string | void;
 }
 
@@ -4354,15 +4322,13 @@ export interface StateMachineComponent extends Component {
     type: "StateMachine";
 }
 
-// @public (undocumented)
+// @public
 export interface StateMachineDefinition {
-    // (undocumented)
     states: Record<string, StateDefinition>;
 }
 
 // @public
 export class StateMachineSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -4380,7 +4346,6 @@ export interface SteeringComponent extends Component {
 
 // @public
 export class SteeringSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
-    // (undocumented)
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
@@ -4923,9 +4888,8 @@ export interface TilemapComponent extends Component {
     };
 }
 
-// @public (undocumented)
+// @public
 export class TilemapRenderSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -4963,7 +4927,6 @@ export interface TrailComponent extends Component {
 
 // @public
 export class TrailSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -5036,7 +4999,7 @@ export const TransitionRegistry: Record<string, ITransitionEffect>;
 // @public
 export type TriggerCallback<TRegistry extends ComponentRegistry = CoreComponentRegistry> = (world: World<TRegistry>, entityA: Entity, entityB: Entity) => void;
 
-// @public (undocumented)
+// @public
 export interface TTLComponent extends Component {
     onCompleteEvent?: string;
     remaining: number;
@@ -5047,7 +5010,6 @@ export interface TTLComponent extends Component {
 
 // @public
 export class TTLSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -5059,7 +5021,6 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
     clearOverride(action: string): void;
     getAction(action: string): boolean;
     setOverride(action: string, pressed: boolean): void;
-    // (undocumented)
     update(_world: World<ComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -5225,15 +5186,12 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
 
 // @public
 export class WorldCommandBuffer<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
-    // (undocumented)
     addComponent<K extends ComponentType<TComponents>>(entity: number, component: TComponents[K] & {
         type: K;
     }): void;
     createEntity(entity: number): void;
     flush(world: World<TComponents, TEvents, TBlueprints>): void;
-    // (undocumented)
     removeComponent<K extends ComponentType<TComponents>>(entity: number, type: K): void;
-    // (undocumented)
     removeEntity(entity: number): void;
     spawnFromBlueprint<TId extends keyof TBlueprints & string>(blueprintId: TId, args: BlueprintArgs<TBlueprints, TId>): void;
     spawnFromBlueprintForEntity<TId extends keyof TBlueprints & string>(entity: number, blueprintId: TId, args: BlueprintArgs<TBlueprints, TId>): void;

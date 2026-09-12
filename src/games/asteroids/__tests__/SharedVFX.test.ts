@@ -26,8 +26,19 @@ const createMockContext = () => {
     fillText(text: string, x: number, y: number) {
       drawCalls.push(`fillText:${text}`);
     },
+    translate(x: number, y: number) { drawCalls.push(`translate:${x},${y}`); },
+    rotate(angle: number) { drawCalls.push(`rotate:${angle}`); },
+    scale(sx: number, sy: number) { drawCalls.push(`scale:${sx},${sy}`); },
     createRadialGradient(x0: number, y0: number, r0: number, x1: number, y1: number, r1: number) {
       drawCalls.push("createRadialGradient");
+      return {
+        addColorStop(offset: number, color: string) {
+          drawCalls.push(`addColorStop:${offset},${color}`);
+        }
+      };
+    },
+    createLinearGradient(x0: number, y0: number, x1: number, y1: number) {
+      drawCalls.push("createLinearGradient");
       return {
         addColorStop(offset: number, color: string) {
           drawCalls.push(`addColorStop:${offset},${color}`);
@@ -45,7 +56,7 @@ const createMockContext = () => {
   return { ctx, drawCalls };
 };
 
-describe("Deterministic Zero-Allocation Shared VFX (All 15 Effects)", () => {
+describe("Deterministic Zero-Allocation Shared VFX (All 17 Effects)", () => {
   let world: World<CoreComponentRegistry>;
   let originalRandom: typeof Math.random;
 
@@ -321,5 +332,50 @@ describe("Deterministic Zero-Allocation Shared VFX (All 15 Effects)", () => {
     SharedVFX.FloatingTextScoreEffect.draw(ctx, world, entity);
     expect(drawCalls.length).toBeGreaterThan(0);
     expect(drawCalls).toContain("fillText:CRITICAL! +100");
+  });
+
+  // -----------------------------------------------------------
+  // 16. RingingPlanetBackgroundEffect
+  // -----------------------------------------------------------
+  it("should draw RingingPlanetBackgroundEffect deterministically and without Math.random", () => {
+    const { ctx, drawCalls } = createMockContext();
+    const initialSeed = world.renderRandom.getSeed();
+
+    SharedVFX.RingingPlanetBackgroundEffect.draw(ctx, world);
+
+    expect(drawCalls.length).toBeGreaterThan(0);
+    expect(drawCalls).toContain("createRadialGradient");
+    expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
+  });
+
+  // -----------------------------------------------------------
+  // 17. DistantAsteroidBeltBackgroundEffect
+  // -----------------------------------------------------------
+  it("should draw DistantAsteroidBeltBackgroundEffect deterministically and without Math.random", () => {
+    const { ctx, drawCalls } = createMockContext();
+    const initialSeed = world.renderRandom.getSeed();
+
+    SharedVFX.DistantAsteroidBeltBackgroundEffect.draw(ctx, world);
+
+    expect(drawCalls.length).toBeGreaterThan(0);
+    expect(drawCalls).toContain("beginPath");
+    expect(drawCalls).toContain("fill");
+    expect(drawCalls).toContain("stroke");
+    expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
+  });
+
+  // -----------------------------------------------------------
+  // 18. DiffuseMilkyWayBackgroundEffect
+  // -----------------------------------------------------------
+  it("should draw DiffuseMilkyWayBackgroundEffect deterministically and without Math.random", () => {
+    const { ctx, drawCalls } = createMockContext();
+    const initialSeed = world.renderRandom.getSeed();
+
+    SharedVFX.DiffuseMilkyWayBackgroundEffect.draw(ctx, world);
+
+    expect(drawCalls.length).toBeGreaterThan(0);
+    expect(drawCalls).toContain("createLinearGradient");
+    expect(drawCalls).toContain("fillRect:-800,-110,1600,220");
+    expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
   });
 });

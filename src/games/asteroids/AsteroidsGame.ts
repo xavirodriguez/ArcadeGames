@@ -52,7 +52,12 @@ import {
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem, PowerUpRegistry } from "@tiny-aster/gameplay-kit";
 import { MissionSystem } from "../shared/missions/MissionSystem";
+<<<<<<< HEAD
 import { ASTEROIDS_MISSIONS, ALL_ASTEROIDS_MISSIONS } from "./AsteroidsMissions";
+=======
+import { ASTEROIDS_MINI_MISSIONS } from "./AsteroidsMissions";
+import { MutatorRegistry } from "../../utils/MutatorRegistry";
+>>>>>>> origin/master
 import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -86,6 +91,7 @@ export class AsteroidsGame
   implements IAsteroidsGame, INetworkGame {
 
   private gameStateSystem!: AsteroidGameStateSystem;
+  private missionSystem!: MissionSystem;
   private assetLoader!: AssetLoader;
   private bulletPool!: BulletPool;
   private particlePool!: ParticlePool;
@@ -190,11 +196,34 @@ export class AsteroidsGame
     this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
+<<<<<<< HEAD
     const selectedMissionId = (this._config.gameOptions as any)?.selectedMission;
     const initialMission = selectedMissionId && ASTEROIDS_MISSIONS[selectedMissionId]
       ? ASTEROIDS_MISSIONS[selectedMissionId]
       : ALL_ASTEROIDS_MISSIONS[0];
     this.world.addSystem(new MissionSystem(initialMission), { phase: SystemPhase.GameRules });
+=======
+    this.missionSystem = new MissionSystem();
+    this.world.addSystem(this.missionSystem, { phase: SystemPhase.GameRules });
+
+    this.eventBus.on("mission:completed", (event: any) => {
+      if (this.world.isReSimulating) return;
+      if (event?.reward?.scoreBonus) {
+        const gs = this.world.getSingleton("GameState");
+        if (gs) {
+          this.world.mutateSingleton("GameState", (state) => {
+            state.score += event.reward.scoreBonus;
+          });
+        }
+      }
+      if (event?.reward?.mutatorId) {
+        const mutator = MutatorRegistry.get(event.reward.mutatorId);
+        if (mutator) {
+          mutator.apply(this.world);
+        }
+      }
+    });
+>>>>>>> origin/master
 
     if (this.mode === "story") {
       const graph = (this._config.gameOptions as { graphOverride?: StoryGraph })?.graphOverride || asteroidsStoryGraph;
@@ -290,6 +319,12 @@ export class AsteroidsGame
 
         // Spawn first wave
         spawnAsteroidWave(this.world, 1);
+
+        // Initialize active minimission for Level 1
+        if (this.missionSystem) {
+          const selectedMission = ASTEROIDS_MINI_MISSIONS[0];
+          this.missionSystem.setActiveMission(this.world, selectedMission);
+        }
     } finally {
         this.world.gameplayRandom.lock();
     }
@@ -357,6 +392,24 @@ export class AsteroidsGame
     if (this.isHeadless) return;
     initializeAsteroidsRenderer(renderer);
     SharedVFX.registerSharedVFX(renderer);
+
+    if (renderer.type === "canvas") {
+      renderer.registerBackgroundEffect("diffuse_milky_way", SharedVFX.DiffuseMilkyWayBackgroundEffect);
+      renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.DriftingNebulaBackgroundEffect);
+      renderer.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
+      renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.DistantAsteroidBeltBackgroundEffect);
+      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
+    } else if (renderer.type === "skia") {
+      renderer.registerBackgroundEffect("diffuse_milky_way", SharedVFX.SkiaDiffuseMilkyWayBackgroundEffect);
+      renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
+      renderer.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
+      renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect);
+      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
+    }
+  }
+
+  public getMissionSystem(): MissionSystem {
+    return this.missionSystem;
   }
 
   public getGameState(): GameStateComponent {
@@ -465,22 +518,10 @@ export class AsteroidsGame
     }
   }
 
-  protected override onStart(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation started");
-  }
-
   public override destroy(): void {
     super.destroy();
     this.bulletPool?.clear();
     this.particlePool?.clear();
-  }
-
-  protected override onPause(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation paused");
-  }
-
-  protected override onResume(): void {
-    if (__DEV__) console.log("[AsteroidsGame] Simulation resumed");
   }
 
 }

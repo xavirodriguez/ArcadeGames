@@ -2,6 +2,7 @@ import { Component, CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
 
 export interface FlappyBirdEventRegistry extends CoreEvents, Record<string, unknown> {
   "flappy:near_miss": { points: number };
+  "flappy:near_miss_particles": { x: number; y: number; count: number; minSpeed: number; maxSpeed: number };
   "pipe:passed": Record<string, unknown>;
 }
 import { ComboComponent } from "@tiny-aster/core";
@@ -42,7 +43,10 @@ export interface BirdComponent extends Component {
   isAlive: boolean;
   isGliding: boolean;
   nearMissTimer: number;
-  coyoteTimer: number; // añadir esta línea
+  coyoteTimer: number;
+  nearMissParticleCount?: number;
+  nearMissMinSpeed?: number;
+  nearMissMaxSpeed?: number;
 }
 
 /**
@@ -53,6 +57,7 @@ export interface PipeComponent extends Component {
   gapY: number;
   gapSize: number;
   scored: boolean;
+  visualVariant?: "standard" | "damaged" | "rusted";
 }
 
 /**

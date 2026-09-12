@@ -85,8 +85,7 @@ function spawnSeekerEnemy(
     .withCollisionEvents();
 
   const health = params.health ?? 1;
-  w.addComponent(entity, { type: "Health", current: health, max: health, invulnerableRemaining: 0 } as HealthComponent);
-  w.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+  attachEnemyDefaults(w, entity, { currentHp: health, maxHp: health, faction: "enemy" });
   w.addComponent(entity, {
     type: "Damage",
     amount: 1,

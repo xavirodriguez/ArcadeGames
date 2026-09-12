@@ -20,6 +20,11 @@ export class ComponentCloner {
    *
    * @param component - The value to clone.
    * @returns A deep clone of the value.
+   *
+   * @example
+   * ```ts
+   * const cloned = ComponentCloner.cloneComponent({ x: 10, y: 20 });
+   * ```
    */
   public static cloneComponent<T>(component: T): T {
     if (component === null || typeof component !== "object") {

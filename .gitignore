@@ -48,6 +48,7 @@ yarn-error.*
 
 # coverage
 coverage/
+report/
 
 server.log
 web_server.log

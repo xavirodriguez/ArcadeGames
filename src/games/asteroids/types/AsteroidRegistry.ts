@@ -40,7 +40,7 @@ export interface AsteroidsEventRegistry extends CoreEvents, Record<string, unkno
   "game:start": { seed: number };
   "game:over": { score: number; level: number };
   "ship:destroyed": { entity: number };
-  "asteroid:destroyed": { entity: number; size: "large" | "medium" | "small" };
+  "asteroid:destroyed": { entity: number; size: "large" | "medium" | "small"; x?: number; y?: number };
   "ufo:spawned": { entity: number };
   "score:changed": { newScore: number; delta: number };
 }

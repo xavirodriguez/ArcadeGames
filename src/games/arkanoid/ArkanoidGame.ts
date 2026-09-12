@@ -37,6 +37,9 @@ import { ArkanoidSpinSystem } from "./systems/ArkanoidSpinSystem";
 import { BrickRulesSystem } from "./systems/BrickRulesSystem";
 import { ArkanoidCollisionSystem } from "./systems/ArkanoidCollisionSystem";
 import { ArkanoidGameStateSystem } from "./systems/ArkanoidGameStateSystem";
+import { ArkanoidPowerUpSpawnSystem, ArkanoidActivePowerUpSystem, ArkanoidLaserSystem } from "./systems/ArkanoidPowerUpSystems";
+import { EnemySpawnSystem, EnemyMovementSystem, EnemyRulesSystem } from "./systems/ArkanoidEnemySystems";
+import { DohAttackSystem, DohRulesSystem } from "./systems/ArkanoidDohSystems";
 import { ArkanoidEntityFactory } from "./EntityFactory";
 
 import {
@@ -44,7 +47,9 @@ import {
   ArkanoidEventRegistry,
   ArkanoidInput,
   ArkanoidStateComponent,
-  BrickKind
+  BrickKind,
+  BrickColorName,
+  CapsuleType
 } from "./types/ArkanoidTypes";
 import {
   ArkanoidConfigSchema,
@@ -57,7 +62,7 @@ import arkanoidConfigRaw from "./config/arkanoid.json";
 export interface ArkanoidBlueprintMap extends Record<string, BlueprintDefinition<ArkanoidComponentRegistry, any, any>> {
   ball: BlueprintDefinition<ArkanoidComponentRegistry, any, {}>;
   paddle: BlueprintDefinition<ArkanoidComponentRegistry, any, {}>;
-  brick: BlueprintDefinition<ArkanoidComponentRegistry, any, { x: number; y: number; kind: BrickKind }>;
+  brick: BlueprintDefinition<ArkanoidComponentRegistry, any, { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType }>;
   state: BlueprintDefinition<ArkanoidComponentRegistry, any, {}>;
 }
 
@@ -172,11 +177,14 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     });
 
     this.blueprints.register("brick", {
-      spawn: (world, entity, args: { x: number; y: number; kind: BrickKind }) => {
+      spawn: (world, entity, args: { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType }) => {
         const config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
         const tint = resolveThemeColor(world, "brick", "accent");
 
-        const hp = args.kind === "regenerable" ? 2 : 1;
+        const material = args.kind;
+        const color = args.color || (material === "gold" ? "gold" : material === "silver" ? "silver" : "cyan");
+        const hp = args.hp !== undefined ? args.hp : (material === "silver" ? 2 : material === "gold" ? Infinity : 1);
+        const points = args.points ?? 100;
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y, dirty: true })
@@ -195,21 +203,24 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
 
         world.addComponent(entity, {
           type: "Health",
-          current: hp,
-          max: hp,
-          invulnerableRemaining: 0
+          current: hp === Infinity ? 999 : hp,
+          max: hp === Infinity ? 999 : hp,
+          invulnerableRemaining: material === "gold" ? Infinity : 0
         });
 
         world.addComponent(entity, {
           type: "Brick",
-          kind: args.kind,
-          points: 100,
+          kind: material,
+          material,
+          color,
+          points,
           hp,
           maxHp: hp,
           regenTimer: 0,
-          regenDuration: 5.0
+          regenDuration: 5.0,
+          powerUp: args.powerUp
         });
-        world.addComponent(entity, { type: "Tag", tags: ["Brick", args.kind] });
+        world.addComponent(entity, { type: "Tag", tags: ["Brick", material] });
       }
     });
 
@@ -224,7 +235,9 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
           level: 1,
           isGameOver: false,
           isVictory: false,
-          bricksRemaining: 0
+          bricksRemaining: 0,
+          activePowerUp: null,
+          portalActive: false
         });
 
         world.addComponent(entity, {
@@ -248,6 +261,9 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.world.addSystem(new ArkanoidInputSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ArkanoidSpinSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new EnemySpawnSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new EnemyMovementSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new DohAttackSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ParticleSystem(this.particlePool) as System<ArkanoidComponentRegistry, ArkanoidEventRegistry>, { phase: SystemPhase.Simulation });
@@ -261,6 +277,11 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
 
     this.stateSystem = new ArkanoidGameStateSystem();
     this.world.addSystem(new ArkanoidCollisionSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new ArkanoidPowerUpSpawnSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new ArkanoidActivePowerUpSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new ArkanoidLaserSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new EnemyRulesSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new DohRulesSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.stateSystem, { phase: SystemPhase.GameRules });
     this.world.addSystem(new BrickRulesSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
@@ -339,7 +360,9 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
       level: 1,
       isGameOver: false,
       isVictory: false,
-      bricksRemaining: 0
+      bricksRemaining: 0,
+      activePowerUp: null,
+      portalActive: false
     };
   }
 

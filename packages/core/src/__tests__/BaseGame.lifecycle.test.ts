@@ -312,6 +312,6 @@ describe("BaseGame lifecycle", () => {
     };
     const game = new TestGame({ audio: mockAudioPlayer });
     game.getEventBus().emit("PlaySFX", { name: "hit" });
-    expect(mockAudioPlayer.playSFX).toHaveBeenCalledWith("hit");
+    expect(mockAudioPlayer.playSFX).toHaveBeenCalledWith("hit", { name: "hit" });
   });
 });

@@ -37,7 +37,8 @@ export interface BossComponent extends Component {
 export interface KamikazeComponent extends Component {
   type: "Kamikaze";
   variant?: "standard" | "splitter" | "trail";
-  phase: "diving" | "returning";
+  phase: "warning" | "diving" | "returning";
+  warningRemaining: number;
   originX: number;
   originY: number;
   diveSpeed: number;

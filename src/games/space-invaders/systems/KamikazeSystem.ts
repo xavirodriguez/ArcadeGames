@@ -28,65 +28,96 @@ export class KamikazeSystem extends GameSystem {
     const players = world.query("Player", "Transform");
     const playerPos = players.length > 0 ? world.getComponent(players[0], "Transform") : null;
 
-    kamikazes.forEach(entity => {
+    const len = kamikazes.length;
+    for (let i = 0; i < len; i++) {
+      const entity = kamikazes[i];
       const kami = world.getComponent(entity, "Kamikaze")!;
       const pos = world.getComponent(entity, "Transform")!;
 
-      if (kami.phase === "diving") {
+      if (kami.phase === "warning") {
+        const nextWarning = kami.warningRemaining - deltaTime;
+        const mutableKami = world.getMutableComponent(entity, "Kamikaze");
+        if (nextWarning <= 0) {
+          if (mutableKami) {
+            mutableKami.phase = "diving";
+            mutableKami.warningRemaining = 0;
+          }
+        } else {
+          if (mutableKami) {
+            mutableKami.warningRemaining = nextWarning;
+          }
+        }
+
+        const vel = world.getMutableComponent(entity, "Velocity");
+        if (vel) {
+          vel.vx = 0;
+          vel.vy = 0;
+        }
+      } else if (kami.phase === "diving") {
         let currentVx = 0;
         let currentVy = 0;
 
+        const vel = world.getMutableComponent(entity, "Velocity");
         if (playerPos) {
           const dx = playerPos.x - pos.x;
           const dy = playerPos.y - pos.y;
-          const dist = Math.sqrt(dx*dx + dy*dy);
-          world.mutateComponent(entity, "Velocity", v => {
-              v.vx = (dx / dist) * kami.diveSpeed;
-              v.vy = (dy / dist) * kami.diveSpeed;
-              currentVx = v.vx;
-              currentVy = v.vy;
-          });
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 0.001) {
+            currentVx = (dx / dist) * kami.diveSpeed;
+            currentVy = (dy / dist) * kami.diveSpeed;
+          } else {
+            currentVy = kami.diveSpeed;
+          }
         } else {
-          world.mutateComponent(entity, "Velocity", v => {
-              v.vy = kami.diveSpeed;
-              currentVy = v.vy;
-          });
+          currentVy = kami.diveSpeed;
         }
 
-        world.mutateComponent(entity, "Render", render => {
-            render.rotation = Math.atan2(currentVy, currentVx) + Math.PI / 2;
-        });
+        if (vel) {
+          vel.vx = currentVx;
+          vel.vy = currentVy;
+        }
+
+        const render = world.getMutableComponent(entity, "Render");
+        if (render) {
+          render.rotation = Math.atan2(currentVy, currentVx) + Math.PI / 2;
+        }
 
         if (pos.y > GAME_CONFIG.SCREEN_HEIGHT - 50) {
-          world.mutateComponent(entity, "Kamikaze", k => {
-              k.phase = "returning";
-          });
+          const mutableKami = world.getMutableComponent(entity, "Kamikaze");
+          if (mutableKami) {
+            mutableKami.phase = "returning";
+          }
         }
       } else if (kami.phase === "returning") {
         const dx = kami.originX - pos.x;
         const dy = kami.originY - pos.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
+        const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < 10) {
           world.getCommandBuffer().removeComponent(entity, "Kamikaze");
           world.mutateSingleton("GameState", gs => {
-              gs.kamikazesActive--;
+            gs.kamikazesActive--;
           });
-          world.mutateComponent(entity, "Velocity", v => {
-              v.vx = 0;
-              v.vy = 0;
-          });
-          world.mutateComponent(entity, "Render", render => {
-              render.rotation = 0;
-          });
+
+          const vel = world.getMutableComponent(entity, "Velocity");
+          if (vel) {
+            vel.vx = 0;
+            vel.vy = 0;
+          }
+
+          const render = world.getMutableComponent(entity, "Render");
+          if (render) {
+            render.rotation = 0;
+          }
         } else {
-          world.mutateComponent(entity, "Velocity", v => {
-              v.vx = (dx / dist) * (kami.diveSpeed * 0.5);
-              v.vy = (dy / dist) * (kami.diveSpeed * 0.5);
-          });
+          const vel = world.getMutableComponent(entity, "Velocity");
+          if (vel) {
+            vel.vx = (dx / dist) * (kami.diveSpeed * 0.5);
+            vel.vy = (dy / dist) * (kami.diveSpeed * 0.5);
+          }
         }
       }
-    });
+    }
   }
 
   private spawnKamikaze(world: World<SpaceInvadersComponentRegistry>, invaders: ReadonlyArray<number>): void {
@@ -104,7 +135,8 @@ export class KamikazeSystem extends GameSystem {
       world.getCommandBuffer().addComponent(invader, {
         type: "Kamikaze",
         variant,
-        phase: "diving",
+        phase: "warning",
+        warningRemaining: 0.5,
         originX: pos.x,
         originY: pos.y,
         diveSpeed: speed,

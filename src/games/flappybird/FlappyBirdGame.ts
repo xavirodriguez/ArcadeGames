@@ -6,6 +6,7 @@ import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
 import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";
 import { FlappyBirdGlideSystem } from "./systems/FlappyBirdGlideSystem";
+import { FlappyBirdPipeMovementSystem } from "./systems/FlappyBirdPipeMovementSystem";
 import { FlappyBirdRenderSystem } from "./systems/FlappyBirdRenderSystem";
 import { IFlappyBirdGame } from "./types/GameInterfaces";
 import { InputBufferSystem } from "./systems/FlappyBirdInputSystem";
@@ -33,7 +34,15 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
 export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, any, any>> {
   bird: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number, y: number }>;
-  pipe: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number; gapY: number; visualVariant?: "standard" | "damaged" | "rusted" }>;
+  pipe: BlueprintDefinition<FlappyBirdComponentRegistry, any, {
+    x: number;
+    gapY: number;
+    visualVariant?: "standard" | "damaged" | "rusted";
+    movementType?: "static" | "oscillating" | "laser_gate";
+    oscillationSpeed?: number;
+    oscillationAmplitude?: number;
+    isNarrowGap?: boolean;
+  }>;
   ground: BlueprintDefinition<FlappyBirdComponentRegistry, any, {}>;
   state: BlueprintDefinition<FlappyBirdComponentRegistry, any, {}>;
 }
@@ -127,6 +136,15 @@ export class FlappyBirdGame
           timerRemaining: 0,
           timerDuration: 2.0
         } as any);
+        world.addComponent(entity, {
+          type: "GlideEnergy",
+          currentEnergy: 100,
+          maxEnergy: 100,
+          rechargeRate: 25,
+          drainRate: 40,
+          isOverheated: false,
+          overheatCooldownTicks: 0,
+        });
 
         createEmitter(world as any, {
           type: "spawn",
@@ -146,11 +164,21 @@ export class FlappyBirdGame
     });
 
     this.blueprints.register("pipe", {
-      spawn: (world, entity, args: { x: number; gapY: number; visualVariant?: "standard" | "damaged" | "rusted" }) => {
+      spawn: (world, entity, args: {
+        x: number;
+        gapY: number;
+        visualVariant?: "standard" | "damaged" | "rusted";
+        movementType?: "static" | "oscillating" | "laser_gate";
+        oscillationSpeed?: number;
+        oscillationAmplitude?: number;
+        isNarrowGap?: boolean;
+      }) => {
         const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
         const pipeColor = resolveThemeColor(world, "pipe", "enemy");
 
-        const halfGap = config.GAP_SIZE / 2;
+        const gapMultiplier = args.isNarrowGap ? 0.7 : 1.0;
+        const gapSize = config.GAP_SIZE * gapMultiplier;
+        const halfGap = gapSize / 2;
         const pipeWidth = config.PIPE_WIDTH;
         const pipeSpeed = config.PIPE_SPEED;
 
@@ -159,6 +187,12 @@ export class FlappyBirdGame
           const rand = world.gameplayRandom.next();
           variant = rand < 0.5 ? "standard" : rand < 0.8 ? "damaged" : "rusted";
         }
+
+        const movementType = args.movementType ?? "static";
+        const oscillationSpeed = args.oscillationSpeed ?? 2.0;
+        const oscillationAmplitude = args.oscillationAmplitude ?? 35;
+        const oscillationPhase = (world.tick * 0.1) % (Math.PI * 2);
+        const pairId = entity;
 
         // Top Pipe
         const topY = args.gapY - halfGap;
@@ -173,12 +207,29 @@ export class FlappyBirdGame
           })
           .withCollisionEvents();
 
-        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: config.GAP_SIZE, scored: false, visualVariant: variant });
+        world.addComponent(entity, {
+          type: "Pipe",
+          gapY: args.gapY,
+          baseGapY: args.gapY,
+          gapSize,
+          scored: false,
+          visualVariant: variant,
+          movementType,
+          oscillationSpeed,
+          oscillationAmplitude,
+          oscillationPhase,
+          laserActive: movementType === "laser_gate" ? true : undefined,
+          laserPulseFrequency: movementType === "laser_gate" ? 3.0 : undefined,
+          isNarrowGap: !!args.isNarrowGap,
+          narrowGapMultiplier: gapMultiplier,
+          pairId,
+          isTopPipe: true
+        });
 
         // Bottom Pipe
         const bottomY = args.gapY + halfGap;
         const bottomHeight = config.SCREEN_HEIGHT - bottomY;
-        EntityBuilder.create(world)
+        const bottomEntity = EntityBuilder.create(world)
           .withTransform({ x: args.x, y: bottomY + bottomHeight / 2 })
           .withVelocity({ vx: -pipeSpeed, vy: 0 })
           .withRender({ shape: "pipe", size: pipeWidth, color: pipeColor, order: 0 })
@@ -187,9 +238,27 @@ export class FlappyBirdGame
             layer: CollisionLayers.ENEMY,
             mask: CollisionLayers.PLAYER
           })
-          .withCollisionEvents();
+          .withCollisionEvents()
+          .build();
 
-        world.addComponent(entity, { type: "Pipe", gapY: args.gapY, gapSize: config.GAP_SIZE, scored: true, visualVariant: variant });
+        world.addComponent(bottomEntity, {
+          type: "Pipe",
+          gapY: args.gapY,
+          baseGapY: args.gapY,
+          gapSize,
+          scored: true,
+          visualVariant: variant,
+          movementType,
+          oscillationSpeed,
+          oscillationAmplitude,
+          oscillationPhase,
+          laserActive: movementType === "laser_gate" ? true : undefined,
+          laserPulseFrequency: movementType === "laser_gate" ? 3.0 : undefined,
+          isNarrowGap: !!args.isNarrowGap,
+          narrowGapMultiplier: gapMultiplier,
+          pairId,
+          isTopPipe: false
+        });
       }
     });
 
@@ -221,6 +290,11 @@ export class FlappyBirdGame
           highScore: 0,
           pipeSpawnTimer: 0,
           gameOverLogged: false,
+          pipesSpawnedCount: 0,
+          currentSectorEvent: "none",
+          sectorEventTicks: 0,
+          sectorEventDuration: 0,
+          pipeSpeedMultiplier: 1.0,
         });
       }
     });
@@ -241,6 +315,7 @@ export class FlappyBirdGame
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });
     this.world.addSystem(new FlappyBirdGlideSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new FlappyBirdPipeMovementSystem(), { phase: SystemPhase.Simulation, priority: 5 });
     this.world.addSystem(new HierarchySystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Transform });
     this.world.addSystem(new TTLSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
     this.world.addSystem(new CollisionSystem2D() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Collision });

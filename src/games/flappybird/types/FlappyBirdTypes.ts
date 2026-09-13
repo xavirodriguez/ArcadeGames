@@ -13,6 +13,7 @@ export interface FlappyBirdComponentRegistry extends CoreComponentRegistry {
   Pipe: PipeComponent;
   FlappyState: FlappyBirdState;
   Combo: ComboComponent;
+  GlideEnergy: GlideEnergyComponent;
 }
 
 /**
@@ -50,6 +51,19 @@ export interface BirdComponent extends Component {
 }
 
 /**
+ * Component to manage glide energy and overheat mechanics for the bird.
+ */
+export interface GlideEnergyComponent extends Component {
+  type: "GlideEnergy";
+  currentEnergy: number;
+  maxEnergy: number;
+  rechargeRate: number;
+  drainRate: number;
+  isOverheated: boolean;
+  overheatCooldownTicks: number;
+}
+
+/**
  * Component for pipe entities.
  */
 export interface PipeComponent extends Component {
@@ -58,6 +72,19 @@ export interface PipeComponent extends Component {
   gapSize: number;
   scored: boolean;
   visualVariant?: "standard" | "damaged" | "rusted";
+
+  // Dynamic Obstacle Fields
+  movementType?: "static" | "oscillating" | "laser_gate";
+  baseGapY?: number;
+  oscillationSpeed?: number;      // rad/s
+  oscillationAmplitude?: number;  // px
+  oscillationPhase?: number;      // rad
+  laserActive?: boolean;
+  laserPulseFrequency?: number;   // Hz
+  isNarrowGap?: boolean;
+  narrowGapMultiplier?: number;
+  pairId?: number;
+  isTopPipe?: boolean;
 }
 
 /**
@@ -70,6 +97,12 @@ export interface FlappyBirdState extends Component {
   highScore: number;
   pipeSpawnTimer: number;
   gameOverLogged: boolean;
+
+  pipesSpawnedCount?: number;
+  currentSectorEvent?: "none" | "solar_flare" | "asteroid_storm" | "hyper_warp";
+  sectorEventTicks?: number;
+  sectorEventDuration?: number;
+  pipeSpeedMultiplier?: number;
 }
 
 /**
@@ -82,6 +115,11 @@ export const INITIAL_FLAPPY_STATE: FlappyBirdState = Object.freeze({
   highScore: 0,
   pipeSpawnTimer: 0,
   gameOverLogged: false,
+  pipesSpawnedCount: 0,
+  currentSectorEvent: "none",
+  sectorEventTicks: 0,
+  sectorEventDuration: 0,
+  pipeSpeedMultiplier: 1.0,
 });
 
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "./FlappyBirdConfigSchema";

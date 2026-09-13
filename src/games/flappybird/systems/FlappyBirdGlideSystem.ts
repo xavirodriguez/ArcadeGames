@@ -25,10 +25,22 @@ export class FlappyBirdGlideSystem extends System<FlappyBirdComponentRegistry> {
         });
       }
 
-      if (input.glide && vel.vy > 0 && bird.isAlive) {
-        // Reducir la gravedad aplicada (ya aplicada por MovementSystem, así que aplicamos una fuerza ascendente contraria)
-        // O mejor, el MovementSystem aplica vel += grav * dt.
-        // Aquí podemos restar parte de esa gravedad.
+      const energy = world.getComponent(entity, "GlideEnergy");
+
+      // Process overheat cooldown first
+      if (energy && energy.isOverheated) {
+        world.mutateComponent(entity, "GlideEnergy", (e) => {
+          e.overheatCooldownTicks = Math.max(0, e.overheatCooldownTicks - 1);
+          if (e.overheatCooldownTicks <= 0) {
+            e.isOverheated = false;
+            e.currentEnergy = e.maxEnergy * 0.25; // Recover partial energy upon cooling
+          }
+        });
+      }
+
+      const canGlide = energy ? (!energy.isOverheated && energy.currentEnergy > 0) : true;
+
+      if (input.glide && vel.vy > 0 && bird.isAlive && canGlide) {
         let nextVelY = 0;
         world.mutateComponent(entity, "Velocity", v => {
             v.vy -= FLAPPY_CONFIG.GRAVITY * 0.7 * dtSeconds;
@@ -39,8 +51,18 @@ export class FlappyBirdGlideSystem extends System<FlappyBirdComponentRegistry> {
             b.isGliding = true;
         });
 
+        if (energy) {
+          world.mutateComponent(entity, "GlideEnergy", (e) => {
+            e.currentEnergy = Math.max(0, e.currentEnergy - e.drainRate * dtSeconds);
+            if (e.currentEnergy <= 0) {
+              e.isOverheated = true;
+              e.overheatCooldownTicks = 120; // 2 seconds at 60 FPS
+            }
+          });
+        }
+
         const rng = world.getResource<RandomService>("render");
-        if (rng && rng.next() < 0.2) {
+        if (rng && rng.next() < 0.25) {
             createEmitter(world as any, {
                 type: "glide",
                 x: pos.x - 10,
@@ -48,11 +70,11 @@ export class FlappyBirdGlideSystem extends System<FlappyBirdComponentRegistry> {
                 rate: 0,
                 burst: true,
                 count: 1,
-                color: ["#AADDFF"],
-                size: [1, 2],
-                speed: [10, 30],
+                color: ["#00F3FF", "#AADDFF"],
+                size: [1, 3],
+                speed: [10, 35],
                 angle: [160, 200],
-                lifetime: [0.2, 0.4],
+                lifetime: [0.2, 0.45],
                 loop: false
             });
         }
@@ -60,6 +82,12 @@ export class FlappyBirdGlideSystem extends System<FlappyBirdComponentRegistry> {
         world.mutateComponent(entity, "Bird", b => {
             b.isGliding = false;
         });
+
+        if (energy && !energy.isOverheated && energy.currentEnergy < energy.maxEnergy) {
+          world.mutateComponent(entity, "GlideEnergy", (e) => {
+            e.currentEnergy = Math.min(e.maxEnergy, e.currentEnergy + e.rechargeRate * dtSeconds);
+          });
+        }
       }
     });
   }

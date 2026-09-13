@@ -115,7 +115,6 @@ export const ArkanoidLevelDefinitionSchema = z.object({
   themeId: z.string().min(1)
 });
 
-
 const RAW_LEVELS: unknown[] = [
   level01, level02, level03, level04, level05,
   level06, level07, level08, level09, level10,
@@ -133,8 +132,7 @@ export class LevelCatalog {
     if (this.levelsMap) return;
 
     const catalog = new Map<number, ArkanoidLevelDefinition>();
-    for (let i = 0; i < STATIC_LEVELS.length; i++) {
-      const rawData = STATIC_LEVELS[i];
+    for (const rawData of RAW_LEVELS) {
       const parsed = ArkanoidLevelDefinitionSchema.parse(rawData) as ArkanoidLevelDefinition;
       this.validateLevel(parsed);
       catalog.set(parsed.id, parsed);

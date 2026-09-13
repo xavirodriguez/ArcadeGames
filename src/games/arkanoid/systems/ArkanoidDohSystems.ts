@@ -124,6 +124,7 @@ export class DohRulesSystem extends System<ArkanoidComponentRegistry, ArkanoidEv
       world.mutateSingleton("ArkanoidState", (s) => {
         s.score += 10000;
         s.isVictory = true;
+        s.isGameOver = true;
         s.bricksRemaining = 0;
       });
 

@@ -1,4 +1,4 @@
-import { System, World, WorldUtils } from "@tiny-aster/core";
+import { System, World, WorldUtils, EntityBuilder, ShapeType, BoxShape } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 
@@ -32,6 +32,7 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
     if (paddleEntity !== undefined && WorldUtils.isEntityActive(world, paddleEntity)) {
       const transform = world.getComponent(paddleEntity, "Transform")!;
       const velocity = world.getComponent(paddleEntity, "Velocity")!;
+      const paddleComp = world.getComponent(paddleEntity, "Paddle")!;
 
       let targetVx = 0;
       if (leftInput) targetVx -= config.PLAYER_SPEED;
@@ -54,6 +55,8 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
         }
       }
 
+      const nextLaserCooldown = Math.max(0, (paddleComp.laserCooldown ?? 0) - deltaTime);
+
       world.mutateComponent(paddleEntity, "Velocity", (v) => {
         v.vx = currentVx;
       });
@@ -61,14 +64,62 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
       world.mutateComponent(paddleEntity, "Paddle", (p) => {
         p.previousX = transform.x;
         p.lastVelocityX = currentVx;
+        p.laserCooldown = nextLaserCooldown;
       });
+
+      // Handle Laser Firing
+      if (paddleComp.isLaserActive && launchInput && nextLaserCooldown <= 0) {
+        world.mutateComponent(paddleEntity, "Paddle", (p) => {
+          p.laserCooldown = 0.3;
+        });
+
+        const paddleW = paddleComp.isExpanded ? config.PADDLE_WIDTH * 1.5 : config.PADDLE_WIDTH;
+        const leftTipX = transform.x - paddleW * 0.4;
+        const rightTipX = transform.x + paddleW * 0.4;
+        const laserY = transform.y - config.PADDLE_HEIGHT / 2 - 4;
+
+        for (const laserX of [leftTipX, rightTipX]) {
+          const laserEntity = EntityBuilder.createDeferred(world)
+            .withTransform({ x: laserX, y: laserY, dirty: true })
+            .withVelocity({ vx: 0, vy: -500 })
+            .withRender({ shape: "box", size: 8, color: "#FF0055", order: 3 })
+            .withCollider({
+              shape: { type: ShapeType.Box, width: 4, height: 12 } as BoxShape,
+              layer: 4,
+              mask: 2
+            })
+            .withCollisionEvents()
+            .build();
+
+          world.getCommandBuffer().addComponent(laserEntity, {
+            type: "LaserProjectile",
+            speed: 500,
+            damage: 1
+          });
+          world.getCommandBuffer().addComponent(laserEntity, {
+            type: "Tag",
+            tags: ["LaserProjectile"]
+          });
+          world.getCommandBuffer().addComponent(laserEntity, {
+            type: "TTL",
+            timeLeft: 2.0,
+            remaining: 2.0
+          });
+        }
+
+        const eventBus = world.getEventBus();
+        if (eventBus && !world.isReSimulating) {
+          eventBus.emitDeferred("PlaySFX", { name: "launch" });
+        }
+      }
 
       // Position attached ball above paddle
       for (const ballEntity of ballEntities) {
         const ball = world.getComponent(ballEntity, "Ball");
         if (ball && ball.isAttached) {
+          const offsetX = ball.attachedOffsetX ?? 0;
           world.mutateComponent(ballEntity, "Transform", (t) => {
-            t.x = transform.x;
+            t.x = transform.x + offsetX;
             t.y = transform.y - config.PADDLE_HEIGHT / 2 - config.BALL_SIZE;
             t.dirty = true;
           });
@@ -81,9 +132,11 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
             world.mutateComponent(ballEntity, "Ball", (b) => {
               b.isAttached = false;
             });
-            const angleOffset = currentVx * 0.001;
+            const pHalfW = (paddleComp.isExpanded ? config.PADDLE_WIDTH * 1.5 : config.PADDLE_WIDTH) / 2;
+            const normOffset = Math.max(-0.9, Math.min(0.9, offsetX / pHalfW));
+            const angleOffset = normOffset * (Math.PI / 3) + currentVx * 0.001;
             const baseAngle = -Math.PI / 2 + angleOffset;
-            const speed = config.BALL_SPEED_START;
+            const speed = ball.speed || config.BALL_SPEED_START;
 
             world.mutateComponent(ballEntity, "Velocity", (v) => {
               v.vx = Math.cos(baseAngle) * speed;

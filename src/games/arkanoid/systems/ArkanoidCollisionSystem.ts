@@ -130,7 +130,8 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
             kind: brick.kind,
             points: pointsGained,
             x: pos.x,
-            y: pos.y
+            y: pos.y,
+            powerUp: brick.powerUp
           });
           if (!world.isReSimulating) {
             eventBus.emitDeferred("PlaySFX", { name: "explosion" });
@@ -215,7 +216,8 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
       }
 
       if (paddlePos && paddleComp && velocity.vy > 0) {
-        const pHalfW = this.config.PADDLE_WIDTH / 2;
+        const pWidth = paddleComp.isExpanded ? this.config.PADDLE_WIDTH * 1.5 : this.config.PADDLE_WIDTH;
+        const pHalfW = pWidth / 2;
         const pHalfH = this.config.PADDLE_HEIGHT / 2;
 
         if (
@@ -224,29 +226,49 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
           transform.y + radius >= paddlePos.y - pHalfH &&
           transform.y - radius <= paddlePos.y + pHalfH
         ) {
-          const rawOffset = (transform.x - paddlePos.x) / pHalfW;
-          const hitOffset = Math.max(-0.9, Math.min(0.9, rawOffset));
-
           const currentSpeed = Math.sqrt(velocity.vx * velocity.vx + velocity.vy * velocity.vy);
           const newSpeed = Math.min(currentSpeed * this.config.BALL_ACCELERATION, this.config.BALL_SPEED_MAX);
+          const offsetX = transform.x - paddlePos.x;
 
-          const maxAngleShift = Math.PI / 3;
-          const spinEffect = paddleComp.lastVelocityX * 0.0008;
-          const bounceAngle = -Math.PI / 2 + hitOffset * maxAngleShift + spinEffect;
+          if (paddleComp.isCatchActive) {
+            world.mutateComponent(ballEntity, "Ball", (b) => {
+              b.isAttached = true;
+              b.attachedOffsetX = offsetX;
+              b.speed = newSpeed;
+            });
+            world.mutateComponent(ballEntity, "Velocity", (v) => {
+              v.vx = 0;
+              v.vy = 0;
+            });
+            world.mutateComponent(ballEntity, "Transform", (t) => {
+              t.x = paddlePos.x + offsetX;
+              t.y = paddlePos.y - pHalfH - radius;
+              t.dirty = true;
+            });
+            Juice.squash(world as World<CoreComponentRegistry>, paddleEntity, 1.2, 0.8, 100);
+            this.playSFX(world, "hit");
+          } else {
+            const rawOffset = offsetX / pHalfW;
+            const hitOffset = Math.max(-0.9, Math.min(0.9, rawOffset));
 
-          world.mutateComponent(ballEntity, "Velocity", (v) => {
-            v.vx = Math.cos(bounceAngle) * newSpeed;
-            v.vy = Math.sin(bounceAngle) * newSpeed;
-            if (v.vy > -50) v.vy = -50;
-          });
+            const maxAngleShift = Math.PI / 3;
+            const spinEffect = paddleComp.lastVelocityX * 0.0008;
+            const bounceAngle = -Math.PI / 2 + hitOffset * maxAngleShift + spinEffect;
 
-          world.mutateComponent(ballEntity, "Transform", (t) => {
-            t.y = paddlePos.y - pHalfH - radius;
-            t.dirty = true;
-          });
+            world.mutateComponent(ballEntity, "Velocity", (v) => {
+              v.vx = Math.cos(bounceAngle) * newSpeed;
+              v.vy = Math.sin(bounceAngle) * newSpeed;
+              if (v.vy > -50) v.vy = -50;
+            });
 
-          Juice.squash(world as World<CoreComponentRegistry>, paddleEntity, 1.2, 0.8, 100);
-          this.playSFX(world, "hit");
+            world.mutateComponent(ballEntity, "Transform", (t) => {
+              t.y = paddlePos.y - pHalfH - radius;
+              t.dirty = true;
+            });
+
+            Juice.squash(world as World<CoreComponentRegistry>, paddleEntity, 1.2, 0.8, 100);
+            this.playSFX(world, "hit");
+          }
         }
       }
 
@@ -272,12 +294,22 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
             const overlapY = bHalfH + radius - Math.abs(dy);
 
             if (overlapX < overlapY) {
+              const signX = dx !== 0 ? (dx > 0 ? 1 : -1) : (velocity.vx >= 0 ? 1 : -1);
               world.mutateComponent(ballEntity, "Velocity", (v) => {
-                v.vx = dx > 0 ? Math.abs(v.vx) : -Math.abs(v.vx);
+                v.vx = Math.abs(v.vx) * signX;
+              });
+              world.mutateComponent(ballEntity, "Transform", (t) => {
+                t.x = brickPos.x + signX * (bHalfW + radius);
+                t.dirty = true;
               });
             } else {
+              const signY = dy !== 0 ? (dy > 0 ? 1 : -1) : (velocity.vy >= 0 ? 1 : -1);
               world.mutateComponent(ballEntity, "Velocity", (v) => {
-                v.vy = dy > 0 ? Math.abs(v.vy) : -Math.abs(v.vy);
+                v.vy = Math.abs(v.vy) * signY;
+              });
+              world.mutateComponent(ballEntity, "Transform", (t) => {
+                t.y = brickPos.y + signY * (bHalfH + radius);
+                t.dirty = true;
               });
             }
           }
@@ -294,6 +326,19 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
     const state = world.getSingleton("ArkanoidState");
     if (!state || state.isGameOver) return;
 
+    const allBalls = world.query("Ball");
+    let activeBallCount = 0;
+    for (let i = 0; i < allBalls.length; i++) {
+      if (WorldUtils.isEntityActive(world, allBalls[i])) {
+        activeBallCount++;
+      }
+    }
+
+    if (activeBallCount > 1) {
+      world.getCommandBuffer().removeEntity(ballEntity);
+      return;
+    }
+
     let remainingLives = state.lives - 1;
     world.mutateSingleton("ArkanoidState", (s) => {
       s.lives = remainingLives;
@@ -303,12 +348,26 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
     });
 
     if (remainingLives > 0) {
+      const paddleEntities = world.query("Paddle", "Transform");
+      const paddleEntity = paddleEntities[0];
+      const paddlePos = paddleEntity !== undefined ? world.getComponent(paddleEntity, "Transform") : undefined;
+      const paddleX = paddlePos ? paddlePos.x : this.config?.SCREEN_CENTER_X ?? 400;
+      const paddleY = paddlePos ? paddlePos.y : this.config?.PADDLE_Y ?? 550;
+      const pHalfH = (this.config?.PADDLE_HEIGHT ?? 16) / 2;
+      const ballRadius = this.config?.BALL_SIZE ?? 8;
+
       world.mutateComponent(ballEntity, "Ball", (b) => {
         b.isAttached = true;
+        b.attachedOffsetX = 0;
       });
       world.mutateComponent(ballEntity, "Velocity", (v) => {
         v.vx = 0;
         v.vy = 0;
+      });
+      world.mutateComponent(ballEntity, "Transform", (t) => {
+        t.x = paddleX;
+        t.y = paddleY - pHalfH - ballRadius;
+        t.dirty = true;
       });
 
       const eventBus = world.getEventBus();

@@ -1482,6 +1482,43 @@
     },
     {
       "firstFile": {
+        "end": 250,
+        "endLoc": {
+          "column": 11,
+          "line": 250,
+          "position": 9773
+        },
+        "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
+        "start": 245,
+        "startLoc": {
+          "column": 14,
+          "line": 245,
+          "position": 9545
+        }
+      },
+      "format": "typescript",
+      "fragment": "              t.y = paddlePos.y - pHalfH - radius;\n              t.dirty = true;\n            });\n            Juice.squash(world as World<CoreComponentRegistry>, paddleEntity, 1.2, 0.8, 100);\n            this.playSFX(world, \"hit\");\n          } else {",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 271,
+        "endLoc": {
+          "column": 11,
+          "line": 271,
+          "position": 10650
+        },
+        "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
+        "start": 265,
+        "startLoc": {
+          "column": 14,
+          "line": 265,
+          "position": 10421
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
         "end": 114,
         "endLoc": {
           "column": 37,
@@ -1560,14 +1597,14 @@
         "endLoc": {
           "column": 9,
           "line": 10,
-          "position": 620
+          "position": 656
         },
         "name": "arkanoid/systems/ArkanoidInputSystem.ts",
         "start": 5,
         "startLoc": {
           "column": 33,
           "line": 5,
-          "position": 276
+          "position": 312
         }
       },
       "format": "typescript",
@@ -7587,32 +7624,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-12T19:46:41.450Z",
+    "detectionDate": "2026-09-13T01:03:45.297Z",
     "formats": {
       "typescript": {
-        "clones": 205,
-        "duplicatedLines": 2159,
-        "duplicatedTokens": 16390,
-        "lines": 62704,
+        "clones": 206,
+        "duplicatedLines": 2164,
+        "duplicatedTokens": 16441,
+        "lines": 62817,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.4431615207961217,
-        "percentageTokens": 5.0042592688713095,
+        "percentage": 3.444927328589394,
+        "percentageTokens": 5.005586796284399,
         "sources": 371,
-        "tokens": 327521
+        "tokens": 328453
       }
     },
     "total": {
-      "clones": 205,
-      "duplicatedLines": 2159,
-      "duplicatedTokens": 16390,
-      "lines": 62704,
+      "clones": 206,
+      "duplicatedLines": 2164,
+      "duplicatedTokens": 16441,
+      "lines": 62817,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.4431615207961217,
-      "percentageTokens": 5.0042592688713095,
+      "percentage": 3.444927328589394,
+      "percentageTokens": 5.005586796284399,
       "sources": 371,
-      "tokens": 327521
+      "tokens": 328453
     }
   }
 }

@@ -141,6 +141,27 @@ interface DistantAsteroid {
   skPath?: any;
 }
 
+interface SpaceStationBeacon {
+  x: number;
+  y: number;
+  color: string;
+  skColor?: any;
+  twinklePhase: number;
+  twinkleSpeed: number;
+}
+
+interface SpaceStationState {
+  x: number;
+  y: number;
+  rotation: number;
+  rotationSpeed: number;
+  coreRadius: number;
+  ringRadius: number;
+  panelLength: number;
+  panelWidth: number;
+  beacons: SpaceStationBeacon[];
+}
+
 interface VFXWorldState {
   stars: Star[];
   lines: SpeedLine[];
@@ -151,6 +172,7 @@ interface VFXWorldState {
   distantAsteroids: DistantAsteroid[];
   planet?: RingingPlanetState;
   milkyWay?: MilkyWayBandState;
+  station?: SpaceStationState;
   starsInitialized: boolean;
   warpLinesInitialized: boolean;
   nebulaeInitialized: boolean;
@@ -160,6 +182,7 @@ interface VFXWorldState {
   planetInitialized: boolean;
   distantAsteroidsInitialized: boolean;
   milkyWayInitialized: boolean;
+  stationInitialized: boolean;
   timePhase: number; // Incremented exactly once per render tick to be entity-independent
   cachedCRTGradient?: any; // Cached CanvasRadialGradient
   cachedSkiaShader?: any; // Cached Skia Shader
@@ -169,6 +192,8 @@ interface VFXWorldState {
   cachedRingSkiaShader?: any; // Cached Skia Shader for Planet Rings
   cachedMilkyWayGradient?: any; // Cached CanvasLinearGradient for Diffuse Milky Way
   cachedMilkyWaySkiaShader?: any; // Cached Skia Shader for Diffuse Milky Way
+  cachedStationGradient?: any; // Cached CanvasRadialGradient for Space Station Hub
+  cachedStationSkiaShader?: any; // Cached Skia Shader for Space Station Hub
   lastWidth: number;
   lastHeight: number;
   lastCRTWidth?: number;
@@ -197,6 +222,7 @@ function getVFXState(world: World<any>): VFXWorldState {
       planetInitialized: false,
       distantAsteroidsInitialized: false,
       milkyWayInitialized: false,
+      stationInitialized: false,
       timePhase: 0,
       lastWidth: 0,
       lastHeight: 0
@@ -217,7 +243,9 @@ type CachedVFXKey =
   | "cachedRingGradient"
   | "cachedRingSkiaShader"
   | "cachedMilkyWayGradient"
-  | "cachedMilkyWaySkiaShader";
+  | "cachedMilkyWaySkiaShader"
+  | "cachedStationGradient"
+  | "cachedStationSkiaShader";
 
 function getOrCreateCached<T>(
   state: VFXWorldState,
@@ -502,6 +530,55 @@ function initializeDistantAsteroids(world: World<any>, state: VFXWorldState) {
     });
   }
   state.distantAsteroidsInitialized = true;
+}
+
+function initializeSpaceStation(world: World<any>, state: VFXWorldState) {
+  const rng = world.renderRandom;
+  const x = rng.nextRange(150, 280);
+  const y = rng.nextRange(100, 200);
+  const rotation = rng.nextRange(0, Math.PI * 2);
+  const rotationSpeed = rng.nextRange(0.001, 0.003);
+  const coreRadius = rng.nextRange(12, 18);
+  const ringRadius = coreRadius * rng.nextRange(2.2, 2.8);
+  const panelLength = ringRadius * rng.nextRange(1.8, 2.4);
+  const panelWidth = rng.nextRange(6, 10);
+
+  const beaconColors = ["#ff2a2a", "#00f0ff", "#ffae00", "#ff0055"];
+  const beacons: SpaceStationBeacon[] = [];
+
+  const beaconPositions = [
+    { x: -panelLength, y: 0 },
+    { x: panelLength, y: 0 },
+    { x: 0, y: -ringRadius },
+    { x: 0, y: ringRadius },
+    { x: -ringRadius, y: 0 },
+    { x: ringRadius, y: 0 }
+  ];
+
+  for (let i = 0; i < beaconPositions.length; i++) {
+    const { color, skColor } = pickColor(rng, beaconColors);
+    beacons.push({
+      x: beaconPositions[i].x,
+      y: beaconPositions[i].y,
+      color,
+      skColor,
+      twinklePhase: rng.nextRange(0, Math.PI * 2),
+      twinkleSpeed: rng.nextRange(0.04, 0.09)
+    });
+  }
+
+  state.station = {
+    x,
+    y,
+    rotation,
+    rotationSpeed,
+    coreRadius,
+    ringRadius,
+    panelLength,
+    panelWidth,
+    beacons
+  };
+  state.stationInitialized = true;
 }
 
 // =============================================================
@@ -818,6 +895,219 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, Componen
       }
 
       canvas.restore();
+    }
+
+    canvas.restore();
+  }
+};
+
+// -------------------------------------------------------------
+// 19. DistantSpaceStationBackgroundEffect (Canvas & Skia)
+// -------------------------------------------------------------
+export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+  draw(ctx, world) {
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.stationInitialized) {
+      initializeSpaceStation(world, state);
+    }
+    const st = state.station;
+    if (!st) return;
+
+    st.rotation += st.rotationSpeed;
+
+    ctx.save();
+    ctx.translate(st.x, st.y);
+    ctx.rotate(st.rotation);
+
+    // Solar panel arrays (horizontal truss extensions)
+    ctx.fillStyle = "#1b263b";
+    ctx.strokeStyle = "#415a77";
+    ctx.globalAlpha = 0.6;
+    ctx.lineWidth = 1;
+
+    ctx.fillRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth);
+    ctx.strokeRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth);
+
+    // Solar grid division lines
+    ctx.strokeStyle = "#778da9";
+    ctx.globalAlpha = 0.35;
+    for (let x = -st.panelLength + 6; x < st.panelLength; x += 8) {
+      ctx.beginPath();
+      ctx.moveTo(x, -st.panelWidth / 2);
+      ctx.lineTo(x, st.panelWidth / 2);
+      ctx.stroke();
+    }
+
+    // Outer Rotating Hab Ring
+    ctx.strokeStyle = "#8d99ae";
+    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 0.55;
+    ctx.beginPath();
+    ctx.arc(0, 0, st.ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Structural spoke struts
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.moveTo(-st.ringRadius, 0);
+    ctx.lineTo(st.ringRadius, 0);
+    ctx.moveTo(0, -st.ringRadius);
+    ctx.lineTo(0, st.ringRadius);
+    ctx.stroke();
+
+    // Central Core Hub Gradient Caching
+    const hubGrad = getOrCreateCached(state, "cachedStationGradient", width, height, () => {
+      const grad = ctx.createRadialGradient(
+        -st.coreRadius * 0.2, -st.coreRadius * 0.2, 1,
+        0, 0, st.coreRadius
+      );
+      grad.addColorStop(0, "#e0e1dd");
+      grad.addColorStop(0.5, "#778da9");
+      grad.addColorStop(1, "#0d1b2a");
+      return grad;
+    });
+
+    ctx.fillStyle = hubGrad;
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.arc(0, 0, st.coreRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Inner core viewport ring
+    ctx.strokeStyle = "#00f0ff";
+    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(0, 0, st.coreRadius * 0.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Blinking Warning Beacons
+    for (let i = 0; i < st.beacons.length; i++) {
+      const b = st.beacons[i];
+      b.twinklePhase += b.twinkleSpeed;
+      const pulse = 0.3 + 0.7 * Math.sin(b.twinklePhase);
+
+      ctx.fillStyle = b.color;
+      ctx.globalAlpha = pulse;
+
+      // Glow aura
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core point
+      ctx.fillStyle = "#ffffff";
+      ctx.globalAlpha = Math.min(1.0, pulse * 1.2);
+      ctx.fillRect(b.x - 1, b.y - 1, 2, 2);
+    }
+
+    ctx.restore();
+  }
+};
+
+export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+  draw(canvas, world) {
+    if (!Skia) return;
+    const { width, height, state } = getScreenAndVFXState(world);
+    if (!state.stationInitialized) {
+      initializeSpaceStation(world, state);
+    }
+    const st = state.station;
+    if (!st) return;
+
+    st.rotation += st.rotationSpeed;
+
+    canvas.save();
+    canvas.translate(st.x, st.y);
+    canvas.rotate((st.rotation * 180) / Math.PI, 0, 0);
+
+    // Solar panel arrays
+    const panelPaint = Skia.Paint();
+    panelPaint.setColor(Skia.Color("#1b263b"));
+    panelPaint.setAlphaf(0.6);
+    canvas.drawRect(
+      Skia.XYWHRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth),
+      panelPaint
+    );
+
+    const panelStrokePaint = Skia.Paint();
+    panelStrokePaint.setStyle(Skia.PaintStyle.Stroke);
+    panelStrokePaint.setStrokeWidth(1);
+    panelStrokePaint.setColor(Skia.Color("#415a77"));
+    panelStrokePaint.setAlphaf(0.6);
+    canvas.drawRect(
+      Skia.XYWHRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth),
+      panelStrokePaint
+    );
+
+    // Solar grid division lines
+    const gridPaint = Skia.Paint();
+    gridPaint.setStyle(Skia.PaintStyle.Stroke);
+    gridPaint.setStrokeWidth(1);
+    gridPaint.setColor(Skia.Color("#778da9"));
+    gridPaint.setAlphaf(0.35);
+    for (let x = -st.panelLength + 6; x < st.panelLength; x += 8) {
+      canvas.drawLine(x, -st.panelWidth / 2, x, st.panelWidth / 2, gridPaint);
+    }
+
+    // Outer Rotating Hab Ring
+    const ringPaint = Skia.Paint();
+    ringPaint.setStyle(Skia.PaintStyle.Stroke);
+    ringPaint.setStrokeWidth(2.5);
+    ringPaint.setColor(Skia.Color("#8d99ae"));
+    ringPaint.setAlphaf(0.55);
+    canvas.drawCircle(0, 0, st.ringRadius, ringPaint);
+
+    // Structural spoke struts
+    const spokePaint = Skia.Paint();
+    spokePaint.setStyle(Skia.PaintStyle.Stroke);
+    spokePaint.setStrokeWidth(1);
+    spokePaint.setColor(Skia.Color("#8d99ae"));
+    spokePaint.setAlphaf(0.4);
+    canvas.drawLine(-st.ringRadius, 0, st.ringRadius, 0, spokePaint);
+    canvas.drawLine(0, -st.ringRadius, 0, st.ringRadius, spokePaint);
+
+    // Central Core Hub Gradient Caching
+    const hubShader = getOrCreateCached(state, "cachedStationSkiaShader", width, height, () => {
+      return Skia.Shader.MakeRadialGradient(
+        Skia.Point(-st.coreRadius * 0.2, -st.coreRadius * 0.2),
+        st.coreRadius,
+        [Skia.Color("#e0e1dd"), Skia.Color("#778da9"), Skia.Color("#0d1b2a")],
+        [0.0, 0.5, 1.0],
+        Skia.TileMode.Clamp
+      );
+    });
+
+    const hubPaint = Skia.Paint();
+    hubPaint.setShader(hubShader);
+    hubPaint.setAlphaf(0.85);
+    canvas.drawCircle(0, 0, st.coreRadius, hubPaint);
+
+    // Inner core viewport ring
+    const viewportPaint = Skia.Paint();
+    viewportPaint.setStyle(Skia.PaintStyle.Stroke);
+    viewportPaint.setStrokeWidth(1);
+    viewportPaint.setColor(Skia.Color("#00f0ff"));
+    viewportPaint.setAlphaf(0.7);
+    canvas.drawCircle(0, 0, st.coreRadius * 0.5, viewportPaint);
+
+    // Blinking Warning Beacons
+    const beaconPaint = Skia.Paint();
+    const beaconCorePaint = Skia.Paint();
+    beaconCorePaint.setColor(Skia.Color("#ffffff"));
+
+    for (let i = 0; i < st.beacons.length; i++) {
+      const b = st.beacons[i];
+      b.twinklePhase += b.twinkleSpeed;
+      const pulse = 0.3 + 0.7 * Math.sin(b.twinklePhase);
+
+      beaconPaint.setColor(b.skColor || Skia.Color("#ff2a2a"));
+      beaconPaint.setAlphaf(pulse);
+      canvas.drawCircle(b.x, b.y, 3.5, beaconPaint);
+
+      beaconCorePaint.setAlphaf(Math.min(1.0, pulse * 1.2));
+      canvas.drawRect(Skia.XYWHRect(b.x - 1, b.y - 1, 2, 2), beaconCorePaint);
     }
 
     canvas.restore();

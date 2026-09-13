@@ -7,6 +7,8 @@ export interface PlanetTheme {
   bodyGradient: readonly [string, string, string];
   atmosphereColor: string;
   ringColors: readonly [string, string];
+  ringColorBase: string;
+  ringColorHighlight: string;
   fissureColor?: string;
 }
 
@@ -19,7 +21,9 @@ export const PLANET_THEMES: Record<PlanetType, PlanetTheme> = {
       COSMIC_ARCADE_PALETTE.cosmicNavy
     ],
     atmosphereColor: COSMIC_ARCADE_PALETTE.neonCyan,
-    ringColors: [COSMIC_ARCADE_PALETTE.neonCyan, COSMIC_ARCADE_PALETTE.iceBlue]
+    ringColors: [COSMIC_ARCADE_PALETTE.neonCyan, COSMIC_ARCADE_PALETTE.iceBlue],
+    ringColorBase: COSMIC_ARCADE_PALETTE.iceBlue,
+    ringColorHighlight: COSMIC_ARCADE_PALETTE.white
   },
   purple: {
     type: "purple",
@@ -29,7 +33,9 @@ export const PLANET_THEMES: Record<PlanetType, PlanetTheme> = {
       COSMIC_ARCADE_PALETTE.deepSpace
     ],
     atmosphereColor: COSMIC_ARCADE_PALETTE.neonMagenta,
-    ringColors: [COSMIC_ARCADE_PALETTE.neonMagenta, COSMIC_ARCADE_PALETTE.electricIndigo]
+    ringColors: [COSMIC_ARCADE_PALETTE.neonMagenta, COSMIC_ARCADE_PALETTE.electricIndigo],
+    ringColorBase: COSMIC_ARCADE_PALETTE.goldenRing,
+    ringColorHighlight: COSMIC_ARCADE_PALETTE.goldenRingHighlight
   },
   toxic: {
     type: "toxic",
@@ -39,7 +45,9 @@ export const PLANET_THEMES: Record<PlanetType, PlanetTheme> = {
       COSMIC_ARCADE_PALETTE.voidBlack
     ],
     atmosphereColor: COSMIC_ARCADE_PALETTE.alienGreen,
-    ringColors: [COSMIC_ARCADE_PALETTE.alienGreen, COSMIC_ARCADE_PALETTE.plasmaYellow]
+    ringColors: [COSMIC_ARCADE_PALETTE.alienGreen, COSMIC_ARCADE_PALETTE.plasmaYellow],
+    ringColorBase: COSMIC_ARCADE_PALETTE.alienGreen,
+    ringColorHighlight: COSMIC_ARCADE_PALETTE.plasmaYellow
   },
   volcanic: {
     type: "volcanic",
@@ -50,6 +58,8 @@ export const PLANET_THEMES: Record<PlanetType, PlanetTheme> = {
     ],
     atmosphereColor: COSMIC_ARCADE_PALETTE.solarOrange,
     ringColors: [COSMIC_ARCADE_PALETTE.solarOrange, COSMIC_ARCADE_PALETTE.dangerRed],
+    ringColorBase: COSMIC_ARCADE_PALETTE.solarOrange,
+    ringColorHighlight: COSMIC_ARCADE_PALETTE.plasmaYellow,
     fissureColor: COSMIC_ARCADE_PALETTE.plasmaYellow
   }
 };

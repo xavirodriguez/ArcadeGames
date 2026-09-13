@@ -3,7 +3,7 @@ import { World, System } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { fragmentAsteroid } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
-import { createSharedParticle } from "../../shared/rendering/SharedVFX";
+import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
 
 /**
@@ -169,9 +169,9 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     if (asteroidTransform && particlePool) {
       const ax = asteroidTransform.x;
       const ay = asteroidTransform.y;
-      const particleCount = size === "large" ? 24 : (size === "medium" ? 16 : 10);
+      const particleCount = size === "large" ? EXPLOSION_PROFILES["enemy"].particleCount : EXPLOSION_PROFILES["small"].particleCount;
       const rng = world.gameplayRandom;
-      const colors = AsteroidCollisionSystem.ASTEROID_EXPLOSION_COLORS;
+      const colors = EXPLOSION_PROFILES["enemy"].colorSequence;
       for (let i = 0; i < particleCount; i++) {
         const angle = rng.next() * Math.PI * 2;
         const speed = rng.nextRange(40, 150);

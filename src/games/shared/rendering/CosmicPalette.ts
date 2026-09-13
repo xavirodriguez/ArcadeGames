@@ -22,7 +22,15 @@ export const COSMIC_ARCADE_PALETTE = {
 
   white: "#F4FCFF",
   mutedBlue: "#6474A8",
-  mutedPurple: "#7568A8"
+  mutedPurple: "#7568A8",
+
+  // Specific environment accents
+  stationSteel: "#778DA9",
+  stationPanels: "#1B263B",
+  matrixGreen: "#00FF41",
+  crtScanline: "rgba(0, 0, 0, 0.15)",
+  goldenRing: "#D4AF37",
+  goldenRingHighlight: "#F3E5AB"
 } as const;
 
 export type CosmicPaletteColorKey = keyof typeof COSMIC_ARCADE_PALETTE;
@@ -37,7 +45,11 @@ export type SemanticRole =
   | "reward"
   | "warning"
   | "boss"
-  | "ui";
+  | "ui"
+  | "station"
+  | "matrix"
+  | "shockwave"
+  | "crt";
 
 export type IntensityVariant = "dim" | "base" | "bright" | "highlight" | "glow";
 
@@ -94,6 +106,26 @@ export const SEMANTIC_ROLE_MAP: Record<SemanticRole, { primary: string; secondar
     primary: COSMIC_ARCADE_PALETTE.iceBlue,
     secondary: COSMIC_ARCADE_PALETTE.neonCyan,
     accent: COSMIC_ARCADE_PALETTE.white
+  },
+  station: {
+    primary: COSMIC_ARCADE_PALETTE.stationPanels,
+    secondary: COSMIC_ARCADE_PALETTE.stationSteel,
+    accent: COSMIC_ARCADE_PALETTE.neonCyan
+  },
+  matrix: {
+    primary: COSMIC_ARCADE_PALETTE.matrixGreen,
+    secondary: COSMIC_ARCADE_PALETTE.alienGreen,
+    accent: COSMIC_ARCADE_PALETTE.white
+  },
+  shockwave: {
+    primary: COSMIC_ARCADE_PALETTE.solarOrange,
+    secondary: COSMIC_ARCADE_PALETTE.plasmaYellow,
+    accent: COSMIC_ARCADE_PALETTE.dangerRed
+  },
+  crt: {
+    primary: COSMIC_ARCADE_PALETTE.crtScanline,
+    secondary: "rgba(66, 245, 255, 0.05)",
+    accent: "rgba(255, 255, 255, 0.1)"
   }
 };
 

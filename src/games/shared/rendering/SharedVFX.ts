@@ -299,9 +299,9 @@ function getOrCreateCached<T>(
 function computeHologramLayers(timePhase: number, size: number) {
   const glitchOffset = 2 + 1.5 * Math.sin(timePhase * 10);
   return [
-    { x: -glitchOffset, radius: size, color: "#00ffff", alpha: 0.4 },
-    { x: glitchOffset, radius: size, color: "#ff00ff", alpha: 0.4 },
-    { x: 0, radius: size * 0.9, color: "#ffffff", alpha: 0.9 }
+    { x: -glitchOffset, radius: size, color: COSMIC_ARCADE_PALETTE.neonCyan, alpha: 0.4 },
+    { x: glitchOffset, radius: size, color: COSMIC_ARCADE_PALETTE.neonMagenta, alpha: 0.4 },
+    { x: 0, radius: size * 0.9, color: COSMIC_ARCADE_PALETTE.white, alpha: 0.9 }
   ];
 }
 
@@ -660,7 +660,7 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Com
     ctx.save();
 
     // 1. Scanline overlay
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.voidBlack;
     ctx.globalAlpha = 0.15;
     for (let y = 0; y < height; y += 4) {
       ctx.fillRect(0, y, width, 2);
@@ -688,7 +688,7 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Com
     // 3. Phosphor flickering
     const randomFlicker = world.renderRandom.next();
     if (randomFlicker > 0.95) {
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
       ctx.globalAlpha = 0.005 + (randomFlicker - 0.95) * 0.15;
       ctx.fillRect(0, 0, width, height);
     }
@@ -709,7 +709,7 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
 
     const paint = Skia.Paint();
 
-    paint.setColor(Skia.Color("#000000"));
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack));
     paint.setAlphaf(0.15);
     for (let y = 0; y < height; y += 4) {
       canvas.drawRect(Skia.XYWHRect(0, y, width, 2), paint);
@@ -736,7 +736,7 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
     const randomFlicker = world.renderRandom.next();
     if (randomFlicker > 0.95) {
       const flickerPaint = Skia.Paint();
-      flickerPaint.setColor(Skia.Color("#ffffff"));
+      flickerPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
       flickerPaint.setAlphaf(0.005 + (randomFlicker - 0.95) * 0.15);
       canvas.drawRect(Skia.XYWHRect(0, 0, width, height), flickerPaint);
     }
@@ -890,7 +890,7 @@ export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingCo
       ctx.rotate(ast.rotation);
 
       ctx.fillStyle = ast.color;
-      ctx.strokeStyle = "#8d99ae";
+      ctx.strokeStyle = COSMIC_ARCADE_PALETTE.mutedBlue;
       ctx.globalAlpha = 0.35;
       ctx.lineWidth = 1;
 
@@ -929,7 +929,7 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, Componen
 
     const strokePaint = Skia.Paint();
     strokePaint.setStyle(Skia.PaintStyle.Stroke);
-    strokePaint.setColor(Skia.Color("#8d99ae"));
+    strokePaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.mutedBlue));
     strokePaint.setAlphaf(0.35);
     strokePaint.setStrokeWidth(1);
 
@@ -945,7 +945,7 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, Componen
       canvas.translate(posX, ast.y);
       canvas.rotate((ast.rotation * 180) / Math.PI, 0, 0);
 
-      fillPaint.setColor(ast.skColor || Skia.Color("#4a4e69"));
+      fillPaint.setColor(ast.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.cosmicNavy));
       fillPaint.setAlphaf(0.35);
 
       if (ast.skPath) {
@@ -981,8 +981,8 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
     ctx.rotate(st.rotation);
 
     // Solar panel arrays (horizontal truss extensions)
-    ctx.fillStyle = "#1b263b";
-    ctx.strokeStyle = "#415a77";
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.stationPanels;
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.cosmicNavy;
     ctx.globalAlpha = 0.6;
     ctx.lineWidth = 1;
 
@@ -990,7 +990,7 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
     ctx.strokeRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth);
 
     // Solar grid division lines
-    ctx.strokeStyle = "#778da9";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.stationSteel;
     ctx.globalAlpha = 0.35;
     for (let x = -st.panelLength + 6; x < st.panelLength; x += 8) {
       ctx.beginPath();
@@ -1000,7 +1000,7 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
     }
 
     // Outer Rotating Hab Ring
-    ctx.strokeStyle = "#8d99ae";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.stationSteel;
     ctx.lineWidth = 2.5;
     ctx.globalAlpha = 0.55;
     ctx.beginPath();
@@ -1023,9 +1023,9 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
         -st.coreRadius * 0.2, -st.coreRadius * 0.2, 1,
         0, 0, st.coreRadius
       );
-      grad.addColorStop(0, "#e0e1dd");
-      grad.addColorStop(0.5, "#778da9");
-      grad.addColorStop(1, "#0d1b2a");
+      grad.addColorStop(0, COSMIC_ARCADE_PALETTE.white);
+      grad.addColorStop(0.5, COSMIC_ARCADE_PALETTE.stationSteel);
+      grad.addColorStop(1, COSMIC_ARCADE_PALETTE.voidBlack);
       return grad;
     });
 
@@ -1036,7 +1036,7 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
     ctx.fill();
 
     // Inner core viewport ring
-    ctx.strokeStyle = "#00f0ff";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.neonCyan;
     ctx.globalAlpha = 0.7;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1058,7 +1058,7 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
       ctx.fill();
 
       // Core point
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
       ctx.globalAlpha = Math.min(1.0, pulse * 1.2);
       ctx.fillRect(b.x - 1, b.y - 1, 2, 2);
     }
@@ -1087,7 +1087,7 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
 
     // Solar panel arrays
     const panelPaint = Skia.Paint();
-    panelPaint.setColor(Skia.Color("#1b263b"));
+    panelPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationPanels));
     panelPaint.setAlphaf(0.6);
     canvas.drawRect(
       Skia.XYWHRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth),
@@ -1097,7 +1097,7 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
     const panelStrokePaint = Skia.Paint();
     panelStrokePaint.setStyle(Skia.PaintStyle.Stroke);
     panelStrokePaint.setStrokeWidth(1);
-    panelStrokePaint.setColor(Skia.Color("#415a77"));
+    panelStrokePaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.cosmicNavy));
     panelStrokePaint.setAlphaf(0.6);
     canvas.drawRect(
       Skia.XYWHRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth),
@@ -1108,7 +1108,7 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
     const gridPaint = Skia.Paint();
     gridPaint.setStyle(Skia.PaintStyle.Stroke);
     gridPaint.setStrokeWidth(1);
-    gridPaint.setColor(Skia.Color("#778da9"));
+    gridPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
     gridPaint.setAlphaf(0.35);
     for (let x = -st.panelLength + 6; x < st.panelLength; x += 8) {
       canvas.drawLine(x, -st.panelWidth / 2, x, st.panelWidth / 2, gridPaint);
@@ -1118,7 +1118,7 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
     const ringPaint = Skia.Paint();
     ringPaint.setStyle(Skia.PaintStyle.Stroke);
     ringPaint.setStrokeWidth(2.5);
-    ringPaint.setColor(Skia.Color("#8d99ae"));
+    ringPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
     ringPaint.setAlphaf(0.55);
     canvas.drawCircle(0, 0, st.ringRadius, ringPaint);
 
@@ -1126,7 +1126,7 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
     const spokePaint = Skia.Paint();
     spokePaint.setStyle(Skia.PaintStyle.Stroke);
     spokePaint.setStrokeWidth(1);
-    spokePaint.setColor(Skia.Color("#8d99ae"));
+    spokePaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
     spokePaint.setAlphaf(0.4);
     canvas.drawLine(-st.ringRadius, 0, st.ringRadius, 0, spokePaint);
     canvas.drawLine(0, -st.ringRadius, 0, st.ringRadius, spokePaint);
@@ -1136,7 +1136,11 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
       return Skia.Shader.MakeRadialGradient(
         Skia.Point(-st.coreRadius * 0.2, -st.coreRadius * 0.2),
         st.coreRadius,
-        [Skia.Color("#e0e1dd"), Skia.Color("#778da9"), Skia.Color("#0d1b2a")],
+        [
+          Skia.Color(COSMIC_ARCADE_PALETTE.white),
+          Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel),
+          Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack)
+        ],
         [0.0, 0.5, 1.0],
         Skia.TileMode.Clamp
       );
@@ -1151,21 +1155,21 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
     const viewportPaint = Skia.Paint();
     viewportPaint.setStyle(Skia.PaintStyle.Stroke);
     viewportPaint.setStrokeWidth(1);
-    viewportPaint.setColor(Skia.Color("#00f0ff"));
+    viewportPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.neonCyan));
     viewportPaint.setAlphaf(0.7);
     canvas.drawCircle(0, 0, st.coreRadius * 0.5, viewportPaint);
 
     // Blinking Warning Beacons
     const beaconPaint = Skia.Paint();
     const beaconCorePaint = Skia.Paint();
-    beaconCorePaint.setColor(Skia.Color("#ffffff"));
+    beaconCorePaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
 
     for (let i = 0; i < st.beacons.length; i++) {
       const b = st.beacons[i];
       b.twinklePhase += b.twinkleSpeed;
       const pulse = 0.3 + 0.7 * Math.sin(b.twinklePhase);
 
-      beaconPaint.setColor(b.skColor || Skia.Color("#ff2a2a"));
+      beaconPaint.setColor(b.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.dangerRed));
       beaconPaint.setAlphaf(pulse);
       canvas.drawCircle(b.x, b.y, 3.5, beaconPaint);
 
@@ -1899,14 +1903,14 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Com
       }
 
       // Draw streaming pixel cubes rather than allocating strings per frame
-      ctx.fillStyle = "#00ff33";
+      ctx.fillStyle = COSMIC_ARCADE_PALETTE.matrixGreen;
       ctx.globalAlpha = col.intensity * 0.15;
       for (let j = 0; j < col.length; j++) {
         ctx.fillRect(col.x, col.y - j * 8, 4, 6);
       }
 
       // Leading bright tip
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
       ctx.globalAlpha = col.intensity;
       ctx.fillRect(col.x, col.y, 4, 6);
     }
@@ -1935,14 +1939,14 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, ComponentRegistry> =
         col.y = -150;
       }
 
-      paint.setColor(Skia.Color("#00ff33"));
+      paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.matrixGreen));
       paint.setAlphaf(col.intensity * 0.15);
       for (let j = 0; j < col.length; j++) {
         canvas.drawRect(Skia.XYWHRect(col.x, col.y - j * 8, 4, 6), paint);
       }
 
       // Bright tip
-      paint.setColor(Skia.Color("#ffffff"));
+      paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
       paint.setAlphaf(col.intensity);
       canvas.drawRect(Skia.XYWHRect(col.x, col.y, 4, 6), paint);
     }
@@ -2134,29 +2138,22 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<any, ComponentRegistry> = {
 
     const length = render.size || 300;
     const timePhase = getVFXState(world).timePhase;
+    const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "strong");
 
     canvas.save();
-
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-
-    // Thick Outer Glow
-    paint.setColor(Skia.Color("#00ffff"));
-    paint.setAlphaf(0.5);
-    paint.setStrokeWidth(10 + 2 * Math.sin(timePhase * 6));
-    canvas.drawLine(0, 0, 0, -length, paint);
-
-    // White Core
-    paint.setColor(Skia.Color("#ffffff"));
-    paint.setAlphaf(0.9);
-    paint.setStrokeWidth(3);
-    canvas.drawLine(0, 0, 0, -length, paint);
+    renderSkiaGlow(canvas, glowStyle, (paint, isHighlight) => {
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(isHighlight ? 3 : 8 + 2 * Math.sin(timePhase * 6));
+      canvas.drawLine(0, 0, 0, -length, paint);
+    });
 
     // Electrical discharges
     const rng = world.renderRandom;
-    paint.setColor(Skia.Color("#b4ffff"));
-    paint.setAlphaf(0.8);
-    paint.setStrokeWidth(1);
+    const sparkPaint = Skia.Paint();
+    sparkPaint.setStyle(Skia.PaintStyle.Stroke);
+    sparkPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.iceBlue));
+    sparkPaint.setAlphaf(0.8);
+    sparkPaint.setStrokeWidth(1);
 
     const path = Skia.Path.Make();
     path.moveTo(0, 0);
@@ -2167,7 +2164,7 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<any, ComponentRegistry> = {
       const curX = rng.nextRange(-10, 10);
       path.lineTo(curX, curY);
     }
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, sparkPaint);
 
     canvas.restore();
   }
@@ -2184,7 +2181,7 @@ export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, Comp
     ctx.save();
 
     // Red alert pulse
-    ctx.strokeStyle = "#ff0000";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.dangerRed;
     ctx.globalAlpha = 0.12 + 0.08 * Math.sin(timePhase * 3);
     ctx.lineWidth = 14;
 
@@ -2204,7 +2201,7 @@ export const SkiaScreenBorderGlowEffect: EffectDrawer<any, ComponentRegistry> = 
 
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#ff0000"));
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.dangerRed));
     paint.setAlphaf(0.12 + 0.08 * Math.sin(timePhase * 3));
     paint.setStrokeWidth(14);
 
@@ -2461,13 +2458,17 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
     ctx.globalAlpha = alpha;
 
     // Outer dark outline
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.voidBlack;
-    ctx.lineWidth = 3;
-    ctx.strokeText(label, 0, offsetY);
+    if (typeof ctx.strokeText === "function") {
+      ctx.strokeStyle = COSMIC_ARCADE_PALETTE.voidBlack;
+      ctx.lineWidth = 3;
+      ctx.strokeText(label, 0, offsetY);
+    }
 
     // Inner glowing fill text
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
-    ctx.fillText(label, 0, offsetY);
+    if (typeof ctx.fillText === "function") {
+      ctx.fillStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
+      ctx.fillText(label, 0, offsetY);
+    }
 
     ctx.restore();
   }

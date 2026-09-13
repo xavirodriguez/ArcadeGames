@@ -331,7 +331,7 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
 
     SharedVFX.FloatingTextScoreEffect.draw(ctx, world, entity);
     expect(drawCalls.length).toBeGreaterThan(0);
-    expect(drawCalls).toContain("fillText:CRITICAL! +100");
+    expect(drawCalls).toContain("fillText:+100");
   });
 
   // -----------------------------------------------------------

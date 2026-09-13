@@ -21,8 +21,8 @@ export class WebAudioPlayer implements IAudioPlayer {
   private bgmVolumeNode: GainNode | null = null;
 
   private masterVolume = 1.0;
-  private sfxVolume = 1.0;
-  private bgmVolume = 1.0;
+  private sfxVolume = 0.85;
+  private bgmVolume = 0.35;
 
   constructor() {
     this.initContext();

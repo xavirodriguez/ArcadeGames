@@ -14,7 +14,9 @@ import {
   ComboSystem,
   MutatorSystem,
   ScreenShakeSystem,
-  GameDefinition
+  GameDefinition,
+  preloadSharedAudioManifest,
+  SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import { AchievementSystem, PowerUpSystem, LootSystem } from "@tiny-aster/gameplay-kit";
 import {
@@ -354,14 +356,9 @@ export class FroggerGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    const assets = [
-      { id: "jump", path: "/audio/hit.mp3" },
-      { id: "drown", path: "/audio/game_over.mp3" },
-      { id: "hit", path: "/audio/explosion.mp3" },
-      { id: "goal", path: "/audio/score.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" },
-    ];
-    await loadAudioAssets(this.audio, assets);
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
+    }
   }
 }
 
@@ -406,12 +403,6 @@ export const FroggerDefinition: GameDefinition = {
   },
   assets: {
     sprites: [],
-    sounds: [
-      { id: "jump", path: "/audio/hit.mp3" },
-      { id: "drown", path: "/audio/game_over.mp3" },
-      { id: "hit", path: "/audio/explosion.mp3" },
-      { id: "goal", path: "/audio/score.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" },
-    ],
+    sounds: SHARED_AUDIO_MANIFEST,
   },
 };

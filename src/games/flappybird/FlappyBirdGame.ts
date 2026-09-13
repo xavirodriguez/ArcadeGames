@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
@@ -391,13 +391,9 @@ export class FlappyBirdGame
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    const assets = [
-      { id: "flap", path: "/audio/flap.mp3" },
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "score", path: "/audio/score.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" },
-    ];
-    await loadAudioAssets(this.audio, assets);
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
+    }
   }
 
   public setMultiplayerMode(active: boolean) {
@@ -610,11 +606,6 @@ export const FlappyBirdDefinition = {
   },
   assets: {
     sprites: [],
-    sounds: [
-      { id: "flap", path: "/audio/flap.mp3" },
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "score", path: "/audio/score.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" }
-    ]
+    sounds: SHARED_AUDIO_MANIFEST
   }
 };

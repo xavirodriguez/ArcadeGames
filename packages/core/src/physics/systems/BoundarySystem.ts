@@ -104,6 +104,7 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
     if (v) {
       if (axis === "x") v.vx *= -1;
       else v.vy *= -1;
+      world.getEventBus()?.emitDeferred("PlaySFX", { name: "bounce" });
     }
   }
 }

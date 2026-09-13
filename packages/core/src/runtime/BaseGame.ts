@@ -14,6 +14,7 @@ import { NullInputSystem } from "../input/NullInputSystem";
 import { Schedule } from "../ecs/Schedule";
 import { SceneManager } from "../scenes/SceneManager";
 import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
+import { resolveAudioOptions } from "../audio/AudioEventMap";
 import { IAssetProvider } from "../assets/AssetLoader";
 import { ArcadeKernel, ArcadeState } from "./ArcadeKernel";
 import { Theme } from "../theme/Theme";
@@ -306,8 +307,10 @@ export abstract class BaseGame<
 
     this.eventBus.on("PlaySFX", (payload) => {
       if (payload && (payload as { name?: string }).name) {
-        // Automatically route global PlaySFX EventBus events to the configured audio player
-        this.audio.playSFX((payload as { name: string }).name, payload);
+        const sfxName = (payload as { name: string }).name;
+        const options = resolveAudioOptions(sfxName, payload as Record<string, unknown>);
+        // Automatically route global PlaySFX EventBus events to the configured audio player with game feel presets
+        this.audio.playSFX(sfxName, options);
       }
     });
 
@@ -780,28 +783,36 @@ export abstract class BaseGame<
    * Template method hook for subclasses to execute custom logic when starting the game loop.
    */
   protected onStart(): void {
-    // Overridden by subclasses if needed
+    if (!this.isHeadless && this.audio) {
+      this.audio.playBGM("dark_atmosphere");
+    }
   }
 
   /**
    * Template method hook for subclasses to execute custom logic when pausing the game loop.
    */
   protected onPause(): void {
-    // Overridden by subclasses if needed
+    if (this.audio) {
+      this.audio.pauseBGM();
+    }
   }
 
   /**
    * Template method hook for subclasses to execute custom logic when resuming the game loop.
    */
   protected onResume(): void {
-    // Overridden by subclasses if needed
+    if (!this.isHeadless && this.audio) {
+      this.audio.playBGM("dark_atmosphere");
+    }
   }
 
   /**
    * Template method hook for subclasses to execute custom logic when stopping the game loop.
    */
   protected onStop(): void {
-    // Overridden by subclasses if needed
+    if (this.audio) {
+      this.audio.stopBGM();
+    }
   }
 
   /**

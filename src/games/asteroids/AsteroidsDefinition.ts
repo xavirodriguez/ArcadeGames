@@ -1,4 +1,4 @@
-import { GameDefinition } from "@tiny-aster/core";
+import { GameDefinition, SHARED_AUDIO_MANIFEST } from "@tiny-aster/core";
 import { AsteroidsGame } from "./AsteroidsGame";
 
 export const AsteroidsDefinition: GameDefinition = {
@@ -12,9 +12,6 @@ export const AsteroidsDefinition: GameDefinition = {
   },
   assets: {
     sprites: [],
-    sounds: [
-      { id: "shoot", path: "/audio/shoot.mp3" },
-      { id: "explosion", path: "/audio/explosion.mp3" }
-    ]
+    sounds: SHARED_AUDIO_MANIFEST
   }
 };

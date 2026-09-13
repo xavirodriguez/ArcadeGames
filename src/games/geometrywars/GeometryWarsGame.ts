@@ -8,7 +8,9 @@ import {
   TransformComponent,
   WebAudioPlayer,
   GameDefinition,
-  ConfigService
+  ConfigService,
+  preloadSharedAudioManifest,
+  SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, GeometryWarsStateComponent, GeometryWarsInput, GeometryWarsBlueprintRegistry } from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
@@ -75,19 +77,8 @@ export class GeometryWarsGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    const audio = this.audio;
-    const assets = [
-      { id: "shoot", path: "/audio/shoot.mp3" },
-      { id: "explosion", path: "/audio/explosion.mp3" },
-      { id: "explosion2", path: "/audio/explosion2.mp3" },
-    ];
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:306-315. Considerar extraer a función compartida. Ref: 379c1d5e
-    for (const asset of assets) {
-      try {
-        await audio.loadSFX(asset.id, asset.path);
-      } catch (e) {
-        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
-      }
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
     }
   }
 
@@ -415,6 +406,6 @@ export const GeometryWarsDefinition: GameDefinition = {
   },
   assets: {
     sprites: [],
-    sounds: []
+    sounds: SHARED_AUDIO_MANIFEST
   }
 };

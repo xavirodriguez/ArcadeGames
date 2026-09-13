@@ -223,6 +223,15 @@ export interface AudioAssetDefinition {
 }
 
 // @public
+export interface AudioPlayOptions {
+    cooldownMs?: number;
+    detune?: number;
+    pitchRange?: number;
+    playbackRate?: number;
+    volume?: number;
+}
+
+// @public
 export interface AuthoritativeServerState {
     vx: number;
     vy: number;
@@ -1355,6 +1364,9 @@ export type DeepReadonly<T> = T extends (...args: unknown[]) => unknown ? T : T 
 
 // @public
 export const DEFAULT_ACCESSIBILITY_ASSISTS: AccessibilityAssistsConfig;
+
+// @public
+export const DEFAULT_AUDIO_PRESETS: Record<string, AudioPlayOptions>;
 
 // @public
 export const DEFAULT_META_PROGRESSION_STATE: MetaProgressionState;
@@ -3828,6 +3840,9 @@ export class ReplicationStateTracker {
 // @public
 export class Replicator<TComponents extends ComponentRegistry = ComponentRegistry> extends NetworkReplicator<TComponents> {
 }
+
+// @public
+export function resolveAudioOptions(eventName: string, payloadOptions?: Record<string, unknown>): AudioPlayOptions;
 
 // @public
 export function resolveThemeColor<TRole extends string = GameRoleKey>(world: {

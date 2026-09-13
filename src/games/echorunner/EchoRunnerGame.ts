@@ -42,7 +42,9 @@ import {
   SegmentGenerator,
   LevelPlan,
   TTLComponent,
-  EntityBuilder
+  EntityBuilder,
+  preloadSharedAudioManifest,
+  SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
 import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
@@ -559,19 +561,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    const assets = [
-      { id: "pulse", path: "/audio/shoot.mp3" },
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "score", path: "/audio/score.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" },
-      { id: "explosion", path: "/audio/explosion.mp3" }
-    ];
-    for (const asset of assets) {
-      try {
-        await this.audio.loadSFX(asset.id, asset.path);
-      } catch (e) {
-        // Fallback for environment constraints
-      }
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
     }
   }
 
@@ -659,6 +650,6 @@ export const EchoRunnerDefinition = {
   },
   assets: {
     sprites: [],
-    sounds: []
+    sounds: SHARED_AUDIO_MANIFEST
   }
 };

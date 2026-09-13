@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hapticSelection } from "../src/utils/haptics";
 import { useTranslation } from "../src/hooks/useTranslation";
 import { GameOverNarrative } from "../src/components/GameOverNarrative";
+import { COLORS, colors, fonts, semanticColors, typography } from "../src/theme";
 import Animated, {
   BounceIn,
   FadeIn,
@@ -17,53 +18,12 @@ import Animated, {
 } from "react-native-reanimated";
 
 /**
- * Second visual pass for the ODISEA-7 HUD.
- *
- * Changes in this version:
- * 1. Modular spacecraft-style HUD instead of a single text row.
- * 2. Custom life/ship iconography and a stronger display/data type system.
- * 3. Diegetic READY and GAME OVER overlays tied to the ODISEA-7 universe.
- * 4. Semantic color roles: system / warning / success / danger.
- * 5. Reusable technical graphic language: module codes, rails, corner marks.
- * 6. More cinematic READY and INTERMISSION compositions with per-tick motion.
+ * Responsive spacecraft HUD for ODISEA-7 minigames.
+ * Features `compact` (<600px mobile) and `expanded` (>=600px tablet/web) layouts.
  */
 
-const COLORS = {
-  // Semantic roles. Prefer these aliases in UI decisions.
-  system: "#00E8D2",
-  warning: "#F6C85F",
-  success: "#67F7A7",
-  danger: "#FF315B",
-
-  // Base palette kept for backwards readability inside the style sheet.
-  cyan: "#00E8D2",
-  cyanFaint: "rgba(0, 232, 210, 0.08)",
-  white: "#F3F7F6",
-  whiteMuted: "rgba(243, 247, 246, 0.62)",
-  amber: "#F6C85F",
-  green: "#67F7A7",
-  red: "#FF315B",
-  ink: "#06100F",
-  panel: "rgba(3, 16, 15, 0.76)",
-  panelStrong: "rgba(2, 10, 10, 0.92)",
-  border: "rgba(0, 232, 210, 0.32)",
-};
-
-// Uses platform fonts only, so this file does not add a font dependency.
-// These can later be replaced with the final brand fonts in one place.
-const DISPLAY_FONT = Platform.select({
-  ios: "AvenirNextCondensed-Bold",
-  android: "sans-serif-condensed",
-  web: "Arial Narrow",
-  default: "System",
-});
-
-const DATA_FONT = Platform.select({
-  ios: "Menlo-Bold",
-  android: "monospace",
-  web: "Courier New",
-  default: "monospace",
-});
+const DISPLAY_FONT = fonts.display;
+const DATA_FONT = fonts.data;
 
 type SkiaModuleType = typeof import("@shopify/react-native-skia");
 
@@ -97,7 +57,7 @@ if (Platform.OS !== "web") {
     BackdropBlur = SkiaModule.BackdropBlur as unknown as BackdropBlurComponent;
     Fill = SkiaModule.Fill as unknown as FillComponent;
   } catch (_err) {
-    // Skia is optional. The UI still works without it.
+    // Skia is optional.
   }
 }
 
@@ -170,6 +130,9 @@ export const GameUI = React.memo(function GameUI({
 }: GameUIProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 600;
+
   const [levelUpText, setLevelUpText] = useState<string | null>(null);
 
   const showPauseButton =
@@ -190,7 +153,6 @@ export const GameUI = React.memo(function GameUI({
     if (Platform.OS !== "web") return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 1. Pause/Resume behavior
       if (e.code === "Escape" || e.code === "KeyP") {
         const isContinuing = gameState.continueCountdownRemaining && gameState.continueCountdownRemaining > 0;
         if (onPause && !gameState.isGameOver && !isContinuing) {
@@ -200,7 +162,6 @@ export const GameUI = React.memo(function GameUI({
         }
       }
 
-      // 2. Restart behavior when Game Over is active
       if (gameState.isGameOver) {
         if (e.code === "KeyR" || e.code === "Enter") {
           if (onRestart) {
@@ -211,7 +172,6 @@ export const GameUI = React.memo(function GameUI({
         }
       }
 
-      // 3. Reconnect / Abort behavior when emergency continue is active
       const continueCountdownRemaining = gameState.continueCountdownRemaining ?? 0;
       if (continueCountdownRemaining > 0) {
         if (e.code === "Enter") {
@@ -224,12 +184,11 @@ export const GameUI = React.memo(function GameUI({
           if (onRestart) {
             e.preventDefault();
             hapticSelection();
-            onRestart(); // Abort
+            onRestart();
           }
         }
       }
 
-      // 4. Dialogue advance behavior
       if (gameState.isDialogueActive && gameState.dialogueText) {
         if (e.code === "Space" || e.code === "Enter") {
           if (onAdvanceDialogue) {
@@ -272,6 +231,7 @@ export const GameUI = React.memo(function GameUI({
         highScore={highScore ?? 0}
         paddingTop={Math.max(insets.top, 14)}
         reservePauseSpace={showPauseButton}
+        isCompact={isCompact}
         theme={theme}
       />
 
@@ -381,9 +341,12 @@ const HUD: React.FC<{
   highScore: number;
   paddingTop: number;
   reservePauseSpace: boolean;
+  isCompact?: boolean;
   theme?: GameUITheme;
-}> = ({ lives, score, level, highScore, paddingTop, reservePauseSpace, theme }) => {
+}> = ({ lives, score, level, highScore, paddingTop, reservePauseSpace, isCompact, theme }) => {
   const { t } = useTranslation();
+  const [expandedDetails, setExpandedDetails] = useState(false);
+
   const titleText = theme?.title ?? "ODISEA-7";
   const subTitleText = theme?.subTitle ?? "PILOT LINK // ACTIVE";
   const scoreLabelText = theme?.scoreLabel ?? "SCORE_MATCH";
@@ -391,6 +354,51 @@ const HUD: React.FC<{
 
   const systemColor = theme?.colors?.system ?? COLORS.system;
   const warningColor = theme?.colors?.warning ?? COLORS.warning;
+
+  if (isCompact) {
+    return (
+      <Animated.View entering={FadeIn.duration(450)} style={[styles.topBar, { paddingTop }]}>
+        <View style={[styles.compactBar, reservePauseSpace && styles.compactBarWithPause]}>
+          <View style={styles.compactLifeRow}>
+            {lives > 0 ? (
+              Array.from({ length: Math.min(lives, 4) }).map((_, index) => (
+                <ShipLifeIcon key={`compact-life-${index}`} color={systemColor} compact />
+              ))
+            ) : (
+              <Text style={styles.signalLostMini}>LOST</Text>
+            )}
+            {lives > 4 && <Text style={styles.compactExtraLives}>+{lives - 4}</Text>}
+          </View>
+
+          <View style={styles.compactScoreBlock}>
+            <Score score={score} color={systemColor} compact />
+          </View>
+
+          <TouchableOpacity
+            style={styles.compactDrawerToggle}
+            onPress={() => {
+              hapticSelection();
+              setExpandedDetails(!expandedDetails);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Toggle HUD Details"
+          >
+            <Text style={[styles.compactSectorText, { color: warningColor }]}>
+              S-{formatLevel(level)} {expandedDetails ? "▲" : "▼"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {expandedDetails && (
+          <Animated.View entering={SlideInDown.duration(200)} style={styles.compactDrawerPanel}>
+            <Text style={styles.hudMicro}>{titleText} // {subTitleText}</Text>
+            <Text style={styles.hudMicro}>RECORD: {formatScore(highScore)}</Text>
+            <Text style={styles.hudMicro}>{sectorLabelText} THREAT LEVEL {formatLevel(level)}</Text>
+          </Animated.View>
+        )}
+      </Animated.View>
+    );
+  }
 
   return (
     <Animated.View entering={FadeIn.duration(650)} style={[styles.topBar, { paddingTop }]}>
@@ -564,17 +572,17 @@ const TechnicalRail: React.FC<{
   </View>
 );
 
-const ShipLifeIcon: React.FC<{ color?: string }> = ({ color = COLORS.cyan }) => (
-  <View style={styles.shipIcon} accessibilityLabel="life">
-    <View style={[styles.shipNose, { borderBottomColor: color }]} />
-    <View style={[styles.shipBody, { backgroundColor: color }]} />
-    <View style={[styles.shipWing, styles.shipWingLeft, { backgroundColor: color }]} />
-    <View style={[styles.shipWing, styles.shipWingRight, { backgroundColor: color }]} />
-    <View style={styles.shipEngine} />
+const ShipLifeIcon: React.FC<{ color?: string; compact?: boolean }> = ({ color = COLORS.cyan, compact }) => (
+  <View style={[styles.shipIcon, compact && styles.shipIconCompact]} accessibilityLabel="life">
+    <View style={[styles.shipNose, compact && styles.shipNoseCompact, { borderBottomColor: color }]} />
+    <View style={[styles.shipBody, compact && styles.shipBodyCompact, { backgroundColor: color }]} />
+    <View style={[styles.shipWing, styles.shipWingLeft, compact && styles.shipWingCompact, { backgroundColor: color }]} />
+    <View style={[styles.shipWing, styles.shipWingRight, compact && styles.shipWingCompact, { backgroundColor: color }]} />
+    <View style={[styles.shipEngine, compact && styles.shipEngineCompact]} />
   </View>
 );
 
-const Score: React.FC<{ score: number; color?: string }> = ({ score, color = COLORS.cyan }) => {
+const Score: React.FC<{ score: number; color?: string; compact?: boolean }> = ({ score, color = COLORS.cyan, compact }) => {
   const scale = useSharedValue(1);
 
   useEffect(() => {
@@ -590,7 +598,9 @@ const Score: React.FC<{ score: number; color?: string }> = ({ score, color = COL
 
   return (
     <Animated.View style={animatedStyle}>
-      <Text style={[styles.scoreValue, { color }]}>{formatScore(score)}</Text>
+      <Text style={[styles.scoreValue, compact && styles.scoreValueCompact, { color }]}>
+        {formatScore(score)}
+      </Text>
     </Animated.View>
   );
 };
@@ -950,6 +960,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  shipIconCompact: {
+    width: 14,
+    height: 14,
+    marginRight: 4,
+  },
   shipNose: {
     width: 0,
     height: 0,
@@ -962,6 +977,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
   },
+  shipNoseCompact: {
+    borderLeftWidth: 3,
+    borderRightWidth: 3,
+    borderBottomWidth: 5,
+  },
   shipBody: {
     width: 5,
     height: 9,
@@ -969,12 +989,22 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 6,
   },
+  shipBodyCompact: {
+    width: 4,
+    height: 6,
+    top: 4,
+  },
   shipWing: {
     width: 8,
     height: 2,
     backgroundColor: COLORS.cyan,
     position: "absolute",
     top: 10,
+  },
+  shipWingCompact: {
+    width: 6,
+    height: 1.5,
+    top: 7,
   },
   shipWingLeft: {
     left: 1,
@@ -991,6 +1021,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
   },
+  shipEngineCompact: {
+    width: 1.5,
+    height: 2,
+  },
   scoreValue: {
     color: COLORS.cyan,
     fontFamily: DATA_FONT,
@@ -1005,6 +1039,10 @@ const styles = StyleSheet.create({
           textShadowOffset: { width: 0, height: 0 },
           textShadowRadius: 8,
         }),
+  },
+  scoreValueCompact: {
+    fontSize: 18,
+    letterSpacing: 1.2,
   },
   sectorValue: {
     color: COLORS.amber,
@@ -1034,6 +1072,52 @@ const styles = StyleSheet.create({
     height: 3,
     backgroundColor: "rgba(246, 200, 95, 0.18)",
     marginLeft: 2,
+  },
+
+  // Compact layout ---------------------------------------------------------
+  compactBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: COLORS.panel,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  compactBarWithPause: {
+    marginRight: 52,
+  },
+  compactLifeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  compactExtraLives: {
+    color: COLORS.white,
+    fontFamily: DATA_FONT,
+    fontSize: 10,
+    fontWeight: "bold",
+    marginLeft: 2,
+  },
+  compactScoreBlock: {
+    alignItems: "center",
+  },
+  compactDrawerToggle: {
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  compactSectorText: {
+    fontFamily: DATA_FONT,
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  compactDrawerPanel: {
+    backgroundColor: COLORS.panelStrong,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderTopWidth: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
 
   // Pause -------------------------------------------------------------------
@@ -1409,6 +1493,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cyan,
     paddingHorizontal: 26,
     paddingVertical: 14,
+    minHeight: 44,
     marginHorizontal: 6,
   },
   yesButtonText: {
@@ -1424,6 +1509,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.red,
     paddingHorizontal: 26,
     paddingVertical: 14,
+    minHeight: 44,
     marginHorizontal: 6,
   },
   noButtonText: {
@@ -1609,9 +1695,10 @@ const styles = StyleSheet.create({
   restartButton: {
     alignSelf: "center",
     minWidth: 270,
+    minHeight: 44,
     marginTop: 22,
     paddingHorizontal: 24,
-    paddingVertical: 13,
+    paddingVertical: 14,
     backgroundColor: COLORS.cyanFaint,
     borderWidth: 1,
     borderColor: COLORS.cyan,
@@ -1650,17 +1737,17 @@ const styles = StyleSheet.create({
     zIndex: 1002,
   },
   dialogueBox: {
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    borderColor: "#00FFDD",
+    backgroundColor: semanticColors.background.panelStrong,
+    borderColor: semanticColors.system,
     borderWidth: 2,
     borderRadius: 8,
     padding: 16,
     width: "100%",
     maxWidth: 600,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 0 15px rgba(0, 255, 221, 0.4)' }
+      ? { boxShadow: `0 0 15px rgba(0, 232, 210, 0.4)` }
       : {
-          shadowColor: "#00FFDD",
+          shadowColor: semanticColors.system,
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.4,
           shadowRadius: 15,
@@ -1668,22 +1755,22 @@ const styles = StyleSheet.create({
     ),
   },
   dialogueSpeaker: {
-    color: "#00FFDD",
-    fontFamily: "monospace",
+    color: semanticColors.system,
+    fontFamily: DATA_FONT,
     fontSize: 14,
     fontWeight: "bold",
     marginBottom: 8,
   },
   dialogueContent: {
-    color: "#FFFFFF",
-    fontFamily: "monospace",
+    color: semanticColors.neutral[50],
+    fontFamily: DATA_FONT,
     fontSize: 16,
     lineHeight: 22,
     marginBottom: 12,
   },
   dialoguePrompt: {
-    color: "#FFD700",
-    fontFamily: "monospace",
+    color: semanticColors.boss,
+    fontFamily: DATA_FONT,
     fontSize: 12,
     textAlign: "right",
     fontWeight: "bold",

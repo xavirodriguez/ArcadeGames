@@ -37,7 +37,9 @@ import {
   HealthComponent,
   Theme,
   resolveThemeColor,
-  EntityBuilder
+  EntityBuilder,
+  preloadSharedAudioManifest,
+  SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
@@ -429,18 +431,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    const assets = [
-      { id: "jump", path: "/audio/flap.mp3" },
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "score", path: "/audio/score.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" }
-    ];
-    for (const asset of assets) {
-      try {
-        await this.audio.loadSFX(asset.id, asset.path);
-      } catch (e) {
-        // Fallback for environment constraints
-      }
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
     }
   }
 
@@ -490,6 +482,6 @@ export const PlatformerDefinition: GameDefinition = {
   },
   assets: {
     sprites: [],
-    sounds: []
+    sounds: SHARED_AUDIO_MANIFEST
   }
 };

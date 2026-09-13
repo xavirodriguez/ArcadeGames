@@ -161,7 +161,10 @@ export class BossSystem extends GameSystem {
     });
 
     const eventBus = world.getEventBus();
-    if (eventBus) eventBus.emitDeferred("si:boss_defeated", {});
+    if (eventBus) {
+      eventBus.emitDeferred("si:boss_defeated", {});
+      eventBus.emitDeferred("PlaySFX", { name: "explosion_large", volume: 1.0 });
+    }
 
     world.getCommandBuffer().removeEntity(entity);
   }

@@ -221,6 +221,7 @@ export class SpaceInvadersFormationSystem extends GameSystem {
         const shooterPos = world.getComponent(selectedShooter.entity, "Transform");
         if (shooterPos) {
           createEnemyBullet(world, shooterPos.x, shooterPos.y + 15, this.enemyBulletPool);
+          world.getEventBus()?.emitDeferred("PlaySFX", { name: "shoot_enemy" });
         }
       }
     }

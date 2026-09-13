@@ -23,7 +23,9 @@ import {
   EntityBuilder,
   ParticleSystem,
   Renderer,
-  RendererUtils
+  RendererUtils,
+  preloadSharedAudioManifest,
+  SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { CombatSystem, CollisionLayers, AchievementSystem, PowerUpSystem, SharedParticlePool } from "@tiny-aster/gameplay-kit";
@@ -373,20 +375,8 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
 
   protected override async onPreloadAssets(): Promise<void> {
     if (this.isHeadless) return;
-    const audio = this.audio;
-    const assets = [
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "explosion", path: "/audio/explosion.mp3" },
-      { id: "launch", path: "/audio/launch.mp3" },
-      { id: "level_up", path: "/audio/level_up.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" },
-    ];
-    for (const asset of assets) {
-      try {
-        await audio.loadSFX(asset.id, asset.path);
-      } catch (e) {
-        console.warn(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
-      }
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
     }
   }
 }
@@ -401,6 +391,6 @@ export const ArkanoidDefinition = {
   },
   assets: {
     sprites: [],
-    sounds: []
+    sounds: SHARED_AUDIO_MANIFEST
   }
 };

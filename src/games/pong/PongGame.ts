@@ -18,7 +18,9 @@ import {
   TTLSystem,
   World,
   WebAudioPlayer,
-  System
+  System,
+  preloadSharedAudioManifest,
+  SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
@@ -317,19 +319,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    const audio = this.audio;
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:304-317. Considerar extraer a función compartida. Ref: ed520f42
-    const assets = [
-      { id: "hit", path: "/audio/hit.mp3" },
-      { id: "score", path: "/audio/score.mp3" },
-      { id: "game_over", path: "/audio/game_over.mp3" },
-    ];
-    for (const asset of assets) {
-      try {
-        await audio.loadSFX(asset.id, asset.path);
-      } catch (e) {
-        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
-      }
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
     }
   }
 
@@ -429,6 +420,6 @@ export const PongDefinition = {
   },
   assets: {
     sprites: [],
-    sounds: []
+    sounds: SHARED_AUDIO_MANIFEST
   }
 };

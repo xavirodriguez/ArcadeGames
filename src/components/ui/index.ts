@@ -5,3 +5,5 @@ export * from "./NeonButton";
 export * from "./BackButton";
 export * from "./HighScoreText";
 export * from "./PlayerNameInput";
+export * from "./Layer";
+export * from "./GameLayoutShell";

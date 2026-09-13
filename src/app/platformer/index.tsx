@@ -21,6 +21,7 @@ import {
   PlayerNameInput,
   HighScoreText,
   NeonButton,
+  GameLayoutShell,
 } from "../../components/ui";
 
 function PlatformerContent() {
@@ -159,135 +160,130 @@ function PlatformerContent() {
 
   return (
     <SafeAreaProvider>
-      <View style={sharedScreenStyles.container}>
-        <RadialBackground />
-
-        {/* Back to menu */}
-        <BackButton label={t.common.menu} />
-
-        {/* HUD */}
-        <View style={styles.hudContainer}>
-          <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.platformer?.score || "PUNTAJE"}</Text>
-            <Text style={styles.hudValue}>{gameState.score}</Text>
-          </View>
-          <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.platformer?.lives || "VIDAS"}</Text>
-            <Text style={styles.hudValue}>{"❤️ ".repeat(Math.max(0, gameState.lives))}</Text>
-          </View>
-          <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.platformer?.attempts || "INTENTOS"}</Text>
-            <Text style={styles.hudValue}>{gameState.attempts}</Text>
-          </View>
-        </View>
-
-        {/* Canvas Renderer */}
-        <CanvasRenderer
-          world={game.getWorld()}
-          gameLoop={game.getGameLoop()}
-          onInitialize={(renderer) => game.initializeRenderer(renderer)}
-        />
-
-        {/* Virtual controls for touch devices */}
-        {isTouchDevice && (
-          <View style={styles.touchControlsContainer} pointerEvents="box-none">
-            {/* Left D-Pad */}
-            <View style={styles.dpad} pointerEvents="box-none">
-              <Pressable
-                style={({ pressed }) => [styles.touchButton, pressed && styles.touchButtonPressed]}
-                onPressIn={() => {
-                  hapticSelection();
-                  handleTouchLeft(true);
-                }}
-                onPressOut={() => handleTouchLeft(false)}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityRole="button"
-                accessibilityLabel={t?.accessibility?.move_left_label || "Move left"}
-                accessibilityHint={t?.accessibility?.move_left_hint || "Moves player left"}
-              >
-                <Text style={styles.touchButtonText}>◀</Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.touchButton, pressed && styles.touchButtonPressed]}
-                onPressIn={() => {
-                  hapticSelection();
-                  handleTouchRight(true);
-                }}
-                onPressOut={() => handleTouchRight(false)}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityRole="button"
-                accessibilityLabel={t?.accessibility?.move_right_label || "Move right"}
-                accessibilityHint={t?.accessibility?.move_right_hint || "Moves player right"}
-              >
-                <Text style={styles.touchButtonText}>▶</Text>
-              </Pressable>
+      <GameLayoutShell
+        style={sharedScreenStyles.container}
+        backgroundSlot={<RadialBackground />}
+        topLeftSlot={<BackButton label={t.common.menu} />}
+        centerHudSlot={
+          <View style={styles.hudContainer}>
+            <View style={styles.hudItem}>
+              <Text style={styles.hudLabel}>{t.platformer?.score || "PUNTAJE"}</Text>
+              <Text style={styles.hudValue}>{gameState.score}</Text>
             </View>
-
-            {/* Right Action buttons */}
-            <View style={styles.actions} pointerEvents="box-none">
-              <Pressable
-                style={({ pressed }) => [
-                  styles.touchButton,
-                  styles.dashButton,
-                  pressed && styles.touchButtonPressed,
-                ]}
-                onPressIn={() => {
-                  hapticSelection();
-                  handleTouchDash();
-                }}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityRole="button"
-                accessibilityLabel={"Dash"}
-                accessibilityHint={"Performs a rapid forward dash"}
-              >
-                <Text style={styles.touchButtonText}>DASH</Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.touchButton,
-                  styles.jumpButton,
-                  pressed && styles.touchButtonPressed,
-                ]}
-                onPressIn={() => {
-                  hapticSelection();
-                  handleTouchJump(true);
-                }}
-                onPressOut={() => handleTouchJump(false)}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityRole="button"
-                accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
-                accessibilityHint={t?.accessibility?.jump_button_hint || "Jumps"}
-              >
-                <Text style={styles.touchButtonText}>JUMP</Text>
-              </Pressable>
+            <View style={styles.hudItem}>
+              <Text style={styles.hudLabel}>{t.platformer?.lives || "VIDAS"}</Text>
+              <Text style={styles.hudValue}>{"❤️ ".repeat(Math.max(0, gameState.lives))}</Text>
+            </View>
+            <View style={styles.hudItem}>
+              <Text style={styles.hudLabel}>{t.platformer?.attempts || "INTENTOS"}</Text>
+              <Text style={styles.hudValue}>{gameState.attempts}</Text>
             </View>
           </View>
-        )}
+        }
+        canvasSlot={
+          <CanvasRenderer
+            world={game.getWorld()}
+            gameLoop={game.getGameLoop()}
+            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+          />
+        }
+        controlsSlot={
+          isTouchDevice ? (
+            <View style={styles.touchControlsContainer} pointerEvents="box-none">
+              <View style={styles.dpad} pointerEvents="box-none">
+                <Pressable
+                  style={({ pressed }) => [styles.touchButton, pressed && styles.touchButtonPressed]}
+                  onPressIn={() => {
+                    hapticSelection();
+                    handleTouchLeft(true);
+                  }}
+                  onPressOut={() => handleTouchLeft(false)}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t?.accessibility?.move_left_label || "Move left"}
+                  accessibilityHint={t?.accessibility?.move_left_hint || "Moves player left"}
+                >
+                  <Text style={styles.touchButtonText}>◀</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [styles.touchButton, pressed && styles.touchButtonPressed]}
+                  onPressIn={() => {
+                    hapticSelection();
+                    handleTouchRight(true);
+                  }}
+                  onPressOut={() => handleTouchRight(false)}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t?.accessibility?.move_right_label || "Move right"}
+                  accessibilityHint={t?.accessibility?.move_right_hint || "Moves player right"}
+                >
+                  <Text style={styles.touchButtonText}>▶</Text>
+                </Pressable>
+              </View>
 
-        {/* Game Over Screen */}
-        {gameState.isGameOver && (
-          <View style={styles.gameOverOverlay}>
-            <Text style={styles.gameOverTitle}>{t.platformer?.level_completed || "¡NIVEL COMPLETADO!"}</Text>
-            <Text style={styles.hudValue}>{t.platformer?.final_score || "Puntaje final"}: {gameState.score}</Text>
+              <View style={styles.actions} pointerEvents="box-none">
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.touchButton,
+                    styles.dashButton,
+                    pressed && styles.touchButtonPressed,
+                  ]}
+                  onPressIn={() => {
+                    hapticSelection();
+                    handleTouchDash();
+                  }}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={"Dash"}
+                  accessibilityHint={"Performs a rapid forward dash"}
+                >
+                  <Text style={styles.touchButtonText}>DASH</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.touchButton,
+                    styles.jumpButton,
+                    pressed && styles.touchButtonPressed,
+                  ]}
+                  onPressIn={() => {
+                    hapticSelection();
+                    handleTouchJump(true);
+                  }}
+                  onPressOut={() => handleTouchJump(false)}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
+                  accessibilityHint={t?.accessibility?.jump_button_hint || "Jumps"}
+                >
+                  <Text style={styles.touchButtonText}>JUMP</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null
+        }
+        debugSlot={<DebugOverlay game={game} />}
+        overlaySlot={
+          gameState.isGameOver ? (
+            <View style={styles.gameOverOverlay}>
+              <Text style={styles.gameOverTitle}>{t.platformer?.level_completed || "¡NIVEL COMPLETADO!"}</Text>
+              <Text style={styles.hudValue}>{t.platformer?.final_score || "Puntaje final"}: {gameState.score}</Text>
 
-            <TouchableOpacity
-              style={styles.menuButton}
-              onPress={() => {
-                hapticSelection();
-                router.replace("/");
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t.common.menu}
-              accessibilityHint="Regresa al menú principal"
-            >
-              <Text style={styles.menuButtonText}>{t.common.menu}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Real-time Debug Overlay */}
-        <DebugOverlay game={game} />
-      </View>
+              <TouchableOpacity
+                style={styles.menuButton}
+                onPress={() => {
+                  hapticSelection();
+                  router.replace("/");
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.common.menu}
+                accessibilityHint="Regresa al menú principal"
+              >
+                <Text style={styles.menuButtonText}>{t.common.menu}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
+        }
+      />
     </SafeAreaProvider>
   );
 }

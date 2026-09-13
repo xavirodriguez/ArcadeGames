@@ -23,6 +23,7 @@ import {
   HighScoreText,
   BackButton,
   NeonButton,
+  GameLayoutShell,
 } from "../../components/ui";
 
 export default function ArkanoidScreen() {
@@ -91,77 +92,83 @@ export default function ArkanoidScreen() {
   return (
     <GameErrorBoundary gameId="arkanoid">
       <SafeAreaProvider>
-        <View style={sharedScreenStyles.container}>
-          <RadialBackground />
-          <TouchableOpacity
-            style={sharedScreenStyles.backButton}
-            onPress={() => {
-              hapticSelection();
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/");
-              }
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t.common.back}
-          >
-            <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-          </TouchableOpacity>
-
-          <View style={styles.hud}>
-            <Text style={styles.hudText}>SCORE {gameState?.score ?? 0}</Text>
-            <Text style={styles.hudText}>LIVES {gameState?.lives ?? 3}</Text>
-            <Text style={styles.hudText}>LVL {gameState?.level ?? 1}</Text>
-          </View>
-
-          <CanvasRenderer
-            world={game.getWorld()}
-            gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer)}
-          />
-
-          <View style={styles.controls} pointerEvents="box-none">
-            <View style={styles.leftControlArea} pointerEvents="box-none">
-              <VirtualJoystick
-                joystickId="arkanoid_joystick"
-                type="movement"
-                onMove={(x) => {
-                  handleInputState({
-                    left: x < -0.25,
-                    right: x > 0.25,
-                  });
-                }}
-                onRelease={() => {
-                  handleInputState({ left: false, right: false });
-                }}
-              />
+        <GameLayoutShell
+          style={sharedScreenStyles.container}
+          backgroundSlot={<RadialBackground />}
+          topLeftSlot={
+            <TouchableOpacity
+              style={sharedScreenStyles.backButton}
+              onPress={() => {
+                hapticSelection();
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/");
+                }
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.back}
+            >
+              <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
+            </TouchableOpacity>
+          }
+          centerHudSlot={
+            <View style={styles.hud}>
+              <Text style={styles.hudText}>SCORE {gameState?.score ?? 0}</Text>
+              <Text style={styles.hudText}>LIVES {gameState?.lives ?? 3}</Text>
+              <Text style={styles.hudText}>LVL {gameState?.level ?? 1}</Text>
             </View>
-            <View style={styles.rightControlArea} pointerEvents="box-none">
-              <ShootButton
-                onPressIn={() => handleInputState({ launch: true })}
-                onPressOut={() => handleInputState({ launch: false })}
-              />
+          }
+          canvasSlot={
+            <CanvasRenderer
+              world={game.getWorld()}
+              gameLoop={game.getGameLoop()}
+              onInitialize={(renderer) => game.initializeRenderer(renderer)}
+            />
+          }
+          controlsSlot={
+            <View style={styles.controls} pointerEvents="box-none">
+              <View style={styles.leftControlArea} pointerEvents="box-none">
+                <VirtualJoystick
+                  joystickId="arkanoid_joystick"
+                  type="movement"
+                  onMove={(x) => {
+                    handleInputState({
+                      left: x < -0.25,
+                      right: x > 0.25,
+                    });
+                  }}
+                  onRelease={() => {
+                    handleInputState({ left: false, right: false });
+                  }}
+                />
+              </View>
+              <View style={styles.rightControlArea} pointerEvents="box-none">
+                <ShootButton
+                  onPressIn={() => handleInputState({ launch: true })}
+                  onPressOut={() => handleInputState({ launch: false })}
+                />
+              </View>
             </View>
-          </View>
-
-          <DebugOverlay game={game} />
-
-          {gameState?.isGameOver && (
-            <View style={sharedScreenStyles.overlay}>
-              <Text style={sharedScreenStyles.overlayText}>{t.common.game_over}</Text>
-              <TouchableOpacity
-                style={styles.restartButton}
-                onPress={() => {
-                  hapticSelection();
-                  game.restart();
-                }}
-              >
-                <Text style={styles.restartButtonText}>{t.common.retry}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+          }
+          debugSlot={<DebugOverlay game={game} />}
+          overlaySlot={
+            gameState?.isGameOver ? (
+              <View style={sharedScreenStyles.overlay}>
+                <Text style={sharedScreenStyles.overlayText}>{t.common.game_over}</Text>
+                <TouchableOpacity
+                  style={styles.restartButton}
+                  onPress={() => {
+                    hapticSelection();
+                    game.restart();
+                  }}
+                >
+                  <Text style={styles.restartButtonText}>{t.common.retry}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null
+          }
+        />
       </SafeAreaProvider>
     </GameErrorBoundary>
   );

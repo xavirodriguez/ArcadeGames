@@ -28,6 +28,7 @@ import {
   HighScoreText,
   BackButton,
   NeonButton,
+  GameLayoutShell,
 } from "../../components/ui";
 
 export default function FroggerScreen() {
@@ -138,104 +139,108 @@ export default function FroggerScreen() {
   return (
     <GameErrorBoundary gameId="frogger">
       <SafeAreaProvider>
-        <View style={sharedScreenStyles.container}>
-          <TouchableOpacity
-            style={sharedScreenStyles.backButton}
-            onPress={() => {
-              hapticSelection();
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/");
-              }
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t?.common?.back || "Back"}
-            accessibilityHint="Regresa a la pantalla principal"
-          >
-            <Text style={sharedScreenStyles.backButtonText}>← {t?.common?.menu || "Menu"}</Text>
-          </TouchableOpacity>
-
-          {/* HUD Score Header */}
-          <View style={styles.hudOverlay} pointerEvents="none">
-            <View style={styles.hudRow}>
-              <Text style={styles.hudText}>SCORE: {gameState.score}</Text>
-              <Text style={styles.hudText}>LIVES: {gameState.lives}</Text>
-              <Text style={styles.hudText}>LEVEL: {gameState.level}</Text>
-              <Text style={styles.hudText}>PADS: {gameState.occupiedLilyPads}/{gameState.totalLilyPads}</Text>
-            </View>
-          </View>
-
-          <CanvasRenderer
-            world={game.getWorld()}
-            gameLoop={game.getGameLoop()}
-            onInitialize={handleInitializeRenderer}
-          />
-
-          {/* D-Pad Touch Controls */}
-          <View style={styles.dpadContainer}>
+        <GameLayoutShell
+          style={sharedScreenStyles.container}
+          topLeftSlot={
             <TouchableOpacity
-              style={[styles.dpadButton, styles.dpadUp]}
-              onPressIn={() => handleGameInput({ moveUp: true })}
-              onPressOut={() => handleGameInput({ moveUp: false })}
+              style={sharedScreenStyles.backButton}
+              onPress={() => {
+                hapticSelection();
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/");
+                }
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t?.common?.back || "Back"}
+              accessibilityHint="Regresa a la pantalla principal"
             >
-              <Text style={styles.dpadText}>▲</Text>
+              <Text style={sharedScreenStyles.backButtonText}>← {t?.common?.menu || "Menu"}</Text>
             </TouchableOpacity>
-            <View style={styles.dpadHorizontalRow}>
+          }
+          centerHudSlot={
+            <View style={styles.hudOverlay} pointerEvents="none">
+              <View style={styles.hudRow}>
+                <Text style={styles.hudText}>SCORE: {gameState.score}</Text>
+                <Text style={styles.hudText}>LIVES: {gameState.lives}</Text>
+                <Text style={styles.hudText}>LEVEL: {gameState.level}</Text>
+                <Text style={styles.hudText}>PADS: {gameState.occupiedLilyPads}/{gameState.totalLilyPads}</Text>
+              </View>
+            </View>
+          }
+          canvasSlot={
+            <CanvasRenderer
+              world={game.getWorld()}
+              gameLoop={game.getGameLoop()}
+              onInitialize={handleInitializeRenderer}
+            />
+          }
+          controlsSlot={
+            <View style={styles.dpadContainer}>
               <TouchableOpacity
-                style={[styles.dpadButton, styles.dpadLeft]}
-                onPressIn={() => handleGameInput({ moveLeft: true })}
-                onPressOut={() => handleGameInput({ moveLeft: false })}
+                style={[styles.dpadButton, styles.dpadUp]}
+                onPressIn={() => handleGameInput({ moveUp: true })}
+                onPressOut={() => handleGameInput({ moveUp: false })}
               >
-                <Text style={styles.dpadText}>◀</Text>
+                <Text style={styles.dpadText}>▲</Text>
               </TouchableOpacity>
+              <View style={styles.dpadHorizontalRow}>
+                <TouchableOpacity
+                  style={[styles.dpadButton, styles.dpadLeft]}
+                  onPressIn={() => handleGameInput({ moveLeft: true })}
+                  onPressOut={() => handleGameInput({ moveLeft: false })}
+                >
+                  <Text style={styles.dpadText}>◀</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.dpadButton, styles.dpadRight]}
+                  onPressIn={() => handleGameInput({ moveRight: true })}
+                  onPressOut={() => handleGameInput({ moveRight: false })}
+                >
+                  <Text style={styles.dpadText}>▶</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
-                style={[styles.dpadButton, styles.dpadRight]}
-                onPressIn={() => handleGameInput({ moveRight: true })}
-                onPressOut={() => handleGameInput({ moveRight: false })}
+                style={[styles.dpadButton, styles.dpadDown]}
+                onPressIn={() => handleGameInput({ moveDown: true })}
+                onPressOut={() => handleGameInput({ moveDown: false })}
               >
-                <Text style={styles.dpadText}>▶</Text>
+                <Text style={styles.dpadText}>▼</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={[styles.dpadButton, styles.dpadDown]}
-              onPressIn={() => handleGameInput({ moveDown: true })}
-              onPressOut={() => handleGameInput({ moveDown: false })}
-            >
-              <Text style={styles.dpadText}>▼</Text>
-            </TouchableOpacity>
-          </View>
-
-          <DebugOverlay game={game} />
-
-          {/* Game Over Overlay */}
-          {gameState.isGameOver && !isDaily && (
-            <View style={styles.gameOverOverlay}>
-              <Text style={styles.gameOverText}>{t?.common?.game_over || "GAME OVER"}</Text>
-              <Text style={styles.finalScoreText}>FINAL SCORE: {gameState.score}</Text>
-              <TouchableOpacity
-                style={styles.restartButton}
-                onPress={() => {
-                  hapticSelection();
-                  game.restart();
-                }}
-              >
-                <Text style={styles.restartButtonText}>{t?.common?.retry || "RETRY"}</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {showDailyResults && seed !== undefined && (
-            <View style={sharedScreenStyles.overlay}>
-              <DailyResultsOverlay
-                gameId="frogger"
-                score={gameState.score}
-                seed={seed}
-                onClose={() => setShowDailyResults(false)}
-              />
-            </View>
-          )}
-        </View>
+          }
+          debugSlot={<DebugOverlay game={game} />}
+          overlaySlot={
+            <>
+              {gameState.isGameOver && !isDaily && (
+                <View style={styles.gameOverOverlay}>
+                  <Text style={styles.gameOverText}>{t?.common?.game_over || "GAME OVER"}</Text>
+                  <Text style={styles.finalScoreText}>FINAL SCORE: {gameState.score}</Text>
+                  <TouchableOpacity
+                    style={styles.restartButton}
+                    onPress={() => {
+                      hapticSelection();
+                      game.restart();
+                    }}
+                  >
+                    <Text style={styles.restartButtonText}>{t?.common?.retry || "RETRY"}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {showDailyResults && seed !== undefined && (
+                <View style={sharedScreenStyles.overlay}>
+                  <DailyResultsOverlay
+                    gameId="frogger"
+                    score={gameState.score}
+                    seed={seed}
+                    onClose={() => setShowDailyResults(false)}
+                  />
+                </View>
+              )}
+            </>
+          }
+        />
       </SafeAreaProvider>
     </GameErrorBoundary>
   );

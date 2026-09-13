@@ -857,6 +857,8 @@ export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingCo
       initializeDistantAsteroids(world, state);
     }
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
+
     ctx.save();
 
     for (let i = 0; i < state.distantAsteroids.length; i++) {
@@ -865,13 +867,10 @@ export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingCo
       ast.y += ast.vy;
       ast.rotation += ast.angularVelocity;
 
-      if (ast.x < -ast.radius * 2) ast.x = width + ast.radius * 2;
-      if (ast.x > width + ast.radius * 2) ast.x = -ast.radius * 2;
-      if (ast.y < -ast.radius * 2) ast.y = height + ast.radius * 2;
-      if (ast.y > height + ast.radius * 2) ast.y = -ast.radius * 2;
+      const posX = wrapParallaxCoordinate(ast.x - offsetX * 0.1, width, ast.radius * 2);
 
       ctx.save();
-      ctx.translate(ast.x, ast.y);
+      ctx.translate(posX, ast.y);
       ctx.rotate(ast.rotation);
 
       ctx.fillStyle = ast.color;
@@ -905,6 +904,8 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, Componen
       initializeDistantAsteroids(world, state);
     }
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
+
     canvas.save();
 
     const fillPaint = Skia.Paint();
@@ -922,13 +923,10 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, Componen
       ast.y += ast.vy;
       ast.rotation += ast.angularVelocity;
 
-      if (ast.x < -ast.radius * 2) ast.x = width + ast.radius * 2;
-      if (ast.x > width + ast.radius * 2) ast.x = -ast.radius * 2;
-      if (ast.y < -ast.radius * 2) ast.y = height + ast.radius * 2;
-      if (ast.y > height + ast.radius * 2) ast.y = -ast.radius * 2;
+      const posX = wrapParallaxCoordinate(ast.x - offsetX * 0.1, width, ast.radius * 2);
 
       canvas.save();
-      canvas.translate(ast.x, ast.y);
+      canvas.translate(posX, ast.y);
       canvas.rotate((ast.rotation * 180) / Math.PI, 0, 0);
 
       fillPaint.setColor(ast.skColor || Skia.Color("#4a4e69"));
@@ -959,9 +957,11 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
     if (!st) return;
 
     st.rotation += st.rotationSpeed;
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer5_near_objects");
+    const posX = wrapParallaxCoordinate(st.x - offsetX * 0.1, width);
 
     ctx.save();
-    ctx.translate(st.x, st.y);
+    ctx.translate(posX, st.y);
     ctx.rotate(st.rotation);
 
     // Solar panel arrays (horizontal truss extensions)
@@ -1062,9 +1062,11 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
     if (!st) return;
 
     st.rotation += st.rotationSpeed;
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer5_near_objects");
+    const posX = wrapParallaxCoordinate(st.x - offsetX * 0.1, width);
 
     canvas.save();
-    canvas.translate(st.x, st.y);
+    canvas.translate(posX, st.y);
     canvas.rotate((st.rotation * 180) / Math.PI, 0, 0);
 
     // Solar panel arrays
@@ -1478,14 +1480,14 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> 
       initializeStars(world, state);
     }
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer2_distant_stars");
+
     canvas.save();
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:386-395. Considerar extraer a función compartida. Ref: f0187418
     const paint = Skia.Paint();
 
     for (let i = 0; i < STAR_COUNT; i++) {
       const star = state.stars[i];
-      star.x -= star.speed;
-      if (star.x < 0) star.x = width;
+      const posX = wrapParallaxCoordinate(star.x - star.speed - offsetX * 0.1, width);
 
       star.twinklePhase += star.twinkleSpeed;
       const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
@@ -1493,7 +1495,7 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> 
 
       paint.setColor(star.skColor || Skia.Color("#ffffff"));
       canvas.drawRect(
-        Skia.XYWHRect(star.x - currentSize / 2, star.y - currentSize / 2, currentSize, currentSize),
+        Skia.XYWHRect(posX - currentSize / 2, star.y - currentSize / 2, currentSize, currentSize),
         paint
       );
     }
@@ -1649,12 +1651,24 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, ComponentRegistry> =
       canvas.drawCircle(0, 0, radius * pulseFactor, paint);
     });
 
-    // Arc discharge sparks - identical RNG consumption for Canvas/Skia parity
+    // Arc discharge sparks - identical RNG consumption & drawing for Canvas/Skia parity
     const rng = world.renderRandom;
+    const sparkPaint = Skia.Paint();
+    sparkPaint.setStyle(Skia.PaintStyle.Stroke);
+    sparkPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.iceBlue));
+    sparkPaint.setStrokeWidth(2);
+
     for (let i = 0; i < 3; i++) {
       const arcStart = rng.nextRange(0, Math.PI * 2);
       const arcLen = rng.nextRange(0.2, 0.7);
-      // Consume rng identically to Canvas
+
+      const path = Skia.Path.Make();
+      path.addArc(
+        Skia.XYWHRect(-radius * pulseFactor, -radius * pulseFactor, radius * pulseFactor * 2, radius * pulseFactor * 2),
+        (arcStart * 180) / Math.PI,
+        (arcLen * 180) / Math.PI
+      );
+      canvas.drawPath(path, sparkPaint);
     }
 
     canvas.restore();
@@ -1815,6 +1829,9 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegi
       initializeNebulae(world, state);
     }
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
+    const theme = getLevelTheme("violet_nebula");
+
     canvas.save();
     const paint = Skia.Paint();
 
@@ -1823,10 +1840,13 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegi
       neb.x += neb.vx;
       neb.y += neb.vy;
 
-      paint.setColor(neb.skColor || Skia.Color("#4a0082"));
+      const posX = neb.x - offsetX * 0.1;
+      const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
+
+      paint.setColor(Skia.Color(nebColorHex));
       paint.setAlphaf(0.015);
       for (let r = neb.radius; r > 10; r -= 15) {
-        canvas.drawCircle(neb.x, neb.y, r, paint);
+        canvas.drawCircle(posX, neb.y, r, paint);
       }
     }
 
@@ -1978,11 +1998,12 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Com
     const size = render.size || 10;
     const timePhase = getVFXState(world).timePhase;
     const { plumeLength } = computeThrusterPlume(timePhase, size);
+    const flameColors = getThrusterFlameColors();
 
     ctx.save();
 
-    // Inner fiery cone
-    ctx.fillStyle = "#ff5500";
+    // Outer plasma cone
+    ctx.fillStyle = flameColors.inner;
     ctx.beginPath();
     ctx.moveTo(-size / 2, 0);
     ctx.lineTo(size / 2, 0);
@@ -1990,9 +2011,9 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Com
     ctx.closePath();
     ctx.fill();
 
-    // Outer plasma core
-    ctx.fillStyle = "#ffcc00";
-    ctx.globalAlpha = 0.7;
+    // Inner white hot core
+    ctx.fillStyle = flameColors.core;
+    ctx.globalAlpha = 0.85;
     ctx.beginPath();
     ctx.moveTo(-size / 3, 0);
     ctx.lineTo(size / 3, 0);
@@ -2014,13 +2035,14 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, ComponentRegistry> =
     const size = render.size || 10;
     const timePhase = getVFXState(world).timePhase;
     const { plumeLength } = computeThrusterPlume(timePhase, size);
+    const flameColors = getThrusterFlameColors();
 
     canvas.save();
 
     const paint = Skia.Paint();
 
-    // Fiery cone
-    paint.setColor(Skia.Color("#ff5500"));
+    // Outer plasma cone
+    paint.setColor(Skia.Color(flameColors.inner));
     const pathOuter = Skia.Path.Make();
     pathOuter.moveTo(-size / 2, 0);
     pathOuter.lineTo(size / 2, 0);
@@ -2028,9 +2050,9 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, ComponentRegistry> =
     pathOuter.close();
     canvas.drawPath(pathOuter, paint);
 
-    // Inner cone
-    paint.setColor(Skia.Color("#ffcc00"));
-    paint.setAlphaf(0.7);
+    // Inner white hot core
+    paint.setColor(Skia.Color(flameColors.core));
+    paint.setAlphaf(0.85);
     const pathInner = Skia.Path.Make();
     pathInner.moveTo(-size / 3, 0);
     pathInner.lineTo(size / 3, 0);
@@ -2293,12 +2315,13 @@ export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, Compo
 
     const size = render.size || 15;
     const timePhase = getVFXState(world).timePhase;
-    const segments = computeCometTrailSegments(timePhase, size);
+    const trailParams = computeTrailParameters(1.0, 1.0, size);
+    const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
 
     ctx.save();
 
     // Renders a tapering neon plume trailing behind using pre-calculated angles
-    ctx.strokeStyle = "#00ffcc";
+    ctx.strokeStyle = trailParams.glowColor;
     ctx.lineWidth = 1;
 
     for (let i = 0; i < segments.length; i++) {
@@ -2321,13 +2344,14 @@ export const SkiaCometMotionTrailEffect: ShapeDrawer<any, ComponentRegistry> = {
 
     const size = render.size || 15;
     const timePhase = getVFXState(world).timePhase;
-    const segments = computeCometTrailSegments(timePhase, size);
+    const trailParams = computeTrailParameters(1.0, 1.0, size);
+    const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
 
     canvas.save();
 
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#00ffcc"));
+    paint.setColor(Skia.Color(trailParams.glowColor));
     paint.setStrokeWidth(1);
 
     for (let i = 0; i < segments.length; i++) {

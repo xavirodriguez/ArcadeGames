@@ -346,7 +346,7 @@ function computeShieldBubbleParams(timePhase: number) {
 }
 
 function computeThrusterPlume(timePhase: number, size: number) {
-  const flicker = 1.0 + 0.15 * Math.sin(timePhase * 5);
+  const flicker = 1.0 + 0.12 * Math.sin(timePhase * 5) + 0.08 * Math.sin(timePhase * 11);
   const plumeLength = size * 2.2 * flicker;
   return { plumeLength };
 }
@@ -1191,13 +1191,15 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
 
     ctx.save();
 
+    const planetTheme = getPlanetTheme("purple");
+
     // 1. Back section of rings (drawn behind planet)
     ctx.save();
     ctx.translate(planet.x, planet.y);
     ctx.rotate(planet.ringTilt);
     ctx.scale(1.0, 0.32);
 
-    ctx.strokeStyle = "#d4af37";
+    ctx.strokeStyle = planetTheme.ringColorBase;
     ctx.globalAlpha = 0.35;
     ctx.lineWidth = planet.ringOuterRadius - planet.ringInnerRadius;
     const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
@@ -1208,7 +1210,6 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.restore();
 
     // 2. Planet body gradient caching using CelestialBodiesSystem
-    const planetTheme = getPlanetTheme("purple");
     const planetGrad = getOrCreateCached(state, "cachedPlanetGradient", width, height, () => {
       const grad = ctx.createRadialGradient(
         -planet.radius * 0.3, -planet.radius * 0.3, planet.radius * 0.1,
@@ -1245,7 +1246,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.rotate(planet.ringTilt);
     ctx.scale(1.0, 0.32);
 
-    ctx.strokeStyle = "#f3e5ab";
+    ctx.strokeStyle = planetTheme.ringColorHighlight;
     ctx.globalAlpha = 0.6;
     ctx.lineWidth = planet.ringOuterRadius - planet.ringInnerRadius;
 
@@ -1704,22 +1705,24 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, Compon
     const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
+    const easedProgress = Math.sin((progress * Math.PI) / 2);
     const baseSize = render.size || 20;
     const maxRadius = baseSize * 4;
-    const currentRadius = maxRadius * progress;
+    const currentRadius = maxRadius * easedProgress;
+    const strokeWidth = Math.max(0.5, 4.0 * (1.0 - progress));
 
     ctx.save();
 
-    ctx.strokeStyle = "#ff7800";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.solarOrange;
     ctx.globalAlpha = alpha;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = strokeWidth;
     ctx.beginPath();
     ctx.arc(0, 0, currentRadius, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.strokeStyle = "#ffdc64";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
     ctx.globalAlpha = alpha * 0.7;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = strokeWidth * 0.5;
     ctx.beginPath();
     ctx.arc(0, 0, currentRadius * 1.2, 0, Math.PI * 2);
     ctx.stroke();
@@ -1754,23 +1757,25 @@ export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {
     const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
+    const easedProgress = Math.sin((progress * Math.PI) / 2);
     const baseSize = render.size || 20;
     const maxRadius = baseSize * 4;
-    const currentRadius = maxRadius * progress;
+    const currentRadius = maxRadius * easedProgress;
+    const strokeWidth = Math.max(0.5, 4.0 * (1.0 - progress));
 
     canvas.save();
 
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
 
-    paint.setColor(Skia.Color("#ff7800"));
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.solarOrange));
     paint.setAlphaf(alpha);
-    paint.setStrokeWidth(4);
+    paint.setStrokeWidth(strokeWidth);
     canvas.drawCircle(0, 0, currentRadius, paint);
 
-    paint.setColor(Skia.Color("#ffdc64"));
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
     paint.setAlphaf(alpha * 0.7);
-    paint.setStrokeWidth(2);
+    paint.setStrokeWidth(strokeWidth * 0.5);
     canvas.drawCircle(0, 0, currentRadius * 1.2, paint);
 
     const rng = world.renderRandom;
@@ -2333,20 +2338,19 @@ export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, Compo
     const timePhase = getVFXState(world).timePhase;
     const trailParams = computeTrailParameters(1.0, 1.0, size);
     const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
+    const glowStyle = getGlowStyle(trailParams.glowColor, "normal");
 
     ctx.save();
-
-    // Renders a tapering neon plume trailing behind using pre-calculated angles
-    ctx.strokeStyle = trailParams.glowColor;
-    ctx.lineWidth = 1;
-
-    for (let i = 0; i < segments.length; i++) {
-      const seg = segments[i];
-      ctx.globalAlpha = seg.alpha;
-      ctx.beginPath();
-      ctx.arc(seg.wiggle, seg.offset, seg.radius, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+    renderCanvasGlow(ctx, glowStyle, (glowCtx) => {
+      glowCtx.lineWidth = 1;
+      for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        glowCtx.globalAlpha = seg.alpha;
+        glowCtx.beginPath();
+        glowCtx.arc(seg.wiggle, seg.offset, seg.radius, 0, Math.PI * 2);
+        glowCtx.stroke();
+      }
+    });
 
     ctx.restore();
   }
@@ -2362,19 +2366,18 @@ export const SkiaCometMotionTrailEffect: ShapeDrawer<any, ComponentRegistry> = {
     const timePhase = getVFXState(world).timePhase;
     const trailParams = computeTrailParameters(1.0, 1.0, size);
     const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
+    const glowStyle = getGlowStyle(trailParams.glowColor, "normal");
 
     canvas.save();
-
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(trailParams.glowColor));
-    paint.setStrokeWidth(1);
-
-    for (let i = 0; i < segments.length; i++) {
-      const seg = segments[i];
-      paint.setAlphaf(seg.alpha);
-      canvas.drawCircle(seg.wiggle, seg.offset, seg.radius, paint);
-    }
+    renderSkiaGlow(canvas, glowStyle, (paint) => {
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(1);
+      for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        paint.setAlphaf(seg.alpha);
+        canvas.drawCircle(seg.wiggle, seg.offset, seg.radius, paint);
+      }
+    });
 
     canvas.restore();
   }
@@ -2447,16 +2450,24 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
     const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
+    const label = (entity as { text?: string }).text || "+100";
+    const offsetY = -progress * 50;
+
     ctx.save();
 
-    // Fades and floats upward
-    ctx.fillStyle = "#ffd700";
-    ctx.globalAlpha = alpha;
+    // Fades and floats upward with high-contrast stroke + fill
     ctx.font = "bold 14px monospace";
     ctx.textAlign = "center";
+    ctx.globalAlpha = alpha;
 
-    // Draw the static text representatively to avoid frame allocations
-    ctx.fillText("CRITICAL! +100", 0, -progress * 50);
+    // Outer dark outline
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.voidBlack;
+    ctx.lineWidth = 3;
+    ctx.strokeText(label, 0, offsetY);
+
+    // Inner glowing fill text
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
+    ctx.fillText(label, 0, offsetY);
 
     ctx.restore();
   }

@@ -6555,14 +6555,14 @@
         "endLoc": {
           "column": 59,
           "line": 792,
-          "position": 24403
+          "position": 24437
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 786,
         "startLoc": {
           "column": 72,
           "line": 786,
-          "position": 24146
+          "position": 24180
         }
       },
       "format": "typescript",
@@ -6574,14 +6574,14 @@
         "endLoc": {
           "column": 59,
           "line": 852,
-          "position": 26385
+          "position": 26419
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 848,
         "startLoc": {
           "column": 37,
           "line": 848,
-          "position": 26186
+          "position": 26220
         }
       },
       "tokens": 55
@@ -6592,14 +6592,14 @@
         "endLoc": {
           "column": 88,
           "line": 886,
-          "position": 27556
+          "position": 27590
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 878,
         "startLoc": {
           "column": 13,
           "line": 878,
-          "position": 27267
+          "position": 27301
         }
       },
       "format": "typescript",
@@ -6611,14 +6611,14 @@
         "endLoc": {
           "column": 88,
           "line": 942,
-          "position": 29110
+          "position": 29144
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 934,
         "startLoc": {
           "column": 32,
           "line": 934,
-          "position": 28821
+          "position": 28855
         }
       },
       "tokens": 77
@@ -6629,14 +6629,14 @@
         "endLoc": {
           "column": 69,
           "line": 977,
-          "position": 30243
+          "position": 30277
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 968,
         "startLoc": {
           "column": 4,
           "line": 968,
-          "position": 29846
+          "position": 29880
         }
       },
       "format": "typescript",
@@ -6648,14 +6648,14 @@
         "endLoc": {
           "column": 69,
           "line": 1082,
-          "position": 33317
+          "position": 33351
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 1073,
         "startLoc": {
           "column": 4,
           "line": 1073,
-          "position": 32920
+          "position": 32954
         }
       },
       "tokens": 84
@@ -6666,14 +6666,14 @@
         "endLoc": {
           "column": 57,
           "line": 1050,
-          "position": 32419
+          "position": 32453
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 1044,
         "startLoc": {
           "column": 15,
           "line": 1044,
-          "position": 32205
+          "position": 32239
         }
       },
       "format": "typescript",
@@ -6685,32 +6685,32 @@
         "endLoc": {
           "column": 57,
           "line": 1166,
-          "position": 36352
+          "position": 36386
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 1161,
         "startLoc": {
           "column": 50,
           "line": 1161,
-          "position": 36170
+          "position": 36204
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 1312,
+        "end": 1313,
         "endLoc": {
           "column": 9,
-          "line": 1312,
-          "position": 40710
+          "line": 1313,
+          "position": 40782
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1304,
+        "start": 1305,
         "startLoc": {
           "column": 73,
-          "line": 1304,
-          "position": 40515
+          "line": 1305,
+          "position": 40587
         }
       },
       "format": "typescript",
@@ -6718,36 +6718,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 1360,
+        "end": 1361,
         "endLoc": {
           "column": 9,
-          "line": 1360,
-          "position": 42316
+          "line": 1361,
+          "position": 42388
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1352,
+        "start": 1353,
         "startLoc": {
           "column": 20,
-          "line": 1352,
-          "position": 42120
+          "line": 1353,
+          "position": 42192
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 1479,
+        "end": 1480,
         "endLoc": {
           "column": 46,
-          "line": 1479,
-          "position": 46828
+          "line": 1480,
+          "position": 46900
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1471,
+        "start": 1472,
         "startLoc": {
           "column": 12,
-          "line": 1471,
-          "position": 46502
+          "line": 1472,
+          "position": 46574
         }
       },
       "format": "typescript",
@@ -6755,36 +6755,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 1510,
+        "end": 1511,
         "endLoc": {
           "column": 46,
-          "line": 1510,
-          "position": 47891
+          "line": 1511,
+          "position": 47963
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1502,
+        "start": 1503,
         "startLoc": {
           "column": 28,
-          "line": 1502,
-          "position": 47565
+          "line": 1503,
+          "position": 47637
         }
       },
       "tokens": 81
     },
     {
       "firstFile": {
-        "end": 1536,
+        "end": 1537,
         "endLoc": {
           "column": 5,
-          "line": 1536,
-          "position": 48900
+          "line": 1537,
+          "position": 48972
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1529,
+        "start": 1530,
         "startLoc": {
           "column": 4,
-          "line": 1529,
-          "position": 48610
+          "line": 1530,
+          "position": 48682
         }
       },
       "format": "typescript",
@@ -6792,36 +6792,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 1579,
+        "end": 1580,
         "endLoc": {
           "column": 5,
-          "line": 1579,
-          "position": 50371
+          "line": 1580,
+          "position": 50443
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1572,
+        "start": 1573,
         "startLoc": {
           "column": 4,
-          "line": 1572,
-          "position": 50081
+          "line": 1573,
+          "position": 50153
         }
       },
       "tokens": 62
     },
     {
       "firstFile": {
-        "end": 1556,
+        "end": 1557,
         "endLoc": {
           "column": 78,
-          "line": 1556,
-          "position": 49773
+          "line": 1557,
+          "position": 49845
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1540,
+        "start": 1541,
         "startLoc": {
           "column": 23,
-          "line": 1540,
-          "position": 49100
+          "line": 1541,
+          "position": 49172
         }
       },
       "format": "typescript",
@@ -6829,36 +6829,36 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 1601,
+        "end": 1602,
         "endLoc": {
           "column": 78,
-          "line": 1601,
-          "position": 51329
+          "line": 1602,
+          "position": 51401
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1585,
+        "start": 1586,
         "startLoc": {
           "column": 29,
-          "line": 1585,
-          "position": 50656
+          "line": 1586,
+          "position": 50728
         }
       },
       "tokens": 191
     },
     {
       "firstFile": {
-        "end": 1622,
+        "end": 1623,
         "endLoc": {
           "column": 23,
-          "line": 1622,
-          "position": 52037
+          "line": 1623,
+          "position": 52109
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1616,
+        "start": 1617,
         "startLoc": {
           "column": 4,
-          "line": 1616,
-          "position": 51785
+          "line": 1617,
+          "position": 51857
         }
       },
       "format": "typescript",
@@ -6866,36 +6866,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1660,
+        "end": 1661,
         "endLoc": {
           "column": 23,
-          "line": 1660,
-          "position": 53411
+          "line": 1661,
+          "position": 53483
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1654,
+        "start": 1655,
         "startLoc": {
           "column": 4,
-          "line": 1654,
-          "position": 53159
+          "line": 1655,
+          "position": 53231
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 1657,
+        "end": 1658,
         "endLoc": {
           "column": 31,
-          "line": 1657,
-          "position": 53300
+          "line": 1658,
+          "position": 53372
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1651,
+        "start": 1652,
         "startLoc": {
           "column": 41,
-          "line": 1651,
-          "position": 53058
+          "line": 1652,
+          "position": 53130
         }
       },
       "format": "typescript",
@@ -6903,36 +6903,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 2051,
+        "end": 2056,
         "endLoc": {
           "column": 31,
-          "line": 2051,
-          "position": 66958
+          "line": 2056,
+          "position": 67440
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2045,
+        "start": 2050,
         "startLoc": {
           "column": 41,
-          "line": 2045,
-          "position": 66716
+          "line": 2050,
+          "position": 67198
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 1657,
+        "end": 1658,
         "endLoc": {
           "column": 31,
-          "line": 1657,
-          "position": 53300
+          "line": 1658,
+          "position": 53372
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1651,
+        "start": 1652,
         "startLoc": {
           "column": 41,
-          "line": 1651,
-          "position": 53058
+          "line": 1652,
+          "position": 53130
         }
       },
       "format": "typescript",
@@ -6940,36 +6940,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 2361,
+        "end": 2365,
         "endLoc": {
           "column": 31,
-          "line": 2361,
-          "position": 76631
+          "line": 2365,
+          "position": 77150
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2355,
+        "start": 2359,
         "startLoc": {
           "column": 39,
-          "line": 2355,
-          "position": 76389
+          "line": 2359,
+          "position": 76908
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 1657,
+        "end": 1658,
         "endLoc": {
           "column": 31,
-          "line": 1657,
-          "position": 53300
+          "line": 1658,
+          "position": 53372
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1651,
+        "start": 1652,
         "startLoc": {
           "column": 41,
-          "line": 1651,
-          "position": 53058
+          "line": 1652,
+          "position": 53130
         }
       },
       "format": "typescript",
@@ -6977,110 +6977,110 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 2417,
+        "end": 2420,
         "endLoc": {
           "column": 31,
-          "line": 2417,
-          "position": 78417
+          "line": 2420,
+          "position": 78989
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2411,
+        "start": 2414,
         "startLoc": {
           "column": 40,
-          "line": 2411,
-          "position": 78175
+          "line": 2414,
+          "position": 78747
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 1705,
+        "end": 1708,
         "endLoc": {
-          "column": 30,
-          "line": 1705,
-          "position": 55394
+          "column": 9,
+          "line": 1708,
+          "position": 55477
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1698,
+        "start": 1699,
         "startLoc": {
           "column": 34,
-          "line": 1698,
-          "position": 54929
+          "line": 1699,
+          "position": 55001
         }
       },
       "format": "typescript",
-      "fragment": "export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {\n  draw(ctx, world, entity) {\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:696-714. Considerar extraer a función compartida. Ref: 4acbb34e\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;",
+      "fragment": "export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {\n  draw(ctx, world, entity) {\n    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:696-714. Considerar extraer a función compartida. Ref: 4acbb34e\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;\n\n    const easedProgress = Math.sin((progress * Math.PI) / 2);",
       "isNew": false,
-      "lines": 8,
+      "lines": 10,
       "secondFile": {
-        "end": 2448,
+        "end": 2453,
         "endLoc": {
-          "column": 30,
-          "line": 2448,
-          "position": 79587
+          "column": 9,
+          "line": 2453,
+          "position": 80170
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2442,
+        "start": 2445,
         "startLoc": {
           "column": 36,
-          "line": 2442,
-          "position": 79281
+          "line": 2445,
+          "position": 79853
         }
       },
-      "tokens": 63
+      "tokens": 64
     },
     {
       "firstFile": {
-        "end": 1709,
+        "end": 1712,
         "endLoc": {
-          "column": 47,
-          "line": 1709,
-          "position": 55519
+          "column": 62,
+          "line": 1712,
+          "position": 55721
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1701,
+        "start": 1702,
         "startLoc": {
           "column": 4,
-          "line": 1701,
-          "position": 55184
+          "line": 1702,
+          "position": 55256
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;\n\n    const baseSize = render.size || 20;\n    const maxRadius = baseSize * 4;\n    const currentRadius = maxRadius * progress;",
+      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;\n\n    const easedProgress = Math.sin((progress * Math.PI) / 2);\n    const baseSize = render.size || 20;\n    const maxRadius = baseSize * 4;\n    const currentRadius = maxRadius * easedProgress;\n    const strokeWidth = Math.max(0.5, 4.0 * (1.0 - progress));",
       "isNew": false,
-      "lines": 9,
+      "lines": 11,
       "secondFile": {
-        "end": 1759,
+        "end": 1764,
         "endLoc": {
-          "column": 47,
-          "line": 1759,
-          "position": 57250
+          "column": 62,
+          "line": 1764,
+          "position": 57657
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1751,
+        "start": 1754,
         "startLoc": {
           "column": 4,
-          "line": 1751,
-          "position": 56915
+          "line": 1754,
+          "position": 57192
         }
       },
-      "tokens": 68
+      "tokens": 104
     },
     {
       "firstFile": {
-        "end": 1738,
+        "end": 1741,
         "endLoc": {
           "column": 48,
-          "line": 1738,
-          "position": 56491
+          "line": 1741,
+          "position": 56768
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1730,
+        "start": 1733,
         "startLoc": {
           "column": 27,
-          "line": 1730,
-          "position": 56153
+          "line": 1733,
+          "position": 56430
         }
       },
       "format": "typescript",
@@ -7088,36 +7088,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 1788,
+        "end": 1793,
         "endLoc": {
           "column": 48,
-          "line": 1788,
-          "position": 58314
+          "line": 1793,
+          "position": 58796
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1780,
+        "start": 1785,
         "startLoc": {
           "column": 31,
-          "line": 1780,
-          "position": 57976
+          "line": 1785,
+          "position": 58458
         }
       },
       "tokens": 87
     },
     {
       "firstFile": {
-        "end": 1755,
+        "end": 1758,
         "endLoc": {
           "column": 30,
-          "line": 1755,
-          "position": 57125
+          "line": 1758,
+          "position": 57402
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1747,
+        "start": 1750,
         "startLoc": {
           "column": 38,
-          "line": 1747,
-          "position": 56655
+          "line": 1750,
+          "position": 56932
         }
       },
       "format": "typescript",
@@ -7125,36 +7125,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 2473,
+        "end": 2484,
         "endLoc": {
           "column": 30,
-          "line": 2473,
-          "position": 80427
+          "line": 2484,
+          "position": 81243
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2466,
+        "start": 2477,
         "startLoc": {
           "column": 40,
-          "line": 2466,
-          "position": 80116
+          "line": 2477,
+          "position": 80932
         }
       },
       "tokens": 70
     },
     {
       "firstFile": {
-        "end": 1824,
+        "end": 1829,
         "endLoc": {
           "column": 41,
-          "line": 1824,
-          "position": 59432
+          "line": 1829,
+          "position": 59914
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1817,
+        "start": 1822,
         "startLoc": {
           "column": 12,
-          "line": 1817,
-          "position": 59252
+          "line": 1822,
+          "position": 59734
         }
       },
       "format": "typescript",
@@ -7162,36 +7162,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 1859,
+        "end": 1864,
         "endLoc": {
           "column": 41,
-          "line": 1859,
-          "position": 60458
+          "line": 1864,
+          "position": 60940
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1852,
+        "start": 1857,
         "startLoc": {
           "column": 28,
-          "line": 1852,
-          "position": 60278
+          "line": 1857,
+          "position": 60760
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 1892,
+        "end": 1897,
         "endLoc": {
           "column": 21,
-          "line": 1892,
-          "position": 61736
+          "line": 1897,
+          "position": 62218
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1886,
+        "start": 1891,
         "startLoc": {
           "column": 12,
-          "line": 1886,
-          "position": 61562
+          "line": 1891,
+          "position": 62044
         }
       },
       "format": "typescript",
@@ -7199,36 +7199,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1930,
+        "end": 1935,
         "endLoc": {
           "column": 21,
-          "line": 1930,
-          "position": 62887
+          "line": 1935,
+          "position": 63369
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1924,
+        "start": 1929,
         "startLoc": {
           "column": 28,
-          "line": 1924,
-          "position": 62713
+          "line": 1929,
+          "position": 63195
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 1969,
+        "end": 1974,
         "endLoc": {
           "column": 44,
-          "line": 1969,
-          "position": 64375
+          "line": 1974,
+          "position": 64857
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1964,
+        "start": 1969,
         "startLoc": {
           "column": 29,
-          "line": 1964,
-          "position": 64199
+          "line": 1969,
+          "position": 64681
         }
       },
       "format": "typescript",
@@ -7236,36 +7236,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 1996,
+        "end": 2001,
         "endLoc": {
           "column": 44,
-          "line": 1996,
-          "position": 65232
+          "line": 2001,
+          "position": 65714
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1992,
+        "start": 1997,
         "startLoc": {
           "column": 41,
-          "line": 1992,
-          "position": 65057
+          "line": 1997,
+          "position": 65539
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 2017,
+        "end": 2022,
         "endLoc": {
           "column": 49,
-          "line": 2017,
-          "position": 66009
+          "line": 2022,
+          "position": 66491
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2011,
+        "start": 2016,
         "startLoc": {
           "column": 4,
-          "line": 2011,
-          "position": 65695
+          "line": 2016,
+          "position": 66177
         }
       },
       "format": "typescript",
@@ -7273,36 +7273,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 2054,
+        "end": 2059,
         "endLoc": {
           "column": 49,
-          "line": 2054,
-          "position": 67131
+          "line": 2059,
+          "position": 67613
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2048,
+        "start": 2053,
         "startLoc": {
           "column": 4,
-          "line": 2048,
-          "position": 66817
+          "line": 2053,
+          "position": 67299
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 2226,
+        "end": 2231,
         "endLoc": {
           "column": 5,
-          "line": 2226,
-          "position": 72334
+          "line": 2231,
+          "position": 72816
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2218,
+        "start": 2223,
         "startLoc": {
           "column": 4,
-          "line": 2218,
-          "position": 72066
+          "line": 2223,
+          "position": 72548
         }
       },
       "format": "typescript",
@@ -7310,36 +7310,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 2281,
+        "end": 2286,
         "endLoc": {
           "column": 5,
-          "line": 2281,
-          "position": 74003
+          "line": 2286,
+          "position": 74485
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2273,
+        "start": 2278,
         "startLoc": {
           "column": 4,
-          "line": 2273,
-          "position": 73735
+          "line": 2278,
+          "position": 74217
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 2257,
+        "end": 2262,
         "endLoc": {
           "column": 65,
-          "line": 2257,
-          "position": 73341
+          "line": 2262,
+          "position": 73823
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2249,
+        "start": 2254,
         "startLoc": {
           "column": 29,
-          "line": 2249,
-          "position": 73036
+          "line": 2254,
+          "position": 73518
         }
       },
       "format": "typescript",
@@ -7347,73 +7347,73 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 2312,
+        "end": 2317,
         "endLoc": {
           "column": 65,
-          "line": 2312,
-          "position": 75031
+          "line": 2317,
+          "position": 75513
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2303,
+        "start": 2308,
         "startLoc": {
           "column": 42,
-          "line": 2303,
-          "position": 74745
+          "line": 2308,
+          "position": 75227
         }
       },
       "tokens": 73
     },
     {
       "firstFile": {
-        "end": 2335,
+        "end": 2341,
         "endLoc": {
-          "column": 92,
-          "line": 2335,
-          "position": 75923
+          "column": 68,
+          "line": 2341,
+          "position": 76474
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2329,
+        "start": 2334,
         "startLoc": {
           "column": 4,
-          "line": 2329,
-          "position": 75569
+          "line": 2334,
+          "position": 76051
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 15;\n    const timePhase = getVFXState(world).timePhase;\n    const trailParams = computeTrailParameters(1.0, 1.0, size);\n    const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);",
+      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 15;\n    const timePhase = getVFXState(world).timePhase;\n    const trailParams = computeTrailParameters(1.0, 1.0, size);\n    const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);\n    const glowStyle = getGlowStyle(trailParams.glowColor, \"normal\");",
       "isNew": false,
-      "lines": 7,
+      "lines": 8,
       "secondFile": {
-        "end": 2364,
+        "end": 2369,
         "endLoc": {
-          "column": 92,
-          "line": 2364,
-          "position": 76844
+          "column": 68,
+          "line": 2369,
+          "position": 77432
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2358,
+        "start": 2362,
         "startLoc": {
           "column": 4,
-          "line": 2358,
-          "position": 76490
+          "line": 2362,
+          "position": 77009
         }
       },
-      "tokens": 68
+      "tokens": 80
     },
     {
       "firstFile": {
-        "end": 2393,
+        "end": 2396,
         "endLoc": {
           "column": 58,
-          "line": 2393,
-          "position": 77808
+          "line": 2396,
+          "position": 78380
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2388,
+        "start": 2391,
         "startLoc": {
           "column": 4,
-          "line": 2388,
-          "position": 77552
+          "line": 2391,
+          "position": 78124
         }
       },
       "format": "typescript",
@@ -7421,18 +7421,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 2419,
+        "end": 2422,
         "endLoc": {
           "column": 58,
-          "line": 2419,
-          "position": 78532
+          "line": 2422,
+          "position": 79104
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2414,
+        "start": 2417,
         "startLoc": {
           "column": 4,
-          "line": 2414,
-          "position": 78276
+          "line": 2417,
+          "position": 78848
         }
       },
       "tokens": 52
@@ -7735,32 +7735,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-13T15:41:50.655Z",
+    "detectionDate": "2026-09-13T15:59:31.891Z",
     "formats": {
       "typescript": {
         "clones": 209,
-        "duplicatedLines": 2181,
-        "duplicatedTokens": 16617,
-        "lines": 64634,
+        "duplicatedLines": 2186,
+        "duplicatedTokens": 16666,
+        "lines": 64687,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.3743849986075443,
-        "percentageTokens": 4.920158823686166,
+        "percentage": 3.379349792075687,
+        "percentageTokens": 4.92967536789174,
         "sources": 379,
-        "tokens": 337733
+        "tokens": 338075
       }
     },
     "total": {
       "clones": 209,
-      "duplicatedLines": 2181,
-      "duplicatedTokens": 16617,
-      "lines": 64634,
+      "duplicatedLines": 2186,
+      "duplicatedTokens": 16666,
+      "lines": 64687,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.3743849986075443,
-      "percentageTokens": 4.920158823686166,
+      "percentage": 3.379349792075687,
+      "percentageTokens": 4.92967536789174,
       "sources": 379,
-      "tokens": 337733
+      "tokens": 338075
     }
   }
 }

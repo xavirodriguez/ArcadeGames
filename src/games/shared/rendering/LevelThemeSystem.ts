@@ -84,7 +84,7 @@ export const LEVEL_THEME_PRESETS: Record<LevelThemeName, LevelVisualTheme> = {
   },
   volcanic_rift: {
     name: "volcanic_rift",
-    backgroundColor: "#12080a",
+    backgroundColor: COSMIC_ARCADE_PALETTE.voidBlack,
     nebulaPalette: [
       COSMIC_ARCADE_PALETTE.dangerRed,
       COSMIC_ARCADE_PALETTE.solarOrange,
@@ -103,7 +103,7 @@ export const LEVEL_THEME_PRESETS: Record<LevelThemeName, LevelVisualTheme> = {
   },
   alien_bloom: {
     name: "alien_bloom",
-    backgroundColor: "#08120b",
+    backgroundColor: COSMIC_ARCADE_PALETTE.voidBlack,
     nebulaPalette: [
       COSMIC_ARCADE_PALETTE.alienGreen,
       COSMIC_ARCADE_PALETTE.electricIndigo,

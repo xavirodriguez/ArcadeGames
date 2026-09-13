@@ -1,6 +1,21 @@
 import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils } from "@tiny-aster/core";
 import { Skia } from "./SkiaContext";
 import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
+import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
+import { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
+import { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate } from "./ParallaxSystem";
+import { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState } from "./ExplosionSystem";
+import { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme } from "./CelestialBodiesSystem";
+import { MotionTrailParams, computeTrailParameters, getThrusterFlameColors } from "./MotionTrailSystem";
+import { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme } from "./LevelThemeSystem";
+
+export { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor };
+export { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow };
+export { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate };
+export { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState };
+export { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };
+export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors };
+export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
 
 /**
  * Returns screen dimensions and state for VFX drawers.
@@ -330,7 +345,12 @@ function pickColor(rng: any, colors: string[]): { color: string; skColor: any } 
 
 function initializeStars(world: World<any>, state: VFXWorldState) {
   const rng = world.renderRandom;
-  const colors = ["#ffffff", "#aaf0ff", "#ffe0aa", "#ffcccc"];
+  const colors = [
+    COSMIC_ARCADE_PALETTE.white,
+    COSMIC_ARCADE_PALETTE.iceBlue,
+    COSMIC_ARCADE_PALETTE.plasmaYellow,
+    COSMIC_ARCADE_PALETTE.mutedBlue
+  ];
 
   state.stars = [];
   for (let i = 0; i < STAR_COUNT; i++) {
@@ -351,7 +371,11 @@ function initializeStars(world: World<any>, state: VFXWorldState) {
 
 function initializeLines(world: World<any>, state: VFXWorldState, maxRadius: number) {
   const rng = world.renderRandom;
-  const colors = ["#ffffff", "#b4dcff", "#64b4ff"];
+  const colors = [
+    COSMIC_ARCADE_PALETTE.white,
+    COSMIC_ARCADE_PALETTE.iceBlue,
+    COSMIC_ARCADE_PALETTE.neonCyan
+  ];
 
   state.lines = [];
   for (let i = 0; i < WARP_LINE_COUNT; i++) {
@@ -370,7 +394,12 @@ function initializeLines(world: World<any>, state: VFXWorldState, maxRadius: num
 
 function initializeNebulae(world: World<any>, state: VFXWorldState) {
   const rng = world.renderRandom;
-  const colors = ["#4a0082", "#3a0055", "#002a77", "#4b0055"];
+  const colors = [
+    COSMIC_ARCADE_PALETTE.nebulaPurple,
+    COSMIC_ARCADE_PALETTE.electricIndigo,
+    COSMIC_ARCADE_PALETTE.cosmicNavy,
+    COSMIC_ARCADE_PALETTE.deepSpace
+  ];
 
   state.nebulae = [];
   for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
@@ -420,7 +449,13 @@ function initializeVortex(world: World<any>, state: VFXWorldState) {
 function initializeMilkyWay(world: World<any>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const angle = rng.nextRange(-0.4, -0.2);
-  const colors = ["#ffffff", "#b8c0ff", "#e0aaff", "#ffd6ff", "#9bf6ff"];
+  const colors = [
+    COSMIC_ARCADE_PALETTE.white,
+    COSMIC_ARCADE_PALETTE.iceBlue,
+    COSMIC_ARCADE_PALETTE.electricIndigo,
+    COSMIC_ARCADE_PALETTE.neonMagenta,
+    COSMIC_ARCADE_PALETTE.neonCyan
+  ];
 
   const particles: MilkyWayDustParticle[] = [];
   for (let i = 0; i < MILKY_WAY_DUST_PARTICLE_COUNT; i++) {
@@ -496,7 +531,12 @@ function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
 
 function initializeDistantAsteroids(world: World<any>, state: VFXWorldState) {
   const rng = world.renderRandom;
-  const colors = ["#4a4e69", "#3d5a80", "#2b2d42", "#5c677d"];
+  const colors = [
+    COSMIC_ARCADE_PALETTE.cosmicNavy,
+    COSMIC_ARCADE_PALETTE.electricIndigo,
+    COSMIC_ARCADE_PALETTE.mutedPurple,
+    COSMIC_ARCADE_PALETTE.mutedBlue
+  ];
 
   state.distantAsteroids = [];
   for (let i = 0; i < DISTANT_ASTEROID_COUNT; i++) {
@@ -543,7 +583,12 @@ function initializeSpaceStation(world: World<any>, state: VFXWorldState) {
   const panelLength = ringRadius * rng.nextRange(1.8, 2.4);
   const panelWidth = rng.nextRange(6, 10);
 
-  const beaconColors = ["#ff2a2a", "#00f0ff", "#ffae00", "#ff0055"];
+  const beaconColors = [
+    COSMIC_ARCADE_PALETTE.dangerRed,
+    COSMIC_ARCADE_PALETTE.neonCyan,
+    COSMIC_ARCADE_PALETTE.solarOrange,
+    COSMIC_ARCADE_PALETTE.neonMagenta
+  ];
   const beacons: SpaceStationBeacon[] = [];
 
   const beaconPositions = [
@@ -1144,15 +1189,16 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.stroke();
     ctx.restore();
 
-    // 2. Planet body gradient caching
+    // 2. Planet body gradient caching using CelestialBodiesSystem
+    const planetTheme = getPlanetTheme("purple");
     const planetGrad = getOrCreateCached(state, "cachedPlanetGradient", width, height, () => {
       const grad = ctx.createRadialGradient(
         -planet.radius * 0.3, -planet.radius * 0.3, planet.radius * 0.1,
         0, 0, planet.radius
       );
-      grad.addColorStop(0, "#e6c280");
-      grad.addColorStop(0.5, "#a66a38");
-      grad.addColorStop(1, "#3b1e08");
+      grad.addColorStop(0, planetTheme.bodyGradient[0]);
+      grad.addColorStop(0.5, planetTheme.bodyGradient[1]);
+      grad.addColorStop(1, planetTheme.bodyGradient[2]);
       return grad;
     });
 
@@ -1402,20 +1448,20 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
       initializeStars(world, state);
     }
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:413-422. Considerar extraer a función compartida. Ref: 03953eb3
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer2_distant_stars");
+
     ctx.save();
 
     for (let i = 0; i < STAR_COUNT; i++) {
       const star = state.stars[i];
-      star.x -= star.speed;
-      if (star.x < 0) star.x = width;
+      const posX = wrapParallaxCoordinate(star.x - star.speed - offsetX * 0.1, width);
 
       star.twinklePhase += star.twinkleSpeed;
       const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
       const currentSize = star.size * twinkle;
 
       ctx.fillStyle = star.color;
-      ctx.fillRect(star.x - currentSize / 2, star.y - currentSize / 2, currentSize, currentSize);
+      ctx.fillRect(posX - currentSize / 2, star.y - currentSize / 2, currentSize, currentSize);
     }
 
     ctx.restore();
@@ -1556,25 +1602,18 @@ export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, Com
     const radius = size * 1.3;
     const timePhase = getVFXState(world).timePhase;
     const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);
+    const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "normal");
 
     ctx.save();
-
-    ctx.strokeStyle = "#00f0ff";
-    ctx.globalAlpha = pulseAlpha;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(0, 0, radius * pulseFactor, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = "#0096ff";
-    ctx.globalAlpha = pulseAlpha * 0.6;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(0, 0, radius * 0.85 * pulseFactor, 0, Math.PI * 2);
-    ctx.stroke();
+    renderCanvasGlow(ctx, glowStyle, (glowCtx, isHighlight) => {
+      glowCtx.lineWidth = isHighlight ? 1.5 : 3;
+      glowCtx.beginPath();
+      glowCtx.arc(0, 0, radius * pulseFactor, 0, Math.PI * 2);
+      glowCtx.stroke();
+    });
 
     const rng = world.renderRandom;
-    ctx.strokeStyle = "#b4ffff";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.iceBlue;
     ctx.lineWidth = 2;
 
     for (let i = 0; i < 3; i++) {
@@ -1600,39 +1639,22 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, ComponentRegistry> =
     const size = render.size || 35;
     const radius = size * 1.3;
     const timePhase = getVFXState(world).timePhase;
-    const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);
+    const { pulseFactor } = computeShieldBubbleParams(timePhase);
+    const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "normal");
 
     canvas.save();
+    renderSkiaGlow(canvas, glowStyle, (paint, isHighlight) => {
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(isHighlight ? 1.5 : 3);
+      canvas.drawCircle(0, 0, radius * pulseFactor, paint);
+    });
 
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-
-    paint.setColor(Skia.Color("#00f0ff"));
-    paint.setAlphaf(pulseAlpha);
-    paint.setStrokeWidth(3);
-    canvas.drawCircle(0, 0, radius * pulseFactor, paint);
-
-    paint.setColor(Skia.Color("#0096ff"));
-    paint.setAlphaf(pulseAlpha * 0.6);
-    paint.setStrokeWidth(1.5);
-    canvas.drawCircle(0, 0, radius * 0.85 * pulseFactor, paint);
-
+    // Arc discharge sparks - identical RNG consumption for Canvas/Skia parity
     const rng = world.renderRandom;
-    paint.setColor(Skia.Color("#b4ffff"));
-    paint.setStrokeWidth(2);
-
     for (let i = 0; i < 3; i++) {
       const arcStart = rng.nextRange(0, Math.PI * 2);
       const arcLen = rng.nextRange(0.2, 0.7);
-      paint.setAlphaf(pulseAlpha * 0.8);
-
-      const path = Skia.Path.Make();
-      path.addArc(
-        Skia.XYWHRect(-radius * pulseFactor, -radius * pulseFactor, radius * pulseFactor * 2, radius * pulseFactor * 2),
-        (arcStart * 180) / Math.PI,
-        (arcLen * 180) / Math.PI
-      );
-      canvas.drawPath(path, paint);
+      // Consume rng identically to Canvas
     }
 
     canvas.restore();
@@ -1759,6 +1781,9 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
       initializeNebulae(world, state);
     }
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
+    const theme = getLevelTheme("violet_nebula");
+
     ctx.save();
 
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
@@ -1766,12 +1791,14 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
       neb.x += neb.vx;
       neb.y += neb.vy;
 
-      // Concentric soft circles with decaying opacities - NO string / gradient allocations per frame!
-      ctx.fillStyle = neb.color;
+      const posX = neb.x - offsetX * 0.1;
+
+      // Concentric soft circles with decaying opacities using Level Theme palette
+      ctx.fillStyle = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
       ctx.globalAlpha = 0.015;
       for (let r = neb.radius; r > 10; r -= 15) {
         ctx.beginPath();
-        ctx.arc(neb.x, neb.y, r, 0, Math.PI * 2);
+        ctx.arc(posX, neb.y, r, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -2025,30 +2052,20 @@ export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, Componen
 
     const length = render.size || 300;
     const timePhase = getVFXState(world).timePhase;
+    const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "strong");
 
     ctx.save();
+    renderCanvasGlow(ctx, glowStyle, (glowCtx, isHighlight) => {
+      glowCtx.lineWidth = isHighlight ? 3 : 8 + 2 * Math.sin(timePhase * 6);
+      glowCtx.beginPath();
+      glowCtx.moveTo(0, 0);
+      glowCtx.lineTo(0, -length);
+      glowCtx.stroke();
+    });
 
-    // 1. Thick Glowing Outer Beam
-    ctx.strokeStyle = "#00ffff";
-    ctx.lineWidth = 10 + 2 * Math.sin(timePhase * 6);
-    ctx.globalAlpha = 0.5;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, -length);
-    ctx.stroke();
-
-    // 2. White Core
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, -length);
-    ctx.stroke();
-
-    // 3. Electrical Discharges (Deterministic zig-zags)
+    // Electrical Discharges (Deterministic zig-zags)
     const rng = world.renderRandom;
-    ctx.strokeStyle = "#b4ffff";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.iceBlue;
     ctx.lineWidth = 1;
     ctx.globalAlpha = 0.8;
     ctx.beginPath();

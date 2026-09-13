@@ -43,6 +43,7 @@ import {
   HighScoreText,
   BackButton,
   NeonButton,
+  GameLayoutShell,
 } from "../../components/ui";
 
 export default function AsteroidsScreen() {
@@ -273,113 +274,120 @@ function AsteroidsGameContent({
   return (
     <ArcadeProvider kernel={kernel} eventBus={eventBus}>
       <GameThemeProvider gameKey="asteroids">
-        <View style={sharedScreenStyles.container}>
-          <RadialBackground />
-          <TouchableOpacity
-            style={sharedScreenStyles.backButton}
-            onPress={() => {
-              hapticSelection();
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/");
-              }
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t.common.back}
-            accessibilityHint="Regresa a la pantalla principal"
-          >
-            <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
-          </TouchableOpacity>
-
-          {isMulti && !connected && (
-            <View style={sharedScreenStyles.overlay}>
-              <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
-            </View>
-          )}
-
-          <ComboDisplay
-            multiplier={
-              (gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier ||
-              (gameState as { comboMultiplier?: number; multiplier?: number })?.multiplier ||
-              1
-            }
-            isActive={true}
-          />
-          <GameUI
-            gameState={gameState as any}
-            onRestart={() => (isMulti ? room?.send("start_game") : game.restart())}
-            onPause={() => togglePause()}
-            isPaused={isPaused}
-            highScore={highScore}
-            seed={seed}
-            onSetSeed={restartWithSeed}
-          />
-          <CanvasRenderer
-            world={game.getWorld()}
-            gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer)}
-          />
-
-          <TransitionOverlay
-            blurRadius={canvasBlur}
-            overlayOpacity={pauseOverlayOpacity}
-          >
-            {/* Transition/Pause Overlay */}
-          </TransitionOverlay>
-
-          <View style={styles.controls} pointerEvents="box-none">
-            <View style={styles.leftControlArea} pointerEvents="box-none">
-              <VirtualJoystick
-                joystickId="movement_joystick"
-                type="movement"
-                onMove={(x, y) => {
-                  const rotateLeft = x < -0.25;
-                  const rotateRight = x > 0.25;
-                  const thrust = y < -0.25;
-                  handleMultiplayerInput({
-                    rotateLeft,
-                    rotateRight,
-                    thrust,
-                    rotationAmount: x,
-                  });
-                }}
-                onRelease={() => {
-                  handleMultiplayerInput({
-                    rotateLeft: false,
-                    rotateRight: false,
-                    thrust: false,
-                    rotationAmount: 0,
-                  });
-                }}
+        <GameLayoutShell
+          style={sharedScreenStyles.container}
+          backgroundSlot={<RadialBackground />}
+          topLeftSlot={
+            <TouchableOpacity
+              style={sharedScreenStyles.backButton}
+              onPress={() => {
+                hapticSelection();
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace("/");
+                }
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.back}
+              accessibilityHint="Regresa a la pantalla principal"
+            >
+              <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
+            </TouchableOpacity>
+          }
+          hudSlot={
+            <>
+              <ComboDisplay
+                multiplier={
+                  (gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier ||
+                  (gameState as { comboMultiplier?: number; multiplier?: number })?.multiplier ||
+                  1
+                }
+                isActive={true}
               />
-            </View>
-            <View style={styles.rightControlArea} pointerEvents="box-none">
-              <HyperspaceButton
-                onPressIn={handleHyperspacePress}
-                onPressOut={handleHyperspaceRelease}
-              />
-              <View style={styles.spacer20} />
-              <ShootButton
-                onPressIn={handleShootPress}
-                onPressOut={handleShootRelease}
-              />
-            </View>
-          </View>
-
-          <DebugOverlay game={game} room={room} />
-
-          {showDailyResults && seed !== undefined && (
-            <View style={sharedScreenStyles.overlay}>
-              <DailyResultsOverlay
-                gameId="asteroids"
-                score={gameState?.score || 0}
+              <GameUI
+                gameState={gameState as any}
+                onRestart={() => (isMulti ? room?.send("start_game") : game.restart())}
+                onPause={() => togglePause()}
+                isPaused={isPaused}
+                highScore={highScore}
                 seed={seed}
-                onClose={() => setShowDailyResults(false)}
+                onSetSeed={restartWithSeed}
               />
+            </>
+          }
+          canvasSlot={
+            <CanvasRenderer
+              world={game.getWorld()}
+              gameLoop={game.getGameLoop()}
+              onInitialize={(renderer) => game.initializeRenderer(renderer)}
+            />
+          }
+          controlsSlot={
+            <View style={styles.controls} pointerEvents="box-none">
+              <View style={styles.leftControlArea} pointerEvents="box-none">
+                <VirtualJoystick
+                  joystickId="movement_joystick"
+                  type="movement"
+                  onMove={(x, y) => {
+                    const rotateLeft = x < -0.25;
+                    const rotateRight = x > 0.25;
+                    const thrust = y < -0.25;
+                    handleMultiplayerInput({
+                      rotateLeft,
+                      rotateRight,
+                      thrust,
+                      rotationAmount: x,
+                    });
+                  }}
+                  onRelease={() => {
+                    handleMultiplayerInput({
+                      rotateLeft: false,
+                      rotateRight: false,
+                      thrust: false,
+                      rotationAmount: 0,
+                    });
+                  }}
+                />
+              </View>
+              <View style={styles.rightControlArea} pointerEvents="box-none">
+                <HyperspaceButton
+                  onPressIn={handleHyperspacePress}
+                  onPressOut={handleHyperspaceRelease}
+                />
+                <View style={styles.spacer20} />
+                <ShootButton
+                  onPressIn={handleShootPress}
+                  onPressOut={handleShootRelease}
+                />
+              </View>
             </View>
-          )}
-        </View>
+          }
+          debugSlot={<DebugOverlay game={game} room={room} />}
+          overlaySlot={
+            <>
+              {isMulti && !connected && (
+                <View style={sharedScreenStyles.overlay}>
+                  <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
+                </View>
+              )}
+              <TransitionOverlay
+                blurRadius={canvasBlur}
+                overlayOpacity={pauseOverlayOpacity}
+              />
+              {showDailyResults && seed !== undefined && (
+                <View style={sharedScreenStyles.overlay}>
+                  <DailyResultsOverlay
+                    gameId="asteroids"
+                    score={gameState?.score || 0}
+                    seed={seed}
+                    onClose={() => setShowDailyResults(false)}
+                  />
+                </View>
+              )}
+            </>
+          }
+        />
       </GameThemeProvider>
     </ArcadeProvider>
   );

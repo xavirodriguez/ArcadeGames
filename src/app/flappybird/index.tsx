@@ -35,6 +35,7 @@ import {
   HighScoreText,
   BackButton,
   NeonButton,
+  GameLayoutShell,
 } from "../../components/ui";
 
 export default function FlappyBirdScreen() {
@@ -202,88 +203,98 @@ export default function FlappyBirdScreen() {
   return (
     <GameErrorBoundary gameId="flappybird">
     <SafeAreaProvider>
-      <View style={sharedScreenStyles.container}>
-        <RadialBackground />
-        <TouchableOpacity
-          style={sharedScreenStyles.backButton}
-          onPress={() => {
-            hapticSelection();
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/");
-            }
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={t?.common?.back || "Back"}
-          accessibilityHint="Regresa a la pantalla principal"
-        >
-          <Text style={sharedScreenStyles.backButtonText}>← {t?.common?.menu || "Menu"}</Text>
-        </TouchableOpacity>
-
-        {isMulti && !connected && (
-            <View style={sharedScreenStyles.overlay}>
-                <Text style={sharedScreenStyles.overlayText}>{t?.common?.connecting || "Connecting..."}</Text>
-            </View>
-        )}
-
-        <ComboDisplay
-          multiplier={(gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier || (gameState as { multiplier?: number })?.multiplier || 1}
-          isActive={true}
-          timerRemaining={(gameState as { comboTimerRemaining?: number })?.comboTimerRemaining}
-          timerDuration={2.0}
-        />
-        <FlappyBirdUI
-          gameState={gameState}
-          onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
-          onPause={() => togglePause()}
-          isPaused={isPaused}
-          highScore={highScore}
-          seed={seed}
-          onSetSeed={restartWithSeed}
-        />
-        <CanvasRenderer
-          world={game.getWorld()}
-          gameLoop={game.getGameLoop()}
-          onInitialize={(renderer) => game.initializeRenderer(renderer)}
-        />
-
-        <View style={styles.controls} pointerEvents="box-none">
-          <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
-            <VirtualJoystick
-              joystickId="movement_joystick"
-              type="movement"
-              onMove={(x, y) => {
-                handleInputState({
-                  flap: y < -0.25,
-                });
-              }}
-              onRelease={() => {
-                handleInputState({
-                  flap: false,
-                });
-              }}
+      <GameLayoutShell
+        style={sharedScreenStyles.container}
+        backgroundSlot={<RadialBackground />}
+        topLeftSlot={
+          <TouchableOpacity
+            style={sharedScreenStyles.backButton}
+            onPress={() => {
+              hapticSelection();
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/");
+              }
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t?.common?.back || "Back"}
+            accessibilityHint="Regresa a la pantalla principal"
+          >
+            <Text style={sharedScreenStyles.backButtonText}>← {t?.common?.menu || "Menu"}</Text>
+          </TouchableOpacity>
+        }
+        hudSlot={
+          <>
+            <ComboDisplay
+              multiplier={(gameState as { comboMultiplier?: number; multiplier?: number })?.comboMultiplier || (gameState as { multiplier?: number })?.multiplier || 1}
+              isActive={true}
+              timerRemaining={(gameState as { comboTimerRemaining?: number })?.comboTimerRemaining}
+              timerDuration={2.0}
             />
-          </View>
-          <ShootButton
-            onPressIn={handleShootPress}
-            onPressOut={handleShootRelease}
-          />
-        </View>
-
-        <DebugOverlay game={game} room={room} />
-
-        {showDailyResults && seed !== undefined && (
-          <View style={sharedScreenStyles.overlay}>
-            <DailyResultsOverlay
-              gameId="flappybird"
-              score={gameState.score}
+            <FlappyBirdUI
+              gameState={gameState}
+              onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
+              onPause={() => togglePause()}
+              isPaused={isPaused}
+              highScore={highScore}
               seed={seed}
-              onClose={() => setShowDailyResults(false)}
+              onSetSeed={restartWithSeed}
+            />
+          </>
+        }
+        canvasSlot={
+          <CanvasRenderer
+            world={game.getWorld()}
+            gameLoop={game.getGameLoop()}
+            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+          />
+        }
+        controlsSlot={
+          <View style={styles.controls} pointerEvents="box-none">
+            <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+              <VirtualJoystick
+                joystickId="movement_joystick"
+                type="movement"
+                onMove={(x, y) => {
+                  handleInputState({
+                    flap: y < -0.25,
+                  });
+                }}
+                onRelease={() => {
+                  handleInputState({
+                    flap: false,
+                  });
+                }}
+              />
+            </View>
+            <ShootButton
+              onPressIn={handleShootPress}
+              onPressOut={handleShootRelease}
             />
           </View>
-        )}
-      </View>
+        }
+        debugSlot={<DebugOverlay game={game} room={room} />}
+        overlaySlot={
+          <>
+            {isMulti && !connected && (
+              <View style={sharedScreenStyles.overlay}>
+                <Text style={sharedScreenStyles.overlayText}>{t?.common?.connecting || "Connecting..."}</Text>
+              </View>
+            )}
+            {showDailyResults && seed !== undefined && (
+              <View style={sharedScreenStyles.overlay}>
+                <DailyResultsOverlay
+                  gameId="flappybird"
+                  score={gameState.score}
+                  seed={seed}
+                  onClose={() => setShowDailyResults(false)}
+                />
+              </View>
+            )}
+          </>
+        }
+      />
     </SafeAreaProvider>
     </GameErrorBoundary>
   );

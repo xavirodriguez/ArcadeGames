@@ -168,6 +168,19 @@ export default tseslint.config(
       ],
     },
   },
+  // Regla no-hardcoded-zindex en componentes/pantallas de juegos
+  {
+    files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: "Property[key.name='zIndex'][value.type='Literal']",
+          message: "⚠️ NO-HARDCODED-ZINDEX: Evita usar valores numéricos literales para zIndex. Utiliza LAYER_ELEVATION tokens o el componente <Layer>."
+        }
+      ],
+    },
+  },
   // Override estricto para React Native (Fronteras de React Native)
   {
     files: ["packages/react-native/src/**/*.{ts,tsx}"],

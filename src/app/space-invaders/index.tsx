@@ -35,6 +35,7 @@ import {
   HighScoreText,
   BackButton,
   NeonButton,
+  GameLayoutShell,
 } from "../../components/ui";
 
 export default function SpaceInvadersScreen() {
@@ -192,89 +193,96 @@ export default function SpaceInvadersScreen() {
   return (
     <GameErrorBoundary gameId="space-invaders">
     <SafeAreaProvider>
-      <View style={sharedScreenStyles.container}>
-        <RadialBackground />
-
-        {isAttractMode && (
-          <TouchableOpacity
-            style={styles.attractOverlay}
-            activeOpacity={1}
-            onPress={() => {
-              setIsAttractMode(false);
-              setStarted(false);
-            }}
-          >
-            <Text style={styles.attractTitle}>DEMO MODE</Text>
-            <Text style={styles.attractSubtitle}>TAP ANYWHERE TO PLAY</Text>
-          </TouchableOpacity>
-        )}
-        <BackButton label={t.common.menu} />
-
-        {isMulti && !connected && (
-            <View style={sharedScreenStyles.overlay}>
-                <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
-            </View>
-        )}
-
-        <ComboDisplay multiplier={gameState?.multiplier || 1} isActive={true} />
-        <SpaceInvadersUI
-          gameState={gameState}
-          onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
-          onPause={() => togglePause()}
-          isPaused={isPaused}
-          highScore={highScore}
-          seed={seed}
-          onSetSeed={restartWithSeed}
-          onContinue={() => {
-            game.getEventBus().emit("player:continue", {});
-          }}
-        />
-        <CanvasRenderer
-          world={() => game.getWorld()}
-          gameLoop={game.getGameLoop()}
-          onInitialize={(renderer) => game.initializeRenderer(renderer)}
-        />
-
-        <View style={styles.controls} pointerEvents="box-none">
-          <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
-            <VirtualJoystick
-              joystickId="movement_joystick"
-              type="movement"
-              onMove={(x, y) => {
-                const moveLeft = x < -0.25;
-                const moveRight = x > 0.25;
-                handleMultiplayerInput({
-                  moveLeft,
-                  moveRight,
-                });
-              }}
-              onRelease={() => {
-                handleMultiplayerInput({
-                  moveLeft: false,
-                  moveRight: false,
-                });
-              }}
-            />
-          </View>
-          <ShootButton
-            onPressIn={handleShootPress}
-            onPressOut={handleShootRelease}
-          />
-        </View>
-
-        <DebugOverlay game={game} room={room} />
-
-        {showDailyResults && seed !== undefined && (
-          <View style={sharedScreenStyles.overlay}>
-            <DailyResultsOverlay
-              gameId="space-invaders"
-              score={gameState.score}
+      <GameLayoutShell
+        style={sharedScreenStyles.container}
+        backgroundSlot={<RadialBackground />}
+        topLeftSlot={<BackButton label={t.common.menu} />}
+        hudSlot={
+          <>
+            <ComboDisplay multiplier={gameState?.multiplier || 1} isActive={true} />
+            <SpaceInvadersUI
+              gameState={gameState}
+              onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
+              onPause={() => togglePause()}
+              isPaused={isPaused}
+              highScore={highScore}
               seed={seed}
-              onClose={() => setShowDailyResults(false)}
+              onSetSeed={restartWithSeed}
+              onContinue={() => {
+                game.getEventBus().emit("player:continue", {});
+              }}
+            />
+          </>
+        }
+        canvasSlot={
+          <CanvasRenderer
+            world={() => game.getWorld()}
+            gameLoop={game.getGameLoop()}
+            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+          />
+        }
+        controlsSlot={
+          <View style={styles.controls} pointerEvents="box-none">
+            <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+              <VirtualJoystick
+                joystickId="movement_joystick"
+                type="movement"
+                onMove={(x, y) => {
+                  const moveLeft = x < -0.25;
+                  const moveRight = x > 0.25;
+                  handleMultiplayerInput({
+                    moveLeft,
+                    moveRight,
+                  });
+                }}
+                onRelease={() => {
+                  handleMultiplayerInput({
+                    moveLeft: false,
+                    moveRight: false,
+                  });
+                }}
+              />
+            </View>
+            <ShootButton
+              onPressIn={handleShootPress}
+              onPressOut={handleShootRelease}
             />
           </View>
-        )}
-      </View>
+        }
+        debugSlot={<DebugOverlay game={game} room={room} />}
+        overlaySlot={
+          <>
+            {isAttractMode && (
+              <TouchableOpacity
+                style={styles.attractOverlay}
+                activeOpacity={1}
+                onPress={() => {
+                  setIsAttractMode(false);
+                  setStarted(false);
+                }}
+              >
+                <Text style={styles.attractTitle}>DEMO MODE</Text>
+                <Text style={styles.attractSubtitle}>TAP ANYWHERE TO PLAY</Text>
+              </TouchableOpacity>
+            )}
+            {isMulti && !connected && (
+              <View style={sharedScreenStyles.overlay}>
+                <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
+              </View>
+            )}
+            {showDailyResults && seed !== undefined && (
+              <View style={sharedScreenStyles.overlay}>
+                <DailyResultsOverlay
+                  gameId="space-invaders"
+                  score={gameState.score}
+                  seed={seed}
+                  onClose={() => setShowDailyResults(false)}
+                />
+              </View>
+            )}
+          </>
+        }
+      />
     </SafeAreaProvider>
     </GameErrorBoundary>
   );

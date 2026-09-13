@@ -22,6 +22,7 @@ import {
   HighScoreText,
   BackButton,
   NeonButton,
+  GameLayoutShell,
 } from "../../components/ui";
 
 export default function GeometryWarsScreen() {
@@ -256,155 +257,136 @@ export default function GeometryWarsScreen() {
   return (
     <GameErrorBoundary gameId="geometrywars">
       <SafeAreaProvider>
-        <View style={styles.container}>
-          {/* Back button */}
-          <BackButton label={t.common.menu} style={{ top: Math.max(insets.top, 20) }} />
-
-          {isMulti && !connected && (
-            <View style={styles.overlay} accessibilityLiveRegion="polite">
-              <ActivityIndicator size="small" color={colors.cyan} style={{ marginBottom: 12 }} />
-              <Text style={styles.loadingText}>{t.common.connecting}</Text>
-            </View>
-          )}
-
-          {/* Pause Button */}
-          {!gameState.isGameOver && (
-            <TouchableOpacity
-              style={[styles.pauseButton, { top: Math.max(insets.top, 20) }]}
-              onPress={() => {
-                hapticSelection();
-                togglePause();
-              }}
-              activeOpacity={0.7}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              accessibilityRole="button"
-              accessibilityLabel={isPaused ? t.accessibility.resume_game_label : t.accessibility.pause_game_label}
-              accessibilityState={{ selected: isPaused }}
-              accessibilityHint={t.accessibility.pause_button_hint}
-            >
-              <Text style={styles.pauseButtonText}>{isPaused ? "▶" : "II"}</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Neon Retro HUD */}
-          <View style={[styles.hud, { paddingTop: Math.max(insets.top, 16) }]} pointerEvents="none">
-            <View
-              style={styles.hudLeft}
-              accessibilityRole="header"
-              accessibilityLabel={livesLabel}
-            >
-              <Text style={styles.hudText}>{t.geometrywars?.lives || "LIVES"}: {gameState.lives}</Text>
-              <Text style={styles.hudText}>{t.geometrywars?.bombs || "BOMBS"}: {gameState.bombs}</Text>
-            </View>
-            <View
-              style={styles.hudCenter}
-              accessibilityRole="header"
-              accessibilityLabel={scoreLabel}
-            >
-              <Text style={[styles.hudText, styles.scoreText]}>{t.geometrywars?.score || "SCORE"}: {gameState.score}</Text>
-              <Text style={styles.hudSubText}>{t.geometrywars?.high_score || "HIGH SCORE"}: {highScore}</Text>
-            </View>
-            <View
-              style={styles.hudRight}
-              accessibilityRole="header"
-              accessibilityLabel={waveLabel}
-            >
-              <Text style={styles.hudText}>{t.geometrywars?.wave || "WAVE"}: {gameState.wave}</Text>
-            </View>
-          </View>
-
-          {/* High consecutive hit combo display */}
-          <ComboDisplay multiplier={gameState.multiplier || 1} isActive={true} />
-
-          {/* Render canvas */}
-          <CanvasRenderer
-            world={game.getWorld()}
-            gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer)}
-          />
-
-          {/* Touch sticks for mobile */}
-          {(isTouchDevice || Platform.OS !== "web") && (
-            <View style={styles.controls} pointerEvents="box-none">
-              <View style={styles.leftControlArea} pointerEvents="box-none">
-                <VirtualJoystick
-                  joystickId="movement_joystick"
-                  type="movement"
-                  onMove={(x, y) => {
-                    handleMultiplayerInput({ moveX: x, moveY: y });
-                  }}
-                  onRelease={() => {
-                    handleMultiplayerInput({ moveX: 0, moveY: 0 });
-                  }}
-                />
-              </View>
-              <View style={styles.rightControlArea} pointerEvents="box-none">
-                <VirtualJoystick
-                  joystickId="aim_joystick"
-                  type="rotation"
-                  onMove={(x, y) => {
-                    const mag = Math.sqrt(x * x + y * y);
-                    const isFiring = mag > 0.2;
-                    handleMultiplayerInput({ aimX: x, aimY: y, fire: isFiring });
-                  }}
-                  onRelease={() => {
-                    handleMultiplayerInput({ fire: false });
-                  }}
-                />
-              </View>
-            </View>
-          )}
-
-          {/* Pause overlay */}
-          {isPaused && !gameState.isGameOver && (
-            <View style={styles.overlay}>
-              <Text style={styles.overlayTitle}>{t.geometrywars?.paused || "PAUSED"}</Text>
+        <GameLayoutShell
+          style={styles.container}
+          topLeftSlot={<BackButton label={t.common.menu} style={{ top: Math.max(insets.top, 20) }} />}
+          topRightSlot={
+            !gameState.isGameOver ? (
               <TouchableOpacity
-                style={styles.overlayButton}
-                activeOpacity={0.8}
+                style={[styles.pauseButton, { top: Math.max(insets.top, 20) }]}
                 onPress={() => {
                   hapticSelection();
                   togglePause();
                 }}
+                activeOpacity={0.7}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 accessibilityRole="button"
-                accessibilityLabel={t.accessibility.resume_game_label}
-                accessibilityHint={t.accessibility.resume_button_hint}
+                accessibilityLabel={isPaused ? t.accessibility.resume_game_label : t.accessibility.pause_game_label}
+                accessibilityState={{ selected: isPaused }}
+                accessibilityHint={t.accessibility.pause_button_hint}
               >
-                <Text style={styles.overlayButtonText}>{t.geometrywars?.resume || "RESUME"}</Text>
+                <Text style={styles.pauseButtonText}>{isPaused ? "▶" : "II"}</Text>
               </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Game Over overlay */}
-          {gameState.isGameOver && (
-            <View style={styles.overlay}>
-              <Text style={styles.gameOverTitle}>{t.common.game_over}</Text>
-              <Text style={styles.finalScoreText}>
-                {t.geometrywars?.final_score || "Final Score"}: {gameState.score}
-              </Text>
-              <Text style={styles.bestScoreText}>
-                {gameState.score >= highScore
-                  ? (t.geometrywars?.new_record || "NEW RECORD!")
-                  : `${t.geometrywars?.best_score || "Best"}: ${highScore}`}
-              </Text>
-              <TouchableOpacity
-                style={[styles.overlayButton, { backgroundColor: colors.cyan }]}
-                activeOpacity={0.8}
-                onPress={() => {
-                  hapticSelection();
-                  game.restart();
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t.accessibility.restart_game_label}
-                accessibilityHint={t.accessibility.restart_game_hint}
-              >
-                <Text style={[styles.overlayButtonText, { color: colors.background }]}>
-                  {t.geometrywars?.restart || "RESTART"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+            ) : null
+          }
+          hudSlot={
+            <>
+              <View style={[styles.hud, { paddingTop: Math.max(insets.top, 16) }]} pointerEvents="none">
+                <View style={styles.hudLeft} accessibilityRole="header" accessibilityLabel={livesLabel}>
+                  <Text style={styles.hudText}>{t.geometrywars?.lives || "LIVES"}: {gameState.lives}</Text>
+                  <Text style={styles.hudText}>{t.geometrywars?.bombs || "BOMBS"}: {gameState.bombs}</Text>
+                </View>
+                <View style={styles.hudCenter} accessibilityRole="header" accessibilityLabel={scoreLabel}>
+                  <Text style={[styles.hudText, styles.scoreText]}>{t.geometrywars?.score || "SCORE"}: {gameState.score}</Text>
+                  <Text style={styles.hudSubText}>{t.geometrywars?.high_score || "HIGH SCORE"}: {highScore}</Text>
+                </View>
+                <View style={styles.hudRight} accessibilityRole="header" accessibilityLabel={waveLabel}>
+                  <Text style={styles.hudText}>{t.geometrywars?.wave || "WAVE"}: {gameState.wave}</Text>
+                </View>
+              </View>
+              <ComboDisplay multiplier={gameState.multiplier || 1} isActive={true} />
+            </>
+          }
+          canvasSlot={
+            <CanvasRenderer
+              world={game.getWorld()}
+              gameLoop={game.getGameLoop()}
+              onInitialize={(renderer) => game.initializeRenderer(renderer)}
+            />
+          }
+          controlsSlot={
+            (isTouchDevice || Platform.OS !== "web") ? (
+              <View style={styles.controls} pointerEvents="box-none">
+                <View style={styles.leftControlArea} pointerEvents="box-none">
+                  <VirtualJoystick
+                    joystickId="movement_joystick"
+                    type="movement"
+                    onMove={(x, y) => handleMultiplayerInput({ moveX: x, moveY: y })}
+                    onRelease={() => handleMultiplayerInput({ moveX: 0, moveY: 0 })}
+                  />
+                </View>
+                <View style={styles.rightControlArea} pointerEvents="box-none">
+                  <VirtualJoystick
+                    joystickId="aim_joystick"
+                    type="rotation"
+                    onMove={(x, y) => {
+                      const mag = Math.sqrt(x * x + y * y);
+                      const isFiring = mag > 0.2;
+                      handleMultiplayerInput({ aimX: x, aimY: y, fire: isFiring });
+                    }}
+                    onRelease={() => handleMultiplayerInput({ fire: false })}
+                  />
+                </View>
+              </View>
+            ) : null
+          }
+          overlaySlot={
+            <>
+              {isMulti && !connected && (
+                <View style={styles.overlay} accessibilityLiveRegion="polite">
+                  <ActivityIndicator size="small" color={colors.cyan} style={{ marginBottom: 12 }} />
+                  <Text style={styles.loadingText}>{t.common.connecting}</Text>
+                </View>
+              )}
+              {isPaused && !gameState.isGameOver && (
+                <View style={styles.overlay}>
+                  <Text style={styles.overlayTitle}>{t.geometrywars?.paused || "PAUSED"}</Text>
+                  <TouchableOpacity
+                    style={styles.overlayButton}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      hapticSelection();
+                      togglePause();
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.accessibility.resume_game_label}
+                    accessibilityHint={t.accessibility.resume_button_hint}
+                  >
+                    <Text style={styles.overlayButtonText}>{t.geometrywars?.resume || "RESUME"}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {gameState.isGameOver && (
+                <View style={styles.overlay}>
+                  <Text style={styles.gameOverTitle}>{t.common.game_over}</Text>
+                  <Text style={styles.finalScoreText}>
+                    {t.geometrywars?.final_score || "Final Score"}: {gameState.score}
+                  </Text>
+                  <Text style={styles.bestScoreText}>
+                    {gameState.score >= highScore
+                      ? (t.geometrywars?.new_record || "NEW RECORD!")
+                      : `${t.geometrywars?.best_score || "Best"}: ${highScore}`}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.overlayButton, { backgroundColor: colors.cyan }]}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      hapticSelection();
+                      game.restart();
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.accessibility.restart_game_label}
+                    accessibilityHint={t.accessibility.restart_game_hint}
+                  >
+                    <Text style={[styles.overlayButtonText, { color: colors.background }]}>
+                      {t.geometrywars?.restart || "RESTART"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
+          }
+        />
       </SafeAreaProvider>
     </GameErrorBoundary>
   );
@@ -432,7 +414,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 255, 255, 0.1)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 101,
   },
   pauseButtonText: {
     color: colors.cyan,
@@ -475,6 +456,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "flex-end",
     paddingTop: 40,
+    paddingRight: 50,
   },
   hudText: {
     color: colors.white,

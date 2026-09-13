@@ -28,6 +28,7 @@ import {
   NeonButton,
   BackButton,
   PlayerNameInput,
+  GameLayoutShell,
 } from "../../components/ui";
 
 export default function PongScreen() {
@@ -178,39 +179,42 @@ export default function PongScreen() {
   return (
     <GameErrorBoundary gameId="pong">
     <SafeAreaProvider>
-      <View style={styles.container}>
-        <BackButton label={t.common.menu} />
-
-        {isMulti && !connected && (
-            <View style={styles.multiOverlay}>
-                <Text style={styles.overlayText}>{t.common.connecting}</Text>
-            </View>
-        )}
-
-        <View style={styles.scoreBoard}>
+      <GameLayoutShell
+        style={styles.container}
+        topLeftSlot={<BackButton label={t.common.menu} />}
+        centerHudSlot={
+          <View style={styles.scoreBoard}>
             <Text style={styles.scoreTextP1}>{gameState?.scoreP1 ?? 0}</Text>
             <Text style={styles.scoreSeparator}>:</Text>
             <Text style={styles.scoreTextP2}>{gameState?.scoreP2 ?? 0}</Text>
-        </View>
-
-        <CanvasRenderer
-          world={game.getWorld()}
-          gameLoop={game.getGameLoop()}
-          onInitialize={(renderer) => game.initializeRenderer(renderer)}
-        />
-
-        <PongControls
-          onP1Up={(pressed) => handleGameInput({ p1Up: pressed })}
-          onP1Down={(pressed) => handleGameInput({ p1Down: pressed })}
-          onP2Up={(pressed) => { if (mode === "local") handleGameInput({ p2Up: pressed }); }}
-          onP2Down={(pressed) => { if (mode === "local") handleGameInput({ p2Down: pressed }); }}
-          showP2Controls={mode === "local"}
-        />
-
-        <DebugOverlay game={game} room={room} />
-
-        {gameState?.isGameOver && !isDaily && (
-            <View style={styles.overlay}>
+          </View>
+        }
+        canvasSlot={
+          <CanvasRenderer
+            world={game.getWorld()}
+            gameLoop={game.getGameLoop()}
+            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+          />
+        }
+        controlsSlot={
+          <PongControls
+            onP1Up={(pressed) => handleGameInput({ p1Up: pressed })}
+            onP1Down={(pressed) => handleGameInput({ p1Down: pressed })}
+            onP2Up={(pressed) => { if (mode === "local") handleGameInput({ p2Up: pressed }); }}
+            onP2Down={(pressed) => { if (mode === "local") handleGameInput({ p2Down: pressed }); }}
+            showP2Controls={mode === "local"}
+          />
+        }
+        debugSlot={<DebugOverlay game={game} room={room} />}
+        overlaySlot={
+          <>
+            {isMulti && !connected && (
+              <View style={styles.multiOverlay}>
+                <Text style={styles.overlayText}>{t.common.connecting}</Text>
+              </View>
+            )}
+            {gameState?.isGameOver && !isDaily && (
+              <View style={styles.overlay}>
                 <Text style={styles.overlayText}>{t.common.game_over}</Text>
                 <TouchableOpacity
                   style={styles.restartButton}
@@ -222,22 +226,23 @@ export default function PongScreen() {
                   accessibilityLabel={t.accessibility.restart_game_label}
                   accessibilityHint={t.accessibility.restart_game_hint}
                 >
-                    <Text style={styles.restartButtonText}>{t.common.retry}</Text>
+                  <Text style={styles.restartButtonText}>{t.common.retry}</Text>
                 </TouchableOpacity>
-            </View>
-        )}
-
-        {showDailyResults && game?.getSeed() !== undefined && (
-          <View style={styles.overlay}>
-            <DailyResultsOverlay
-              gameId="pong"
-              score={Math.max(gameState?.scoreP1 || 0, gameState?.scoreP2 || 0)}
-              seed={game?.getSeed()}
-              onClose={() => setShowDailyResults(false)}
-            />
-          </View>
-        )}
-      </View>
+              </View>
+            )}
+            {showDailyResults && game?.getSeed() !== undefined && (
+              <View style={styles.overlay}>
+                <DailyResultsOverlay
+                  gameId="pong"
+                  score={Math.max(gameState?.scoreP1 || 0, gameState?.scoreP2 || 0)}
+                  seed={game?.getSeed()}
+                  onClose={() => setShowDailyResults(false)}
+                />
+              </View>
+            )}
+          </>
+        }
+      />
     </SafeAreaProvider>
     </GameErrorBoundary>
   );

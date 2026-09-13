@@ -601,8 +601,8 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#121218"));
-    paint.setStrokeWidth(1.5);
+    paint.setColor(Skia.Color(pipe.isNarrowGap ? "#FFD700" : "#121218"));
+    paint.setStrokeWidth(pipe.isNarrowGap ? 2.0 : 1.5);
     canvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
 
     // Stroboscopic Red Warning Beacons (#FF0000) strictly bound to world.tick with soft glow halo
@@ -636,6 +636,32 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     paint.setAlphaf(beaconPulse);
     canvas.drawCircle(-capHalfWidth + 8, beaconY, 1.2, paint);
     canvas.drawCircle(capHalfWidth - 8, beaconY, 1.2, paint);
+
+    // --- LASER GATE OVERLAY & SPARKS ---
+    if (pipe.movementType === "laser_gate" && isTopPipe) {
+      const laserActive = pipe.laserActive ?? true;
+      const laserPulse = 0.5 + 0.5 * Math.sin(world.tick * 0.3);
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      if (laserActive) {
+        paint.setColor(Skia.Color("#00F3FF"));
+        paint.setAlphaf(0.7 + 0.3 * laserPulse);
+        paint.setStrokeWidth(3.0);
+        canvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
+
+        if (world.tick % 4 === 0) {
+          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
+          const sparkAngle = world.renderRandom.next() * Math.PI * 2;
+          const sparkSpeed = world.renderRandom.nextRange(20, 60);
+          spawnVisualParticle("spark", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, "#00F3FF");
+        }
+      } else {
+        paint.setColor(Skia.Color("#FF0000"));
+        paint.setAlphaf(0.25);
+        paint.setStrokeWidth(1.0);
+        canvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
+      }
+    }
   }
 };
 
@@ -960,6 +986,42 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
 
     // Draw active sparks & shards
     drawSkiaVisualParticles(canvas, paint);
+
+    // --- GLIDE ENERGY METER HUD OVERLAY ---
+    const birds = world.query("Bird", "GlideEnergy");
+    if (birds.length > 0) {
+      const energy = world.getComponent(birds[0], "GlideEnergy");
+      if (energy) {
+        const barW = 120;
+        const barH = 8;
+        const bx = (width - barW) / 2;
+        const by = height - 25;
+        const ratio = Math.max(0, Math.min(1, energy.currentEnergy / energy.maxEnergy));
+
+        paint.reset();
+        paint.setStyle(Skia.PaintStyle.Fill);
+        paint.setColor(Skia.Color("rgba(10, 15, 25, 0.75)"));
+        canvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
+
+        const fillColor = energy.isOverheated ? "#FF3300" : ratio < 0.3 ? "#FFC000" : "#00F3FF";
+        paint.setColor(Skia.Color(fillColor));
+        canvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
+
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setColor(Skia.Color(energy.isOverheated ? "#FF0000" : "#5A6173"));
+        paint.setStrokeWidth(1.0);
+        canvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
+      }
+    }
+
+    // --- SECTOR EVENT HUD OVERLAY BANNER ---
+    const sectorEvent = gameState.currentSectorEvent ?? "none";
+    if (sectorEvent !== "none") {
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("rgba(0, 243, 255, 0.15)"));
+      canvas.drawRect(Skia.XYWHRect(0, 10, width, 22), paint);
+    }
 
     // CRT Scanlines Overlay
     paint.reset();

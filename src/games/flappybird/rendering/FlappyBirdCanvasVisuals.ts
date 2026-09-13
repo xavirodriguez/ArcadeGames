@@ -592,8 +592,8 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     ctx.fillStyle = collarGrad;
     ctx.fillRect(-capHalfWidth, capYOffset, capWidth, capHeight);
-    ctx.strokeStyle = "#121218";
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = pipe.isNarrowGap ? "#FFD700" : "#121218";
+    ctx.lineWidth = pipe.isNarrowGap ? 2.0 : 1.5;
     ctx.strokeRect(-capHalfWidth, capYOffset, capWidth, capHeight);
 
     // Collar bevel line
@@ -660,6 +660,38 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.arc(capHalfWidth - 8, beaconY, 1.2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
+    // --- LASER GATE OVERLAY & SPARKS ---
+    if (pipe.movementType === "laser_gate" && isTopPipe) {
+      const laserActive = pipe.laserActive ?? true;
+      const laserPulse = 0.5 + 0.5 * Math.sin(world.tick * 0.3);
+      ctx.save();
+      if (laserActive) {
+        ctx.strokeStyle = `rgba(0, 243, 255, ${0.7 + 0.3 * laserPulse})`;
+        ctx.lineWidth = 3.0;
+        ctx.shadowColor = "#00F3FF";
+        ctx.shadowBlur = 12 * laserPulse;
+        ctx.beginPath();
+        ctx.moveTo(0, capYOffset + capHeight);
+        ctx.lineTo(0, capYOffset + capHeight + pipe.gapSize);
+        ctx.stroke();
+
+        if (world.tick % 4 === 0) {
+          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
+          const sparkAngle = world.renderRandom.next() * Math.PI * 2;
+          const sparkSpeed = world.renderRandom.nextRange(20, 60);
+          spawnVisualParticle("spark", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, "#00F3FF");
+        }
+      } else {
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.25)";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(0, capYOffset + capHeight);
+        ctx.lineTo(0, capYOffset + capHeight + pipe.gapSize);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
   }
 };
 
@@ -987,6 +1019,55 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     // --- DRAW ACTIVE PARTICLES (SPARKS & SHARDS) ---
     drawCanvasVisualParticles(ctx);
+
+    // --- GLIDE ENERGY METER HUD OVERLAY ---
+    const birds = world.query("Bird", "GlideEnergy");
+    if (birds.length > 0) {
+      const energy = world.getComponent(birds[0], "GlideEnergy");
+      if (energy) {
+        ctx.save();
+        const barW = 120;
+        const barH = 8;
+        const bx = (width - barW) / 2;
+        const by = height - 25;
+        const ratio = Math.max(0, Math.min(1, energy.currentEnergy / energy.maxEnergy));
+
+        ctx.fillStyle = "rgba(10, 15, 25, 0.75)";
+        ctx.fillRect(bx, by, barW, barH);
+
+        const fillColor = energy.isOverheated ? "#FF3300" : ratio < 0.3 ? "#FFC000" : "#00F3FF";
+        ctx.fillStyle = fillColor;
+        ctx.fillRect(bx, by, barW * ratio, barH);
+
+        ctx.strokeStyle = energy.isOverheated ? "#FF0000" : "#5A6173";
+        ctx.lineWidth = 1.0;
+        ctx.strokeRect(bx, by, barW, barH);
+
+        if (energy.isOverheated) {
+          ctx.fillStyle = "#FF3300";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("THRUST OVERHEAT", width / 2, by - 4);
+        }
+        ctx.restore();
+      }
+    }
+
+    // --- SECTOR EVENT HUD OVERLAY BANNER ---
+    const sectorEvent = gameState.currentSectorEvent ?? "none";
+    if (sectorEvent !== "none") {
+      ctx.save();
+      const bannerText = sectorEvent === "solar_flare" ? "SECTOR EVENT: SOLAR FLARE (+25% SPEED)"
+        : sectorEvent === "asteroid_storm" ? "SECTOR EVENT: DUST STORM (-15% SPEED)"
+        : "SECTOR EVENT: HYPER WARP (2X COMBO BOOST)";
+      ctx.fillStyle = "rgba(0, 243, 255, 0.15)";
+      ctx.fillRect(0, 10, width, 22);
+      ctx.fillStyle = sectorEvent === "solar_flare" ? "#FFC000" : sectorEvent === "asteroid_storm" ? "#D3D9E2" : "#00F3FF";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(bannerText, width / 2, 25);
+      ctx.restore();
+    }
 
     // --- CRT SCANLINES & SCREEN VIGNETTE ---
     ctx.save();

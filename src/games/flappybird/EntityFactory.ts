@@ -35,6 +35,10 @@ export interface CreatePipeParams {
   x: number;
   gapY: number;
   visualVariant?: "standard" | "damaged" | "rusted";
+  movementType?: "static" | "oscillating" | "laser_gate";
+  oscillationSpeed?: number;
+  oscillationAmplitude?: number;
+  isNarrowGap?: boolean;
   /** @deprecated Currently unused — spawnBlueprintEntity always spawns immediately. */
   deferred?: boolean;
 }
@@ -55,7 +59,15 @@ export function createBird(options: CreateBirdParams): Entity {
  * @param options.gapY - The vertical center of the gap between pipes.
  */
 export function createPipe(options: CreatePipeParams): void {
-  spawnBlueprintEntity(options.world, "pipe", { x: options.x, gapY: options.gapY, visualVariant: options.visualVariant });
+  spawnBlueprintEntity(options.world, "pipe", {
+    x: options.x,
+    gapY: options.gapY,
+    visualVariant: options.visualVariant,
+    movementType: options.movementType,
+    oscillationSpeed: options.oscillationSpeed,
+    oscillationAmplitude: options.oscillationAmplitude,
+    isNarrowGap: options.isNarrowGap,
+  });
 }
 
 /**

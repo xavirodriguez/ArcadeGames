@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hapticSelection } from "../src/utils/haptics";
 import { useTranslation } from "../src/hooks/useTranslation";
 import { GameOverNarrative } from "../src/components/GameOverNarrative";
+import { COLORS, colors, fonts, semanticColors, typography } from "../src/theme";
 import Animated, {
   BounceIn,
   FadeIn,
@@ -17,53 +18,12 @@ import Animated, {
 } from "react-native-reanimated";
 
 /**
- * Second visual pass for the ODISEA-7 HUD.
- *
- * Changes in this version:
- * 1. Modular spacecraft-style HUD instead of a single text row.
- * 2. Custom life/ship iconography and a stronger display/data type system.
- * 3. Diegetic READY and GAME OVER overlays tied to the ODISEA-7 universe.
- * 4. Semantic color roles: system / warning / success / danger.
- * 5. Reusable technical graphic language: module codes, rails, corner marks.
- * 6. More cinematic READY and INTERMISSION compositions with per-tick motion.
+ * Modular spacecraft HUD for ODISEA-7 minigames.
+ * Migrated to use Design System tokens from `src/theme/`.
  */
 
-const COLORS = {
-  // Semantic roles. Prefer these aliases in UI decisions.
-  system: "#00E8D2",
-  warning: "#F6C85F",
-  success: "#67F7A7",
-  danger: "#FF315B",
-
-  // Base palette kept for backwards readability inside the style sheet.
-  cyan: "#00E8D2",
-  cyanFaint: "rgba(0, 232, 210, 0.08)",
-  white: "#F3F7F6",
-  whiteMuted: "rgba(243, 247, 246, 0.62)",
-  amber: "#F6C85F",
-  green: "#67F7A7",
-  red: "#FF315B",
-  ink: "#06100F",
-  panel: "rgba(3, 16, 15, 0.76)",
-  panelStrong: "rgba(2, 10, 10, 0.92)",
-  border: "rgba(0, 232, 210, 0.32)",
-};
-
-// Uses platform fonts only, so this file does not add a font dependency.
-// These can later be replaced with the final brand fonts in one place.
-const DISPLAY_FONT = Platform.select({
-  ios: "AvenirNextCondensed-Bold",
-  android: "sans-serif-condensed",
-  web: "Arial Narrow",
-  default: "System",
-});
-
-const DATA_FONT = Platform.select({
-  ios: "Menlo-Bold",
-  android: "monospace",
-  web: "Courier New",
-  default: "monospace",
-});
+const DISPLAY_FONT = fonts.display;
+const DATA_FONT = fonts.data;
 
 type SkiaModuleType = typeof import("@shopify/react-native-skia");
 
@@ -1409,6 +1369,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cyan,
     paddingHorizontal: 26,
     paddingVertical: 14,
+    minHeight: 44,
     marginHorizontal: 6,
   },
   yesButtonText: {
@@ -1424,6 +1385,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.red,
     paddingHorizontal: 26,
     paddingVertical: 14,
+    minHeight: 44,
     marginHorizontal: 6,
   },
   noButtonText: {
@@ -1609,9 +1571,10 @@ const styles = StyleSheet.create({
   restartButton: {
     alignSelf: "center",
     minWidth: 270,
+    minHeight: 44,
     marginTop: 22,
     paddingHorizontal: 24,
-    paddingVertical: 13,
+    paddingVertical: 14,
     backgroundColor: COLORS.cyanFaint,
     borderWidth: 1,
     borderColor: COLORS.cyan,
@@ -1650,17 +1613,17 @@ const styles = StyleSheet.create({
     zIndex: 1002,
   },
   dialogueBox: {
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    borderColor: "#00FFDD",
+    backgroundColor: semanticColors.background.panelStrong,
+    borderColor: semanticColors.system,
     borderWidth: 2,
     borderRadius: 8,
     padding: 16,
     width: "100%",
     maxWidth: 600,
     ...(Platform.OS === 'web'
-      ? { boxShadow: '0 0 15px rgba(0, 255, 221, 0.4)' }
+      ? { boxShadow: `0 0 15px rgba(0, 232, 210, 0.4)` }
       : {
-          shadowColor: "#00FFDD",
+          shadowColor: semanticColors.system,
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.4,
           shadowRadius: 15,
@@ -1668,22 +1631,22 @@ const styles = StyleSheet.create({
     ),
   },
   dialogueSpeaker: {
-    color: "#00FFDD",
-    fontFamily: "monospace",
+    color: semanticColors.system,
+    fontFamily: DATA_FONT,
     fontSize: 14,
     fontWeight: "bold",
     marginBottom: 8,
   },
   dialogueContent: {
-    color: "#FFFFFF",
-    fontFamily: "monospace",
+    color: semanticColors.neutral[50],
+    fontFamily: DATA_FONT,
     fontSize: 16,
     lineHeight: 22,
     marginBottom: 12,
   },
   dialoguePrompt: {
-    color: "#FFD700",
-    fontFamily: "monospace",
+    color: semanticColors.boss,
+    fontFamily: DATA_FONT,
     fontSize: 12,
     textAlign: "right",
     fontWeight: "bold",

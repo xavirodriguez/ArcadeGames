@@ -130,7 +130,7 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
 
     const gsComp = world.getComponent(gs, "GameState" as any) as any;
     expect(gsComp.score).toBe(50);
-    expect(sfxList.filter(s => s === "explosion").length).toBe(1);
+    expect(sfxList.filter(s => s.startsWith("explosion")).length).toBe(1);
   });
 
   // Case 2 & 4 — Rollback & Hash Equality
@@ -291,7 +291,7 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
   // Case 6 — Multiple deaths protection
   it("Case 6: resimulation protection does not suppress legitimate deaths of different entities", () => {
     const eventBus = world.getEventBus()!;
-    const explosionCount = () => sfxList.filter(s => s === "explosion").length;
+    const explosionCount = () => sfxList.filter(s => s.startsWith("explosion")).length;
     const sfxList: string[] = [];
     eventBus.on("PlaySFX", (evt) => sfxList.push(evt.name));
 
@@ -360,7 +360,7 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     world.addComponent(bullet1, { type: "CollisionEvents", collisions: [{ otherEntity: inv1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
 
     sim.step({ t: 0, b: 0 }); // Tick 0: Invader 1 dies
-    expect(sfxList.filter(s => s === "explosion").length).toBe(1);
+    expect(sfxList.filter(s => s.startsWith("explosion")).length).toBe(1);
 
     rollbackBuffer.saveSnapshot(1, sim.snapshot());
     sim.step({ t: 1, b: 0 }); // Tick 1
@@ -373,7 +373,7 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     rollback.processRollback(0, { t: 0, b: 0 }, 1, inputs);
 
     // After rollback resimulation, explosion count remains 1
-    expect(sfxList.filter(s => s === "explosion").length).toBe(1);
+    expect(sfxList.filter(s => s.startsWith("explosion")).length).toBe(1);
 
     // Now at tick 2 (normal execution), Invader 2 dies!
     const inv2 = world.createEntity();
@@ -391,6 +391,6 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     sim.step({ t: 2, b: 0 });
 
     // Invader 2 death in normal execution correctly emits second explosion SFX!
-    expect(sfxList.filter(s => s === "explosion").length).toBe(2);
+    expect(sfxList.filter(s => s.startsWith("explosion")).length).toBe(2);
   });
 });

@@ -9,10 +9,10 @@ export interface TitleScreenProps {
   onOpenMissionSelector: () => void;
 }
 
-export const TitleScreen: React.FC<TitleScreenProps> = ({
+export const TitleScreen = React.memo(function TitleScreen({
   onStartCampaign,
   onOpenMissionSelector,
-}) => {
+}: TitleScreenProps) {
   return (
     <View style={styles.container}>
       {/* Scanline background overlay */}
@@ -69,7 +69,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
       </Animated.View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

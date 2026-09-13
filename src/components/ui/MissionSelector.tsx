@@ -1,7 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { fonts, semanticColors, typography, spacing, radius } from "../../theme";
-import { GameKey, GAME_ACCENTS, getGameAccentColors } from "../../theme/gameAccents";
+import { GameKey, getGameAccentColors } from "../../theme/gameAccents";
 import { hapticSelection } from "../../utils/haptics";
 import Animated, { SlideInRight } from "react-native-reanimated";
 
@@ -29,11 +29,11 @@ export interface MissionSelectorProps {
   highScores?: Record<string, number>;
 }
 
-export const MissionSelector: React.FC<MissionSelectorProps> = ({
+export const MissionSelector = React.memo(function MissionSelector({
   onSelectStation,
   onClose,
   highScores = {},
-}) => {
+}: MissionSelectorProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -109,7 +109,7 @@ export const MissionSelector: React.FC<MissionSelectorProps> = ({
       </ScrollView>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

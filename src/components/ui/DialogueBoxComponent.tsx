@@ -21,12 +21,12 @@ export interface DialogueBoxComponentProps {
 /**
  * Cinematographic Dialogue & Cutscene Box with typewriter effect, speaker badge, and haptic feedback.
  */
-export const DialogueBoxComponent: React.FC<DialogueBoxComponentProps> = ({
+export const DialogueBoxComponent = React.memo(function DialogueBoxComponent({
   dialogueQueue = [],
   onComplete,
   typewriterSpeed = 25,
   getLocalizedText = (key) => key || ""
-}) => {
+}: DialogueBoxComponentProps) {
   const [currentLineIndex, setCurrentLineIndex] = useState<number>(0);
   const [displayedText, setDisplayedText] = useState<string>("");
   const [isLineComplete, setIsLineComplete] = useState<boolean>(false);
@@ -119,7 +119,7 @@ export const DialogueBoxComponent: React.FC<DialogueBoxComponentProps> = ({
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

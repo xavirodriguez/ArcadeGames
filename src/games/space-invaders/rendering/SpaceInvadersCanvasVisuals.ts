@@ -1,8 +1,9 @@
 import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
-import { GameStateComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { GameStateComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
 import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
+import { computeSinePulse } from "./shared/SpaceInvadersPulseUtils";
 
 // ============================================================================
 // VISUAL-ONLY EXPLOSION LAYERED PARTICLE POOL (RING, DEBRIS W/ GRAVITY, SMOKE)
@@ -355,7 +356,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     // 4. Glowing defensive neon invulnerability bubble shield (Pulsing blue/cyan)
     const health = world.getComponent(entity, "Health");
     if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
-      const shieldPulse = 1.0 + 0.08 * Math.sin(tick / 4);
+      const shieldPulse = computeSinePulse(tick, 0.25, 0.08, 1.0);
       const shieldAlpha = 0.35 + 0.15 * Math.sin(tick / 4 + Math.PI);
       const radius = size * 0.72 * shieldPulse;
 
@@ -400,6 +401,7 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:217-238. Considerar extraer a función compartida. Ref: b53960e5
     const { size = 15 } = render;
 
     let baseColor = render.color || colors.white;
@@ -468,7 +470,7 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     }
 
     // Glowing alien cyber-cores/eyes (Dynamic glowing orange/red center)
-    const eyePulse = 0.5 + 0.5 * Math.abs(Math.sin(tick / 6));
+    const eyePulse = computeSinePulse(tick, 1 / 6, 0.5, 0.5);
     ctx.fillStyle = colors.redHot;
     ctx.shadowColor = colors.redHot;
     ctx.shadowBlur = 6 * eyePulse;
@@ -477,6 +479,32 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
 
     // Reset shadow blur
     ctx.shadowBlur = 0;
+
+    // Draw warning column indicator if kamikaze is in warning phase
+    const kami = world.getComponent(entity, "Kamikaze");
+    if (kami && kami.phase === "warning") {
+      const pulse = computeSinePulse(tick, 0.4, 0.4, 0.6);
+      ctx.save();
+      ctx.globalAlpha = pulse;
+
+      const pos = world.getComponent(entity, "Transform");
+      const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
+
+      ctx.fillStyle = colors.danger;
+      ctx.strokeStyle = colors.magentaHot;
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, bottomRelY);
+      ctx.lineTo(-8, bottomRelY - 14);
+      ctx.lineTo(8, bottomRelY - 14);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
     ctx.globalAlpha = 1.0;
   }
 };
@@ -490,10 +518,11 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:331-336. Considerar extraer a función compartida. Ref: d2d6b392
     const { size = 4 } = render;
 
     const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
-    const glowColor = isPlayerBullet ? colors.cyan : colors.redHot;
+    const glowColor = render.color || (isPlayerBullet ? colors.cyan : colors.redHot);
     const coreColor = colors.white;
     const proximityFactor = calculateBulletProximity(world, entity, isPlayerBullet);
 
@@ -542,6 +571,7 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:378-389. Considerar extraer a función compartida. Ref: 8ef7a6bc
     const { size = 80 } = render;
 
     const boss = world.getComponent(entity, "Boss");
@@ -625,7 +655,7 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
 
     // 4. Phase-based Core Reaction Chamber
     const pulseSpeed = phase === 3 ? 0.3 : phase === 2 ? 0.15 : 0.08;
-    const corePulse = 0.5 + 0.5 * Math.sin(tick * pulseSpeed);
+    const corePulse = computeSinePulse(tick, pulseSpeed, 0.5, 0.5);
     const coreRadius = s * (3.5 + 1.2 * corePulse);
 
     ctx.fillStyle = phase === 3 ? colors.white : accentColor;

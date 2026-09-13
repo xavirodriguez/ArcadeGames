@@ -18,6 +18,22 @@ export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors };
 export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
 
 /**
+ * Dynamically resolves the active LevelVisualTheme based on world resource or level progress.
+ * @public
+ */
+export function getActiveLevelTheme(world: World<any>): LevelVisualTheme {
+  const resourceTheme = world.getResource<LevelThemeName>("ActiveLevelThemeName");
+  if (resourceTheme) {
+    return getLevelTheme(resourceTheme);
+  }
+  const gameState = world.getSingleton("GameState") as { level?: number } | undefined;
+  const level = gameState?.level || 1;
+  const themes: LevelThemeName[] = ["deep_space", "violet_nebula", "industrial_orbit", "volcanic_rift", "alien_bloom"];
+  const themeName = themes[(level - 1) % themes.length];
+  return getLevelTheme(themeName);
+}
+
+/**
  * Returns screen dimensions and state for VFX drawers.
  * @public
  */
@@ -1796,7 +1812,7 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
     }
 
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
-    const theme = getLevelTheme("violet_nebula");
+    const theme = getActiveLevelTheme(world);
 
     ctx.save();
 
@@ -1809,7 +1825,7 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
 
       // Concentric soft circles with decaying opacities using Level Theme palette
       ctx.fillStyle = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
-      ctx.globalAlpha = 0.015;
+      ctx.globalAlpha = 0.015 * theme.ambientGlow;
       for (let r = neb.radius; r > 10; r -= 15) {
         ctx.beginPath();
         ctx.arc(posX, neb.y, r, 0, Math.PI * 2);
@@ -1830,7 +1846,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegi
     }
 
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
-    const theme = getLevelTheme("violet_nebula");
+    const theme = getActiveLevelTheme(world);
 
     canvas.save();
     const paint = Skia.Paint();
@@ -1844,7 +1860,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegi
       const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
 
       paint.setColor(Skia.Color(nebColorHex));
-      paint.setAlphaf(0.015);
+      paint.setAlphaf(0.015 * theme.ambientGlow);
       for (let r = neb.radius; r > 10; r -= 15) {
         canvas.drawCircle(posX, neb.y, r, paint);
       }

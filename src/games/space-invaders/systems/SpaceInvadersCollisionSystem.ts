@@ -16,7 +16,7 @@ import {
 } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { ParticlePool } from "../EntityPool";
-import { createSharedParticle } from "../../shared/rendering/SharedVFX";
+import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
 import { spawnLayeredExplosion } from "../rendering/SpaceInvadersCanvasVisuals";
 import { colors } from "../../../theme/colors";
 
@@ -413,11 +413,14 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
   private createExplosion(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, color: string): void {
     const rng = world.gameplayRandom;
+    const alienColors = EXPLOSION_PROFILES["alien"].colorSequence;
+    const particleCount = EXPLOSION_PROFILES["alien"].particleCount;
 
-    // Layer 1: Immediate flash (ECS particles)
-    for (let i = 0; i < this.config!.PARTICLE_COUNT; i++) {
+    // Layer 1: Immediate flash (ECS particles using alien thermal color sequence)
+    for (let i = 0; i < particleCount; i++) {
       const angle = rng.next() * Math.PI * 2;
       const speed = rng.next() * 100 + 50;
+      const pColor = alienColors[rng.nextInt(0, alienColors.length)] || color;
 
       createSharedParticle(
         world,
@@ -425,7 +428,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         y,
         Math.cos(angle) * speed,
         Math.sin(angle) * speed,
-        color,
+        pColor,
         this._particlePool,
         2,
         this.config!.PARTICLE_TTL_BASE

@@ -17,13 +17,13 @@ import { MiniGameModifier } from "./ArcadeIntegrationTypes";
  */
 export interface ArcadeSkillProfile {
   /** Navigation and spatial positioning skill rating between 0.0 and 1.0. */
-  readonly navigation: number;
+  readonly navigation: number; // 0.0 to 1.0 rating
   /** Aiming and shooting accuracy rating between 0.0 and 1.0. */
-  readonly accuracy: number;
+  readonly accuracy: number; // 0.0 to 1.0 rating
   /** Reflex and reaction speed rating between 0.0 and 1.0. */
-  readonly reaction: number;
+  readonly reaction: number; // 0.0 to 1.0 rating
   /** Longevity and survival duration rating between 0.0 and 1.0. */
-  readonly survival: number;
+  readonly survival: number; // 0.0 to 1.0 rating
 }
 
 /**
@@ -43,13 +43,13 @@ export interface ArcadeSkillProfile {
  */
 export interface EncounterTelemetryMetrics {
   /** Shot hit accuracy ratio between 0.0 and 1.0. */
-  readonly accuracyRatio?: number;
+  readonly accuracyRatio?: number; // 0.0 to 1.0
   /** Survival time ratio relative to encounter target duration between 0.0 and 1.0. */
-  readonly survivalDurationRatio?: number;
+  readonly survivalDurationRatio?: number; // 0.0 to 1.0
   /** Number of player collisions or damage incidents (lower is better). */
-  readonly collisionFrequency?: number;
+  readonly collisionFrequency?: number; // lower is better
   /** Average reaction delay in milliseconds (lower is better). */
-  readonly averageReactionTimeMs?: number;
+  readonly averageReactionTimeMs?: number; // lower is better
 }
 
 /**

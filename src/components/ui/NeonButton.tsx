@@ -3,6 +3,7 @@ import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } f
 import { colors, typography, radius, spacing, effects, semanticColors } from "../../theme";
 import { usePressedButton } from "../../hooks/usePressedButton";
 import { GameThemeContext } from "../../context/GameThemeContext";
+import { hapticSelection } from "../../utils/haptics";
 
 interface NeonButtonProps {
   children: string;
@@ -45,6 +46,11 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
     ? {}
     : (effects[`${variant}Glow` as keyof typeof effects] || effects.cyanGlow);
 
+  const handlePress = () => {
+    hapticSelection();
+    onPress();
+  };
+
   const dynamicButtonStyle: ViewStyle = bordered
     ? {
         backgroundColor: "transparent",
@@ -79,7 +85,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
         reduceMotion ? null : pressedStyle,
         style,
       ]}
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.8}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || children}

@@ -7,3 +7,6 @@ export * from "./HighScoreText";
 export * from "./PlayerNameInput";
 export * from "./Layer";
 export * from "./GameLayoutShell";
+export * from "./TitleScreen";
+export * from "./MissionSelector";
+export * from "./DialogueBoxComponent";

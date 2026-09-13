@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { colors } from "../../theme/colors";
-import { spacing } from "../../theme/spacing";
+import { semanticColors, fonts, typography, spacing, radius } from "../../theme";
+import { hapticSelection } from "../../utils/haptics";
 
 export interface DialogueLine {
   speakerName?: string;
+  portraitCode?: string;
   textKey: string;
   id?: string;
 }
@@ -18,7 +19,7 @@ export interface DialogueBoxComponentProps {
 }
 
 /**
- * Cinematographic Dialogue & Cutscene Box with typewriter effect and accessible interaction.
+ * Cinematographic Dialogue & Cutscene Box with typewriter effect, speaker badge, and haptic feedback.
  */
 export const DialogueBoxComponent: React.FC<DialogueBoxComponentProps> = ({
   dialogueQueue = [],
@@ -33,14 +34,12 @@ export const DialogueBoxComponent: React.FC<DialogueBoxComponentProps> = ({
   const currentLine = dialogueQueue[currentLineIndex];
   const fullText = currentLine ? getLocalizedText(currentLine.textKey) : "";
 
-  // Reset state when dialogueQueue changes or resets
   useEffect(() => {
     setCurrentLineIndex(0);
     setDisplayedText("");
     setIsLineComplete(false);
   }, [dialogueQueue]);
 
-  // Typewriter effect interval
   useEffect(() => {
     if (!currentLine || !fullText) {
       setDisplayedText("");
@@ -65,8 +64,8 @@ export const DialogueBoxComponent: React.FC<DialogueBoxComponentProps> = ({
   }, [currentLineIndex, fullText, typewriterSpeed, currentLine]);
 
   const handleAdvance = useCallback(() => {
+    hapticSelection();
     if (!isLineComplete) {
-      // Instantly finish current line text
       setDisplayedText(fullText);
       setIsLineComplete(true);
       return;
@@ -84,6 +83,8 @@ export const DialogueBoxComponent: React.FC<DialogueBoxComponentProps> = ({
   }
 
   const isLastLine = currentLineIndex === dialogueQueue.length - 1;
+  const speaker = currentLine?.speakerName || "ODISEA-7 COMMS";
+  const portrait = currentLine?.portraitCode || speaker.charAt(0);
 
   return (
     <TouchableOpacity
@@ -91,12 +92,16 @@ export const DialogueBoxComponent: React.FC<DialogueBoxComponentProps> = ({
       onPress={handleAdvance}
       activeOpacity={0.9}
       accessibilityRole="button"
-      accessibilityLabel={currentLine?.speakerName ? `${currentLine.speakerName}: ${displayedText}` : displayedText}
+      accessibilityLabel={`${speaker}: ${displayedText}`}
       accessibilityHint={isLastLine ? "Avanza la escena" : "Siguiente línea de diálogo"}
     >
-      {currentLine?.speakerName ? (
-        <Text style={styles.speakerText}>{currentLine.speakerName}</Text>
-      ) : null}
+      <View style={styles.headerRow}>
+        <View style={styles.portraitBadge}>
+          <Text style={styles.portraitText}>{portrait}</Text>
+        </View>
+
+        <Text style={styles.speakerText}>{speaker}</Text>
+      </View>
 
       <Text style={styles.bodyText}>
         {displayedText}
@@ -118,29 +123,51 @@ export const DialogueBoxComponent: React.FC<DialogueBoxComponentProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "rgba(10, 14, 39, 0.92)",
-    borderColor: colors.cyan,
+    backgroundColor: semanticColors.background.panelStrong,
+    borderColor: semanticColors.system,
     borderWidth: 1.5,
-    borderRadius: 8,
+    borderRadius: radius.md,
     padding: spacing.md,
     marginVertical: spacing.sm,
-    elevation: 5,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.xs,
+  },
+  portraitBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: radius.round,
+    backgroundColor: "rgba(0, 232, 210, 0.2)",
+    borderWidth: 1,
+    borderColor: semanticColors.system,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: spacing.sm,
+  },
+  portraitText: {
+    fontFamily: fonts.data,
+    fontSize: 11,
+    fontWeight: "bold",
+    color: semanticColors.system,
   },
   speakerText: {
-    color: colors.cyan,
-    fontSize: 14,
+    color: semanticColors.system,
+    fontFamily: fonts.data,
+    fontSize: typography.sizes.small,
     fontWeight: "bold",
-    letterSpacing: 1,
-    marginBottom: spacing.xs,
+    letterSpacing: typography.letterSpacing.wide,
     textTransform: "uppercase",
   },
   bodyText: {
-    color: colors.white,
+    color: semanticColors.neutral[50],
+    fontFamily: fonts.data,
     fontSize: 15,
     lineHeight: 22,
   },
   cursor: {
-    color: colors.cyan,
+    color: semanticColors.system,
     fontWeight: "bold",
   },
   footer: {
@@ -148,7 +175,8 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   hintText: {
-    color: colors.textMuted,
+    color: semanticColors.neutral[300],
+    fontFamily: fonts.data,
     fontSize: 11,
     fontStyle: "italic",
   },

@@ -115,6 +115,15 @@ export const ArkanoidLevelDefinitionSchema = z.object({
   themeId: z.string().min(1)
 });
 
+<<<<<<< Updated upstream
+const RAW_LEVELS: unknown[] = [
+  level01, level02, level03, level04, level05,
+  level06, level07, level08, level09, level10,
+  level11, level12, level13, level14, level15,
+  level16, level17, level18, level19, level20,
+  level21, level22, level23, level24, level25,
+  level26, level27, level28, level29, level30,
+=======
 import level01 from "../config/levels/level-01.json";
 import level02 from "../config/levels/level-02.json";
 import level03 from "../config/levels/level-03.json";
@@ -153,6 +162,7 @@ const STATIC_LEVELS: unknown[] = [
   level01, level02, level03, level04, level05, level06, level07, level08, level09, level10,
   level11, level12, level13, level14, level15, level16, level17, level18, level19, level20,
   level21, level22, level23, level24, level25, level26, level27, level28, level29, level30,
+>>>>>>> Stashed changes
   level31, level32, level33
 ];
 
@@ -163,8 +173,12 @@ export class LevelCatalog {
     if (this.levelsMap) return;
 
     const catalog = new Map<number, ArkanoidLevelDefinition>();
+<<<<<<< Updated upstream
+    for (const rawData of RAW_LEVELS) {
+=======
     for (let i = 0; i < STATIC_LEVELS.length; i++) {
       const rawData = STATIC_LEVELS[i];
+>>>>>>> Stashed changes
       const parsed = ArkanoidLevelDefinitionSchema.parse(rawData) as ArkanoidLevelDefinition;
       this.validateLevel(parsed);
       catalog.set(parsed.id, parsed);

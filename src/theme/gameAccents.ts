@@ -42,6 +42,11 @@ export const GAME_ACCENTS = {
     secondary: 'yellow' as const,
     accent: 'pink' as const,
   },
+  campaign: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'green' as const,
+  },
 } as const;
 
 export type GameKey = keyof typeof GAME_ACCENTS;
@@ -50,7 +55,7 @@ export type GameKey = keyof typeof GAME_ACCENTS;
  * Retorna valores RGB hexadecimales para los acentos de un juego.
  */
 export function getGameAccentColors(game: GameKey) {
-  const accentKeys = GAME_ACCENTS[game];
+  const accentKeys = GAME_ACCENTS[game] ?? GAME_ACCENTS.campaign;
   return {
     primary: colors[accentKeys.primary],
     secondary: colors[accentKeys.secondary],

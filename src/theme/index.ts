@@ -4,3 +4,4 @@ export * from "./typography";
 export * from "./radius";
 export * from "./effects";
 export * from "./layers";
+export * from "./gameAccents";

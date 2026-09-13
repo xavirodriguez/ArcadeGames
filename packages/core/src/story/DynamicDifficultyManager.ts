@@ -3,49 +3,107 @@ import { MiniGameModifier } from "./ArcadeIntegrationTypes";
 /**
  * Categorized player skill profile for dynamic difficulty adjustment (DDA).
  *
+ * @example
+ * ```ts
+ * const profile: ArcadeSkillProfile = {
+ *   navigation: 0.8,
+ *   accuracy: 0.65,
+ *   reaction: 0.9,
+ *   survival: 0.75
+ * };
+ * ```
+ *
  * @public
  */
 export interface ArcadeSkillProfile {
+  /** Navigation and spatial positioning skill rating between 0.0 and 1.0. */
   readonly navigation: number; // 0.0 to 1.0 rating
+  /** Aiming and shooting accuracy rating between 0.0 and 1.0. */
   readonly accuracy: number; // 0.0 to 1.0 rating
+  /** Reflex and reaction speed rating between 0.0 and 1.0. */
   readonly reaction: number; // 0.0 to 1.0 rating
+  /** Longevity and survival duration rating between 0.0 and 1.0. */
   readonly survival: number; // 0.0 to 1.0 rating
 }
 
 /**
  * Detailed telemetry metrics supplied after an encounter attempt to update skill profile.
  *
+ * @example
+ * ```ts
+ * const metrics: EncounterTelemetryMetrics = {
+ *   accuracyRatio: 0.75,
+ *   survivalDurationRatio: 0.9,
+ *   collisionFrequency: 2,
+ *   averageReactionTimeMs: 250
+ * };
+ * ```
+ *
  * @public
  */
 export interface EncounterTelemetryMetrics {
+  /** Shot hit accuracy ratio between 0.0 and 1.0. */
   readonly accuracyRatio?: number; // 0.0 to 1.0
+  /** Survival time ratio relative to encounter target duration between 0.0 and 1.0. */
   readonly survivalDurationRatio?: number; // 0.0 to 1.0
+  /** Number of player collisions or damage incidents (lower is better). */
   readonly collisionFrequency?: number; // lower is better
+  /** Average reaction delay in milliseconds (lower is better). */
   readonly averageReactionTimeMs?: number; // lower is better
 }
 
 /**
  * Historical record of encounter attempts.
  *
+ * @example
+ * ```ts
+ * const history: EncounterAttemptHistory = {
+ *   encounterId: "enc_boss_01",
+ *   attempts: 3,
+ *   failures: 2,
+ *   consecutiveFailures: 2
+ * };
+ * ```
+ *
  * @public
  */
 export interface EncounterAttemptHistory {
+  /** Unique encounter identifier. */
   readonly encounterId: string;
+  /** Total attempt count for this encounter. */
   readonly attempts: number;
+  /** Total failure count for this encounter. */
   readonly failures: number;
+  /** Current active consecutive failure streak. Resets to 0 on success. */
   readonly consecutiveFailures: number;
 }
 
 /**
- * Declarative rule for offering DDA assistance.
+ * Declarative rule for offering diegetic DDA assistance.
+ *
+ * @example
+ * ```ts
+ * const rule: AssistRule = {
+ *   id: "rule_shield_boost",
+ *   encounterId: "enc_boss_01",
+ *   minConsecutiveFailures: 3,
+ *   diegeticOfferMessageKey: "assist_shield_offer",
+ *   modifier: { id: "mod_extra_shield", name: "Shield Boost", rules: [] }
+ * };
+ * ```
  *
  * @public
  */
 export interface AssistRule {
+  /** Unique assist rule identifier. */
   readonly id: string;
+  /** Target encounter ID to which this rule applies. */
   readonly encounterId: string;
+  /** Minimum consecutive failures required before triggering assistance offer. */
   readonly minConsecutiveFailures: number;
+  /** Localization key for the in-universe offer dialogue/message. */
   readonly diegeticOfferMessageKey: string;
+  /** Narrative or gameplay modifier offered as assistance. */
   readonly modifier: MiniGameModifier;
 }
 

@@ -135,13 +135,9 @@ export interface ArcadeOrchestratorOptions {
 
 // @public
 export interface ArcadeSkillProfile {
-    // (undocumented)
     readonly accuracy: number;
-    // (undocumented)
     readonly navigation: number;
-    // (undocumented)
     readonly reaction: number;
-    // (undocumented)
     readonly survival: number;
 }
 
@@ -204,15 +200,10 @@ export interface AssetManifest {
 
 // @public
 export interface AssistRule {
-    // (undocumented)
     readonly diegeticOfferMessageKey: string;
-    // (undocumented)
     readonly encounterId: string;
-    // (undocumented)
     readonly id: string;
-    // (undocumented)
     readonly minConsecutiveFailures: number;
-    // (undocumented)
     readonly modifier: MiniGameModifier;
 }
 
@@ -1368,15 +1359,11 @@ export const DEFAULT_ACCESSIBILITY_ASSISTS: AccessibilityAssistsConfig;
 // @public
 export const DEFAULT_META_PROGRESSION_STATE: MetaProgressionState;
 
-// @public (undocumented)
+// @public
 export interface DeltaSnapshotPayload {
-    // (undocumented)
     delta: Partial<WorldSnapshot>;
-    // (undocumented)
     kind: "delta";
-    // (undocumented)
     localSessionId?: string;
-    // (undocumented)
     tick: number;
 }
 
@@ -1519,25 +1506,17 @@ export interface EffectDrawer<TContext = RenderContext, TRegistry extends Compon
 
 // @public
 export interface EncounterAttemptHistory {
-    // (undocumented)
     readonly attempts: number;
-    // (undocumented)
     readonly consecutiveFailures: number;
-    // (undocumented)
     readonly encounterId: string;
-    // (undocumented)
     readonly failures: number;
 }
 
 // @public
 export interface EncounterTelemetryMetrics {
-    // (undocumented)
     readonly accuracyRatio?: number;
-    // (undocumented)
     readonly averageReactionTimeMs?: number;
-    // (undocumented)
     readonly collisionFrequency?: number;
-    // (undocumented)
     readonly survivalDurationRatio?: number;
 }
 
@@ -1731,15 +1710,11 @@ export class FrictionSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export interface FullSnapshotPayload {
-    // (undocumented)
     fullWorldState: WorldSnapshot;
-    // (undocumented)
     kind: "full";
-    // (undocumented)
     localSessionId?: string;
-    // (undocumented)
     serverTick: number;
 }
 
@@ -3804,27 +3779,19 @@ export interface Replay {
     version: number;
 }
 
-// @public (undocumented)
+// @public
 export interface ReplayData {
-    // (undocumented)
     endTick: number;
-    // (undocumented)
     frames: ReplayFrame[];
-    // (undocumented)
     roomId: string;
-    // (undocumented)
     startTick: number;
-    // (undocumented)
     version: number;
 }
 
-// @public (undocumented)
+// @public
 export interface ReplayFrame {
-    // (undocumented)
     events: string[];
-    // (undocumented)
     inputs: Record<string, InputFrame[]>;
-    // (undocumented)
     tick: number;
 }
 
@@ -4152,7 +4119,7 @@ export class SemanticValidator {
 // @public
 export type SerializedComponent = Record<string, unknown>;
 
-// @public (undocumented)
+// @public
 export type ServerUpdatePayload = FullSnapshotPayload | DeltaSnapshotPayload;
 
 // @public

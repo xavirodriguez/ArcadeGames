@@ -255,7 +255,7 @@ export interface AxisBinding {
     };
 }
 
-// @public (undocumented)
+// @public
 export type BaseConfig = z.infer<typeof BaseConfigSchema>;
 
 // @public
@@ -433,16 +433,16 @@ export class BinaryCompression {
 // @public
 export type BindingSet<TExtra extends string = never> = InputBinding<TExtra>[];
 
-// @public (undocumented)
+// @public
 export type BlueprintArgs<TBlueprints, TId extends keyof TBlueprints> = TBlueprints[TId] extends BlueprintDefinition<ComponentRegistry, EventRegistry, infer TArgs> ? TArgs : never;
 
-// @public (undocumented)
+// @public
 export interface BlueprintDefinition<TComponents extends ComponentRegistry, TEvents extends EventRegistry, TArgs> {
     // (undocumented)
     spawn(world: World<TComponents, TEvents, BlueprintRegistryMap<TComponents>>, entity: number, args: TArgs): void;
 }
 
-// @public (undocumented)
+// @public
 export class BlueprintRegistry<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
     // (undocumented)
     clear(): void;
@@ -2079,9 +2079,8 @@ export const INDEX_MASK: number;
 // @public
 export type INetworkableWorld<TComponents extends ComponentRegistry = ComponentRegistry> = WorldLike<TComponents>;
 
-// @public (undocumented)
+// @public
 export interface INetworkGame {
-    // (undocumented)
     readonly gameId: string;
 }
 
@@ -3028,9 +3027,8 @@ export class NetworkManager<TComponents extends ComponentRegistry = ComponentReg
     world?: INetworkableWorld<TComponents>;
 }
 
-// @public (undocumented)
+// @public
 export class NetworkReplicationUtils {
-    // (undocumented)
     static applyDelta(base: WorldSnapshot, delta: SnapshotDelta): void;
     static processSoAPacket(soaComponentData: Record<string, SoAComponentTypeData>): ComponentDataSnapshot;
 }
@@ -3659,7 +3657,7 @@ export class RemoteInterpolationSystem<TRegistry extends MultiplayerRegistry = M
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
-// @public (undocumented)
+// @public
 export type RenderCallback = (alpha: number) => void;
 
 // @public
@@ -3680,7 +3678,7 @@ export type RenderCommand = {
     data: Record<string, unknown> | unknown;
 };
 
-// @public (undocumented)
+// @public
 export interface RenderCommandBuffer {
     // (undocumented)
     clear(): void;
@@ -3690,13 +3688,10 @@ export interface RenderCommandBuffer {
     push(command: RenderCommand): void;
 }
 
-// @public (undocumented)
+// @public
 export class RenderCommandBufferImpl implements RenderCommandBuffer {
-    // (undocumented)
     clear(): void;
-    // (undocumented)
-    getCommands(): RenderCommand[];
-    // (undocumented)
+    getCommands(): ReadonlyArray<RenderCommand>;
     push(command: RenderCommand): void;
 }
 
@@ -3768,11 +3763,9 @@ export class RenderPipeline {
     swapBuffers(): void;
 }
 
-// @public (undocumented)
+// @public
 export interface RenderSnapshot {
-    // (undocumented)
     entities: number[];
-    // (undocumented)
     tick: number;
 }
 
@@ -5029,7 +5022,7 @@ export function unpackEntityGeneration(entity: Entity): number;
 // @public
 export function unpackEntityIndex(entity: Entity): number;
 
-// @public (undocumented)
+// @public
 export type UpdateCallback = (dt: number) => void;
 
 // @public

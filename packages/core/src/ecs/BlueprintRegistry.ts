@@ -1,13 +1,19 @@
 import { World, BlueprintRegistryMap, ComponentRegistry } from "./World";
 import { EventRegistry } from "../events/EventBus";
 
-/** @public */
+/**
+ * Utility type to extract arguments for a specific blueprint ID from a registry map.
+ * @public
+ */
 export type BlueprintArgs<TBlueprints, TId extends keyof TBlueprints> =
   TBlueprints[TId] extends BlueprintDefinition<ComponentRegistry, EventRegistry, infer TArgs>
     ? TArgs
     : never;
 
-/** @public */
+/**
+ * Interface defining an entity blueprint factory capable of populating an entity with components.
+ * @public
+ */
 export interface BlueprintDefinition<
   TComponents extends ComponentRegistry,
   TEvents extends EventRegistry,
@@ -16,7 +22,10 @@ export interface BlueprintDefinition<
   spawn(world: World<TComponents, TEvents, BlueprintRegistryMap<TComponents>>, entity: number, args: TArgs): void;
 }
 
-/** @public */
+/**
+ * Registry container storing and resolving entity creation blueprints by ID.
+ * @public
+ */
 export class BlueprintRegistry<
   TComponents extends ComponentRegistry = ComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,

@@ -57,8 +57,25 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
 
       const nextLaserCooldown = Math.max(0, (paddleComp.laserCooldown ?? 0) - deltaTime);
 
+      // Clamp paddle position within screen bounds
+      const paddleW = paddleComp.isExpanded ? config.PADDLE_WIDTH * 1.5 : config.PADDLE_WIDTH;
+      const halfW = paddleW / 2;
+      let nextX = transform.x + currentVx * deltaTime;
+      if (nextX - halfW < 0) {
+        nextX = halfW;
+        currentVx = 0;
+      } else if (nextX + halfW > config.SCREEN_WIDTH) {
+        nextX = config.SCREEN_WIDTH - halfW;
+        currentVx = 0;
+      }
+
       world.mutateComponent(paddleEntity, "Velocity", (v) => {
         v.vx = currentVx;
+      });
+
+      world.mutateComponent(paddleEntity, "Transform", (t) => {
+        t.x = nextX;
+        t.dirty = true;
       });
 
       world.mutateComponent(paddleEntity, "Paddle", (p) => {
@@ -118,8 +135,12 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
         const ball = world.getComponent(ballEntity, "Ball");
         if (ball && ball.isAttached) {
           const offsetX = ball.attachedOffsetX ?? 0;
+          let clampedBallX = transform.x + offsetX;
+          const ballRadius = config.BALL_SIZE;
+          clampedBallX = Math.max(ballRadius, Math.min(config.SCREEN_WIDTH - ballRadius, clampedBallX));
+
           world.mutateComponent(ballEntity, "Transform", (t) => {
-            t.x = transform.x + offsetX;
+            t.x = clampedBallX;
             t.y = transform.y - config.PADDLE_HEIGHT / 2 - config.BALL_SIZE;
             t.dirty = true;
           });

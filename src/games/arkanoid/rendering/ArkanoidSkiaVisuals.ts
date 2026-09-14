@@ -79,6 +79,32 @@ export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry>
   }
 };
 
+export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const capsuleColor = render.color || colors.cyan;
+    const w = 24;
+    const h = 14;
+    const paint = getPaint();
+
+    canvas.save();
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(capsuleColor));
+
+    canvas.drawRoundRect(
+      Skia.RRectXY(Skia.XYWHRect(-w / 2, -h / 2, w, h), 7, 7),
+      paint
+    );
+
+    canvas.restore();
+  }
+};
+
 export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;

@@ -76,6 +76,14 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
       const state = world.getSingleton("ArkanoidState");
 
       if (brick && pos && state) {
+        // Reset anti-stuck counter when a brick is destroyed
+        const balls = world.query("Ball");
+        for (let bIdx = 0; bIdx < balls.length; bIdx++) {
+          world.mutateComponent(balls[bIdx], "Ball", (b) => {
+            b.stuckBounces = 0;
+          });
+        }
+
         let nextMultiplier = 1;
         const comboEntities = world.query("Combo");
         const comboEntity = comboEntities[0];
@@ -199,19 +207,37 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
 
       const radius = this.config.BALL_SIZE;
 
+      // Anti-stuck check
+      const stuckCount = ball.stuckBounces ?? 0;
+      if (stuckCount >= 16) {
+        const speed = Math.max(200, Math.sqrt(velocity.vx * velocity.vx + velocity.vy * velocity.vy));
+        const rndSign = world.gameplayRandom.next() > 0.5 ? 1 : -1;
+        const nudgeAngle = Math.PI / 4 * rndSign; // 45 degree nudge down
+        world.mutateComponent(ballEntity, "Velocity", (v) => {
+          v.vx = Math.sin(nudgeAngle) * speed;
+          v.vy = Math.abs(Math.cos(nudgeAngle) * speed); // Force downward towards paddle
+        });
+        world.mutateComponent(ballEntity, "Ball", (b) => {
+          b.stuckBounces = 0;
+        });
+      }
+
       if (transform.x - radius < 0) {
         world.mutateComponent(ballEntity, "Transform", (t) => { t.x = radius; t.dirty = true; });
         world.mutateComponent(ballEntity, "Velocity", (v) => { v.vx = Math.abs(v.vx); });
+        world.mutateComponent(ballEntity, "Ball", (b) => { b.stuckBounces = (b.stuckBounces ?? 0) + 1; });
         this.playSFX(world, "hit");
       } else if (transform.x + radius > this.config.SCREEN_WIDTH) {
         world.mutateComponent(ballEntity, "Transform", (t) => { t.x = this.config!.SCREEN_WIDTH - radius; t.dirty = true; });
         world.mutateComponent(ballEntity, "Velocity", (v) => { v.vx = -Math.abs(v.vx); });
+        world.mutateComponent(ballEntity, "Ball", (b) => { b.stuckBounces = (b.stuckBounces ?? 0) + 1; });
         this.playSFX(world, "hit");
       }
 
       if (transform.y - radius < 0) {
         world.mutateComponent(ballEntity, "Transform", (t) => { t.y = radius; t.dirty = true; });
         world.mutateComponent(ballEntity, "Velocity", (v) => { v.vy = Math.abs(v.vy); });
+        world.mutateComponent(ballEntity, "Ball", (b) => { b.stuckBounces = (b.stuckBounces ?? 0) + 1; });
         this.playSFX(world, "hit");
       }
 
@@ -235,6 +261,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
               b.isAttached = true;
               b.attachedOffsetX = offsetX;
               b.speed = newSpeed;
+              b.stuckBounces = 0;
             });
             world.mutateComponent(ballEntity, "Velocity", (v) => {
               v.vx = 0;
@@ -255,15 +282,23 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
             const spinEffect = paddleComp.lastVelocityX * 0.0008;
             const bounceAngle = -Math.PI / 2 + hitOffset * maxAngleShift + spinEffect;
 
+            const minVy = -Math.max(60, newSpeed * 0.25);
+
             world.mutateComponent(ballEntity, "Velocity", (v) => {
-              v.vx = Math.cos(bounceAngle) * newSpeed;
-              v.vy = Math.sin(bounceAngle) * newSpeed;
-              if (v.vy > -50) v.vy = -50;
+              let calcVx = Math.cos(bounceAngle) * newSpeed;
+              let calcVy = Math.sin(bounceAngle) * newSpeed;
+              if (calcVy > minVy) calcVy = minVy;
+              v.vx = calcVx;
+              v.vy = calcVy;
             });
 
             world.mutateComponent(ballEntity, "Transform", (t) => {
               t.y = paddlePos.y - pHalfH - radius;
               t.dirty = true;
+            });
+
+            world.mutateComponent(ballEntity, "Ball", (b) => {
+              b.stuckBounces = 0;
             });
 
             Juice.squash(world as World<CoreComponentRegistry>, paddleEntity, 1.2, 0.8, 100);
@@ -292,6 +327,10 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
 
             const overlapX = bHalfW + radius - Math.abs(dx);
             const overlapY = bHalfH + radius - Math.abs(dy);
+
+            world.mutateComponent(ballEntity, "Ball", (b) => {
+              b.stuckBounces = (b.stuckBounces ?? 0) + 1;
+            });
 
             if (overlapX < overlapY) {
               const signX = dx !== 0 ? (dx > 0 ? 1 : -1) : (velocity.vx >= 0 ? 1 : -1);
@@ -350,6 +389,19 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
     if (remainingLives > 0) {
       const paddleEntities = world.query("Paddle", "Transform");
       const paddleEntity = paddleEntities[0];
+
+      if (paddleEntity !== undefined) {
+        world.mutateComponent(paddleEntity, "Paddle", (p) => {
+          p.isLaserActive = false;
+          p.isExpanded = false;
+          p.isCatchActive = false;
+          p.laserCooldown = 0;
+        });
+      }
+      world.mutateSingleton("ArkanoidState", (s) => {
+        s.activePowerUp = null;
+      });
+
       const paddlePos = paddleEntity !== undefined ? world.getComponent(paddleEntity, "Transform") : undefined;
       const paddleX = paddlePos ? paddlePos.x : this.config?.SCREEN_CENTER_X ?? 400;
       const paddleY = paddlePos ? paddlePos.y : this.config?.PADDLE_Y ?? 550;
@@ -359,6 +411,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
       world.mutateComponent(ballEntity, "Ball", (b) => {
         b.isAttached = true;
         b.attachedOffsetX = 0;
+        b.stuckBounces = 0;
       });
       world.mutateComponent(ballEntity, "Velocity", (v) => {
         v.vx = 0;

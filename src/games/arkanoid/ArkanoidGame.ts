@@ -326,12 +326,13 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         /* eslint-disable @typescript-eslint/no-require-imports */
-        const { drawArkanoidBall, drawArkanoidPaddle, drawArkanoidBrick, drawArkanoidBackground } = require("./rendering/ArkanoidCanvasVisuals");
+        const { drawArkanoidBall, drawArkanoidPaddle, drawArkanoidBrick, drawArkanoidCapsule, drawArkanoidBackground } = require("./rendering/ArkanoidCanvasVisuals");
         r.registerShape("ball", drawArkanoidBall);
         r.registerShape("circle", drawArkanoidBall);
         r.registerShape("paddle", drawArkanoidPaddle);
         r.registerShape("box", drawArkanoidPaddle);
         r.registerShape("brick", drawArkanoidBrick);
+        r.registerShape("capsule", drawArkanoidCapsule);
         r.registerBackgroundEffect("arkanoid_bg", drawArkanoidBackground);
 
         r.registerBackgroundEffect("crt_scanlines", SharedVFX.RetroCRTScanlinesEffect);
@@ -339,12 +340,13 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
       },
       skia: (r) => {
         /* eslint-disable @typescript-eslint/no-require-imports */
-        const { drawSkiaArkanoidBall, drawSkiaArkanoidPaddle, drawSkiaArkanoidBrick, drawSkiaArkanoidBackground } = require("./rendering/ArkanoidSkiaVisuals");
+        const { drawSkiaArkanoidBall, drawSkiaArkanoidPaddle, drawSkiaArkanoidBrick, drawSkiaArkanoidCapsule, drawSkiaArkanoidBackground } = require("./rendering/ArkanoidSkiaVisuals");
         r.registerShape("ball", drawSkiaArkanoidBall);
         r.registerShape("circle", drawSkiaArkanoidBall);
         r.registerShape("paddle", drawSkiaArkanoidPaddle);
         r.registerShape("box", drawSkiaArkanoidPaddle);
         r.registerShape("brick", drawSkiaArkanoidBrick);
+        r.registerShape("capsule", drawSkiaArkanoidCapsule);
         r.registerBackgroundEffect("arkanoid_bg", drawSkiaArkanoidBackground);
 
         r.registerBackgroundEffect("crt_scanlines", SharedVFX.SkiaRetroCRTScanlinesEffect);

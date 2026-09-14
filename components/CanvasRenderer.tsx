@@ -47,28 +47,20 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
       }
     };
 
-    canvas.addEventListener("touchstart", preventTouchDefault, { passive: false });
-    canvas.addEventListener("touchmove", preventTouchDefault, { passive: false });
-    canvas.addEventListener("touchend", preventTouchDefault, { passive: false });
-    canvas.addEventListener("touchcancel", preventTouchDefault, { passive: false });
+    const events = ["touchstart", "touchmove", "touchend", "touchcancel"] as const;
+    const elements = parent ? [canvas, parent] : [canvas];
 
-    if (parent) {
-      parent.addEventListener("touchstart", preventTouchDefault, { passive: false });
-      parent.addEventListener("touchmove", preventTouchDefault, { passive: false });
-      parent.addEventListener("touchend", preventTouchDefault, { passive: false });
-      parent.addEventListener("touchcancel", preventTouchDefault, { passive: false });
+    for (const el of elements) {
+      for (const ev of events) {
+        el.addEventListener(ev, preventTouchDefault, { passive: false });
+      }
     }
 
     return () => {
-      canvas.removeEventListener("touchstart", preventTouchDefault);
-      canvas.removeEventListener("touchmove", preventTouchDefault);
-      canvas.removeEventListener("touchend", preventTouchDefault);
-      canvas.removeEventListener("touchcancel", preventTouchDefault);
-      if (parent) {
-        parent.removeEventListener("touchstart", preventTouchDefault);
-        parent.removeEventListener("touchmove", preventTouchDefault);
-        parent.removeEventListener("touchend", preventTouchDefault);
-        parent.removeEventListener("touchcancel", preventTouchDefault);
+      for (const el of elements) {
+        for (const ev of events) {
+          el.removeEventListener(ev, preventTouchDefault);
+        }
       }
     };
   }, []);

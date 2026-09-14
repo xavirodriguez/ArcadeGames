@@ -297,6 +297,8 @@ export interface IEntityPool {
  *
  * @example
  * ```ts
+ * import { colors } from "../../../theme/colors";
+ *
  * const render: RenderComponent = {
  *   type: "Render",
  *   visible: true,
@@ -305,7 +307,7 @@ export interface IEntityPool {
  *   rotation: 0,
  *   angularVelocity: 0,
  *   hitFlashFrames: 0,
- *   color: "#ff0000",
+ *   color: colors.cyan,
  *   size: 16
  * };
  * world.addComponent(entity, render);

@@ -1464,18 +1464,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 675,
+        "end": 689,
         "endLoc": {
           "column": 26,
-          "line": 675,
-          "position": 28557
+          "line": 689,
+          "position": 29212
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 663,
+        "start": 677,
         "startLoc": {
           "column": 26,
-          "line": 663,
-          "position": 28214
+          "line": 677,
+          "position": 28869
         }
       },
       "tokens": 52
@@ -3092,18 +3092,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 786,
+        "end": 800,
         "endLoc": {
           "column": 9,
-          "line": 786,
-          "position": 32552
+          "line": 800,
+          "position": 33207
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 775,
+        "start": 789,
         "startLoc": {
           "column": 84,
-          "line": 775,
-          "position": 32252
+          "line": 789,
+          "position": 32907
         }
       },
       "tokens": 54
@@ -3166,18 +3166,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 812,
+        "end": 826,
         "endLoc": {
           "column": 14,
-          "line": 812,
-          "position": 33521
+          "line": 826,
+          "position": 34176
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 798,
+        "start": 812,
         "startLoc": {
           "column": 4,
-          "line": 798,
-          "position": 32889
+          "line": 812,
+          "position": 33544
         }
       },
       "tokens": 140
@@ -4128,18 +4128,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 822,
+        "end": 836,
         "endLoc": {
           "column": 75,
-          "line": 822,
-          "position": 34053
+          "line": 836,
+          "position": 34708
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 816,
+        "start": 830,
         "startLoc": {
           "column": 76,
-          "line": 816,
-          "position": 33787
+          "line": 830,
+          "position": 34442
         }
       },
       "tokens": 77
@@ -6588,43 +6588,6 @@
     },
     {
       "firstFile": {
-        "end": 315,
-        "endLoc": {
-          "column": 97,
-          "line": 315,
-          "position": 10048
-        },
-        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 53,
-          "line": 309,
-          "position": 9711
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);\n\n    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares / Muzzle Flash\n    const isShooting = isPlayerShooting(world, entity);\n    const muzzleFlashFrames = render.muzzleFlashFrames ?? 0;\n    if (isShooting || muzzleFlashFrames > 0) {\n      const flashSize = (3.5 + 1.5 * Math.sin(tick * 0.8)) * (muzzleFlashFrames > 0 ? 1.8 : 1.0);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 160,
-        "endLoc": {
-          "column": 97,
-          "line": 160,
-          "position": 6846
-        },
-        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 154,
-        "startLoc": {
-          "column": 79,
-          "line": 154,
-          "position": 6509
-        }
-      },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
         "end": 19,
         "endLoc": {
           "column": 28,
@@ -6662,18 +6625,55 @@
     },
     {
       "firstFile": {
-        "end": 222,
+        "end": 177,
         "endLoc": {
-          "column": 47,
-          "line": 222,
-          "position": 7661
+          "column": 97,
+          "line": 177,
+          "position": 6337
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 215,
+        "start": 171,
+        "startLoc": {
+          "column": 53,
+          "line": 171,
+          "position": 6000
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);\n\n    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares / Muzzle Flash\n    const isShooting = isPlayerShooting(world, entity);\n    const muzzleFlashFrames = render.muzzleFlashFrames ?? 0;\n    if (isShooting || muzzleFlashFrames > 0) {\n      const flashSize = (3.5 + 1.5 * Math.sin(tick * 0.8)) * (muzzleFlashFrames > 0 ? 1.8 : 1.0);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 212,
+        "endLoc": {
+          "column": 97,
+          "line": 212,
+          "position": 8477
+        },
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "start": 206,
+        "startLoc": {
+          "column": 79,
+          "line": 206,
+          "position": 8140
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 236,
+        "endLoc": {
+          "column": 47,
+          "line": 236,
+          "position": 8149
+        },
+        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "start": 229,
         "startLoc": {
           "column": 7,
-          "line": 215,
-          "position": 7224
+          "line": 229,
+          "position": 7712
         }
       },
       "format": "typescript",
@@ -6681,36 +6681,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 233,
+        "end": 242,
         "endLoc": {
           "column": 47,
-          "line": 233,
-          "position": 9434
+          "line": 242,
+          "position": 9837
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 226,
+        "start": 235,
         "startLoc": {
           "column": 10,
-          "line": 226,
-          "position": 8997
+          "line": 235,
+          "position": 9400
         }
       },
       "tokens": 77
     },
     {
       "firstFile": {
-        "end": 285,
+        "end": 299,
         "endLoc": {
           "column": 17,
-          "line": 285,
-          "position": 9560
+          "line": 299,
+          "position": 10048
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 265,
+        "start": 279,
         "startLoc": {
           "column": 32,
-          "line": 265,
-          "position": 8818
+          "line": 279,
+          "position": 9306
         }
       },
       "format": "typescript",
@@ -6718,36 +6718,73 @@
       "isNew": false,
       "lines": 21,
       "secondFile": {
-        "end": 292,
+        "end": 301,
         "endLoc": {
           "column": 17,
-          "line": 292,
-          "position": 11409
+          "line": 301,
+          "position": 11812
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 271,
+        "start": 280,
         "startLoc": {
           "column": 23,
-          "line": 271,
-          "position": 10724
+          "line": 280,
+          "position": 11127
         }
       },
       "tokens": 125
     },
     {
       "firstFile": {
-        "end": 386,
+        "end": 369,
         "endLoc": {
-          "column": 84,
-          "line": 386,
-          "position": 12831
+          "column": 55,
+          "line": 369,
+          "position": 12429
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 381,
+        "start": 363,
+        "startLoc": {
+          "column": 36,
+          "line": 363,
+          "position": 12128
+        }
+      },
+      "format": "typescript",
+      "fragment": "        ctx.globalAlpha = blinkAlpha;\n\n        const pos = world.getComponent(entity, \"Transform\");\n        const targetX = kami.targetX ?? (pos ? pos.x : 0);\n        const targetY = kami.targetY ?? GAME_CONFIG.SCREEN_HEIGHT;\n        const relTargetX = targetX - (pos ? pos.x : 0);\n        const relTargetY = targetY - (pos ? pos.y : 0);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 361,
+        "endLoc": {
+          "column": 55,
+          "line": 361,
+          "position": 14515
+        },
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "start": 356,
+        "startLoc": {
+          "column": 69,
+          "line": 356,
+          "position": 14215
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 438,
+        "endLoc": {
+          "column": 84,
+          "line": 438,
+          "position": 14683
+        },
+        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "start": 433,
         "startLoc": {
           "column": 31,
-          "line": 381,
-          "position": 12551
+          "line": 433,
+          "position": 14403
         }
       },
       "format": "typescript",
@@ -6755,36 +6792,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 391,
+        "end": 427,
         "endLoc": {
           "column": 84,
-          "line": 391,
-          "position": 15468
+          "line": 427,
+          "position": 17028
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 386,
+        "start": 422,
         "startLoc": {
           "column": 27,
-          "line": 386,
-          "position": 15188
+          "line": 422,
+          "position": 16748
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 444,
+        "end": 496,
         "endLoc": {
           "column": 17,
-          "line": 444,
-          "position": 15197
+          "line": 496,
+          "position": 17049
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 433,
+        "start": 485,
         "startLoc": {
           "column": 32,
-          "line": 433,
-          "position": 14773
+          "line": 485,
+          "position": 16625
         }
       },
       "format": "typescript",
@@ -6792,36 +6829,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 445,
+        "end": 481,
         "endLoc": {
           "column": 17,
-          "line": 445,
-          "position": 17649
+          "line": 481,
+          "position": 19209
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 434,
+        "start": 470,
         "startLoc": {
           "column": 23,
-          "line": 434,
-          "position": 17225
+          "line": 470,
+          "position": 18785
         }
       },
       "tokens": 92
     },
     {
       "firstFile": {
-        "end": 623,
+        "end": 675,
         "endLoc": {
           "column": 53,
-          "line": 623,
-          "position": 20637
+          "line": 675,
+          "position": 22489
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 613,
+        "start": 665,
         "startLoc": {
           "column": 48,
-          "line": 613,
-          "position": 20327
+          "line": 665,
+          "position": 22179
         }
       },
       "format": "typescript",
@@ -6829,36 +6866,36 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 617,
+        "end": 653,
         "endLoc": {
           "column": 53,
-          "line": 617,
-          "position": 23342
+          "line": 653,
+          "position": 24902
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 607,
+        "start": 643,
         "startLoc": {
           "column": 32,
-          "line": 607,
-          "position": 23032
+          "line": 643,
+          "position": 24592
         }
       },
       "tokens": 70
     },
     {
       "firstFile": {
-        "end": 473,
+        "end": 509,
         "endLoc": {
           "column": 27,
-          "line": 473,
-          "position": 18646
+          "line": 509,
+          "position": 20206
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 466,
+        "start": 502,
         "startLoc": {
           "column": 23,
-          "line": 466,
-          "position": 18451
+          "line": 502,
+          "position": 20011
         }
       },
       "format": "typescript",
@@ -6866,18 +6903,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 553,
+        "end": 589,
         "endLoc": {
           "column": 27,
-          "line": 553,
-          "position": 21074
+          "line": 589,
+          "position": 22634
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 544,
+        "start": 580,
         "startLoc": {
           "column": 17,
-          "line": 544,
-          "position": 20814
+          "line": 580,
+          "position": 22374
         }
       },
       "tokens": 51
@@ -6921,32 +6958,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-14T17:28:25.694Z",
+    "detectionDate": "2026-09-14T20:25:42.767Z",
     "formats": {
       "typescript": {
-        "clones": 187,
-        "duplicatedLines": 1825,
-        "duplicatedTokens": 13939,
-        "lines": 64671,
+        "clones": 188,
+        "duplicatedLines": 1842,
+        "duplicatedTokens": 14076,
+        "lines": 65021,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.821975846979326,
-        "percentageTokens": 4.135944050964183,
+        "percentage": 2.8329308992479354,
+        "percentageTokens": 4.144656643640796,
         "sources": 383,
-        "tokens": 337021
+        "tokens": 339618
       }
     },
     "total": {
-      "clones": 187,
-      "duplicatedLines": 1825,
-      "duplicatedTokens": 13939,
-      "lines": 64671,
+      "clones": 188,
+      "duplicatedLines": 1842,
+      "duplicatedTokens": 14076,
+      "lines": 65021,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.821975846979326,
-      "percentageTokens": 4.135944050964183,
+      "percentage": 2.8329308992479354,
+      "percentageTokens": 4.144656643640796,
       "sources": 383,
-      "tokens": 337021
+      "tokens": 339618
     }
   }
 }

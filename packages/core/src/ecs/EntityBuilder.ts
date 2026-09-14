@@ -216,7 +216,7 @@ export class EntityBuilder<
  * @internal
  *
  * @remarks
- * This function is intended for internal engine operations within `@tiny-aster/core` and should not be consumed directly outside the core package.
+ * Internal helper function intended strictly for engine operations within `@tiny-aster/core`. It must not be consumed directly outside the core package.
  *
  * @param factory - Factory construction callback function.
  * @param world - Target ECS world instance.

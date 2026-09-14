@@ -1,15 +1,15 @@
 import { Component } from "../ecs/Component";
 
 /**
- * Component representing active combo streak status, multiplier, and decay timer for an entity.
+ * Component representing active combo streak status, score/damage multiplier, and decay timer for an entity.
  *
  * @remarks
- * Used by `ComboSystem` to track continuous hit streaks, apply score/damage multipliers, and decrement
- * the combo timer over time. When `timerRemaining` reaches 0, the combo streak decays and resets
- * (`combo = 0`, `multiplier = 1`).
+ * `ComboComponent` is processed by {@link ComboSystem} during frame updates to manage time-limited combo streaks.
+ * While gameplay collision or scoring systems accumulate consecutive hits and increase the `multiplier`
+ * (e.g., `multiplier = 1 + combo * 0.1`), {@link ComboSystem} decrements `timerRemaining` by `deltaTime` each tick.
  *
- * Multiplier accumulation formula is typically managed by gameplay collision/scoring systems (e.g., `1 + combo * 0.1`
- * or exponential scaling), while `ComboSystem` handles the per-tick timer decay and reset sequence.
+ * When `timerRemaining` expires (`timerRemaining <= 0`), the combo streak decays and resets back to baseline
+ * (`combo = 0`, `multiplier = 1`).
  *
  * @example
  * ```ts
@@ -28,12 +28,12 @@ import { Component } from "../ecs/Component";
 export interface ComboComponent extends Component {
   /** Discriminator type tag identifying this component as a Combo component. */
   type: "Combo";
-  /** Current consecutive hit count. Resets to 0 on timer expiry. */
+  /** Current consecutive hit count in the active combo streak. Resets to 0 on timer expiry. */
   combo: number;
   /** Damage/score multiplier derived from combo streak accumulation. Resets to 1 on timer expiry. */
   multiplier: number;
-  /** Remaining decay time in seconds before combo resets to zero. */
+  /** Remaining decay time in seconds before the combo streak expires and resets to zero. */
   timerRemaining: number;
-  /** Total seconds the timer runs after each hit before reset occurs. */
+  /** Total duration in seconds assigned to `timerRemaining` when refreshing a combo hit. */
   timerDuration: number;
 }

@@ -645,14 +645,14 @@
     "total": 13
   },
   "src/games/echorunner/rendering/EchoRunnerCanvasVisuals.ts": {
-    "anyCount": 16,
+    "anyCount": 8,
     "unknownCount": 0,
-    "total": 16
+    "total": 8
   },
   "src/games/echorunner/rendering/EchoRunnerSkiaVisuals.ts": {
-    "anyCount": 16,
+    "anyCount": 8,
     "unknownCount": 0,
-    "total": 16
+    "total": 8
   },
   "src/games/echorunner/story/EchoRunnerEncounter.ts": {
     "anyCount": 1,

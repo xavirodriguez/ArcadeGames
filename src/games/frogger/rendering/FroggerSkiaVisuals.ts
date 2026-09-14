@@ -9,11 +9,22 @@ export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
+    const frogger = world.getComponent(entity, "Frogger");
+    const health = world.getComponent(entity, "Health");
+    const isInvulnerable =
+      (frogger?.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) ||
+      (health?.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0);
+
+    // Blinking effect during invulnerability (10Hz flash at 60fps)
+    if (isInvulnerable && Math.floor(world.tick / 3) % 2 === 0) {
+      return;
+    }
+
     const size = render.size || 32;
     const half = size / 2;
 
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color("#39FF14"));
+    paint.setColor(Skia.Color(isInvulnerable ? "#A3FF80" : "#39FF14"));
     canvas.drawCircle(0, 0, half, paint);
 
     const eyePaint = Skia.Paint();

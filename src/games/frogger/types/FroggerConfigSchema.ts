@@ -15,6 +15,8 @@ export const FroggerConfigSchema = BaseConfigSchema.extend({
   TRAFFIC_SPEED_MULTIPLIER: z.number().default(1.0),
   RIVER_SPEED_MULTIPLIER: z.number().default(1.0),
   INPUT_COOLDOWN_TICKS: z.number().default(3),
+  LILY_PAD_CATCH_THRESHOLD: z.number().default(0.88),
+  LOG_OVERLAP_RATIO: z.number().default(0.65),
   KEYS: z.object({
     MOVE_UP: z.string().default("ArrowUp"),
     MOVE_DOWN: z.string().default("ArrowDown"),
@@ -48,6 +50,8 @@ export const DEFAULT_FROGGER_CONFIG: FroggerConfig = {
   TRAFFIC_SPEED_MULTIPLIER: 1.0,
   RIVER_SPEED_MULTIPLIER: 1.0,
   INPUT_COOLDOWN_TICKS: 3,
+  LILY_PAD_CATCH_THRESHOLD: 0.88,
+  LOG_OVERLAP_RATIO: 0.65,
   KEYS: {
     MOVE_UP: "ArrowUp",
     MOVE_DOWN: "ArrowDown",

@@ -14,6 +14,12 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
 
     if (!frogger || !transform || !frogger.isAlive) return;
 
+    // Check invulnerability
+    const health = world.getComponent(froggerEntity, "Health");
+    const isInvulnerable =
+      (frogger.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) ||
+      (health !== undefined && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0);
+
     // Check if Frogger is in the river area (rows 1 to 5)
     const isRiverRow = frogger.gridY >= 1 && frogger.gridY <= 5;
 
@@ -30,6 +36,15 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
 
     const froggerX = transform.x;
 
+    // Radius / half size from Frogger collider
+    let frogRadius = (config.GRID_SIZE - 12) / 2;
+    const collider = world.getComponent(froggerEntity, "Collider2D");
+    if (collider && collider.shape && "radius" in collider.shape) {
+      frogRadius = collider.shape.radius;
+    }
+
+    const overlapRatio = config.LOG_OVERLAP_RATIO ?? 0.65;
+
     for (let i = 0; i < logEntities.length; i++) {
       const e = logEntities[i];
       const log = world.getComponent(e, "Log");
@@ -37,12 +52,18 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
       const logVel = world.getComponent(e, "Velocity");
 
       if (log && logTransform && logVel && log.laneY === frogger.gridY) {
-        const halfWidth = (config.GRID_SIZE * log.length) / 2;
-        const leftEdge = logTransform.x - halfWidth;
-        const rightEdge = logTransform.x + halfWidth;
+        const logWidth = config.GRID_SIZE * log.length;
+        const halfWidth = logWidth / 2;
+        const left = logTransform.x - halfWidth;
+        const right = logTransform.x + halfWidth;
 
-        // Check if Frogger is standing on this log
-        if (froggerX >= leftEdge && froggerX <= rightEdge) {
+        const frogLeft = froggerX - frogRadius;
+        const frogRight = froggerX + frogRadius;
+
+        const overlap = Math.min(frogRight, right) - Math.max(frogLeft, left);
+        const overlapNeeded = Math.min(logWidth, frogRadius * 2) * overlapRatio;
+
+        if (overlap >= overlapNeeded) {
           ridingLogEntity = e;
           ridingLogVx = logVel.vx;
           break;
@@ -58,15 +79,19 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
       transform.x += ridingLogVx * dt;
       frogger.gridX = Math.max(0, Math.min(config.TOTAL_COLS - 1, Math.floor(transform.x / config.GRID_SIZE)));
 
-      // Offscreen drift check
-      if (transform.x < 0 || transform.x > config.SCREEN_WIDTH) {
-        this.triggerDeath(world, froggerEntity, "drift");
+      // Offscreen drift check using physical bounds
+      if (transform.x + frogRadius < 0 || transform.x - frogRadius > config.SCREEN_WIDTH) {
+        if (!isInvulnerable) {
+          this.triggerDeath(world, froggerEntity, "drift");
+        }
       }
     } else {
       // Frogger is in the river without a log -> DROWNING!
       frogger.isRiding = false;
       frogger.logEntity = undefined;
-      this.triggerDeath(world, froggerEntity, "drown");
+      if (!isInvulnerable) {
+        this.triggerDeath(world, froggerEntity, "drown");
+      }
     }
   }
 

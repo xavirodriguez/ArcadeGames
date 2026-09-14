@@ -37,6 +37,7 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         isAlive: true,
         cooldownRemaining: 0,
         furthestY: args.gridY,
+        invulnerableRemaining: 0,
       });
 
       w.addComponent(entity, {

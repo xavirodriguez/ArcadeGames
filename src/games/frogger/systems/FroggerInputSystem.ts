@@ -82,6 +82,7 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
         frogger.isRiding = false;
         frogger.logEntity = undefined;
 
+        // Update continuous position centered on target cell
         transform.x = frogger.gridX * config.GRID_SIZE + config.GRID_SIZE / 2;
         transform.y = frogger.gridY * config.GRID_SIZE + config.GRID_SIZE / 2;
 

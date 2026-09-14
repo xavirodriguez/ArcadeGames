@@ -116,10 +116,14 @@ describe("FroggerGame Engine & Mechanics", () => {
     const world = game.getWorld();
     const froggerEntity = world.query("Frogger", "Transform")[0];
 
-    // Position Frogger in Row 1 at an x where there is no log/turtle
+    // Position Frogger in Row 1 at an x where there is no log/turtle and zero invulnerability
     world.mutateComponent(froggerEntity, "Frogger", (f) => {
       f.gridY = 1;
       f.isAlive = true;
+      f.invulnerableRemaining = 0;
+    });
+    world.mutateComponent(froggerEntity, "Health", (h) => {
+      h.invulnerableRemaining = 0;
     });
     world.mutateComponent(froggerEntity, "Transform", (t: any) => {
       t.x = 780; // Far right where no turtle is
@@ -135,6 +139,69 @@ describe("FroggerGame Engine & Mechanics", () => {
     game.update(0.6);
     const state = game.getGameState();
     expect(state.lives).toBe(2);
+  });
+
+  it("grants invulnerability post-respawn preventing immediate consecutive deaths", () => {
+    const world = game.getWorld();
+    const froggerEntity = world.query("Frogger", "Transform")[0];
+
+    // Give 0 invulnerability and trigger death on row 1 (drowning)
+    world.mutateComponent(froggerEntity, "Frogger", (f) => {
+      f.gridY = 1;
+      f.isAlive = true;
+      f.invulnerableRemaining = 0;
+    });
+    world.mutateComponent(froggerEntity, "Health", (h) => {
+      h.invulnerableRemaining = 0;
+    });
+    world.mutateComponent(froggerEntity, "Transform", (t: any) => {
+      t.x = 780;
+      t.y = 1 * 40 + 20;
+    });
+
+    game.update(0.016); // Trigger death
+    game.update(0.6); // Complete respawn timer (0.5s) -> respawn frogger at start
+
+    let frogger = world.getComponent(froggerEntity, "Frogger");
+    expect(frogger?.isAlive).toBe(true);
+    expect(frogger?.invulnerableRemaining).toBeGreaterThan(0);
+
+    // Place frogger in dangerous road location while invulnerable
+    world.mutateComponent(froggerEntity, "Frogger", (f) => {
+      f.gridY = 7;
+    });
+
+    game.update(0.1); // Update while invulnerable
+
+    frogger = world.getComponent(froggerEntity, "Frogger");
+    expect(frogger?.isAlive).toBe(true); // Protected by invulnerability!
+  });
+
+  it("snaps position and grid coordinate on lily pad capture", () => {
+    const world = game.getWorld();
+    const froggerEntity = world.query("Frogger", "Transform")[0];
+
+    const padEntities = world.query("GoalLilyPad", "Transform");
+    const pad0Transform = world.getComponent(padEntities[0], "Transform") as TransformComponent;
+
+    // Position slightly offset from pad center within catch threshold (threshold = 40 * 0.88 = 35.2)
+    world.mutateComponent(froggerEntity, "Frogger", (f) => {
+      f.gridY = 0;
+      f.isAlive = true;
+      f.invulnerableRemaining = 0;
+    });
+    world.mutateComponent(froggerEntity, "Transform", (t: any) => {
+      t.x = pad0Transform.x + 15;
+      t.y = 20;
+    });
+
+    game.update(0.016);
+
+    const pad0 = world.getComponent(padEntities[0], "GoalLilyPad");
+    expect(pad0?.occupied).toBe(true);
+
+    const state = game.getGameState();
+    expect(state.occupiedLilyPads).toBe(1);
   });
 
   it("occupies lily pad when reaching row 0", () => {

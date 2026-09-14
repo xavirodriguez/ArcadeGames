@@ -6,20 +6,6 @@
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "./ProceduralShapeUtils";
 
-/**
- * Detects if the current environment is a mobile web browser where CPU shadowBlur is extremely slow.
- */
-export function isMobileBrowser(): boolean {
-  if (typeof window === "undefined" || typeof navigator === "undefined") {
-    return false;
-  }
-  return (
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0 ||
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-  );
-}
-
 export interface TrailPoint {
   x: number;
   y: number;
@@ -133,15 +119,11 @@ export function drawNeonShape(
 ): void {
   ctx.save();
 
-  const useMobileFastPath = isMobileBrowser();
-
   // 1. Draw outer glowing outline
   const pulseFactor = computeNeonPulse(tick);
   ctx.strokeStyle = color;
-  if (!useMobileFastPath) {
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 12;
-  }
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 12;
   ctx.lineWidth = 2.0;
 
   ctx.beginPath();
@@ -155,9 +137,7 @@ export function drawNeonShape(
   ctx.fill();
 
   // 3. Draw bright white core
-  if (!useMobileFastPath) {
-    ctx.shadowBlur = 0;
-  }
+  ctx.shadowBlur = 0;
   ctx.fillStyle = colors.white;
   ctx.beginPath();
   drawCore(ctx);

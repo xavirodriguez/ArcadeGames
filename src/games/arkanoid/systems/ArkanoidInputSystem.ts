@@ -34,48 +34,24 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
       const velocity = world.getComponent(paddleEntity, "Velocity")!;
       const paddleComp = world.getComponent(paddleEntity, "Paddle")!;
 
-      const directTouchX = world.getResource<number>("ArkanoidDirectTouchX");
-      let directX: number | undefined = directTouchX;
-      if (directX === undefined && inputSys) {
-        if (typeof inputSys.targetX === "number") {
-          directX = inputSys.targetX;
-        } else if (typeof inputSys.directX === "number") {
-          directX = inputSys.directX;
-        }
-      }
-
-      const paddleW = paddleComp.isExpanded ? config.PADDLE_WIDTH * 1.5 : config.PADDLE_WIDTH;
+      let targetVx = 0;
+      if (leftInput) targetVx -= config.PLAYER_SPEED;
+      if (rightInput) targetVx += config.PLAYER_SPEED;
 
       let currentVx = velocity.vx;
-      if (directX !== undefined) {
-        const minX = paddleW / 2;
-        const maxX = config.SCREEN_WIDTH - paddleW / 2;
-        const clampedX = Math.max(minX, Math.min(maxX, directX));
-
-        if (deltaTime > 0) {
-          currentVx = (clampedX - transform.x) / deltaTime;
+      if (targetVx !== 0) {
+        const accel = config.PLAYER_ACCEL;
+        if (targetVx > currentVx) {
+          currentVx = Math.min(targetVx, currentVx + accel * deltaTime);
         } else {
-          currentVx = 0;
+          currentVx = Math.max(targetVx, currentVx - accel * deltaTime);
         }
       } else {
-        let targetVx = 0;
-        if (leftInput) targetVx -= config.PLAYER_SPEED;
-        if (rightInput) targetVx += config.PLAYER_SPEED;
-
-        if (targetVx !== 0) {
-          const accel = config.PLAYER_ACCEL;
-          if (targetVx > currentVx) {
-            currentVx = Math.min(targetVx, currentVx + accel * deltaTime);
-          } else {
-            currentVx = Math.max(targetVx, currentVx - accel * deltaTime);
-          }
-        } else {
-          const decel = config.PLAYER_DECEL;
-          if (currentVx > 0) {
-            currentVx = Math.max(0, currentVx - decel * deltaTime);
-          } else if (currentVx < 0) {
-            currentVx = Math.min(0, currentVx + decel * deltaTime);
-          }
+        const decel = config.PLAYER_DECEL;
+        if (currentVx > 0) {
+          currentVx = Math.max(0, currentVx - decel * deltaTime);
+        } else if (currentVx < 0) {
+          currentVx = Math.min(0, currentVx + decel * deltaTime);
         }
       }
 

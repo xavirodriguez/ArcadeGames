@@ -35,36 +35,6 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
     enabled: wheelEnabled,
   });
 
-  // Strict non-passive gesture prevention on web to eliminate browser scrolling, pull-to-refresh & swipe back stutter
-  useEffect(() => {
-    if (Platform.OS !== "web" || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const parent = canvas.parentElement;
-
-    const preventTouchDefault = (e: TouchEvent) => {
-      if (e.cancelable) {
-        e.preventDefault();
-      }
-    };
-
-    const events = ["touchstart", "touchmove", "touchend", "touchcancel"] as const;
-    const elements = parent ? [canvas, parent] : [canvas];
-
-    for (const el of elements) {
-      for (const ev of events) {
-        el.addEventListener(ev, preventTouchDefault, { passive: false });
-      }
-    }
-
-    return () => {
-      for (const el of elements) {
-        for (const ev of events) {
-          el.removeEventListener(ev, preventTouchDefault);
-        }
-      }
-    };
-  }, []);
-
   useEffect(() => {
     if (Platform.OS !== "web" || !canvasRef.current) return;
 
@@ -98,23 +68,18 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
   // Get screen config to resize the outer view container dynamically if needed
   const activeWorld = typeof world === "function" ? world() : world;
   const screenConfig = activeWorld.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-  const dpr = typeof window !== "undefined" && window.devicePixelRatio ? Math.max(1, window.devicePixelRatio) : 1;
 
   return (
     <View style={styles.container}>
       <canvas
         ref={canvasRef}
-        width={Math.round(screenConfig.width * dpr)}
-        height={Math.round(screenConfig.height * dpr)}
+        width={screenConfig.width}
+        height={screenConfig.height}
         style={{
           width: "100%",
           height: "100%",
-          objectFit: "contain",
           // Layered defense: Block touch gestures natively at the compositor level
           touchAction: "none",
-          userSelect: "none",
-          WebkitUserSelect: "none",
-          WebkitTouchCallout: "none",
         } as any}
       />
     </View>

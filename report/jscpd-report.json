@@ -857,14 +857,14 @@
         "endLoc": {
           "column": 9,
           "line": 15,
-          "position": 742
+          "position": 725
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
         "start": 7,
         "startLoc": {
           "column": 94,
           "line": 7,
-          "position": 482
+          "position": 465
         }
       },
       "format": "typescript",
@@ -890,30 +890,30 @@
     },
     {
       "firstFile": {
-        "end": 16,
+        "end": 15,
         "endLoc": {
-          "column": 9,
-          "line": 16,
-          "position": 777
+          "column": 34,
+          "line": 15,
+          "position": 750
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
         "start": 9,
         "startLoc": {
           "column": 4,
           "line": 9,
-          "position": 521
+          "position": 504
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;\n    const isMobile = isMobileBrowser();",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;",
       "isNew": false,
-      "lines": 8,
+      "lines": 7,
       "secondFile": {
-        "end": 18,
+        "end": 17,
         "endLoc": {
-          "column": 9,
-          "line": 18,
-          "position": 826
+          "column": 34,
+          "line": 17,
+          "position": 816
         },
         "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
         "start": 11,
@@ -923,28 +923,28 @@
           "position": 570
         }
       },
-      "tokens": 55
+      "tokens": 54
     },
     {
       "firstFile": {
-        "end": 46,
+        "end": 36,
         "endLoc": {
           "column": 12,
-          "line": 46,
-          "position": 1424
+          "line": 36,
+          "position": 1155
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 37,
+        "start": 26,
         "startLoc": {
-          "column": 4,
-          "line": 37,
-          "position": 1270
+          "column": 22,
+          "line": 26,
+          "position": 995
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillStyle = colors.white;\n    ctx.beginPath();\n    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);\n    ctx.fill();\n\n    ctx.restore();\n  }\n};\n\nexport const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {",
+      "fragment": "    ctx.shadowBlur = 0;\n    ctx.fillStyle = colors.white;\n    ctx.beginPath();\n    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);\n    ctx.fill();\n\n    ctx.restore();\n  }\n};\n\nexport const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {",
       "isNew": false,
-      "lines": 10,
+      "lines": 11,
       "secondFile": {
         "end": 86,
         "endLoc": {
@@ -953,29 +953,29 @@
           "position": 3332
         },
         "name": "pong/rendering/PongCanvasVisuals.ts",
-        "start": 72,
+        "start": 69,
         "startLoc": {
-          "column": 4,
-          "line": 72,
-          "position": 2991
+          "column": 16,
+          "line": 69,
+          "position": 2962
         }
       },
-      "tokens": 52
+      "tokens": 53
     },
     {
       "firstFile": {
-        "end": 55,
+        "end": 45,
         "endLoc": {
           "column": 9,
-          "line": 55,
-          "position": 1838
+          "line": 45,
+          "position": 1569
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 48,
+        "start": 38,
         "startLoc": {
           "column": 4,
-          "line": 48,
-          "position": 1547
+          "line": 38,
+          "position": 1278
         }
       },
       "format": "typescript",
@@ -1001,18 +1001,18 @@
     },
     {
       "firstFile": {
-        "end": 73,
+        "end": 63,
         "endLoc": {
           "column": 25,
-          "line": 73,
-          "position": 2338
+          "line": 63,
+          "position": 2069
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 62,
+        "start": 52,
         "startLoc": {
           "column": 15,
-          "line": 62,
-          "position": 2016
+          "line": 52,
+          "position": 1747
         }
       },
       "format": "typescript",
@@ -1038,18 +1038,18 @@
     },
     {
       "firstFile": {
-        "end": 85,
+        "end": 75,
         "endLoc": {
           "column": 12,
-          "line": 85,
-          "position": 2590
+          "line": 75,
+          "position": 2321
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 74,
+        "start": 64,
         "startLoc": {
           "column": 29,
-          "line": 74,
-          "position": 2373
+          "line": 64,
+          "position": 2104
         }
       },
       "format": "typescript",
@@ -1090,9 +1090,9 @@
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const brick = world.getComponent(entity, \"Brick\") as BrickComponent | undefined;\n    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };\n    const w = config.BRICK_WIDTH;\n    const h = config.BRICK_HEIGHT;\n\n    let brickColor: string = colors.cyan;\n    if (brick) {\n      if (brick.kind === \"explosive\") brickColor = colors.orange;\n      else if (brick.kind === \"regenerable\") brickColor = colors.green;\n      else if (brick.kind === \"gravitational\") brickColor = colors.purple;\n    }\n\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      brickColor = colors.white;\n    }\n\n    const isMobile = isMobileBrowser();",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const brick = world.getComponent(entity, \"Brick\") as BrickComponent | undefined;\n    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };\n    const w = config.BRICK_WIDTH;\n    const h = config.BRICK_HEIGHT;\n\n    let brickColor: string = colors.cyan;\n    if (brick) {\n      if (brick.kind === \"explosive\") brickColor = colors.orange;\n      else if (brick.kind === \"regenerable\") brickColor = colors.green;\n      else if (brick.kind === \"gravitational\") brickColor = colors.purple;\n    }\n\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      brickColor = colors.white;\n    }",
       "isNew": false,
-      "lines": 20,
+      "lines": 18,
       "secondFile": {
         "end": 128,
         "endLoc": {
@@ -1108,7 +1108,7 @@
           "position": 3339
         }
       },
-      "tokens": 157
+      "tokens": 156
     },
     {
       "firstFile": {
@@ -4849,55 +4849,55 @@
     },
     {
       "firstFile": {
-        "end": 22,
+        "end": 17,
         "endLoc": {
           "column": 26,
-          "line": 22,
-          "position": 955
+          "line": 17,
+          "position": 731
         },
         "name": "frogger/rendering/FroggerCanvasVisuals.ts",
-        "start": 7,
+        "start": 8,
         "startLoc": {
           "column": 4,
-          "line": 7,
-          "position": 333
+          "line": 8,
+          "position": 440
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const frogger = world.getComponent(entity, \"Frogger\");\n    const health = world.getComponent(entity, \"Health\");\n    const isInvulnerable =\n      (frogger?.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) ||\n      (health?.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0);\n\n    // Blinking effect during invulnerability (10Hz flash at 60fps)\n    if (isInvulnerable && Math.floor(world.tick / 3) % 2 === 0) {\n      return;\n    }\n\n    const size = render.size || 32;\n    const half = size / 2;",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    if (shouldSkipFroggerRenderDueToInvulnerability(world, entity)) {\n      return;\n    }\n\n    const isInvuln = isFroggerInvulnerable(world, entity);\n    const size = render.size || 32;\n    const half = size / 2;",
       "isNew": false,
-      "lines": 16,
+      "lines": 10,
       "secondFile": {
-        "end": 24,
+        "end": 19,
         "endLoc": {
           "column": 26,
-          "line": 24,
-          "position": 1017
+          "line": 19,
+          "position": 793
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 9,
+        "start": 10,
         "startLoc": {
           "column": 4,
-          "line": 9,
-          "position": 395
+          "line": 10,
+          "position": 502
         }
       },
-      "tokens": 113
+      "tokens": 58
     },
     {
       "firstFile": {
-        "end": 162,
+        "end": 157,
         "endLoc": {
           "column": 48,
-          "line": 162,
-          "position": 4655
+          "line": 157,
+          "position": 4419
         },
         "name": "frogger/rendering/FroggerCanvasVisuals.ts",
-        "start": 155,
+        "start": 150,
         "startLoc": {
           "column": 13,
-          "line": 155,
-          "position": 4429
+          "line": 150,
+          "position": 4193
         }
       },
       "format": "typescript",
@@ -4905,36 +4905,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 115,
+        "end": 110,
         "endLoc": {
           "column": 48,
-          "line": 115,
-          "position": 3974
+          "line": 110,
+          "position": 3744
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 109,
+        "start": 104,
         "startLoc": {
           "column": 45,
-          "line": 109,
-          "position": 3788
+          "line": 104,
+          "position": 3558
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 188,
+        "end": 183,
         "endLoc": {
           "column": 26,
-          "line": 188,
-          "position": 5355
+          "line": 183,
+          "position": 5119
         },
         "name": "frogger/rendering/FroggerCanvasVisuals.ts",
-        "start": 183,
+        "start": 178,
         "startLoc": {
           "column": 4,
-          "line": 183,
-          "position": 5147
+          "line": 178,
+          "position": 4911
         }
       },
       "format": "typescript",
@@ -4942,36 +4942,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 129,
+        "end": 124,
         "endLoc": {
           "column": 26,
-          "line": 129,
-          "position": 4384
+          "line": 124,
+          "position": 4154
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 124,
+        "start": 119,
         "startLoc": {
           "column": 4,
-          "line": 124,
-          "position": 4176
+          "line": 119,
+          "position": 3946
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 48,
+        "end": 43,
         "endLoc": {
           "column": 32,
-          "line": 48,
-          "position": 1877
+          "line": 43,
+          "position": 1647
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 42,
+        "start": 37,
         "startLoc": {
           "column": 24,
-          "line": 42,
-          "position": 1658
+          "line": 37,
+          "position": 1428
         }
       },
       "format": "typescript",
@@ -4979,36 +4979,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 66,
+        "end": 61,
         "endLoc": {
           "column": 32,
-          "line": 66,
-          "position": 2428
+          "line": 61,
+          "position": 2198
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 60,
+        "start": 55,
         "startLoc": {
           "column": 26,
-          "line": 60,
-          "position": 2209
+          "line": 55,
+          "position": 1979
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 48,
+        "end": 43,
         "endLoc": {
           "column": 32,
-          "line": 48,
-          "position": 1877
+          "line": 43,
+          "position": 1647
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 42,
+        "start": 37,
         "startLoc": {
           "column": 24,
-          "line": 42,
-          "position": 1658
+          "line": 37,
+          "position": 1428
         }
       },
       "format": "typescript",
@@ -5016,36 +5016,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 87,
+        "end": 82,
         "endLoc": {
           "column": 32,
-          "line": 87,
-          "position": 3132
+          "line": 82,
+          "position": 2902
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 81,
+        "start": 76,
         "startLoc": {
           "column": 24,
-          "line": 81,
-          "position": 2913
+          "line": 76,
+          "position": 2683
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 49,
+        "end": 44,
         "endLoc": {
           "column": 9,
-          "line": 49,
-          "position": 1891
+          "line": 44,
+          "position": 1661
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 42,
+        "start": 37,
         "startLoc": {
           "column": 24,
-          "line": 42,
-          "position": 1658
+          "line": 37,
+          "position": 1428
         }
       },
       "format": "typescript",
@@ -5053,18 +5053,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 106,
+        "end": 101,
         "endLoc": {
           "column": 9,
-          "line": 106,
-          "position": 3685
+          "line": 101,
+          "position": 3455
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 99,
+        "start": 94,
         "startLoc": {
           "column": 27,
-          "line": 99,
-          "position": 3452
+          "line": 94,
+          "position": 3222
         }
       },
       "tokens": 54
@@ -6533,18 +6533,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 101,
+        "end": 87,
         "endLoc": {
           "column": 51,
-          "line": 101,
-          "position": 3000
+          "line": 87,
+          "position": 2566
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 90,
+        "start": 76,
         "startLoc": {
           "column": 14,
-          "line": 90,
-          "position": 2646
+          "line": 76,
+          "position": 2212
         }
       },
       "tokens": 95
@@ -7883,32 +7883,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-14T12:49:00.753Z",
+    "detectionDate": "2026-09-14T13:09:43.384Z",
     "formats": {
       "typescript": {
         "clones": 213,
-        "duplicatedLines": 2223,
-        "duplicatedTokens": 16937,
-        "lines": 65055,
+        "duplicatedLines": 2217,
+        "duplicatedTokens": 16882,
+        "lines": 65072,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.4171086004150335,
-        "percentageTokens": 4.9807967157384585,
-        "sources": 379,
-        "tokens": 340046
+        "percentage": 3.406995328251783,
+        "percentageTokens": 4.96333797856139,
+        "sources": 380,
+        "tokens": 340134
       }
     },
     "total": {
       "clones": 213,
-      "duplicatedLines": 2223,
-      "duplicatedTokens": 16937,
-      "lines": 65055,
+      "duplicatedLines": 2217,
+      "duplicatedTokens": 16882,
+      "lines": 65072,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.4171086004150335,
-      "percentageTokens": 4.9807967157384585,
-      "sources": 379,
-      "tokens": 340046
+      "percentage": 3.406995328251783,
+      "percentageTokens": 4.96333797856139,
+      "sources": 380,
+      "tokens": 340134
     }
   }
 }

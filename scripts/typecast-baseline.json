@@ -960,8 +960,8 @@
     "total": 1
   },
   "src/utils/MutatorRegistry.ts": {
-    "anyCount": 15,
+    "anyCount": 19,
     "unknownCount": 0,
-    "total": 15
+    "total": 19
   }
 }

@@ -400,12 +400,45 @@ export class ComboHUDRenderSystem extends System<SpaceInvadersComponentRegistry>
 /**
  * Canvas ShapeDrawer for Combo HUD overlaid in Space Invaders screen.
  */
+export function drawEmpChargeBarHUD(ctx: CanvasRenderingContext2D, world: World<SpaceInvadersComponentRegistry>): void {
+  const playerEntity = world.query("Player", "EmpAbility")[0];
+  if (playerEntity === undefined) return;
+  const emp = world.getComponent(playerEntity, "EmpAbility");
+  if (!emp) return;
+
+  ctx.save();
+  const barWidth = 120;
+  const barHeight = 10;
+  const x = 20;
+  const y = GAME_CONFIG.SCREEN_HEIGHT - 30;
+
+  ctx.fillStyle = "rgba(10, 14, 39, 0.85)";
+  ctx.fillRect(x, y, barWidth, barHeight);
+
+  const isReady = emp.charge >= 1.0;
+  ctx.fillStyle = isReady ? "#00FFFF" : "#0088FF";
+  ctx.fillRect(x, y, barWidth * emp.charge, barHeight);
+
+  ctx.strokeStyle = isReady ? "#FFFFFF" : "#00FFFF";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, barWidth, barHeight);
+
+  ctx.font = "bold 10px monospace";
+  ctx.fillStyle = isReady ? "#FFFFFF" : "#00FFFF";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+  ctx.fillText(isReady ? "EMP READY [E]" : `EMP ${Math.floor(emp.charge * 100)}%`, x, y - 2);
+
+  ctx.restore();
+}
+
 export const drawSpaceInvadersComboHUD: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world) {
     drawPlayerRoleBadges(ctx, world);
     drawActiveMutatorsHUD(ctx, world);
     drawWaveEventBanner(ctx, world);
     drawKamikazeHUD(ctx, world);
+    drawEmpChargeBarHUD(ctx, world);
 
     const comboEntities = world.query("Combo");
     if (comboEntities.length > 0) {

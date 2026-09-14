@@ -37,11 +37,22 @@ export interface BossComponent extends Component {
 export interface KamikazeComponent extends Component {
   type: "Kamikaze";
   variant?: "standard" | "splitter" | "trail";
-  phase: "warning" | "diving" | "returning";
+  phase: "warning" | "telegraphing" | "diving" | "returning";
   warningRemaining: number;
+  telegraphRemaining?: number;
+  targetX?: number;
+  targetY?: number;
   originX: number;
   originY: number;
   diveSpeed: number;
+}
+
+export interface EmpAbilityComponent extends Component {
+  type: "EmpAbility";
+  charge: number;
+  cooldownRemaining: number;
+  radius: number;
+  chargePerKill: number;
 }
 
 export interface TeleporterComponent extends Component {
@@ -86,6 +97,7 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   Kamikaze: KamikazeComponent;
   Teleporter: TeleporterComponent;
   PlayerRole: PlayerRoleComponent;
+  EmpAbility: EmpAbilityComponent;
   UIText: UITextComponent;
   Combo: ComboComponent;
   Damage: DamageComponent;
@@ -172,6 +184,7 @@ export interface FormationComponent extends Component {
   rightBound: number;
   fireCooldownRemaining: number;
   totalInvaders: number;
+  stunnedRemaining?: number;
 }
 
 /**

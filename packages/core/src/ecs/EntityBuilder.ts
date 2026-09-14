@@ -122,6 +122,7 @@ export class EntityBuilder<
       rotation: config?.rotation ?? 0,
       angularVelocity: config?.angularVelocity ?? 0,
       hitFlashFrames: config?.hitFlashFrames ?? 0,
+      muzzleFlashFrames: config?.muzzleFlashFrames ?? 0,
       spriteId: config?.spriteId,
       color: config?.color,
       shape: config?.shape,

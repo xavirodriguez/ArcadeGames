@@ -153,13 +153,22 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     canvas.drawRect(Skia!.XYWHRect(-size / 3 - 1, -size / 3, 2, size / 4), paint);
     canvas.drawRect(Skia!.XYWHRect(size / 3 - 1, -size / 3, 2, size / 4), paint);
 
-    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
+    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares / Muzzle Flash
     const isShooting = isPlayerShooting(world, entity);
-    if (isShooting) {
-      const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
+    const muzzleFlashFrames = render.muzzleFlashFrames ?? 0;
+    if (isShooting || muzzleFlashFrames > 0) {
+      const flashSize = (3.5 + 1.5 * Math.sin(tick * 0.8)) * (muzzleFlashFrames > 0 ? 1.8 : 1.0);
+      if (muzzleFlashFrames > 0) {
+        paint.setColor(Skia!.Color("#FFFFFF"));
+        canvas.drawCircle(0, -size / 2 - 4, flashSize * 1.5, paint);
+      }
       paint.setColor(Skia!.Color("#00FFFF"));
       canvas.drawCircle(-size / 3, -size / 3 - 2, flashSize, paint);
       canvas.drawCircle(size / 3, -size / 3 - 2, flashSize, paint);
+
+      if (muzzleFlashFrames > 0) {
+        render.muzzleFlashFrames = muzzleFlashFrames - 1;
+      }
     }
 
     // High-energy cockpit glass canopy (Cyan)
@@ -287,35 +296,62 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     canvas.drawRect(Skia!.XYWHRect(-s * 2, -s * 2, s, s), paint);
     canvas.drawRect(Skia!.XYWHRect(s, -s * 2, s, s), paint);
 
-    // Draw warning column indicator if kamikaze is in warning phase
+    // Draw telegraphing laser line and crosshair or warning column indicator
     const kami = world.getComponent(entity, "Kamikaze");
-    if (kami && kami.phase === "warning") {
-      const pulse = computeSinePulse(tick, 0.4, 0.4, 0.6);
-      canvas.save();
+    if (kami) {
+      if (kami.phase === "telegraphing") {
+        canvas.save();
+        const blinkAlpha = 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3));
+        const pos = world.getComponent(entity, "Transform");
+        const targetX = kami.targetX ?? (pos ? pos.x : 0);
+        const targetY = kami.targetY ?? GAME_CONFIG.SCREEN_HEIGHT;
+        const relTargetX = targetX - (pos ? pos.x : 0);
+        const relTargetY = targetY - (pos ? pos.y : 0);
 
-      const pos = world.getComponent(entity, "Transform");
-      const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
+        paint.reset();
+        paint.setAntiAlias(true);
+        paint.setStyle(Skia!.PaintStyle.Stroke);
+        paint.setColor(Skia!.Color("#FF0000"));
+        paint.setStrokeWidth(1.5);
+        paint.setAlphaf(blinkAlpha);
 
-      const arrowPath = Skia!.Path.Make();
-      arrowPath.moveTo(0, bottomRelY);
-      arrowPath.lineTo(-8, bottomRelY - 14);
-      arrowPath.lineTo(8, bottomRelY - 14);
-      arrowPath.close();
+        canvas.drawLine(0, 0, relTargetX, relTargetY, paint);
 
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia!.PaintStyle.Fill);
-      paint.setColor(Skia!.Color(colors.danger));
-      paint.setAlphaf(pulse);
-      canvas.drawPath(arrowPath, paint);
+        paint.setColor(Skia!.Color(colors.redHot));
+        paint.setStrokeWidth(2);
+        canvas.drawCircle(relTargetX, relTargetY, 12, paint);
+        canvas.drawLine(relTargetX - 16, relTargetY, relTargetX + 16, relTargetY, paint);
+        canvas.drawLine(relTargetX, relTargetY - 16, relTargetX, relTargetY + 16, paint);
 
-      paint.setStyle(Skia!.PaintStyle.Stroke);
-      paint.setColor(Skia!.Color(colors.magentaHot));
-      paint.setStrokeWidth(2);
-      paint.setAlphaf(pulse);
-      canvas.drawPath(arrowPath, paint);
+        canvas.restore();
+      } else if (kami.phase === "warning") {
+        const pulse = computeSinePulse(tick, 0.4, 0.4, 0.6);
+        canvas.save();
 
-      canvas.restore();
+        const pos = world.getComponent(entity, "Transform");
+        const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
+
+        const arrowPath = Skia!.Path.Make();
+        arrowPath.moveTo(0, bottomRelY);
+        arrowPath.lineTo(-8, bottomRelY - 14);
+        arrowPath.lineTo(8, bottomRelY - 14);
+        arrowPath.close();
+
+        paint.reset();
+        paint.setAntiAlias(true);
+        paint.setStyle(Skia!.PaintStyle.Fill);
+        paint.setColor(Skia!.Color(colors.danger));
+        paint.setAlphaf(pulse);
+        canvas.drawPath(arrowPath, paint);
+
+        paint.setStyle(Skia!.PaintStyle.Stroke);
+        paint.setColor(Skia!.Color(colors.magentaHot));
+        paint.setStrokeWidth(2);
+        paint.setAlphaf(pulse);
+        canvas.drawPath(arrowPath, paint);
+
+        canvas.restore();
+      }
     }
   }
 };

@@ -29,6 +29,8 @@ describe('PassportOverlay Structure & Interface', () => {
       siKills: 120,
       pongSetsWon: 5,
       totalPlaytimeTicks: 12000,
+      empActivations: 3,
+      chargedShotsFired: 8,
     },
     unlockedAchievements: [],
     storyChapterUnlocked: 1,

@@ -17,17 +17,23 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
 
     if (state.level === 33) return;
 
-    if (state.bricksRemaining <= 0 || state.portalActive) {
-      const activeBricks = world.query("Brick");
-      let destructibleCount = 0;
-      for (let i = 0; i < activeBricks.length; i++) {
-        const bComp = world.getComponent(activeBricks[i], "Brick");
-        if (bComp && bComp.material !== "gold" && !bComp.isDestroyed) {
-          destructibleCount++;
-        }
+    const activeBricks = world.query("Brick");
+    let destructibleCount = 0;
+    for (let i = 0; i < activeBricks.length; i++) {
+      const bComp = world.getComponent(activeBricks[i], "Brick");
+      const health = world.getComponent(activeBricks[i], "Health");
+      if (bComp && bComp.material !== "gold" && !bComp.isDestroyed && (!health || health.current > 0)) {
+        destructibleCount++;
       }
+    }
 
-      if (destructibleCount === 0 || state.portalActive) {
+    if (state.bricksRemaining !== destructibleCount && !state.portalActive) {
+      world.mutateSingleton("ArkanoidState", (s) => {
+        s.bricksRemaining = destructibleCount;
+      });
+    }
+
+    if (destructibleCount === 0 || state.portalActive) {
         const nextLevel = Math.min(33, state.level + 1);
         world.mutateSingleton("ArkanoidState", (s) => {
           s.level = nextLevel;
@@ -61,7 +67,6 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
           }
         }
       }
-    }
   }
 
   public spawnLevelBricks(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, level: number): void {

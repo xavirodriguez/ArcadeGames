@@ -24,9 +24,9 @@ export class ArkanoidPowerUpSpawnSystem extends System<ArkanoidComponentRegistry
     const capsuleEntity = EntityBuilder.createDeferred(world)
       .withTransform({ x, y, dirty: true })
       .withVelocity({ vx: 0, vy: 120 })
-      .withRender({ shape: "box", size: 16, color: this.getCapsuleColor(type), order: 3 })
+      .withRender({ shape: "capsule", size: 16, color: this.getCapsuleColor(type), order: 3 })
       .withCollider({
-        shape: { type: ShapeType.Box, width: 20, height: 12 } as BoxShape,
+        shape: { type: ShapeType.Box, width: 24, height: 14 } as BoxShape,
         layer: 4,
         mask: 1
       })
@@ -198,6 +198,12 @@ export class ArkanoidLaserSystem extends System<ArkanoidComponentRegistry, Arkan
       const lEntity = lasers[i];
       if (!WorldUtils.isEntityActive(world, lEntity)) continue;
 
+      const transform = world.getComponent(lEntity, "Transform");
+      if (transform && transform.y < 0) {
+        world.getCommandBuffer().removeEntity(lEntity);
+        continue;
+      }
+
       const events = world.getComponent(lEntity, "CollisionEvents");
       if (!events) continue;
 
@@ -225,6 +231,11 @@ export class ArkanoidLaserSystem extends System<ArkanoidComponentRegistry, Arkan
                 eventBus.emitDeferred("combat:hit", { targetEntity: other, attackerEntity: lEntity, damage: 1 });
               }
             }
+            } else if (brick && brick.material === "gold") {
+              const eventBus = world.getEventBus();
+              if (eventBus && !world.isReSimulating) {
+                eventBus.emitDeferred("PlaySFX", { name: "hit" });
+              }
           }
           world.getCommandBuffer().removeEntity(lEntity);
           break;

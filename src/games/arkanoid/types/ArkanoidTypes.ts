@@ -46,6 +46,8 @@ export interface BallComponent {
   speed: number;
   spinFactor: number;
   attachedOffsetX?: number;
+  stuckBounces?: number;
+  timeSincePaddle?: number;
 }
 
 export interface BrickComponent {

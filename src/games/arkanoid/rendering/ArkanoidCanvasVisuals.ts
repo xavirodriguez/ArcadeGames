@@ -72,6 +72,42 @@ export const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidC
   }
 };
 
+export const drawArkanoidCapsule: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
+
+    const capsule = world.getComponent(entity, "Capsule");
+    const capsuleType = capsule?.capsuleType || "E";
+    const capsuleColor = render.color || colors.cyan;
+
+    const w = 24;
+    const h = 14;
+
+    ctx.save();
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = capsuleColor;
+    ctx.fillStyle = capsuleColor;
+
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(-w / 2, -h / 2, w, h, 7);
+      ctx.fill();
+    } else {
+      ctx.fillRect(-w / 2, -h / 2, w, h);
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = colors.background;
+    ctx.font = "bold 11px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(capsuleType, 0, 1);
+
+    ctx.restore();
+  }
+};
+
 export const drawArkanoidBrick: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");

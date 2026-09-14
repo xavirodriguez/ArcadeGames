@@ -1297,43 +1297,6 @@
     },
     {
       "firstFile": {
-        "end": 41,
-        "endLoc": {
-          "column": 65,
-          "line": 41,
-          "position": 1526
-        },
-        "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 35,
-        "startLoc": {
-          "column": 42,
-          "line": 35,
-          "position": 1286
-        }
-      },
-      "format": "typescript",
-      "fragment": "    if (world.hasComponent(target, \"Brick\")) {\n      world.mutateComponent(target, \"Render\", (render) => {\n        render.hitFlashFrames = 4;\n      });\n\n      world.setResource(\"GameplayFreeze\", { remaining: 0.04 });\n      Juice.squash(world as World<CoreComponentRegistry>, target, 1.15, 0.85, 120);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 147,
-        "endLoc": {
-          "column": 65,
-          "line": 147,
-          "position": 6143
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 140,
-        "startLoc": {
-          "column": 44,
-          "line": 140,
-          "position": 5805
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
         "end": 271,
         "endLoc": {
           "column": 19,
@@ -1871,18 +1834,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 196,
+        "end": 207,
         "endLoc": {
           "column": 30,
-          "line": 196,
-          "position": 7886
+          "line": 207,
+          "position": 8433
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 188,
+        "start": 199,
         "startLoc": {
           "column": 8,
-          "line": 188,
-          "position": 7579
+          "line": 199,
+          "position": 8126
         }
       },
       "tokens": 57
@@ -3758,18 +3721,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 487,
+        "end": 549,
         "endLoc": {
           "column": 83,
-          "line": 487,
-          "position": 18711
+          "line": 549,
+          "position": 21236
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 481,
+        "start": 543,
         "startLoc": {
           "column": 47,
-          "line": 481,
-          "position": 18511
+          "line": 543,
+          "position": 21036
         }
       },
       "tokens": 51
@@ -6625,40 +6588,40 @@
     },
     {
       "firstFile": {
-        "end": 216,
+        "end": 315,
         "endLoc": {
-          "column": 29,
-          "line": 216,
-          "position": 10432
+          "column": 97,
+          "line": 315,
+          "position": 10048
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 211,
+        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "start": 309,
         "startLoc": {
-          "column": 44,
-          "line": 211,
-          "position": 10142
+          "column": 53,
+          "line": 309,
+          "position": 9711
         }
       },
       "format": "typescript",
-      "fragment": "    this.blueprints.register(\"player_bullet\", {\n      spawn: (world, entity, args: { x: number, y: number }) => {\n        const config = world.getResource<SpaceInvadersConfig>(\"GameConfig\") || GAME_CONFIG;\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withVelocity({ vy: -config.PLAYER_BULLET_SPEED })",
+      "fragment": "    ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);\n\n    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares / Muzzle Flash\n    const isShooting = isPlayerShooting(world, entity);\n    const muzzleFlashFrames = render.muzzleFlashFrames ?? 0;\n    if (isShooting || muzzleFlashFrames > 0) {\n      const flashSize = (3.5 + 1.5 * Math.sin(tick * 0.8)) * (muzzleFlashFrames > 0 ? 1.8 : 1.0);",
       "isNew": false,
-      "lines": 6,
+      "lines": 7,
       "secondFile": {
-        "end": 249,
+        "end": 160,
         "endLoc": {
-          "column": 29,
-          "line": 249,
-          "position": 11980
+          "column": 97,
+          "line": 160,
+          "position": 6846
         },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 244,
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "start": 154,
         "startLoc": {
-          "column": 43,
-          "line": 244,
-          "position": 11690
+          "column": 79,
+          "line": 154,
+          "position": 6509
         }
       },
-      "tokens": 69
+      "tokens": 58
     },
     {
       "firstFile": {
@@ -6918,6 +6881,43 @@
         }
       },
       "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 522,
+        "endLoc": {
+          "column": 3,
+          "line": 522,
+          "position": 20119
+        },
+        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
+        "start": 506,
+        "startLoc": {
+          "column": 89,
+          "line": 506,
+          "position": 19517
+        }
+      },
+      "format": "typescript",
+      "fragment": "  private removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: Entity): void {\n    if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, \"Transform\")) {\n      return;\n    }\n    const reclaimable = world.getComponent(bullet, \"Reclaimable\");\n    if (reclaimable) {\n      if (typeof reclaimable.onReclaim === \"function\") {\n        reclaimable.onReclaim({ world, entity: bullet });\n      } else {\n        const pool = world.getResource<any>(reclaimable.poolId);\n        if (pool && typeof pool.release === \"function\") {\n          pool.release({ world, entity: bullet });\n        }\n      }\n    }\n    world.getCommandBuffer().removeEntity(bullet);\n  }",
+      "isNew": false,
+      "lines": 17,
+      "secondFile": {
+        "end": 24,
+        "endLoc": {
+          "column": 1,
+          "line": 24,
+          "position": 1088
+        },
+        "name": "space-invaders/systems/SpaceInvadersInputSystem.ts",
+        "start": 8,
+        "startLoc": {
+          "column": 88,
+          "line": 8,
+          "position": 518
+        }
+      },
+      "tokens": 128
     }
   ],
   "statistics": {

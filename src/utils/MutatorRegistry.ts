@@ -367,6 +367,52 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
       runMutatorHooks(world, "bouncing_bullets");
     }
   },
+  "emp_overcharge": {
+    id: "emp_overcharge",
+    name: "Sobrecarga de EMP",
+    description: "Incrementa un 50% la ganancia de carga del EMP por cada invasor destruido.",
+    rarity: "RARE",
+    tags: ["combat", "emp"],
+    supportedGames: ["space-invaders"],
+    xpCost: 600,
+    canDraft: (world, context) => {
+      const target = context?.targetEntity;
+      if (target !== undefined) {
+        return world.hasComponent(target, "EmpAbility" as any);
+      }
+      return world.query("Player", "EmpAbility").length > 0;
+    },
+    apply: (world, context) => {
+      const target = context?.targetEntity;
+      if (target !== undefined && world.hasComponent(target, "EmpAbility" as any)) {
+        world.mutateComponent(target, "EmpAbility" as any, (emp: any) => {
+          emp.chargePerKill *= 1.5;
+        });
+      } else {
+        const players = world.query("Player", "EmpAbility");
+        for (const p of players) {
+          world.mutateComponent(p, "EmpAbility" as any, (emp: any) => {
+            emp.chargePerKill *= 1.5;
+          });
+        }
+      }
+      runMutatorHooks(world, "emp_overcharge");
+    }
+  },
+  "plasma_pierce": {
+    id: "plasma_pierce",
+    name: "Plasma Perforante",
+    description: "Tus proyectiles están cargados de plasma y atraviesan los escudos destruyendo 1 objetivo adicional.",
+    rarity: "EPIC",
+    tags: ["combat", "bullet", "pierce"],
+    supportedGames: ["space-invaders"],
+    xpCost: 800,
+    canDraft: (world, context) => true,
+    apply: (world, context) => {
+      world.setResource("HasPlasmaPierce", true);
+      runMutatorHooks(world, "plasma_pierce");
+    }
+  },
 };
 
 /**

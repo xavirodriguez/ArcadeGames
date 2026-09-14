@@ -142,13 +142,24 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         render.hitFlashFrames = 4;
       });
 
-      // Apply micro freeze-frame hit-stop (40ms) and Squash & Stretch deformation on invader hit
-      world.setResource("GameplayFreeze", { remaining: 0.04 });
+      // Apply micro freeze-frame hit-stop (30ms) and Squash & Stretch deformation on invader hit
+      world.setResource("GameplayFreeze", { remaining: 0.03 });
       Juice.squash(world as World<CoreComponentRegistry>, target, 1.25, 0.75, 120);
 
       const pos = world.getComponent(target, "Transform");
       if (pos) {
-        // Small spark burst emitter (3-6 sparks)
+        // Calculate bullet velocity/direction before particle burst for directional impact sparks
+        let sparkAngle: [number, number] = [0, 360];
+        const sourceBullet = event.sourceEntity;
+        if (sourceBullet && world.hasComponent(sourceBullet, "Velocity")) {
+          const vel = world.getComponent(sourceBullet, "Velocity");
+          if (vel && (vel.vx !== 0 || vel.vy !== 0)) {
+            const theta = (Math.atan2(vel.vy, vel.vx) * 180) / Math.PI;
+            sparkAngle = [theta - 30, theta + 30];
+          }
+        }
+
+        // Small directional spark burst emitter
         const sparkEmitter = createEmitter(world, {
           type: "spark",
           x: pos.x,
@@ -160,7 +171,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
           speed: [80, 180],
           size: [2, 4],
           color: ["#00FFFF", "#FFFFFF", "#FFFF00"],
-          angle: [0, 360],
+          angle: sparkAngle,
           loop: false
         });
         world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
@@ -236,6 +247,16 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         if (eventBus) {
           eventBus.emitDeferred("si:kill", { chain: nextCombo });
           eventBus.emitDeferred("entity:destroyed", { entity: target, type: "Invader" });
+
+          // If killed by a piercing bullet that destroyed more than one target
+          const sourceBullet = event.sourceEntity;
+          if (sourceBullet && world.hasComponent(sourceBullet, "PlayerBullet")) {
+            const dmg = world.getComponent(sourceBullet, "Damage");
+            if (dmg && dmg.charged === true) {
+              eventBus.emitDeferred("si:pierce_kill", { bullet: sourceBullet, target });
+            }
+          }
+
           if (!world.isReSimulating) {
             eventBus.emitDeferred("PlaySFX", { name: "explosion_small", pitchRange: 0.05 });
             if (nextCombo > 1 && nextCombo % 5 === 0) {
@@ -251,6 +272,14 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
               gs.kamikazesActive = nextKamikazes;
           });
         }
+      }
+
+      // Charge player EMP ability on invader death
+      const playerEntity = world.query("Player", "EmpAbility")[0];
+      if (playerEntity !== undefined) {
+        world.mutateComponent(playerEntity, "EmpAbility", emp => {
+          emp.charge = Math.min(1.0, emp.charge + emp.chargePerKill);
+        });
       }
 
       world.getCommandBuffer().removeEntity(target);
@@ -334,11 +363,44 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         this.damageShield(world, shield, destroyedEntities);
       }
       if (WorldUtils.isEntityActive(world, bullet) && !destroyedEntities.has(bullet)) {
-        if (world.hasComponent(bullet, "PlayerBullet")) {
-          // Charged shot logic: passing through own shield supercharges bullet, changing consumption to "remove-component"
-          const dmg = world.getMutableComponent(bullet, "Damage");
-          if (dmg) {
-            dmg.consumption = "remove-component";
+        const dmg = world.getComponent(bullet, "Damage");
+        if (dmg && dmg.charged === true && dmg.piercing !== undefined && dmg.piercing > 0) {
+          world.mutateComponent(bullet, "Damage", d => {
+            d.piercing! -= 1;
+            if (d.piercing! <= 0) {
+              d.consumption = "destroy-entity";
+            }
+          });
+
+          const pos = world.getComponent(bullet, "Transform");
+          if (pos) {
+            const sparkEmitter = createEmitter(world, {
+              type: "spark",
+              x: pos.x,
+              y: pos.y,
+              rate: 0,
+              burst: true,
+              count: 6,
+              lifetime: [0.15, 0.3],
+              speed: [100, 200],
+              size: [2, 4],
+              color: ["#00FFFF", "#0088FF", "#FFFFFF"],
+              angle: [0, 360],
+              loop: false
+            });
+            world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
+          }
+
+          const updatedDmg = world.getComponent(bullet, "Damage");
+          if (updatedDmg && (updatedDmg.piercing ?? 0) <= 0) {
+            destroyedEntities.add(bullet);
+            this.removeBulletSafely(world, bullet);
+          }
+        } else if (world.hasComponent(bullet, "PlayerBullet")) {
+          // Charged shot logic: passing through own shield supercharges bullet
+          const mutableDmg = world.getMutableComponent(bullet, "Damage");
+          if (mutableDmg) {
+            mutableDmg.consumption = "remove-component";
           }
           const render = world.getMutableComponent(bullet, "Render");
           if (render) {

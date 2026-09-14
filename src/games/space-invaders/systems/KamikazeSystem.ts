@@ -39,12 +39,39 @@ export class KamikazeSystem extends GameSystem {
         const mutableKami = world.getMutableComponent(entity, "Kamikaze");
         if (nextWarning <= 0) {
           if (mutableKami) {
-            mutableKami.phase = "diving";
+            mutableKami.phase = "telegraphing";
             mutableKami.warningRemaining = 0;
+            mutableKami.telegraphRemaining = 0.6;
+            if (playerPos) {
+              mutableKami.targetX = playerPos.x;
+              mutableKami.targetY = playerPos.y;
+            } else {
+              mutableKami.targetX = pos.x;
+              mutableKami.targetY = GAME_CONFIG.SCREEN_HEIGHT;
+            }
           }
         } else {
           if (mutableKami) {
             mutableKami.warningRemaining = nextWarning;
+          }
+        }
+
+        const vel = world.getMutableComponent(entity, "Velocity");
+        if (vel) {
+          vel.vx = 0;
+          vel.vy = 0;
+        }
+      } else if (kami.phase === "telegraphing") {
+        const nextTelegraph = (kami.telegraphRemaining ?? 0.6) - deltaTime;
+        const mutableKami = world.getMutableComponent(entity, "Kamikaze");
+        if (nextTelegraph <= 0) {
+          if (mutableKami) {
+            mutableKami.phase = "diving";
+            mutableKami.telegraphRemaining = 0;
+          }
+        } else {
+          if (mutableKami) {
+            mutableKami.telegraphRemaining = nextTelegraph;
           }
         }
 
@@ -132,11 +159,17 @@ export class KamikazeSystem extends GameSystem {
       const color = variant === "standard" ? "#FF4444" : variant === "splitter" ? "#FF006E" : "#FF4444";
       const speed = variant === "standard" ? 180 : variant === "splitter" ? 130 : 100;
 
+      const players = world.query("Player", "Transform");
+      const playerPos = players.length > 0 ? world.getComponent(players[0], "Transform") : null;
+
       world.getCommandBuffer().addComponent(invader, {
         type: "Kamikaze",
         variant,
-        phase: "warning",
-        warningRemaining: 0.5,
+        phase: "telegraphing",
+        warningRemaining: 0,
+        telegraphRemaining: 0.6,
+        targetX: playerPos ? playerPos.x : pos.x,
+        targetY: playerPos ? playerPos.y : GAME_CONFIG.SCREEN_HEIGHT,
         originX: pos.x,
         originY: pos.y,
         diveSpeed: speed,

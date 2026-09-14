@@ -1,9 +1,27 @@
 import { World, Juice, CoreComponentRegistry, createEmitter, PhysicsUtils } from "@tiny-aster/core";
-import { TransformComponent, VelocityComponent } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, WorldUtils } from "@tiny-aster/core";
 import { InputComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { PlayerBulletPool } from "../EntityPool";
 import { createPlayerBullet } from "../EntityFactory";
 import { GameSystem } from "./GameSystem";
+
+function removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: number): void {
+  if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, "Transform")) {
+    return;
+  }
+  const reclaimable = world.getComponent(bullet, "Reclaimable");
+  if (reclaimable) {
+    if (typeof reclaimable.onReclaim === "function") {
+      reclaimable.onReclaim({ world, entity: bullet });
+    } else {
+      const pool = world.getResource<any>(reclaimable.poolId);
+      if (pool && typeof pool.release === "function") {
+        pool.release({ world, entity: bullet });
+      }
+    }
+  }
+  world.getCommandBuffer().removeEntity(bullet);
+}
 
 const InputUtils = {
   isPressed(inputState: { buttons: Record<string, boolean> }, button: string): boolean {
@@ -61,6 +79,22 @@ export class SpaceInvadersInputSystem extends GameSystem {
       const vel = world.getComponent(entity, "Velocity");
 
       if (input && pos && vel) {
+        // EMP Ability Cooldown Update & Input Trigger Check
+        let empActiveTrigger = false;
+        if (world.hasComponent(entity, "EmpAbility")) {
+          const emp = world.getComponent(entity, "EmpAbility");
+          if (emp) {
+            if (emp.cooldownRemaining > 0) {
+              world.mutateComponent(entity, "EmpAbility", e => {
+                e.cooldownRemaining = Math.max(0, e.cooldownRemaining - deltaTime * 1000);
+              });
+            }
+            if (inputState && InputUtils.isPressed(inputState, "emp")) {
+              empActiveTrigger = true;
+            }
+          }
+        }
+
         // 1. Cálculos fuera de la mutación
         let nextMoveLeft = input.moveLeft;
         let nextMoveRight = input.moveRight;
@@ -88,6 +122,46 @@ export class SpaceInvadersInputSystem extends GameSystem {
           if (horizontal > 0.35) nextMoveRight = true;
         }
 
+        // EMP Ability Trigger Logic
+        const empComp = world.getComponent(entity, "EmpAbility");
+        if (empActiveTrigger && empComp && empComp.charge >= 1.0 && empComp.cooldownRemaining <= 0) {
+          const radius = empComp.radius || config.EMP_RADIUS;
+          const enemyBullets = world.query("EnemyBullet", "Transform");
+          let clearedBulletsCount = 0;
+
+          for (let b = 0; b < enemyBullets.length; b++) {
+            const bEntity = enemyBullets[b];
+            const bPos = world.getComponent(bEntity, "Transform");
+            if (bPos) {
+              const dx = bPos.x - pos.x;
+              const dy = bPos.y - pos.y;
+              if (Math.sqrt(dx * dx + dy * dy) <= radius) {
+                removeBulletSafely(world, bEntity);
+                clearedBulletsCount++;
+              }
+            }
+          }
+
+          world.mutateSingleton("Formation", f => {
+            f.stunnedRemaining = config.EMP_STUN_DURATION;
+          });
+
+          world.mutateComponent(entity, "EmpAbility", e => {
+            e.charge = 0;
+            e.cooldownRemaining = config.EMP_COOLDOWN;
+          });
+
+          Juice.shake(world as World<CoreComponentRegistry>, 8, 250);
+
+          const eventBus = world.getEventBus();
+          if (eventBus) {
+            if (!world.isReSimulating) {
+              eventBus.emitDeferred("si:emp_used", { clearedBullets: clearedBulletsCount, x: pos.x, y: pos.y });
+              eventBus.emitDeferred("PlaySFX", { name: "emp_blast", volume: 0.9 });
+            }
+          }
+        }
+
         // Apply movement
         let moveX = 0;
         if (nextMoveLeft) moveX -= 1;
@@ -106,6 +180,10 @@ export class SpaceInvadersInputSystem extends GameSystem {
             // Estructural: fuera de mutación
             createPlayerBullet(world, pos.x, pos.y - 25, this.bulletPool);
             nextShootCooldownRemaining = config.PLAYER_SHOOT_COOLDOWN / 1000;
+
+            world.mutateComponent(entity, "Render", render => {
+              render.muzzleFlashFrames = 3;
+            });
 
             // Physical recoil on player ship (Y axis recoil down ~10px and elastic return)
             Juice.add(world, entity, {

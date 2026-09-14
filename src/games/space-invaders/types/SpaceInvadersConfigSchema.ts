@@ -8,12 +8,14 @@ export const SpaceInvadersConfigSchema = BaseConfigSchema.extend({
     LEFT: z.string().default("ArrowLeft"),
     RIGHT: z.string().default("ArrowRight"),
     SHOOT: z.string().default("Space"),
+    EMP: z.string().default("KeyE"),
     PAUSE: z.string().default("KeyP"),
     RESTART: z.string().default("KeyR")
   }).default({
     LEFT: "ArrowLeft",
     RIGHT: "ArrowRight",
     SHOOT: "Space",
+    EMP: "KeyE",
     PAUSE: "KeyP",
     RESTART: "KeyR"
   }),
@@ -24,6 +26,11 @@ export const SpaceInvadersConfigSchema = BaseConfigSchema.extend({
   PLAYER_COLLIDER_RADIUS: z.number().default(15),
   PLAYER_INITIAL_LIVES: z.number().default(3),
   PLAYER_SHOOT_COOLDOWN: z.number().default(500),
+
+  EMP_RADIUS: z.number().default(250),
+  EMP_COOLDOWN: z.number().default(10000),
+  EMP_STUN_DURATION: z.number().default(3.0),
+  EMP_CHARGE_PER_KILL: z.number().default(0.1),
 
   PLAYER_BULLET_SPEED: z.number().default(500),
   PLAYER_BULLET_TTL: z.number().default(2000),

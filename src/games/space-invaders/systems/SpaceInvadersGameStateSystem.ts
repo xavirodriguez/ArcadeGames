@@ -1,4 +1,4 @@
-import { World, BaseGame, BaseGameStateSystem, PhysicsUtils } from "@tiny-aster/core";
+import { World, BaseGame, BaseGameStateSystem, PhysicsUtils, MetaProgressionService } from "@tiny-aster/core";
 import { GameStateComponent, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { spawnInvaderWave } from "../EntityFactory";
@@ -136,6 +136,10 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         if (gs.continueCountdownRemaining <= 0) {
           // Time expired! Final game over!
           gs.isGameOver = true;
+          const metaService = world.getResource<MetaProgressionService>("MetaProgressionService");
+          if (metaService) {
+            metaService.incrementMiniGameMastery("space-invaders", Math.max(1, gs.score));
+          }
           const eventBus = world.getEventBus();
           if (eventBus) {
             eventBus.emitDeferred("PlaySFX", { name: "game_over" });
@@ -197,6 +201,10 @@ export class SpaceInvadersGameStateSystem extends BaseGameStateSystem<GameStateC
         // No continues left! Final game over
         world.mutateSingleton("GameState", (gs) => {
           gs.isGameOver = true;
+          const metaService = world.getResource<MetaProgressionService>("MetaProgressionService");
+          if (metaService) {
+            metaService.incrementMiniGameMastery("space-invaders", Math.max(1, gs.score));
+          }
         });
         const eventBus = world.getEventBus();
         if (eventBus) {

@@ -381,13 +381,18 @@ describe("Space Invaders Pilot Combat Integration", () => {
     expect(velComp?.vx).toBe(0);
     expect(velComp?.vy).toBe(0);
 
-    // Tick 2: 0.35s elapsed -> warning remaining reaches 0 -> transitions to diving
+    // Tick 2: 0.35s elapsed -> warning remaining reaches 0 -> transitions to telegraphing
     world.update(0.35);
     kamiComp = world.getComponent(kamikaze, "Kamikaze");
-    expect(kamiComp?.phase).toBe("diving");
+    expect(kamiComp?.phase).toBe("telegraphing");
     expect(kamiComp?.warningRemaining).toBe(0);
 
-    // Tick 3: 0.016s elapsed during diving phase -> calculates homing velocity
+    // Tick 3: 0.65s elapsed -> telegraph remaining reaches 0 -> transitions to diving
+    world.update(0.65);
+    kamiComp = world.getComponent(kamikaze, "Kamikaze");
+    expect(kamiComp?.phase).toBe("diving");
+
+    // Tick 4: 0.016s elapsed during diving phase -> calculates homing velocity
     world.update(0.016);
     velComp = world.getComponent(kamikaze, "Velocity");
     expect(velComp?.vy).toBeGreaterThan(0); // Active dive velocity homing towards player

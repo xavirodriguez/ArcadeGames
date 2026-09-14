@@ -155,6 +155,13 @@ export class SpaceInvadersGame
         } as any);
         world.addComponent(entity, { type: "Player" } as any);
         world.addComponent(entity, {
+          type: "EmpAbility",
+          charge: 0,
+          cooldownRemaining: 0,
+          radius: config.EMP_RADIUS,
+          chargePerKill: config.EMP_CHARGE_PER_KILL
+        } as SpaceInvadersComponentRegistry["EmpAbility"]);
+        world.addComponent(entity, {
           type: "Combo",
           combo: initialCombo,
           multiplier: initialMultiplier,
@@ -211,10 +218,14 @@ export class SpaceInvadersGame
     this.blueprints.register("player_bullet", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const hasPlasmaPierce = world.getResource("HasPlasmaPierce") === true;
+        const bulletColor = hasPlasmaPierce ? "cyan" : "yellow";
+        const consumptionMode = hasPlasmaPierce ? "decrement-piercing" : "destroy-entity";
+
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withVelocity({ vy: -config.PLAYER_BULLET_SPEED })
-          .withRender({ shape: "player_bullet", size: config.PLAYER_BULLET_SIZE, color: "yellow", order: 10 })
+          .withRender({ shape: "player_bullet", size: config.PLAYER_BULLET_SIZE, color: bulletColor, order: 10 })
           .withCollider({
             shape: { type: ShapeType.Circle, radius: config.PLAYER_BULLET_SIZE } as CircleShape,
             layer: CollisionLayers.PROJECTILE,
@@ -228,7 +239,9 @@ export class SpaceInvadersGame
           amount: 1,
           category: "player_bullet",
           friendlyFire: false,
-          consumption: "destroy-entity"
+          consumption: consumptionMode,
+          piercing: hasPlasmaPierce ? 1 : undefined,
+          charged: hasPlasmaPierce
         } as DamageComponent);
         world.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as FactionComponent);
         world.addComponent(entity, {
@@ -379,6 +392,7 @@ export class SpaceInvadersGame
     this.unifiedInput.bind("moveLeft", [this.config.KEYS.LEFT]);
     this.unifiedInput.bind("moveRight", [this.config.KEYS.RIGHT]);
     this.unifiedInput.bind("shoot", [this.config.KEYS.SHOOT]);
+    this.unifiedInput.bind("emp", [this.config.KEYS.EMP]);
 
     const gameScene = new SpaceInvadersGameScene(
       this,

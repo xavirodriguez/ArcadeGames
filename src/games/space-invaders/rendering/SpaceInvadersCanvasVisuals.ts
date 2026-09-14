@@ -170,13 +170,23 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.fillRect(-size / 3 - 1, -size / 3, 2, size / 4);
     ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);
 
-    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
+    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares / Muzzle Flash
     const isShooting = isPlayerShooting(world, entity);
-    if (isShooting) {
-      const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
-      ctx.fillStyle = "#00FFFF";
+    const muzzleFlashFrames = render.muzzleFlashFrames ?? 0;
+    if (isShooting || muzzleFlashFrames > 0) {
+      const flashSize = (3.5 + 1.5 * Math.sin(tick * 0.8)) * (muzzleFlashFrames > 0 ? 1.8 : 1.0);
+      ctx.fillStyle = "#FFFFFF";
       ctx.shadowColor = "#00FFFF";
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 12;
+
+      // Center nose tip flash if active muzzle flash
+      if (muzzleFlashFrames > 0) {
+        ctx.beginPath();
+        ctx.arc(0, -size / 2 - 4, flashSize * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#00FFFF";
 
       // Left Cannon Muzzle Flash
       ctx.beginPath();
@@ -190,6 +200,10 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
 
       ctx.shadowBlur = 0;
       ctx.shadowColor = "transparent";
+
+      if (muzzleFlashFrames > 0) {
+        render.muzzleFlashFrames = muzzleFlashFrames - 1;
+      }
     }
 
     // High-energy cockpit glass canopy (Cyan)
@@ -340,29 +354,67 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     // Reset shadow blur
     ctx.shadowBlur = 0;
 
-    // Draw warning column indicator if kamikaze is in warning phase
+    // Draw telegraphing laser line and crosshair or warning column indicator
     const kami = world.getComponent(entity, "Kamikaze");
-    if (kami && kami.phase === "warning") {
-      const pulse = computeSinePulse(tick, 0.4, 0.4, 0.6);
-      ctx.save();
-      ctx.globalAlpha = pulse;
+    if (kami) {
+      if (kami.phase === "telegraphing") {
+        ctx.save();
+        const blinkAlpha = 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3));
+        ctx.globalAlpha = blinkAlpha;
 
-      const pos = world.getComponent(entity, "Transform");
-      const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
+        const pos = world.getComponent(entity, "Transform");
+        const targetX = kami.targetX ?? (pos ? pos.x : 0);
+        const targetY = kami.targetY ?? GAME_CONFIG.SCREEN_HEIGHT;
+        const relTargetX = targetX - (pos ? pos.x : 0);
+        const relTargetY = targetY - (pos ? pos.y : 0);
 
-      ctx.fillStyle = colors.danger;
-      ctx.strokeStyle = colors.magentaHot;
-      ctx.lineWidth = 2;
+        // Discontinuous red laser line from invader to (targetX, targetY)
+        ctx.strokeStyle = "#FF0000";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(relTargetX, relTargetY);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-      ctx.beginPath();
-      ctx.moveTo(0, bottomRelY);
-      ctx.lineTo(-8, bottomRelY - 14);
-      ctx.lineTo(8, bottomRelY - 14);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+        // Hazard reticle / crosshair at (targetX, targetY)
+        ctx.strokeStyle = colors.redHot;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(relTargetX, relTargetY, 12, 0, Math.PI * 2);
+        ctx.stroke();
 
-      ctx.restore();
+        ctx.beginPath();
+        ctx.moveTo(relTargetX - 16, relTargetY);
+        ctx.lineTo(relTargetX + 16, relTargetY);
+        ctx.moveTo(relTargetX, relTargetY - 16);
+        ctx.lineTo(relTargetX, relTargetY + 16);
+        ctx.stroke();
+
+        ctx.restore();
+      } else if (kami.phase === "warning") {
+        const pulse = computeSinePulse(tick, 0.4, 0.4, 0.6);
+        ctx.save();
+        ctx.globalAlpha = pulse;
+
+        const pos = world.getComponent(entity, "Transform");
+        const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
+
+        ctx.fillStyle = colors.danger;
+        ctx.strokeStyle = colors.magentaHot;
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(0, bottomRelY);
+        ctx.lineTo(-8, bottomRelY - 14);
+        ctx.lineTo(8, bottomRelY - 14);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+      }
     }
 
     ctx.globalAlpha = 1.0;

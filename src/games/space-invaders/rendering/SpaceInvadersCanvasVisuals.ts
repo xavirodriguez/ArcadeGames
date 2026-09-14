@@ -306,17 +306,15 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     // Cannons white cores
     ctx.fillStyle = colors.white;
     ctx.fillRect(-size / 3 - 1, -size / 3, 2, size / 4);
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:154-160. Considerar extraer a función compartida. Ref: 24ad6a72
     ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);
 
     // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
     const isShooting = isPlayerShooting(world, entity);
-    const hasMuzzleFlash = render.muzzleFlashFrames !== undefined && render.muzzleFlashFrames > 0;
-    if (isShooting || hasMuzzleFlash) {
-      const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8) + (hasMuzzleFlash ? 2.5 : 0);
-      ctx.fillStyle = hasMuzzleFlash ? "#FFFFFF" : "#00FFFF";
+    if (isShooting) {
+      const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
+      ctx.fillStyle = "#00FFFF";
       ctx.shadowColor = "#00FFFF";
-      ctx.shadowBlur = hasMuzzleFlash ? 14 : 10;
+      ctx.shadowBlur = 10;
 
       // Left Cannon Muzzle Flash
       ctx.beginPath();
@@ -328,19 +326,8 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
       ctx.arc(size / 3, -size / 3 - 2, flashSize, 0, Math.PI * 2);
       ctx.fill();
 
-      // Nose Tip Glow Burst
-      if (hasMuzzleFlash) {
-        ctx.beginPath();
-        ctx.arc(0, -size / 2 - 2, flashSize * 1.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
       ctx.shadowBlur = 0;
       ctx.shadowColor = "transparent";
-    }
-
-    if (hasMuzzleFlash) {
-      render.muzzleFlashFrames!--;
     }
 
     // High-energy cockpit glass canopy (Cyan)
@@ -438,17 +425,13 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     const flash = applyHitFlash(render, baseColor);
     const tick = world.tick;
 
-    const kami = world.getComponent(entity, "Kamikaze");
-    const isTelegraphing = kami && (kami.phase === "telegraphing" || kami.phase === "warning");
-    const telegraphPulse = isTelegraphing ? 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3)) : 1.0;
-
     const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
     if (isTeleporter) {
       ctx.shadowColor = "#00D9FF";
       ctx.shadowBlur = 8 * shimmerAlpha;
     }
 
-    ctx.globalAlpha = flash.opacity * shimmerAlpha * telegraphPulse;
+    ctx.globalAlpha = flash.opacity * shimmerAlpha;
     const color = flash.color;
 
     ctx.fillStyle = color;
@@ -495,43 +478,28 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     ctx.fillRect(s, -s * 2, s, s);
 
     // Reset shadow blur
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:296-301. Considerar extraer a función compartida. Ref: 01e01d4f
     ctx.shadowBlur = 0;
 
-    // Draw warning column / telegraph indicator if kamikaze is in warning/telegraphing phase
-    if (kami && (kami.phase === "telegraphing" || kami.phase === "warning")) {
-      const pulse = 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3));
+    // Draw warning column indicator if kamikaze is in warning phase
+    const kami = world.getComponent(entity, "Kamikaze");
+    if (kami && kami.phase === "warning") {
+      const pulse = computeSinePulse(tick, 0.4, 0.4, 0.6);
       ctx.save();
-      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:302-308. Considerar extraer a función compartida. Ref: 9457a746
       ctx.globalAlpha = pulse;
 
       const pos = world.getComponent(entity, "Transform");
-      const targetX = kami.targetX ?? (pos ? pos.x : 0);
-      const targetY = kami.targetY ?? (pos ? GAME_CONFIG.SCREEN_HEIGHT - 50 : 500);
-      const relX = targetX - (pos ? pos.x : 0);
-      const relY = targetY - (pos ? pos.y : 0);
+      const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
 
-      // (b) Dashed red line
-      ctx.strokeStyle = colors.danger;
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([6, 6]);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(relX, relY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // (c) Danger target reticle at target
+      ctx.fillStyle = colors.danger;
       ctx.strokeStyle = colors.magentaHot;
       ctx.lineWidth = 2;
+
       ctx.beginPath();
-      ctx.arc(relX, relY, 12, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(relX - 16, relY);
-      ctx.lineTo(relX + 16, relY);
-      ctx.moveTo(relX, relY - 16);
-      ctx.lineTo(relX, relY + 16);
+      ctx.moveTo(0, bottomRelY);
+      ctx.lineTo(-8, bottomRelY - 14);
+      ctx.lineTo(8, bottomRelY - 14);
+      ctx.closePath();
+      ctx.fill();
       ctx.stroke();
 
       ctx.restore();

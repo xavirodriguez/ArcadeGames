@@ -27,7 +27,6 @@ export class RetroGridTransition extends BaseOffscreenTransitionEffect {
     height: number,
     options?: TransitionOptions
   ): void {
-    // TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/DitherTransition.ts:58-64. Considerar extraer a función compartida. Ref: 210dc992
     const blockSize = options?.blockSize ?? 40;
 
     const cols = Math.ceil(width / blockSize);

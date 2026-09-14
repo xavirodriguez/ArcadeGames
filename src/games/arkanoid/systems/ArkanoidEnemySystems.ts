@@ -104,7 +104,6 @@ export class EnemyRulesSystem extends System<ArkanoidComponentRegistry, Arkanoid
       const eEntity = enemies[i];
       if (!WorldUtils.isEntityActive(world, eEntity)) continue;
 
-      // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidPowerUpSystems.ts:207-214. Considerar extraer a función compartida. Ref: e60760da
       const events = world.getComponent(eEntity, "CollisionEvents");
       if (!events) continue;
 

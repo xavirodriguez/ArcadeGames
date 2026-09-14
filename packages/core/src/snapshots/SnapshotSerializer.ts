@@ -1,7 +1,6 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
 import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
-// TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotSerializerSoA.ts:4-32. Considerar extraer a función compartida. Ref: bb5393f9
 import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
 import { buildSnapshotMetadata } from "./SnapshotMetadataBuilder";
 

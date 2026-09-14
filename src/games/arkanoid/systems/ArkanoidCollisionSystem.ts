@@ -17,7 +17,6 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
 
   public override onRegister(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>): void {
     this.config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:52-63. Considerar extraer a función compartida. Ref: 4d167694
     const eventBus = world.getEventBus();
     if (eventBus) {
       eventBus.on("combat:hit", (event: any) => {
@@ -261,7 +260,6 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
             world.mutateComponent(ballEntity, "Ball", (b) => {
               b.isAttached = true;
               b.attachedOffsetX = offsetX;
-              // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidCollisionSystem.ts:413-421. Considerar extraer a función compartida. Ref: 024e3b8e
               b.speed = newSpeed;
               b.stuckBounces = 0;
             });

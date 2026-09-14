@@ -206,7 +206,6 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     };
 
     registerCollectibleBlueprint("collectible_fragment", "fragment", 10);
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:365-382. Considerar extraer a función compartida. Ref: 083241ee
     registerCollectibleBlueprint("collectible_coin", "coin", 20);
 
     this.blueprints.register("checkpoint_node", {
@@ -230,7 +229,6 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       id: string,
       powerUpKind: string
     ) => {
-      // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:254-259. Considerar extraer a función compartida. Ref: 564e71c2
       this.blueprints.register(id, {
         spawn: (world, entity, args: { x: number; y: number }) => {
           ArcadeEntityBuilder.fromEntity(world, entity)
@@ -283,7 +281,6 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
         world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] });
         world.addComponent(entity, { type: "Sprite", assetKey, anchor: { x: 0.5, y: 0.5 } });
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:277-292. Considerar extraer a función compartida. Ref: 36b2bb10
         const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
 
         world.addComponent(entity, {
@@ -310,7 +307,6 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
           cooldownMax: 0.8,
           dashTimeRemaining: 0
         } as { type: string; [key: string]: unknown });
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:295-301. Considerar extraer a función compartida. Ref: bb585069
         world.addComponent(entity, { type: "WallJumpUnlocked", unlocked: true } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerGravityConfig",

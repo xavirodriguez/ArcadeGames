@@ -8,7 +8,6 @@ import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:9-16. Considerar extraer a función compartida. Ref: 84ae1a61
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -19,7 +18,6 @@ export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> =
     const ballColor = render.color || colors.cyan;
     const paint = getPaint();
 
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:119-130. Considerar extraer a función compartida. Ref: fd277753
     canvas.save();
 
     paint.reset();
@@ -27,7 +25,6 @@ export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> =
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(ballColor));
     paint.setStrokeWidth(2.0);
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:137-155. Considerar extraer a función compartida. Ref: 3ec257bd
     canvas.drawCircle(0, 0, size, paint);
 
     paint.reset();
@@ -42,7 +39,6 @@ export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> =
 export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:48-55. Considerar extraer a función compartida. Ref: 20e49ea0
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -50,7 +46,6 @@ export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry>
     const w = config.PADDLE_WIDTH;
     const h = config.PADDLE_HEIGHT;
 
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:171-193. Considerar extraer a función compartida. Ref: c97b4189
     const color = render.color || colors.cyan;
     const paint = getPaint();
 
@@ -84,7 +79,6 @@ export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry>
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:8-14. Considerar extraer a función compartida. Ref: fdd4b294
 export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -114,7 +108,6 @@ export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry
 export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:123-142. Considerar extraer a función compartida. Ref: 86a44e37
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -156,7 +149,6 @@ export const drawSkiaArkanoidBackground: EffectDrawer<any, ArkanoidComponentRegi
     if (!Skia) return;
     const config = world.getResource<ArkanoidConfig>("GameConfig") || { SCREEN_WIDTH: 800, SCREEN_HEIGHT: 600 };
     const width = config.SCREEN_WIDTH;
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:225-235. Considerar extraer a función compartida. Ref: 48b9ebfc
     const height = config.SCREEN_HEIGHT;
 
     const paint = getPaint();
@@ -170,7 +162,6 @@ export const drawSkiaArkanoidBackground: EffectDrawer<any, ArkanoidComponentRegi
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:240-249. Considerar extraer a función compartida. Ref: 0c2d73a2
     paint.setColor(Skia.Color("rgba(0, 240, 255, 0.05)"));
     paint.setStrokeWidth(1.0);
 

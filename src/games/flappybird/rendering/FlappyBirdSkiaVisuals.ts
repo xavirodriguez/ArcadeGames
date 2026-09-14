@@ -1,4 +1,3 @@
-// TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:1-18. Considerar extraer a función compartida. Ref: f2c51d64
 import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
@@ -270,7 +269,6 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     if (hasNearMissTriggered && isAlive) {
       const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
       const px = transformPos.worldX ?? transformPos.x ?? x;
-      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:235-246. Considerar extraer a función compartida. Ref: 3c29a62e
       const py = transformPos.worldY ?? transformPos.y ?? y;
       const nmSparkCount = birdComp.nearMissParticleCount ?? world.renderRandom.nextInt(5, 9);
       const minS = birdComp.nearMissMinSpeed ?? 60;
@@ -282,7 +280,6 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
         const pVy = Math.sin(angleVal) * speedVal;
         const lifeVal = world.renderRandom.nextRange(0.25, 0.45);
         const sizeVal = world.renderRandom.nextRange(2, 4);
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:246-254. Considerar extraer a función compartida. Ref: b99530eb
         spawnVisualParticle("spark", px, py, pVx, pVy, lifeVal, sizeVal, "#00F3FF", angleVal);
       }
     }
@@ -650,7 +647,6 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
         paint.setColor(Skia.Color("#00F3FF"));
         paint.setAlphaf(0.7 + 0.3 * laserPulse);
         paint.setStrokeWidth(3.0);
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:677-685. Considerar extraer a función compartida. Ref: 33e66ed4
         canvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
 
         if (world.tick % 4 === 0) {
@@ -895,7 +891,6 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setShader(nebShader);
         paint.setAlphaf(0.35);
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:932-954. Considerar extraer a función compartida. Ref: e6aee880
         canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
       }
     }
@@ -946,7 +941,6 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       } else {
         paint.setColor(Skia.Color("#E0E5FF"));
         const pLen = warpFactor > 1.2 ? Math.min(star.size * 3 * warpFactor, 10) : star.size;
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:985-996. Considerar extraer a función compartida. Ref: d33903a0
         canvas.drawRect(Skia.XYWHRect(sx, star.y, pLen, star.size), paint);
       }
     }
@@ -967,7 +961,6 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color("#00F3FF"));
       paint.setAlphaf(0.15 * intensity);
-      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:1000-1005. Considerar extraer a función compartida. Ref: b47c3db0
       paint.setStrokeWidth(1.2);
 
       for (let l = 0; l < lineCount; l++) {
@@ -999,7 +992,6 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     if (birds.length > 0) {
       const energy = world.getComponent(birds[0], "GlideEnergy");
       if (energy) {
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:1029-1035. Considerar extraer a función compartida. Ref: 119798bd
         const barW = 120;
         const barH = 8;
         const bx = (width - barW) / 2;

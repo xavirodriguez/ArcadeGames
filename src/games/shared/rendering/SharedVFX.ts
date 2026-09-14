@@ -835,7 +835,6 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
 
     // Inner bright core stream
     ctx.fillStyle = "rgba(220, 200, 255, 0.05)";
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:848-852. Considerar extraer a función compartida. Ref: 2929995c
     ctx.fillRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3);
 
     // Embedded star dust particles along galactic plane
@@ -928,7 +927,6 @@ export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingCo
 
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:934-942. Considerar extraer a función compartida. Ref: 6cce8dc2
     ctx.save();
 
     for (let i = 0; i < state.distantAsteroids.length; i++) {
@@ -1019,7 +1017,6 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, Componen
 // -------------------------------------------------------------
 export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1073-1082. Considerar extraer a función compartida. Ref: 2fb4ea3d
     const { width, height, state } = getScreenAndVFXState(world);
     if (!state.stationInitialized) {
       initializeSpaceStation(world, state);
@@ -1096,7 +1093,6 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(0, 0, st.coreRadius * 0.5, 0, Math.PI * 2);
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1165-1170. Considerar extraer a función compartida. Ref: a4741478
     ctx.stroke();
 
     // Blinking Warning Beacons
@@ -1362,7 +1358,6 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
     canvas.save();
 
     const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1357-1365. Considerar extraer a función compartida. Ref: 9233da06
     const ringThickness = planet.ringOuterRadius - planet.ringInnerRadius;
 
     // 1. Back section of rings
@@ -1530,7 +1525,6 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
 
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer2_distant_stars");
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1507-1515. Considerar extraer a función compartida. Ref: b2830931
     ctx.save();
 
     for (let i = 0; i < STAR_COUNT; i++) {
@@ -1619,7 +1613,6 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
 export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1534-1541. Considerar extraer a función compartida. Ref: 002e9a1f
     const { width, height, state } = getScreenAndVFXState(world);
     const centerX = width / 2;
     const centerY = height / 2;
@@ -1703,7 +1696,6 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, ComponentRegistry> =
     renderSkiaGlow(canvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(isHighlight ? 1.5 : 3);
-      // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:2147-2155. Considerar extraer a función compartida. Ref: 359a458e
       canvas.drawCircle(0, 0, radius * pulseFactor, paint);
     });
 
@@ -1858,7 +1850,6 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
     const theme = getActiveLevelTheme(world);
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1861-1868. Considerar extraer a función compartida. Ref: c8a7d2b9
     ctx.save();
 
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {

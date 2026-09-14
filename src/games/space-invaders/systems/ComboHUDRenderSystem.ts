@@ -400,51 +400,12 @@ export class ComboHUDRenderSystem extends System<SpaceInvadersComponentRegistry>
 /**
  * Canvas ShapeDrawer for Combo HUD overlaid in Space Invaders screen.
  */
-export function drawEmpHUD(ctx: CanvasRenderingContext2D, world: World<SpaceInvadersComponentRegistry>): void {
-  const players = world.query("Player", "EmpAbility");
-  if (players.length === 0) return;
-
-  const player = players[0];
-  const emp = world.getComponent(player, "EmpAbility");
-  if (!emp) return;
-
-  ctx.save();
-  const hudX = 20;
-  const hudY = 560;
-  const barWidth = 140;
-  const barHeight = 12;
-
-  const chargeRatio = Math.max(0, Math.min(1.0, emp.charge));
-  const isFull = chargeRatio >= 1.0;
-
-  ctx.fillStyle = "rgba(10, 14, 39, 0.85)";
-  ctx.fillRect(hudX, hudY, barWidth, barHeight);
-
-  ctx.strokeStyle = isFull ? "#00FFFF" : "#0088FF";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(hudX, hudY, barWidth, barHeight);
-
-  if (chargeRatio > 0) {
-    ctx.fillStyle = isFull ? "#00FFFF" : "#0088FF";
-    ctx.fillRect(hudX + 1, hudY + 1, (barWidth - 2) * chargeRatio, barHeight - 2);
-  }
-
-  ctx.font = "bold 10px monospace";
-  ctx.fillStyle = "#FFFFFF";
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  ctx.fillText(isFull ? "EMP READY [E]" : `EMP CHARGE ${Math.floor(chargeRatio * 100)}%`, hudX + 4, hudY + barHeight / 2);
-
-  ctx.restore();
-}
-
 export const drawSpaceInvadersComboHUD: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world) {
     drawPlayerRoleBadges(ctx, world);
     drawActiveMutatorsHUD(ctx, world);
     drawWaveEventBanner(ctx, world);
     drawKamikazeHUD(ctx, world);
-    drawEmpHUD(ctx, world);
 
     const comboEntities = world.query("Combo");
     if (comboEntities.length > 0) {

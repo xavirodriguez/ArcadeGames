@@ -332,8 +332,6 @@ export interface RenderComponent extends Component {
   angularVelocity: number;
   /** Remaining frames for hit flash visual effect. */
   hitFlashFrames: number;
-  /** Remaining frames for muzzle flash visual effect. */
-  muzzleFlashFrames?: number;
   /** Danger pulse effect intensity (0.0 to 1.0) for warning state visuals. */
   dangerPulseIntensity?: number;
   /** Primitive shape descriptor if no sprite ID is set. */

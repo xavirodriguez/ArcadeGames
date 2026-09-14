@@ -29,7 +29,6 @@ export interface AsteroidsBulletParams extends ProjectileParams {
   ownerId?: string;
 }
 
-// TODO(refactor): código duplicado detectado (función) con space-invaders/EntityPool.ts:19-25. Considerar extraer a función compartida. Ref: fe6d178d
 function createAsteroidsBulletPoolConfig() {
   const base = createProjectilePoolConfig<AsteroidsBulletParams>({
     shape: "bullet",

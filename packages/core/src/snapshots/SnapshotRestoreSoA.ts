@@ -36,7 +36,6 @@ export class SnapshotRestoreSoA {
     const entities = soaData.entities;
 
     SoADeserializer.hydrateEntities(entities, soaData, type, (entityId, component) => {
-      // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestore.ts:61-71. Considerar extraer a función compartida. Ref: 347dbac0
       storage.set(entityId, component);
       index.add(entityId);
       versions.set(entityId, internal._stateVersion);

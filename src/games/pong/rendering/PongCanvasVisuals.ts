@@ -69,7 +69,6 @@ export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRe
     ctx.stroke();
 
     // Hot inner core
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:37-46. Considerar extraer a función compartida. Ref: 1c422c44
     ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);
@@ -107,7 +106,6 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
       color,
       glowAlphaColor,
       // 1. Draw outline path
-      // TODO(refactor): código duplicado detectado (función) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:62-73. Considerar extraer a función compartida. Ref: c2fd39d3
       (ctx, widthScale, heightScale) => {
         const pw = w * widthScale;
         const ph = h * heightScale;
@@ -120,7 +118,6 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
       // 2. Draw white core path
       (ctx) => {
         const coreW = w * 0.4;
-        // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:74-85. Considerar extraer a función compartida. Ref: 32a95799
         const coreH = h * 0.9;
         if (ctx.roundRect) {
           ctx.roundRect(-coreW / 2, -coreH / 2, coreW, coreH, 2);

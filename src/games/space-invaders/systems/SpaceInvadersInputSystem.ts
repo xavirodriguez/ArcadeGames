@@ -107,11 +107,6 @@ export class SpaceInvadersInputSystem extends GameSystem {
             createPlayerBullet(world, pos.x, pos.y - 25, this.bulletPool);
             nextShootCooldownRemaining = config.PLAYER_SHOOT_COOLDOWN / 1000;
 
-              // Set muzzle flash frames on player render component
-              world.mutateComponent(entity, "Render", render => {
-                render.muzzleFlashFrames = 3;
-              });
-
             // Physical recoil on player ship (Y axis recoil down ~10px and elastic return)
             Juice.add(world, entity, {
               property: "y",
@@ -149,61 +144,6 @@ export class SpaceInvadersInputSystem extends GameSystem {
             const eventBus = world.getEventBus();
             if (eventBus) {
                 eventBus.emitDeferred("PlaySFX", { name: "shoot", pitchRange: 0.05, cooldownMs: 80 });
-            }
-          }
-        }
-
-        // EMP key handling
-        const empKey = config.KEYS?.EMP || "KeyE";
-        let nextEmp = false;
-        if (!isReplay && !useNetwork && inputState) {
-          nextEmp = InputUtils.isPressed(inputState, "emp") || InputUtils.isPressed(inputState, empKey);
-        }
-
-        if (world.hasComponent(entity, "EmpAbility")) {
-          const emp = world.getComponent(entity, "EmpAbility");
-          if (emp) {
-            let nextCooldown = emp.cooldownRemaining;
-            if (nextCooldown > 0) {
-              nextCooldown = PhysicsUtils.tickTimer(nextCooldown, deltaTime);
-            }
-
-            if (nextEmp && emp.charge >= 1.0 && nextCooldown <= 0) {
-              nextCooldown = config.EMP_COOLDOWN ?? 10;
-
-              const enemyBullets = world.query("EnemyBullet", "Transform");
-              const bLen = enemyBullets.length;
-              for (let b = 0; b < bLen; b++) {
-                const bullet = enemyBullets[b];
-                const bPos = world.getComponent(bullet, "Transform");
-                if (bPos) {
-                  const dx = bPos.x - pos.x;
-                  const dy = bPos.y - pos.y;
-                  if (dx * dx + dy * dy <= emp.radius * emp.radius) {
-                    world.getCommandBuffer().removeEntity(bullet);
-                  }
-                }
-              }
-
-              world.mutateSingleton("Formation", f => {
-                f.stunnedRemaining = config.EMP_STUN_DURATION ?? 3;
-              });
-
-              if (!world.isReSimulating) {
-                world.getEventBus()?.emitDeferred("si:emp_used", { playerEntity: entity, radius: emp.radius });
-                world.getEventBus()?.emitDeferred("PlaySFX", { name: "emp_wave" });
-              }
-
-              world.mutateComponent(entity, "EmpAbility", e => {
-                e.charge = 0;
-                e.cooldownRemaining = nextCooldown;
-              });
-
-              Juice.shake(world, 6, 200);
-            } else if (emp.cooldownRemaining !== nextCooldown) {
-              world.mutateComponent(entity, "EmpAbility", e => {
-                e.cooldownRemaining = nextCooldown;
-              });
             }
           }
         }

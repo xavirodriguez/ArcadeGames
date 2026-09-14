@@ -302,7 +302,6 @@ export class CollisionSystem2D<
     }
     const c2 = world.getComponent(entity, "Collider2D");
     if (c2) {
-      // TODO(refactor): código duplicado detectado (bloque) con physics/collision/BroadPhase.ts:143-154. Considerar extraer a función compartida. Ref: 2269e6fa
       let shape: import("../shapes/Shapes").Shape;
       if (c2.shape.type === "circle") {
         shape = { type: ShapeType.Circle, radius: c2.shape.radius };

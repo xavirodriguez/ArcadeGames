@@ -3713,7 +3713,6 @@ export interface RenderComponent extends Component {
     color?: string;
     dangerPulseIntensity?: number;
     hitFlashFrames: number;
-    muzzleFlashFrames?: number;
     opacity: number;
     order: number;
     rotation: number;
@@ -4247,6 +4246,12 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
         enabled?: boolean;
     });
     static filterInViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entities: ReadonlyArray<Entity>, margin?: number): Entity[];
+    static getExpandedViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, margin?: number): {
+        minX: number;
+        minY: number;
+        maxX: number;
+        maxY: number;
+    };
     static getViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>): {
         minX: number;
         minY: number;
@@ -4255,6 +4260,12 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     };
     isEnabled(): boolean;
     static isEntityInViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entity: Entity, margin?: number): boolean;
+    static isEntityInViewportBounds<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entity: Entity, bounds: {
+        minX: number;
+        minY: number;
+        maxX: number;
+        maxY: number;
+    }): boolean;
     static isPlayerEntity<TRegistry extends ComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entity: Entity): boolean;
     setEnabled(enabled: boolean): void;
     setMargin(margin: number): void;

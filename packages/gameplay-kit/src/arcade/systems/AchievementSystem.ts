@@ -38,9 +38,7 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
     { id: "invader_slayer", name: "Aniquilador", description: "Destruye 50 invasores", unlocked: false },
     { id: "flappy_pro", name: "As de las Alturas", description: "Pasa 10 tuberías en Flappy Bird", unlocked: false },
     { id: "story_boss_defeated", name: "Héroe de la Galaxia", description: "Derrotar al primer Boss narrativo", unlocked: false },
-    { id: "story_all_fragments_c1", name: "Historiador", description: "Recolectar todos los fragmentos del Capítulo 1", unlocked: false },
-    { id: "electrocutioner", name: "Electrocutioner", description: "Utiliza el pulso EMP para neutralizar proyectiles enemigos", unlocked: false },
-    { id: "plasma_perforator", name: "Perforador de Plasma", description: "Destruye múltiples invasores con un disparo perforante", unlocked: false }
+    { id: "story_all_fragments_c1", name: "Historiador", description: "Recolectar todos los fragmentos del Capítulo 1", unlocked: false }
   ];
 
   private invadersKilled = 0;
@@ -76,16 +74,6 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
         if (event && typeof event.chain === "number" && event.chain >= 10) {
           this.unlock(world, "combo_king");
         }
-      });
-
-      eventBus.on("si:emp_used", () => {
-        if (world.isReSimulating) return;
-        this.unlock(world, "electrocutioner");
-      });
-
-      eventBus.on("si:pierce_kill", () => {
-        if (world.isReSimulating) return;
-        this.unlock(world, "plasma_perforator");
       });
 
       // 2. Listen to general 'entity:destroyed' (e.g. Space Invaders invaders)

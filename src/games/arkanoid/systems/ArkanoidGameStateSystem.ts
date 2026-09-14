@@ -5,7 +5,6 @@ import { ArkanoidEntityFactory } from "../EntityFactory";
 import { LevelCatalog } from "../domain/LevelCatalog";
 import { DohFactory } from "../boss/DohFactory";
 
-// TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidPowerUpSystems.ts:62-69. Considerar extraer a función compartida. Ref: 2965ba31
 export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private config?: ArkanoidConfig;
 

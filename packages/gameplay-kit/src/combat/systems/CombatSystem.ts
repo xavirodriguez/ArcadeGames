@@ -154,21 +154,6 @@ export class CombatSystem<
       destroyedEntities.add(attacker);
     } else if (policy === "remove-component") {
       world.getCommandBuffer().removeComponent(attacker, "Damage" as any);
-    } else if (policy === "decrement-piercing") {
-      if (damageComp.piercing !== undefined && damageComp.piercing > 0) {
-        const dmgKey = "Damage" as Extract<keyof TComponents, string>;
-        const mutableDmg = world.getMutableComponent(attacker, dmgKey) as DamageComponent | undefined;
-        if (mutableDmg && mutableDmg.piercing !== undefined) {
-          mutableDmg.piercing--;
-          if (mutableDmg.piercing <= 0) {
-            this.reclaimAndDestroy(world, attacker);
-            destroyedEntities.add(attacker);
-          }
-        }
-      } else {
-        this.reclaimAndDestroy(world, attacker);
-        destroyedEntities.add(attacker);
-      }
     }
   }
 

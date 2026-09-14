@@ -96,9 +96,6 @@ export const PassportOverlay: React.FC<PassportOverlayProps> = ({ profile, onClo
             <StatRow label={t?.accessibility?.stat_asteroids || "Asteroids Destroyed"} value={profile.stats.asteroidsDestroyed} />
             <StatRow label={t?.accessibility?.stat_pipes || "Pipes Passed"} value={profile.stats.pipesPassed} />
             <StatRow label={t?.accessibility?.stat_invaders || "Invaders Destroyed"} value={profile.stats.siKills} />
-            <StatRow label="EMP Activations" value={profile.stats.empActivations ?? 0} />
-            <StatRow label="Charged Shots Fired" value={profile.stats.chargedShotsFired ?? 0} />
-            <StatRow label="Perfect Waves Streak" value={profile.stats.perfectWavesStreak ?? 0} />
             <StatRow label={t?.accessibility?.stat_pong || "Pong Sets Won"} value={profile.stats.pongSetsWon} />
             <StatRow label={t?.accessibility?.stat_playtime || "Playtime Ticks"} value={profile.stats.totalPlaytimeTicks} />
           </View>

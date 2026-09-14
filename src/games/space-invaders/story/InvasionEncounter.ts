@@ -1,12 +1,10 @@
 import {
   MiniGameEncounter,
-  MiniGameResult,
   MiniGameRunContext,
-  ArcadeGameAdapter,
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
+import { BaseMiniGameEncounter } from "@tiny-aster/gameplay-kit";
 import { SpaceInvadersGame } from "../SpaceInvadersGame";
-import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
 
 export const SPACE_INVADERS_INVASION_ENCOUNTER_ID = "space_invaders_invasion_01";
 
@@ -116,29 +114,23 @@ export const spaceInvadersInvasionEncounter: MiniGameEncounter = {
  * ArcadeGameAdapter implementation for Space Invaders encounters.
  */
 // TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 96beae78
-export class SpaceInvadersArcadeAdapter implements ArcadeGameAdapter {
-  private game: SpaceInvadersGame | null = null;
-  private resultCallback: ((result: MiniGameResult) => void) | null = null;
-
+export class SpaceInvadersArcadeAdapter extends BaseMiniGameEncounter<SpaceInvadersGame> {
   public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
     const game = new SpaceInvadersGame({ seed: context.seed });
     this.game = game;
 
-    // Apply modifiers from run context to game instance
     for (const modifier of context.modifiers) {
       if (modifier.targetProperty === "extraLives" && typeof modifier.value === "number") {
         (game as any).extraLives = modifier.value;
       } else if (modifier.targetProperty === "fireRateMultiplier" && typeof modifier.value === "number") {
         (game as any).fireRateMultiplier = modifier.value;
       } else if (modifier.targetProperty === "enemySpeedMultiplier" && typeof modifier.value === "number") {
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-161. Considerar extraer a función compartida. Ref: 3c3c14f3
         (game as any).enemySpeedMultiplier = modifier.value;
       }
     }
 
     game.start();
 
-    // Listen for gameplay termination / completion events
     const eventBus = (game as any).eventBus || (game as any).getEventBus?.();
     if (eventBus) {
       eventBus.on("game:over" as any, (payload: any) => {
@@ -150,16 +142,7 @@ export class SpaceInvadersArcadeAdapter implements ArcadeGameAdapter {
     }
   }
 
-  public onResult(callback: (result: MiniGameResult) => void): void {
-    this.resultCallback = callback;
-  }
-
-  public emitResult(context: MiniGameRunContext, payload?: any): void {
-    if (!this.resultCallback) return;
-
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 2000));
-    const durationMs = payload?.durationMs ?? 45000;
+  protected buildResultPayload(context: MiniGameRunContext, payload?: any) {
     const damageTaken = payload?.damageTaken ?? (this.game as any)?.damageTaken ?? 0;
     const secretsFound: string[] = payload?.secretsFound ?? [];
 
@@ -167,31 +150,12 @@ export class SpaceInvadersArcadeAdapter implements ArcadeGameAdapter {
       secretsFound.push("mothership_transmissions");
     }
 
-    const result: MiniGameResult = {
-      runId: context.runId,
-      gameId: context.gameId,
-      score,
-      completed,
-      durationMs,
+    return {
       metrics: {
         damageTaken,
         invadersDestroyed: payload?.invadersDestroyed ?? 0
       },
       secretsFound
     };
-
-    this.resultCallback(result);
-  }
-
-  public dispose(): void {
-    if (this.game) {
-      if (typeof (this.game as any).destroy === "function") {
-        (this.game as any).destroy();
-      } else if (typeof (this.game as any).stop === "function") {
-        (this.game as any).stop();
-      }
-      this.game = null;
-    }
-    this.resultCallback = null;
   }
 }

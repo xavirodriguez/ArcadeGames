@@ -367,52 +367,6 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
       runMutatorHooks(world, "bouncing_bullets");
     }
   },
-  "emp_overcharge": {
-    id: "emp_overcharge",
-    name: "EMP Sobrecargado",
-    description: "Aumenta la carga de la habilidad EMP un +50% por cada enemigo eliminado.",
-    rarity: "RARE",
-    tags: ["ability", "emp"],
-    supportedGames: ["space-invaders"],
-    xpCost: 500,
-    canDraft: (world, context) => {
-      const target = context?.targetEntity;
-      if (target !== undefined) {
-        return world.hasComponent(target, "EmpAbility");
-      }
-      return world.query("Player", "EmpAbility").length > 0;
-    },
-    apply: (world, context) => {
-      const target = context?.targetEntity;
-      if (target !== undefined && world.hasComponent(target, "EmpAbility")) {
-        world.mutateComponent(target, "EmpAbility", (emp: { chargePerKill?: number }) => {
-          emp.chargePerKill = (emp.chargePerKill ?? 0.1) * 1.5;
-        });
-      } else {
-        const players = world.query("Player", "EmpAbility");
-        for (const player of players) {
-          world.mutateComponent(player, "EmpAbility", (emp: { chargePerKill?: number }) => {
-            emp.chargePerKill = (emp.chargePerKill ?? 0.1) * 1.5;
-          });
-        }
-      }
-      runMutatorHooks(world, "emp_overcharge");
-    }
-  },
-  "plasma_pierce": {
-    id: "plasma_pierce",
-    name: "Plasma Perforante",
-    description: "Tus proyectiles atraviesan escudos y dañan invasores detrás.",
-    rarity: "RARE",
-    tags: ["combat", "bullet"],
-    supportedGames: ["space-invaders"],
-    xpCost: 600,
-    canDraft: (world, context) => true,
-    apply: (world, context) => {
-      world.setResource("HasPlasmaPierce", true);
-      runMutatorHooks(world, "plasma_pierce");
-    }
-  },
 };
 
 /**

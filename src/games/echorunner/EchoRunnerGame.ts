@@ -52,7 +52,7 @@ import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAU
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
-import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
+import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -124,72 +124,15 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
  */
 class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/systems/PlatformerDamageSystem.ts:7-30. Considerar extraer a función compartida. Ref: 72e3e047
-    const players = world.query("PlatformerInput", "Health", "Transform");
-    const enemies = world.query("Enemy", "Transform");
-
-    for (let p = 0; p < players.length; p++) {
-      const player = players[p];
-      const pHealth = world.getComponent(player, "Health")!;
-      const pTrans = world.getComponent(player, "Transform")!;
-
-      // Handle invulnerability blink timers
-      let invRemaining = pHealth.invulnerableRemaining ?? 0;
-      if (invRemaining > 0) {
-        // TODO(refactor): código duplicado detectado (bloque) con platformer/systems/PlatformerDamageSystem.ts:19-31. Considerar extraer a función compartida. Ref: f8a7d0f6
-        invRemaining = PhysicsUtils.tickTimer(invRemaining, deltaTime);
-        world.mutateComponent(player, "Health", (h) => {
-          h.invulnerableRemaining = invRemaining;
-        });
-      }
-
-      if (invRemaining > 0) continue;
-
-      // Contact check with all active enemies
-      let hit = false;
-      for (let e = 0; e < enemies.length; e++) {
-        const enemy = enemies[e];
-        const eTrans = world.getComponent(enemy, "Transform")!;
-
-        const dx = player !== undefined ? pTrans.x - eTrans.x : 0;
-        const dy = player !== undefined ? pTrans.y - eTrans.y : 0;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        // If very close, trigger damage
-        if (dist < 20) {
-          hit = true;
-          break;
-        }
-      }
-
-      if (hit) {
-        // Apply damage to player
-        world.mutateComponent(player, "Health", (h) => {
-          h.current--;
-          h.invulnerableRemaining = 1.0; // 1 second invulnerability
-        });
-        world.mutateComponent(player, "Render", (r) => {
-          r.hitFlashFrames = 8;
-        });
-
-        // Request Screenshake
-        const cameras = world.query("Camera2D");
-        for (let c = 0; c < cameras.length; c++) {
-          world.commands.addComponent(cameras[c], {
-            type: "ScreenShake",
-            intensity: 12,
-            duration: 0.25,
-            remaining: 0.25
-          });
-        }
-
-        // Play SFX
-        const audio = world.getResource<any>("AudioPlayer") || (world as any).audio;
-        if (audio) {
-          audio.playSFX("hit");
-        }
-      }
-    }
+    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
+      contactDistance: 20,
+      invulnerabilityDuration: 1.0,
+      damageAmount: 1,
+      hitFlashFrames: 8,
+      screenShakeIntensity: 12,
+      screenShakeDuration: 0.25,
+      sfxName: "hit"
+    });
   }
 }
 
@@ -275,7 +218,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
         world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
-        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:284-299. Considerar extraer a función compartida. Ref: 36b2bb10
         const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
 
         world.addComponent(entity, {
@@ -295,7 +237,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           pulsePressed: false,
           pulseCooldown: 0
         } as { type: string; [key: string]: unknown });
-        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:310-316. Considerar extraer a función compartida. Ref: bb585069
         world.addComponent(entity, {
           type: "PlatformerGravityConfig",
           riseGravity: config.RISE_GRAVITY,
@@ -367,7 +308,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       }
     });
 
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:209-226. Considerar extraer a función compartida. Ref: 083241ee
     this.blueprints.register("checkpoint_node", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
         EntityBuilder.fromEntity(world, entity)
@@ -420,7 +360,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     registerCommonPlatformerSystems(this.world, { includeMovingPlatforms: true });
 
     // Game-specific simulation systems
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:263-274. Considerar extraer a función compartida. Ref: 613e0850
     this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });
 
     // Game-specific presentation systems

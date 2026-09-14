@@ -151,24 +151,15 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     paint.setStyle(Skia!.PaintStyle.Fill);
     paint.setColor(Skia!.Color(colors.white));
     canvas.drawRect(Skia!.XYWHRect(-size / 3 - 1, -size / 3, 2, size / 4), paint);
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:309-315. Considerar extraer a función compartida. Ref: 24ad6a72
     canvas.drawRect(Skia!.XYWHRect(size / 3 - 1, -size / 3, 2, size / 4), paint);
 
     // Dynamic Muzzle Fire Recoil & Energetic Tip Flares
     const isShooting = isPlayerShooting(world, entity);
-    const hasMuzzleFlash = render.muzzleFlashFrames !== undefined && render.muzzleFlashFrames > 0;
-    if (isShooting || hasMuzzleFlash) {
-      const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8) + (hasMuzzleFlash ? 2.5 : 0);
-      paint.setColor(Skia!.Color(hasMuzzleFlash ? "#FFFFFF" : "#00FFFF"));
+    if (isShooting) {
+      const flashSize = 3.5 + 1.5 * Math.sin(tick * 0.8);
+      paint.setColor(Skia!.Color("#00FFFF"));
       canvas.drawCircle(-size / 3, -size / 3 - 2, flashSize, paint);
       canvas.drawCircle(size / 3, -size / 3 - 2, flashSize, paint);
-      if (hasMuzzleFlash) {
-        canvas.drawCircle(0, -size / 2 - 2, flashSize * 1.2, paint);
-      }
-    }
-
-    if (hasMuzzleFlash) {
-      render.muzzleFlashFrames!--;
     }
 
     // High-energy cockpit glass canopy (Cyan)
@@ -251,12 +242,8 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     const colorStr = flash.color;
 
     const tick = world.tick;
-    const kami = world.getComponent(entity, "Kamikaze");
-    const isTelegraphing = kami && (kami.phase === "telegraphing" || kami.phase === "warning");
-    const telegraphPulse = isTelegraphing ? 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3)) : 1.0;
-
     const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
-    const opacity = flash.opacity * shimmerAlpha * telegraphPulse;
+    const opacity = flash.opacity * shimmerAlpha;
 
     const s = size / 11;
     const animPhase = Math.floor(tick / 15) % 2 === 0;
@@ -298,34 +285,35 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     paint.setColor(Skia!.Color(colors.redHot));
     paint.setAlphaf(opacity * eyePulse);
     canvas.drawRect(Skia!.XYWHRect(-s * 2, -s * 2, s, s), paint);
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:493-498. Considerar extraer a función compartida. Ref: 01e01d4f
     canvas.drawRect(Skia!.XYWHRect(s, -s * 2, s, s), paint);
 
-    // Draw warning column / telegraph indicator if kamikaze is in warning/telegraphing phase
-    if (kami && (kami.phase === "telegraphing" || kami.phase === "warning")) {
-      const pulse = 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3));
-      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:500-506. Considerar extraer a función compartida. Ref: 9457a746
+    // Draw warning column indicator if kamikaze is in warning phase
+    const kami = world.getComponent(entity, "Kamikaze");
+    if (kami && kami.phase === "warning") {
+      const pulse = computeSinePulse(tick, 0.4, 0.4, 0.6);
       canvas.save();
 
       const pos = world.getComponent(entity, "Transform");
-      const targetX = kami.targetX ?? (pos ? pos.x : 0);
-      const targetY = kami.targetY ?? (pos ? GAME_CONFIG.SCREEN_HEIGHT - 50 : 500);
-      const relX = targetX - (pos ? pos.x : 0);
-      const relY = targetY - (pos ? pos.y : 0);
+      const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
+
+      const arrowPath = Skia!.Path.Make();
+      arrowPath.moveTo(0, bottomRelY);
+      arrowPath.lineTo(-8, bottomRelY - 14);
+      arrowPath.lineTo(8, bottomRelY - 14);
+      arrowPath.close();
 
       paint.reset();
       paint.setAntiAlias(true);
-      paint.setStyle(Skia!.PaintStyle.Stroke);
+      paint.setStyle(Skia!.PaintStyle.Fill);
       paint.setColor(Skia!.Color(colors.danger));
-      paint.setStrokeWidth(1.5);
       paint.setAlphaf(pulse);
-      canvas.drawLine(0, 0, relX, relY, paint);
+      canvas.drawPath(arrowPath, paint);
 
+      paint.setStyle(Skia!.PaintStyle.Stroke);
       paint.setColor(Skia!.Color(colors.magentaHot));
       paint.setStrokeWidth(2);
-      canvas.drawCircle(relX, relY, 12, paint);
-      canvas.drawLine(relX - 16, relY, relX + 16, relY, paint);
-      canvas.drawLine(relX, relY - 16, relX, relY + 16, paint);
+      paint.setAlphaf(pulse);
+      canvas.drawPath(arrowPath, paint);
 
       canvas.restore();
     }

@@ -2,7 +2,7 @@ import { ComponentCloner } from "../ecs/ComponentCloner";
 import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
 import { WorldSnapshot } from "./WorldSnapshot";
-import { restoreWorldMetadata, rebuildQueries } from "./SnapshotInternalAccess";
+import { restoreWorldMetadata, rebuildQueries, restoreComponentStorage, registerEntityComponent } from "./SnapshotInternalAccess";
 
 /**
  * Classical Array of Structures (AoS) restoration utility.
@@ -44,14 +44,7 @@ export class SnapshotRestore {
     const internal = restoreWorldMetadata(world, state);
 
     for (const type in state.componentData) {
-      // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestoreSoA.ts:34-42. Considerar extraer a función compartida. Ref: 157b4b5f
-      const storage = new Map<number, unknown>();
-      const index = new Set<number>();
-      const versions = new Map<number, number>();
-
-      internal.componentMaps.set(type, storage);
-      internal.componentIndex.set(type, index);
-      internal.componentVersions.set(type, versions);
+      const { storage, index, versions } = restoreComponentStorage(internal, type);
 
       const snapshotEntities = state.componentData[type];
       for (const entityIdStr in snapshotEntities) {
@@ -59,17 +52,11 @@ export class SnapshotRestore {
         const sourceComp = snapshotEntities[entityId];
         const component = ComponentCloner.cloneComponent(sourceComp);
 
-        // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestoreSoA.ts:45-55. Considerar extraer a función compartida. Ref: 347dbac0
         storage.set(entityId, component);
         index.add(entityId);
         versions.set(entityId, internal._stateVersion);
 
-        let componentSet = internal.entityComponentSets.get(entityId);
-        if (!componentSet) {
-          componentSet = new Set();
-          internal.entityComponentSets.set(entityId, componentSet);
-        }
-        componentSet.add(type);
+        registerEntityComponent(internal, entityId, type);
       }
     }
 

@@ -3,10 +3,8 @@ import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 import { ComboComponent } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
-import { computeNeonPulse } from "../../shared/rendering/ProceduralShapeUtils";
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-20. Considerar extraer a función compartida. Ref: 594220cc
 import { CanvasMotionTrail } from "../../shared/rendering/CanvasNeonUtils";
-
+import { drawNeonShapeSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
@@ -116,7 +114,6 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
 
     const spin = ballComp ? ballComp.spinFactor : 0;
     const swirlRotation = (world.tick * spin * 0.08) % (Math.PI * 2);
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:21-30. Considerar extraer a función compartida. Ref: fd277753
     canvas.rotate((swirlRotation * 180) / Math.PI, 0, 0);
 
     // Outer neon ring
@@ -135,7 +132,6 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
     swirlPath.quadTo(size * spin * 1.5, 0, 0, size);
     swirlPath.moveTo(-size, 0);
     swirlPath.quadTo(0, size * spin * 1.5, size, 0);
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:28-39. Considerar extraer a función compartida. Ref: 3ec257bd
     canvas.drawPath(swirlPath, paint);
 
     // Hot inner core
@@ -157,7 +153,6 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
 export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongCanvasVisuals.ts:86-98. Considerar extraer a función compartida. Ref: 18e6e604
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -170,48 +165,27 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
 
     const isLeft = paddle.side === "left";
     const color = isLeft ? colors.pink : colors.cyan;
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:49-68. Considerar extraer a función compartida. Ref: c97b4189
     const glowAlphaColor = isLeft ? "rgba(255, 0, 85, 0.15)" : "rgba(0, 240, 255, 0.15)";
 
     const paint = getPaint();
 
-    canvas.save();
-
-    const pulseFactor = computeNeonPulse(world.tick);
-    const pw = w * pulseFactor;
-    const ph = h;
-
-    // 1. Draw outer glowing outline
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(color));
-    paint.setStrokeWidth(2.0);
-    canvas.drawRoundRect(
-      Skia.RRectXY(Skia.XYWHRect(-pw / 2, -ph / 2, pw, ph), 4, 4),
-      paint
+    drawNeonShapeSkia(
+      canvas,
+      paint,
+      world.tick,
+      color,
+      glowAlphaColor,
+      (c, p, widthScale, heightScale) => {
+        const pw = w * widthScale;
+        const ph = h * heightScale;
+        c.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-pw / 2, -ph / 2, pw, ph), 4, 4), p);
+      },
+      (c, p) => {
+        const coreW = w * 0.4;
+        const coreH = h * 0.9;
+        c.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-coreW / 2, -coreH / 2, coreW, coreH), 2, 2), p);
+      }
     );
-
-    // 2. Draw outer glowing semi-transparent body fill
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(glowAlphaColor));
-    canvas.drawRoundRect(
-      Skia.RRectXY(Skia.XYWHRect(-w / 2, -h / 2, w, h), 4, 4),
-      paint
-    );
-
-    // 3. Draw bright white core
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(colors.white));
-    const coreW = w * 0.4;
-    const coreH = h * 0.9;
-    canvas.drawRoundRect(
-      Skia.RRectXY(Skia.XYWHRect(-coreW / 2, -coreH / 2, coreW, coreH), 2, 2),
-      paint
-    );
-
-    canvas.restore();
   }
 };
 
@@ -225,7 +199,6 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
     if (!Skia) return;
     const config = world.getResource<PongConfig>("GameConfig") || { WIDTH: 800, HEIGHT: 600 };
     const width = config.WIDTH;
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:152-160. Considerar extraer a función compartida. Ref: 48b9ebfc
     const height = config.HEIGHT;
 
     const paint = getPaint();
@@ -241,7 +214,6 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:165-174. Considerar extraer a función compartida. Ref: 0c2d73a2
     paint.setColor(Skia.Color("rgba(0, 240, 255, 0.04)"));
     paint.setStrokeWidth(1.0);
 

@@ -19,10 +19,7 @@ export const PlayerProfileSchema = z.object({
     pipesPassed: z.number().int(),
     siKills: z.number().int(),
     pongSetsWon: z.number().int(),
-    totalPlaytimeTicks: z.number().int(),
-    empActivations: z.number().int().optional().default(0),
-    chargedShotsFired: z.number().int().optional().default(0),
-    perfectWavesStreak: z.number().int().optional().default(0)
+    totalPlaytimeTicks: z.number().int()
   }),
   unlockedAchievements: z.array(z.string()).default([]), // For Phase P2
   storyChapterUnlocked: z.number().int().default(1),
@@ -79,10 +76,7 @@ export class PlayerProfileService {
         pipesPassed: 0,
         siKills: 0,
         pongSetsWon: 0,
-        totalPlaytimeTicks: 0,
-        empActivations: 0,
-        chargedShotsFired: 0,
-        perfectWavesStreak: 0
+        totalPlaytimeTicks: 0
       },
       unlockedAchievements: [],
       storyChapterUnlocked: 1,

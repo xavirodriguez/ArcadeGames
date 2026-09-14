@@ -1,12 +1,10 @@
 import {
   MiniGameEncounter,
-  MiniGameResult,
   MiniGameRunContext,
-  ArcadeGameAdapter,
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
+import { BaseMiniGameEncounter } from "@tiny-aster/gameplay-kit";
 import { GeometryWarsGame } from "../GeometryWarsGame";
-import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
 
 export const GEOMETRY_WARS_OVERDRIVE_ENCOUNTER_ID = "geometry_wars_overdrive_01";
 
@@ -116,22 +114,17 @@ export const geometryWarsOverdriveEncounter: MiniGameEncounter = {
  * ArcadeGameAdapter implementation for Geometry Wars encounters.
  */
 // TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 8d507ec2
-export class GeometryWarsArcadeAdapter implements ArcadeGameAdapter {
-  private game: GeometryWarsGame | null = null;
-  private resultCallback: ((result: MiniGameResult) => void) | null = null;
-
+export class GeometryWarsArcadeAdapter extends BaseMiniGameEncounter<GeometryWarsGame> {
   public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
     const game = new GeometryWarsGame({ seed: context.seed });
     this.game = game;
 
-    // Apply modifiers from run context
     for (const modifier of context.modifiers) {
       if (modifier.targetProperty === "bombCount" && typeof modifier.value === "number") {
         (game as any).bombCount = modifier.value;
       } else if (modifier.targetProperty === "multiplierBoost" && typeof modifier.value === "number") {
         (game as any).multiplierBoost = modifier.value;
       } else if (modifier.targetProperty === "playerSpeedMultiplier" && typeof modifier.value === "number") {
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:136-161. Considerar extraer a función compartida. Ref: 085d1c4b
         (game as any).playerSpeedMultiplier = modifier.value;
       }
     }
@@ -149,16 +142,7 @@ export class GeometryWarsArcadeAdapter implements ArcadeGameAdapter {
     }
   }
 
-  public onResult(callback: (result: MiniGameResult) => void): void {
-    this.resultCallback = callback;
-  }
-
-  public emitResult(context: MiniGameRunContext, payload?: any): void {
-    if (!this.resultCallback) return;
-
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 5000));
-    const durationMs = payload?.durationMs ?? 60000;
+  protected buildResultPayload(context: MiniGameRunContext, payload?: any) {
     const maxMultiplier = payload?.maxMultiplier ?? (this.game as any)?.maxMultiplier ?? 1;
     const secretsFound: string[] = payload?.secretsFound ?? [];
 
@@ -166,31 +150,12 @@ export class GeometryWarsArcadeAdapter implements ArcadeGameAdapter {
       secretsFound.push("quantum_singularity_core");
     }
 
-    const result: MiniGameResult = {
-      runId: context.runId,
-      gameId: context.gameId,
-      score,
-      completed,
-      durationMs,
+    return {
       metrics: {
         maxMultiplier,
         geomsCollected: payload?.geomsCollected ?? 0
       },
       secretsFound
     };
-
-    this.resultCallback(result);
-  }
-
-  public dispose(): void {
-    if (this.game) {
-      if (typeof (this.game as any).destroy === "function") {
-        (this.game as any).destroy();
-      } else if (typeof (this.game as any).stop === "function") {
-        (this.game as any).stop();
-      }
-      this.game = null;
-    }
-    this.resultCallback = null;
   }
 }

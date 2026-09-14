@@ -130,7 +130,6 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
 
     const size = render.size || 36;
     const radius = size / 2;
-    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:223-239. Considerar extraer a función compartida. Ref: adae0be9
     let colorStr = render.color || colors.cyan;
 
     canvas.save();

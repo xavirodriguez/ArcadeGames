@@ -34,20 +34,17 @@ export class KamikazeSystem extends GameSystem {
       const kami = world.getComponent(entity, "Kamikaze")!;
       const pos = world.getComponent(entity, "Transform")!;
 
-      if (kami.phase === "telegraphing" || kami.phase === "warning") {
-        const currentTimer = kami.telegraphRemaining ?? kami.warningRemaining;
-        const nextTimer = currentTimer - deltaTime;
+      if (kami.phase === "warning") {
+        const nextWarning = kami.warningRemaining - deltaTime;
         const mutableKami = world.getMutableComponent(entity, "Kamikaze");
-        if (nextTimer <= 0) {
+        if (nextWarning <= 0) {
           if (mutableKami) {
             mutableKami.phase = "diving";
-            mutableKami.telegraphRemaining = 0;
             mutableKami.warningRemaining = 0;
           }
         } else {
           if (mutableKami) {
-            mutableKami.telegraphRemaining = nextTimer;
-            mutableKami.warningRemaining = nextTimer;
+            mutableKami.warningRemaining = nextWarning;
           }
         }
 
@@ -135,17 +132,11 @@ export class KamikazeSystem extends GameSystem {
       const color = variant === "standard" ? "#FF4444" : variant === "splitter" ? "#FF006E" : "#FF4444";
       const speed = variant === "standard" ? 180 : variant === "splitter" ? 130 : 100;
 
-      const players = world.query("Player", "Transform");
-      const playerPos = players.length > 0 ? world.getComponent(players[0], "Transform") : null;
-
       world.getCommandBuffer().addComponent(invader, {
         type: "Kamikaze",
         variant,
-        phase: "telegraphing",
-        telegraphRemaining: 0.6,
-        warningRemaining: 0.6,
-        targetX: playerPos ? playerPos.x : pos.x,
-        targetY: playerPos ? playerPos.y : 500,
+        phase: "warning",
+        warningRemaining: 0.5,
         originX: pos.x,
         originY: pos.y,
         diveSpeed: speed,

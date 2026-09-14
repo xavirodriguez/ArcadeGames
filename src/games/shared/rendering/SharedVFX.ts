@@ -294,8 +294,60 @@ function getOrCreateCached<T>(
 }
 
 // -------------------------------------------------------------
-// Pure Calculation Helpers
+// Pure Calculation & State Update Helpers
 // -------------------------------------------------------------
+export function updateSpeedLine(line: SpeedLine, maxRadius: number, rng: any): void {
+  line.radius += line.speed;
+  if (line.radius > maxRadius) {
+    line.radius = rng.nextRange(10, 50);
+    line.angle = rng.nextRange(0, Math.PI * 2);
+    line.length = rng.nextRange(15, 60);
+    line.speed = rng.nextRange(4, 12);
+  }
+}
+
+export function computeSpeedLineCoordinates(centerX: number, centerY: number, angle: number, radius: number, length: number) {
+  return {
+    x1: centerX + Math.cos(angle) * radius,
+    y1: centerY + Math.sin(angle) * radius,
+    x2: centerX + Math.cos(angle) * (radius + length),
+    y2: centerY + Math.sin(angle) * (radius + length)
+  };
+}
+
+export function updateMatrixColumn(col: MatrixColumn, height: number, rng: any): void {
+  col.y += col.speed;
+  if (col.y > height) {
+    col.y = -150;
+    col.speed = rng.nextRange(2, 6);
+  }
+}
+
+export function updateAccretionParticle(p: AccretionParticle, baseSize: number, rng: any): void {
+  p.angle -= p.speed;
+  p.radius -= 0.2;
+  if (p.radius < 5) {
+    p.radius = rng.nextRange(baseSize * 0.8, baseSize * 1.5);
+    p.angle = rng.nextRange(0, Math.PI * 2);
+  }
+}
+
+export function updateDistantAsteroid(ast: DistantAsteroid, width: number, offsetX: number): { posX: number; y: number; rotation: number } {
+  ast.x += ast.vx;
+  ast.y += ast.vy;
+  ast.rotation += ast.angularVelocity;
+  const posX = wrapParallaxCoordinate(ast.x - offsetX * 0.1, width, ast.radius * 2);
+  return { posX, y: ast.y, rotation: ast.rotation };
+}
+
+export function computeShockwaveParams(baseSize: number, progress: number) {
+  const easedProgress = Math.sin((progress * Math.PI) / 2);
+  const maxRadius = baseSize * 4;
+  const currentRadius = maxRadius * easedProgress;
+  const strokeWidth = Math.max(0.5, 4.0 * (1.0 - progress));
+  return { currentRadius, strokeWidth };
+}
+
 function computeHologramLayers(timePhase: number, size: number) {
   const glitchOffset = 2 + 1.5 * Math.sin(timePhase * 10);
   return [
@@ -783,7 +835,6 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
 
     // Inner bright core stream
     ctx.fillStyle = "rgba(220, 200, 255, 0.05)";
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:848-852. Considerar extraer a función compartida. Ref: 2929995c
     ctx.fillRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3);
 
     // Embedded star dust particles along galactic plane
@@ -876,7 +927,6 @@ export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingCo
 
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:934-942. Considerar extraer a función compartida. Ref: 6cce8dc2
     ctx.save();
 
     for (let i = 0; i < state.distantAsteroids.length; i++) {
@@ -967,7 +1017,6 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, Componen
 // -------------------------------------------------------------
 export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1073-1082. Considerar extraer a función compartida. Ref: 2fb4ea3d
     const { width, height, state } = getScreenAndVFXState(world);
     if (!state.stationInitialized) {
       initializeSpaceStation(world, state);
@@ -1044,7 +1093,6 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(0, 0, st.coreRadius * 0.5, 0, Math.PI * 2);
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1165-1170. Considerar extraer a función compartida. Ref: a4741478
     ctx.stroke();
 
     // Blinking Warning Beacons
@@ -1310,7 +1358,6 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
     canvas.save();
 
     const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1357-1365. Considerar extraer a función compartida. Ref: 9233da06
     const ringThickness = planet.ringOuterRadius - planet.ringInnerRadius;
 
     // 1. Back section of rings
@@ -1478,7 +1525,6 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
 
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer2_distant_stars");
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1507-1515. Considerar extraer a función compartida. Ref: b2830931
     ctx.save();
 
     for (let i = 0; i < STAR_COUNT; i++) {
@@ -1536,7 +1582,6 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> 
 // -------------------------------------------------------------
 export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:484-493. Considerar extraer a función compartida. Ref: d45cd223
     const { width, height, state } = getScreenAndVFXState(world);
     const centerX = width / 2;
     const centerY = height / 2;
@@ -1547,24 +1592,12 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
     }
 
     ctx.save();
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:498-514. Considerar extraer a función compartida. Ref: 29333365
     ctx.lineWidth = 1.5;
 
     for (let i = 0; i < WARP_LINE_COUNT; i++) {
       const line = state.lines[i];
-      line.radius += line.speed;
-      if (line.radius > maxRadius) {
-        const rng = world.renderRandom;
-        line.radius = rng.nextRange(10, 50);
-        line.angle = rng.nextRange(0, Math.PI * 2);
-        line.length = rng.nextRange(15, 60);
-        line.speed = rng.nextRange(4, 12);
-      }
-
-      const x1 = centerX + Math.cos(line.angle) * line.radius;
-      const y1 = centerY + Math.sin(line.angle) * line.radius;
-      const x2 = centerX + Math.cos(line.angle) * (line.radius + line.length);
-      const y2 = centerY + Math.sin(line.angle) * (line.radius + line.length);
+      updateSpeedLine(line, maxRadius, world.renderRandom);
+      const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
 
       ctx.strokeStyle = line.color;
       ctx.beginPath();
@@ -1580,7 +1613,6 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
 export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1534-1541. Considerar extraer a función compartida. Ref: 002e9a1f
     const { width, height, state } = getScreenAndVFXState(world);
     const centerX = width / 2;
     const centerY = height / 2;
@@ -1593,24 +1625,12 @@ export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, ComponentRegi
     canvas.save();
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:459-475. Considerar extraer a función compartida. Ref: ddaf91f3
     paint.setStrokeWidth(1.5);
 
     for (let i = 0; i < WARP_LINE_COUNT; i++) {
       const line = state.lines[i];
-      line.radius += line.speed;
-      if (line.radius > maxRadius) {
-        const rng = world.renderRandom;
-        line.radius = rng.nextRange(10, 50);
-        line.angle = rng.nextRange(0, Math.PI * 2);
-        line.length = rng.nextRange(15, 60);
-        line.speed = rng.nextRange(4, 12);
-      }
-
-      const x1 = centerX + Math.cos(line.angle) * line.radius;
-      const y1 = centerY + Math.sin(line.angle) * line.radius;
-      const x2 = centerX + Math.cos(line.angle) * (line.radius + line.length);
-      const y2 = centerY + Math.sin(line.angle) * (line.radius + line.length);
+      updateSpeedLine(line, maxRadius, world.renderRandom);
+      const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
 
       paint.setColor(line.skColor || Skia.Color("#ffffff"));
       canvas.drawLine(x1, y1, x2, y2, paint);
@@ -1676,7 +1696,6 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, ComponentRegistry> =
     renderSkiaGlow(canvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(isHighlight ? 1.5 : 3);
-      // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:2147-2155. Considerar extraer a función compartida. Ref: 359a458e
       canvas.drawCircle(0, 0, radius * pulseFactor, paint);
     });
 
@@ -1831,7 +1850,6 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
     const theme = getActiveLevelTheme(world);
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1861-1868. Considerar extraer a función compartida. Ref: c8a7d2b9
     ctx.save();
 
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {

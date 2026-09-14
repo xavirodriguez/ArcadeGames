@@ -66,3 +66,43 @@ export function rebuildQueries<TComponents extends ComponentRegistry>(
     query.rebuild(internal.activeEntities, internal.entityComponentSets);
   });
 }
+
+/**
+ * Initializes and registers componentMaps, componentIndex, and componentVersions for a given component type.
+ * @internal
+ */
+export function restoreComponentStorage(
+  internal: InternalWorldAccess,
+  type: string
+): {
+  storage: Map<number, unknown>;
+  index: Set<number>;
+  versions: Map<number, number>;
+} {
+  const storage = new Map<number, unknown>();
+  const index = new Set<number>();
+  const versions = new Map<number, number>();
+
+  internal.componentMaps.set(type, storage);
+  internal.componentIndex.set(type, index);
+  internal.componentVersions.set(type, versions);
+
+  return { storage, index, versions };
+}
+
+/**
+ * Registers a component type in an entity's component set within internal entityComponentSets.
+ * @internal
+ */
+export function registerEntityComponent(
+  internal: InternalWorldAccess,
+  entityId: number,
+  type: string
+): void {
+  let componentSet = internal.entityComponentSets.get(entityId);
+  if (!componentSet) {
+    componentSet = new Set();
+    internal.entityComponentSets.set(entityId, componentSet);
+  }
+  componentSet.add(type);
+}

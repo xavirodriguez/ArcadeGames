@@ -43,7 +43,6 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
   public static getViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
     world: World<TRegistry>
   ): { minX: number; minY: number; maxX: number; maxY: number } {
-    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:188-195. Considerar extraer a función compartida. Ref: 5820e562
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig");
     const screenWidth = screen?.width ?? 800;
     const screenHeight = screen?.height ?? 600;
@@ -69,6 +68,39 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
       maxX: viewX + screenWidth / zoom,
       maxY: viewY + screenHeight / zoom,
     };
+  }
+
+  /**
+   * Computes an expanded viewport bounding box including buffer margin.
+   */
+  public static getExpandedViewport<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>,
+    margin: number = 100
+  ): { minX: number; minY: number; maxX: number; maxY: number } {
+    const viewport = this.getViewport(world);
+    return {
+      minX: viewport.minX - margin,
+      minY: viewport.minY - margin,
+      maxX: viewport.maxX + margin,
+      maxY: viewport.maxY + margin,
+    };
+  }
+
+  /**
+   * Tests whether an entity's Transform falls within explicit bounding box coordinates.
+   */
+  public static isEntityInViewportBounds<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>,
+    entity: Entity,
+    bounds: { minX: number; minY: number; maxX: number; maxY: number }
+  ): boolean {
+    const transformType = "Transform" as Extract<keyof TRegistry, string>;
+    const trans = world.getComponent(entity, transformType) as TransformComponent | undefined;
+    if (!trans) return false;
+    const x = trans.worldX ?? trans.x;
+    const y = trans.worldY ?? trans.y;
+
+    return x >= bounds.minX && x <= bounds.maxX && y >= bounds.minY && y <= bounds.maxY;
   }
 
   /**
@@ -114,19 +146,8 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
       return true;
     }
 
-    const viewport = this.getViewport(world);
-    const minX = viewport.minX - margin;
-    const minY = viewport.minY - margin;
-    const maxX = viewport.maxX + margin;
-    const maxY = viewport.maxY + margin;
-
-    const transformType = "Transform" as Extract<keyof TRegistry, string>;
-    const trans = world.getComponent(entity, transformType) as TransformComponent | undefined;
-    if (!trans) return false;
-    const x = trans.worldX ?? trans.x;
-    const y = trans.worldY ?? trans.y;
-
-    return x >= minX && x <= maxX && y >= minY && y <= maxY;
+    const bounds = this.getExpandedViewport(world, margin);
+    return this.isEntityInViewportBounds(world, entity, bounds);
   }
 
   /**
@@ -140,25 +161,13 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     entities: ReadonlyArray<Entity>,
     margin: number = 100
   ): Entity[] {
-    const viewport = this.getViewport(world);
-    const minX = viewport.minX - margin;
-    const minY = viewport.minY - margin;
-    const maxX = viewport.maxX + margin;
-    const maxY = viewport.maxY + margin;
-
-    const transformType = "Transform" as Extract<keyof TRegistry, string>;
+    const bounds = this.getExpandedViewport(world, margin);
 
     return entities.filter((entity) => {
       if (this.isPlayerEntity(world, entity)) {
         return true;
       }
-
-      const trans = world.getComponent(entity, transformType) as TransformComponent | undefined;
-      if (!trans) return false;
-      const x = trans.worldX ?? trans.x;
-      const y = trans.worldY ?? trans.y;
-
-      return x >= minX && x <= maxX && y >= minY && y <= maxY;
+      return this.isEntityInViewportBounds(world, entity, bounds);
     });
   }
 
@@ -209,32 +218,10 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
       return;
     }
 
-    // 2. Retrieve screen config/dimensions
-    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:44-50. Considerar extraer a función compartida. Ref: 6d11ee76
-    const screen = world.getResource<{ width: number; height: number }>("ScreenConfig");
-    const screenWidth = screen?.width ?? 800;
-    const screenHeight = screen?.height ?? 600;
+    // 2. Compute active culling bounding box
+    const bounds = SpatialCullingSystem.getExpandedViewport(world, this.margin);
 
-    // 3. Retrieve viewport coordinate from main camera if available
-    const cameras = world.query("Camera2D");
-    let viewX = 0;
-    let viewY = 0;
-    for (const camEntity of cameras) {
-      const cam = world.getComponent(camEntity, "Camera2D") as Camera2DComponent | undefined;
-      if (cam?.isMain) {
-        viewX = cam.x;
-        viewY = cam.y;
-        break;
-      }
-    }
-
-    // 4. Compute active culling bounding box
-    const minX = viewX - this.margin;
-    const minY = viewY - this.margin;
-    const maxX = viewX + screenWidth + this.margin;
-    const maxY = viewY + screenHeight + this.margin;
-
-    // 5. Filter entities into pre-allocated buffer
+    // 3. Filter entities into pre-allocated buffer
     const allEntities = world.query("Transform");
     this.candidateBuffer.length = 0;
 
@@ -244,12 +231,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
         continue;
       }
 
-      const trans = world.getComponent(entity, "Transform") as TransformComponent | undefined;
-      if (!trans) continue;
-      const x = trans.worldX ?? trans.x;
-      const y = trans.worldY ?? trans.y;
-
-      if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+      if (SpatialCullingSystem.isEntityInViewportBounds(world, entity, bounds)) {
         this.candidateBuffer.push(entity);
       }
     }

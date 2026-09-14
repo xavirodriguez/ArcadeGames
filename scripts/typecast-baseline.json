@@ -394,6 +394,11 @@
     "unknownCount": 0,
     "total": 15
   },
+  "packages/gameplay-kit/src/combat/systems/ContactDamageUtils.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
   "packages/gameplay-kit/src/spawn/__tests__/SpawnDirectorSystem.test.ts": {
     "anyCount": 25,
     "unknownCount": 0,
@@ -403,6 +408,11 @@
     "anyCount": 10,
     "unknownCount": 0,
     "total": 10
+  },
+  "packages/gameplay-kit/src/story/BaseMiniGameEncounter.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
   },
   "packages/renderer-canvas/src/CanvasRenderer.ts": {
     "anyCount": 0,
@@ -559,6 +569,11 @@
     "unknownCount": 0,
     "total": 1
   },
+  "src/games/asteroids/EntityPool.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
   "src/games/asteroids/__tests__/AsteroidCollisionSystem.test.ts": {
     "anyCount": 1,
     "unknownCount": 0,
@@ -620,9 +635,9 @@
     "total": 3
   },
   "src/games/echorunner/EchoRunnerGame.ts": {
-    "anyCount": 10,
+    "anyCount": 9,
     "unknownCount": 0,
-    "total": 10
+    "total": 9
   },
   "src/games/echorunner/__tests__/EchoRunner.test.ts": {
     "anyCount": 12,
@@ -715,9 +730,9 @@
     "total": 11
   },
   "src/games/geometrywars/story/GeometryWarsEncounter.ts": {
-    "anyCount": 13,
+    "anyCount": 8,
     "unknownCount": 0,
-    "total": 13
+    "total": 8
   },
   "src/games/geometrywars/systems/GeometryWarsGameStateSystem.ts": {
     "anyCount": 11,
@@ -839,6 +854,11 @@
     "unknownCount": 0,
     "total": 3
   },
+  "src/games/space-invaders/EntityPool.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
   "src/games/space-invaders/SpaceInvadersGame.ts": {
     "anyCount": 25,
     "unknownCount": 0,
@@ -900,9 +920,9 @@
     "total": 14
   },
   "src/games/space-invaders/story/InvasionEncounter.ts": {
-    "anyCount": 13,
+    "anyCount": 8,
     "unknownCount": 0,
-    "total": 13
+    "total": 8
   },
   "src/games/space-invaders/systems/BossSystem.ts": {
     "anyCount": 1,

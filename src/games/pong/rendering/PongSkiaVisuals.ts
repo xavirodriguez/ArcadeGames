@@ -3,10 +3,8 @@ import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 import { ComboComponent } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
-import { computeNeonPulse } from "../../shared/rendering/ProceduralShapeUtils";
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:4-20. Considerar extraer a función compartida. Ref: 594220cc
 import { CanvasMotionTrail } from "../../shared/rendering/CanvasNeonUtils";
-
+import { drawNeonShapeSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
@@ -155,7 +153,6 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
 export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongCanvasVisuals.ts:86-98. Considerar extraer a función compartida. Ref: 18e6e604
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -172,43 +169,23 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
 
     const paint = getPaint();
 
-    canvas.save();
-
-    const pulseFactor = computeNeonPulse(world.tick);
-    const pw = w * pulseFactor;
-    const ph = h;
-
-    // 1. Draw outer glowing outline
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(color));
-    paint.setStrokeWidth(2.0);
-    canvas.drawRoundRect(
-      Skia.RRectXY(Skia.XYWHRect(-pw / 2, -ph / 2, pw, ph), 4, 4),
-      paint
+    drawNeonShapeSkia(
+      canvas,
+      paint,
+      world.tick,
+      color,
+      glowAlphaColor,
+      (c, p, widthScale, heightScale) => {
+        const pw = w * widthScale;
+        const ph = h * heightScale;
+        c.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-pw / 2, -ph / 2, pw, ph), 4, 4), p);
+      },
+      (c, p) => {
+        const coreW = w * 0.4;
+        const coreH = h * 0.9;
+        c.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-coreW / 2, -coreH / 2, coreW, coreH), 2, 2), p);
+      }
     );
-
-    // 2. Draw outer glowing semi-transparent body fill
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(glowAlphaColor));
-    canvas.drawRoundRect(
-      Skia.RRectXY(Skia.XYWHRect(-w / 2, -h / 2, w, h), 4, 4),
-      paint
-    );
-
-    // 3. Draw bright white core
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(colors.white));
-    const coreW = w * 0.4;
-    const coreH = h * 0.9;
-    canvas.drawRoundRect(
-      Skia.RRectXY(Skia.XYWHRect(-coreW / 2, -coreH / 2, coreW, coreH), 2, 2),
-      paint
-    );
-
-    canvas.restore();
   }
 };
 

@@ -15,7 +15,7 @@ import {
   ProjectilePool,
   ProjectileParams
 } from "@tiny-aster/core";
-import { CollisionLayers, DamageComponent, FactionComponent, SharedParticlePool } from "@tiny-aster/gameplay-kit";
+import { CollisionLayers, createProjectilePoolConfig, SharedParticlePool } from "@tiny-aster/gameplay-kit";
 
 /**
  * Parameters for acquiring an Asteroids bullet from the pool.
@@ -30,96 +30,21 @@ export interface AsteroidsBulletParams extends ProjectileParams {
 }
 
 function createAsteroidsBulletPoolConfig() {
-  return {
-    factory: () => ({
-      position: {
-        type: "Transform",
-        x: 0,
-        y: 0,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: 0,
-        worldY: 0,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: false
-      } as TransformComponent,
-      velocity: { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 } as VelocityComponent,
-      render: {
-        type: "Render",
-        shape: "bullet",
-        size: 2,
-        color: "",
-        rotation: 0,
-        visible: true,
-        opacity: 1,
-        order: 2,
-        hitFlashFrames: 0,
-        angularVelocity: 0
-      } as RenderComponent,
-      collider: {
-        type: "Collider",
-        shape: { type: ShapeType.Circle, radius: 2 } as CircleShape,
-        layer: CollisionLayers.PROJECTILE,
-        mask: CollisionLayers.ENEMY,
-        offsetX: 0,
-        offsetY: 0,
-        isTrigger: false,
-        enabled: true
-      } as ColliderComponent,
-      ttl: { type: "TTL", remaining: 2.0, timeLeft: 2.0 } as TTLComponent,
-      reclaimable: { type: "Reclaimable", poolId: "BulletPool", poolName: "BulletPool" } as ReclaimableComponent,
-      bullet: { type: "Bullet", ownerId: undefined as string | undefined },
-      collisionEvents: {
-        type: "CollisionEvents",
-        collisions: [],
-        activeTriggers: [],
-        triggersEntered: [],
-        triggersExited: []
-      } as CollisionEventsComponent,
-      damage: { type: "Damage", amount: 1, category: "player_bullet", friendlyFire: false, consumption: "destroy-entity" } as DamageComponent,
-      faction: { type: "Faction", faction: "player", value: "player" } as FactionComponent
-    }),
-    reset: (data: any) => {
-      data.position.x = 0;
-      data.position.y = 0;
-      data.position.rotation = 0;
-      data.position.dirty = true;
-      data.velocity.vx = 0;
-      data.velocity.vy = 0;
-      data.velocity.angularVelocity = 0;
-      data.render.shape = "bullet";
-      data.render.size = 2;
-      data.render.color = "";
-      data.render.rotation = 0;
-      data.render.visible = true;
-      data.render.opacity = 1;
-      data.bullet.ownerId = undefined;
-      data.ttl.remaining = 2.0;
-      data.ttl.timeLeft = 2.0;
-      data.collisionEvents.collisions.length = 0;
-      data.collisionEvents.activeTriggers.length = 0;
-      data.collisionEvents.triggersEntered.length = 0;
-      data.collisionEvents.triggersExited.length = 0;
-    },
-    initializer: (data: any, p: AsteroidsBulletParams, world: World, entity: Entity) => {
+  const base = createProjectilePoolConfig<AsteroidsBulletParams>({
+    shape: "bullet",
+    layer: CollisionLayers.PROJECTILE,
+    mask: CollisionLayers.ENEMY,
+    poolId: "BulletPool",
+    damageCategory: "player_bullet",
+    faction: "player",
+    order: 2,
+    extraComponents: (data: any, p: AsteroidsBulletParams, world: World, entity: Entity) => {
       const tint = resolveThemeColor(world, "bullet", "player-bullet");
       const gameConfig = world.getResource<any>("GameConfig");
 
-      data.position.x = p.x;
-      data.position.y = p.y;
       data.position.rotation = p.rotation ?? 0;
-      data.position.dirty = true;
-
-      data.velocity.vx = p.vx ?? p.dx;
-      data.velocity.vy = p.vy ?? p.dy;
-
       data.render.color = p.color || tint;
       data.render.rotation = p.rotation ?? 0;
-      data.render.visible = true;
-
       data.bullet.ownerId = p.ownerId;
 
       const ttlVal = p.ttl ?? gameConfig?.BULLET_TTL ?? 2.0;
@@ -134,6 +59,26 @@ function createAsteroidsBulletPoolConfig() {
           height: screen.height,
           mode: "bounce"
         } as BoundaryComponent);
+      }
+    }
+  });
+
+  const baseFactory = base.factory;
+  const baseReset = base.reset;
+
+  return {
+    ...base,
+    factory: () => {
+      const obj = baseFactory() as any;
+      obj.bullet = { type: "Bullet", ownerId: undefined };
+      (obj.collider.shape as CircleShape).radius = 2;
+      obj.render.size = 2;
+      return obj;
+    },
+    reset: (data: any) => {
+      baseReset(data);
+      if (data.bullet) {
+        data.bullet.ownerId = undefined;
       }
     }
   };

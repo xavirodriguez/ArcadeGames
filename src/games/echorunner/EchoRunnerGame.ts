@@ -52,7 +52,7 @@ import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAU
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
-import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
+import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -124,71 +124,15 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
  */
 class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    // TODO(refactor): código duplicado detectado (bloque) con platformer/systems/PlatformerDamageSystem.ts:7-30. Considerar extraer a función compartida. Ref: 72e3e047
-    const players = world.query("PlatformerInput", "Health", "Transform");
-    const enemies = world.query("Enemy", "Transform");
-
-    for (let p = 0; p < players.length; p++) {
-      const player = players[p];
-      const pHealth = world.getComponent(player, "Health")!;
-      const pTrans = world.getComponent(player, "Transform")!;
-
-      // Handle invulnerability blink timers
-      let invRemaining = pHealth.invulnerableRemaining ?? 0;
-      if (invRemaining > 0) {
-        invRemaining = PhysicsUtils.tickTimer(invRemaining, deltaTime);
-        world.mutateComponent(player, "Health", (h) => {
-          h.invulnerableRemaining = invRemaining;
-        });
-      }
-
-      if (invRemaining > 0) continue;
-
-      // Contact check with all active enemies
-      let hit = false;
-      for (let e = 0; e < enemies.length; e++) {
-        const enemy = enemies[e];
-        const eTrans = world.getComponent(enemy, "Transform")!;
-
-        const dx = player !== undefined ? pTrans.x - eTrans.x : 0;
-        const dy = player !== undefined ? pTrans.y - eTrans.y : 0;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        // If very close, trigger damage
-        if (dist < 20) {
-          hit = true;
-          break;
-        }
-      }
-
-      if (hit) {
-        // Apply damage to player
-        world.mutateComponent(player, "Health", (h) => {
-          h.current--;
-          h.invulnerableRemaining = 1.0; // 1 second invulnerability
-        });
-        world.mutateComponent(player, "Render", (r) => {
-          r.hitFlashFrames = 8;
-        });
-
-        // Request Screenshake
-        const cameras = world.query("Camera2D");
-        for (let c = 0; c < cameras.length; c++) {
-          world.commands.addComponent(cameras[c], {
-            type: "ScreenShake",
-            intensity: 12,
-            duration: 0.25,
-            remaining: 0.25
-          });
-        }
-
-        // Play SFX
-        const audio = world.getResource<any>("AudioPlayer") || (world as any).audio;
-        if (audio) {
-          audio.playSFX("hit");
-        }
-      }
-    }
+    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
+      contactDistance: 20,
+      invulnerabilityDuration: 1.0,
+      damageAmount: 1,
+      hitFlashFrames: 8,
+      screenShakeIntensity: 12,
+      screenShakeDuration: 0.25,
+      sfxName: "hit"
+    });
   }
 }
 

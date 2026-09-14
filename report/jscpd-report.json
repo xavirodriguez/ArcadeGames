@@ -857,14 +857,14 @@
         "endLoc": {
           "column": 9,
           "line": 15,
-          "position": 725
+          "position": 742
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
         "start": 7,
         "startLoc": {
           "column": 94,
           "line": 7,
-          "position": 465
+          "position": 482
         }
       },
       "format": "typescript",
@@ -890,30 +890,30 @@
     },
     {
       "firstFile": {
-        "end": 15,
+        "end": 16,
         "endLoc": {
-          "column": 34,
-          "line": 15,
-          "position": 750
+          "column": 9,
+          "line": 16,
+          "position": 777
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
         "start": 9,
         "startLoc": {
           "column": 4,
           "line": 9,
-          "position": 504
+          "position": 521
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;\n    const isMobile = isMobileBrowser();",
       "isNew": false,
-      "lines": 7,
+      "lines": 8,
       "secondFile": {
-        "end": 17,
+        "end": 18,
         "endLoc": {
-          "column": 34,
-          "line": 17,
-          "position": 816
+          "column": 9,
+          "line": 18,
+          "position": 826
         },
         "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
         "start": 11,
@@ -923,28 +923,28 @@
           "position": 570
         }
       },
-      "tokens": 54
+      "tokens": 55
     },
     {
       "firstFile": {
-        "end": 36,
+        "end": 46,
         "endLoc": {
           "column": 12,
-          "line": 36,
-          "position": 1155
+          "line": 46,
+          "position": 1424
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 26,
+        "start": 37,
         "startLoc": {
-          "column": 22,
-          "line": 26,
-          "position": 995
+          "column": 4,
+          "line": 37,
+          "position": 1270
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.shadowBlur = 0;\n    ctx.fillStyle = colors.white;\n    ctx.beginPath();\n    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);\n    ctx.fill();\n\n    ctx.restore();\n  }\n};\n\nexport const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {",
+      "fragment": "    ctx.fillStyle = colors.white;\n    ctx.beginPath();\n    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);\n    ctx.fill();\n\n    ctx.restore();\n  }\n};\n\nexport const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {",
       "isNew": false,
-      "lines": 11,
+      "lines": 10,
       "secondFile": {
         "end": 86,
         "endLoc": {
@@ -953,29 +953,29 @@
           "position": 3332
         },
         "name": "pong/rendering/PongCanvasVisuals.ts",
-        "start": 69,
+        "start": 72,
         "startLoc": {
-          "column": 16,
-          "line": 69,
-          "position": 2962
+          "column": 4,
+          "line": 72,
+          "position": 2991
         }
       },
-      "tokens": 53
+      "tokens": 52
     },
     {
       "firstFile": {
-        "end": 45,
+        "end": 55,
         "endLoc": {
           "column": 9,
-          "line": 45,
-          "position": 1569
+          "line": 55,
+          "position": 1838
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 38,
+        "start": 48,
         "startLoc": {
           "column": 4,
-          "line": 38,
-          "position": 1278
+          "line": 48,
+          "position": 1547
         }
       },
       "format": "typescript",
@@ -1001,18 +1001,18 @@
     },
     {
       "firstFile": {
-        "end": 63,
+        "end": 73,
         "endLoc": {
           "column": 25,
-          "line": 63,
-          "position": 2069
+          "line": 73,
+          "position": 2338
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 52,
+        "start": 62,
         "startLoc": {
           "column": 15,
-          "line": 52,
-          "position": 1747
+          "line": 62,
+          "position": 2016
         }
       },
       "format": "typescript",
@@ -1038,18 +1038,18 @@
     },
     {
       "firstFile": {
-        "end": 75,
+        "end": 85,
         "endLoc": {
           "column": 12,
-          "line": 75,
-          "position": 2321
+          "line": 85,
+          "position": 2590
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 64,
+        "start": 74,
         "startLoc": {
           "column": 29,
-          "line": 64,
-          "position": 2104
+          "line": 74,
+          "position": 2373
         }
       },
       "format": "typescript",
@@ -1075,30 +1075,30 @@
     },
     {
       "firstFile": {
-        "end": 94,
+        "end": 106,
         "endLoc": {
-          "column": 5,
-          "line": 94,
-          "position": 3184
+          "column": 9,
+          "line": 106,
+          "position": 3464
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 77,
+        "start": 87,
         "startLoc": {
           "column": 4,
-          "line": 77,
-          "position": 2443
+          "line": 87,
+          "position": 2712
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const brick = world.getComponent(entity, \"Brick\") as BrickComponent | undefined;\n    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };\n    const w = config.BRICK_WIDTH;\n    const h = config.BRICK_HEIGHT;\n\n    let brickColor: string = colors.cyan;\n    if (brick) {\n      if (brick.kind === \"explosive\") brickColor = colors.orange;\n      else if (brick.kind === \"regenerable\") brickColor = colors.green;\n      else if (brick.kind === \"gravitational\") brickColor = colors.purple;\n    }\n\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      brickColor = colors.white;\n    }",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const brick = world.getComponent(entity, \"Brick\") as BrickComponent | undefined;\n    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };\n    const w = config.BRICK_WIDTH;\n    const h = config.BRICK_HEIGHT;\n\n    let brickColor: string = colors.cyan;\n    if (brick) {\n      if (brick.kind === \"explosive\") brickColor = colors.orange;\n      else if (brick.kind === \"regenerable\") brickColor = colors.green;\n      else if (brick.kind === \"gravitational\") brickColor = colors.purple;\n    }\n\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      brickColor = colors.white;\n    }\n\n    const isMobile = isMobileBrowser();",
       "isNew": false,
-      "lines": 18,
+      "lines": 20,
       "secondFile": {
-        "end": 102,
+        "end": 104,
         "endLoc": {
-          "column": 5,
-          "line": 102,
-          "position": 3420
+          "column": 9,
+          "line": 104,
+          "position": 3431
         },
         "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
         "start": 85,
@@ -1108,7 +1108,7 @@
           "position": 2679
         }
       },
-      "tokens": 156
+      "tokens": 157
     },
     {
       "firstFile": {
@@ -6459,18 +6459,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 87,
+        "end": 101,
         "endLoc": {
           "column": 51,
-          "line": 87,
-          "position": 2566
+          "line": 101,
+          "position": 3000
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 76,
+        "start": 90,
         "startLoc": {
           "column": 14,
-          "line": 76,
-          "position": 2212
+          "line": 90,
+          "position": 2646
         }
       },
       "tokens": 95
@@ -7809,32 +7809,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-14T09:33:35.674Z",
+    "detectionDate": "2026-09-14T11:49:52.622Z",
     "formats": {
       "typescript": {
-        "clones": 209,
-        "duplicatedLines": 2186,
-        "duplicatedTokens": 16666,
-        "lines": 64785,
+        "clones": 211,
+        "duplicatedLines": 2201,
+        "duplicatedTokens": 16771,
+        "lines": 64849,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 3.3742378637030175,
-        "percentageTokens": 4.929500394868777,
+        "percentage": 3.3940384585729926,
+        "percentageTokens": 4.9545490801986425,
         "sources": 379,
-        "tokens": 338087
+        "tokens": 338497
       }
     },
     "total": {
-      "clones": 209,
-      "duplicatedLines": 2186,
-      "duplicatedTokens": 16666,
-      "lines": 64785,
+      "clones": 211,
+      "duplicatedLines": 2201,
+      "duplicatedTokens": 16771,
+      "lines": 64849,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 3.3742378637030175,
-      "percentageTokens": 4.929500394868777,
+      "percentage": 3.3940384585729926,
+      "percentageTokens": 4.9545490801986425,
       "sources": 379,
-      "tokens": 338087
+      "tokens": 338497
     }
   }
 }

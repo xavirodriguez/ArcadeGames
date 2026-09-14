@@ -140,6 +140,7 @@ export class BroadPhase {
     const c2 = world.getComponent(entity, "Collider2D") as Collider2DComponent | undefined;
     if (!c2) return null;
 
+    // TODO(refactor): código duplicado detectado (bloque) con physics/collision/CollisionSystems.ts:305-316. Considerar extraer a función compartida. Ref: 2269e6fa
     let shape: ColliderComponent["shape"];
     if (c2.shape.type === "circle") {
       shape = { type: ShapeType.Circle, radius: c2.shape.radius };

@@ -54,6 +54,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
           }
 
           // Transition to Alert if player detected
+          // TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:162-175. Considerar extraer a función compartida. Ref: 5baf3778
           return checkPlayerDetectionToAlert(sensor);
         }
       },
@@ -106,6 +107,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
 
           const dur = (data.idleDuration as number) ?? 1.0;
           if (elapsed >= dur) {
+            // TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:58-70. Considerar extraer a función compartida. Ref: d74a61dc
             return "Windup";
           }
         }
@@ -121,6 +123,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
       Attack: {
         onEnter(world, entity, data) {
           const jumpVel = (data.jumpVelocity as number) ?? 250;
+          // TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:175-183. Considerar extraer a función compartida. Ref: 09e72dc7
           const speed = (data.patrolSpeed as number) ?? 80;
           const sensor = world.getComponent(entity, "PlayerSensor");
           const trans = world.getComponent(entity, "Transform");

@@ -31,6 +31,7 @@ export class SnapshotRestoreSoA {
     soaData: SoAComponentBlock
   ): void {
     const internal = world as unknown as InternalWorldAccess<TComponents>;
+    // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestore.ts:47-55. Considerar extraer a función compartida. Ref: 157b4b5f
     const storage = new Map<number, unknown>();
     const index = new Set<number>();
     const versions = new Map<number, number>();
@@ -42,6 +43,7 @@ export class SnapshotRestoreSoA {
     const entities = soaData.entities;
 
     SoADeserializer.hydrateEntities(entities, soaData, type, (entityId, component) => {
+      // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestore.ts:61-71. Considerar extraer a función compartida. Ref: 347dbac0
       storage.set(entityId, component);
       index.add(entityId);
       versions.set(entityId, internal._stateVersion);

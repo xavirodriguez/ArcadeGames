@@ -4,7 +4,7 @@ import { Component, FactionComponent as CoreFactionComponent } from "@tiny-aster
  * Policy for how a DamageComponent is consumed after successfully dealing damage.
  * @public
  */
-export type DamageConsumptionPolicy = "destroy-entity" | "remove-component" | "none";
+export type DamageConsumptionPolicy = "destroy-entity" | "remove-component" | "decrement-piercing" | "none";
 
 /**
  * Represents damage that an entity can deal on contact/collision.
@@ -22,6 +22,10 @@ export interface DamageComponent extends Component {
   friendlyFire?: boolean;
   /** Consumption policy after damage is successfully dealt. Defaults to "none". */
   consumption?: DamageConsumptionPolicy;
+  /** Optional piercing hit count before consumption/destruction. */
+  piercing?: number;
+  /** Whether the damage source is energetic/charged (e.g. plasma piercing shots). */
+  charged?: boolean;
 }
 
 /**

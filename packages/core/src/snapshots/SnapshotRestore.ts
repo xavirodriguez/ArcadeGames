@@ -44,6 +44,7 @@ export class SnapshotRestore {
     const internal = restoreWorldMetadata(world, state);
 
     for (const type in state.componentData) {
+      // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestoreSoA.ts:34-42. Considerar extraer a función compartida. Ref: 157b4b5f
       const storage = new Map<number, unknown>();
       const index = new Set<number>();
       const versions = new Map<number, number>();
@@ -58,6 +59,7 @@ export class SnapshotRestore {
         const sourceComp = snapshotEntities[entityId];
         const component = ComponentCloner.cloneComponent(sourceComp);
 
+        // TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotRestoreSoA.ts:45-55. Considerar extraer a función compartida. Ref: 347dbac0
         storage.set(entityId, component);
         index.add(entityId);
         versions.set(entityId, internal._stateVersion);

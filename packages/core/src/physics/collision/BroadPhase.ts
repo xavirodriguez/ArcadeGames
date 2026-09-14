@@ -3,7 +3,7 @@ import { Entity } from "../../ecs/Entity";
 import { World } from "../../ecs/World";
 import { AABB } from "./CollisionTypes";
 import { getColliderWorldBounds } from "../utils/PhysicsTransform";
-import { ShapeType } from "../shapes/Shapes";
+import { toShapeDefinition } from "../utils/ColliderShapeUtils";
 
 /**
  * Bounds object used for Sweep and Prune.
@@ -140,20 +140,9 @@ export class BroadPhase {
     const c2 = world.getComponent(entity, "Collider2D") as Collider2DComponent | undefined;
     if (!c2) return null;
 
-    let shape: ColliderComponent["shape"];
-    if (c2.shape.type === "circle") {
-      shape = { type: ShapeType.Circle, radius: c2.shape.radius };
-    } else {
-      shape = {
-        type: ShapeType.Box,
-        width: c2.shape.halfWidth * 2,
-        height: c2.shape.halfHeight * 2
-      };
-    }
-
     return {
       type: "Collider",
-      shape,
+      shape: toShapeDefinition(c2),
       layer: c2.layer as ColliderComponent["layer"],
       mask: c2.mask as ColliderComponent["mask"],
       enabled: c2.enabled,

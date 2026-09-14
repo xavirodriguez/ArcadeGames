@@ -1,6 +1,7 @@
 import { RenderContext } from "../../rendering/Renderer";
 import { TransitionOptions } from "../TransitionTypes";
 import { BaseTransitionEffect } from "./BaseTransitionEffect";
+import { iterateGridBlocks } from "./GridTransitionUtils";
 
 /**
  * A dithered checkered fade utilizing a standard 4x4 Bayer matrix.
@@ -56,17 +57,12 @@ export class DitherTransition extends BaseTransitionEffect {
 
     cCtx.save();
     cCtx.fillStyle = color;
-    const cols = Math.ceil(width / blockSize);
-    const rows = Math.ceil(height / blockSize);
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const val = DitherTransition.BAYER_4X4[r % 4][c % 4];
-        if (val < ditherProgress * 16) {
-          cCtx.fillRect(c * blockSize, r * blockSize, blockSize, blockSize);
-        }
+    iterateGridBlocks(width, height, blockSize, (c, r, cellX, cellY) => {
+      const val = DitherTransition.BAYER_4X4[r % 4][c % 4];
+      if (val < ditherProgress * 16) {
+        cCtx.fillRect(cellX, cellY, blockSize, blockSize);
       }
-    }
+    });
     cCtx.restore();
   }
 }

@@ -1,6 +1,7 @@
 import { RenderContext } from "../../rendering/Renderer";
 import { TransitionOptions } from "../TransitionTypes";
 import { BaseOffscreenTransitionEffect } from "./BaseTransitionEffect";
+import { iterateGridBlocks } from "./GridTransitionUtils";
 
 /**
  * A highly retro grid transition.
@@ -29,25 +30,30 @@ export class RetroGridTransition extends BaseOffscreenTransitionEffect {
   ): void {
     const blockSize = options?.blockSize ?? 40;
 
-    const cols = Math.ceil(width / blockSize);
-    const rows = Math.ceil(height / blockSize);
+    iterateGridBlocks(width, height, blockSize, (c, r, cellX, cellY, cols, rows) => {
+      // Compute threshold from coordinates to stagger the sequence
+      const threshold = (c + r) / (cols + rows);
+      // Map individual cell progress
+      const cellProgress = Math.max(0, Math.min(1, (1 - progress - threshold * 0.4) * 2.5));
 
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        // Compute threshold from coordinates to stagger the sequence
-        const threshold = (c + r) / (cols + rows);
-        // Map individual cell progress
-        const cellProgress = Math.max(0, Math.min(1, (1 - progress - threshold * 0.4) * 2.5));
+      if (cellProgress <= 0) return;
 
-        if (cellProgress <= 0) continue;
+      const cx = cellX + blockSize / 2;
+      const cy = cellY + blockSize / 2;
+      const w = blockSize * cellProgress;
+      const h = blockSize * cellProgress;
 
-        const cx = c * blockSize + blockSize / 2;
-        const cy = r * blockSize + blockSize / 2;
-        const w = blockSize * cellProgress;
-        const h = blockSize * cellProgress;
-
-        (ctx as CanvasRenderingContext2D).drawImage(offscreenCanvas, c * blockSize, r * blockSize, blockSize, blockSize, cx - w / 2, cy - h / 2, w, h);
-      }
-    }
+      (ctx as CanvasRenderingContext2D).drawImage(
+        offscreenCanvas,
+        cellX,
+        cellY,
+        blockSize,
+        blockSize,
+        cx - w / 2,
+        cy - h / 2,
+        w,
+        h
+      );
+    });
   }
 }

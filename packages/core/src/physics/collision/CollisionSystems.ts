@@ -8,6 +8,7 @@ import { NarrowPhase } from "./NarrowPhase";
 import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { ShapeType } from "../shapes/Shapes";
 import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
+import { toShapeDefinition } from "../utils/ColliderShapeUtils";
 
 /**
  * Signature for a callback invoked when a physical collision occurs between two entities.
@@ -302,19 +303,8 @@ export class CollisionSystem2D<
     }
     const c2 = world.getComponent(entity, "Collider2D");
     if (c2) {
-      let shape: import("../shapes/Shapes").Shape;
-      if (c2.shape.type === "circle") {
-        shape = { type: ShapeType.Circle, radius: c2.shape.radius };
-      } else {
-        // aabb → Box (full width/height)
-        shape = {
-          type: ShapeType.Box,
-          width: c2.shape.halfWidth * 2,
-          height: c2.shape.halfHeight * 2
-        };
-      }
       return {
-        shape,
+        shape: toShapeDefinition(c2),
         layer: c2.layer,
         mask: c2.mask,
         enabled: c2.enabled,

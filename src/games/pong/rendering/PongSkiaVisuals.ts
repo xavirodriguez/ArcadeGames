@@ -3,7 +3,7 @@ import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 import { ComboComponent } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
-import { CanvasMotionTrail } from "../../shared/rendering/CanvasNeonUtils";
+import { CanvasMotionTrail, getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
 import { drawNeonShapeSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
@@ -82,26 +82,11 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
-    // 1. Fetch Combo component to dynamically shift trail length and color
+    // 1. Fetch Combo component to dynamically shift trail length and color using shared getComboReaction utility
     const comboComponent = world.getSingleton("Combo") as ComboComponent | undefined;
     const multiplier = comboComponent?.multiplier ?? 1;
 
-    let trailLength = 8;
-    let trailColor = "rgba(0, 240, 255, 0.4)"; // Default: colors.cyan with alpha
-    let trailColorInner = "rgba(255, 255, 255, 0.2)";
-    let ballColor: string = colors.cyan;
-
-    if (multiplier === 2) {
-      trailLength = 16;
-      trailColor = "rgba(255, 0, 85, 0.5)"; // colors.pink with alpha
-      trailColorInner = "rgba(255, 255, 255, 0.3)";
-      ballColor = colors.pink;
-    } else if (multiplier >= 3) {
-      trailLength = 24;
-      trailColor = "rgba(255, 215, 0, 0.6)"; // colors.gold with alpha
-      trailColorInner = "rgba(255, 255, 255, 0.4)";
-      ballColor = colors.gold;
-    }
+    const { trailLength, trailColor, trailColorInner, mainColor: ballColor } = getComboReaction(multiplier);
 
     const paint = getPaint();
 

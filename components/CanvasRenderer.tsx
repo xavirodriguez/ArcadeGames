@@ -35,6 +35,44 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
     enabled: wheelEnabled,
   });
 
+  // Strict non-passive gesture prevention on web to eliminate browser scrolling, pull-to-refresh & swipe back stutter
+  useEffect(() => {
+    if (Platform.OS !== "web" || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const parent = canvas.parentElement;
+
+    const preventTouchDefault = (e: TouchEvent) => {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    canvas.addEventListener("touchstart", preventTouchDefault, { passive: false });
+    canvas.addEventListener("touchmove", preventTouchDefault, { passive: false });
+    canvas.addEventListener("touchend", preventTouchDefault, { passive: false });
+    canvas.addEventListener("touchcancel", preventTouchDefault, { passive: false });
+
+    if (parent) {
+      parent.addEventListener("touchstart", preventTouchDefault, { passive: false });
+      parent.addEventListener("touchmove", preventTouchDefault, { passive: false });
+      parent.addEventListener("touchend", preventTouchDefault, { passive: false });
+      parent.addEventListener("touchcancel", preventTouchDefault, { passive: false });
+    }
+
+    return () => {
+      canvas.removeEventListener("touchstart", preventTouchDefault);
+      canvas.removeEventListener("touchmove", preventTouchDefault);
+      canvas.removeEventListener("touchend", preventTouchDefault);
+      canvas.removeEventListener("touchcancel", preventTouchDefault);
+      if (parent) {
+        parent.removeEventListener("touchstart", preventTouchDefault);
+        parent.removeEventListener("touchmove", preventTouchDefault);
+        parent.removeEventListener("touchend", preventTouchDefault);
+        parent.removeEventListener("touchcancel", preventTouchDefault);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (Platform.OS !== "web" || !canvasRef.current) return;
 
@@ -68,18 +106,23 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
   // Get screen config to resize the outer view container dynamically if needed
   const activeWorld = typeof world === "function" ? world() : world;
   const screenConfig = activeWorld.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+  const dpr = typeof window !== "undefined" && window.devicePixelRatio ? Math.max(1, window.devicePixelRatio) : 1;
 
   return (
     <View style={styles.container}>
       <canvas
         ref={canvasRef}
-        width={screenConfig.width}
-        height={screenConfig.height}
+        width={Math.round(screenConfig.width * dpr)}
+        height={Math.round(screenConfig.height * dpr)}
         style={{
           width: "100%",
           height: "100%",
+          objectFit: "contain",
           // Layered defense: Block touch gestures natively at the compositor level
           touchAction: "none",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          WebkitTouchCallout: "none",
         } as any}
       />
     </View>

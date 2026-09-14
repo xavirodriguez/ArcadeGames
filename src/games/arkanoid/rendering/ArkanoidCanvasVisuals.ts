@@ -1,7 +1,7 @@
 import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidTypes";
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
-import { drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
+import { drawNeonShape, drawProceduralGrid, isMobileBrowser } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 
 export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
@@ -13,17 +13,27 @@ export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidCom
     if (!transform) return;
 
     const size = render.size ?? 8;
+    const isMobile = isMobileBrowser();
 
     ctx.save();
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = render.color || colors.cyan;
+    if (!isMobile) {
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = render.color || colors.cyan;
+    } else {
+      ctx.fillStyle = "rgba(0, 240, 255, 0.25)";
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.fillStyle = render.color || colors.cyan;
     ctx.beginPath();
     ctx.arc(0, 0, size, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.shadowBlur = 0;
+    if (!isMobile) {
+      ctx.shadowBlur = 0;
+    }
     ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);
@@ -93,9 +103,13 @@ export const drawArkanoidBrick: ShapeDrawer<CanvasRenderingContext2D, ArkanoidCo
       brickColor = colors.white;
     }
 
+    const isMobile = isMobileBrowser();
+
     ctx.save();
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = brickColor;
+    if (!isMobile) {
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = brickColor;
+    }
     ctx.fillStyle = brickColor;
 
     if (ctx.roundRect) {
@@ -106,7 +120,9 @@ export const drawArkanoidBrick: ShapeDrawer<CanvasRenderingContext2D, ArkanoidCo
       ctx.fillRect(-w / 2, -h / 2, w, h);
     }
 
-    ctx.shadowBlur = 0;
+    if (!isMobile) {
+      ctx.shadowBlur = 0;
+    }
     ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
     ctx.fillRect(-w / 2 + 2, -h / 2 + 2, w - 4, 3);
 
@@ -124,11 +140,14 @@ export const drawArkanoidBackground: EffectDrawer<CanvasRenderingContext2D, Arka
 
     const state = world.getSingleton("ArkanoidState");
     if (state) {
+      const isMobile = isMobileBrowser();
       ctx.save();
       ctx.font = "14px monospace";
       ctx.fillStyle = colors.cyan;
-      ctx.shadowColor = colors.cyan;
-      ctx.shadowBlur = 5;
+      if (!isMobile) {
+        ctx.shadowColor = colors.cyan;
+        ctx.shadowBlur = 5;
+      }
 
       ctx.fillText(`SCORE: ${state.score}`, 20, 30);
       ctx.fillText(`LIVES: ${state.lives}`, width - 120, 30);

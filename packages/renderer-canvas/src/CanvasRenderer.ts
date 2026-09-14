@@ -134,16 +134,23 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     const canvas = ctx.canvas;
 
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
+    const dpr = typeof window !== "undefined" && window.devicePixelRatio ? Math.max(1, window.devicePixelRatio) : 1;
+
     if (screenConfig) {
-      if (canvas.width !== screenConfig.width) {
-        canvas.width = screenConfig.width;
+      const targetWidth = Math.round(screenConfig.width * dpr);
+      const targetHeight = Math.round(screenConfig.height * dpr);
+      if (canvas.width !== targetWidth) {
+        canvas.width = targetWidth;
       }
-      if (canvas.height !== screenConfig.height) {
-        canvas.height = screenConfig.height;
+      if (canvas.height !== targetHeight) {
+        canvas.height = targetHeight;
       }
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save(); // DPR scale save
+    ctx.scale(dpr, dpr);
 
     // Draw background effects first (e.g. scrolling skies)
     for (const drawer of this.backgroundEffects.values()) {
@@ -254,5 +261,6 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     }
 
     ctx.restore();                       // ← restore de cámara (NUEVO)
+    ctx.restore();                       // ← restore de DPR scale
   }
 }

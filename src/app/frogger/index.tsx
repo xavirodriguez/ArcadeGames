@@ -180,31 +180,27 @@ export default function FroggerScreen() {
             <View style={styles.dpadContainer}>
               <TouchableOpacity
                 style={[styles.dpadButton, styles.dpadUp]}
-                onPressIn={() => handleGameInput({ moveUp: true })}
-                onPressOut={() => handleGameInput({ moveUp: false })}
+                onPress={() => handleGameInput({ moveUp: true })}
               >
                 <Text style={styles.dpadText}>▲</Text>
               </TouchableOpacity>
               <View style={styles.dpadHorizontalRow}>
                 <TouchableOpacity
                   style={[styles.dpadButton, styles.dpadLeft]}
-                  onPressIn={() => handleGameInput({ moveLeft: true })}
-                  onPressOut={() => handleGameInput({ moveLeft: false })}
+                  onPress={() => handleGameInput({ moveLeft: true })}
                 >
                   <Text style={styles.dpadText}>◀</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.dpadButton, styles.dpadRight]}
-                  onPressIn={() => handleGameInput({ moveRight: true })}
-                  onPressOut={() => handleGameInput({ moveRight: false })}
+                  onPress={() => handleGameInput({ moveRight: true })}
                 >
                   <Text style={styles.dpadText}>▶</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={[styles.dpadButton, styles.dpadDown]}
-                onPressIn={() => handleGameInput({ moveDown: true })}
-                onPressOut={() => handleGameInput({ moveDown: false })}
+                onPress={() => handleGameInput({ moveDown: true })}
               >
                 <Text style={styles.dpadText}>▼</Text>
               </TouchableOpacity>

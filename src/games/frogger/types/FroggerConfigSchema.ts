@@ -14,7 +14,7 @@ export const FroggerConfigSchema = BaseConfigSchema.extend({
   LEVEL_BONUS: z.number().default(1000),
   TRAFFIC_SPEED_MULTIPLIER: z.number().default(1.0),
   RIVER_SPEED_MULTIPLIER: z.number().default(1.0),
-  INPUT_COOLDOWN_TICKS: z.number().default(8),
+  INPUT_COOLDOWN_TICKS: z.number().default(3),
   KEYS: z.object({
     MOVE_UP: z.string().default("ArrowUp"),
     MOVE_DOWN: z.string().default("ArrowDown"),
@@ -47,7 +47,7 @@ export const DEFAULT_FROGGER_CONFIG: FroggerConfig = {
   LEVEL_BONUS: 1000,
   TRAFFIC_SPEED_MULTIPLIER: 1.0,
   RIVER_SPEED_MULTIPLIER: 1.0,
-  INPUT_COOLDOWN_TICKS: 8,
+  INPUT_COOLDOWN_TICKS: 3,
   KEYS: {
     MOVE_UP: "ArrowUp",
     MOVE_DOWN: "ArrowDown",

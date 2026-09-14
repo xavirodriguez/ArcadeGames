@@ -40,6 +40,12 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
     input.prevMoveLeft = moveLeft;
     input.prevMoveRight = moveRight;
 
+    // Reset discrete input state on component to consume one-shot presses
+    input.moveUp = false;
+    input.moveDown = false;
+    input.moveLeft = false;
+    input.moveRight = false;
+
     if (frogger.cooldownRemaining > 0) {
       frogger.cooldownRemaining -= dt * 60; // Tick countdown based on 60fps
       if (frogger.cooldownRemaining < 0) frogger.cooldownRemaining = 0;

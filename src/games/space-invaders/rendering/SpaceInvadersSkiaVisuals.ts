@@ -5,8 +5,60 @@ import { isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } f
 import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { computeSinePulse } from "./shared/SpaceInvadersPulseUtils";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
+import { EXPLOSION_PARTICLE_POOL, updateExplosionParticles } from "./ExplosionParticlePool";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+
+export function drawExplosionParticlesSkia(canvas: any): void {
+  if (!Skia) return;
+  const paint = getPaint();
+
+  canvas.save();
+  for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
+    const p = EXPLOSION_PARTICLE_POOL[i];
+    if (!p.active) continue;
+
+    const ratio = Math.max(0, p.life / p.maxLife);
+
+    if (p.type === "ring") {
+      paint.reset();
+      paint.setAntiAlias(true);
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(p.skColor || Skia.Color(p.color));
+      paint.setStrokeWidth(2.5 * ratio);
+      paint.setAlphaf(ratio * 0.8);
+      canvas.drawCircle(p.x, p.y, Math.max(0.1, p.radius), paint);
+    } else if (p.type === "debris") {
+      paint.reset();
+      paint.setAntiAlias(true);
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(p.skColor || Skia.Color(p.color));
+      paint.setAlphaf(ratio);
+      canvas.drawRect(
+        Skia.XYWHRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size),
+        paint
+      );
+    } else if (p.type === "smoke") {
+      paint.reset();
+      paint.setAntiAlias(true);
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(p.skColor || Skia.Color(p.color));
+      paint.setAlphaf(ratio * 0.35);
+      canvas.drawCircle(p.x, p.y, Math.max(0.1, p.size), paint);
+    }
+  }
+  canvas.restore();
+}
+
+/**
+ * Background drawer for Skia layered visual explosion particles.
+ */
+export const drawSkiaExplosionBackgroundEffect = {
+  draw(canvas: any) {
+    updateExplosionParticles();
+    drawExplosionParticlesSkia(canvas);
+  }
+};
 
 // Memory-safe caching for zero-allocation player ship pathing
 const cachedPlayerPaths = new WeakMap<any, { chassis: any; cockpit: any; reflection: any }>();

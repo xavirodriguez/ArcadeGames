@@ -532,7 +532,8 @@ export class SpaceInvadersGame
           drawSkiaSpaceInvadersBoss,
           drawSkiaSpaceInvadersBullet,
           drawSkiaSpaceInvadersShield,
-          drawSkiaSpaceInvadersParticle
+          drawSkiaSpaceInvadersParticle,
+          drawSkiaExplosionBackgroundEffect
         } = require("./rendering/SpaceInvadersSkiaVisuals");
         r.registerShape("player_ship", drawSkiaSpaceInvadersPlayer);
         r.registerShape("invader", drawSkiaSpaceInvadersInvader);
@@ -541,6 +542,7 @@ export class SpaceInvadersGame
         r.registerShape("enemy_bullet", drawSkiaSpaceInvadersBullet);
         r.registerShape("shield_block", drawSkiaSpaceInvadersShield);
         r.registerShape("particle", drawSkiaSpaceInvadersParticle);
+        r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
       }
     });
 

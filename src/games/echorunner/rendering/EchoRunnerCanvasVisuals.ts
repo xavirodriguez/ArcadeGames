@@ -7,7 +7,8 @@ import {
   resolveSentinelVisualState,
   resolveWatcherVisualState,
   resolveChargerVisualState,
-  resolveMemoryFragmentColors
+  resolveMemoryFragmentColors,
+  resolveEchoDrawContext
 } from "./EchoRunnerVisualUtils";
 
 const gradientCache = new Map<number, CanvasGradient>();
@@ -430,14 +431,9 @@ export const drawPulseAttack: ShapeDrawer<CanvasRenderingContext2D, CoreComponen
 
 export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:440-445. Considerar extraer a función compartida. Ref: 7e291e2a
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    const size = render.size || 22;
-    const sm = world.getComponent(entity, "StateMachine" as any) as any;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:607-615. Considerar extraer a función compartida. Ref: 43c99c04
-    const state = sm ? sm.currentState : "Patrol";
-    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+    const drawCtx = resolveEchoDrawContext(world, entity, 22);
+    if (!drawCtx) return;
+    const { size, isHitFlash, state } = drawCtx;
 
     ctx.save();
 
@@ -514,14 +510,9 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
 
 export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:520-525. Considerar extraer a función compartida. Ref: 00bc468b
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:618-627. Considerar extraer a función compartida. Ref: c321974c
-    const size = render.size || 24;
-    const sm = world.getComponent(entity, "StateMachine" as any) as any;
-    const state = sm ? sm.currentState : "Idle";
-    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+    const drawCtx = resolveEchoDrawContext(world, entity, 24);
+    if (!drawCtx) return;
+    const { size, isHitFlash, state } = drawCtx;
 
     ctx.save();
 
@@ -577,14 +568,9 @@ export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegi
 
 export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:531-540. Considerar extraer a función compartida. Ref: 6ebf197f
-    const size = render.size || 26;
-    const sm = world.getComponent(entity, "StateMachine" as any) as any;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:460-468. Considerar extraer a función compartida. Ref: b04f7395
-    const state = sm ? sm.currentState : "Idle";
-    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+    const drawCtx = resolveEchoDrawContext(world, entity, 26);
+    if (!drawCtx) return;
+    const { size, isHitFlash, state } = drawCtx;
 
     ctx.save();
 
@@ -645,13 +631,9 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
 
 export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:679-684. Considerar extraer a función compartida. Ref: d787ce3d
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    const size = render.size || 28;
-    const sm = world.getComponent(entity, "StateMachine" as any) as any;
-    const state = sm ? sm.currentState : "Idle";
-    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+    const drawCtx = resolveEchoDrawContext(world, entity, 28);
+    if (!drawCtx) return;
+    const { size, isHitFlash, state } = drawCtx;
 
     ctx.save();
 

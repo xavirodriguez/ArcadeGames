@@ -47,10 +47,15 @@ Documentación de bloques de código duplicados identificados mediante `jscpd`, 
   - `src/games/echorunner/rendering/EchoRunnerCanvasVisuals.ts` ↔ `EchoRunnerSkiaVisuals.ts`
   - `src/games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts` ↔ `SpaceInvadersSkiaVisuals.ts`
   - `src/games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts` ↔ `GeometryWarsSkiaVisuals.ts`
-- **Líneas duplicadas**: Extracción parcial de cálculos puros (~51 líneas de duplicación eliminadas en FlappyBird)
-- **Prioridad**: Media
-- **Estado**: Parcialmente resuelto
-- **Solución / Decisión**: Se extrajeron las funciones de cálculo matemático/geométrico puro (generación de starfield, squash and stretch, geometría de pipes y megainfraestructura) a `src/games/shared/rendering/geometry.ts`. Las primitivas de dibujo específicas de Canvas/Skia se mantuvieron intencionalmente duplicadas para evitar abstracciones pesadas en el hot path de renderizado.
+- **Líneas duplicadas**: Extracción parcial de cálculos puros, pools de partículas y triggers de eventos visuales (~208 líneas de duplicación eliminadas).
+- **Prioridad**: Alta (Paridad funcional entre backends)
+- **Estado**: Refactorizado
+- **Solución y Paridad**:
+  1. **FlappyBird**: Se adaptó `VisualParticlePool` en `src/games/shared/rendering/VisualParticlePool.ts` y se extrajo la lógica de triggers a `src/games/flappybird/rendering/particleEvents.ts`, eliminando los pools locales duplicados.
+  2. **GeometryWars**: Se implementó `GEOMETRY_WARS_CANVAS_PARTICLE_POOL` utilizando `VisualParticlePool` en Canvas2D, resolviendo el stub no-op vació y logrando paridad completa con Skia.
+  3. **SpaceInvaders**: Se extrajo `EXPLOSION_PARTICLE_POOL` y `spawnLayeredExplosion` a `src/games/space-invaders/rendering/ExplosionParticlePool.ts` y se implementó `drawExplosionParticlesSkia` en Skia, logrando paridad visual entre backends.
+  4. **EchoRunner**: Se extrajo `resolveEchoDrawContext` en `EchoRunnerVisualUtils.ts` para eliminar el boilerplate repetido de resolución de componentes en los drawers.
+  5. **Política de VFX**: Toda lógica de estado y simulación de VFX que no involucre llamadas directas a `ctx`/`canvas`/`paint` debe compartir instancias de `VisualParticlePool` o helpers puros en `src/games/shared/rendering/` o en un módulo compartido del juego.
 
 ---
 

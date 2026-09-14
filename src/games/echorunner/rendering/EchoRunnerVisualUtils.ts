@@ -1,4 +1,32 @@
+import { World } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
+
+/**
+ * Common draw context helper for EchoRunner entity drawers.
+ * @public
+ */
+export interface EchoDrawContext {
+  render: unknown;
+  size: number;
+  isHitFlash: boolean;
+  state: string;
+}
+
+export function resolveEchoDrawContext(
+  world: World,
+  entity: number,
+  defaultSize: number = 20
+): EchoDrawContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render || !render.visible) return null;
+
+  const size = render.size || defaultSize;
+  const sm = world.getComponent(entity, "StateMachine");
+  const state = sm && typeof sm === "object" && "currentState" in sm && typeof sm.currentState === "string" ? sm.currentState : "Idle";
+  const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+
+  return { render, size, isHitFlash, state };
+}
 
 export interface EchoPlayerPose {
   tiltAngle: number;

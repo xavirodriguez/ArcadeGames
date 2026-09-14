@@ -4,16 +4,49 @@ import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { getDrawable, getRenderGuard, getDrawableTransform } from "../../shared/rendering/renderingUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
+
+// ============================================================================
+// ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL FOR CANVAS
+// ============================================================================
+
+export const GEOMETRY_WARS_CANVAS_PARTICLE_POOL: VisualParticlePool = createParticlePool(250);
 
 export function spawnVisualParticle(
-  _x: number,
-  _y: number,
-  _vx: number,
-  _vy: number,
-  _maxLife: number,
-  _size: number,
-  _color: string
-): void {}
+  x: number,
+  y: number,
+  vx: number,
+  vy: number,
+  maxLife: number,
+  size: number,
+  color: string
+): void {
+  GEOMETRY_WARS_CANVAS_PARTICLE_POOL.spawn(x, y, vx, vy, maxLife, size, color);
+}
+
+function updateVisualParticles(dt: number = 0.016): void {
+  GEOMETRY_WARS_CANVAS_PARTICLE_POOL.update(dt, (p) => {
+    p.vx *= 0.94; // friction
+    p.vy *= 0.94;
+  });
+}
+
+function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
+  const particles = GEOMETRY_WARS_CANVAS_PARTICLE_POOL.getActiveParticles();
+  ctx.save();
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    if (!p.active) continue;
+
+    const ratio = p.life / p.maxLife;
+    ctx.globalAlpha = ratio;
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = p.color;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  }
+  ctx.restore();
+}
 
 // ============================================================================
 // DECOUPLED BULLET DEATH & TRAIL MONITOR
@@ -416,6 +449,10 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
   draw(ctx, world) {
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
     const { width, height } = screen;
+
+    // 1. Process visual particles updates and drawings
+    updateVisualParticles();
+    drawCanvasVisualParticles(ctx);
 
     // 2. Monitor bullet states for trail and explosion spawns
     monitorBulletsAndSpawnTrails(world);

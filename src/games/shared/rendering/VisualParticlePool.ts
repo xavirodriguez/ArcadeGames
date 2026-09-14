@@ -83,14 +83,14 @@ export class VisualParticlePool {
         continue;
       }
 
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if (p.angle !== undefined && p.angularVelocity) {
+        p.angle += p.angularVelocity * dt;
+      }
+
       if (applyPhysics) {
         applyPhysics(p, dt);
-      } else {
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        if (p.angle !== undefined && p.angularVelocity) {
-          p.angle += p.angularVelocity * dt;
-        }
       }
     }
   }
@@ -98,4 +98,18 @@ export class VisualParticlePool {
   public getActiveParticles(): VisualParticle[] {
     return this.pool;
   }
+
+  public reset(): void {
+    for (let i = 0; i < this.pool.length; i++) {
+      this.pool[i].active = false;
+    }
+  }
+}
+
+/**
+ * Factory helper for per-game particle pool instances.
+ * @public
+ */
+export function createParticlePool(size: number = 150): VisualParticlePool {
+  return new VisualParticlePool(size);
 }

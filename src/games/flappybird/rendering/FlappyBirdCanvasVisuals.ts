@@ -16,57 +16,17 @@ import {
   MegastructureData
 } from "./FlappyBirdBackgroundData";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
+import { processFlappyBirdParticleEvents, applyFlappyParticlePhysics } from "./particleEvents";
 
 // DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
-// Solo se extrajeron los cálculos puros a src/games/shared/rendering/geometry.ts. Ver docs/tech-debt/duplication.md
-
-// ============================================================================
-// "NEON VOID" CANVAS VISUALS — HARD SCI-FI INDUSTRIAL ART DIRECTION
-// ============================================================================
-
-interface InterceptorRenderState {
-  lastVy: number;
-  lastIsAlive: boolean;
-  lastNearMissTimer: number;
-}
-
-const shipStates = new Map<number, InterceptorRenderState>();
+// Primitivas de dibujo específicas de Canvas/Skia mantenidas intencionalmente separadas. Ver docs/tech-debt/duplication.md
 
 // ============================================================================
 // ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
 // ============================================================================
 
-// TODO(refactor): código duplicado detectado (clase) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:48-133. Considerar extraer a función compartida. Ref: 2c8ae715
-interface VisualParticle {
-  active: boolean;
-  type: "spark" | "shard" | "star";
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  size: number;
-  color: string;
-  angle: number;
-  angularVelocity: number;
-}
-
-const PARTICLE_POOL_SIZE = 150;
-const PARTICLE_POOL: VisualParticle[] = Array.from({ length: PARTICLE_POOL_SIZE }, () => ({
-  active: false,
-  type: "spark",
-  x: 0,
-  y: 0,
-  vx: 0,
-  vy: 0,
-  life: 0,
-  maxLife: 0,
-  size: 0,
-  color: "",
-  angle: 0,
-  angularVelocity: 0,
-}));
+export const FLAPPY_CANVAS_PARTICLE_POOL: VisualParticlePool = createParticlePool(150);
 
 export function spawnVisualParticle(
   type: "spark" | "shard" | "star",
@@ -80,61 +40,23 @@ export function spawnVisualParticle(
   angle = 0,
   angularVelocity = 0
 ): void {
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
-    if (!p.active) {
-      p.active = true;
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:63-72. Considerar extraer a función compartida. Ref: 2e7d453d
-      p.type = type;
-      p.x = x;
-      p.y = y;
-      p.vx = vx;
-      p.vy = vy;
-      p.life = maxLife;
-      p.maxLife = maxLife;
-      p.size = size;
-      p.color = color;
-      p.angle = angle;
-      p.angularVelocity = angularVelocity;
-      break;
-    }
-  }
+  FLAPPY_CANVAS_PARTICLE_POOL.spawn(x, y, vx, vy, maxLife, size, color, { type, angle, angularVelocity });
 }
 
 function updateVisualParticles(): void {
-  const dt = 0.016; // Target 60FPS step
-  for (// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:82-92. Considerar extraer a función compartida. Ref: 26faf9f0
-  let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
-    if (p.active) {
-      p.life -= dt;
-      if (p.life <= 0) {
-        p.active = false;
-        continue;
-      }
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.angle += p.angularVelocity * dt;
-
-      if (p.type === "spark") {
-        p.vx *= 0.96;
-        p.vy *= 0.96;
-      } else if (p.type === "shard") {
-        p.vy += 45 * dt; // Gravity drop on debris
-      }
-    }
-  }
+  FLAPPY_CANVAS_PARTICLE_POOL.update(0.016, applyFlappyParticlePhysics);
 }
 
 function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
+  const particles = FLAPPY_CANVAS_PARTICLE_POOL.getActiveParticles();
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
     if (!p.active) continue;
 
     const ratio = p.life / p.maxLife;
     ctx.save();
     ctx.translate(p.x, p.y);
-    if (p.angle !== 0) {
+    if (p.angle !== undefined && p.angle !== 0) {
       ctx.rotate(p.angle);
     }
     ctx.globalAlpha = ratio;
@@ -202,7 +124,6 @@ function getCachedCanvasGradient(
  */
 export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:242-250. Considerar extraer a función compartida. Ref: 99824503
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 15 } = render;
@@ -211,94 +132,14 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const birdComp = world.getComponent(entity, "Bird");
     if (!transform || !birdComp) return;
 
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:252-271. Considerar extraer a función compartida. Ref: 0d24f7f4
     const health = world.getComponent(entity, "Health");
+    const x = transform.worldX ?? transform.x;
+    const y = transform.worldY ?? transform.y;
 
-    let state = shipStates.get(entity);
-    if (!state) {
-      state = {
-        lastVy: 0,
-        lastIsAlive: birdComp.isAlive,
-        lastNearMissTimer: birdComp.nearMissTimer,
-      };
-      shipStates.set(entity, state);
-    }
+    processFlappyBirdParticleEvents(world, entity, birdComp, FLAPPY_CANVAS_PARTICLE_POOL, x, y, size);
 
     const vy = birdComp.velocityY;
     const isAlive = birdComp.isAlive;
-
-    // --- TRIGGER NEAR-MISS CYAN SPARKS ---
-    const hasNearMissTriggered = birdComp.nearMissTimer > 0 && state.lastNearMissTimer <= 0;
-    if (hasNearMissTriggered && isAlive) {
-      const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
-      const x = transformPos.worldX ?? transformPos.x;
-      const y = transformPos.worldY ?? transformPos.y;
-      const nmSparkCount = birdComp.nearMissParticleCount ?? world.renderRandom.nextInt(5, 9);
-      const minS = birdComp.nearMissMinSpeed ?? 60;
-      const maxS = birdComp.nearMissMaxSpeed ?? 120;
-      for (let i = 0; i < nmSparkCount; i++) {
-        const angleVal = world.renderRandom.next() * Math.PI * 2;
-        const speedVal = world.renderRandom.nextRange(minS, maxS);
-        const pVx = Math.cos(angleVal) * speedVal;
-        const pVy = Math.sin(angleVal) * speedVal;
-        const lifeVal = world.renderRandom.nextRange(0.25, 0.45);
-        const sizeVal = world.renderRandom.nextRange(2, 4);
-        spawnVisualParticle("spark", x, y, pVx, pVy, lifeVal, sizeVal, "#00F3FF", angleVal);
-      }
-    }
-
-    // --- TRIGGER SPARKS ON BOOST THRUST ---
-    const flapStrength = FLAPPY_CONFIG.FLAP_STRENGTH;
-    const hasFlapped = (vy < -150 && state.lastVy >= -150) || (vy === flapStrength && state.lastVy !== flapStrength);
-    if (hasFlapped && isAlive) {
-      const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
-      const x = transformPos.worldX ?? transformPos.x;
-      const y = transformPos.worldY ?? transformPos.y;
-      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:271-287. Considerar extraer a función compartida. Ref: 7387d3cd
-      const pCount = 4 + world.renderRandom.nextInt(0, 3);
-      for (let i = 0; i < pCount; i++) {
-        const angleVal = world.renderRandom.nextRange(160, 200) * (Math.PI / 180);
-        const speedVal = world.renderRandom.nextRange(80, 160);
-        const pVx = Math.cos(angleVal) * speedVal;
-        const pVy = Math.sin(angleVal) * speedVal;
-        const lifeVal = world.renderRandom.nextRange(0.2, 0.45);
-        const sizeVal = world.renderRandom.nextRange(2, 4);
-        const randColor = world.renderRandom.next() > 0.5 ? "#FFFFFF" : "#FFC000";
-        spawnVisualParticle("spark", x - size * 0.5, y, pVx, pVy, lifeVal, sizeVal, randColor, angleVal);
-      }
-    }
-
-    // --- TRIGGER SHARDS & SPARKS ON DEATH ---
-    const hasDied = !isAlive && state.lastIsAlive;
-    if (hasDied) {
-      const transformPos = world.getComponent(entity, "Transform") as TransformComponent;
-      const x = transformPos.worldX ?? transformPos.x;
-      const y = transformPos.worldY ?? transformPos.y;
-      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:287-314. Considerar extraer a función compartida. Ref: 2e7c6e07
-      const sCount = 8 + world.renderRandom.nextInt(0, 4);
-      for (let i = 0; i < sCount; i++) {
-        const angleVal = world.renderRandom.next() * Math.PI * 2;
-        const speedVal = world.renderRandom.nextRange(40, 120);
-        const pVx = Math.cos(angleVal) * speedVal;
-        const pVy = Math.sin(angleVal) * speedVal;
-        const lifeVal = world.renderRandom.nextRange(0.6, 1.1);
-        const sizeVal = world.renderRandom.nextRange(3, 6);
-        spawnVisualParticle("shard", x, y, pVx, pVy, lifeVal, sizeVal, "#5A6173", angleVal, world.renderRandom.nextRange(-4, 4));
-      }
-      for (let i = 0; i < 12; i++) {
-        const angleVal = world.renderRandom.next() * Math.PI * 2;
-        const speedVal = world.renderRandom.nextRange(80, 200);
-        const pVx = Math.cos(angleVal) * speedVal;
-        const pVy = Math.sin(angleVal) * speedVal;
-        const lifeVal = world.renderRandom.nextRange(0.25, 0.5);
-        const sizeVal = world.renderRandom.nextRange(2, 5);
-        spawnVisualParticle("spark", x, y, pVx, pVy, lifeVal, sizeVal, "#FF3300", angleVal);
-      }
-    }
-
-    state.lastVy = vy;
-    state.lastIsAlive = isAlive;
-    state.lastNearMissTimer = birdComp.nearMissTimer;
 
     const flashState = resolveHitFlash(render, render.color || "yellow", 1.0, 0.35);
     const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "interval", multiplier: 0.01, dimOpacity: 0.35 });
@@ -484,7 +325,6 @@ function drawArrowheadPath(ctx: CanvasRenderingContext2D, size: number) {
 
 export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:433-451. Considerar extraer a función compartida. Ref: ac6d56dd
     const render = world.getComponent(entity, "Render");
     const pos = world.getComponent(entity, "Transform");
     if (!render || !pos) return;
@@ -909,7 +749,6 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     // --- DEEP VOID BASE (#050510) ---
     ctx.fillStyle = "#050510";
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:602-612. Considerar extraer a función compartida. Ref: e7c4cf1f
     ctx.fillRect(0, 0, width, height);
 
     // --- ANIMATED LOW-OPACITY RADIAL NEBULAE CLOUDS ---

@@ -21,7 +21,7 @@ Código compartido entre múltiples juegos.
 - `spawn/` → Componentes, sistemas y tipos del director de generación (spawn) compartido.
 - `story/helpers/` → Helpers de encuentros, narrativa y story systems (`encounterHelpers`).
 - `story/` → Grafos de historia, diálogos y componentes narrativos compartidos.
-- `rendering/` → Cálculos geométricos y utilidades de render compartidas (`CanvasNeonUtils`, `ProceduralShapeUtils`, `SharedVFX`, `geometry.ts`).
+- `rendering/` → Cálculos geométricos, utilidades de render y pools de partículas compartidos (`VisualParticlePool`, `CanvasNeonUtils`, `ProceduralShapeUtils`, `SharedVFX`, `geometry.ts`).
 - `types/` → Capas de colisión y tipos globales compartidos.
 
 ## Cómo añadir algo nuevo

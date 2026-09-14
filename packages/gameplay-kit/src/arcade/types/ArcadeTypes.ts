@@ -1,13 +1,23 @@
 import { Component } from "@tiny-aster/core";
 
-/** @public */
+/**
+ * Component specifying a loot table identifier for an entity to spawn drops upon destruction.
+ * @public
+ */
 export interface LootTableComponent extends Component {
-    type: "LootTable";
-    tableId: string;
+  /** Discriminator type tag identifying this component. */
+  type: "LootTable";
+  /** Identifier matching a loot drop table definition. */
+  tableId: string;
 }
 
-/** @public */
+/**
+ * Component specifying a power-up effect classification for collectible entities.
+ * @public
+ */
 export interface PowerUpComponent extends Component {
-    type: "PowerUp";
-    powerUpType: string;
+  /** Discriminator type tag identifying this component. */
+  type: "PowerUp";
+  /** Identifier matching a registered power-up effect handler. */
+  powerUpType: string;
 }

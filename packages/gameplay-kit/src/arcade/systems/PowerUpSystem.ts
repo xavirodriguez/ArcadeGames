@@ -4,8 +4,17 @@ import { PowerUpRegistry, IPowerUpEffect } from "../powerups/PowerUpRegistry";
 
 const __DEV__ = typeof process !== "undefined" && process.env?.NODE_ENV !== "production";
 
-/** @public */
+/**
+ * System that detects player collisions with power-up collectibles and applies associated effects.
+ * @public
+ */
 export class PowerUpSystem extends System<CoreComponentRegistry & { PowerUp: PowerUpComponent }> {
+  /**
+   * Processes player collision events with power-up entities and triggers registered effect callbacks.
+   *
+   * @param world - Target ECS world instance.
+   * @param _deltaTime - Delta time in seconds.
+   */
   public update(world: World<CoreComponentRegistry & { PowerUp: PowerUpComponent }>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const powerUpType = "PowerUp" as Extract<keyof (CoreComponentRegistry & { PowerUp: PowerUpComponent }), string>;

@@ -2,10 +2,17 @@ import { World } from "../ecs/World";
 import { InputSystem } from "../input/InputSystem";
 import { InputFrame } from "../network/NetTypes";
 
-/** @public */
+/**
+ * Data structure storing a recorded gameplay session for replays or attract mode.
+ *
+ * @public
+ */
 export interface RecordedReplay {
+  /** Initial PRNG seed used for deterministic execution. */
   seed: number;
+  /** Sequence of recorded input frames. */
   inputs: InputFrame[];
+  /** Optional key-value metadata descriptor. */
   metadata?: Record<string, unknown>;
 }
 
@@ -26,6 +33,8 @@ export class ReplayRecorder {
 
   /**
    * Starts recording inputs for a given seed.
+   *
+   * @param seed - Random seed value.
    */
   public start(seed: number): void {
     this.inputs = [];
@@ -34,6 +43,9 @@ export class ReplayRecorder {
 
   /**
    * Records a single tick's inputs from the World's InputSystem.
+   *
+   * @param world - Target ECS world instance.
+   * @param tick - Frame tick counter.
    */
   public recordTick(world: World, tick: number): void {
     const inputSystem = world.getResource<InputSystem>("InputSystem");
@@ -65,6 +77,9 @@ export class ReplayRecorder {
 
   /**
    * Stops recording and returns the compiled RecordedReplay.
+   *
+   * @param metadata - Optional metadata descriptor.
+   * @returns Recorded replay object.
    */
   public stop(metadata?: Record<string, unknown>): RecordedReplay {
     return {
@@ -76,6 +91,8 @@ export class ReplayRecorder {
 
   /**
    * Returns currently recorded input frames.
+   *
+   * @returns Array of recorded input frames.
    */
   public getInputs(): InputFrame[] {
     return this.inputs;

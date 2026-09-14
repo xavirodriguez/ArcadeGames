@@ -1,8 +1,17 @@
 import { System, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { LootTableComponent } from "../types/ArcadeTypes";
 
-/** @public */
+/**
+ * System that evaluates entity loot drop tables upon entity death or TTL expiration.
+ * @public
+ */
 export class LootSystem extends System<CoreComponentRegistry & { LootTable: LootTableComponent }> {
+  /**
+   * Processes entities holding a LootTableComponent and triggers loot spawning events upon destruction.
+   *
+   * @param world - Target ECS world instance.
+   * @param _deltaTime - Delta time in seconds.
+   */
   public update(world: World<CoreComponentRegistry & { LootTable: LootTableComponent }>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const lootType = "LootTable" as Extract<keyof (CoreComponentRegistry & { LootTable: LootTableComponent }), string>;

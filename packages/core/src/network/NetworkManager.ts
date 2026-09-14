@@ -181,12 +181,19 @@ export class NetworkManager<
   }
 }
 
-/** @public */
+/**
+ * Interface representing a network-enabled game instance.
+ * @public
+ */
 export interface INetworkGame {
+  /** Unique game identifier string. */
   readonly gameId: string;
 }
 
-/** @public */
+/**
+ * Helper utilities for applying network state deltas and SoA packets.
+ * @public
+ */
 export class NetworkReplicationUtils {
   /**
    * Processes an SoA packet into standard ComponentDataSnapshot using SoADeserializer.
@@ -206,6 +213,12 @@ export class NetworkReplicationUtils {
     return componentData;
   }
 
+  /**
+   * Applies a snapshot delta patch to a base world snapshot.
+   *
+   * @param base - Base snapshot to modify in-place.
+   * @param delta - Delta payload containing updated parameters.
+   */
   public static applyDelta(base: WorldSnapshot, delta: SnapshotDelta): void {
     if (delta.tick !== undefined) base.tick = delta.tick;
     if (delta.stateVersion !== undefined) base.stateVersion = delta.stateVersion;

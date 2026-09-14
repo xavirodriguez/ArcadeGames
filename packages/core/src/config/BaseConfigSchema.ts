@@ -12,5 +12,9 @@ export const BaseConfigSchema = z.object({
   ENEMY_SFX_ENABLED: z.boolean().optional()
 });
 
-/** @public */
+/**
+ * Inferred type structure from {@link BaseConfigSchema}.
+ * Represents default game control bindings and sound settings.
+ * @public
+ */
 export type BaseConfig = z.infer<typeof BaseConfigSchema>;

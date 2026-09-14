@@ -1,8 +1,19 @@
 import { FrameScheduler, browserFrameScheduler } from "./FrameScheduler";
 
-/** @public */
+/**
+ * Callback function signature executed on render frame updates.
+ *
+ * @param alpha - Fractional leftover accumulator ratio between 0.0 and 1.0 for sub-frame visual interpolation.
+ * @public
+ */
 export type RenderCallback = (alpha: number) => void;
-/** @public */
+
+/**
+ * Callback function signature executed on fixed simulation update steps.
+ *
+ * @param dt - Fixed delta time step strictly in seconds (e.g. 1/60 ~ 0.01667).
+ * @public
+ */
 export type UpdateCallback = (dt: number) => void;
 
 /**

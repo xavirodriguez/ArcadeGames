@@ -68,7 +68,10 @@ export type RenderCommand =
   | { type: RenderCommandType.DrawText | "DrawText"; data: DrawTextPayload }
   | { type: string; data: Record<string, unknown> | unknown };
 
-/** @public */
+/**
+ * Interface contract for render command buffer containers.
+ * @public
+ */
 export interface RenderCommandBuffer {
   push(command: RenderCommand): void;
   clear(): void;

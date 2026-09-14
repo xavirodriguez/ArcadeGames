@@ -2,6 +2,7 @@ import { System, World, WorldUtils, EntityBuilder, ShapeType, BoxShape } from "@
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 
+// TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidSpinSystem.ts:5-10. Considerar extraer a función compartida. Ref: 11390147
 export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   public override update(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
@@ -58,7 +59,6 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
       const nextLaserCooldown = Math.max(0, (paddleComp.laserCooldown ?? 0) - deltaTime);
 
       // Clamp paddle position within screen bounds
-      const paddleW = paddleComp.isExpanded ? config.PADDLE_WIDTH * 1.5 : config.PADDLE_WIDTH;
       const halfW = paddleW / 2;
       let nextX = transform.x + currentVx * deltaTime;
       if (nextX - halfW < 0) {
@@ -90,7 +90,6 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
           p.laserCooldown = 0.3;
         });
 
-        const paddleW = paddleComp.isExpanded ? config.PADDLE_WIDTH * 1.5 : config.PADDLE_WIDTH;
         const leftTipX = transform.x - paddleW * 0.4;
         const rightTipX = transform.x + paddleW * 0.4;
         const laserY = transform.y - config.PADDLE_HEIGHT / 2 - 4;

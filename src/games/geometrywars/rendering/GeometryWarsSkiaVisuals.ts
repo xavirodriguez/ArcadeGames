@@ -51,6 +51,7 @@ export function spawnSkiaVisualParticle(
   for (let i = 0; i < PARTICLE_POOL.length; i++) {
     const p = PARTICLE_POOL[i];
     if (!p.active) {
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:88-97. Considerar extraer a función compartida. Ref: 9f06554c
       p.active = true;
       p.x = x;
       p.y = y;
@@ -110,6 +111,7 @@ function drawVisualParticles(canvas: any): void {
       paint
     );
   }
+  // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:16-41. Considerar extraer a función compartida. Ref: af7aeb61
   canvas.restore();
 }
 
@@ -121,6 +123,7 @@ function drawVisualParticles(canvas: any): void {
 const LAST_BULLETS_MAP = new Map<number, { x: number; y: number }>();
 const CURRENT_BULLETS_SET = new Set<number>();
 
+// TODO(refactor): código duplicado detectado (función) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:50-64. Considerar extraer a función compartida. Ref: a61982a8
 function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry>): void {
   CURRENT_BULLETS_SET.clear();
 
@@ -185,6 +188,7 @@ function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry
  * @public
  */
 export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+  // TODO(refactor): código duplicado detectado (método) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:120-140. Considerar extraer a función compartida. Ref: 05c62a03
   draw(canvas, world, entity) {
     if (!ensureSkiaAvailable()) return;
 
@@ -306,6 +310,7 @@ export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry>
  * Skia shape drawer for the Grunt enemy.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:337-344. Considerar extraer a función compartida. Ref: 1864307d
 export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!ensureSkiaAvailable()) return;
@@ -341,6 +346,7 @@ export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
     const render = getRenderGuard(world, entity);
     if (!render) return;
 
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:479-488. Considerar extraer a función compartida. Ref: 59262b77
     const size = render.size ?? 14;
     const color = render.color ?? "#ff00ff";
 
@@ -378,6 +384,7 @@ export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
     if (!render) return;
 
     const size = render.size ?? 14;
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:345-357. Considerar extraer a función compartida. Ref: 82a2f508
     const color = render.color ?? "#ffaa00";
 
     const paint = getPaint();
@@ -413,6 +420,7 @@ export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
     if (!render) return;
 
     const size = render.size ?? 10;
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:451-460. Considerar extraer a función compartida. Ref: 1859faf2
     const color = render.color ?? "#00ffff";
 
     const paint = getPaint();
@@ -582,6 +590,7 @@ export const drawSkiaGeometryWarsBackground: EffectDrawer<any, GeometryWarsCompo
 
     // 1. Process visual particles updates and drawings
     updateVisualParticles();
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:418-445. Considerar extraer a función compartida. Ref: 951d7db1
     drawVisualParticles(canvas);
 
     // 2. Monitor bullet states for trail and explosion spawns
@@ -626,7 +635,8 @@ export const drawSkiaGeometryWarsBackground: EffectDrawer<any, GeometryWarsCompo
       let lastX = 0;
       let lastY = 0;
       let first = true;
-      for (let x = 0; x <= width; x += 25) {
+      for (// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:648-660. Considerar extraer a función compartida. Ref: 41fbd848
+      let x = 0; x <= width; x += 25) {
         const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
         if (first) {
           lastX = displaced.x;

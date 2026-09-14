@@ -11,12 +11,21 @@ import { GameSystem } from "./GameSystem";
  */
 export class SpaceInvadersFormationSystem extends GameSystem {
   private enemyBulletPool: EnemyBulletPool;
-  private columnShooters: Map<number, { entity: number; y: number }> = new Map();
-  private shooterPool: Array<{ entity: number; y: number }> = [];
+  private columnShooterEntities: Int32Array = new Int32Array(16);
+  private columnShooterY: Float32Array = new Float32Array(16);
+  private compactShooters: Int32Array = new Int32Array(16);
 
   constructor(enemyBulletPool: EnemyBulletPool) {
     super();
     this.enemyBulletPool = enemyBulletPool;
+  }
+
+  private ensureCapacity(cols: number): void {
+    if (this.columnShooterEntities.length < cols) {
+      this.columnShooterEntities = new Int32Array(cols);
+      this.columnShooterY = new Float32Array(cols);
+      this.compactShooters = new Int32Array(cols);
+    }
   }
 
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
@@ -30,6 +39,18 @@ export class SpaceInvadersFormationSystem extends GameSystem {
     const formationEntity = formationEntities[0];
     const formation = world.getComponent(formationEntity, "Formation");
     if (!formation) return;
+
+    // Heuristic: detect if deltaTime is in milliseconds (as in unit tests) or seconds (as in game loop)
+    const isMs = deltaTime > 1.0;
+    const dtSeconds = isMs ? deltaTime / 1000 : deltaTime;
+
+    if (formation.stunnedRemaining && formation.stunnedRemaining > 0) {
+      const nextStun = formation.stunnedRemaining - dtSeconds;
+      world.mutateComponent(formationEntity, "Formation", f => {
+        f.stunnedRemaining = Math.max(0, nextStun);
+      });
+      return;
+    }
 
     const invaders = world.query("Invader", "Transform");
     if (invaders.length === 0) return;
@@ -53,10 +74,6 @@ export class SpaceInvadersFormationSystem extends GameSystem {
         f.speed = newSpeed;
       });
     }
-
-    // Heuristic: detect if deltaTime is in milliseconds (as in unit tests) or seconds (as in game loop)
-    const isMs = deltaTime > 1.0;
-    const dtSeconds = isMs ? deltaTime / 1000 : deltaTime;
 
     // 2. Move formation or handle step down
     const margin = 20;
@@ -167,58 +184,49 @@ export class SpaceInvadersFormationSystem extends GameSystem {
 
     if (shouldFire) {
       // Estructural: llamar a factorías FUERA de mutateComponent
-      this.fireFromFormation(world, invaders);
+      this.fireFromFormation(world, invaders, config.INVADER_COLS);
     }
   }
 
-  private fireFromFormation(world: World<SpaceInvadersComponentRegistry>, invaderEntities: ReadonlyArray<number>): void {
-    // Safe for determinism/rollback. Reusing instance Map and pooled shooter slots eliminates per-fire-tick Map and object allocations.
-    this.columnShooters.clear();
-    const len = invaderEntities.length;
-    let poolIndex = 0;
+  private fireFromFormation(
+    world: World<SpaceInvadersComponentRegistry>,
+    invaderEntities: ReadonlyArray<number>,
+    cols: number
+  ): void {
+    this.ensureCapacity(cols);
+    this.columnShooterEntities.fill(-1);
+    this.columnShooterY.fill(-10000);
 
+    const len = invaderEntities.length;
     for (let i = 0; i < len; i++) {
       const entity = invaderEntities[i];
       const invader = world.getComponent(entity, "Invader");
       const pos = world.getComponent(entity, "Transform");
       if (invader && pos) {
-        const existing = this.columnShooters.get(invader.col);
-        if (!existing) {
-          let slot = this.shooterPool[poolIndex];
-          if (!slot) {
-            slot = { entity, y: pos.y };
-            this.shooterPool[poolIndex] = slot;
-          } else {
-            slot.entity = entity;
-            slot.y = pos.y;
+        const col = invader.col;
+        if (col >= 0 && col < cols) {
+          if (this.columnShooterEntities[col] === -1 || pos.y > this.columnShooterY[col]) {
+            this.columnShooterEntities[col] = entity;
+            this.columnShooterY[col] = pos.y;
           }
-          poolIndex++;
-          this.columnShooters.set(invader.col, slot);
-        } else if (pos.y > existing.y) {
-          existing.entity = entity;
-          existing.y = pos.y;
         }
       }
     }
 
-    const colSize = this.columnShooters.size;
-    if (colSize > 0) {
-      const rng = world.gameplayRandom;
-      const targetIndex = rng.nextInt(0, colSize);
-      let currentIndex = 0;
-      let selectedShooter: { entity: number; y: number } | undefined;
-
-      // Safe for determinism/rollback. Iterating map values directly avoids Array.from() heap allocations on firing ticks.
-      for (const colShooter of this.columnShooters.values()) {
-        if (currentIndex === targetIndex) {
-          selectedShooter = colShooter;
-          break;
-        }
-        currentIndex++;
+    let validCount = 0;
+    for (let col = 0; col < cols; col++) {
+      const entity = this.columnShooterEntities[col];
+      if (entity !== -1) {
+        this.compactShooters[validCount++] = entity;
       }
+    }
 
-      if (selectedShooter) {
-        const shooterPos = world.getComponent(selectedShooter.entity, "Transform");
+    if (validCount > 0) {
+      const rng = world.gameplayRandom;
+      const targetIndex = rng.nextInt(0, validCount);
+      const selectedEntity = this.compactShooters[targetIndex];
+      if (selectedEntity !== -1 && selectedEntity !== undefined) {
+        const shooterPos = world.getComponent(selectedEntity, "Transform");
         if (shooterPos) {
           createEnemyBullet(world, shooterPos.x, shooterPos.y + 15, this.enemyBulletPool);
           world.getEventBus()?.emitDeferred("PlaySFX", { name: "shoot_enemy" });

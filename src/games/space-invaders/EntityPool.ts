@@ -14,6 +14,7 @@ export type BulletPoolConfig = {
   faction: "player" | "enemy";
 };
 
+// TODO(refactor): código duplicado detectado (función) con asteroids/EntityPool.ts:32-52. Considerar extraer a función compartida. Ref: fe6d178d
 function createBulletPoolConfig(config: BulletPoolConfig) {
   const baseConfig = createProjectilePoolConfig({
     shape: config.shape,

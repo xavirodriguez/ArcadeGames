@@ -181,7 +181,8 @@ export function registerAsteroidsBlueprints(
     }
   });
 
-  registry.register("asteroid", {
+  registry.register("asteroid", // TODO(refactor): código duplicado detectado (bloque) con asteroids/EntityFactory.ts:307-316. Considerar extraer a función compartida. Ref: 5dd5d05e
+  {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
       const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
       const randVx = (w.gameplayRandom.next() - 0.5) * 100;

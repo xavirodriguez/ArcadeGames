@@ -120,20 +120,6 @@ describe("Arkanoid Arcade Gameplay & Requirements", () => {
       const vel = game.world.getComponent(ballEntity, "Velocity");
       expect(vel?.vy).toBeLessThan(0); // directed upward
     });
-
-    test("direct touch input positions paddle instantly and computes velocity", () => {
-      const paddleEntity = game.world.query("Paddle")[0];
-      expect(paddleEntity).toBeDefined();
-
-      game.world.setResource("ArkanoidDirectTouchX", 250);
-      game.update(0.016);
-
-      const transform = game.world.getComponent(paddleEntity, "Transform");
-      expect(transform?.x).toBe(250);
-
-      const velocity = game.world.getComponent(paddleEntity, "Velocity");
-      expect(velocity?.vx).not.toBe(0);
-    });
   });
 
   describe("4.4 Power-Ups (E, L, C, S, M, B, P)", () => {

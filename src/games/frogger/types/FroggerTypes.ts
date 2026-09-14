@@ -10,6 +10,7 @@ export interface FroggerComponent extends Component {
   isAlive: boolean;
   cooldownRemaining: number;
   furthestY: number;
+  invulnerableRemaining?: number;
 }
 
 export interface VehicleComponent extends Component {

@@ -26,8 +26,23 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     const transform = world.getMutableComponent(froggerEntity, "Transform");
     if (!frogger || !transform) return;
 
+    // Decrement invulnerability timers
+    const health = world.getMutableComponent(froggerEntity, "Health");
+    if (frogger.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) {
+      frogger.invulnerableRemaining -= dt;
+      if (frogger.invulnerableRemaining < 0) frogger.invulnerableRemaining = 0;
+    }
+    if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
+      health.invulnerableRemaining -= dt;
+      if (health.invulnerableRemaining < 0) health.invulnerableRemaining = 0;
+    }
+
+    const isInvulnerable =
+      (frogger.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) ||
+      (health !== undefined && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0);
+
     // Handle vehicle collision (if Frogger is alive and on road rows 7..11)
-    if (frogger.isAlive && frogger.gridY >= 7 && frogger.gridY <= 11) {
+    if (frogger.isAlive && !isInvulnerable && frogger.gridY >= 7 && frogger.gridY <= 11) {
       const vehicleEntities = world.query("Vehicle", "Transform");
       for (let i = 0; i < vehicleEntities.length; i++) {
         const vEntity = vehicleEntities[i];
@@ -55,6 +70,10 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     if (frogger.isAlive && frogger.gridY === 0) {
       const lilyPads = world.query("GoalLilyPad", "Transform");
       let hitPadEntity: number | undefined = undefined;
+      let padTargetX = 0;
+      let padTargetY = transform.y;
+
+      const catchThreshold = config.GRID_SIZE * (config.LILY_PAD_CATCH_THRESHOLD ?? 0.88);
 
       for (let i = 0; i < lilyPads.length; i++) {
         const padEntity = lilyPads[i];
@@ -62,8 +81,10 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
         const padTransform = world.getComponent(padEntity, "Transform");
 
         if (pad && padTransform && !pad.occupied) {
-          if (Math.abs(transform.x - padTransform.x) < config.GRID_SIZE * 0.75) {
+          if (Math.abs(transform.x - padTransform.x) < catchThreshold) {
             hitPadEntity = padEntity;
+            padTargetX = padTransform.x;
+            padTargetY = padTransform.y;
             break;
           }
         }
@@ -74,6 +95,11 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
         world.mutateComponent(hitPadEntity, "GoalLilyPad", (p) => {
           p.occupied = true;
         });
+
+        // Snap Frogger position & grid coordinate
+        transform.x = padTargetX;
+        transform.y = padTargetY;
+        frogger.gridX = Math.round(padTargetX / config.GRID_SIZE);
 
         state.occupiedLilyPads += 1;
         state.score += config.GOAL_POINTS;
@@ -103,11 +129,13 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
 
         this.resetFroggerPosition(world, froggerEntity, config);
       } else {
-        // Reached row 0 but missed an unoccupied pad -> Death
-        frogger.isAlive = false;
-        const eventBus = world.getEventBus();
-        if (eventBus) {
-          eventBus.emit("frogger:died", { reason: "missed_goal", gridX: frogger.gridX, gridY: frogger.gridY });
+        if (!isInvulnerable) {
+          // Reached row 0 but missed an unoccupied pad -> Death
+          frogger.isAlive = false;
+          const eventBus = world.getEventBus();
+          if (eventBus) {
+            eventBus.emit("frogger:died", { reason: "missed_goal", gridX: frogger.gridX, gridY: frogger.gridY });
+          }
         }
       }
     }
@@ -141,6 +169,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     const startX = Math.floor(config.TOTAL_COLS / 2);
     const startY = 13;
 
+    // 1. Frogger component reset
     world.mutateComponent(froggerEntity, "Frogger", (f) => {
       f.gridX = startX;
       f.gridY = startY;
@@ -149,12 +178,36 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
       f.logEntity = undefined;
       f.cooldownRemaining = 0;
       f.furthestY = startY;
+      f.invulnerableRemaining = 1.2;
     });
 
+    // 2. Transform + Velocity reset
     world.mutateComponent(froggerEntity, "Transform", (t) => {
       t.x = startX * config.GRID_SIZE + config.GRID_SIZE / 2;
       t.y = startY * config.GRID_SIZE + config.GRID_SIZE / 2;
     });
+    if (world.hasComponent(froggerEntity, "Velocity")) {
+      world.mutateComponent(froggerEntity, "Velocity", (v) => {
+        v.vx = 0;
+        v.vy = 0;
+      });
+    }
+
+    // 3. Input flags reset
+    if (world.hasComponent(froggerEntity, "FroggerInput")) {
+      world.mutateComponent(froggerEntity, "FroggerInput", (inp) => {
+        inp.moveUp = inp.moveDown = inp.moveLeft = inp.moveRight = false;
+        inp.prevMoveUp = inp.prevMoveDown = inp.prevMoveLeft = inp.prevMoveRight = false;
+      });
+    }
+
+    // 4. Health reset
+    if (world.hasComponent(froggerEntity, "Health")) {
+      world.mutateComponent(froggerEntity, "Health", (h) => {
+        h.current = 1;
+        h.invulnerableRemaining = 1.2;
+      });
+    }
   }
 
   public resetGameOverState(world: World<FroggerComponentRegistry>): void {

@@ -1911,23 +1911,17 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegi
 // -------------------------------------------------------------
 export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:848-854. Considerar extraer a función compartida. Ref: 6a369da9
     const { height, state } = getScreenAndVFXState(world);
 
     if (!state.matrixInitialized) {
       initializeMatrix(world, state);
     }
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:857-863. Considerar extraer a función compartida. Ref: 777ba080
     ctx.save();
 
     for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
       const col = state.matrixColumns[i];
-      col.y += col.speed;
-      if (col.y > height) {
-        col.y = -150;
-        col.speed = world.renderRandom.nextRange(2, 6);
-      }
+      updateMatrixColumn(col, height, world.renderRandom);
 
       // Draw streaming pixel cubes rather than allocating strings per frame
       ctx.fillStyle = COSMIC_ARCADE_PALETTE.matrixGreen;
@@ -1956,15 +1950,11 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, ComponentRegistry> =
     }
 
     canvas.save();
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:831-837. Considerar extraer a función compartida. Ref: 6c495825
     const paint = Skia.Paint();
 
     for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
       const col = state.matrixColumns[i];
-      col.y += col.speed;
-      if (col.y > height) {
-        col.y = -150;
-      }
+      updateMatrixColumn(col, height, world.renderRandom);
 
       paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.matrixGreen));
       paint.setAlphaf(col.intensity * 0.15);
@@ -2243,7 +2233,6 @@ export const SkiaScreenBorderGlowEffect: EffectDrawer<any, ComponentRegistry> = 
 // -------------------------------------------------------------
 export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1217-1225. Considerar extraer a función compartida. Ref: ff4fc95f
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
 
@@ -2274,18 +2263,10 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
     ctx.fill();
 
     // 3. Spiraling Matter Particles
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1246-1255. Considerar extraer a función compartida. Ref: 0e31a971
     ctx.fillStyle = "#ff00ff";
     for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
       const p = state.accretionParticles[i];
-      p.angle -= p.speed; // Swirl
-      p.radius -= 0.2; // Fall in
-
-      if (p.radius < 5) {
-        const rng = world.renderRandom;
-        p.radius = rng.nextRange(baseSize * 0.8, baseSize * 1.5);
-        p.angle = rng.nextRange(0, Math.PI * 2);
-      }
+      updateAccretionParticle(p, baseSize, world.renderRandom);
 
       const x = Math.cos(p.angle) * p.radius;
       const y = Math.sin(p.angle) * p.radius;
@@ -2328,18 +2309,11 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<any, ComponentRegistry> = 
 
     // Particles
     const pPaint = Skia.Paint();
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1210-1218. Considerar extraer a función compartida. Ref: 375483f3
     pPaint.setColor(Skia.Color("#ff00ff"));
 
     for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
       const p = state.accretionParticles[i];
-      p.angle -= p.speed;
-      p.radius -= 0.2;
-
-      if (p.radius < 5) {
-        const rng = world.renderRandom;
-        p.radius = rng.nextRange(baseSize * 0.8, baseSize * 1.5);
-      }
+      updateAccretionParticle(p, baseSize, world.renderRandom);
 
       const x = Math.cos(p.angle) * p.radius;
       const y = Math.sin(p.angle) * p.radius;

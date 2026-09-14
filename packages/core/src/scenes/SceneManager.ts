@@ -426,6 +426,58 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   /**
+   * Centralized scene swap helper that executes unloading, loading, and lifecycle hooks.
+   */
+  private async performSceneSwap(params: {
+    oldScene?: Scene<TComponents>;
+    newScene?: Scene<TComponents>;
+    token: number;
+    skipExit?: boolean;
+    skipEnter?: boolean;
+    emitProgressSteps?: boolean;
+  }): Promise<void> {
+    const { oldScene, newScene, token, skipExit, skipEnter, emitProgressSteps } = params;
+
+    if (!skipExit && oldScene) {
+      this.state = SceneState.UNLOADING;
+      await runLifecycleAsync(async () => {
+        await oldScene.onExit(oldScene.getWorld());
+      });
+    }
+    if (token !== this.transitionToken) return;
+
+    if (emitProgressSteps) {
+      this.transitionProgress = 0.3;
+      if (this.eventBus) {
+        this.eventBus.emit("scene:transition:progress", { progress: 0.3 });
+      }
+    }
+
+    if (newScene) {
+      this.state = SceneState.LOADING;
+      this.currentScene = newScene;
+
+      if (this.onWorldCreated) {
+        await this.onWorldCreated(newScene.getWorld());
+      }
+      if (token !== this.transitionToken) return;
+
+      if (emitProgressSteps) {
+        this.transitionProgress = 0.7;
+        if (this.eventBus) {
+          this.eventBus.emit("scene:transition:progress", { progress: 0.7 });
+        }
+      }
+
+      if (!skipEnter) {
+        await runLifecycleAsync(async () => {
+          await newScene.onEnter(newScene.getWorld());
+        });
+      }
+    }
+  }
+
+  /**
    * Transition to a new scene, resetting stack.
    */
   public async transitionTo(scene: Scene<TComponents>, options?: TransitionOptions): Promise<void> {
@@ -433,38 +485,13 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       targetScene: scene,
       type: "transitionTo",
       options,
-      executeLifecycle: async (token) => {
-        if (this.currentScene) {
-          this.state = SceneState.UNLOADING;
-          const oldSceneRef = this.currentScene;
-          await runLifecycleAsync(async () => {
-            await oldSceneRef.onExit(oldSceneRef.getWorld());
-          });
-        }
-        if (token !== this.transitionToken) return;
-
-        this.transitionProgress = 0.3;
-        if (this.eventBus) {
-          this.eventBus.emit("scene:transition:progress", { progress: 0.3 });
-        }
-
-        this.state = SceneState.LOADING;
-        this.currentScene = scene;
-
-        if (this.onWorldCreated) {
-          await this.onWorldCreated(scene.getWorld());
-        }
-        if (token !== this.transitionToken) return;
-
-        this.transitionProgress = 0.7;
-        if (this.eventBus) {
-          this.eventBus.emit("scene:transition:progress", { progress: 0.7 });
-        }
-
-        await runLifecycleAsync(async () => {
-          await scene.onEnter(scene.getWorld());
-        });
-      },
+      executeLifecycle: (token) =>
+        this.performSceneSwap({
+          oldScene: this.currentScene ?? undefined,
+          newScene: scene,
+          token,
+          emitProgressSteps: true
+        }),
       updateStack: () => {
         this.currentScene = scene;
         this.sceneStack = [scene];
@@ -480,20 +507,14 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       targetScene: scene,
       type: "push",
       options,
-      executeLifecycle: async (token) => {
+      executeLifecycle: (token) => {
         if (this.currentScene) {
           runLifecycleSync(() => this.currentScene!.onPause());
         }
-        this.state = SceneState.LOADING;
-        this.currentScene = scene;
-
-        if (this.onWorldCreated) {
-          await this.onWorldCreated(scene.getWorld());
-        }
-        if (token !== this.transitionToken) return;
-
-        await runLifecycleAsync(async () => {
-          await scene.onEnter(scene.getWorld());
+        return this.performSceneSwap({
+          newScene: scene,
+          token,
+          skipExit: true
         });
       },
       updateStack: () => {
@@ -520,12 +541,12 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       targetScene,
       type: "pop",
       options,
-      executeLifecycle: async (token) => {
-        this.state = SceneState.UNLOADING;
-        await runLifecycleAsync(async () => {
-          await poppedScene.onExit(poppedScene.getWorld());
-        });
-      },
+      executeLifecycle: (token) =>
+        this.performSceneSwap({
+          oldScene: poppedScene,
+          token,
+          skipEnter: true
+        }),
       updateStack: () => {
         this.sceneStack.pop();
         this.currentScene = this.sceneStack[this.sceneStack.length - 1];
@@ -544,28 +565,12 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       targetScene: scene,
       type: "replace",
       options,
-      executeLifecycle: async (token) => {
-        if (this.currentScene) {
-          this.state = SceneState.UNLOADING;
-          const oldSceneRef = this.currentScene;
-          await runLifecycleAsync(async () => {
-            await oldSceneRef.onExit(oldSceneRef.getWorld());
-          });
-        }
-        if (token !== this.transitionToken) return;
-
-        this.state = SceneState.LOADING;
-        this.currentScene = scene;
-
-        if (this.onWorldCreated) {
-          await this.onWorldCreated(scene.getWorld());
-        }
-        if (token !== this.transitionToken) return;
-
-        await runLifecycleAsync(async () => {
-          await scene.onEnter(scene.getWorld());
-        });
-      },
+      executeLifecycle: (token) =>
+        this.performSceneSwap({
+          oldScene: this.currentScene ?? undefined,
+          newScene: scene,
+          token
+        }),
       updateStack: () => {
         if (this.sceneStack.length > 0) {
           this.sceneStack[this.sceneStack.length - 1] = scene;

@@ -2231,6 +2231,9 @@ export interface IStateReplicator<TComponents extends ComponentRegistry = Compon
 }
 
 // @public
+export function iterateGridBlocks(width: number, height: number, blockSize: number, callback: (col: number, row: number, cellX: number, cellY: number, cols: number, rows: number) => void): void;
+
+// @public
 export interface ITransitionEffect {
     drawsBothScenes?: boolean;
     render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
@@ -4914,6 +4917,9 @@ export class TimeScale {
     scale: number;
     setTemporary(scale: number, durationSeconds: number): void;
 }
+
+// @public
+export function toShapeDefinition(collider2D: Readonly<Collider2DComponent>): ColliderComponent["shape"];
 
 // @public
 export function toTransformComponent(x: number, y: number, rotation?: number): TransformComponent;

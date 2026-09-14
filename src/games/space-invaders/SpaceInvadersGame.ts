@@ -6,6 +6,7 @@ import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutato
 import { loadAndMutateConfig } from "../shared/configHelper";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
+import { colors } from "../../theme/colors";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
@@ -161,6 +162,13 @@ export class SpaceInvadersGame
           timerRemaining: initialTimerRemaining,
           timerDuration: config.COMBO_TIMEOUT / 1000
         } as SpaceInvadersComponentRegistry["Combo"]);
+        world.addComponent(entity, {
+          type: "EmpAbility",
+          charge: 0,
+          cooldownRemaining: 0,
+          radius: config.EMP_RADIUS ?? 250,
+          chargePerKill: config.EMP_CHARGE_PER_KILL ?? 0.1
+        } as SpaceInvadersComponentRegistry["EmpAbility"]);
 
         createEmitter(world as any, {
           type: "spawn",
@@ -211,10 +219,14 @@ export class SpaceInvadersGame
     this.blueprints.register("player_bullet", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const hasPlasmaPierce = world.getResource("HasPlasmaPierce") === true;
+        const bulletColor = hasPlasmaPierce ? colors.cyan : "yellow";
+        const consumption = hasPlasmaPierce ? "decrement-piercing" : "destroy-entity";
+
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withVelocity({ vy: -config.PLAYER_BULLET_SPEED })
-          .withRender({ shape: "player_bullet", size: config.PLAYER_BULLET_SIZE, color: "yellow", order: 10 })
+          .withRender({ shape: "player_bullet", size: config.PLAYER_BULLET_SIZE, color: bulletColor, order: 10 })
           .withCollider({
             shape: { type: ShapeType.Circle, radius: config.PLAYER_BULLET_SIZE } as CircleShape,
             layer: CollisionLayers.PROJECTILE,
@@ -228,7 +240,9 @@ export class SpaceInvadersGame
           amount: 1,
           category: "player_bullet",
           friendlyFire: false,
-          consumption: "destroy-entity"
+          charged: hasPlasmaPierce,
+          piercing: hasPlasmaPierce ? 1 : undefined,
+          consumption
         } as DamageComponent);
         world.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as FactionComponent);
         world.addComponent(entity, {
@@ -770,6 +784,7 @@ export class SpaceInvadersGame
       getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; ownerId: string }>,
       spawn: (world, entity, state) => {
         const bpName = state.ownerId === "player" ? "player_bullet" : "enemy_bullet";
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:473-482. Considerar extraer a función compartida. Ref: 06189aee
         this.blueprints.get(bpName)?.spawn(world, entity, { x: state.x, y: state.y });
       },
       sync: () => {}
@@ -793,6 +808,7 @@ export class SpaceInvadersGame
       });
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:482-496. Considerar extraer a función compartida. Ref: f3f07f60
     const replicator = this.networkManager.getReplicator();
     const currentServerEntities = new Set<string>();
 
@@ -811,6 +827,7 @@ export class SpaceInvadersGame
       Object.entries(state.invaders as Record<string, any>).forEach(([id, p]) => {
         if (!p.alive) return;
         const entityId = replicator.getLocalId(`invader_${id}`);
+        // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:221-227. Considerar extraer a función compartida. Ref: 2738d330
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
       });
     }

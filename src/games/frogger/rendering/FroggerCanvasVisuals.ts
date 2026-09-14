@@ -141,6 +141,7 @@ export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComp
     const height = 30;
     const halfW = width / 2;
 
+    // TODO(refactor): código duplicado detectado (bloque) con frogger/rendering/FroggerSkiaVisuals.ts:98-104. Considerar extraer a función compartida. Ref: aa566482
     ctx.save();
 
     // Draw shell segments along length
@@ -169,6 +170,7 @@ export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComp
 
 export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con frogger/rendering/FroggerSkiaVisuals.ts:113-118. Considerar extraer a función compartida. Ref: ec6c9efa
     const pad = world.getComponent(entity, "GoalLilyPad");
     const render = world.getComponent(entity, "Render");
     if (!render || !pad) return;

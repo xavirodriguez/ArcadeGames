@@ -114,6 +114,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
       return true;
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:143-149. Considerar extraer a función compartida. Ref: cc2dec5b
     const viewport = this.getViewport(world);
     const minX = viewport.minX - margin;
     const minY = viewport.minY - margin;
@@ -121,6 +122,7 @@ export class SpatialCullingSystem extends System<CoreComponentRegistry> {
     const maxY = viewport.maxY + margin;
 
     const transformType = "Transform" as Extract<keyof TRegistry, string>;
+    // TODO(refactor): código duplicado detectado (bloque) con systems/SpatialCullingSystem.ts:156-162. Considerar extraer a función compartida. Ref: f0b2d8bf
     const trans = world.getComponent(entity, transformType) as TransformComponent | undefined;
     if (!trans) return false;
     const x = trans.worldX ?? trans.x;

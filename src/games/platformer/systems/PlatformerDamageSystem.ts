@@ -16,6 +16,7 @@ export class PlatformerDamageSystem extends System<CoreComponentRegistry> {
       let invRemaining = pHealth.invulnerableRemaining ?? 0;
       if (invRemaining > 0) {
         invRemaining -= deltaTime;
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:139-153. Considerar extraer a función compartida. Ref: f8a7d0f6
         if (invRemaining < 0) invRemaining = 0;
         world.mutateComponent(player, "Health", (h) => {
           h.invulnerableRemaining = invRemaining;

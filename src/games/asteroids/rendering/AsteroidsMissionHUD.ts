@@ -1,6 +1,7 @@
 import { World, EffectDrawer } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { ActiveMissionState } from "../../shared/missions/MissionTypes";
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:161-231. Considerar extraer a función compartida. Ref: 213a0f95
 import { colors } from "../../../theme/colors";
 
 /**

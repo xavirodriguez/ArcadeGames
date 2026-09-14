@@ -105,6 +105,7 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
 
     // 1. Hit Flash effect
     const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:429-434. Considerar extraer a función compartida. Ref: a2fc6bd0
     if (flashState.isFlashing) {
       paint.reset();
       paint.setAntiAlias(true);
@@ -500,6 +501,7 @@ export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
     // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:617-630. Considerar extraer a función compartida. Ref: 0a8b5a9d
     const size = render.size || 24;
     const sm = world.getComponent(entity, "StateMachine" as any) as any;
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:423-434. Considerar extraer a función compartida. Ref: 9f7a25e0
     const state = sm ? sm.currentState : "Idle";
     const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
 

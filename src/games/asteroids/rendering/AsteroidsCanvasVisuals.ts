@@ -127,6 +127,7 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
 
     const size = render.size || 36;
     const radius = size / 2;
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:252-267. Considerar extraer a función compartida. Ref: b7acd4cf
     const baseColor = render.color || colors.cyan;
 
     ctx.save();
@@ -156,6 +157,7 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
     ctx.arc(0, -radius * 0.2, radius * 0.45, Math.PI, 0);
     ctx.stroke();
 
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsMissionHUD.ts:4-75. Considerar extraer a función compartida. Ref: 213a0f95
     ctx.restore();
   }
 };

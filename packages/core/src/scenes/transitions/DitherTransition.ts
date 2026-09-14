@@ -55,6 +55,7 @@ export class DitherTransition extends BaseTransitionEffect {
     }
 
     cCtx.save();
+    // TODO(refactor): código duplicado detectado (bloque) con scenes/transitions/RetroGridTransition.ts:30-38. Considerar extraer a función compartida. Ref: 210dc992
     cCtx.fillStyle = color;
     const cols = Math.ceil(width / blockSize);
     const rows = Math.ceil(height / blockSize);

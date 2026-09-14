@@ -239,6 +239,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     const timeoutMsg = context.type === "push" ? "Push transition timed out" : context.type === "pop" ? "Pop transition timed out" : "Transition timed out";
 
     if (duration === 0) {
+      // TODO(refactor): código duplicado detectado (bloque) con scenes/SceneManager.ts:318-333. Considerar extraer a función compartida. Ref: 0d5b78a0
       return this.enqueueTransition(async () => {
         const eventBus = this.eventBus;
         if (eventBus && scene) {
@@ -433,7 +434,8 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
       targetScene: scene,
       type: "transitionTo",
       options,
-      executeLifecycle: async (token) => {
+      executeLifecycle: // TODO(refactor): código duplicado detectado (función) con scenes/SceneManager.ts:545-557. Considerar extraer a función compartida. Ref: b3b9a64a
+      async (token) => {
         if (this.currentScene) {
           this.state = SceneState.UNLOADING;
           const oldSceneRef = this.currentScene;
@@ -484,6 +486,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
         if (this.currentScene) {
           runLifecycleSync(() => this.currentScene!.onPause());
         }
+        // TODO(refactor): código duplicado detectado (bloque) con scenes/SceneManager.ts:557-569. Considerar extraer a función compartida. Ref: 4d15ce18
         this.state = SceneState.LOADING;
         this.currentScene = scene;
 

@@ -3713,6 +3713,7 @@ export interface RenderComponent extends Component {
     color?: string;
     dangerPulseIntensity?: number;
     hitFlashFrames: number;
+    muzzleFlashFrames?: number;
     opacity: number;
     order: number;
     rotation: number;

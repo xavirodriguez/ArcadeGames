@@ -16,6 +16,7 @@ export type BulletPoolConfig = {
   faction: "player" | "enemy";
 };
 
+// TODO(refactor): código duplicado detectado (función) con asteroids/EntityPool.ts:32-52. Considerar extraer a función compartida. Ref: fe6d178d
 function createBulletPoolConfig(config: BulletPoolConfig) {
   // TODO(refactor): código duplicado detectado (bloque) con geometrywars/EntityPool.ts:27-51. Considerar extraer a función compartida. Ref: 35db7868
   return {

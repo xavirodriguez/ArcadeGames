@@ -56,7 +56,8 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
     },
   });
 
-  blueprints.register("vehicle", {
+  blueprints.register("vehicle", // TODO(refactor): código duplicado detectado (bloque) con frogger/EntityFactory.ts:119-140. Considerar extraer a función compartida. Ref: ced3ce5e
+  {
     spawn: (w: World<FroggerComponentRegistry>, entity: number, args: { row: number; x: number; speed: number; direction: number; vehicleType: "car" | "truck" }) => {
       const config = w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
       const y = args.row * config.GRID_SIZE + config.GRID_SIZE / 2;

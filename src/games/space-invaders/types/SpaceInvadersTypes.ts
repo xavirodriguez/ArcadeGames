@@ -37,8 +37,11 @@ export interface BossComponent extends Component {
 export interface KamikazeComponent extends Component {
   type: "Kamikaze";
   variant?: "standard" | "splitter" | "trail";
-  phase: "warning" | "diving" | "returning";
+  phase: "warning" | "telegraphing" | "diving" | "returning";
   warningRemaining: number;
+  telegraphRemaining?: number;
+  targetX?: number;
+  targetY?: number;
   originX: number;
   originY: number;
   diveSpeed: number;
@@ -49,6 +52,17 @@ export interface TeleporterComponent extends Component {
   phasingState: "visible" | "phasing_out" | "phasing_in";
   timer: number;
   teleportInterval: number;
+}
+
+/**
+ * Component for Player EMP Ability.
+ */
+export interface EmpAbilityComponent extends Component {
+  type: "EmpAbility";
+  charge: number;
+  cooldownRemaining: number;
+  radius: number;
+  chargePerKill: number;
 }
 
 export type PlayerRole = "Pioneer" | "Hunter" | "Sentinel" | "Support";
@@ -96,6 +110,7 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   PowerUp: PowerUpComponent;
   DialogueBox: DialogueBoxComponent;
   EnemyTag: EnemyTagComponent;
+  EmpAbility: EmpAbilityComponent;
 }
 
 /**
@@ -172,6 +187,7 @@ export interface FormationComponent extends Component {
   rightBound: number;
   fireCooldownRemaining: number;
   totalInvaders: number;
+  stunnedRemaining?: number;
 }
 
 /**

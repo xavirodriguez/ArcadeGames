@@ -46,8 +46,6 @@ export default function ArkanoidScreen() {
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
     useArkanoidGame(started, initialSeed);
 
-  const [containerWidth, setContainerWidth] = useState<number>(800);
-
   useKeyboardControls(game, isReady);
 
   const handleInputState = useCallback(
@@ -57,35 +55,6 @@ export default function ArkanoidScreen() {
     },
     [handleInput, game]
   );
-
-  const processDirectTouch = useCallback(
-    (evt: any) => {
-      if (!game) return;
-      const nativeEvent = evt.nativeEvent || evt;
-      const locationX = nativeEvent.locationX;
-      let xFraction = 0.5;
-
-      if (typeof locationX === "number" && containerWidth > 0) {
-        xFraction = locationX / containerWidth;
-      } else if (nativeEvent.touches?.[0] && containerWidth > 0) {
-        const touch = nativeEvent.touches[0];
-        const targetRect = evt.currentTarget?.getBoundingClientRect?.();
-        if (targetRect && targetRect.width > 0) {
-          xFraction = (touch.clientX - targetRect.left) / targetRect.width;
-        }
-      }
-
-      const clampedFraction = Math.max(0, Math.min(1, xFraction));
-      const logicalX = clampedFraction * 800;
-      game.getWorld().setResource("ArkanoidDirectTouchX", logicalX);
-    },
-    [game, containerWidth]
-  );
-
-  const clearDirectTouch = useCallback(() => {
-    if (!game) return;
-    game.getWorld().setResource("ArkanoidDirectTouchX", undefined);
-  }, [game]);
 
   if (!started) {
     return (
@@ -158,32 +127,12 @@ export default function ArkanoidScreen() {
             />
           }
           controlsSlot={
-            <View
-              style={styles.controls}
-              pointerEvents="box-none"
-              onLayout={(e) => {
-                const { width } = e.nativeEvent.layout;
-                if (width > 0) setContainerWidth(width);
-              }}
-              onTouchStart={(e) => {
-                processDirectTouch(e);
-              }}
-              onTouchMove={(e) => {
-                processDirectTouch(e);
-              }}
-              onTouchEnd={() => {
-                clearDirectTouch();
-              }}
-              onTouchCancel={() => {
-                clearDirectTouch();
-              }}
-            >
+            <View style={styles.controls} pointerEvents="box-none">
               <View style={styles.leftControlArea} pointerEvents="box-none">
                 <VirtualJoystick
                   joystickId="arkanoid_joystick"
                   type="movement"
                   onMove={(x) => {
-                    clearDirectTouch();
                     handleInputState({
                       left: x < -0.25,
                       right: x > 0.25,

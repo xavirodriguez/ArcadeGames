@@ -942,9 +942,9 @@
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;\n    const isMobile = isMobileBrowser();",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;",
       "isNew": false,
-      "lines": 8,
+      "lines": 7,
       "secondFile": {
         "end": 19,
         "endLoc": {
@@ -960,7 +960,7 @@
           "position": 740
         }
       },
-      "tokens": 55
+      "tokens": 54
     },
     {
       "firstFile": {
@@ -979,9 +979,9 @@
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillStyle = colors.white;\n    ctx.beginPath();\n    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);\n    ctx.fill();\n\n    ctx.restore();\n  }\n};\n\nexport const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {",
+      "fragment": "    ctx.shadowBlur = 0;\n    ctx.fillStyle = colors.white;\n    ctx.beginPath();\n    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);\n    ctx.fill();\n\n    ctx.restore();\n  }\n};\n\nexport const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {",
       "isNew": false,
-      "lines": 10,
+      "lines": 11,
       "secondFile": {
         "end": 87,
         "endLoc": {
@@ -997,7 +997,7 @@
           "position": 3162
         }
       },
-      "tokens": 52
+      "tokens": 53
     },
     {
       "firstFile": {
@@ -1127,9 +1127,9 @@
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const brick = world.getComponent(entity, \"Brick\") as BrickComponent | undefined;\n    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };\n    const w = config.BRICK_WIDTH;\n    const h = config.BRICK_HEIGHT;\n\n    let brickColor: string = colors.cyan;\n    if (brick) {\n      if (brick.kind === \"explosive\") brickColor = colors.orange;\n      else if (brick.kind === \"regenerable\") brickColor = colors.green;\n      else if (brick.kind === \"gravitational\") brickColor = colors.purple;\n    }\n\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      brickColor = colors.white;\n    }\n\n    const isMobile = isMobileBrowser();",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const brick = world.getComponent(entity, \"Brick\") as BrickComponent | undefined;\n    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };\n    const w = config.BRICK_WIDTH;\n    const h = config.BRICK_HEIGHT;\n\n    let brickColor: string = colors.cyan;\n    if (brick) {\n      if (brick.kind === \"explosive\") brickColor = colors.orange;\n      else if (brick.kind === \"regenerable\") brickColor = colors.green;\n      else if (brick.kind === \"gravitational\") brickColor = colors.purple;\n    }\n\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      brickColor = colors.white;\n    }",
       "isNew": false,
-      "lines": 20,
+      "lines": 18,
       "secondFile": {
         "end": 137,
         "endLoc": {
@@ -1145,7 +1145,7 @@
           "position": 4506
         }
       },
-      "tokens": 157
+      "tokens": 156
     },
     {
       "firstFile": {
@@ -6533,18 +6533,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 101,
+        "end": 87,
         "endLoc": {
           "column": 51,
-          "line": 101,
-          "position": 3000
+          "line": 87,
+          "position": 2566
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 90,
+        "start": 76,
         "startLoc": {
           "column": 14,
-          "line": 90,
-          "position": 2646
+          "line": 76,
+          "position": 2212
         }
       },
       "tokens": 95

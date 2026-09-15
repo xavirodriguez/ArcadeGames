@@ -39,43 +39,6 @@
     },
     {
       "firstFile": {
-        "end": 154,
-        "endLoc": {
-          "column": 12,
-          "line": 154,
-          "position": 5518
-        },
-        "name": "physics/collision/BroadPhase.ts",
-        "start": 143,
-        "startLoc": {
-          "column": 41,
-          "line": 143,
-          "position": 5246
-        }
-      },
-      "format": "typescript",
-      "fragment": "    let shape: ColliderComponent[\"shape\"];\n    if (c2.shape.type === \"circle\") {\n      shape = { type: ShapeType.Circle, radius: c2.shape.radius };\n    } else {\n      shape = {\n        type: ShapeType.Box,\n        width: c2.shape.halfWidth * 2,\n        height: c2.shape.halfHeight * 2\n      };\n    }\n\n    return {",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 316,
-        "endLoc": {
-          "column": 14,
-          "line": 316,
-          "position": 11597
-        },
-        "name": "physics/collision/CollisionSystems.ts",
-        "start": 305,
-        "startLoc": {
-          "column": 49,
-          "line": 305,
-          "position": 11262
-        }
-      },
-      "tokens": 66
-    },
-    {
-      "firstFile": {
         "end": 127,
         "endLoc": {
           "column": 22,
@@ -221,117 +184,6 @@
         }
       },
       "tokens": 117
-    },
-    {
-      "firstFile": {
-        "end": 446,
-        "endLoc": {
-          "column": 13,
-          "line": 446,
-          "position": 15339
-        },
-        "name": "scenes/SceneManager.ts",
-        "start": 434,
-        "startLoc": {
-          "column": 26,
-          "line": 434,
-          "position": 14952
-        }
-      },
-      "format": "typescript",
-      "fragment": "      type: \"transitionTo\",\n      options,\n      executeLifecycle: async (token) => {\n        if (this.currentScene) {\n          this.state = SceneState.UNLOADING;\n          const oldSceneRef = this.currentScene;\n          await runLifecycleAsync(async () => {\n            await oldSceneRef.onExit(oldSceneRef.getWorld());\n          });\n        }\n        if (token !== this.transitionToken) return;\n\n        this.transitionProgress = 0.3;",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 557,
-        "endLoc": {
-          "column": 13,
-          "line": 557,
-          "position": 18663
-        },
-        "name": "scenes/SceneManager.ts",
-        "start": 545,
-        "startLoc": {
-          "column": 21,
-          "line": 545,
-          "position": 18276
-        }
-      },
-      "tokens": 69
-    },
-    {
-      "firstFile": {
-        "end": 499,
-        "endLoc": {
-          "column": 26,
-          "line": 499,
-          "position": 16899
-        },
-        "name": "scenes/SceneManager.ts",
-        "start": 487,
-        "startLoc": {
-          "column": 8,
-          "line": 487,
-          "position": 16535
-        }
-      },
-      "format": "typescript",
-      "fragment": "        this.state = SceneState.LOADING;\n        this.currentScene = scene;\n\n        if (this.onWorldCreated) {\n          await this.onWorldCreated(scene.getWorld());\n        }\n        if (token !== this.transitionToken) return;\n\n        await runLifecycleAsync(async () => {\n          await scene.onEnter(scene.getWorld());\n        });\n      },\n      updateStack: () => {",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 569,
-        "endLoc": {
-          "column": 26,
-          "line": 569,
-          "position": 19022
-        },
-        "name": "scenes/SceneManager.ts",
-        "start": 557,
-        "startLoc": {
-          "column": 8,
-          "line": 557,
-          "position": 18658
-        }
-      },
-      "tokens": 75
-    },
-    {
-      "firstFile": {
-        "end": 64,
-        "endLoc": {
-          "column": 13,
-          "line": 64,
-          "position": 1838
-        },
-        "name": "scenes/transitions/DitherTransition.ts",
-        "start": 58,
-        "startLoc": {
-          "column": 26,
-          "line": 58,
-          "position": 1651
-        }
-      },
-      "format": "typescript",
-      "fragment": "    cCtx.fillStyle = color;\n    const cols = Math.ceil(width / blockSize);\n    const rows = Math.ceil(height / blockSize);\n\n    for (let r = 0; r < rows; r++) {\n      for (let c = 0; c < cols; c++) {\n        const val = DitherTransition.BAYER_4X4[r % 4][c % 4];",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 38,
-        "endLoc": {
-          "column": 13,
-          "line": 38,
-          "position": 1327
-        },
-        "name": "scenes/transitions/RetroGridTransition.ts",
-        "start": 30,
-        "startLoc": {
-          "column": 46,
-          "line": 30,
-          "position": 1069
-        }
-      },
-      "tokens": 56
     },
     {
       "firstFile": {
@@ -1098,14 +950,14 @@
         "endLoc": {
           "column": 9,
           "line": 79,
-          "position": 3032
+          "position": 3050
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
         "start": 69,
         "startLoc": {
           "column": 69,
           "line": 69,
-          "position": 2583
+          "position": 2601
         }
       },
       "tokens": 65
@@ -1131,18 +983,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 128,
+        "end": 113,
         "endLoc": {
           "column": 10,
-          "line": 128,
-          "position": 4914
+          "line": 113,
+          "position": 4453
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 117,
+        "start": 102,
         "startLoc": {
           "column": 55,
-          "line": 117,
-          "position": 4640
+          "line": 102,
+          "position": 4179
         }
       },
       "tokens": 60
@@ -1168,18 +1020,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 153,
+        "end": 138,
         "endLoc": {
           "column": 12,
-          "line": 153,
-          "position": 5755
+          "line": 138,
+          "position": 5294
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 135,
+        "start": 120,
         "startLoc": {
           "column": 29,
-          "line": 135,
-          "position": 5220
+          "line": 120,
+          "position": 4759
         }
       },
       "tokens": 61
@@ -1205,18 +1057,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 212,
+        "end": 197,
         "endLoc": {
           "column": 20,
-          "line": 212,
-          "position": 7719
+          "line": 197,
+          "position": 7258
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 202,
+        "start": 187,
         "startLoc": {
           "column": 32,
-          "line": 202,
-          "position": 7445
+          "line": 187,
+          "position": 6984
         }
       },
       "tokens": 51
@@ -1242,18 +1094,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 226,
+        "end": 211,
         "endLoc": {
           "column": 5,
-          "line": 226,
-          "position": 8148
+          "line": 211,
+          "position": 7687
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 217,
+        "start": 202,
         "startLoc": {
           "column": 55,
-          "line": 217,
-          "position": 7899
+          "line": 202,
+          "position": 7438
         }
       },
       "tokens": 74
@@ -1556,18 +1408,18 @@
     },
     {
       "firstFile": {
-        "end": 148,
+        "end": 147,
         "endLoc": {
           "column": 8,
-          "line": 148,
-          "position": 5133
+          "line": 147,
+          "position": 5046
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 130,
+        "start": 129,
         "startLoc": {
           "column": 49,
-          "line": 130,
-          "position": 4669
+          "line": 129,
+          "position": 4582
         }
       },
       "format": "typescript",
@@ -1575,73 +1427,36 @@
       "isNew": false,
       "lines": 19,
       "secondFile": {
-        "end": 267,
+        "end": 197,
         "endLoc": {
           "column": 8,
-          "line": 267,
-          "position": 9217
+          "line": 197,
+          "position": 6923
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 252,
+        "start": 182,
         "startLoc": {
           "column": 47,
-          "line": 252,
-          "position": 8758
+          "line": 182,
+          "position": 6464
         }
       },
       "tokens": 87
     },
     {
       "firstFile": {
-        "end": 231,
-        "endLoc": {
-          "column": 2,
-          "line": 231,
-          "position": 7689
-        },
-        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 161,
-        "startLoc": {
-          "column": 1,
-          "line": 161,
-          "position": 5480
-        }
-      },
-      "format": "typescript",
-      "fragment": "};\n\n/**\n * Overlay shape drawer for Canvas2D Mission HUD.\n */\nexport const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {\n  draw(ctx, world) {\n    const activeMission = world.getResource<ActiveMissionState>(\"ActiveMission\");\n    if (!activeMission) return;\n\n    ctx.save();\n    const x = 20;\n    const y = 80;\n    const width = 280;\n    const height = 48;\n\n    ctx.fillStyle = \"rgba(10, 14, 39, 0.85)\";\n    ctx.fillRect(x, y, width, height);\n\n    let statusColor: string = colors.cyan;\n    let statusText = `🎯 ${activeMission.title.toUpperCase()}`;\n\n    if (activeMission.completed) {\n      statusColor = colors.green;\n      statusText = `★ ${activeMission.title.toUpperCase()} (COMPLETADA)`;\n    } else if (activeMission.failed) {\n      statusColor = colors.pink;\n      statusText = `✕ ${activeMission.title.toUpperCase()} (FALLIDA)`;\n    }\n\n    ctx.strokeStyle = statusColor;\n    ctx.lineWidth = 1.5;\n    ctx.strokeRect(x, y, width, height);\n\n    ctx.font = \"bold 12px monospace\";\n    ctx.fillStyle = statusColor;\n    ctx.textAlign = \"left\";\n    ctx.textBaseline = \"top\";\n    ctx.shadowColor = statusColor;\n    ctx.shadowBlur = 6;\n    ctx.fillText(statusText, x + 8, y + 6);\n\n    ctx.font = \"11px monospace\";\n    ctx.fillStyle = colors.white;\n    ctx.shadowBlur = 0;\n\n    let progressStr = `${activeMission.currentCount} / ${activeMission.targetCount}`;\n    if (activeMission.targetTimer > 0) {\n      progressStr = `${activeMission.currentTimer.toFixed(1)}s / ${activeMission.targetTimer}s`;\n    }\n    ctx.fillText(progressStr, x + 8, y + 26);\n\n    const barX = x + 130;\n    const barY = y + 28;\n    const barW = width - 140;\n    const barH = 8;\n    const ratio = activeMission.targetCount > 0\n      ? Math.min(1, Math.max(0, activeMission.currentCount / activeMission.targetCount))\n      : activeMission.targetTimer > 0\n      ? Math.min(1, Math.max(0, (activeMission.targetTimer - activeMission.currentTimer) / activeMission.targetTimer))\n      : 0;\n\n    ctx.fillStyle = \"rgba(255, 255, 255, 0.2)\";\n    ctx.fillRect(barX, barY, barW, barH);\n\n    ctx.fillStyle = statusColor;\n    ctx.fillRect(barX, barY, barW * ratio, barH);\n\n    ctx.restore();\n  }\n};",
-      "isNew": false,
-      "lines": 71,
-      "secondFile": {
-        "end": 75,
-        "endLoc": {
-          "column": 2,
-          "line": 75,
-          "position": 2487
-        },
-        "name": "asteroids/rendering/AsteroidsMissionHUD.ts",
-        "start": 4,
-        "startLoc": {
-          "column": 46,
-          "line": 4,
-          "position": 247
-        }
-      },
-      "tokens": 453
-    },
-    {
-      "firstFile": {
-        "end": 252,
+        "end": 182,
         "endLoc": {
           "column": 7,
-          "line": 252,
-          "position": 8718
+          "line": 182,
+          "position": 6424
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 240,
+        "start": 170,
         "startLoc": {
           "column": 4,
-          "line": 240,
-          "position": 8169
+          "line": 170,
+          "position": 5875
         }
       },
       "format": "typescript",
@@ -5404,11 +5219,11 @@
     },
     {
       "firstFile": {
-        "end": 33,
+        "end": 35,
         "endLoc": {
-          "column": 55,
-          "line": 33,
-          "position": 1824
+          "column": 108,
+          "line": 35,
+          "position": 1934
         },
         "name": "pong/rendering/PongCanvasVisuals.ts",
         "start": 19,
@@ -5419,25 +5234,25 @@
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const ballComp = world.getComponent(entity, \"Ball\") as BallComponent | undefined;\n    const size = render.size ?? 8;\n\n    const x = transform.worldX ?? transform.x;\n    const y = transform.worldY ?? transform.y;\n\n    // 1. Fetch Combo component to dynamically shift trail length and color using shared getComboReaction utility\n    const comboComponent = world.getSingleton(\"Combo\") as ComboComponent | undefined;\n    const multiplier = comboComponent?.multiplier ?? 1;",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const ballComp = world.getComponent(entity, \"Ball\") as BallComponent | undefined;\n    const size = render.size ?? 8;\n\n    const x = transform.worldX ?? transform.x;\n    const y = transform.worldY ?? transform.y;\n\n    // 1. Fetch Combo component to dynamically shift trail length and color using shared getComboReaction utility\n    const comboComponent = world.getSingleton(\"Combo\") as ComboComponent | undefined;\n    const multiplier = comboComponent?.multiplier ?? 1;\n\n    const { trailLength, trailColor, trailColorInner, mainColor: ballColor } = getComboReaction(multiplier);",
       "isNew": false,
-      "lines": 15,
+      "lines": 17,
       "secondFile": {
-        "end": 87,
+        "end": 89,
         "endLoc": {
-          "column": 55,
-          "line": 87,
-          "position": 3457
+          "column": 108,
+          "line": 89,
+          "position": 3623
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
         "start": 73,
         "startLoc": {
           "column": 4,
           "line": 73,
-          "position": 2811
+          "position": 2829
         }
       },
-      "tokens": 115
+      "tokens": 133
     },
     {
       "firstFile": {
@@ -5460,18 +5275,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 168,
+        "end": 153,
         "endLoc": {
           "column": 89,
-          "line": 168,
-          "position": 6425
+          "line": 153,
+          "position": 5964
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 156,
+        "start": 141,
         "startLoc": {
           "column": 4,
-          "line": 156,
-          "position": 5879
+          "line": 141,
+          "position": 5418
         }
       },
       "tokens": 111
@@ -5482,14 +5297,14 @@
         "endLoc": {
           "column": 51,
           "line": 38,
-          "position": 1549
+          "position": 1567
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
         "start": 27,
         "startLoc": {
           "column": 17,
           "line": 27,
-          "position": 1195
+          "position": 1213
         }
       },
       "format": "typescript",
@@ -5519,14 +5334,14 @@
         "endLoc": {
           "column": 9,
           "line": 76,
-          "position": 2918
+          "position": 2936
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
         "start": 69,
         "startLoc": {
           "column": 29,
           "line": 69,
-          "position": 2543
+          "position": 2561
         }
       },
       "format": "typescript",
@@ -5534,18 +5349,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 159,
+        "end": 144,
         "endLoc": {
           "column": 9,
-          "line": 159,
-          "position": 5986
+          "line": 144,
+          "position": 5525
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 153,
+        "start": 138,
         "startLoc": {
           "column": 31,
-          "line": 153,
-          "position": 5774
+          "line": 138,
+          "position": 5313
         }
       },
       "tokens": 50
@@ -5941,18 +5756,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 2087,
+        "end": 2077,
         "endLoc": {
           "column": 31,
-          "line": 2087,
-          "position": 68769
+          "line": 2077,
+          "position": 68186
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2081,
+        "start": 2071,
         "startLoc": {
           "column": 41,
-          "line": 2081,
-          "position": 68527
+          "line": 2071,
+          "position": 67944
         }
       },
       "tokens": 55
@@ -5978,18 +5793,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 2389,
+        "end": 2363,
         "endLoc": {
           "column": 31,
-          "line": 2389,
-          "position": 78532
+          "line": 2363,
+          "position": 77145
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2383,
+        "start": 2357,
         "startLoc": {
           "column": 39,
-          "line": 2383,
-          "position": 78290
+          "line": 2357,
+          "position": 76903
         }
       },
       "tokens": 55
@@ -6015,18 +5830,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 2444,
+        "end": 2418,
         "endLoc": {
           "column": 31,
-          "line": 2444,
-          "position": 80371
+          "line": 2418,
+          "position": 78984
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2438,
+        "start": 2412,
         "startLoc": {
           "column": 40,
-          "line": 2438,
-          "position": 80129
+          "line": 2412,
+          "position": 78742
         }
       },
       "tokens": 55
@@ -6052,18 +5867,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 2182,
+        "end": 2172,
         "endLoc": {
           "column": 15,
-          "line": 2182,
-          "position": 71862
+          "line": 2172,
+          "position": 71279
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2174,
+        "start": 2164,
         "startLoc": {
           "column": 38,
-          "line": 2174,
-          "position": 71609
+          "line": 2164,
+          "position": 71026
         }
       },
       "tokens": 50
@@ -6089,18 +5904,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 2477,
+        "end": 2451,
         "endLoc": {
           "column": 9,
-          "line": 2477,
-          "position": 81552
+          "line": 2451,
+          "position": 80165
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2469,
+        "start": 2443,
         "startLoc": {
           "column": 36,
-          "line": 2469,
-          "position": 81235
+          "line": 2443,
+          "position": 79848
         }
       },
       "tokens": 64
@@ -6200,18 +6015,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 2512,
+        "end": 2486,
         "endLoc": {
           "column": 30,
-          "line": 2512,
-          "position": 82741
+          "line": 2486,
+          "position": 81354
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2505,
+        "start": 2479,
         "startLoc": {
           "column": 40,
-          "line": 2505,
-          "position": 82430
+          "line": 2479,
+          "position": 81043
         }
       },
       "tokens": 70
@@ -6255,55 +6070,18 @@
     },
     {
       "firstFile": {
-        "end": 1928,
-        "endLoc": {
-          "column": 21,
-          "line": 1928,
-          "position": 63463
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1922,
-        "startLoc": {
-          "column": 12,
-          "line": 1922,
-          "position": 63289
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.save();\n\n    for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {\n      const col = state.matrixColumns[i];\n      col.y += col.speed;\n      if (col.y > height) {\n        col.y = -150;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 1966,
-        "endLoc": {
-          "column": 21,
-          "line": 1966,
-          "position": 64656
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1960,
-        "startLoc": {
-          "column": 28,
-          "line": 1960,
-          "position": 64482
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 2005,
+        "end": 1995,
         "endLoc": {
           "column": 44,
-          "line": 2005,
-          "position": 66186
+          "line": 1995,
+          "position": 65603
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2000,
+        "start": 1990,
         "startLoc": {
           "column": 29,
-          "line": 2000,
-          "position": 66010
+          "line": 1990,
+          "position": 65427
         }
       },
       "format": "typescript",
@@ -6311,36 +6089,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 2032,
+        "end": 2022,
         "endLoc": {
           "column": 44,
-          "line": 2032,
-          "position": 67043
+          "line": 2022,
+          "position": 66460
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2028,
+        "start": 2018,
         "startLoc": {
           "column": 41,
-          "line": 2028,
-          "position": 66868
+          "line": 2018,
+          "position": 66285
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 2053,
+        "end": 2043,
         "endLoc": {
           "column": 49,
-          "line": 2053,
-          "position": 67820
+          "line": 2043,
+          "position": 67237
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2047,
+        "start": 2037,
         "startLoc": {
           "column": 4,
-          "line": 2047,
-          "position": 67506
+          "line": 2037,
+          "position": 66923
         }
       },
       "format": "typescript",
@@ -6348,36 +6126,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 2090,
+        "end": 2080,
         "endLoc": {
           "column": 49,
-          "line": 2090,
-          "position": 68942
+          "line": 2080,
+          "position": 68359
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2084,
+        "start": 2074,
         "startLoc": {
           "column": 4,
-          "line": 2084,
-          "position": 68628
+          "line": 2074,
+          "position": 68045
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 2129,
+        "end": 2119,
         "endLoc": {
           "column": 77,
-          "line": 2129,
-          "position": 70218
+          "line": 2119,
+          "position": 69635
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2124,
+        "start": 2114,
         "startLoc": {
           "column": 4,
-          "line": 2124,
-          "position": 69940
+          "line": 2114,
+          "position": 69357
         }
       },
       "format": "typescript",
@@ -6385,36 +6163,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 2168,
+        "end": 2158,
         "endLoc": {
           "column": 77,
-          "line": 2168,
-          "position": 71361
+          "line": 2158,
+          "position": 70778
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2163,
+        "start": 2153,
         "startLoc": {
           "column": 4,
-          "line": 2163,
-          "position": 71083
+          "line": 2153,
+          "position": 70500
         }
       },
       "tokens": 54
     },
     {
       "firstFile": {
-        "end": 2255,
+        "end": 2244,
         "endLoc": {
           "column": 5,
-          "line": 2255,
-          "position": 74198
+          "line": 2244,
+          "position": 73454
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2247,
+        "start": 2236,
         "startLoc": {
           "column": 4,
-          "line": 2247,
-          "position": 73930
+          "line": 2236,
+          "position": 73186
         }
       },
       "format": "typescript",
@@ -6422,73 +6200,73 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 2310,
+        "end": 2291,
         "endLoc": {
           "column": 5,
-          "line": 2310,
-          "position": 75867
+          "line": 2291,
+          "position": 74767
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2302,
+        "start": 2283,
         "startLoc": {
           "column": 4,
-          "line": 2302,
-          "position": 75599
+          "line": 2283,
+          "position": 74499
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 2286,
+        "end": 2272,
         "endLoc": {
-          "column": 65,
-          "line": 2286,
-          "position": 75205
+          "column": 45,
+          "line": 2272,
+          "position": 74255
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2278,
+        "start": 2266,
         "startLoc": {
           "column": 29,
-          "line": 2278,
-          "position": 74900
+          "line": 2266,
+          "position": 73995
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillStyle = \"#ff00ff\";\n    for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {\n      const p = state.accretionParticles[i];\n      p.angle -= p.speed; // Swirl\n      p.radius -= 0.2; // Fall in\n\n      if (p.radius < 5) {\n        const rng = world.renderRandom;\n        p.radius = rng.nextRange(baseSize * 0.8, baseSize * 1.5);",
+      "fragment": "    ctx.fillStyle = \"#ff00ff\";\n    for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {\n      const p = state.accretionParticles[i];\n      updateAccretionParticle(p, baseSize, world.renderRandom);\n\n      const x = Math.cos(p.angle) * p.radius;\n      const y = Math.sin(p.angle) * p.radius;",
       "isNew": false,
-      "lines": 9,
+      "lines": 7,
       "secondFile": {
-        "end": 2341,
+        "end": 2319,
         "endLoc": {
-          "column": 65,
-          "line": 2341,
-          "position": 76895
+          "column": 45,
+          "line": 2319,
+          "position": 75609
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 2312,
+        "startLoc": {
+          "column": 42,
+          "line": 2312,
+          "position": 75348
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 2339,
+        "endLoc": {
+          "column": 68,
+          "line": 2339,
+          "position": 76469
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 2332,
         "startLoc": {
-          "column": 42,
-          "line": 2332,
-          "position": 76609
-        }
-      },
-      "tokens": 73
-    },
-    {
-      "firstFile": {
-        "end": 2365,
-        "endLoc": {
-          "column": 68,
-          "line": 2365,
-          "position": 77856
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 2358,
-        "startLoc": {
           "column": 4,
-          "line": 2358,
-          "position": 77433
+          "line": 2332,
+          "position": 76046
         }
       },
       "format": "typescript",
@@ -6496,36 +6274,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 2393,
+        "end": 2367,
         "endLoc": {
           "column": 68,
-          "line": 2393,
-          "position": 78814
+          "line": 2367,
+          "position": 77427
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2386,
+        "start": 2360,
         "startLoc": {
           "column": 4,
-          "line": 2386,
-          "position": 78391
+          "line": 2360,
+          "position": 77004
         }
       },
       "tokens": 80
     },
     {
       "firstFile": {
-        "end": 2420,
+        "end": 2394,
         "endLoc": {
           "column": 58,
-          "line": 2420,
-          "position": 79762
+          "line": 2394,
+          "position": 78375
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2415,
+        "start": 2389,
         "startLoc": {
           "column": 4,
-          "line": 2415,
-          "position": 79506
+          "line": 2389,
+          "position": 78119
         }
       },
       "format": "typescript",
@@ -6533,18 +6311,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 2446,
+        "end": 2420,
         "endLoc": {
           "column": 58,
-          "line": 2446,
-          "position": 80486
+          "line": 2420,
+          "position": 79099
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 2441,
+        "start": 2415,
         "startLoc": {
           "column": 4,
-          "line": 2441,
-          "position": 80230
+          "line": 2415,
+          "position": 78843
         }
       },
       "tokens": 52
@@ -6958,32 +6736,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-14T20:25:42.767Z",
+    "detectionDate": "2026-09-15T07:22:41.936Z",
     "formats": {
       "typescript": {
-        "clones": 188,
-        "duplicatedLines": 1842,
-        "duplicatedTokens": 14076,
-        "lines": 65021,
+        "clones": 182,
+        "duplicatedLines": 1725,
+        "duplicatedTokens": 13319,
+        "lines": 64947,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.8329308992479354,
-        "percentageTokens": 4.144656643640796,
-        "sources": 383,
-        "tokens": 339618
+        "percentage": 2.65601182502656,
+        "percentageTokens": 3.9296504354804447,
+        "sources": 385,
+        "tokens": 338936
       }
     },
     "total": {
-      "clones": 188,
-      "duplicatedLines": 1842,
-      "duplicatedTokens": 14076,
-      "lines": 65021,
+      "clones": 182,
+      "duplicatedLines": 1725,
+      "duplicatedTokens": 13319,
+      "lines": 64947,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.8329308992479354,
-      "percentageTokens": 4.144656643640796,
-      "sources": 383,
-      "tokens": 339618
+      "percentage": 2.65601182502656,
+      "percentageTokens": 3.9296504354804447,
+      "sources": 385,
+      "tokens": 338936
     }
   }
 }

@@ -730,8 +730,8 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Com
         centerX, centerY, maxRadius * 0.4,
         centerX, centerY, maxRadius
       );
-      grad.addColorStop(0, "rgba(0, 0, 0, 0)");
-      grad.addColorStop(1, "rgba(0, 0, 0, 0.6)");
+      grad.addColorStop(0, hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0));
+      grad.addColorStop(1, hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0.6));
       return grad;
     });
 
@@ -776,7 +776,10 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
       return Skia.Shader.MakeRadialGradient(
         Skia.Point(centerX, centerY),
         maxRadius,
-        [Skia.Color("rgba(0,0,0,0)"), Skia.Color("rgba(0,0,0,0.6)")],
+        [
+          getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0),
+          getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0.6)
+        ],
         [0.4, 1.0],
         Skia.TileMode.Clamp
       );
@@ -810,9 +813,11 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
     const milkyWay = state.milkyWay;
     if (!milkyWay) return;
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
+
     ctx.save();
 
-    const centerX = width / 2;
+    const centerX = wrapParallaxCoordinate(width / 2 - offsetX * 0.1, width * 2);
     const centerY = height / 2;
     const bandHeight = 220;
 
@@ -822,11 +827,11 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
     // Reuse/cache radial/linear gradient across frame iterations via getOrCreateCached helper
     const gradient = getOrCreateCached(state, "cachedMilkyWayGradient", width, height, () => {
       const grad = ctx.createLinearGradient(0, -bandHeight / 2, 0, bandHeight / 2);
-      grad.addColorStop(0, "rgba(80, 40, 120, 0)");
-      grad.addColorStop(0.2, "rgba(90, 50, 140, 0.08)");
-      grad.addColorStop(0.5, "rgba(140, 90, 190, 0.18)");
-      grad.addColorStop(0.8, "rgba(90, 50, 140, 0.08)");
-      grad.addColorStop(1, "rgba(80, 40, 120, 0)");
+      grad.addColorStop(0, hexToRgba(COSMIC_ARCADE_PALETTE.nebulaPurple, 0));
+      grad.addColorStop(0.2, hexToRgba(COSMIC_ARCADE_PALETTE.electricIndigo, 0.08));
+      grad.addColorStop(0.5, hexToRgba(COSMIC_ARCADE_PALETTE.mutedPurple, 0.18));
+      grad.addColorStop(0.8, hexToRgba(COSMIC_ARCADE_PALETTE.electricIndigo, 0.08));
+      grad.addColorStop(1, hexToRgba(COSMIC_ARCADE_PALETTE.nebulaPurple, 0));
       return grad;
     });
 
@@ -835,7 +840,8 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
     ctx.fillRect(-width, -bandHeight / 2, width * 2, bandHeight);
 
     // Inner bright core stream
-    ctx.fillStyle = "rgba(220, 200, 255, 0.05)";
+    ctx.fillStyle = hexToRgba(COSMIC_ARCADE_PALETTE.iceBlue, 0.05);
+    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:901-905. Considerar extraer a función compartida. Ref: 2929995c
     ctx.fillRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3);
 
     // Embedded star dust particles along galactic plane
@@ -863,9 +869,11 @@ export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, ComponentReg
     const milkyWay = state.milkyWay;
     if (!milkyWay) return;
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
+
     canvas.save();
 
-    const centerX = width / 2;
+    const centerX = wrapParallaxCoordinate(width / 2 - offsetX * 0.1, width * 2);
     const centerY = height / 2;
     const bandHeight = 220;
 
@@ -877,11 +885,11 @@ export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, ComponentReg
         Skia.Point(0, -bandHeight / 2),
         Skia.Point(0, bandHeight / 2),
         [
-          Skia.Color("rgba(80, 40, 120, 0)"),
-          Skia.Color("rgba(90, 50, 140, 0.08)"),
-          Skia.Color("rgba(140, 90, 190, 0.18)"),
-          Skia.Color("rgba(90, 50, 140, 0.08)"),
-          Skia.Color("rgba(80, 40, 120, 0)")
+          getSkiaColor(COSMIC_ARCADE_PALETTE.nebulaPurple, 0),
+          getSkiaColor(COSMIC_ARCADE_PALETTE.electricIndigo, 0.08),
+          getSkiaColor(COSMIC_ARCADE_PALETTE.mutedPurple, 0.18),
+          getSkiaColor(COSMIC_ARCADE_PALETTE.electricIndigo, 0.08),
+          getSkiaColor(COSMIC_ARCADE_PALETTE.nebulaPurple, 0)
         ],
         [0.0, 0.2, 0.5, 0.8, 1.0],
         Skia.TileMode.Clamp
@@ -894,7 +902,7 @@ export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, ComponentReg
 
     // Inner bright core stream
     const corePaint = Skia.Paint();
-    corePaint.setColor(Skia.Color("rgba(220, 200, 255, 0.05)"));
+    corePaint.setColor(getSkiaColor(COSMIC_ARCADE_PALETTE.iceBlue, 0.05));
     canvas.drawRect(Skia.XYWHRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3), corePaint);
 
     // Embedded star dust particles
@@ -1246,13 +1254,17 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     const planet = state.planet;
     if (!planet) return;
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
+    const posX = wrapParallaxCoordinate(planet.x - offsetX * 0.1, width, planet.radius * 3);
+
     ctx.save();
 
-    const planetTheme = getPlanetTheme("purple");
+    const theme = getActiveLevelTheme(world);
+    const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
 
     // 1. Back section of rings (drawn behind planet)
     ctx.save();
-    ctx.translate(planet.x, planet.y);
+    ctx.translate(posX, planet.y);
     ctx.rotate(planet.ringTilt);
     ctx.scale(1.0, 0.32);
 
@@ -1279,15 +1291,24 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     });
 
     ctx.save();
-    ctx.translate(planet.x, planet.y);
+    ctx.translate(posX, planet.y);
+
+    // Atmosphere halo
+    ctx.strokeStyle = planetTheme.atmosphereColor;
+    ctx.globalAlpha = 0.25;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, planet.radius + 2, 0, Math.PI * 2);
+    ctx.stroke();
 
     ctx.fillStyle = planetGrad;
+    ctx.globalAlpha = 1.0;
     ctx.beginPath();
     ctx.arc(0, 0, planet.radius, 0, Math.PI * 2);
     ctx.fill();
 
     // Planet Craters
-    ctx.fillStyle = "#261304";
+    ctx.fillStyle = hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0.25);
     ctx.globalAlpha = 0.25;
     for (let i = 0; i < planet.craters.length; i++) {
       const crater = planet.craters[i];
@@ -1299,7 +1320,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
 
     // 3. Front section of rings (drawn over planet)
     ctx.save();
-    ctx.translate(planet.x, planet.y);
+    ctx.translate(posX, planet.y);
     ctx.rotate(planet.ringTilt);
     ctx.scale(1.0, 0.32);
 
@@ -1312,7 +1333,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.stroke();
 
     // Ring shadow gap
-    ctx.strokeStyle = "#1a0d03";
+    ctx.strokeStyle = hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0.8);
     ctx.globalAlpha = 0.4;
     ctx.lineWidth = (planet.ringOuterRadius - planet.ringInnerRadius) * 0.15;
     ctx.beginPath();
@@ -1325,14 +1346,14 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.save();
     ctx.translate(planet.moonX, planet.moonY);
 
-    ctx.fillStyle = "#8a8a8a";
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.stationSteel;
     ctx.globalAlpha = 0.85;
     ctx.beginPath();
     ctx.arc(0, 0, planet.moonRadius, 0, Math.PI * 2);
     ctx.fill();
 
     // Moon craters
-    ctx.fillStyle = "#4a4a4a";
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.cosmicNavy;
     ctx.globalAlpha = 0.5;
     for (let i = 0; i < planet.moonCraters.length; i++) {
       const mc = planet.moonCraters[i];
@@ -1356,6 +1377,11 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
     const planet = state.planet;
     if (!planet) return;
 
+    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
+    const posX = wrapParallaxCoordinate(planet.x - offsetX * 0.1, width, planet.radius * 3);
+    const theme = getActiveLevelTheme(world);
+    const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
+
     canvas.save();
 
     const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
@@ -1363,14 +1389,14 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
 
     // 1. Back section of rings
     canvas.save();
-    canvas.translate(planet.x, planet.y);
+    canvas.translate(posX, planet.y);
     canvas.rotate((planet.ringTilt * 180) / Math.PI, 0, 0);
     canvas.scale(1.0, 0.32);
 
     const backRingPaint = Skia.Paint();
     backRingPaint.setStyle(Skia.PaintStyle.Stroke);
     backRingPaint.setStrokeWidth(ringThickness);
-    backRingPaint.setColor(Skia.Color("#d4af37"));
+    backRingPaint.setColor(Skia.Color(planetTheme.ringColorBase));
     backRingPaint.setAlphaf(0.35);
 
     const backRingPath = Skia.Path.Make();
@@ -1383,13 +1409,25 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
 
     // 2. Planet body
     canvas.save();
-    canvas.translate(planet.x, planet.y);
+    canvas.translate(posX, planet.y);
+
+    // Atmosphere halo
+    const atmosPaint = Skia.Paint();
+    atmosPaint.setStyle(Skia.PaintStyle.Stroke);
+    atmosPaint.setStrokeWidth(3);
+    atmosPaint.setColor(Skia.Color(planetTheme.atmosphereColor));
+    atmosPaint.setAlphaf(0.25);
+    canvas.drawCircle(0, 0, planet.radius + 2, atmosPaint);
 
     const planetShader = getOrCreateCached(state, "cachedPlanetSkiaShader", width, height, () => {
       return Skia.Shader.MakeRadialGradient(
         Skia.Point(-planet.radius * 0.3, -planet.radius * 0.3),
         planet.radius,
-        [Skia.Color("#e6c280"), Skia.Color("#a66a38"), Skia.Color("#3b1e08")],
+        [
+          Skia.Color(planetTheme.bodyGradient[0]),
+          Skia.Color(planetTheme.bodyGradient[1]),
+          Skia.Color(planetTheme.bodyGradient[2])
+        ],
         [0.0, 0.5, 1.0],
         Skia.TileMode.Clamp
       );
@@ -1401,7 +1439,7 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
 
     // Planet craters
     const craterPaint = Skia.Paint();
-    craterPaint.setColor(Skia.Color("#261304"));
+    craterPaint.setColor(getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0.25));
     craterPaint.setAlphaf(0.25);
     for (let i = 0; i < planet.craters.length; i++) {
       const crater = planet.craters[i];
@@ -1411,14 +1449,14 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
 
     // 3. Front section of rings
     canvas.save();
-    canvas.translate(planet.x, planet.y);
+    canvas.translate(posX, planet.y);
     canvas.rotate((planet.ringTilt * 180) / Math.PI, 0, 0);
     canvas.scale(1.0, 0.32);
 
     const frontRingPaint = Skia.Paint();
     frontRingPaint.setStyle(Skia.PaintStyle.Stroke);
     frontRingPaint.setStrokeWidth(ringThickness);
-    frontRingPaint.setColor(Skia.Color("#f3e5ab"));
+    frontRingPaint.setColor(Skia.Color(planetTheme.ringColorHighlight));
     frontRingPaint.setAlphaf(0.6);
 
     const frontRingPath = Skia.Path.Make();
@@ -1432,7 +1470,7 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
     const gapPaint = Skia.Paint();
     gapPaint.setStyle(Skia.PaintStyle.Stroke);
     gapPaint.setStrokeWidth(ringThickness * 0.15);
-    gapPaint.setColor(Skia.Color("#1a0d03"));
+    gapPaint.setColor(getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0.8));
     gapPaint.setAlphaf(0.4);
 
     const gapPath = Skia.Path.Make();
@@ -1448,12 +1486,12 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
     canvas.translate(planet.moonX, planet.moonY);
 
     const moonPaint = Skia.Paint();
-    moonPaint.setColor(Skia.Color("#8a8a8a"));
+    moonPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
     moonPaint.setAlphaf(0.85);
     canvas.drawCircle(0, 0, planet.moonRadius, moonPaint);
 
     const moonCraterPaint = Skia.Paint();
-    moonCraterPaint.setColor(Skia.Color("#4a4a4a"));
+    moonCraterPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.cosmicNavy));
     moonCraterPaint.setAlphaf(0.5);
     for (let i = 0; i < planet.moonCraters.length; i++) {
       const mc = planet.moonCraters[i];
@@ -1523,12 +1561,14 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
     }
 
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer2_distant_stars");
+    const theme = getActiveLevelTheme(world);
+    const starSpeedMult = theme.starSpeed || 1.0;
 
     ctx.save();
 
     for (let i = 0; i < STAR_COUNT; i++) {
       const star = state.stars[i];
-      const posX = wrapParallaxCoordinate(star.x - star.speed - offsetX * 0.1, width);
+      const posX = wrapParallaxCoordinate(star.x - star.speed * starSpeedMult - offsetX * 0.1, width);
 
       star.twinklePhase += star.twinkleSpeed;
       const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
@@ -1552,13 +1592,15 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> 
     }
 
     const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer2_distant_stars");
+    const theme = getActiveLevelTheme(world);
+    const starSpeedMult = theme.starSpeed || 1.0;
 
     canvas.save();
     const paint = Skia.Paint();
 
     for (let i = 0; i < STAR_COUNT; i++) {
       const star = state.stars[i];
-      const posX = wrapParallaxCoordinate(star.x - star.speed - offsetX * 0.1, width);
+      const posX = wrapParallaxCoordinate(star.x - star.speed * starSpeedMult - offsetX * 0.1, width);
 
       star.twinklePhase += star.twinkleSpeed;
       const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
@@ -1766,7 +1808,7 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, Compon
     ctx.arc(0, 0, currentRadius * 1.2, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = "#ffb432";
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
     ctx.globalAlpha = alpha;
 
     drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
@@ -1804,7 +1846,7 @@ export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {
     canvas.drawCircle(0, 0, currentRadius * 1.2, paint);
 
     const sparkPaint = Skia.Paint();
-    sparkPaint.setColor(Skia.Color("#ffb432"));
+    sparkPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
     sparkPaint.setAlphaf(alpha);
 
     drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
@@ -1843,13 +1885,21 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
       neb.y += neb.vy;
 
       const posX = neb.x - offsetX * 0.1;
+      const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
 
-      // Concentric soft circles with decaying opacities using Level Theme palette
-      ctx.fillStyle = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
-      ctx.globalAlpha = 0.015 * theme.ambientGlow;
-      for (let r = neb.radius; r > 10; r -= 15) {
+      ctx.fillStyle = nebColorHex;
+      ctx.globalAlpha = 0.012 * theme.ambientGlow;
+
+      for (let r = neb.radius; r > 10; r -= 20) {
         ctx.beginPath();
         ctx.arc(posX, neb.y, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        const offsetAngle = state.timePhase * 0.05 + i;
+        const lobeX = posX + Math.cos(offsetAngle) * (r * 0.25);
+        const lobeY = neb.y + Math.sin(offsetAngle) * (r * 0.25);
+        ctx.beginPath();
+        ctx.arc(lobeX, lobeY, r * 0.7, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -1881,9 +1931,15 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegi
       const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
 
       paint.setColor(Skia.Color(nebColorHex));
-      paint.setAlphaf(0.015 * theme.ambientGlow);
-      for (let r = neb.radius; r > 10; r -= 15) {
+      paint.setAlphaf(0.012 * theme.ambientGlow);
+
+      for (let r = neb.radius; r > 10; r -= 20) {
         canvas.drawCircle(posX, neb.y, r, paint);
+
+        const offsetAngle = state.timePhase * 0.05 + i;
+        const lobeX = posX + Math.cos(offsetAngle) * (r * 0.25);
+        const lobeY = neb.y + Math.sin(offsetAngle) * (r * 0.25);
+        canvas.drawCircle(lobeX, lobeY, r * 0.7, paint);
       }
     }
 
@@ -1984,7 +2040,7 @@ export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, Comp
     if (rng.next() < 0.96) return; // Keep glitches highly responsive & sparse
 
     ctx.save();
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
 
     drawCRTGlitchLines(rng, height, (offset, y, h, alpha) => {
       ctx.globalAlpha = alpha;
@@ -2005,7 +2061,7 @@ export const SkiaCRTGlitchShudderEffect: EffectDrawer<any, ComponentRegistry> = 
 
     canvas.save();
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color("#ffffff"));
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
 
     drawCRTGlitchLines(rng, height, (offset, y, h, alpha) => {
       paint.setAlphaf(alpha);
@@ -2028,17 +2084,20 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Com
     const timePhase = getVFXState(world).timePhase;
     const { plumeLength } = computeThrusterPlume(timePhase, size);
     const flameColors = getThrusterFlameColors();
+    const glowStyle = getGlowStyle(flameColors.inner, "normal");
 
     ctx.save();
-
-    // Outer plasma cone
-    ctx.fillStyle = flameColors.inner;
-    ctx.beginPath();
-    ctx.moveTo(-size / 2, 0);
-    ctx.lineTo(size / 2, 0);
-    ctx.lineTo(0, plumeLength);
-    ctx.closePath();
-    ctx.fill();
+    renderCanvasGlow(ctx, glowStyle, (glowCtx, isHighlight) => {
+      glowCtx.beginPath();
+      glowCtx.moveTo(-size / 2, 0);
+      glowCtx.lineTo(size / 2, 0);
+      glowCtx.lineTo(0, plumeLength);
+      glowCtx.closePath();
+      if (isHighlight) {
+        glowCtx.fillStyle = flameColors.core;
+      }
+      glowCtx.fill();
+    });
 
     // Inner white hot core
     ctx.fillStyle = flameColors.core;
@@ -2064,29 +2123,34 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, ComponentRegistry> =
     const timePhase = getVFXState(world).timePhase;
     const { plumeLength } = computeThrusterPlume(timePhase, size);
     const flameColors = getThrusterFlameColors();
+    const glowStyle = getGlowStyle(flameColors.inner, "normal");
 
     canvas.save();
-
-    const paint = Skia.Paint();
-
-    // Outer plasma cone
-    paint.setColor(Skia.Color(flameColors.inner));
-    const pathOuter = Skia.Path.Make();
-    pathOuter.moveTo(-size / 2, 0);
-    pathOuter.lineTo(size / 2, 0);
-    pathOuter.lineTo(0, plumeLength);
-    pathOuter.close();
-    canvas.drawPath(pathOuter, paint);
+    renderSkiaGlow(canvas, glowStyle, (paint, isHighlight) => {
+      paint.setStyle(Skia.PaintStyle.Fill);
+      if (isHighlight) {
+        paint.setColor(Skia.Color(flameColors.core));
+      } else {
+        paint.setColor(Skia.Color(flameColors.inner));
+      }
+      const pathOuter = Skia.Path.Make();
+      pathOuter.moveTo(-size / 2, 0);
+      pathOuter.lineTo(size / 2, 0);
+      pathOuter.lineTo(0, plumeLength);
+      pathOuter.close();
+      canvas.drawPath(pathOuter, paint);
+    });
 
     // Inner white hot core
-    paint.setColor(Skia.Color(flameColors.core));
-    paint.setAlphaf(0.85);
+    const paintInner = Skia.Paint();
+    paintInner.setColor(Skia.Color(flameColors.core));
+    paintInner.setAlphaf(0.85);
     const pathInner = Skia.Path.Make();
     pathInner.moveTo(-size / 3, 0);
     pathInner.lineTo(size / 3, 0);
     pathInner.lineTo(0, plumeLength * 0.65);
     pathInner.close();
-    canvas.drawPath(pathInner, paint);
+    canvas.drawPath(pathInner, paintInner);
 
     canvas.restore();
   }
@@ -2232,7 +2296,7 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
     ctx.save();
 
     // 1. Accretion Disk (Concentric spiraling glowing paths)
-    ctx.strokeStyle = "#9900ff";
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.nebulaPurple;
     ctx.globalAlpha = 0.3;
     for (let r = baseSize; r > 5; r -= 6) {
       ctx.lineWidth = 2;
@@ -2242,14 +2306,14 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
     }
 
     // 2. Black Hole Center
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.voidBlack;
     ctx.globalAlpha = 1.0;
     ctx.beginPath();
     ctx.arc(0, 0, baseSize * 0.4, 0, Math.PI * 2);
     ctx.fill();
 
     // 3. Spiraling Matter Particles
-    ctx.fillStyle = "#ff00ff";
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.neonMagenta;
     for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
       const p = state.accretionParticles[i];
       updateAccretionParticle(p, baseSize, world.renderRandom);
@@ -2281,7 +2345,7 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<any, ComponentRegistry> = 
 
     // Accretion disk rings
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#9900ff"));
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.nebulaPurple));
     paint.setAlphaf(0.3);
     for (let r = baseSize; r > 5; r -= 6) {
       paint.setStrokeWidth(2);
@@ -2290,12 +2354,12 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<any, ComponentRegistry> = 
 
     // Black Hole Center
     const centerPaint = Skia.Paint();
-    centerPaint.setColor(Skia.Color("#000000"));
+    centerPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack));
     canvas.drawCircle(0, 0, baseSize * 0.4, centerPaint);
 
     // Particles
     const pPaint = Skia.Paint();
-    pPaint.setColor(Skia.Color("#ff00ff"));
+    pPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.neonMagenta));
 
     for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
       const p = state.accretionParticles[i];
@@ -2472,7 +2536,7 @@ export const SkiaFloatingTextScoreEffect: ShapeDrawer<any, ComponentRegistry> = 
     canvas.save();
 
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color("#ffd700"));
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
     paint.setAlphaf(alpha);
 
     // Skia draws text or representative indicator cubes cleanly

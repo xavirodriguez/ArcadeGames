@@ -42,6 +42,11 @@ export const GAME_ACCENTS = {
     secondary: 'yellow' as const,
     accent: 'pink' as const,
   },
+  frogger: {
+    primary: 'green' as const,
+    secondary: 'cyan' as const,
+    accent: 'pink' as const,
+  },
   campaign: {
     primary: 'cyan' as const,
     secondary: 'gold' as const,

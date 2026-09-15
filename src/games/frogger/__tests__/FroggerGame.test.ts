@@ -52,6 +52,29 @@ describe("FroggerGame Engine & Mechanics", () => {
 
     frogger = world.getComponent(froggerEntity, "Frogger");
     expect(frogger?.gridY).toBe(11);
+  });
+
+  it("persists held key states across ticks without prematurely force-clearing them", () => {
+    const world = game.getWorld();
+    const froggerEntity = world.query("Frogger")[0];
+
+    // Set moveUp to true and update over 5 frames
+    game.setInput({ moveUp: true });
+    for (let i = 0; i < 5; i++) {
+      game.update(0.016);
+    }
+
+    const input = world.getComponent(froggerEntity, "FroggerInput");
+    expect(input?.moveUp).toBe(true);
+    expect(input?.prevMoveUp).toBe(true);
+
+    // Releasing moveUp updates held state to false
+    game.setInput({ moveUp: false });
+    game.update(0.016);
+
+    const updatedInput = world.getComponent(froggerEntity, "FroggerInput");
+    expect(updatedInput?.moveUp).toBe(false);
+    expect(updatedInput?.prevMoveUp).toBe(false);
 
     const state = game.getGameState();
     expect(state.score).toBeGreaterThan(0);

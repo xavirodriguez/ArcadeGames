@@ -56,7 +56,7 @@ export class FroggerGame extends BaseGame<
       pauseKey: DEFAULT_FROGGER_CONFIG.KEYS.PAUSE,
       restartKey: DEFAULT_FROGGER_CONFIG.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
-      theme: createThemeFromGameAccents("asteroids"),
+      theme: createThemeFromGameAccents("frogger"),
       gameOptions: { ...config.gameOptions, seed },
       audio: config.audio || new WebAudioPlayer()
     });

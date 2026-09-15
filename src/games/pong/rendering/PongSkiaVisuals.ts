@@ -14,7 +14,6 @@ export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
  * Inherits state tracking logic from CanvasMotionTrail and provides Skia-specific drawing.
  */
 export class SkiaMotionTrail extends CanvasMotionTrail {
-  // TODO(refactor): código duplicado detectado (método) con shared/rendering/CanvasNeonUtils.ts:75-86. Considerar extraer a función compartida. Ref: 813ea086
   public drawSkia(
     canvas: any,
     paint: any,
@@ -65,11 +64,9 @@ const ballSkiaMotionTrail = new SkiaMotionTrail(30);
  * Upgraded, high-fidelity Skia ball shape drawer with a swirling core and dynamic fading afterimage trails.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:196-206. Considerar extraer a función compartida. Ref: 8a13e9cc
 export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongCanvasVisuals.ts:18-32. Considerar extraer a función compartida. Ref: cceb5e9c
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -134,7 +131,6 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
  * inner cores, and pulsing contours.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:82-88. Considerar extraer a función compartida. Ref: 6ffd39a8
 export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;

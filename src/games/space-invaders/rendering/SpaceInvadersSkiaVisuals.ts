@@ -231,7 +231,6 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     paint.setColor(Skia!.Color(colors.white));
     canvas.drawPath(paths.reflection, paint);
 
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:354-361. Considerar extraer a función compartida. Ref: 5652378a
     canvas.restore();
 
     // 4. Glowing defensive neon invulnerability bubble shield (Pulsing blue/cyan)
@@ -276,7 +275,6 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:404-424. Considerar extraer a función compartida. Ref: b53960e5
     if (!render) return;
 
     let baseColor = render.color || colors.white;
@@ -418,7 +416,6 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
     if (!render) return;
 
     const flash = getRenderFlash(render, colors.cyan, 4);
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:520-525. Considerar extraer a función compartida. Ref: d2d6b392
     const size = flash.size;
     const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
 
@@ -466,7 +463,6 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
 export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:572-583. Considerar extraer a función compartida. Ref: 8ef7a6bc
     if (!render) return;
 
     const boss = world.getComponent(entity, "Boss");
@@ -498,7 +494,6 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     canvas.translate(vibX, vibY);
     canvas.scale(scaleMultiplier, scaleMultiplier);
 
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:487-496. Considerar extraer a función compartida. Ref: e550af3a
     const s = size / 20;
 
     const paint = getPaint();
@@ -639,7 +634,6 @@ export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersCompon
 
     const flash = getRenderFlash(render, colors.white, 2);
     const size = flash.size;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:754-764. Considerar extraer a función compartida. Ref: 819a42aa
     const colorStr = flash.color;
 
     const ttl = world.getComponent(entity, "TTL");

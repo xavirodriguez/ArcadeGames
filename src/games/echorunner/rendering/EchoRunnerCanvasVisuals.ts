@@ -50,7 +50,6 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number): Ca
 
 export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:20-26. Considerar extraer a función compartida. Ref: 124bbcae
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
     const width = screenConfig.width;
     const height = screenConfig.height;
@@ -121,10 +120,8 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con platformer/rendering/PlatformerCanvasVisuals.ts:4-10. Considerar extraer a función compartida. Ref: 16b8cacf
 export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:89-104. Considerar extraer a función compartida. Ref: 29a17ac0
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 20;
@@ -271,7 +268,6 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
 
 export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:257-267. Considerar extraer a función compartida. Ref: bc2bb5ae
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 16;
@@ -317,10 +313,8 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:527-532. Considerar extraer a función compartida. Ref: 591adf1a
 export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:320-326. Considerar extraer a función compartida. Ref: ca7fc9e3
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 24;
@@ -358,10 +352,8 @@ export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con platformer/rendering/PlatformerCanvasVisuals.ts:42-48. Considerar extraer a función compartida. Ref: cd20434f
 export const drawCheckpointNode: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:365-370. Considerar extraer a función compartida. Ref: ab5ffc7d
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 32;
@@ -642,7 +634,6 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
       ctx.beginPath();
       ctx.rect(-size * 0.5, -size * 0.3, size, size * 0.7);
       ctx.fill();
-      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:695-702. Considerar extraer a función compartida. Ref: e32a5cc2
       ctx.restore();
       return;
     }
@@ -694,7 +685,6 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     if (isStunned) {
       const elapsed = world.tick * 0.1;
       ctx.strokeStyle = ECHO_PALETTE.restorationGold;
-      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:753-758. Considerar extraer a función compartida. Ref: 642dd361
       ctx.lineWidth = 1.5;
       for (let i = 0; i < 3; i++) {
         const angle = elapsed + (i * Math.PI * 2) / 3;

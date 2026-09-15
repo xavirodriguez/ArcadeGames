@@ -108,11 +108,9 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       config.gameOptions?.rawConfig ?? {}
     );
     this.config = this.baseConfig;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:200-207. Considerar extraer a función compartida. Ref: d29aace1
     this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
   }
 
-  // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:309-321. Considerar extraer a función compartida. Ref: b8cff4cf
   protected override async onRegisterSystems(): Promise<void> {
     this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
 
@@ -387,7 +385,6 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:489-506. Considerar extraer a función compartida. Ref: cc474bd4
     const tileDefinitions = {
       1: { solid: true, kind: "normal" as const },
       2: { solid: true, kind: "ice" as const },
@@ -412,7 +409,6 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.blueprints.get("player")?.spawn(this.world as any, playerEntity, { x: 100, y: 350 });
 
     // Spawn Main Follow Camera
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:518-532. Considerar extraer a función compartida. Ref: 8ccc715b
     const cameraEntity = this.world.createEntity();
     this.world.addComponent(cameraEntity, {
       type: "Camera2D",

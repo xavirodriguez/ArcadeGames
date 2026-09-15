@@ -429,7 +429,6 @@ export class AsteroidsGame
     let dialogueText = "";
     const dialogueBoxEntities = this.world.query("DialogueBox");
     if (dialogueBoxEntities.length > 0) {
-      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:677-689. Considerar extraer a función compartida. Ref: 4fe85665
       const dialogueBox = this.world.getComponent(dialogueBoxEntities[0], "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;

@@ -101,14 +101,12 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     });
     this.baseConfig = ConfigService.load<PongConfig>(this.gameId, PongConfigSchema, pongConfigRaw);
     this.config = this.baseConfig;
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:60-66. Considerar extraer a función compartida. Ref: a8fa2796
     this.assetLoader = new AssetLoader(assetProvider);
   }
 
   protected override async onRegisterSystems(): Promise<void> {
     this.config = loadAndMutateConfig(this.gameId, PongConfigSchema, pongConfigRaw, this._config.gameOptions);
 
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:76-84. Considerar extraer a función compartida. Ref: 75010e56
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
@@ -258,7 +256,6 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:424-429. Considerar extraer a función compartida. Ref: 6ae02dab
     const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as any[];
     this.world.addSystem(new MutatorSystem(activeMutators), { phase: SystemPhase.Simulation });
 

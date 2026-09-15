@@ -2,7 +2,6 @@ import { EffectDrawer, ShapeDrawer, World, ShapeType, CircleShape, ColliderCompo
 import { ActiveMissionState } from "../../shared/missions/MissionTypes";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
-// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:2-15. Considerar extraer a función compartida. Ref: ab23c6ab
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
@@ -16,7 +15,6 @@ const cachedAsteroidPaths = new WeakMap<any, any>();
  * Procedural player ship shape drawer for React Native Skia.
  * Renders a glowing, sleek retro spacecraft with animated thruster plumes.
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:196-202. Considerar extraer a función compartida. Ref: 13752102
 export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -24,7 +22,6 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     if (!render) return;
 
     const size = render.size || 15;
-    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:153-164. Considerar extraer a función compartida. Ref: 1c5b3d23
     let colorStr = render.color || colors.cyan; // Glowing cyan default
 
     canvas.save();
@@ -208,7 +205,6 @@ export const drawSkiaAsteroidsMissionHUD: EffectDrawer<any, AsteroidsComponentRe
 export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:128-139. Considerar extraer a función compartida. Ref: 02c1f5f2
     const render = world.getComponent(entity, "Render");
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
@@ -265,7 +261,6 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
  * Glowing laser bullet shape drawer for React Native Skia.
  * Creates a high-fidelity bullet with a bright white core.
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:29-35. Considerar extraer a función compartida. Ref: 76dcb8d9
 export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;

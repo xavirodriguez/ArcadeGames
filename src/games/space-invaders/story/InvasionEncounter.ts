@@ -124,6 +124,7 @@ export class SpaceInvadersArcadeAdapter extends BaseMiniGameEncounter<SpaceInvad
       } else if (modifier.targetProperty === "fireRateMultiplier" && typeof modifier.value === "number") {
         (game as any).fireRateMultiplier = modifier.value;
       } else if (modifier.targetProperty === "enemySpeedMultiplier" && typeof modifier.value === "number") {
+        // TODO(refactor): código duplicado detectado (bloque) con geometrywars/story/GeometryWarsEncounter.ts:127-145. Considerar extraer a función compartida. Ref: 1b2addb8
         (game as any).enemySpeedMultiplier = modifier.value;
       }
     }

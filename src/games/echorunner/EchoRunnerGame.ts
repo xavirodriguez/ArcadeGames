@@ -152,6 +152,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       seed: config.seed,
       audio: new WebAudioPlayer()
     });
+    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:107-118. Considerar extraer a función compartida. Ref: 0716a3de
     this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
       this.gameId,
       EchoRunnerConfigSchema,
@@ -215,6 +216,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
         world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
         world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
+        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:282-297. Considerar extraer a función compartida. Ref: 36b2bb10
         const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
 
         world.addComponent(entity, {
@@ -234,6 +236,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           pulsePressed: false,
           pulseCooldown: 0
         } as { type: string; [key: string]: unknown });
+        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:308-314. Considerar extraer a función compartida. Ref: bb585069
         world.addComponent(entity, {
           type: "PlatformerGravityConfig",
           riseGravity: config.RISE_GRAVITY,
@@ -250,6 +253,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           coyoteTimeMax: config.COYOTE_TIME_MAX,
           jumpBufferMax: config.JUMP_BUFFER_MAX
         } as { type: string; [key: string]: unknown });
+        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:338-344. Considerar extraer a función compartida. Ref: 1e90e060
         world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false, iceMultiplier: 1.0 } as { type: string; [key: string]: unknown });
       }
     });
@@ -303,6 +307,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       }
     });
 
+    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:207-224. Considerar extraer a función compartida. Ref: 083241ee
     this.blueprints.register("checkpoint_node", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
         EntityBuilder.fromEntity(world, entity)
@@ -355,6 +360,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     registerCommonPlatformerSystems(this.world, { includeMovingPlatforms: true });
 
     // Game-specific simulation systems
+    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:260-271. Considerar extraer a función compartida. Ref: 613e0850
     this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });
 
     // Game-specific presentation systems
@@ -417,6 +423,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
   protected override async onInitializeEntities(): Promise<void> {
     try {
+      // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:391-400. Considerar extraer a función compartida. Ref: 762d4d70
       const tileDefinitions = {
         1: { solid: true, kind: "normal" as const },
         2: { solid: true, kind: "ice" as const },
@@ -450,6 +457,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     }
 
     // Spawn Main Follow Camera centered on player
+    // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:412-426. Considerar extraer a función compartida. Ref: b3a9ecf8
     const cameraEntity = this.world.createEntity();
     this.world.addComponent(cameraEntity, {
       type: "Camera2D",

@@ -33,7 +33,7 @@ export class SnapshotSerializerSoA {
   public static snapshot<TComponents extends ComponentRegistry>(
     world: World<TComponents>
   ): SoAWorldSnapshot {
-    const internal = world as unknown as InternalWorldAccess<TComponents>;
+    const internal = world.getSerializationView();
     const activeEntities = internal.activeEntities;
     const componentMaps = internal.componentMaps;
 

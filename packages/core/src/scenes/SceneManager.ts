@@ -280,6 +280,33 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
   }
 
   /**
+   * Helper encapsulating initial transition state setup and event emissions.
+   */
+  private prepareTransitionState(scene?: Scene<TComponents>): {
+    myToken: number;
+    oldScene: Scene<TComponents> | null;
+    oldStack: Scene<TComponents>[];
+    oldState: SceneState;
+  } {
+    const eventBus = this.eventBus;
+    if (eventBus && scene) {
+      eventBus.emit("scene:transition:start", { scene });
+    }
+
+    this.transitionProgress = 0;
+    if (eventBus) {
+      eventBus.emit("scene:transition:progress", { progress: 0 });
+    }
+
+    return {
+      myToken: ++this.transitionToken,
+      oldScene: this.currentScene,
+      oldStack: [...this.sceneStack],
+      oldState: this.state
+    };
+  }
+
+  /**
    * Unified transition pipeline managing snapshots, timeouts, EventBus messages, and rollback handling.
    */
   private async executeTransitionPipeline(context: TransitionContext<TComponents>): Promise<void> {
@@ -289,20 +316,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
 
     if (duration === 0) {
       return this.enqueueTransition(async () => {
-        const eventBus = this.eventBus;
-        if (eventBus && scene) {
-          eventBus.emit("scene:transition:start", { scene });
-        }
-
-        this.transitionProgress = 0;
-        if (eventBus) {
-          eventBus.emit("scene:transition:progress", { progress: 0 });
-        }
-
-        const myToken = ++this.transitionToken;
-        const oldScene = this.currentScene;
-        const oldStack = [...this.sceneStack];
-        const oldState = this.state;
+        const { myToken, oldScene, oldStack, oldState } = this.prepareTransitionState(scene);
         const timeoutMs = context.options?.timeout ?? this.transitionTimeout;
 
         const { promise: timeoutPromise, clearTimeout: clearTimer } = this.createTimeoutPromise(
@@ -320,6 +334,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           this.state = SceneState.ACTIVE;
           this.transitionProgress = 1.0;
 
+          const eventBus = this.eventBus;
           if (eventBus) {
             eventBus.emit("scene:transition:progress", { progress: 1.0 });
             if (scene) {
@@ -336,20 +351,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
 
     // Animated Transition (duration > 0)
     return this.enqueueTransition(async () => {
-      const eventBus = this.eventBus;
-      if (eventBus && scene) {
-        eventBus.emit("scene:transition:start", { scene });
-      }
-
-      this.transitionProgress = 0;
-      if (eventBus) {
-        eventBus.emit("scene:transition:progress", { progress: 0 });
-      }
-
-      const myToken = ++this.transitionToken;
-      const oldScene = this.currentScene;
-      const oldStack = [...this.sceneStack];
-      const oldState = this.state;
+      const { myToken, oldScene, oldStack, oldState } = this.prepareTransitionState(scene);
       const timeoutMs = context.options?.timeout ?? this.transitionTimeout;
 
       try {

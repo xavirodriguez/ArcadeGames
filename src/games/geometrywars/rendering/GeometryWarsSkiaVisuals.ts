@@ -49,6 +49,7 @@ export function spawnSkiaVisualParticle(
   color: string
 ): void {
   for (let i = 0; i < PARTICLE_POOL.length; i++) {
+    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/VisualParticlePool.ts:55-66. Considerar extraer a función compartida. Ref: a29ed290
     const p = PARTICLE_POOL[i];
     if (!p.active) {
       p.active = true;
@@ -71,6 +72,7 @@ export function spawnSkiaVisualParticle(
  */
 function updateVisualParticles(dt: number = 0.016): void {
   for (let i = 0; i < PARTICLE_POOL.length; i++) {
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/ComboHUDRenderSystem.ts:317-326. Considerar extraer a función compartida. Ref: 94db2f96
     const p = PARTICLE_POOL[i];
     if (p.active) {
       p.life -= dt;
@@ -99,6 +101,7 @@ function drawVisualParticles(canvas: any): void {
     if (!p.active) continue;
 
     const ratio = p.life / p.maxLife;
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:32-41. Considerar extraer a función compartida. Ref: e7469d6f
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -110,6 +113,7 @@ function drawVisualParticles(canvas: any): void {
       paint
     );
   }
+  // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:48-74. Considerar extraer a función compartida. Ref: edb18dee
   canvas.restore();
 }
 
@@ -121,6 +125,7 @@ function drawVisualParticles(canvas: any): void {
 const LAST_BULLETS_MAP = new Map<number, { x: number; y: number }>();
 const CURRENT_BULLETS_SET = new Set<number>();
 
+// TODO(refactor): código duplicado detectado (función) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:83-97. Considerar extraer a función compartida. Ref: a61982a8
 function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry>): void {
   CURRENT_BULLETS_SET.clear();
 
@@ -185,6 +190,7 @@ function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry
  * @public
  */
 export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+  // TODO(refactor): código duplicado detectado (método) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:153-173. Considerar extraer a función compartida. Ref: 05c62a03
   draw(canvas, world, entity) {
     if (!ensureSkiaAvailable()) return;
 
@@ -435,6 +441,7 @@ export const drawSkiaGeometryWarsBackground: EffectDrawer<any, GeometryWarsCompo
 
     // 1. Process visual particles updates and drawings
     updateVisualParticles();
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:455-482. Considerar extraer a función compartida. Ref: c4139ebc
     drawVisualParticles(canvas);
 
     // 2. Monitor bullet states for trail and explosion spawns
@@ -479,7 +486,8 @@ export const drawSkiaGeometryWarsBackground: EffectDrawer<any, GeometryWarsCompo
       let lastX = 0;
       let lastY = 0;
       let first = true;
-      for (let x = 0; x <= width; x += 25) {
+      for (// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:501-513. Considerar extraer a función compartida. Ref: 41fbd848
+      let x = 0; x <= width; x += 25) {
         const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
         if (first) {
           lastX = displaced.x;

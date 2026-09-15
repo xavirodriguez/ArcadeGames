@@ -59,6 +59,7 @@ export class ArkanoidPowerUpSpawnSystem extends System<ArkanoidComponentRegistry
   public override update(_world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, _deltaTime: number): void {}
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidGameStateSystem.ts:8-15. Considerar extraer a función compartida. Ref: 2965ba31
 export class ArkanoidActivePowerUpSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private config?: ArkanoidConfig;
 
@@ -204,6 +205,7 @@ export class ArkanoidLaserSystem extends System<ArkanoidComponentRegistry, Arkan
         continue;
       }
 
+      // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidEnemySystems.ts:107-114. Considerar extraer a función compartida. Ref: e60760da
       const events = world.getComponent(lEntity, "CollisionEvents");
       if (!events) continue;
 

@@ -124,6 +124,7 @@ import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter
  */
 export class EchoRunnerArcadeAdapter extends BaseArcadeAdapter<EchoRunnerGame> {
   protected createGame(context: MiniGameRunContext): EchoRunnerGame {
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/story/FlappyBirdEncounter.ts:126-131. Considerar extraer a función compartida. Ref: b7284545
     return new EchoRunnerGame({ seed: context.seed });
   }
 

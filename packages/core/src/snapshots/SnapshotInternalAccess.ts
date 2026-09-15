@@ -30,7 +30,7 @@ export function restoreWorldMetadata<TComponents extends ComponentRegistry>(
   world: World<TComponents>,
   state: WorldSnapshot
 ): InternalWorldAccess<TComponents> {
-  const internal = world as unknown as InternalWorldAccess<TComponents>;
+  const internal = world.getSerializationView();
 
   internal.activeEntities = new Set(state.entities);
   internal.nextEntityId = state.nextEntityId;
@@ -61,7 +61,7 @@ export function restoreWorldMetadata<TComponents extends ComponentRegistry>(
 export function rebuildQueries<TComponents extends ComponentRegistry>(
   world: World<TComponents>
 ): void {
-  const internal = world as unknown as InternalWorldAccess<TComponents>;
+  const internal = world.getSerializationView();
   internal.queries.forEach(query => {
     query.rebuild(internal.activeEntities, internal.entityComponentSets);
   });

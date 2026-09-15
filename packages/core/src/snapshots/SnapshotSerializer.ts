@@ -45,7 +45,7 @@ export class SnapshotSerializer {
     target?: AoSWorldSnapshot
   ): AoSWorldSnapshot {
     const componentData: ComponentDataSnapshot = target?.componentData ?? {};
-    const internal = world as unknown as InternalWorldAccess<TComponents>;
+    const internal = world.getSerializationView();
 
     const activeEntities = internal.activeEntities;
     const entityComponentSets = internal.entityComponentSets;
@@ -104,7 +104,7 @@ export class SnapshotSerializer {
     sinceVersion: number
   ): Partial<WorldSnapshot> {
     const componentData: ComponentDataSnapshot = {};
-    const internal = world as unknown as InternalWorldAccess<TComponents> & { componentVersions: Map<string, Map<number, number>> };
+    const internal = world.getSerializationView();
     const componentMaps = internal.componentMaps;
     const componentVersions = internal.componentVersions;
 

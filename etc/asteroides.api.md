@@ -5159,6 +5159,10 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
     getQuery<K extends ComponentType<TComponents>>(...componentTypes: K[]): Query<TComponents>;
     // (undocumented)
     getResource<T>(name: string): T | undefined;
+    // Warning: (ae-forgotten-export) The symbol "InternalWorldAccess" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    getSerializationView(): InternalWorldAccess<TComponents>;
     // (undocumented)
     getSingleton<K extends ComponentType<TComponents>>(type: K): TComponents[K] | undefined;
     // (undocumented)

@@ -4,6 +4,7 @@ import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 
+// TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongCanvasVisuals.ts:15-23. Considerar extraer a función compartida. Ref: 7da9f2cf
 export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -35,6 +36,7 @@ export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidCom
 
 export const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:42-49. Considerar extraer a función compartida. Ref: 20e49ea0
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -50,6 +52,7 @@ export const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidC
       world.tick,
       primaryColor,
       glowColor,
+      // TODO(refactor): código duplicado detectado (función) con pong/rendering/PongCanvasVisuals.ts:104-117. Considerar extraer a función compartida. Ref: c2fd39d3
       (ctx, widthScale, heightScale) => {
         const pw = w * widthScale;
         const ph = h * heightScale;
@@ -61,6 +64,7 @@ export const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidC
       },
       (ctx) => {
         const coreW = w * 0.6;
+        // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongCanvasVisuals.ts:118-134. Considerar extraer a función compartida. Ref: 32a95799
         const coreH = h * 0.5;
         if (ctx.roundRect) {
           ctx.roundRect(-coreW / 2, -coreH / 2, coreW, coreH, 2);
@@ -110,6 +114,7 @@ export const drawArkanoidCapsule: ShapeDrawer<CanvasRenderingContext2D, Arkanoid
 
 export const drawArkanoidBrick: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:111-128. Considerar extraer a función compartida. Ref: 86a44e37
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 

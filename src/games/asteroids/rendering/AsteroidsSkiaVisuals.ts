@@ -15,6 +15,7 @@ const cachedAsteroidPaths = new WeakMap<any, any>();
  * Procedural player ship shape drawer for React Native Skia.
  * Renders a glowing, sleek retro spacecraft with animated thruster plumes.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:122-128. Considerar extraer a función compartida. Ref: 76dcb8d9
 export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -127,6 +128,7 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
 
     const size = render.size || 36;
     const radius = size / 2;
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:219-235. Considerar extraer a función compartida. Ref: adae0be9
     let colorStr = render.color || colors.cyan;
 
     canvas.save();
@@ -205,6 +207,7 @@ export const drawSkiaAsteroidsMissionHUD: EffectDrawer<any, AsteroidsComponentRe
 export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:169-180. Considerar extraer a función compartida. Ref: b4b40449
     const render = world.getComponent(entity, "Render");
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;

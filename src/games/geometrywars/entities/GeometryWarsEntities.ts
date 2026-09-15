@@ -107,6 +107,7 @@ function spawnSeekerEnemy(
  * Registers Geometry Wars blueprints.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/EntityFactory.ts:119-124. Considerar extraer a función compartida. Ref: 52141f37
 export function registerGeometryWarsBlueprints(
   world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>
 ): void {

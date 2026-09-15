@@ -177,6 +177,7 @@ export class AsteroidsGame
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new FrictionSystem(), { phase: SystemPhase.Simulation });
+    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/ArkanoidGame.ts:273-280. Considerar extraer a función compartida. Ref: c9d476a7
     this.world.addSystem(new CCDSystem(), { phase: SystemPhase.Simulation, priority: -10 });
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
@@ -429,6 +430,7 @@ export class AsteroidsGame
     let dialogueText = "";
     const dialogueBoxEntities = this.world.query("DialogueBox");
     if (dialogueBoxEntities.length > 0) {
+      // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:673-685. Considerar extraer a función compartida. Ref: c5abad2a
       const dialogueBox = this.world.getComponent(dialogueBoxEntities[0], "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;

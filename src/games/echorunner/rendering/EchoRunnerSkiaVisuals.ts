@@ -17,6 +17,7 @@ import {
 export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:53-60. Considerar extraer a función compartida. Ref: d7455e78
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
     const width = screenConfig.width;
     const height = screenConfig.height;
@@ -83,6 +84,7 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
 export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:125-139. Considerar extraer a función compartida. Ref: 33ee5bfb
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 20;
@@ -104,6 +106,7 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
 
     // 1. Hit Flash effect
     const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:419-424. Considerar extraer a función compartida. Ref: a2fc6bd0
     if (flashState.isFlashing) {
       paint.reset();
       paint.setAntiAlias(true);
@@ -225,6 +228,7 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:83-88. Considerar extraer a función compartida. Ref: 912b3874
 export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -409,6 +413,7 @@ export const drawSkiaPulseAttack: ShapeDrawer<any, CoreComponentRegistry> = {
 export const drawSkiaSentinel: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:487-499. Considerar extraer a función compartida. Ref: b8ae07d7
     const drawCtx = resolveEchoDrawContext(world, entity, 22);
     if (!drawCtx) return;
     const { size, isHitFlash, state } = drawCtx;
@@ -691,6 +696,7 @@ export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
       const elapsed = world.tick * 0.1;
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(ECHO_PALETTE.restorationGold));
+      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:688-693. Considerar extraer a función compartida. Ref: 1f6c9725
       paint.setStrokeWidth(1.5);
       for (let i = 0; i < 3; i++) {
         const angle = elapsed + (i * Math.PI * 2) / 3;

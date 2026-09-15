@@ -31,8 +31,8 @@
   },
   "packages/core/src/ecs/World.ts": {
     "anyCount": 0,
-    "unknownCount": 3,
-    "total": 3
+    "unknownCount": 4,
+    "total": 4
   },
   "packages/core/src/ecs/WorldUtils.ts": {
     "anyCount": 5,
@@ -114,25 +114,10 @@
     "unknownCount": 1,
     "total": 1
   },
-  "packages/core/src/snapshots/SnapshotInternalAccess.ts": {
+  "packages/core/src/snapshots/SnapshotSerializer.ts": {
     "anyCount": 0,
     "unknownCount": 2,
     "total": 2
-  },
-  "packages/core/src/snapshots/SnapshotRestoreSoA.ts": {
-    "anyCount": 0,
-    "unknownCount": 1,
-    "total": 1
-  },
-  "packages/core/src/snapshots/SnapshotSerializer.ts": {
-    "anyCount": 0,
-    "unknownCount": 4,
-    "total": 4
-  },
-  "packages/core/src/snapshots/SnapshotSerializerSoA.ts": {
-    "anyCount": 0,
-    "unknownCount": 1,
-    "total": 1
   },
   "packages/core/src/snapshots/WorldSnapshot.ts": {
     "anyCount": 0,

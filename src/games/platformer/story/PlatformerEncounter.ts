@@ -122,6 +122,7 @@ import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter
  */
 export class PlatformerArcadeAdapter extends BaseArcadeAdapter<PlatformerGame> {
   protected createGame(_context: MiniGameRunContext): PlatformerGame {
+    // TODO(refactor): código duplicado detectado (bloque) con echorunner/story/EchoRunnerEncounter.ts:127-132. Considerar extraer a función compartida. Ref: 52fd6016
     return new PlatformerGame();
   }
 

@@ -187,43 +187,6 @@
     },
     {
       "firstFile": {
-        "end": 36,
-        "endLoc": {
-          "column": 7,
-          "line": 36,
-          "position": 1283
-        },
-        "name": "snapshots/SnapshotHash.ts",
-        "start": 18,
-        "startLoc": {
-          "column": 50,
-          "line": 18,
-          "position": 793
-        }
-      },
-      "format": "typescript",
-      "fragment": "export function hashSoA(snapshot: SoAWorldSnapshot): string {\n  let hash = 2166136261;\n\n  // 1. Hash tick, seed, rngState\n  hash = hashInt32(hash, snapshot.tick);\n  hash = hashInt32(hash, snapshot.seed);\n  if (snapshot.rngState !== undefined) {\n    hash = hashInt32(hash, snapshot.rngState);\n  }\n\n  // 2. Hash active entities array\n  const entities = snapshot.entities;\n  hash = hashInt32(hash, entities.length);\n  for (let i = 0; i < entities.length; i++) {\n    hash = hashInt32(hash, entities[i]);\n  }\n\n  // 3. Hash Component Data\n  const soaComponentData = snapshot.soaComponentData;",
-      "isNew": false,
-      "lines": 19,
-      "secondFile": {
-        "end": 110,
-        "endLoc": {
-          "column": 7,
-          "line": 110,
-          "position": 3585
-        },
-        "name": "snapshots/SnapshotHash.ts",
-        "start": 95,
-        "startLoc": {
-          "column": 1,
-          "line": 95,
-          "position": 3192
-        }
-      },
-      "tokens": 101
-    },
-    {
-      "firstFile": {
         "end": 32,
         "endLoc": {
           "column": 12,
@@ -6736,32 +6699,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-15T07:22:41.936Z",
+    "detectionDate": "2026-09-15T07:39:07.383Z",
     "formats": {
       "typescript": {
-        "clones": 182,
-        "duplicatedLines": 1725,
-        "duplicatedTokens": 13319,
-        "lines": 64947,
+        "clones": 181,
+        "duplicatedLines": 1707,
+        "duplicatedTokens": 13218,
+        "lines": 64944,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.65601182502656,
-        "percentageTokens": 3.9296504354804447,
+        "percentage": 2.628418329637842,
+        "percentageTokens": 3.900323108927544,
         "sources": 385,
-        "tokens": 338936
+        "tokens": 338895
       }
     },
     "total": {
-      "clones": 182,
-      "duplicatedLines": 1725,
-      "duplicatedTokens": 13319,
-      "lines": 64947,
+      "clones": 181,
+      "duplicatedLines": 1707,
+      "duplicatedTokens": 13218,
+      "lines": 64944,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.65601182502656,
-      "percentageTokens": 3.9296504354804447,
+      "percentage": 2.628418329637842,
+      "percentageTokens": 3.900323108927544,
       "sources": 385,
-      "tokens": 338936
+      "tokens": 338895
     }
   }
 }

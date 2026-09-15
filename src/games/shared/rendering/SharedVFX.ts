@@ -340,6 +340,10 @@ export function updateDistantAsteroid(ast: DistantAsteroid, width: number, offse
   return { posX, y: ast.y, rotation: ast.rotation };
 }
 
+export function getRenderComponent(world: World<any>, entity: any): RenderComponent | undefined {
+  return world.getComponent(entity, "Render") as RenderComponent | undefined;
+}
+
 export function computeShockwaveParams(baseSize: number, progress: number) {
   const easedProgress = Math.sin((progress * Math.PI) / 2);
   const maxRadius = baseSize * 4;
@@ -701,10 +705,8 @@ function initializeSpaceStation(world: World<any>, state: VFXWorldState) {
 // -------------------------------------------------------------
 // 1. RetroCRTScanlinesEffect (Canvas & Skia)
 // -------------------------------------------------------------
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:372-378. Considerar extraer a función compartida. Ref: feb356c0
 export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:277-283. Considerar extraer a función compartida. Ref: 2cbbd41e
     const { width, height, state } = getScreenAndVFXState(world);
 
     state.timePhase += 0.04;
@@ -752,7 +754,6 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Com
 export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:223-229. Considerar extraer a función compartida. Ref: a687d1d0
     const { width, height, state } = getScreenAndVFXState(world);
 
     state.timePhase += 0.04;
@@ -1513,10 +1514,8 @@ export function createSharedParticle(
 // -------------------------------------------------------------
 // 2. ScrollingStarfieldEffect (Canvas & Skia)
 // -------------------------------------------------------------
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:222-228. Considerar extraer a función compartida. Ref: 2346d9f5
 export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:404-410. Considerar extraer a función compartida. Ref: 5267edd1
     const { width, height, state } = getScreenAndVFXState(world);
 
     if (!state.starsInitialized) {
@@ -1543,7 +1542,6 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:272-277. Considerar extraer a función compartida. Ref: 9309adbb
 export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
@@ -1679,7 +1677,6 @@ export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, Com
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:978-984. Considerar extraer a función compartida. Ref: f91f9998
 export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, ComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -1726,21 +1723,32 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, ComponentRegistry> =
 // -------------------------------------------------------------
 // 5. DebrisShockwaveEffect (Canvas & Skia)
 // -------------------------------------------------------------
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:1410-1426. Considerar extraer a función compartida. Ref: 9e2f447d
+function drawShockwaveSparks(
+  rng: any,
+  currentRadius: number,
+  drawSpark: (sparkX: number, sparkY: number, sparkSize: number) => void
+): void {
+  for (let i = 0; i < 8; i++) {
+    const angle = rng.nextRange(0, Math.PI * 2);
+    const distFactor = rng.nextRange(0.6, 1.4);
+    const sparkDist = currentRadius * distFactor;
+    const sparkX = Math.cos(angle) * sparkDist;
+    const sparkY = Math.sin(angle) * sparkDist;
+    const sparkSize = rng.nextRange(1.5, 3.5);
+
+    drawSpark(sparkX, sparkY, sparkSize);
+  }
+}
+
 export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world, entity) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:696-714. Considerar extraer a función compartida. Ref: 4acbb34e
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
+    const render = getRenderComponent(world, entity);
     if (!render) return;
 
     const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
-    const easedProgress = Math.sin((progress * Math.PI) / 2);
-    const baseSize = render.size || 20;
-    const maxRadius = baseSize * 4;
-    const currentRadius = maxRadius * easedProgress;
-    const strokeWidth = Math.max(0.5, 4.0 * (1.0 - progress));
+    const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);
 
     ctx.save();
 
@@ -1758,21 +1766,12 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, Compon
     ctx.arc(0, 0, currentRadius * 1.2, 0, Math.PI * 2);
     ctx.stroke();
 
-    const rng = world.renderRandom;
     ctx.fillStyle = "#ffb432";
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:733-741. Considerar extraer a función compartida. Ref: 2f09c167
     ctx.globalAlpha = alpha;
 
-    for (let i = 0; i < 8; i++) {
-      const angle = rng.nextRange(0, Math.PI * 2);
-      const distFactor = rng.nextRange(0.6, 1.4);
-      const sparkDist = currentRadius * distFactor;
-      const sparkX = Math.cos(angle) * sparkDist;
-      const sparkY = Math.sin(angle) * sparkDist;
-      const sparkSize = rng.nextRange(1.5, 3.5);
-
+    drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
       ctx.fillRect(sparkX - sparkSize / 2, sparkY - sparkSize / 2, sparkSize, sparkSize);
-    }
+    });
 
     ctx.restore();
   }
@@ -1781,18 +1780,13 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, Compon
 export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:627-645. Considerar extraer a función compartida. Ref: 1cf0b2c5
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
+    const render = getRenderComponent(world, entity);
     if (!render) return;
 
     const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
-    const easedProgress = Math.sin((progress * Math.PI) / 2);
-    const baseSize = render.size || 20;
-    const maxRadius = baseSize * 4;
-    const currentRadius = maxRadius * easedProgress;
-    const strokeWidth = Math.max(0.5, 4.0 * (1.0 - progress));
+    const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);
 
     canvas.save();
 
@@ -1809,25 +1803,16 @@ export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {
     paint.setStrokeWidth(strokeWidth * 0.5);
     canvas.drawCircle(0, 0, currentRadius * 1.2, paint);
 
-    const rng = world.renderRandom;
     const sparkPaint = Skia.Paint();
     sparkPaint.setColor(Skia.Color("#ffb432"));
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:675-683. Considerar extraer a función compartida. Ref: a9552617
     sparkPaint.setAlphaf(alpha);
 
-    for (let i = 0; i < 8; i++) {
-      const angle = rng.nextRange(0, Math.PI * 2);
-      const distFactor = rng.nextRange(0.6, 1.4);
-      const sparkDist = currentRadius * distFactor;
-      const sparkX = Math.cos(angle) * sparkDist;
-      const sparkY = Math.sin(angle) * sparkDist;
-      const sparkSize = rng.nextRange(1.5, 3.5);
-
+    drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
       canvas.drawRect(
         Skia.XYWHRect(sparkX - sparkSize / 2, sparkY - sparkSize / 2, sparkSize, sparkSize),
         sparkPaint
       );
-    }
+    });
 
     canvas.restore();
   }
@@ -1975,28 +1960,36 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, ComponentRegistry> =
 // -------------------------------------------------------------
 // 8. CRTGlitchShudderEffect (Canvas & Skia)
 // -------------------------------------------------------------
+function drawCRTGlitchLines(
+  rng: any,
+  height: number,
+  drawLine: (offset: number, y: number, h: number, alpha: number) => void
+): void {
+  const glitchLines = rng.nextInt(2, 5);
+  for (let i = 0; i < glitchLines; i++) {
+    const y = rng.nextRange(10, height - 10);
+    const h = rng.nextRange(1, 4);
+    const offset = rng.nextRange(-15, 15);
+    const alpha = rng.nextRange(0.2, 0.5);
+
+    drawLine(offset, y, h, alpha);
+  }
+}
+
 export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world) {
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:914-920. Considerar extraer a función compartida. Ref: 90aca425
     const { width, height } = getScreenAndVFXState(world);
 
     const rng = world.renderRandom;
     if (rng.next() < 0.96) return; // Keep glitches highly responsive & sparse
 
     ctx.save();
-
-    const glitchLines = rng.nextInt(2, 5);
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:924-928. Considerar extraer a función compartida. Ref: 9fea618b
     ctx.fillStyle = "#ffffff";
 
-    for (let i = 0; i < glitchLines; i++) {
-      const y = rng.nextRange(10, height - 10);
-      const h = rng.nextRange(1, 4);
-      const offset = rng.nextRange(-15, 15);
-
-      ctx.globalAlpha = rng.nextRange(0.2, 0.5);
+    drawCRTGlitchLines(rng, height, (offset, y, h, alpha) => {
+      ctx.globalAlpha = alpha;
       ctx.fillRect(offset, y, width, h);
-    }
+    });
 
     ctx.restore();
   }
@@ -2014,16 +2007,10 @@ export const SkiaCRTGlitchShudderEffect: EffectDrawer<any, ComponentRegistry> = 
     const paint = Skia.Paint();
     paint.setColor(Skia.Color("#ffffff"));
 
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:911-916. Considerar extraer a función compartida. Ref: 395935ec
-    const glitchLines = rng.nextInt(2, 5);
-    for (let i = 0; i < glitchLines; i++) {
-      const y = rng.nextRange(10, height - 10);
-      const h = rng.nextRange(1, 4);
-      const offset = rng.nextRange(-15, 15);
-
-      paint.setAlphaf(rng.nextRange(0.2, 0.5));
+    drawCRTGlitchLines(rng, height, (offset, y, h, alpha) => {
+      paint.setAlphaf(alpha);
       canvas.drawRect(Skia.XYWHRect(offset, y, width, h), paint);
-    }
+    });
 
     canvas.restore();
   }
@@ -2067,7 +2054,6 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Com
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:580-586. Considerar extraer a función compartida. Ref: f6d151ad
 export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, ComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -2439,7 +2425,6 @@ export const SkiaRGBHologramGlitchEffect: ShapeDrawer<any, ComponentRegistry> = 
 // -------------------------------------------------------------
 // 15. FloatingTextScoreEffect (ShapeDrawer)
 // -------------------------------------------------------------
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:634-650. Considerar extraer a función compartida. Ref: a3bdea7c
 export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
@@ -2475,7 +2460,6 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:682-699. Considerar extraer a función compartida. Ref: 0d074f4b
 export const SkiaFloatingTextScoreEffect: ShapeDrawer<any, ComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;

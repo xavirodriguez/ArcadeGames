@@ -22,7 +22,7 @@ describe("Space Invaders Player Shooting & Input System with Collision", () => {
       KEYS: { LEFT: "ArrowLeft", RIGHT: "ArrowRight", SHOOT: "Space" },
       PLAYER_SPEED: 300,
       PLAYER_INITIAL_LIVES: 3,
-      PLAYER_SHOOT_COOLDOWN: 300,
+      PLAYER_SHOOT_COOLDOWN: 500,
       PLAYER_BULLET_SPEED: 500,
       PLAYER_BULLET_SIZE: 4,
       PLAYER_BULLET_TTL: 2000,

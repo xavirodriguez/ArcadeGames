@@ -3,6 +3,31 @@ import { SoAWorldSnapshot } from "./WorldSnapshot";
 const floatBuffer = new Float64Array(1);
 const byteBuffer = new Uint8Array(floatBuffer.buffer);
 
+interface SnapshotHeader {
+  tick: number;
+  seed: number;
+  rngState?: number;
+  entities: number[] | Int32Array;
+}
+
+function hashSnapshotHeader(header: SnapshotHeader): number {
+  let hash = 2166136261;
+
+  hash = hashInt32(hash, header.tick);
+  hash = hashInt32(hash, header.seed);
+  if (header.rngState !== undefined) {
+    hash = hashInt32(hash, header.rngState);
+  }
+
+  const entities = header.entities;
+  hash = hashInt32(hash, entities.length);
+  for (let i = 0; i < entities.length; i++) {
+    hash = hashInt32(hash, entities[i]);
+  }
+
+  return hash;
+}
+
 /**
  * High-performance zero-allocation FNV-1a hashing utilities for Structure of Arrays (SoA) snapshots.
  *
@@ -14,23 +39,8 @@ const byteBuffer = new Uint8Array(floatBuffer.buffer);
  * @returns 8-character hexadecimal state hash string.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotHash.ts:93-108. Considerar extraer a función compartida. Ref: 5dee7222
 export function hashSoA(snapshot: SoAWorldSnapshot): string {
-  let hash = 2166136261;
-
-  // 1. Hash tick, seed, rngState
-  hash = hashInt32(hash, snapshot.tick);
-  hash = hashInt32(hash, snapshot.seed);
-  if (snapshot.rngState !== undefined) {
-    hash = hashInt32(hash, snapshot.rngState);
-  }
-
-  // 2. Hash active entities array
-  const entities = snapshot.entities;
-  hash = hashInt32(hash, entities.length);
-  for (let i = 0; i < entities.length; i++) {
-    hash = hashInt32(hash, entities[i]);
-  }
+  let hash = hashSnapshotHeader(snapshot);
 
   // 3. Hash Component Data
   const soaComponentData = snapshot.soaComponentData;
@@ -85,7 +95,6 @@ export function hashSoA(snapshot: SoAWorldSnapshot): string {
  * @returns 8-character hexadecimal state hash string.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con snapshots/SnapshotHash.ts:18-36. Considerar extraer a función compartida. Ref: a8d6766c
 export function hashAoS(snapshot: {
   tick: number;
   entities: number[];
@@ -93,19 +102,7 @@ export function hashAoS(snapshot: {
   seed: number;
   rngState?: number;
 }): string {
-  let hash = 2166136261;
-
-  hash = hashInt32(hash, snapshot.tick);
-  hash = hashInt32(hash, snapshot.seed);
-  if (snapshot.rngState !== undefined) {
-    hash = hashInt32(hash, snapshot.rngState);
-  }
-
-  const entities = snapshot.entities;
-  hash = hashInt32(hash, entities.length);
-  for (let i = 0; i < entities.length; i++) {
-    hash = hashInt32(hash, entities[i]);
-  }
+  let hash = hashSnapshotHeader(snapshot);
 
   const componentData = snapshot.componentData;
   if (componentData) {

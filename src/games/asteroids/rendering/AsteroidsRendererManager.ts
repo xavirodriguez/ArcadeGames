@@ -13,10 +13,9 @@ import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import {
   drawAsteroidsPlayerShip as canvasDrawAsteroidsPlayerShip,
   drawAsteroidsAsteroid as canvasDrawAsteroidsAsteroid,
-  drawAsteroidsBullet as canvasDrawAsteroidsBullet,
-  drawAsteroidsMissionHUD as canvasDrawAsteroidsMissionHUD
+  drawAsteroidsBullet as canvasDrawAsteroidsBullet
 } from "./AsteroidsCanvasVisuals";
-import { drawAsteroidsMissionHUD } from "./AsteroidsMissionHUD";
+import { drawAsteroidsMissionHUD as canvasDrawAsteroidsMissionHUD } from "./AsteroidsMissionHUD";
 import {
   drawSkiaAsteroidsPlayerShip as skiaDrawAsteroidsPlayerShip,
   drawSkiaAsteroidsAsteroid as skiaDrawAsteroidsAsteroid,

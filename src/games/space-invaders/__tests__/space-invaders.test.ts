@@ -83,7 +83,7 @@ describe("Space Invaders Combo Logic & Performance", () => {
       },
       PLAYER_SPEED: 300,
       PLAYER_INITIAL_LIVES: 3,
-      PLAYER_SHOOT_COOLDOWN: 300,
+      PLAYER_SHOOT_COOLDOWN: 500,
       PLAYER_RENDER_WIDTH: 40,
       PLAYER_COLLIDER_RADIUS: 15,
       PLAYER_BULLET_SPEED: 500,

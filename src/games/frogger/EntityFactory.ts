@@ -184,6 +184,7 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         isWin: false,
         occupiedLilyPads: 0,
         totalLilyPads: config.TOTAL_LILY_PADS,
+        respawnTimer: 0,
       });
     },
   });

@@ -1,10 +1,24 @@
-import { System, World, BaseGame } from "@tiny-aster/core";
+import { System, World, BaseGame, findMatchingEntityInTriggersOrCollisions } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 
+/**
+ * Returns true if the entity is currently invulnerable according to HealthComponent.
+ */
+export function isEntityInvulnerable(
+  world: World<FroggerComponentRegistry>,
+  entity: number
+): boolean {
+  const frogger = world.getComponent(entity, "Frogger");
+  if (frogger?.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) {
+    return true;
+  }
+  const health = world.getComponent(entity, "Health");
+  return !!(health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0);
+}
+
 export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
   private game: BaseGame<any, any, any, any, any>;
-  private respawnTimer: number = 0;
 
   constructor(game: BaseGame<any, any, any, any, any>) {
     super();
@@ -26,42 +40,30 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     const transform = world.getMutableComponent(froggerEntity, "Transform");
     if (!frogger || !transform) return;
 
-    // Decrement invulnerability timers
+    // Decrement invulnerability timer on HealthComponent (consolidated single source of truth)
     const health = world.getMutableComponent(froggerEntity, "Health");
-    if (frogger.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) {
-      frogger.invulnerableRemaining -= dt;
-      if (frogger.invulnerableRemaining < 0) frogger.invulnerableRemaining = 0;
-    }
     if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
       health.invulnerableRemaining -= dt;
       if (health.invulnerableRemaining < 0) health.invulnerableRemaining = 0;
     }
+    if (frogger.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) {
+      frogger.invulnerableRemaining -= dt;
+      if (frogger.invulnerableRemaining < 0) frogger.invulnerableRemaining = 0;
+    }
 
-    const isInvulnerable =
-      (frogger.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) ||
-      (health !== undefined && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0);
+    const invulnerable = isEntityInvulnerable(world, froggerEntity);
 
-    // Handle vehicle collision (if Frogger is alive and on road rows 7..11)
-    if (frogger.isAlive && !isInvulnerable && frogger.gridY >= 7 && frogger.gridY <= 11) {
-      const vehicleEntities = world.query("Vehicle", "Transform");
-      for (let i = 0; i < vehicleEntities.length; i++) {
-        const vEntity = vehicleEntities[i];
-        const vehicle = world.getComponent(vEntity, "Vehicle");
-        const vTransform = world.getComponent(vEntity, "Transform");
+    // Handle vehicle collision using CollisionEvents
+    if (frogger.isAlive && !invulnerable && frogger.gridY >= 7 && frogger.gridY <= 11) {
+      const collidedVehicle = findMatchingEntityInTriggersOrCollisions(world, froggerEntity, (other) =>
+        world.hasComponent(other, "Vehicle")
+      );
 
-        if (vehicle && vTransform && vehicle.laneY === frogger.gridY) {
-          const vWidth = vehicle.vehicleType === "truck" ? config.GRID_SIZE * 2 : config.GRID_SIZE * 1.2;
-          const leftEdge = vTransform.x - vWidth / 2;
-          const rightEdge = vTransform.x + vWidth / 2;
-
-          if (transform.x >= leftEdge - 10 && transform.x <= rightEdge + 10) {
-            frogger.isAlive = false;
-            const eventBus = world.getEventBus();
-            if (eventBus) {
-              eventBus.emit("frogger:died", { reason: "vehicle", gridX: frogger.gridX, gridY: frogger.gridY });
-            }
-            break;
-          }
+      if (collidedVehicle !== null) {
+        frogger.isAlive = false;
+        const eventBus = world.getEventBus();
+        if (eventBus) {
+          eventBus.emit("frogger:died", { reason: "vehicle", gridX: frogger.gridX, gridY: frogger.gridY });
         }
       }
     }
@@ -99,7 +101,9 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
         // Snap Frogger position & grid coordinate
         transform.x = padTargetX;
         transform.y = padTargetY;
-        frogger.gridX = Math.round(padTargetX / config.GRID_SIZE);
+        world.mutateComponent(froggerEntity, "Frogger", (f) => {
+          f.gridX = Math.round(padTargetX / config.GRID_SIZE);
+        });
 
         state.occupiedLilyPads += 1;
         state.score += config.GOAL_POINTS;
@@ -129,7 +133,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
 
         this.resetFroggerPosition(world, froggerEntity, config);
       } else {
-        if (!isInvulnerable) {
+        if (!invulnerable) {
           // Reached row 0 but missed an unoccupied pad -> Death
           frogger.isAlive = false;
           const eventBus = world.getEventBus();
@@ -142,9 +146,9 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
 
     // Handle Dead state & respawn
     if (!frogger.isAlive) {
-      if (this.respawnTimer === 0) {
+      if (state.respawnTimer === 0) {
         state.lives -= 1;
-        this.respawnTimer = 0.5; // 0.5s death delay
+        state.respawnTimer = 0.5; // 0.5s death delay
 
         if (state.lives <= 0) {
           state.isGameOver = true;
@@ -154,9 +158,9 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
           }
         }
       } else {
-        this.respawnTimer -= dt;
-        if (this.respawnTimer <= 0) {
-          this.respawnTimer = 0;
+        state.respawnTimer -= dt;
+        if (state.respawnTimer <= 0) {
+          state.respawnTimer = 0;
           if (state.lives > 0) {
             this.resetFroggerPosition(world, froggerEntity, config);
           }
@@ -221,6 +225,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
         s.isGameOver = false;
         s.isWin = false;
         s.occupiedLilyPads = 0;
+        s.respawnTimer = 0;
       });
     }
 
@@ -235,7 +240,5 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     if (froggerEntity !== undefined) {
       this.resetFroggerPosition(world, froggerEntity, config);
     }
-
-    this.respawnTimer = 0;
   }
 }

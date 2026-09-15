@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, resolveThemeColor } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 import { shouldSkipFroggerRenderDueToInvulnerability, isFroggerInvulnerable } from "./FroggerRenderUtils";
@@ -18,9 +18,9 @@ export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 
     ctx.save();
 
-    // Body
-    ctx.fillStyle = isInvuln ? "#A3FF80" : "#39FF14"; // Light neon green when invulnerable
-    ctx.shadowColor = "#39FF14";
+    const primaryColor = resolveThemeColor(world, "frogger", "player") || "#39FF14";
+    ctx.fillStyle = isInvuln ? "#A3FF80" : primaryColor;
+    ctx.shadowColor = primaryColor;
     ctx.shadowBlur = isInvuln ? 12 : 8;
     ctx.beginPath();
     ctx.arc(0, 0, half, 0, Math.PI * 2);
@@ -66,9 +66,10 @@ export const drawCarCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
     const halfW = width / 2;
     const halfH = height / 2;
 
+    const carColor = resolveThemeColor(world, "car", "secondary") || render.color || "#00F3FF";
     ctx.save();
-    ctx.fillStyle = render.color || "#00F3FF"; // Neon Cyan
-    ctx.shadowColor = render.color || "#00F3FF";
+    ctx.fillStyle = carColor;
+    ctx.shadowColor = carColor;
     ctx.shadowBlur = 10;
 
     // Body
@@ -96,9 +97,10 @@ export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompo
 
     ctx.save();
 
-    // Trailer
-    ctx.fillStyle = "#FF2A6D"; // Neon pink trailer
-    ctx.shadowColor = "#FF2A6D";
+    const truckColor = resolveThemeColor(world, "truck", "accent") || "#FF2A6D";
+    ctx.save();
+    ctx.fillStyle = truckColor;
+    ctx.shadowColor = truckColor;
     ctx.shadowBlur = 8;
     ctx.fillRect(-halfW, -halfH, width * 0.7, height);
 

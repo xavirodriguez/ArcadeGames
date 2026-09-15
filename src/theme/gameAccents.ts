@@ -42,6 +42,11 @@ export const GAME_ACCENTS = {
     secondary: 'yellow' as const,
     accent: 'pink' as const,
   },
+  frogger: {
+    primary: 'green' as const,
+    secondary: 'cyan' as const,
+    accent: 'pink' as const,
+  },
   campaign: {
     primary: 'cyan' as const,
     secondary: 'gold' as const,
@@ -96,6 +101,12 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     commander: accentColors.accent,
     scout: accentColors.secondary,
     brick: accentColors.accent,
+    frogger: accentColors.primary,
+    car: accentColors.secondary,
+    truck: accentColors.accent,
+    log: accentColors.secondary,
+    turtle: accentColors.secondary,
+    lily_pad: accentColors.primary,
   };
 
   return {

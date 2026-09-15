@@ -1,6 +1,7 @@
 import { System, World } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
+import { isEntityInvulnerable } from "./FroggerGameStateSystem";
 
 export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
   public update(world: World<FroggerComponentRegistry>, dt: number): void {
@@ -9,25 +10,33 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
     if (froggerEntities.length === 0) return;
 
     const froggerEntity = froggerEntities[0];
+    const froggerRead = world.getComponent(froggerEntity, "Frogger");
+    const transformRead = world.getComponent(froggerEntity, "Transform");
+
+    if (!froggerRead || !transformRead || !froggerRead.isAlive) return;
+
+    // Check invulnerability helper
+    const isInvulnerable = isEntityInvulnerable(world, froggerEntity);
+
+    // Check if Frogger is in the river area (rows 1 to 5)
+    const isRiverRow = froggerRead.gridY >= 1 && froggerRead.gridY <= 5;
+
+    if (!isRiverRow) {
+      if (froggerRead.isRiding || froggerRead.logEntity !== undefined) {
+        world.mutateComponent(froggerEntity, "Frogger", (f) => {
+          f.isRiding = false;
+          f.logEntity = undefined;
+        });
+      }
+      return;
+    }
+
     const frogger = world.getMutableComponent(froggerEntity, "Frogger");
     const transform = world.getMutableComponent(froggerEntity, "Transform");
+    if (!frogger || !transform) return;
 
     if (!frogger || !transform || !frogger.isAlive) return;
 
-    // Check invulnerability
-    const health = world.getComponent(froggerEntity, "Health");
-    const isInvulnerable =
-      (frogger.invulnerableRemaining !== undefined && frogger.invulnerableRemaining > 0) ||
-      (health !== undefined && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0);
-
-    // Check if Frogger is in the river area (rows 1 to 5)
-    const isRiverRow = frogger.gridY >= 1 && frogger.gridY <= 5;
-
-    if (!isRiverRow) {
-      frogger.isRiding = false;
-      frogger.logEntity = undefined;
-      return;
-    }
 
     // Find logs/turtles on the same row as Frogger
     const logEntities = world.query("Log", "Transform", "Velocity");
@@ -36,12 +45,12 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
 
     const froggerX = transform.x;
 
-    // Radius / half size from Frogger collider
-    let frogRadius = (config.GRID_SIZE - 12) / 2;
+    // Radius from Frogger collider (FRG-008: eliminate fallback duplication)
     const collider = world.getComponent(froggerEntity, "Collider2D");
-    if (collider && collider.shape && "radius" in collider.shape) {
-      frogRadius = collider.shape.radius;
-    }
+    const frogRadius =
+      collider && collider.shape && "radius" in collider.shape
+        ? collider.shape.radius
+        : (config.GRID_SIZE - 12) / 2;
 
     const overlapRatio = config.LOG_OVERLAP_RATIO ?? 0.65;
 

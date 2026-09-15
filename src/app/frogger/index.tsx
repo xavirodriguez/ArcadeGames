@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Pressable, Platform } from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -178,32 +178,64 @@ export default function FroggerScreen() {
           }
           controlsSlot={
             <View style={styles.dpadContainer}>
-              <TouchableOpacity
-                style={[styles.dpadButton, styles.dpadUp]}
-                onPress={() => handleGameInput({ moveUp: true })}
+              <Pressable
+                style={({ pressed }) => [styles.dpadButton, styles.dpadUp, pressed && styles.dpadButtonPressed]}
+                onPressIn={() => {
+                  hapticSelection();
+                  handleGameInput({ moveUp: true });
+                }}
+                onPressOut={() => handleGameInput({ moveUp: false })}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityRole="button"
+                accessibilityLabel="Move Up"
+                accessibilityHint="Mueve la rana hacia arriba"
               >
                 <Text style={styles.dpadText}>▲</Text>
-              </TouchableOpacity>
+              </Pressable>
               <View style={styles.dpadHorizontalRow}>
-                <TouchableOpacity
-                  style={[styles.dpadButton, styles.dpadLeft]}
-                  onPress={() => handleGameInput({ moveLeft: true })}
+                <Pressable
+                  style={({ pressed }) => [styles.dpadButton, styles.dpadLeft, pressed && styles.dpadButtonPressed]}
+                  onPressIn={() => {
+                    hapticSelection();
+                    handleGameInput({ moveLeft: true });
+                  }}
+                  onPressOut={() => handleGameInput({ moveLeft: false })}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t?.accessibility?.move_left_label || "Move Left"}
+                  accessibilityHint="Mueve la rana a la izquierda"
                 >
                   <Text style={styles.dpadText}>◀</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.dpadButton, styles.dpadRight]}
-                  onPress={() => handleGameInput({ moveRight: true })}
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [styles.dpadButton, styles.dpadRight, pressed && styles.dpadButtonPressed]}
+                  onPressIn={() => {
+                    hapticSelection();
+                    handleGameInput({ moveRight: true });
+                  }}
+                  onPressOut={() => handleGameInput({ moveRight: false })}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t?.accessibility?.move_right_label || "Move Right"}
+                  accessibilityHint="Mueve la rana a la derecha"
                 >
                   <Text style={styles.dpadText}>▶</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
-              <TouchableOpacity
-                style={[styles.dpadButton, styles.dpadDown]}
-                onPress={() => handleGameInput({ moveDown: true })}
+              <Pressable
+                style={({ pressed }) => [styles.dpadButton, styles.dpadDown, pressed && styles.dpadButtonPressed]}
+                onPressIn={() => {
+                  hapticSelection();
+                  handleGameInput({ moveDown: true });
+                }}
+                onPressOut={() => handleGameInput({ moveDown: false })}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityRole="button"
+                accessibilityLabel="Move Down"
+                accessibilityHint="Mueve la rana hacia abajo"
               >
                 <Text style={styles.dpadText}>▼</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           }
           debugSlot={<DebugOverlay game={game} />}
@@ -359,6 +391,11 @@ const styles = StyleSheet.create({
   dpadDown: {},
   dpadLeft: {},
   dpadRight: {},
+  dpadButtonPressed: {
+    transform: [{ scale: 0.92 }],
+    backgroundColor: "rgba(57, 255, 20, 0.4)",
+    borderColor: "#FFFFFF",
+  },
   dpadText: {
     color: "#39FF14",
     fontSize: 24,

@@ -37,6 +37,7 @@ import { FroggerBlueprintMap, registerFroggerBlueprints } from "./EntityFactory"
 import { applyMutators } from "../shared/configHelper";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { initializeFroggerRenderer } from "./rendering/FroggerPresentation";
 
 export class FroggerGame extends BaseGame<
   FroggerState,
@@ -56,7 +57,7 @@ export class FroggerGame extends BaseGame<
       pauseKey: DEFAULT_FROGGER_CONFIG.KEYS.PAUSE,
       restartKey: DEFAULT_FROGGER_CONFIG.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
-      theme: createThemeFromGameAccents("asteroids"),
+      theme: createThemeFromGameAccents("frogger"),
       gameOptions: { ...config.gameOptions, seed },
       audio: config.audio || new WebAudioPlayer()
     });
@@ -75,9 +76,10 @@ export class FroggerGame extends BaseGame<
   ): number {
     const entity = this.world.createEntity();
     const bp = this.blueprints.get(name as string);
-    if (bp) {
-      bp.spawn(this.world, entity, args);
+    if (!bp) {
+      throw new Error(`[FroggerGame] Required blueprint '${String(name)}' is not registered.`);
     }
+    bp.spawn(this.world, entity, args);
     return entity;
   }
 
@@ -285,43 +287,7 @@ export class FroggerGame extends BaseGame<
   }
 
   public initializeRenderer(renderer: Renderer<any, any>): void {
-    if (renderer.type === "canvas") {
-      const {
-        drawFroggerCanvas,
-        drawCarCanvas,
-        drawTruckCanvas,
-        drawLogCanvas,
-        drawTurtleCanvas,
-        drawLilyPadCanvas,
-        froggerBackgroundCanvasEffect,
-      } = require("./rendering/FroggerCanvasVisuals");
-
-      renderer.registerShape("frogger", drawFroggerCanvas);
-      renderer.registerShape("car", drawCarCanvas);
-      renderer.registerShape("truck", drawTruckCanvas);
-      renderer.registerShape("log", drawLogCanvas);
-      renderer.registerShape("turtle", drawTurtleCanvas);
-      renderer.registerShape("lily_pad", drawLilyPadCanvas);
-      renderer.registerBackgroundEffect("froggerBackground", froggerBackgroundCanvasEffect);
-    } else if (renderer.type === "skia") {
-      const {
-        drawFroggerSkia,
-        drawCarSkia,
-        drawTruckSkia,
-        drawLogSkia,
-        drawTurtleSkia,
-        drawLilyPadSkia,
-        froggerBackgroundSkiaEffect,
-      } = require("./rendering/FroggerSkiaVisuals");
-
-      renderer.registerShape("frogger", drawFroggerSkia);
-      renderer.registerShape("car", drawCarSkia);
-      renderer.registerShape("truck", drawTruckSkia);
-      renderer.registerShape("log", drawLogSkia);
-      renderer.registerShape("turtle", drawTurtleSkia);
-      renderer.registerShape("lily_pad", drawLilyPadSkia);
-      renderer.registerBackgroundEffect("froggerBackground", froggerBackgroundSkiaEffect);
-    }
+    initializeFroggerRenderer(renderer);
   }
 
   public getGameState(): FroggerState {

@@ -163,20 +163,7 @@ export class World<
    * @internal
    */
   public getSerializationView(): InternalWorldAccess<TComponents> {
-    return {
-      activeEntities: this.activeEntities,
-      nextEntityId: this.nextEntityId,
-      freeEntities: this.freeEntities,
-      generations: this.generations,
-      _structureVersion: this._structureVersion,
-      _stateVersion: this._stateVersion,
-      _tick: this._tick,
-      entityComponentSets: this.entityComponentSets,
-      componentMaps: this.componentMaps,
-      componentIndex: this.componentIndex,
-      componentVersions: this.componentVersions,
-      queries: Array.from(this.queries.values())
-    };
+    return this as unknown as InternalWorldAccess<TComponents>;
   }
 
   /** @internal */

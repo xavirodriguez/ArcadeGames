@@ -1,6 +1,7 @@
 import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { defineSkiaShape } from "../../shared/rendering/renderingUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import {
@@ -16,7 +17,6 @@ import {
 export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:43-50. Considerar extraer a función compartida. Ref: 124bbcae
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
     const width = screenConfig.width;
     const height = screenConfig.height;
@@ -83,7 +83,6 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
 export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:115-129. Considerar extraer a función compartida. Ref: 29a17ac0
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 20;
@@ -97,7 +96,6 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     const vy = vel ? vel.vy : 0;
     const isGrounded = groundState ? groundState.isGrounded : true;
     const isAttacking = input && input.pulseCooldown !== undefined && input.pulseCooldown > 0.25;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:444-455. Considerar extraer a función compartida. Ref: bc17a39d
     const isInvulnerable = health && health.invulnerableRemaining && health.invulnerableRemaining > 0;
     const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
 
@@ -230,7 +228,6 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
 export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:287-298. Considerar extraer a función compartida. Ref: bc2bb5ae
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 16;
@@ -285,7 +282,6 @@ export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
 export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:337-343. Considerar extraer a función compartida. Ref: ca7fc9e3
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 24;
@@ -330,7 +326,6 @@ export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
 export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:376-381. Considerar extraer a función compartida. Ref: ab5ffc7d
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 32;
@@ -377,7 +372,6 @@ export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:83-88. Considerar extraer a función compartida. Ref: 595eb79b
 export const drawSkiaPulseAttack: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -642,7 +636,6 @@ export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
       canvas.drawRect(Skia.XYWHRect(-size * 0.5, -size * 0.3, size, size * 0.7), paint);
-      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:685-692. Considerar extraer a función compartida. Ref: e32a5cc2
       canvas.restore();
       return;
     }
@@ -698,7 +691,6 @@ export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
       const elapsed = world.tick * 0.1;
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(ECHO_PALETTE.restorationGold));
-      // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:739-744. Considerar extraer a función compartida. Ref: 642dd361
       paint.setStrokeWidth(1.5);
       for (let i = 0; i < 3; i++) {
         const angle = elapsed + (i * Math.PI * 2) / 3;

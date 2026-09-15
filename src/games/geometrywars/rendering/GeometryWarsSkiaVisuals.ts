@@ -2,7 +2,7 @@ import { ShapeDrawer, EffectDrawer, World, ComponentRegistry } from "@tiny-aster
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
-import { ensureSkiaAvailable, getRenderGuard, getDrawableTransform } from "../../shared/rendering/renderingUtils";
+import { ensureSkiaAvailable, getRenderGuard, getDrawableTransform, defineSkiaShape } from "../../shared/rendering/renderingUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
@@ -302,53 +302,6 @@ export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry>
   }
 };
 
-interface SkiaShapeConfig {
-  defaultSize: number;
-  defaultColor: string;
-  strokeWidth?: number;
-  style?: "stroke" | "fill";
-}
-
-function defineSkiaShape<TReg extends ComponentRegistry>(
-  config: SkiaShapeConfig,
-  drawPath: (
-    canvas: any,
-    paint: any,
-    size: number,
-    color: string,
-    world: World<TReg>,
-    entity: number
-  ) => void
-): ShapeDrawer<any, TReg> {
-  return {
-    draw(canvas, world, entity) {
-      if (!ensureSkiaAvailable()) return;
-
-      const render = getRenderGuard(world, entity);
-      if (!render) return;
-
-      const size = render.size ?? config.defaultSize;
-      const color = render.color ?? config.defaultColor;
-
-      const paint = getPaint();
-      canvas.save();
-
-      paint.reset();
-      paint.setAntiAlias(true);
-      if (config.style === "fill") {
-        paint.setStyle(Skia.PaintStyle.Fill);
-      } else {
-        paint.setStyle(Skia.PaintStyle.Stroke);
-        paint.setStrokeWidth(config.strokeWidth ?? 1.5);
-      }
-      paint.setColor(Skia.Color(color));
-
-      drawPath(canvas, paint, size, color, world, entity);
-
-      canvas.restore();
-    }
-  };
-}
 
 /**
  * Skia shape drawer for the Grunt enemy.

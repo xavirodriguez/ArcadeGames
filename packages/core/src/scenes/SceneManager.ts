@@ -220,9 +220,9 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     oldStack?: Scene<TComponents>[],
     oldState?: SceneState,
     cleanupTransition = false
-  ): never {
+  ): void {
     if (myToken !== this.transitionToken) {
-      throw error;
+      return;
     }
     this.transitionToken++;
 

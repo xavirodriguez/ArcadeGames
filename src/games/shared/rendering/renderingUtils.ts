@@ -1,5 +1,57 @@
-import { World, Entity, RenderComponent, TransformComponent } from "@tiny-aster/core";
-import { Skia } from "./SkiaContext";
+import { World, Entity, RenderComponent, TransformComponent, ShapeDrawer, ComponentRegistry } from "@tiny-aster/core";
+import { Skia, getPaint } from "./SkiaContext";
+
+export interface SkiaShapeConfig {
+  defaultSize: number;
+  defaultColor?: string;
+  strokeWidth?: number;
+  style?: "stroke" | "fill";
+}
+
+/**
+ * Higher-order factory function to generate zero-allocation Skia shape drawers.
+ * @public
+ */
+export function defineSkiaShape<TReg extends ComponentRegistry = ComponentRegistry>(
+  config: SkiaShapeConfig,
+  drawPath: (
+    canvas: any,
+    paint: any,
+    size: number,
+    color: string,
+    world: World<TReg>,
+    entity: Entity
+  ) => void
+): ShapeDrawer<any, TReg> {
+  return {
+    draw(canvas, world, entity) {
+      if (!ensureSkiaAvailable()) return;
+
+      const render = getRenderGuard(world, entity);
+      if (!render) return;
+
+      const size = render.size ?? config.defaultSize;
+      const color = render.color ?? config.defaultColor ?? "#ffffff";
+
+      const paint = getPaint();
+      canvas.save();
+
+      paint.reset();
+      paint.setAntiAlias(true);
+      if (config.style === "fill") {
+        paint.setStyle(Skia.PaintStyle.Fill);
+      } else {
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setStrokeWidth(config.strokeWidth ?? 1.5);
+      }
+      paint.setColor(Skia.Color(color));
+
+      drawPath(canvas, paint, size, color, world, entity);
+
+      canvas.restore();
+    }
+  };
+}
 
 /**
  * Checks whether Skia library is loaded and available for rendering.

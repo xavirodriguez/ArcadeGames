@@ -117,14 +117,14 @@
         "endLoc": {
           "column": 77,
           "line": 306,
-          "position": 10591
+          "position": 10585
         },
         "name": "scenes/SceneManager.ts",
         "start": 291,
         "startLoc": {
           "column": 6,
           "line": 291,
-          "position": 10005
+          "position": 9999
         }
       },
       "format": "typescript",
@@ -136,14 +136,14 @@
         "endLoc": {
           "column": 75,
           "line": 353,
-          "position": 12108
+          "position": 12102
         },
         "name": "scenes/SceneManager.ts",
         "start": 338,
         "startLoc": {
           "column": 4,
           "line": 338,
-          "position": 11548
+          "position": 11542
         }
       },
       "tokens": 106
@@ -1949,14 +1949,14 @@
         "endLoc": {
           "column": 9,
           "line": 26,
-          "position": 1191
+          "position": 1089
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 20,
         "startLoc": {
           "column": 4,
           "line": 20,
-          "position": 857
+          "position": 755
         }
       },
       "tokens": 73
@@ -2019,18 +2019,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 102,
+        "end": 100,
         "endLoc": {
           "column": 88,
-          "line": 102,
-          "position": 4479
+          "line": 100,
+          "position": 4025
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 87,
+        "start": 86,
         "startLoc": {
           "column": 4,
-          "line": 87,
-          "position": 3449
+          "line": 86,
+          "position": 3170
         }
       },
       "tokens": 173
@@ -2056,18 +2056,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 242,
+        "end": 239,
         "endLoc": {
           "column": 83,
-          "line": 242,
-          "position": 9874
+          "line": 239,
+          "position": 9243
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 234,
+        "start": 231,
         "startLoc": {
           "column": 4,
-          "line": 234,
-          "position": 9437
+          "line": 231,
+          "position": 8806
         }
       },
       "tokens": 92
@@ -2093,18 +2093,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 295,
+        "end": 291,
         "endLoc": {
           "column": 9,
-          "line": 295,
-          "position": 11468
+          "line": 291,
+          "position": 10660
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 289,
+        "start": 285,
         "startLoc": {
           "column": 4,
-          "line": 289,
-          "position": 11234
+          "line": 285,
+          "position": 10426
         }
       },
       "tokens": 56
@@ -2167,18 +2167,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 339,
+        "end": 334,
         "endLoc": {
           "column": 105,
-          "line": 339,
-          "position": 13227
+          "line": 334,
+          "position": 12242
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 334,
+        "start": 329,
         "startLoc": {
           "column": 4,
-          "line": 334,
-          "position": 12849
+          "line": 329,
+          "position": 11864
         }
       },
       "tokens": 77
@@ -2241,184 +2241,184 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 707,
+        "end": 699,
         "endLoc": {
           "column": 14,
-          "line": 707,
-          "position": 26323
+          "line": 699,
+          "position": 24811
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 702,
+        "start": 694,
         "startLoc": {
           "column": 31,
-          "line": 702,
-          "position": 26101
+          "line": 694,
+          "position": 24589
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 89,
+        "end": 88,
         "endLoc": {
           "column": 31,
-          "line": 89,
-          "position": 3577
+          "line": 88,
+          "position": 3298
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
           "line": 83,
-          "position": 3167
+          "position": 3065
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:115-129. Considerar extraer a función compartida. Ref: 29a17ac0\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n    const size = render.size || 20;",
+      "fragment": "export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n    const size = render.size || 20;",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 236,
+        "end": 233,
         "endLoc": {
           "column": 31,
-          "line": 236,
-          "position": 9565
+          "line": 233,
+          "position": 8934
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 230,
+        "start": 228,
         "startLoc": {
           "column": 35,
-          "line": 230,
-          "position": 9155
+          "line": 228,
+          "position": 8701
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 89,
+        "end": 88,
         "endLoc": {
           "column": 31,
-          "line": 89,
-          "position": 3577
+          "line": 88,
+          "position": 3298
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
           "line": 83,
-          "position": 3167
+          "position": 3065
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:115-129. Considerar extraer a función compartida. Ref: 29a17ac0\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n    const size = render.size || 20;",
+      "fragment": "export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n    const size = render.size || 20;",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 291,
+        "end": 287,
         "endLoc": {
           "column": 31,
-          "line": 291,
-          "position": 11362
+          "line": 287,
+          "position": 10554
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 285,
+        "start": 282,
         "startLoc": {
           "column": 31,
-          "line": 285,
-          "position": 10952
+          "line": 282,
+          "position": 10321
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 89,
+        "end": 88,
         "endLoc": {
           "column": 31,
-          "line": 89,
-          "position": 3577
+          "line": 88,
+          "position": 3298
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
           "line": 83,
-          "position": 3167
+          "position": 3065
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:115-129. Considerar extraer a función compartida. Ref: 29a17ac0\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n    const size = render.size || 20;",
+      "fragment": "export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n    const size = render.size || 20;",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 336,
+        "end": 331,
         "endLoc": {
           "column": 31,
-          "line": 336,
-          "position": 12977
+          "line": 331,
+          "position": 11992
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 330,
+        "start": 326,
         "startLoc": {
           "column": 35,
-          "line": 330,
-          "position": 12567
+          "line": 326,
+          "position": 11759
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 89,
+        "end": 88,
         "endLoc": {
           "column": 31,
-          "line": 89,
-          "position": 3577
+          "line": 88,
+          "position": 3298
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 83,
         "startLoc": {
           "column": 31,
           "line": 83,
-          "position": 3167
+          "position": 3065
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:115-129. Considerar extraer a función compartida. Ref: 29a17ac0\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n    const size = render.size || 20;",
+      "fragment": "export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n    const size = render.size || 20;",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 386,
+        "end": 380,
         "endLoc": {
           "column": 31,
-          "line": 386,
-          "position": 15156
+          "line": 380,
+          "position": 14002
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 381,
+        "start": 375,
         "startLoc": {
           "column": 32,
-          "line": 381,
-          "position": 14923
+          "line": 375,
+          "position": 13769
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 114,
+        "end": 112,
         "endLoc": {
           "column": 36,
-          "line": 114,
-          "position": 4866
+          "line": 112,
+          "position": 4412
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 109,
+        "start": 107,
         "startLoc": {
           "column": 29,
-          "line": 109,
-          "position": 4664
+          "line": 107,
+          "position": 4210
         }
       },
       "format": "typescript",
@@ -2426,36 +2426,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 430,
+        "end": 424,
         "endLoc": {
           "column": 36,
-          "line": 430,
-          "position": 16404
+          "line": 424,
+          "position": 15250
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 425,
+        "start": 419,
         "startLoc": {
           "column": 18,
-          "line": 425,
-          "position": 16202
+          "line": 419,
+          "position": 15048
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 430,
+        "end": 424,
         "endLoc": {
           "column": 13,
-          "line": 430,
-          "position": 16381
+          "line": 424,
+          "position": 15227
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 418,
+        "start": 412,
         "startLoc": {
           "column": 60,
-          "line": 418,
-          "position": 16055
+          "line": 412,
+          "position": 14901
         }
       },
       "format": "typescript",
@@ -2463,36 +2463,36 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 505,
+        "end": 499,
         "endLoc": {
           "column": 13,
-          "line": 505,
-          "position": 19028
+          "line": 499,
+          "position": 17874
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 493,
+        "start": 487,
         "startLoc": {
           "column": 60,
-          "line": 493,
-          "position": 18702
+          "line": 487,
+          "position": 17548
         }
       },
       "tokens": 78
     },
     {
       "firstFile": {
-        "end": 430,
+        "end": 424,
         "endLoc": {
           "column": 36,
-          "line": 430,
-          "position": 16404
+          "line": 424,
+          "position": 15250
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 418,
+        "start": 412,
         "startLoc": {
           "column": 60,
-          "line": 418,
-          "position": 16055
+          "line": 412,
+          "position": 14901
         }
       },
       "format": "typescript",
@@ -2500,36 +2500,36 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 573,
+        "end": 567,
         "endLoc": {
           "column": 36,
-          "line": 573,
-          "position": 21253
+          "line": 567,
+          "position": 20099
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 561,
+        "start": 555,
         "startLoc": {
           "column": 60,
-          "line": 561,
-          "position": 20904
+          "line": 555,
+          "position": 19750
         }
       },
       "tokens": 86
     },
     {
       "firstFile": {
-        "end": 430,
+        "end": 424,
         "endLoc": {
           "column": 40,
-          "line": 430,
-          "position": 16408
+          "line": 424,
+          "position": 15254
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 418,
+        "start": 412,
         "startLoc": {
           "column": 60,
-          "line": 418,
-          "position": 16055
+          "line": 412,
+          "position": 14901
         }
       },
       "format": "typescript",
@@ -2537,18 +2537,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 644,
+        "end": 638,
         "endLoc": {
           "column": 43,
-          "line": 644,
-          "position": 23664
+          "line": 638,
+          "position": 22510
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 632,
+        "start": 626,
         "startLoc": {
           "column": 60,
-          "line": 632,
-          "position": 23308
+          "line": 626,
+          "position": 22154
         }
       },
       "tokens": 87
@@ -3947,14 +3947,14 @@
         "endLoc": {
           "column": 33,
           "line": 140,
-          "position": 3868
+          "position": 3885
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 113,
         "startLoc": {
           "column": 8,
           "line": 113,
-          "position": 2832
+          "position": 2849
         }
       },
       "tokens": 166
@@ -3984,14 +3984,14 @@
         "endLoc": {
           "column": 43,
           "line": 163,
-          "position": 4704
+          "position": 4721
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 149,
         "startLoc": {
           "column": 8,
           "line": 149,
-          "position": 4088
+          "position": 4105
         }
       },
       "tokens": 118
@@ -4021,14 +4021,14 @@
         "endLoc": {
           "column": 51,
           "line": 214,
-          "position": 6453
+          "position": 6470
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 201,
         "startLoc": {
           "column": 43,
           "line": 201,
-          "position": 5770
+          "position": 5787
         }
       },
       "tokens": 152
@@ -4058,14 +4058,14 @@
         "endLoc": {
           "column": 65,
           "line": 243,
-          "position": 7456
+          "position": 7473
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 223,
         "startLoc": {
           "column": 8,
           "line": 223,
-          "position": 6715
+          "position": 6732
         }
       },
       "tokens": 158
@@ -4239,18 +4239,18 @@
       "isNew": false,
       "lines": 28,
       "secondFile": {
-        "end": 512,
+        "end": 465,
         "endLoc": {
           "column": 5,
-          "line": 512,
-          "position": 15466
+          "line": 465,
+          "position": 14363
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 485,
+        "start": 438,
         "startLoc": {
           "column": 30,
-          "line": 485,
-          "position": 14421
+          "line": 438,
+          "position": 13318
         }
       },
       "tokens": 177
@@ -4298,14 +4298,14 @@
         "endLoc": {
           "column": 8,
           "line": 63,
-          "position": 1691
+          "position": 1708
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 52,
         "startLoc": {
           "column": 27,
           "line": 52,
-          "position": 1475
+          "position": 1492
         }
       },
       "format": "typescript",
@@ -4335,14 +4335,14 @@
         "endLoc": {
           "column": 8,
           "line": 83,
-          "position": 2137
+          "position": 2154
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 27,
           "line": 74,
-          "position": 1959
+          "position": 1976
         }
       },
       "format": "typescript",
@@ -4372,14 +4372,14 @@
         "endLoc": {
           "column": 3,
           "line": 112,
-          "position": 2823
+          "position": 2840
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 102,
         "startLoc": {
           "column": 4,
           "line": 102,
-          "position": 2537
+          "position": 2554
         }
       },
       "format": "typescript",
@@ -4405,18 +4405,18 @@
     },
     {
       "firstFile": {
-        "end": 541,
+        "end": 494,
         "endLoc": {
           "column": 5,
-          "line": 541,
-          "position": 16326
+          "line": 494,
+          "position": 15223
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 529,
+        "start": 482,
         "startLoc": {
           "column": 36,
-          "line": 529,
-          "position": 15936
+          "line": 482,
+          "position": 14833
         }
       },
       "format": "typescript",
@@ -4424,18 +4424,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 560,
+        "end": 513,
         "endLoc": {
           "column": 5,
-          "line": 560,
-          "position": 16896
+          "line": 513,
+          "position": 15793
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 548,
+        "start": 501,
         "startLoc": {
           "column": 37,
-          "line": 548,
-          "position": 16506
+          "line": 501,
+          "position": 15403
         }
       },
       "tokens": 80
@@ -5885,32 +5885,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-15T09:35:41.919Z",
+    "detectionDate": "2026-09-15T10:09:00.652Z",
     "formats": {
       "typescript": {
         "clones": 159,
-        "duplicatedLines": 1469,
+        "duplicatedLines": 1465,
         "duplicatedTokens": 11777,
-        "lines": 64792,
+        "lines": 64789,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.2672552166934192,
-        "percentageTokens": 3.48210457844862,
+        "percentage": 2.261186312491318,
+        "percentageTokens": 3.4818883856242384,
         "sources": 385,
-        "tokens": 338215
+        "tokens": 338236
       }
     },
     "total": {
       "clones": 159,
-      "duplicatedLines": 1469,
+      "duplicatedLines": 1465,
       "duplicatedTokens": 11777,
-      "lines": 64792,
+      "lines": 64789,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.2672552166934192,
-      "percentageTokens": 3.48210457844862,
+      "percentage": 2.261186312491318,
+      "percentageTokens": 3.4818883856242384,
       "sources": 385,
-      "tokens": 338215
+      "tokens": 338236
     }
   }
 }

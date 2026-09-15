@@ -1,0 +1,1 @@
+git grep -c "as any" -- "*.ts" | sort -t: -k2 -nr > any.txt

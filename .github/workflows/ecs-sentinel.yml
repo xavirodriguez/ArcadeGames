@@ -54,6 +54,9 @@ jobs:
       - name: 1. Check Core Package Boundaries
         run: pnpm run check:core-boundaries
 
+      - name: Check Network Package Boundaries
+        run: pnpm run check:network-boundaries
+
       - name: 2. Check Typecast Ratchet Linter (as any / as unknown)
         run: NODE_OPTIONS="--max-old-space-size=4096" pnpm run check:ratchet
 

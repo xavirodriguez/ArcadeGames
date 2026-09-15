@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, World, ComponentRegistry } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
@@ -302,269 +302,169 @@ export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry>
   }
 };
 
+interface SkiaShapeConfig {
+  defaultSize: number;
+  defaultColor: string;
+  strokeWidth?: number;
+  style?: "stroke" | "fill";
+}
+
+function defineSkiaShape<TReg extends ComponentRegistry>(
+  config: SkiaShapeConfig,
+  drawPath: (
+    canvas: any,
+    paint: any,
+    size: number,
+    color: string,
+    world: World<TReg>,
+    entity: number
+  ) => void
+): ShapeDrawer<any, TReg> {
+  return {
+    draw(canvas, world, entity) {
+      if (!ensureSkiaAvailable()) return;
+
+      const render = getRenderGuard(world, entity);
+      if (!render) return;
+
+      const size = render.size ?? config.defaultSize;
+      const color = render.color ?? config.defaultColor;
+
+      const paint = getPaint();
+      canvas.save();
+
+      paint.reset();
+      paint.setAntiAlias(true);
+      if (config.style === "fill") {
+        paint.setStyle(Skia.PaintStyle.Fill);
+      } else {
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setStrokeWidth(config.strokeWidth ?? 1.5);
+      }
+      paint.setColor(Skia.Color(color));
+
+      drawPath(canvas, paint, size, color, world, entity);
+
+      canvas.restore();
+    }
+  };
+}
+
 /**
  * Skia shape drawer for the Grunt enemy.
  * @public
  */
-export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
-
-    const size = render.size ?? 3;
-    const color = render.color ?? "#ffffff";
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(color));
-
+export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
+  { defaultSize: 3, defaultColor: "#ffffff", style: "fill" },
+  (canvas, paint, size) => {
     canvas.drawRect(Skia.XYWHRect(-size / 2, -size / 2, size, size), paint);
-
-    canvas.restore();
   }
-};
+);
 
 /**
  * Skia shape drawer for the Chaser enemy.
  * @public
  */
-export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
-
-    const size = render.size ?? 14;
-    const color = render.color ?? "#ff00ff";
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(2.0);
-    paint.setColor(Skia.Color(color));
-
+export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
+  { defaultSize: 14, defaultColor: "#ff00ff", strokeWidth: 2.0 },
+  (canvas, paint, size) => {
     const path = Skia.Path.Make();
     path.moveTo(0, -size);
     path.lineTo(size, 0);
     path.lineTo(0, size);
     path.lineTo(-size, 0);
     path.close();
-
     canvas.drawPath(path, paint);
-
-    canvas.restore();
   }
-};
+);
 
 /**
  * Skia shape drawer for the Evader enemy.
  * @public
  */
-export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
-
-    const size = render.size ?? 14;
-    const color = render.color ?? "#ffaa00";
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(2.0);
-    paint.setColor(Skia.Color(color));
-
+export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
+  { defaultSize: 14, defaultColor: "#ffaa00", strokeWidth: 2.0 },
+  (canvas, paint, size) => {
     const path = Skia.Path.Make();
     path.moveTo(size, 0);
     path.lineTo(-size / 2, -size / 2);
     path.lineTo(-size / 2, size / 2);
     path.close();
-
     canvas.drawPath(path, paint);
-
-    canvas.restore();
   }
-};
+);
 
 /**
  * Skia shape drawer for the Grunt enemy.
  * @public
  */
-export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
-
-    const size = render.size ?? 10;
-    const color = render.color ?? "#00ffff";
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(color));
-
+export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
+  { defaultSize: 10, defaultColor: "#00ffff", strokeWidth: 1.5 },
+  (canvas, paint, size) => {
     const path = Skia.Path.Make();
     path.moveTo(size, 0);
     path.lineTo(-size, -size * 0.7);
     path.lineTo(-size, size * 0.7);
     path.close();
-
     canvas.drawPath(path, paint);
-
-    canvas.restore();
   }
-};
+);
 
 /**
  * Skia shape drawer for the bullets.
  * @public
  */
-export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
-
-    const size = render.size ?? 4;
-    const color = render.color ?? "#ffff00";
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(color));
-
+export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
+  { defaultSize: 4, defaultColor: "#ffff00", strokeWidth: 1.5 },
+  (canvas, paint, size) => {
     canvas.drawLine(-size, 0, size, 0, paint);
-
-    canvas.restore();
   }
-};
+);
 
 /**
  * Skia shape drawer for enemy seeker (neon diamond/star).
  * @public
  */
-export const drawSkiaEnemySeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
-
-    const size = render.size ?? 12;
-    const color = render.color ?? "#ff00ff";
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(color));
-
+export const drawSkiaEnemySeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
+  { defaultSize: 12, defaultColor: "#ff00ff", strokeWidth: 1.5 },
+  (canvas, paint, size) => {
     const path = Skia.Path.Make();
     path.moveTo(0, -size);
     path.lineTo(size / 2, 0);
     path.lineTo(0, size);
     path.lineTo(-size / 2, 0);
     path.close();
-
     canvas.drawPath(path, paint);
-    canvas.restore();
   }
-};
+);
 
 /**
  * Skia shape drawer for enemy evader (neon square).
  * @public
  */
-export const drawSkiaEnemyEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
-
-    const size = render.size ?? 12;
-    const color = render.color ?? "#00ff00";
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(color));
-
-    canvas.drawRect(
-      Skia.XYWHRect(-size / 2, -size / 2, size, size),
-      paint
-    );
-    canvas.restore();
+export const drawSkiaEnemyEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
+  { defaultSize: 12, defaultColor: "#00ff00", strokeWidth: 1.5 },
+  (canvas, paint, size) => {
+    canvas.drawRect(Skia.XYWHRect(-size / 2, -size / 2, size, size), paint);
   }
-};
+);
 
 /**
  * Skia shape drawer for enemy fast seeker (neon arrow/triangle).
  * @public
  */
-export const drawSkiaEnemyFastSeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
-
-    const size = render.size ?? 8;
-    const color = render.color ?? "#ff0000";
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(color));
-
+export const drawSkiaEnemyFastSeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
+  { defaultSize: 8, defaultColor: "#ff0000", strokeWidth: 1.5 },
+  (canvas, paint, size) => {
     const path = Skia.Path.Make();
     path.moveTo(size, 0);
     path.lineTo(-size, -size / 2);
     path.lineTo(-size / 2, 0);
     path.lineTo(-size, size / 2);
     path.close();
-
     canvas.drawPath(path, paint);
-    canvas.restore();
   }
-};
+);
 
 // ============================================================================
 // GEOMETRY WARS BACKGROUND NEON DEFORMING GRID EFFECT (SKIA)

@@ -4058,14 +4058,14 @@
         "endLoc": {
           "column": 33,
           "line": 140,
-          "position": 3849
+          "position": 3868
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 113,
         "startLoc": {
           "column": 8,
           "line": 113,
-          "position": 2813
+          "position": 2832
         }
       },
       "tokens": 166
@@ -4095,14 +4095,14 @@
         "endLoc": {
           "column": 43,
           "line": 163,
-          "position": 4685
+          "position": 4704
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 149,
         "startLoc": {
           "column": 8,
           "line": 149,
-          "position": 4069
+          "position": 4088
         }
       },
       "tokens": 118
@@ -4132,14 +4132,14 @@
         "endLoc": {
           "column": 51,
           "line": 214,
-          "position": 6434
+          "position": 6453
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 201,
         "startLoc": {
           "column": 43,
           "line": 201,
-          "position": 5751
+          "position": 5770
         }
       },
       "tokens": 152
@@ -4169,14 +4169,14 @@
         "endLoc": {
           "column": 65,
           "line": 243,
-          "position": 7437
+          "position": 7456
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 223,
         "startLoc": {
           "column": 8,
           "line": 223,
-          "position": 6696
+          "position": 6715
         }
       },
       "tokens": 158
@@ -4350,18 +4350,18 @@
       "isNew": false,
       "lines": 28,
       "secondFile": {
-        "end": 612,
+        "end": 512,
         "endLoc": {
           "column": 5,
-          "line": 612,
-          "position": 17180
+          "line": 512,
+          "position": 15466
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 585,
+        "start": 485,
         "startLoc": {
           "column": 30,
-          "line": 585,
-          "position": 16135
+          "line": 485,
+          "position": 14421
         }
       },
       "tokens": 177
@@ -4409,14 +4409,14 @@
         "endLoc": {
           "column": 8,
           "line": 63,
-          "position": 1672
+          "position": 1691
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 52,
         "startLoc": {
           "column": 27,
           "line": 52,
-          "position": 1456
+          "position": 1475
         }
       },
       "format": "typescript",
@@ -4446,14 +4446,14 @@
         "endLoc": {
           "column": 8,
           "line": 83,
-          "position": 2118
+          "position": 2137
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 74,
         "startLoc": {
           "column": 27,
           "line": 74,
-          "position": 1940
+          "position": 1959
         }
       },
       "format": "typescript",
@@ -4483,14 +4483,14 @@
         "endLoc": {
           "column": 3,
           "line": 112,
-          "position": 2804
+          "position": 2823
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 102,
         "startLoc": {
           "column": 4,
           "line": 102,
-          "position": 2518
+          "position": 2537
         }
       },
       "format": "typescript",
@@ -4516,536 +4516,18 @@
     },
     {
       "firstFile": {
-        "end": 316,
-        "endLoc": {
-          "column": 31,
-          "line": 316,
-          "position": 9526
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 29,
-          "line": 309,
-          "position": 9292
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 344,
-        "endLoc": {
-          "column": 31,
-          "line": 344,
-          "position": 10188
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 337,
-        "startLoc": {
-          "column": 27,
-          "line": 337,
-          "position": 9954
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 317,
-        "endLoc": {
-          "column": 33,
-          "line": 317,
-          "position": 9563
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 29,
-          "line": 309,
-          "position": 9292
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;\n    const color = render.color ?? \"#ffffff\";",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 381,
-        "endLoc": {
-          "column": 33,
-          "line": 381,
-          "position": 11039
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 373,
-        "startLoc": {
-          "column": 27,
-          "line": 373,
-          "position": 10767
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 316,
-        "endLoc": {
-          "column": 31,
-          "line": 316,
-          "position": 9526
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 29,
-          "line": 309,
-          "position": 9292
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 415,
-        "endLoc": {
-          "column": 31,
-          "line": 415,
-          "position": 11809
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 408,
-        "startLoc": {
-          "column": 26,
-          "line": 408,
-          "position": 11575
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 316,
-        "endLoc": {
-          "column": 31,
-          "line": 316,
-          "position": 9526
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 29,
-          "line": 309,
-          "position": 9292
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 450,
-        "endLoc": {
-          "column": 31,
-          "line": 450,
-          "position": 12610
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 443,
-        "startLoc": {
-          "column": 27,
-          "line": 443,
-          "position": 12376
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 316,
-        "endLoc": {
-          "column": 31,
-          "line": 316,
-          "position": 9526
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 29,
-          "line": 309,
-          "position": 9292
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 479,
-        "endLoc": {
-          "column": 31,
-          "line": 479,
-          "position": 13296
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 472,
-        "startLoc": {
-          "column": 32,
-          "line": 472,
-          "position": 13062
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 317,
-        "endLoc": {
-          "column": 33,
-          "line": 317,
-          "position": 9563
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 29,
-          "line": 309,
-          "position": 9292
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;\n    const color = render.color ?? \"#ffffff\";",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 515,
-        "endLoc": {
-          "column": 33,
-          "line": 515,
-          "position": 14169
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 507,
-        "startLoc": {
-          "column": 32,
-          "line": 507,
-          "position": 13897
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 316,
-        "endLoc": {
-          "column": 31,
-          "line": 316,
-          "position": 9526
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 309,
-        "startLoc": {
-          "column": 29,
-          "line": 309,
-          "position": 9292
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!ensureSkiaAvailable()) return;\n\n    const render = getRenderGuard(world, entity);\n    if (!render) return;\n\n    const size = render.size ?? 3;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 545,
-        "endLoc": {
-          "column": 31,
-          "line": 545,
-          "position": 14876
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 538,
-        "startLoc": {
-          "column": 36,
-          "line": 538,
-          "position": 14642
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 337,
-        "endLoc": {
-          "column": 12,
-          "line": 337,
-          "position": 9939
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 324,
-        "startLoc": {
-          "column": 39,
-          "line": 324,
-          "position": 9714
-        }
-      },
-      "format": "typescript",
-      "fragment": "    paint.setStyle(Skia.PaintStyle.Fill);\n    paint.setColor(Skia.Color(color));\n\n    canvas.drawRect(Skia.XYWHRect(-size / 2, -size / 2, size, size), paint);\n\n    canvas.restore();\n  }\n};\n\n/**\n * Skia shape drawer for the Chaser enemy.\n * @public\n */\nexport const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 538,
-        "endLoc": {
-          "column": 12,
-          "line": 538,
-          "position": 14618
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 523,
-        "startLoc": {
-          "column": 28,
-          "line": 523,
-          "position": 14353
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 353,
-        "endLoc": {
-          "column": 25,
-          "line": 353,
-          "position": 10407
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 344,
-        "startLoc": {
-          "column": 34,
-          "line": 344,
-          "position": 10191
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const size = render.size ?? 14;\n    const color = render.color ?? \"#ff00ff\";\n\n    const paint = getPaint();\n    canvas.save();\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(2.0);",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 488,
-        "endLoc": {
-          "column": 25,
-          "line": 488,
-          "position": 13515
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 479,
-        "startLoc": {
-          "column": 34,
-          "line": 479,
-          "position": 13299
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 357,
-        "endLoc": {
-          "column": 16,
-          "line": 357,
-          "position": 10504
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 345,
-        "startLoc": {
-          "column": 43,
-          "line": 345,
-          "position": 10236
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const color = render.color ?? \"#ff00ff\";\n\n    const paint = getPaint();\n    canvas.save();\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(2.0);\n    paint.setColor(Skia.Color(color));\n\n    const path = Skia.Path.Make();\n    path.moveTo(0, -size);",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 393,
-        "endLoc": {
-          "column": 16,
-          "line": 393,
-          "position": 11317
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 381,
-        "startLoc": {
-          "column": 43,
-          "line": 381,
-          "position": 11049
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
-        "end": 425,
-        "endLoc": {
-          "column": 38,
-          "line": 425,
-          "position": 12072
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 416,
-        "startLoc": {
-          "column": 43,
-          "line": 416,
-          "position": 11857
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const color = render.color ?? \"#00ffff\";\n\n    const paint = getPaint();\n    canvas.save();\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(1.5);\n    paint.setColor(Skia.Color(color));",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 460,
-        "endLoc": {
-          "column": 38,
-          "line": 460,
-          "position": 12872
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 451,
-        "startLoc": {
-          "column": 43,
-          "line": 451,
-          "position": 12657
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 428,
-        "endLoc": {
-          "column": 16,
-          "line": 428,
-          "position": 12125
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 416,
-        "startLoc": {
-          "column": 43,
-          "line": 416,
-          "position": 11857
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const color = render.color ?? \"#00ffff\";\n\n    const paint = getPaint();\n    canvas.save();\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(1.5);\n    paint.setColor(Skia.Color(color));\n\n    const path = Skia.Path.Make();\n    path.moveTo(size, 0);",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 492,
-        "endLoc": {
-          "column": 16,
-          "line": 492,
-          "position": 13612
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 480,
-        "startLoc": {
-          "column": 43,
-          "line": 480,
-          "position": 13344
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
-        "end": 427,
-        "endLoc": {
-          "column": 14,
-          "line": 427,
-          "position": 12088
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 416,
-        "startLoc": {
-          "column": 43,
-          "line": 416,
-          "position": 11857
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const color = render.color ?? \"#00ffff\";\n\n    const paint = getPaint();\n    canvas.save();\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(1.5);\n    paint.setColor(Skia.Color(color));\n\n    const path = Skia.Path.Make();",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 526,
-        "endLoc": {
-          "column": 11,
-          "line": 526,
-          "position": 14407
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 515,
-        "startLoc": {
-          "column": 43,
-          "line": 515,
-          "position": 14179
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 429,
-        "endLoc": {
-          "column": 28,
-          "line": 429,
-          "position": 12163
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 416,
-        "startLoc": {
-          "column": 43,
-          "line": 416,
-          "position": 11857
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const color = render.color ?? \"#00ffff\";\n\n    const paint = getPaint();\n    canvas.save();\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(1.5);\n    paint.setColor(Skia.Color(color));\n\n    const path = Skia.Path.Make();\n    path.moveTo(size, 0);\n    path.lineTo(-size, -size * 0.7);",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 559,
-        "endLoc": {
-          "column": 28,
-          "line": 559,
-          "position": 15229
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 546,
-        "startLoc": {
-          "column": 43,
-          "line": 546,
-          "position": 14923
-        }
-      },
-      "tokens": 86
-    },
-    {
-      "firstFile": {
-        "end": 641,
+        "end": 541,
         "endLoc": {
           "column": 5,
-          "line": 641,
-          "position": 18040
+          "line": 541,
+          "position": 16326
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 629,
+        "start": 529,
         "startLoc": {
           "column": 36,
-          "line": 629,
-          "position": 17650
+          "line": 529,
+          "position": 15936
         }
       },
       "format": "typescript",
@@ -5053,18 +4535,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 660,
+        "end": 560,
         "endLoc": {
           "column": 5,
-          "line": 660,
-          "position": 18610
+          "line": 560,
+          "position": 16896
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 648,
+        "start": 548,
         "startLoc": {
           "column": 37,
-          "line": 648,
-          "position": 18220
+          "line": 548,
+          "position": 16506
         }
       },
       "tokens": 80
@@ -6514,32 +5996,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-15T08:08:16.381Z",
+    "detectionDate": "2026-09-15T08:47:21.413Z",
     "formats": {
       "typescript": {
-        "clones": 176,
-        "duplicatedLines": 1645,
-        "duplicatedTokens": 12823,
-        "lines": 64906,
+        "clones": 162,
+        "duplicatedLines": 1515,
+        "duplicatedTokens": 12000,
+        "lines": 64806,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.5344344128431886,
-        "percentageTokens": 3.785588606922287,
+        "percentage": 2.337746504953245,
+        "percentageTokens": 3.5475879358359594,
         "sources": 385,
-        "tokens": 338732
+        "tokens": 338258
       }
     },
     "total": {
-      "clones": 176,
-      "duplicatedLines": 1645,
-      "duplicatedTokens": 12823,
-      "lines": 64906,
+      "clones": 162,
+      "duplicatedLines": 1515,
+      "duplicatedTokens": 12000,
+      "lines": 64806,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.5344344128431886,
-      "percentageTokens": 3.785588606922287,
+      "percentage": 2.337746504953245,
+      "percentageTokens": 3.5475879358359594,
       "sources": 385,
-      "tokens": 338732
+      "tokens": 338258
     }
   }
 }

@@ -47,6 +47,7 @@ export interface FroggerStateComponent extends Component {
   isWin: boolean;
   occupiedLilyPads: number;
   totalLilyPads: number;
+  respawnTimer: number;
 }
 
 export interface FroggerInputComponent extends Component {

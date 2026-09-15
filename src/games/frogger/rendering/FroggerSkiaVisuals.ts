@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, resolveThemeColor } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 import { Skia } from "../../shared/rendering/SkiaContext";
@@ -18,8 +18,9 @@ export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     const size = render.size || 32;
     const half = size / 2;
 
+    const primaryColor = resolveThemeColor(world, "frogger", "player") || "#39FF14";
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color(isInvuln ? "#A3FF80" : "#39FF14"));
+    paint.setColor(Skia.Color(isInvuln ? "#A3FF80" : primaryColor));
     canvas.drawCircle(0, 0, half, paint);
 
     const eyePaint = Skia.Paint();
@@ -45,8 +46,9 @@ export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     const halfW = width / 2;
     const halfH = height / 2;
 
+    const carColor = resolveThemeColor(world, "car", "secondary") || render.color || "#00F3FF";
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color(render.color || "#00F3FF"));
+    paint.setColor(Skia.Color(carColor));
     const rect = Skia.RRectXY(Skia.XYWHRect(-halfW, -halfH, width, height), 6, 6);
     canvas.drawRRect(rect, paint);
   },
@@ -63,8 +65,9 @@ export const drawTruckSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     const halfW = width / 2;
     const halfH = height / 2;
 
+    const truckColor = resolveThemeColor(world, "truck", "accent") || "#FF2A6D";
     const paintTrailer = Skia.Paint();
-    paintTrailer.setColor(Skia.Color("#FF2A6D"));
+    paintTrailer.setColor(Skia.Color(truckColor));
     canvas.drawRect(Skia.XYWHRect(-halfW, -halfH, width * 0.7, height), paintTrailer);
 
     const paintCab = Skia.Paint();

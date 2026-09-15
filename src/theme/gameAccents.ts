@@ -101,6 +101,12 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     commander: accentColors.accent,
     scout: accentColors.secondary,
     brick: accentColors.accent,
+    frogger: accentColors.primary,
+    car: accentColors.secondary,
+    truck: accentColors.accent,
+    log: accentColors.secondary,
+    turtle: accentColors.secondary,
+    lily_pad: accentColors.primary,
   };
 
   return {

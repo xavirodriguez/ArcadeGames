@@ -44,7 +44,6 @@ function getPowerUpColor(lootType: string): string {
  * players with a pre-built combo. If that resource is absent, combo starts at 0.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:169-174. Considerar extraer a función compartida. Ref: 52141f37
 export function registerAsteroidsBlueprints(
   world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>,
   customRegistry?: BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>

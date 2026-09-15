@@ -75,12 +75,10 @@ export class FlappyBirdGame
       config.gameOptions?.rawConfig ?? {}
     );
     this.config = this.baseConfig;
-    // TODO(refactor): código duplicado detectado (bloque) con frogger/FroggerGame.ts:81-88. Considerar extraer a función compartida. Ref: 7fe89665
     this.isMultiplayer = !!config.isMultiplayer;
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:108-115. Considerar extraer a función compartida. Ref: a95bc788
     this.config = applyMutators(this.baseConfig, this._config.gameOptions);
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
@@ -470,7 +468,6 @@ export class FlappyBirdGame
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, { type: "Transform", x: state.x, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: state.x, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         commands.addComponent(entity, { type: "Render", shape: "pipe", size: 60, color: "green", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
-        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:785-796. Considerar extraer a función compartida. Ref: 06189aee
         commands.addComponent(entity, { type: "Pipe", gapY: state.gapY, gapSize: 140, scored: false } as PipeComponent);
       },
       sync: () => {}
@@ -479,7 +476,6 @@ export class FlappyBirdGame
 
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
-    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:203-215. Considerar extraer a función compartida. Ref: c3ed8066
     const world = this.getWorld();
     const replicator = this.networkManager.getReplicator();
     const currentServerEntities = new Set<string>();
@@ -498,7 +494,6 @@ export class FlappyBirdGame
     if (state.pipes) {
         Object.entries(state.pipes as Record<string, any>).forEach(([id, p]) => {
             const entityId = replicator.getLocalId(`pipe_${id}`);
-            // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:227-246. Considerar extraer a función compartida. Ref: 5b8ab361
             if (entityId !== undefined) entries.push({ entityId, x: p.x, y: 0 });
         });
     }

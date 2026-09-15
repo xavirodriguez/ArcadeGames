@@ -78,7 +78,6 @@ export class FroggerGame extends BaseGame<
     if (bp) {
       bp.spawn(this.world, entity, args);
     }
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:78-85. Considerar extraer a función compartida. Ref: 7fe89665
     return entity;
   }
 

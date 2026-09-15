@@ -108,7 +108,6 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.config = loadAndMutateConfig(this.gameId, PongConfigSchema, pongConfigRaw, this._config.gameOptions);
 
     this.world.setResource("GameConfig", this.config);
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/ArkanoidGame.ts:109-114. Considerar extraer a función compartida. Ref: 2732579c
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
@@ -155,8 +154,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
       }
     });
 
-    this.blueprints.register("paddle", // TODO(refactor): código duplicado detectado (bloque) con arkanoid/ArkanoidGame.ts:164-172. Considerar extraer a función compartida. Ref: 304dbc76
-    {
+    this.blueprints.register("paddle", {
       spawn: (world, entity, args: { side: "left" | "right" }) => {
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
         const tint = resolveThemeColor(world, args.side, "paddle", "primary");
@@ -262,7 +260,6 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new MutatorSystem(activeMutators), { phase: SystemPhase.Simulation });
 
     // Visual / Presentation
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/ArkanoidGame.ts:291-299. Considerar extraer a función compartida. Ref: fdef5ea1
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
@@ -275,7 +272,6 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
       PongEntityFactory.createBall(this.world);
       PongEntityFactory.createPaddle(this.world, "left");
       PongEntityFactory.createPaddle(this.world, "right");
-      // TODO(refactor): código duplicado detectado (bloque) con arkanoid/ArkanoidGame.ts:303-321. Considerar extraer a función compartida. Ref: c82d905a
       PongEntityFactory.createGameState(this.world);
 
 

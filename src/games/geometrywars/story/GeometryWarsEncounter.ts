@@ -124,7 +124,6 @@ export class GeometryWarsArcadeAdapter extends BaseMiniGameEncounter<GeometryWar
       } else if (modifier.targetProperty === "multiplierBoost" && typeof modifier.value === "number") {
         (game as any).multiplierBoost = modifier.value;
       } else if (modifier.targetProperty === "playerSpeedMultiplier" && typeof modifier.value === "number") {
-        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/story/InvasionEncounter.ts:127-145. Considerar extraer a función compartida. Ref: 1b2addb8
         (game as any).playerSpeedMultiplier = modifier.value;
       }
     }

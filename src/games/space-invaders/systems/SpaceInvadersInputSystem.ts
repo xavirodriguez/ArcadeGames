@@ -5,7 +5,6 @@ import { PlayerBulletPool } from "../EntityPool";
 import { createPlayerBullet } from "../EntityFactory";
 import { GameSystem } from "./GameSystem";
 
-// TODO(refactor): código duplicado detectado (función) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:503-519. Considerar extraer a función compartida. Ref: e6aa5f42
 function removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: number): void {
   if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, "Transform")) {
     return;

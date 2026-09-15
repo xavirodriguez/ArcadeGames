@@ -1,9 +1,9 @@
 # Copy/paste detection report
 
-> Duplications detection: Found 158 exact clones with 1460(2.25%) duplicated lines in 386 (1 formats) files.
+> Duplications detection: Found 156 exact clones with 1431(2.21%) duplicated lines in 386 (1 formats) files.
 
 | Format | Files analyzed | Total lines | Total tokens | Clones found | Duplicated lines | Duplicated tokens |
 |--------|---------------|-------------|--------------|--------------|------------------|-------------------|
-| typescript | 386 | 64935 | 338357 | 158 | 1460 (2.25%) | 11725 (3.47%) |
-| Total: | 386 | 64935 | 338357 | 158 | 1460 (2.25%) | 11725 (3.47%) |
-| **Total:** | 386 | 64935 | 338357 | 158 | 1460 (2.25%) | 11725 (3.47%) |
+| typescript | 386 | 64744 | 338357 | 156 | 1431 (2.21%) | 11555 (3.42%) |
+| Total: | 386 | 64744 | 338357 | 156 | 1431 (2.21%) | 11555 (3.42%) |
+| **Total:** | 386 | 64744 | 338357 | 156 | 1431 (2.21%) | 11555 (3.42%) |

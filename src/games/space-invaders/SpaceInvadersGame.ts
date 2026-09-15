@@ -670,7 +670,6 @@ export class SpaceInvadersGame
     let dialogueText = "";
     const dialogueBoxEntities = world.query("DialogueBox");
     if (dialogueBoxEntities.length > 0) {
-      // TODO(refactor): código duplicado detectado (bloque) con asteroids/AsteroidsGame.ts:432-444. Considerar extraer a función compartida. Ref: c5abad2a
       const dialogueBox = world.getComponent(dialogueBoxEntities[0], "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;
@@ -783,7 +782,6 @@ export class SpaceInvadersGame
       getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; ownerId: string }>,
       spawn: (world, entity, state) => {
         const bpName = state.ownerId === "player" ? "player_bullet" : "enemy_bullet";
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:471-480. Considerar extraer a función compartida. Ref: 06189aee
         this.blueprints.get(bpName)?.spawn(world, entity, { x: state.x, y: state.y });
       },
       sync: () => {}
@@ -807,7 +805,6 @@ export class SpaceInvadersGame
       });
     }
 
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:480-494. Considerar extraer a función compartida. Ref: f3f07f60
     const replicator = this.networkManager.getReplicator();
     const currentServerEntities = new Set<string>();
 
@@ -826,7 +823,6 @@ export class SpaceInvadersGame
       Object.entries(state.invaders as Record<string, any>).forEach(([id, p]) => {
         if (!p.alive) return;
         const entityId = replicator.getLocalId(`invader_${id}`);
-        // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:221-227. Considerar extraer a función compartida. Ref: 2738d330
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
       });
     }

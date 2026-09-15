@@ -118,7 +118,6 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
       Attack: {
         onEnter(world, entity, data) {
           const jumpVel = (data.jumpVelocity as number) ?? 250;
-          // TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:165-173. Considerar extraer a función compartida. Ref: 09e72dc7
           const speed = (data.patrolSpeed as number) ?? 80;
           const sensor = world.getComponent(entity, "PlayerSensor");
           const trans = world.getComponent(entity, "Transform");

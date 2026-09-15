@@ -52,7 +52,6 @@ export class VisualParticlePool {
     extra?: { type?: string; angle?: number; angularVelocity?: number }
   ): void {
     for (let i = 0; i < this.pool.length; i++) {
-      // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:52-63. Considerar extraer a función compartida. Ref: a29ed290
       const p = this.pool[i];
       if (!p.active) {
         p.active = true;

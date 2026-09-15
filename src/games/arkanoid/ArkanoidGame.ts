@@ -106,7 +106,6 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     if (arkanoidConfigRaw.grid) {
       this.world.setResource("LevelGrid", arkanoidConfigRaw.grid);
     }
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:111-117. Considerar extraer a función compartida. Ref: 2732579c
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
@@ -145,8 +144,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
       }
     });
 
-    this.blueprints.register("paddle", // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:179-186. Considerar extraer a función compartida. Ref: 304dbc76
-    {
+    this.blueprints.register("paddle", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
         const tint = resolveThemeColor(world, "paddle", "primary");
@@ -272,7 +270,6 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ParticleSystem(this.particlePool) as System<ArkanoidComponentRegistry, ArkanoidEventRegistry>, { phase: SystemPhase.Simulation });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
-    // TODO(refactor): código duplicado detectado (bloque) con asteroids/AsteroidsGame.ts:180-184. Considerar extraer a función compartida. Ref: c9d476a7
     this.world.addSystem(new PowerUpSystem(), { phase: SystemPhase.Simulation });
 
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
@@ -291,7 +288,6 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.world.addSystem(new BrickRulesSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
 
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:263-272. Considerar extraer a función compartida. Ref: fdef5ea1
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
@@ -304,7 +300,6 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
       ArkanoidEntityFactory.createBall(this.world);
       ArkanoidEntityFactory.createGameState(this.world);
 
-      // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:275-295. Considerar extraer a función compartida. Ref: c82d905a
       this.stateSystem.spawnLevelBricks(this.world, 1);
 
       const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];

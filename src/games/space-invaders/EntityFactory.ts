@@ -14,7 +14,6 @@ import {
   GameStateComponent,
   FormationComponent,
 } from "./types/SpaceInvadersTypes";
-// TODO(refactor): código duplicado detectado (bloque) con flappybird/EntityFactory.ts:6-42. Considerar extraer a función compartida. Ref: c2ca13fe
 import { EnemyFactory } from "./EnemyFactory";
 
 /**

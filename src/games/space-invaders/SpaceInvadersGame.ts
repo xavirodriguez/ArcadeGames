@@ -89,7 +89,6 @@ export class SpaceInvadersGame
     this.runDeterministicStep(deltaTime, this.getWorld());
   }
 
-  // TODO(refactor): código duplicado detectado (método) con flappybird/FlappyBirdGame.ts:61-66. Considerar extraer a función compartida. Ref: debee144
   protected override async onRegisterSystems(): Promise<void> {
     this.config = loadAndMutateConfig(this.gameId, SpaceInvadersConfigSchema, spaceInvadersConfigRaw, this._config.gameOptions);
 
@@ -214,7 +213,6 @@ export class SpaceInvadersGame
       }
     });
 
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:262-267. Considerar extraer a función compartida. Ref: 07d3787d
     this.blueprints.register("player_bullet", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
@@ -253,7 +251,6 @@ export class SpaceInvadersGame
       }
     });
 
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:231-236. Considerar extraer a función compartida. Ref: 7bc9738f
     this.blueprints.register("enemy_bullet", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
@@ -673,7 +670,6 @@ export class SpaceInvadersGame
     let dialogueText = "";
     const dialogueBoxEntities = world.query("DialogueBox");
     if (dialogueBoxEntities.length > 0) {
-      // TODO(refactor): código duplicado detectado (bloque) con asteroids/AsteroidsGame.ts:408-420. Considerar extraer a función compartida. Ref: 4fe85665
       const dialogueBox = world.getComponent(dialogueBoxEntities[0], "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;

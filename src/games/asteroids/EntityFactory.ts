@@ -44,7 +44,6 @@ function getPowerUpColor(lootType: string): string {
  * players with a pre-built combo. If that resource is absent, combo starts at 0.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con geometrywars/entities/GeometryWarsEntities.ts:82-87. Considerar extraer a función compartida. Ref: 969af9ba
 export function registerAsteroidsBlueprints(
   world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>,
   customRegistry?: BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>
@@ -341,7 +340,6 @@ export function registerAsteroidsBlueprints(
   world.setResource("BlueprintRegistry", registry);
 }
 
-// TODO(refactor): código duplicado detectado (función) con flappybird/EntityFactory.ts:64-89. Considerar extraer a función compartida. Ref: 00253afa
 /**
  * @public
  * @remarks Thin wrapper around the "powerup" blueprint. Prefer calling this over

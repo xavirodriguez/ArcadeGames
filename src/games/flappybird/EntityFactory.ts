@@ -2,7 +2,6 @@ import { World, Entity, Component, createDeferredEntity, spawnBlueprintEntity } 
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { createEmitter } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
-// TODO(refactor): código duplicado detectado (bloque) con space-invaders/EntityFactory.ts:18-53. Considerar extraer a función compartida. Ref: c2ca13fe
 import { Collider2DComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent } from "@tiny-aster/core";
 
 /**

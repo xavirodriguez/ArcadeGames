@@ -314,7 +314,6 @@ export function spawnGlassShatter(centerX: number, centerY: number, renderRandom
 export function updateShardParticles(dt: number): void {
   const gravity = 400;
   for (let i = 0; i < SHARD_PARTICLE_POOL.length; i++) {
-    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:100-109. Considerar extraer a función compartida. Ref: 434358f5
     const p = SHARD_PARTICLE_POOL[i];
     if (p.active) {
       p.life -= dt;

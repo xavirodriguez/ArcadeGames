@@ -113,7 +113,6 @@ export const spaceInvadersInvasionEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Space Invaders encounters.
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 96beae78
 export class SpaceInvadersArcadeAdapter extends BaseMiniGameEncounter<SpaceInvadersGame> {
   public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
     const game = new SpaceInvadersGame({ seed: context.seed });

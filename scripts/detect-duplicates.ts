@@ -321,8 +321,8 @@ function main() {
       const lineIndex = range.start.line;
       const lineText = lines[lineIndex] || "";
       const indent = lineText.match(/^\s*/)?.[0] || "";
+      const todoComment = `${indent}// TODO(refactor): código duplicado detectado (${editInfo.nodeType}) con ${editInfo.otherLocation}. Considerar extraer a función compartida. Ref: ${editInfo.hash}\n`;
 
-      const todoComment = `// TODO(refactor): código duplicado detectado (${editInfo.nodeType}) con ${editInfo.otherLocation}. Considerar extraer a función compartida. Ref: ${editInfo.hash}\n${indent}`;
       astEdits.push(editInfo.node.replace(`${todoComment}${editInfo.node.text()}`));
       totalInserted++;
     }

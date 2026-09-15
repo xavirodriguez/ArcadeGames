@@ -35,7 +35,6 @@ export class EntityBuilder<
   /**
    * Creates a new Entity in the given World and initializes an EntityBuilder instance.
    */
-  // TODO(refactor): código duplicado detectado (método) con ecs/EntityBuilder.ts:60-65. Considerar extraer a función compartida. Ref: 14e7ed3c
   public static create<
     TComponents extends ComponentRegistry = CoreComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,

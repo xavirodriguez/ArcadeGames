@@ -9,7 +9,6 @@ import { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticle
 export { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles };
 
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
-  // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:16-23. Considerar extraer a función compartida. Ref: 4cdb6b71
   ctx.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
     const p = EXPLOSION_PARTICLE_POOL[i];
@@ -169,7 +168,6 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     // Cannons white cores
     ctx.fillStyle = colors.white;
     ctx.fillRect(-size / 3 - 1, -size / 3, 2, size / 4);
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:206-212. Considerar extraer a función compartida. Ref: 24ad6a72
     ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);
 
     // Dynamic Muzzle Fire Recoil & Energetic Tip Flares / Muzzle Flash
@@ -228,7 +226,6 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:234-241. Considerar extraer a función compartida. Ref: 5652378a
     ctx.restore();
 
     // 4. Glowing defensive neon invulnerability bubble shield (Pulsing blue/cyan)
@@ -279,7 +276,6 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:278-299. Considerar extraer a función compartida. Ref: b53960e5
     const { size = 15 } = render;
 
     let baseColor = render.color || colors.white;
@@ -364,7 +360,6 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
       if (kami.phase === "telegraphing") {
         ctx.save();
         const blinkAlpha = 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3));
-        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:354-359. Considerar extraer a función compartida. Ref: 9f513f73
         ctx.globalAlpha = blinkAlpha;
 
         const pos = world.getComponent(entity, "Transform");
@@ -435,7 +430,6 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:419-424. Considerar extraer a función compartida. Ref: d2d6b392
     const { size = 4 } = render;
 
     const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
@@ -488,7 +482,6 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:466-477. Considerar extraer a función compartida. Ref: 8ef7a6bc
     const { size = 80 } = render;
 
     const boss = world.getComponent(entity, "Boss");
@@ -669,7 +662,6 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:637-647. Considerar extraer a función compartida. Ref: 819a42aa
     const { size = 2, color = "white" } = render;
 
     const ttl = world.getComponent(entity, "TTL");

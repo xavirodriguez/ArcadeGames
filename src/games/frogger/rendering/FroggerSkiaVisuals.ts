@@ -7,7 +7,6 @@ import { shouldSkipFroggerRenderDueToInvulnerability, isFroggerInvulnerable } fr
 export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con frogger/rendering/FroggerCanvasVisuals.ts:8-17. Considerar extraer a función compartida. Ref: a3654088
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
@@ -35,7 +34,6 @@ export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   },
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con frogger/rendering/FroggerSkiaVisuals.ts:55-61. Considerar extraer a función compartida. Ref: 4b9404ac
 export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -103,7 +101,6 @@ export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     const halfW = width / 2;
 
     const paintOuter = Skia.Paint();
-    // TODO(refactor): código duplicado detectado (bloque) con frogger/rendering/FroggerCanvasVisuals.ts:150-157. Considerar extraer a función compartida. Ref: aa566482
     paintOuter.setColor(Skia.Color("#00D2FF"));
 
     const segmentCount = Math.floor(width / 35);
@@ -119,7 +116,6 @@ export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con frogger/rendering/FroggerCanvasVisuals.ts:178-183. Considerar extraer a función compartida. Ref: ec6c9efa
     const pad = world.getComponent(entity, "GoalLilyPad");
     const render = world.getComponent(entity, "Render");
     if (!render || !pad) return;

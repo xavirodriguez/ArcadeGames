@@ -14,7 +14,6 @@ export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
  * Inherits state tracking logic from CanvasMotionTrail and provides Skia-specific drawing.
  */
 export class SkiaMotionTrail extends CanvasMotionTrail {
-  // TODO(refactor): código duplicado detectado (método) con shared/rendering/CanvasNeonUtils.ts:75-86. Considerar extraer a función compartida. Ref: f94ca4dc
   public drawSkia(
     canvas: any,
     paint: any,
@@ -65,7 +64,6 @@ const ballSkiaMotionTrail = new SkiaMotionTrail(30);
  * Upgraded, high-fidelity Skia ball shape drawer with a swirling core and dynamic fading afterimage trails.
  * @public
  */
-// TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:8-17. Considerar extraer a función compartida. Ref: e9b53fb9
 export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -136,7 +134,6 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
 export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongCanvasVisuals.ts:86-98. Considerar extraer a función compartida. Ref: a28f9af6
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -183,7 +180,6 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
     if (!Skia) return;
     const config = world.getResource<PongConfig>("GameConfig") || { WIDTH: 800, HEIGHT: 600 };
     const width = config.WIDTH;
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:152-160. Considerar extraer a función compartida. Ref: 48b9ebfc
     const height = config.HEIGHT;
 
     const paint = getPaint();
@@ -199,7 +195,6 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:165-174. Considerar extraer a función compartida. Ref: 0c2d73a2
     paint.setColor(Skia.Color("rgba(0, 240, 255, 0.04)"));
     paint.setStrokeWidth(1.0);
 

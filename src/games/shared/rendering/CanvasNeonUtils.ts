@@ -64,7 +64,6 @@ export class CanvasMotionTrail {
   /**
    * Draws a fading motion trail with dynamic length, scaling, and colors.
    */
-  // TODO(refactor): código duplicado detectado (método) con pong/rendering/PongSkiaVisuals.ts:26-37. Considerar extraer a función compartida. Ref: f94ca4dc
   public draw(
     ctx: CanvasRenderingContext2D,
     entityId: number,

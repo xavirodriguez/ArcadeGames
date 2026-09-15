@@ -3,18 +3,7 @@ import { ComponentRegistry } from "../ecs/Component";
 import { World } from "../ecs/World";
 import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
 import { buildSnapshotMetadata } from "./SnapshotMetadataBuilder";
-
-/**
- * Internal interface to access private world state for serialization.
- */
-interface InternalWorldAccess<_TComponents extends ComponentRegistry> {
-  activeEntities: Set<number>;
-  entityComponentSets: Map<number, Set<string>>;
-  componentMaps: Map<string, Map<number, unknown>>;
-  nextEntityId: number;
-  freeEntities: number[];
-  generations?: number[];
-}
+import { InternalWorldAccess } from "./SnapshotInternalAccess";
 
 /**
  * Classical Array of Structures (AoS) Serializer.

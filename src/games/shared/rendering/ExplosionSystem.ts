@@ -103,6 +103,7 @@ export function computeExplosionState(
   shockwaveRadius: number;
   shockwaveAlpha: number;
   flashAlpha: number;
+  concentricRings: { radius: number; alpha: number }[];
 } {
   const profile = EXPLOSION_PROFILES[type];
   const clampedProgress = Math.max(0, Math.min(1, progress));
@@ -123,11 +124,21 @@ export function computeExplosionState(
   // Flash alpha (brief white flash at 0-10% duration)
   const flashAlpha = clampedProgress < 0.1 ? (0.1 - clampedProgress) / 0.1 : 0;
 
+  // Concentric rings for tech & boss explosions
+  const concentricRings: { radius: number; alpha: number }[] = [];
+  if (profile.hasConcentricRings) {
+    concentricRings.push(
+      { radius: coreRadius * 0.6, alpha: Math.max(0, 1.0 - clampedProgress) },
+      { radius: coreRadius * 1.1, alpha: Math.max(0, 1.0 - clampedProgress * 0.8) }
+    );
+  }
+
   return {
     currentColor,
     coreRadius,
     shockwaveRadius,
     shockwaveAlpha,
-    flashAlpha
+    flashAlpha,
+    concentricRings
   };
 }

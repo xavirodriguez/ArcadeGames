@@ -15,7 +15,6 @@ import { ArcadeEntityBuilder } from "../builders/ArcadeEntityBuilder";
 export function registerPlatformerEnemyBlueprints(
   blueprints: BlueprintRegistry<CoreComponentRegistry, any, any>
 ): void {
-  // TODO(refactor): código duplicado detectado (bloque) con shared/arcade/blueprints/enemyBlueprints.ts:42-47. Considerar extraer a función compartida. Ref: 2db0801e
   blueprints.register("enemy_sentinel", {
     spawn: (world: World<CoreComponentRegistry>, entity: number, args: { x: number; y: number }) => {
       ArcadeEntityBuilder.fromEntity(world, entity)
@@ -44,12 +43,10 @@ export function registerPlatformerEnemyBlueprints(
         machineId: "patrol",
         elapsedMs: 0
       } as { type: string; [key: string]: unknown });
-      // TODO(refactor): código duplicado detectado (bloque) con shared/arcade/blueprints/enemyBlueprints.ts:59-66. Considerar extraer a función compartida. Ref: 842975b2
       world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
     }
   });
 
-  // TODO(refactor): código duplicado detectado (bloque) con shared/arcade/blueprints/enemyBlueprints.ts:19-24. Considerar extraer a función compartida. Ref: 6ab1c6b0
   blueprints.register("enemy_hopper", {
     spawn: (world: World<CoreComponentRegistry>, entity: number, args: { x: number; y: number }) => {
       ArcadeEntityBuilder.fromEntity(world, entity)
@@ -108,7 +105,6 @@ export function registerPlatformerEnemyBlueprints(
         machineId: "charger",
         elapsedMs: 0
       } as { type: string; [key: string]: unknown });
-      // TODO(refactor): código duplicado detectado (bloque) con shared/arcade/blueprints/enemyBlueprints.ts:35-40. Considerar extraer a función compartida. Ref: db3852a9
       world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
     }
   });

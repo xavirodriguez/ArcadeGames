@@ -30,7 +30,7 @@ export class SnapshotRestoreSoA {
     type: string,
     soaData: SoAComponentBlock
   ): void {
-    const internal = world as unknown as InternalWorldAccess<TComponents>;
+    const internal = world.getSerializationView();
     const { storage, index, versions } = restoreComponentStorage(internal, type);
 
     const entities = soaData.entities;

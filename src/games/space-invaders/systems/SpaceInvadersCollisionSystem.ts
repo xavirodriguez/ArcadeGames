@@ -48,7 +48,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     if (!this.config) {
       this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidCollisionSystem.ts:20-31. Considerar extraer a función compartida. Ref: 4d167694
     const eventBus = world.getEventBus();
     if (eventBus) {
       eventBus.on("combat:hit", (event: any) => {
@@ -136,7 +135,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       }
     }
 
-    // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidCollisionSystem.ts:35-41. Considerar extraer a función compartida. Ref: f3ad437a
     if (world.hasComponent(target, "Invader")) {
       world.mutateComponent(target, "Render", (render) => {
         render.hitFlashFrames = 4;
@@ -195,7 +193,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       const gameState = world.getSingleton("GameState");
       if (gameState) {
         // Mutate Combo component
-        // TODO(refactor): código duplicado detectado (bloque) con asteroids/systems/AsteroidCollisionSystem.ts:105-113. Considerar extraer a función compartida. Ref: 07fb60bf
         let nextCombo = 0;
         let nextMultiplier = 1;
 
@@ -538,7 +535,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
-  // TODO(refactor): código duplicado detectado (método) con flappybird/systems/FlappyBirdCollisionSystem.ts:246-252. Considerar extraer a función compartida. Ref: 92e79766
   private matchPair<T1 extends ComponentType<SpaceInvadersComponentRegistry>, T2 extends ComponentType<SpaceInvadersComponentRegistry>>(
     world: World<SpaceInvadersComponentRegistry>,
     entityA: Entity,

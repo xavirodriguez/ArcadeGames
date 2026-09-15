@@ -75,13 +75,11 @@ export class FlappyBirdGame
       config.gameOptions?.rawConfig ?? {}
     );
     this.config = this.baseConfig;
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:101-107. Considerar extraer a función compartida. Ref: a8fa2796
     this.isMultiplayer = !!config.isMultiplayer;
   }
 
   protected override async onRegisterSystems(): Promise<void> {
     this.config = applyMutators(this.baseConfig, this._config.gameOptions);
-    // TODO(refactor): código duplicado detectado (bloque) con pong/PongGame.ts:109-118. Considerar extraer a función compartida. Ref: 75010e56
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };

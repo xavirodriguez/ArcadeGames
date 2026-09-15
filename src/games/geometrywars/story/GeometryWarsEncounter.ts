@@ -113,7 +113,6 @@ export const geometryWarsOverdriveEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Geometry Wars encounters.
  */
-// TODO(refactor): código duplicado detectado (bloque) con asteroids/story/EscapeRouteEncounter.ts:169-188. Considerar extraer a función compartida. Ref: 8d507ec2
 export class GeometryWarsArcadeAdapter extends BaseMiniGameEncounter<GeometryWarsGame> {
   public initialize(context: MiniGameRunContext, _host: HTMLElement): void {
     const game = new GeometryWarsGame({ seed: context.seed });

@@ -210,6 +210,55 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     };
   }
 
+  private handleTransitionError(
+    myToken: number,
+    error: unknown,
+    timeoutMsg: string,
+    actionType: string,
+    scene?: Scene<TComponents>,
+    oldScene?: Scene<TComponents> | null,
+    oldStack?: Scene<TComponents>[],
+    oldState?: SceneState,
+    cleanupTransition = false
+  ): void {
+    if (myToken !== this.transitionToken) {
+      return;
+    }
+    this.transitionToken++;
+
+    const isTimeout = error instanceof Error && error.message === timeoutMsg;
+    const eventBus = this.eventBus;
+    if (eventBus) {
+      if (scene) {
+        if (isTimeout) {
+          eventBus.emit("scene:transition:timeout", { scene, error });
+        } else {
+          eventBus.emit("scene:transition:error", { scene, error });
+        }
+      }
+      eventBus.emit("scene:error", { action: actionType, error });
+    }
+
+    if (oldScene !== undefined) this.currentScene = oldScene;
+    if (oldStack !== undefined) this.sceneStack = oldStack;
+    if (oldState !== undefined) this.state = oldState;
+
+    if (oldScene) {
+      const isOldScenePaused =
+        ("isPaused" in oldScene && (oldScene as { isPaused?: boolean }).isPaused === true) ||
+        ("paused" in oldScene && (oldScene as { paused?: boolean }).paused === true);
+      if (isOldScenePaused || cleanupTransition) {
+        runLifecycleSync(() => oldScene.onResume());
+      }
+    }
+
+    if (cleanupTransition) {
+      this._cleanupTransition();
+    }
+
+    throw error;
+  }
+
   private _resolveDuration(options?: TransitionOptions): number {
     const isHeadlessResource = this.world.getResource<boolean>("headless") === true;
     const gameConfig = this.world.getResource<{ headless?: boolean; isHeadless?: boolean }>("GameConfig");
@@ -278,36 +327,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
             }
           }
         } catch (error: unknown) {
-          if (myToken !== this.transitionToken) return;
-          this.transitionToken++;
-
-          const isTimeout = error instanceof Error && error.message === timeoutMsg;
-
-          if (eventBus) {
-            if (scene) {
-              if (isTimeout) {
-                eventBus.emit("scene:transition:timeout", { scene, error });
-              } else {
-                eventBus.emit("scene:transition:error", { scene, error });
-              }
-            }
-            eventBus.emit("scene:error", { action: context.type, error });
-          }
-
-          this.currentScene = oldScene;
-          this.sceneStack = oldStack;
-          this.state = oldState;
-
-          if (oldScene) {
-            const isOldScenePaused =
-              ("isPaused" in oldScene && (oldScene as { isPaused?: boolean }).isPaused === true) ||
-              ("paused" in oldScene && (oldScene as { paused?: boolean }).paused === true);
-            if (isOldScenePaused) {
-              runLifecycleSync(() => oldScene.onResume());
-            }
-          }
-
-          throw error;
+          this.handleTransitionError(myToken, error, timeoutMsg, context.type, scene, oldScene, oldStack, oldState);
         } finally {
           clearTimer();
         }
@@ -396,31 +416,7 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
           this._onEnterError = () => onEnterError;
         });
       } catch (error) {
-        if (myToken !== this.transitionToken) return;
-        this.transitionToken++;
-
-        const isTimeout = error instanceof Error && error.message === timeoutMsg;
-        if (eventBus) {
-          if (scene) {
-            if (isTimeout) {
-              eventBus.emit("scene:transition:timeout", { scene, error });
-            } else {
-              eventBus.emit("scene:transition:error", { scene, error });
-            }
-          }
-          eventBus.emit("scene:error", { action: context.type, error });
-        }
-
-        this.currentScene = oldScene;
-        this.sceneStack = oldStack;
-        this.state = oldState;
-
-        if (oldScene) {
-          runLifecycleSync(() => oldScene.onResume());
-        }
-
-        this._cleanupTransition();
-        throw error;
+        this.handleTransitionError(myToken, error, timeoutMsg, context.type, scene, oldScene, oldStack, oldState, true);
       }
     });
   }

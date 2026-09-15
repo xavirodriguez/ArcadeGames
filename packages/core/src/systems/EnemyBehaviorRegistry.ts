@@ -20,6 +20,17 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
     world.setResource("StateMachineRegistry", registry);
   }
 
+  const alertAndWindup = {
+    Alert: {
+      ...zeroVelocityXOnEnter(),
+      ...timedTransition("alertDuration", "Windup")
+    },
+    Windup: {
+      ...zeroVelocityXOnEnter(),
+      ...timedTransition("windupDuration", "Attack")
+    }
+  };
+
   // 1. Patrol Enemy State Machine
   registry["patrol"] = {
     states: {
@@ -57,14 +68,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
           return checkPlayerDetectionToAlert(sensor);
         }
       },
-      Alert: {
-        ...zeroVelocityXOnEnter(),
-        ...timedTransition("alertDuration", "Windup")
-      },
-      Windup: {
-        ...zeroVelocityXOnEnter(),
-        ...timedTransition("windupDuration", "Attack")
-      },
+      ...alertAndWindup,
       Attack: {
         onEnter(world, entity, data) {
           const speed = (data.patrolSpeed as number) ?? 80;
@@ -110,14 +114,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
           }
         }
       },
-      Alert: {
-        ...zeroVelocityXOnEnter(),
-        ...timedTransition("alertDuration", "Windup")
-      },
-      Windup: {
-        ...zeroVelocityXOnEnter(),
-        ...timedTransition("windupDuration", "Attack")
-      },
+      ...alertAndWindup,
       Attack: {
         onEnter(world, entity, data) {
           const jumpVel = (data.jumpVelocity as number) ?? 250;
@@ -162,14 +159,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
           return checkPlayerDetectionToAlert(sensor);
         }
       },
-      Alert: {
-        ...zeroVelocityXOnEnter(),
-        ...timedTransition("alertDuration", "Windup")
-      },
-      Windup: {
-        ...zeroVelocityXOnEnter(),
-        ...timedTransition("windupDuration", "Attack")
-      },
+      ...alertAndWindup,
       Attack: {
         onEnter(world, entity, data) {
           const chargeSpeed = (data.chargeSpeed as number) ?? 300;

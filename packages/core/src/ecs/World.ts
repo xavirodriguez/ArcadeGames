@@ -14,6 +14,7 @@ import { SnapshotRestoreSoA } from "../snapshots/SnapshotRestoreSoA";
 import { WorldCommandBuffer } from "./WorldCommandBuffer";
 import { BlueprintDefinition } from "./BlueprintRegistry";
 import { ComponentCloner } from "./ComponentCloner";
+import type { InternalWorldAccess } from "../snapshots/SnapshotInternalAccess";
 
 declare const __DEV__: boolean;
 
@@ -156,6 +157,27 @@ export class World<
    * @internal
    */
   public componentVersions = new Map<string, Map<Entity, number>>();
+
+  /**
+   * Internal accessor providing a structured serialization view of World internals for snapshot systems.
+   * @internal
+   */
+  public getSerializationView(): InternalWorldAccess<TComponents> {
+    return {
+      activeEntities: this.activeEntities,
+      nextEntityId: this.nextEntityId,
+      freeEntities: this.freeEntities,
+      generations: this.generations,
+      _structureVersion: this._structureVersion,
+      _stateVersion: this._stateVersion,
+      _tick: this._tick,
+      entityComponentSets: this.entityComponentSets,
+      componentMaps: this.componentMaps,
+      componentIndex: this.componentIndex,
+      componentVersions: this.componentVersions,
+      queries: Array.from(this.queries.values())
+    };
+  }
 
   /** @internal */
   private _gameplayRandom = new RandomService();

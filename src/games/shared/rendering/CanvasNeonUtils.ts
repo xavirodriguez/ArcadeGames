@@ -5,6 +5,7 @@
 
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "./ProceduralShapeUtils";
+import { COSMIC_ARCADE_PALETTE, hexToRgba } from "./CosmicPalette";
 
 export interface TrailPoint {
   x: number;
@@ -211,20 +212,20 @@ export function getComboReaction(multiplier: number): {
   mainColor: string;
 } {
   let trailLength = 8;
-  let trailColor = "rgba(0, 240, 255, 0.4)"; // Default: Cyan
-  let trailColorInner = "rgba(255, 255, 255, 0.2)";
-  let mainColor: string = colors.cyan;
+  let trailColor = hexToRgba(COSMIC_ARCADE_PALETTE.neonCyan, 0.4);
+  let trailColorInner = hexToRgba(COSMIC_ARCADE_PALETTE.white, 0.2);
+  let mainColor: string = COSMIC_ARCADE_PALETTE.neonCyan;
 
   if (multiplier === 2) {
     trailLength = 16;
-    trailColor = "rgba(255, 0, 85, 0.5)"; // Pink/Magenta (colors.pink)
-    trailColorInner = "rgba(255, 255, 255, 0.3)";
-    mainColor = colors.pink;
+    trailColor = hexToRgba(COSMIC_ARCADE_PALETTE.neonMagenta, 0.5);
+    trailColorInner = hexToRgba(COSMIC_ARCADE_PALETTE.white, 0.3);
+    mainColor = COSMIC_ARCADE_PALETTE.neonMagenta;
   } else if (multiplier >= 3) {
     trailLength = 24;
-    trailColor = "rgba(255, 215, 0, 0.6)"; // Gold (colors.gold)
-    trailColorInner = "rgba(255, 255, 255, 0.4)";
-    mainColor = colors.gold;
+    trailColor = hexToRgba(COSMIC_ARCADE_PALETTE.plasmaYellow, 0.6);
+    trailColorInner = hexToRgba(COSMIC_ARCADE_PALETTE.white, 0.4);
+    mainColor = COSMIC_ARCADE_PALETTE.plasmaYellow;
   }
 
   return { trailLength, trailColor, trailColorInner, mainColor };

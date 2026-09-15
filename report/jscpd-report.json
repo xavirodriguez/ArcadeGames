@@ -187,43 +187,6 @@
     },
     {
       "firstFile": {
-        "end": 32,
-        "endLoc": {
-          "column": 12,
-          "line": 32,
-          "position": 1215
-        },
-        "name": "snapshots/SnapshotSerializer.ts",
-        "start": 4,
-        "startLoc": {
-          "column": 85,
-          "line": 4,
-          "position": 235
-        }
-      },
-      "format": "typescript",
-      "fragment": "import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from \"./WorldSnapshot\";\nimport { buildSnapshotMetadata } from \"./SnapshotMetadataBuilder\";\n\n/**\n * Internal interface to access private world state for serialization.\n */\ninterface InternalWorldAccess<_TComponents extends ComponentRegistry> {\n  activeEntities: Set<number>;\n  entityComponentSets: Map<number, Set<string>>;\n  componentMaps: Map<string, Map<number, unknown>>;\n  nextEntityId: number;\n  freeEntities: number[];\n  generations?: number[];\n}\n\n/**\n * Classical Array of Structures (AoS) Serializer.\n *\n * @remarks\n * This class captures the entire ECS World state into an Array of Structures (AoS) layout,\n * where components are grouped by entity ID inside nested record maps.\n *\n * While highly inspectable and great for development or sparse incremental updates, AoS serialization\n * relies on deep object copying and allocates extensive temporary hashes, leading to garbage\n * collection (GC) overhead in high-frequency update loops.\n *\n * @public\n */\nexport class SnapshotSerializer {",
-      "isNew": false,
-      "lines": 29,
-      "secondFile": {
-        "end": 32,
-        "endLoc": {
-          "column": 12,
-          "line": 32,
-          "position": 1297
-        },
-        "name": "snapshots/SnapshotSerializerSoA.ts",
-        "start": 4,
-        "startLoc": {
-          "column": 48,
-          "line": 4,
-          "position": 198
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
         "end": 70,
         "endLoc": {
           "column": 15,
@@ -6699,32 +6662,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-15T07:39:07.383Z",
+    "detectionDate": "2026-09-15T07:53:13.381Z",
     "formats": {
       "typescript": {
-        "clones": 181,
-        "duplicatedLines": 1707,
-        "duplicatedTokens": 13218,
-        "lines": 64944,
+        "clones": 180,
+        "duplicatedLines": 1679,
+        "duplicatedTokens": 13146,
+        "lines": 64922,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.628418329637842,
-        "percentageTokens": 3.900323108927544,
+        "percentage": 2.5861803394843044,
+        "percentageTokens": 3.8802683660427815,
         "sources": 385,
-        "tokens": 338895
+        "tokens": 338791
       }
     },
     "total": {
-      "clones": 181,
-      "duplicatedLines": 1707,
-      "duplicatedTokens": 13218,
-      "lines": 64944,
+      "clones": 180,
+      "duplicatedLines": 1679,
+      "duplicatedTokens": 13146,
+      "lines": 64922,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.628418329637842,
-      "percentageTokens": 3.900323108927544,
+      "percentage": 2.5861803394843044,
+      "percentageTokens": 3.8802683660427815,
       "sources": 385,
-      "tokens": 338895
+      "tokens": 338791
     }
   }
 }

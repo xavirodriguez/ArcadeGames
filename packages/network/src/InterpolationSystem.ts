@@ -41,21 +41,37 @@ export class InterpolationBuffer {
   }
 
   /**
-   * Adds a new authoritative snapshot to the buffer.
+   * Adds a new authoritative snapshot to the buffer using efficient ordered insertion.
    * Maintains the buffer sorted by timestamp to facilitate lookups.
-   *
-   * @warning
-   * **Performance**: Calling `sort()` on every push adds O(N log N) overhead.
-   * While `maxSize` is typically small, frequent updates in a high-entity
-   * environment may impact performance.
    */
   public push(snapshot: EntitySnapshot): void {
-    this.snapshots.push(snapshot);
+    const len = this.snapshots.length;
+
+    // Fast path: snapshot is newer than or equal to the latest item (in-order arrival)
+    if (len === 0 || snapshot.timestamp >= this.snapshots[len - 1].timestamp) {
+      this.snapshots.push(snapshot);
+    } else if (snapshot.timestamp <= this.snapshots[0].timestamp) {
+      // Fast path: snapshot is older than or equal to the oldest item
+      this.snapshots.unshift(snapshot);
+    } else {
+      // Binary search insertion index
+      let low = 0;
+      let high = len - 1;
+      while (low <= high) {
+        const mid = (low + high) >>> 1;
+        if (this.snapshots[mid].timestamp <= snapshot.timestamp) {
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+      this.snapshots.splice(low, 0, snapshot);
+    }
+
+    // Trim older snapshots exceeding maxSize limit
     if (this.snapshots.length > this.maxSize) {
       this.snapshots.shift();
     }
-    // Sort by timestamp to be safe
-    this.snapshots.sort((a, b) => a.timestamp - b.timestamp);
   }
 
   /**

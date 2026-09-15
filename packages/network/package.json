@@ -21,9 +21,7 @@
     "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
     "clean:artifacts": "[ -d src ] && find src -type f \\( -name \"*.js\" -o -name \"*.js.map\" \\) -delete || true"
   },
-  "dependencies": {
-    "@tiny-aster/core": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"

@@ -1,3 +1,4 @@
+// TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:1-20. Considerar extraer a función compartida. Ref: f2c51d64
 import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
@@ -44,6 +45,7 @@ function getCachedSkiaShader(key: string, factory: () => any): any {
 // ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
 // ============================================================================
 
+// TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:29-42. Considerar extraer a función compartida. Ref: d13173d1
 export const FLAPPY_SKIA_PARTICLE_POOL: VisualParticlePool = createParticlePool(150);
 
 export function spawnVisualParticle(
@@ -92,6 +94,7 @@ function getShardPolyPath(): any {
 }
 
 function drawSkiaVisualParticles(canvas: any, paint: any): void {
+  // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:51-56. Considerar extraer a función compartida. Ref: 24e97eaf
   const particles = FLAPPY_SKIA_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
@@ -167,6 +170,7 @@ function getArrowheadPath(size: number): any {
 export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:127-139. Considerar extraer a función compartida. Ref: e2f0caa4
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
@@ -179,6 +183,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:139-150. Considerar extraer a función compartida. Ref: 46ed589c
     processFlappyBirdParticleEvents(world, entity, birdComp, FLAPPY_SKIA_PARTICLE_POOL, x, y, size);
 
     const vy = birdComp.velocityY;
@@ -321,6 +326,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:328-348. Considerar extraer a función compartida. Ref: 4361370d
     const render = world.getComponent(entity, "Render");
     const pos = world.getComponent(entity, "Transform");
     if (!render || !pos) return;
@@ -497,6 +503,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
         paint.setColor(Skia.Color("#00F3FF"));
         paint.setAlphaf(0.7 + 0.3 * laserPulse);
         paint.setStrokeWidth(3.0);
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:517-525. Considerar extraer a función compartida. Ref: 33e66ed4
         canvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
 
         if (world.tick % 4 === 0) {
@@ -717,6 +724,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#050510"));
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:752-759. Considerar extraer a función compartida. Ref: f7fc3be5
     canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     // --- ANIMATED LOW-OPACITY RADIAL NEBULAE CLOUDS ---
@@ -740,6 +748,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setShader(nebShader);
         paint.setAlphaf(0.35);
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:771-793. Considerar extraer a función compartida. Ref: e6aee880
         canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
       }
     }
@@ -790,6 +799,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       } else {
         paint.setColor(Skia.Color("#E0E5FF"));
         const pLen = warpFactor > 1.2 ? Math.min(star.size * 3 * warpFactor, 10) : star.size;
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:824-835. Considerar extraer a función compartida. Ref: d33903a0
         canvas.drawRect(Skia.XYWHRect(sx, star.y, pLen, star.size), paint);
       }
     }
@@ -810,6 +820,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color("#00F3FF"));
       paint.setAlphaf(0.15 * intensity);
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:839-844. Considerar extraer a función compartida. Ref: b47c3db0
       paint.setStrokeWidth(1.2);
 
       for (let l = 0; l < lineCount; l++) {
@@ -841,6 +852,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     if (birds.length > 0) {
       const energy = world.getComponent(birds[0], "GlideEnergy");
       if (energy) {
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:868-874. Considerar extraer a función compartida. Ref: 119798bd
         const barW = 120;
         const barH = 8;
         const bx = (width - barW) / 2;

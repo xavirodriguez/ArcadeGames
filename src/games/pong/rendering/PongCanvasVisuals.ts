@@ -12,6 +12,7 @@ const ballMotionTrail = new CanvasMotionTrail(30);
  * Upgraded, high-fidelity ball shape drawer with a swirling core and dynamic fading afterimage trails.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:7-15. Considerar extraer a función compartida. Ref: 7da9f2cf
 export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -83,6 +84,7 @@ export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRe
  */
 export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:137-149. Considerar extraer a función compartida. Ref: a28f9af6
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -103,6 +105,7 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
       color,
       glowAlphaColor,
       // 1. Draw outline path
+      // TODO(refactor): código duplicado detectado (función) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:52-63. Considerar extraer a función compartida. Ref: c2fd39d3
       (ctx, widthScale, heightScale) => {
         const pw = w * widthScale;
         const ph = h * heightScale;
@@ -115,6 +118,7 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
       // 2. Draw white core path
       (ctx) => {
         const coreW = w * 0.4;
+        // TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:64-75. Considerar extraer a función compartida. Ref: 32a95799
         const coreH = h * 0.9;
         if (ctx.roundRect) {
           ctx.roundRect(-coreW / 2, -coreH / 2, coreW, coreH, 2);

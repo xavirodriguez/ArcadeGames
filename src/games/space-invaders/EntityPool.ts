@@ -66,6 +66,7 @@ export class PlayerBulletPool extends ProjectilePool<any, ProjectileParams> {
     }));
   }
 
+  // TODO(refactor): código duplicado detectado (método) con space-invaders/EntityPool.ts:87-98. Considerar extraer a función compartida. Ref: 87aa5fa1
   public acquireInvaderBullet(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {
     return this.acquire(world, { x, y, dx, dy, size, color, ttl });
   }

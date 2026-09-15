@@ -1,3 +1,4 @@
+// TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:1-20. Considerar extraer a función compartida. Ref: f2c51d64
 import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
@@ -26,6 +27,7 @@ import { processFlappyBirdParticleEvents, applyFlappyParticlePhysics } from "./p
 // ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
 // ============================================================================
 
+// TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:47-60. Considerar extraer a función compartida. Ref: d13173d1
 export const FLAPPY_CANVAS_PARTICLE_POOL: VisualParticlePool = createParticlePool(150);
 
 export function spawnVisualParticle(
@@ -48,6 +50,7 @@ function updateVisualParticles(): void {
 }
 
 function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
+  // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:95-100. Considerar extraer a función compartida. Ref: 24e97eaf
   const particles = FLAPPY_CANVAS_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
@@ -124,6 +127,7 @@ function getCachedCanvasGradient(
  */
 export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:170-182. Considerar extraer a función compartida. Ref: e2f0caa4
     const render = world.getComponent(entity, "Render");
     if (!render) return;
     const { size = 15 } = render;
@@ -136,6 +140,7 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:182-193. Considerar extraer a función compartida. Ref: 46ed589c
     processFlappyBirdParticleEvents(world, entity, birdComp, FLAPPY_CANVAS_PARTICLE_POOL, x, y, size);
 
     const vy = birdComp.velocityY;
@@ -325,6 +330,7 @@ function drawArrowheadPath(ctx: CanvasRenderingContext2D, size: number) {
 
 export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:324-343. Considerar extraer a función compartida. Ref: 4361370d
     const render = world.getComponent(entity, "Render");
     const pos = world.getComponent(entity, "Transform");
     if (!render || !pos) return;
@@ -514,6 +520,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
         ctx.beginPath();
         ctx.moveTo(0, capYOffset + capHeight);
         ctx.lineTo(0, capYOffset + capHeight + pipe.gapSize);
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:500-508. Considerar extraer a función compartida. Ref: 33e66ed4
         ctx.stroke();
 
         if (world.tick % 4 === 0) {
@@ -749,6 +756,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     // --- DEEP VOID BASE (#050510) ---
     ctx.fillStyle = "#050510";
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:720-727. Considerar extraer a función compartida. Ref: f7fc3be5
     ctx.fillRect(0, 0, width, height);
 
     // --- ANIMATED LOW-OPACITY RADIAL NEBULAE CLOUDS ---
@@ -767,6 +775,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.fillStyle = nebGrad;
       ctx.globalAlpha = 0.35;
       ctx.fillRect(0, 0, width, height);
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:745-767. Considerar extraer a función compartida. Ref: e6aee880
       ctx.restore();
     }
 
@@ -820,6 +829,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
           ctx.fillRect(starX, star.y, star.size, star.size);
         }
       }
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:795-806. Considerar extraer a función compartida. Ref: d33903a0
       ctx.restore();
     }
 
@@ -836,6 +846,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
       ctx.save();
       ctx.strokeStyle = "rgba(0, 243, 255, " + (0.15 * intensity).toFixed(3) + ")";
+      // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:813-818. Considerar extraer a función compartida. Ref: b47c3db0
       ctx.lineWidth = 1.2;
 
       for (let l = 0; l < lineCount; l++) {
@@ -865,6 +876,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       const energy = world.getComponent(birds[0], "GlideEnergy");
       if (energy) {
         ctx.save();
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:844-850. Considerar extraer a función compartida. Ref: 119798bd
         const barW = 120;
         const barH = 8;
         const bx = (width - barW) / 2;

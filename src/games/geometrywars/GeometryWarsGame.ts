@@ -141,6 +141,7 @@ export class GeometryWarsGame extends BaseGame<
         commands.addComponent(entity, { type: "Player" } as any);
         commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
         commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: colors.cyan, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
+        // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:165-172. Considerar extraer a función compartida. Ref: b1e43344
         commands.addComponent(entity, { type: "Health", current: state.alive ? 1 : 0, max: 1 } as any);
       },
       sync: (world, entity, state) => {
@@ -162,6 +163,7 @@ export class GeometryWarsGame extends BaseGame<
       spawn: (world, entity, state) => {
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
+        // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:181-190. Considerar extraer a función compartida. Ref: 9bb0e638
         commands.addComponent(entity, { type: "Render", shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
       },
       sync: (world, entity, state) => {
@@ -200,6 +202,7 @@ export class GeometryWarsGame extends BaseGame<
       });
     }
 
+    // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:479-491. Considerar extraer a función compartida. Ref: c3ed8066
     const world = this.getWorld();
     const replicator = this.networkManager.getReplicator();
     const currentServerEntities = new Set<string>();
@@ -218,12 +221,14 @@ export class GeometryWarsGame extends BaseGame<
     if (state.enemies) {
         Object.entries(state.enemies as Record<string, any>).forEach(([id, p]) => {
             const entityId = replicator.getLocalId(`enemy_${id}`);
+            // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:826-832. Considerar extraer a función compartida. Ref: 2738d330
             if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
         });
     }
     if (state.bullets) {
         Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
             const entityId = replicator.getLocalId(`bullet_${id}`);
+            // TODO(refactor): código duplicado detectado (bloque) con flappybird/FlappyBirdGame.ts:497-511. Considerar extraer a función compartida. Ref: 5b8ab361
             if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
         });
     }

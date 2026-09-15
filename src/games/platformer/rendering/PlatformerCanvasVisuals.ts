@@ -2,6 +2,7 @@ import { ShapeDrawer, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
+// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:123-129. Considerar extraer a función compartida. Ref: 4dc2639d
 export const drawPlatformerPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -39,6 +40,7 @@ export const drawPlatformerPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCom
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:355-360. Considerar extraer a función compartida. Ref: d2a6f373
 export const drawPlatformerGoal: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");

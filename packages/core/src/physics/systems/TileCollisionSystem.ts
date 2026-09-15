@@ -115,7 +115,8 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       let maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);
 
       // Direct nested loop eliminates closure allocation per frame
-      xTileLoop: for (let ty = minTileY; ty <= maxTileY; ty++) {
+      xTileLoop: for (// TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:160-168. Considerar extraer a función compartida. Ref: c358e011
+      let ty = minTileY; ty <= maxTileY; ty++) {
         const row = tilemap.data[ty];
         if (!row) continue;
         for (let tx = minTileX; tx <= maxTileX; tx++) {
@@ -176,6 +177,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
               const isDescending = oldVy >= 0;
               const wasAbove = prevPlayerBottom <= tileTop + 1.0;
 
+              // TODO(refactor): código duplicado detectado (bloque) con physics/systems/TileCollisionSystem.ts:189-197. Considerar extraer a función compartida. Ref: a710136f
               if (isDescending && wasAbove) {
                 trans.y = tileTop - halfH - offsetY;
                 vel.vy = 0;

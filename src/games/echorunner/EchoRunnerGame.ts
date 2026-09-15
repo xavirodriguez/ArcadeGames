@@ -258,7 +258,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
         const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
         EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: 0, y: 0 });
+          .withTransform({ x: 0, y: 0 })
+          .withRender({ shape: "tilemap", size: config.TILE_SIZE, order: 0 });
 
         world.addComponent(entity, {
           type: "Tilemap",
@@ -518,7 +519,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         drawCharger
       } = require("./rendering/EchoRunnerCanvasVisuals");
 
+      const { drawPlatformerTilemap } = require("../platformer/rendering/PlatformerCanvasVisuals");
+
       renderer.registerBackgroundEffect("echo_bg", drawEchoBackground);
+      renderer.registerShape("tilemap", drawPlatformerTilemap);
       renderer.registerShape("player", drawEchoPlayer);
       renderer.registerShape("fragment", drawMemoryFragment);
       renderer.registerShape("core", drawMemoryCore);

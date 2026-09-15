@@ -48,7 +48,7 @@ import { PlatformerDamageSystem } from "./systems/PlatformerDamageSystem";
 import { PlatformerDashSystem } from "./systems/PlatformerDashSystem";
 import { PlatformerWallJumpSystem } from "./systems/PlatformerWallJumpSystem";
 import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
-import { drawPlatformerPlayer, drawPlatformerGoal } from "./rendering/PlatformerCanvasVisuals";
+import { drawPlatformerPlayer, drawPlatformerGoal, drawPlatformerTilemap } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
@@ -343,7 +343,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
         const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
         EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: 0, y: 0 });
+          .withTransform({ x: 0, y: 0 })
+          .withRender({ shape: "tilemap", size: config.TILE_SIZE, order: 0 });
 
         world.addComponent(entity, {
           type: "Tilemap",
@@ -375,6 +376,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
   }
 
   public initializeRenderer(renderer: Renderer<any, any>): void {
+    renderer.registerShape("tilemap", drawPlatformerTilemap);
     renderer.registerShape("player", drawPlatformerPlayer);
     renderer.registerShape("goal", drawPlatformerGoal);
     renderer.registerShape("fragment", drawMemoryFragment);

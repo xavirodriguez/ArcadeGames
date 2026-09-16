@@ -18,7 +18,8 @@ export const AsteroidConfigSchema = BaseConfigSchema.extend({
   BULLET_SPEED: z.number().default(300),
   ...ComboConfigSchema.shape,
   HYPERSPACE_COOLDOWN: z.number().default(5.0),
-  HYPERSPACE_PREP_TIME: z.number().default(0.5)
+  HYPERSPACE_PREP_TIME: z.number().default(0.5),
+  FRAGMENT_IMPULSE_SPEED: z.number().default(80)
 });
 
 /** @public */

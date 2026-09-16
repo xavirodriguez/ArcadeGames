@@ -26,6 +26,7 @@ export interface AsteroidsComponentRegistry extends CoreComponentRegistry {
     hyperspacePrepTime?: number;
     hyperspacePreviewX?: number;
     hyperspacePreviewY?: number;
+    hyperspacePreviewEntityId?: number;
   };
   Bullet: { type: "Bullet"; ownerId?: string };
   LocalPlayer: { type: "LocalPlayer" };

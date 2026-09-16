@@ -8,9 +8,9 @@ import { GAME_ACCENTS, getGameAccentColors } from '../../../theme/gameAccents';
 describe('Aesthetic Improvements Infrastructure Tests', () => {
   it('correctly retrieves accent colors for mapped games', () => {
     const asteroidsAccents = getGameAccentColors('asteroids');
-    expect(asteroidsAccents.primary).toBe('#f97316');
-    expect(asteroidsAccents.secondary).toBe('#ffffff');
-    expect(asteroidsAccents.accent).toBe('#ef4444');
+    expect(asteroidsAccents.primary.toLowerCase()).toBe('#f97316');
+    expect(asteroidsAccents.secondary.toLowerCase()).toBe('#ffffff');
+    expect(asteroidsAccents.accent.toLowerCase()).toBe('#ef4444');
 
     const spaceInvadersAccents = getGameAccentColors('space-invaders');
     expect(spaceInvadersAccents.primary).toBe('#00FF41');

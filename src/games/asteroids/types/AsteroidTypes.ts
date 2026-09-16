@@ -41,6 +41,7 @@ export interface ShipComponent extends Component {
   hyperspacePrepTime?: number;
   hyperspacePreviewX?: number;
   hyperspacePreviewY?: number;
+  hyperspacePreviewEntityId?: number;
 }
 
 /** @public */

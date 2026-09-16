@@ -16,10 +16,10 @@ import {
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
+import { BulletPool } from "./EntityPool";
 import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
 import { attachEnemyDefaults } from "../shared/enemyHelpers";
 import { PowerUpComponent } from "@tiny-aster/gameplay-kit";
-import { BulletPool } from "./EntityPool";
 
 /**
  * @param lootType - Loot/power-up identifier (e.g. "shield", "speed_boost").
@@ -236,15 +236,16 @@ export function registerAsteroidsBlueprints(
         tableId: "default"
       });
       // Every asteroid also drops a persistent, collect-once story fragment tied to its
-      // spawn position/size — this is why asteroids carry a Collectible component in
+      // spawn tick and sequence index — this is why asteroids carry a Collectible component in
       // addition to LootTable (loot table is for combat drops, Collectible is for story).
+      const spawnSeq = (w as any)._asteroidSpawnCounter = ((w as any)._asteroidSpawnCounter || 0) + 1;
       w.addComponent(entity, {
         type: "Collectible",
         kind: "story_fragment",
         value: 1,
         persistent: true,
         collectOnce: true,
-        id: `asteroid_fragment_${args.size}_${args.x}_${args.y}`
+        id: `asteroid_fragment_${args.size}_t${w.tick}_seq${spawnSeq}`
       } as any);
     }
   });
@@ -545,8 +546,8 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
         const angle1 = rand.next() * Math.PI * 2;
         const angle2 = angle1 + Math.PI; // opposite directions
 
-        const speed = 80; // Fragmentation impulse speed added to the parent's velocity,
-                           // in px/s. Tuned by feel — not currently exposed via GameConfig.
+        const config = world.getResource<AsteroidConfig>("GameConfig");
+        const speed = config?.FRAGMENT_IMPULSE_SPEED ?? 80;
 
         for (const angle of [angle1, angle2]) {
             const vx = (velocity ? velocity.vx : 0) + Math.cos(angle) * speed;

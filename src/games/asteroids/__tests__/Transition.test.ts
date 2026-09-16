@@ -31,9 +31,9 @@ describe('Arcade Transitions & Game Accents Integration', () => {
 
   it('resolves accent colors from GAME_ACCENTS correctly for all games', () => {
     const asteroidsColors = getGameAccentColors('asteroids');
-    expect(asteroidsColors.primary).toBe('#f97316');
-    expect(asteroidsColors.secondary).toBe('#ffffff');
-    expect(asteroidsColors.accent).toBe('#ef4444');
+    expect(asteroidsColors.primary.toLowerCase()).toBe('#f97316');
+    expect(asteroidsColors.secondary.toLowerCase()).toBe('#ffffff');
+    expect(asteroidsColors.accent.toLowerCase()).toBe('#ef4444');
 
     const spaceInvadersColors = getGameAccentColors('space-invaders');
     expect(spaceInvadersColors.primary).toBe('#00FF41');

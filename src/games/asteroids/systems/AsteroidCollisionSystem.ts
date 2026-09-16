@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { World, System } from "@tiny-aster/core";
+import { World, System, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
-import { fragmentAsteroid } from "../EntityFactory";
-import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
-import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
-import { getLogsForLevel } from "../story/StoryBeats";
+import { applyAsteroidCombatDeathEffects, triggerShipExplosionParticles } from "./AsteroidRewardEffects";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -15,7 +12,6 @@ import { getLogsForLevel } from "../story/StoryBeats";
  * @public
  */
 export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, AsteroidsEventRegistry> {
-  private static readonly ASTEROID_EXPLOSION_COLORS = ["#ff66cc", "#ff9ee0", "#ffd6f0", "#ffffff"] as const;
   private static readonly SHIP_EXPLOSION_COLORS = ["#00f0ff", "#5cf2ff", "#ff5d00", "#ffffff"] as const;
 
   private processedDeaths = new Set<number>();
@@ -89,116 +85,12 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     }
     this.processedDeaths.add(asteroid);
 
-    if (!world.hasComponent(asteroid, "Asteroid")) {
-      return;
-    }
-
-    const asteroidComp = world.getComponent(asteroid, "Asteroid");
-    const size = (asteroidComp?.size || "large") as "large" | "medium" | "small";
-
-    let points = 20;
-    if (size === "medium") points = 50;
-    else if (size === "small") points = 100;
-
-    const config = world.getResource<any>("GameConfig") || {};
-    let nextCombo = 0;
-    let nextMultiplier = 1;
-
-    const comboEntities = world.query("Combo");
-    const comboEntity = comboEntities[0];
-    if (comboEntity !== undefined) {
-      world.mutateComponent(comboEntity, "Combo", (c) => {
-        c.combo++;
-        c.timerRemaining = (config.COMBO_TIMEOUT ?? 2000) / 1000;
-        c.multiplier = Math.min(config.MAX_MULTIPLIER ?? 10, 1 + Math.floor(c.combo / 5));
-        nextCombo = c.combo;
-        nextMultiplier = c.multiplier;
-      });
-    }
-
-    const scoreGain = points * nextMultiplier;
-    let newScore = scoreGain;
-    world.mutateSingleton("GameState", (state) => {
-        state.score += scoreGain;
-        newScore = state.score;
-    });
-
-    // Score synchronization logic by owner
-    if (bullet !== undefined && world.hasComponent(bullet, "Bullet")) {
-      const bulletComp = world.getComponent(bullet, "Bullet");
-      const ownerId = bulletComp?.ownerId;
-      if (ownerId) {
-          const playerEntity = this.findPlayerByOwnerId(world, ownerId);
-
-          if (playerEntity !== undefined) {
-              if (!world.hasComponent(playerEntity, "PlayerScore")) {
-                  world.getCommandBuffer().addComponent(playerEntity, {
-                      type: "PlayerScore",
-                      score: scoreGain
-                  });
-              } else {
-                  world.mutateComponent(playerEntity, "PlayerScore", (ps) => {
-                      ps.score = (ps.score || 0) + scoreGain;
-                  });
-              }
-          }
-      }
-    }
-
-    const asteroidTransform = world.getComponent(asteroid, "Transform");
-    if (asteroidTransform) {
-      const gameState = world.getSingleton("GameState");
-      const isStory = gameState?.mode === "story";
-      const level = gameState?.level ?? 1;
-
-      if (isStory && size === "large" && world.gameplayRandom.next() < 0.1) {
-        const logs = getLogsForLevel(level);
-        if (logs && logs.length > 0) {
-          const logIndex = world.gameplayRandom.nextInt(0, logs.length);
-          const logText = logs[logIndex];
-          spawnScorePopup(world, asteroidTransform.x, asteroidTransform.y - 20, logText, "#00FFDD");
-        }
-      }
-
-      spawnScorePopup(world, asteroidTransform.x, asteroidTransform.y, `x${nextMultiplier}`, "#FFFF00");
-    }
-
-    // Spawn particles
-    const particlePool = world.getResource<any>("ParticlePool");
-    if (asteroidTransform && particlePool) {
-      const ax = asteroidTransform.x;
-      const ay = asteroidTransform.y;
-      const particleCount = size === "large" ? EXPLOSION_PROFILES["enemy"].particleCount : EXPLOSION_PROFILES["small"].particleCount;
-      const rng = world.gameplayRandom;
-      const colors = EXPLOSION_PROFILES["enemy"].colorSequence;
-      for (let i = 0; i < particleCount; i++) {
-        const angle = rng.next() * Math.PI * 2;
-        const speed = rng.nextRange(40, 150);
-        const px = ax + (rng.next() - 0.5) * 8;
-        const py = ay + (rng.next() - 0.5) * 8;
-        const vx = Math.cos(angle) * speed;
-        const vy = Math.sin(angle) * speed;
-        const color = colors[rng.nextInt(0, colors.length)];
-        const pSize = rng.nextRange(1.5, 4.5);
-        const ttl = rng.nextRange(0.4, 0.9);
-        createSharedParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
-      }
-    }
-
-    // Fragment asteroid
-    fragmentAsteroid(world, asteroid);
-
-    // Remove entity
-    world.getCommandBuffer().removeEntity(asteroid);
-
-    // Emit deferred events
-    const eventBus = world.getEventBus();
-    if (eventBus) {
-        const sfxName = size === "large" ? "explosion_large" : "explosion_small";
-        eventBus.emitDeferred("PlaySFX", { name: sfxName, pitchRange: 0.06 });
-        eventBus.emitDeferred("asteroid:destroyed", { entity: asteroid, size });
-        eventBus.emitDeferred("score:changed", { newScore, delta: scoreGain });
-    }
+    applyAsteroidCombatDeathEffects(
+      world,
+      asteroid,
+      bullet,
+      (w, ownerId) => this.findPlayerByOwnerId(w, ownerId)
+    );
   }
 
   public update(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, _deltaTime: number): void {
@@ -328,10 +220,22 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
               c.timerRemaining = 0;
             });
           } else {
-            const comboEntities = world.query("Combo");
-            const comboEntity = comboEntities[0];
-            if (comboEntity !== undefined) {
-              world.mutateComponent(comboEntity, "Combo", (c) => {
+            const shipRemote = world.getComponent(ship, "RemotePlayer");
+            const shipComp = world.getComponent(ship, "Ship");
+            const ownerId = shipRemote?.sessionId || shipComp?.sessionId;
+            let targetComboEntity: number | undefined;
+            if (ownerId) {
+              const playerEnt = this.findPlayerByOwnerId(world, ownerId);
+              if (playerEnt !== undefined && world.hasComponent(playerEnt, "Combo")) {
+                targetComboEntity = playerEnt;
+              }
+            }
+            if (targetComboEntity === undefined) {
+              const comboEntities = world.query("Combo");
+              targetComboEntity = comboEntities[0];
+            }
+            if (targetComboEntity !== undefined) {
+              world.mutateComponent(targetComboEntity, "Combo", (c) => {
                 c.combo = 0;
                 c.multiplier = 1;
                 c.timerRemaining = 0;
@@ -340,24 +244,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           }
 
           // Spawn particle explosion for player ship impact/death
-          const shipTransform = world.getComponent(ship, "Transform");
-          const shipParticlePool = world.getResource<any>("ParticlePool");
-          if (shipTransform && shipParticlePool) {
-            const sx = shipTransform.x;
-            const sy = shipTransform.y;
-            const rng = world.gameplayRandom;
-            const colors = AsteroidCollisionSystem.SHIP_EXPLOSION_COLORS;
-            for (let i = 0; i < 24; i++) {
-              const angle = rng.next() * Math.PI * 2;
-              const speed = rng.nextRange(60, 200);
-              const vx = Math.cos(angle) * speed;
-              const vy = Math.sin(angle) * speed;
-              const color = colors[rng.nextInt(0, colors.length)];
-              const pSize = rng.nextRange(2.0, 5.5);
-              const ttl = rng.nextRange(0.5, 1.2);
-              createSharedParticle(world, sx, sy, vx, vy, color, shipParticlePool, pSize, ttl);
-            }
-          }
+          triggerShipExplosionParticles(world, ship, AsteroidCollisionSystem.SHIP_EXPLOSION_COLORS);
 
           if (lives > 0) {
             // Respawn ship at center with invulnerability

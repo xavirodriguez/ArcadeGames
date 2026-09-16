@@ -351,6 +351,8 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
                 t.dirty = true;
               });
             }
+
+            applyBrickDamage(world, other, ballEntity);
           }
         }
       }
@@ -444,4 +446,40 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
       eventBus.emitDeferred("PlaySFX", { name });
     }
   }
+}
+
+export function applyBrickDamage(
+  world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>,
+  brickEntity: Entity,
+  attackerEntity: Entity
+): void {
+  const brick = world.getComponent(brickEntity, "Brick");
+  const health = world.getComponent(brickEntity, "Health");
+  if (!brick || !health) return;
+
+  const eventBus = world.getEventBus();
+
+  if (brick.material === "gold") {
+    if (eventBus && !world.isReSimulating) {
+      eventBus.emitDeferred("PlaySFX", { name: "hit" });
+    }
+    return;
+  }
+
+  const isDead = health.current - 1 <= 0;
+
+  world.mutateComponent(brickEntity, "Health", (h) => {
+    h.current = Math.max(0, h.current - 1);
+  });
+  world.mutateComponent(brickEntity, "Brick", (b) => {
+    b.hp = Math.max(0, b.hp - 1);
+  });
+
+  if (!eventBus) return;
+  const eventName = isDead ? "combat:death" : "combat:hit";
+  const payload = isDead
+    ? { entity: brickEntity, attackerEntity }
+    : { targetEntity: brickEntity, attackerEntity, damage: 1 };
+
+  eventBus.emitDeferred(eventName, payload);
 }

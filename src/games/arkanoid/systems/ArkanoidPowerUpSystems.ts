@@ -2,6 +2,7 @@ import { System, World, WorldUtils, Juice, CoreComponentRegistry, Entity, Entity
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry, CapsuleType } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 import { ArkanoidEntityFactory } from "../EntityFactory";
+import { applyBrickDamage } from "./ArkanoidCollisionSystem";
 
 export class ArkanoidPowerUpSpawnSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   public override onRegister(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>): void {
@@ -212,31 +213,7 @@ export class ArkanoidLaserSystem extends System<ArkanoidComponentRegistry, Arkan
         if (!WorldUtils.isEntityActive(world, other)) continue;
 
         if (world.hasComponent(other, "Brick")) {
-          const brick = world.getComponent(other, "Brick");
-          const health = world.getComponent(other, "Health");
-
-          if (brick && brick.material !== "gold" && health) {
-            const eventBus = world.getEventBus();
-            world.mutateComponent(other, "Health", (h) => {
-              h.current = Math.max(0, h.current - 1);
-            });
-            world.mutateComponent(other, "Brick", (b) => {
-              b.hp = Math.max(0, b.hp - 1);
-            });
-
-            if (eventBus) {
-              if (health.current - 1 <= 0) {
-                eventBus.emitDeferred("combat:death", { entity: other, attackerEntity: lEntity });
-              } else {
-                eventBus.emitDeferred("combat:hit", { targetEntity: other, attackerEntity: lEntity, damage: 1 });
-              }
-            }
-            } else if (brick && brick.material === "gold") {
-              const eventBus = world.getEventBus();
-              if (eventBus && !world.isReSimulating) {
-                eventBus.emitDeferred("PlaySFX", { name: "hit" });
-              }
-          }
+          applyBrickDamage(world, other, lEntity);
           world.getCommandBuffer().removeEntity(lEntity);
           break;
         } else if (world.hasComponent(other, "Enemy")) {

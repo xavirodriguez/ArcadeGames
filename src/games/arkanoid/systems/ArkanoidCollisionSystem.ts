@@ -14,6 +14,7 @@ import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfig
 export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private config?: ArkanoidConfig;
   private processedPairs = new Set<string>();
+  private pendingRemovedBalls = new Set<Entity>();
 
   public override onRegister(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>): void {
     this.config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
@@ -187,6 +188,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
     this.config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
 
     this.processedPairs.clear();
+    this.pendingRemovedBalls.clear();
 
     const ballEntities = world.query("Ball", "Transform", "Velocity");
     const paddleEntities = world.query("Paddle", "Transform");
@@ -370,12 +372,14 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
     const allBalls = world.query("Ball");
     let activeBallCount = 0;
     for (let i = 0; i < allBalls.length; i++) {
-      if (WorldUtils.isEntityActive(world, allBalls[i])) {
+      const b = allBalls[i];
+      if (WorldUtils.isEntityActive(world, b) && !this.pendingRemovedBalls.has(b)) {
         activeBallCount++;
       }
     }
 
     if (activeBallCount > 1) {
+      this.pendingRemovedBalls.add(ballEntity);
       world.getCommandBuffer().removeEntity(ballEntity);
       return;
     }
@@ -387,6 +391,11 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         s.isGameOver = true;
       }
     });
+
+    const eventBus = world.getEventBus();
+    if (eventBus) {
+      eventBus.emitDeferred("arkanoid:ball_lost", { entity: ballEntity, remainingLives });
+    }
 
     if (remainingLives > 0) {
       const paddleEntities = world.query("Paddle", "Transform");
@@ -425,15 +434,10 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         t.dirty = true;
       });
 
-      const eventBus = world.getEventBus();
-      if (eventBus) {
-        eventBus.emitDeferred("arkanoid:ball_lost", { entity: ballEntity, remainingLives });
-        if (!world.isReSimulating) {
-          eventBus.emitDeferred("PlaySFX", { name: "hit" });
-        }
+      if (eventBus && !world.isReSimulating) {
+        eventBus.emitDeferred("PlaySFX", { name: "hit" });
       }
     } else {
-      const eventBus = world.getEventBus();
       if (eventBus && !world.isReSimulating) {
         eventBus.emitDeferred("PlaySFX", { name: "game_over" });
       }

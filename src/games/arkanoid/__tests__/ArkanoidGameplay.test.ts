@@ -220,6 +220,40 @@ describe("Arkanoid Arcade Gameplay & Requirements", () => {
       const vel = game.world.getComponent(ballEntity, "Velocity");
       expect(vel?.vy).toBeLessThan(0); // directed upward
     });
+
+    test("emits arkanoid:ball_lost with remainingLives === 0 when losing the last life (game over)", () => {
+      const ballLostEvents: Array<{ entity: Entity; remainingLives: number }> = [];
+      game.world.getEventBus()?.on("arkanoid:ball_lost", (payload) => {
+        ballLostEvents.push(payload);
+      });
+
+      // Set lives to 1 so losing this ball causes Game Over
+      game.world.mutateSingleton("ArkanoidState", (s) => {
+        s.lives = 1;
+        s.isGameOver = false;
+      });
+
+      const ballEntity = game.world.query("Ball")[0];
+      const ball = game.world.getComponent(ballEntity, "Ball");
+      expect(ball).toBeDefined();
+
+      // Unattach ball and move below paddle
+      game.world.mutateComponent(ballEntity, "Ball", (b) => {
+        b.isAttached = false;
+      });
+      game.world.mutateComponent(ballEntity, "Transform", (t) => {
+        t.y = 800; // far below paddle Y
+        t.dirty = true;
+      });
+
+      // Run game tick
+      game.update(0.016);
+
+      expect(game.getGameState().isGameOver).toBe(true);
+      expect(game.getGameState().lives).toBe(0);
+      expect(ballLostEvents.length).toBe(1);
+      expect(ballLostEvents[0].remainingLives).toBe(0);
+    });
   });
 
   describe("4.4 Power-Ups (E, L, C, S, M, B, P)", () => {
@@ -296,6 +330,76 @@ describe("Arkanoid Arcade Gameplay & Requirements", () => {
       dohRules!.handleDohHit(game.world, dohEntity, ballEntity);
 
       expect(game.getGameState().isVictory).toBe(true);
+    });
+  });
+
+  describe("Game State Propagation & Subscription", () => {
+    test("subscriber receives isGameOver = true immediately when last ball is lost", () => {
+      let lastReceivedState: any = null;
+      const unsubscribe = game.subscribe((state) => {
+        lastReceivedState = state;
+      });
+
+      // Set lives to 1
+      game.world.mutateSingleton("ArkanoidState", (s) => {
+        s.lives = 1;
+        s.isGameOver = false;
+      });
+
+      const ballEntity = game.world.query("Ball")[0];
+      game.world.mutateComponent(ballEntity, "Ball", (b) => {
+        b.isAttached = false;
+      });
+      game.world.mutateComponent(ballEntity, "Transform", (t) => {
+        t.y = 800;
+        t.dirty = true;
+      });
+
+      // Tick the game loop
+      const initialTime = performance.now();
+      game.getGameLoop().tick(initialTime);
+      game.getGameLoop().tick(initialTime + 17);
+
+      expect(lastReceivedState).not.toBeNull();
+      expect(lastReceivedState.isGameOver).toBe(true);
+      expect(game.isGameOver()).toBe(true);
+
+      unsubscribe();
+    });
+
+    test("multi-ball loss in same tick correctly updates remaining ball count and decrements lives when last ball is lost", () => {
+      // Spawn extra ball to create multi-ball scenario (2 balls total)
+      const activePowerUpSystem = game.world.schedule.getSystems().find((s): s is ArkanoidActivePowerUpSystem => s instanceof ArkanoidActivePowerUpSystem);
+      const paddle = game.world.query("Paddle")[0];
+
+      activePowerUpSystem!.applyCapsule(game.world, paddle, "M", 100, 100);
+      game.update(0.016); // flush command buffer to materialize spawned balls
+
+      const balls = game.world.query("Ball");
+      expect(balls.length).toBeGreaterThanOrEqual(2);
+
+      // Unattach all balls and move them below paddle boundary in the SAME tick
+      for (let i = 0; i < balls.length; i++) {
+        game.world.mutateComponent(balls[i], "Ball", (b) => {
+          b.isAttached = false;
+        });
+        game.world.mutateComponent(balls[i], "Transform", (t) => {
+          t.y = 800;
+          t.dirty = true;
+        });
+      }
+
+      const initialLives = game.getGameState().lives;
+
+      // Tick the game
+      game.update(0.016);
+
+      // Verify lives decremented by 1 (since the last ball lost should trigger life lost)
+      expect(game.getGameState().lives).toBe(initialLives - 1);
+
+      // Verify there is still 1 active ball reset to the paddle (not 0 balls)
+      const remainingBalls = game.world.query("Ball");
+      expect(remainingBalls.length).toBe(1);
     });
   });
 });

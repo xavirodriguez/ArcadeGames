@@ -30,7 +30,12 @@ export const COSMIC_ARCADE_PALETTE = {
   matrixGreen: "#00FF41",
   crtScanline: "rgba(0, 0, 0, 0.15)",
   goldenRing: "#D4AF37",
-  goldenRingHighlight: "#F3E5AB"
+  goldenRingHighlight: "#F3E5AB",
+
+  // Planetary surface tones
+  oceanDeep: "#1A5276",
+  toxicMantle: "#1E4D2B",
+  volcanicCore: "#2B0B10"
 } as const;
 
 export type CosmicPaletteColorKey = keyof typeof COSMIC_ARCADE_PALETTE;

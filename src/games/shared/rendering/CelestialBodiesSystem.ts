@@ -17,7 +17,7 @@ export const PLANET_THEMES: Record<PlanetType, PlanetTheme> = {
     type: "blue",
     bodyGradient: [
       COSMIC_ARCADE_PALETTE.iceBlue,
-      "#1a5276",
+      COSMIC_ARCADE_PALETTE.oceanDeep,
       COSMIC_ARCADE_PALETTE.cosmicNavy
     ],
     atmosphereColor: COSMIC_ARCADE_PALETTE.neonCyan,
@@ -41,7 +41,7 @@ export const PLANET_THEMES: Record<PlanetType, PlanetTheme> = {
     type: "toxic",
     bodyGradient: [
       COSMIC_ARCADE_PALETTE.alienGreen,
-      "#1e4d2b",
+      COSMIC_ARCADE_PALETTE.toxicMantle,
       COSMIC_ARCADE_PALETTE.voidBlack
     ],
     atmosphereColor: COSMIC_ARCADE_PALETTE.alienGreen,
@@ -54,7 +54,7 @@ export const PLANET_THEMES: Record<PlanetType, PlanetTheme> = {
     bodyGradient: [
       COSMIC_ARCADE_PALETTE.solarOrange,
       COSMIC_ARCADE_PALETTE.dangerRed,
-      "#2b0b10"
+      COSMIC_ARCADE_PALETTE.volcanicCore
     ],
     atmosphereColor: COSMIC_ARCADE_PALETTE.solarOrange,
     ringColors: [COSMIC_ARCADE_PALETTE.solarOrange, COSMIC_ARCADE_PALETTE.dangerRed],

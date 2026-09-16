@@ -109,10 +109,11 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       let playerMinY = currentY + offsetY - halfH;
       let playerMaxY = currentY + offsetY + halfH;
 
+      const EPSILON = 0.001;
       let minTileX = Math.floor((playerMinX - tilemapX) / tileSize);
-      let maxTileX = Math.floor((playerMaxX - tilemapX) / tileSize);
+      let maxTileX = Math.floor((playerMaxX - tilemapX - EPSILON) / tileSize);
       let minTileY = Math.floor((playerMinY - tilemapY) / tileSize);
-      let maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);
+      let maxTileY = Math.floor((playerMaxY - tilemapY - EPSILON) / tileSize);
 
       // Direct nested loop eliminates closure allocation per frame
       xTileLoop: for (let ty = minTileY; ty <= maxTileY; ty++) {
@@ -150,9 +151,9 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       playerMaxY = currentY + offsetY + halfH;
 
       minTileX = Math.floor((playerMinX - tilemapX) / tileSize);
-      maxTileX = Math.floor((playerMaxX - tilemapX) / tileSize);
+      maxTileX = Math.floor((playerMaxX - tilemapX - EPSILON) / tileSize);
       minTileY = Math.floor((playerMinY - tilemapY) / tileSize);
-      maxTileY = Math.floor((playerMaxY - tilemapY) / tileSize);
+      maxTileY = Math.floor((playerMaxY - tilemapY - EPSILON) / tileSize);
 
       const oldVy = vel.vy;
 

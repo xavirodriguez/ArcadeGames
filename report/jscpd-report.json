@@ -1468,14 +1468,14 @@
         "endLoc": {
           "column": 36,
           "line": 118,
-          "position": 4223
+          "position": 4246
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 107,
         "startLoc": {
           "column": 28,
           "line": 107,
-          "position": 3743
+          "position": 3766
         }
       },
       "tokens": 101
@@ -1505,14 +1505,14 @@
         "endLoc": {
           "column": 30,
           "line": 297,
-          "position": 10214
+          "position": 10237
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 282,
         "startLoc": {
           "column": 105,
           "line": 282,
-          "position": 9659
+          "position": 9682
         }
       },
       "tokens": 85
@@ -1542,14 +1542,14 @@
         "endLoc": {
           "column": 53,
           "line": 314,
-          "position": 10947
+          "position": 10970
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 308,
         "startLoc": {
           "column": 78,
           "line": 308,
-          "position": 10630
+          "position": 10653
         }
       },
       "tokens": 51
@@ -1579,25 +1579,25 @@
         "endLoc": {
           "column": 41,
           "line": 344,
-          "position": 12203
+          "position": 12226
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 338,
         "startLoc": {
           "column": 8,
           "line": 338,
-          "position": 11971
+          "position": 11994
         }
       },
       "tokens": 62
     },
     {
       "firstFile": {
-        "end": 272,
+        "end": 273,
         "endLoc": {
           "column": 9,
-          "line": 272,
-          "position": 9737
+          "line": 273,
+          "position": 9815
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 259,
@@ -1608,40 +1608,40 @@
         }
       },
       "format": "typescript",
-      "fragment": "        const config = world.getResource<EchoRunnerConfigType>(\"GameConfig\") || DEFAULT_ECHO_RUNNER_CONFIG;\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: 0, y: 0 });\n\n        world.addComponent(entity, {\n          type: \"Tilemap\",\n          data: args.data,\n          tileSize: config.TILE_SIZE,\n          tileDefinitions: args.tileDefinitions\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    this.blueprints.register(\"collectible_fragment\", {",
+      "fragment": "        const config = world.getResource<EchoRunnerConfigType>(\"GameConfig\") || DEFAULT_ECHO_RUNNER_CONFIG;\n        EntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: 0, y: 0 })\n          .withRender({ shape: \"tilemap\", size: config.TILE_SIZE, order: 0 });\n\n        world.addComponent(entity, {\n          type: \"Tilemap\",\n          data: args.data,\n          tileSize: config.TILE_SIZE,\n          tileDefinitions: args.tileDefinitions\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    this.blueprints.register(\"collectible_fragment\", {",
       "isNew": false,
-      "lines": 14,
+      "lines": 15,
       "secondFile": {
-        "end": 358,
+        "end": 359,
         "endLoc": {
           "column": 9,
-          "line": 358,
-          "position": 12644
+          "line": 359,
+          "position": 12745
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 344,
         "startLoc": {
           "column": 105,
           "line": 344,
-          "position": 12267
+          "position": 12290
         }
       },
-      "tokens": 74
+      "tokens": 93
     },
     {
       "firstFile": {
-        "end": 321,
+        "end": 322,
         "endLoc": {
           "column": 55,
-          "line": 321,
-          "position": 11421
+          "line": 322,
+          "position": 11499
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 304,
+        "start": 305,
         "startLoc": {
           "column": 5,
-          "line": 304,
-          "position": 10851
+          "line": 305,
+          "position": 10929
         }
       },
       "format": "typescript",
@@ -1653,32 +1653,32 @@
         "endLoc": {
           "column": 55,
           "line": 224,
-          "position": 7325
+          "position": 7348
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 207,
         "startLoc": {
           "column": 63,
           "line": 207,
-          "position": 6755
+          "position": 6778
         }
       },
       "tokens": 137
     },
     {
       "firstFile": {
-        "end": 323,
+        "end": 324,
         "endLoc": {
           "column": 8,
-          "line": 323,
-          "position": 11431
+          "line": 324,
+          "position": 11509
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 307,
+        "start": 308,
         "startLoc": {
           "column": 29,
-          "line": 307,
-          "position": 10934
+          "line": 308,
+          "position": 11012
         }
       },
       "format": "typescript",
@@ -1690,32 +1690,32 @@
         "endLoc": {
           "column": 9,
           "line": 226,
-          "position": 7336
+          "position": 7359
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 210,
         "startLoc": {
           "column": 29,
           "line": 210,
-          "position": 6838
+          "position": 6861
         }
       },
       "tokens": 119
     },
     {
       "firstFile": {
-        "end": 368,
+        "end": 369,
         "endLoc": {
           "column": 39,
-          "line": 368,
-          "position": 13231
+          "line": 369,
+          "position": 13309
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 358,
+        "start": 359,
         "startLoc": {
           "column": 52,
-          "line": 358,
-          "position": 12745
+          "line": 359,
+          "position": 12823
         }
       },
       "format": "typescript",
@@ -1741,18 +1741,18 @@
     },
     {
       "firstFile": {
-        "end": 434,
+        "end": 435,
         "endLoc": {
           "column": 82,
-          "line": 434,
-          "position": 15676
+          "line": 435,
+          "position": 15754
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 423,
+        "start": 424,
         "startLoc": {
           "column": 63,
-          "line": 423,
-          "position": 15178
+          "line": 424,
+          "position": 15256
         }
       },
       "format": "typescript",
@@ -1760,36 +1760,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 400,
+        "end": 402,
         "endLoc": {
           "column": 82,
-          "line": 400,
-          "position": 14699
+          "line": 402,
+          "position": 14862
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 391,
+        "start": 393,
         "startLoc": {
           "column": 61,
-          "line": 391,
-          "position": 14266
+          "line": 393,
+          "position": 14429
         }
       },
       "tokens": 92
     },
     {
       "firstFile": {
-        "end": 467,
+        "end": 468,
         "endLoc": {
           "column": 7,
-          "line": 467,
-          "position": 16733
+          "line": 468,
+          "position": 16811
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 453,
+        "start": 454,
         "startLoc": {
           "column": 4,
-          "line": 453,
-          "position": 16384
+          "line": 454,
+          "position": 16462
         }
       },
       "format": "typescript",
@@ -1797,18 +1797,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 426,
+        "end": 428,
         "endLoc": {
           "column": 7,
-          "line": 426,
-          "position": 15556
+          "line": 428,
+          "position": 15719
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 412,
+        "start": 414,
         "startLoc": {
           "column": 4,
-          "line": 412,
-          "position": 15207
+          "line": 414,
+          "position": 15370
         }
       },
       "tokens": 70
@@ -1871,18 +1871,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 11,
+        "end": 93,
         "endLoc": {
           "column": 9,
-          "line": 11,
-          "position": 485
+          "line": 93,
+          "position": 3227
         },
         "name": "platformer/rendering/PlatformerCanvasVisuals.ts",
-        "start": 5,
+        "start": 87,
         "startLoc": {
           "column": 33,
-          "line": 5,
-          "position": 242
+          "line": 87,
+          "position": 2984
         }
       },
       "tokens": 52
@@ -2019,18 +2019,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 48,
+        "end": 130,
         "endLoc": {
           "column": 7,
-          "line": 48,
-          "position": 1608
+          "line": 130,
+          "position": 4336
         },
         "name": "platformer/rendering/PlatformerCanvasVisuals.ts",
-        "start": 42,
+        "start": 124,
         "startLoc": {
           "column": 31,
-          "line": 42,
-          "position": 1367
+          "line": 124,
+          "position": 4095
         }
       },
       "tokens": 51
@@ -2537,18 +2537,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 88,
+        "end": 90,
         "endLoc": {
           "column": 79,
-          "line": 88,
-          "position": 2872
+          "line": 90,
+          "position": 3042
         },
         "name": "frogger/FroggerGame.ts",
-        "start": 81,
+        "start": 83,
         "startLoc": {
           "column": 17,
-          "line": 81,
-          "position": 2552
+          "line": 83,
+          "position": 2722
         }
       },
       "tokens": 70
@@ -3336,14 +3336,14 @@
         "endLoc": {
           "column": 26,
           "line": 17,
-          "position": 731
+          "position": 750
         },
         "name": "frogger/rendering/FroggerCanvasVisuals.ts",
         "start": 8,
         "startLoc": {
           "column": 4,
           "line": 8,
-          "position": 440
+          "position": 459
         }
       },
       "format": "typescript",
@@ -3355,32 +3355,69 @@
         "endLoc": {
           "column": 26,
           "line": 19,
-          "position": 793
+          "position": 812
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
         "start": 10,
         "startLoc": {
           "column": 4,
           "line": 10,
-          "position": 502
+          "position": 521
         }
       },
       "tokens": 58
     },
     {
       "firstFile": {
-        "end": 157,
+        "end": 69,
         "endLoc": {
-          "column": 48,
-          "line": 157,
-          "position": 4419
+          "column": 95,
+          "line": 69,
+          "position": 2264
         },
         "name": "frogger/rendering/FroggerCanvasVisuals.ts",
-        "start": 150,
+        "start": 61,
+        "startLoc": {
+          "column": 4,
+          "line": 61,
+          "position": 1970
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const width = render.size || 48;\n    const height = 30;\n    const halfW = width / 2;\n    const halfH = height / 2;\n\n    const carColor = resolveThemeColor(world, \"car\", \"secondary\") || render.color || \"#00F3FF\";",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 49,
+        "endLoc": {
+          "column": 95,
+          "line": 49,
+          "position": 1937
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 41,
+        "startLoc": {
+          "column": 4,
+          "line": 41,
+          "position": 1643
+        }
+      },
+      "tokens": 65
+    },
+    {
+      "firstFile": {
+        "end": 159,
+        "endLoc": {
+          "column": 48,
+          "line": 159,
+          "position": 4591
+        },
+        "name": "frogger/rendering/FroggerCanvasVisuals.ts",
+        "start": 152,
         "startLoc": {
           "column": 13,
-          "line": 150,
-          "position": 4193
+          "line": 152,
+          "position": 4365
         }
       },
       "format": "typescript",
@@ -3388,36 +3425,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 110,
+        "end": 113,
         "endLoc": {
           "column": 48,
-          "line": 110,
-          "position": 3744
+          "line": 113,
+          "position": 4012
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 104,
+        "start": 107,
         "startLoc": {
           "column": 45,
-          "line": 104,
-          "position": 3558
+          "line": 107,
+          "position": 3826
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 183,
+        "end": 185,
         "endLoc": {
           "column": 26,
-          "line": 183,
-          "position": 5119
+          "line": 185,
+          "position": 5291
         },
         "name": "frogger/rendering/FroggerCanvasVisuals.ts",
-        "start": 178,
+        "start": 180,
         "startLoc": {
           "column": 4,
-          "line": 178,
-          "position": 4911
+          "line": 180,
+          "position": 5083
         }
       },
       "format": "typescript",
@@ -3425,36 +3462,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 124,
+        "end": 127,
         "endLoc": {
           "column": 26,
-          "line": 124,
-          "position": 4154
+          "line": 127,
+          "position": 4422
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 119,
+        "start": 122,
         "startLoc": {
           "column": 4,
-          "line": 119,
-          "position": 3946
+          "line": 122,
+          "position": 4214
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 43,
+        "end": 44,
         "endLoc": {
           "column": 32,
-          "line": 43,
-          "position": 1647
+          "line": 44,
+          "position": 1754
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 37,
+        "start": 38,
         "startLoc": {
           "column": 24,
-          "line": 37,
-          "position": 1428
+          "line": 38,
+          "position": 1535
         }
       },
       "format": "typescript",
@@ -3462,55 +3499,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 61,
+        "end": 63,
         "endLoc": {
           "column": 32,
-          "line": 61,
-          "position": 2198
+          "line": 63,
+          "position": 2384
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 55,
+        "start": 57,
         "startLoc": {
           "column": 26,
-          "line": 55,
-          "position": 1979
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 43,
-        "endLoc": {
-          "column": 32,
-          "line": 43,
-          "position": 1647
-        },
-        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 37,
-        "startLoc": {
-          "column": 24,
-          "line": 37,
-          "position": 1428
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const width = render.size || 48;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 82,
-        "endLoc": {
-          "column": 32,
-          "line": 82,
-          "position": 2902
-        },
-        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 76,
-        "startLoc": {
-          "column": 24,
-          "line": 76,
-          "position": 2683
+          "line": 57,
+          "position": 2165
         }
       },
       "tokens": 51
@@ -3519,16 +3519,53 @@
       "firstFile": {
         "end": 44,
         "endLoc": {
-          "column": 9,
+          "column": 32,
           "line": 44,
-          "position": 1661
+          "position": 1754
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 37,
+        "start": 38,
         "startLoc": {
           "column": 24,
-          "line": 37,
-          "position": 1428
+          "line": 38,
+          "position": 1535
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const width = render.size || 48;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 85,
+        "endLoc": {
+          "column": 32,
+          "line": 85,
+          "position": 3170
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 79,
+        "startLoc": {
+          "column": 24,
+          "line": 79,
+          "position": 2951
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 45,
+        "endLoc": {
+          "column": 9,
+          "line": 45,
+          "position": 1768
+        },
+        "name": "frogger/rendering/FroggerSkiaVisuals.ts",
+        "start": 38,
+        "startLoc": {
+          "column": 24,
+          "line": 38,
+          "position": 1535
         }
       },
       "format": "typescript",
@@ -3536,18 +3573,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 101,
+        "end": 104,
         "endLoc": {
           "column": 9,
-          "line": 101,
-          "position": 3455
+          "line": 104,
+          "position": 3723
         },
         "name": "frogger/rendering/FroggerSkiaVisuals.ts",
-        "start": 94,
+        "start": 97,
         "startLoc": {
           "column": 27,
-          "line": 94,
-          "position": 3222
+          "line": 97,
+          "position": 3490
         }
       },
       "tokens": 54
@@ -4372,14 +4409,14 @@
         "endLoc": {
           "column": 47,
           "line": 235,
-          "position": 7712
+          "position": 7735
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 230,
         "startLoc": {
           "column": 33,
           "line": 230,
-          "position": 7454
+          "position": 7477
         }
       },
       "format": "typescript",
@@ -4391,14 +4428,14 @@
         "endLoc": {
           "column": 45,
           "line": 257,
-          "position": 8416
+          "position": 8439
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 252,
         "startLoc": {
           "column": 35,
           "line": 252,
-          "position": 8168
+          "position": 8191
         }
       },
       "tokens": 61
@@ -5885,32 +5922,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-15T22:59:58.623Z",
+    "detectionDate": "2026-09-15T23:35:25.807Z",
     "formats": {
       "typescript": {
-        "clones": 159,
-        "duplicatedLines": 1453,
-        "duplicatedTokens": 11794,
-        "lines": 64820,
+        "clones": 160,
+        "duplicatedLines": 1462,
+        "duplicatedTokens": 11878,
+        "lines": 64932,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.2415921012033326,
-        "percentageTokens": 3.477014967614881,
-        "sources": 386,
-        "tokens": 339199
+        "percentage": 2.251586274872174,
+        "percentageTokens": 3.4934061150782916,
+        "sources": 387,
+        "tokens": 340012
       }
     },
     "total": {
-      "clones": 159,
-      "duplicatedLines": 1453,
-      "duplicatedTokens": 11794,
-      "lines": 64820,
+      "clones": 160,
+      "duplicatedLines": 1462,
+      "duplicatedTokens": 11878,
+      "lines": 64932,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.2415921012033326,
-      "percentageTokens": 3.477014967614881,
-      "sources": 386,
-      "tokens": 339199
+      "percentage": 2.251586274872174,
+      "percentageTokens": 3.4934061150782916,
+      "sources": 387,
+      "tokens": 340012
     }
   }
 }

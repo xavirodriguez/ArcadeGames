@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { World, System } from "@tiny-aster/core";
+import { World, System, resolveThemeColor } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { fragmentAsteroid } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
+import { colors } from "../../../theme/colors";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -15,8 +16,8 @@ import { getLogsForLevel } from "../story/StoryBeats";
  * @public
  */
 export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, AsteroidsEventRegistry> {
-  private static readonly ASTEROID_EXPLOSION_COLORS = ["#ff66cc", "#ff9ee0", "#ffd6f0", "#ffffff"] as const;
-  private static readonly SHIP_EXPLOSION_COLORS = ["#00f0ff", "#5cf2ff", "#ff5d00", "#ffffff"] as const;
+  private static readonly ASTEROID_EXPLOSION_COLORS = [colors.pink, colors.magenta, colors.white] as const;
+  private static readonly SHIP_EXPLOSION_COLORS = [colors.cyan, colors.orange, colors.white] as const;
 
   private processedDeaths = new Set<number>();
   private destroyedEntities = new Set<number>();
@@ -32,6 +33,15 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
   public override onRegister(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>): void {
     const eventBus = world.getEventBus();
     if (eventBus) {
+      /**
+       * AST-001 Dual Death Resolution Mode:
+       * When HasCombatSystem resource is true (CombatSystem registered in AsteroidsGame),
+       * CombatSystem handles health mutation and emits 'combat:death' upon entity death.
+       * AsteroidCollisionSystem handles score, combo, particle VFX, fragmentation and destruction
+       * exclusively via this listener.
+       * When HasCombatSystem is false (direct system mode in headless tests without CombatSystem),
+       * AsteroidCollisionSystem.update() falls back to triggering onCombatDeath manually on collision.
+       */
       eventBus.on("combat:death", (event: any) => {
         this.onCombatDeath(world, event);
       });
@@ -80,27 +90,16 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     return this.playerCache.get(ownerId);
   }
 
-  private onCombatDeath(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, event: any): void {
-    const asteroid = event.entity;
-    const bullet = event.sourceEntity;
-
-    if (this.processedDeaths.has(asteroid)) {
-      return;
-    }
-    this.processedDeaths.add(asteroid);
-
-    if (!world.hasComponent(asteroid, "Asteroid")) {
-      return;
-    }
-
-    const asteroidComp = world.getComponent(asteroid, "Asteroid");
-    const size = (asteroidComp?.size || "large") as "large" | "medium" | "small";
-
-    let points = 20;
-    if (size === "medium") points = 50;
-    else if (size === "small") points = 100;
-
+  private resolveScoreAndCombo(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    size: "large" | "medium" | "small",
+    bullet?: number
+  ): { newScore: number; scoreGain: number; nextMultiplier: number } {
     const config = world.getResource<any>("GameConfig") || {};
+    let points = config.ASTEROID_SCORE_LARGE ?? 20;
+    if (size === "medium") points = config.ASTEROID_SCORE_MEDIUM ?? 50;
+    else if (size === "small") points = config.ASTEROID_SCORE_SMALL ?? 100;
+
     let nextCombo = 0;
     let nextMultiplier = 1;
 
@@ -119,70 +118,108 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     const scoreGain = points * nextMultiplier;
     let newScore = scoreGain;
     world.mutateSingleton("GameState", (state) => {
-        state.score += scoreGain;
-        newScore = state.score;
+      state.score += scoreGain;
+      newScore = state.score;
     });
 
-    // Score synchronization logic by owner
     if (bullet !== undefined && world.hasComponent(bullet, "Bullet")) {
       const bulletComp = world.getComponent(bullet, "Bullet");
       const ownerId = bulletComp?.ownerId;
       if (ownerId) {
-          const playerEntity = this.findPlayerByOwnerId(world, ownerId);
-
-          if (playerEntity !== undefined) {
-              if (!world.hasComponent(playerEntity, "PlayerScore")) {
-                  world.getCommandBuffer().addComponent(playerEntity, {
-                      type: "PlayerScore",
-                      score: scoreGain
-                  });
-              } else {
-                  world.mutateComponent(playerEntity, "PlayerScore", (ps) => {
-                      ps.score = (ps.score || 0) + scoreGain;
-                  });
-              }
+        const playerEntity = this.findPlayerByOwnerId(world, ownerId);
+        if (playerEntity !== undefined) {
+          if (!world.hasComponent(playerEntity, "PlayerScore")) {
+            world.getCommandBuffer().addComponent(playerEntity, {
+              type: "PlayerScore",
+              score: scoreGain
+            });
+          } else {
+            world.mutateComponent(playerEntity, "PlayerScore", (ps) => {
+              ps.score = (ps.score || 0) + scoreGain;
+            });
           }
+        }
       }
     }
+
+    return { newScore, scoreGain, nextMultiplier };
+  }
+
+  private spawnExplosionParticles(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    transform: { x: number; y: number },
+    size: "large" | "medium" | "small"
+  ): void {
+    const particlePool = world.getResource<any>("ParticlePool");
+    if (!particlePool) return;
+
+    const ax = transform.x;
+    const ay = transform.y;
+    const profile = size === "large" ? EXPLOSION_PROFILES["enemy"] : EXPLOSION_PROFILES["small"];
+    const particleCount = profile.particleCount;
+    const rng = world.gameplayRandom;
+    const colors = profile.colorSequence;
+
+    for (let i = 0; i < particleCount; i++) {
+      const angle = rng.next() * Math.PI * 2;
+      const speed = rng.nextRange(40, 150);
+      const px = ax + (rng.next() - 0.5) * 8;
+      const py = ay + (rng.next() - 0.5) * 8;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const color = colors[rng.nextInt(0, colors.length)];
+      const pSize = rng.nextRange(1.5, 4.5);
+      const ttl = rng.nextRange(0.4, 0.9);
+      createSharedParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
+    }
+  }
+
+  private maybeSpawnStoryLog(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    transform: { x: number; y: number },
+    size: "large" | "medium" | "small",
+    nextMultiplier: number
+  ): void {
+    const gameState = world.getSingleton("GameState");
+    const isStory = gameState?.mode === "story";
+    const level = gameState?.level ?? 1;
+
+    if (isStory && size === "large" && world.gameplayRandom.next() < 0.1) {
+      const logs = getLogsForLevel(level);
+      if (logs && logs.length > 0) {
+        const logIndex = world.gameplayRandom.nextInt(0, logs.length);
+        const logText = logs[logIndex];
+        const logColor = resolveThemeColor(world, "system", "primary") || colors.cyan;
+        spawnScorePopup(world, transform.x, transform.y - 20, logText, logColor);
+      }
+    }
+
+    const multiplierColor = resolveThemeColor(world, "warning", "boss") || colors.gold;
+    spawnScorePopup(world, transform.x, transform.y, `x${nextMultiplier}`, multiplierColor);
+  }
+
+  private onCombatDeath(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, event: any): void {
+    const asteroid = event.entity;
+    const bullet = event.sourceEntity;
+
+    if (this.processedDeaths.has(asteroid)) {
+      return;
+    }
+    this.processedDeaths.add(asteroid);
+
+    if (!world.hasComponent(asteroid, "Asteroid")) {
+      return;
+    }
+
+    const asteroidComp = world.getComponent(asteroid, "Asteroid");
+    const size = (asteroidComp?.size || "large") as "large" | "medium" | "small";
+
+    const { newScore, scoreGain, nextMultiplier } = this.resolveScoreAndCombo(world, size, bullet);
 
     const asteroidTransform = world.getComponent(asteroid, "Transform");
     if (asteroidTransform) {
-      const gameState = world.getSingleton("GameState");
-      const isStory = gameState?.mode === "story";
-      const level = gameState?.level ?? 1;
-
-      if (isStory && size === "large" && world.gameplayRandom.next() < 0.1) {
-        const logs = getLogsForLevel(level);
-        if (logs && logs.length > 0) {
-          const logIndex = world.gameplayRandom.nextInt(0, logs.length);
-          const logText = logs[logIndex];
-          spawnScorePopup(world, asteroidTransform.x, asteroidTransform.y - 20, logText, "#00FFDD");
-        }
-      }
-
-      spawnScorePopup(world, asteroidTransform.x, asteroidTransform.y, `x${nextMultiplier}`, "#FFFF00");
-    }
-
-    // Spawn particles
-    const particlePool = world.getResource<any>("ParticlePool");
-    if (asteroidTransform && particlePool) {
-      const ax = asteroidTransform.x;
-      const ay = asteroidTransform.y;
-      const particleCount = size === "large" ? EXPLOSION_PROFILES["enemy"].particleCount : EXPLOSION_PROFILES["small"].particleCount;
-      const rng = world.gameplayRandom;
-      const colors = EXPLOSION_PROFILES["enemy"].colorSequence;
-      for (let i = 0; i < particleCount; i++) {
-        const angle = rng.next() * Math.PI * 2;
-        const speed = rng.nextRange(40, 150);
-        const px = ax + (rng.next() - 0.5) * 8;
-        const py = ay + (rng.next() - 0.5) * 8;
-        const vx = Math.cos(angle) * speed;
-        const vy = Math.sin(angle) * speed;
-        const color = colors[rng.nextInt(0, colors.length)];
-        const pSize = rng.nextRange(1.5, 4.5);
-        const ttl = rng.nextRange(0.4, 0.9);
-        createSharedParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
-      }
+      this.maybeSpawnStoryLog(world, asteroidTransform, size, nextMultiplier);
+      this.spawnExplosionParticles(world, asteroidTransform, size);
     }
 
     // Fragment asteroid
@@ -194,10 +231,10 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     // Emit deferred events
     const eventBus = world.getEventBus();
     if (eventBus) {
-        const sfxName = size === "large" ? "explosion_large" : "explosion_small";
-        eventBus.emitDeferred("PlaySFX", { name: sfxName, pitchRange: 0.06 });
-        eventBus.emitDeferred("asteroid:destroyed", { entity: asteroid, size });
-        eventBus.emitDeferred("score:changed", { newScore, delta: scoreGain });
+      const sfxName = size === "large" ? "explosion_large" : "explosion_small";
+      eventBus.emitDeferred("PlaySFX", { name: sfxName, pitchRange: 0.06 });
+      eventBus.emitDeferred("asteroid:destroyed", { entity: asteroid, size });
+      eventBus.emitDeferred("score:changed", { newScore, delta: scoreGain });
     }
   }
 
@@ -251,8 +288,11 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           const ufo = isBulletA ? entityB : entityA;
 
           if (!this.destroyedEntities.has(bullet) && !this.destroyedEntities.has(ufo)) {
+            const config = world.getResource<any>("GameConfig") || {};
             const ufoComp = world.getComponent(ufo, "Ufo");
-            const points = ufoComp?.size === "small" ? 1000 : 200;
+            const points = ufoComp?.size === "small"
+              ? (config.UFO_SCORE_SMALL ?? 1000)
+              : (config.UFO_SCORE_LARGE ?? 200);
 
             let scoreGain = points;
             world.mutateSingleton("GameState", (state) => {
@@ -282,16 +322,17 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
 
             if (this.destroyedEntities.has(bullet) || this.destroyedEntities.has(asteroid)) continue;
 
-            // If CombatSystem has already processed this, it will have marked the asteroid as Dead
-            // or the bullet would be removed. Otherwise, we are running in direct/headless mode,
-            // so we manually trigger the combat death reaction to maintain 100% backward compatibility.
-            const health = world.getComponent(asteroid, "Health");
-            const isDeadPending = health && health.current <= 0;
-            if (!world.hasComponent(asteroid, "Dead") && !isDeadPending) {
-              this.onCombatDeath(world, { entity: asteroid, sourceEntity: bullet });
-              world.getCommandBuffer().removeEntity(bullet);
-              this.destroyedEntities.add(bullet);
-              this.destroyedEntities.add(asteroid);
+            const hasCombatSystem = world.getResource("HasCombatSystem") === true;
+            if (!hasCombatSystem) {
+              // Fallback for direct/headless test mode without CombatSystem
+              const health = world.getComponent(asteroid, "Health");
+              const isDeadPending = health && health.current <= 0;
+              if (!world.hasComponent(asteroid, "Dead") && !isDeadPending) {
+                this.onCombatDeath(world, { entity: asteroid, sourceEntity: bullet });
+                world.getCommandBuffer().removeEntity(bullet);
+                this.destroyedEntities.add(bullet);
+                this.destroyedEntities.add(asteroid);
+              }
             }
             continue;
         }
@@ -346,8 +387,11 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
             const sx = shipTransform.x;
             const sy = shipTransform.y;
             const rng = world.gameplayRandom;
-            const colors = AsteroidCollisionSystem.SHIP_EXPLOSION_COLORS;
-            for (let i = 0; i < 24; i++) {
+            const config = world.getResource<any>("GameConfig") || {};
+            const profile = EXPLOSION_PROFILES["ship"];
+            const colors = profile.colorSequence;
+            const particleCount = config.SHIP_DEATH_PARTICLE_COUNT ?? profile.particleCount;
+            for (let i = 0; i < particleCount; i++) {
               const angle = rng.next() * Math.PI * 2;
               const speed = rng.nextRange(60, 200);
               const vx = Math.cos(angle) * speed;

@@ -157,9 +157,11 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           const hCooldown = latestShip.hyperspaceCooldownRemaining ?? 0;
           const prepActive = (latestShip.hyperspacePrepTime ?? 0) > 0;
 
+          const previewEntityId = latestShip.hyperspacePreviewEntityId;
+
           if (isHyperspaceHeld && hCooldown <= 0) {
               const totalPrepTime = config.HYPERSPACE_PREP_TIME ?? 0.5;
-              if (!prepActive) {
+              if (!prepActive && previewEntityId === undefined) {
                   const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || {
                       width: config.SCREEN_WIDTH ?? 800,
                       height: config.SCREEN_HEIGHT ?? 600
@@ -168,13 +170,44 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   const rx = rand.next() * screen.width;
                   const ry = rand.next() * screen.height;
 
+                  // Create preview entity once at prep start via CommandBuffer (AST-007)
+                  const previewEntity = world.reserveEntityId();
+                  world.getCommandBuffer().createEntity(previewEntity);
+                  world.getCommandBuffer().addComponent(previewEntity, {
+                      type: "Transform",
+                      x: rx,
+                      y: ry,
+                      rotation: 0,
+                      scaleX: 1,
+                      scaleY: 1,
+                      worldX: rx,
+                      worldY: ry,
+                      worldRotation: 0,
+                      worldScaleX: 1,
+                      worldScaleY: 1,
+                      dirty: false
+                  } as any);
+                  world.getCommandBuffer().addComponent(previewEntity, {
+                      type: "Render",
+                      shape: "singularity",
+                      size: 40,
+                      color: "#00f0ff",
+                      visible: true,
+                      opacity: 0.6,
+                      order: 10,
+                      rotation: 0,
+                      angularVelocity: 2.0,
+                      hitFlashFrames: 0
+                  } as any);
+
                   const mutShip = world.getMutableComponent(entity, "Ship");
                   if (mutShip) {
                       mutShip.hyperspacePrepTime = totalPrepTime;
                       mutShip.hyperspacePreviewX = rx;
                       mutShip.hyperspacePreviewY = ry;
+                      mutShip.hyperspacePreviewEntityId = previewEntity;
                   }
-              } else {
+              } else if (prepActive) {
                   const mutShip = world.getMutableComponent(entity, "Ship");
                   if (mutShip && mutShip.hyperspacePrepTime !== undefined) {
                       mutShip.hyperspacePrepTime = PhysicsUtils.tickTimer(mutShip.hyperspacePrepTime, dtSec);
@@ -184,42 +217,17 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               const updatedShip = world.getComponent(entity, "Ship")!;
               const rx = updatedShip.hyperspacePreviewX ?? transform.x;
               const ry = updatedShip.hyperspacePreviewY ?? transform.y;
+              const previewId = updatedShip.hyperspacePreviewEntityId;
 
-              const previewEntity = world.reserveEntityId();
-              world.getCommandBuffer().createEntity(previewEntity);
-              world.getCommandBuffer().addComponent(previewEntity, {
-                  type: "Transform",
-                  x: rx,
-                  y: ry,
-                  rotation: 0,
-                  scaleX: 1,
-                  scaleY: 1,
-                  worldX: rx,
-                  worldY: ry,
-                  worldRotation: 0,
-                  worldScaleX: 1,
-                  worldScaleY: 1,
-                  dirty: false
-              } as any);
-              world.getCommandBuffer().addComponent(previewEntity, {
-                  type: "Render",
-                  shape: "singularity",
-                  size: 40,
-                  color: "#00f0ff",
-                  visible: true,
-                  opacity: 0.6,
-                  order: 10,
-                  rotation: 0,
-                  angularVelocity: 2.0,
-                  hitFlashFrames: 0
-              } as any);
-              world.getCommandBuffer().addComponent(previewEntity, {
-                  type: "TTL",
-                  timeLeft: 0.05,
-                  remaining: 0.05
-              } as any);
+              if (previewId !== undefined && world.hasEntity(previewId)) {
+                  const mutPreviewTrans = world.getMutableComponent(previewId, "Transform");
+                  if (mutPreviewTrans) {
+                      mutPreviewTrans.x = rx;
+                      mutPreviewTrans.y = ry;
+                  }
+              }
 
-              if (updatedShip.hyperspacePrepTime === 0) {
+              if (updatedShip.hyperspacePrepTime === 0 && previewId !== undefined) {
                   const mutTrans = world.getMutableComponent(entity, "Transform");
                   if (mutTrans) {
                       mutTrans.x = rx;
@@ -232,12 +240,15 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                       mutVel.vy = 0;
                   }
 
+                  world.getCommandBuffer().removeEntity(previewId);
+
                   const mutShip = world.getMutableComponent(entity, "Ship");
                   if (mutShip) {
                       mutShip.hyperspaceCooldownRemaining = config.HYPERSPACE_COOLDOWN ?? 5.0;
                       mutShip.hyperspacePrepTime = 0;
                       mutShip.hyperspacePreviewX = undefined;
                       mutShip.hyperspacePreviewY = undefined;
+                      mutShip.hyperspacePreviewEntityId = undefined;
                   }
 
                   const mutInp = world.getMutableComponent(entity, "Input");
@@ -257,12 +268,17 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                       eventBus.emitDeferred("PlaySFX", { name: "wrap", volume: 0.9 });
                   }
               }
-          } else if (!isHyperspaceHeld && prepActive) {
-              const mutShip = world.getMutableComponent(entity, "Ship");
-              if (mutShip) {
-                  mutShip.hyperspacePrepTime = 0;
-                  mutShip.hyperspacePreviewX = undefined;
-                  mutShip.hyperspacePreviewY = undefined;
+          } else {
+              const currentShipComp = world.getComponent(entity, "Ship");
+              if (currentShipComp?.hyperspacePreviewEntityId !== undefined) {
+                  world.getCommandBuffer().removeEntity(currentShipComp.hyperspacePreviewEntityId);
+                  const mutShip = world.getMutableComponent(entity, "Ship");
+                  if (mutShip) {
+                      mutShip.hyperspacePrepTime = 0;
+                      mutShip.hyperspacePreviewX = undefined;
+                      mutShip.hyperspacePreviewY = undefined;
+                      mutShip.hyperspacePreviewEntityId = undefined;
+                  }
               }
           }
       }

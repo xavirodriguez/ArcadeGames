@@ -18,7 +18,15 @@ export const AsteroidConfigSchema = BaseConfigSchema.extend({
   BULLET_SPEED: z.number().default(300),
   ...ComboConfigSchema.shape,
   HYPERSPACE_COOLDOWN: z.number().default(5.0),
-  HYPERSPACE_PREP_TIME: z.number().default(0.5)
+  HYPERSPACE_PREP_TIME: z.number().default(0.5),
+  ASTEROID_SCORE_LARGE: z.number().default(20),
+  ASTEROID_SCORE_MEDIUM: z.number().default(50),
+  ASTEROID_SCORE_SMALL: z.number().default(100),
+  UFO_SCORE_LARGE: z.number().default(200),
+  UFO_SCORE_SMALL: z.number().default(1000),
+  FRAGMENT_IMPULSE_SPEED: z.number().default(80),
+  SHIP_DEATH_PARTICLE_COUNT: z.number().default(24),
+  MAX_ASTEROIDS: z.number().default(50)
 });
 
 /** @public */

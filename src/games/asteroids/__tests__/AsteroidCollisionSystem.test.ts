@@ -31,7 +31,15 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
   });
 
   it("should create bullet using the factory with expected components", () => {
-    const bullet = createBullet(world, 10, 20, Math.PI / 4, 300, "player-1", 3);
+    const bullet = createBullet({
+      world,
+      x: 10,
+      y: 20,
+      rotation: Math.PI / 4,
+      speed: 300,
+      ownerId: "player-1",
+      ttl: 3
+    });
 
     expect(world.hasComponent(bullet, "Transform")).toBe(true);
     expect(world.hasComponent(bullet, "Velocity")).toBe(true);
@@ -57,7 +65,14 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
   });
 
   it("should resolve bullet-asteroid collision with double security and defer destruction", () => {
-    const bullet = createBullet(world, 10, 10, 0, 100, "player-1");
+    const bullet = createBullet({
+      world,
+      x: 10,
+      y: 10,
+      rotation: 0,
+      speed: 100,
+      ownerId: "player-1"
+    });
 
     // Create an asteroid
     const asteroid = world.createEntity();
@@ -217,5 +232,43 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
     const state = world.getSingleton("GameState")!;
     expect(state.lives).toBe(2);
     expect(state.isGameOver).toBe(false);
+  });
+
+  it("should trigger onCombatDeath exactly once per asteroid when HasCombatSystem is true", () => {
+    world.setResource("HasCombatSystem", true);
+    collisionSystem.onRegister(world);
+
+    const asteroid = world.createEntity();
+    world.addComponent(asteroid, { type: "Asteroid", size: "large" });
+    world.addComponent(asteroid, {
+      type: "Transform",
+      x: 50,
+      y: 50,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 50,
+      worldY: 50,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: false
+    });
+
+    const asteroidDestroyedSpy = jest.fn();
+    eventBus.on("asteroid:destroyed", asteroidDestroyedSpy);
+
+    // Simulate combat:death event emitted from CombatSystem
+    eventBus.emit("combat:death", { entity: asteroid, sourceEntity: undefined });
+
+    // Try emitting it again in the same tick
+    eventBus.emit("combat:death", { entity: asteroid, sourceEntity: undefined });
+
+    eventBus.flushDeferred();
+
+    // Verify death handler ran once (score gain 20 points for large asteroid, single event)
+    expect(asteroidDestroyedSpy).toHaveBeenCalledTimes(1);
+    const state = world.getSingleton("GameState")!;
+    expect(state.score).toBe(20);
   });
 });

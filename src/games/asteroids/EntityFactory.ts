@@ -23,12 +23,14 @@ import { BulletPool } from "./EntityPool";
 
 /**
  * @param lootType - Loot/power-up identifier (e.g. "shield", "speed_boost").
+ * @param world - Optional World instance to resolve theme tokens.
  * @returns The hex color used to tint the power-up's visual bubble.
- * @remarks Hardcoded per-type colors — not sourced from the Theme resource
- * (see packages/core/src/theme/Theme.ts, PR #314). Consider migrating to
- * theme.colorMap if power-up colors need to be reskinnable per-theme.
  */
-function getPowerUpColor(lootType: string): string {
+function getPowerUpColor(lootType: string, world?: World<any, any, any>): string {
+  if (world) {
+    const resolved = resolveThemeColor(world, `powerup-${lootType}`);
+    if (resolved) return resolved;
+  }
   if (lootType === "shield") return "#00f0ff";
   if (lootType === "speed_boost") return "#ff5d00";
   return "#ffd700";
@@ -235,17 +237,19 @@ export function registerAsteroidsBlueprints(
         faction: "enemy",
         tableId: "default"
       });
-      // Every asteroid also drops a persistent, collect-once story fragment tied to its
-      // spawn position/size — this is why asteroids carry a Collectible component in
-      // addition to LootTable (loot table is for combat drops, Collectible is for story).
-      w.addComponent(entity, {
-        type: "Collectible",
-        kind: "story_fragment",
-        value: 1,
-        persistent: true,
-        collectOnce: true,
-        id: `asteroid_fragment_${args.size}_${args.x}_${args.y}`
-      } as any);
+      // AST-004 & AST-005: Decouple story Collectible from deathmatch asteroids
+      const gameState = w.getSingleton("GameState");
+      const isStory = gameState?.mode === "story" || w.getResource("StoryRuntime") !== undefined;
+      if (isStory) {
+        w.addComponent(entity, {
+          type: "Collectible",
+          kind: "story_fragment",
+          value: 1,
+          persistent: true,
+          collectOnce: true,
+          id: `asteroid_fragment_${args.size}_${args.x}_${args.y}`
+        } as any);
+      }
     }
   });
 
@@ -260,7 +264,7 @@ export function registerAsteroidsBlueprints(
         .withRender({
           shape: "shield_bubble",
           size: 15,
-          color: getPowerUpColor(args.lootType),
+          color: getPowerUpColor(args.lootType, w),
           order: 5,
           angularVelocity: 1.0
         })
@@ -373,85 +377,47 @@ export const createShip = (config: { world: World<AsteroidsComponentRegistry, As
  * Sets up components: Transform, Velocity, Render, Bullet (with ownerId), TTL, Collider, CollisionEvents.
  *
  * @remarks
- * Supports two calling conventions for backward compatibility:
- * 1. Legacy positional form: `createBullet(world, x, y, rotation, speed, ownerId?, ttl?)`
- *    — velocity is derived from `rotation`/`speed` via `getForwardVector`.
- * 2. Preferred config-object form: `createBullet({ world, x, y, vx?, vy?, rotation?, speed?, ownerId?, ttl? })`
- *    — if `vx`/`vy` are both given they take precedence over `rotation`/`speed`;
- *    otherwise falls back to the same forward-vector derivation as the legacy form.
- * New call sites should use the config-object form; the positional form exists only
- * for callers not yet migrated.
- *
  * If a "BulletPool" resource is registered, bullets are acquired from the pool
- * instead of spawned fresh (see Bolt's pooling notes in .jules/bolt.md) — this is
- * transparent to callers.
+ * instead of spawned fresh — this is transparent to callers.
  *
  * Note: Forward vectors and rotation conventions follow `ForwardVector.ts`.
  * @public
  */
-export function createBullet(
-  worldOrConfig: World<AsteroidsComponentRegistry, AsteroidsEventRegistry> | {
-    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
-    x: number;
-    y: number;
-    vx?: number;
-    vy?: number;
-    rotation?: number;
-    speed?: number;
-    ownerId?: string;
-    ttl?: number;
-  },
-  x?: number,
-  y?: number,
-  rotation?: number,
-  speed?: number,
-  ownerId?: string,
-  ttl?: number
-): number {
-  let world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
-  let posX: number;
-  let posY: number;
+export function createBullet(config: {
+  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
+  x: number;
+  y: number;
+  vx?: number;
+  vy?: number;
+  rotation?: number;
+  speed?: number;
+  ownerId?: string;
+  ttl?: number;
+}): number {
+  const world = config.world;
+  const posX = config.x;
+  const posY = config.y;
+  const owner = config.ownerId;
+
   let vxVal: number;
   let vyVal: number;
-  let owner: string | undefined;
-  let life: number;
+  let rotVal: number;
 
-  let rotVal = 0;
-
-  if (worldOrConfig instanceof World) {
-    world = worldOrConfig;
-    posX = x!;
-    posY = y!;
-    const rot = rotation!;
-    rotVal = rot;
-    const spd = speed!;
-    const forward = getForwardVector(rot);
+  if (config.vx !== undefined && config.vy !== undefined) {
+    vxVal = config.vx;
+    vyVal = config.vy;
+    rotVal = config.rotation ?? Math.atan2(vyVal, vxVal);
+  } else {
+    rotVal = config.rotation ?? 0;
+    const spd = config.speed ?? 0;
+    const forward = getForwardVector(rotVal);
     vxVal = forward.x * spd;
     vyVal = forward.y * spd;
-    owner = ownerId;
-    life = ttl ?? 2.0;
-  } else {
-    world = worldOrConfig.world;
-    posX = worldOrConfig.x;
-    posY = worldOrConfig.y;
-    owner = worldOrConfig.ownerId;
-
-    if (worldOrConfig.vx !== undefined && worldOrConfig.vy !== undefined) {
-      vxVal = worldOrConfig.vx;
-      vyVal = worldOrConfig.vy;
-      rotVal = worldOrConfig.rotation ?? Math.atan2(vyVal, vxVal);
-    } else {
-      const rot = worldOrConfig.rotation ?? 0;
-      rotVal = rot;
-      const spd = worldOrConfig.speed ?? 0;
-      const forward = getForwardVector(rot);
-      vxVal = forward.x * spd;
-      vyVal = forward.y * spd;
-    }
-    const gameConfig = world.getResource<AsteroidConfig>("GameConfig");
-    const bulletTtl = gameConfig?.BULLET_TTL ?? 2.0;
-    life = worldOrConfig.ttl ?? bulletTtl;
   }
+
+  const gameConfig = world.getResource<AsteroidConfig>("GameConfig");
+  const bulletTtl = gameConfig?.BULLET_TTL ?? 2.0;
+  const life = config.ttl ?? bulletTtl;
 
   const bulletParams = {
     x: posX,
@@ -539,14 +505,20 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
     else if (asteroid.size === "medium") nextSize = "small";
 
     if (nextSize) {
+        const config = world.getResource<AsteroidConfig>("GameConfig");
+        const maxAsteroids = config?.MAX_ASTEROIDS ?? 50;
+        const currentAsteroidsCount = world.query("Asteroid").length;
+        if (currentAsteroidsCount >= maxAsteroids) {
+            return;
+        }
+
         // Create 2 children in opposite directions (+Math.PI angle offset)
         // Use gameplayRandom for determinism
         const rand = world.gameplayRandom;
         const angle1 = rand.next() * Math.PI * 2;
         const angle2 = angle1 + Math.PI; // opposite directions
 
-        const speed = 80; // Fragmentation impulse speed added to the parent's velocity,
-                           // in px/s. Tuned by feel — not currently exposed via GameConfig.
+        const speed = config?.FRAGMENT_IMPULSE_SPEED ?? 80;
 
         for (const angle of [angle1, angle2]) {
             const vx = (velocity ? velocity.vx : 0) + Math.cos(angle) * speed;
@@ -584,6 +556,7 @@ export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, Aster
     };
 
     const rand = world.gameplayRandom;
+    const MAX_SPAWN_ATTEMPTS = 20;
 
     for (let i = 0; i < count; i++) {
         let x = rand.next() * screen.width;
@@ -591,9 +564,11 @@ export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, Aster
 
         const centerX = screen.width / 2;
         const centerY = screen.height / 2;
-        while (Math.hypot(x - centerX, y - centerY) < 150) {
+        let attempts = 0;
+        while (Math.hypot(x - centerX, y - centerY) < 150 && attempts < MAX_SPAWN_ATTEMPTS) {
             x = rand.next() * screen.width;
             y = rand.next() * screen.height;
+            attempts++;
         }
 
         createAsteroid({

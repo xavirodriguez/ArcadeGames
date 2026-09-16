@@ -1,6 +1,6 @@
 import { COSMIC_ARCADE_PALETTE } from "./CosmicPalette";
 
-export type ExplosionType = "small" | "enemy" | "alien" | "tech" | "boss";
+export type ExplosionType = "small" | "enemy" | "alien" | "tech" | "boss" | "ship";
 
 export interface ExplosionProfile {
   type: ExplosionType;
@@ -87,6 +87,20 @@ export const EXPLOSION_PROFILES: Record<ExplosionType, ExplosionProfile> = {
     durationMs: 800,
     hasShockwave: true,
     hasConcentricRings: true,
+    residualGlow: true
+  },
+  ship: {
+    type: "ship",
+    colorSequence: [
+      COSMIC_ARCADE_PALETTE.neonCyan,
+      COSMIC_ARCADE_PALETTE.solarOrange,
+      COSMIC_ARCADE_PALETTE.white
+    ],
+    maxRadius: 50,
+    particleCount: 24,
+    durationMs: 600,
+    hasShockwave: true,
+    hasConcentricRings: false,
     residualGlow: true
   }
 };

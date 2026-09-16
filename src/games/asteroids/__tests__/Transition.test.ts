@@ -31,17 +31,17 @@ describe('Arcade Transitions & Game Accents Integration', () => {
 
   it('resolves accent colors from GAME_ACCENTS correctly for all games', () => {
     const asteroidsColors = getGameAccentColors('asteroids');
-    expect(asteroidsColors.primary).toBe('#f97316');
-    expect(asteroidsColors.secondary).toBe('#ffffff');
-    expect(asteroidsColors.accent).toBe('#ef4444');
+    expect(asteroidsColors.primary.toLowerCase()).toBe('#f97316');
+    expect(asteroidsColors.secondary.toLowerCase()).toBe('#ffffff');
+    expect(asteroidsColors.accent.toLowerCase()).toBe('#ef4444');
 
     const spaceInvadersColors = getGameAccentColors('space-invaders');
-    expect(spaceInvadersColors.primary).toBe('#00FF41');
+    expect(spaceInvadersColors.primary.toLowerCase()).toBe('#00ff41');
 
     const flappyBirdColors = getGameAccentColors('flappy-bird');
-    expect(flappyBirdColors.primary).toBe('#FF006E');
+    expect(flappyBirdColors.primary.toLowerCase()).toBe('#ff006e');
 
     const pongColors = getGameAccentColors('pong');
-    expect(pongColors.primary).toBe('#ffffff');
+    expect(pongColors.primary.toLowerCase()).toBe('#ffffff');
   });
 });

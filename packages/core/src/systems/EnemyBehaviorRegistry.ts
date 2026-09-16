@@ -39,6 +39,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
           const patrol = world.getComponent(entity, "Patrol");
           const gd = world.getComponent(entity, "GroundDetector");
           const sensor = world.getComponent(entity, "PlayerSensor");
+          const trans = world.getComponent(entity, "Transform");
 
           const speed = (data.patrolSpeed as number) ?? 80;
 
@@ -49,6 +50,18 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
               const mutablePatrol = world.getMutableComponent(entity, "Patrol");
               if (mutablePatrol) {
                 mutablePatrol.direction = -mutablePatrol.direction;
+              }
+            } else if (trans) {
+              if (trans.x <= patrol.startX && patrol.direction < 0) {
+                const mutablePatrol = world.getMutableComponent(entity, "Patrol");
+                if (mutablePatrol) {
+                  mutablePatrol.direction = 1;
+                }
+              } else if (trans.x >= patrol.endX && patrol.direction > 0) {
+                const mutablePatrol = world.getMutableComponent(entity, "Patrol");
+                if (mutablePatrol) {
+                  mutablePatrol.direction = -1;
+                }
               }
             }
 

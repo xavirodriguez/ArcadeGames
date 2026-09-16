@@ -55,6 +55,21 @@ describe("Arkanoid Arcade Gameplay & Requirements", () => {
   });
 
   describe("4.2 Bricks and Resistance", () => {
+    function setupBallCollision(gameInstance: ArkanoidGame, ballEntity: Entity, brickEntity: Entity): void {
+      const brickPos = gameInstance.world.getComponent(brickEntity, "Transform")!;
+      gameInstance.world.mutateComponent(ballEntity, "Ball", (b) => {
+        b.isAttached = false;
+      });
+      gameInstance.world.mutateComponent(ballEntity, "Transform", (t) => {
+        t.x = brickPos.x;
+        t.y = brickPos.y;
+        t.dirty = true;
+      });
+      gameInstance.world.mutateComponent(ballEntity, "Velocity", (v) => {
+        v.vx = 0;
+        v.vy = -100;
+      });
+    }
 
     test("silver brick requires multiple hits", () => {
       const bricks = game.world.query("Brick");
@@ -97,6 +112,91 @@ describe("Arkanoid Arcade Gameplay & Requirements", () => {
       game.world.getEventBus()?.emitDeferred("combat:death", { entity: brick });
       game.update(0.016);
       expect(game.world.getComponent(brick, "Brick")?.isDestroyed).toBeFalsy();
+    });
+
+    test("standard brick with 1 HP is destroyed on collision with ball, updating bricksRemaining, score, and combo", () => {
+      const ballEntity = game.world.query("Ball")[0];
+      const bricks = game.world.query("Brick");
+      expect(ballEntity).toBeDefined();
+      expect(bricks.length).toBeGreaterThan(1);
+
+      // Keep bricks[0] and bricks[10], remove all remaining bricks to isolate collision
+      for (let i = 0; i < bricks.length; i++) {
+        if (i !== 0 && i !== 10) {
+          game.world.getCommandBuffer().removeEntity(bricks[i]);
+        }
+      }
+      game.update(0.016);
+      game.update(0.016);
+
+      const targetBrick = game.world.query("Brick")[0];
+      const otherBrick = game.world.query("Brick")[1];
+      expect(targetBrick).toBeDefined();
+      expect(otherBrick).toBeDefined();
+
+      // Configure target brick as standard 1 HP
+      game.world.mutateComponent(targetBrick, "Brick", (b) => {
+        b.kind = "standard";
+        b.material = "standard";
+        b.hp = 1;
+        b.maxHp = 1;
+      });
+      game.world.mutateComponent(targetBrick, "Health", (h) => {
+        h.current = 1;
+        h.max = 1;
+      });
+
+      // Move other brick far away so ball won't touch it
+      game.world.mutateComponent(otherBrick, "Transform", (t) => {
+        t.x = 750;
+        t.y = 500;
+        t.dirty = true;
+      });
+
+      const initialBricksRemaining = game.getGameState().bricksRemaining;
+      const initialScore = game.getGameState().score;
+      expect(initialBricksRemaining).toBe(2);
+
+      setupBallCollision(game, ballEntity, targetBrick);
+
+      // Run game update cycle so CollisionSystem2D detects overlap, ArkanoidCollisionSystem processes collision, and onCombatDeath runs
+      game.update(0.016);
+      game.update(0.016); // Reconcile bricksRemaining state
+
+      // Verify target brick is destroyed (removed from world)
+      expect(game.world.getComponent(targetBrick, "Brick")).toBeUndefined();
+
+      // Verify bricksRemaining decrements by 1
+      expect(game.getGameState().bricksRemaining).toBe(initialBricksRemaining - 1);
+
+      // Verify score increases
+      expect(game.getGameState().score).toBeGreaterThan(initialScore);
+    });
+
+    test("gold brick is indestructible on collision with ball", () => {
+      const ballEntity = game.world.query("Ball")[0];
+      const brick = game.world.query("Brick")[0];
+      expect(ballEntity).toBeDefined();
+      expect(brick).toBeDefined();
+
+      game.world.mutateComponent(brick, "Brick", (b) => {
+        b.material = "gold";
+        b.color = "gold";
+        b.hp = Infinity;
+        b.maxHp = Infinity;
+      });
+      game.world.mutateComponent(brick, "Health", (h) => {
+        h.current = 999;
+        h.max = 999;
+      });
+
+      setupBallCollision(game, ballEntity, brick);
+
+      game.update(0.016);
+
+      // Verify gold brick is NOT destroyed
+      expect(game.world.getComponent(brick, "Brick")).toBeDefined();
+      expect(game.world.getComponent(brick, "Health")?.current).toBe(999);
     });
   });
 

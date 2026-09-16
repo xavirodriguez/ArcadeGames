@@ -8,14 +8,14 @@ import { GAME_ACCENTS, getGameAccentColors } from '../../../theme/gameAccents';
 describe('Aesthetic Improvements Infrastructure Tests', () => {
   it('correctly retrieves accent colors for mapped games', () => {
     const asteroidsAccents = getGameAccentColors('asteroids');
-    expect(asteroidsAccents.primary).toBe('#f97316');
-    expect(asteroidsAccents.secondary).toBe('#ffffff');
-    expect(asteroidsAccents.accent).toBe('#ef4444');
+    expect(asteroidsAccents.primary.toLowerCase()).toBe('#f97316');
+    expect(asteroidsAccents.secondary.toLowerCase()).toBe('#ffffff');
+    expect(asteroidsAccents.accent.toLowerCase()).toBe('#ef4444');
 
     const spaceInvadersAccents = getGameAccentColors('space-invaders');
-    expect(spaceInvadersAccents.primary).toBe('#00FF41');
-    expect(spaceInvadersAccents.secondary).toBe('#fbbf24');
-    expect(spaceInvadersAccents.accent).toBe('#ff0088');
+    expect(spaceInvadersAccents.primary.toLowerCase()).toBe('#00ff41');
+    expect(spaceInvadersAccents.secondary.toLowerCase()).toBe('#fbbf24');
+    expect(spaceInvadersAccents.accent.toLowerCase()).toBe('#ff0088');
   });
 
   it('subscribes and handles kernel state transition events', () => {

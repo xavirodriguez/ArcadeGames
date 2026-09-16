@@ -22,6 +22,15 @@ describe("Asteroids Story Mode Tests", () => {
     game.destroy();
   });
 
+  it("should attach Collectible story_fragment component to asteroids in story mode", () => {
+    const asteroids = world.query("Asteroid");
+    expect(asteroids.length).toBeGreaterThan(0);
+    const hasCollectible = world.hasComponent(asteroids[0], "Collectible" as any);
+    expect(hasCollectible).toBe(true);
+    const collectible = world.getComponent(asteroids[0], "Collectible" as any) as any;
+    expect(collectible?.kind).toBe("story_fragment");
+  });
+
   it("should initialize story mode correctly", () => {
     const state = game.getGameState();
     expect(state.mode).toBe("story");

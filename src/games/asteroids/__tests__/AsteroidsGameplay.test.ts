@@ -1,7 +1,7 @@
 import { World, computeShipPhysics } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { AsteroidsGame } from "../AsteroidsGame";
-import { createShip, createAsteroid, createBullet, fragmentAsteroid } from "../EntityFactory";
+import { createShip, createAsteroid, createBullet, fragmentAsteroid, spawnAsteroidWave } from "../EntityFactory";
 
 describe("Asteroids Gameplay, Physics & Collision Systems", () => {
   let game: AsteroidsGame;
@@ -169,6 +169,46 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       expect(collider).toBeDefined();
       expect(collider.layer).toBe(CollisionLayers.PROJECTILE);
       expect(collider.mask).toBe(CollisionLayers.ENEMY);
+    });
+
+    it("should safely terminate spawnAsteroidWave without hanging when screen area is small", () => {
+      world.setResource("ScreenConfig", { width: 200, height: 200 });
+      // Small screen center is (100, 100), max distance to any corner is ~141px (< 150px).
+      // spawnAsteroidWave should hit MAX_SPAWN_ATTEMPTS = 20 and terminate safely.
+      const startTime = Date.now();
+      spawnAsteroidWave(world, 1);
+      const duration = Date.now() - startTime;
+
+      expect(duration).toBeLessThan(1000);
+      const asteroids = world.query("Asteroid");
+      expect(asteroids.length).toBeGreaterThan(0);
+    });
+
+    it("should NOT attach Collectible component to asteroids in deathmatch mode", () => {
+      const asteroid = createAsteroid({ world, x: 100, y: 100, size: "large" });
+      const hasCollectible = world.hasComponent(asteroid, "Collectible" as any);
+      expect(hasCollectible).toBe(false);
+    });
+
+    it("should enforce MAX_ASTEROIDS entity cap during repeated fragmentation", () => {
+      world.setResource("GameConfig", { MAX_ASTEROIDS: 10, FRAGMENT_IMPULSE_SPEED: 80 });
+
+      // Spawn 8 large asteroids
+      for (let i = 0; i < 8; i++) {
+        createAsteroid({ world, x: i * 20, y: i * 20, size: "large" });
+      }
+
+      const initialAsteroids = world.query("Asteroid");
+      expect(initialAsteroids.length).toBe(8);
+
+      // Attempt to fragment all 8 large asteroids (would produce 16 medium asteroids without cap)
+      for (const parent of initialAsteroids) {
+        fragmentAsteroid(world, parent);
+      }
+
+      // Converted/fragmented total should not exceed 10
+      const totalAsteroids = world.query("Asteroid");
+      expect(totalAsteroids.length).toBeLessThanOrEqual(10);
     });
 
     it("should fragment a large asteroid into two medium asteroids deterministically", () => {
@@ -503,6 +543,43 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       shipComp = world.getComponent(ship, "Ship") as any;
       expect(shipComp.hyperspacePrepTime).toBe(0);
       expect(shipComp.hyperspacePreviewX).toBeUndefined();
+    });
+
+    it("should remove hyperspace preview singularity entity when charge completes", () => {
+      const ship = createShip({ world, x: 100, y: 100 });
+      world.addComponent(ship, { type: "LocalPlayer" });
+      world.addComponent(ship, {
+        type: "Input",
+        actions: { hyperspace: true },
+        axes: {}
+      } as any);
+      createAsteroid({ world, x: 700, y: 700, size: "large" });
+      world.flush();
+
+      // Frame 1: starts charging and creates preview entity
+      world.update(0.016);
+      world.flush();
+
+      let renders = world.query("Render");
+      let preview = renders.find(r => {
+        const rc = world.getComponent(r, "Render") as any;
+        return rc.shape === "singularity";
+      });
+      expect(preview).toBeDefined();
+
+      // Charge remaining frames until completion
+      for (let i = 0; i < 35; i++) {
+        world.update(0.016);
+        world.flush();
+      }
+
+      // Preview entity must be removed from world
+      renders = world.query("Render");
+      preview = renders.find(r => {
+        const rc = world.getComponent(r, "Render") as any;
+        return rc.shape === "singularity";
+      });
+      expect(preview).toBeUndefined();
     });
 
     it("should teleport ship and apply cooldown when charge completes", () => {

@@ -118,6 +118,6 @@ describe("Deterministic Asteroids 2D Visual Drawers (Canvas)", () => {
     drawAsteroidsBullet.draw(ctx, world, entity);
 
     expect(drawCalls.length).toBeGreaterThan(0);
-    expect(ctx.strokeStyle).toBe("#ffffff"); // bright white core is drawn last
+    expect(ctx.strokeStyle.toLowerCase()).toBe("#ffffff"); // bright white core is drawn last
   });
 });

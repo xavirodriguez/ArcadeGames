@@ -181,6 +181,7 @@ export class AsteroidsGame
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
+    this.world.setResource("HasCombatSystem", true);
     this.world.addSystem(new AsteroidCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });
@@ -406,6 +407,9 @@ export class AsteroidsGame
     return this.missionSystem;
   }
 
+  private cachedComboEntityId: number | undefined;
+  private cachedDialogueBoxEntityId: number | undefined;
+
   public getGameState(): GameStateComponent {
     const state = this.world.getSingleton("GameState");
     if (!state) return INITIAL_GAME_STATE;
@@ -414,26 +418,38 @@ export class AsteroidsGame
     let multiplier = 1;
     let comboTimerRemaining = 0;
 
-    const comboEntities = this.world.query("Combo");
-    const comboEntity = comboEntities[0];
-    if (comboEntity !== undefined) {
-      const comboComp = this.world.getComponent(comboEntity, "Combo");
+    if (this.cachedComboEntityId === undefined || !this.world.hasComponent(this.cachedComboEntityId, "Combo")) {
+      const comboEntities = this.world.query("Combo");
+      this.cachedComboEntityId = comboEntities[0];
+    }
+
+    if (this.cachedComboEntityId !== undefined) {
+      const comboComp = this.world.getComponent(this.cachedComboEntityId, "Combo");
       if (comboComp) {
         combo = comboComp.combo;
         multiplier = comboComp.multiplier;
         comboTimerRemaining = Math.max(0, comboComp.timerRemaining);
+      } else {
+        this.cachedComboEntityId = undefined;
       }
     }
 
     let isDialogueActive = false;
     let dialogueText = "";
-    const dialogueBoxEntities = this.world.query("DialogueBox");
-    if (dialogueBoxEntities.length > 0) {
-      const dialogueBox = this.world.getComponent(dialogueBoxEntities[0], "DialogueBox");
+
+    if (this.cachedDialogueBoxEntityId === undefined || !this.world.hasComponent(this.cachedDialogueBoxEntityId, "DialogueBox")) {
+      const dialogueBoxEntities = this.world.query("DialogueBox");
+      this.cachedDialogueBoxEntityId = dialogueBoxEntities[0];
+    }
+
+    if (this.cachedDialogueBoxEntityId !== undefined) {
+      const dialogueBox = this.world.getComponent(this.cachedDialogueBoxEntityId, "DialogueBox");
       if (dialogueBox) {
         isDialogueActive = true;
         const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];
         dialogueText = currentLineKey || "";
+      } else {
+        this.cachedDialogueBoxEntityId = undefined;
       }
     }
 

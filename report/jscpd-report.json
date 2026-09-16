@@ -39,18 +39,18 @@
     },
     {
       "firstFile": {
-        "end": 126,
+        "end": 127,
         "endLoc": {
           "column": 22,
-          "line": 126,
-          "position": 4990
+          "line": 127,
+          "position": 5039
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 118,
+        "start": 119,
         "startLoc": {
           "column": 15,
-          "line": 118,
-          "position": 4648
+          "line": 119,
+          "position": 4697
         }
       },
       "format": "typescript",
@@ -58,36 +58,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 168,
+        "end": 169,
         "endLoc": {
           "column": 22,
-          "line": 168,
-          "position": 6469
+          "line": 169,
+          "position": 6538
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 160,
+        "start": 161,
         "startLoc": {
           "column": 15,
-          "line": 160,
-          "position": 6127
+          "line": 161,
+          "position": 6196
         }
       },
       "tokens": 80
     },
     {
       "firstFile": {
-        "end": 187,
+        "end": 188,
         "endLoc": {
           "column": 15,
-          "line": 187,
-          "position": 7270
+          "line": 188,
+          "position": 7339
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 179,
+        "start": 180,
         "startLoc": {
           "column": 42,
-          "line": 179,
-          "position": 6869
+          "line": 180,
+          "position": 6938
         }
       },
       "format": "typescript",
@@ -95,36 +95,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 197,
+        "end": 198,
         "endLoc": {
           "column": 15,
-          "line": 197,
-          "position": 7720
+          "line": 198,
+          "position": 7789
         },
         "name": "physics/systems/TileCollisionSystem.ts",
-        "start": 189,
+        "start": 190,
         "startLoc": {
           "column": 27,
-          "line": 189,
-          "position": 7319
+          "line": 190,
+          "position": 7388
         }
       },
       "tokens": 72
     },
     {
       "firstFile": {
-        "end": 129,
+        "end": 142,
         "endLoc": {
           "column": 16,
-          "line": 129,
-          "position": 4532
+          "line": 142,
+          "position": 5161
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 121,
+        "start": 134,
         "startLoc": {
           "column": 58,
-          "line": 121,
-          "position": 4175
+          "line": 134,
+          "position": 4804
         }
       },
       "format": "typescript",
@@ -132,18 +132,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 173,
+        "end": 186,
         "endLoc": {
           "column": 16,
-          "line": 173,
-          "position": 6040
+          "line": 186,
+          "position": 6669
         },
         "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 165,
+        "start": 178,
         "startLoc": {
           "column": 65,
-          "line": 165,
-          "position": 5683
+          "line": 178,
+          "position": 6312
         }
       },
       "tokens": 66
@@ -890,18 +890,18 @@
     },
     {
       "firstFile": {
-        "end": 31,
+        "end": 32,
         "endLoc": {
           "column": 35,
-          "line": 31,
-          "position": 1063
+          "line": 32,
+          "position": 1114
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 20,
+        "start": 21,
         "startLoc": {
           "column": 4,
-          "line": 20,
-          "position": 755
+          "line": 21,
+          "position": 806
         }
       },
       "format": "typescript",
@@ -927,18 +927,18 @@
     },
     {
       "firstFile": {
-        "end": 271,
+        "end": 273,
         "endLoc": {
           "column": 19,
-          "line": 271,
-          "position": 10816
+          "line": 273,
+          "position": 10905
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 263,
+        "start": 265,
         "startLoc": {
           "column": 32,
-          "line": 263,
-          "position": 10546
+          "line": 265,
+          "position": 10635
         }
       },
       "format": "typescript",
@@ -946,18 +946,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 421,
+        "end": 432,
         "endLoc": {
           "column": 13,
-          "line": 421,
-          "position": 16348
+          "line": 432,
+          "position": 16757
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 413,
+        "start": 424,
         "startLoc": {
           "column": 29,
-          "line": 413,
-          "position": 16126
+          "line": 424,
+          "position": 16535
         }
       },
       "tokens": 55
@@ -983,18 +983,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 214,
+        "end": 215,
         "endLoc": {
           "column": 37,
-          "line": 214,
-          "position": 8060
+          "line": 215,
+          "position": 8122
         },
         "name": "arkanoid/systems/ArkanoidPowerUpSystems.ts",
-        "start": 207,
+        "start": 208,
         "startLoc": {
           "column": 47,
-          "line": 207,
-          "position": 7822
+          "line": 208,
+          "position": 7884
         }
       },
       "tokens": 50
@@ -1020,18 +1020,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 69,
+        "end": 70,
         "endLoc": {
           "column": 9,
-          "line": 69,
-          "position": 2674
+          "line": 70,
+          "position": 2736
         },
         "name": "arkanoid/systems/ArkanoidPowerUpSystems.ts",
-        "start": 62,
+        "start": 63,
         "startLoc": {
           "column": 41,
-          "line": 62,
-          "position": 2294
+          "line": 63,
+          "position": 2356
         }
       },
       "tokens": 64
@@ -5922,32 +5922,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-16T01:39:05.867Z",
+    "detectionDate": "2026-09-16T13:24:09.714Z",
     "formats": {
       "typescript": {
         "clones": 160,
         "duplicatedLines": 1462,
         "duplicatedTokens": 11878,
-        "lines": 64932,
+        "lines": 64965,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.251586274872174,
-        "percentageTokens": 3.4934061150782916,
+        "percentage": 2.2504425459863002,
+        "percentageTokens": 3.4914345510340854,
         "sources": 387,
-        "tokens": 340012
+        "tokens": 340204
       }
     },
     "total": {
       "clones": 160,
       "duplicatedLines": 1462,
       "duplicatedTokens": 11878,
-      "lines": 64932,
+      "lines": 64965,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.251586274872174,
-      "percentageTokens": 3.4934061150782916,
+      "percentage": 2.2504425459863002,
+      "percentageTokens": 3.4914345510340854,
       "sources": 387,
-      "tokens": 340012
+      "tokens": 340204
     }
   }
 }

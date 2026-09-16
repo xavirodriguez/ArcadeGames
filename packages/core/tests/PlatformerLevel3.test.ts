@@ -473,6 +473,87 @@ describe("Platformer Level 3 - Content & Design Tests", () => {
       vel = world.getComponent(enemy, "Velocity")!;
       expect(vel.vx).toBe(0); // Recovers and stops!
     });
+
+    it("should reverse patrol direction when enemy_sentinel reaches endX bound on flat ground", () => {
+      const sensorSys = new EnemySensorSystem();
+      const smSystem = new StateMachineSystem();
+      registerEnemyStateMachines(world);
+
+      // Create Sentinel / Patrol Enemy near endX (195, endX is 200) moving right (+1)
+      const enemy = world.createEntity();
+      world.addComponent(enemy, {
+        type: "Transform",
+        x: 195,
+        y: 100,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 195,
+        worldY: 100,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+      world.addComponent(enemy, {
+        type: "Velocity",
+        vx: 70,
+        vy: 0,
+        angularVelocity: 0
+      });
+      world.addComponent(enemy, {
+        type: "Enemy",
+        kind: "patrol"
+      });
+      world.addComponent(enemy, {
+        type: "Patrol",
+        startX: 100,
+        endX: 200,
+        direction: 1,
+        patrolSpeed: 70
+      });
+      world.addComponent(enemy, {
+        type: "GroundDetector",
+        hasGroundAhead: true,
+        hasWallAhead: false,
+        sensorOffsetX: 15,
+        sensorOffsetY: 20
+      });
+      world.addComponent(enemy, {
+        type: "PlayerSensor",
+        visionRange: 100,
+        detectedPlayerEntity: undefined
+      });
+      world.addComponent(enemy, {
+        type: "StateMachine",
+        currentState: "Patrol",
+        elapsedInState: 0,
+        data: {
+          patrolSpeed: 70
+        },
+        machineId: "patrol",
+        elapsedMs: 0
+      });
+
+      // Initial check
+      let vel = world.getComponent(enemy, "Velocity")!;
+      expect(vel.vx).toBe(70);
+
+      // Move entity past endX
+      world.mutateComponent(enemy, "Transform", (t) => {
+        t.x = 205;
+      });
+
+      // Run systems (EnemySensorSystem + StateMachineSystem)
+      sensorSys.update(world, 0.1);
+      smSystem.update(world, 0.1);
+
+      const patrol = world.getComponent(enemy, "Patrol")!;
+      vel = world.getComponent(enemy, "Velocity")!;
+
+      expect(patrol.direction).toBe(-1);
+      expect(vel.vx).toBe(-70);
+    });
   });
 
   describe("Modular Segments and Generation Plan", () => {

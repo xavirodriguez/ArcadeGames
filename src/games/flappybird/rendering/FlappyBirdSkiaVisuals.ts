@@ -23,6 +23,26 @@ import { processFlappyBirdParticleEvents, applyFlappyParticlePhysics } from "./p
 // Primitivas de dibujo específicas de Canvas/Skia mantenidas intencionalmente separadas. Ver docs/tech-debt/duplication.md
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
+
+const flappyBirdSkiaTrailMap = new WeakMap<any, CircularPositionBuffer>();
+
+function getFlappyBirdSkiaTrailBuffer(render: any): CircularPositionBuffer {
+  let buf = flappyBirdSkiaTrailMap.get(render);
+  if (!buf) {
+    buf = new CircularPositionBuffer({
+      capacity: 15,
+      minDistance: 1.0,
+      maxDiscontinuityDistance: 120,
+      startAlpha: 1.0,
+      endAlpha: 0.0,
+      startWidthScale: 1.0,
+      endWidthScale: 0.1
+    });
+    flappyBirdSkiaTrailMap.set(render, buf);
+  }
+  return buf;
+}
 
 // Zero-allocation shader cache for React Native Skia bridge
 const skiaShaderCache = new Map<string, any>();
@@ -204,19 +224,36 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     const { scaleX, scaleY } = calculateSquashAndStretch(vy);
     canvas.scale(scaleX, scaleY);
 
-    // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
+    // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL USING CIRCULARPOSITIONBUFFER ---
     if (isAlive) {
       const warpFactor = calculateWarpFactor(world);
       const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
       const trailColor = trailConfig?.color || "rgba(0, 243, 255, 0.35)";
       const trailWidth = (trailConfig?.width || 2.0) * warpFactor;
-      const lengthMult = (trailConfig?.lengthMultiplier || 1.0) * warpFactor;
+
+      const trail = getFlappyBirdSkiaTrailBuffer(render);
+      trail.pushPosition(x, y, angleDeg, world.tick);
+
+      const points = trail.getPoints();
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(trailColor));
-      paint.setStrokeWidth(trailWidth);
-      canvas.drawLine(-size * 0.55, 0, -size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0, paint);
+
+      for (let i = 1; i < points.length; i++) {
+        const pt = points[i];
+        const prevPt = points[i - 1];
+
+        paint.setAlphaf(pt.alpha * globalOpacity);
+        paint.setStrokeWidth(trailWidth * pt.widthScale);
+        canvas.drawLine(
+          prevPt.x - x - size * 0.55,
+          prevPt.y - y,
+          pt.x - x - size * 0.55,
+          pt.y - y,
+          paint
+        );
+      }
     }
 
     // --- THERMONUCLEAR REACTIVE THRUSTER FLAME ---

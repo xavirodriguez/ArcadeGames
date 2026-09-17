@@ -18,6 +18,26 @@ import {
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
 import { processFlappyBirdParticleEvents, applyFlappyParticlePhysics } from "./particleEvents";
+import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
+
+const flappyBirdTrailMap = new WeakMap<any, CircularPositionBuffer>();
+
+function getFlappyBirdTrailBuffer(render: any): CircularPositionBuffer {
+  let buf = flappyBirdTrailMap.get(render);
+  if (!buf) {
+    buf = new CircularPositionBuffer({
+      capacity: 15,
+      minDistance: 1.0,
+      maxDiscontinuityDistance: 120,
+      startAlpha: 1.0,
+      endAlpha: 0.0,
+      startWidthScale: 1.0,
+      endWidthScale: 0.1
+    });
+    flappyBirdTrailMap.set(render, buf);
+  }
+  return buf;
+}
 
 // DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
 // Primitivas de dibujo específicas de Canvas/Skia mantenidas intencionalmente separadas. Ver docs/tech-debt/duplication.md
@@ -178,23 +198,34 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.restore();
     }
 
-    // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
+    // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL USING CIRCULARPOSITIONBUFFER ---
     if (isAlive) {
       const warpFactor = calculateWarpFactor(world);
       const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
       const trailColor = trailConfig?.color || "#00F3FF";
       const trailWidth = (trailConfig?.width || 2.0) * warpFactor;
-      const lengthMult = (trailConfig?.lengthMultiplier || 1.0) * warpFactor;
+
+      const trail = getFlappyBirdTrailBuffer(render);
+      trail.pushPosition(x, y, angleRad, world.tick);
+
+      const points = trail.getPoints();
 
       ctx.save();
       ctx.strokeStyle = trailConfig?.enabled ? trailColor : "rgba(0, 243, 255, 0.35)";
-      ctx.lineWidth = trailWidth;
       ctx.shadowColor = trailColor;
       ctx.shadowBlur = trailConfig?.enabled ? 12 * warpFactor : 8 * warpFactor;
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.55, 0);
-      ctx.lineTo(-size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0);
-      ctx.stroke();
+
+      for (let i = 1; i < points.length; i++) {
+        const pt = points[i];
+        const prevPt = points[i - 1];
+
+        ctx.globalAlpha = pt.alpha * globalOpacity;
+        ctx.lineWidth = trailWidth * pt.widthScale;
+        ctx.beginPath();
+        ctx.moveTo(prevPt.x - x - size * 0.55, prevPt.y - y);
+        ctx.lineTo(pt.x - x - size * 0.55, pt.y - y);
+        ctx.stroke();
+      }
       ctx.restore();
     }
 

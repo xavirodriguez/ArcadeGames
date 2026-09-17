@@ -52,11 +52,16 @@ function PlatformerContent() {
     const activeKeys = new Set<string>();
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "KeyP") {
+        togglePause();
+        return;
+      }
       activeKeys.add(e.code);
       updateInput();
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "KeyP") return;
       activeKeys.delete(e.code);
       updateInput();
     };
@@ -89,7 +94,7 @@ function PlatformerContent() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [game, isReady]);
+  }, [game, isReady, togglePause]);
 
   // Touch handlers
   const handleTouchLeft = (pressed: boolean) => {

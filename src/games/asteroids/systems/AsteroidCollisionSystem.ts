@@ -198,6 +198,133 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     spawnScorePopup(world, transform.x, transform.y, `x${nextMultiplier}`, multiplierColor);
   }
 
+  private resolveBulletUfoCollision(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    bullet: number,
+    ufo: number
+  ): void {
+    if (this.destroyedEntities.has(bullet) || this.destroyedEntities.has(ufo)) return;
+
+    const config = world.getResource<any>("GameConfig") || {};
+    const ufoComp = world.getComponent(ufo, "Ufo");
+    const points = ufoComp?.size === "small"
+      ? (config.UFO_SCORE_SMALL ?? 1000)
+      : (config.UFO_SCORE_LARGE ?? 200);
+
+    let scoreGain = points;
+    world.mutateSingleton("GameState", (state) => {
+      state.score += points;
+      scoreGain = points;
+    });
+
+    world.getCommandBuffer().removeEntity(bullet);
+    world.getCommandBuffer().removeEntity(ufo);
+    this.destroyedEntities.add(bullet);
+    this.destroyedEntities.add(ufo);
+
+    const eventBus = world.getEventBus();
+    if (eventBus) {
+      eventBus.emitDeferred("PlaySFX", { name: "hit_critical", volume: 1.0 });
+      eventBus.emitDeferred("ufo:destroyed", { entity: ufo });
+      eventBus.emitDeferred("score:changed", { newScore: points, delta: scoreGain });
+    }
+  }
+
+  private resolveBulletAsteroidCollision(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    bullet: number,
+    asteroid: number
+  ): void {
+    if (this.destroyedEntities.has(bullet) || this.destroyedEntities.has(asteroid)) return;
+
+    const hasCombatSystem = world.getResource("HasCombatSystem") === true;
+    if (!hasCombatSystem) {
+      // Fallback for direct/headless test mode without CombatSystem
+      const health = world.getComponent(asteroid, "Health");
+      const isDeadPending = health && health.current <= 0;
+      if (!world.hasComponent(asteroid, "Dead") && !isDeadPending) {
+        this.onCombatDeath(world, { entity: asteroid, sourceEntity: bullet });
+        world.getCommandBuffer().removeEntity(bullet);
+        this.destroyedEntities.add(bullet);
+        this.destroyedEntities.add(asteroid);
+      }
+    }
+  }
+
+  private resolveShipAsteroidCollision(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    ship: number,
+    asteroid: number
+  ): void {
+    if (this.destroyedEntities.has(ship) || this.destroyedEntities.has(asteroid)) return;
+
+    // Ignore collision if ship is invulnerable
+    if (world.hasComponent(ship, "Invulnerable")) return;
+
+    let lives = 0;
+    // Decrement lives in game state
+    world.mutateSingleton("GameState", (state) => {
+      state.lives = Math.max(0, state.lives - 1);
+      lives = state.lives;
+      if (state.lives <= 0) {
+        state.isGameOver = true;
+      }
+    });
+
+    // Reset combo on player hit/life loss
+    if (world.hasComponent(ship, "Combo")) {
+      world.mutateComponent(ship, "Combo", (c) => {
+        c.combo = 0;
+        c.multiplier = 1;
+        c.timerRemaining = 0;
+      });
+    } else {
+      const comboEntities = world.query("Combo");
+      const comboEntity = comboEntities[0];
+      if (comboEntity !== undefined) {
+        world.mutateComponent(comboEntity, "Combo", (c) => {
+          c.combo = 0;
+          c.multiplier = 1;
+          c.timerRemaining = 0;
+        });
+      }
+    }
+
+    // Spawn particle explosion for player ship impact/death
+    const shipTransform = world.getComponent(ship, "Transform");
+    if (shipTransform) {
+      this.spawnExplosionParticles(world, shipTransform, "ship");
+    }
+
+    if (lives > 0) {
+      // Respawn ship at center with invulnerability
+      const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      world.mutateComponent(ship, "Transform", (t) => {
+        t.x = screen.width / 2;
+        t.y = screen.height / 2;
+      });
+      world.mutateComponent(ship, "Velocity", (v) => {
+        v.vx = 0;
+        v.vy = 0;
+      });
+      world.getCommandBuffer().addComponent(ship, {
+        type: "Invulnerable",
+        remaining: 3.0
+      });
+    } else {
+      // Modificaciones Diferidas: TODA eliminación debe hacerse con world.getCommandBuffer().removeEntity(entity)
+      world.getCommandBuffer().removeEntity(ship);
+      this.destroyedEntities.add(ship);
+    }
+
+    // Eventos Diferidos: Todo evento debe emitirse con eventBus.emitDeferred()
+    const eventBus = world.getEventBus();
+    if (eventBus) {
+      eventBus.emitDeferred("PlaySFX", { name: "explosion_large", volume: 1.0 });
+      eventBus.emitDeferred("ship:destroyed", { entity: ship });
+    }
+  }
+
   private onCombatDeath(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, event: any): void {
     const asteroid = event.entity;
     const bullet = event.sourceEntity;
@@ -283,136 +410,33 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
         const isUfoB = world.hasComponent(entityB, "Ufo");
 
         // Case 0: Bullet-UFO
-        if ((isBulletA && isUfoB) || (isBulletB && isUfoA)) {
-          const bullet = isBulletA ? entityA : entityB;
-          const ufo = isBulletA ? entityB : entityA;
-
-          if (!this.destroyedEntities.has(bullet) && !this.destroyedEntities.has(ufo)) {
-            const config = world.getResource<any>("GameConfig") || {};
-            const ufoComp = world.getComponent(ufo, "Ufo");
-            const points = ufoComp?.size === "small"
-              ? (config.UFO_SCORE_SMALL ?? 1000)
-              : (config.UFO_SCORE_LARGE ?? 200);
-
-            let scoreGain = points;
-            world.mutateSingleton("GameState", (state) => {
-              state.score += points;
-              scoreGain = points;
-            });
-
-            world.getCommandBuffer().removeEntity(bullet);
-            world.getCommandBuffer().removeEntity(ufo);
-            this.destroyedEntities.add(bullet);
-            this.destroyedEntities.add(ufo);
-
-            const eventBus = world.getEventBus();
-            if (eventBus) {
-              eventBus.emitDeferred("PlaySFX", { name: "hit_critical", volume: 1.0 });
-              eventBus.emitDeferred("ufo:destroyed", { entity: ufo });
-              eventBus.emitDeferred("score:changed", { newScore: points, delta: scoreGain });
-            }
-          }
+        if (isBulletA && isUfoB) {
+          this.resolveBulletUfoCollision(world, entityA, entityB);
+          continue;
+        }
+        if (isBulletB && isUfoA) {
+          this.resolveBulletUfoCollision(world, entityB, entityA);
           continue;
         }
 
         // Case 1: Bullet-Asteroid
-        if ((isBulletA && isAsteroidB) || (isBulletB && isAsteroidA)) {
-            const bullet   = isBulletA ? entityA : entityB;
-            const asteroid = isBulletA ? entityB : entityA;
-
-            if (this.destroyedEntities.has(bullet) || this.destroyedEntities.has(asteroid)) continue;
-
-            const hasCombatSystem = world.getResource("HasCombatSystem") === true;
-            if (!hasCombatSystem) {
-              // Fallback for direct/headless test mode without CombatSystem
-              const health = world.getComponent(asteroid, "Health");
-              const isDeadPending = health && health.current <= 0;
-              if (!world.hasComponent(asteroid, "Dead") && !isDeadPending) {
-                this.onCombatDeath(world, { entity: asteroid, sourceEntity: bullet });
-                world.getCommandBuffer().removeEntity(bullet);
-                this.destroyedEntities.add(bullet);
-                this.destroyedEntities.add(asteroid);
-              }
-            }
-            continue;
+        if (isBulletA && isAsteroidB) {
+          this.resolveBulletAsteroidCollision(world, entityA, entityB);
+          continue;
+        }
+        if (isBulletB && isAsteroidA) {
+          this.resolveBulletAsteroidCollision(world, entityB, entityA);
+          continue;
         }
 
         // Case 2: Ship-Asteroid
-        if ((isShipA && isAsteroidB) || (isShipB && isAsteroidA)) {
-          const ship = isShipA ? entityA : entityB;
-          const asteroid = isShipA ? entityB : entityA;
-
-          if (this.destroyedEntities.has(ship) || this.destroyedEntities.has(asteroid)) {
-            continue;
-          }
-
-          // Ignore collision if ship is invulnerable
-          if (world.hasComponent(ship, "Invulnerable")) {
-            continue;
-          }
-
-          let lives = 0;
-          // Decrement lives in game state
-          world.mutateSingleton("GameState", (state) => {
-            state.lives = Math.max(0, state.lives - 1);
-            lives = state.lives;
-            if (state.lives <= 0) {
-              state.isGameOver = true;
-            }
-          });
-
-          // Reset combo on player hit/life loss
-          if (world.hasComponent(ship, "Combo")) {
-            world.mutateComponent(ship, "Combo", (c) => {
-              c.combo = 0;
-              c.multiplier = 1;
-              c.timerRemaining = 0;
-            });
-          } else {
-            const comboEntities = world.query("Combo");
-            const comboEntity = comboEntities[0];
-            if (comboEntity !== undefined) {
-              world.mutateComponent(comboEntity, "Combo", (c) => {
-                c.combo = 0;
-                c.multiplier = 1;
-                c.timerRemaining = 0;
-              });
-            }
-          }
-
-          // Spawn particle explosion for player ship impact/death
-          const shipTransform = world.getComponent(ship, "Transform");
-          if (shipTransform) {
-            this.spawnExplosionParticles(world, shipTransform, "ship");
-          }
-
-          if (lives > 0) {
-            // Respawn ship at center with invulnerability
-            const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-            world.mutateComponent(ship, "Transform", (t) => {
-              t.x = screen.width / 2;
-              t.y = screen.height / 2;
-            });
-            world.mutateComponent(ship, "Velocity", (v) => {
-              v.vx = 0;
-              v.vy = 0;
-            });
-            world.getCommandBuffer().addComponent(ship, {
-              type: "Invulnerable",
-              remaining: 3.0
-            });
-          } else {
-            // Modificaciones Diferidas: TODA eliminación debe hacerse con world.getCommandBuffer().removeEntity(entity)
-            world.getCommandBuffer().removeEntity(ship);
-            this.destroyedEntities.add(ship);
-          }
-
-          // Eventos Diferidos: Todo evento debe emitirse con eventBus.emitDeferred()
-          const eventBus = world.getEventBus();
-          if (eventBus) {
-            eventBus.emitDeferred("PlaySFX", { name: "explosion_large", volume: 1.0 });
-            eventBus.emitDeferred("ship:destroyed", { entity: ship });
-          }
+        if (isShipA && isAsteroidB) {
+          this.resolveShipAsteroidCollision(world, entityA, entityB);
+          continue;
+        }
+        if (isShipB && isAsteroidA) {
+          this.resolveShipAsteroidCollision(world, entityB, entityA);
+          continue;
         }
       }
     }

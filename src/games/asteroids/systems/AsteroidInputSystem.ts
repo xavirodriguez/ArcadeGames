@@ -38,25 +38,6 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           const input = world.getComponent(entity, "Input")!;
           const ship = world.getComponent(entity, "Ship");
 
-          // Helper to check action state safely without modifying the frozen input object
-          const hasAction = (actionName: string): boolean => {
-              const acts = input.actions;
-              if (acts instanceof Set) {
-                  return acts.has(actionName);
-              }
-              if (Array.isArray(acts)) {
-                  const aLen = acts.length;
-                  for (let j = 0; j < aLen; j++) {
-                      if (acts[j] === actionName) return true;
-                  }
-                  return false;
-              }
-              if (acts && typeof acts === "object") {
-                  return (acts as Record<string, boolean>)[actionName] === true;
-              }
-              return false;
-          };
-
           // 1. Process physics (rotation, thrust, friction)
           const phys = computeShipPhysics(
               transform,
@@ -89,7 +70,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           const currentShip = world.getComponent(entity, "Ship");
           const cooldown = currentShip ? currentShip.shootCooldownRemaining : 0;
 
-          if (hasAction("shoot") && cooldown <= 0) {
+          if (this.hasAction(input, "shoot") && cooldown <= 0) {
               const bulletSpeed = config.BULLET_SPEED ?? 300;
               const forward = getForwardVector(transform.rotation);
               const vx = velocity.vx + forward.x * bulletSpeed;
@@ -122,7 +103,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               }
           }
 
-          if (hasAction("thrust")) {
+          if (this.hasAction(input, "thrust")) {
               const eventBus = world.getEventBus();
               if (eventBus) {
                   eventBus.emitDeferred("PlaySFX", {
@@ -152,7 +133,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           }
 
           // 3. Process hyperspace
-          const isHyperspaceHeld = hasAction("hyperspace");
+          const isHyperspaceHeld = this.hasAction(input, "hyperspace");
           const latestShip = world.getComponent(entity, "Ship")!;
           const hCooldown = latestShip.hyperspaceCooldownRemaining ?? 0;
           const prepActive = (latestShip.hyperspacePrepTime ?? 0) > 0;
@@ -282,6 +263,24 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               }
           }
       }
+  }
+
+  private hasAction(input: AsteroidsComponentRegistry["Input"], actionName: string): boolean {
+    const acts = input.actions;
+    if (acts instanceof Set) {
+      return acts.has(actionName);
+    }
+    if (Array.isArray(acts)) {
+      const aLen = acts.length;
+      for (let j = 0; j < aLen; j++) {
+        if (acts[j] === actionName) return true;
+      }
+      return false;
+    }
+    if (acts && typeof acts === "object") {
+      return (acts as Record<string, boolean>)[actionName] === true;
+    }
+    return false;
   }
 
   public onRegister(_world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>): void {}

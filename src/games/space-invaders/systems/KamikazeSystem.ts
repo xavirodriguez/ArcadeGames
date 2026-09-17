@@ -16,7 +16,9 @@ export class KamikazeSystem extends GameSystem {
     this.timer += deltaTime;
 
     const invaders = world.query("Invader");
-    const totalInvaders = config.INVADER_ROWS * config.INVADER_COLS;
+    const formationEntity = world.query("Formation")[0];
+    const formation = formationEntity !== undefined ? world.getComponent(formationEntity, "Formation") : null;
+    const totalInvaders = formation?.totalInvaders ?? (config.INVADER_ROWS * config.INVADER_COLS);
 
     // Trigger kamikazes if enough invaders are dead and cooldown passed
     if (invaders.length < totalInvaders * 0.6 && this.timer > this.spawnCooldown && gameState.kamikazesActive < 2) {
@@ -174,6 +176,13 @@ export class KamikazeSystem extends GameSystem {
         originY: pos.y,
         diveSpeed: speed,
       } as KamikazeComponent);
+
+      world.getCommandBuffer().addComponent(invader, {
+        type: "Velocity",
+        vx: 0,
+        vy: 0,
+        angularVelocity: 0
+      });
 
       world.mutateComponent(invader, "Render", render => {
           render.color = color;

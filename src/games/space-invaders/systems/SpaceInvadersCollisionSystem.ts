@@ -19,6 +19,7 @@ import { ParticlePool } from "../EntityPool";
 import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
 import { spawnLayeredExplosion } from "../rendering/SpaceInvadersCanvasVisuals";
 import { colors } from "../../../theme/colors";
+import { applyComboKill } from "../../shared/arcade/ComboUtils";
 
 /**
  * System that handles game-specific collision reactions and combat side-effects.
@@ -67,120 +68,127 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     if (!target) return;
 
     if (world.hasComponent(target, "Player")) {
-      world.mutateComponent(target, "Render", (render) => {
-        render.hitFlashFrames = 10;
-      });
-
-      world.mutateComponent(target, "Health", (health) => {
-        health.invulnerableRemaining = 1.5; // 1.5 seconds
-      });
-
-      // Apply Squash & Stretch to Player ship on hit
-      Juice.squash(world as World<CoreComponentRegistry>, target, 0.7, 1.4, 300);
-
-      // Contextual heavy screen shake on player hit
-      Juice.shake(world as World<CoreComponentRegistry>, 10, 300);
-
-      const health = world.getComponent(target, "Health");
-      world.mutateSingleton("GameState", (gs) => {
-        if (health) {
-          gs.lives = health.current;
-        }
-        if (health && health.current <= 0) {
-          gs.isGameOver = true;
-            const eventBus = world.getEventBus();
-          if (eventBus && !world.isReSimulating) {
-              eventBus.emitDeferred("PlaySFX", { name: "game_over" });
-          }
-        } else {
-            const eventBus = world.getEventBus();
-          if (eventBus && !world.isReSimulating) {
-              eventBus.emitDeferred("PlaySFX", { name: "hit" });
-          }
-        }
-      });
+      this.onPlayerCombatHit(world, target);
+    } else if (world.hasComponent(target, "Boss")) {
+      this.onBossCombatHit(world, target);
+    } else if (world.hasComponent(target, "Invader")) {
+      this.onInvaderCombatHit(world, target, event.sourceEntity);
     }
+  }
 
-    if (world.hasComponent(target, "Boss")) {
-      const bossComp = world.getComponent(target, "Boss");
-      if (bossComp) {
-        const health = world.getComponent(target, "Health");
-        const nextHp = health ? health.current : bossComp.hp - 1;
+  private onPlayerCombatHit(world: World<SpaceInvadersComponentRegistry>, target: Entity): void {
+    world.mutateComponent(target, "Render", (render) => {
+      render.hitFlashFrames = 10;
+    });
 
-        world.mutateComponent(target, "Boss", (b) => {
-          b.hp = nextHp;
-        });
+    world.mutateComponent(target, "Health", (health) => {
+      health.invulnerableRemaining = 1.5; // 1.5 seconds
+    });
 
-        world.mutateComponent(target, "Render", (render) => {
-          render.hitFlashFrames = 5;
-        });
+    // Apply Squash & Stretch to Player ship on hit
+    Juice.squash(world as World<CoreComponentRegistry>, target, 0.7, 1.4, 300);
 
-        // Apply hit-stop (50ms) and Squash & Stretch to Boss on hit
-        world.setResource("GameplayFreeze", { remaining: 0.05 });
-        Juice.squash(world as World<CoreComponentRegistry>, target, 1.2, 0.8, 200);
+    // Contextual heavy screen shake on player hit
+    Juice.shake(world as World<CoreComponentRegistry>, 10, 300);
 
-        const pos = world.getComponent(target, "Transform");
-        if (pos) {
-          this.createExplosion(world, pos.x, pos.y, "#FF00FF");
+    const health = world.getComponent(target, "Health");
+    world.mutateSingleton("GameState", (gs) => {
+      if (health) {
+        gs.lives = health.current;
+      }
+      if (health && health.current <= 0) {
+        gs.isGameOver = true;
+        const eventBus = world.getEventBus();
+        if (eventBus && !world.isReSimulating) {
+          eventBus.emitDeferred("PlaySFX", { name: "game_over" });
         }
-
-        world.mutateSingleton("GameState", (gs) => {
-          gs.score += 100;
-        });
-
+      } else {
         const eventBus = world.getEventBus();
         if (eventBus && !world.isReSimulating) {
           eventBus.emitDeferred("PlaySFX", { name: "hit" });
         }
       }
+    });
+  }
+
+  private onBossCombatHit(world: World<SpaceInvadersComponentRegistry>, target: Entity): void {
+    const bossComp = world.getComponent(target, "Boss");
+    if (!bossComp) return;
+
+    const health = world.getComponent(target, "Health");
+    const nextHp = health ? health.current : bossComp.hp - 1;
+
+    world.mutateComponent(target, "Boss", (b) => {
+      b.hp = nextHp;
+    });
+
+    world.mutateComponent(target, "Render", (render) => {
+      render.hitFlashFrames = 5;
+    });
+
+    // Apply hit-stop (50ms) and Squash & Stretch to Boss on hit
+    world.setResource("GameplayFreeze", { remaining: 0.05 });
+    Juice.squash(world as World<CoreComponentRegistry>, target, 1.2, 0.8, 200);
+
+    const pos = world.getComponent(target, "Transform");
+    if (pos) {
+      this.createExplosion(world, pos.x, pos.y, "#FF00FF");
     }
 
-    if (world.hasComponent(target, "Invader")) {
-      world.mutateComponent(target, "Render", (render) => {
-        render.hitFlashFrames = 4;
-      });
+    world.mutateSingleton("GameState", (gs) => {
+      gs.score += 100;
+    });
 
-      // Apply micro freeze-frame hit-stop (30ms) and Squash & Stretch deformation on invader hit
-      world.setResource("GameplayFreeze", { remaining: 0.03 });
-      Juice.squash(world as World<CoreComponentRegistry>, target, 1.25, 0.75, 120);
+    const eventBus = world.getEventBus();
+    if (eventBus && !world.isReSimulating) {
+      eventBus.emitDeferred("PlaySFX", { name: "hit" });
+    }
+  }
 
-      const pos = world.getComponent(target, "Transform");
-      if (pos) {
-        // Calculate bullet velocity/direction before particle burst for directional impact sparks
-        let sparkAngle: [number, number] = [0, 360];
-        const sourceBullet = event.sourceEntity;
-        if (sourceBullet && world.hasComponent(sourceBullet, "Velocity")) {
-          const vel = world.getComponent(sourceBullet, "Velocity");
-          if (vel && (vel.vx !== 0 || vel.vy !== 0)) {
-            const theta = (Math.atan2(vel.vy, vel.vx) * 180) / Math.PI;
-            sparkAngle = [theta - 30, theta + 30];
-          }
+  private onInvaderCombatHit(world: World<SpaceInvadersComponentRegistry>, target: Entity, sourceBullet?: Entity): void {
+    world.mutateComponent(target, "Render", (render) => {
+      render.hitFlashFrames = 4;
+    });
+
+    // Apply micro freeze-frame hit-stop (30ms) and Squash & Stretch deformation on invader hit
+    world.setResource("GameplayFreeze", { remaining: 0.03 });
+    Juice.squash(world as World<CoreComponentRegistry>, target, 1.25, 0.75, 120);
+
+    const pos = world.getComponent(target, "Transform");
+    if (pos) {
+      // Calculate bullet velocity/direction before particle burst for directional impact sparks
+      let sparkAngle: [number, number] = [0, 360];
+      if (sourceBullet && world.hasComponent(sourceBullet, "Velocity")) {
+        const vel = world.getComponent(sourceBullet, "Velocity");
+        if (vel && (vel.vx !== 0 || vel.vy !== 0)) {
+          const theta = (Math.atan2(vel.vy, vel.vx) * 180) / Math.PI;
+          sparkAngle = [theta - 30, theta + 30];
         }
-
-        // Small directional spark burst emitter
-        const sparkEmitter = createEmitter(world, {
-          type: "spark",
-          x: pos.x,
-          y: pos.y,
-          rate: 0,
-          burst: true,
-          count: 5,
-          lifetime: [0.15, 0.3],
-          speed: [80, 180],
-          size: [2, 4],
-          color: ["#00FFFF", "#FFFFFF", "#FFFF00"],
-          angle: sparkAngle,
-          loop: false
-        });
-        world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
-
-        this.createExplosion(world, pos.x, pos.y, "#00FFFF");
       }
 
-      const eventBus = world.getEventBus();
-      if (eventBus && !world.isReSimulating) {
-        eventBus.emitDeferred("PlaySFX", { name: "hit" });
-      }
+      // Small directional spark burst emitter
+      const sparkEmitter = createEmitter(world, {
+        type: "spark",
+        x: pos.x,
+        y: pos.y,
+        rate: 0,
+        burst: true,
+        count: 5,
+        lifetime: [0.15, 0.3],
+        speed: [80, 180],
+        size: [2, 4],
+        color: ["#00FFFF", "#FFFFFF", "#FFFF00"],
+        angle: sparkAngle,
+        loop: false
+      });
+      world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
+
+      this.createExplosion(world, pos.x, pos.y, "#00FFFF");
+    }
+
+    const eventBus = world.getEventBus();
+    if (eventBus && !world.isReSimulating) {
+      eventBus.emitDeferred("PlaySFX", { name: "hit" });
     }
   }
 
@@ -189,98 +197,97 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     if (!target) return;
 
     if (world.hasComponent(target, "Invader")) {
-      const invaderComp = world.getComponent(target, "Invader");
-      const gameState = world.getSingleton("GameState");
-      if (gameState) {
-        // Mutate Combo component
-        let nextCombo = 0;
-        let nextMultiplier = 1;
-
-        const comboEntities = world.query("Combo");
-        const comboEntity = comboEntities[0];
-        if (comboEntity !== undefined) {
-          world.mutateComponent(comboEntity, "Combo", (c) => {
-            c.combo++;
-            c.timerRemaining = this.config!.COMBO_TIMEOUT / 1000;
-            c.multiplier = Math.min(this.config!.MAX_MULTIPLIER, 1 + Math.floor(c.combo / 5));
-            nextCombo = c.combo;
-            nextMultiplier = c.multiplier;
-          });
-        }
-
-        let scoreGain = 0;
-        if (invaderComp) {
-          scoreGain = invaderComp.points * nextMultiplier;
-        }
-        const nextScore = gameState.score + scoreGain;
-
-        world.mutateSingleton("GameState", gs => {
-            gs.score = nextScore;
-        });
-
-        const pos = world.getComponent(target, "Transform");
-        if (pos) {
-          const explosionX = pos.x;
-          const explosionY = pos.y;
-
-          this.createExplosion(world, explosionX, explosionY, "#FFFFFF");
-
-          // Dynamic popup text & color based on combo multiplier
-          let popupColor = "#FFFF00";
-          if (nextMultiplier >= 6) popupColor = "#FFD700"; // Gold
-          else if (nextMultiplier >= 4) popupColor = "#FF00FF"; // Magenta
-          else if (nextMultiplier >= 2) popupColor = "#00FFFF"; // Cyan
-
-          const popupText = nextMultiplier > 1 ? `+${scoreGain} (x${nextMultiplier})` : `+${scoreGain}`;
-          spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
-        }
-
-        // Contextual screen shake: light for single kills, medium for fast combo chains
-        const shakeIntensity = nextCombo >= 5 ? 5.5 : 2.5;
-        const shakeDuration = nextCombo >= 5 ? 180 : 100;
-        Juice.shake(world as World<CoreComponentRegistry>, shakeIntensity, shakeDuration);
-
-        const eventBus = world.getEventBus();
-        if (eventBus) {
-          eventBus.emitDeferred("si:kill", { chain: nextCombo });
-          eventBus.emitDeferred("entity:destroyed", { entity: target, type: "Invader" });
-
-          // If killed by a piercing bullet that destroyed more than one target
-          const sourceBullet = event.sourceEntity;
-          if (sourceBullet && world.hasComponent(sourceBullet, "PlayerBullet")) {
-            const dmg = world.getComponent(sourceBullet, "Damage");
-            if (dmg && dmg.charged === true) {
-              eventBus.emitDeferred("si:pierce_kill", { bullet: sourceBullet, target });
-            }
-          }
-
-          if (!world.isReSimulating) {
-            eventBus.emitDeferred("PlaySFX", { name: "explosion_small", pitchRange: 0.05 });
-            if (nextCombo > 1 && nextCombo % 5 === 0) {
-              eventBus.emitDeferred("PlaySFX", { name: "combo_up", volume: 0.9 });
-            }
-          }
-        }
-
-        const hasKami = world.hasComponent(target, 'Kamikaze');
-        if (hasKami) {
-          const nextKamikazes = gameState.kamikazesActive - 1;
-          world.mutateSingleton("GameState", gs => {
-              gs.kamikazesActive = nextKamikazes;
-          });
-        }
-      }
-
-      // Charge player EMP ability on invader death
-      const playerEntity = world.query("Player", "EmpAbility")[0];
-      if (playerEntity !== undefined) {
-        world.mutateComponent(playerEntity, "EmpAbility", emp => {
-          emp.charge = Math.min(1.0, emp.charge + emp.chargePerKill);
-        });
-      }
-
-      world.getCommandBuffer().removeEntity(target);
+      this.onInvaderCombatDeath(world, target, event.sourceEntity);
     }
+  }
+
+  private onInvaderCombatDeath(world: World<SpaceInvadersComponentRegistry>, target: Entity, sourceBullet?: Entity): void {
+    const invaderComp = world.getComponent(target, "Invader");
+    const gameState = world.getSingleton("GameState");
+    if (gameState) {
+      // Mutate Combo component
+      let nextCombo = 0;
+      let nextMultiplier = 1;
+
+      const comboEntities = world.query("Combo");
+      const comboEntity = comboEntities[0];
+      if (comboEntity !== undefined) {
+        const comboResult = applyComboKill(world, comboEntity, this.config!);
+        nextCombo = comboResult.nextCombo;
+        nextMultiplier = comboResult.nextMultiplier;
+      }
+
+      let scoreGain = 0;
+      if (invaderComp) {
+        scoreGain = invaderComp.points * nextMultiplier;
+      }
+      const nextScore = gameState.score + scoreGain;
+
+      world.mutateSingleton("GameState", gs => {
+        gs.score = nextScore;
+      });
+
+      const pos = world.getComponent(target, "Transform");
+      if (pos) {
+        const explosionX = pos.x;
+        const explosionY = pos.y;
+
+        this.createExplosion(world, explosionX, explosionY, "#FFFFFF");
+
+        // Dynamic popup text & color based on combo multiplier
+        let popupColor = "#FFFF00";
+        if (nextMultiplier >= 6) popupColor = "#FFD700"; // Gold
+        else if (nextMultiplier >= 4) popupColor = "#FF00FF"; // Magenta
+        else if (nextMultiplier >= 2) popupColor = "#00FFFF"; // Cyan
+
+        const popupText = nextMultiplier > 1 ? `+${scoreGain} (x${nextMultiplier})` : `+${scoreGain}`;
+        spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
+      }
+
+      // Contextual screen shake: light for single kills, medium for fast combo chains
+      const shakeIntensity = nextCombo >= 5 ? 5.5 : 2.5;
+      const shakeDuration = nextCombo >= 5 ? 180 : 100;
+      Juice.shake(world as World<CoreComponentRegistry>, shakeIntensity, shakeDuration);
+
+      const eventBus = world.getEventBus();
+      if (eventBus) {
+        eventBus.emitDeferred("si:kill", { chain: nextCombo });
+        eventBus.emitDeferred("entity:destroyed", { entity: target, type: "Invader" });
+
+        // If killed by a piercing bullet that destroyed more than one target
+        if (sourceBullet && world.hasComponent(sourceBullet, "PlayerBullet")) {
+          const dmg = world.getComponent(sourceBullet, "Damage");
+          if (dmg && dmg.charged === true) {
+            eventBus.emitDeferred("si:pierce_kill", { bullet: sourceBullet, target });
+          }
+        }
+
+        if (!world.isReSimulating) {
+          eventBus.emitDeferred("PlaySFX", { name: "explosion_small", pitchRange: 0.05 });
+          if (nextCombo > 1 && nextCombo % 5 === 0) {
+            eventBus.emitDeferred("PlaySFX", { name: "combo_up", volume: 0.9 });
+          }
+        }
+      }
+
+      const hasKami = world.hasComponent(target, 'Kamikaze');
+      if (hasKami) {
+        const nextKamikazes = gameState.kamikazesActive - 1;
+        world.mutateSingleton("GameState", gs => {
+          gs.kamikazesActive = nextKamikazes;
+        });
+      }
+    }
+
+    // Charge player EMP ability on invader death
+    const playerEntity = world.query("Player", "EmpAbility")[0];
+    if (playerEntity !== undefined) {
+      world.mutateComponent(playerEntity, "EmpAbility", emp => {
+        emp.charge = Math.min(1.0, emp.charge + emp.chargePerKill);
+      });
+    }
+
+    world.getCommandBuffer().removeEntity(target);
   }
 
   public override update(world: World<SpaceInvadersComponentRegistry>, _deltaTime: number): void {
@@ -338,101 +345,124 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     const gameState = world.getSingleton("GameState");
     if (!gameState) return;
 
-    const bossBullet = this.matchPair(world, e1, e2, "PlayerBullet", "Boss");
-    if (bossBullet) {
-      // Handled by CombatSystem & combat:hit reaction
-      return;
-    }
+    if (this.resolveBulletBossCollision(world, e1, e2)) return;
+    if (this.resolveBulletInvaderCollision(world, e1, e2)) return;
+    if (this.resolveBulletShieldCollision(world, e1, e2, destroyedEntities)) return;
+    if (this.resolveEnemyBulletPlayerCollision(world, e1, e2)) return;
+    if (this.resolveInvaderPlayerCollision(world, e1, e2)) return;
+    if (this.resolveInvaderShieldCollision(world, e1, e2, destroyedEntities)) return;
+  }
 
-    const invaderBullet = this.matchPair(world, e1, e2, "PlayerBullet", "Invader");
-    if (invaderBullet) {
-      // Handled by CombatSystem & combat:death / combat:hit reaction
-      return;
-    }
+  private resolveBulletBossCollision(world: World<SpaceInvadersComponentRegistry>, e1: Entity, e2: Entity): boolean {
+    const pair = this.matchPair(world, e1, e2, "PlayerBullet", "Boss");
+    // Handled by CombatSystem & combat:hit reaction
+    return pair !== undefined;
+  }
 
+  private resolveBulletInvaderCollision(world: World<SpaceInvadersComponentRegistry>, e1: Entity, e2: Entity): boolean {
+    const pair = this.matchPair(world, e1, e2, "PlayerBullet", "Invader");
+    // Handled by CombatSystem & combat:death / combat:hit reaction
+    return pair !== undefined;
+  }
+
+  private resolveBulletShieldCollision(
+    world: World<SpaceInvadersComponentRegistry>,
+    e1: Entity,
+    e2: Entity,
+    destroyedEntities: Set<number>
+  ): boolean {
     const bulletShield = this.matchPair(world, e1, e2, "PlayerBullet", "Shield") ||
-                        this.matchPair(world, e1, e2, "EnemyBullet", "Shield");
-    if (bulletShield) {
-      const bullet = (bulletShield as Record<string, Entity>).PlayerBullet || (bulletShield as Record<string, Entity>).EnemyBullet;
-      const shield = (bulletShield as Record<string, Entity>).Shield;
+                         this.matchPair(world, e1, e2, "EnemyBullet", "Shield");
+    if (!bulletShield) return false;
 
-      if (WorldUtils.isEntityActive(world, shield) && !destroyedEntities.has(shield)) {
-        this.damageShield(world, shield, destroyedEntities);
-      }
-      if (WorldUtils.isEntityActive(world, bullet) && !destroyedEntities.has(bullet)) {
-        const dmg = world.getComponent(bullet, "Damage");
-        if (dmg && dmg.charged === true && dmg.piercing !== undefined && dmg.piercing > 0) {
-          world.mutateComponent(bullet, "Damage", d => {
-            d.piercing! -= 1;
-            if (d.piercing! <= 0) {
-              d.consumption = "destroy-entity";
-            }
+    const bullet = (bulletShield as Record<string, Entity>).PlayerBullet || (bulletShield as Record<string, Entity>).EnemyBullet;
+    const shield = (bulletShield as Record<string, Entity>).Shield;
+
+    if (WorldUtils.isEntityActive(world, shield) && !destroyedEntities.has(shield)) {
+      this.damageShield(world, shield, destroyedEntities);
+    }
+    if (WorldUtils.isEntityActive(world, bullet) && !destroyedEntities.has(bullet)) {
+      const dmg = world.getComponent(bullet, "Damage");
+      if (dmg && dmg.charged === true && dmg.piercing !== undefined && dmg.piercing > 0) {
+        world.mutateComponent(bullet, "Damage", d => {
+          d.piercing! -= 1;
+          if (d.piercing! <= 0) {
+            d.consumption = "destroy-entity";
+          }
+        });
+
+        const pos = world.getComponent(bullet, "Transform");
+        if (pos) {
+          const sparkEmitter = createEmitter(world, {
+            type: "spark",
+            x: pos.x,
+            y: pos.y,
+            rate: 0,
+            burst: true,
+            count: 6,
+            lifetime: [0.15, 0.3],
+            speed: [100, 200],
+            size: [2, 4],
+            color: ["#00FFFF", "#0088FF", "#FFFFFF"],
+            angle: [0, 360],
+            loop: false
           });
+          world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
+        }
 
-          const pos = world.getComponent(bullet, "Transform");
-          if (pos) {
-            const sparkEmitter = createEmitter(world, {
-              type: "spark",
-              x: pos.x,
-              y: pos.y,
-              rate: 0,
-              burst: true,
-              count: 6,
-              lifetime: [0.15, 0.3],
-              speed: [100, 200],
-              size: [2, 4],
-              color: ["#00FFFF", "#0088FF", "#FFFFFF"],
-              angle: [0, 360],
-              loop: false
-            });
-            world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
-          }
-
-          const updatedDmg = world.getComponent(bullet, "Damage");
-          if (updatedDmg && (updatedDmg.piercing ?? 0) <= 0) {
-            destroyedEntities.add(bullet);
-            this.removeBulletSafely(world, bullet);
-          }
-        } else if (world.hasComponent(bullet, "PlayerBullet")) {
-          // Charged shot logic: passing through own shield supercharges bullet
-          const mutableDmg = world.getMutableComponent(bullet, "Damage");
-          if (mutableDmg) {
-            mutableDmg.consumption = "remove-component";
-          }
-          const render = world.getMutableComponent(bullet, "Render");
-          if (render) {
-            render.color = colors.cyan;
-          }
-        } else {
+        const updatedDmg = world.getComponent(bullet, "Damage");
+        if (updatedDmg && (updatedDmg.piercing ?? 0) <= 0) {
           destroyedEntities.add(bullet);
           this.removeBulletSafely(world, bullet);
         }
+      } else if (world.hasComponent(bullet, "PlayerBullet")) {
+        // Charged shot logic: passing through own shield supercharges bullet
+        const mutableDmg = world.getMutableComponent(bullet, "Damage");
+        if (mutableDmg) {
+          mutableDmg.consumption = "remove-component";
+        }
+        const render = world.getMutableComponent(bullet, "Render");
+        if (render) {
+          render.color = colors.cyan;
+        }
+      } else {
+        destroyedEntities.add(bullet);
+        this.removeBulletSafely(world, bullet);
       }
-      return;
     }
+    return true;
+  }
 
-    const enemyBulletPlayer = this.matchPair(world, e1, e2, "EnemyBullet", "Player");
-    if (enemyBulletPlayer) {
-      // Handled by CombatSystem & combat:hit reaction
-      return;
-    }
+  private resolveEnemyBulletPlayerCollision(world: World<SpaceInvadersComponentRegistry>, e1: Entity, e2: Entity): boolean {
+    const pair = this.matchPair(world, e1, e2, "EnemyBullet", "Player");
+    // Handled by CombatSystem & combat:hit reaction
+    return pair !== undefined;
+  }
 
-    const invaderPlayer = this.matchPair(world, e1, e2, "Invader", "Player");
-    if (invaderPlayer) {
-      world.mutateSingleton("GameState", gs => {
-          gs.isGameOver = true;
-      });
-      return;
-    }
+  private resolveInvaderPlayerCollision(world: World<SpaceInvadersComponentRegistry>, e1: Entity, e2: Entity): boolean {
+    const pair = this.matchPair(world, e1, e2, "Invader", "Player");
+    if (!pair) return false;
 
-    const invaderShield = this.matchPair(world, e1, e2, "Invader", "Shield");
-    if (invaderShield) {
-      const shield = invaderShield.Shield;
-      if (WorldUtils.isEntityActive(world, shield)) {
-        this.damageShield(world, shield, destroyedEntities);
-      }
-      return;
+    world.mutateSingleton("GameState", gs => {
+      gs.isGameOver = true;
+    });
+    return true;
+  }
+
+  private resolveInvaderShieldCollision(
+    world: World<SpaceInvadersComponentRegistry>,
+    e1: Entity,
+    e2: Entity,
+    destroyedEntities: Set<number>
+  ): boolean {
+    const pair = this.matchPair(world, e1, e2, "Invader", "Shield");
+    if (!pair) return false;
+
+    const shield = pair.Shield;
+    if (WorldUtils.isEntityActive(world, shield)) {
+      this.damageShield(world, shield, destroyedEntities);
     }
+    return true;
   }
 
   private damageShield(

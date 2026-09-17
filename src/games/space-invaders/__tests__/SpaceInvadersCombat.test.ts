@@ -397,4 +397,136 @@ describe("Space Invaders Pilot Combat Integration", () => {
     velComp = world.getComponent(kamikaze, "Velocity");
     expect(velComp?.vy).toBeGreaterThan(0); // Active dive velocity homing towards player
   });
+
+  it("should scale kamikaze spawn threshold with Formation.totalInvaders", () => {
+    const kamikazeSystem = new KamikazeSystem();
+    world.addSystem(kamikazeSystem, { phase: SystemPhase.GameRules });
+
+    // GameState
+    world.addComponent(world.createEntity(), {
+      type: "GameState",
+      lives: 3,
+      score: 0,
+      level: 1,
+      invadersRemaining: 15,
+      isGameOver: false,
+      kamikazesActive: 0,
+      readyRemaining: 0,
+      intermissionRemaining: 0,
+      continueCountdownRemaining: 0,
+      continuesRemaining: 3
+    } as any);
+
+    // Formation with custom totalInvaders = 30 (0.6 * 30 = 18 threshold)
+    const formation = world.createEntity();
+    world.addComponent(formation, {
+      type: "Formation",
+      direction: 1,
+      stepDownPending: false,
+      speed: 10,
+      descentStep: 8,
+      leftBound: 0,
+      rightBound: 800,
+      fireCooldownRemaining: 1.0,
+      totalInvaders: 30
+    });
+
+    // Spawn 15 invaders (which is < 18 threshold, so kamikaze should spawn)
+    for (let i = 0; i < 15; i++) {
+      const invader = world.createEntity();
+      world.addComponent(invader, { type: "Invader", row: 0, col: i, points: 10 });
+      world.addComponent(invader, {
+        type: "Transform", x: 100 + i * 20, y: 100, rotation: 0, scaleX: 1, scaleY: 1,
+        worldX: 100 + i * 20, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false
+      });
+      world.addComponent(invader, {
+        type: "Render", shape: "invader", size: 15, color: "#FFFFFF", rotation: 0,
+        visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0
+      });
+    }
+
+    // Advance time beyond spawn cooldown (5000ms = 5s)
+    world.update(6000);
+
+    const kamikazes = world.query("Kamikaze");
+    expect(kamikazes.length).toBe(1);
+  });
+
+  it("should handle Invader colliding with Player and set GameState.isGameOver to true", () => {
+    // 1. Create GameState
+    const stateEntity = world.createEntity();
+    world.addComponent(stateEntity, {
+      type: "GameState",
+      lives: 3,
+      score: 0,
+      level: 1,
+      invadersRemaining: 1,
+      isGameOver: false,
+      kamikazesActive: 0
+    } as any);
+
+    // 2. Create Player
+    const player = world.createEntity();
+    world.addComponent(player, { type: "Player" } as any);
+
+    // 3. Create Invader
+    const invader = world.createEntity();
+    world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 } as any);
+
+    // 4. Trigger collision events
+    world.addComponent(player, {
+      type: "CollisionEvents",
+      collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+      activeTriggers: [], triggersEntered: [], triggersExited: []
+    } as any);
+    world.addComponent(invader, {
+      type: "CollisionEvents",
+      collisions: [{ otherEntity: player, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+      activeTriggers: [], triggersEntered: [], triggersExited: []
+    } as any);
+
+    world.update(0.016);
+
+    const state = world.getComponent(stateEntity, "GameState" as any) as any;
+    expect(state.isGameOver).toBe(true);
+  });
+
+  it("should handle Invader colliding with Shield and damage the shield", () => {
+    // 1. Create GameState
+    const stateEntity = world.createEntity();
+    world.addComponent(stateEntity, {
+      type: "GameState",
+      lives: 3,
+      score: 0,
+      level: 1,
+      invadersRemaining: 1,
+      isGameOver: false,
+      kamikazesActive: 0
+    } as any);
+
+    // 2. Create Shield
+    const shield = world.createEntity();
+    world.addComponent(shield, { type: "Shield", hp: 3, maxHp: 3 } as any);
+
+    // 3. Create Invader
+    const invader = world.createEntity();
+    world.addComponent(invader, { type: "Invader", row: 0, col: 0, points: 10 } as any);
+
+    // 4. Trigger collision events
+    world.addComponent(shield, {
+      type: "CollisionEvents",
+      collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+      activeTriggers: [], triggersEntered: [], triggersExited: []
+    } as any);
+    world.addComponent(invader, {
+      type: "CollisionEvents",
+      collisions: [{ otherEntity: shield, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }],
+      activeTriggers: [], triggersEntered: [], triggersExited: []
+    } as any);
+
+    world.update(0.016);
+
+    const shieldComp = world.getComponent(shield, "Shield" as any) as any;
+    expect(shieldComp?.hp).toBe(2);
+  });
 });

@@ -224,6 +224,11 @@
     "unknownCount": 0,
     "total": 2
   },
+  "packages/core/tests/PlatformerInputMutation.test.ts": {
+    "anyCount": 18,
+    "unknownCount": 0,
+    "total": 18
+  },
   "packages/core/tests/PlatformerLevel3.test.ts": {
     "anyCount": 3,
     "unknownCount": 0,
@@ -555,14 +560,19 @@
     "total": 1
   },
   "src/games/asteroids/EntityPool.ts": {
-    "anyCount": 1,
+    "anyCount": 2,
     "unknownCount": 0,
-    "total": 1
+    "total": 2
   },
   "src/games/asteroids/__tests__/AsteroidCollisionSystem.test.ts": {
     "anyCount": 1,
     "unknownCount": 0,
     "total": 1
+  },
+  "src/games/asteroids/__tests__/AsteroidPoolAndInput.test.ts": {
+    "anyCount": 6,
+    "unknownCount": 0,
+    "total": 6
   },
   "src/games/asteroids/__tests__/AsteroidsGame.test.ts": {
     "anyCount": 7,
@@ -850,9 +860,9 @@
     "total": 10
   },
   "src/games/space-invaders/__tests__/SpaceInvadersCombat.test.ts": {
-    "anyCount": 23,
+    "anyCount": 38,
     "unknownCount": 0,
-    "total": 23
+    "total": 38
   },
   "src/games/space-invaders/__tests__/SpaceInvadersDraftSystem.test.ts": {
     "anyCount": 29,
@@ -900,9 +910,9 @@
     "total": 14
   },
   "src/games/space-invaders/story/InvasionEncounter.ts": {
-    "anyCount": 8,
-    "unknownCount": 0,
-    "total": 8
+    "anyCount": 5,
+    "unknownCount": 1,
+    "total": 6
   },
   "src/games/space-invaders/systems/BossSystem.ts": {
     "anyCount": 1,
@@ -915,9 +925,9 @@
     "total": 2
   },
   "src/games/space-invaders/systems/WaveTransitionSystem.ts": {
-    "anyCount": 2,
+    "anyCount": 1,
     "unknownCount": 0,
-    "total": 2
+    "total": 1
   },
   "src/hooks/useKeyboardControls.ts": {
     "anyCount": 1,

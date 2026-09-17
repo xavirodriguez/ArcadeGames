@@ -2,6 +2,7 @@ import { World, EntityBuilder, ShapeType, CircleShape, BoxShape, HealthComponent
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { FroggerComponentRegistry } from "./types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "./types/FroggerConfigSchema";
+import { GridLayout, cellCenterToWorld } from "../shared/grid";
 
 export interface FroggerBlueprintMap extends Record<string, BlueprintDefinition<FroggerComponentRegistry, any, any>> {
   frogger: BlueprintDefinition<FroggerComponentRegistry, any, { gridX: number; gridY: number }>;
@@ -15,11 +16,11 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
   blueprints.register("frogger", {
     spawn: (w: World<FroggerComponentRegistry>, entity: number, args: { gridX: number; gridY: number }) => {
       const config = w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-      const x = args.gridX * config.GRID_SIZE + config.GRID_SIZE / 2;
-      const y = args.gridY * config.GRID_SIZE + config.GRID_SIZE / 2;
+      const layout: GridLayout = { stepX: config.GRID_SIZE, stepY: config.GRID_SIZE, offsetX: 0, offsetY: 0 };
+      const center = cellCenterToWorld(layout, { row: args.gridY, col: args.gridX });
 
       EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x, y })
+        .withTransform({ x: center.x, y: center.y })
         .withVelocity({ vx: 0, vy: 0 })
         .withRender({ shape: "frogger", size: config.GRID_SIZE - 8, color: "#39FF14", order: 10 })
         .withCollider({
@@ -30,9 +31,13 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         .withCollisionEvents();
 
       w.addComponent(entity, {
+        type: "GridPosition",
+        col: args.gridX,
+        row: args.gridY,
+      });
+
+      w.addComponent(entity, {
         type: "Frogger",
-        gridX: args.gridX,
-        gridY: args.gridY,
         isRiding: false,
         isAlive: true,
         cooldownRemaining: 0,

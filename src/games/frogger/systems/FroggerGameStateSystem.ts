@@ -1,6 +1,7 @@
 import { System, World, BaseGame, findMatchingEntityInTriggersOrCollisions } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
+import { GridLayout, cellCenterToWorld } from "../../shared/grid";
 
 /**
  * Returns true if the entity is currently invulnerable according to HealthComponent.
@@ -33,12 +34,13 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     const state = world.getMutableComponent(stateEntity, "FroggerState");
     if (!state || state.isGameOver) return;
 
-    const froggerEntity = world.query("Frogger", "Transform")[0];
+    const froggerEntity = world.query("Frogger", "Transform", "GridPosition")[0];
     if (froggerEntity === undefined) return;
 
     const frogger = world.getMutableComponent(froggerEntity, "Frogger");
     const transform = world.getMutableComponent(froggerEntity, "Transform");
-    if (!frogger || !transform) return;
+    const gridPos = world.getMutableComponent(froggerEntity, "GridPosition");
+    if (!frogger || !transform || !gridPos) return;
 
     // Decrement invulnerability timer on HealthComponent (consolidated single source of truth)
     const health = world.getMutableComponent(froggerEntity, "Health");
@@ -54,7 +56,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     const invulnerable = isEntityInvulnerable(world, froggerEntity);
 
     // Handle vehicle collision using CollisionEvents
-    if (frogger.isAlive && !invulnerable && frogger.gridY >= 7 && frogger.gridY <= 11) {
+    if (frogger.isAlive && !invulnerable && gridPos.row >= 7 && gridPos.row <= 11) {
       const collidedVehicle = findMatchingEntityInTriggersOrCollisions(world, froggerEntity, (other) =>
         world.hasComponent(other, "Vehicle")
       );
@@ -63,13 +65,13 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
         frogger.isAlive = false;
         const eventBus = world.getEventBus();
         if (eventBus) {
-          eventBus.emit("frogger:died", { reason: "vehicle", gridX: frogger.gridX, gridY: frogger.gridY });
+          eventBus.emit("frogger:died", { reason: "vehicle", gridX: gridPos.col, gridY: gridPos.row });
         }
       }
     }
 
     // Handle Goal Landing at row 0
-    if (frogger.isAlive && frogger.gridY === 0) {
+    if (frogger.isAlive && gridPos.row === 0) {
       const lilyPads = world.query("GoalLilyPad", "Transform");
       let hitPadEntity: number | undefined = undefined;
       let padTargetX = 0;
@@ -101,8 +103,8 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
         // Snap Frogger position & grid coordinate
         transform.x = padTargetX;
         transform.y = padTargetY;
-        world.mutateComponent(froggerEntity, "Frogger", (f) => {
-          f.gridX = Math.round(padTargetX / config.GRID_SIZE);
+        world.mutateComponent(froggerEntity, "GridPosition", (gp) => {
+          gp.col = Math.round(padTargetX / config.GRID_SIZE);
         });
 
         state.occupiedLilyPads += 1;
@@ -138,7 +140,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
           frogger.isAlive = false;
           const eventBus = world.getEventBus();
           if (eventBus) {
-            eventBus.emit("frogger:died", { reason: "missed_goal", gridX: frogger.gridX, gridY: frogger.gridY });
+            eventBus.emit("frogger:died", { reason: "missed_goal", gridX: gridPos.col, gridY: gridPos.row });
           }
         }
       }
@@ -173,10 +175,14 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     const startX = Math.floor(config.TOTAL_COLS / 2);
     const startY = 13;
 
-    // 1. Frogger component reset
+    // 1. GridPosition component reset
+    world.mutateComponent(froggerEntity, "GridPosition", (gp) => {
+      gp.col = startX;
+      gp.row = startY;
+    });
+
+    // 2. Frogger component reset
     world.mutateComponent(froggerEntity, "Frogger", (f) => {
-      f.gridX = startX;
-      f.gridY = startY;
       f.isAlive = true;
       f.isRiding = false;
       f.logEntity = undefined;
@@ -185,10 +191,12 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
       f.invulnerableRemaining = 1.2;
     });
 
-    // 2. Transform + Velocity reset
+    // 3. Transform + Velocity reset using cellCenterToWorld
+    const layout: GridLayout = { stepX: config.GRID_SIZE, stepY: config.GRID_SIZE, offsetX: 0, offsetY: 0 };
+    const center = cellCenterToWorld(layout, { row: startY, col: startX });
     world.mutateComponent(froggerEntity, "Transform", (t) => {
-      t.x = startX * config.GRID_SIZE + config.GRID_SIZE / 2;
-      t.y = startY * config.GRID_SIZE + config.GRID_SIZE / 2;
+      t.x = center.x;
+      t.y = center.y;
     });
     if (world.hasComponent(froggerEntity, "Velocity")) {
       world.mutateComponent(froggerEntity, "Velocity", (v) => {

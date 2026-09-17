@@ -912,7 +912,7 @@ export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, ComponentReg
       p.twinklePhase += p.twinkleSpeed;
       const twinkle = 0.5 + 0.5 * Math.sin(p.twinklePhase);
 
-      particlePaint.setColor(p.skColor || Skia.Color("#ffffff"));
+      particlePaint.setColor(p.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
       particlePaint.setAlphaf(p.alpha * twinkle);
       canvas.drawRect(
         Skia.XYWHRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size),
@@ -1606,7 +1606,7 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> 
       const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
       const currentSize = star.size * twinkle;
 
-      paint.setColor(star.skColor || Skia.Color("#ffffff"));
+      paint.setColor(star.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
       canvas.drawRect(
         Skia.XYWHRect(posX - currentSize / 2, star.y - currentSize / 2, currentSize, currentSize),
         paint
@@ -1672,7 +1672,7 @@ export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, ComponentRegi
       updateSpeedLine(line, maxRadius, world.renderRandom);
       const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
 
-      paint.setColor(line.skColor || Skia.Color("#ffffff"));
+      paint.setColor(line.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
       canvas.drawLine(x1, y1, x2, y2, paint);
     }
 

@@ -19,7 +19,7 @@ import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
 import { attachEnemyDefaults } from "../shared/enemyHelpers";
 import { PowerUpComponent } from "@tiny-aster/gameplay-kit";
-import { BulletPool } from "./EntityPool";
+import { BulletPool, AsteroidPool } from "./EntityPool";
 
 /**
  * @param lootType - Loot/power-up identifier (e.g. "shield", "speed_boost").
@@ -475,6 +475,10 @@ export const createAsteroid = (config: {
     vy?: number;
     angularVelocity?: number;
 }): number => {
+    const pool = config.world.getResource<AsteroidPool>("AsteroidPool");
+    if (pool) {
+      return pool.acquireAsteroid(config.world, config);
+    }
     return spawnBlueprintEntity(config.world, "asteroid", {
         x: config.x,
         y: config.y,

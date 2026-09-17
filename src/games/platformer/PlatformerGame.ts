@@ -402,6 +402,18 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
 
     const config = this.world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
+    const worldWidth = this.levelPlan.totalWidth * config.TILE_SIZE;
+    const worldHeight = this.levelPlan.totalHeight * config.TILE_SIZE;
+
+    // Update GameConfig resource with world size dimensions so camera clamping and spatial systems work properly
+    this.world.setResource("GameConfig", {
+      ...config,
+      WIDTH: worldWidth,
+      HEIGHT: worldHeight,
+      worldWidth,
+      worldHeight
+    });
+
     this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
     SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
     this.world.flush();
@@ -421,9 +433,9 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       targetY: 0,
       isMain: true,
       followEntity: playerEntity,
-      lookAheadX: 80,
-      smoothingX: 6.0,
-      smoothingY: 6.0,
+      lookAheadX: 40,
+      smoothingX: 3.5,
+      smoothingY: 3.5,
       verticalDeadzone: 45
     });
   }

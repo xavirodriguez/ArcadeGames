@@ -38,6 +38,7 @@ export abstract class PlatformerArcadeGame<
 
     this.setupCommonArcadeResources();
     this.world.setResource("DeathPlaneY", 650);
+    this.world.deleteResource("IsPaused");
 
     const runState: RunState = {
       attempt: 1,

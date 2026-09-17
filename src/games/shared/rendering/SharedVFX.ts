@@ -841,7 +841,6 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
 
     // Inner bright core stream
     ctx.fillStyle = hexToRgba(COSMIC_ARCADE_PALETTE.iceBlue, 0.05);
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:901-905. Considerar extraer a función compartida. Ref: 2929995c
     ctx.fillRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3);
 
     // Embedded star dust particles along galactic plane

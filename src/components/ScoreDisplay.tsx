@@ -1,8 +1,7 @@
 import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, TextStyle, StyleProp } from 'react-native';
 import { useGameTheme } from '../context/GameThemeContext';
-
-import { TextStyle, StyleProp } from 'react-native';
+import { colors } from '../theme/colors';
 
 interface ScoreDisplayProps {
   score: number;
@@ -13,11 +12,11 @@ interface ScoreDisplayProps {
 }
 
 /**
- * Score con monospace + color dinámico del tema del juego o prop explicito.
+ * Score con monospace + color dinámico del tema del juego o prop explícito.
  *
  * - fontFamily: Space Mono (o fallback Courier New/monospace)
  * - Padded con zeros a la izquierda
- * - Color + glow del tema actual o color parametrizado
+ * - Color + glow del tema actual
  */
 export function ScoreDisplay({
   score,
@@ -26,8 +25,8 @@ export function ScoreDisplay({
   color,
   style,
 }: ScoreDisplayProps) {
-  const { accentColors } = useGameTheme();
-  const textColor = color ?? accentColors?.primary ?? '#00FFFF';
+  const theme = useGameTheme();
+  const textColor = color ?? theme?.accentColors?.primary ?? colors.cyan;
   const paddedScore = String(Math.max(0, score)).padStart(maxDigits, '0');
 
   return (

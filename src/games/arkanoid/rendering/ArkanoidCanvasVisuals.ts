@@ -157,5 +157,20 @@ export const drawArkanoidBackground: EffectDrawer<CanvasRenderingContext2D, Arka
     const height = config.SCREEN_HEIGHT;
 
     drawProceduralGrid(ctx, width, height, world.tick, 50, 0.25);
+
+    const state = world.getSingleton("ArkanoidState");
+    if (state) {
+      ctx.save();
+      ctx.font = "14px monospace";
+      ctx.fillStyle = colors.cyan;
+      ctx.shadowColor = colors.cyan;
+      ctx.shadowBlur = 5;
+
+      ctx.fillText(`SCORE: ${state.score}`, 20, 30);
+      ctx.fillText(`LIVES: ${state.lives}`, width - 120, 30);
+      ctx.fillText(`LEVEL: ${state.level}`, width / 2 - 30, 30);
+
+      ctx.restore();
+    }
   }
 };

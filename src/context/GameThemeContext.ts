@@ -33,15 +33,35 @@ export interface GameThemeContextType {
 
 export const GameThemeContext = createContext<GameThemeContextType | null>(null);
 
+const DEFAULT_GAME_THEME: GameThemeContextType = {
+  gameKey: 'space-invaders',
+  accentColors: {
+    primary: colors.cyan,
+    secondary: colors.pink,
+    accent: colors.amber,
+  },
+  highContrast: false,
+  reduceMotion: false,
+  setHighContrast: () => {},
+  setReduceMotion: () => {},
+  tokens: {
+    colors,
+    semantic: semanticColors,
+    typography,
+    spacing,
+    radius,
+    effects,
+    layers: LAYER_ELEVATION,
+  },
+};
+
 /**
  * Access the active game theme context (accent colors, game key, accessibility flags, tokens).
+ * Falls back to default ODISEA-7 theme tokens if called outside <GameThemeProvider>.
  */
 export function useGameTheme(): GameThemeContextType {
   const ctx = useContext(GameThemeContext);
-  if (!ctx) {
-    throw new Error('useGameTheme debe estar dentro de <GameThemeProvider>');
-  }
-  return ctx;
+  return ctx ?? DEFAULT_GAME_THEME;
 }
 
 /**

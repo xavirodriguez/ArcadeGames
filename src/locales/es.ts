@@ -437,8 +437,6 @@ export const es = {
     reconnect_pilot_hint: "Gasta un crédito para reanudar tu partida.",
     abort_mission_label: "Abortar misión",
     abort_mission_hint: "Cancela y vuelve a inicializar la simulación.",
-    collapse_hud_details: "Ocultar detalles del HUD",
-    expand_hud_details: "Mostrar detalles del HUD",
     lives_remaining_label: "Vidas del piloto restantes: {lives}",
     current_score_label: "Puntaje actual: {score}, Récord histórico: {highScore}",
     sector_threat_label: "Navegación Kepler-791, Sector: {level}, Amenaza: Alta",

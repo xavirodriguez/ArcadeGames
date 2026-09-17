@@ -1,4 +1,4 @@
-import { useState, useEffect, FC } from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Pressable, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -13,8 +13,6 @@ import { hapticSelection } from "@/utils/haptics";
 import { colors, spacing, typography, effects } from "../../theme";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
-import { ScorePulse } from "@/components/ScorePulse";
-import { LivesIndicator } from "@/components/LivesIndicator";
 import {
   GameScreen,
   BackButton,
@@ -25,16 +23,6 @@ import {
   NeonButton,
   GameLayoutShell,
 } from "../../components/ui";
-
-const HeartLifeIcon: FC<{ compact?: boolean }> = () => (
-  <Text
-    style={styles.heartIcon}
-    importantForAccessibility="no"
-    accessibilityElementsHidden={true}
-  >
-    ❤️
-  </Text>
-);
 
 function PlatformerContent() {
   const { t } = useTranslation();
@@ -177,18 +165,14 @@ function PlatformerContent() {
         backgroundSlot={<RadialBackground />}
         topLeftSlot={<BackButton label={t.common.menu} />}
         centerHudSlot={
-          <View style={styles.hudContainer} pointerEvents="none">
+          <View style={styles.hudContainer}>
             <View style={styles.hudItem}>
               <Text style={styles.hudLabel}>{t.platformer?.score || "PUNTAJE"}</Text>
-              <ScorePulse score={gameState.score} fontSize={16} maxDigits={6} color={colors.cyan} />
+              <Text style={styles.hudValue}>{gameState.score}</Text>
             </View>
             <View style={styles.hudItem}>
               <Text style={styles.hudLabel}>{t.platformer?.lives || "VIDAS"}</Text>
-              <LivesIndicator
-                lives={gameState.lives}
-                iconComponent={HeartLifeIcon}
-                accessibilityLabel={`${t.platformer?.lives || "VIDAS"}: ${gameState.lives}`}
-              />
+              <Text style={styles.hudValue}>{"❤️ ".repeat(Math.max(0, gameState.lives))}</Text>
             </View>
             <View style={styles.hudItem}>
               <Text style={styles.hudLabel}>{t.platformer?.attempts || "INTENTOS"}</Text>
@@ -436,20 +420,5 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
-  },
-  livesRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  heartIcon: {
-    fontSize: 14,
-    marginHorizontal: 1,
-  },
-  extraLivesText: {
-    color: colors.cyan,
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.game,
-    marginLeft: 4,
-  },
+  }
 });

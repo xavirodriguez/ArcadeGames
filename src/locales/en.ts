@@ -394,8 +394,6 @@ export const en = {
     reconnect_pilot_hint: "Spend a credit to resume your game.",
     abort_mission_label: "Abort mission",
     abort_mission_hint: "Cancels and reinitializes simulation.",
-    collapse_hud_details: "Collapse HUD details",
-    expand_hud_details: "Expand HUD details",
     lives_remaining_label: "Remaining pilot lives: {lives}",
     current_score_label: "Current score: {score}, High score: {highScore}",
     sector_threat_label: "Kepler-791 Navigation, Sector: {level}, Threat: High",

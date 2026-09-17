@@ -1,7 +1,6 @@
 import { System, World, ShapeDrawer } from "@tiny-aster/core";
 import { ComboComponent } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
-import { getHUDAnchorPosition } from "../../shared/rendering/HUDAnchorUtils";
 
 export interface MutatorVisualMeta {
   icon: string;
@@ -388,8 +387,8 @@ export class ComboHUDRenderSystem extends System<SpaceInvadersComponentRegistry>
 
     // Detect expiration transition (timerRemaining > 0 -> 0) when an active combo broke
     if (this.prevTimerRemaining > 0 && currentTimer <= 0 && this.prevCombo > 1) {
-      const pos = getHUDAnchorPosition("top-right", GAME_CONFIG.SCREEN_WIDTH, GAME_CONFIG.SCREEN_HEIGHT, { x: -100, y: 70 });
-      spawnGlassShatter(pos.x, pos.y, world.renderRandom);
+      // Glass shatter effect centered around top-right HUD area (x: 700, y: 70)
+      spawnGlassShatter(700, 70, world.renderRandom);
     }
 
     this.prevTimerRemaining = currentTimer;
@@ -448,12 +447,8 @@ export const drawSpaceInvadersComboHUD: ShapeDrawer<CanvasRenderingContext2D, Sp
         const duration = timerDuration > 0 ? timerDuration : 2.0;
         const timerRatio = Math.max(0, Math.min(1, timerRemaining / duration));
 
-        const { x: hudX, y: hudY } = getHUDAnchorPosition(
-          "top-right",
-          GAME_CONFIG.SCREEN_WIDTH,
-          GAME_CONFIG.SCREEN_HEIGHT,
-          { x: -100, y: 70 }
-        );
+        const hudX = 700;
+        const hudY = 70;
 
         ctx.save();
 
@@ -464,16 +459,24 @@ export const drawSpaceInvadersComboHUD: ShapeDrawer<CanvasRenderingContext2D, Sp
         ctx.scale(scale, scale);
         ctx.globalAlpha = pulseOpacity;
 
-        const accentColor = multiplier >= 5 ? "#FFD700" : multiplier >= 3 ? "#FF00FF" : "#00FFFF";
-        ctx.shadowColor = accentColor;
+        ctx.fillStyle = multiplier >= 5 ? "#FFD700" : multiplier >= 3 ? "#FF00FF" : "#00FFFF";
+        ctx.font = "bold 28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = ctx.fillStyle;
         ctx.shadowBlur = 10;
+        ctx.fillText(`${multiplier}x MULTIPLIER`, 0, 0);
+
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(`${combo} COMBO`, 0, 22);
 
         const barWidth = 100;
         const barHeight = 4;
         ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
         ctx.fillRect(-barWidth / 2, 34, barWidth, barHeight);
 
-        ctx.fillStyle = accentColor;
+        ctx.fillStyle = ctx.shadowColor;
         ctx.fillRect(-barWidth / 2, 34, barWidth * timerRatio, barHeight);
 
         ctx.restore();

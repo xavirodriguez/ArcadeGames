@@ -4,6 +4,7 @@ import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfig
 import { ArkanoidEntityFactory } from "../EntityFactory";
 import { LevelCatalog } from "../domain/LevelCatalog";
 import { DohFactory } from "../boss/DohFactory";
+import { GridLayout, cellToWorld } from "../../shared/grid";
 
 export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private config?: ArkanoidConfig;
@@ -105,14 +106,17 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
     }
 
     let breakableCount = 0;
-    const startX = config.BRICK_OFFSET_LEFT || 60;
-    const startY = config.BRICK_OFFSET_TOP || 80;
-    const colWidth = config.BRICK_WIDTH + config.BRICK_PADDING;
-    const rowHeight = config.BRICK_HEIGHT + config.BRICK_PADDING;
+    const layout: GridLayout = {
+      stepX: config.BRICK_WIDTH + config.BRICK_PADDING,
+      stepY: config.BRICK_HEIGHT + config.BRICK_PADDING,
+      offsetX: config.BRICK_OFFSET_LEFT || 60,
+      offsetY: config.BRICK_OFFSET_TOP || 80,
+    };
 
     for (const cell of levelDef.cells) {
-      const x = startX + cell.col * colWidth + config.BRICK_WIDTH / 2;
-      const y = startY + cell.row * rowHeight + config.BRICK_HEIGHT / 2;
+      const origin = cellToWorld(layout, { row: cell.row, col: cell.col });
+      const x = origin.x + config.BRICK_WIDTH / 2;
+      const y = origin.y + config.BRICK_HEIGHT / 2;
 
       ArkanoidEntityFactory.createBrick(world, x, y, cell.material, cell.color, cell.hp, cell.points, cell.powerUp);
 

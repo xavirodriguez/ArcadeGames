@@ -1223,18 +1223,18 @@
     },
     {
       "firstFile": {
-        "end": 15,
+        "end": 16,
         "endLoc": {
           "column": 9,
-          "line": 15,
-          "position": 822
+          "line": 16,
+          "position": 883
         },
         "name": "arkanoid/systems/ArkanoidGameStateSystem.ts",
-        "start": 8,
+        "start": 9,
         "startLoc": {
           "column": 37,
-          "line": 8,
-          "position": 442
+          "line": 9,
+          "position": 503
         }
       },
       "format": "typescript",
@@ -3591,18 +3591,18 @@
     },
     {
       "firstFile": {
-        "end": 72,
+        "end": 77,
         "endLoc": {
           "column": 22,
-          "line": 72,
-          "position": 3312
+          "line": 77,
+          "position": 3521
         },
         "name": "frogger/EntityFactory.ts",
-        "start": 64,
+        "start": 69,
         "startLoc": {
           "column": 96,
-          "line": 64,
-          "position": 3055
+          "line": 69,
+          "position": 3264
         }
       },
       "format": "typescript",
@@ -3610,36 +3610,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 117,
+        "end": 122,
         "endLoc": {
           "column": 22,
-          "line": 117,
-          "position": 4883
+          "line": 122,
+          "position": 5092
         },
         "name": "frogger/EntityFactory.ts",
-        "start": 109,
+        "start": 114,
         "startLoc": {
           "column": 50,
-          "line": 109,
-          "position": 4626
+          "line": 114,
+          "position": 4835
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 96,
+        "end": 101,
         "endLoc": {
           "column": 13,
-          "line": 96,
-          "position": 4044
+          "line": 101,
+          "position": 4253
         },
         "name": "frogger/EntityFactory.ts",
-        "start": 75,
+        "start": 80,
         "startLoc": {
           "column": 18,
-          "line": 75,
-          "position": 3467
+          "line": 80,
+          "position": 3676
         }
       },
       "format": "typescript",
@@ -3647,18 +3647,18 @@
       "isNew": false,
       "lines": 22,
       "secondFile": {
-        "end": 141,
+        "end": 146,
         "endLoc": {
           "column": 13,
-          "line": 141,
-          "position": 5610
+          "line": 146,
+          "position": 5819
         },
         "name": "frogger/EntityFactory.ts",
-        "start": 120,
+        "start": 125,
         "startLoc": {
           "column": 18,
-          "line": 120,
-          "position": 5033
+          "line": 125,
+          "position": 5242
         }
       },
       "tokens": 106

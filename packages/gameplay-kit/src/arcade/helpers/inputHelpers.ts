@@ -24,7 +24,7 @@ export function mutatePlatformerInputState(
       const right = input.moveRight !== undefined ? !!input.moveRight : (inputComp._moveRight ?? (inputComp.moveDir === 1));
       inputComp._moveLeft = left;
       inputComp._moveRight = right;
-      inputComp.moveDir = left ? -1 : (right ? 1 : 0);
+      inputComp.moveDir = (left && right) ? 0 : (left ? -1 : (right ? 1 : 0));
 
       if (input.jump !== undefined) {
         inputComp.jumpHeld = !!input.jump;

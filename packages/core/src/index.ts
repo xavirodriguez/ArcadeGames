@@ -124,6 +124,9 @@ export * from "./physics/query/PhysicsQuery";
 export * from "./physics/query/PhysicsQueryHelper";
 export * from "./physics/dynamics/PhysicsIntegrateSystem";
 export * from "./physics/dynamics/PhysicsSolveSystem";
+export * from "./physics/dynamics/RigidBodyComponent";
+export * from "./physics/dynamics/JointComponent";
+export * from "./physics/dynamics/JointSolverSystem";
 
 // Rendering
 export * from "./rendering/Renderer";

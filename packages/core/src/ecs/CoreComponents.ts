@@ -3,6 +3,8 @@ import { Entity } from "./Entity";
 import { Shape } from "../physics/shapes/Shapes";
 import { CollisionLayer, CollisionMask, Collision } from "../physics/collision/CollisionTypes";
 import { World } from "./World";
+import { RigidBodyComponent } from "../physics/dynamics/RigidBodyComponent";
+import { JointComponent } from "../physics/dynamics/JointComponent";
 
 /**
  * Component storing 2D spatial position, rotation, scale, and hierarchical world-space transforms.
@@ -1418,6 +1420,10 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Combo: import("../components/ComboComponent").ComboComponent;
   /** Invulnerable component. */
   Invulnerable: import("../components/InvulnerableComponent").InvulnerableComponent;
+  /** RigidBody component. */
+  RigidBody: RigidBodyComponent;
+  /** Joint component. */
+  Joint: JointComponent;
 }
 
 /**

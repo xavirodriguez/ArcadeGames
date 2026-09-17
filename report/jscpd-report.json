@@ -39,6 +39,228 @@
     },
     {
       "firstFile": {
+        "end": 110,
+        "endLoc": {
+          "column": 32,
+          "line": 110,
+          "position": 4524
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 94,
+        "startLoc": {
+          "column": 33,
+          "line": 94,
+          "position": 4061
+        }
+      },
+      "format": "typescript",
+      "fragment": "const ryB = worldAnchorBy - posBy;\n\n      const vxA = velA ? velA.vx : 0;\n      const vyA = velA ? velA.vy : 0;\n      const wA = velA ? velA.angularVelocity : 0;\n\n      const vxB = velB ? velB.vx : 0;\n      const vyB = velB ? velB.vy : 0;\n      const wB = velB ? velB.angularVelocity : 0;\n\n      const vpAx = vxA - wA * ryA;\n      const vpAy = vyA + wA * rxA;\n      const vpBx = vxB - wB * ryB;\n      const vpBy = vyB + wB * rxB;\n\n      const relVx = vpBx - vpAx;\n      const relVy = vpBy - vpAy;",
+      "isNew": false,
+      "lines": 17,
+      "secondFile": {
+        "end": 167,
+        "endLoc": {
+          "column": 30,
+          "line": 167,
+          "position": 5930
+        },
+        "name": "physics/dynamics/PhysicsSolveSystem.ts",
+        "start": 151,
+        "startLoc": {
+          "column": 44,
+          "line": 151,
+          "position": 5491
+        }
+      },
+      "tokens": 117
+    },
+    {
+      "firstFile": {
+        "end": 154,
+        "endLoc": {
+          "column": 12,
+          "line": 154,
+          "position": 6023
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 126,
+        "startLoc": {
+          "column": 34,
+          "line": 126,
+          "position": 5083
+        }
+      },
+      "format": "typescript",
+      "fragment": "const fSpring = stiffness * deltaL;\n        const fDamping = damping * (relVx * nx + relVy * ny);\n        const totalForce = fSpring + fDamping;\n\n        const Fx = totalForce * nx;\n        const Fy = totalForce * ny;\n\n        if (velA && !isStaticA) {\n          const vA = w.getMutableComponent(entityA, \"Velocity\");\n          if (vA) {\n            vA.vx += Fx * invMassA * deltaTime;\n            vA.vy += Fy * invMassA * deltaTime;\n            if (invInertiaA > 0) {\n              vA.angularVelocity += (rxA * Fy - ryA * Fx) * invInertiaA * deltaTime;\n            }\n          }\n        }\n\n        if (velB && !isStaticB) {\n          const vB = w.getMutableComponent(entityB, \"Velocity\");\n          if (vB) {\n            vB.vx -= Fx * invMassB * deltaTime;\n            vB.vy -= Fy * invMassB * deltaTime;\n            if (invInertiaB > 0) {\n              vB.angularVelocity -= (rxB * Fy - ryB * Fx) * invInertiaB * deltaTime;\n            }\n          }\n        }\n      } else if (joint.jointType === \"distance\") {",
+      "isNew": false,
+      "lines": 29,
+      "secondFile": {
+        "end": 203,
+        "endLoc": {
+          "column": 16,
+          "line": 203,
+          "position": 7865
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 175,
+        "startLoc": {
+          "column": 43,
+          "line": 175,
+          "position": 6825
+        }
+      },
+      "tokens": 185
+    },
+    {
+      "firstFile": {
+        "end": 226,
+        "endLoc": {
+          "column": 13,
+          "line": 226,
+          "position": 8840
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 208,
+        "startLoc": {
+          "column": 32,
+          "line": 208,
+          "position": 8207
+        }
+      },
+      "format": "typescript",
+      "fragment": "const corrY = err * ny * percent;\n\n            if (!isStaticA && transA) {\n              const tA = w.getMutableComponent(entityA, \"Transform\");\n              if (tA) {\n                tA.x += corrX * (invMassA / totalInvMass);\n                tA.y += corrY * (invMassA / totalInvMass);\n                tA.dirty = true;\n              }\n            }\n\n            if (!isStaticB && transB) {\n              const tB = w.getMutableComponent(entityB, \"Transform\");\n              if (tB) {\n                tB.x -= corrX * (invMassB / totalInvMass);\n                tB.y -= corrY * (invMassB / totalInvMass);\n                tB.dirty = true;\n              }\n            }",
+      "isNew": false,
+      "lines": 19,
+      "secondFile": {
+        "end": 286,
+        "endLoc": {
+          "column": 11,
+          "line": 286,
+          "position": 11311
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 268,
+        "startLoc": {
+          "column": 26,
+          "line": 268,
+          "position": 10710
+        }
+      },
+      "tokens": 115
+    },
+    {
+      "firstFile": {
+        "end": 262,
+        "endLoc": {
+          "column": 13,
+          "line": 262,
+          "position": 10553
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 238,
+        "startLoc": {
+          "column": 29,
+          "line": 238,
+          "position": 9518
+        }
+      },
+      "format": "typescript",
+      "fragment": "const impulseY = impulse * ny;\n\n              if (velA && !isStaticA) {\n                const vA = w.getMutableComponent(entityA, \"Velocity\");\n                if (vA) {\n                  vA.vx -= impulseX * invMassA;\n                  vA.vy -= impulseY * invMassA;\n                  if (invInertiaA > 0) {\n                    vA.angularVelocity -= (rxA * impulseY - ryA * impulseX) * invInertiaA;\n                  }\n                }\n              }\n\n              if (velB && !isStaticB) {\n                                // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/PhysicsSolveSystem.ts:198-206. Considerar extraer a función compartida. Ref: d81d7c34\nconst vB = w.getMutableComponent(entityB, \"Velocity\");\n                if (vB) {\n                  vB.vx += impulseX * invMassB;\n                  vB.vy += impulseY * invMassB;\n                  if (invInertiaB > 0) {\n                    vB.angularVelocity += (rxB * impulseY - ryB * impulseX) * invInertiaB;\n                  }\n                }\n              }\n            }",
+      "isNew": false,
+      "lines": 25,
+      "secondFile": {
+        "end": 315,
+        "endLoc": {
+          "column": 9,
+          "line": 315,
+          "position": 12290
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 292,
+        "startLoc": {
+          "column": 52,
+          "line": 292,
+          "position": 11519
+        }
+      },
+      "tokens": 136
+    },
+    {
+      "firstFile": {
+        "end": 253,
+        "endLoc": {
+          "column": 10,
+          "line": 253,
+          "position": 10187
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 241,
+        "startLoc": {
+          "column": 28,
+          "line": 241,
+          "position": 9589
+        }
+      },
+      "format": "typescript",
+      "fragment": "                const vA = w.getMutableComponent(entityA, \"Velocity\");\n                if (vA) {\n                  vA.vx -= impulseX * invMassA;\n                  vA.vy -= impulseY * invMassA;\n                  if (invInertiaA > 0) {\n                    vA.angularVelocity -= (rxA * impulseY - ryA * impulseX) * invInertiaA;\n                  }\n                }\n              }\n\n              if (velB && !isStaticB) {\n                                // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/PhysicsSolveSystem.ts:198-206. Considerar extraer a función compartida. Ref: d81d7c34\nconst vB = w.getMutableComponent(entityB, \"Velocity\");",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 198,
+        "endLoc": {
+          "column": 16,
+          "line": 198,
+          "position": 6866
+        },
+        "name": "physics/dynamics/PhysicsSolveSystem.ts",
+        "start": 187,
+        "startLoc": {
+          "column": 22,
+          "line": 187,
+          "position": 6548
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 261,
+        "endLoc": {
+          "column": 15,
+          "line": 261,
+          "position": 10539
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 253,
+        "startLoc": {
+          "column": 12,
+          "line": 253,
+          "position": 10189
+        }
+      },
+      "format": "typescript",
+      "fragment": "const vB = w.getMutableComponent(entityB, \"Velocity\");\n                if (vB) {\n                  vB.vx += impulseX * invMassB;\n                  vB.vy += impulseY * invMassB;\n                  if (invInertiaB > 0) {\n                    vB.angularVelocity += (rxB * impulseY - ryB * impulseX) * invInertiaB;\n                  }\n                }\n              }",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 206,
+        "endLoc": {
+          "column": 5,
+          "line": 206,
+          "position": 7142
+        },
+        "name": "physics/dynamics/PhysicsSolveSystem.ts",
+        "start": 198,
+        "startLoc": {
+          "column": 22,
+          "line": 198,
+          "position": 6872
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
         "end": 127,
         "endLoc": {
           "column": 22,
@@ -1075,55 +1297,18 @@
     },
     {
       "firstFile": {
-        "end": 444,
-        "endLoc": {
-          "column": 26,
-          "line": 444,
-          "position": 18294
-        },
-        "name": "asteroids/AsteroidsGame.ts",
-        "start": 432,
-        "startLoc": {
-          "column": 31,
-          "line": 432,
-          "position": 17951
-        }
-      },
-      "format": "typescript",
-      "fragment": "      const dialogueBox = this.world.getComponent(dialogueBoxEntities[0], \"DialogueBox\");\n      if (dialogueBox) {\n        isDialogueActive = true;\n        const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];\n        dialogueText = currentLineKey || \"\";\n      }\n    }\n\n    return {\n      ...state,\n      combo,\n      multiplier,\n      comboTimerRemaining,",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 685,
-        "endLoc": {
-          "column": 26,
-          "line": 685,
-          "position": 28569
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 673,
-        "startLoc": {
-          "column": 26,
-          "line": 673,
-          "position": 28226
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 124,
+        "end": 126,
         "endLoc": {
           "column": 115,
-          "line": 124,
-          "position": 4635
+          "line": 126,
+          "position": 4633
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 119,
+        "start": 121,
         "startLoc": {
           "column": 45,
-          "line": 119,
-          "position": 4471
+          "line": 121,
+          "position": 4469
         }
       },
       "format": "typescript",
@@ -1149,18 +1334,18 @@
     },
     {
       "firstFile": {
-        "end": 223,
+        "end": 225,
         "endLoc": {
           "column": 13,
-          "line": 223,
-          "position": 8135
+          "line": 225,
+          "position": 8133
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 214,
+        "start": 216,
         "startLoc": {
           "column": 8,
-          "line": 214,
-          "position": 7844
+          "line": 216,
+          "position": 7842
         }
       },
       "format": "typescript",
@@ -1168,18 +1353,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 315,
+        "end": 319,
         "endLoc": {
           "column": 13,
-          "line": 315,
-          "position": 11183
+          "line": 319,
+          "position": 11193
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 306,
+        "start": 310,
         "startLoc": {
           "column": 8,
-          "line": 306,
-          "position": 10892
+          "line": 310,
+          "position": 10902
         }
       },
       "tokens": 51
@@ -1408,18 +1593,18 @@
     },
     {
       "firstFile": {
-        "end": 112,
+        "end": 111,
         "endLoc": {
           "column": 26,
-          "line": 112,
-          "position": 4266
+          "line": 111,
+          "position": 4730
         },
         "name": "asteroids/systems/AsteroidCollisionSystem.ts",
-        "start": 104,
+        "start": 103,
         "startLoc": {
           "column": 4,
-          "line": 104,
-          "position": 3987
+          "line": 103,
+          "position": 4451
         }
       },
       "format": "typescript",
@@ -5922,32 +6107,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-16T13:24:09.714Z",
+    "detectionDate": "2026-09-17T04:57:07.436Z",
     "formats": {
       "typescript": {
-        "clones": 160,
-        "duplicatedLines": 1462,
-        "duplicatedTokens": 11878,
-        "lines": 64965,
+        "clones": 165,
+        "duplicatedLines": 1556,
+        "duplicatedTokens": 12500,
+        "lines": 65896,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.2504425459863002,
-        "percentageTokens": 3.4914345510340854,
-        "sources": 387,
-        "tokens": 340204
+        "percentage": 2.3612965885637975,
+        "percentageTokens": 3.6200929639873154,
+        "sources": 390,
+        "tokens": 345295
       }
     },
     "total": {
-      "clones": 160,
-      "duplicatedLines": 1462,
-      "duplicatedTokens": 11878,
-      "lines": 64965,
+      "clones": 165,
+      "duplicatedLines": 1556,
+      "duplicatedTokens": 12500,
+      "lines": 65896,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.2504425459863002,
-      "percentageTokens": 3.4914345510340854,
-      "sources": 387,
-      "tokens": 340204
+      "percentage": 2.3612965885637975,
+      "percentageTokens": 3.6200929639873154,
+      "sources": 390,
+      "tokens": 345295
     }
   }
 }

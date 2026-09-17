@@ -5,16 +5,15 @@ import { hapticSelection } from "../src/utils/haptics";
 import { useTranslation } from "../src/hooks/useTranslation";
 import { GameOverNarrative } from "../src/components/GameOverNarrative";
 import { COLORS, colors, fonts, semanticColors, typography } from "../src/theme";
+import { ScorePulse } from "../src/components/ScorePulse";
+import { LivesIndicator } from "../src/components/LivesIndicator";
+import { HudViewModel, toHudViewModel } from "../src/types/HudViewModel";
 import Animated, {
   BounceIn,
   FadeIn,
   FadeOut,
   SlideInDown,
   ZoomIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withSpring,
 } from "react-native-reanimated";
 
 /**
@@ -101,7 +100,8 @@ interface MinimalGameState {
 }
 
 export interface GameUIProps {
-  gameState: MinimalGameState;
+  gameState?: MinimalGameState;
+  viewModel?: HudViewModel;
   onRestart?: () => void;
   onPause?: () => void;
   isPaused?: boolean;
@@ -120,6 +120,7 @@ const formatLevel = (level: number) => String(Math.max(1, level)).padStart(2, "0
 
 export const GameUI = React.memo(function GameUI({
   gameState,
+  viewModel,
   onRestart,
   onPause,
   isPaused,
@@ -128,6 +129,7 @@ export const GameUI = React.memo(function GameUI({
   onAdvanceDialogue,
   theme,
 }: GameUIProps) {
+  const vm: HudViewModel = viewModel ?? toHudViewModel(gameState);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -137,16 +139,16 @@ export const GameUI = React.memo(function GameUI({
 
   const showPauseButton =
     Platform.OS !== "web" &&
-    !gameState.isGameOver &&
-    !(gameState.continueCountdownRemaining && gameState.continueCountdownRemaining > 0);
+    !vm.isGameOver &&
+    !(vm.continueCountdownRemaining && vm.continueCountdownRemaining > 0);
 
   useEffect(() => {
-    if (gameState.level && gameState.level > 1 && !gameState.isGameOver) {
-      setLevelUpText(`SECTOR ${formatLevel(gameState.level)}`);
+    if (vm.level && vm.level > 1 && !vm.isGameOver) {
+      setLevelUpText(`SECTOR ${formatLevel(vm.level)}`);
       const timer = setTimeout(() => setLevelUpText(null), 2000);
       return () => clearTimeout(timer);
     }
-  }, [gameState.level, gameState.isGameOver]);
+  }, [vm.level, vm.isGameOver]);
 
   // Global keyboard listeners for Web UI interactions
   useEffect(() => {
@@ -154,15 +156,15 @@ export const GameUI = React.memo(function GameUI({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Escape" || e.code === "KeyP") {
-        const isContinuing = gameState.continueCountdownRemaining && gameState.continueCountdownRemaining > 0;
-        if (onPause && !gameState.isGameOver && !isContinuing) {
+        const isContinuing = vm.continueCountdownRemaining && vm.continueCountdownRemaining > 0;
+        if (onPause && !vm.isGameOver && !isContinuing) {
           e.preventDefault();
           hapticSelection();
           onPause();
         }
       }
 
-      if (gameState.isGameOver) {
+      if (vm.isGameOver) {
         if (e.code === "KeyR" || e.code === "Enter") {
           if (onRestart) {
             e.preventDefault();
@@ -172,7 +174,7 @@ export const GameUI = React.memo(function GameUI({
         }
       }
 
-      const continueCountdownRemaining = gameState.continueCountdownRemaining ?? 0;
+      const continueCountdownRemaining = vm.continueCountdownRemaining ?? 0;
       if (continueCountdownRemaining > 0) {
         if (e.code === "Enter") {
           if (onContinue) {
@@ -189,7 +191,7 @@ export const GameUI = React.memo(function GameUI({
         }
       }
 
-      if (gameState.isDialogueActive && gameState.dialogueText) {
+      if (vm.isDialogueActive && vm.dialogueText) {
         if (e.code === "Space" || e.code === "Enter") {
           if (onAdvanceDialogue) {
             e.preventDefault();
@@ -205,28 +207,28 @@ export const GameUI = React.memo(function GameUI({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [
-    gameState.isGameOver,
-    gameState.continueCountdownRemaining,
-    gameState.isDialogueActive,
-    gameState.dialogueText,
+    vm.isGameOver,
+    vm.continueCountdownRemaining,
+    vm.isDialogueActive,
+    vm.dialogueText,
     onPause,
     onRestart,
     onContinue,
     onAdvanceDialogue,
   ]);
 
-  const lives = gameState.lives ?? 0;
-  const level = gameState.level ?? 1;
-  const readyRemaining = gameState.readyRemaining ?? 0;
-  const intermissionRemaining = gameState.intermissionRemaining ?? 0;
-  const continueCountdownRemaining = gameState.continueCountdownRemaining ?? 0;
-  const continuesRemaining = gameState.continuesRemaining ?? 0;
+  const lives = vm.lives ?? 0;
+  const level = vm.level ?? 1;
+  const readyRemaining = vm.readyRemaining ?? 0;
+  const intermissionRemaining = vm.intermissionRemaining ?? 0;
+  const continueCountdownRemaining = vm.continueCountdownRemaining ?? 0;
+  const continuesRemaining = vm.continuesRemaining ?? 0;
 
   return (
     <View style={styles.container}>
       <HUD
         lives={lives}
-        score={gameState.score}
+        score={vm.score}
         level={level}
         highScore={highScore ?? 0}
         paddingTop={Math.max(insets.top, 14)}
@@ -249,7 +251,7 @@ export const GameUI = React.memo(function GameUI({
         <ReadyOverlay
           remaining={readyRemaining}
           level={level}
-          message={gameState.storyBeatText}
+          message={vm.storyBeatText}
         />
       )}
 
@@ -257,8 +259,8 @@ export const GameUI = React.memo(function GameUI({
         <IntermissionOverlay
           remaining={intermissionRemaining}
           level={level}
-          title={gameState.chapterTitle}
-          message={gameState.storyBeatText}
+          title={vm.chapterTitle}
+          message={vm.storyBeatText}
         />
       )}
 
@@ -300,18 +302,18 @@ export const GameUI = React.memo(function GameUI({
         </Animated.View>
       )}
 
-      {gameState.isGameOver && (
+      {vm.isGameOver && (
         <GameOverOverlay
-          score={gameState.score}
+          score={vm.score}
           highScore={highScore ?? 0}
           onRestart={onRestart}
-          mode={gameState.mode}
-          level={gameState.level}
+          mode={vm.mode}
+          level={vm.level}
         />
       )}
 
       {/* Dialogue Overlay */}
-      {gameState.isDialogueActive && gameState.dialogueText && (
+      {vm.isDialogueActive && vm.dialogueText && (
         <Animated.View entering={SlideInDown.duration(400)} exiting={FadeOut.duration(300)} style={styles.dialogueOverlay}>
           <TouchableOpacity
             activeOpacity={0.9}
@@ -321,11 +323,11 @@ export const GameUI = React.memo(function GameUI({
               if (onAdvanceDialogue) onAdvanceDialogue();
             }}
             accessibilityRole="button"
-            accessibilityLabel={t.accessibility.dialogue_comms_label.replace("{text}", gameState.dialogueText)}
+            accessibilityLabel={t.accessibility.dialogue_comms_label.replace("{text}", vm.dialogueText)}
             accessibilityHint={t.accessibility.dialogue_comms_hint}
           >
             <Text style={styles.dialogueSpeaker}>ODISEA-7 COMMS</Text>
-            <Text style={styles.dialogueContent}>{gameState.dialogueText}</Text>
+            <Text style={styles.dialogueContent}>{vm.dialogueText}</Text>
             <Text style={styles.dialoguePrompt}>CLICK TO ADVANCE ▼</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -359,19 +361,22 @@ const HUD: React.FC<{
     return (
       <Animated.View entering={FadeIn.duration(450)} style={[styles.topBar, { paddingTop }]}>
         <View style={[styles.compactBar, reservePauseSpace && styles.compactBarWithPause]}>
-          <View style={styles.compactLifeRow}>
-            {lives > 0 ? (
-              Array.from({ length: Math.min(lives, 4) }).map((_, index) => (
-                <ShipLifeIcon key={`compact-life-${index}`} color={systemColor} compact />
-              ))
-            ) : (
-              <Text style={styles.signalLostMini}>LOST</Text>
-            )}
-            {lives > 4 && <Text style={styles.compactExtraLives}>+{lives - 4}</Text>}
-          </View>
+          <LivesIndicator
+            lives={lives}
+            iconComponent={ShipLifeIcon}
+            iconColor={systemColor}
+            compact
+            accessibilityLabel={t.accessibility.lives_remaining_label.replace("{lives}", String(lives))}
+          />
 
           <View style={styles.compactScoreBlock}>
             <Score score={score} color={systemColor} compact />
+          </View>
+
+          <View style={styles.compactSectorBlock}>
+            <Text style={[styles.compactSectorText, { color: warningColor }]}>
+              S-{formatLevel(level)}
+            </Text>
           </View>
 
           <TouchableOpacity
@@ -381,10 +386,14 @@ const HUD: React.FC<{
               setExpandedDetails(!expandedDetails);
             }}
             accessibilityRole="button"
-            accessibilityLabel="Toggle HUD Details"
+            accessibilityLabel={
+              expandedDetails
+                ? t.accessibility.collapse_hud_details
+                : t.accessibility.expand_hud_details
+            }
           >
-            <Text style={[styles.compactSectorText, { color: warningColor }]}>
-              S-{formatLevel(level)} {expandedDetails ? "▲" : "▼"}
+            <Text style={[styles.compactToggleIcon, { color: warningColor }]}>
+              {expandedDetails ? "▲" : "▼"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -420,15 +429,12 @@ const HUD: React.FC<{
           accessibilityLabel={t.accessibility.lives_remaining_label.replace("{lives}", String(lives))}
         >
           <Text style={[styles.hudKicker, theme?.colors?.system ? { color: theme.colors.system } : null]}>{titleText}</Text>
-          <View style={styles.lifeRow}>
-            {lives > 0 ? (
-              Array.from({ length: lives }).map((_, index) => (
-                <ShipLifeIcon key={`life-${index}`} color={systemColor} />
-              ))
-            ) : (
-              <Text style={styles.signalLostMini}>SIGNAL LOST</Text>
-            )}
-          </View>
+          <LivesIndicator
+            lives={lives}
+            iconComponent={ShipLifeIcon}
+            iconColor={systemColor}
+            accessibilityLabel={t.accessibility.lives_remaining_label.replace("{lives}", String(lives))}
+          />
           <Text style={styles.hudMicro}>{subTitleText}</Text>
         </HudPanel>
 
@@ -457,6 +463,7 @@ const HUD: React.FC<{
           <Text style={[styles.sectorValue, { color: warningColor }]}>SECTOR {formatLevel(level)}</Text>
           <View style={styles.threatRow}>
             <Text style={styles.hudMicro}>THREAT</Text>
+            {/* DECORATIVE HUD INDICATOR: Static visual threat level bars reserved for HUD aesthetic */}
             <View style={styles.threatBars}>
               <View style={[styles.threatBarOn, { backgroundColor: warningColor }]} />
               <View style={[styles.threatBarOn, { backgroundColor: warningColor }]} />
@@ -572,8 +579,12 @@ const TechnicalRail: React.FC<{
   </View>
 );
 
-const ShipLifeIcon: React.FC<{ color?: string; compact?: boolean }> = ({ color = COLORS.cyan, compact }) => (
-  <View style={[styles.shipIcon, compact && styles.shipIconCompact]} accessibilityLabel="life">
+export const ShipLifeIcon: React.FC<{ color?: string; compact?: boolean }> = ({ color = COLORS.cyan, compact }) => (
+  <View
+    style={[styles.shipIcon, compact && styles.shipIconCompact]}
+    importantForAccessibility="no"
+    accessibilityElementsHidden={true}
+  >
     <View style={[styles.shipNose, compact && styles.shipNoseCompact, { borderBottomColor: color }]} />
     <View style={[styles.shipBody, compact && styles.shipBodyCompact, { backgroundColor: color }]} />
     <View style={[styles.shipWing, styles.shipWingLeft, compact && styles.shipWingCompact, { backgroundColor: color }]} />
@@ -583,25 +594,13 @@ const ShipLifeIcon: React.FC<{ color?: string; compact?: boolean }> = ({ color =
 );
 
 const Score: React.FC<{ score: number; color?: string; compact?: boolean }> = ({ score, color = COLORS.cyan, compact }) => {
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    scale.value = withSequence(
-      withSpring(1.08, { damping: 6, stiffness: 140 }),
-      withSpring(1, { damping: 8, stiffness: 130 })
-    );
-  }, [score, scale]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
-    <Animated.View style={animatedStyle}>
-      <Text style={[styles.scoreValue, compact && styles.scoreValueCompact, { color }]}>
-        {formatScore(score)}
-      </Text>
-    </Animated.View>
+    <ScorePulse
+      score={score}
+      color={color}
+      maxDigits={8}
+      fontSize={compact ? 18 : 25}
+    />
   );
 };
 
@@ -1102,6 +1101,11 @@ const styles = StyleSheet.create({
   compactScoreBlock: {
     alignItems: "center",
   },
+  compactSectorBlock: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
   compactDrawerToggle: {
     paddingHorizontal: 6,
     paddingVertical: 4,
@@ -1109,6 +1113,11 @@ const styles = StyleSheet.create({
   compactSectorText: {
     fontFamily: DATA_FONT,
     fontSize: 12,
+    fontWeight: "bold",
+  },
+  compactToggleIcon: {
+    fontFamily: DATA_FONT,
+    fontSize: 10,
     fontWeight: "bold",
   },
   compactDrawerPanel: {

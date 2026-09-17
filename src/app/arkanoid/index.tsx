@@ -12,6 +12,9 @@ import { ShootButton } from "../../components/ShootButton";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
+import { ScorePulse } from "@/components/ScorePulse";
+import { LivesIndicator } from "@/components/LivesIndicator";
+import { ShipLifeIcon } from "../../../components/GameUI";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "@/utils/haptics";
 import { colors } from "../../theme";
@@ -113,10 +116,23 @@ export default function ArkanoidScreen() {
             </TouchableOpacity>
           }
           centerHudSlot={
-            <View style={styles.hud}>
-              <Text style={styles.hudText}>SCORE {gameState?.score ?? 0}</Text>
-              <Text style={styles.hudText}>LIVES {gameState?.lives ?? 3}</Text>
-              <Text style={styles.hudText}>LVL {gameState?.level ?? 1}</Text>
+            <View style={styles.hud} pointerEvents="none">
+              <View style={styles.hudItem}>
+                <Text style={styles.hudLabel}>SCORE</Text>
+                <ScorePulse score={gameState?.score ?? 0} fontSize={16} maxDigits={6} color={colors.cyan} />
+              </View>
+              <View style={styles.hudItem}>
+                <Text style={styles.hudLabel}>LIVES</Text>
+                <LivesIndicator
+                  lives={gameState?.lives ?? 3}
+                  iconComponent={ShipLifeIcon}
+                  accessibilityLabel={`Vidas restantes: ${gameState?.lives ?? 3}`}
+                />
+              </View>
+              <View style={styles.hudItem}>
+                <Text style={styles.hudLabel}>LVL</Text>
+                <Text style={styles.hudText}>{gameState?.level ?? 1}</Text>
+              </View>
             </View>
           }
           canvasSlot={
@@ -224,6 +240,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     zIndex: 10,
+  },
+  hudItem: {
+    alignItems: "center",
+  },
+  hudLabel: {
+    color: "rgba(255, 255, 255, 0.6)",
+    fontSize: 10,
+    fontFamily: "monospace",
+    marginBottom: 2,
   },
   hudText: {
     color: colors.cyan,

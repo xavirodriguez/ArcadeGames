@@ -19,6 +19,7 @@ import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "../../utils/haptics";
+import { ScorePulse } from "@/components/ScorePulse";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { colors } from "../../theme";
 import {
@@ -183,10 +184,10 @@ export default function PongScreen() {
         style={styles.container}
         topLeftSlot={<BackButton label={t.common.menu} />}
         centerHudSlot={
-          <View style={styles.scoreBoard}>
-            <Text style={styles.scoreTextP1}>{gameState?.scoreP1 ?? 0}</Text>
+          <View style={styles.scoreBoard} pointerEvents="none">
+            <ScorePulse score={gameState?.scoreP1 ?? 0} fontSize={40} maxDigits={2} color={colors.pink} />
             <Text style={styles.scoreSeparator}>:</Text>
-            <Text style={styles.scoreTextP2}>{gameState?.scoreP2 ?? 0}</Text>
+            <ScorePulse score={gameState?.scoreP2 ?? 0} fontSize={40} maxDigits={2} color={colors.cyan} />
           </View>
         }
         canvasSlot={

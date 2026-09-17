@@ -6,11 +6,15 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import { StyleProp, TextStyle } from 'react-native';
 import { ScoreDisplay } from './ScoreDisplay';
 
 interface ScorePulseProps {
   score: number;
   fontSize?: number;
+  maxDigits?: number;
+  color?: string;
+  style?: StyleProp<TextStyle>;
 }
 
 /**
@@ -20,7 +24,13 @@ interface ScorePulseProps {
  * - Glow: 12 → 20 → 12
  * - Sin setTimeout (todo en withSequence)
  */
-export function ScorePulse({ score, fontSize = 32 }: ScorePulseProps) {
+export function ScorePulse({
+  score,
+  fontSize = 32,
+  maxDigits = 6,
+  color,
+  style,
+}: ScorePulseProps) {
   const [prevScore, setPrevScore] = useState(score);
 
   const scoreScale = useSharedValue(1);
@@ -65,7 +75,13 @@ export function ScorePulse({ score, fontSize = 32 }: ScorePulseProps) {
 
   return (
     <Animated.View style={animatedStyle}>
-      <ScoreDisplay score={score} fontSize={fontSize} />
+      <ScoreDisplay
+        score={score}
+        fontSize={fontSize}
+        maxDigits={maxDigits}
+        color={color}
+        style={style}
+      />
     </Animated.View>
   );
 }

@@ -41,6 +41,11 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
           });
         }
       }
+
+      const eventBus = world.getResource<EventBus>("EventBus");
+      if (eventBus) {
+        eventBus.emitDeferred("flappy:sector_event_started", { event: currentEvent });
+      }
     }
 
     if (currentEvent !== "none") {
@@ -53,8 +58,14 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
             });
           }
         }
+        const endedEvent = currentEvent;
         currentEvent = "none";
         eventDuration = 0;
+
+        const eventBus = world.getResource<EventBus>("EventBus");
+        if (eventBus) {
+          eventBus.emitDeferred("flappy:sector_event_ended", { event: endedEvent });
+        }
       } else {
         eventDuration--;
         if (currentEvent === "solar_flare") pipeSpeedMultiplier = 1.25;
@@ -148,7 +159,11 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
           });
           const eventBus = world.getResource<EventBus>("EventBus");
           if (eventBus) {
-            eventBus.emitDeferred("pipe:passed", {});
+            eventBus.emitDeferred("pipe:passed", {
+              pipeEntity: entity,
+              movementType: pipe.movementType,
+              isNarrowGap: pipe.isNarrowGap
+            });
             eventBus.emitDeferred("PlaySFX", { name: "score" });
           }
         }

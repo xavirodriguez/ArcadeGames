@@ -68,7 +68,11 @@ export class MissionSystem<TComponents extends ComponentRegistry = ComponentRegi
       "ufo:destroyed",
       "score:changed",
       "hyperspace:used",
-      "combo:updated"
+      "combo:updated",
+      "flappy:near_miss",
+      "pipe:passed",
+      "flappy:sector_event_ended",
+      "flappy:sector_event_started"
     ];
 
     for (const topic of standardTopics) {

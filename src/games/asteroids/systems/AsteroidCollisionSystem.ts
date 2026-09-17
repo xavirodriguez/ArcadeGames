@@ -148,7 +148,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
   private spawnExplosionParticles(
     world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
     transform: { x: number; y: number },
-    size: "large" | "medium" | "small"
+    size: "large" | "medium" | "small" | "ship"
   ): void {
     const particlePool = world.getResource<any>("ParticlePool");
     if (!particlePool) return;
@@ -382,25 +382,8 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
 
           // Spawn particle explosion for player ship impact/death
           const shipTransform = world.getComponent(ship, "Transform");
-          const shipParticlePool = world.getResource<any>("ParticlePool");
-          if (shipTransform && shipParticlePool) {
-            const sx = shipTransform.x;
-            const sy = shipTransform.y;
-            const rng = world.gameplayRandom;
-            const config = world.getResource<any>("GameConfig") || {};
-            const profile = EXPLOSION_PROFILES["ship"];
-            const colors = profile.colorSequence;
-            const particleCount = config.SHIP_DEATH_PARTICLE_COUNT ?? profile.particleCount;
-            for (let i = 0; i < particleCount; i++) {
-              const angle = rng.next() * Math.PI * 2;
-              const speed = rng.nextRange(60, 200);
-              const vx = Math.cos(angle) * speed;
-              const vy = Math.sin(angle) * speed;
-              const color = colors[rng.nextInt(0, colors.length)];
-              const pSize = rng.nextRange(2.0, 5.5);
-              const ttl = rng.nextRange(0.5, 1.2);
-              createSharedParticle(world, sx, sy, vx, vy, color, shipParticlePool, pSize, ttl);
-            }
+          if (shipTransform) {
+            this.spawnExplosionParticles(world, shipTransform, "ship");
           }
 
           if (lives > 0) {

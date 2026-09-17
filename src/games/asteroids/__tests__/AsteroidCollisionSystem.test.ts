@@ -238,6 +238,15 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
     world.setResource("HasCombatSystem", true);
     collisionSystem.onRegister(world);
 
+    const bullet = createBullet({
+      world,
+      x: 50,
+      y: 50,
+      rotation: 0,
+      speed: 100,
+      ownerId: "player-1"
+    });
+
     const asteroid = world.createEntity();
     world.addComponent(asteroid, { type: "Asteroid", size: "large" });
     world.addComponent(asteroid, {
@@ -255,14 +264,43 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
       dirty: false
     });
 
+    world.addComponent(bullet, {
+      type: "CollisionEvents",
+      collisions: [{
+        otherEntity: asteroid,
+        normalX: 0,
+        normalY: 0,
+        depth: 0,
+        contactPoints: []
+      }],
+      activeTriggers: [],
+      triggersEntered: [],
+      triggersExited: []
+    });
+
+    world.addComponent(asteroid, {
+      type: "CollisionEvents",
+      collisions: [{
+        otherEntity: bullet,
+        normalX: 0,
+        normalY: 0,
+        depth: 0,
+        contactPoints: []
+      }],
+      activeTriggers: [],
+      triggersEntered: [],
+      triggersExited: []
+    });
+
     const asteroidDestroyedSpy = jest.fn();
     eventBus.on("asteroid:destroyed", asteroidDestroyedSpy);
 
     // Simulate combat:death event emitted from CombatSystem
-    eventBus.emit("combat:death", { entity: asteroid, sourceEntity: undefined });
+    eventBus.emit("combat:death", { entity: asteroid, sourceEntity: bullet });
+    // Try emitting combat:death again in the same tick (duplicate event)
+    eventBus.emit("combat:death", { entity: asteroid, sourceEntity: bullet });
 
-    // Try emitting it again in the same tick
-    eventBus.emit("combat:death", { entity: asteroid, sourceEntity: undefined });
+    collisionSystem.update(world, 0.016);
 
     eventBus.flushDeferred();
 

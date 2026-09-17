@@ -2,6 +2,9 @@ import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSys
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
+import { MissionSystem } from "../shared/missions/MissionSystem";
+import { FLAPPY_BIRD_MINI_MISSIONS } from "./FlappyBirdMissions";
+import { MutatorRegistry } from "../../utils/MutatorRegistry";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
 import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";
@@ -52,6 +55,7 @@ export class FlappyBirdGame
   implements IFlappyBirdGame {
 
   private gameStateSystem!: FlappyBirdGameStateSystem;
+  private missionSystem!: MissionSystem;
   private networkManager!: NetworkManager<any>;
   public readonly gameId = "flappybird";
   private baseConfig: FlappyBirdConfigType;
@@ -319,6 +323,40 @@ export class FlappyBirdGame
     this.world.addSystem(new CollisionSystem2D() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Collision });
     this.world.addSystem(new FlappyBirdCollisionSystem(this, this.config), { phase: SystemPhase.GameRules });
     this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
+
+    this.missionSystem = new MissionSystem();
+    this.world.addSystem(this.missionSystem as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.GameRules });
+
+    this.eventBus.on("mission:completed", (event: any) => {
+      if (this.world.isReSimulating) return;
+      if (event?.reward?.scoreBonus) {
+        const gs = this.world.getSingleton("FlappyState");
+        if (gs) {
+          this.world.mutateSingleton("FlappyState", (state) => {
+            state.score += event.reward.scoreBonus;
+          });
+        }
+      }
+      if (event?.reward?.mutatorId) {
+        const mutator = MutatorRegistry.get(event.reward.mutatorId);
+        if (mutator) {
+          mutator.apply(this.world);
+        }
+      }
+
+      // Rotate to next mission deterministically
+      const activeMission = this.missionSystem.getActiveMission();
+      let nextIndex = 0;
+      if (activeMission) {
+        const currentIndex = FLAPPY_BIRD_MINI_MISSIONS.findIndex(m => m.id === activeMission.id);
+        nextIndex = (currentIndex + 1) % FLAPPY_BIRD_MINI_MISSIONS.length;
+      }
+      const nextMission = FLAPPY_BIRD_MINI_MISSIONS[nextIndex];
+      if (nextMission) {
+        this.missionSystem.setActiveMission(this.world, nextMission);
+      }
+    });
+
     this.world.addSystem(new AchievementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
     const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as any[];
@@ -375,6 +413,15 @@ export class FlappyBirdGame
     createGameState(this.world);
     createBird({ world: this.world, x: config.BIRD_X, y: config.BIRD_START_Y });
     createGround(this.world);
+
+    if (this.missionSystem) {
+      const selectedMission = FLAPPY_BIRD_MINI_MISSIONS[0];
+      this.missionSystem.setActiveMission(this.world, selectedMission);
+    }
+  }
+
+  public getMissionSystem(): MissionSystem {
+    return this.missionSystem;
   }
 
   protected override async onBeforeRestart(): Promise<void> {
@@ -512,17 +559,21 @@ export class FlappyBirdGame
     if (renderer.type === "canvas") {
       this.activeRendererType = "canvas";
       const { drawFlappyBird, drawFlappyPipe, drawFlappyGround, scrollingBackgroundEffect } = require("./rendering/FlappyBirdCanvasVisuals");
+      const { drawFlappyBirdMissionHUD } = require("./rendering/FlappyBirdMissionHUD");
       renderer.registerShape("bird", drawFlappyBird);
       renderer.registerShape("pipe", drawFlappyPipe);
       renderer.registerShape("ground", drawFlappyGround);
       renderer.registerBackgroundEffect("scrollingSky", scrollingBackgroundEffect);
+      renderer.registerBackgroundEffect("mission_hud", drawFlappyBirdMissionHUD);
     } else if (renderer.type === "skia") {
       this.activeRendererType = "skia";
       const { drawSkiaFlappyBird, drawSkiaFlappyPipe, drawSkiaFlappyGround, scrollingSkiaBackgroundEffect } = require("./rendering/FlappyBirdSkiaVisuals");
+      const { drawSkiaFlappyBirdMissionHUD } = require("./rendering/FlappyBirdSkiaMissionHUD");
       renderer.registerShape("bird", drawSkiaFlappyBird);
       renderer.registerShape("pipe", drawSkiaFlappyPipe);
       renderer.registerShape("ground", drawSkiaFlappyGround);
       renderer.registerBackgroundEffect("scrollingSky", scrollingSkiaBackgroundEffect);
+      renderer.registerBackgroundEffect("mission_hud", drawSkiaFlappyBirdMissionHUD);
     }
   }
 

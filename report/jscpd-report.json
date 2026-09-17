@@ -1223,18 +1223,18 @@
     },
     {
       "firstFile": {
-        "end": 16,
+        "end": 15,
         "endLoc": {
           "column": 9,
-          "line": 16,
-          "position": 883
+          "line": 15,
+          "position": 822
         },
         "name": "arkanoid/systems/ArkanoidGameStateSystem.ts",
-        "start": 9,
+        "start": 8,
         "startLoc": {
           "column": 37,
-          "line": 9,
-          "position": 503
+          "line": 8,
+          "position": 442
         }
       },
       "format": "typescript",
@@ -1294,6 +1294,117 @@
         }
       },
       "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 203,
+        "endLoc": {
+          "column": 43,
+          "line": 203,
+          "position": 8894
+        },
+        "name": "asteroids/AsteroidsGame.ts",
+        "start": 198,
+        "startLoc": {
+          "column": 43,
+          "line": 198,
+          "position": 8669
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.world.addSystem(this.missionSystem, { phase: SystemPhase.GameRules });\n\n    this.eventBus.on(\"mission:completed\", (event: any) => {\n      if (this.world.isReSimulating) return;\n      if (event?.reward?.scoreBonus) {\n        const gs = this.world.getSingleton(\"GameState\");",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 333,
+        "endLoc": {
+          "column": 43,
+          "line": 333,
+          "position": 14413
+        },
+        "name": "flappybird/FlappyBirdGame.ts",
+        "start": 328,
+        "startLoc": {
+          "column": 82,
+          "line": 328,
+          "position": 14188
+        }
+      },
+      "tokens": 53
+    },
+    {
+      "firstFile": {
+        "end": 215,
+        "endLoc": {
+          "column": 7,
+          "line": 215,
+          "position": 9257
+        },
+        "name": "asteroids/AsteroidsGame.ts",
+        "start": 205,
+        "startLoc": {
+          "column": 48,
+          "line": 205,
+          "position": 8974
+        }
+      },
+      "format": "typescript",
+      "fragment": "          this.world.mutateSingleton(\"GameState\", (state) => {\n            state.score += event.reward.scoreBonus;\n          });\n        }\n      }\n      if (event?.reward?.mutatorId) {\n        const mutator = MutatorRegistry.get(event.reward.mutatorId);\n        if (mutator) {\n          mutator.apply(this.world);\n        }\n      }",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 345,
+        "endLoc": {
+          "column": 7,
+          "line": 345,
+          "position": 14780
+        },
+        "name": "flappybird/FlappyBirdGame.ts",
+        "start": 335,
+        "startLoc": {
+          "column": 50,
+          "line": 335,
+          "position": 14497
+        }
+      },
+      "tokens": 60
+    },
+    {
+      "firstFile": {
+        "end": 181,
+        "endLoc": {
+          "column": 29,
+          "line": 181,
+          "position": 6639
+        },
+        "name": "asteroids/AsteroidsMissions.ts",
+        "start": 174,
+        "startLoc": {
+          "column": 59,
+          "line": 174,
+          "position": 6349
+        }
+      },
+      "format": "typescript",
+      "fragment": "    reward: { scoreBonus: 800, achievementId: \"combo_king\" },\n    onUpdate: (world, state) => {\n      const combos = world.query(\"Combo\");\n      if (combos.length > 0) {\n        const c = world.getComponent(combos[0], \"Combo\") as ComboComponent | undefined;\n        if (c) {\n          state.currentCount = c.multiplier;\n          if (c.multiplier >= 5) {",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 74,
+        "endLoc": {
+          "column": 29,
+          "line": 74,
+          "position": 2494
+        },
+        "name": "flappybird/FlappyBirdMissions.ts",
+        "start": 67,
+        "startLoc": {
+          "column": 30,
+          "line": 67,
+          "position": 2204
+        }
+      },
+      "tokens": 68
     },
     {
       "firstFile": {
@@ -1445,6 +1556,43 @@
     },
     {
       "firstFile": {
+        "end": 75,
+        "endLoc": {
+          "column": 2,
+          "line": 75,
+          "position": 2487
+        },
+        "name": "asteroids/rendering/AsteroidsMissionHUD.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 103,
+          "line": 10,
+          "position": 442
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {\n  draw(ctx, world) {\n    const activeMission = world.getResource<ActiveMissionState>(\"ActiveMission\");\n    if (!activeMission) return;\n\n    ctx.save();\n    const x = 20;\n    const y = 80;\n    const width = 280;\n    const height = 48;\n\n    ctx.fillStyle = \"rgba(10, 14, 39, 0.85)\";\n    ctx.fillRect(x, y, width, height);\n\n    let statusColor: string = colors.cyan;\n    let statusText = `🎯 ${activeMission.title.toUpperCase()}`;\n\n    if (activeMission.completed) {\n      statusColor = colors.green;\n      statusText = `★ ${activeMission.title.toUpperCase()} (COMPLETADA)`;\n    } else if (activeMission.failed) {\n      statusColor = colors.pink;\n      statusText = `✕ ${activeMission.title.toUpperCase()} (FALLIDA)`;\n    }\n\n    ctx.strokeStyle = statusColor;\n    ctx.lineWidth = 1.5;\n    ctx.strokeRect(x, y, width, height);\n\n    ctx.font = \"bold 12px monospace\";\n    ctx.fillStyle = statusColor;\n    ctx.textAlign = \"left\";\n    ctx.textBaseline = \"top\";\n    ctx.shadowColor = statusColor;\n    ctx.shadowBlur = 6;\n    ctx.fillText(statusText, x + 8, y + 6);\n\n    ctx.font = \"11px monospace\";\n    ctx.fillStyle = colors.white;\n    ctx.shadowBlur = 0;\n\n    let progressStr = `${activeMission.currentCount} / ${activeMission.targetCount}`;\n    if (activeMission.targetTimer > 0) {\n      progressStr = `${activeMission.currentTimer.toFixed(1)}s / ${activeMission.targetTimer}s`;\n    }\n    ctx.fillText(progressStr, x + 8, y + 26);\n\n    const barX = x + 130;\n    const barY = y + 28;\n    const barW = width - 140;\n    const barH = 8;\n    const ratio = activeMission.targetCount > 0\n      ? Math.min(1, Math.max(0, activeMission.currentCount / activeMission.targetCount))\n      : activeMission.targetTimer > 0\n      ? Math.min(1, Math.max(0, (activeMission.targetTimer - activeMission.currentTimer) / activeMission.targetTimer))\n      : 0;\n\n    ctx.fillStyle = \"rgba(255, 255, 255, 0.2)\";\n    ctx.fillRect(barX, barY, barW, barH);\n\n    ctx.fillStyle = statusColor;\n    ctx.fillRect(barX, barY, barW * ratio, barH);\n\n    ctx.restore();\n  }\n};",
+      "isNew": false,
+      "lines": 66,
+      "secondFile": {
+        "end": 75,
+        "endLoc": {
+          "column": 2,
+          "line": 75,
+          "position": 2501
+        },
+        "name": "flappybird/rendering/FlappyBirdMissionHUD.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 105,
+          "line": 10,
+          "position": 456
+        }
+      },
+      "tokens": 443
+    },
+    {
+      "firstFile": {
         "end": 24,
         "endLoc": {
           "column": 31,
@@ -1590,6 +1738,43 @@
         }
       },
       "tokens": 101
+    },
+    {
+      "firstFile": {
+        "end": 199,
+        "endLoc": {
+          "column": 2,
+          "line": 199,
+          "position": 6850
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 164,
+        "startLoc": {
+          "column": 86,
+          "line": 164,
+          "position": 5953
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaAsteroidsMissionHUD: EffectDrawer<any, AsteroidsComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const activeMission = world.getResource<ActiveMissionState>(\"ActiveMission\");\n    if (!activeMission) return;\n\n    canvas.save();\n    const paint = getPaint();\n    paint.reset();\n    paint.setAntiAlias(true);\n\n    const x = 20;\n    const y = 80;\n    const width = 280;\n    const height = 48;\n\n    let statusColor = \"#00D9FF\";\n    if (activeMission.completed) {\n      statusColor = \"#00FF41\";\n    } else if (activeMission.failed) {\n      statusColor = \"#FF4444\";\n    }\n\n    paint.setStyle(Skia.PaintStyle.Fill);\n    paint.setColor(Skia.Color(\"rgba(10, 14, 39, 0.85)\"));\n    const rect = Skia.XYWHRect(x, y, width, height);\n    canvas.drawRect(rect, paint);\n\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setColor(Skia.Color(statusColor));\n    paint.setStrokeWidth(1.5);\n    canvas.drawRect(rect, paint);\n\n    canvas.restore();\n  }\n};",
+      "isNew": false,
+      "lines": 36,
+      "secondFile": {
+        "end": 45,
+        "endLoc": {
+          "column": 2,
+          "line": 45,
+          "position": 1349
+        },
+        "name": "flappybird/rendering/FlappyBirdSkiaMissionHUD.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 88,
+          "line": 10,
+          "position": 452
+        }
+      },
+      "tokens": 209
     },
     {
       "firstFile": {
@@ -2703,18 +2888,18 @@
     },
     {
       "firstFile": {
-        "end": 85,
+        "end": 89,
         "endLoc": {
           "column": 79,
-          "line": 85,
-          "position": 4909
+          "line": 89,
+          "position": 5145
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 78,
+        "start": 82,
         "startLoc": {
           "column": 47,
-          "line": 78,
-          "position": 4589
+          "line": 82,
+          "position": 4825
         }
       },
       "format": "typescript",
@@ -2740,18 +2925,18 @@
     },
     {
       "firstFile": {
-        "end": 88,
+        "end": 92,
         "endLoc": {
           "column": 29,
-          "line": 88,
-          "position": 4967
+          "line": 92,
+          "position": 5203
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 82,
+        "start": 86,
         "startLoc": {
           "column": 47,
-          "line": 82,
-          "position": 4707
+          "line": 86,
+          "position": 4943
         }
       },
       "format": "typescript",
@@ -2777,18 +2962,18 @@
     },
     {
       "firstFile": {
-        "end": 480,
+        "end": 527,
         "endLoc": {
           "column": 9,
-          "line": 480,
-          "position": 20783
+          "line": 527,
+          "position": 22518
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 471,
+        "start": 518,
         "startLoc": {
           "column": 118,
-          "line": 471,
-          "position": 20562
+          "line": 518,
+          "position": 22297
         }
       },
       "format": "typescript",
@@ -2814,18 +2999,18 @@
     },
     {
       "firstFile": {
-        "end": 491,
+        "end": 538,
         "endLoc": {
           "column": 79,
-          "line": 491,
-          "position": 21385
+          "line": 538,
+          "position": 23120
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 479,
+        "start": 526,
         "startLoc": {
           "column": 4,
-          "line": 479,
-          "position": 20743
+          "line": 526,
+          "position": 22478
         }
       },
       "format": "typescript",
@@ -2851,18 +3036,18 @@
     },
     {
       "firstFile": {
-        "end": 494,
+        "end": 541,
         "endLoc": {
           "column": 14,
-          "line": 494,
-          "position": 21422
+          "line": 541,
+          "position": 23157
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 480,
+        "start": 527,
         "startLoc": {
           "column": 4,
-          "line": 480,
-          "position": 20778
+          "line": 527,
+          "position": 22513
         }
       },
       "format": "typescript",
@@ -2888,18 +3073,18 @@
     },
     {
       "firstFile": {
-        "end": 511,
+        "end": 558,
         "endLoc": {
           "column": 8,
-          "line": 511,
-          "position": 21995
+          "line": 558,
+          "position": 23730
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 497,
+        "start": 544,
         "startLoc": {
           "column": 78,
-          "line": 497,
-          "position": 21657
+          "line": 544,
+          "position": 23392
         }
       },
       "format": "typescript",
@@ -2922,6 +3107,43 @@
         }
       },
       "tokens": 68
+    },
+    {
+      "firstFile": {
+        "end": 53,
+        "endLoc": {
+          "column": 27,
+          "line": 53,
+          "position": 1799
+        },
+        "name": "flappybird/FlappyBirdMissions.ts",
+        "start": 48,
+        "startLoc": {
+          "column": 27,
+          "line": 48,
+          "position": 1577
+        }
+      },
+      "format": "typescript",
+      "fragment": "    onUpdate: (world, state) => {\n      const birds = world.query(\"Bird\");\n      if (birds.length > 0) {\n        const b = world.getComponent(birds[0], \"Bird\") as BirdComponent | undefined;\n        if (b && b.isGliding) {\n          state.customData.failedGlide = true;",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 177,
+        "endLoc": {
+          "column": 27,
+          "line": 177,
+          "position": 6007
+        },
+        "name": "flappybird/FlappyBirdMissions.ts",
+        "start": 172,
+        "startLoc": {
+          "column": 38,
+          "line": 172,
+          "position": 5785
+        }
+      },
+      "tokens": 54
     },
     {
       "firstFile": {
@@ -3443,18 +3665,18 @@
     },
     {
       "firstFile": {
-        "end": 77,
+        "end": 72,
         "endLoc": {
           "column": 22,
-          "line": 77,
-          "position": 3521
+          "line": 72,
+          "position": 3312
         },
         "name": "frogger/EntityFactory.ts",
-        "start": 69,
+        "start": 64,
         "startLoc": {
           "column": 96,
-          "line": 69,
-          "position": 3264
+          "line": 64,
+          "position": 3055
         }
       },
       "format": "typescript",
@@ -3462,36 +3684,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 122,
+        "end": 117,
         "endLoc": {
           "column": 22,
-          "line": 122,
-          "position": 5092
+          "line": 117,
+          "position": 4883
         },
         "name": "frogger/EntityFactory.ts",
-        "start": 114,
+        "start": 109,
         "startLoc": {
           "column": 50,
-          "line": 114,
-          "position": 4835
+          "line": 109,
+          "position": 4626
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 101,
+        "end": 96,
         "endLoc": {
           "column": 13,
-          "line": 101,
-          "position": 4253
+          "line": 96,
+          "position": 4044
         },
         "name": "frogger/EntityFactory.ts",
-        "start": 80,
+        "start": 75,
         "startLoc": {
           "column": 18,
-          "line": 80,
-          "position": 3676
+          "line": 75,
+          "position": 3467
         }
       },
       "format": "typescript",
@@ -3499,18 +3721,18 @@
       "isNew": false,
       "lines": 22,
       "secondFile": {
-        "end": 146,
+        "end": 141,
         "endLoc": {
           "column": 13,
-          "line": 146,
-          "position": 5819
+          "line": 141,
+          "position": 5610
         },
         "name": "frogger/EntityFactory.ts",
-        "start": 125,
+        "start": 120,
         "startLoc": {
           "column": 18,
-          "line": 125,
-          "position": 5242
+          "line": 120,
+          "position": 5033
         }
       },
       "tokens": 106
@@ -6107,32 +6329,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-17T10:53:07.454Z",
+    "detectionDate": "2026-09-17T11:22:36.444Z",
     "formats": {
       "typescript": {
-        "clones": 165,
-        "duplicatedLines": 1556,
-        "duplicatedTokens": 12500,
-        "lines": 66037,
+        "clones": 171,
+        "duplicatedLines": 1683,
+        "duplicatedTokens": 13387,
+        "lines": 66382,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.356254826839499,
-        "percentageTokens": 3.6108278617255136,
-        "sources": 393,
-        "tokens": 346181
+        "percentage": 2.5353258413425324,
+        "percentageTokens": 3.84612069584704,
+        "sources": 396,
+        "tokens": 348065
       }
     },
     "total": {
-      "clones": 165,
-      "duplicatedLines": 1556,
-      "duplicatedTokens": 12500,
-      "lines": 66037,
+      "clones": 171,
+      "duplicatedLines": 1683,
+      "duplicatedTokens": 13387,
+      "lines": 66382,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.356254826839499,
-      "percentageTokens": 3.6108278617255136,
-      "sources": 393,
-      "tokens": 346181
+      "percentage": 2.5353258413425324,
+      "percentageTokens": 3.84612069584704,
+      "sources": 396,
+      "tokens": 348065
     }
   }
 }

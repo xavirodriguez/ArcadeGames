@@ -1,22 +1,20 @@
 import { System, World, IInputSystem } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
-import { GridLayout, cellCenterToWorld } from "../../shared/grid";
 
 export class FroggerInputSystem extends System<FroggerComponentRegistry> {
   public update(world: World<FroggerComponentRegistry>, dt: number): void {
     const config = world.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-    const froggerEntities = world.query("Frogger", "FroggerInput", "Transform", "GridPosition");
+    const froggerEntities = world.query("Frogger", "FroggerInput", "Transform");
     if (froggerEntities.length === 0) return;
 
     const froggerEntity = froggerEntities[0];
     const frogger = world.getMutableComponent(froggerEntity, "Frogger");
     const input = world.getMutableComponent(froggerEntity, "FroggerInput");
     const transform = world.getMutableComponent(froggerEntity, "Transform");
-    const gridPos = world.getMutableComponent(froggerEntity, "GridPosition");
     const stateEntity = world.query("FroggerState")[0];
 
-    if (!frogger || !input || !transform || !gridPos || !frogger.isAlive) return;
+    if (!frogger || !input || !transform || !frogger.isAlive) return;
 
     if (stateEntity !== undefined) {
       const state = world.getComponent(stateEntity, "FroggerState");
@@ -68,25 +66,23 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
     }
 
     if (moved) {
-      const newGridX = Math.max(0, Math.min(config.TOTAL_COLS - 1, gridPos.col + dx));
-      const newGridY = Math.max(0, Math.min(config.TOTAL_ROWS - 1, gridPos.row + dy));
+      const newGridX = Math.max(0, Math.min(config.TOTAL_COLS - 1, frogger.gridX + dx));
+      const newGridY = Math.max(0, Math.min(config.TOTAL_ROWS - 1, frogger.gridY + dy));
 
-      if (newGridX !== gridPos.col || newGridY !== gridPos.row) {
-        gridPos.col = newGridX;
-        gridPos.row = newGridY;
+      if (newGridX !== frogger.gridX || newGridY !== frogger.gridY) {
+        frogger.gridX = newGridX;
+        frogger.gridY = newGridY;
         frogger.cooldownRemaining = config.INPUT_COOLDOWN_TICKS;
         frogger.isRiding = false;
         frogger.logEntity = undefined;
 
-        // Update continuous position centered on target cell using cellCenterToWorld
-        const layout: GridLayout = { stepX: config.GRID_SIZE, stepY: config.GRID_SIZE, offsetX: 0, offsetY: 0 };
-        const center = cellCenterToWorld(layout, { row: gridPos.row, col: gridPos.col });
-        transform.x = center.x;
-        transform.y = center.y;
+        // Update continuous position centered on target cell
+        transform.x = frogger.gridX * config.GRID_SIZE + config.GRID_SIZE / 2;
+        transform.y = frogger.gridY * config.GRID_SIZE + config.GRID_SIZE / 2;
 
         // Score bonus for moving forward
-        if (dy < 0 && gridPos.row < frogger.furthestY) {
-          frogger.furthestY = gridPos.row;
+        if (dy < 0 && frogger.gridY < frogger.furthestY) {
+          frogger.furthestY = frogger.gridY;
           if (stateEntity !== undefined) {
             world.mutateComponent(stateEntity, "FroggerState", (s) => {
               s.score += config.STEP_POINTS;
@@ -96,7 +92,7 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
 
         const eventBus = world.getEventBus();
         if (eventBus) {
-          eventBus.emit("frogger:jump", { gridX: gridPos.col, gridY: gridPos.row });
+          eventBus.emit("frogger:jump", { gridX: frogger.gridX, gridY: frogger.gridY });
         }
       }
     }

@@ -41,7 +41,6 @@ import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { ISpaceInvadersGame } from "../types/GameInterfaces";
 import { getFormationSize } from "../utils/SpaceInvadersFormationUtils";
-import { GridLayout, cellToWorld } from "../../shared/grid";
 
 /**
  * Main gameplay scene for Space Invaders.
@@ -100,21 +99,14 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
         const { rows, cols } = getFormationSize(lvl, config);
         const totalInvaders = rows * cols;
         const offsetX = ((config.INVADER_COLS - cols) * spacingX) / 2;
-        const waveLayout: GridLayout = {
-          stepX: spacingX,
-          stepY: spacingY,
-          offsetX: startX + offsetX,
-          offsetY: startY,
-        };
         const spawns: any[] = [];
         for (let row = 0; row < rows; row++) {
           for (let col = 0; col < cols; col++) {
-            const pos = cellToWorld(waveLayout, { row, col });
             spawns.push({
               blueprintId: "invader",
               args: {
-                x: pos.x,
-                y: pos.y,
+                x: startX + offsetX + col * spacingX,
+                y: startY + row * spacingY,
                 row,
                 col
               },

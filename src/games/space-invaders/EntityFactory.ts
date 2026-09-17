@@ -15,7 +15,6 @@ import {
   FormationComponent,
 } from "./types/SpaceInvadersTypes";
 import { EnemyFactory } from "./EnemyFactory";
-import { GridLayout, cellToWorld } from "../shared/grid";
 
 /**
  * Entity factory for the Space Invaders game domain.
@@ -122,23 +121,19 @@ export function createFormationController(world: World<any>, deferred?: boolean)
  */
 export function spawnInvaderWave(world: World<any>, _level: number, deferred?: boolean): void {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+  const startX = config.INVADER_START_X;
+  const startY = config.INVADER_START_Y;
+  const spacingX = config.INVADER_SPACING_X;
+  const spacingY = config.INVADER_SPACING_Y;
   const rows = config.INVADER_ROWS;
   const cols = config.INVADER_COLS;
 
-  const layout: GridLayout = {
-    stepX: config.INVADER_SPACING_X,
-    stepY: config.INVADER_SPACING_Y,
-    offsetX: config.INVADER_START_X,
-    offsetY: config.INVADER_START_Y,
-  };
-
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const pos = cellToWorld(layout, { row, col });
       createInvader(
         world,
-        pos.x,
-        pos.y,
+        startX + col * spacingX,
+        startY + row * spacingY,
         row,
         col,
         deferred
@@ -162,20 +157,14 @@ export function spawnShields(world: World<any>, deferred?: boolean): void {
   const spacing = config.SHIELD_SPACING;
 
   for (let i = 0; i < count; i++) {
-    const shieldLayout: GridLayout = {
-      stepX: config.SHIELD_SEGMENT_SIZE,
-      stepY: config.SHIELD_SEGMENT_SIZE,
-      offsetX: config.SHIELD_START_X + i * spacing,
-      offsetY: startY,
-    };
+    const bunkerX = config.SHIELD_START_X + i * spacing;
     for (let row = 0; row < segmentsY; row++) {
       for (let col = 0; col < segmentsX; col++) {
-        const pos = cellToWorld(shieldLayout, { row, col });
         // Simple rectangular bunker shape
         createShieldSegment(
           world,
-          pos.x,
-          pos.y,
+          bunkerX + col * config.SHIELD_SEGMENT_SIZE,
+          startY + row * config.SHIELD_SEGMENT_SIZE,
           row,
           col,
           deferred

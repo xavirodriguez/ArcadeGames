@@ -6,21 +6,20 @@ import { isEntityInvulnerable } from "./FroggerGameStateSystem";
 export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
   public update(world: World<FroggerComponentRegistry>, dt: number): void {
     const config = world.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-    const froggerEntities = world.query("Frogger", "Transform", "GridPosition");
+    const froggerEntities = world.query("Frogger", "Transform");
     if (froggerEntities.length === 0) return;
 
     const froggerEntity = froggerEntities[0];
     const froggerRead = world.getComponent(froggerEntity, "Frogger");
     const transformRead = world.getComponent(froggerEntity, "Transform");
-    const gridPosRead = world.getComponent(froggerEntity, "GridPosition");
 
-    if (!froggerRead || !transformRead || !gridPosRead || !froggerRead.isAlive) return;
+    if (!froggerRead || !transformRead || !froggerRead.isAlive) return;
 
     // Check invulnerability helper
     const isInvulnerable = isEntityInvulnerable(world, froggerEntity);
 
     // Check if Frogger is in the river area (rows 1 to 5)
-    const isRiverRow = gridPosRead.row >= 1 && gridPosRead.row <= 5;
+    const isRiverRow = froggerRead.gridY >= 1 && froggerRead.gridY <= 5;
 
     if (!isRiverRow) {
       if (froggerRead.isRiding || froggerRead.logEntity !== undefined) {
@@ -34,8 +33,7 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
 
     const frogger = world.getMutableComponent(froggerEntity, "Frogger");
     const transform = world.getMutableComponent(froggerEntity, "Transform");
-    const gridPos = world.getMutableComponent(froggerEntity, "GridPosition");
-    if (!frogger || !transform || !gridPos) return;
+    if (!frogger || !transform) return;
 
     if (!frogger || !transform || !frogger.isAlive) return;
 
@@ -62,7 +60,7 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
       const logTransform = world.getComponent(e, "Transform");
       const logVel = world.getComponent(e, "Velocity");
 
-      if (log && logTransform && logVel && log.laneY === gridPos.row) {
+      if (log && logTransform && logVel && log.laneY === frogger.gridY) {
         const logWidth = config.GRID_SIZE * log.length;
         const halfWidth = logWidth / 2;
         const left = logTransform.x - halfWidth;
@@ -88,7 +86,7 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
 
       // Carry Frogger along with log's horizontal velocity
       transform.x += ridingLogVx * dt;
-      gridPos.col = Math.max(0, Math.min(config.TOTAL_COLS - 1, Math.floor(transform.x / config.GRID_SIZE)));
+      frogger.gridX = Math.max(0, Math.min(config.TOTAL_COLS - 1, Math.floor(transform.x / config.GRID_SIZE)));
 
       // Offscreen drift check using physical bounds
       if (transform.x + frogRadius < 0 || transform.x - frogRadius > config.SCREEN_WIDTH) {
@@ -108,14 +106,13 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
 
   private triggerDeath(world: World<FroggerComponentRegistry>, froggerEntity: number, reason: "drown" | "drift"): void {
     const frogger = world.getMutableComponent(froggerEntity, "Frogger");
-    const gridPos = world.getComponent(froggerEntity, "GridPosition");
     if (!frogger || !frogger.isAlive) return;
 
     frogger.isAlive = false;
 
     const eventBus = world.getEventBus();
-    if (eventBus && gridPos) {
-      eventBus.emit("frogger:died", { reason, gridX: gridPos.col, gridY: gridPos.row });
+    if (eventBus) {
+      eventBus.emit("frogger:died", { reason, gridX: frogger.gridX, gridY: frogger.gridY });
     }
   }
 }

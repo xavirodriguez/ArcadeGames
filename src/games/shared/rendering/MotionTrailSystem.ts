@@ -1,4 +1,7 @@
 import { COSMIC_ARCADE_PALETTE, hexToRgba } from "./CosmicPalette";
+import { CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint } from "./CircularPositionBuffer";
+
+export { CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };
 
 export interface MotionTrailParams {
   speed: number;

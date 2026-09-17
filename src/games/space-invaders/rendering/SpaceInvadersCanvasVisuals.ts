@@ -5,8 +5,28 @@ import { applyHitFlash, isPlayerShooting, calculatePlayerTilt, calculateThruster
 import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { computeSinePulse } from "./shared/SpaceInvadersPulseUtils";
 import { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles } from "./ExplosionParticlePool";
+import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
 
 export { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles };
+
+const bulletTrailMap = new WeakMap<any, CircularPositionBuffer>();
+
+function getBulletTrailBuffer(render: any): CircularPositionBuffer {
+  let buf = bulletTrailMap.get(render);
+  if (!buf) {
+    buf = new CircularPositionBuffer({
+      capacity: 10,
+      minDistance: 0.5,
+      maxDiscontinuityDistance: 80,
+      startAlpha: 1.0,
+      endAlpha: 0.0,
+      startWidthScale: 1.0,
+      endWidthScale: 0.15
+    });
+    bulletTrailMap.set(render, buf);
+  }
+  return buf;
+}
 
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
   ctx.save();
@@ -422,9 +442,9 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
 };
 
 /**
- * Visuals for bullets.
- * - Player projectiles render as high-energy cyan plasma bolts with trails.
- * - Enemy projectiles render as aggressive crimson glowing plasma capsules with trails.
+ * Visuals for bullets using CircularPositionBuffer for historical motion trails.
+ * - Player projectiles render as high-energy cyan plasma bolts with historical trails.
+ * - Enemy projectiles render as aggressive crimson glowing plasma capsules with historical trails.
  */
 export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -437,16 +457,28 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
     const coreColor = colors.white;
     const proximityFactor = calculateBulletProximity(world, entity, isPlayerBullet);
 
+    const transform = world.getComponent(entity, "Transform");
+    const currentX = transform ? (transform.worldX ?? transform.x) : 0;
+    const currentY = transform ? (transform.worldY ?? transform.y) : 0;
+
+    const trail = getBulletTrailBuffer(render);
+    trail.pushPosition(currentX, currentY, transform?.rotation ?? 0, world.tick);
+
     ctx.save();
 
-    // 1. Draw glowing outer fading capsules as motion trails
-    const baseTrailAlpha = isPlayerBullet ? 0.18 : (0.18 + proximityFactor * 0.22);
-    ctx.globalAlpha = baseTrailAlpha;
-    ctx.fillStyle = glowColor;
-    const trailOffset = isPlayerBullet ? size * 1.5 : -size * (1.5 + proximityFactor * 0.8);
+    // 1. Draw glowing outer fading capsules as historical motion trails from CircularPositionBuffer
+    const points = trail.getPoints();
+    const baseTrailAlpha = isPlayerBullet ? 0.25 : (0.25 + proximityFactor * 0.25);
 
-    for (let i = 1; i <= 3; i++) {
-      ctx.fillRect(-size / 2, -size + (trailOffset * i), size, size * 2);
+    ctx.fillStyle = glowColor;
+    for (let i = 1; i < points.length; i++) {
+      const pt = points[i];
+      const relX = pt.x - currentX;
+      const relY = pt.y - currentY;
+      const pointWidth = size * pt.widthScale;
+
+      ctx.globalAlpha = baseTrailAlpha * pt.alpha;
+      ctx.fillRect(relX - pointWidth / 2, relY - pointWidth, pointWidth, pointWidth * 2);
     }
 
     // 2. Draw outer energetic glowing aura (intensifies near target for enemy bullets)

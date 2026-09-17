@@ -33,6 +33,8 @@ export interface CircularPositionBufferConfig {
   minDistance?: number;
   /** Minimum time interval required between consecutive points in seconds. Default: 0.0 */
   minTimeInterval?: number;
+  /** Maximum distance step allowed before treating as a teleport/re-spawn and clearing the buffer. Default: 100.0 */
+  maxDiscontinuityDistance?: number;
   /** Opacity alpha at the head (newest point). Default: 1.0 */
   startAlpha?: number;
   /** Opacity alpha at the tail (oldest point). Default: 0.0 */
@@ -57,6 +59,8 @@ export class CircularPositionBuffer {
   private minDistance: number;
   private minDistanceSq: number;
   private minTimeInterval: number;
+  private maxDiscontinuityDistance: number;
+  private maxDiscontinuityDistanceSq: number;
   private startAlpha: number;
   private endAlpha: number;
   private startWidthScale: number;
@@ -84,6 +88,8 @@ export class CircularPositionBuffer {
     this.minDistance = config.minDistance ?? 1.0;
     this.minDistanceSq = this.minDistance * this.minDistance;
     this.minTimeInterval = config.minTimeInterval ?? 0.0;
+    this.maxDiscontinuityDistance = config.maxDiscontinuityDistance ?? 100.0;
+    this.maxDiscontinuityDistanceSq = this.maxDiscontinuityDistance * this.maxDiscontinuityDistance;
     this.startAlpha = config.startAlpha ?? 1.0;
     this.endAlpha = config.endAlpha ?? 0.0;
     this.startWidthScale = config.startWidthScale ?? 1.0;
@@ -137,18 +143,23 @@ export class CircularPositionBuffer {
       const distSq = dx * dx + dy * dy + dz * dz;
       const dt = time - lastTime;
 
-      const hasDistanceThreshold = this.minDistanceSq > 0;
-      const hasTimeThreshold = this.minTimeInterval > 0;
+      // Detect object pool recycling or teleport jump
+      if (this.maxDiscontinuityDistanceSq > 0 && distSq > this.maxDiscontinuityDistanceSq) {
+        this.clear();
+      } else {
+        const hasDistanceThreshold = this.minDistanceSq > 0;
+        const hasTimeThreshold = this.minTimeInterval > 0;
 
-      const satisfiesDistance = hasDistanceThreshold ? distSq >= this.minDistanceSq : true;
-      const satisfiesTime = hasTimeThreshold ? dt >= this.minTimeInterval : true;
+        const satisfiesDistance = hasDistanceThreshold ? distSq >= this.minDistanceSq : true;
+        const satisfiesTime = hasTimeThreshold ? dt >= this.minTimeInterval : true;
 
-      if (hasDistanceThreshold && hasTimeThreshold) {
-        if (!satisfiesDistance && !satisfiesTime) return false;
-      } else if (hasDistanceThreshold) {
-        if (!satisfiesDistance) return false;
-      } else if (hasTimeThreshold) {
-        if (!satisfiesTime) return false;
+        if (hasDistanceThreshold && hasTimeThreshold) {
+          if (!satisfiesDistance && !satisfiesTime) return false;
+        } else if (hasDistanceThreshold) {
+          if (!satisfiesDistance) return false;
+        } else if (hasTimeThreshold) {
+          if (!satisfiesTime) return false;
+        }
       }
     }
 

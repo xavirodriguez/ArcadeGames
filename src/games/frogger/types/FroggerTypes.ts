@@ -1,10 +1,9 @@
 import { Component, CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
 import { PowerUpComponent, LootTableComponent } from "@tiny-aster/gameplay-kit";
+import { GridPositionComponent } from "../../shared/grid";
 
 export interface FroggerComponent extends Component {
   type: "Frogger";
-  gridX: number;
-  gridY: number;
   isRiding: boolean;
   logEntity?: number;
   isAlive: boolean;
@@ -64,6 +63,7 @@ export interface FroggerInputComponent extends Component {
 
 export interface FroggerComponentRegistry extends CoreComponentRegistry {
   Frogger: FroggerComponent;
+  GridPosition: GridPositionComponent;
   Vehicle: VehicleComponent;
   Log: LogComponent;
   GoalLilyPad: GoalLilyPadComponent;

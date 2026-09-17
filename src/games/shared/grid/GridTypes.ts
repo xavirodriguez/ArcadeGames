@@ -21,3 +21,9 @@ export interface WorldPosition {
   readonly x: number;
   readonly y: number;
 }
+
+export interface GridPositionComponent {
+  type: "GridPosition";
+  row: number;
+  col: number;
+}

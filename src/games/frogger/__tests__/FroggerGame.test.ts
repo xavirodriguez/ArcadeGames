@@ -27,22 +27,22 @@ describe("FroggerGame Engine & Mechanics", () => {
   it("handles grid jump inputs correctly and enforces discrete hops", () => {
     const world = game.getWorld();
     const froggerEntity = world.query("Frogger")[0];
-    let frogger = world.getComponent(froggerEntity, "Frogger");
-    expect(frogger?.gridY).toBe(13);
+    let gridPos = world.getComponent(froggerEntity, "GridPosition");
+    expect(gridPos?.row).toBe(13);
 
     // Initial press moveUp -> Jump Up once
     game.setInput({ moveUp: true });
     game.update(0.016);
 
-    frogger = world.getComponent(froggerEntity, "Frogger");
-    expect(frogger?.gridY).toBe(12);
+    gridPos = world.getComponent(froggerEntity, "GridPosition");
+    expect(gridPos?.row).toBe(12);
 
     // Holding moveUp across multiple frames should NOT trigger subsequent jumps
     for (let i = 0; i < 20; i++) {
       game.update(0.016);
     }
-    frogger = world.getComponent(froggerEntity, "Frogger");
-    expect(frogger?.gridY).toBe(12);
+    gridPos = world.getComponent(froggerEntity, "GridPosition");
+    expect(gridPos?.row).toBe(12);
 
     // Releasing moveUp and pressing it again triggers second jump
     game.setInput({ moveUp: false });
@@ -50,8 +50,8 @@ describe("FroggerGame Engine & Mechanics", () => {
     game.setInput({ moveUp: true });
     game.update(0.016);
 
-    frogger = world.getComponent(froggerEntity, "Frogger");
-    expect(frogger?.gridY).toBe(11);
+    gridPos = world.getComponent(froggerEntity, "GridPosition");
+    expect(gridPos?.row).toBe(11);
   });
 
   it("persists held key states across ticks without prematurely force-clearing them", () => {
@@ -115,9 +115,11 @@ describe("FroggerGame Engine & Mechanics", () => {
     expect(log2).toBeDefined();
     const logTransform = world.getComponent(log2!, "Transform") as TransformComponent;
 
+    world.mutateComponent(froggerEntity, "GridPosition", (gp) => {
+      gp.row = 2;
+      gp.col = Math.floor(logTransform.x / 40);
+    });
     world.mutateComponent(froggerEntity, "Frogger", (f) => {
-      f.gridY = 2;
-      f.gridX = Math.floor(logTransform.x / 40);
       f.isAlive = true;
     });
     world.mutateComponent(froggerEntity, "Transform", (t: any) => {
@@ -140,8 +142,10 @@ describe("FroggerGame Engine & Mechanics", () => {
     const froggerEntity = world.query("Frogger", "Transform")[0];
 
     // Position Frogger in Row 1 at an x where there is no log/turtle and zero invulnerability
+    world.mutateComponent(froggerEntity, "GridPosition", (gp) => {
+      gp.row = 1;
+    });
     world.mutateComponent(froggerEntity, "Frogger", (f) => {
-      f.gridY = 1;
       f.isAlive = true;
       f.invulnerableRemaining = 0;
     });
@@ -169,8 +173,10 @@ describe("FroggerGame Engine & Mechanics", () => {
     const froggerEntity = world.query("Frogger", "Transform")[0];
 
     // Give 0 invulnerability and trigger death on row 1 (drowning)
+    world.mutateComponent(froggerEntity, "GridPosition", (gp) => {
+      gp.row = 1;
+    });
     world.mutateComponent(froggerEntity, "Frogger", (f) => {
-      f.gridY = 1;
       f.isAlive = true;
       f.invulnerableRemaining = 0;
     });
@@ -190,8 +196,8 @@ describe("FroggerGame Engine & Mechanics", () => {
     expect(frogger?.invulnerableRemaining).toBeGreaterThan(0);
 
     // Place frogger in dangerous road location while invulnerable
-    world.mutateComponent(froggerEntity, "Frogger", (f) => {
-      f.gridY = 7;
+    world.mutateComponent(froggerEntity, "GridPosition", (gp) => {
+      gp.row = 7;
     });
 
     game.update(0.1); // Update while invulnerable
@@ -208,8 +214,10 @@ describe("FroggerGame Engine & Mechanics", () => {
     const pad0Transform = world.getComponent(padEntities[0], "Transform") as TransformComponent;
 
     // Position slightly offset from pad center within catch threshold (threshold = 40 * 0.88 = 35.2)
+    world.mutateComponent(froggerEntity, "GridPosition", (gp) => {
+      gp.row = 0;
+    });
     world.mutateComponent(froggerEntity, "Frogger", (f) => {
-      f.gridY = 0;
       f.isAlive = true;
       f.invulnerableRemaining = 0;
     });
@@ -235,8 +243,10 @@ describe("FroggerGame Engine & Mechanics", () => {
     const padEntities = world.query("GoalLilyPad", "Transform");
     const pad0Transform = world.getComponent(padEntities[0], "Transform") as TransformComponent;
 
+    world.mutateComponent(froggerEntity, "GridPosition", (gp) => {
+      gp.row = 0;
+    });
     world.mutateComponent(froggerEntity, "Frogger", (f) => {
-      f.gridY = 0;
       f.isAlive = true;
     });
     world.mutateComponent(froggerEntity, "Transform", (t: any) => {
@@ -251,8 +261,8 @@ describe("FroggerGame Engine & Mechanics", () => {
     expect(state.score).toBeGreaterThanOrEqual(500);
 
     // Frogger should reset position to start
-    const frogger = world.getComponent(froggerEntity, "Frogger");
-    expect(frogger?.gridY).toBe(13);
+    const gridPos = world.getComponent(froggerEntity, "GridPosition");
+    expect(gridPos?.row).toBe(13);
   });
 
   it("applies fast_traffic mutators correctly", async () => {

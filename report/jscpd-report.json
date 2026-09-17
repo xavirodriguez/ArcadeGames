@@ -2148,11 +2148,11 @@
     },
     {
       "firstFile": {
-        "end": 468,
+        "end": 464,
         "endLoc": {
-          "column": 7,
-          "line": 468,
-          "position": 16811
+          "column": 17,
+          "line": 464,
+          "position": 16726
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 454,
@@ -2163,25 +2163,25 @@
         }
       },
       "format": "typescript",
-      "fragment": "    const cameraEntity = this.world.createEntity();\n    this.world.addComponent(cameraEntity, {\n      type: \"Camera2D\",\n      zoom: 1.0,\n      x: 0,\n      y: 0,\n      targetX: 0,\n      targetY: 0,\n      isMain: true,\n      followEntity: playerEntity,\n      lookAheadX: 80,\n      smoothingX: 6.0,\n      smoothingY: 6.0,\n      verticalDeadzone: 45\n    });",
+      "fragment": "    const cameraEntity = this.world.createEntity();\n    this.world.addComponent(cameraEntity, {\n      type: \"Camera2D\",\n      zoom: 1.0,\n      x: 0,\n      y: 0,\n      targetX: 0,\n      targetY: 0,\n      isMain: true,\n      followEntity: playerEntity,\n      lookAheadX: 80,",
       "isNew": false,
-      "lines": 15,
+      "lines": 11,
       "secondFile": {
-        "end": 428,
+        "end": 436,
         "endLoc": {
-          "column": 7,
-          "line": 428,
-          "position": 15719
+          "column": 17,
+          "line": 436,
+          "position": 16046
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 414,
+        "start": 426,
         "startLoc": {
           "column": 4,
-          "line": 414,
-          "position": 15370
+          "line": 426,
+          "position": 15782
         }
       },
-      "tokens": 70
+      "tokens": 54
     },
     {
       "firstFile": {

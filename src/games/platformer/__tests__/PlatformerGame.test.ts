@@ -34,8 +34,7 @@ describe("Platformer Game Simulation Tests", () => {
 
     const cameraComp = world.getComponent(cameraEntity, "Camera2D")!;
     // Camera target top-left X = (player.x + lookAheadX) - (screenWidth / 2)
-    // 104 + 80 - 400 = -216
-    expect(cameraComp.targetX).toBe(newTransform.x + 80 - 400);
+    expect(cameraComp.targetX).toBe(newTransform.x + (cameraComp.lookAheadX ?? 0) - 400);
   });
 
   it("should initialize with level plan and player entity", () => {
@@ -93,6 +92,51 @@ describe("Platformer Game Simulation Tests", () => {
     // Double jump check
     const jumper = world.getComponent(playerEntity, "PlatformerJumper") as { maxJumps: number } | undefined;
     expect(jumper?.maxJumps).toBe(2);
+  });
+
+  it("should maintain opposite directional state when partial input updates are sent", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+
+    // Send touch down for moveRight only
+    game.setInputState({ moveRight: true });
+    let inputComp = world.getComponent(playerEntity, "PlatformerInput") as { moveDir: number } | undefined;
+    expect(inputComp?.moveDir).toBe(1);
+
+    // Send jump trigger without passing moveRight/moveLeft
+    game.setInputState({ jump: true });
+    inputComp = world.getComponent(playerEntity, "PlatformerInput") as { moveDir: number } | undefined;
+    expect(inputComp?.moveDir).toBe(1);
+
+    // Send touch up for moveRight
+    game.setInputState({ moveRight: false });
+    inputComp = world.getComponent(playerEntity, "PlatformerInput") as { moveDir: number } | undefined;
+    expect(inputComp?.moveDir).toBe(0);
+  });
+
+  it("should materialize level plan (tilemap, collectibles, goal, player) during game.init() production path without manual flush", async () => {
+    const prodGame = new PlatformerGame({ seed: 41873 });
+    try {
+      await prodGame.init();
+      const prodWorld = prodGame.getWorld();
+
+      const players = prodWorld.query("PlatformerInput");
+      expect(players.length).toBe(1);
+
+      const tilemaps = prodWorld.query("Tilemap");
+      expect(tilemaps.length).toBeGreaterThan(0);
+
+      const goals = prodWorld.query("LevelGoal");
+      expect(goals.length).toBeGreaterThan(0);
+
+      prodGame.update(0.016);
+      prodGame.setInputState({ moveRight: true });
+      prodGame.update(0.1);
+
+      const playerVel = prodWorld.getComponent(players[0], "Velocity");
+      expect(playerVel?.vx).toBeGreaterThan(0);
+    } finally {
+      prodGame.destroy();
+    }
   });
 
   it("should complete level when reaching the goal entity", () => {

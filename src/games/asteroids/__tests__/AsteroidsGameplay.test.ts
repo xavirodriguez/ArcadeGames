@@ -480,6 +480,34 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
   });
 
   describe("Asteroids Redesigned Hyperspace Logic", () => {
+    it("should maintain a single preview singularity entity ID across charging frames (AST-007)", () => {
+      const ship = createShip({ world, x: 100, y: 100 });
+      world.addComponent(ship, { type: "LocalPlayer" });
+      world.addComponent(ship, {
+        type: "Input",
+        actions: { hyperspace: true },
+        axes: {}
+      });
+      createAsteroid({ world, x: 700, y: 700, size: "large" });
+      world.flush();
+
+      // Frame 1: start prep
+      world.update(0.016);
+      world.flush();
+
+      const shipComp1 = world.getComponent(ship, "Ship");
+      const initialPreviewId = shipComp1.hyperspacePreviewEntityId;
+      expect(initialPreviewId).toBeDefined();
+
+      // Run 10 subsequent frames during prep
+      for (let i = 0; i < 10; i++) {
+        world.update(0.016);
+        world.flush();
+        const currentShipComp = world.getComponent(ship, "Ship");
+        expect(currentShipComp?.hyperspacePreviewEntityId).toBe(initialPreviewId);
+      }
+    });
+
     it("should charge hyperspace while holding key and render a transient preview singularity", () => {
       const ship = createShip({ world, x: 100, y: 100 });
       world.addComponent(ship, { type: "LocalPlayer" });

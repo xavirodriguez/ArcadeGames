@@ -44,22 +44,24 @@ export class BossSystem extends GameSystem {
     this.getGameConfig(world);
 
     const bosses = world.query("Boss", "Transform", "Render");
-    bosses.forEach(entity => {
+    const len = bosses.length;
+    for (let i = 0; i < len; i++) {
+      const entity = bosses[i];
       const boss = world.getComponent(entity, "Boss")!;
       const pos = world.getComponent(entity, "Transform")!;
 
       world.mutateComponent(entity, "Boss", b => {
-          b.timer += deltaTime;
+        b.timer += deltaTime;
 
-          if (b.furyDuration && b.furyDuration > 0) {
-            b.furyDuration = PhysicsUtils.tickTimer(b.furyDuration, deltaTime);
-            if (b.furyDuration <= 0) {
-              b.fury = Math.max(0, (b.fury ?? 0) - 20);
-              if ((b.fury ?? 0) > 0) {
-                b.furyDuration = 1.0;
-              }
+        if (b.furyDuration && b.furyDuration > 0) {
+          b.furyDuration = PhysicsUtils.tickTimer(b.furyDuration, deltaTime);
+          if (b.furyDuration <= 0) {
+            b.fury = Math.max(0, (b.fury ?? 0) - 20);
+            if ((b.fury ?? 0) > 0) {
+              b.furyDuration = 1.0;
             }
           }
+        }
       });
 
       const isFurious = (boss.fury ?? 0) > 50;
@@ -67,70 +69,70 @@ export class BossSystem extends GameSystem {
 
       // Side to side movement (with furious multiplier)
       world.mutateComponent(entity, "Transform", p => {
-          p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer / 1000) * 200 * speedMultiplier;
-          p.dirty = true;
+        p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer / 1000) * 200 * speedMultiplier;
+        p.dirty = true;
       });
 
       // Phase changes
       world.mutateComponent(entity, "Boss", b => {
-          const hpPercent = b.hp / b.maxHp;
-          const oldPhase = b.phase;
-          if (hpPercent < 0.33) b.phase = 3;
-          else if (hpPercent < 0.66) b.phase = 2;
-          else b.phase = 1;
+        const hpPercent = b.hp / b.maxHp;
+        const oldPhase = b.phase;
+        if (hpPercent < 0.33) b.phase = 3;
+        else if (hpPercent < 0.66) b.phase = 2;
+        else b.phase = 1;
 
-          if (oldPhase !== b.phase) {
-            const bus = world.getEventBus();
-            if (bus) {
-              bus.emitDeferred("boss:phase_changed" as any, { entity, phase: b.phase, oldPhase });
-            }
+        if (oldPhase !== b.phase) {
+          const bus = world.getEventBus();
+          if (bus) {
+            bus.emitDeferred("boss:phase_changed" as any, { entity, phase: b.phase, oldPhase });
           }
+        }
       });
 
       // Counter firing reactive to shield destruction
       if (boss.counterFirePending) {
-         createEmitter(world, {
-            type: "shoot",
-            x: pos.x,
-            y: pos.y + 40,
-            rate: 0,
-            burst: true,
-            count: 15,
-            color: ["#FF0000", "#FF00FF"],
-            size: [4, 8],
-            speed: [150, 250],
-            angle: [160, 200],
-            lifetime: [1.0, 1.5],
-            loop: false
-         });
-         world.mutateComponent(entity, "Boss", b => {
-            b.counterFirePending = false;
-         });
+        createEmitter(world, {
+          type: "shoot",
+          x: pos.x,
+          y: pos.y + 40,
+          rate: 0,
+          burst: true,
+          count: 15,
+          color: ["#FF0000", "#FF00FF"],
+          size: [4, 8],
+          speed: [150, 250],
+          angle: [160, 200],
+          lifetime: [1.0, 1.5],
+          loop: false
+        });
+        world.mutateComponent(entity, "Boss", b => {
+          b.counterFirePending = false;
+        });
       }
 
       // Shooting patterns
       if (Math.floor(boss.timer / 1000) % 2 === 0 && Math.floor((boss.timer - deltaTime) / 1000) % 2 !== 0) {
-         // Burst effect when "shooting"
-         createEmitter(world, {
-            type: "shoot",
-            x: pos.x,
-            y: pos.y + 40,
-            rate: 0,
-            burst: true,
-            count: isFurious ? 20 : 10,
-            color: ["#FF00FF", "#00FFFF"],
-            size: [3, 6],
-            speed: [100, 200],
-            angle: [0, 360],
-            lifetime: [0.5, 1.0],
-            loop: false
-         });
+        // Burst effect when "shooting"
+        createEmitter(world, {
+          type: "shoot",
+          x: pos.x,
+          y: pos.y + 40,
+          rate: 0,
+          burst: true,
+          count: isFurious ? 20 : 10,
+          color: ["#FF00FF", "#00FFFF"],
+          size: [3, 6],
+          speed: [100, 200],
+          angle: [0, 360],
+          lifetime: [0.5, 1.0],
+          loop: false
+        });
       }
 
       if (boss.hp <= 0) {
         this.destroyBoss(world, entity);
       }
-    });
+    }
 
   }
 

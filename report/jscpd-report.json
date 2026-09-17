@@ -465,18 +465,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 184,
+        "end": 187,
         "endLoc": {
           "column": 9,
-          "line": 184,
-          "position": 7681
+          "line": 187,
+          "position": 7865
         },
         "name": "asteroids/AsteroidsGame.ts",
-        "start": 180,
+        "start": 183,
         "startLoc": {
           "column": 89,
-          "line": 180,
-          "position": 7420
+          "line": 183,
+          "position": 7604
         }
       },
       "tokens": 65
@@ -1131,18 +1131,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 62,
+        "end": 63,
         "endLoc": {
           "column": 35,
-          "line": 62,
-          "position": 2882
+          "line": 63,
+          "position": 2947
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 51,
+        "start": 52,
         "startLoc": {
           "column": 4,
-          "line": 51,
-          "position": 2574
+          "line": 52,
+          "position": 2639
         }
       },
       "tokens": 73
@@ -1297,18 +1297,18 @@
     },
     {
       "firstFile": {
-        "end": 203,
+        "end": 206,
         "endLoc": {
           "column": 43,
-          "line": 203,
-          "position": 8894
+          "line": 206,
+          "position": 9078
         },
         "name": "asteroids/AsteroidsGame.ts",
-        "start": 198,
+        "start": 201,
         "startLoc": {
           "column": 43,
-          "line": 198,
-          "position": 8669
+          "line": 201,
+          "position": 8853
         }
       },
       "format": "typescript",
@@ -1334,18 +1334,18 @@
     },
     {
       "firstFile": {
-        "end": 215,
+        "end": 218,
         "endLoc": {
           "column": 7,
-          "line": 215,
-          "position": 9257
+          "line": 218,
+          "position": 9441
         },
         "name": "asteroids/AsteroidsGame.ts",
-        "start": 205,
+        "start": 208,
         "startLoc": {
           "column": 48,
-          "line": 205,
-          "position": 8974
+          "line": 208,
+          "position": 9158
         }
       },
       "format": "typescript",
@@ -1412,14 +1412,14 @@
         "endLoc": {
           "column": 115,
           "line": 126,
-          "position": 4633
+          "position": 4647
         },
         "name": "asteroids/EntityFactory.ts",
         "start": 121,
         "startLoc": {
           "column": 45,
           "line": 121,
-          "position": 4469
+          "position": 4483
         }
       },
       "format": "typescript",
@@ -1449,14 +1449,14 @@
         "endLoc": {
           "column": 13,
           "line": 225,
-          "position": 8133
+          "position": 8147
         },
         "name": "asteroids/EntityFactory.ts",
         "start": 216,
         "startLoc": {
           "column": 8,
           "line": 216,
-          "position": 7842
+          "position": 7856
         }
       },
       "format": "typescript",
@@ -1468,14 +1468,14 @@
         "endLoc": {
           "column": 13,
           "line": 319,
-          "position": 11193
+          "position": 11207
         },
         "name": "asteroids/EntityFactory.ts",
         "start": 310,
         "startLoc": {
           "column": 8,
           "line": 310,
-          "position": 10902
+          "position": 10916
         }
       },
       "tokens": 51
@@ -1775,43 +1775,6 @@
         }
       },
       "tokens": 209
-    },
-    {
-      "firstFile": {
-        "end": 111,
-        "endLoc": {
-          "column": 26,
-          "line": 111,
-          "position": 4730
-        },
-        "name": "asteroids/systems/AsteroidCollisionSystem.ts",
-        "start": 103,
-        "startLoc": {
-          "column": 4,
-          "line": 103,
-          "position": 4451
-        }
-      },
-      "format": "typescript",
-      "fragment": "    let nextCombo = 0;\n    let nextMultiplier = 1;\n\n    const comboEntities = world.query(\"Combo\");\n    const comboEntity = comboEntities[0];\n    if (comboEntity !== undefined) {\n      world.mutateComponent(comboEntity, \"Combo\", (c) => {\n        c.combo++;\n        c.timerRemaining = (config.COMBO_TIMEOUT ?? 2000) / 1000;",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 204,
-        "endLoc": {
-          "column": 30,
-          "line": 204,
-          "position": 7913
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 196,
-        "startLoc": {
-          "column": 8,
-          "line": 196,
-          "position": 7606
-        }
-      },
-      "tokens": 57
     },
     {
       "firstFile": {
@@ -3647,18 +3610,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 545,
+        "end": 575,
         "endLoc": {
           "column": 83,
-          "line": 545,
-          "position": 20540
+          "line": 575,
+          "position": 21735
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 539,
+        "start": 569,
         "startLoc": {
           "column": 47,
-          "line": 539,
-          "position": 20340
+          "line": 569,
+          "position": 21535
         }
       },
       "tokens": 51
@@ -4794,18 +4757,18 @@
       "isNew": false,
       "lines": 19,
       "secondFile": {
-        "end": 145,
+        "end": 152,
         "endLoc": {
           "column": 9,
-          "line": 145,
-          "position": 4242
+          "line": 152,
+          "position": 4470
         },
         "name": "space-invaders/story/InvasionEncounter.ts",
-        "start": 127,
+        "start": 134,
         "startLoc": {
-          "column": 43,
-          "line": 127,
-          "position": 3767
+          "column": 44,
+          "line": 134,
+          "position": 3995
         }
       },
       "tokens": 110
@@ -6292,18 +6255,18 @@
     },
     {
       "firstFile": {
-        "end": 519,
+        "end": 549,
         "endLoc": {
           "column": 3,
-          "line": 519,
-          "position": 19599
+          "line": 549,
+          "position": 20794
         },
         "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 503,
+        "start": 533,
         "startLoc": {
           "column": 89,
-          "line": 503,
-          "position": 18997
+          "line": 533,
+          "position": 20192
         }
       },
       "format": "typescript",
@@ -6329,32 +6292,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-17T17:01:22.248Z",
+    "detectionDate": "2026-09-17T20:59:21.252Z",
     "formats": {
       "typescript": {
-        "clones": 171,
-        "duplicatedLines": 1679,
-        "duplicatedTokens": 13371,
-        "lines": 66380,
+        "clones": 170,
+        "duplicatedLines": 1671,
+        "duplicatedTokens": 13314,
+        "lines": 66687,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.529376318168123,
-        "percentageTokens": 3.842903948956717,
-        "sources": 396,
-        "tokens": 347940
+        "percentage": 2.505735750596068,
+        "percentageTokens": 3.8046848432717892,
+        "sources": 397,
+        "tokens": 349937
       }
     },
     "total": {
-      "clones": 171,
-      "duplicatedLines": 1679,
-      "duplicatedTokens": 13371,
-      "lines": 66380,
+      "clones": 170,
+      "duplicatedLines": 1671,
+      "duplicatedTokens": 13314,
+      "lines": 66687,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.529376318168123,
-      "percentageTokens": 3.842903948956717,
-      "sources": 396,
-      "tokens": 347940
+      "percentage": 2.505735750596068,
+      "percentageTokens": 3.8046848432717892,
+      "sources": 397,
+      "tokens": 349937
     }
   }
 }

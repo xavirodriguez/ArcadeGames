@@ -6,6 +6,7 @@ import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
 import { colors } from "../../../theme/colors";
+import { applyComboKill } from "../../shared/arcade/ComboUtils";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -106,13 +107,12 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     const comboEntities = world.query("Combo");
     const comboEntity = comboEntities[0];
     if (comboEntity !== undefined) {
-      world.mutateComponent(comboEntity, "Combo", (c) => {
-        c.combo++;
-        c.timerRemaining = (config.COMBO_TIMEOUT ?? 2000) / 1000;
-        c.multiplier = Math.min(config.MAX_MULTIPLIER ?? 10, 1 + Math.floor(c.combo / 5));
-        nextCombo = c.combo;
-        nextMultiplier = c.multiplier;
+      const comboResult = applyComboKill(world, comboEntity, {
+        COMBO_TIMEOUT: config.COMBO_TIMEOUT ?? 2000,
+        MAX_MULTIPLIER: config.MAX_MULTIPLIER ?? 10
       });
+      nextCombo = comboResult.nextCombo;
+      nextMultiplier = comboResult.nextMultiplier;
     }
 
     const scoreGain = points * nextMultiplier;

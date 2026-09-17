@@ -118,13 +118,20 @@ export class SpaceInvadersArcadeAdapter extends BaseMiniGameEncounter<SpaceInvad
     const game = new SpaceInvadersGame({ seed: context.seed });
     this.game = game;
 
+    interface SpaceInvadersStoryModifiers {
+      extraLives?: number;
+      fireRateMultiplier?: number;
+      enemySpeedMultiplier?: number;
+    }
+    const storyModifiers = game as unknown as SpaceInvadersStoryModifiers;
+
     for (const modifier of context.modifiers) {
       if (modifier.targetProperty === "extraLives" && typeof modifier.value === "number") {
-        (game as any).extraLives = modifier.value;
+        storyModifiers.extraLives = modifier.value;
       } else if (modifier.targetProperty === "fireRateMultiplier" && typeof modifier.value === "number") {
-        (game as any).fireRateMultiplier = modifier.value;
+        storyModifiers.fireRateMultiplier = modifier.value;
       } else if (modifier.targetProperty === "enemySpeedMultiplier" && typeof modifier.value === "number") {
-        (game as any).enemySpeedMultiplier = modifier.value;
+        storyModifiers.enemySpeedMultiplier = modifier.value;
       }
     }
 

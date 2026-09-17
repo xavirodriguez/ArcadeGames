@@ -9,10 +9,10 @@ import { MutatorRegistry } from "../../../utils/MutatorRegistry";
 export class WaveTransitionSystem extends System<SpaceInvadersComponentRegistry> {
   public update(world: World<SpaceInvadersComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
-    const gs = world.getSingleton("GameState") as any;
+    const gs = world.getSingleton("GameState");
     if (!gs || gs.phase !== "WAVE_TRANSITION") return;
 
-    world.mutateSingleton("GameState", (state: any) => {
+    world.mutateSingleton("GameState", (state) => {
       const remaining = typeof state.waveTransitionRemaining === "number" ? state.waveTransitionRemaining : 0.8;
       const nextRemaining = Math.max(0, remaining - deltaTime);
       state.waveTransitionRemaining = nextRemaining;

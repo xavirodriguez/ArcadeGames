@@ -180,8 +180,8 @@ export interface FormationComponent extends Component {
   stepDownPending: boolean;
   speed: number;
   descentStep: number;
-  leftBound: number;
-  rightBound: number;
+  leftBound?: number;
+  rightBound?: number;
   fireCooldownRemaining: number;
   totalInvaders: number;
   stunnedRemaining?: number;
@@ -205,6 +205,10 @@ export interface GameStateComponent extends Component {
   intermissionRemaining: number;
   continueCountdownRemaining: number;
   continuesRemaining: number;
+  /** Current active gameplay or transition phase. */
+  phase?: "PLAYING" | "WAVE_TRANSITION" | "MUTATOR_DRAFT" | "GAME_OVER";
+  /** Remaining duration for wave transition intermission in seconds. */
+  waveTransitionRemaining?: number;
   /** Populated dynamically in getGameState() for backward compatibility. */
   combo?: number;
   /** Populated dynamically in getGameState() for backward compatibility. */

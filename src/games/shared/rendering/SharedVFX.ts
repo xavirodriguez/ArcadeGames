@@ -6,7 +6,7 @@ import { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow,
 import { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate } from "./ParallaxSystem";
 import { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState } from "./ExplosionSystem";
 import { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme } from "./CelestialBodiesSystem";
-import { MotionTrailParams, computeTrailParameters, getThrusterFlameColors } from "./MotionTrailSystem";
+import { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint } from "./MotionTrailSystem";
 import { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme } from "./LevelThemeSystem";
 
 export { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor };
@@ -14,7 +14,7 @@ export { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow,
 export { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate };
 export { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState };
 export { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };
-export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors };
+export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };
 export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
 
 /**

@@ -8,6 +8,26 @@ import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
 import { EXPLOSION_PARTICLE_POOL, updateExplosionParticles } from "./ExplosionParticlePool";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
+
+const bulletSkiaTrailMap = new WeakMap<any, CircularPositionBuffer>();
+
+function getBulletSkiaTrailBuffer(render: any): CircularPositionBuffer {
+  let buf = bulletSkiaTrailMap.get(render);
+  if (!buf) {
+    buf = new CircularPositionBuffer({
+      capacity: 10,
+      minDistance: 0.5,
+      maxDiscontinuityDistance: 80,
+      startAlpha: 1.0,
+      endAlpha: 0.0,
+      startWidthScale: 1.0,
+      endWidthScale: 0.15
+    });
+    bulletSkiaTrailMap.set(render, buf);
+  }
+  return buf;
+}
 
 export function drawExplosionParticlesSkia(canvas: any): void {
   if (!Skia) return;
@@ -423,20 +443,32 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
     const coreColor = colors.white;
     const proximityFactor = calculateBulletProximity(world, entity, isPlayerBullet);
 
+    const transform = world.getComponent(entity, "Transform");
+    const currentX = transform ? (transform.worldX ?? transform.x) : 0;
+    const currentY = transform ? (transform.worldY ?? transform.y) : 0;
+
+    const trail = getBulletSkiaTrailBuffer(render);
+    trail.pushPosition(currentX, currentY, transform?.rotation ?? 0, world.tick);
+
     canvas.save();
 
     const paint = getPaint();
     paint.reset();
     paint.setStyle(Skia!.PaintStyle.Fill);
 
-    // 1. Draw glowing outer fading capsules as motion trails
-    paint.setColor(Skia!.Color(glowColor));
-    const baseTrailAlpha = isPlayerBullet ? 0.18 : (0.18 + proximityFactor * 0.22);
-    paint.setAlphaf(baseTrailAlpha);
-    const trailOffset = isPlayerBullet ? size * 1.5 : -size * (1.5 + proximityFactor * 0.8);
+    // 1. Draw glowing outer fading capsules as historical motion trails from CircularPositionBuffer
+    const points = trail.getPoints();
+    const baseTrailAlpha = isPlayerBullet ? 0.25 : (0.25 + proximityFactor * 0.25);
 
-    for (let i = 1; i <= 3; i++) {
-      canvas.drawRect(Skia!.XYWHRect(-size / 2, -size + (trailOffset * i), size, size * 2), paint);
+    paint.setColor(Skia!.Color(glowColor));
+    for (let i = 1; i < points.length; i++) {
+      const pt = points[i];
+      const relX = pt.x - currentX;
+      const relY = pt.y - currentY;
+      const pointWidth = size * pt.widthScale;
+
+      paint.setAlphaf(baseTrailAlpha * pt.alpha);
+      canvas.drawRect(Skia!.XYWHRect(relX - pointWidth / 2, relY - pointWidth, pointWidth, pointWidth * 2), paint);
     }
 
     // 2. Draw outer energetic glowing aura

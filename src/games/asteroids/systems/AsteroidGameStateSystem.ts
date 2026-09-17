@@ -29,71 +29,92 @@ export class AsteroidGameStateSystem extends BaseGameStateSystem<
   ): void {
       if (gameState.isGameOver) return;
 
-      const isStory = gameState.mode === "story";
+      if (this.tickReadyCountdown(world, gameState, deltaTime)) return;
+      if (this.tickIntermission(world, gameState, deltaTime)) return;
 
-      // 1. Handle ready countdown
-      if (gameState.readyRemaining !== undefined && gameState.readyRemaining > 0) {
-          world.mutateSingleton("GameState", (gs) => {
-              gs.readyRemaining = Math.max(0, (gs.readyRemaining ?? 0) - deltaTime);
-              const beat = getStoryBeatForLevel(gs.level);
-              gs.storyBeatText = beat.readyText;
-          });
-          return; // Pause other gameplay logic
+      this.checkWaveCleared(world, gameState);
+  }
+
+  private tickReadyCountdown(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    gameState: GameStateComponent,
+    deltaTime: number
+  ): boolean {
+    if (gameState.readyRemaining !== undefined && gameState.readyRemaining > 0) {
+      world.mutateSingleton("GameState", (gs) => {
+        gs.readyRemaining = Math.max(0, (gs.readyRemaining ?? 0) - deltaTime);
+        const beat = getStoryBeatForLevel(gs.level);
+        gs.storyBeatText = beat.readyText;
+      });
+      return true;
+    }
+    return false;
+  }
+
+  private tickIntermission(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    gameState: GameStateComponent,
+    deltaTime: number
+  ): boolean {
+    if (gameState.intermissionRemaining !== undefined && gameState.intermissionRemaining > 0) {
+      let finishedIntermission = false;
+      let nextLevel = gameState.level;
+
+      world.mutateSingleton("GameState", (gs) => {
+        const prevVal = gs.intermissionRemaining ?? 0;
+        const nextVal = Math.max(0, prevVal - deltaTime);
+        gs.intermissionRemaining = nextVal;
+
+        // Populate transition texts
+        const nextBeat = getStoryBeatForLevel(gs.level);
+        gs.chapterTitle = nextBeat.intermissionTitle;
+        gs.storyBeatText = nextBeat.intermissionSub;
+
+        if (prevVal > 0 && nextVal <= 0) {
+          gs.level++;
+          nextLevel = gs.level;
+          finishedIntermission = true;
+          gs.readyRemaining = 3.0; // Trigger a ready countdown at the start of the next level too!
+          const newBeat = getStoryBeatForLevel(gs.level);
+          gs.storyBeatText = newBeat.readyText;
+        }
+      });
+
+      if (finishedIntermission) {
+        spawnAsteroidWave(world, nextLevel);
       }
+      return true;
+    }
+    return false;
+  }
 
-      // 2. Handle intermission countdown
-      if (gameState.intermissionRemaining !== undefined && gameState.intermissionRemaining > 0) {
-          let finishedIntermission = false;
-          let nextLevel = gameState.level;
+  private checkWaveCleared(
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    gameState: GameStateComponent
+  ): void {
+    const isStory = gameState.mode === "story";
+    const asteroids = world.query("Asteroid");
 
-          world.mutateSingleton("GameState", (gs) => {
-              const prevVal = gs.intermissionRemaining ?? 0;
-              const nextVal = Math.max(0, prevVal - deltaTime);
-              gs.intermissionRemaining = nextVal;
+    if (asteroids.length === 0) {
+      if (isStory) {
+        // Trigger intermission and chapter transitions
+        world.mutateSingleton("GameState", (gs) => {
+          gs.intermissionRemaining = 3.0;
+          const nextBeat = getStoryBeatForLevel(gs.level);
+          gs.chapterTitle = nextBeat.intermissionTitle;
+          gs.storyBeatText = nextBeat.intermissionSub;
+        });
+      } else {
+        // Deathmatch mode: immediately increment level and spawn next wave
+        let nextLevel = gameState.level;
+        world.mutateSingleton("GameState", (gs) => {
+          gs.level++;
+          nextLevel = gs.level;
+        });
 
-              // Populate transition texts
-              const nextBeat = getStoryBeatForLevel(gs.level);
-              gs.chapterTitle = nextBeat.intermissionTitle;
-              gs.storyBeatText = nextBeat.intermissionSub;
-
-              if (prevVal > 0 && nextVal <= 0) {
-                  gs.level++;
-                  nextLevel = gs.level;
-                  finishedIntermission = true;
-                  gs.readyRemaining = 3.0; // Trigger a ready countdown at the start of the next level too!
-                  const newBeat = getStoryBeatForLevel(gs.level);
-                  gs.storyBeatText = newBeat.readyText;
-              }
-          });
-
-          if (finishedIntermission) {
-              spawnAsteroidWave(world, nextLevel);
-          }
-          return; // Pause other gameplay logic
+        spawnAsteroidWave(world, nextLevel);
       }
-
-      // Check if all asteroids are destroyed
-      const asteroids = world.query("Asteroid");
-      if (asteroids.length === 0) {
-          if (isStory) {
-              // Trigger intermission and chapter transitions
-              world.mutateSingleton("GameState", (gs) => {
-                  gs.intermissionRemaining = 3.0;
-                  const nextBeat = getStoryBeatForLevel(gs.level);
-                  gs.chapterTitle = nextBeat.intermissionTitle;
-                  gs.storyBeatText = nextBeat.intermissionSub;
-              });
-          } else {
-              // Deathmatch mode: immediately increment level and spawn next wave
-              let nextLevel = gameState.level;
-              world.mutateSingleton("GameState", (gs) => {
-                  gs.level++;
-                  nextLevel = gs.level;
-              });
-
-              spawnAsteroidWave(world, nextLevel);
-          }
-      }
+    }
   }
 
   protected evaluateGameOverCondition(gameState: GameStateComponent): boolean {

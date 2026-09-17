@@ -438,6 +438,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       smoothingY: 3.5,
       verticalDeadzone: 45
     });
+
     this.world.flush();
   }
 

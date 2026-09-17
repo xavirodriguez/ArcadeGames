@@ -66,7 +66,7 @@ import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { INITIAL_GAME_STATE } from "./types/AsteroidTypes";
 import { createShip, createPowerUp, spawnAsteroidWave, registerAsteroidsBlueprints } from "./EntityFactory";
 import type { IAsteroidsGame } from "./types/GameInterfaces";
-import { BulletPool, ParticlePool } from "./EntityPool";
+import { BulletPool, ParticlePool, AsteroidPool } from "./EntityPool";
 import { initializeAsteroidsRenderer } from "./rendering/AsteroidsRendererManager";
 import { AsteroidConfigSchema, AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { GameStateComponent, InputState } from "./types/AsteroidTypes";
@@ -92,6 +92,7 @@ export class AsteroidsGame
   private assetLoader!: AssetLoader;
   private bulletPool!: BulletPool;
   private particlePool!: ParticlePool;
+  private asteroidPool!: AsteroidPool;
   private network!: NetworkController<AsteroidsComponentRegistry>;
   public readonly gameId = "asteroids";
   private baseConfig: AsteroidConfig;
@@ -140,6 +141,7 @@ export class AsteroidsGame
 
     if (!this.bulletPool) this.bulletPool = new BulletPool();
     if (!this.particlePool) this.particlePool = new ParticlePool();
+    if (!this.asteroidPool) this.asteroidPool = new AsteroidPool();
     if (!this.assetLoader) {
       const provider = this._config.assetProvider || (typeof window !== "undefined" ? new WebAssetProvider() : undefined);
       this.assetLoader = new AssetLoader(provider);
@@ -166,6 +168,7 @@ export class AsteroidsGame
 
     this.world.setResource("BulletPool", this.bulletPool);
     this.world.setResource("ParticlePool", this.particlePool);
+    this.world.setResource("AsteroidPool", this.asteroidPool);
     this.world.setResource("AssetLoader", this.assetLoader);
 
     this.gameStateSystem = new AsteroidGameStateSystem(this);
@@ -531,6 +534,7 @@ export class AsteroidsGame
     super.destroy();
     this.bulletPool?.clear();
     this.particlePool?.clear();
+    this.asteroidPool?.clear();
   }
 
 }

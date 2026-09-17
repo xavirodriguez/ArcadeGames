@@ -957,6 +957,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Hurtbox: HurtboxComponent;
     InputState: InputStateComponent;
     Invulnerable: InvulnerableComponent;
+    Joint: JointComponent;
     Juice: JuiceComponent;
     KineticAccumulator: KineticAccumulatorComponent;
     MovingPlatform: MovingPlatformComponent;
@@ -972,6 +973,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Render: RenderComponent;
     Respawnable: RespawnableComponent;
     RespawnPoint: RespawnPointComponent;
+    RigidBody: RigidBodyComponent;
     ScreenShake: ScreenShakeComponent;
     SpatialNode: SpatialNodeComponent;
     Sprite: SpriteComponent;
@@ -1204,6 +1206,15 @@ export function createDeferredEntity<TComponents extends ComponentRegistry = Com
 };
 
 // @public
+export function createDistanceJoint(entityA: Entity, entityB: Entity, anchorA: {
+    x: number;
+    y: number;
+}, anchorB: {
+    x: number;
+    y: number;
+}, restLength: number, options?: Omit<Partial<DistanceJointOptions>, "jointType" | "restLength">): JointComponent;
+
+// @public
 export function createEmitter(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity;
 
 // @public
@@ -1214,6 +1225,27 @@ export function createEmptyRawInputState(): RawInputState;
 
 // @public
 export function createEntityBuilder<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity?: Entity): EntityBuilder<TComponents, TEvents, TBlueprints>;
+
+// @public
+export function createRevoluteJoint(entityA: Entity, entityB: Entity, anchorA: {
+    x: number;
+    y: number;
+}, anchorB: {
+    x: number;
+    y: number;
+}, options?: Omit<Partial<RevoluteJointOptions>, "jointType">): JointComponent;
+
+// @public
+export function createRigidBody(options?: RigidBodyOptions): RigidBodyComponent;
+
+// @public
+export function createSpringJoint(entityA: Entity, entityB: Entity, anchorA: {
+    x: number;
+    y: number;
+}, anchorB: {
+    x: number;
+    y: number;
+}, restLength: number, stiffness: number, damping: number): JointComponent;
 
 // @public
 export class CrossfadeTransition extends BaseOffscreenTransitionEffect {
@@ -1425,6 +1457,16 @@ export interface DialogueNodeBuilder extends CommonNodeBuilderMethods<DialogueNo
     setAutoAdvance(autoAdvance: boolean): DialogueNodeBuilder;
     // (undocumented)
     setDialogue(dialogue: Dialogue): DialogueNodeBuilder;
+}
+
+// @public
+export interface DistanceJointOptions {
+    damping?: number;
+    jointType: "distance";
+    maxDistance?: number;
+    minLength?: number;
+    restLength: number;
+    stiffness?: number;
 }
 
 // @public
@@ -2237,6 +2279,26 @@ export function iterateGridBlocks(width: number, height: number, blockSize: numb
 export interface ITransitionEffect {
     drawsBothScenes?: boolean;
     render(ctx: RenderContext, progress: number, options?: TransitionOptions): void;
+}
+
+// @public
+export type JointComponent = Component & {
+    type: "Joint";
+    entityA: Entity;
+    entityB: Entity;
+    anchorA: {
+        x: number;
+        y: number;
+    };
+    anchorB: {
+        x: number;
+        y: number;
+    };
+} & (DistanceJointOptions | SpringJointOptions | RevoluteJointOptions);
+
+// @public
+export class JointSolverSystem<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+    update(world: World<TRegistry>, deltaTime: number): void;
 }
 
 // @public
@@ -3305,8 +3367,8 @@ export class PhysicsQuery {
 }
 
 // @public
-export class PhysicsSolveSystem<TRegistry extends ComponentRegistry = ComponentRegistry> extends System<TRegistry> {
-    update(_world: World<TRegistry>, _deltaTime: number): void;
+export class PhysicsSolveSystem<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+    update(world: World<TRegistry>, _deltaTime: number): void;
 }
 
 // @public
@@ -3880,7 +3942,36 @@ export class RetroGridTransition extends BaseOffscreenTransitionEffect {
 }
 
 // @public
+export interface RevoluteJointOptions {
+    enableMotor?: boolean;
+    jointType: "revolute";
+    maxMotorTorque?: number;
+    motorSpeed?: number;
+}
+
+// @public
 export type RewindPolicy = "normal" | "checkpoint-only" | "permanent";
+
+// @public
+export interface RigidBodyComponent extends Component {
+    friction: number;
+    inertia: number;
+    invInertia: number;
+    invMass: number;
+    isStatic: boolean;
+    mass: number;
+    restitution: number;
+    type: "RigidBody";
+}
+
+// @public
+export interface RigidBodyOptions {
+    friction?: number;
+    inertia?: number;
+    isStatic?: boolean;
+    mass?: number;
+    restitution?: number;
+}
 
 // @public
 export class RollbackSimulation {
@@ -4291,6 +4382,14 @@ export class SpatialPartitioningSystem extends System<CoreComponentRegistry> {
 
 // @public
 export function spawnBlueprintEntity<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>, TId extends Extract<keyof TBlueprints, string> = Extract<keyof TBlueprints, string>>(world: World<TComponents, TEvents, TBlueprints>, blueprintId: TId, args: BlueprintArgs<TBlueprints, TId>): Entity;
+
+// @public
+export interface SpringJointOptions {
+    damping: number;
+    jointType: "spring";
+    restLength: number;
+    stiffness: number;
+}
 
 // @public
 export interface SpriteComponent extends Component {

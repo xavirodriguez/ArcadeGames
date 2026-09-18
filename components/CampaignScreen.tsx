@@ -35,6 +35,8 @@ import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegist
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
 import { useTranslation } from "../src/hooks/useTranslation";
 import { CanvasRenderer } from "./CanvasRenderer";
+import { useStoryEventBridge } from "../src/hooks/campaign/useStoryEventBridge";
+import { useCampaignPersistence } from "../src/hooks/campaign/useCampaignPersistence";
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
 import { applyEndingRewards } from "../src/games/shared/story/EndingRewards";
 import { DialogueBoxComponent } from "../src/components/ui/DialogueBoxComponent";
@@ -317,79 +319,46 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     }
   }, [onError]);
 
-  // Main lifecycle setup
+  // Story event bridge hook setup
+  useStoryEventBridge({
+    eventBus: eventBusRef.current!,
+    runtime: runtimeRef.current!,
+    midGameDirector: midGameDirectorRef.current!,
+    activeGameIdRef,
+    activeRunContextRef,
+    sessionStartTimeRef,
+    currentGameRef,
+    onSceneChange: switchGame,
+    onGameOver: handleGameplayResult
+  });
+
+  // Initial graph loading lifecycle setup
   useEffect(() => {
-    let isSubscribed = true;
-    const eventBus = eventBusRef.current!;
     const runtime = runtimeRef.current!;
-    const midGameDirector = midGameDirectorRef.current!;
 
-    runtime.bindEventBus(eventBus);
-    midGameDirector.bindEventBus(eventBus, runtime);
-
-    // Handle scene / gameplay change requests from story runtime
-    const unsubScene = eventBus.on("story:scene_change", (data: { sceneToLoad?: unknown; gameId?: unknown }) => {
-      if (!isSubscribed) return;
-      const targetGameId = (data.sceneToLoad || data.gameId) as string | undefined;
-      if (targetGameId) {
-        switchGame(targetGameId);
-      }
-    });
-
-    // Handle minigame completion via game:over event using real MiniGameResult
-    const unsubGameOver = eventBus.on("game:over", () => {
-      if (!isSubscribed) return;
-
-      const currentGame = currentGameRef.current;
-      const activeGameId = activeGameIdRef.current || "asteroids";
-      const activeRunContext = activeRunContextRef.current;
-
-      let result: MiniGameResult;
-      if (currentGame && typeof currentGame.getMiniGameResult === "function") {
-        result = currentGame.getMiniGameResult({
-          runId: activeRunContext?.runId,
-          gameId: GameDefinitionRegistry.normalizeId(activeGameId)
-        });
-      } else {
-        result = {
-          runId: activeRunContext?.runId || `run_${Date.now()}`,
-          gameId: GameDefinitionRegistry.normalizeId(activeGameId),
-          score: 0,
-          completed: false,
-          durationMs: Math.max(0, Date.now() - sessionStartTimeRef.current),
-          metrics: {},
-          secretsFound: []
-        };
-      }
-
-      // Allow MidGameNarrativeDirector to process performance variables
-      midGameDirector.processMiniGameResult(result, runtime);
-
-      handleGameplayResult(result);
-    });
-
-    // Initialize story runtime graph
     if (graph) {
       runtime.loadGraph(graph, true);
       const entryNode = runtime.getCurrentNode();
       const sceneFromMeta = typeof entryNode?.meta?.sceneToLoad === "string" ? entryNode.meta.sceneToLoad : undefined;
-      const initialScene = entryNode?.sceneToLoad || sceneFromMeta || defaultGameId;
+      const initialScene = entryNode?.sceneToLoad || sceneFromMeta;
+      const isGameplayNode = entryNode?.type === "gameplay" || Boolean(initialScene);
+
+      if (isGameplayNode && initialScene) {
       switchGame(initialScene);
+    } else {
+        setIsLoading(false);
+    }
     } else {
       switchGame(defaultGameId);
     }
 
     return () => {
-      isSubscribed = false;
-      unsubScene();
-      unsubGameOver();
-
       if (currentGameRef.current) {
         currentGameRef.current.destroy();
         currentGameRef.current = null;
       }
     };
-  }, [graph, defaultGameId, switchGame, handleGameplayResult]);
+  }, [graph, defaultGameId, switchGame]);
 
   // Choice selection handler
   const handleSelectChoice = useCallback((choiceId: string) => {
@@ -401,13 +370,22 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const handleRestartCampaign = useCallback(() => {
     if (graph && runtimeRef.current) {
       arcadeOrchestratorRef.current?.reset();
+      if (currentGameRef.current) {
+        currentGameRef.current.destroy();
+        currentGameRef.current = null;
+        setActiveGame(null);
+      }
       runtimeRef.current.loadGraph(graph, true);
       const entryNode = runtimeRef.current.getCurrentNode();
       const sceneFromMeta = typeof entryNode?.meta?.sceneToLoad === "string" ? entryNode.meta.sceneToLoad : undefined;
-      const initialScene = entryNode?.sceneToLoad || sceneFromMeta || defaultGameId;
-      switchGame(initialScene);
+      const initialScene = entryNode?.sceneToLoad || sceneFromMeta;
+      const isGameplayNode = entryNode?.type === "gameplay" || Boolean(initialScene);
+
+      if (isGameplayNode && initialScene) {
+        switchGame(initialScene);
+      }
     }
-  }, [graph, defaultGameId, switchGame]);
+  }, [graph, switchGame]);
 
   // Retry minigame handler with checkpoint restoration
   const handleRetryMinigame = useCallback(() => {
@@ -429,52 +407,21 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     switchGame(loadError.gameId, loadError.seed);
   }, [loadError, switchGame]);
 
-  // Save campaign state handler
-  const handleSave = useCallback(async () => {
-    try {
-      await saveManagerRef.current!.saveCampaign(
-        slotId,
-        runtimeRef.current!,
-        metaServiceRef.current!,
-        {
-          activeGameId: activeGameIdRef.current || undefined,
-          activeGameSeed: activeGameSeedRef.current || undefined
-        }
-      );
-      setStatusMessage(getLocalizedText("campaign.save_success") || "Campaign Saved Successfully!");
-    } catch (err: unknown) {
-      console.error("[CampaignScreen] Save failed:", err);
-      if (onError) {
-        onError(err instanceof Error ? err : new Error(String(err)));
-      }
-    }
-  }, [slotId, getLocalizedText, onError]);
-
-  // Load campaign state handler
-  const handleLoad = useCallback(async () => {
-    try {
-      const envelope = await saveManagerRef.current!.loadCampaign(
-        slotId,
-        runtimeRef.current!,
-        metaServiceRef.current!
-      );
-
-      if (envelope) {
-        arcadeOrchestratorRef.current?.reset();
-        const runtime = runtimeRef.current!;
-        const restoredNode = runtime.getCurrentNode();
-        const sceneFromMeta = typeof restoredNode?.meta?.sceneToLoad === "string" ? restoredNode.meta.sceneToLoad : undefined;
-        const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || sceneFromMeta || defaultGameId;
-        await switchGame(targetGame, envelope.activeGameSeed);
-        setStatusMessage(getLocalizedText("campaign.load_success") || "Campaign Loaded Successfully!");
-      }
-    } catch (err: unknown) {
-      console.error("[CampaignScreen] Load failed:", err);
-      if (onError) {
-        onError(err instanceof Error ? err : new Error(String(err)));
-      }
-    }
-  }, [slotId, defaultGameId, switchGame, getLocalizedText, onError]);
+  // Persistence operations hook
+  const { handleSave, handleLoad } = useCampaignPersistence({
+    slotId,
+    defaultGameId,
+    runtimeRef,
+    metaServiceRef,
+    saveManagerRef,
+    arcadeOrchestratorRef,
+    activeGameIdRef,
+    activeGameSeedRef,
+    switchGame,
+    setStatusMessage,
+    getLocalizedText,
+    onError
+  });
 
   // Cutscene or dialogue queue assembly
   const activeCutsceneQueue = currentNode?.type === "cutscene"
@@ -485,6 +432,114 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     ? currentNode.dialogue.lines
     : undefined;
 
+  const renderNarrativeContent = () => (
+    <>
+      {currentNode?.title && (
+        <Text style={styles.nodeTitle}>{getLocalizedText(currentNode.title)}</Text>
+      )}
+
+      {/* Active State Badges */}
+      <View style={styles.badgeContainer}>
+        {flags?.heroicEntry === true && (
+          <View style={styles.stateBadge}>
+            <Text style={styles.badgeText}>
+              {getLocalizedText("campaign.heroic_active") || "⚔️ MODO HEROICO ACTIVO"}
+            </Text>
+          </View>
+        )}
+        {flags?.heroicEntry === false && (
+          <View style={[styles.stateBadge, { borderColor: colors.blue }]}>
+            <Text style={[styles.badgeText, { color: colors.blueLight }]}>
+              {getLocalizedText("campaign.tactical_active") || "🛡️ ASISTENCIA TÁCTICA ACTIVA"}
+            </Text>
+          </View>
+        )}
+        {activeRunContextRef.current?.modifiers?.map((mod) => (
+          <View key={mod.id} style={[styles.stateBadge, { borderColor: colors.green }]}>
+            <Text style={[styles.badgeText, { color: colors.green }]}>
+              ⚡ {mod.name || mod.targetProperty}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Active Objective Box */}
+      {currentNode?.objective && (
+        <View style={styles.objectiveBox}>
+          <Text style={styles.objectiveTitle}>
+            🎯 {getLocalizedText(currentNode.objective.titleKey)}
+          </Text>
+          <Text style={styles.objectiveProgress}>
+            {currentNode.objective.currentCount} / {currentNode.objective.targetCount}
+          </Text>
+        </View>
+      )}
+
+      {/* Typewriter Dialogue Box for Cutscene */}
+      {activeCutsceneQueue && activeCutsceneQueue.length > 0 && (
+        <DialogueBoxComponent
+          dialogueQueue={activeCutsceneQueue}
+          getLocalizedText={getLocalizedText}
+          onComplete={() => runtimeRef.current?.evaluateTransitions()}
+        />
+      )}
+
+      {/* Typewriter Dialogue Box for Dialogue */}
+      {activeDialogueQueue && activeDialogueQueue.length > 0 && (
+        <DialogueBoxComponent
+          dialogueQueue={activeDialogueQueue}
+          getLocalizedText={getLocalizedText}
+        />
+      )}
+
+      {/* Available Narrative Choices */}
+      <View style={styles.choicesContainer}>
+        {availableChoices.map((choice) => (
+          <NeonButton
+            key={choice.id}
+            variant="cyan"
+            bordered
+            onPress={() => handleSelectChoice(choice.id)}
+            accessibilityLabel={getLocalizedText(choice.titleKey)}
+            accessibilityHint={choice.descriptionKey ? getLocalizedText(choice.descriptionKey) : undefined}
+            style={styles.choiceButton}
+          >
+            {getLocalizedText(choice.titleKey)}
+          </NeonButton>
+        ))}
+      </View>
+    </>
+  );
+
+  const renderEndNodeContent = () => (
+    <>
+      <Text style={styles.endNodeTitle}>
+        🏆 {getLocalizedText("campaign.completed_title") || "Campaign Completed"}
+      </Text>
+      {currentNode?.dialogue?.lines?.map((line, idx) => (
+        <Text key={line.id || `line_${idx}`} style={styles.dialogueText}>
+          {line.speakerName ? `${line.speakerName}: ` : ""}
+          {getLocalizedText(line.textKey)}
+        </Text>
+      ))}
+      {currentNode?.cutscene?.dialogueQueue?.map((line, idx) => (
+        <Text key={`end_cs_${idx}`} style={styles.cutsceneDialogue}>
+          {line.speakerName ? `${line.speakerName}: ` : ""}
+          {getLocalizedText(line.textKey)}
+        </Text>
+      ))}
+      <NeonButton
+        variant="green"
+        onPress={handleRestartCampaign}
+        accessibilityLabel={getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
+        accessibilityHint="Restarts campaign from initial story graph entry node"
+        style={styles.restartButton}
+      >
+        {getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
+      </NeonButton>
+    </>
+  );
+
   return (
     <View style={styles.container}>
       {/* Active Minigame Rendering Layer */}
@@ -493,13 +548,13 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
           world={activeGame.world as any}
           gameLoop={activeGame.getGameLoop()}
         />
-      ) : (
+      ) : !currentNode ? (
         <View style={styles.placeholderContainer}>
           <Text style={styles.placeholderText}>
             {getLocalizedText("campaign.no_game_loaded") || "No Active Game Loaded"}
           </Text>
         </View>
-      )}
+      ) : null}
 
       {/* Loading Overlay */}
       {isLoading && (
@@ -527,114 +582,34 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         </View>
       )}
 
-      {/* Narrative Dialogue, Cutscene & Choices Overlay Layer */}
+      {/* Narrative Dialogue, Cutscene & Choices Layer */}
       {currentNode && !isEndNode && (
-        <View style={styles.narrativeOverlay}>
-          {currentNode.title && (
-            <Text style={styles.nodeTitle}>{getLocalizedText(currentNode.title)}</Text>
-          )}
-
-          {/* Active State Badges */}
-          <View style={styles.badgeContainer}>
-            {flags?.heroicEntry === true && (
-              <View style={styles.stateBadge}>
-                <Text style={styles.badgeText}>
-                  {getLocalizedText("campaign.heroic_active") || "⚔️ MODO HEROICO ACTIVO"}
-                </Text>
-              </View>
-            )}
-            {flags?.heroicEntry === false && (
-              <View style={[styles.stateBadge, { borderColor: colors.blue }]}>
-                <Text style={[styles.badgeText, { color: colors.blueLight }]}>
-                  {getLocalizedText("campaign.tactical_active") || "🛡️ ASISTENCIA TÁCTICA ACTIVA"}
-                </Text>
-              </View>
-            )}
-            {activeRunContextRef.current?.modifiers?.map((mod) => (
-              <View key={mod.id} style={[styles.stateBadge, { borderColor: colors.green }]}>
-                <Text style={[styles.badgeText, { color: colors.green }]}>
-                  ⚡ {mod.name || mod.targetProperty}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Active Objective Box */}
-          {currentNode.objective && (
-            <View style={styles.objectiveBox}>
-              <Text style={styles.objectiveTitle}>
-                🎯 {getLocalizedText(currentNode.objective.titleKey)}
-              </Text>
-              <Text style={styles.objectiveProgress}>
-                {currentNode.objective.currentCount} / {currentNode.objective.targetCount}
-              </Text>
+        !activeGame ? (
+          <View style={styles.fullScreenNarrativeContainer}>
+            <View style={styles.fullScreenNarrativeCard}>
+              {renderNarrativeContent()}
             </View>
-          )}
-
-          {/* Typewriter Dialogue Box for Cutscene */}
-          {activeCutsceneQueue && activeCutsceneQueue.length > 0 && (
-            <DialogueBoxComponent
-              dialogueQueue={activeCutsceneQueue}
-              getLocalizedText={getLocalizedText}
-              onComplete={() => runtimeRef.current?.evaluateTransitions()}
-            />
-          )}
-
-          {/* Typewriter Dialogue Box for Dialogue */}
-          {activeDialogueQueue && activeDialogueQueue.length > 0 && (
-            <DialogueBoxComponent
-              dialogueQueue={activeDialogueQueue}
-              getLocalizedText={getLocalizedText}
-            />
-          )}
-
-          {/* Available Narrative Choices */}
-          <View style={styles.choicesContainer}>
-            {availableChoices.map((choice) => (
-              <NeonButton
-                key={choice.id}
-                variant="cyan"
-                bordered
-                onPress={() => handleSelectChoice(choice.id)}
-                accessibilityLabel={getLocalizedText(choice.titleKey)}
-                accessibilityHint={choice.descriptionKey ? getLocalizedText(choice.descriptionKey) : undefined}
-                style={styles.choiceButton}
-              >
-                {getLocalizedText(choice.titleKey)}
-              </NeonButton>
-            ))}
           </View>
-        </View>
+        ) : (
+          <View style={styles.narrativeOverlay}>
+            {renderNarrativeContent()}
+          </View>
+        )
       )}
 
       {/* Terminal Node / Campaign Completion Overlay */}
       {isEndNode && currentNode && (
-        <View style={styles.endNodeOverlay}>
-          <Text style={styles.endNodeTitle}>
-            🏆 {getLocalizedText("campaign.completed_title") || "Campaign Completed"}
-          </Text>
-          {currentNode.dialogue?.lines?.map((line, idx) => (
-            <Text key={line.id || `line_${idx}`} style={styles.dialogueText}>
-              {line.speakerName ? `${line.speakerName}: ` : ""}
-              {getLocalizedText(line.textKey)}
-            </Text>
-          ))}
-          {currentNode.cutscene?.dialogueQueue?.map((line, idx) => (
-            <Text key={`end_cs_${idx}`} style={styles.cutsceneDialogue}>
-              {line.speakerName ? `${line.speakerName}: ` : ""}
-              {getLocalizedText(line.textKey)}
-            </Text>
-          ))}
-          <NeonButton
-            variant="green"
-            onPress={handleRestartCampaign}
-            accessibilityLabel={getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
-            accessibilityHint="Restarts campaign from initial story graph entry node"
-            style={styles.restartButton}
-          >
-            {getLocalizedText("campaign.restart_campaign") || "Restart Campaign"}
-          </NeonButton>
-        </View>
+        !activeGame ? (
+          <View style={styles.fullScreenNarrativeContainer}>
+            <View style={[styles.fullScreenNarrativeCard, { borderColor: colors.gold, alignItems: "center" }]}>
+              {renderEndNodeContent()}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.endNodeOverlay}>
+            {renderEndNodeContent()}
+          </View>
+        )
       )}
 
       {/* Quick Save / Load / Narrative Debug Toolbar */}
@@ -721,6 +696,22 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     fontSize: 14,
     fontWeight: "bold",
+  },
+  fullScreenNarrativeContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.lg,
+    backgroundColor: colors.backgroundDark,
+  },
+  fullScreenNarrativeCard: {
+    width: "100%",
+    maxWidth: 600,
+    backgroundColor: "rgba(10, 15, 30, 0.95)",
+    borderColor: colors.cyan,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: spacing.lg,
   },
   narrativeOverlay: {
     position: "absolute",

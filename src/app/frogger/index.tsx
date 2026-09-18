@@ -386,6 +386,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
+    userSelect: "none",
   },
   dpadUp: {},
   dpadDown: {},
@@ -400,6 +401,7 @@ const styles = StyleSheet.create({
     color: "#39FF14",
     fontSize: 24,
     fontWeight: "bold",
+    userSelect: "none",
   },
   gameOverOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -426,11 +428,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 6,
+    userSelect: "none",
   },
   restartButtonText: {
     color: "#000000",
     fontWeight: "bold",
     fontFamily: "monospace",
+    userSelect: "none",
   },
   seedWidget: {
     marginBottom: 30,

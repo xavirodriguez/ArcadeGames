@@ -281,8 +281,10 @@ export const GameUI = React.memo(function GameUI({
               accessibilityLabel={t.accessibility.reconnect_pilot_label.replace("{credits}", String(continuesRemaining))}
               accessibilityHint={t.accessibility.reconnect_pilot_hint}
             >
-              <View style={styles.reconnectAccentLeft} />
-              <Text style={styles.reconnectButtonText}>▶ RECONNECT [{continuesRemaining}]</Text>
+              <View style={styles.reconnectBadgePill}>
+                <Text style={styles.reconnectBadgeText}>▶</Text>
+              </View>
+              <Text style={styles.reconnectButtonText}>RECONNECT [{continuesRemaining}]</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -296,7 +298,10 @@ export const GameUI = React.memo(function GameUI({
               accessibilityLabel={t.accessibility.abort_mission_label}
               accessibilityHint={t.accessibility.abort_mission_hint}
             >
-              <Text style={styles.abortButtonText}>✕ ABORT MISSION</Text>
+              <View style={styles.abortOctagonIcon}>
+                <Text style={styles.abortIconText}>✕</Text>
+              </View>
+              <Text style={styles.abortButtonText}>ABORT MISSION</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -362,9 +367,10 @@ const HUD: React.FC<{
   const isCritical = lives >= 1 && lives <= 2;
   const lifeAccentColor = lives === 1 ? dangerColor : isCritical ? warningColor : defaultSystemColor;
 
-  // Reanimated values for life lost feedback (flash + shake)
+  // Reanimated values for life lost feedback (flash + shake) and critical status pulse
   const lifeShake = useSharedValue(0);
   const lifeFlash = useSharedValue(0);
+  const criticalPulse = useSharedValue(1);
   const prevLivesRef = React.useRef(lives);
 
   useEffect(() => {
@@ -384,27 +390,38 @@ const HUD: React.FC<{
     prevLivesRef.current = lives;
   }, [lives, lifeFlash, lifeShake]);
 
+  useEffect(() => {
+    if (isCritical) {
+      criticalPulse.value = withSequence(
+        withSpring(1.08, { damping: 6, stiffness: 180 }),
+        withSpring(0.96, { damping: 8, stiffness: 140 }),
+        withSpring(1, { damping: 10, stiffness: 120 })
+      );
+    } else {
+      criticalPulse.value = 1;
+    }
+  }, [isCritical, lives, criticalPulse]);
+
   const animatedLifeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: lifeShake.value }],
-    backgroundColor: lifeFlash.value > 0.1 ? "rgba(255, 49, 91, 0.25)" : "transparent",
+    transform: [{ translateX: lifeShake.value }, { scale: criticalPulse.value }],
+    backgroundColor: lifeFlash.value > 0.1 ? "rgba(255, 49, 91, 0.35)" : "transparent",
   }));
 
-  // Memoize compact icons array (max 1-2 icons)
-  const compactIconCount = Math.min(lives, 2);
+  // Memoize visible icons array (max 1-2 icons) for instant readability at 5+ lives
+  const visibleIconCount = Math.min(lives, 2);
   const memoizedCompactIcons = React.useMemo(() => {
     if (lives <= 0) return null;
-    return Array.from({ length: compactIconCount }).map((_, index) => (
+    return Array.from({ length: visibleIconCount }).map((_, index) => (
       <ShipLifeIcon key={`compact-life-icon-${index}`} color={lifeAccentColor} compact />
     ));
-  }, [lives, compactIconCount, lifeAccentColor]);
+  }, [lives, visibleIconCount, lifeAccentColor]);
 
-  // Memoize expanded icons array
   const memoizedExpandedIcons = React.useMemo(() => {
     if (lives <= 0) return null;
-    return Array.from({ length: lives }).map((_, index) => (
+    return Array.from({ length: visibleIconCount }).map((_, index) => (
       <ShipLifeIcon key={`expanded-life-icon-${index}`} color={lifeAccentColor} />
     ));
-  }, [lives, lifeAccentColor]);
+  }, [lives, visibleIconCount, lifeAccentColor]);
 
   if (isCompact) {
     return (
@@ -438,7 +455,7 @@ const HUD: React.FC<{
           </View>
 
           <TouchableOpacity
-            style={styles.compactDrawerToggle}
+            style={[styles.compactDrawerToggle, !expandedDetails && styles.compactDrawerToggleClosed]}
             onPress={() => {
               hapticSelection();
               setExpandedDetails(!expandedDetails);
@@ -446,7 +463,7 @@ const HUD: React.FC<{
             accessibilityRole="button"
             accessibilityLabel="Toggle HUD Details"
           >
-            <Text style={[styles.compactSectorText, { color: warningColor }]}>
+            <Text style={[styles.compactSectorText, { color: warningColor }, !expandedDetails && styles.compactSectorTextMuted]}>
               S-{formatLevel(level)} {expandedDetails ? "▲" : "▼"}
             </Text>
           </TouchableOpacity>
@@ -465,6 +482,14 @@ const HUD: React.FC<{
 
   return (
     <Animated.View entering={FadeIn.duration(650)} style={[styles.topBar, { paddingTop }]}>
+      {/*
+        Note on Skia BackdropBlur performance:
+        Skia's BackdropBlur requires offscreen render target copies on every frame.
+        Before adding additional visual effects or blur filters to the top bar,
+        BackdropBlur MUST be profiled on low-end target devices (e.g. entry-level Android/iOS).
+        If frame drops occur under heavy combat particle loads, consider replacing Canvas BackdropBlur
+        with a simple semi-transparent View background.
+      */}
       {Platform.OS !== "web" && Canvas && BackdropBlur && Fill && (
         <Canvas style={StyleSheet.absoluteFill}>
           <BackdropBlur blur={8} clip={{ x: 0, y: 0, width: 2000, height: 120 }}>
@@ -485,7 +510,14 @@ const HUD: React.FC<{
           <Text style={[styles.hudKicker, theme?.colors?.system ? { color: theme.colors.system } : null]}>{titleText}</Text>
           <Animated.View style={[styles.lifeRow, animatedLifeStyle]}>
             {lives > 0 ? (
-              memoizedExpandedIcons
+              <View style={styles.expandedLifeGroup}>
+                <Text style={[styles.expandedLivesNumber, { color: lifeAccentColor }]}>
+                  {lives}
+                </Text>
+                <View style={styles.expandedIconsGroup}>
+                  {memoizedExpandedIcons}
+                </View>
+              </View>
             ) : (
               <Text style={styles.signalLostMini}>SIGNAL LOST</Text>
             )}
@@ -704,6 +736,18 @@ const ReadyOverlay: React.FC<{
   message?: string;
 }> = ({ remaining, level, message }) => {
   const countdown = Math.max(0, Math.ceil(remaining));
+  const ringScale = useSharedValue(1);
+
+  useEffect(() => {
+    ringScale.value = withSequence(
+      withSpring(1.18, { damping: 5, stiffness: 220 }),
+      withSpring(1, { damping: 9, stiffness: 140 })
+    );
+  }, [countdown, ringScale]);
+
+  const animatedRingStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: ringScale.value }],
+  }));
 
   return (
     <Animated.View
@@ -739,9 +783,7 @@ const ReadyOverlay: React.FC<{
         <View style={styles.countdownStage}>
           <View style={styles.countdownHairline} />
           <Animated.View
-            key={`ready-ring-${countdown}`}
-            entering={ZoomIn.duration(220)}
-            style={styles.readyPulseRing}
+            style={[styles.readyPulseRing, animatedRingStyle]}
           >
             <Animated.Text
               key={`ready-count-${countdown}`}
@@ -926,7 +968,7 @@ const styles = StyleSheet.create({
     fontSize: 7,
     fontWeight: "900",
     letterSpacing: 0.8,
-    opacity: 0.35,
+    opacity: 0.2,
   },
   cornerMark: {
     position: "absolute",
@@ -1112,15 +1154,15 @@ const styles = StyleSheet.create({
         }),
   },
   scoreValueCompact: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "900",
-    letterSpacing: 2.2,
+    letterSpacing: 2.4,
     ...(Platform.OS === "web"
-      ? { textShadow: "0 0 12px rgba(0, 232, 210, 0.6)" }
+      ? { textShadow: "0 0 16px rgba(0, 232, 210, 0.75)" }
       : {
-          textShadowColor: "rgba(0, 232, 210, 0.6)",
+          textShadowColor: "rgba(0, 232, 210, 0.75)",
           textShadowOffset: { width: 0, height: 0 },
-          textShadowRadius: 10,
+          textShadowRadius: 14,
         }),
   },
   sectorValue: {
@@ -1201,13 +1243,35 @@ const styles = StyleSheet.create({
   compactDrawerToggle: {
     paddingHorizontal: 6,
     paddingVertical: 4,
-    opacity: 0.85,
+    opacity: 0.9,
+  },
+  compactDrawerToggleClosed: {
+    opacity: 0.45,
   },
   compactSectorText: {
     fontFamily: DATA_FONT,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 0.8,
+  },
+  compactSectorTextMuted: {
+    fontSize: 9,
+    fontWeight: "600",
+  },
+  expandedLifeGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  expandedLivesNumber: {
+    fontFamily: DATA_FONT,
+    fontSize: 22,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginRight: 6,
+  },
+  expandedIconsGroup: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   compactDrawerPanel: {
     backgroundColor: COLORS.panelStrong,
@@ -1601,20 +1665,28 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cyan,
     borderWidth: 2,
     borderColor: COLORS.cyan,
-    borderRadius: 2,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    minHeight: 48,
+    borderRadius: 20,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    minHeight: 52,
     marginHorizontal: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-  reconnectAccentLeft: {
-    width: 4,
-    height: 18,
+  reconnectBadgePill: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: COLORS.ink,
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 8,
+  },
+  reconnectBadgeText: {
+    color: COLORS.cyan,
+    fontSize: 10,
+    fontWeight: "900",
   },
   reconnectButtonText: {
     color: COLORS.ink,
@@ -1628,13 +1700,31 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: COLORS.red,
-    borderRadius: 2,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    minHeight: 48,
+    borderRadius: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    minHeight: 52,
     marginHorizontal: 8,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  abortOctagonIcon: {
+    width: 22,
+    height: 22,
+    borderWidth: 1,
+    borderColor: COLORS.red,
+    backgroundColor: "rgba(255, 49, 91, 0.2)",
+    transform: [{ rotate: "45deg" }],
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  abortIconText: {
+    color: COLORS.red,
+    fontSize: 10,
+    fontWeight: "900",
+    transform: [{ rotate: "-45deg" }],
   },
   abortButtonText: {
     color: COLORS.red,

@@ -1,6 +1,5 @@
-import { StyleSheet, Pressable, Text } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
-import { hapticSelection } from "../utils/haptics";
+import { GestureActionButton } from "./controls/GestureActionButton";
 
 export interface ShootButtonProps {
   onPressIn: () => void;
@@ -13,7 +12,7 @@ export interface ShootButtonProps {
 /**
  * Pure UI component for shooting.
  * Circular button, min 84x84px, semi-transparent red tint.
- * Uses Pressable for visual feedback and touch handling.
+ * Uses GestureActionButton for low-latency touch handling.
  */
 export function ShootButton({
   onPressIn,
@@ -24,41 +23,24 @@ export function ShootButton({
 }: ShootButtonProps) {
   const { t } = useTranslation();
 
-  const handlePressIn = () => {
-    if (disabled) return;
-    hapticSelection();
-    onPressIn();
-  };
-
   const label = accessibilityLabel || t?.accessibility?.shoot_button_label || "Fire weapon";
   const hint = accessibilityHint || t?.accessibility?.shoot_button_hint || "Fires primary weapon";
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <GestureActionButton
+      label="FIRE"
+      size={84}
+      color="rgba(255, 80, 80, 0.4)"
+      borderColor="rgba(255, 80, 80, 0.8)"
+      pressedColor="rgba(255, 80, 80, 0.75)"
+      pressedBorderColor="#FF8080"
+      textColor="#FF8080"
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       accessibilityLabel={label}
       accessibilityHint={hint}
-      accessibilityState={{ disabled }}
       disabled={disabled}
-      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-      onPressIn={handlePressIn}
-      onPressOut={onPressOut}
-      style={({ pressed }) => [
-        styles.button,
-        disabled && styles.disabled,
-        pressed && !disabled && styles.pressed,
-        {
-          backgroundColor: disabled
-            ? "rgba(100, 100, 100, 0.2)"
-            : pressed
-            ? "rgba(255, 80, 80, 0.75)"
-            : "rgba(255, 80, 80, 0.4)",
-          transform: [{ scale: pressed && !disabled ? 0.92 : 1 }],
-        },
-      ]}
-    >
-      <Text style={[styles.label, disabled && styles.disabledLabel]}>FIRE</Text>
-    </Pressable>
+    />
   );
 }
 

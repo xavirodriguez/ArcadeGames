@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "white",
+    userSelect: "none",
   },
   pressed: {
     backgroundColor: "rgba(255, 255, 255, 0.55)",
@@ -116,6 +117,7 @@ const styles = StyleSheet.create({
   text: {
     color: "white",
     fontSize: 32,
+    userSelect: "none",
   },
   spacer: {
     height: 20,

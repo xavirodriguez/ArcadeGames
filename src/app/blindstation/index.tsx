@@ -338,6 +338,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: spacing.xl,
     marginBottom: spacing.xxl,
+    userSelect: "text",
   },
   nodeTitle: {
     color: colors.cyan,
@@ -345,12 +346,14 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.bold,
     marginBottom: spacing.md,
+    userSelect: "text",
   },
   descriptionText: {
     color: colors.white,
     fontFamily: typography.game,
     fontSize: typography.sizes.md,
     lineHeight: 24,
+    userSelect: "text",
   },
   objectiveBox: {
     marginTop: spacing.lg,
@@ -422,6 +425,7 @@ const styles = StyleSheet.create({
     borderColor: colors.pink,
     borderRadius: 8,
     padding: spacing.lg,
+    userSelect: "none",
   },
   choiceTitle: {
     color: colors.pink,
@@ -429,11 +433,13 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     marginBottom: spacing.xs,
+    userSelect: "none",
   },
   choiceDesc: {
     color: colors.textSecondary,
     fontFamily: typography.game,
     fontSize: typography.sizes.sm,
+    userSelect: "none",
   },
   restartButton: {
     marginTop: spacing.xl,

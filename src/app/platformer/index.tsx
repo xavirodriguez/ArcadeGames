@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Pressable, Platform, ActivityIndicator } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
+import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -196,72 +197,61 @@ function PlatformerContent() {
           isTouchDevice ? (
             <View style={styles.touchControlsContainer} pointerEvents="box-none">
               <View style={styles.dpad} pointerEvents="box-none">
-                <Pressable
-                  style={({ pressed }) => [styles.touchButton, pressed && styles.touchButtonPressed]}
-                  onPressIn={() => {
-                    hapticSelection();
-                    handleTouchLeft(true);
-                  }}
+                <GestureActionButton
+                  label="◀"
+                  size={65}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.borderLight}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  onPressIn={() => handleTouchLeft(true)}
                   onPressOut={() => handleTouchLeft(false)}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  accessibilityRole="button"
                   accessibilityLabel={t?.accessibility?.move_left_label || "Move left"}
                   accessibilityHint={t?.accessibility?.move_left_hint || "Moves player left"}
-                >
-                  <Text style={styles.touchButtonText}>◀</Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => [styles.touchButton, pressed && styles.touchButtonPressed]}
-                  onPressIn={() => {
-                    hapticSelection();
-                    handleTouchRight(true);
-                  }}
+                  style={{ marginHorizontal: spacing.sm }}
+                />
+                <GestureActionButton
+                  label="▶"
+                  size={65}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.borderLight}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  onPressIn={() => handleTouchRight(true)}
                   onPressOut={() => handleTouchRight(false)}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  accessibilityRole="button"
                   accessibilityLabel={t?.accessibility?.move_right_label || "Move right"}
                   accessibilityHint={t?.accessibility?.move_right_hint || "Moves player right"}
-                >
-                  <Text style={styles.touchButtonText}>▶</Text>
-                </Pressable>
+                  style={{ marginHorizontal: spacing.sm }}
+                />
               </View>
 
               <View style={styles.actions} pointerEvents="box-none">
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.touchButton,
-                    styles.dashButton,
-                    pressed && styles.touchButtonPressed,
-                  ]}
-                  onPressIn={() => {
-                    hapticSelection();
-                    handleTouchDash();
-                  }}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  accessibilityRole="button"
+                <GestureActionButton
+                  label="DASH"
+                  size={65}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.gold}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  onPressIn={() => handleTouchDash()}
+                  onPressOut={() => {}}
                   accessibilityLabel={"Dash"}
                   accessibilityHint={"Performs a rapid forward dash"}
-                >
-                  <Text style={styles.touchButtonText}>DASH</Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.touchButton,
-                    styles.jumpButton,
-                    pressed && styles.touchButtonPressed,
-                  ]}
-                  onPressIn={() => {
-                    hapticSelection();
-                    handleTouchJump(true);
-                  }}
+                  style={{ marginHorizontal: spacing.sm }}
+                />
+                <GestureActionButton
+                  label="JUMP"
+                  size={75}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.cyan}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  onPressIn={() => handleTouchJump(true)}
                   onPressOut={() => handleTouchJump(false)}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  accessibilityRole="button"
                   accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
                   accessibilityHint={t?.accessibility?.jump_button_hint || "Jumps"}
-                >
-                  <Text style={styles.touchButtonText}>JUMP</Text>
-                </Pressable>
+                  style={{ marginHorizontal: spacing.sm }}
+                />
               </View>
             </View>
           ) : null

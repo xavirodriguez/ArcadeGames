@@ -2944,18 +2944,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 796,
+        "end": 788,
         "endLoc": {
           "column": 9,
-          "line": 796,
-          "position": 32564
+          "line": 788,
+          "position": 32248
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 785,
+        "start": 777,
         "startLoc": {
           "column": 84,
-          "line": 785,
-          "position": 32264
+          "line": 777,
+          "position": 31948
         }
       },
       "tokens": 54
@@ -3018,18 +3018,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 822,
+        "end": 814,
         "endLoc": {
           "column": 14,
-          "line": 822,
-          "position": 33533
+          "line": 814,
+          "position": 33217
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 808,
+        "start": 800,
         "startLoc": {
           "column": 4,
-          "line": 808,
-          "position": 32901
+          "line": 800,
+          "position": 32585
         }
       },
       "tokens": 140
@@ -4054,18 +4054,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 832,
+        "end": 824,
         "endLoc": {
           "column": 75,
-          "line": 832,
-          "position": 34065
+          "line": 824,
+          "position": 33749
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 826,
+        "start": 818,
         "startLoc": {
           "column": 76,
-          "line": 826,
-          "position": 33799
+          "line": 818,
+          "position": 33483
         }
       },
       "tokens": 77

@@ -247,4 +247,83 @@ describe("Space Invaders GDD v2 Mutator Draft System", () => {
     expect(restoredRng1).toBe(origRng1);
     expect(restoredRng2).toBe(origRng2);
   });
+
+  it("should not double-increment waveIndex when mutator draft completes after wave transition", async () => {
+    const game = new SpaceInvadersGame({
+      headless: true,
+      isMultiplayer: false,
+      gameOptions: { seed: 12345 }
+    });
+
+    await game.init();
+    const gameWorld = game.getWorld();
+
+    const directorEntity = gameWorld.query("SpawnDirector")[0];
+    expect(directorEntity).toBeDefined();
+
+    // 1. Initial state: level 1 / waveIndex 0
+    let director = gameWorld.getComponent(directorEntity, "SpawnDirector");
+    expect(director?.waveIndex).toBe(0);
+
+    // Run one tick to let SpawnDirector populate initial spawns
+    game.update(0.016);
+    director = gameWorld.getComponent(directorEntity, "SpawnDirector");
+    expect(director?.status).toBe("active");
+
+    // Clear all wave members / invaders to simulate clearing wave 0
+    const entitiesToRemove = new Set<number>([
+      ...gameWorld.query("WaveMember"),
+      ...gameWorld.query("Invader")
+    ]);
+    entitiesToRemove.forEach(e => gameWorld.commands.removeEntity(e));
+
+    // Tick simulation once to flush removal commands, and once more for SpawnDirectorSystem to detect 0 enemies
+    game.update(0.016); // Flush entity removals
+    game.update(0.016); // SpawnDirectorSystem detects 0 enemies -> cooldown
+    director = gameWorld.getComponent(directorEntity, "SpawnDirector");
+    expect(director?.status).toBe("cooldown");
+
+    // Advance time past intermission, then past cooldown
+    game.update(3.5); // Clears intermissionRemaining (3.0s)
+    game.update(2.5); // SpawnDirectorSystem processes cooldownRemaining (2.0s) -> waveIndex 1, status idle
+    director = gameWorld.getComponent(directorEntity, "SpawnDirector");
+    expect(director?.waveIndex).toBe(1);
+    expect(director?.status).toBe("idle");
+
+    // 2. Trigger WAVE_TRANSITION & MUTATOR_DRAFT
+    gameWorld.mutateSingleton("GameState", (state) => {
+      state.phase = "MUTATOR_DRAFT";
+    });
+
+    const playerEntity = gameWorld.query("Player")[0];
+    gameWorld.addComponent(playerEntity, {
+      type: "DraftState",
+      options: ["extra_life", "faster_bullets"],
+      hasChosen: false,
+      selectedMutatorId: null
+    } as any);
+
+    // 3. Player selects mutator
+    game.selectRunMutator("extra_life");
+
+    // GameState phase returns to PLAYING
+    const gs = game.getGameState();
+    expect(gs.phase).toBe("PLAYING");
+
+    // Verify waveIndex is STILL 1 (not 2!)
+    director = gameWorld.getComponent(directorEntity, "SpawnDirector");
+    expect(director?.waveIndex).toBe(1);
+
+    // 4. Update game simulation step to process wave 1 spawning
+    game.update(0.016);
+    director = gameWorld.getComponent(directorEntity, "SpawnDirector");
+    // For delay 0.0 spawns, status transitions idle -> spawning -> active in a single tick
+    expect(["spawning", "active"]).toContain(director?.status);
+
+    // Next wave members should be created
+    const newMembers = gameWorld.query("WaveMember");
+    expect(newMembers.length).toBeGreaterThan(0);
+
+    game.destroy();
+  });
 });

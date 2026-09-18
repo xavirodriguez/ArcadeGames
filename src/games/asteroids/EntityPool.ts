@@ -239,16 +239,25 @@ function createAsteroidsPoolConfig(): PrefabConfig<AsteroidComponents, AsteroidP
       const gameState = world.getSingleton("GameState") as import("./types/AsteroidTypes").GameStateComponent | undefined;
       const isStory = gameState?.mode === "story" || world.getResource("StoryRuntime") !== undefined;
       if (isStory) {
-        world.addComponent(entity, {
+        const collectibleComp = {
           type: "Collectible",
           kind: "story_fragment",
           value: 1,
           persistent: true,
           collectOnce: true,
           id: `asteroid_fragment_${p.size}_${p.x}_${p.y}`
-        } as any);
+        };
+        if (world.isUpdating) {
+          world.getCommandBuffer().addComponent(entity, collectibleComp as any);
+        } else {
+          world.addComponent(entity, collectibleComp as any);
+        }
       } else if (world.hasComponent(entity, "Collectible")) {
-        world.removeComponent(entity, "Collectible");
+        if (world.isUpdating) {
+          world.getCommandBuffer().removeComponent(entity, "Collectible");
+        } else {
+          world.removeComponent(entity, "Collectible");
+        }
       }
     }
   };

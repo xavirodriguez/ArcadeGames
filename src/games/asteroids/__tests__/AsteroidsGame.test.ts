@@ -1,6 +1,7 @@
 import { AsteroidsGame } from "../AsteroidsGame";
 import { WorldSnapshot, ServerUpdatePayload } from "@tiny-aster/core";
 import { createPowerUp } from "../EntityFactory";
+import { colors } from "../../../theme/colors";
 
 describe("AsteroidsGame Network & Prediction Tests", () => {
   let game: AsteroidsGame;
@@ -134,7 +135,7 @@ describe("AsteroidsGame PowerUp & Blueprint Tests", () => {
     expect(transform?.y).toBe(200);
 
     const render = world.getComponent(powerUpEntity, "Render");
-    expect(render?.color).toBe("#00f0ff");
+    expect(render?.color).toBe(colors.cyan);
     expect(render?.shape).toBe("shield_bubble");
 
     const powerUp = world.getComponent(powerUpEntity, "PowerUp");
@@ -161,6 +162,6 @@ describe("AsteroidsGame PowerUp & Blueprint Tests", () => {
     expect(powerUp?.powerUpType).toBe("speed_boost");
     expect(transform?.x).toBe(300);
     expect(transform?.y).toBe(400);
-    expect(render?.color).toBe("#ff5d00");
+    expect(render?.color).toBe(colors.orange);
   });
 });

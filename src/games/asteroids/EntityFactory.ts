@@ -20,6 +20,7 @@ import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
 import { attachEnemyDefaults } from "../shared/enemyHelpers";
 import { PowerUpComponent } from "@tiny-aster/gameplay-kit";
 import { BulletPool, AsteroidPool } from "./EntityPool";
+import { colors } from "../../theme/colors";
 
 /**
  * @param lootType - Loot/power-up identifier (e.g. "shield", "speed_boost").
@@ -31,9 +32,9 @@ function getPowerUpColor(lootType: string, world?: World<any, any, any>): string
     const resolved = resolveThemeColor(world, `powerup-${lootType}`);
     if (resolved) return resolved;
   }
-  if (lootType === "shield") return "#00f0ff";
-  if (lootType === "speed_boost") return "#ff5d00";
-  return "#ffd700";
+  if (lootType === "shield") return colors.cyan;
+  if (lootType === "speed_boost") return colors.orange;
+  return colors.gold;
 }
 
 /**

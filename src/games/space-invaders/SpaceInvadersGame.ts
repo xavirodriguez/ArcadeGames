@@ -627,15 +627,7 @@ export class SpaceInvadersGame
           world.removeComponent(p, "DraftState" as any);
         });
       });
-
-      // Increment SpawnDirector's waveIndex to trigger next wave!
-      const directorEntity = world.query("SpawnDirector" as any)[0];
-      if (directorEntity !== undefined) {
-        world.mutateComponent(directorEntity, "SpawnDirector" as any, (d: any) => {
-          d.waveIndex++;
-          d.status = "idle";
-        });
-      }
+      this.resume();
     }
   }
 

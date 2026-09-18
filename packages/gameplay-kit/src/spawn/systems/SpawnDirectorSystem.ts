@@ -20,6 +20,7 @@ export class SpawnDirectorSystem<
     if (world.getResource("IsPaused") === true) return;
     const gameState = world.getSingleton("GameState" as any) as any;
     if (gameState && (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) return;
+    if (gameState && gameState.phase !== undefined && gameState.phase !== "PLAYING") return;
 
     const directorEntity = world.query("SpawnDirector" as any)[0];
     if (directorEntity === undefined) return;

@@ -403,10 +403,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
+    userSelect: "none",
   },
   restartButtonText: {
     color: colors.background,
     fontWeight: "bold",
+    userSelect: "none",
   },
   seedWidget: {
     marginBottom: 30,

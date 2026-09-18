@@ -107,11 +107,13 @@ const styles = StyleSheet.create({
     minWidth: 130,
     alignItems: "center",
     justifyContent: "center",
+    userSelect: "none",
   },
   text: {
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.bold,
     fontFamily: typography.fonts.data,
     letterSpacing: typography.letterSpacing.wide,
+    userSelect: "none",
   },
 });

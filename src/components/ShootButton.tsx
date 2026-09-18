@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 80, 80, 0.8)",
     alignItems: "center",
     justifyContent: "center",
+    userSelect: "none",
   },
   pressed: {
     borderColor: "#FF8080",
@@ -85,6 +86,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     fontFamily: "monospace",
+    userSelect: "none",
   },
   disabledLabel: {
     color: "rgba(200, 200, 200, 0.5)",

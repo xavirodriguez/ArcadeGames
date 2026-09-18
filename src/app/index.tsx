@@ -225,12 +225,14 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
+    userSelect: "none",
   },
   profileText: {
     color: colors.gold,
     fontFamily: typography.game,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
+    userSelect: "none",
   },
   headerRow: {
     flexDirection: 'row',
@@ -248,9 +250,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
+    userSelect: "none",
   },
   muteButtonText: {
     fontSize: typography.sizes.xl,
+    userSelect: "none",
   },
   langButton: {
     backgroundColor: colors.surface,
@@ -263,12 +267,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
+    userSelect: "none",
   },
   langButtonText: {
     color: colors.white,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
+    userSelect: "none",
   },
   menuRow: {
     flexDirection: 'row',
@@ -290,6 +296,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: "center",
     alignItems: "center",
+    userSelect: "none",
     ...effects.cyanGlow,
   },
   rankButton: {
@@ -302,14 +309,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
+    userSelect: "none",
   },
   rankButtonText: {
     fontSize: typography.sizes.xxl,
+    userSelect: "none",
   },
   menuButtonText: {
     color: colors.cyan,
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
+    userSelect: "none",
   },
 });

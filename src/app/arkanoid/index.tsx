@@ -255,9 +255,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 5,
     marginTop: 20,
+    userSelect: "none",
   },
   restartButtonText: {
     color: colors.background,
     fontWeight: "bold",
+    userSelect: "none",
   },
 });

@@ -32,6 +32,12 @@ const THRUST_THRESHOLD = -0.25; // negative Y = up on screen
 /**
  * Renders touch controls on top of the game canvas.
  * Only mounts on iOS/Android. Cleans up all overrides on unmount.
+ *
+ * Design Decision:
+ * Left zone uses VirtualJoystick for direction / rotation / thrust.
+ * Right zone uses individual GestureActionButton components with pointerEvents="box-none" on parent View,
+ * enabling simultaneous multi-touch interactions (e.g. thrusting with left joystick while firing with right action button)
+ * without requiring explicit Gesture.Simultaneous composition across distinct spatial regions.
  */
 export function MobileControlsOverlay({
   adapter,

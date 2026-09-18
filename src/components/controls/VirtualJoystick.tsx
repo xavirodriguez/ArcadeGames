@@ -5,6 +5,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  runOnJS,
 } from "react-native-reanimated";
 import { World, Component } from "@tiny-aster/core";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -53,6 +54,10 @@ export interface VirtualJoystickProps {
   onMove?: (x: number, y: number) => void;
   /** Optional callback for release. */
   onRelease?: () => void;
+  /** Dead zone radius threshold (0-1 normalized, default: 0). */
+  deadZone?: number;
+  /** Sensitivity scale factor for output values (default: 1.0). */
+  sensitivity?: number;
 }
 
 /**
@@ -78,6 +83,8 @@ export function VirtualJoystick({
   accessibilityHint,
   onMove,
   onRelease,
+  deadZone = 0,
+  sensitivity = 1.0,
 }: VirtualJoystickProps) {
   const { t } = useTranslation();
   const BASE_RADIUS = size;
@@ -91,18 +98,21 @@ export function VirtualJoystick({
   const knobY = useSharedValue(0);
 
   const pan = Gesture.Pan()
-    .runOnJS(true)
     .minDistance(0)
     .onStart((e) => {
+      'worklet';
       isVisible.value = true;
       visualOpacity.value = withTiming(opacity, { duration: 150 });
       basePos.value = { x: e.x, y: e.y };
       knobX.value = 0;
       knobY.value = 0;
 
-      if (onMove) onMove(0, 0);
+      if (onMove) {
+        runOnJS(onMove)(0, 0);
+      }
     })
     .onUpdate((e) => {
+      'worklet';
       const dx = e.x - basePos.value.x;
       const dy = e.y - basePos.value.y;
 
@@ -115,19 +125,32 @@ export function VirtualJoystick({
       knobY.value = clamp * Math.sin(angle);
 
       if (onMove) {
-        const normX = clamp === 0 ? 0 : (clamp / MAX_OFFSET) * Math.cos(angle);
-        const normY = clamp === 0 ? 0 : (clamp / MAX_OFFSET) * Math.sin(angle);
-        onMove(normX, normY);
+        const rawNorm = clamp === 0 ? 0 : clamp / MAX_OFFSET;
+        let norm = 0;
+
+        if (rawNorm > deadZone) {
+          const remapped = (rawNorm - deadZone) / (1 - deadZone);
+          norm = Math.min(1.0, remapped * sensitivity);
+        }
+
+        const normX = norm === 0 ? 0 : norm * Math.cos(angle);
+        const normY = norm === 0 ? 0 : norm * Math.sin(angle);
+
+        runOnJS(onMove)(normX, normY);
       }
     })
     .onFinalize(() => {
+      'worklet';
       knobX.value = withSpring(0, { damping: 20, stiffness: 300 });
       knobY.value = withSpring(0, { damping: 20, stiffness: 300 });
       visualOpacity.value = withTiming(0, { duration: 250 }, () => {
+        'worklet';
         isVisible.value = false;
       });
 
-      if (onRelease) onRelease();
+      if (onRelease) {
+        runOnJS(onRelease)();
+      }
     });
 
   const baseStyle = useAnimatedStyle(() => ({

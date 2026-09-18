@@ -9,7 +9,7 @@ EXIT_CODE=0
 echo "🔍 Checking @tiny-aster/core boundaries..."
 
 # 1. Prohibit React Native / Expo imports in core
-FORBIDDEN_PLATFORM=("react-native" "expo-" "@shopify/react-native-skia" "@colyseus")
+FORBIDDEN_PLATFORM=("react-native" "react-native-gesture-handler" "react-native-reanimated" "expo-" "@shopify/react-native-skia" "@colyseus")
 
 for pkg in "${FORBIDDEN_PLATFORM[@]}"; do
     if grep -r "$pkg" "$CORE_PATH" --exclude-dir=tests --exclude-dir=ui/debug > /dev/null; then

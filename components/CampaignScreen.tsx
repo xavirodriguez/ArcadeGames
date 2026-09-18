@@ -34,6 +34,7 @@ import {
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
 import { useTranslation } from "../src/hooks/useTranslation";
+import { useCampaignPersistence } from "../src/hooks/campaign/useCampaignPersistence";
 import { CanvasRenderer } from "./CanvasRenderer";
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
 import { applyEndingRewards } from "../src/games/shared/story/EndingRewards";
@@ -444,52 +445,21 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     switchGame(loadError.gameId, loadError.seed);
   }, [loadError, switchGame]);
 
-  // Save campaign state handler
-  const handleSave = useCallback(async () => {
-    try {
-      await saveManagerRef.current!.saveCampaign(
-        slotId,
-        runtimeRef.current!,
-        metaServiceRef.current!,
-        {
-          activeGameId: activeGameIdRef.current || undefined,
-          activeGameSeed: activeGameSeedRef.current || undefined
-        }
-      );
-      setStatusMessage(getLocalizedText("campaign.save_success") || "Campaign Saved Successfully!");
-    } catch (err: unknown) {
-      console.error("[CampaignScreen] Save failed:", err);
-      if (onError) {
-        onError(err instanceof Error ? err : new Error(String(err)));
-      }
-    }
-  }, [slotId, getLocalizedText, onError]);
-
-  // Load campaign state handler
-  const handleLoad = useCallback(async () => {
-    try {
-      const envelope = await saveManagerRef.current!.loadCampaign(
-        slotId,
-        runtimeRef.current!,
-        metaServiceRef.current!
-      );
-
-      if (envelope) {
-        arcadeOrchestratorRef.current?.reset();
-        const runtime = runtimeRef.current!;
-        const restoredNode = runtime.getCurrentNode();
-        const sceneFromMeta = typeof restoredNode?.meta?.sceneToLoad === "string" ? restoredNode.meta.sceneToLoad : undefined;
-        const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || sceneFromMeta || defaultGameId;
-        await switchGame(targetGame, envelope.activeGameSeed);
-        setStatusMessage(getLocalizedText("campaign.load_success") || "Campaign Loaded Successfully!");
-      }
-    } catch (err: unknown) {
-      console.error("[CampaignScreen] Load failed:", err);
-      if (onError) {
-        onError(err instanceof Error ? err : new Error(String(err)));
-      }
-    }
-  }, [slotId, defaultGameId, switchGame, getLocalizedText, onError]);
+  // Persistence operations hook
+  const { handleSave, handleLoad } = useCampaignPersistence({
+    slotId,
+    defaultGameId,
+    runtimeRef,
+    metaServiceRef,
+    saveManagerRef,
+    arcadeOrchestratorRef,
+    activeGameIdRef,
+    activeGameSeedRef,
+    switchGame,
+    setStatusMessage,
+    getLocalizedText,
+    onError
+  });
 
   // Cutscene or dialogue queue assembly
   const activeCutsceneQueue = currentNode?.type === "cutscene"

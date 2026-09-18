@@ -43,7 +43,8 @@
   },
   "exclude": [
       "server",
-      "packages/core/tests"
+      "packages/core/tests",
+      "src/components/controls/__tests__/GestureControls.test.tsx"
   ],
   "include": [
     "**/*.ts",

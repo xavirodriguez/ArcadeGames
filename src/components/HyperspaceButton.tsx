@@ -1,3 +1,4 @@
+import { StyleSheet } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
 import { GestureActionButton } from "./controls/GestureActionButton";
 

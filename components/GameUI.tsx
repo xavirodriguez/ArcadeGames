@@ -271,7 +271,7 @@ export const GameUI = React.memo(function GameUI({
           </Text>
           <View style={styles.continueButtonRow}>
             <TouchableOpacity
-              style={styles.yesButton}
+              style={styles.reconnectButton}
               onPress={() => {
                 hapticSelection();
                 if (onContinue) onContinue();
@@ -281,10 +281,12 @@ export const GameUI = React.memo(function GameUI({
               accessibilityLabel={t.accessibility.reconnect_pilot_label.replace("{credits}", String(continuesRemaining))}
               accessibilityHint={t.accessibility.reconnect_pilot_hint}
             >
-              <Text style={styles.yesButtonText}>RECONNECT // {continuesRemaining}</Text>
+              <View style={styles.reconnectAccentLeft} />
+              <Text style={styles.reconnectButtonText}>▶ RECONNECT [{continuesRemaining}]</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={styles.noButton}
+              style={styles.abortButton}
               onPress={() => {
                 hapticSelection();
                 if (onRestart) onRestart();
@@ -294,7 +296,7 @@ export const GameUI = React.memo(function GameUI({
               accessibilityLabel={t.accessibility.abort_mission_label}
               accessibilityHint={t.accessibility.abort_mission_hint}
             >
-              <Text style={styles.noButtonText}>ABORT</Text>
+              <Text style={styles.abortButtonText}>✕ ABORT MISSION</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -352,26 +354,87 @@ const HUD: React.FC<{
   const scoreLabelText = theme?.scoreLabel ?? "SCORE_MATCH";
   const sectorLabelText = theme?.sectorLabel ?? "KEPLER-791";
 
-  const systemColor = theme?.colors?.system ?? COLORS.system;
+  const defaultSystemColor = theme?.colors?.system ?? COLORS.system;
   const warningColor = theme?.colors?.warning ?? COLORS.warning;
+  const dangerColor = theme?.colors?.danger ?? COLORS.danger;
+
+  // Critical status (1-2 lives) styling & pulse
+  const isCritical = lives >= 1 && lives <= 2;
+  const lifeAccentColor = lives === 1 ? dangerColor : isCritical ? warningColor : defaultSystemColor;
+
+  // Reanimated values for life lost feedback (flash + shake)
+  const lifeShake = useSharedValue(0);
+  const lifeFlash = useSharedValue(0);
+  const prevLivesRef = React.useRef(lives);
+
+  useEffect(() => {
+    if (lives < prevLivesRef.current && prevLivesRef.current > 0) {
+      // Life lost feedback trigger: 300ms flash and shake
+      lifeFlash.value = withSequence(
+        withSpring(1, { damping: 4, stiffness: 200 }),
+        withSpring(0, { damping: 10, stiffness: 120 })
+      );
+      lifeShake.value = withSequence(
+        withSpring(6, { damping: 3, stiffness: 300 }),
+        withSpring(-6, { damping: 3, stiffness: 300 }),
+        withSpring(3, { damping: 5, stiffness: 200 }),
+        withSpring(0, { damping: 10, stiffness: 150 })
+      );
+    }
+    prevLivesRef.current = lives;
+  }, [lives, lifeFlash, lifeShake]);
+
+  const animatedLifeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: lifeShake.value }],
+    backgroundColor: lifeFlash.value > 0.1 ? "rgba(255, 49, 91, 0.25)" : "transparent",
+  }));
+
+  // Memoize compact icons array (max 1-2 icons)
+  const compactIconCount = Math.min(lives, 2);
+  const memoizedCompactIcons = React.useMemo(() => {
+    if (lives <= 0) return null;
+    return Array.from({ length: compactIconCount }).map((_, index) => (
+      <ShipLifeIcon key={`compact-life-icon-${index}`} color={lifeAccentColor} compact />
+    ));
+  }, [lives, compactIconCount, lifeAccentColor]);
+
+  // Memoize expanded icons array
+  const memoizedExpandedIcons = React.useMemo(() => {
+    if (lives <= 0) return null;
+    return Array.from({ length: lives }).map((_, index) => (
+      <ShipLifeIcon key={`expanded-life-icon-${index}`} color={lifeAccentColor} />
+    ));
+  }, [lives, lifeAccentColor]);
 
   if (isCompact) {
     return (
       <Animated.View entering={FadeIn.duration(450)} style={[styles.topBar, { paddingTop }]}>
         <View style={[styles.compactBar, reservePauseSpace && styles.compactBarWithPause]}>
-          <View style={styles.compactLifeRow}>
+          <Animated.View
+            style={[
+              styles.compactLifeContainer,
+              animatedLifeStyle,
+              isCritical && styles.criticalPulseContainer,
+            ]}
+            accessibilityRole="header"
+            accessibilityLabel={t.accessibility.lives_remaining_label.replace("{lives}", String(lives))}
+          >
             {lives > 0 ? (
-              Array.from({ length: Math.min(lives, 4) }).map((_, index) => (
-                <ShipLifeIcon key={`compact-life-${index}`} color={systemColor} compact />
-              ))
+              <View style={styles.compactLifeRow}>
+                <Text style={[styles.compactLivesNumber, { color: lifeAccentColor }]}>
+                  {lives}
+                </Text>
+                <View style={styles.compactIconsGroup}>
+                  {memoizedCompactIcons}
+                </View>
+              </View>
             ) : (
               <Text style={styles.signalLostMini}>LOST</Text>
             )}
-            {lives > 4 && <Text style={styles.compactExtraLives}>+{lives - 4}</Text>}
-          </View>
+          </Animated.View>
 
           <View style={styles.compactScoreBlock}>
-            <Score score={score} color={systemColor} compact />
+            <Score score={score} color={defaultSystemColor} compact />
           </View>
 
           <TouchableOpacity
@@ -413,22 +476,20 @@ const HUD: React.FC<{
       <View style={[styles.hudContent, reservePauseSpace && styles.hudContentWithPause]}>
         <HudPanel
           style={styles.hudLeftPanel}
-          accent="system"
+          accent={lives === 1 ? "danger" : isCritical ? "warning" : "system"}
           moduleCode="LIFE//01"
           themeColors={theme?.colors}
           accessibilityRole="header"
           accessibilityLabel={t.accessibility.lives_remaining_label.replace("{lives}", String(lives))}
         >
           <Text style={[styles.hudKicker, theme?.colors?.system ? { color: theme.colors.system } : null]}>{titleText}</Text>
-          <View style={styles.lifeRow}>
+          <Animated.View style={[styles.lifeRow, animatedLifeStyle]}>
             {lives > 0 ? (
-              Array.from({ length: lives }).map((_, index) => (
-                <ShipLifeIcon key={`life-${index}`} color={systemColor} />
-              ))
+              memoizedExpandedIcons
             ) : (
               <Text style={styles.signalLostMini}>SIGNAL LOST</Text>
             )}
-          </View>
+          </Animated.View>
           <Text style={styles.hudMicro}>{subTitleText}</Text>
         </HudPanel>
 
@@ -441,7 +502,7 @@ const HUD: React.FC<{
           accessibilityLabel={t.accessibility.current_score_label.replace("{score}", String(score)).replace("{highScore}", String(highScore))}
         >
           <Text style={styles.hudLabel}>{scoreLabelText}</Text>
-          <Score score={score} color={systemColor} />
+          <Score score={score} color={defaultSystemColor} />
           <Text style={styles.hudMicro}>RECORD {formatScore(highScore)}</Text>
         </HudPanel>
 
@@ -572,15 +633,19 @@ const TechnicalRail: React.FC<{
   </View>
 );
 
-const ShipLifeIcon: React.FC<{ color?: string; compact?: boolean }> = ({ color = COLORS.cyan, compact }) => (
-  <View style={[styles.shipIcon, compact && styles.shipIconCompact]} accessibilityLabel="life">
+const ShipLifeIcon: React.FC<{ color?: string; compact?: boolean }> = React.memo(({ color = COLORS.cyan, compact }) => (
+  <View
+    style={[styles.shipIcon, compact && styles.shipIconCompact]}
+    importantForAccessibility="no"
+    accessibilityElementsHidden={true}
+  >
     <View style={[styles.shipNose, compact && styles.shipNoseCompact, { borderBottomColor: color }]} />
     <View style={[styles.shipBody, compact && styles.shipBodyCompact, { backgroundColor: color }]} />
     <View style={[styles.shipWing, styles.shipWingLeft, compact && styles.shipWingCompact, { backgroundColor: color }]} />
     <View style={[styles.shipWing, styles.shipWingRight, compact && styles.shipWingCompact, { backgroundColor: color }]} />
     <View style={[styles.shipEngine, compact && styles.shipEngineCompact]} />
   </View>
-);
+));
 
 const Score: React.FC<{ score: number; color?: string; compact?: boolean }> = ({ score, color = COLORS.cyan, compact }) => {
   const scale = useSharedValue(1);
@@ -673,13 +738,19 @@ const ReadyOverlay: React.FC<{
 
         <View style={styles.countdownStage}>
           <View style={styles.countdownHairline} />
-          <Animated.Text
-            key={`ready-count-${countdown}`}
-            entering={ZoomIn.duration(190)}
-            style={styles.readyTimer}
+          <Animated.View
+            key={`ready-ring-${countdown}`}
+            entering={ZoomIn.duration(220)}
+            style={styles.readyPulseRing}
           >
-            {String(countdown).padStart(2, "0")}
-          </Animated.Text>
+            <Animated.Text
+              key={`ready-count-${countdown}`}
+              entering={ZoomIn.duration(190)}
+              style={styles.readyTimer}
+            >
+              {String(countdown).padStart(2, "0")}
+            </Animated.Text>
+          </Animated.View>
           <View style={styles.countdownHairline} />
         </View>
 
@@ -852,10 +923,10 @@ const styles = StyleSheet.create({
     top: 4,
     right: 6,
     fontFamily: DATA_FONT,
-    fontSize: 6,
+    fontSize: 7,
     fontWeight: "900",
     letterSpacing: 0.8,
-    opacity: 0.72,
+    opacity: 0.35,
   },
   cornerMark: {
     position: "absolute",
@@ -1041,8 +1112,16 @@ const styles = StyleSheet.create({
         }),
   },
   scoreValueCompact: {
-    fontSize: 18,
-    letterSpacing: 1.2,
+    fontSize: 24,
+    fontWeight: "900",
+    letterSpacing: 2.2,
+    ...(Platform.OS === "web"
+      ? { textShadow: "0 0 12px rgba(0, 232, 210, 0.6)" }
+      : {
+          textShadowColor: "rgba(0, 232, 210, 0.6)",
+          textShadowOffset: { width: 0, height: 0 },
+          textShadowRadius: 10,
+        }),
   },
   sectorValue: {
     color: COLORS.amber,
@@ -1088,28 +1167,47 @@ const styles = StyleSheet.create({
   compactBarWithPause: {
     marginRight: 52,
   },
+  compactLifeContainer: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    justifyContent: "center",
+  },
   compactLifeRow: {
     flexDirection: "row",
     alignItems: "center",
   },
-  compactExtraLives: {
-    color: COLORS.white,
+  compactLivesNumber: {
     fontFamily: DATA_FONT,
-    fontSize: 10,
-    fontWeight: "bold",
-    marginLeft: 2,
+    fontSize: 20,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginRight: 4,
+  },
+  compactIconsGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  criticalPulseContainer: {
+    borderWidth: 1,
+    borderColor: "rgba(246, 200, 95, 0.4)",
+    backgroundColor: "rgba(246, 200, 95, 0.08)",
   },
   compactScoreBlock: {
+    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
   },
   compactDrawerToggle: {
     paddingHorizontal: 6,
     paddingVertical: 4,
+    opacity: 0.85,
   },
   compactSectorText: {
     fontFamily: DATA_FONT,
-    fontSize: 12,
-    fontWeight: "bold",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.8,
   },
   compactDrawerPanel: {
     backgroundColor: COLORS.panelStrong,
@@ -1461,6 +1559,17 @@ const styles = StyleSheet.create({
     letterSpacing: 1.6,
   },
 
+  readyPulseRing: {
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(0, 232, 210, 0.4)",
+    backgroundColor: "rgba(0, 232, 210, 0.06)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   // Continue ----------------------------------------------------------------
   continueOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -1486,38 +1595,53 @@ const styles = StyleSheet.create({
   },
   continueButtonRow: {
     flexDirection: "row",
+    alignItems: "center",
   },
-  yesButton: {
+  reconnectButton: {
     backgroundColor: COLORS.cyan,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: COLORS.cyan,
-    paddingHorizontal: 26,
+    borderRadius: 2,
+    paddingHorizontal: 24,
     paddingVertical: 14,
-    minHeight: 44,
-    marginHorizontal: 6,
+    minHeight: 48,
+    marginHorizontal: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  yesButtonText: {
+  reconnectAccentLeft: {
+    width: 4,
+    height: 18,
+    backgroundColor: COLORS.ink,
+    marginRight: 8,
+  },
+  reconnectButtonText: {
     color: COLORS.ink,
     fontFamily: DATA_FONT,
     fontSize: 13,
     fontWeight: "900",
-    letterSpacing: 1,
+    letterSpacing: 1.2,
   },
-  noButton: {
-    backgroundColor: "rgba(255, 49, 91, 0.08)",
-    borderWidth: 1,
+  abortButton: {
+    backgroundColor: "rgba(255, 49, 91, 0.06)",
+    borderWidth: 2,
+    borderStyle: "dashed",
     borderColor: COLORS.red,
-    paddingHorizontal: 26,
+    borderRadius: 2,
+    paddingHorizontal: 24,
     paddingVertical: 14,
-    minHeight: 44,
-    marginHorizontal: 6,
+    minHeight: 48,
+    marginHorizontal: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  noButtonText: {
+  abortButtonText: {
     color: COLORS.red,
     fontFamily: DATA_FONT,
     fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 1,
+    fontWeight: "800",
+    letterSpacing: 1.2,
   },
 
   // Level up ----------------------------------------------------------------

@@ -43,3 +43,34 @@ export function HyperspaceButton({
     />
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    width: 56,
+    height: 56,
+    minWidth: 48,
+    minHeight: 48,
+    borderRadius: 28,
+    borderWidth: 2,
+    borderColor: "rgba(0, 255, 255, 0.8)",
+    alignItems: "center",
+    justifyContent: "center",
+    userSelect: "none",
+  },
+  pressed: {
+    borderColor: "#00FFFF",
+  },
+  disabled: {
+    borderColor: "rgba(150, 150, 150, 0.4)",
+  },
+  label: {
+    color: "cyan",
+    fontSize: 18,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    userSelect: "none",
+  },
+  disabledLabel: {
+    color: "rgba(200, 200, 200, 0.5)",
+  },
+});

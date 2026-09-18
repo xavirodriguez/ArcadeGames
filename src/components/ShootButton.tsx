@@ -43,3 +43,34 @@ export function ShootButton({
     />
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    width: 84,
+    height: 84,
+    minWidth: 84,
+    minHeight: 84,
+    borderRadius: 42,
+    borderWidth: 2,
+    borderColor: "rgba(255, 80, 80, 0.8)",
+    alignItems: "center",
+    justifyContent: "center",
+    userSelect: "none",
+  },
+  pressed: {
+    borderColor: "#FF8080",
+  },
+  disabled: {
+    borderColor: "rgba(150, 150, 150, 0.4)",
+  },
+  label: {
+    color: "#FF8080",
+    fontSize: 16,
+    fontWeight: "bold",
+    fontFamily: "monospace",
+    userSelect: "none",
+  },
+  disabledLabel: {
+    color: "rgba(200, 200, 200, 0.5)",
+  },
+});

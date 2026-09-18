@@ -6329,32 +6329,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-18T07:26:11.525Z",
+    "detectionDate": "2026-09-18T05:57:04.446Z",
     "formats": {
       "typescript": {
         "clones": 171,
         "duplicatedLines": 1682,
         "duplicatedTokens": 13416,
-        "lines": 67044,
+        "lines": 67052,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.508800190919396,
-        "percentageTokens": 3.8161446585068224,
+        "percentage": 2.5085008650002982,
+        "percentageTokens": 3.815623693498708,
         "sources": 398,
-        "tokens": 351559
+        "tokens": 351607
       }
     },
     "total": {
       "clones": 171,
       "duplicatedLines": 1682,
       "duplicatedTokens": 13416,
-      "lines": 67044,
+      "lines": 67052,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.508800190919396,
-      "percentageTokens": 3.8161446585068224,
+      "percentage": 2.5085008650002982,
+      "percentageTokens": 3.815623693498708,
       "sources": 398,
-      "tokens": 351559
+      "tokens": 351607
     }
   }
 }

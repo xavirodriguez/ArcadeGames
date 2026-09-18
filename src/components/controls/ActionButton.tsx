@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.4)",
     minWidth: 48,
     minHeight: 48,
+    userSelect: "none",
   },
   pressed: {
     backgroundColor: "rgba(255,255,255,0.45)",
@@ -90,6 +91,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
+    userSelect: "none",
   },
   disabledLabel: {
     color: "rgba(255,255,255,0.4)",

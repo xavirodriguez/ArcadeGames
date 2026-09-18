@@ -74,11 +74,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
+    userSelect: "none",
   },
   backButtonText: {
     color: colors.cyan,
     fontSize: typography.sizes.sm,
     fontFamily: typography.game,
     fontWeight: typography.weights.bold,
+    userSelect: "none",
   },
 });

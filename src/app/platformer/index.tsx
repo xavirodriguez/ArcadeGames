@@ -369,6 +369,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: spacing.sm,
+    userSelect: "none",
   },
   touchButtonPressed: {
     transform: [{ scale: 0.92 }],
@@ -380,6 +381,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
+    userSelect: "none",
   },
   jumpButton: {
     borderColor: colors.cyan,
@@ -418,6 +420,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     marginTop: spacing.xxxxl,
+    userSelect: "none",
     ...effects.cyanGlow,
   },
   menuButtonText: {
@@ -425,5 +428,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
+    userSelect: "none",
   }
 });

@@ -62,6 +62,7 @@ export const sharedScreenStyles = StyleSheet.create({
     minWidth: 130,
     alignItems: "center",
     justifyContent: "center",
+    userSelect: "none",
     ...effects.whiteGlow,
   },
   multiButton: {
@@ -72,6 +73,7 @@ export const sharedScreenStyles = StyleSheet.create({
     minWidth: 130,
     alignItems: "center",
     justifyContent: "center",
+    userSelect: "none",
     ...effects.cyanGlow,
   },
   startButtonText: {
@@ -79,12 +81,14 @@ export const sharedScreenStyles = StyleSheet.create({
     fontSize: typography.sizes.label,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
+    userSelect: "none",
   },
   multiButtonText: {
     color: COLORS.ink,
     fontSize: typography.sizes.label,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
+    userSelect: "none",
   },
   buttonRow: {
     flexDirection: "row",
@@ -129,12 +133,14 @@ export const sharedScreenStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
+    userSelect: "none",
   },
   backButtonText: {
     color: COLORS.neonCyan,
     fontSize: typography.sizes.small,
     fontFamily: typography.game,
     fontWeight: typography.weights.bold,
+    userSelect: "none",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

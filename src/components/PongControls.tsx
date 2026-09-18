@@ -1,7 +1,7 @@
 import React from "react";
-import { StyleSheet, View, Pressable, Text } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
-import { hapticSelection } from "../utils/haptics";
+import { GestureActionButton } from "./controls/GestureActionButton";
 
 interface PongControlsProps {
   onP1Up: (pressed: boolean) => void;
@@ -20,68 +20,67 @@ export const PongControls: React.FC<PongControlsProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const handlePressIn = (action: () => void) => {
-    hapticSelection();
-    action();
-  };
-
   return (
     <View style={styles.container} pointerEvents="box-none">
       <View style={styles.side} pointerEvents="box-none">
-        <Pressable
-          accessibilityRole="button"
+        <GestureActionButton
+          label="▲"
+          size={80}
+          color="rgba(255, 255, 255, 0.2)"
+          borderColor="white"
+          pressedColor="rgba(255, 255, 255, 0.55)"
+          pressedBorderColor="#FFFFFF"
+          textColor="white"
+          onPressIn={() => onP1Up(true)}
+          onPressOut={() => onP1Up(false)}
           accessibilityLabel={t?.accessibility?.pong_p1_up || "Player 1 Move Up"}
           accessibilityHint={t?.accessibility?.pong_p1_up_hint || "Moves Player 1 paddle upwards"}
-          accessibilityState={{ disabled: false }}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-          onPressIn={() => handlePressIn(() => onP1Up(true))}
-          onPressOut={() => onP1Up(false)}
-        >
-          <Text style={styles.text}>▲</Text>
-        </Pressable>
+        />
         <View style={styles.spacer} />
-        <Pressable
-          accessibilityRole="button"
+        <GestureActionButton
+          label="▼"
+          size={80}
+          color="rgba(255, 255, 255, 0.2)"
+          borderColor="white"
+          pressedColor="rgba(255, 255, 255, 0.55)"
+          pressedBorderColor="#FFFFFF"
+          textColor="white"
+          onPressIn={() => onP1Down(true)}
+          onPressOut={() => onP1Down(false)}
           accessibilityLabel={t?.accessibility?.pong_p1_down || "Player 1 Move Down"}
           accessibilityHint={t?.accessibility?.pong_p1_down_hint || "Moves Player 1 paddle downwards"}
-          accessibilityState={{ disabled: false }}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-          onPressIn={() => handlePressIn(() => onP1Down(true))}
-          onPressOut={() => onP1Down(false)}
-        >
-          <Text style={styles.text}>▼</Text>
-        </Pressable>
+        />
       </View>
 
       {showP2Controls && (
         <View style={styles.side} pointerEvents="box-none">
-          <Pressable
-            accessibilityRole="button"
+          <GestureActionButton
+            label="▲"
+            size={80}
+            color="rgba(255, 255, 255, 0.2)"
+            borderColor="white"
+            pressedColor="rgba(255, 255, 255, 0.55)"
+            pressedBorderColor="#FFFFFF"
+            textColor="white"
+            onPressIn={() => onP2Up(true)}
+            onPressOut={() => onP2Up(false)}
             accessibilityLabel={t?.accessibility?.pong_p2_up || "Player 2 Move Up"}
             accessibilityHint={t?.accessibility?.pong_p2_up_hint || "Moves Player 2 paddle upwards"}
-            accessibilityState={{ disabled: false }}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-            onPressIn={() => handlePressIn(() => onP2Up(true))}
-            onPressOut={() => onP2Up(false)}
-          >
-            <Text style={styles.text}>▲</Text>
-          </Pressable>
+          />
           <View style={styles.spacer} />
-          <Pressable
-            accessibilityRole="button"
+          <GestureActionButton
+            label="▼"
+            size={80}
+            color="rgba(255, 255, 255, 0.2)"
+            borderColor="white"
+            pressedColor="rgba(255, 255, 255, 0.55)"
+            pressedBorderColor="#FFFFFF"
+            textColor="white"
+            onPressIn={() => onP2Down(true)}
+            onPressOut={() => onP2Down(false)}
             accessibilityLabel={t?.accessibility?.pong_p2_down || "Player 2 Move Down"}
             accessibilityHint={t?.accessibility?.pong_p2_down_hint || "Moves Player 2 paddle downwards"}
-            accessibilityState={{ disabled: false }}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-            onPressIn={() => handlePressIn(() => onP2Down(true))}
-            onPressOut={() => onP2Down(false)}
-          >
-            <Text style={styles.text}>▼</Text>
-          </Pressable>
+          />
         </View>
       )}
     </View>

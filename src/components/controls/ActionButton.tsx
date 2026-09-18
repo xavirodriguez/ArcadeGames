@@ -1,3 +1,4 @@
+import { StyleSheet } from "react-native";
 import { GestureActionButton } from "./GestureActionButton";
 
 export interface ActionButtonProps {

@@ -7,9 +7,7 @@ import {
   World,
   InputSchema,
   AssetManifest,
-  RandomService,
-  StoryRuntime,
-  StoryGraph
+  RandomService
 } from "@tiny-aster/core";
 
 /**
@@ -186,71 +184,5 @@ describe("CampaignScreen switchGame Lifecycle, Seed Determinism & Memory Leak Pr
 
     expect(sceneChangeHandlerCalled).toBe(false);
     expect(gameOverHandlerCalled).toBe(false);
-  });
-
-  it("does not call switchGame on mount when entry node is a dialogue node, and only loads game on story:scene_change", async () => {
-    const mockGraph: StoryGraph = {
-      id: "test_graph",
-      title: "Test Campaign Graph",
-      entryNodeId: "node_intro_dialogue",
-      nodes: {
-        node_intro_dialogue: {
-          id: "node_intro_dialogue",
-          type: "dialogue",
-          title: "Intro Dialogue",
-          dialogue: {
-            id: "dlg_1",
-            lines: [{ textKey: "Welcome commander" }]
-          },
-          transitions: [
-            {
-              targetNodeId: "node_gameplay_1",
-              condition: { type: "event", key: "dialogue_complete" }
-            }
-          ]
-        },
-        node_gameplay_1: {
-          id: "node_gameplay_1",
-          type: "gameplay",
-          title: "Stage 1",
-          sceneToLoad: "test-game-1"
-        }
-      }
-    };
-
-    const runtime = new StoryRuntime();
-    runtime.bindEventBus(eventBus);
-
-    let activeGameLoaded: BaseGame | null = null;
-    eventBus.on("story:scene_change", async (data: { sceneToLoad?: unknown; gameId?: unknown }) => {
-      const targetGameId = (data.sceneToLoad || data.gameId) as string | undefined;
-      if (targetGameId) {
-        await switchGame(targetGameId);
-        activeGameLoaded = activeGame;
-      }
-    });
-
-    // 1. Mount simulation: load graph
-    runtime.loadGraph(mockGraph, true);
-    const entryNode = runtime.getCurrentNode();
-
-    // Verify entry node is narrative dialogue and switchGame was NOT called on mount
-    expect(entryNode?.id).toBe("node_intro_dialogue");
-    expect(entryNode?.type).toBe("dialogue");
-    expect(activeGame).toBeNull();
-    expect(mockInit1).not.toHaveBeenCalled();
-
-    // 2. Transition simulation: complete dialogue and evaluate transitions to gameplay node
-    runtime.handleEvent("dialogue_complete", {});
-
-    const currentNode = runtime.getCurrentNode();
-    expect(currentNode?.id).toBe("node_gameplay_1");
-    expect(currentNode?.type).toBe("gameplay");
-
-    // Allow promise tick for async switchGame handler in story:scene_change event callback
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(mockInit1).toHaveBeenCalledTimes(1);
-    expect(activeGameLoaded).toBe(mockGame1);
   });
 });

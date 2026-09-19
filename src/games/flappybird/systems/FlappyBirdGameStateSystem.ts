@@ -88,7 +88,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
 
     if (gameState.pipeSpawnTimer >= this.config.PIPE_SPAWN_INTERVAL / 1000) {
       const margin = this.config.PIPE_SPAWN_MARGIN;
-      const gapY = world.gameplayRandom.nextInt(margin, this.config.SCREEN_HEIGHT - margin);
+      const gapY = world.gameplayRandom.nextInt(margin, this.config.worldHeight - margin);
 
       const pipesSpawned = gameState.pipesSpawnedCount ?? 0;
       const cyclePos = pipesSpawned % 10;
@@ -107,7 +107,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
 
       createPipe({
         world,
-        x: this.config.SCREEN_WIDTH + this.config.PIPE_WIDTH,
+        x: this.config.worldWidth + this.config.PIPE_WIDTH,
         gapY,
         deferred: true,
         movementType,

@@ -63,6 +63,13 @@ export class ReplayPlayer {
   }
 
   /**
+   * Returns the recorded input frames.
+   */
+  public getInputs(): InputFrame[] {
+    return this.inputs;
+  }
+
+  /**
    * Applies the recorded input for the given tick onto the designated player entity.
    */
   public applyInputForTick<TComponents extends import("../ecs/Component").ComponentRegistry>(world: World<TComponents>, entityId: number, tick: number): boolean {

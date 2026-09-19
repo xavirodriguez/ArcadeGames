@@ -72,7 +72,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
   public onEnter(): void {
     // Inject resources into the scene world
     this.world.setResource("GameConfig", this.config);
-    this.world.setResource("ScreenConfig", { width: GAME_CONFIG.SCREEN_WIDTH, height: GAME_CONFIG.SCREEN_HEIGHT });
+    this.world.setResource("ScreenConfig", { width: GAME_CONFIG.worldWidth, height: GAME_CONFIG.worldHeight });
 
     // Generate procedural Wave Definitions
     const waveDefs: any[] = [];
@@ -205,7 +205,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     this.world.setResource("IsHeadless", isHeadless);
 
     createGameState(this.world);
-    createPlayer(this.world, GAME_CONFIG.SCREEN_CENTER_X, GAME_CONFIG.SCREEN_HEIGHT - 50);
+    createPlayer(this.world, GAME_CONFIG.worldWidth / 2, GAME_CONFIG.worldHeight - 50);
     createFormationController(this.world);
     spawnShields(this.world);
   }

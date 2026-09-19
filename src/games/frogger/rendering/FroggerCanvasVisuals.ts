@@ -217,7 +217,7 @@ export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world) {
     const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-    const w = config.SCREEN_WIDTH;
+    const w = config.worldWidth;
     const grid = config.GRID_SIZE;
 
     // Row 0: Goal Bank

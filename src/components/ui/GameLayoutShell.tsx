@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View, ViewStyle, StyleProp } from "react-native";
 import { Layer } from "./Layer";
+import { OrientationGuard } from "./OrientationGuard";
 
 export interface GameLayoutShellProps {
   /** Top left slot (e.g., BackButton or lives counter) */
@@ -42,59 +43,61 @@ export const GameLayoutShell: React.FC<GameLayoutShellProps> = ({
   style,
 }) => {
   return (
-    <View style={[styles.container, style]}>
-      {backgroundSlot}
+    <OrientationGuard>
+      <View style={[styles.container, style]}>
+        {backgroundSlot}
 
-      {/* Canvas rendering layer */}
-      {canvasSlot && (
-        <Layer level="CANVAS" style={styles.layerFill} pointerEvents="auto">
-          {canvasSlot}
-        </Layer>
-      )}
+        {/* Canvas rendering layer */}
+        {canvasSlot && (
+          <Layer level="CANVAS" style={styles.layerFill} pointerEvents="auto">
+            {canvasSlot}
+          </Layer>
+        )}
 
-      {/* Custom HUD Surface */}
-      {hudSlot && (
-        <Layer level="HUD_SURFACE" style={styles.hudSurfaceLayer} pointerEvents="box-none">
-          {hudSlot}
-        </Layer>
-      )}
+        {/* Custom HUD Surface */}
+        {hudSlot && (
+          <Layer level="HUD_SURFACE" style={styles.hudSurfaceLayer} pointerEvents="box-none">
+            {hudSlot}
+          </Layer>
+        )}
 
-      {/* Standard top slots (top-left, top-right, top-center) */}
-      {(topLeftSlot || topRightSlot || centerHudSlot) && (
-        <Layer level="HUD_INTERACTIVES" style={styles.headerSlotsLayer} pointerEvents="box-none">
-          <View style={styles.topLeftSlotContainer} pointerEvents="box-none">
-            {topLeftSlot}
-          </View>
-          <View style={styles.centerSlotContainer} pointerEvents="none">
-            {centerHudSlot}
-          </View>
-          <View style={styles.topRightSlotContainer} pointerEvents="box-none">
-            {topRightSlot}
-          </View>
-        </Layer>
-      )}
+        {/* Standard top slots (top-left, top-right, top-center) */}
+        {(topLeftSlot || topRightSlot || centerHudSlot) && (
+          <Layer level="HUD_INTERACTIVES" style={styles.headerSlotsLayer} pointerEvents="box-none">
+            <View style={styles.topLeftSlotContainer} pointerEvents="box-none">
+              {topLeftSlot}
+            </View>
+            <View style={styles.centerSlotContainer} pointerEvents="none">
+              {centerHudSlot}
+            </View>
+            <View style={styles.topRightSlotContainer} pointerEvents="box-none">
+              {topRightSlot}
+            </View>
+          </Layer>
+        )}
 
-      {/* Touch controls layer */}
-      {controlsSlot && (
-        <Layer level="CONTROLS" style={styles.controlsLayer} pointerEvents="box-none">
-          {controlsSlot}
-        </Layer>
-      )}
+        {/* Touch controls layer */}
+        {controlsSlot && (
+          <Layer level="CONTROLS" style={styles.controlsLayer} pointerEvents="box-none">
+            {controlsSlot}
+          </Layer>
+        )}
 
-      {/* Overlays layer (Pause, Game Over, Modals) */}
-      {overlaySlot && (
-        <Layer level="MODAL_OVERLAY" style={styles.layerFill} pointerEvents="box-none">
-          {overlaySlot}
-        </Layer>
-      )}
+        {/* Overlays layer (Pause, Game Over, Modals) */}
+        {overlaySlot && (
+          <Layer level="MODAL_OVERLAY" style={styles.layerFill} pointerEvents="box-none">
+            {overlaySlot}
+          </Layer>
+        )}
 
-      {/* Debug Overlay layer */}
-      {debugSlot && (
-        <Layer level="DEBUG_OVERLAY" style={styles.layerFill} pointerEvents="box-none">
-          {debugSlot}
-        </Layer>
-      )}
-    </View>
+        {/* Debug Overlay layer */}
+        {debugSlot && (
+          <Layer level="DEBUG_OVERLAY" style={styles.layerFill} pointerEvents="box-none">
+            {debugSlot}
+          </Layer>
+        )}
+      </View>
+    </OrientationGuard>
   );
 };
 

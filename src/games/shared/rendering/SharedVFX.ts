@@ -26,7 +26,7 @@ export function getActiveLevelTheme(world: World): LevelVisualTheme {
   if (resourceTheme) {
     return getLevelTheme(resourceTheme);
   }
-  const gameState = world.getSingleton("GameState") as { level?: number } | undefined;
+  const gameState = world.getSingleton("GameState" as Extract<keyof TComponents, string>) as { level?: number } | undefined;
   const level = gameState?.level || 1;
   const themes: LevelThemeName[] = ["deep_space", "violet_nebula", "industrial_orbit", "volcanic_rift", "alien_bloom"];
   const themeName = themes[(level - 1) % themes.length];
@@ -85,7 +85,7 @@ interface Star {
   twinklePhase: number;
   twinkleSpeed: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 interface SpeedLine {
@@ -94,7 +94,7 @@ interface SpeedLine {
   length: number;
   speed: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 interface NebulaCloud {
@@ -104,7 +104,7 @@ interface NebulaCloud {
   vy: number;
   radius: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 interface MatrixColumn {
@@ -136,7 +136,7 @@ interface MilkyWayDustParticle {
   twinklePhase: number;
   twinkleSpeed: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 interface MilkyWayBandState {
@@ -168,15 +168,15 @@ interface DistantAsteroid {
   angularVelocity: number;
   points: { x: number; y: number }[];
   color: string;
-  skColor?: any;
-  skPath?: any;
+  skColor?: SkColor | null;
+  skPath?: SkPath | null;
 }
 
 interface SpaceStationBeacon {
   x: number;
   y: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
   twinklePhase: number;
   twinkleSpeed: number;
 }
@@ -215,16 +215,16 @@ interface VFXWorldState {
   milkyWayInitialized: boolean;
   stationInitialized: boolean;
   timePhase: number; // Incremented exactly once per render tick to be entity-independent
-  cachedCRTGradient?: any; // Cached CanvasRadialGradient
-  cachedSkiaShader?: any; // Cached Skia Shader
-  cachedPlanetGradient?: any; // Cached CanvasRadialGradient for Ringing Planet
-  cachedPlanetSkiaShader?: any; // Cached Skia Shader for Ringing Planet
-  cachedRingGradient?: any; // Cached CanvasLinearGradient for Planet Rings
-  cachedRingSkiaShader?: any; // Cached Skia Shader for Planet Rings
-  cachedMilkyWayGradient?: any; // Cached CanvasLinearGradient for Diffuse Milky Way
-  cachedMilkyWaySkiaShader?: any; // Cached Skia Shader for Diffuse Milky Way
-  cachedStationGradient?: any; // Cached CanvasRadialGradient for Space Station Hub
-  cachedStationSkiaShader?: any; // Cached Skia Shader for Space Station Hub
+  cachedCRTGradient?: CanvasGradient | null; // Cached CanvasRadialGradient
+  cachedSkiaShader?: SkShader | null; // Cached Skia Shader
+  cachedPlanetGradient?: CanvasGradient | null; // Cached CanvasRadialGradient for Ringing Planet
+  cachedPlanetSkiaShader?: SkShader | null; // Cached Skia Shader for Ringing Planet
+  cachedRingGradient?: CanvasGradient | null; // Cached CanvasLinearGradient for Planet Rings
+  cachedRingSkiaShader?: SkShader | null; // Cached Skia Shader for Planet Rings
+  cachedMilkyWayGradient?: CanvasGradient | null; // Cached CanvasLinearGradient for Diffuse Milky Way
+  cachedMilkyWaySkiaShader?: SkShader | null; // Cached Skia Shader for Diffuse Milky Way
+  cachedStationGradient?: CanvasGradient | null; // Cached CanvasRadialGradient for Space Station Hub
+  cachedStationSkiaShader?: SkShader | null; // Cached Skia Shader for Space Station Hub
   lastWidth: number;
   lastHeight: number;
   lastCRTWidth?: number;
@@ -258,7 +258,7 @@ function getVFXState(world: World): VFXWorldState {
       lastWidth: 0,
       lastHeight: 0
     };
-    worldStateMap.set(world, state);
+    worldStateMap.set(world as unknown as World<ComponentRegistry>, state);
   }
   return state;
 }
@@ -286,7 +286,7 @@ function getOrCreateCached<T>(
   create: () => T
 ): T {
   if (!state[cacheKey] || state.lastCRTWidth !== width || state.lastCRTHeight !== height) {
-    state[cacheKey] = create();
+    (state as Record<CachedVFXKey, unknown>)[cacheKey] = create();
     state.lastCRTWidth = width;
     state.lastCRTHeight = height;
   }
@@ -1506,27 +1506,27 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
 /**
  * Registers all shared VFX shape drawers to a Renderer instance for both Canvas and Skia backends.
  */
-export function registerSharedVFX(renderer: Renderer<any, any>): void {
-  RendererUtils.registerAssets(renderer, {
+export function registerSharedVFX<TComponents extends CoreComponentRegistry, TCanvas extends RenderContext>(renderer: Renderer<TComponents, TCanvas>): void {
+  RendererUtils.registerAssets(renderer as unknown as Renderer<ComponentRegistry, RenderContext>, {
     canvas: (r) => {
-      r.registerShape("shield_bubble", EnergyShieldBubbleEffect);
-      r.registerShape("shockwave", DebrisShockwaveEffect);
-      r.registerShape("thruster_flame", ThrusterPlumeFlameEffect);
-      r.registerShape("laser_beam", LaserRailBeamEffect);
-      r.registerShape("singularity", SingularityVortexEffect);
-      r.registerShape("comet_trail", CometMotionTrailEffect);
-      r.registerShape("hologram_glitch", RGBHologramGlitchEffect);
-      r.registerShape("floating_text", FloatingTextScoreEffect);
+      r.registerShape("shield_bubble", EnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("shockwave", DebrisShockwaveEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("thruster_flame", ThrusterPlumeFlameEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("laser_beam", LaserRailBeamEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("singularity", SingularityVortexEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("comet_trail", CometMotionTrailEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("hologram_glitch", RGBHologramGlitchEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("floating_text", FloatingTextScoreEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
     },
     skia: (r) => {
-      r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect);
-      r.registerShape("shockwave", SkiaDebrisShockwaveEffect);
-      r.registerShape("thruster_flame", SkiaThrusterPlumeFlameEffect);
-      r.registerShape("laser_beam", SkiaLaserRailBeamEffect);
-      r.registerShape("singularity", SkiaSingularityVortexEffect);
-      r.registerShape("comet_trail", SkiaCometMotionTrailEffect);
-      r.registerShape("hologram_glitch", SkiaRGBHologramGlitchEffect);
-      r.registerShape("floating_text", SkiaFloatingTextScoreEffect);
+      r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("shockwave", SkiaDebrisShockwaveEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("thruster_flame", SkiaThrusterPlumeFlameEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("laser_beam", SkiaLaserRailBeamEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("singularity", SkiaSingularityVortexEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("comet_trail", SkiaCometMotionTrailEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("hologram_glitch", SkiaRGBHologramGlitchEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("floating_text", SkiaFloatingTextScoreEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
     }
   });
 }
@@ -1535,14 +1535,18 @@ export function registerSharedVFX(renderer: Renderer<any, any>): void {
  * Shared particle creation helper for pooling and zero-allocation particle instantiation.
  * @public
  */
-export function createSharedParticle(
-  world: World<any, any, any>,
+export function createSharedParticle<
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+>(
+  world: World<TComponents, TEvents, TBlueprints>,
   x: number,
   y: number,
   dx: number,
   dy: number,
   color: string,
-  pool: { acquire: (world: World<any, any, any>, params: any) => number },
+  pool: { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: any) => number },
   size = 3,
   ttl = 0.8
 ): number {

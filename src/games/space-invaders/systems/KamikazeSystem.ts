@@ -49,7 +49,7 @@ export class KamikazeSystem extends GameSystem {
               mutableKami.targetY = playerPos.y;
             } else {
               mutableKami.targetX = pos.x;
-              mutableKami.targetY = GAME_CONFIG.SCREEN_HEIGHT;
+              mutableKami.targetY = GAME_CONFIG.worldHeight;
             }
           }
         } else {
@@ -111,7 +111,7 @@ export class KamikazeSystem extends GameSystem {
           render.rotation = Math.atan2(currentVy, currentVx) + Math.PI / 2;
         }
 
-        if (pos.y > GAME_CONFIG.SCREEN_HEIGHT - 50) {
+        if (pos.y > GAME_CONFIG.worldHeight - 50) {
           const mutableKami = world.getMutableComponent(entity, "Kamikaze");
           if (mutableKami) {
             mutableKami.phase = "returning";
@@ -171,7 +171,7 @@ export class KamikazeSystem extends GameSystem {
         warningRemaining: 0,
         telegraphRemaining: 0.6,
         targetX: playerPos ? playerPos.x : pos.x,
-        targetY: playerPos ? playerPos.y : GAME_CONFIG.SCREEN_HEIGHT,
+        targetY: playerPos ? playerPos.y : GAME_CONFIG.worldHeight,
         originX: pos.x,
         originY: pos.y,
         diveSpeed: speed,

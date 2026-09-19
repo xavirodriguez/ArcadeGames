@@ -116,7 +116,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({
-            x: config.SCREEN_CENTER_X,
+            x: config.worldWidth / 2,
             y: config.PADDLE_Y - config.PADDLE_HEIGHT / 2 - config.BALL_SIZE,
             dirty: true
           })
@@ -151,7 +151,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({
-            x: config.SCREEN_CENTER_X,
+            x: config.worldWidth / 2,
             y: config.PADDLE_Y,
             dirty: true
           })
@@ -171,7 +171,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
         world.addComponent(entity, {
           type: "Paddle",
           speed: config.PLAYER_SPEED,
-          previousX: config.SCREEN_CENTER_X,
+          previousX: config.worldWidth / 2,
           lastVelocityX: 0
         });
         world.addComponent(entity, { type: "Tag", tags: ["Paddle"] });

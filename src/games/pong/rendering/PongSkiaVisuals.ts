@@ -178,9 +178,9 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
 export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const config = world.getResource<PongConfig>("GameConfig") || { WIDTH: 800, HEIGHT: 600 };
-    const width = config.WIDTH;
-    const height = config.HEIGHT;
+    const config = world.getResource<PongConfig>("GameConfig") || { worldWidth: 800, worldHeight: 600 };
+    const width = config.worldWidth;
+    const height = config.worldHeight;
 
     const paint = getPaint();
 

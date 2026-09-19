@@ -96,7 +96,7 @@ export class SpaceInvadersFormationSystem extends GameSystem {
     }
 
     const leftLimit = formation.leftBound !== undefined && formation.leftBound > 0 ? formation.leftBound : margin;
-    const rightLimit = formation.rightBound !== undefined && formation.rightBound > 0 ? formation.rightBound : GAME_CONFIG.SCREEN_WIDTH - margin;
+    const rightLimit = formation.rightBound !== undefined && formation.rightBound > 0 ? formation.rightBound : GAME_CONFIG.worldWidth - margin;
 
     // Use predictive edge checking considering movement direction
     const willHitRight = formation.direction > 0 && maxX + moveX >= rightLimit;

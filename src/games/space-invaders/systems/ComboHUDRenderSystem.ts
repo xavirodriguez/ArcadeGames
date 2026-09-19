@@ -43,7 +43,7 @@ export function drawWaveEventBanner(ctx: CanvasRenderingContext2D, world: World<
   if (event.phase === "incoming") {
     const bannerWidth = 420;
     const bannerHeight = 36;
-    const centerX = GAME_CONFIG.SCREEN_WIDTH / 2;
+    const centerX = GAME_CONFIG.worldWidth / 2;
     const bannerY = 25;
 
     const pulseOpacity = 0.5 + 0.5 * Math.sin(tick * 0.3);
@@ -65,7 +65,7 @@ export function drawWaveEventBanner(ctx: CanvasRenderingContext2D, world: World<
     ctx.shadowBlur = 8;
     ctx.fillText(`⚠ INCOMING: ${event.name.toUpperCase()}`, centerX, bannerY + bannerHeight / 2);
   } else if (event.phase === "active") {
-    const centerX = GAME_CONFIG.SCREEN_WIDTH / 2;
+    const centerX = GAME_CONFIG.worldWidth / 2;
     const titleY = 20;
 
     ctx.font = "bold 18px monospace";
@@ -409,7 +409,7 @@ export function drawEmpChargeBarHUD(ctx: CanvasRenderingContext2D, world: World<
   const barWidth = 120;
   const barHeight = 10;
   const x = 20;
-  const y = GAME_CONFIG.SCREEN_HEIGHT - 30;
+  const y = GAME_CONFIG.worldHeight - 30;
 
   ctx.fillStyle = "rgba(10, 14, 39, 0.85)";
   ctx.fillRect(x, y, barWidth, barHeight);

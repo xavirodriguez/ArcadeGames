@@ -1,9 +1,9 @@
 import { BaseConfigSchema } from "@tiny-aster/core";
+import { ScreenDimensionsSchema } from "@tiny-aster/gameplay-kit";
 import { z } from "zod";
 
 export const FlappyBirdConfigSchema = BaseConfigSchema.extend({
-  SCREEN_WIDTH: z.number().default(400),
-  SCREEN_HEIGHT: z.number().default(600),
+  ...ScreenDimensionsSchema.shape,
 
   BIRD_X: z.number().default(100),
   BIRD_START_Y: z.number().default(300),

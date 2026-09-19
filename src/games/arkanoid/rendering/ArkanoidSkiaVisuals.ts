@@ -147,9 +147,9 @@ export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> 
 export const drawSkiaArkanoidBackground: EffectDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const config = world.getResource<ArkanoidConfig>("GameConfig") || { SCREEN_WIDTH: 800, SCREEN_HEIGHT: 600 };
-    const width = config.SCREEN_WIDTH;
-    const height = config.SCREEN_HEIGHT;
+    const config = world.getResource<ArkanoidConfig>("GameConfig") || { worldWidth: 800, worldHeight: 600 };
+    const width = config.worldWidth;
+    const height = config.worldHeight;
 
     const paint = getPaint();
 

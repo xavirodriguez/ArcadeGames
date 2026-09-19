@@ -1,4 +1,16 @@
-import { Component, CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
+import { LootTableComponent, PowerUpComponent, CombatHitEvent, CombatDeathEvent, DamageComponent, FactionComponent, SpawnDirectorComponent, WaveMemberComponent } from "@tiny-aster/gameplay-kit";
+import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";
+import { EnemyTagComponent } from "../components/EnemyTagComponent";
+
+export { SpawnDirectorComponent, WaveMemberComponent };
+
+export interface WaveDefinition {
+  id: string;
+  totalInvaders: number;
+  spawns: unknown[];
+  isBossWave?: boolean;
+}
 
 /**
  * Event registry mapping for Space Invaders.
@@ -12,12 +24,6 @@ export interface SpaceInvadersEventRegistry extends CoreEvents, Record<string, u
   "si:kill": { chain: number };
   "entity:destroyed": { entity: number; type: string };
 }
-import { ComboComponent } from "@tiny-aster/core";
-import { LootTableComponent, PowerUpComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
-import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
-import { SpawnDirectorComponent, WaveMemberComponent } from "@tiny-aster/gameplay-kit";
-import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";
-import { EnemyTagComponent } from "../components/EnemyTagComponent";
 
 /**
  * Component for Boss entities.
@@ -83,6 +89,13 @@ export interface UITextComponent extends Component {
   maxLines: number;
 }
 
+export interface DraftStateComponent extends Component {
+  type: "DraftState";
+  options: string[];
+  hasChosen: boolean;
+  selectedMutatorId: string | null;
+}
+
 /**
  * Component registry mapping for Space Invaders.
  */
@@ -110,6 +123,9 @@ export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
   PowerUp: PowerUpComponent;
   DialogueBox: DialogueBoxComponent;
   EnemyTag: EnemyTagComponent;
+  DraftState: DraftStateComponent;
+  LocalPlayer: { type: "LocalPlayer" };
+  RemotePlayer: { type: "RemotePlayer"; sessionId?: string; targetX?: number; targetY?: number; targetRotation?: number };
 }
 
 /**
@@ -119,6 +135,8 @@ export interface InputState {
   moveLeft: boolean;
   moveRight: boolean;
   shoot: boolean;
+  actions?: Set<string>;
+  axes?: Record<string, number>;
   [key: string]: unknown;
 }
 
@@ -128,6 +146,8 @@ export interface InputState {
 export interface InputComponent extends Component, InputState {
   type: "Input";
   shootCooldownRemaining: number;
+  actions?: Set<string>;
+  axes?: Record<string, number>;
 }
 
 /**

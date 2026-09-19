@@ -12,7 +12,7 @@ Al crear un nuevo juego, en lugar de definir un objeto plano con valores harcode
 
 En `@tiny-aster/gameplay-kit` existen shapes reutilizables para las características comunes:
 
-- `ScreenDimensionsSchema`: `SCREEN_WIDTH`, `SCREEN_HEIGHT`, `SCREEN_CENTER_X`, `SCREEN_CENTER_Y`.
+- `ScreenDimensionsSchema`: `worldWidth` (default 800), `worldHeight` (default 600), `aspectRatio` (default 4/3).
 - `ComboConfigSchema`: `COMBO_TIMEOUT`, `MAX_MULTIPLIER`.
 - `StandardControlKeysSchema`: Mapeo estándar de teclas.
 - `PlayerMovementSchema`: `PLAYER_SPEED`, `PLAYER_ACCEL`, `PLAYER_DECEL`, `PLAYER_AIR_ACCEL`, `PLAYER_AIR_DECEL`.
@@ -80,6 +80,20 @@ export class MiJuegoGame extends BaseGame<...> {
   }
 }
 ```
+
+## Separación de Dimensiones Lógicas vs Físicas (Letterboxing)
+
+Los minijuegos diferencian estrictamente entre:
+- **`GameConfig` (Logical World)**: Define el espacio de coordenadas lógico de la simulación (`worldWidth`, `worldHeight`, por defecto 800x600).
+- **`ScreenConfig` (Physical Viewport)**: Representa el tamaño físico del canvas o pantalla (`width`, `height`).
+
+El renderer (`CanvasRenderer` y `SkiaRenderer`) aplica letterboxing automático calculando el factor de escala uniforme `scale = Math.min(screenConfig.width / worldConfig.worldWidth, screenConfig.height / worldHeight)` y centrando el espacio de coordenadas con barras negras alrededor si el aspect ratio del dispositivo difiere del de la simulación.
+
+## Guardia de Orientación (`OrientationGuard`)
+
+Todos los minijuegos heredan la protección de orientación a través de `GameLayoutShell.tsx`:
+- **Nativo (iOS / Android)**: Bloquea la pantalla en `LANDSCAPE_RIGHT` usando `expo-screen-orientation`.
+- **Web / Dispositivos Táctiles**: Detecta modo portrait mediante `matchMedia('(orientation: portrait)')` y despliega un overlay interactivo que bloquea la pantalla solicitando al jugador rotar el dispositivo.
 
 ## Beneficios
 

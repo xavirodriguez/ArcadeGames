@@ -550,7 +550,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
   private checkInvadersBottom(world: World<SpaceInvadersComponentRegistry>, _gameState: GameStateComponent): void {
     const invaders = world.query("Invader", "Transform");
-    const limit = GAME_CONFIG.SCREEN_HEIGHT - 100;
+    const limit = GAME_CONFIG.worldHeight - 100;
     const len = invaders.length;
 
     for (let i = 0; i < len; i++) {

@@ -1,5 +1,5 @@
 import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent } from "@tiny-aster/core";
-import { SkCanvas, SkPaint, Skia } from "@shopify/react-native-skia";
+import { SkCanvas, SkPaint, Skia, PaintStyle, ClipOp } from "@shopify/react-native-skia";
 import { SkiaCircleDrawer, SkiaBoxDrawer } from "./SkiaShapeDrawers";
 import { SkiaSpriteDrawer } from "./SkiaSpriteDrawer";
 
@@ -44,6 +44,38 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
   }
 
   public render(world: World<TRegistry>, canvas: SkCanvas, _interpolation?: number): void {
+    const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
+    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
+
+    const worldWidth = gameConfig?.worldWidth ?? 800;
+    const worldHeight = gameConfig?.worldHeight ?? 600;
+
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (screenConfig && screenConfig.width > 0 && screenConfig.height > 0) {
+      scale = Math.min(
+        screenConfig.width / worldWidth,
+        screenConfig.height / worldHeight
+      );
+      offsetX = (screenConfig.width - worldWidth * scale) / 2;
+      offsetY = (screenConfig.height - worldHeight * scale) / 2;
+    }
+
+    canvas.save();
+
+    if (screenConfig && screenConfig.width > 0 && screenConfig.height > 0) {
+      this.paint.reset();
+      this.paint.setStyle(PaintStyle.Fill);
+      this.paint.setColor(Skia.Color("#000000"));
+      canvas.drawRect(Skia.XYWHRect(0, 0, screenConfig.width, screenConfig.height), this.paint);
+    }
+
+    canvas.translate(offsetX, offsetY);
+    canvas.scale(scale, scale);
+    canvas.clipRect(Skia.XYWHRect(0, 0, worldWidth, worldHeight), ClipOp.Intersect, true);
+
     // Draw background effects first (e.g. scrolling starfield, retro CRT)
     for (const drawer of this.backgroundEffects.values()) {
       drawer.draw(canvas, world);
@@ -149,6 +181,7 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
       canvas.restore();
     }
 
+    canvas.restore();
     canvas.restore();
   }
 }

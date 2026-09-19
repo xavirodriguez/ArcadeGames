@@ -6,8 +6,8 @@ export class FlappyBirdPipeMovementSystem extends System<FlappyBirdComponentRegi
   public update(world: World<FlappyBirdComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
 
-    const config = world.getResource<{ SCREEN_HEIGHT: number }>("GameConfig") || { SCREEN_HEIGHT: 600 };
-    const screenHeight = config.SCREEN_HEIGHT;
+    const config = world.getResource<{ worldHeight: number }>("GameConfig") || { worldHeight: 600 };
+    const screenHeight = config.worldHeight;
     const pipes = world.query("Pipe", "Transform", "Collider");
 
     pipes.forEach((entity) => {

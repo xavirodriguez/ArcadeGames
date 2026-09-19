@@ -80,7 +80,7 @@ describe("Arkanoid Game & Systems Test Suite", () => {
       b.isAttached = false;
     });
     world.mutateComponent(ballEntity, "Transform", (t) => {
-      t.y = DEFAULT_ARKANOID_CONFIG.SCREEN_HEIGHT + 100;
+      t.y = DEFAULT_ARKANOID_CONFIG.worldHeight + 100;
       t.dirty = true;
     });
 

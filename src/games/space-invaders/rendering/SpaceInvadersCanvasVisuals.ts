@@ -384,7 +384,7 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
 
         const pos = world.getComponent(entity, "Transform");
         const targetX = kami.targetX ?? (pos ? pos.x : 0);
-        const targetY = kami.targetY ?? GAME_CONFIG.SCREEN_HEIGHT;
+        const targetY = kami.targetY ?? GAME_CONFIG.worldHeight;
         const relTargetX = targetX - (pos ? pos.x : 0);
         const relTargetY = targetY - (pos ? pos.y : 0);
 
@@ -419,7 +419,7 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
         ctx.globalAlpha = pulse;
 
         const pos = world.getComponent(entity, "Transform");
-        const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
+        const bottomRelY = pos ? GAME_CONFIG.worldHeight - pos.y - 35 : 450;
 
         ctx.fillStyle = colors.danger;
         ctx.strokeStyle = colors.magentaHot;

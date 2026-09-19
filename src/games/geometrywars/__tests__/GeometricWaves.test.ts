@@ -20,7 +20,7 @@ describe("Geometry Wars Geometric Waves & Spawning", () => {
     // Load waves
     const waves = generateGeometryWarsWaves(800, 600);
     world.setResource("WaveDefinitions", waves);
-    world.setResource("GameConfig", { WIDTH: 800, HEIGHT: 600 });
+    world.setResource("GameConfig", { worldWidth: 800, worldHeight: 600 });
   });
 
   it("should generate Wave 1 (Line), Wave 2 (Ring), and Wave 3 (Spiral) with exact coordinates", () => {

@@ -240,7 +240,7 @@ describe("Asteroids Minimissions Test Suite", () => {
     const mission = ASTEROIDS_MINI_MISSIONS.find((m) => m.id === "doble_amenaza")!;
     missionSystem.setActiveMission(world, mission);
 
-    world.getEventBus().emit("combat:death", { entity: 1 });
+    world.getEventBus().emit("combat:death", { entity: 1, category: "Ufo" });
     world.getEventBus().emit("asteroid:destroyed", { entity: 1, size: "large" });
 
     const state = missionSystem.getActiveMission();

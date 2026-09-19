@@ -450,9 +450,9 @@
     "total": 7
   },
   "server/src/BaseRoom.ts": {
-    "anyCount": 32,
+    "anyCount": 2,
     "unknownCount": 1,
-    "total": 33
+    "total": 3
   },
   "server/src/SpaceInvadersRoom.ts": {
     "anyCount": 2,
@@ -570,9 +570,9 @@
     "total": 1
   },
   "src/games/asteroids/EntityPool.ts": {
-    "anyCount": 3,
+    "anyCount": 1,
     "unknownCount": 0,
-    "total": 3
+    "total": 1
   },
   "src/games/asteroids/__tests__/AsteroidCollisionSystem.test.ts": {
     "anyCount": 1,

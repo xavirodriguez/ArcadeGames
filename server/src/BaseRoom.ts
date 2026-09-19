@@ -2,7 +2,7 @@ import { Room as ColyseusRoom, type Client, CloseCode } from "@colyseus/core";
 import { Schema } from "@colyseus/schema";
 import { z } from "zod";
 import { InputFrame } from "./NetTypes";
-import { ClientAckTracker } from "@tiny-aster/core";
+import { ClientAckTracker, World, ComponentRegistry, EventRegistry } from "@tiny-aster/core";
 import { ReplicationStrategy } from "./replication/ReplicationStrategy";
 
 const GenericRoom = ColyseusRoom as any as { new <T extends Schema = Schema>(): ColyseusRoom<{ state: T }> };
@@ -24,6 +24,43 @@ export const BaseInputFrameSchema = z.object({
   axes: z.record(z.string().max(32), z.number())
 });
 
+/**
+ * Core interface representing properties expected on Colyseus room states.
+ * @public
+ */
+export interface BaseRoomState {
+  gameWidth?: number;
+  gameHeight?: number;
+  gameStarted?: boolean;
+  gameOver?: boolean;
+  serverTick?: number;
+  lastProcessedTick?: number;
+  seed?: number;
+  protocolVersion?: number;
+  players?: { delete(key: string): boolean } | Map<string, unknown>;
+}
+
+/**
+ * Minimal contract for simulation engines executing within authoritative server rooms.
+ * @public
+ */
+export interface ISimulationEngine {
+  applyInputToEntity?(entity: number, input: InputFrame): void;
+  runSimulationStep?(dt: number, isReplaying?: boolean): void;
+  destroy?(): void;
+  blueprints?: { get(id: string): any };
+}
+
+/**
+ * Minimal contract for incoming tick synchronisation messages.
+ * @public
+ */
+export interface SyncTickData {
+  lastAckedVersion?: number;
+  sequence?: number;
+  timestamp?: number;
+}
+
 export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRoom<TState> {
   protected fixedTimeStep = 16.66;
   protected inputBuffers = new Map<string, InputFrame[]>();
@@ -31,15 +68,22 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
   protected newClients = new Set<string>();
   protected playerEntities = new Map<string, number>();
   protected ackTracker = new ClientAckTracker();
-  protected gameSimulation: any;
-  protected world: any;
+  protected gameSimulation: ISimulationEngine | null = null;
+  protected world: World<ComponentRegistry, EventRegistry> | null = null;
   protected replicationStrategy?: ReplicationStrategy;
   protected allowedActions: string[] = [];
 
   /**
+   * Helper getter providing typed access to room state fields.
+   */
+  protected get roomState(): (TState & BaseRoomState) | undefined {
+    return this.state as (TState & BaseRoomState) | undefined;
+  }
+
+  /**
    * Abstract hook to initialize game simulation and ECS world.
    */
-  protected abstract setupSimulation(options: unknown): Promise<{ world: any; gameSimulation: any } | void> | { world: any; gameSimulation: any } | void;
+  protected abstract setupSimulation(options: unknown): Promise<{ world: World<any, any>; gameSimulation: ISimulationEngine } | void> | { world: World<any, any>; gameSimulation: ISimulationEngine } | void;
 
   /**
    * Abstract hook to spawn a player entity and return its entity ID or state representation.
@@ -66,24 +110,25 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
       this.gameSimulation = setupResult.gameSimulation;
     }
 
-    if (this.state) {
-      if ('gameWidth' in (this.state as any) && (this.state as any).gameWidth === undefined) {
-        (this.state as any).gameWidth = 800;
+    const state = this.roomState;
+    if (state) {
+      if ('gameWidth' in state && state.gameWidth === undefined) {
+        state.gameWidth = 800;
       }
-      if ('gameHeight' in (this.state as any) && (this.state as any).gameHeight === undefined) {
-        (this.state as any).gameHeight = 600;
+      if ('gameHeight' in state && state.gameHeight === undefined) {
+        state.gameHeight = 600;
       }
-      if ('gameStarted' in (this.state as any)) {
-        (this.state as any).gameStarted = false;
+      if ('gameStarted' in state) {
+        state.gameStarted = false;
       }
-      if ('gameOver' in (this.state as any)) {
-        (this.state as any).gameOver = false;
+      if ('gameOver' in state) {
+        state.gameOver = false;
       }
-      if ('serverTick' in (this.state as any)) {
-        (this.state as any).serverTick = 0;
+      if ('serverTick' in state) {
+        state.serverTick = 0;
       }
-      if ('seed' in (this.state as any) && !(this.state as any).seed) {
-        (this.state as any).seed = validOptions.seed || Math.floor(Math.random() * 0xFFFFFFFF);
+      if ('seed' in state && !state.seed) {
+        state.seed = validOptions.seed || Math.floor(Math.random() * 0xFFFFFFFF);
       }
     }
 
@@ -94,7 +139,7 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
       this.handleInputMessage(client, frame);
     });
 
-    this.onMessage("sync_tick", (client: Client, data: any) => {
+    this.onMessage("sync_tick", (client: Client, data: SyncTickData) => {
       this.handleSyncTickMessage(client, data);
     });
   }
@@ -107,7 +152,7 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
     }
 
     const validFrame = parsedFrame.data as unknown as InputFrame;
-    const currentServerTick = (this.state as any)?.serverTick ?? 0;
+    const currentServerTick = this.roomState?.serverTick ?? 0;
 
     // Bounds check against tick manipulation or negative ticks
     if (validFrame.tick < Math.max(0, currentServerTick - 120) || validFrame.tick > currentServerTick + 1000) {
@@ -157,9 +202,9 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
     this.inputBuffers.set(client.sessionId, buffer);
   }
 
-  protected handleSyncTickMessage(client: Client, data: any): void {
-    const currentServerTick = (this.state as any)?.serverTick ?? 0;
-    const protocolVersion = (this.state as any)?.protocolVersion ?? 1;
+  protected handleSyncTickMessage(client: Client, data: SyncTickData): void {
+    const currentServerTick = this.roomState?.serverTick ?? 0;
+    const protocolVersion = this.roomState?.protocolVersion ?? 1;
 
     if (data?.lastAckedVersion !== undefined) {
       this.clientAcks.set(client.sessionId, data.lastAckedVersion);
@@ -205,8 +250,9 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
     const entity = this.playerEntities.get(client.sessionId);
     this.despawnPlayer(client, entity);
 
-    if (this.state && 'players' in (this.state as any) && (this.state as any).players) {
-      (this.state as any).players.delete(client.sessionId);
+    const state = this.roomState;
+    if (state && 'players' in state && state.players) {
+      state.players.delete(client.sessionId);
     }
 
     this.playerEntities.delete(client.sessionId);
@@ -220,13 +266,14 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
   }
 
   protected tick(dt: number): void {
-    if (this.state && 'gameStarted' in (this.state as any) && !(this.state as any).gameStarted) {
+    const state = this.roomState;
+    if (state && 'gameStarted' in state && !state.gameStarted) {
       return;
     }
 
-    if (this.state && 'serverTick' in (this.state as any)) {
-      (this.state as any).serverTick++;
-      (this.state as any).lastProcessedTick = (this.state as any).serverTick;
+    if (state && 'serverTick' in state && typeof state.serverTick === "number") {
+      state.serverTick++;
+      state.lastProcessedTick = state.serverTick;
     }
 
     this.collectInputsForTick();
@@ -237,7 +284,7 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
   }
 
   protected collectInputsForTick(): void {
-    const currentTick = (this.state as any)?.serverTick;
+    const currentTick = this.roomState?.serverTick;
     if (currentTick === undefined || !this.gameSimulation?.applyInputToEntity) return;
 
     this.playerEntities.forEach((entity, sessionId) => {
@@ -245,7 +292,7 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
       if (buffer) {
         const frame = buffer.find(f => f.tick === currentTick);
         if (frame) {
-          this.gameSimulation.applyInputToEntity(entity, frame);
+          this.gameSimulation!.applyInputToEntity!(entity, frame);
         }
       }
     });
@@ -259,13 +306,13 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
 
   protected replicate(): void {
     if (this.replicationStrategy) {
-      const currentTick = (this.state as any)?.serverTick ?? 0;
+      const currentTick = this.roomState?.serverTick ?? 0;
       this.replicationStrategy.replicate(this, (this as any).clients, this.state, currentTick);
     }
   }
 
   protected cleanupProcessedInputs(): void {
-    const currentTick = (this.state as any)?.serverTick;
+    const currentTick = this.roomState?.serverTick;
     if (currentTick === undefined) return;
 
     this.inputBuffers.forEach((buffer, sessionId) => {

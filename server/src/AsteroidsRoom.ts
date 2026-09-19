@@ -25,6 +25,8 @@ const HISTORY_BUFFER_TICKS = 30;
 
 export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
   maxClients = 4;
+  protected declare world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
+  protected declare gameSimulation: AsteroidsGame;
   private stateHistory = new Map<number, WorldSnapshot>();
   private replayFrames: ReplayFrame[] = [];
   private nextPlayerNumber = 1;
@@ -49,7 +51,7 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
     }
   }
 
-  protected async setupSimulation(options: unknown): Promise<{ world: any; gameSimulation: any }> {
+  protected async setupSimulation(options: unknown): Promise<{ world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>; gameSimulation: AsteroidsGame }> {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const validOptions = parsedOptions.success ? parsedOptions.data : {};
 

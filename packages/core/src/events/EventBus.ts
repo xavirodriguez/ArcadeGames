@@ -1,5 +1,6 @@
 /** @public */
 import type { Entity } from "../ecs/Entity";
+import type { StoryNode, StoryState, StoryObjective } from "../story/StoryTypes";
 
 /**
  * Registry type constraint mapping event names to payload structures.
@@ -94,9 +95,9 @@ export interface CoreEvents {
   /** Emitted on narrative scene change request. */
   "story:scene_change": { sceneToLoad: string; [key: string]: unknown };
   /** Emitted when narrative node changes. */
-  "story:node_changed": { graphId?: string; currentNodeId?: string; previousNodeId?: string | null; node?: unknown; nodeId?: string; title?: string; text?: string; choices?: unknown[]; [key: string]: unknown };
+  "story:node_changed": { graphId?: string; currentNodeId?: string; previousNodeId?: string | null; node?: StoryNode; nodeId?: string; title?: string; text?: string; choices?: unknown[]; [key: string]: unknown };
   /** Emitted when story runtime state updates. */
-  "story:state_changed": { graphId?: string | null; state: unknown; currentNode?: unknown; [key: string]: unknown };
+  "story:state_changed": { graphId?: string | null; state: StoryState; currentNode?: StoryNode; [key: string]: unknown };
   /** Emitted when evidence is discovered. */
   "story:evidence_discovered": { evidenceId: string; [key: string]: unknown };
   /** Emitted when a story beat is reached. */
@@ -104,7 +105,7 @@ export interface CoreEvents {
   /** Emitted when a narrative choice is selected. */
   "story:choice_selected": { choiceId: string; targetNodeId: string; nodeId?: string; [key: string]: unknown };
   /** Emitted when a story objective is completed. */
-  "story:objective_completed": { objectiveId: string; objective?: unknown; [key: string]: unknown };
+  "story:objective_completed": { objectiveId: string; objective?: StoryObjective; [key: string]: unknown };
   /** Emitted when dialogue completes. */
   "dialogue:completed": Record<string, unknown>;
   /** Emitted when dialogue advances. */

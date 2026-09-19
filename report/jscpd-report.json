@@ -1408,18 +1408,18 @@
     },
     {
       "firstFile": {
-        "end": 126,
+        "end": 127,
         "endLoc": {
           "column": 115,
-          "line": 126,
-          "position": 4647
+          "line": 127,
+          "position": 4700
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 121,
+        "start": 122,
         "startLoc": {
           "column": 45,
-          "line": 121,
-          "position": 4483
+          "line": 122,
+          "position": 4536
         }
       },
       "format": "typescript",
@@ -1445,18 +1445,18 @@
     },
     {
       "firstFile": {
-        "end": 225,
+        "end": 226,
         "endLoc": {
           "column": 13,
-          "line": 225,
-          "position": 8147
+          "line": 226,
+          "position": 8200
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 216,
+        "start": 217,
         "startLoc": {
           "column": 8,
-          "line": 216,
-          "position": 7856
+          "line": 217,
+          "position": 7909
         }
       },
       "format": "typescript",
@@ -1464,18 +1464,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 319,
+        "end": 320,
         "endLoc": {
           "column": 13,
-          "line": 319,
-          "position": 11207
+          "line": 320,
+          "position": 11260
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 310,
+        "start": 311,
         "startLoc": {
           "column": 8,
-          "line": 310,
-          "position": 10916
+          "line": 311,
+          "position": 10969
         }
       },
       "tokens": 51
@@ -2948,14 +2948,14 @@
         "endLoc": {
           "column": 9,
           "line": 788,
-          "position": 32248
+          "position": 32256
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 777,
         "startLoc": {
           "column": 84,
           "line": 777,
-          "position": 31948
+          "position": 31956
         }
       },
       "tokens": 54
@@ -3022,14 +3022,14 @@
         "endLoc": {
           "column": 14,
           "line": 814,
-          "position": 33217
+          "position": 33225
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 800,
         "startLoc": {
           "column": 4,
           "line": 800,
-          "position": 32585
+          "position": 32593
         }
       },
       "tokens": 140
@@ -4058,14 +4058,14 @@
         "endLoc": {
           "column": 75,
           "line": 824,
-          "position": 33749
+          "position": 33757
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 818,
         "startLoc": {
           "column": 76,
           "line": 818,
-          "position": 33483
+          "position": 33491
         }
       },
       "tokens": 77
@@ -6329,32 +6329,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-18T12:04:05.994Z",
+    "detectionDate": "2026-09-19T10:09:59.283Z",
     "formats": {
       "typescript": {
         "clones": 171,
         "duplicatedLines": 1682,
         "duplicatedTokens": 13416,
-        "lines": 67044,
+        "lines": 67054,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.508800190919396,
-        "percentageTokens": 3.8161446585068224,
+        "percentage": 2.508426044680407,
+        "percentageTokens": 3.815384965403877,
         "sources": 398,
-        "tokens": 351559
+        "tokens": 351629
       }
     },
     "total": {
       "clones": 171,
       "duplicatedLines": 1682,
       "duplicatedTokens": 13416,
-      "lines": 67044,
+      "lines": 67054,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.508800190919396,
-      "percentageTokens": 3.8161446585068224,
+      "percentage": 2.508426044680407,
+      "percentageTokens": 3.815384965403877,
       "sources": 398,
-      "tokens": 351559
+      "tokens": 351629
     }
   }
 }

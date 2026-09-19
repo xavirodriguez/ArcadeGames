@@ -27,8 +27,8 @@ function createBulletPoolConfig(config: BulletPoolConfig) {
     extraComponents: (data: any) => {
       data.boundary = {
         type: "Boundary",
-        width: GAME_CONFIG.SCREEN_WIDTH,
-        height: GAME_CONFIG.SCREEN_HEIGHT,
+        width: GAME_CONFIG.worldWidth,
+        height: GAME_CONFIG.worldHeight,
         mode: "destroy"
       } as BoundaryComponent;
     }
@@ -41,8 +41,8 @@ function createBulletPoolConfig(config: BulletPoolConfig) {
       const obj = baseFactory() as any;
       obj.boundary = {
         type: "Boundary",
-        width: GAME_CONFIG.SCREEN_WIDTH,
-        height: GAME_CONFIG.SCREEN_HEIGHT,
+        width: GAME_CONFIG.worldWidth,
+        height: GAME_CONFIG.worldHeight,
         mode: "destroy"
       } as BoundaryComponent;
       return obj;

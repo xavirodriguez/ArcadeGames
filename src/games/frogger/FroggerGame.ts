@@ -142,7 +142,7 @@ export class FroggerGame extends BaseGame<
     this.spawnBlueprint("state", {});
 
     // Create Goal Lily Pads (5 pads across row 0)
-    const padSpacing = config.SCREEN_WIDTH / (config.TOTAL_LILY_PADS + 1);
+    const padSpacing = config.worldWidth / (config.TOTAL_LILY_PADS + 1);
     for (let i = 0; i < config.TOTAL_LILY_PADS; i++) {
       const x = padSpacing * (i + 1);
       this.spawnBlueprint("lily_pad", { padIndex: i, x });

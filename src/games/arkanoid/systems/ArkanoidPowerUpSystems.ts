@@ -81,7 +81,7 @@ export class ArkanoidActivePowerUpSystem extends System<ArkanoidComponentRegistr
 
       if (!capsule || !cPos) continue;
 
-      if (cPos.y > this.config.SCREEN_HEIGHT + 30) {
+      if (cPos.y > this.config.worldHeight + 30) {
         world.getCommandBuffer().removeEntity(cEntity);
         continue;
       }

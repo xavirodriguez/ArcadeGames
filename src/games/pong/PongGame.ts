@@ -119,8 +119,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({
-            x: config.WIDTH / 2,
-            y: config.HEIGHT / 2,
+            x: config.worldWidth / 2,
+            y: config.worldHeight / 2,
             dirty: true
           })
           .withVelocity({
@@ -143,8 +143,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
         world.addComponent(entity, {
           type: "Boundary",
-          width: config.WIDTH,
-          height: config.HEIGHT,
+          width: config.worldWidth,
+          height: config.worldHeight,
           mode: "bounce",
           bounceX: false,
           bounceY: true
@@ -159,8 +159,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
         const tint = resolveThemeColor(world, args.side, "paddle", "primary");
 
-        const x = args.side === "left" ? 40 : config.WIDTH - 40;
-        const y = config.HEIGHT / 2;
+        const x = args.side === "left" ? 40 : config.worldWidth - 40;
+        const y = config.worldHeight / 2;
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x, y })

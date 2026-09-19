@@ -143,7 +143,33 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       }
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
+    const worldWidth = gameConfig?.worldWidth ?? 800;
+    const worldHeight = gameConfig?.worldHeight ?? 600;
+
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (screenConfig && screenConfig.width > 0 && screenConfig.height > 0) {
+      scale = Math.min(
+        screenConfig.width / worldWidth,
+        screenConfig.height / worldHeight
+      );
+      offsetX = (screenConfig.width - worldWidth * scale) / 2;
+      offsetY = (screenConfig.height - worldHeight * scale) / 2;
+    }
+
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(scale, scale);
+
+    ctx.beginPath();
+    ctx.rect(0, 0, worldWidth, worldHeight);
+    ctx.clip();
 
     // Draw background effects first (e.g. scrolling skies)
     for (const drawer of this.backgroundEffects.values()) {
@@ -254,5 +280,6 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     }
 
     ctx.restore();                       // ← restore de cámara (NUEVO)
+    ctx.restore();                       // ← restore de viewport (letterboxing)
   }
 }

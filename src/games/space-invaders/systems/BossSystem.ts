@@ -69,7 +69,7 @@ export class BossSystem extends GameSystem {
 
       // Side to side movement (with furious multiplier)
       world.mutateComponent(entity, "Transform", p => {
-        p.x = GAME_CONFIG.SCREEN_WIDTH / 2 + Math.sin(boss.timer / 1000) * 200 * speedMultiplier;
+        p.x = GAME_CONFIG.worldWidth / 2 + Math.sin(boss.timer / 1000) * 200 * speedMultiplier;
         p.dirty = true;
       });
 

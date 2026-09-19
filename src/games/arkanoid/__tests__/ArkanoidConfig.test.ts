@@ -6,8 +6,8 @@ describe("ArkanoidConfigSchema", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual(DEFAULT_ARKANOID_CONFIG);
-      expect(result.data.SCREEN_WIDTH).toBe(800);
-      expect(result.data.SCREEN_HEIGHT).toBe(600);
+      expect(result.data.worldWidth).toBe(800);
+      expect(result.data.worldHeight).toBe(600);
       expect(result.data.PADDLE_WIDTH).toBe(100);
       expect(result.data.BALL_SPEED_START).toBe(320);
       expect(result.data.PLAYER_INITIAL_LIVES).toBe(3);
@@ -24,7 +24,7 @@ describe("ArkanoidConfigSchema", () => {
     if (result.success) {
       expect(result.data.PADDLE_WIDTH).toBe(150);
       expect(result.data.BALL_SPEED_START).toBe(400);
-      expect(result.data.SCREEN_WIDTH).toBe(800);
+      expect(result.data.worldWidth).toBe(800);
     }
   });
 });

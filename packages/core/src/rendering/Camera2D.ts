@@ -9,8 +9,6 @@ import {
 } from "../ecs/CoreComponents";
 
 interface WorldSizeConfig {
-  WIDTH?: number;
-  HEIGHT?: number;
   worldWidth?: number;
   worldHeight?: number;
 }
@@ -26,13 +24,11 @@ interface WorldSizeConfig {
 export class Camera2DSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const cameras = world.query("Camera2D");
-    const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
-    const screenWidth = screenConfig?.width ?? 800;
-    const screenHeight = screenConfig?.height ?? 600;
-
     const gameConfig = world.getResource<WorldSizeConfig>("GameConfig");
-    const worldWidth = gameConfig?.WIDTH ?? gameConfig?.worldWidth;
-    const worldHeight = gameConfig?.HEIGHT ?? gameConfig?.worldHeight;
+    const viewportWidth = gameConfig?.worldWidth ?? 800;
+    const viewportHeight = gameConfig?.worldHeight ?? 600;
+    const worldWidth = gameConfig?.worldWidth;
+    const worldHeight = gameConfig?.worldHeight;
 
     for (let i = 0; i < cameras.length; i++) {
       const camEntity = cameras[i];
@@ -60,8 +56,8 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
             const sign = targetVelocity ? (targetVelocity.vx > 0.01 ? 1 : (targetVelocity.vx < -0.01 ? -1 : 0)) : 0;
             const lookAheadOffset = sign * (mutableCam.lookAheadX ?? 0);
 
-            const camCenterX = mutableCam.x + (screenWidth / 2) / zoom;
-            const camCenterY = mutableCam.y + (screenHeight / 2) / zoom;
+            const camCenterX = mutableCam.x + (viewportWidth / 2) / zoom;
+            const camCenterY = mutableCam.y + (viewportHeight / 2) / zoom;
 
             const desiredCenterX = targetTransform.x + lookAheadOffset;
             let desiredCenterY = camCenterY;
@@ -75,8 +71,8 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
               desiredCenterY = camCenterY + excess;
             }
 
-            const desiredX = desiredCenterX - (screenWidth / 2) / zoom;
-            const desiredY = desiredCenterY - (screenHeight / 2) / zoom;
+            const desiredX = desiredCenterX - (viewportWidth / 2) / zoom;
+            const desiredY = desiredCenterY - (viewportHeight / 2) / zoom;
 
             // Exponential smoothing factors
             const smoothingX = mutableCam.smoothingX ?? 5;
@@ -104,8 +100,8 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
 
       // Boundary clamping
       world.mutateComponent(camEntity, "Camera2D", (mutableCam) => {
-        const viewW = screenWidth / zoom;
-        const viewH = screenHeight / zoom;
+        const viewW = viewportWidth / zoom;
+        const viewH = viewportHeight / zoom;
 
         if (worldWidth !== undefined) {
           const minX = 0;

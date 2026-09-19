@@ -144,8 +144,8 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               const totalPrepTime = config.HYPERSPACE_PREP_TIME ?? 0.5;
               if (!prepActive && previewEntityId === undefined) {
                   const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || {
-                      width: config.SCREEN_WIDTH ?? 800,
-                      height: config.SCREEN_HEIGHT ?? 600
+                      width: config.worldWidth ?? 800,
+                      height: config.worldHeight ?? 600
                   };
                   const rand = world.gameplayRandom;
                   const rx = rand.next() * screen.width;

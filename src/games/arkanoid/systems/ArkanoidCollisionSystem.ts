@@ -229,8 +229,8 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         world.mutateComponent(ballEntity, "Velocity", (v) => { v.vx = Math.abs(v.vx); });
         world.mutateComponent(ballEntity, "Ball", (b) => { b.stuckBounces = (b.stuckBounces ?? 0) + 1; });
         this.playSFX(world, "hit");
-      } else if (transform.x + radius > this.config.SCREEN_WIDTH) {
-        world.mutateComponent(ballEntity, "Transform", (t) => { t.x = this.config!.SCREEN_WIDTH - radius; t.dirty = true; });
+      } else if (transform.x + radius > this.config.worldWidth) {
+        world.mutateComponent(ballEntity, "Transform", (t) => { t.x = this.config!.worldWidth - radius; t.dirty = true; });
         world.mutateComponent(ballEntity, "Velocity", (v) => { v.vx = -Math.abs(v.vx); });
         world.mutateComponent(ballEntity, "Ball", (b) => { b.stuckBounces = (b.stuckBounces ?? 0) + 1; });
         this.playSFX(world, "hit");
@@ -359,7 +359,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         }
       }
 
-      if (transform.y - radius > this.config.SCREEN_HEIGHT || transform.y > this.config.PADDLE_Y + 50) {
+      if (transform.y - radius > this.config.worldHeight || transform.y > this.config.PADDLE_Y + 50) {
         this.handleBallLost(world, ballEntity);
       }
     }
@@ -414,7 +414,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
       });
 
       const paddlePos = paddleEntity !== undefined ? world.getComponent(paddleEntity, "Transform") : undefined;
-      const paddleX = paddlePos ? paddlePos.x : this.config?.SCREEN_CENTER_X ?? 400;
+      const paddleX = paddlePos ? paddlePos.x : (this.config?.worldWidth ? this.config.worldWidth / 2 : 400);
       const paddleY = paddlePos ? paddlePos.y : this.config?.PADDLE_Y ?? 550;
       const pHalfH = (this.config?.PADDLE_HEIGHT ?? 16) / 2;
       const ballRadius = this.config?.BALL_SIZE ?? 8;

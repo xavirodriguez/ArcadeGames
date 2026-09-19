@@ -23,7 +23,7 @@ export class EnemySpawnSystem extends System<ArkanoidComponentRegistry, Arkanoid
       const config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
 
       const spawnFromLeft = world.gameplayRandom.next() > 0.5;
-      const spawnX = spawnFromLeft ? 120 : config.SCREEN_WIDTH - 120;
+      const spawnX = spawnFromLeft ? 120 : config.worldWidth - 120;
       const spawnY = 40;
 
       const patterns: Array<"horizontal" | "sine" | "arc" | "swoop"> = ["sine", "horizontal", "arc", "swoop"];
@@ -81,7 +81,7 @@ export class EnemyMovementSystem extends System<ArkanoidComponentRegistry, Arkan
           break;
       }
 
-      if (nextY > config.SCREEN_HEIGHT + 40) {
+      if (nextY > config.worldHeight + 40) {
         world.getCommandBuffer().removeEntity(eEntity);
         continue;
       }

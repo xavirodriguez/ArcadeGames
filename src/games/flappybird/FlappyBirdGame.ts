@@ -230,7 +230,7 @@ export class FlappyBirdGame
 
         // Bottom Pipe
         const bottomY = args.gapY + halfGap;
-        const bottomHeight = config.SCREEN_HEIGHT - bottomY;
+        const bottomHeight = config.worldHeight - bottomY;
         const bottomEntity = EntityBuilder.create(world)
           .withTransform({ x: args.x, y: bottomY + bottomHeight / 2 })
           .withVelocity({ vx: -pipeSpeed, vy: 0 })
@@ -270,14 +270,14 @@ export class FlappyBirdGame
         const groundColor = resolveThemeColor(world, "ground");
 
         EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: config.SCREEN_WIDTH / 2, y: config.GROUND_Y })
+          .withTransform({ x: config.worldWidth / 2, y: config.GROUND_Y })
           .withCollider({
-            shape: { type: ShapeType.Box, width: config.SCREEN_WIDTH, height: config.SCREEN_HEIGHT - config.GROUND_Y } as BoxShape,
+            shape: { type: ShapeType.Box, width: config.worldWidth, height: config.worldHeight - config.GROUND_Y } as BoxShape,
             layer: CollisionLayers.DEBRIS,
             mask: CollisionLayers.PLAYER
           })
           .withCollisionEvents()
-          .withRender({ shape: "ground", size: config.SCREEN_WIDTH, color: groundColor, order: 0 });
+          .withRender({ shape: "ground", size: config.worldWidth, color: groundColor, order: 0 });
 
         world.addComponent(entity, { type: "Ground" });
       }

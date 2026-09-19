@@ -337,11 +337,14 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     if (!pipe) return;
     const variant = pipe.visualVariant || "standard";
 
+    const config = world.getResource<{ worldHeight: number }>("GameConfig");
+    const worldHeight = config?.worldHeight ?? 600;
+
     const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(
       pos.y,
       pipe.gapY,
       pipe.gapSize,
-      FLAPPY_CONFIG.SCREEN_HEIGHT
+      worldHeight
     );
 
     // --- METALLIC PILLAR BODY VARIANT GRADIENT ---

@@ -83,12 +83,12 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
 
       w.addComponent(entity, {
         type: "Boundary",
-        width: config.SCREEN_WIDTH,
-        height: config.SCREEN_HEIGHT,
+        width: config.worldWidth,
+        height: config.worldHeight,
         minX: -width,
-        maxX: config.SCREEN_WIDTH + width,
+        maxX: config.worldWidth + width,
         minY: 0,
-        maxY: config.SCREEN_HEIGHT,
+        maxY: config.worldHeight,
         mode: "wrap",
       } as BoundaryComponent);
 
@@ -128,12 +128,12 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
 
       w.addComponent(entity, {
         type: "Boundary",
-        width: config.SCREEN_WIDTH,
-        height: config.SCREEN_HEIGHT,
+        width: config.worldWidth,
+        height: config.worldHeight,
         minX: -width,
-        maxX: config.SCREEN_WIDTH + width,
+        maxX: config.worldWidth + width,
         minY: 0,
-        maxY: config.SCREEN_HEIGHT,
+        maxY: config.worldHeight,
         mode: "wrap",
       } as BoundaryComponent);
 

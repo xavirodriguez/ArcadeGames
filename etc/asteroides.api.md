@@ -1215,7 +1215,7 @@ export function createDistanceJoint(entityA: Entity, entityB: Entity, anchorA: {
 }, restLength: number, options?: Omit<Partial<DistanceJointOptions>, "jointType" | "restLength">): JointComponent;
 
 // @public
-export function createEmitter(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity;
+export function createEmitter<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, config: ParticleEmitterConfig): Entity;
 
 // @public
 export function createEmptyCanonicalInputState<TExtra extends string = never>(): CanonicalInputState<TExtra>;
@@ -2303,7 +2303,7 @@ export class JointSolverSystem<TRegistry extends CoreComponentRegistry = CoreCom
 
 // @public
 export class Juice {
-    static add(world: World<CoreComponentRegistry>, entity: Entity, anim: {
+    static add<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, anim: {
         componentType?: string;
         property: string;
         target: number;
@@ -2312,9 +2312,9 @@ export class Juice {
         delay?: number;
         repeat?: number;
     }): void;
-    static flash(world: World<CoreComponentRegistry>, entity: Entity, frames?: number): void;
-    static shake(world: World<CoreComponentRegistry>, intensity: number, duration: number): void;
-    static squash(world: World<CoreComponentRegistry>, entity: Entity, sx: number, sy: number, duration: number): void;
+    static flash<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, frames?: number): void;
+    static shake<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, intensity: number, duration: number): void;
+    static squash<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, sx: number, sy: number, duration: number): void;
 }
 
 // @public
@@ -3338,7 +3338,7 @@ export interface ParticleParams {
 // @public
 export class ParticleSystem extends System<CoreComponentRegistry> {
     constructor(particlePool: IPrefabPool<ParticleParams>);
-    emit(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity;
+    emit<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, config: ParticleEmitterConfig): Entity;
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 

@@ -142,8 +142,8 @@ export class SpaceInvadersGame
         } as FactionComponent);
         world.addComponent(entity, {
           type: "Boundary",
-          width: config.SCREEN_WIDTH - config.PLAYER_RENDER_WIDTH,
-          height: config.SCREEN_HEIGHT,
+          width: config.worldWidth - config.PLAYER_RENDER_WIDTH,
+          height: config.worldHeight,
           mode: "bounce"
         } as BoundaryComponent);
         world.addComponent(entity, {
@@ -245,8 +245,8 @@ export class SpaceInvadersGame
         world.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as FactionComponent);
         world.addComponent(entity, {
           type: "Boundary",
-          width: config.SCREEN_WIDTH,
-          height: config.SCREEN_HEIGHT,
+          width: config.worldWidth,
+          height: config.worldHeight,
           mode: "destroy"
         } as BoundaryComponent);
       }
@@ -277,8 +277,8 @@ export class SpaceInvadersGame
         world.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
         world.addComponent(entity, {
           type: "Boundary",
-          width: config.SCREEN_WIDTH,
-          height: config.SCREEN_HEIGHT,
+          width: config.worldWidth,
+          height: config.worldHeight,
           mode: "destroy"
         } as BoundaryComponent);
       }
@@ -350,7 +350,7 @@ export class SpaceInvadersGame
         const tint = resolveThemeColor(world, "boss", "accent");
 
         EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: config.SCREEN_WIDTH / 2, y: 100 })
+          .withTransform({ x: config.worldWidth / 2, y: 100 })
           .withRender({ shape: "boss", size: 80, color: tint, order: 0 })
           .withCollider({
             shape: { type: ShapeType.Circle, radius: 40 } as CircleShape,

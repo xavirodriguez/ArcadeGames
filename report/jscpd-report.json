@@ -469,14 +469,14 @@
         "endLoc": {
           "column": 9,
           "line": 187,
-          "position": 7865
+          "position": 7844
         },
         "name": "asteroids/AsteroidsGame.ts",
         "start": 183,
         "startLoc": {
           "column": 89,
           "line": 183,
-          "position": 7604
+          "position": 7583
         }
       },
       "tokens": 65
@@ -1301,14 +1301,14 @@
         "endLoc": {
           "column": 43,
           "line": 206,
-          "position": 9078
+          "position": 9057
         },
         "name": "asteroids/AsteroidsGame.ts",
         "start": 201,
         "startLoc": {
           "column": 43,
           "line": 201,
-          "position": 8853
+          "position": 8832
         }
       },
       "format": "typescript",
@@ -1338,14 +1338,14 @@
         "endLoc": {
           "column": 7,
           "line": 218,
-          "position": 9441
+          "position": 9420
         },
         "name": "asteroids/AsteroidsGame.ts",
         "start": 208,
         "startLoc": {
           "column": 48,
           "line": 208,
-          "position": 9158
+          "position": 9137
         }
       },
       "format": "typescript",
@@ -6329,32 +6329,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-19T19:15:20.048Z",
+    "detectionDate": "2026-09-19T19:51:04.629Z",
     "formats": {
       "typescript": {
         "clones": 171,
         "duplicatedLines": 1687,
         "duplicatedTokens": 13468,
-        "lines": 67053,
+        "lines": 67051,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.5159202421964717,
-        "percentageTokens": 3.825690757610619,
+        "percentage": 2.515995287169468,
+        "percentageTokens": 3.8256038221952062,
         "sources": 398,
-        "tokens": 352041
+        "tokens": 352049
       }
     },
     "total": {
       "clones": 171,
       "duplicatedLines": 1687,
       "duplicatedTokens": 13468,
-      "lines": 67053,
+      "lines": 67051,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.5159202421964717,
-      "percentageTokens": 3.825690757610619,
+      "percentage": 2.515995287169468,
+      "percentageTokens": 3.8256038221952062,
       "sources": 398,
-      "tokens": 352041
+      "tokens": 352049
     }
   }
 }

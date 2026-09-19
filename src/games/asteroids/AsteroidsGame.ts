@@ -55,7 +55,7 @@ import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem,
 import { MissionSystem } from "../shared/missions/MissionSystem";
 import { ASTEROIDS_MINI_MISSIONS, ASTEROIDS_MISSIONS } from "./AsteroidsMissions";
 import { MutatorRegistry } from "../../utils/MutatorRegistry";
-import { StoryDirectorSystem, DialogueSystem, asteroidsStoryGraph } from "../shared/story";
+import { StoryDirectorSystem, DialogueSystem } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
@@ -219,6 +219,8 @@ export class AsteroidsGame
     });
 
     if (this.mode === "story") {
+      // Lazy require asteroidsStoryGraph to break top-level circular dependency with encounter definitions
+      const { asteroidsStoryGraph } = require("../shared/story");
       const graph = (this._config.gameOptions as { graphOverride?: StoryGraph })?.graphOverride || asteroidsStoryGraph;
       const storyRuntime = new StoryRuntime(graph);
       this.world.setResource("StoryRuntime", storyRuntime);

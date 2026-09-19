@@ -1,3 +1,8 @@
+/**
+ * Encounter ID for the debris field escape sequence in Asteroids.
+ */
+export var ESCAPE_ROUTE_01_ENCOUNTER_ID = "escape_route_01";
+
 import {
   MiniGameEncounter,
   MiniGameResult,
@@ -7,11 +12,7 @@ import {
 } from "@tiny-aster/core";
 import { AsteroidsGame } from "../AsteroidsGame";
 import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
-
-/**
- * Encounter ID for the debris field escape sequence in Asteroids.
- */
-export const ESCAPE_ROUTE_01_ENCOUNTER_ID = "escape_route_01";
+import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
 /**
  * `escape_route_01` encounter definition.
@@ -111,11 +112,6 @@ export const escapeRoute01Encounter: MiniGameEncounter = {
     }
   ]
 };
-
-/**
- * ArcadeGameAdapter implementation for Asteroids encounters.
- */
-import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
 /**
  * ArcadeGameAdapter implementation for Asteroids encounters.

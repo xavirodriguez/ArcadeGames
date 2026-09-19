@@ -1,5 +1,6 @@
 import { System, World, Entity, Juice } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
+import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { ComboComponent } from "@tiny-aster/core";
 import { GWParticlePool } from "../EntityPool";
 
@@ -14,7 +15,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
   public override onRegister(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>): void {
     const eventBus = world.getEventBus();
     if (eventBus) {
-      this.unsubscribeDeath = eventBus.on("combat:death", (payload) => {
+      this.unsubscribeDeath = eventBus.on("combat:death", (payload: CombatDeathEvent) => {
         this.handleDeath(world, payload);
       });
     }
@@ -41,7 +42,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
     }
   }
 
-  private handleDeath(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, event: any): void {
+  private handleDeath(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, event: CombatDeathEvent): void {
     const deadEntity = event.entity;
     const killerEntity = event.sourceEntity;
 

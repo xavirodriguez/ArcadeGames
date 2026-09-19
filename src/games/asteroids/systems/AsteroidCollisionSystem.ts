@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { World, System, resolveThemeColor } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
+import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { fragmentAsteroid } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
@@ -43,7 +44,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
        * When HasCombatSystem is false (direct system mode in headless tests without CombatSystem),
        * AsteroidCollisionSystem.update() falls back to triggering onCombatDeath manually on collision.
        */
-      eventBus.on("combat:death", (event: any) => {
+      eventBus.on("combat:death", (event: CombatDeathEvent) => {
         this.onCombatDeath(world, event);
       });
     }
@@ -325,7 +326,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     }
   }
 
-  private onCombatDeath(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, event: any): void {
+  private onCombatDeath(world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, event: CombatDeathEvent): void {
     const asteroid = event.entity;
     const bullet = event.sourceEntity;
 

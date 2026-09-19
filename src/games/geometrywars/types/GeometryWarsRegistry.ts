@@ -1,5 +1,5 @@
 import { CoreComponentRegistry, CoreEvents, Component, BlueprintRegistryMap } from "@tiny-aster/core";
-import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
+import { DamageComponent, FactionComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { SpawnDirectorComponent, WaveMemberComponent } from "@tiny-aster/gameplay-kit";
 import { ComboComponent } from "@tiny-aster/core";
 
@@ -86,18 +86,8 @@ export interface GeometryWarsComponentRegistry extends CoreComponentRegistry {
  * @public
  */
 export interface GeometryWarsEventRegistry extends CoreEvents, Record<string, unknown> {
-  "combat:hit": {
-    targetEntity: number;
-    sourceEntity: number;
-    amount: number;
-    remainingHealth: number;
-    category?: string;
-  };
-  "combat:death": {
-    entity: number;
-    sourceEntity: number;
-    category?: string;
-  };
+  "combat:hit": CombatHitEvent;
+  "combat:death": CombatDeathEvent;
   "spawn:wave_complete": { wave?: number };
   "enemy:destroyed": { entity: number };
 }

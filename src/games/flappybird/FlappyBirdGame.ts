@@ -1,5 +1,5 @@
 import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST } from "@tiny-aster/core";
-import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
+import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry, FlappyBirdEventRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
 import { MissionSystem } from "../shared/missions/MissionSystem";
@@ -51,7 +51,7 @@ export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefiniti
 }
 
 export class FlappyBirdGame
-  extends BaseGame<FlappyBirdState, FlappyBirdInput, FlappyBirdComponentRegistry, any, FlappyBirdBlueprintMap>
+  extends BaseGame<FlappyBirdState, FlappyBirdInput, FlappyBirdComponentRegistry, FlappyBirdEventRegistry, FlappyBirdBlueprintMap>
   implements IFlappyBirdGame {
 
   private gameStateSystem!: FlappyBirdGameStateSystem;

@@ -7,7 +7,7 @@ import {
   createEmitter,
   Entity
 } from "@tiny-aster/core";
-import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
+import { spawnScorePopup, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 
@@ -20,16 +20,16 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
     this.config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
     const eventBus = world.getEventBus();
     if (eventBus) {
-      eventBus.on("combat:hit", (event: any) => {
+      eventBus.on("combat:hit", (event: CombatHitEvent) => {
         this.onCombatHit(world, event);
       });
-      eventBus.on("combat:death", (event: any) => {
+      eventBus.on("combat:death", (event: CombatDeathEvent) => {
         this.onCombatDeath(world, event);
       });
     }
   }
 
-  private onCombatHit(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, event: any): void {
+  private onCombatHit(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, event: CombatHitEvent): void {
     const target = event.targetEntity;
     if (!target || !WorldUtils.isEntityActive(world, target)) return;
 
@@ -67,7 +67,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
     }
   }
 
-  private onCombatDeath(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, event: any): void {
+  private onCombatDeath(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, event: CombatDeathEvent): void {
     const target = event.entity;
     if (!target || !WorldUtils.isEntityActive(world, target)) return;
 
@@ -175,7 +175,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
             if (bHealth.current - 1 <= 0) {
               eventBus.emitDeferred("combat:death", { entity: bEntity });
             } else {
-              eventBus.emitDeferred("combat:hit", { targetEntity: bEntity, damage: 1 });
+              eventBus.emitDeferred("combat:hit", { targetEntity: bEntity, amount: 1, remainingHealth: Math.max(0, bHealth.current - 1) });
             }
           }
         }
@@ -480,10 +480,9 @@ export function applyBrickDamage(
   });
 
   if (!eventBus) return;
-  const eventName = isDead ? "combat:death" : "combat:hit";
-  const payload = isDead
-    ? { entity: brickEntity, attackerEntity }
-    : { targetEntity: brickEntity, attackerEntity, damage: 1 };
-
-  eventBus.emitDeferred(eventName, payload);
+  if (isDead) {
+    eventBus.emitDeferred("combat:death", { entity: brickEntity, sourceEntity: attackerEntity });
+  } else {
+    eventBus.emitDeferred("combat:hit", { targetEntity: brickEntity, sourceEntity: attackerEntity, amount: 1, remainingHealth: health?.current ?? 0 });
+  }
 }

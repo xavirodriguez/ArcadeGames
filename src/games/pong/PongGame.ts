@@ -45,7 +45,7 @@ import { PongInputSystem } from "./systems/PongInputSystem";
 import { PongSpinSystem } from "./systems/PongSpinSystem";
 import { PongEntityFactory } from "./EntityFactory";
 import { NetworkController } from "./input/NetworkController";
-import { type PongState, type PongInput, type PongComponentRegistry } from "./types";
+import { type PongState, type PongInput, type PongComponentRegistry, type PongEventRegistry } from "./types";
 import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -69,7 +69,7 @@ export interface PongBlueprintMap extends Record<string, BlueprintDefinition<Pon
   state: BlueprintDefinition<PongComponentRegistry, any, {}>;
 }
 
-export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegistry, any, PongBlueprintMap> {
+export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegistry, PongEventRegistry, PongBlueprintMap> {
   private stateSystem!: PongGameStateSystem;
   private assetLoader: AssetLoader;
   private networkController?: NetworkController;

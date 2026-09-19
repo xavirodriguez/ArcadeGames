@@ -1,9 +1,9 @@
 import { BaseConfigSchema } from "@tiny-aster/core";
+import { ScreenDimensionsSchema } from "@tiny-aster/gameplay-kit";
 import { z } from "zod";
 
 export const GeometryWarsConfigSchema = BaseConfigSchema.extend({
-  WIDTH: z.number().default(800),
-  HEIGHT: z.number().default(600),
+  ...ScreenDimensionsSchema.shape,
   PLAYER_SPEED: z.number().default(220),
   PLAYER_FIRE_COOLDOWN: z.number().default(0.12), // fire cooldown in seconds
   BULLET_SPEED: z.number().default(500),

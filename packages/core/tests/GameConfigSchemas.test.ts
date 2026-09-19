@@ -13,8 +13,8 @@ describe("Arcade Minigame Config Schemas", () => {
       const parsed = PlatformerConfigSchema.safeParse({});
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.SCREEN_WIDTH).toBe(800);
-        expect(parsed.data.SCREEN_HEIGHT).toBe(600);
+        expect(parsed.data.worldWidth).toBe(800);
+        expect(parsed.data.worldHeight).toBe(600);
         expect(parsed.data.TILE_SIZE).toBe(40);
         expect(parsed.data.PLAYER_SPEED).toBe(200);
         expect(parsed.data.PLAYER_ACCEL).toBe(800);
@@ -38,8 +38,8 @@ describe("Arcade Minigame Config Schemas", () => {
       const parsed = EchoRunnerConfigSchema.safeParse({});
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.SCREEN_WIDTH).toBe(800);
-        expect(parsed.data.SCREEN_HEIGHT).toBe(600);
+        expect(parsed.data.worldWidth).toBe(800);
+        expect(parsed.data.worldHeight).toBe(600);
         expect(parsed.data.TILE_SIZE).toBe(40);
         expect(parsed.data.PLAYER_SPEED).toBe(220);
         expect(parsed.data.PLAYER_ACCEL).toBe(900);
@@ -63,8 +63,8 @@ describe("Arcade Minigame Config Schemas", () => {
       const parsed = FlappyBirdConfigSchema.safeParse({});
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.SCREEN_WIDTH).toBe(400);
-        expect(parsed.data.SCREEN_HEIGHT).toBe(600);
+        expect(parsed.data.worldWidth).toBe(800);
+        expect(parsed.data.worldHeight).toBe(600);
         expect(parsed.data.BIRD_X).toBe(100);
         expect(parsed.data.BIRD_START_Y).toBe(300);
         expect(parsed.data.BIRD_RADIUS).toBe(15);
@@ -90,8 +90,8 @@ describe("Arcade Minigame Config Schemas", () => {
       const parsed = SpaceInvadersConfigSchema.safeParse({});
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.SCREEN_WIDTH).toBe(800);
-        expect(parsed.data.SCREEN_HEIGHT).toBe(600);
+        expect(parsed.data.worldWidth).toBe(800);
+        expect(parsed.data.worldHeight).toBe(600);
         expect(parsed.data.PLAYER_SPEED).toBe(300);
         expect(parsed.data.PLAYER_INITIAL_LIVES).toBe(3);
         expect(parsed.data.PLAYER_BULLET_SPEED).toBe(500);
@@ -115,8 +115,8 @@ describe("Arcade Minigame Config Schemas", () => {
       const parsed = AsteroidConfigSchema.safeParse({});
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.SCREEN_WIDTH).toBe(800);
-        expect(parsed.data.SCREEN_HEIGHT).toBe(600);
+        expect(parsed.data.worldWidth).toBe(800);
+        expect(parsed.data.worldHeight).toBe(600);
         expect(parsed.data.INITIAL_ASTEROID_COUNT).toBe(5);
         expect(parsed.data.SHIP_THRUST).toBe(150);
         expect(parsed.data.FRICTION).toBe(0.99);
@@ -137,8 +137,8 @@ describe("Arcade Minigame Config Schemas", () => {
       const parsed = GeometryWarsConfigSchema.safeParse({});
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.WIDTH).toBe(800);
-        expect(parsed.data.HEIGHT).toBe(600);
+        expect(parsed.data.worldWidth).toBe(800);
+        expect(parsed.data.worldHeight).toBe(600);
         expect(parsed.data.PLAYER_SPEED).toBe(220);
         expect(parsed.data.BULLET_SPEED).toBe(500);
         expect(parsed.data.INITIAL_LIVES).toBe(3);
@@ -159,8 +159,8 @@ describe("Arcade Minigame Config Schemas", () => {
       const parsed = PongConfigSchema.safeParse({});
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.WIDTH).toBe(800);
-        expect(parsed.data.HEIGHT).toBe(600);
+        expect(parsed.data.worldWidth).toBe(800);
+        expect(parsed.data.worldHeight).toBe(600);
         expect(parsed.data.BALL_SIZE).toBe(8);
         expect(parsed.data.BALL_SPEED_START).toBe(300);
         expect(parsed.data.PADDLE_SPEED).toBe(400);

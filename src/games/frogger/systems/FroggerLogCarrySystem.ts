@@ -89,7 +89,7 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
       frogger.gridX = Math.max(0, Math.min(config.TOTAL_COLS - 1, Math.floor(transform.x / config.GRID_SIZE)));
 
       // Offscreen drift check using physical bounds
-      if (transform.x + frogRadius < 0 || transform.x - frogRadius > config.SCREEN_WIDTH) {
+      if (transform.x + frogRadius < 0 || transform.x - frogRadius > config.worldWidth) {
         if (!isInvulnerable) {
           this.triggerDeath(world, froggerEntity, "drift");
         }

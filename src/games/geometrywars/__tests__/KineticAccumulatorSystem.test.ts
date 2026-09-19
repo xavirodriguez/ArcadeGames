@@ -14,7 +14,7 @@ describe("KineticAccumulatorSystem Unit Tests", () => {
     config = { ...DEFAULT_CONFIG };
     world = new World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>();
     world.setResource("GameConfig", config);
-    world.setResource("ScreenConfig", { width: config.WIDTH, height: config.HEIGHT });
+    world.setResource("ScreenConfig", { width: config.worldWidth, height: config.worldHeight });
 
     registerGeometryWarsBlueprints(world);
 

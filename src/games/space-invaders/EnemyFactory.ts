@@ -81,8 +81,8 @@ export class EnemyFactory {
           const gameConfig = world.getResource<Record<string, unknown>>("GameConfig");
           add({
             type: "Boundary",
-            width: (gameConfig?.SCREEN_WIDTH as number) ?? 800,
-            height: (gameConfig?.SCREEN_HEIGHT as number) ?? 600,
+            width: (gameConfig?.worldWidth as number) ?? 800,
+            height: (gameConfig?.worldHeight as number) ?? 600,
             mode: blueprint.physics.boundaryBehavior as any
           } as BoundaryComponent);
       }

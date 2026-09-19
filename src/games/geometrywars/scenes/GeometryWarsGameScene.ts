@@ -63,7 +63,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
   public onEnter(): void {
     // 1. Inject resources
     this.gworld.setResource("GameConfig", this.config);
-    this.gworld.setResource("ScreenConfig", { width: this.config.WIDTH, height: this.config.HEIGHT });
+    this.gworld.setResource("ScreenConfig", { width: this.config.worldWidth, height: this.config.worldHeight });
     this.gworld.setResource("GWBulletPool", this.bulletPool);
     this.gworld.setResource("GWParticlePool", this.particlePool);
 
@@ -124,8 +124,8 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
 
     // Wave 2: Ring Spawn (6 Evaders)
     const ringSpawns: SpawnRequest[] = [];
-    const center_x = this.config.WIDTH / 2;
-    const center_y = this.config.HEIGHT / 2;
+    const center_x = this.config.worldWidth / 2;
+    const center_y = this.config.worldHeight / 2;
     const radius = 220;
     for (let i = 0; i < 6; i++) {
       const angle = (i * Math.PI * 2) / 6;
@@ -169,17 +169,17 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
     // 5. Initialize entities
     GeometryWarsEntityFactory.createGameState(this.gworld);
     GeometryWarsEntityFactory.createSpawnDirector(this.gworld);
-    GeometryWarsEntityFactory.createPlayer(this.gworld, this.config.WIDTH / 2, this.config.HEIGHT / 2);
+    GeometryWarsEntityFactory.createPlayer(this.gworld, this.config.worldWidth / 2, this.config.worldHeight / 2);
 
     // Initialize Camera Entity
     const cameraEntity = this.gworld.createEntity();
     this.gworld.addComponent(cameraEntity, {
       type: "Camera2D",
       zoom: 1.0,
-      targetX: this.config.WIDTH / 2,
-      targetY: this.config.HEIGHT / 2,
-      x: this.config.WIDTH / 2,
-      y: this.config.HEIGHT / 2,
+      targetX: this.config.worldWidth / 2,
+      targetY: this.config.worldHeight / 2,
+      x: this.config.worldWidth / 2,
+      y: this.config.worldHeight / 2,
       isMain: true
     } as any);
 
@@ -193,7 +193,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
     } as any);
 
     // Initialize Wave definitions and SpawnDirector
-    const waves = generateGeometryWarsWaves(this.config.WIDTH, this.config.HEIGHT);
+    const waves = generateGeometryWarsWaves(this.config.worldWidth, this.config.worldHeight);
     this.gworld.setResource("WaveDefinitions", waves);
 
     const directorEntity = this.gworld.createEntity();

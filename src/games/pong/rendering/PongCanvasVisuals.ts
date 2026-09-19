@@ -133,9 +133,9 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
  */
 export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world) {
-    const config = world.getResource<PongConfig>("GameConfig") || { WIDTH: 800, HEIGHT: 600 };
-    const width = config.WIDTH;
-    const height = config.HEIGHT;
+    const config = world.getResource<PongConfig>("GameConfig") || { worldWidth: 800, worldHeight: 600 };
+    const width = config.worldWidth;
+    const height = config.worldHeight;
 
     // Draw the generic space grid
     drawProceduralGrid(ctx, width, height, world.tick, 40, 0.3);

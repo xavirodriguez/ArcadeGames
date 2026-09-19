@@ -31,9 +31,9 @@ describe("Flappy Bird Mini-Missions Test Suite", () => {
     missionSystem.setActiveMission(world, mission);
 
     const bus = world.getEventBus();
-    bus.emit("flappy:near_miss", {});
-    bus.emit("flappy:near_miss", {});
-    bus.emit("flappy:near_miss", {});
+    bus.emit("flappy:near_miss", { points: 50 });
+    bus.emit("flappy:near_miss", { points: 50 });
+    bus.emit("flappy:near_miss", { points: 50 });
 
     const state = missionSystem.getActiveMission();
     expect(state?.completed).toBe(true);

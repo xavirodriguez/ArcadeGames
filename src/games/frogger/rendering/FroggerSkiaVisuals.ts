@@ -136,7 +136,7 @@ export const froggerBackgroundSkiaEffect: EffectDrawer<any, FroggerComponentRegi
   draw(canvas, world) {
     if (!Skia) return;
     const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-    const w = config.SCREEN_WIDTH;
+    const w = config.worldWidth;
     const grid = config.GRID_SIZE;
 
     const grassPaint = Skia.Paint();

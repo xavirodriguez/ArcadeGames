@@ -64,8 +64,8 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
       if (nextX - halfW < 0) {
         nextX = halfW;
         currentVx = 0;
-      } else if (nextX + halfW > config.SCREEN_WIDTH) {
-        nextX = config.SCREEN_WIDTH - halfW;
+      } else if (nextX + halfW > config.worldWidth) {
+        nextX = config.worldWidth - halfW;
         currentVx = 0;
       }
 
@@ -137,7 +137,7 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
           const offsetX = ball.attachedOffsetX ?? 0;
           let clampedBallX = transform.x + offsetX;
           const ballRadius = config.BALL_SIZE;
-          clampedBallX = Math.max(ballRadius, Math.min(config.SCREEN_WIDTH - ballRadius, clampedBallX));
+          clampedBallX = Math.max(ballRadius, Math.min(config.worldWidth - ballRadius, clampedBallX));
 
           world.mutateComponent(ballEntity, "Transform", (t) => {
             t.x = clampedBallX;

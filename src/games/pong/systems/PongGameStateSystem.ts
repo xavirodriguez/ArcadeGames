@@ -49,8 +49,8 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
           const scorer = gs.lastScorer;
           balls.forEach(ball => {
             world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
-              t.x = this.config.WIDTH / 2;
-              t.y = this.config.HEIGHT / 2;
+              t.x = this.config.worldWidth / 2;
+              t.y = this.config.worldHeight / 2;
             });
             world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
               v.vx = scorer === "p1" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START;
@@ -116,7 +116,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
             }
           }
           // Ball passed right edge -> Player 1 scores
-          else if (transform.x > this.config.WIDTH) {
+          else if (transform.x > this.config.worldWidth) {
             gs.scoreP1 += 1;
             scorer = "p1";
             scored = true;
@@ -135,7 +135,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
             }
 
             // Trigger particle celebration explosion at the scoring border (30+ particles)
-            const emitterX = scorer === "p1" ? this.config.WIDTH : 0;
+            const emitterX = scorer === "p1" ? this.config.worldWidth : 0;
             const celebrationColor = scorer === "p1" ? "#FF00FF" : "#00FFFF";
             const emitter = createEmitter(world as any, {
               type: "goal_celebration",
@@ -171,8 +171,8 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
 
               // Move ball to center during freeze
               world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
-                t.x = this.config.WIDTH / 2;
-                t.y = this.config.HEIGHT / 2;
+                t.x = this.config.worldWidth / 2;
+                t.y = this.config.worldHeight / 2;
               });
               world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
                 v.vx = 0;

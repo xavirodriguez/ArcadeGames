@@ -152,9 +152,9 @@ export const drawArkanoidBrick: ShapeDrawer<CanvasRenderingContext2D, ArkanoidCo
 
 export const drawArkanoidBackground: EffectDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world) {
-    const config = world.getResource<ArkanoidConfig>("GameConfig") || { SCREEN_WIDTH: 800, SCREEN_HEIGHT: 600 };
-    const width = config.SCREEN_WIDTH;
-    const height = config.SCREEN_HEIGHT;
+    const config = world.getResource<ArkanoidConfig>("GameConfig") || { worldWidth: 800, worldHeight: 600 };
+    const width = config.worldWidth;
+    const height = config.worldHeight;
 
     drawProceduralGrid(ctx, width, height, world.tick, 50, 0.25);
 

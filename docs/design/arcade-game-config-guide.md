@@ -8,7 +8,7 @@ Todos los minijuegos extienden sus configuraciones a partir de `BaseConfigSchema
 
 ## Shapes Reutilizables Disponibles
 
-- **`ScreenDimensionsSchema`**: `SCREEN_WIDTH` (default 800), `SCREEN_HEIGHT` (default 600), `SCREEN_CENTER_X`, `SCREEN_CENTER_Y`.
+- **`ScreenDimensionsSchema`**: `worldWidth` (default 800), `worldHeight` (default 600), `aspectRatio` (default 4/3).
 - **`ComboConfigSchema`**: `COMBO_TIMEOUT` (default 2000), `MAX_MULTIPLIER` (default 10).
 - **`StandardControlKeysSchema`**: Teclas predeterminadas (`LEFT`, `RIGHT`, `SHOOT`, `PAUSE`, `RESTART`).
 - **`PlayerMovementSchema`**: Parámetros de velocidad y aceleración (`PLAYER_SPEED`, `PLAYER_ACCEL`, `PLAYER_DECEL`, `PLAYER_AIR_ACCEL`, `PLAYER_AIR_DECEL`).
@@ -80,6 +80,13 @@ export class NuevoJuegoGame extends BaseGame<...> {
   }
 }
 ```
+
+## Dimensiones Lógicas vs Físicas (Letterboxing) y Orientation Guard
+
+- **Dimensiones Lógicas (`GameConfig`)**: `worldWidth` y `worldHeight` definen las dimensiones fijas del mundo de simulación.
+- **Dimensiones Físicas (`ScreenConfig`)**: `width` y `height` definen el tamaño del viewport físico.
+- **Letterboxing Universal**: `CanvasRenderer` y `SkiaRenderer` escalan de forma uniforme y centran la simulación dentro del viewport agregando letterboxing cuando los aspect ratios difieren.
+- **OrientationGuard**: `GameLayoutShell.tsx` envuelve los minijuegos bloqueando la orientación a landscape en dispositivos nativos y mostrando un overlay de rotación en navegador web / dispositivos móviles en modo portrait.
 
 ## Verificación en Tests
 

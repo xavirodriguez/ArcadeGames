@@ -88,7 +88,7 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
     for (const e of existingBoss) world.getCommandBuffer().removeEntity(e);
 
     if (level === 33) {
-      DohFactory.createDoh(world, config.SCREEN_CENTER_X, 120);
+      DohFactory.createDoh(world, config.worldWidth / 2, 120);
       world.mutateSingleton("ArkanoidState", (s) => {
         s.bricksRemaining = 999;
         s.isVictory = false;

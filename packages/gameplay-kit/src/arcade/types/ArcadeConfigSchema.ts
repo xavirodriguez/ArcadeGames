@@ -5,10 +5,9 @@ import { z } from "zod";
  * @public
  */
 export const ScreenDimensionsSchema = z.object({
-  SCREEN_WIDTH: z.number().default(800),
-  SCREEN_HEIGHT: z.number().default(600),
-  SCREEN_CENTER_X: z.number().default(400),
-  SCREEN_CENTER_Y: z.number().default(300)
+  worldWidth: z.number().default(800),
+  worldHeight: z.number().default(600),
+  aspectRatio: z.number().default(4 / 3)
 });
 
 /**

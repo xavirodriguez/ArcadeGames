@@ -550,14 +550,14 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
  */
 export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, level: number): void => {
     const config = world.getResource<AsteroidConfig>("GameConfig") || {
-        SCREEN_WIDTH: 800,
-        SCREEN_HEIGHT: 600,
+        worldWidth: 800,
+        worldHeight: 600,
         INITIAL_ASTEROID_COUNT: 5
     };
     const count = (config.INITIAL_ASTEROID_COUNT ?? 5) + (level - 1);
     const screen = world.getResource<{ width: number, height: number }>("ScreenConfig") || {
-        width: config.SCREEN_WIDTH ?? 800,
-        height: config.SCREEN_HEIGHT ?? 600
+        width: config.worldWidth ?? 800,
+        height: config.worldHeight ?? 600
     };
 
     const rand = world.gameplayRandom;

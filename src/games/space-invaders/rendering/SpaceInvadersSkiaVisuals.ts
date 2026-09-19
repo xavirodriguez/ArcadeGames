@@ -374,7 +374,7 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
         const blinkAlpha = 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3));
         const pos = world.getComponent(entity, "Transform");
         const targetX = kami.targetX ?? (pos ? pos.x : 0);
-        const targetY = kami.targetY ?? GAME_CONFIG.SCREEN_HEIGHT;
+        const targetY = kami.targetY ?? GAME_CONFIG.worldHeight;
         const relTargetX = targetX - (pos ? pos.x : 0);
         const relTargetY = targetY - (pos ? pos.y : 0);
 
@@ -399,7 +399,7 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
         canvas.save();
 
         const pos = world.getComponent(entity, "Transform");
-        const bottomRelY = pos ? GAME_CONFIG.SCREEN_HEIGHT - pos.y - 35 : 450;
+        const bottomRelY = pos ? GAME_CONFIG.worldHeight - pos.y - 35 : 450;
 
         const arrowPath = Skia!.Path.Make();
         arrowPath.moveTo(0, bottomRelY);

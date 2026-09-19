@@ -5,13 +5,15 @@ import { Component, CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
  * @public
  */
 export interface SpaceInvadersEventRegistry extends CoreEvents, Record<string, unknown> {
+  "combat:hit": CombatHitEvent;
+  "combat:death": CombatDeathEvent;
   "si:boss_defeated": Record<string, unknown>;
   "stage:cleared": { level: number };
   "si:kill": { chain: number };
   "entity:destroyed": { entity: number; type: string };
 }
 import { ComboComponent } from "@tiny-aster/core";
-import { LootTableComponent, PowerUpComponent } from "@tiny-aster/gameplay-kit";
+import { LootTableComponent, PowerUpComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
 import { SpawnDirectorComponent, WaveMemberComponent } from "@tiny-aster/gameplay-kit";
 import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";

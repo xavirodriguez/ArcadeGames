@@ -5,7 +5,7 @@ import { EnemyFactory } from "./EnemyFactory";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
 import { loadAndMutateConfig } from "../shared/configHelper";
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
+import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
@@ -39,7 +39,7 @@ export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefin
 }
 
 export class SpaceInvadersGame
-  extends BaseGame<GameStateComponent, InputState, SpaceInvadersComponentRegistry, any, SpaceInvadersBlueprintMap>
+  extends BaseGame<GameStateComponent, InputState, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, SpaceInvadersBlueprintMap>
   implements ISpaceInvadersGame {
 
   public isMultiplayer = false;

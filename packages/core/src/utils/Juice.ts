@@ -1,4 +1,5 @@
-import { World } from "../ecs/World";
+import { World, BlueprintRegistryMap } from "../ecs/World";
+import { EventRegistry } from "../events/EventBus";
 import { Entity } from "../ecs/Entity";
 import { RenderComponent, JuiceComponent, CoreComponentRegistry, ScreenShakeComponent } from "../ecs/CoreComponents";
 
@@ -11,22 +12,31 @@ export class Juice {
   /**
    * Adds a temporary color flash to an entity.
    */
-  public static flash(world: World<CoreComponentRegistry>, entity: Entity, frames: number = 5): void {
-    world.mutateComponent(entity, "Render", (render: RenderComponent) => {
-      render.hitFlashFrames = frames;
+  public static flash<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, frames: number = 5): void {
+    world.mutateComponent(entity, "Render" as Extract<keyof TComponents, string>, (render) => {
+      (render as unknown as RenderComponent).hitFlashFrames = frames;
     });
   }
 
   /**
    * Shakes the screen (world singleton Camera2D if available, or ScreenShake resource).
    */
-  public static shake(world: World<CoreComponentRegistry>, intensity: number, duration: number): void {
-    const shake = world.getSingleton("ScreenShake");
+  public static shake<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, intensity: number, duration: number): void {
+    const shake = world.getSingleton("ScreenShake" as Extract<keyof TComponents, string>);
     if (shake) {
-        world.mutateSingleton("ScreenShake", (s: ScreenShakeComponent) => {
-            s.intensity = Math.max(s.intensity, intensity);
-            s.duration = Math.max(s.duration, duration);
-            s.remaining = Math.max(s.remaining, duration);
+        world.mutateSingleton("ScreenShake" as Extract<keyof TComponents, string>, (s) => {
+            const screenShake = s as unknown as ScreenShakeComponent;
+            screenShake.intensity = Math.max(screenShake.intensity, intensity);
+            screenShake.duration = Math.max(screenShake.duration, duration);
+            screenShake.remaining = Math.max(screenShake.remaining, duration);
         });
     } else {
         // Fallback to resource-based shake if component not found
@@ -37,10 +47,10 @@ export class Juice {
             res.remaining = Math.max(res.remaining, duration);
         } else {
             // Fallback for GameState singleton holding screenShake (e.g. Space Invaders)
-            const gameState = world.getSingleton("GameState" as Extract<keyof CoreComponentRegistry, string>) as { screenShake?: { intensity?: number; duration?: number; totalDuration?: number } } | undefined;
+            const gameState = world.getSingleton("GameState" as Extract<keyof TComponents, string>) as { screenShake?: { intensity?: number; duration?: number; totalDuration?: number } } | undefined;
             if (gameState && "screenShake" in gameState) {
                 const durSec = duration > 10 ? duration / 1000 : duration;
-                world.mutateSingleton("GameState" as Extract<keyof CoreComponentRegistry, string>, (gs: import("../ecs/Component").Component) => {
+                world.mutateSingleton("GameState" as Extract<keyof TComponents, string>, (gs: import("../ecs/Component").Component) => {
                     const currentShake = (gs as { screenShake?: { intensity?: number; duration?: number; totalDuration?: number } }).screenShake;
                     if (!currentShake || (currentShake.duration ?? 0) <= 0) {
                         (gs as { screenShake?: unknown }).screenShake = {
@@ -66,7 +76,11 @@ export class Juice {
   /**
    * Adds a general juice animation to an entity.
    */
-  public static add(world: World<CoreComponentRegistry>, entity: Entity, anim: {
+  public static add<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, anim: {
     componentType?: string;
     property: string;
     target: number;
@@ -75,18 +89,18 @@ export class Juice {
     delay?: number;
     repeat?: number;
   }): void {
-    if (!world.hasComponent(entity, "Juice")) {
-        world.addComponent(entity, { type: "Juice", active: true, animations: [] });
+    if (!world.hasComponent(entity, "Juice" as Extract<keyof TComponents, string>)) {
+        world.addComponent(entity, { type: "Juice", active: true, animations: [] } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
     }
-    if (!anim.componentType && !world.hasComponent(entity, "VisualOffset")) {
-        world.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0 } as import("../ecs/CoreComponents").VisualOffsetComponent);
+    if (!anim.componentType && !world.hasComponent(entity, "VisualOffset" as Extract<keyof TComponents, string>)) {
+        world.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0 } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
     }
 
     const durationInSeconds = anim.duration / 1000;
     const delayInSeconds = anim.delay ? anim.delay / 1000 : 0;
 
-    world.mutateComponent(entity, "Juice", (juice: JuiceComponent) => {
-        juice.animations.push({
+    world.mutateComponent(entity, "Juice" as Extract<keyof TComponents, string>, (juice) => {
+        (juice as unknown as JuiceComponent).animations.push({
             type: "animation",
             ...anim,
             duration: durationInSeconds,
@@ -99,7 +113,11 @@ export class Juice {
   /**
    * Simple squash and stretch animation.
    */
-  public static squash(world: World<CoreComponentRegistry>, entity: Entity, sx: number, sy: number, duration: number): void {
+  public static squash<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, sx: number, sy: number, duration: number): void {
     this.add(world, entity, {
         property: "scaleX",
         target: sx,

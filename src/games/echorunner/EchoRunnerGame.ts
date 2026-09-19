@@ -47,7 +47,7 @@ import {
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
-import { EchoRunnerInput, EchoRunnerGameState, ECHO_CONFIG } from "./types/EchoRunnerTypes";
+import { EchoRunnerInput, EchoRunnerGameState, EchoRunnerEventRegistry, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
@@ -136,7 +136,7 @@ class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
   }
 }
 
-export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, any, any> {
+export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, EchoRunnerEventRegistry, any> {
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;

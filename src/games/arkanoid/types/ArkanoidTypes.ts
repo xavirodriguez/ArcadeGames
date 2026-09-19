@@ -4,7 +4,7 @@ import {
   EventRegistry,
   Entity
 } from "@tiny-aster/core";
-import { PowerUpComponent } from "@tiny-aster/gameplay-kit";
+import { PowerUpComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import {
   BrickMaterial,
   BrickColorName,
@@ -145,8 +145,8 @@ export interface ArkanoidEventRegistry extends EventRegistry {
   "arkanoid:powerup_collected": { capsuleType: CapsuleType; x: number; y: number };
   "arkanoid:doh_hit": { hitsRemaining: number };
   "arkanoid:doh_defeated": {};
-  "combat:hit": { targetEntity: Entity; attackerEntity?: Entity; damage: number };
-  "combat:death": { entity: Entity; attackerEntity?: Entity };
+  "combat:hit": CombatHitEvent;
+  "combat:death": CombatDeathEvent;
   "PlaySFX": { name: string };
 }
 

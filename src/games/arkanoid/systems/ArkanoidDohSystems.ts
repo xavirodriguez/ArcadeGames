@@ -1,5 +1,6 @@
 import { System, World, WorldUtils, Juice, CoreComponentRegistry, Entity } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
+import { CombatHitEvent } from "@tiny-aster/gameplay-kit";
 import { DohFactory, DOH_REQUIRED_HITS } from "../boss/DohFactory";
 
 export class DohAttackSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
@@ -81,10 +82,10 @@ export class DohRulesSystem extends System<ArkanoidComponentRegistry, ArkanoidEv
   public override onRegister(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>): void {
     const eventBus = world.getEventBus();
     if (eventBus) {
-      eventBus.on("combat:hit", (event: any) => {
+      eventBus.on("combat:hit", (event: CombatHitEvent) => {
         const target = event.targetEntity;
         if (target && world.hasComponent(target, "Boss")) {
-          this.handleDohHit(world, target, event.attackerEntity);
+          this.handleDohHit(world, target, event.sourceEntity);
         }
       });
     }

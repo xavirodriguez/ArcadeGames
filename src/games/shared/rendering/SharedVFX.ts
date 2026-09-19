@@ -1,4 +1,5 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, Entity, CoreComponentRegistry, EventRegistry, BlueprintRegistryMap, RenderContext } from "@tiny-aster/core";
+import type { SkColor, SkShader, SkPath } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
@@ -21,12 +22,12 @@ export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
  * Dynamically resolves the active LevelVisualTheme based on world resource or level progress.
  * @public
  */
-export function getActiveLevelTheme(world: World<any>): LevelVisualTheme {
+export function getActiveLevelTheme<TComponents extends ComponentRegistry>(world: World<TComponents>): LevelVisualTheme {
   const resourceTheme = world.getResource<LevelThemeName>("ActiveLevelThemeName");
   if (resourceTheme) {
     return getLevelTheme(resourceTheme);
   }
-  const gameState = world.getSingleton("GameState") as { level?: number } | undefined;
+  const gameState = world.getSingleton("GameState" as Extract<keyof TComponents, string>) as { level?: number } | undefined;
   const level = gameState?.level || 1;
   const themes: LevelThemeName[] = ["deep_space", "violet_nebula", "industrial_orbit", "volcanic_rift", "alien_bloom"];
   const themeName = themes[(level - 1) % themes.length];
@@ -37,7 +38,7 @@ export function getActiveLevelTheme(world: World<any>): LevelVisualTheme {
  * Returns screen dimensions and state for VFX drawers.
  * @public
  */
-export function getScreenAndVFXState(world: World<any>): {
+export function getScreenAndVFXState<TComponents extends ComponentRegistry>(world: World<TComponents>): {
   width: number;
   height: number;
   state: VFXWorldState;
@@ -85,7 +86,7 @@ interface Star {
   twinklePhase: number;
   twinkleSpeed: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 interface SpeedLine {
@@ -94,7 +95,7 @@ interface SpeedLine {
   length: number;
   speed: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 interface NebulaCloud {
@@ -104,7 +105,7 @@ interface NebulaCloud {
   vy: number;
   radius: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 interface MatrixColumn {
@@ -136,7 +137,7 @@ interface MilkyWayDustParticle {
   twinklePhase: number;
   twinkleSpeed: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 interface MilkyWayBandState {
@@ -168,15 +169,15 @@ interface DistantAsteroid {
   angularVelocity: number;
   points: { x: number; y: number }[];
   color: string;
-  skColor?: any;
-  skPath?: any;
+  skColor?: SkColor | null;
+  skPath?: SkPath | null;
 }
 
 interface SpaceStationBeacon {
   x: number;
   y: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
   twinklePhase: number;
   twinkleSpeed: number;
 }
@@ -215,26 +216,26 @@ interface VFXWorldState {
   milkyWayInitialized: boolean;
   stationInitialized: boolean;
   timePhase: number; // Incremented exactly once per render tick to be entity-independent
-  cachedCRTGradient?: any; // Cached CanvasRadialGradient
-  cachedSkiaShader?: any; // Cached Skia Shader
-  cachedPlanetGradient?: any; // Cached CanvasRadialGradient for Ringing Planet
-  cachedPlanetSkiaShader?: any; // Cached Skia Shader for Ringing Planet
-  cachedRingGradient?: any; // Cached CanvasLinearGradient for Planet Rings
-  cachedRingSkiaShader?: any; // Cached Skia Shader for Planet Rings
-  cachedMilkyWayGradient?: any; // Cached CanvasLinearGradient for Diffuse Milky Way
-  cachedMilkyWaySkiaShader?: any; // Cached Skia Shader for Diffuse Milky Way
-  cachedStationGradient?: any; // Cached CanvasRadialGradient for Space Station Hub
-  cachedStationSkiaShader?: any; // Cached Skia Shader for Space Station Hub
+  cachedCRTGradient?: CanvasGradient | null; // Cached CanvasRadialGradient
+  cachedSkiaShader?: SkShader | null; // Cached Skia Shader
+  cachedPlanetGradient?: CanvasGradient | null; // Cached CanvasRadialGradient for Ringing Planet
+  cachedPlanetSkiaShader?: SkShader | null; // Cached Skia Shader for Ringing Planet
+  cachedRingGradient?: CanvasGradient | null; // Cached CanvasLinearGradient for Planet Rings
+  cachedRingSkiaShader?: SkShader | null; // Cached Skia Shader for Planet Rings
+  cachedMilkyWayGradient?: CanvasGradient | null; // Cached CanvasLinearGradient for Diffuse Milky Way
+  cachedMilkyWaySkiaShader?: SkShader | null; // Cached Skia Shader for Diffuse Milky Way
+  cachedStationGradient?: CanvasGradient | null; // Cached CanvasRadialGradient for Space Station Hub
+  cachedStationSkiaShader?: SkShader | null; // Cached Skia Shader for Space Station Hub
   lastWidth: number;
   lastHeight: number;
   lastCRTWidth?: number;
   lastCRTHeight?: number;
 }
 
-const worldStateMap = new WeakMap<World<any>, VFXWorldState>();
+const worldStateMap = new WeakMap<World<ComponentRegistry>, VFXWorldState>();
 
-function getVFXState(world: World<any>): VFXWorldState {
-  let state = worldStateMap.get(world);
+function getVFXState<TComponents extends ComponentRegistry>(world: World<TComponents>): VFXWorldState {
+  let state = worldStateMap.get(world as unknown as World<ComponentRegistry>);
   if (!state) {
     state = {
       stars: [],
@@ -258,7 +259,7 @@ function getVFXState(world: World<any>): VFXWorldState {
       lastWidth: 0,
       lastHeight: 0
     };
-    worldStateMap.set(world, state);
+    worldStateMap.set(world as unknown as World<ComponentRegistry>, state);
   }
   return state;
 }
@@ -286,7 +287,7 @@ function getOrCreateCached<T>(
   create: () => T
 ): T {
   if (!state[cacheKey] || state.lastCRTWidth !== width || state.lastCRTHeight !== height) {
-    state[cacheKey] = create();
+    (state as Record<CachedVFXKey, unknown>)[cacheKey] = create();
     state.lastCRTWidth = width;
     state.lastCRTHeight = height;
   }
@@ -340,8 +341,8 @@ export function updateDistantAsteroid(ast: DistantAsteroid, width: number, offse
   return { posX, y: ast.y, rotation: ast.rotation };
 }
 
-export function getRenderComponent(world: World<any>, entity: any): RenderComponent | undefined {
-  return world.getComponent(entity, "Render") as RenderComponent | undefined;
+export function getRenderComponent<TComponents extends ComponentRegistry>(world: World<TComponents>, entity: Entity): RenderComponent | undefined {
+  return world.getComponent(entity, "Render" as Extract<keyof TComponents, string>) as RenderComponent | undefined;
 }
 
 export function computeShockwaveParams(baseSize: number, progress: number) {
@@ -380,8 +381,8 @@ function computeCometTrailSegments(timePhase: number, size: number): TrailSegmen
   return segments;
 }
 
-function computeEffectProgress(world: World<any>, entity: any): { progress: number; alpha: number } {
-  const ttl = world.getComponent(entity, "TTL") as TTLComponent | undefined;
+function computeEffectProgress<TComponents extends ComponentRegistry>(world: World<TComponents>, entity: Entity): { progress: number; alpha: number } {
+  const ttl = world.getComponent(entity, "TTL" as Extract<keyof TComponents, string>) as TTLComponent | undefined;
   let progress = 0.5;
 
   if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {
@@ -415,7 +416,7 @@ function pickColor(rng: any, colors: string[]): { color: string; skColor: any } 
   return { color, skColor: Skia ? Skia.Color(color) : null };
 }
 
-function initializeStars(world: World<any>, state: VFXWorldState) {
+function initializeStars<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.white,
@@ -441,7 +442,7 @@ function initializeStars(world: World<any>, state: VFXWorldState) {
   state.starsInitialized = true;
 }
 
-function initializeLines(world: World<any>, state: VFXWorldState, maxRadius: number) {
+function initializeLines<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState, maxRadius: number) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.white,
@@ -464,7 +465,7 @@ function initializeLines(world: World<any>, state: VFXWorldState, maxRadius: num
   state.warpLinesInitialized = true;
 }
 
-function initializeNebulae(world: World<any>, state: VFXWorldState) {
+function initializeNebulae<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.nebulaPurple,
@@ -489,7 +490,7 @@ function initializeNebulae(world: World<any>, state: VFXWorldState) {
   state.nebulaeInitialized = true;
 }
 
-function initializeMatrix(world: World<any>, state: VFXWorldState) {
+function initializeMatrix<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState) {
   const rng = world.renderRandom;
   state.matrixColumns = [];
   for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
@@ -504,7 +505,7 @@ function initializeMatrix(world: World<any>, state: VFXWorldState) {
   state.matrixInitialized = true;
 }
 
-function initializeVortex(world: World<any>, state: VFXWorldState) {
+function initializeVortex<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState) {
   const rng = world.renderRandom;
   state.accretionParticles = [];
   for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
@@ -518,7 +519,7 @@ function initializeVortex(world: World<any>, state: VFXWorldState) {
   state.vortexInitialized = true;
 }
 
-function initializeMilkyWay(world: World<any>, state: VFXWorldState) {
+function initializeMilkyWay<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const angle = rng.nextRange(-0.4, -0.2);
   const colors = [
@@ -551,7 +552,7 @@ function initializeMilkyWay(world: World<any>, state: VFXWorldState) {
   state.milkyWayInitialized = true;
 }
 
-function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
+function initializeRingingPlanet<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const planetX = rng.nextRange(550, 680);
   const planetY = rng.nextRange(120, 220);
@@ -601,7 +602,7 @@ function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
   state.planetInitialized = true;
 }
 
-function initializeDistantAsteroids(world: World<any>, state: VFXWorldState) {
+function initializeDistantAsteroids<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.cosmicNavy,
@@ -644,7 +645,7 @@ function initializeDistantAsteroids(world: World<any>, state: VFXWorldState) {
   state.distantAsteroidsInitialized = true;
 }
 
-function initializeSpaceStation(world: World<any>, state: VFXWorldState) {
+function initializeSpaceStation<TComponents extends ComponentRegistry>(world: World<TComponents>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const x = rng.nextRange(150, 280);
   const y = rng.nextRange(100, 200);
@@ -1506,27 +1507,27 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegis
 /**
  * Registers all shared VFX shape drawers to a Renderer instance for both Canvas and Skia backends.
  */
-export function registerSharedVFX(renderer: Renderer<any, any>): void {
-  RendererUtils.registerAssets(renderer, {
+export function registerSharedVFX<TComponents extends CoreComponentRegistry, TCanvas extends RenderContext>(renderer: Renderer<TComponents, TCanvas>): void {
+  RendererUtils.registerAssets(renderer as unknown as Renderer<ComponentRegistry, RenderContext>, {
     canvas: (r) => {
-      r.registerShape("shield_bubble", EnergyShieldBubbleEffect);
-      r.registerShape("shockwave", DebrisShockwaveEffect);
-      r.registerShape("thruster_flame", ThrusterPlumeFlameEffect);
-      r.registerShape("laser_beam", LaserRailBeamEffect);
-      r.registerShape("singularity", SingularityVortexEffect);
-      r.registerShape("comet_trail", CometMotionTrailEffect);
-      r.registerShape("hologram_glitch", RGBHologramGlitchEffect);
-      r.registerShape("floating_text", FloatingTextScoreEffect);
+      r.registerShape("shield_bubble", EnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("shockwave", DebrisShockwaveEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("thruster_flame", ThrusterPlumeFlameEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("laser_beam", LaserRailBeamEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("singularity", SingularityVortexEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("comet_trail", CometMotionTrailEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("hologram_glitch", RGBHologramGlitchEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("floating_text", FloatingTextScoreEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
     },
     skia: (r) => {
-      r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect);
-      r.registerShape("shockwave", SkiaDebrisShockwaveEffect);
-      r.registerShape("thruster_flame", SkiaThrusterPlumeFlameEffect);
-      r.registerShape("laser_beam", SkiaLaserRailBeamEffect);
-      r.registerShape("singularity", SkiaSingularityVortexEffect);
-      r.registerShape("comet_trail", SkiaCometMotionTrailEffect);
-      r.registerShape("hologram_glitch", SkiaRGBHologramGlitchEffect);
-      r.registerShape("floating_text", SkiaFloatingTextScoreEffect);
+      r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("shockwave", SkiaDebrisShockwaveEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("thruster_flame", SkiaThrusterPlumeFlameEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("laser_beam", SkiaLaserRailBeamEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("singularity", SkiaSingularityVortexEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("comet_trail", SkiaCometMotionTrailEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("hologram_glitch", SkiaRGBHologramGlitchEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("floating_text", SkiaFloatingTextScoreEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
     }
   });
 }
@@ -1535,14 +1536,18 @@ export function registerSharedVFX(renderer: Renderer<any, any>): void {
  * Shared particle creation helper for pooling and zero-allocation particle instantiation.
  * @public
  */
-export function createSharedParticle(
-  world: World<any, any, any>,
+export function createSharedParticle<
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+>(
+  world: World<TComponents, TEvents, TBlueprints>,
   x: number,
   y: number,
   dx: number,
   dy: number,
   color: string,
-  pool: { acquire: (world: World<any, any, any>, params: any) => number },
+  pool: { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: any) => number },
   size = 3,
   ttl = 0.8
 ): number {

@@ -4,6 +4,7 @@ import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/Procedu
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { ensureSkiaAvailable, getRenderGuard, getDrawableTransform, defineSkiaShape } from "../../shared/rendering/renderingUtils";
 
+import type { SkColor } from "@shopify/react-native-skia";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 // ============================================================================
@@ -20,7 +21,7 @@ interface VisualParticle {
   maxLife: number;
   size: number;
   color: string;
-  skColor?: any;
+  skColor?: SkColor | null;
 }
 
 const PARTICLE_POOL_SIZE = 250;

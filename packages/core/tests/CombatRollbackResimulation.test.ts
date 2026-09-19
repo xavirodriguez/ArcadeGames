@@ -1,18 +1,18 @@
-import { World, SystemPhase, EventBus, WorldSnapshot } from "@tiny-aster/core";
-import { CombatSystem } from "@tiny-aster/gameplay-kit";
+import { World, SystemPhase, EventBus, WorldSnapshot, HealthComponent, TransformComponent, CollisionEventsComponent } from "@tiny-aster/core";
+import { CombatSystem, FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 import { SpaceInvadersCollisionSystem } from "../../../src/games/space-invaders/systems/SpaceInvadersCollisionSystem";
 import { ParticlePool, PlayerBulletPool } from "../../../src/games/space-invaders/EntityPool";
 import { RollbackSimulation } from "../src/network/RollbackSimulation";
 import { SnapshotBuffer } from "../src/snapshots/SnapshotBuffer";
-import { SpaceInvadersComponentRegistry } from "../../../src/games/space-invaders/types/SpaceInvadersTypes";
+import { SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GameStateComponent, InvaderComponent } from "../../../src/games/space-invaders/types/SpaceInvadersTypes";
 import { DivergenceDetector } from "../src/replay/DivergenceDetector";
 import { Simulation } from "../src/runtime/Simulation";
 import { CompactInputFrame } from "../src/input/InputFrame";
 
 class TestSimulationAdapter implements Simulation {
-  public world: World<SpaceInvadersComponentRegistry>;
+  public world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>;
 
-  constructor(world: World<SpaceInvadersComponentRegistry>) {
+  constructor(world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>) {
     this.world = world;
   }
 
@@ -20,11 +20,11 @@ class TestSimulationAdapter implements Simulation {
     return this.world.tick;
   }
 
-  get state(): any {
+  get state(): GameStateComponent | undefined {
     return this.world.getSingleton("GameState");
   }
 
-  step(input: CompactInputFrame): void {
+  step(_input: CompactInputFrame): void {
     this.world.update(0.016);
     const eventBus = this.world.getEventBus();
     if (eventBus) {
@@ -67,14 +67,14 @@ class TestSimulationAdapter implements Simulation {
 }
 
 describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => {
-  let world: World<SpaceInvadersComponentRegistry>;
+  let world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>;
   let particlePool: ParticlePool;
   let playerBulletPool: PlayerBulletPool;
 
   beforeEach(() => {
-    world = new World<SpaceInvadersComponentRegistry>();
+    world = new World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>();
 
-    const eventBus = new EventBus<any>();
+    const eventBus = new EventBus<SpaceInvadersEventRegistry>();
     world.setResource("EventBus", eventBus);
 
     const mockConfig = {
@@ -106,30 +106,30 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
   it("Case 1: enemy dies -> deterministic state correct & external side effect exactly once", () => {
     const eventBus = world.getEventBus()!;
     const sfxList: string[] = [];
-    eventBus.on("PlaySFX", (evt) => sfxList.push(evt.name));
+    eventBus.on("PlaySFX", (evt) => sfxList.push((evt as { name: string }).name));
 
     const gs = world.createEntity();
-    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0 } as any);
+    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0, readyRemaining: 0, intermissionRemaining: 0, continueCountdownRemaining: 0, continuesRemaining: 3 } as GameStateComponent);
     const combo = world.createEntity();
-    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as any);
+    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as SpaceInvadersComponentRegistry["Combo"]);
 
     const invader = world.createEntity();
-    world.addComponent(invader, { type: "Invader", points: 50, row: 0, col: 0 } as any);
-    world.addComponent(invader, { type: "Transform", x: 100, y: 100 } as any);
-    world.addComponent(invader, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    world.addComponent(invader, { type: "Invader", points: 50, row: 0, col: 0 } as InvaderComponent);
+    world.addComponent(invader, { type: "Transform", x: 100, y: 100 } as TransformComponent);
+    world.addComponent(invader, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     const bullet = playerBulletPool.acquire(world, { x: 100, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    world.mutateComponent(bullet, "Damage" as any, (d: any) => { d.amount = 10; });
+    world.mutateComponent(bullet, "Damage", (d) => { d.amount = 10; });
 
-    world.addComponent(invader, { type: "CollisionEvents", collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(bullet, { type: "CollisionEvents", collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
+    world.addComponent(invader, { type: "CollisionEvents", collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(bullet, { type: "CollisionEvents", collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
 
     const simulation = new TestSimulationAdapter(world);
     simulation.step({ t: 0, b: 0 });
 
-    const gsComp = world.getComponent(gs, "GameState" as any) as any;
-    expect(gsComp.score).toBe(50);
+    const gsComp = world.getComponent(gs, "GameState");
+    expect(gsComp?.score).toBe(50);
     expect(sfxList.filter(s => s.startsWith("explosion")).length).toBe(1);
   });
 
@@ -138,21 +138,21 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     // Setup initial world
     const simNormal = new TestSimulationAdapter(world);
     const gs = world.createEntity();
-    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0 } as any);
+    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0, readyRemaining: 0, intermissionRemaining: 0, continueCountdownRemaining: 0, continuesRemaining: 3 } as GameStateComponent);
     const combo = world.createEntity();
-    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as any);
+    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as SpaceInvadersComponentRegistry["Combo"]);
 
     const invader = world.createEntity();
-    world.addComponent(invader, { type: "Invader", points: 50, row: 0, col: 0 } as any);
-    world.addComponent(invader, { type: "Transform", x: 100, y: 100 } as any);
-    world.addComponent(invader, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    world.addComponent(invader, { type: "Invader", points: 50, row: 0, col: 0 } as InvaderComponent);
+    world.addComponent(invader, { type: "Transform", x: 100, y: 100 } as TransformComponent);
+    world.addComponent(invader, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     const bullet = playerBulletPool.acquire(world, { x: 100, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    world.mutateComponent(bullet, "Damage" as any, (d: any) => { d.amount = 10; });
+    world.mutateComponent(bullet, "Damage", (d) => { d.amount = 10; });
 
-    world.addComponent(invader, { type: "CollisionEvents", collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(bullet, { type: "CollisionEvents", collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
+    world.addComponent(invader, { type: "CollisionEvents", collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(bullet, { type: "CollisionEvents", collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
 
     const rollbackBuffer = new SnapshotBuffer(10);
 
@@ -186,30 +186,30 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     const resimSfx: string[] = [];
     eventBus.on("PlaySFX", (evt) => {
       if (world.isReSimulating) {
-        resimSfx.push(evt.name);
+        resimSfx.push((evt as { name: string }).name);
       }
     });
 
     const gs = world.createEntity();
-    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0 } as any);
+    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0, readyRemaining: 0, intermissionRemaining: 0, continueCountdownRemaining: 0, continuesRemaining: 3 } as GameStateComponent);
     const combo = world.createEntity();
-    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as any);
+    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as SpaceInvadersComponentRegistry["Combo"]);
 
     const invader = world.createEntity();
-    world.addComponent(invader, { type: "Invader", points: 50, row: 0, col: 0 } as any);
-    world.addComponent(invader, { type: "Transform", x: 100, y: 100 } as any);
-    world.addComponent(invader, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    world.addComponent(invader, { type: "Invader", points: 50, row: 0, col: 0 } as InvaderComponent);
+    world.addComponent(invader, { type: "Transform", x: 100, y: 100 } as TransformComponent);
+    world.addComponent(invader, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     const bullet = playerBulletPool.acquire(world, { x: 100, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    world.mutateComponent(bullet, "Damage" as any, (d: any) => { d.amount = 10; });
+    world.mutateComponent(bullet, "Damage", (d) => { d.amount = 10; });
 
     const sim = new TestSimulationAdapter(world);
     const rollbackBuffer = new SnapshotBuffer(10);
     rollbackBuffer.saveSnapshot(0, sim.snapshot());
 
-    world.addComponent(invader, { type: "CollisionEvents", collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(bullet, { type: "CollisionEvents", collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
+    world.addComponent(invader, { type: "CollisionEvents", collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(bullet, { type: "CollisionEvents", collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
 
     sim.step({ t: 0, b: 0 });
     rollbackBuffer.saveSnapshot(1, sim.snapshot());
@@ -228,21 +228,21 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
   // Case 5 — DivergenceDetector
   it("Case 5: DivergenceDetector indicates no divergence after rollback resimulation", () => {
     const gs = world.createEntity();
-    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0 } as any);
+    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0, readyRemaining: 0, intermissionRemaining: 0, continueCountdownRemaining: 0, continuesRemaining: 3 } as GameStateComponent);
     const combo = world.createEntity();
-    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as any);
+    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as SpaceInvadersComponentRegistry["Combo"]);
 
     const invader = world.createEntity();
-    world.addComponent(invader, { type: "Invader", points: 50, row: 0, col: 0 } as any);
-    world.addComponent(invader, { type: "Transform", x: 100, y: 100 } as any);
-    world.addComponent(invader, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    world.addComponent(invader, { type: "Invader", points: 50, row: 0, col: 0 } as InvaderComponent);
+    world.addComponent(invader, { type: "Transform", x: 100, y: 100 } as TransformComponent);
+    world.addComponent(invader, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    world.addComponent(invader, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     const bullet = playerBulletPool.acquire(world, { x: 100, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    world.mutateComponent(bullet, "Damage" as any, (d: any) => { d.amount = 10; });
+    world.mutateComponent(bullet, "Damage", (d) => { d.amount = 10; });
 
-    world.addComponent(invader, { type: "CollisionEvents", collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(bullet, { type: "CollisionEvents", collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
+    world.addComponent(invader, { type: "CollisionEvents", collisions: [{ otherEntity: bullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(bullet, { type: "CollisionEvents", collisions: [{ otherEntity: invader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
 
     const sim = new TestSimulationAdapter(world);
     const initialSnap = sim.snapshot();
@@ -256,8 +256,8 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     expectedHashes.push(sim.hash());
 
     // Check with DivergenceDetector on fresh sim with same inputs
-    const freshWorld = new World<SpaceInvadersComponentRegistry>();
-    freshWorld.setResource("EventBus", new EventBus<any>());
+    const freshWorld = new World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>();
+    freshWorld.setResource("EventBus", new EventBus<SpaceInvadersEventRegistry>());
     freshWorld.setResource("GameConfig", world.getResource("GameConfig"));
     freshWorld.setResource("ParticlePool", particlePool);
     freshWorld.setResource("PlayerBulletPool", playerBulletPool);
@@ -265,25 +265,25 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     freshWorld.addSystem(new SpaceInvadersCollisionSystem(particlePool), { phase: SystemPhase.GameRules });
 
     const fGs = freshWorld.createEntity();
-    freshWorld.addComponent(fGs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0 } as any);
+    freshWorld.addComponent(fGs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0, readyRemaining: 0, intermissionRemaining: 0, continueCountdownRemaining: 0, continuesRemaining: 3 } as GameStateComponent);
     const fCombo = freshWorld.createEntity();
-    freshWorld.addComponent(fCombo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as any);
+    freshWorld.addComponent(fCombo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as SpaceInvadersComponentRegistry["Combo"]);
 
     const fInvader = freshWorld.createEntity();
-    freshWorld.addComponent(fInvader, { type: "Invader", points: 50, row: 0, col: 0 } as any);
-    freshWorld.addComponent(fInvader, { type: "Transform", x: 100, y: 100 } as any);
-    freshWorld.addComponent(fInvader, { type: "Health", current: 10, max: 10 } as any);
-    freshWorld.addComponent(fInvader, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    freshWorld.addComponent(fInvader, { type: "Invader", points: 50, row: 0, col: 0 } as InvaderComponent);
+    freshWorld.addComponent(fInvader, { type: "Transform", x: 100, y: 100 } as TransformComponent);
+    freshWorld.addComponent(fInvader, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    freshWorld.addComponent(fInvader, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     const fBullet = playerBulletPool.acquire(freshWorld, { x: 100, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    freshWorld.mutateComponent(fBullet, "Damage" as any, (d: any) => { d.amount = 10; });
+    freshWorld.mutateComponent(fBullet, "Damage", (d) => { d.amount = 10; });
 
-    freshWorld.addComponent(fInvader, { type: "CollisionEvents", collisions: [{ otherEntity: fBullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    freshWorld.addComponent(fBullet, { type: "CollisionEvents", collisions: [{ otherEntity: fInvader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
+    freshWorld.addComponent(fInvader, { type: "CollisionEvents", collisions: [{ otherEntity: fBullet, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    freshWorld.addComponent(fBullet, { type: "CollisionEvents", collisions: [{ otherEntity: fInvader, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
 
     const freshSim = new TestSimulationAdapter(freshWorld);
 
-    const divergenceTick = DivergenceDetector.findDivergenceTick(freshSim, { seed: 42, initialSnapshot: initialSnap, inputs: replayInputs } as any, expectedHashes);
+    const divergenceTick = DivergenceDetector.findDivergenceTick(freshSim, { version: 1, game: "space-invaders", seed: 42, initialSnapshot: initialSnap, inputs: replayInputs }, expectedHashes);
 
     expect(divergenceTick).toBe(-1);
   });
@@ -293,37 +293,37 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     const eventBus = world.getEventBus()!;
     const explosionCount = () => sfxList.filter(s => s.startsWith("explosion")).length;
     const sfxList: string[] = [];
-    eventBus.on("PlaySFX", (evt) => sfxList.push(evt.name));
+    eventBus.on("PlaySFX", (evt) => sfxList.push((evt as { name: string }).name));
 
     const gs = world.createEntity();
-    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 2, isGameOver: false, screenShake: null, kamikazesActive: 0 } as any);
+    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 2, isGameOver: false, screenShake: null, kamikazesActive: 0, readyRemaining: 0, intermissionRemaining: 0, continueCountdownRemaining: 0, continuesRemaining: 3 } as GameStateComponent);
     const combo = world.createEntity();
-    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as any);
+    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as SpaceInvadersComponentRegistry["Combo"]);
 
     // Invader 1
     const inv1 = world.createEntity();
-    world.addComponent(inv1, { type: "Invader", points: 50, row: 0, col: 0 } as any);
-    world.addComponent(inv1, { type: "Transform", x: 100, y: 100 } as any);
-    world.addComponent(inv1, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(inv1, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    world.addComponent(inv1, { type: "Invader", points: 50, row: 0, col: 0 } as InvaderComponent);
+    world.addComponent(inv1, { type: "Transform", x: 100, y: 100 } as TransformComponent);
+    world.addComponent(inv1, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    world.addComponent(inv1, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     // Invader 2
     const inv2 = world.createEntity();
-    world.addComponent(inv2, { type: "Invader", points: 50, row: 0, col: 1 } as any);
-    world.addComponent(inv2, { type: "Transform", x: 150, y: 100 } as any);
-    world.addComponent(inv2, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(inv2, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    world.addComponent(inv2, { type: "Invader", points: 50, row: 0, col: 1 } as InvaderComponent);
+    world.addComponent(inv2, { type: "Transform", x: 150, y: 100 } as TransformComponent);
+    world.addComponent(inv2, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    world.addComponent(inv2, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     const bullet1 = playerBulletPool.acquire(world, { x: 100, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    world.mutateComponent(bullet1, "Damage" as any, (d: any) => { d.amount = 10; });
+    world.mutateComponent(bullet1, "Damage", (d) => { d.amount = 10; });
 
     const bullet2 = playerBulletPool.acquire(world, { x: 150, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    world.mutateComponent(bullet2, "Damage" as any, (d: any) => { d.amount = 10; });
+    world.mutateComponent(bullet2, "Damage", (d) => { d.amount = 10; });
 
-    world.addComponent(inv1, { type: "CollisionEvents", collisions: [{ otherEntity: bullet1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(bullet1, { type: "CollisionEvents", collisions: [{ otherEntity: inv1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(inv2, { type: "CollisionEvents", collisions: [{ otherEntity: bullet2, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(bullet2, { type: "CollisionEvents", collisions: [{ otherEntity: inv2, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
+    world.addComponent(inv1, { type: "CollisionEvents", collisions: [{ otherEntity: bullet1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(bullet1, { type: "CollisionEvents", collisions: [{ otherEntity: inv1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(inv2, { type: "CollisionEvents", collisions: [{ otherEntity: bullet2, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(bullet2, { type: "CollisionEvents", collisions: [{ otherEntity: inv2, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
 
     const sim = new TestSimulationAdapter(world);
     sim.step({ t: 0, b: 0 });
@@ -335,29 +335,29 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
   it("Case 7: after rollback, a new legitimate death generates external side effects once", () => {
     const eventBus = world.getEventBus()!;
     const sfxList: string[] = [];
-    eventBus.on("PlaySFX", (evt) => sfxList.push(evt.name));
+    eventBus.on("PlaySFX", (evt) => sfxList.push((evt as { name: string }).name));
 
     const gs = world.createEntity();
-    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 2, isGameOver: false, screenShake: null, kamikazesActive: 0 } as any);
+    world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 2, isGameOver: false, screenShake: null, kamikazesActive: 0, readyRemaining: 0, intermissionRemaining: 0, continueCountdownRemaining: 0, continuesRemaining: 3 } as GameStateComponent);
     const combo = world.createEntity();
-    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as any);
+    world.addComponent(combo, { type: "Combo", combo: 0, multiplier: 1, timerRemaining: 0, timerDuration: 2 } as SpaceInvadersComponentRegistry["Combo"]);
 
     // Invader 1 dies at tick 0
     const inv1 = world.createEntity();
-    world.addComponent(inv1, { type: "Invader", points: 50, row: 0, col: 0 } as any);
-    world.addComponent(inv1, { type: "Transform", x: 100, y: 100 } as any);
-    world.addComponent(inv1, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(inv1, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    world.addComponent(inv1, { type: "Invader", points: 50, row: 0, col: 0 } as InvaderComponent);
+    world.addComponent(inv1, { type: "Transform", x: 100, y: 100 } as TransformComponent);
+    world.addComponent(inv1, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    world.addComponent(inv1, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     const bullet1 = playerBulletPool.acquire(world, { x: 100, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    world.mutateComponent(bullet1, "Damage" as any, (d: any) => { d.amount = 10; });
+    world.mutateComponent(bullet1, "Damage", (d) => { d.amount = 10; });
 
     const sim = new TestSimulationAdapter(world);
     const rollbackBuffer = new SnapshotBuffer(10);
     rollbackBuffer.saveSnapshot(0, sim.snapshot());
 
-    world.addComponent(inv1, { type: "CollisionEvents", collisions: [{ otherEntity: bullet1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(bullet1, { type: "CollisionEvents", collisions: [{ otherEntity: inv1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
+    world.addComponent(inv1, { type: "CollisionEvents", collisions: [{ otherEntity: bullet1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(bullet1, { type: "CollisionEvents", collisions: [{ otherEntity: inv1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
 
     sim.step({ t: 0, b: 0 }); // Tick 0: Invader 1 dies
     expect(sfxList.filter(s => s.startsWith("explosion")).length).toBe(1);
@@ -377,16 +377,16 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
 
     // Now at tick 2 (normal execution), Invader 2 dies!
     const inv2 = world.createEntity();
-    world.addComponent(inv2, { type: "Invader", points: 50, row: 0, col: 1 } as any);
-    world.addComponent(inv2, { type: "Transform", x: 150, y: 100 } as any);
-    world.addComponent(inv2, { type: "Health", current: 10, max: 10 } as any);
-    world.addComponent(inv2, { type: "Faction", faction: "enemy", value: "enemy" } as any);
+    world.addComponent(inv2, { type: "Invader", points: 50, row: 0, col: 1 } as InvaderComponent);
+    world.addComponent(inv2, { type: "Transform", x: 150, y: 100 } as TransformComponent);
+    world.addComponent(inv2, { type: "Health", current: 10, max: 10 } as HealthComponent);
+    world.addComponent(inv2, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
 
     const bullet2 = playerBulletPool.acquire(world, { x: 150, y: 100, dx: 0, dy: -100, size: 4, color: "green", ttl: 2000 });
-    world.mutateComponent(bullet2, "Damage" as any, (d: any) => { d.amount = 10; });
+    world.mutateComponent(bullet2, "Damage", (d) => { d.amount = 10; });
 
-    world.addComponent(inv2, { type: "CollisionEvents", collisions: [{ otherEntity: bullet2, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
-    world.addComponent(bullet2, { type: "CollisionEvents", collisions: [{ otherEntity: inv2, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as any);
+    world.addComponent(inv2, { type: "CollisionEvents", collisions: [{ otherEntity: bullet2, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(bullet2, { type: "CollisionEvents", collisions: [{ otherEntity: inv2, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
 
     sim.step({ t: 2, b: 0 });
 

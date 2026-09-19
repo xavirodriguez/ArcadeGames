@@ -1,11 +1,11 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
 import { EnemyFactory } from "./EnemyFactory";
 import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
 import { loadAndMutateConfig } from "../shared/configHelper";
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG, BossComponent } from "./types/SpaceInvadersTypes";
+import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG, BossComponent, WaveDefinition, InputComponent, PlayerComponent, InvaderComponent, EnemyBulletComponent, PlayerBulletComponent, ShieldComponent, FormationComponent, SpawnDirectorComponent } from "./types/SpaceInvadersTypes";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
@@ -28,14 +28,15 @@ import { TransformComponent, VelocityComponent, RenderComponent, ColliderCompone
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 
-export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, any, any>> {
-  player: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
-  invader: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
-  shield: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number, row: number, col: number }>;
-  state: BlueprintDefinition<SpaceInvadersComponentRegistry, any, {}>;
-  formation: BlueprintDefinition<SpaceInvadersComponentRegistry, any, {}>;
-  player_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
-  enemy_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, any, { x: number, y: number }>;
+export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, any>> {
+  player: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
+  invader: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number, row: number, col: number }>;
+  shield: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number, row: number, col: number }>;
+  state: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, {}>;
+  formation: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, {}>;
+  player_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
+  enemy_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
+  boss: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { level: number }>;
 }
 
 export class SpaceInvadersGame
@@ -46,7 +47,7 @@ export class SpaceInvadersGame
   private playerBulletPool!: PlayerBulletPool;
   private enemyBulletPool!: EnemyBulletPool;
   private particlePool!: ParticlePool;
-  private networkManager!: NetworkManager<any>;
+  private networkManager!: NetworkManager<SpaceInvadersComponentRegistry>;
   public readonly gameId = "space-invaders";
   private baseConfig: SpaceInvadersConfig;
   private config!: SpaceInvadersConfig;
@@ -151,8 +152,8 @@ export class SpaceInvadersGame
           moveRight: false,
           shoot: false,
           shootCooldownRemaining: 0,
-        } as any);
-        world.addComponent(entity, { type: "Player" } as any);
+        } as InputComponent);
+        world.addComponent(entity, { type: "Player" } as PlayerComponent);
         world.addComponent(entity, {
           type: "EmpAbility",
           charge: 0,
@@ -168,7 +169,7 @@ export class SpaceInvadersGame
           timerDuration: config.COMBO_TIMEOUT / 1000
         } as SpaceInvadersComponentRegistry["Combo"]);
 
-        createEmitter(world as any, {
+        createEmitter(world, {
           type: "spawn",
           x: args.x,
           y: args.y,
@@ -191,7 +192,7 @@ export class SpaceInvadersGame
         EnemyFactory.createEnemy(world, blueprintId, args.x, args.y, {}, false, entity);
         const points = (5 - args.row) * 10;
 
-        world.addComponent(entity, { type: "Invader", row: args.row, col: args.col, points } as any);
+        world.addComponent(entity, { type: "Invader", row: args.row, col: args.col, points } as InvaderComponent);
         world.addComponent(entity, {
           type: "LootTable",
           tableId: "invader",
@@ -199,7 +200,7 @@ export class SpaceInvadersGame
             { type: "speed", chance: 0.05, config: { value: 1.5, duration: 5000 } },
             { type: "triple_shot", chance: 0.05, config: { duration: 8000 } }
           ]
-        } as any);
+        } as SpaceInvadersComponentRegistry["LootTable"]);
 
         // Attach Collectible component directly
         world.addComponent(entity, {
@@ -209,7 +210,7 @@ export class SpaceInvadersGame
           persistent: true,
           collectOnce: true,
           id: `invader_fragment_${args.row}_${args.col}`
-        } as any);
+        } as SpaceInvadersComponentRegistry["Collectible"]);
       }
     });
 
@@ -231,7 +232,7 @@ export class SpaceInvadersGame
           })
           .withCollisionEvents();
 
-        world.addComponent(entity, { type: "PlayerBullet" } as any);
+        world.addComponent(entity, { type: "PlayerBullet" } as PlayerBulletComponent);
         world.addComponent(entity, {
           type: "Damage",
           amount: 1,
@@ -265,7 +266,7 @@ export class SpaceInvadersGame
           })
           .withCollisionEvents();
 
-        world.addComponent(entity, { type: "EnemyBullet" } as any);
+        world.addComponent(entity, { type: "EnemyBullet" } as EnemyBulletComponent);
         world.addComponent(entity, {
           type: "Damage",
           amount: 1,
@@ -329,7 +330,7 @@ export class SpaceInvadersGame
           intermissionRemaining: 0,
           continueCountdownRemaining: 0,
           continuesRemaining: 3,
-        } as any);
+        } as GameStateComponent);
         world.addComponent(entity, {
           type: "SpawnDirector",
           waveIndex: 0,
@@ -338,7 +339,7 @@ export class SpaceInvadersGame
           waveElapsedTime: 0,
           enemiesRemaining: 0,
           status: "idle"
-        } as any);
+        } as SpawnDirectorComponent);
       }
     });
 
@@ -367,7 +368,7 @@ export class SpaceInvadersGame
     this.blueprints.register("formation", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-        const waveDefs = world.getResource<any[]>("WaveDefinitions");
+        const waveDefs = world.getResource<WaveDefinition[]>("WaveDefinitions");
         const initialTotal = (waveDefs && waveDefs[0] && waveDefs[0].totalInvaders > 0)
           ? waveDefs[0].totalInvaders
           : (config.INVADER_MIN_ROWS * config.INVADER_MIN_COLS);
@@ -381,7 +382,7 @@ export class SpaceInvadersGame
           rightBound: 0,
           fireCooldownRemaining: config.ENEMY_FIRE_INTERVAL_MIN,
           totalInvaders: initialTotal,
-        } as any);
+        } as FormationComponent);
       }
     });
 
@@ -414,8 +415,8 @@ export class SpaceInvadersGame
           interpolationDelay: 100
       });
     }
-    this.world.addSystem(new LocalPredictionSystem(this.networkManager, () => {}), { phase: SystemPhase.Input });
-    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new LocalPredictionSystem(this.networkManager as unknown as NetworkManager<any>, () => {}) as unknown as System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>, { phase: SystemPhase.Input });
+    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager as unknown as NetworkManager<any>) as unknown as System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>, { phase: SystemPhase.Presentation });
 
     this.sceneManager.transitionTo(gameScene, { effect: "crt", duration: 300 });
   }
@@ -565,7 +566,7 @@ export class SpaceInvadersGame
     const playerEntity = world.query("Player")[0];
     if (playerEntity === undefined) return;
 
-    const draft = world.getComponent(playerEntity, "DraftState" as any) as any;
+    const draft = world.getComponent(playerEntity, "DraftState");
     if (!draft) {
       // For backward compatibility with the old test suite and old RunMutatorChoices trigger
       const choices = world.getResource<{ choices: string[], active: boolean }>("RunMutatorChoices");
@@ -599,7 +600,7 @@ export class SpaceInvadersGame
     mutator.apply(world, { playerId: `player_${playerEntity}`, targetEntity: playerEntity });
 
     // Mark as chosen and store selected ID
-    world.mutateComponent(playerEntity, "DraftState" as any, (ds: any) => {
+    world.mutateComponent(playerEntity, "DraftState", (ds) => {
       ds.options = [];
       ds.hasChosen = true;
       ds.selectedMutatorId = mutatorId;
@@ -615,7 +616,7 @@ export class SpaceInvadersGame
     // Resume phase ONLY when ALL active players have made their choice!
     const allPlayers = world.query("Player");
     const allPlayersReady = allPlayers.length > 0 && allPlayers.every(p => {
-      const d = world.getComponent(p, "DraftState" as any) as any;
+      const d = world.getComponent(p, "DraftState");
       return d && d.hasChosen;
     });
 
@@ -624,7 +625,7 @@ export class SpaceInvadersGame
         gs.phase = "PLAYING";
         // Also clean DraftState components from players to prepare for next wave
         allPlayers.forEach(p => {
-          world.removeComponent(p, "DraftState" as any);
+          world.removeComponent(p, "DraftState");
         });
       });
       this.resume();
@@ -655,7 +656,7 @@ export class SpaceInvadersGame
     const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
 
     const playerEntity = world.query("Player")[0];
-    const draft = playerEntity !== undefined ? world.getComponent(playerEntity, "DraftState" as any) as any : null;
+    const draft = playerEntity !== undefined ? world.getComponent(playerEntity, "DraftState") : null;
     const choices = draft && !draft.hasChosen ? draft.options : (runChoices?.active ? runChoices.choices : null);
 
     let isDialogueActive = false;
@@ -701,7 +702,7 @@ export class SpaceInvadersGame
           moveRight: false,
           shoot: false,
           shootCooldownRemaining: 0,
-        } as any);
+        } as InputComponent);
       }
       world.mutateComponent(playerEntity, "Input", (inputComp: any) => {
         // CanonicalInputState support

@@ -13,8 +13,10 @@ import Animated, {
   ZoomIn,
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
   withSequence,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 
 /**
@@ -375,15 +377,15 @@ const HUD: React.FC<{
 
   useEffect(() => {
     if (lives < prevLivesRef.current && prevLivesRef.current > 0) {
-      // Life lost feedback trigger: 300ms flash and shake
+      // Life lost feedback trigger: 300ms flash, shake and scale pop
       lifeFlash.value = withSequence(
         withSpring(1, { damping: 4, stiffness: 200 }),
         withSpring(0, { damping: 10, stiffness: 120 })
       );
       lifeShake.value = withSequence(
-        withSpring(6, { damping: 3, stiffness: 300 }),
-        withSpring(-6, { damping: 3, stiffness: 300 }),
-        withSpring(3, { damping: 5, stiffness: 200 }),
+        withSpring(8, { damping: 3, stiffness: 320 }),
+        withSpring(-8, { damping: 3, stiffness: 320 }),
+        withSpring(4, { damping: 5, stiffness: 220 }),
         withSpring(0, { damping: 10, stiffness: 150 })
       );
     }
@@ -392,15 +394,18 @@ const HUD: React.FC<{
 
   useEffect(() => {
     if (isCritical) {
-      criticalPulse.value = withSequence(
-        withSpring(1.08, { damping: 6, stiffness: 180 }),
-        withSpring(0.96, { damping: 8, stiffness: 140 }),
-        withSpring(1, { damping: 10, stiffness: 120 })
+      criticalPulse.value = withRepeat(
+        withSequence(
+          withTiming(1.06, { duration: 600 }),
+          withTiming(0.96, { duration: 600 })
+        ),
+        -1,
+        true
       );
     } else {
       criticalPulse.value = 1;
     }
-  }, [isCritical, lives, criticalPulse]);
+  }, [isCritical, criticalPulse]);
 
   const animatedLifeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: lifeShake.value }, { scale: criticalPulse.value }],
@@ -737,6 +742,7 @@ const ReadyOverlay: React.FC<{
 }> = ({ remaining, level, message }) => {
   const countdown = Math.max(0, Math.ceil(remaining));
   const ringScale = useSharedValue(1);
+  const pulseScale = useSharedValue(1);
 
   useEffect(() => {
     ringScale.value = withSequence(
@@ -745,8 +751,19 @@ const ReadyOverlay: React.FC<{
     );
   }, [countdown, ringScale]);
 
+  useEffect(() => {
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(1.04, { duration: 500 }),
+        withTiming(0.98, { duration: 500 })
+      ),
+      -1,
+      true
+    );
+  }, [pulseScale]);
+
   const animatedRingStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: ringScale.value }],
+    transform: [{ scale: ringScale.value * pulseScale.value }],
   }));
 
   return (
@@ -968,7 +985,7 @@ const styles = StyleSheet.create({
     fontSize: 7,
     fontWeight: "900",
     letterSpacing: 0.8,
-    opacity: 0.2,
+    opacity: 0.15,
   },
   cornerMark: {
     position: "absolute",
@@ -1154,15 +1171,15 @@ const styles = StyleSheet.create({
         }),
   },
   scoreValueCompact: {
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: "900",
-    letterSpacing: 2.4,
+    letterSpacing: 2.6,
     ...(Platform.OS === "web"
-      ? { textShadow: "0 0 16px rgba(0, 232, 210, 0.75)" }
+      ? { textShadow: "0 0 18px rgba(0, 232, 210, 0.85)" }
       : {
-          textShadowColor: "rgba(0, 232, 210, 0.75)",
+          textShadowColor: "rgba(0, 232, 210, 0.85)",
           textShadowOffset: { width: 0, height: 0 },
-          textShadowRadius: 14,
+          textShadowRadius: 16,
         }),
   },
   sectorValue: {
@@ -1246,7 +1263,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   compactDrawerToggleClosed: {
-    opacity: 0.45,
+    opacity: 0.35,
   },
   compactSectorText: {
     fontFamily: DATA_FONT,
@@ -1255,8 +1272,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   compactSectorTextMuted: {
-    fontSize: 9,
-    fontWeight: "600",
+    fontSize: 8,
+    fontWeight: "500",
+    letterSpacing: 0.5,
   },
   expandedLifeGroup: {
     flexDirection: "row",
@@ -1665,10 +1683,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cyan,
     borderWidth: 2,
     borderColor: COLORS.cyan,
-    borderRadius: 20,
-    paddingHorizontal: 22,
-    paddingVertical: 12,
-    minHeight: 52,
+    borderRadius: 26,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    minHeight: 54,
     marginHorizontal: 8,
     flexDirection: "row",
     alignItems: "center",
@@ -1700,10 +1718,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderStyle: "dashed",
     borderColor: COLORS.red,
-    borderRadius: 4,
+    borderRadius: 2,
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    minHeight: 52,
+    paddingVertical: 14,
+    minHeight: 54,
     marginHorizontal: 8,
     flexDirection: "row",
     alignItems: "center",

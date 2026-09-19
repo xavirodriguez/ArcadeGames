@@ -248,9 +248,9 @@ function createAsteroidsPoolConfig(): PrefabConfig<AsteroidComponents, AsteroidP
           id: `asteroid_fragment_${p.size}_${p.x}_${p.y}`
         };
         if (world.isUpdating) {
-          world.getCommandBuffer().addComponent(entity, collectibleComp as any);
+          world.getCommandBuffer().addComponent(entity, collectibleComp as Component);
         } else {
-          world.addComponent(entity, collectibleComp as any);
+          world.addComponent(entity, collectibleComp as Component);
         }
       } else if (world.hasComponent(entity, "Collectible")) {
         if (world.isUpdating) {

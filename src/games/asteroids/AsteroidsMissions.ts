@@ -302,7 +302,7 @@ export const ASTEROIDS_MINI_MISSIONS: MissionDefinition[] = [
     },
     onEvent: (_world, state, _eventName, payload) => {
       if (!payload) return;
-      if (payload.type === "Ufo" || payload.entityType === "Ufo" || payload.isUfo) {
+      if (payload.type === "Ufo" || payload.entityType === "Ufo" || payload.category === "Ufo" || payload.isUfo) {
         state.customData.ufoKilled = true;
       }
       if (payload.size === "large" || payload.asteroidSize === "large") {

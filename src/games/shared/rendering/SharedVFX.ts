@@ -1,4 +1,4 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils } from "@tiny-aster/core";
 import { Skia } from "./SkiaContext";
 import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
@@ -21,7 +21,7 @@ export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
  * Dynamically resolves the active LevelVisualTheme based on world resource or level progress.
  * @public
  */
-export function getActiveLevelTheme(world: World<any>): LevelVisualTheme {
+export function getActiveLevelTheme(world: World): LevelVisualTheme {
   const resourceTheme = world.getResource<LevelThemeName>("ActiveLevelThemeName");
   if (resourceTheme) {
     return getLevelTheme(resourceTheme);
@@ -37,7 +37,7 @@ export function getActiveLevelTheme(world: World<any>): LevelVisualTheme {
  * Returns screen dimensions and state for VFX drawers.
  * @public
  */
-export function getScreenAndVFXState(world: World<any>): {
+export function getScreenAndVFXState(world: World): {
   width: number;
   height: number;
   state: VFXWorldState;
@@ -231,9 +231,9 @@ interface VFXWorldState {
   lastCRTHeight?: number;
 }
 
-const worldStateMap = new WeakMap<World<any>, VFXWorldState>();
+const worldStateMap = new WeakMap<World, VFXWorldState>();
 
-function getVFXState(world: World<any>): VFXWorldState {
+function getVFXState(world: World): VFXWorldState {
   let state = worldStateMap.get(world);
   if (!state) {
     state = {
@@ -340,7 +340,7 @@ export function updateDistantAsteroid(ast: DistantAsteroid, width: number, offse
   return { posX, y: ast.y, rotation: ast.rotation };
 }
 
-export function getRenderComponent(world: World<any>, entity: any): RenderComponent | undefined {
+export function getRenderComponent(world: World, entity: number): RenderComponent | undefined {
   return world.getComponent(entity, "Render") as RenderComponent | undefined;
 }
 
@@ -380,7 +380,7 @@ function computeCometTrailSegments(timePhase: number, size: number): TrailSegmen
   return segments;
 }
 
-function computeEffectProgress(world: World<any>, entity: any): { progress: number; alpha: number } {
+function computeEffectProgress(world: World, entity: number): { progress: number; alpha: number } {
   const ttl = world.getComponent(entity, "TTL") as TTLComponent | undefined;
   let progress = 0.5;
 
@@ -415,7 +415,7 @@ function pickColor(rng: any, colors: string[]): { color: string; skColor: any } 
   return { color, skColor: Skia ? Skia.Color(color) : null };
 }
 
-function initializeStars(world: World<any>, state: VFXWorldState) {
+function initializeStars(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.white,
@@ -441,7 +441,7 @@ function initializeStars(world: World<any>, state: VFXWorldState) {
   state.starsInitialized = true;
 }
 
-function initializeLines(world: World<any>, state: VFXWorldState, maxRadius: number) {
+function initializeLines(world: World, state: VFXWorldState, maxRadius: number) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.white,
@@ -464,7 +464,7 @@ function initializeLines(world: World<any>, state: VFXWorldState, maxRadius: num
   state.warpLinesInitialized = true;
 }
 
-function initializeNebulae(world: World<any>, state: VFXWorldState) {
+function initializeNebulae(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.nebulaPurple,
@@ -489,7 +489,7 @@ function initializeNebulae(world: World<any>, state: VFXWorldState) {
   state.nebulaeInitialized = true;
 }
 
-function initializeMatrix(world: World<any>, state: VFXWorldState) {
+function initializeMatrix(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   state.matrixColumns = [];
   for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
@@ -504,7 +504,7 @@ function initializeMatrix(world: World<any>, state: VFXWorldState) {
   state.matrixInitialized = true;
 }
 
-function initializeVortex(world: World<any>, state: VFXWorldState) {
+function initializeVortex(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   state.accretionParticles = [];
   for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
@@ -518,7 +518,7 @@ function initializeVortex(world: World<any>, state: VFXWorldState) {
   state.vortexInitialized = true;
 }
 
-function initializeMilkyWay(world: World<any>, state: VFXWorldState) {
+function initializeMilkyWay(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   const angle = rng.nextRange(-0.4, -0.2);
   const colors = [
@@ -551,7 +551,7 @@ function initializeMilkyWay(world: World<any>, state: VFXWorldState) {
   state.milkyWayInitialized = true;
 }
 
-function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
+function initializeRingingPlanet(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   const planetX = rng.nextRange(550, 680);
   const planetY = rng.nextRange(120, 220);
@@ -601,7 +601,7 @@ function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
   state.planetInitialized = true;
 }
 
-function initializeDistantAsteroids(world: World<any>, state: VFXWorldState) {
+function initializeDistantAsteroids(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.cosmicNavy,
@@ -644,7 +644,7 @@ function initializeDistantAsteroids(world: World<any>, state: VFXWorldState) {
   state.distantAsteroidsInitialized = true;
 }
 
-function initializeSpaceStation(world: World<any>, state: VFXWorldState) {
+function initializeSpaceStation(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   const x = rng.nextRange(150, 280);
   const y = rng.nextRange(100, 200);
@@ -705,7 +705,7 @@ function initializeSpaceStation(world: World<any>, state: VFXWorldState) {
 // -------------------------------------------------------------
 // 1. RetroCRTScanlinesEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
 
@@ -751,7 +751,7 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Com
   }
 };
 
-export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
@@ -804,7 +804,7 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, ComponentRegistry> =
 // -------------------------------------------------------------
 // 18. DiffuseMilkyWayBackgroundEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
     if (!state.milkyWayInitialized) {
@@ -859,7 +859,7 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
   }
 };
 
-export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
@@ -927,7 +927,7 @@ export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, ComponentReg
 // -------------------------------------------------------------
 // 17. DistantAsteroidBeltBackgroundEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
     if (!state.distantAsteroidsInitialized) {
@@ -973,7 +973,7 @@ export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingCo
   }
 };
 
-export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
@@ -1024,7 +1024,7 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, Componen
 // -------------------------------------------------------------
 // 19. DistantSpaceStationBackgroundEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
     if (!state.stationInitialized) {
@@ -1128,7 +1128,7 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
   }
 };
 
-export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
@@ -1245,7 +1245,7 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, Componen
 // -------------------------------------------------------------
 // 16. RingingPlanetBackgroundEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
     if (!state.planetInitialized) {
@@ -1367,7 +1367,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
   }
 };
 
-export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
@@ -1552,7 +1552,7 @@ export function createSharedParticle(
 // -------------------------------------------------------------
 // 2. ScrollingStarfieldEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
 
@@ -1582,7 +1582,7 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
   }
 };
 
-export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaScrollingStarfieldEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
@@ -1620,7 +1620,7 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, ComponentRegistry> 
 // -------------------------------------------------------------
 // 3. HyperdriveWarpSpeedLinesEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
     const centerX = width / 2;
@@ -1650,7 +1650,7 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
   }
 };
 
-export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
@@ -1683,7 +1683,7 @@ export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, ComponentRegi
 // -------------------------------------------------------------
 // 4. EnergyShieldBubbleEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
@@ -1719,7 +1719,7 @@ export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, Com
   }
 };
 
-export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, ComponentRegistry> = {
+export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
@@ -1782,7 +1782,7 @@ function drawShockwaveSparks(
   }
 }
 
-export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = getRenderComponent(world, entity);
     if (!render) return;
@@ -1819,7 +1819,7 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, Compon
   }
 };
 
-export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {
+export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = getRenderComponent(world, entity);
@@ -1867,7 +1867,7 @@ export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, ComponentRegistry> = {
 // -------------------------------------------------------------
 // 6. DriftingNebulaBackgroundEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const state = getVFXState(world);
     if (!state.nebulaeInitialized) {
@@ -1908,7 +1908,7 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
   }
 };
 
-export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const state = getVFXState(world);
@@ -1950,7 +1950,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, ComponentRegi
 // -------------------------------------------------------------
 // 7. MatrixDigitalRainEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { height, state } = getScreenAndVFXState(world);
 
@@ -1981,7 +1981,7 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Com
   }
 };
 
-export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { height, state } = getScreenAndVFXState(world);
@@ -2032,7 +2032,7 @@ function drawCRTGlitchLines(
   }
 }
 
-export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height } = getScreenAndVFXState(world);
 
@@ -2051,7 +2051,7 @@ export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, Comp
   }
 };
 
-export const SkiaCRTGlitchShudderEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaCRTGlitchShudderEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height } = getScreenAndVFXState(world);
@@ -2075,7 +2075,7 @@ export const SkiaCRTGlitchShudderEffect: EffectDrawer<any, ComponentRegistry> = 
 // -------------------------------------------------------------
 // 9. ThrusterPlumeFlameEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
@@ -2113,7 +2113,7 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Com
   }
 };
 
-export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, ComponentRegistry> = {
+export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
@@ -2159,7 +2159,7 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, ComponentRegistry> =
 // -------------------------------------------------------------
 // 10. LaserRailBeamEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
@@ -2197,7 +2197,7 @@ export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, Componen
   }
 };
 
-export const SkiaLaserRailBeamEffect: ShapeDrawer<any, ComponentRegistry> = {
+export const SkiaLaserRailBeamEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
@@ -2240,7 +2240,7 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<any, ComponentRegistry> = {
 // -------------------------------------------------------------
 // 11. ScreenBorderGlowEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
     const timePhase = state.timePhase;
@@ -2258,7 +2258,7 @@ export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, Comp
   }
 };
 
-export const SkiaScreenBorderGlowEffect: EffectDrawer<any, ComponentRegistry> = {
+export const SkiaScreenBorderGlowEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
@@ -2281,7 +2281,7 @@ export const SkiaScreenBorderGlowEffect: EffectDrawer<any, ComponentRegistry> = 
 // -------------------------------------------------------------
 // 12. SingularityVortexEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
@@ -2327,7 +2327,7 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
   }
 };
 
-export const SkiaSingularityVortexEffect: ShapeDrawer<any, ComponentRegistry> = {
+export const SkiaSingularityVortexEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
@@ -2377,7 +2377,7 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<any, ComponentRegistry> = 
 // -------------------------------------------------------------
 // 13. CometMotionTrailEffect (ShapeDrawer)
 // -------------------------------------------------------------
-export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
@@ -2404,7 +2404,7 @@ export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, Compo
   }
 };
 
-export const SkiaCometMotionTrailEffect: ShapeDrawer<any, ComponentRegistry> = {
+export const SkiaCometMotionTrailEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
@@ -2434,7 +2434,7 @@ export const SkiaCometMotionTrailEffect: ShapeDrawer<any, ComponentRegistry> = {
 // -------------------------------------------------------------
 // 14. RGBHologramGlitchEffect (ShapeDrawer)
 // -------------------------------------------------------------
-export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
@@ -2459,7 +2459,7 @@ export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
   }
 };
 
-export const SkiaRGBHologramGlitchEffect: ShapeDrawer<any, ComponentRegistry> = {
+export const SkiaRGBHologramGlitchEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
@@ -2489,7 +2489,7 @@ export const SkiaRGBHologramGlitchEffect: ShapeDrawer<any, ComponentRegistry> = 
 // -------------------------------------------------------------
 // 15. FloatingTextScoreEffect (ShapeDrawer)
 // -------------------------------------------------------------
-export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, ComponentRegistry> = {
+export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
     if (!render) return;
@@ -2524,7 +2524,7 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Comp
   }
 };
 
-export const SkiaFloatingTextScoreEffect: ShapeDrawer<any, ComponentRegistry> = {
+export const SkiaFloatingTextScoreEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render") as RenderComponent | undefined;

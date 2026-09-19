@@ -2,6 +2,8 @@ import { type Client } from "@colyseus/core";
 import { GeometryWarsState, GeometryWarsPlayer, GeometryWarsEnemy, GeometryWarsBullet } from "./schema/GeometryWarsState";
 import { z } from "zod";
 import { GeometryWarsGame } from "../../src/games/geometrywars/GeometryWarsGame";
+import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../../src/games/geometrywars/types/GeometryWarsRegistry";
+import { World } from "@tiny-aster/core";
 import { BaseRoom } from "./BaseRoom";
 
 const RoomOptionsSchema = z.object({
@@ -10,8 +12,10 @@ const RoomOptionsSchema = z.object({
 
 export class GeometryWarsRoom extends BaseRoom<GeometryWarsState> {
   maxClients = 4;
+  protected declare world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>;
+  protected declare gameSimulation: GeometryWarsGame;
 
-  protected async setupSimulation(options: any): Promise<{ world: any; gameSimulation: any }> {
+  protected async setupSimulation(options: unknown): Promise<{ world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>; gameSimulation: GeometryWarsGame }> {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const validOptions = parsedOptions.success ? parsedOptions.data : {};
 
@@ -71,7 +75,7 @@ export class GeometryWarsRoom extends BaseRoom<GeometryWarsState> {
 
     const entity = this.world.createEntity();
 
-    const blueprints = this.world.getResource("BlueprintRegistry");
+    const blueprints = this.world.getResource<import("@tiny-aster/core").BlueprintRegistry<any, any, any>>("BlueprintRegistry");
     const playerBlueprint = blueprints?.get("player");
     if (playerBlueprint) {
       playerBlueprint.spawn(this.world, entity, { x: player.x, y: player.y });

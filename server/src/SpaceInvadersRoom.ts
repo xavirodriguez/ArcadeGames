@@ -2,6 +2,8 @@ import { type Client } from "@colyseus/core";
 import { SpaceInvadersState, SpaceInvadersPlayer, SpaceInvaderEntity, SpaceInvadersBulletEntity } from "./schema/SpaceInvadersState";
 import { z } from "zod";
 import { SpaceInvadersGame } from "../../src/games/space-invaders/SpaceInvadersGame";
+import { SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry } from "../../src/games/space-invaders/types/SpaceInvadersTypes";
+import { World } from "@tiny-aster/core";
 import { BaseRoom } from "./BaseRoom";
 
 const RoomOptionsSchema = z.object({
@@ -10,8 +12,10 @@ const RoomOptionsSchema = z.object({
 
 export class SpaceInvadersRoom extends BaseRoom<SpaceInvadersState> {
   maxClients = 4;
+  protected declare world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>;
+  protected declare gameSimulation: SpaceInvadersGame;
 
-  protected async setupSimulation(options: any): Promise<{ world: any; gameSimulation: any }> {
+  protected async setupSimulation(options: unknown): Promise<{ world: World<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>; gameSimulation: SpaceInvadersGame }> {
     const parsedOptions = RoomOptionsSchema.safeParse(options);
     const validOptions = parsedOptions.success ? parsedOptions.data : {};
 
@@ -56,7 +60,7 @@ export class SpaceInvadersRoom extends BaseRoom<SpaceInvadersState> {
         formationBlueprint.spawn(this.world, this.world.createEntity(), {});
       }
 
-      const config = this.world.getResource("GameConfig") || {
+      const config = (this.world.getResource("GameConfig") as Record<string, number> | undefined) || {
         SHIELD_COUNT: 4,
         SHIELD_SEGMENTS_X: 5,
         SHIELD_SEGMENTS_Y: 3,

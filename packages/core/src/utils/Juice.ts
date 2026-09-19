@@ -18,7 +18,7 @@ export class Juice {
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, frames: number = 5): void {
     world.mutateComponent(entity, "Render" as Extract<keyof TComponents, string>, (render) => {
-      (render as unknown as RenderComponent).hitFlashFrames = frames;
+      (render as RenderComponent).hitFlashFrames = frames;
     });
   }
 
@@ -33,7 +33,7 @@ export class Juice {
     const shake = world.getSingleton("ScreenShake" as Extract<keyof TComponents, string>);
     if (shake) {
         world.mutateSingleton("ScreenShake" as Extract<keyof TComponents, string>, (s) => {
-            const screenShake = s as unknown as ScreenShakeComponent;
+            const screenShake = s as ScreenShakeComponent;
             screenShake.intensity = Math.max(screenShake.intensity, intensity);
             screenShake.duration = Math.max(screenShake.duration, duration);
             screenShake.remaining = Math.max(screenShake.remaining, duration);
@@ -90,17 +90,17 @@ export class Juice {
     repeat?: number;
   }): void {
     if (!world.hasComponent(entity, "Juice" as Extract<keyof TComponents, string>)) {
-        world.addComponent(entity, { type: "Juice", active: true, animations: [] } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
+        world.addComponent(entity, { type: "Juice", active: true, animations: [] } as TComponents["Juice"]);
     }
     if (!anim.componentType && !world.hasComponent(entity, "VisualOffset" as Extract<keyof TComponents, string>)) {
-        world.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0 } as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
+        world.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0 } as TComponents["VisualOffset"]);
     }
 
     const durationInSeconds = anim.duration / 1000;
     const delayInSeconds = anim.delay ? anim.delay / 1000 : 0;
 
     world.mutateComponent(entity, "Juice" as Extract<keyof TComponents, string>, (juice) => {
-        (juice as unknown as JuiceComponent).animations.push({
+        (juice as JuiceComponent).animations.push({
             type: "animation",
             ...anim,
             duration: durationInSeconds,

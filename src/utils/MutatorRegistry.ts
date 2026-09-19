@@ -110,13 +110,13 @@ export interface BeneficialMutator {
   /**
    * Conditions under which this mutator can be drafted by a player.
    */
-  canDraft: (world: World<any>, context: MutatorTargetContext) => boolean;
+  canDraft: (world: World, context: MutatorTargetContext) => boolean;
   /**
    * Transformation function that applies the mutator effect to a World.
    * @param world - The ECS world where the effect should be applied.
    * @param context - Optional player targeting context.
    */
-  apply: (world: World<any>, context?: MutatorTargetContext) => void;
+  apply: (world: World, context?: MutatorTargetContext) => void;
 }
 
 /**
@@ -560,7 +560,7 @@ export class MutatorRegistry {
   }
 
   public static generateDraft(
-    world: World<any>,
+    world: World,
     gameId: string,
     count: number,
     context: MutatorTargetContext

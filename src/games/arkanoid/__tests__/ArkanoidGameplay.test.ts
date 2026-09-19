@@ -89,7 +89,7 @@ describe("Arkanoid Arcade Gameplay & Requirements", () => {
       });
 
       // Hit 1
-      game.world.getEventBus()?.emitDeferred("combat:hit", { targetEntity: brick, damage: 1 });
+      game.world.getEventBus()?.emitDeferred("combat:hit", { targetEntity: brick, amount: 1, remainingHealth: 1 });
       game.update(0.016);
       expect(game.world.getComponent(brick, "Brick")?.isDestroyed).toBeFalsy();
 

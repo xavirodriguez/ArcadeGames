@@ -1,5 +1,5 @@
 import { CoreComponentRegistry, CoreEvents, ComboComponent } from "@tiny-aster/core";
-import { LootTableComponent, PowerUpComponent } from "@tiny-aster/gameplay-kit";
+import { LootTableComponent, PowerUpComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
 import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";
 import {
@@ -38,6 +38,8 @@ export interface AsteroidsComponentRegistry extends CoreComponentRegistry {
 
 /** @public */
 export interface AsteroidsEventRegistry extends CoreEvents, Record<string, unknown> {
+  "combat:hit": CombatHitEvent;
+  "combat:death": CombatDeathEvent;
   "game:start": { seed: number };
   "game:over": { score: number; level: number };
   "ship:destroyed": { entity: number };

@@ -114,13 +114,13 @@ export class EnemyRulesSystem extends System<ArkanoidComponentRegistry, Arkanoid
         if (world.hasComponent(other, "Ball")) {
           const eventBus = world.getEventBus();
           if (eventBus) {
-            eventBus.emitDeferred("combat:death", { entity: eEntity, attackerEntity: other });
+            eventBus.emitDeferred("combat:death", { entity: eEntity, sourceEntity: other });
           }
           break;
         } else if (world.hasComponent(other, "Paddle")) {
           const eventBus = world.getEventBus();
           if (eventBus) {
-            eventBus.emitDeferred("combat:death", { entity: eEntity, attackerEntity: other });
+            eventBus.emitDeferred("combat:death", { entity: eEntity, sourceEntity: other });
           }
           break;
         }

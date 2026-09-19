@@ -3,7 +3,7 @@ import { System } from "@tiny-aster/core";
 import { Entity } from "@tiny-aster/core";
 import { EventBus } from "@tiny-aster/core";
 import { TransformComponent, HealthComponent, RenderComponent, TTLComponent } from "@tiny-aster/core";
-import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
+import { spawnScorePopup, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import {
   GameStateComponent,
   InvaderComponent,
@@ -51,16 +51,16 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
     const eventBus = world.getEventBus();
     if (eventBus) {
-      eventBus.on("combat:hit", (event: any) => {
+      eventBus.on("combat:hit", (event: CombatHitEvent) => {
         this.onCombatHit(world, event);
       });
-      eventBus.on("combat:death", (event: any) => {
+      eventBus.on("combat:death", (event: CombatDeathEvent) => {
         this.onCombatDeath(world, event);
       });
     }
   }
 
-  private onCombatHit(world: World<SpaceInvadersComponentRegistry>, event: any): void {
+  private onCombatHit(world: World<SpaceInvadersComponentRegistry>, event: CombatHitEvent): void {
     if (!this.config) {
       this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
@@ -192,7 +192,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
-  private onCombatDeath(world: World<SpaceInvadersComponentRegistry>, event: any): void {
+  private onCombatDeath(world: World<SpaceInvadersComponentRegistry>, event: CombatDeathEvent): void {
     const target = event.entity;
     if (!target) return;
 

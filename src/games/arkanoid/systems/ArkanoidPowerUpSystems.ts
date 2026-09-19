@@ -219,7 +219,7 @@ export class ArkanoidLaserSystem extends System<ArkanoidComponentRegistry, Arkan
         } else if (world.hasComponent(other, "Enemy")) {
           const eventBus = world.getEventBus();
           if (eventBus) {
-            eventBus.emitDeferred("combat:death", { entity: other, attackerEntity: lEntity });
+            eventBus.emitDeferred("combat:death", { entity: other, sourceEntity: lEntity });
           }
           world.getCommandBuffer().removeEntity(lEntity);
           break;

@@ -1,5 +1,6 @@
 import { System } from "../ecs/System";
-import { World } from "../ecs/World";
+import { World, BlueprintRegistryMap } from "../ecs/World";
+import { EventRegistry } from "../events/EventBus";
 import { ParticleEmitterComponent, ParticleEmitterConfig, Entity, CoreComponentRegistry } from "../ecs/CoreComponents";
 import { createDeferredEntity } from "../ecs/EntityHelpers";
 
@@ -121,7 +122,11 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
    * @remarks Thin wrapper around `createEmitter` — kept as an instance method  
    * so callers holding a `ParticleSystem` reference don't need a separate import.  
    */  
-  public emit(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity {
+  public emit<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(world: World<TComponents, TEvents, TBlueprints>, config: ParticleEmitterConfig): Entity {
     return createEmitter(world, config);
   }
 
@@ -191,7 +196,11 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
  * `elapsed` starts at 0 and `active` starts `true`.  
  * @public  
  */  
-export function createEmitter(world: World<CoreComponentRegistry>, config: ParticleEmitterConfig): Entity {
+export function createEmitter<
+  TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+>(world: World<TComponents, TEvents, TBlueprints>, config: ParticleEmitterConfig): Entity {
   const component = {
     type: "ParticleEmitter",
     config,
@@ -200,6 +209,6 @@ export function createEmitter(world: World<CoreComponentRegistry>, config: Parti
   } as ParticleEmitterComponent;
 
   const { entity, add } = createDeferredEntity(world);
-  add(component);
+  add(component as unknown as TComponents[Extract<keyof TComponents, string>] & { type: Extract<keyof TComponents, string> });
   return entity;
 }

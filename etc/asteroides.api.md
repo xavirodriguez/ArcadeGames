@@ -1132,7 +1132,7 @@ export interface CoreEvents {
         graphId?: string;
         currentNodeId?: string;
         previousNodeId?: string | null;
-        node?: unknown;
+        node?: StoryNode;
         nodeId?: string;
         title?: string;
         text?: string;
@@ -1141,7 +1141,7 @@ export interface CoreEvents {
     };
     "story:objective_completed": {
         objectiveId: string;
-        objective?: unknown;
+        objective?: StoryObjective;
         [key: string]: unknown;
     };
     "story:scene_change": {
@@ -1150,8 +1150,8 @@ export interface CoreEvents {
     };
     "story:state_changed": {
         graphId?: string | null;
-        state: unknown;
-        currentNode?: unknown;
+        state: StoryState;
+        currentNode?: StoryNode;
         [key: string]: unknown;
     };
     "CheckpointActivated": {
@@ -3870,6 +3870,7 @@ export interface ReplayFrame {
 export class ReplayPlayer {
     constructor(serialized: string);
     applyInputForTick<TComponents extends ComponentRegistry>(world: World<TComponents>, entityId: number, tick: number): boolean;
+    getInputs(): InputFrame[];
     getSeed(): number;
     isFinished(currentTick: number): boolean;
 }

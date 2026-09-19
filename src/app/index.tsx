@@ -18,7 +18,7 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 interface GameEntry {
   id: string;
   key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid";
-  href: Href<string>;
+  href: Href;
 }
 
 const GAMES: GameEntry[] = [

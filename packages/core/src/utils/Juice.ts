@@ -17,8 +17,9 @@ export class Juice {
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, frames: number = 5): void {
-    world.mutateComponent(entity, "Render" as Extract<keyof TComponents, string>, (render) => {
-      (render as RenderComponent).hitFlashFrames = frames;
+    const coreWorld = world as unknown as World<CoreComponentRegistry>;
+    coreWorld.mutateComponent(entity, "Render", (render) => {
+      render.hitFlashFrames = frames;
     });
   }
 
@@ -30,27 +31,27 @@ export class Juice {
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(world: World<TComponents, TEvents, TBlueprints>, intensity: number, duration: number): void {
-    const shake = world.getSingleton("ScreenShake" as Extract<keyof TComponents, string>);
+    const coreWorld = world as unknown as World<CoreComponentRegistry>;
+    const shake = coreWorld.getSingleton("ScreenShake");
     if (shake) {
-        world.mutateSingleton("ScreenShake" as Extract<keyof TComponents, string>, (s) => {
-            const screenShake = s as ScreenShakeComponent;
-            screenShake.intensity = Math.max(screenShake.intensity, intensity);
-            screenShake.duration = Math.max(screenShake.duration, duration);
-            screenShake.remaining = Math.max(screenShake.remaining, duration);
+        coreWorld.mutateSingleton("ScreenShake", (s) => {
+            s.intensity = Math.max(s.intensity, intensity);
+            s.duration = Math.max(s.duration, duration);
+            s.remaining = Math.max(s.remaining, duration);
         });
     } else {
         // Fallback to resource-based shake if component not found
-        const res = world.getResource<{intensity: number, duration: number, remaining: number}>("ScreenShake");
+        const res = coreWorld.getResource<{intensity: number, duration: number, remaining: number}>("ScreenShake");
         if (res) {
             res.intensity = Math.max(res.intensity, intensity);
             res.duration = Math.max(res.duration, duration);
             res.remaining = Math.max(res.remaining, duration);
         } else {
             // Fallback for GameState singleton holding screenShake (e.g. Space Invaders)
-            const gameState = world.getSingleton("GameState" as Extract<keyof TComponents, string>) as { screenShake?: { intensity?: number; duration?: number; totalDuration?: number } } | undefined;
+            const gameState = coreWorld.getSingleton("GameState") as { screenShake?: { intensity?: number; duration?: number; totalDuration?: number } } | undefined;
             if (gameState && "screenShake" in gameState) {
                 const durSec = duration > 10 ? duration / 1000 : duration;
-                world.mutateSingleton("GameState" as Extract<keyof TComponents, string>, (gs: import("../ecs/Component").Component) => {
+                coreWorld.mutateSingleton("GameState", (gs) => {
                     const currentShake = (gs as { screenShake?: { intensity?: number; duration?: number; totalDuration?: number } }).screenShake;
                     if (!currentShake || (currentShake.duration ?? 0) <= 0) {
                         (gs as { screenShake?: unknown }).screenShake = {
@@ -89,18 +90,19 @@ export class Juice {
     delay?: number;
     repeat?: number;
   }): void {
-    if (!world.hasComponent(entity, "Juice" as Extract<keyof TComponents, string>)) {
-        world.addComponent(entity, { type: "Juice", active: true, animations: [] } as TComponents["Juice"]);
+    const coreWorld = world as unknown as World<CoreComponentRegistry>;
+    if (!coreWorld.hasComponent(entity, "Juice")) {
+        coreWorld.addComponent(entity, { type: "Juice", active: true, animations: [] });
     }
-    if (!anim.componentType && !world.hasComponent(entity, "VisualOffset" as Extract<keyof TComponents, string>)) {
-        world.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0 } as TComponents["VisualOffset"]);
+    if (!anim.componentType && !coreWorld.hasComponent(entity, "VisualOffset")) {
+        coreWorld.addComponent(entity, { type: "VisualOffset", offsetX: 0, offsetY: 0 });
     }
 
     const durationInSeconds = anim.duration / 1000;
     const delayInSeconds = anim.delay ? anim.delay / 1000 : 0;
 
-    world.mutateComponent(entity, "Juice" as Extract<keyof TComponents, string>, (juice) => {
-        (juice as JuiceComponent).animations.push({
+    coreWorld.mutateComponent(entity, "Juice", (juice) => {
+        juice.animations.push({
             type: "animation",
             ...anim,
             duration: durationInSeconds,

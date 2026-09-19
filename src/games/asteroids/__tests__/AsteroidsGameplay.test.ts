@@ -1,11 +1,13 @@
-import { World, computeShipPhysics } from "@tiny-aster/core";
+import { World, computeShipPhysics, TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, TTLComponent, BoundaryComponent, CollisionEventsComponent, InvulnerableComponent } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { AsteroidsGame } from "../AsteroidsGame";
 import { createShip, createAsteroid, createBullet, fragmentAsteroid, spawnAsteroidWave } from "../EntityFactory";
+import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "../types/AsteroidRegistry";
+import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 
 describe("Asteroids Gameplay, Physics & Collision Systems", () => {
   let game: AsteroidsGame;
-  let world: World<any, any, any>;
+  let world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap>;
 
   beforeEach(async () => {
     game = new AsteroidsGame({ headless: true });
@@ -56,8 +58,8 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       expect(bullets.length).toBe(1);
 
       // Verify cooldown is set
-      let shipComp = world.getComponent(shipEntity, "Ship") as any;
-      expect(shipComp.shootCooldownRemaining).toBeGreaterThan(0.2);
+      let shipComp = world.getComponent(shipEntity, "Ship");
+      expect(shipComp?.shootCooldownRemaining).toBeGreaterThan(0.2);
 
       // Update multiple times to decrement cooldown (0.25 seconds / 0.016 ~ 16 frames)
       // Since shoot = true is held, it should automatically fire a second bullet once cooldown <= 0
@@ -81,10 +83,10 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
           axes: {}
       });
 
-      world.mutateComponent(shipEntity, "Transform", (t: any) => {
+      world.mutateComponent(shipEntity, "Transform", (t) => {
         t.rotation = Math.PI / 4; // 45 degrees
       });
-      world.mutateComponent(shipEntity, "Velocity", (v: any) => {
+      world.mutateComponent(shipEntity, "Velocity", (v) => {
         v.vx = 200; // Ship is moving fast horizontally
         v.vy = 0;
       });
@@ -92,7 +94,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.flush();
 
       // Clear shoot cooldown
-      world.mutateComponent(shipEntity, "Ship", (s: any) => {
+      world.mutateComponent(shipEntity, "Ship", (s) => {
         s.shootCooldownRemaining = 0;
       });
 
@@ -103,16 +105,19 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const bullets = world.query("Bullet");
       expect(bullets.length).toBe(1);
 
-      const bulletTransform = world.getComponent(bullets[0], "Transform") as any;
-      expect(bulletTransform.rotation).toBeCloseTo(Math.PI / 4, 5); // Must match transform.rotation (45 deg)
+      const bulletTransform = world.getComponent(bullets[0], "Transform");
+      expect(bulletTransform?.rotation).toBeCloseTo(Math.PI / 4, 5); // Must match transform.rotation (45 deg)
 
       // Calculate what atan2(vy, vx) would have been:
       // bullet vx = velocity.vx + cos(rotation) * bulletSpeed = 200 + cos(PI/4) * 300 = 200 + 212.13 = 412.13
       // bullet vy = velocity.vy + sin(rotation) * bulletSpeed = 0 + sin(PI/4) * 300 = 212.13
       // atan2(212.13, 412.13) = 0.474 rad (approx 27 degrees), not 45 degrees!
-      const bulletVelocity = world.getComponent(bullets[0], "Velocity") as any;
-      const expectedAtan2 = Math.atan2(bulletVelocity.vy, bulletVelocity.vx);
-      expect(bulletTransform.rotation).not.toBeCloseTo(expectedAtan2, 3);
+      const bulletVelocity = world.getComponent(bullets[0], "Velocity");
+      expect(bulletVelocity).toBeDefined();
+      if (bulletVelocity) {
+        const expectedAtan2 = Math.atan2(bulletVelocity.vy, bulletVelocity.vx);
+        expect(bulletTransform?.rotation).not.toBeCloseTo(expectedAtan2, 3);
+      }
     });
   });
 
@@ -161,14 +166,14 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const bullet = createBullet({ world, x: 100, y: 200, vx: 50, vy: -50, ownerId: "player" });
       expect(world.hasEntity(bullet)).toBe(true);
 
-      const ttl = world.getComponent(bullet, "TTL") as any;
+      const ttl = world.getComponent(bullet, "TTL");
       expect(ttl).toBeDefined();
-      expect(ttl.remaining).toBe(2.0); // default BULLET_TTL from AsteroidConfigSchema is 2.0
+      expect(ttl?.remaining).toBe(2.0); // default BULLET_TTL from AsteroidConfigSchema is 2.0
 
-      const collider = world.getComponent(bullet, "Collider") as any;
+      const collider = world.getComponent(bullet, "Collider");
       expect(collider).toBeDefined();
-      expect(collider.layer).toBe(CollisionLayers.PROJECTILE);
-      expect(collider.mask).toBe(CollisionLayers.ENEMY);
+      expect(collider?.layer).toBe(CollisionLayers.PROJECTILE);
+      expect(collider?.mask).toBe(CollisionLayers.ENEMY);
     });
 
     it("should safely terminate spawnAsteroidWave without hanging when screen area is small", () => {
@@ -186,12 +191,12 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
 
     it("should NOT attach Collectible component to asteroids in deathmatch mode", () => {
       const asteroid = createAsteroid({ world, x: 100, y: 100, size: "large" });
-      const hasCollectible = world.hasComponent(asteroid, "Collectible" as any);
+      const hasCollectible = world.hasComponent(asteroid, "Collectible");
       expect(hasCollectible).toBe(false);
     });
 
     it("should enforce MAX_ASTEROIDS entity cap during repeated fragmentation", () => {
-      world.setResource("GameConfig", { MAX_ASTEROIDS: 10, FRAGMENT_IMPULSE_SPEED: 80 });
+      world.setResource("GameConfig", { MAX_ASTEROIDS: 10, FRAGMENT_IMPULSE_SPEED: 80 } as AsteroidConfig);
 
       // Spawn 8 large asteroids
       for (let i = 0; i < 8; i++) {
@@ -220,8 +225,8 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       // Verify two medium asteroids were created
       const asteroids = world.query("Asteroid");
       const mediumAsteroids = asteroids.filter(id => {
-        const a = world.getComponent(id, "Asteroid") as any;
-        return a.size === "medium";
+        const a = world.getComponent(id, "Asteroid");
+        return a?.size === "medium";
       });
 
       expect(mediumAsteroids.length).toBe(2);
@@ -236,8 +241,8 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const asteroid = createAsteroid({ world, x: 100, y: 100, size: "large" });
 
       // Simulate Collision event
-      const eventsComp = world.getComponent(bullet, "CollisionEvents") as any;
-      eventsComp.collisions.push({
+      const eventsComp = world.getComponent(bullet, "CollisionEvents");
+      eventsComp?.collisions.push({
         otherEntity: asteroid,
         normalX: 0,
         normalY: 0,
@@ -265,11 +270,11 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, {
         type: "Invulnerable",
         remaining: 3.0
-      } as any);
+      } as InvulnerableComponent);
 
       // Add collision event to ship
-      const eventsComp = world.getComponent(ship, "CollisionEvents") as any;
-      eventsComp.collisions.push({
+      const eventsComp = world.getComponent(ship, "CollisionEvents");
+      eventsComp?.collisions.push({
         otherEntity: asteroid,
         normalX: 0,
         normalY: 0,
@@ -291,11 +296,11 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const asteroid = createAsteroid({ world, x: 100, y: 100, size: "large" });
 
       // Verify ship is NOT invulnerable initially
-      expect(world.hasComponent(ship, "Invulnerable" as any)).toBe(false);
+      expect(world.hasComponent(ship, "Invulnerable")).toBe(false);
 
       // Add collision event to ship
-      const eventsComp = world.getComponent(ship, "CollisionEvents") as any;
-      eventsComp.collisions.push({
+      const eventsComp = world.getComponent(ship, "CollisionEvents");
+      eventsComp?.collisions.push({
         otherEntity: asteroid,
         normalX: 0,
         normalY: 0,
@@ -307,12 +312,12 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.update(0.016);
 
       // Ship should be moved to center and be marked as invulnerable
-      const transform = world.getComponent(ship, "Transform") as any;
+      const transform = world.getComponent(ship, "Transform");
       const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-      expect(transform.x).toBe(screen.width / 2);
-      expect(transform.y).toBe(screen.height / 2);
+      expect(transform?.x).toBe(screen.width / 2);
+      expect(transform?.y).toBe(screen.height / 2);
 
-      expect(world.hasComponent(ship, "Invulnerable" as any)).toBe(true);
+      expect(world.hasComponent(ship, "Invulnerable")).toBe(true);
 
       const state = game.getGameState();
       expect(state.lives).toBe(2); // lives decremented from 3 to 2
@@ -347,10 +352,10 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const ship = createShip({ world, x: 500, y: 500 });
       world.flush();
 
-      const comboComp = world.getComponent(ship, "Combo" as any) as any;
+      const comboComp = world.getComponent(ship, "Combo");
       expect(comboComp).toBeDefined();
-      expect(comboComp.combo).toBe(0);
-      expect(comboComp.multiplier).toBe(1);
+      expect(comboComp?.combo).toBe(0);
+      expect(comboComp?.multiplier).toBe(1);
 
       const state = game.getGameState();
       expect(state.combo).toBe(0);
@@ -364,8 +369,8 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.flush();
 
       // Trigger bullet-asteroid collision
-      const eventsComp = world.getComponent(bullet, "CollisionEvents") as any;
-      eventsComp.collisions.push({
+      const eventsComp = world.getComponent(bullet, "CollisionEvents");
+      eventsComp?.collisions.push({
         otherEntity: asteroid,
         normalX: 0,
         normalY: 0,
@@ -377,9 +382,9 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.flush();
 
       // Combo component should have combo = 1, multiplier = 1 (1 + floor(1/5) = 1)
-      const comboComp = world.getComponent(ship, "Combo" as any) as any;
-      expect(comboComp.combo).toBe(1);
-      expect(comboComp.multiplier).toBe(1);
+      const comboComp = world.getComponent(ship, "Combo");
+      expect(comboComp?.combo).toBe(1);
+      expect(comboComp?.multiplier).toBe(1);
 
       // Score should have updated by points * multiplier (100 * 1 = 100)
       const state = game.getGameState();
@@ -393,7 +398,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.flush();
 
       // Manually set combo to 50 (multiplier would be 1 + floor(50/5) = 11, capped at 10)
-      world.mutateComponent(ship, "Combo" as any, (c: any) => {
+      world.mutateComponent(ship, "Combo", (c) => {
         c.combo = 50;
       });
 
@@ -401,8 +406,8 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const asteroid = createAsteroid({ world, x: 100, y: 100, size: "small" }); // small worth 100 points
       world.flush();
 
-      const eventsComp = world.getComponent(bullet, "CollisionEvents") as any;
-      eventsComp.collisions.push({
+      const eventsComp = world.getComponent(bullet, "CollisionEvents");
+      eventsComp?.collisions.push({
         otherEntity: asteroid,
         normalX: 0,
         normalY: 0,
@@ -413,9 +418,9 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.update(0.016);
       world.flush();
 
-      const comboComp = world.getComponent(ship, "Combo" as any) as any;
-      expect(comboComp.combo).toBe(51);
-      expect(comboComp.multiplier).toBe(10); // Capped at 10
+      const comboComp = world.getComponent(ship, "Combo");
+      expect(comboComp?.combo).toBe(51);
+      expect(comboComp?.multiplier).toBe(10); // Capped at 10
 
       // Score gained is 100 * 10 = 1000
       const state = game.getGameState();
@@ -427,7 +432,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.flush();
 
       // Set some combo
-      world.mutateComponent(ship, "Combo" as any, (c: any) => {
+      world.mutateComponent(ship, "Combo", (c) => {
         c.combo = 10;
         c.multiplier = 3;
         c.timerRemaining = 0.05; // 50ms remaining
@@ -437,9 +442,9 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.update(0.1);
       world.flush();
 
-      const comboComp = world.getComponent(ship, "Combo" as any) as any;
-      expect(comboComp.combo).toBe(0);
-      expect(comboComp.multiplier).toBe(1);
+      const comboComp = world.getComponent(ship, "Combo");
+      expect(comboComp?.combo).toBe(0);
+      expect(comboComp?.multiplier).toBe(1);
     });
 
     it("should reset combo on life loss", () => {
@@ -448,15 +453,15 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.flush();
 
       // Set some combo on ship
-      world.mutateComponent(ship, "Combo" as any, (c: any) => {
+      world.mutateComponent(ship, "Combo", (c) => {
         c.combo = 15;
         c.multiplier = 4;
         c.timerRemaining = 2.0;
       });
 
       // Trigger ship-asteroid collision
-      const eventsComp = world.getComponent(ship, "CollisionEvents") as any;
-      eventsComp.collisions.push({
+      const eventsComp = world.getComponent(ship, "CollisionEvents");
+      eventsComp?.collisions.push({
         otherEntity: asteroid,
         normalX: 0,
         normalY: 0,
@@ -473,9 +478,9 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       expect(state.combo).toBe(0);
       expect(state.multiplier).toBe(1);
 
-      const comboComp = world.getComponent(ship, "Combo" as any) as any;
-      expect(comboComp.combo).toBe(0);
-      expect(comboComp.multiplier).toBe(1);
+      const comboComp = world.getComponent(ship, "Combo");
+      expect(comboComp?.combo).toBe(0);
+      expect(comboComp?.multiplier).toBe(1);
     });
   });
 
@@ -496,7 +501,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.flush();
 
       const shipComp1 = world.getComponent(ship, "Ship");
-      const initialPreviewId = shipComp1.hyperspacePreviewEntityId;
+      const initialPreviewId = shipComp1?.hyperspacePreviewEntityId;
       expect(initialPreviewId).toBeDefined();
 
       // Run 10 subsequent frames during prep
@@ -515,7 +520,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
         type: "Input",
         actions: { hyperspace: true },
         axes: {}
-      } as any);
+      });
       // Spawn a placeholder asteroid far away to prevent wave spawning
       createAsteroid({ world, x: 700, y: 700, size: "large" });
       world.flush();
@@ -524,22 +529,22 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.update(0.016);
       world.flush();
 
-      const shipComp = world.getComponent(ship, "Ship") as any;
-      expect(shipComp.hyperspacePrepTime).toBeCloseTo(0.5, 4); // 0.5 on start
-      expect(shipComp.hyperspacePreviewX).toBeDefined();
-      expect(shipComp.hyperspacePreviewY).toBeDefined();
+      const shipComp = world.getComponent(ship, "Ship");
+      expect(shipComp?.hyperspacePrepTime).toBeCloseTo(0.5, 4); // 0.5 on start
+      expect(shipComp?.hyperspacePreviewX).toBeDefined();
+      expect(shipComp?.hyperspacePreviewY).toBeDefined();
 
       // Verify that a visual preview entity has been created
       const renders = world.query("Render");
       const preview = renders.find(r => {
-        const rc = world.getComponent(r, "Render") as any;
-        return rc.shape === "singularity";
+        const rc = world.getComponent(r, "Render");
+        return rc?.shape === "singularity";
       });
       expect(preview).toBeDefined();
 
-      const previewTrans = world.getComponent(preview!, "Transform") as any;
-      expect(previewTrans.x).toBe(shipComp.hyperspacePreviewX);
-      expect(previewTrans.y).toBe(shipComp.hyperspacePreviewY);
+      const previewTrans = world.getComponent(preview!, "Transform");
+      expect(previewTrans?.x).toBe(shipComp?.hyperspacePreviewX);
+      expect(previewTrans?.y).toBe(shipComp?.hyperspacePreviewY);
     });
 
     it("should cancel hyperspace charging if key is released", () => {
@@ -549,7 +554,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
         type: "Input",
         actions: { hyperspace: true },
         axes: {}
-      } as any);
+      });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
       world.flush();
 
@@ -557,20 +562,20 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.update(0.016);
       world.flush();
 
-      let shipComp = world.getComponent(ship, "Ship") as any;
-      expect(shipComp.hyperspacePrepTime).toBeGreaterThan(0);
+      let shipComp = world.getComponent(ship, "Ship");
+      expect(shipComp?.hyperspacePrepTime).toBeGreaterThan(0);
 
       // Release key
-      world.mutateComponent(ship, "Input", (inp: any) => {
+      world.mutateComponent(ship, "Input", (inp) => {
         inp.actions = {};
       });
 
       world.update(0.016);
       world.flush();
 
-      shipComp = world.getComponent(ship, "Ship") as any;
-      expect(shipComp.hyperspacePrepTime).toBe(0);
-      expect(shipComp.hyperspacePreviewX).toBeUndefined();
+      shipComp = world.getComponent(ship, "Ship");
+      expect(shipComp?.hyperspacePrepTime).toBe(0);
+      expect(shipComp?.hyperspacePreviewX).toBeUndefined();
     });
 
     it("should remove hyperspace preview singularity entity when charge completes", () => {
@@ -580,7 +585,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
         type: "Input",
         actions: { hyperspace: true },
         axes: {}
-      } as any);
+      });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
       world.flush();
 
@@ -590,8 +595,8 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
 
       let renders = world.query("Render");
       let preview = renders.find(r => {
-        const rc = world.getComponent(r, "Render") as any;
-        return rc.shape === "singularity";
+        const rc = world.getComponent(r, "Render");
+        return rc?.shape === "singularity";
       });
       expect(preview).toBeDefined();
 
@@ -604,8 +609,8 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       // Preview entity must be removed from world
       renders = world.query("Render");
       preview = renders.find(r => {
-        const rc = world.getComponent(r, "Render") as any;
-        return rc.shape === "singularity";
+        const rc = world.getComponent(r, "Render");
+        return rc?.shape === "singularity";
       });
       expect(preview).toBeUndefined();
     });
@@ -617,7 +622,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
         type: "Input",
         actions: { hyperspace: true },
         axes: {}
-      } as any);
+      });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
       world.flush();
 
@@ -625,9 +630,9 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.update(0.016);
       world.flush();
 
-      const shipComp = world.getComponent(ship, "Ship") as any;
-      const targetX = shipComp.hyperspacePreviewX;
-      const targetY = shipComp.hyperspacePreviewY;
+      const shipComp = world.getComponent(ship, "Ship");
+      const targetX = shipComp?.hyperspacePreviewX;
+      const targetY = shipComp?.hyperspacePreviewY;
 
       // Charge remaining frames (~31 frames for 0.5s prep time)
       for (let i = 0; i < 32; i++) {
@@ -636,17 +641,17 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       }
 
       // Teleport complete! Transform matches destination, Velocity is zero, Cooldown is set
-      const transform = world.getComponent(ship, "Transform") as any;
-      expect(transform.x).toBe(targetX);
-      expect(transform.y).toBe(targetY);
+      const transform = world.getComponent(ship, "Transform");
+      expect(transform?.x).toBe(targetX);
+      expect(transform?.y).toBe(targetY);
 
-      const velocity = world.getComponent(ship, "Velocity") as any;
-      expect(velocity.vx).toBe(0);
-      expect(velocity.vy).toBe(0);
+      const velocity = world.getComponent(ship, "Velocity");
+      expect(velocity?.vx).toBe(0);
+      expect(velocity?.vy).toBe(0);
 
-      const updatedShipComp = world.getComponent(ship, "Ship") as any;
-      expect(updatedShipComp.hyperspaceCooldownRemaining).toBeGreaterThan(4.5);
-      expect(updatedShipComp.hyperspacePrepTime).toBe(0);
+      const updatedShipComp = world.getComponent(ship, "Ship");
+      expect(updatedShipComp?.hyperspaceCooldownRemaining).toBeGreaterThan(4.5);
+      expect(updatedShipComp?.hyperspacePrepTime).toBe(0);
     });
   });
 
@@ -659,9 +664,9 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const { BENEFICIAL_MUTATORS } = require("../../../utils/MutatorRegistry");
       BENEFICIAL_MUTATORS.hyper_drift.apply(world);
 
-      const updatedConfig = world.getResource<any>("GameConfig");
-      expect(updatedConfig.SHIP_THRUST).toBe(300);
-      expect(updatedConfig.FRICTION).toBe(0.95);
+      const updatedConfig = world.getResource<Record<string, number>>("GameConfig");
+      expect(updatedConfig?.SHIP_THRUST).toBe(300);
+      expect(updatedConfig?.FRICTION).toBe(0.95);
     });
 
     it("should apply bouncing_bullets mutator and spawn bullets with bouncing boundaries", () => {
@@ -671,16 +676,16 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const { BENEFICIAL_MUTATORS } = require("../../../utils/MutatorRegistry");
       BENEFICIAL_MUTATORS.bouncing_bullets.apply(world);
 
-      const updatedConfig = world.getResource<any>("GameConfig");
-      expect(updatedConfig.BULLET_BOUNDARY_BEHAVIOR).toBe("bounce");
+      const updatedConfig = world.getResource<Record<string, string>>("GameConfig");
+      expect(updatedConfig?.BULLET_BOUNDARY_BEHAVIOR).toBe("bounce");
 
       // Spawn bullet, should have a Boundary component with mode = bounce
       const bullet = createBullet({ world, x: 100, y: 100, vx: 50, vy: 50 });
       world.flush();
 
-      const boundary = world.getComponent(bullet, "Boundary") as any;
+      const boundary = world.getComponent(bullet, "Boundary");
       expect(boundary).toBeDefined();
-      expect(boundary.mode).toBe("bounce");
+      expect(boundary?.mode).toBe("bounce");
     });
   });
 });

@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { Platform } from "react-native";
 import { useKeepAwake } from "./useKeepAwake";
 import { useGameServices } from "../providers/GameServicesProvider";
+import { ExpoAudioPlayer } from "../audio/ExpoAudioPlayer";
 import { WebAudioPlayer } from "@tiny-aster/core";
-import type { BaseGame, BaseGameConfig, IAssetProvider } from "@tiny-aster/core";
+import type { BaseGame, BaseGameConfig, IAssetProvider, IAudioPlayer } from "@tiny-aster/core";
 
 export type GameConfig = BaseGameConfig & {
   seed?: number;
@@ -14,6 +16,7 @@ export interface GameOptions<TState> {
   gameOptions?: Record<string, unknown>;
   initialState?: TState | null;
   assetProvider?: IAssetProvider;
+  audio?: IAudioPlayer;
 }
 
 // Constructor type - accepts any class that extends BaseGame
@@ -64,13 +67,19 @@ export function useGame<
     }
   }, [gameOptions]);
 
+  const defaultAudio = useMemo(() => {
+    return Platform.OS === "web" ? new WebAudioPlayer() : new ExpoAudioPlayer();
+  }, []);
+
+  const audioPlayer = options.audio ?? defaultAudio;
+
   const config = useMemo(() => ({
     isMultiplayer,
     seed,
     gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) },
     assetProvider: options.assetProvider,
-    audio: new WebAudioPlayer()
-  }), [isMultiplayer, seed, serializedGameOptions, options.assetProvider]);
+    audio: audioPlayer
+  }), [isMultiplayer, seed, serializedGameOptions, options.assetProvider, audioPlayer]);
 
   const [game, setGame] = useState<TGame | null>(null);
   const [isReady, setIsReady] = useState(false);

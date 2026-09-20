@@ -17,11 +17,14 @@ function getRoomInternal(room: SpaceInvadersRoom): SpaceInvadersRoomInternalAcce
 
 type MessageHandler = (client: Client, message: unknown) => void;
 
+type MockClient = Pick<Client, "sessionId" | "send">;
+
 function createMockClient(sessionId: string): Client {
-  return {
+  const mock: MockClient = {
     sessionId,
     send: jest.fn()
-  } as unknown as Client;
+  };
+  return mock as unknown as Client;
 }
 
 describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
@@ -35,12 +38,12 @@ describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
     // Mock Colyseus Room infrastructure
     room.setState = jest.fn((state) => {
       room.state = state;
-    }) as unknown as typeof room.setState;
+    });
     room.setPatchRate = jest.fn();
     room.setSimulationInterval = jest.fn();
     room.onMessage = jest.fn((type: unknown, callback: MessageHandler) => {
       messageHandlers.set(String(type), callback);
-      return {} as ReturnType<Client["send"]> & any;
+      return (() => {}) as unknown as ReturnType<Client["send"]>;
     }) as unknown as typeof room.onMessage;
     room.allowReconnection = jest.fn().mockResolvedValue({} as Client);
     room.broadcast = jest.fn();

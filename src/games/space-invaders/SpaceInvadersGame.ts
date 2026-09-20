@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System, BaseGameConfig } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
 import { EnemyFactory } from "./EnemyFactory";
@@ -53,7 +53,7 @@ export class SpaceInvadersGame
   private config!: SpaceInvadersConfig;
   private network: NetworkController<SpaceInvadersComponentRegistry>;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, headless?: boolean, schedule?: any, audio?: any, theme?: Theme } = {}) {
+  constructor(config: BaseGameConfig<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, InputState, SpaceInvadersBlueprintMap> = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     const loadedBaseConfig = ConfigService.load<SpaceInvadersConfig>(
       "space-invaders",
@@ -152,6 +152,8 @@ export class SpaceInvadersGame
           moveRight: false,
           shoot: false,
           shootCooldownRemaining: 0,
+          actions: new Set<string>(),
+          axes: {}
         } as InputComponent);
         world.addComponent(entity, { type: "Player" } as PlayerComponent);
         world.addComponent(entity, {
@@ -415,8 +417,8 @@ export class SpaceInvadersGame
           interpolationDelay: 100
       });
     }
-    this.world.addSystem(new LocalPredictionSystem(this.networkManager as unknown as NetworkManager<any>, () => {}) as unknown as System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>, { phase: SystemPhase.Input });
-    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager as unknown as NetworkManager<any>) as unknown as System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>, { phase: SystemPhase.Presentation });
+    this.world.addSystem(new LocalPredictionSystem(this.networkManager, () => {}), { phase: SystemPhase.Input });
+    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });
 
     this.sceneManager.transitionTo(gameScene, { effect: "crt", duration: 300 });
   }
@@ -460,7 +462,7 @@ export class SpaceInvadersGame
         const playerEntity = world.query("Player")[0];
         if (playerEntity !== undefined) {
           const tick = world.tick + 1; // Upcoming tick
-          const frame = (this._player as any).inputs.find((i: any) => i.tick === tick);
+          const frame = this._player.getInputs().find((i) => i.tick === tick);
           if (frame) {
             if (!world.hasComponent(playerEntity, "Input")) {
               world.addComponent(playerEntity, {
@@ -468,10 +470,12 @@ export class SpaceInvadersGame
                 moveLeft: false,
                 moveRight: false,
                 shoot: false,
-                shootCooldownRemaining: 0
-              } as any);
+                shootCooldownRemaining: 0,
+                actions: new Set<string>(),
+                axes: {}
+              } as InputComponent);
             }
-            world.mutateComponent(playerEntity, "Input", (inputComp: any) => {
+            world.mutateComponent(playerEntity, "Input", (inputComp: InputComponent) => {
               inputComp.moveLeft = frame.actions.includes("moveLeft");
               inputComp.moveRight = frame.actions.includes("moveRight");
               inputComp.shoot = frame.actions.includes("shoot");
@@ -493,7 +497,7 @@ export class SpaceInvadersGame
       // 3. Record inputs if recording is enabled
       if (this._recorder) {
         const playerEntity = world.query("Player")[0];
-        const inputComp = playerEntity !== undefined ? world.getComponent(playerEntity, "Input") as any : null;
+        const inputComp = playerEntity !== undefined ? world.getComponent(playerEntity, "Input") : null;
         const actions: string[] = [];
         if (inputComp) {
           if (inputComp.moveLeft) actions.push("moveLeft");
@@ -702,9 +706,11 @@ export class SpaceInvadersGame
           moveRight: false,
           shoot: false,
           shootCooldownRemaining: 0,
+          actions: new Set<string>(),
+          axes: {}
         } as InputComponent);
       }
-      world.mutateComponent(playerEntity, "Input", (inputComp: any) => {
+      world.mutateComponent(playerEntity, "Input", (inputComp: InputComponent) => {
         // CanonicalInputState support
         if (input && typeof input === "object" && input.axes) {
           const moveX = input.axes.moveX ?? 0;
@@ -744,6 +750,8 @@ export class SpaceInvadersGame
             moveRight: false,
             shoot: false,
             shootCooldownRemaining: 0,
+            actions: new Set<string>(),
+            axes: {}
           });
         }
       },

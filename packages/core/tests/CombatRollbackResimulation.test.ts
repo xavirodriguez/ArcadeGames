@@ -106,7 +106,7 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
   it("Case 1: enemy dies -> deterministic state correct & external side effect exactly once", () => {
     const eventBus = world.getEventBus()!;
     const sfxList: string[] = [];
-    eventBus.on("PlaySFX", (evt) => sfxList.push((evt as { name: string }).name));
+    eventBus.on("PlaySFX", (evt) => sfxList.push(evt.name));
 
     const gs = world.createEntity();
     world.addComponent(gs, { type: "GameState", score: 0, lives: 3, level: 1, invadersRemaining: 1, isGameOver: false, screenShake: null, kamikazesActive: 0, readyRemaining: 0, intermissionRemaining: 0, continueCountdownRemaining: 0, continuesRemaining: 3 } as GameStateComponent);
@@ -186,7 +186,7 @@ describe("Combat Death Rollback Determinism & Side Effects (Regression)", () => 
     const resimSfx: string[] = [];
     eventBus.on("PlaySFX", (evt) => {
       if (world.isReSimulating) {
-        resimSfx.push((evt as { name: string }).name);
+        resimSfx.push(evt.name);
       }
     });
 

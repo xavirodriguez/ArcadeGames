@@ -1,9 +1,6 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity } from "@tiny-aster/core";
+import type { SkColor, SkPath, SkShader } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
-
-type SkColor = any;
-type SkPath = any;
-type SkShader = any;
 import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
 import { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
@@ -25,12 +22,14 @@ export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
  * Dynamically resolves the active LevelVisualTheme based on world resource or level progress.
  * @public
  */
-export function getActiveLevelTheme(world: World): LevelVisualTheme {
+export function getActiveLevelTheme<TComponents extends CoreComponentRegistry = CoreComponentRegistry>(
+  world: World<TComponents>
+): LevelVisualTheme {
   const resourceTheme = world.getResource<LevelThemeName>("ActiveLevelThemeName");
   if (resourceTheme) {
     return getLevelTheme(resourceTheme);
   }
-  const gameState = (world as World<CoreComponentRegistry>).getSingleton("GameState") as { level?: number } | undefined;
+  const gameState = world.getSingleton("GameState" as Extract<keyof TComponents, string>) as { level?: number } | undefined;
   const level = gameState?.level || 1;
   const themes: LevelThemeName[] = ["deep_space", "violet_nebula", "industrial_orbit", "volcanic_rift", "alien_bloom"];
   const themeName = themes[(level - 1) % themes.length];
@@ -41,7 +40,9 @@ export function getActiveLevelTheme(world: World): LevelVisualTheme {
  * Returns screen dimensions and state for VFX drawers.
  * @public
  */
-export function getScreenAndVFXState(world: World): {
+export function getScreenAndVFXState<TComponents extends ComponentRegistry = ComponentRegistry>(
+  world: World<TComponents>
+): {
   width: number;
   height: number;
   state: VFXWorldState;
@@ -235,10 +236,10 @@ interface VFXWorldState {
   lastCRTHeight?: number;
 }
 
-const worldStateMap = new WeakMap<World<any>, VFXWorldState>();
+const worldStateMap = new WeakMap<World<ComponentRegistry>, VFXWorldState>();
 
-function getVFXState(world: World<any>): VFXWorldState {
-  let state = worldStateMap.get(world);
+function getVFXState<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents>): VFXWorldState {
+  let state = worldStateMap.get(world as World<ComponentRegistry>);
   if (!state) {
     state = {
       stars: [],
@@ -344,8 +345,11 @@ export function updateDistantAsteroid(ast: DistantAsteroid, width: number, offse
   return { posX, y: ast.y, rotation: ast.rotation };
 }
 
-export function getRenderComponent(world: World, entity: number): RenderComponent | undefined {
-  return world.getComponent(entity, "Render") as RenderComponent | undefined;
+export function getRenderComponent<TComponents extends ComponentRegistry = ComponentRegistry>(
+  world: World<TComponents>,
+  entity: Entity
+): RenderComponent | undefined {
+  return world.getComponent(entity, "Render" as Extract<keyof TComponents, string>) as RenderComponent | undefined;
 }
 
 export function computeShockwaveParams(baseSize: number, progress: number) {
@@ -384,8 +388,11 @@ function computeCometTrailSegments(timePhase: number, size: number): TrailSegmen
   return segments;
 }
 
-function computeEffectProgress(world: World, entity: number): { progress: number; alpha: number } {
-  const ttl = world.getComponent(entity, "TTL") as TTLComponent | undefined;
+function computeEffectProgress<TComponents extends ComponentRegistry = ComponentRegistry>(
+  world: World<TComponents>,
+  entity: Entity
+): { progress: number; alpha: number } {
+  const ttl = world.getComponent(entity, "TTL" as Extract<keyof TComponents, string>) as TTLComponent | undefined;
   let progress = 0.5;
 
   if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {

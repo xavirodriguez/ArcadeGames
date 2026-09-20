@@ -3,10 +3,7 @@ import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdT
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import {
   StarfieldStar,
-  generateStarfield,
-  calculateSquashAndStretch,
-  calculateBirdTiltAngle,
-  calculateFlappyPipeGeometry
+  generateStarfield
 } from "../../shared/rendering/geometry";
 import {
   calculateWarpFactor,
@@ -15,9 +12,15 @@ import {
   BACKGROUND_NEBULAE,
   MegastructureData
 } from "./FlappyBirdBackgroundData";
-import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
-import { processFlappyBirdParticleEvents, applyFlappyParticlePhysics } from "./particleEvents";
+import { applyFlappyParticlePhysics } from "./particleEvents";
+import {
+  resolveFlappyBirdDrawContext,
+  resolveFlappyPipeDrawContext,
+  maybeSpawnBackgroundDebris,
+  resolveGlideEnergyState,
+  resolveSectorEventInfo
+} from "./FlappyBirdRenderUtils";
 
 // DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
 // Primitivas de dibujo específicas de Canvas/Skia mantenidas intencionalmente separadas. Ver docs/tech-debt/duplication.md
@@ -167,41 +170,27 @@ function getArrowheadPath(size: number): any {
 export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    const drawCtx = resolveFlappyBirdDrawContext(world, entity, FLAPPY_SKIA_PARTICLE_POOL);
+    if (!drawCtx) return;
 
-    const { size = 15 } = render;
-    const transform = world.getComponent(entity, "Transform") as TransformComponent;
-    const birdComp = world.getComponent(entity, "Bird");
-    if (!transform || !birdComp) return;
-
-    const health = world.getComponent(entity, "Health");
-    const x = transform.worldX ?? transform.x;
-    const y = transform.worldY ?? transform.y;
-
-    processFlappyBirdParticleEvents(world, entity, birdComp, FLAPPY_SKIA_PARTICLE_POOL, x, y, size);
-
-    const vy = birdComp.velocityY;
-    const isAlive = birdComp.isAlive;
-
-    const flashState = resolveHitFlash(render, render.color || "yellow", 1.0, 0.35);
-    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "interval", multiplier: 0.01, dimOpacity: 0.35 });
-
-    let globalOpacity = flashState.isFlashing ? flashState.opacity : 1.0;
-    if (invState.isInvulnerable) {
-      globalOpacity = invState.opacity;
-    }
+    const {
+      render,
+      size,
+      vy,
+      isAlive,
+      globalOpacity,
+      angleDeg,
+      scaleX,
+      scaleY,
+      speed,
+    } = drawCtx;
 
     const paint = getPaint();
 
     canvas.save();
 
     // Velocity Tilt & Squash-and-Stretch
-    const { angleDeg } = calculateBirdTiltAngle(vy);
     canvas.rotate(angleDeg, 0, 0);
-
-    const speed = Math.abs(vy);
-    const { scaleX, scaleY } = calculateSquashAndStretch(vy);
     canvas.scale(scaleX, scaleY);
 
     // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
@@ -321,27 +310,23 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    const pos = world.getComponent(entity, "Transform");
-    if (!render || !pos) return;
+    const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
+    if (!pipeCtx) return;
 
-    const { size = 60 } = render;
-    const width = size;
-    const halfWidth = width / 2;
+    const {
+      pos,
+      pipe,
+      width,
+      halfWidth,
+      variant,
+      geometry,
+      capHeight,
+      capWidth,
+      capHalfWidth,
+      beaconPulse,
+    } = pipeCtx;
 
-    const pipe = world.getComponent(entity, "Pipe");
-    if (!pipe) return;
-    const variant = pipe.visualVariant || "standard";
-
-    const config = world.getResource<{ worldHeight: number }>("GameConfig");
-    const worldHeight = config?.worldHeight ?? 600;
-
-    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(
-      pos.y,
-      pipe.gapY,
-      pipe.gapSize,
-      worldHeight
-    );
+    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = geometry;
 
     const paint = getPaint();
 
@@ -409,11 +394,6 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     }
 
     // Docking Collar Cap at gap mouth
-    const capHeight = 28;
-    const capExtraWidth = 12;
-    const capWidth = width + capExtraWidth;
-    const capHalfWidth = capWidth / 2;
-
     const collarShader = getCachedSkiaShader(`collar_${capHalfWidth}_${variant}`, () => {
       let colors = [
         Skia.Color("#22222D"),
@@ -459,8 +439,6 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     canvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
 
     // Stroboscopic Red Warning Beacons (#FF0000) strictly bound to world.tick with soft glow halo
-    const beaconPulse = 0.35 + 0.65 * Math.abs(Math.sin(world.tick * 0.2));
-
     const beaconHaloShader = getCachedSkiaShader(`beacon_halo_${beaconPulse.toFixed(2)}`, () =>
       Skia.Shader.MakeTwoPointConicalGradient(
         Skia.Point(0, beaconY),
@@ -748,16 +726,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     }
 
     // --- SPORADIC DISTANT BACKGROUND DEBRIS / SPARKS ---
-    // Deterministically spawn faint distant sparks/shards approx every 4-8 seconds (240-480 ticks)
-    if (world.tick % 300 === 0 && world.renderRandom.next() > 0.3) {
-      const dx = world.renderRandom.nextRange(20, width - 20);
-      const dy = world.renderRandom.nextRange(40, height * 0.7);
-      const angle = world.renderRandom.next() * Math.PI * 2;
-      const speed = world.renderRandom.nextRange(15, 35);
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-      spawnVisualParticle("star", dx, dy, vx, vy, world.renderRandom.nextRange(1.0, 2.0), world.renderRandom.nextRange(1.5, 3.0), "#5A6173", angle);
-    }
+    maybeSpawnBackgroundDebris(world, width, height, spawnVisualParticle);
 
     // Hypervelocity combo factor calculation
     let warpFactor = 1.0;
@@ -840,35 +809,26 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     drawSkiaVisualParticles(canvas, paint);
 
     // --- GLIDE ENERGY METER HUD OVERLAY ---
-    const birds = world.query("Bird", "GlideEnergy");
-    if (birds.length > 0) {
-      const energy = world.getComponent(birds[0], "GlideEnergy");
-      if (energy) {
-        const barW = 120;
-        const barH = 8;
-        const bx = (width - barW) / 2;
-        const by = height - 25;
-        const ratio = Math.max(0, Math.min(1, energy.currentEnergy / energy.maxEnergy));
+    const glideState = resolveGlideEnergyState(world, width, height);
+    if (glideState) {
+      const { isOverheated, ratio, barW, barH, bx, by, fillColor } = glideState;
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("rgba(10, 15, 25, 0.75)"));
+      canvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
 
-        paint.reset();
-        paint.setStyle(Skia.PaintStyle.Fill);
-        paint.setColor(Skia.Color("rgba(10, 15, 25, 0.75)"));
-        canvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
+      paint.setColor(Skia.Color(fillColor));
+      canvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
 
-        const fillColor = energy.isOverheated ? "#FF3300" : ratio < 0.3 ? "#FFC000" : "#00F3FF";
-        paint.setColor(Skia.Color(fillColor));
-        canvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
-
-        paint.setStyle(Skia.PaintStyle.Stroke);
-        paint.setColor(Skia.Color(energy.isOverheated ? "#FF0000" : "#5A6173"));
-        paint.setStrokeWidth(1.0);
-        canvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
-      }
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(isOverheated ? "#FF0000" : "#5A6173"));
+      paint.setStrokeWidth(1.0);
+      canvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
     }
 
     // --- SECTOR EVENT HUD OVERLAY BANNER ---
-    const sectorEvent = gameState.currentSectorEvent ?? "none";
-    if (sectorEvent !== "none") {
+    const sectorInfo = resolveSectorEventInfo(gameState.currentSectorEvent ?? "none");
+    if (sectorInfo) {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color("rgba(0, 243, 255, 0.15)"));

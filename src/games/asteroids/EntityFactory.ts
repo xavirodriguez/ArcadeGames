@@ -143,8 +143,7 @@ export function registerAsteroidsBlueprints(
           shape: "bullet",
           size: 2,
           color: tint,
-          order: 2,
-          rotation: args.rotation ?? 0
+          order: 2
         })
         .withTTL(args.ttl ?? 2.0)
         .withCollider({

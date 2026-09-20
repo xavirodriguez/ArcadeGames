@@ -1445,18 +1445,18 @@
     },
     {
       "firstFile": {
-        "end": 226,
+        "end": 225,
         "endLoc": {
           "column": 13,
-          "line": 226,
-          "position": 8200
+          "line": 225,
+          "position": 8160
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 217,
+        "start": 216,
         "startLoc": {
           "column": 8,
-          "line": 217,
-          "position": 7909
+          "line": 216,
+          "position": 7869
         }
       },
       "format": "typescript",
@@ -1464,18 +1464,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 320,
+        "end": 319,
         "endLoc": {
           "column": 13,
-          "line": 320,
-          "position": 11260
+          "line": 319,
+          "position": 11220
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 311,
+        "start": 310,
         "startLoc": {
           "column": 8,
-          "line": 311,
-          "position": 10969
+          "line": 310,
+          "position": 10929
         }
       },
       "tokens": 51
@@ -6329,32 +6329,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-20T16:11:21.019Z",
+    "detectionDate": "2026-09-20T15:21:17.151Z",
     "formats": {
       "typescript": {
         "clones": 171,
         "duplicatedLines": 1681,
         "duplicatedTokens": 13435,
-        "lines": 67071,
+        "lines": 67070,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.5062992947771763,
-        "percentageTokens": 3.815178931465926,
+        "percentage": 2.5063366631877146,
+        "percentageTokens": 3.815308944890297,
         "sources": 398,
-        "tokens": 352146
+        "tokens": 352134
       }
     },
     "total": {
       "clones": 171,
       "duplicatedLines": 1681,
       "duplicatedTokens": 13435,
-      "lines": 67071,
+      "lines": 67070,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.5062992947771763,
-      "percentageTokens": 3.815178931465926,
+      "percentage": 2.5063366631877146,
+      "percentageTokens": 3.815308944890297,
       "sources": 398,
-      "tokens": 352146
+      "tokens": 352134
     }
   }
 }

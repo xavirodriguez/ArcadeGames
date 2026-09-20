@@ -1,4 +1,4 @@
-import { World, ComponentType } from "@tiny-aster/core";
+import { World, ComponentType, WorldUtils } from "@tiny-aster/core";
 import { System } from "@tiny-aster/core";
 import { Entity, TransformComponent, CollisionEventsComponent, ColliderComponent, ShapeType, RenderComponent } from "@tiny-aster/core";
 import { IFlappyBirdGame } from "../types/GameInterfaces";
@@ -68,7 +68,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
   }
 
   private resolveCollision(world: World<FlappyBirdComponentRegistry>, entityA: Entity, entityB: Entity): void {
-    const matchPipe = this.matchPair(world, entityA, entityB, "Bird", "Pipe");
+    const matchPipe = WorldUtils.matchPair(world, entityA, entityB, "Bird", "Pipe");
     if (matchPipe) {
       // Activar coyote timer en lugar de game over inmediato
       // Safe for determinism/rollback. Direct getMutableComponent avoids callback allocation.
@@ -83,7 +83,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
       return;
     }
     // Ground collision es instantánea (sin coyote time)
-    const matchGround = this.matchPair(world, entityA, entityB, "Bird", "Ground" as any);
+    const matchGround = WorldUtils.matchPair(world, entityA, entityB, "Bird", "Ground" as any);
     if (matchGround) {
       this.triggerGameOver(world);
     }
@@ -241,19 +241,4 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
     }
   }
 
-  private matchPair<T1 extends ComponentType<FlappyBirdComponentRegistry>, T2 extends ComponentType<FlappyBirdComponentRegistry>>(
-    world: World<FlappyBirdComponentRegistry>,
-    entityA: Entity,
-    entityB: Entity,
-    type1: T1,
-    type2: T2
-  ): Record<T1 | T2, Entity> | undefined {
-    if (world.hasComponent(entityA, type1) && world.hasComponent(entityB, type2)) {
-      return { [type1]: entityA, [type2]: entityB } as Record<T1 | T2, Entity>;
-    }
-    if (world.hasComponent(entityB, type1) && world.hasComponent(entityA, type2)) {
-      return { [type1]: entityB, [type2]: entityA } as Record<T1 | T2, Entity>;
-    }
-    return undefined;
-  }
 }

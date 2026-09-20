@@ -1112,55 +1112,18 @@
     },
     {
       "firstFile": {
-        "end": 32,
-        "endLoc": {
-          "column": 35,
-          "line": 32,
-          "position": 1172
-        },
-        "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 21,
-        "startLoc": {
-          "column": 4,
-          "line": 21,
-          "position": 840
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const eventBus = world.getEventBus();\n    if (eventBus) {\n      eventBus.on(\"combat:hit\", (event: CombatHitEvent) => {\n        this.onCombatHit(world, event);\n      });\n      eventBus.on(\"combat:death\", (event: CombatDeathEvent) => {\n        this.onCombatDeath(world, event);\n      });\n    }\n  }\n\n  private onCombatHit(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, event: CombatHitEvent): void {",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 63,
-        "endLoc": {
-          "column": 35,
-          "line": 63,
-          "position": 3005
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 52,
-        "startLoc": {
-          "column": 4,
-          "line": 52,
-          "position": 2673
-        }
-      },
-      "tokens": 73
-    },
-    {
-      "firstFile": {
-        "end": 273,
+        "end": 258,
         "endLoc": {
           "column": 19,
-          "line": 273,
-          "position": 11034
+          "line": 258,
+          "position": 10471
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 265,
+        "start": 250,
         "startLoc": {
           "column": 32,
-          "line": 265,
-          "position": 10764
+          "line": 250,
+          "position": 10201
         }
       },
       "format": "typescript",
@@ -1168,18 +1131,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 432,
+        "end": 417,
         "endLoc": {
           "column": 13,
-          "line": 432,
-          "position": 16909
+          "line": 417,
+          "position": 16346
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 424,
+        "start": 409,
         "startLoc": {
           "column": 29,
-          "line": 424,
-          "position": 16687
+          "line": 409,
+          "position": 16124
         }
       },
       "tokens": 55
@@ -5808,43 +5771,6 @@
         }
       },
       "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 549,
-        "endLoc": {
-          "column": 3,
-          "line": 549,
-          "position": 20876
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 533,
-        "startLoc": {
-          "column": 89,
-          "line": 533,
-          "position": 20274
-        }
-      },
-      "format": "typescript",
-      "fragment": "  private removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: Entity): void {\n    if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, \"Transform\")) {\n      return;\n    }\n    const reclaimable = world.getComponent(bullet, \"Reclaimable\");\n    if (reclaimable) {\n      if (typeof reclaimable.onReclaim === \"function\") {\n        reclaimable.onReclaim({ world, entity: bullet });\n      } else {\n        const pool = world.getResource<any>(reclaimable.poolId);\n        if (pool && typeof pool.release === \"function\") {\n          pool.release({ world, entity: bullet });\n        }\n      }\n    }\n    world.getCommandBuffer().removeEntity(bullet);\n  }",
-      "isNew": false,
-      "lines": 17,
-      "secondFile": {
-        "end": 24,
-        "endLoc": {
-          "column": 1,
-          "line": 24,
-          "position": 1088
-        },
-        "name": "space-invaders/systems/SpaceInvadersInputSystem.ts",
-        "start": 8,
-        "startLoc": {
-          "column": 88,
-          "line": 8,
-          "position": 518
-        }
-      },
-      "tokens": 128
     }
   ],
   "statistics": {

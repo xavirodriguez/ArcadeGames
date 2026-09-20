@@ -1,5 +1,9 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap } from "@tiny-aster/core";
 import { Skia } from "./SkiaContext";
+
+type SkColor = any;
+type SkPath = any;
+type SkShader = any;
 import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
 import { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
@@ -26,7 +30,7 @@ export function getActiveLevelTheme(world: World): LevelVisualTheme {
   if (resourceTheme) {
     return getLevelTheme(resourceTheme);
   }
-  const gameState = world.getSingleton("GameState" as Extract<keyof TComponents, string>) as { level?: number } | undefined;
+  const gameState = (world as World<CoreComponentRegistry>).getSingleton("GameState") as { level?: number } | undefined;
   const level = gameState?.level || 1;
   const themes: LevelThemeName[] = ["deep_space", "violet_nebula", "industrial_orbit", "volcanic_rift", "alien_bloom"];
   const themeName = themes[(level - 1) % themes.length];
@@ -231,9 +235,9 @@ interface VFXWorldState {
   lastCRTHeight?: number;
 }
 
-const worldStateMap = new WeakMap<World, VFXWorldState>();
+const worldStateMap = new WeakMap<World<any>, VFXWorldState>();
 
-function getVFXState(world: World): VFXWorldState {
+function getVFXState(world: World<any>): VFXWorldState {
   let state = worldStateMap.get(world);
   if (!state) {
     state = {
@@ -258,7 +262,7 @@ function getVFXState(world: World): VFXWorldState {
       lastWidth: 0,
       lastHeight: 0
     };
-    worldStateMap.set(world as unknown as World<ComponentRegistry>, state);
+    worldStateMap.set(world, state);
   }
   return state;
 }

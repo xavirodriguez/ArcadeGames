@@ -1,3 +1,13 @@
+/**
+ * Encounter ID for Phase 2 (Quarantine Zone / Arcane Project) in Kepler's Ghost campaign.
+ */
+export var KEPLER_PHASE2_ENCOUNTER_ID = "kepler_phase2_quarantine";
+
+/**
+ * Encounter ID for Phase 3 (The Core / Final Stand) in Kepler's Ghost campaign.
+ */
+export var KEPLER_PHASE3_ENCOUNTER_ID = "kepler_phase3_core";
+
 import {
   MiniGameEncounter,
   StoryRuntimeSnapshot
@@ -5,16 +15,6 @@ import {
 import { ESCAPE_ROUTE_01_ENCOUNTER_ID, escapeRoute01Encounter } from "./EscapeRouteEncounter";
 
 export { ESCAPE_ROUTE_01_ENCOUNTER_ID, escapeRoute01Encounter };
-
-/**
- * Encounter ID for Phase 2 (Quarantine Zone / Arcane Project) in Kepler's Ghost campaign.
- */
-export const KEPLER_PHASE2_ENCOUNTER_ID = "kepler_phase2_quarantine";
-
-/**
- * Encounter ID for Phase 3 (The Core / Final Stand) in Kepler's Ghost campaign.
- */
-export const KEPLER_PHASE3_ENCOUNTER_ID = "kepler_phase3_core";
 
 /**
  * Phase 2 MiniGameEncounter definition for Kepler's Ghost campaign.

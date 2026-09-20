@@ -1146,6 +1146,8 @@ export interface CoreEvents {
     };
     "story:scene_change": {
         sceneToLoad: string;
+        nodeId?: string;
+        node?: StoryNode;
         [key: string]: unknown;
     };
     "story:state_changed": {

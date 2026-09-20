@@ -166,8 +166,8 @@
   },
   "packages/core/src/utils/Juice.ts": {
     "anyCount": 0,
-    "unknownCount": 5,
-    "total": 5
+    "unknownCount": 3,
+    "total": 3
   },
   "packages/core/tests/ArcadeDebugRun.test.ts": {
     "anyCount": 1,
@@ -821,8 +821,8 @@
   },
   "src/games/shared/rendering/SharedVFX.ts": {
     "anyCount": 0,
-    "unknownCount": 18,
-    "total": 18
+    "unknownCount": 17,
+    "total": 17
   },
   "src/games/shared/story/DialogueSystem.ts": {
     "anyCount": 14,

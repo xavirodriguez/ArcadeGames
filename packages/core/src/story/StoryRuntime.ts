@@ -226,7 +226,7 @@ export class StoryRuntime {
       this.eventBus.emit("story:state_changed", {
         graphId: this.graph?.id || null,
         state: this.getState(),
-        currentNode: (this.getCurrentNode() ?? undefined) as StoryNode | undefined
+        currentNode: this.getCurrentNode() ?? undefined
       });
     }
   }

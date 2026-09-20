@@ -78,6 +78,17 @@ export const DialogueBoxComponent = React.memo(function DialogueBoxComponent({
     }
   }, [isLineComplete, fullText, currentLineIndex, dialogueQueue.length, onComplete]);
 
+  // Auto-advance if dialogueQueue line textKey is missing or empty
+  useEffect(() => {
+    if (currentLine && (!fullText || fullText.trim() === "")) {
+      if (currentLineIndex < dialogueQueue.length - 1) {
+        setCurrentLineIndex((prev) => prev + 1);
+      } else {
+        onComplete?.();
+      }
+    }
+  }, [currentLine, fullText, currentLineIndex, dialogueQueue.length, onComplete]);
+
   if (!currentLine && dialogueQueue.length === 0) {
     return null;
   }

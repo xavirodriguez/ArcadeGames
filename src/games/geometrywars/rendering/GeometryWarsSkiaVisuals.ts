@@ -181,6 +181,15 @@ function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry
 // HIGH-FIDELITY SHAPE DRAWERS
 // ============================================================================
 
+function setupSkiaStrokePaint(paint: any, color: string, strokeWidth = 1.5, opacity = 1.0): void {
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(strokeWidth);
+  paint.setColor(Skia.Color(color));
+  paint.setAlphaf(opacity);
+}
+
 /**
  * Skia shape drawer for the player ship.
  * @public
@@ -267,12 +276,7 @@ export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry>
     }
 
     // 1. Draw glowing neon stroke outline using a Skia path
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(2.0);
-    paint.setColor(Skia.Color(color));
-    paint.setAlphaf(visualOpacity);
+    setupSkiaStrokePaint(paint, color, 2.0, visualOpacity);
 
     const path = Skia.Path.Make();
     path.moveTo(size, 0); // Nose pointing right

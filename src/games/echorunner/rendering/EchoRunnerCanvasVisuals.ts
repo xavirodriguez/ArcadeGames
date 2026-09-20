@@ -31,6 +31,24 @@ function getMemoryCoreGradient(ctx: CanvasRenderingContext2D, size: number): Can
   return grad;
 }
 
+function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number): true {
+  ctx.fillStyle = ECHO_PALETTE.restorationWhite;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  return true;
+}
+
+function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): true {
+  ctx.fillStyle = ECHO_PALETTE.restorationWhite;
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.fill();
+  ctx.restore();
+  return true;
+}
+
 function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number): CanvasGradient {
   if (lastCtx !== ctx) {
     lastCtx = ctx;
@@ -143,14 +161,7 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     // 1. Hit Flash effect (bright white flash)
     const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
     if (flashState.isFlashing) {
-      ctx.fillStyle = ECHO_PALETTE.restorationWhite;
-      ctx.shadowColor = ECHO_PALETTE.corruptionCrimson;
-      ctx.shadowBlur = 15;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.65, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      return;
+      return drawCanvasHitFlashCircle(ctx, size * 0.65);
     }
 
     // 2. Invulnerability translucency flickering
@@ -430,12 +441,7 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
     ctx.save();
 
     if (isHitFlash) {
-      ctx.fillStyle = ECHO_PALETTE.restorationWhite;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      return;
+      return drawCanvasHitFlashCircle(ctx, size * 0.5);
     }
 
     const { isAlert, isAttack, glowColor } = resolveSentinelVisualState(state);
@@ -509,10 +515,7 @@ export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegi
     ctx.save();
 
     if (isHitFlash) {
-      ctx.fillStyle = ECHO_PALETTE.restorationWhite;
-      ctx.fillRect(-size * 0.4, -size * 0.4, size * 0.8, size * 0.8);
-      ctx.restore();
-      return;
+      return drawCanvasHitFlashRect(ctx, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8);
     }
 
     const { isAlert, isAttack, glowColor, scaleX, scaleY } = resolveHopperVisualState(state);
@@ -567,12 +570,7 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     ctx.save();
 
     if (isHitFlash) {
-      ctx.fillStyle = ECHO_PALETTE.restorationWhite;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      return;
+      return drawCanvasHitFlashCircle(ctx, size * 0.4);
     }
 
     const { isAlert, isAttack, glowColor } = resolveWatcherVisualState(state);
@@ -630,12 +628,7 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     ctx.save();
 
     if (isHitFlash) {
-      ctx.fillStyle = ECHO_PALETTE.restorationWhite;
-      ctx.beginPath();
-      ctx.rect(-size * 0.5, -size * 0.3, size, size * 0.7);
-      ctx.fill();
-      ctx.restore();
-      return;
+      return drawCanvasHitFlashRect(ctx, -size * 0.5, -size * 0.3, size, size * 0.7);
     }
 
     const { isStunned, isAlert, isAttack, glowColor } = resolveChargerVisualState(state);

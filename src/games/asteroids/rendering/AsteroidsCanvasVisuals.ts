@@ -5,6 +5,26 @@ import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
+function applyAsteroidHitFlashStroke(
+  ctx: CanvasRenderingContext2D,
+  render: any,
+  baseColor: string,
+  lineWidth = 2
+): { color: string; isHitFlashing: boolean } {
+  const flashState = resolveHitFlash(render, baseColor, 1.0);
+  const isHitFlashing = flashState.isFlashing;
+  let color = baseColor;
+  if (isHitFlashing) {
+    ctx.globalAlpha = flashState.opacity;
+    color = flashState.color;
+  }
+  ctx.strokeStyle = color;
+  ctx.shadowColor = isHitFlashing ? colors.white : color;
+  ctx.shadowBlur = isHitFlashing ? 20 : 10;
+  ctx.lineWidth = lineWidth;
+  return { color, isHitFlashing };
+}
+
 /**
  * Procedural player ship shape drawer for HTML5 Canvas.
  * Renders a glowing, sleek retro spacecraft with neon effects and animated thruster plumes.
@@ -130,18 +150,7 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
 
     ctx.save();
 
-    const flashState = resolveHitFlash(render, baseColor, 1.0);
-    const isHitFlashing = flashState.isFlashing;
-    let color = baseColor;
-    if (isHitFlashing) {
-      ctx.globalAlpha = flashState.opacity;
-      color = flashState.color;
-    }
-
-    ctx.strokeStyle = color;
-    ctx.shadowColor = isHitFlashing ? colors.white : color;
-    ctx.shadowBlur = isHitFlashing ? 20 : 10;
-    ctx.lineWidth = 2;
+    const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, render, baseColor, 2);
 
     // Draw main saucer body
     ctx.beginPath();
@@ -177,21 +186,10 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
       radius = render.size / 2;
     }
 
-    let baseColor = render.color || colors.pink; // Neon pink default (R9)
+    const baseColor = render.color || colors.pink; // Neon pink default (R9)
     ctx.save();
 
-    const flashState = resolveHitFlash(render, baseColor, 1.0);
-    const isHitFlashing = flashState.isFlashing;
-    let color = baseColor;
-    if (isHitFlashing) {
-      ctx.globalAlpha = flashState.opacity;
-      color = flashState.color;
-    }
-
-    ctx.strokeStyle = color;
-    ctx.shadowColor = isHitFlashing ? colors.white : color;
-    ctx.shadowBlur = isHitFlashing ? 20 : 10;
-    ctx.lineWidth = 2;
+    const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, render, baseColor, 2);
     ctx.lineJoin = "round";
 
     // Geometry points based on radius (R12)

@@ -11,6 +11,33 @@ import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 const cachedShipPaths = new WeakMap<any, { ship: any; cockpit: any }>();
 const cachedAsteroidPaths = new WeakMap<any, any>();
 
+function resolveAsteroidOpacityAndColor(render: RenderComponent, defaultColor: string): { opacity: number; colorStr: string } {
+  let colorStr = render.color || defaultColor;
+  let opacity = 1.0;
+  const flashState = resolveHitFlash(render, colorStr, 1.0);
+  if (flashState.isFlashing) {
+    opacity = flashState.opacity;
+    colorStr = flashState.color;
+  }
+  return { opacity, colorStr };
+}
+
+function setupAsteroidStrokePaint(
+  render: RenderComponent,
+  defaultColor: string,
+  strokeWidth = 2
+): { opacity: number; colorStr: string; paint: any } {
+  const { opacity, colorStr } = resolveAsteroidOpacityAndColor(render, defaultColor);
+  const paint = getPaint();
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setColor(Skia.Color(colorStr));
+  paint.setStrokeWidth(strokeWidth);
+  paint.setAlphaf(opacity);
+  return { opacity, colorStr, paint };
+}
+
 /**
  * Procedural player ship shape drawer for React Native Skia.
  * Renders a glowing, sleek retro spacecraft with animated thruster plumes.
@@ -22,18 +49,10 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     if (!render) return;
 
     const size = render.size || 15;
-    let colorStr = render.color || colors.cyan; // Glowing cyan default
 
     canvas.save();
 
-    let opacity = 1.0;
-
-    // Hit Flash Transparency Pulse
-    const flashState = resolveHitFlash(render, colorStr, 1.0);
-    if (flashState.isFlashing) {
-      opacity = flashState.opacity;
-      colorStr = flashState.color;
-    }
+    let { opacity, colorStr } = resolveAsteroidOpacityAndColor(render, colors.cyan);
 
     // Invulnerability Pulse
     if (world.hasComponent(entity, "Invulnerable")) {
@@ -127,24 +146,10 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
 
     const size = render.size || 36;
     const radius = size / 2;
-    let colorStr = render.color || colors.cyan;
 
     canvas.save();
 
-    let opacity = 1.0;
-    const flashState = resolveHitFlash(render, colorStr, 1.0);
-    if (flashState.isFlashing) {
-      opacity = flashState.opacity;
-      colorStr = flashState.color;
-    }
-
-    const paint = getPaint();
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(colorStr));
-    paint.setStrokeWidth(2);
-    paint.setAlphaf(opacity);
+    const { paint } = setupAsteroidStrokePaint(render, colors.cyan, 2);
 
     const ufoPath = Skia.Path.Make();
     ufoPath.addOval({ x: -radius, y: -radius * 0.4, width: radius * 2, height: radius * 0.8 });
@@ -216,23 +221,9 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
       radius = render.size / 2;
     }
 
-    let colorStr = render.color || colors.pink; // Neon pink default
     canvas.save();
 
-    let opacity = 1.0;
-    const flashState = resolveHitFlash(render, colorStr, 1.0);
-    if (flashState.isFlashing) {
-      opacity = flashState.opacity;
-      colorStr = flashState.color;
-    }
-
-    const paint = getPaint();
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(colorStr));
-    paint.setStrokeWidth(2);
-    paint.setAlphaf(opacity);
+    const { paint } = setupAsteroidStrokePaint(render, colors.pink, 2);
 
     // Retrieve or generate path once per asteroid lifecycle
     let astPath = cachedAsteroidPaths.get(render);

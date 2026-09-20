@@ -4,6 +4,20 @@ import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 import { Skia } from "../../shared/rendering/SkiaContext";
 import { shouldSkipFroggerRenderDueToInvulnerability, isFroggerInvulnerable } from "./FroggerRenderUtils";
 
+function drawSkiaRoundedBox(
+  canvas: any,
+  width: number,
+  height: number,
+  color: string,
+  rx = 6,
+  ry = 6
+): void {
+  const paint = Skia.Paint();
+  paint.setColor(Skia.Color(color));
+  const rect = Skia.RRectXY(Skia.XYWHRect(-width / 2, -height / 2, width, height), rx, ry);
+  canvas.drawRRect(rect, paint);
+}
+
 export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -42,15 +56,8 @@ export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     if (!render) return;
 
     const width = render.size || 48;
-    const height = 30;
-    const halfW = width / 2;
-    const halfH = height / 2;
-
     const carColor = resolveThemeColor(world, "car", "secondary") || render.color || "#00F3FF";
-    const paint = Skia.Paint();
-    paint.setColor(Skia.Color(carColor));
-    const rect = Skia.RRectXY(Skia.XYWHRect(-halfW, -halfH, width, height), 6, 6);
-    canvas.drawRRect(rect, paint);
+    drawSkiaRoundedBox(canvas, width, 30, carColor, 6, 6);
   },
 };
 
@@ -83,14 +90,7 @@ export const drawLogSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     if (!render) return;
 
     const width = render.size || 120;
-    const height = 30;
-    const halfW = width / 2;
-    const halfH = height / 2;
-
-    const paint = Skia.Paint();
-    paint.setColor(Skia.Color("#8B5A2B"));
-    const rect = Skia.RRectXY(Skia.XYWHRect(-halfW, -halfH, width, height), 10, 10);
-    canvas.drawRRect(rect, paint);
+    drawSkiaRoundedBox(canvas, width, 30, "#8B5A2B", 10, 10);
   },
 };
 

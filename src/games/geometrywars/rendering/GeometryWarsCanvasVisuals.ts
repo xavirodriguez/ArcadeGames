@@ -114,6 +114,19 @@ function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry
 // HIGH-FIDELITY SHAPE DRAWERS
 // ============================================================================
 
+function applyNeonStroke(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  lineWidth = 1.5,
+  shadowBlur = 8
+): void {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.shadowBlur = shadowBlur;
+  ctx.shadowColor = color;
+}
+
 /**
  * Shape drawer for the Geometry Wars player ship (neon diamond/arrow).
  * @public
@@ -253,11 +266,7 @@ export const drawChaser: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     const { render, size } = drawable;
     const color = render.color ?? colors.pink;
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = color;
+    applyNeonStroke(ctx, color, 2, 10);
 
     ctx.beginPath();
     ctx.moveTo(0, -size);
@@ -282,11 +291,7 @@ export const drawEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     const { render, size } = drawable;
     const color = render.color ?? "#ffaa00";
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = color;
+    applyNeonStroke(ctx, color, 2, 10);
 
     ctx.beginPath();
     ctx.moveTo(size, 0);
@@ -310,11 +315,7 @@ export const drawGrunt: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompon
     const { render, size } = drawable;
     const color = render.color ?? colors.cyan;
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = color;
+    applyNeonStroke(ctx, color);
 
     ctx.beginPath();
     ctx.moveTo(size, 0);
@@ -338,11 +339,7 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     const { render, size } = drawable;
     const color = render.color ?? colors.gold;
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = color;
+    applyNeonStroke(ctx, color);
 
     // Draw a small bright laser line
     ctx.beginPath();
@@ -365,11 +362,7 @@ export const drawEnemySeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWars
     const { render, size } = drawable;
     const color = render.color ?? colors.pink;
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = color;
+    applyNeonStroke(ctx, color);
 
     ctx.beginPath();
     ctx.moveTo(0, -size);
@@ -394,11 +387,7 @@ export const drawEnemyEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWars
     const { render, size } = drawable;
     const color = render.color ?? colors.green;
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = color;
+    applyNeonStroke(ctx, color);
 
     ctx.beginPath();
     ctx.rect(-size / 2, -size / 2, size, size);
@@ -419,11 +408,7 @@ export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, Geometry
     const { render, size } = drawable;
     const color = render.color ?? colors.pink;
 
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = color;
+    applyNeonStroke(ctx, color);
 
     ctx.beginPath();
     ctx.moveTo(size, 0);

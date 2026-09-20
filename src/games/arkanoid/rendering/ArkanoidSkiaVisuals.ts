@@ -79,6 +79,29 @@ export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry>
   }
 };
 
+function drawFilledSkiaRoundRect(
+  canvas: any,
+  w: number,
+  h: number,
+  color: string,
+  rx: number,
+  ry: number
+): void {
+  const paint = getPaint();
+  canvas.save();
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(color));
+
+  canvas.drawRoundRect(
+    Skia.RRectXY(Skia.XYWHRect(-w / 2, -h / 2, w, h), rx, ry),
+    paint
+  );
+
+  canvas.restore();
+}
+
 export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -86,22 +109,7 @@ export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry
     if (!render || !render.visible) return;
 
     const capsuleColor = render.color || colors.cyan;
-    const w = 24;
-    const h = 14;
-    const paint = getPaint();
-
-    canvas.save();
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(capsuleColor));
-
-    canvas.drawRoundRect(
-      Skia.RRectXY(Skia.XYWHRect(-w / 2, -h / 2, w, h), 7, 7),
-      paint
-    );
-
-    canvas.restore();
+    drawFilledSkiaRoundRect(canvas, 24, 14, capsuleColor, 7, 7);
   }
 };
 
@@ -127,20 +135,7 @@ export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> 
       brickColor = colors.white;
     }
 
-    const paint = getPaint();
-
-    canvas.save();
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(brickColor));
-
-    canvas.drawRoundRect(
-      Skia.RRectXY(Skia.XYWHRect(-w / 2, -h / 2, w, h), 3, 3),
-      paint
-    );
-
-    canvas.restore();
+    drawFilledSkiaRoundRect(canvas, w, h, brickColor, 3, 3);
   }
 };
 

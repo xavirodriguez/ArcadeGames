@@ -14,6 +14,26 @@ import {
   resolveEchoDrawContext
 } from "./EchoRunnerVisualUtils";
 
+function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number): true {
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
+  canvas.drawCircle(0, 0, radius, paint);
+  canvas.restore();
+  return true;
+}
+
+function drawSkiaHitFlashRect(canvas: any, paint: any, x: number, y: number, w: number, h: number): true {
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
+  canvas.drawRect(Skia.XYWHRect(x, y, w, h), paint);
+  canvas.restore();
+  return true;
+}
+
 export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
@@ -105,13 +125,7 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     // 1. Hit Flash effect
     const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
     if (flashState.isFlashing) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-      canvas.drawCircle(0, 0, size * 0.65, paint);
-      canvas.restore();
-      return;
+      return drawSkiaHitFlashCircle(canvas, paint, size * 0.65);
     }
 
     // 2. Invulnerability translucency
@@ -417,13 +431,7 @@ export const drawSkiaSentinel: ShapeDrawer<any, CoreComponentRegistry> = {
     canvas.save();
 
     if (isHitFlash) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-      canvas.drawCircle(0, 0, size * 0.5, paint);
-      canvas.restore();
-      return;
+      return drawSkiaHitFlashCircle(canvas, paint, size * 0.5);
     }
 
     const { isAlert, isAttack, glowColor } = resolveSentinelVisualState(state);
@@ -492,13 +500,7 @@ export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
     canvas.save();
 
     if (isHitFlash) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-      canvas.drawRect(Skia.XYWHRect(-size * 0.4, -size * 0.4, size * 0.8, size * 0.8), paint);
-      canvas.restore();
-      return;
+      return drawSkiaHitFlashRect(canvas, paint, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8);
     }
 
     const { isAlert, isAttack, glowColor, scaleX, scaleY } = resolveHopperVisualState(state);
@@ -560,13 +562,7 @@ export const drawSkiaWatcher: ShapeDrawer<any, CoreComponentRegistry> = {
     canvas.save();
 
     if (isHitFlash) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-      canvas.drawCircle(0, 0, size * 0.4, paint);
-      canvas.restore();
-      return;
+      return drawSkiaHitFlashCircle(canvas, paint, size * 0.4);
     }
 
     const { isAlert, isAttack, glowColor } = resolveWatcherVisualState(state);
@@ -631,13 +627,7 @@ export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
     canvas.save();
 
     if (isHitFlash) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-      canvas.drawRect(Skia.XYWHRect(-size * 0.5, -size * 0.3, size, size * 0.7), paint);
-      canvas.restore();
-      return;
+      return drawSkiaHitFlashRect(canvas, paint, -size * 0.5, -size * 0.3, size, size * 0.7);
     }
 
     const { isStunned, isAlert, isAttack, glowColor } = resolveChargerVisualState(state);

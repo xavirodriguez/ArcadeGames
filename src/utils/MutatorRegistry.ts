@@ -15,12 +15,21 @@
 import { World, HealthComponent, ComponentRegistry, ComboComponent } from "@tiny-aster/core";
 
 /**
+ * Component representation for EmpAbility in Mutator context.
+ */
+export interface EmpAbilityComponent {
+  type: "EmpAbility";
+  chargePerKill: number;
+}
+
+/**
  * Interface for a beneficial mutator registry components.
  */
 export interface MutatorComponentRegistry extends ComponentRegistry {
   Combo: ComboComponent;
   Health: HealthComponent;
   Player: { type: "Player" };
+  EmpAbility: EmpAbilityComponent;
   GameState: {
     type: "GameState";
     combo?: number;
@@ -30,8 +39,8 @@ export interface MutatorComponentRegistry extends ComponentRegistry {
   };
 }
 
-export type MutatorHookWithId = (world: World) => void;
-export type MutatorHookGeneric = (world: World, mutatorId: string) => void;
+export type MutatorHookWithId = (world: World<any>) => void;
+export type MutatorHookGeneric = (world: World<any>, mutatorId: string) => void;
 
 const MUTATOR_HOOKS: Record<string, MutatorHookWithId[]> = {};
 const genericMutatorHooks: MutatorHookGeneric[] = [];
@@ -55,7 +64,7 @@ export function registerMutatorHook(
   }
 }
 
-function runMutatorHooks(world: World, mutatorId: string): void {
+function runMutatorHooks(world: World<any>, mutatorId: string): void {
   for (const hook of genericMutatorHooks) {
     try {
       hook(world, mutatorId);
@@ -78,7 +87,7 @@ function runMutatorHooks(world: World, mutatorId: string): void {
 /**
  * Applies all registered game-specific hooks for a mutator.
  */
-export function applyMutatorHooks(mutatorId: string, world: World): void {
+export function applyMutatorHooks(mutatorId: string, world: World<any>): void {
   runMutatorHooks(world, mutatorId);
 }
 
@@ -110,13 +119,13 @@ export interface BeneficialMutator {
   /**
    * Conditions under which this mutator can be drafted by a player.
    */
-  canDraft: (world: World, context: MutatorTargetContext) => boolean;
+  canDraft: (world: World<any>, context: MutatorTargetContext) => boolean;
   /**
    * Transformation function that applies the mutator effect to a World.
    * @param world - The ECS world where the effect should be applied.
    * @param context - Optional player targeting context.
    */
-  apply: (world: World, context?: MutatorTargetContext) => void;
+  apply: (world: World<any>, context?: MutatorTargetContext) => void;
 }
 
 /**
@@ -160,7 +169,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     canDraft: (world, context) => {
       const target = context?.targetEntity;
       if (target !== undefined) {
-        return world.hasComponent(target, "Health" as any);
+        return world.hasComponent(target, "Health");
       }
       return world.query("Player", "Health").length > 0;
     },
@@ -176,7 +185,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
 
       const gameState = world.getSingleton("GameState");
       if (gameState) {
-        world.mutateSingleton("GameState", (gs: any) => {
+        world.mutateSingleton("GameState", (gs) => {
           if (typeof gs.lives === "number") {
             gs.lives += 1;
           }
@@ -185,14 +194,14 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
 
       const target = context?.targetEntity;
       if (target !== undefined) {
-        world.mutateComponent(target, "Health" as any, (h: any) => {
+        world.mutateComponent(target, "Health", (h) => {
           h.current += 1;
           h.max += 1;
         });
       } else {
         const players = world.query("Player", "Health");
         for (const player of players) {
-          world.mutateComponent(player, "Health" as any, (h: any) => {
+          world.mutateComponent(player, "Health", (h) => {
             h.current += 1;
             h.max += 1;
           });
@@ -212,7 +221,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     canDraft: (world, context) => {
       const target = context?.targetEntity;
       if (target !== undefined) {
-        return world.hasComponent(target, "Combo" as any);
+        return world.hasComponent(target, "Combo");
       }
       return world.query("Combo").length > 0;
     },
@@ -225,8 +234,8 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         : 2.0;
 
       const target = context?.targetEntity;
-      if (target !== undefined && world.hasComponent(target, "Combo" as any)) {
-        world.mutateComponent(target, "Combo" as any, (c: any) => {
+      if (target !== undefined && world.hasComponent(target, "Combo")) {
+        world.mutateComponent(target, "Combo", (c) => {
           c.combo = 5;
           c.multiplier = 2;
           c.timerRemaining = comboTimeout;
@@ -235,7 +244,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
         const comboEntities = world.query("Combo");
         const comboEntity = comboEntities[0];
         if (comboEntity !== undefined) {
-          world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+          world.mutateComponent(comboEntity, "Combo", (c) => {
             c.combo = 5;
             c.multiplier = 2;
             c.timerRemaining = comboTimeout;
@@ -257,7 +266,7 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     canDraft: (world, context) => {
       const target = context?.targetEntity;
       if (target !== undefined) {
-        const health = world.getComponent(target, "Health" as any) as any;
+        const health = world.getComponent(target, "Health");
         return !!health && (health.invulnerableRemaining ?? 0) <= 0;
       }
       return world.query("Player", "Health").length > 0;
@@ -267,13 +276,13 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
 
       const target = context?.targetEntity;
       if (target !== undefined) {
-        world.mutateComponent(target, "Health" as any, (h: any) => {
+        world.mutateComponent(target, "Health", (h) => {
           h.invulnerableRemaining = 3.0; // 3 seconds
         });
       } else {
         const players = world.query("Player", "Health");
         for (const player of players) {
-          world.mutateComponent(player, "Health" as any, (h: any) => {
+          world.mutateComponent(player, "Health", (h) => {
             h.invulnerableRemaining = 3.0; // 3 seconds
           });
         }
@@ -378,20 +387,20 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     canDraft: (world, context) => {
       const target = context?.targetEntity;
       if (target !== undefined) {
-        return world.hasComponent(target, "EmpAbility" as any);
+        return world.hasComponent(target, "EmpAbility");
       }
       return world.query("Player", "EmpAbility").length > 0;
     },
     apply: (world, context) => {
       const target = context?.targetEntity;
-      if (target !== undefined && world.hasComponent(target, "EmpAbility" as any)) {
-        world.mutateComponent(target, "EmpAbility" as any, (emp: any) => {
+      if (target !== undefined && world.hasComponent(target, "EmpAbility")) {
+        world.mutateComponent(target, "EmpAbility", (emp) => {
           emp.chargePerKill *= 1.5;
         });
       } else {
         const players = world.query("Player", "EmpAbility");
         for (const p of players) {
-          world.mutateComponent(p, "EmpAbility" as any, (emp: any) => {
+          world.mutateComponent(p, "EmpAbility", (emp) => {
             emp.chargePerKill *= 1.5;
           });
         }
@@ -454,7 +463,7 @@ export const NEGATIVE_MUTATORS: Record<string, BeneficialMutator> = {
     canDraft: (world, context) => {
       const target = context?.targetEntity;
       if (target !== undefined) {
-        const health = world.getComponent(target, "Health" as any) as any;
+        const health = world.getComponent(target, "Health");
         return !!health && health.max > 1;
       }
       return world.query("Player", "Health").length > 0;
@@ -470,14 +479,14 @@ export const NEGATIVE_MUTATORS: Record<string, BeneficialMutator> = {
       }
       const target = context?.targetEntity;
       if (target !== undefined) {
-        world.mutateComponent(target, "Health" as any, (h: any) => {
+        world.mutateComponent(target, "Health", (h) => {
           if (h.current > 1) h.current -= 1;
           if (h.max > 1) h.max -= 1;
         });
       } else {
         const players = world.query("Player", "Health");
         for (const player of players) {
-          world.mutateComponent(player, "Health" as any, (h: any) => {
+          world.mutateComponent(player, "Health", (h) => {
             if (h.current > 1) h.current -= 1;
             if (h.max > 1) h.max -= 1;
           });
@@ -560,7 +569,7 @@ export class MutatorRegistry {
   }
 
   public static generateDraft(
-    world: World,
+    world: World<any>,
     gameId: string,
     count: number,
     context: MutatorTargetContext

@@ -93,7 +93,7 @@ export interface CoreEvents {
   "scene:warning": { message: string };
 
   /** Emitted on narrative scene change request. */
-  "story:scene_change": { sceneToLoad: string; [key: string]: unknown };
+  "story:scene_change": { sceneToLoad: string; nodeId?: string; node?: StoryNode; [key: string]: unknown };
   /** Emitted when narrative node changes. */
   "story:node_changed": { graphId?: string; currentNodeId?: string; previousNodeId?: string | null; node?: StoryNode; nodeId?: string; title?: string; text?: string; choices?: unknown[]; [key: string]: unknown };
   /** Emitted when story runtime state updates. */

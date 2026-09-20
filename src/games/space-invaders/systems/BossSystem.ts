@@ -84,7 +84,7 @@ export class BossSystem extends GameSystem {
         if (oldPhase !== b.phase) {
           const bus = world.getEventBus();
           if (bus) {
-            bus.emitDeferred("boss:phase_changed" as any, { entity, phase: b.phase, oldPhase });
+            bus.emitDeferred("boss:phase_changed", { entity, phase: b.phase, oldPhase });
           }
         }
       });

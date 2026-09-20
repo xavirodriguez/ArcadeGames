@@ -39,14 +39,18 @@ export function useStoryRuntime(
     snapshot: EMPTY_SNAPSHOT
   });
 
+interface RuntimeWithEventBus {
+  eventBus?: EventBus;
+}
+
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
       if (!runtime) return () => {};
-      const bus = eventBus || (runtime as any).eventBus;
+      const bus = eventBus || (runtime as unknown as RuntimeWithEventBus).eventBus;
       if (!bus) return () => {};
 
-      const unsub1 = bus.on("story:state_changed" as any, onStoreChange);
-      const unsub2 = bus.on("story:node_changed" as any, onStoreChange);
+      const unsub1 = bus.on("story:state_changed", onStoreChange);
+      const unsub2 = bus.on("story:node_changed", onStoreChange);
       return () => {
         unsub1();
         unsub2();

@@ -61,7 +61,11 @@ export interface SyncTickData {
   timestamp?: number;
 }
 
-export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRoom<TState> {
+export abstract class BaseRoom<
+  TState extends Schema = Schema,
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry
+> extends GenericRoom<TState> {
   protected fixedTimeStep = 16.66;
   protected inputBuffers = new Map<string, InputFrame[]>();
   protected clientAcks = new Map<string, number>();
@@ -69,7 +73,7 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
   protected playerEntities = new Map<string, number>();
   protected ackTracker = new ClientAckTracker();
   protected gameSimulation: ISimulationEngine | null = null;
-  protected world: World<ComponentRegistry, EventRegistry> | null = null;
+  protected world: World<TComponents, TEvents> | null = null;
   protected replicationStrategy?: ReplicationStrategy;
   protected allowedActions: string[] = [];
 
@@ -83,7 +87,7 @@ export abstract class BaseRoom<TState extends Schema = Schema> extends GenericRo
   /**
    * Abstract hook to initialize game simulation and ECS world.
    */
-  protected abstract setupSimulation(options: unknown): Promise<{ world: World<any, any>; gameSimulation: ISimulationEngine } | void> | { world: World<any, any>; gameSimulation: ISimulationEngine } | void;
+  protected abstract setupSimulation(options: unknown): Promise<{ world: World<TComponents, TEvents>; gameSimulation: ISimulationEngine } | void> | { world: World<TComponents, TEvents>; gameSimulation: ISimulationEngine } | void;
 
   /**
    * Abstract hook to spawn a player entity and return its entity ID or state representation.

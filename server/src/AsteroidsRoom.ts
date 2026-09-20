@@ -23,7 +23,7 @@ export type AsteroidsRoomOptions = z.infer<typeof RoomOptionsSchema>;
 
 const HISTORY_BUFFER_TICKS = 30;
 
-export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
+export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRegistry, AsteroidsEventRegistry> {
   maxClients = 4;
   protected declare world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
   protected declare gameSimulation: AsteroidsGame;
@@ -129,7 +129,7 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
       if (this.gameOverUnsubscribe) {
         this.gameOverUnsubscribe();
       }
-      this.gameOverUnsubscribe = this.world.getEventBus().on("game:over" as any, () => {
+      this.gameOverUnsubscribe = this.world.getEventBus().on("game:over", () => {
         this.state.gameOver = true;
         console.log(`[AsteroidsRoom] Game Over. Final Authoritative Score: ${this.state.score}`);
       });
@@ -296,7 +296,7 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState> {
         player.alive = health.current > 0;
       }
 
-      const playerScore = this.world.getComponent(entity, "PlayerScore" as any) as { score: number } | undefined;
+      const playerScore = this.world.getComponent(entity, "PlayerScore");
       if (playerScore) {
         player.score = playerScore.score;
       }

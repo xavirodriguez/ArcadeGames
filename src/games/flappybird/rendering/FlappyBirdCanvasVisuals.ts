@@ -3,10 +3,7 @@ import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdT
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import {
   StarfieldStar,
-  generateStarfield,
-  calculateSquashAndStretch,
-  calculateBirdTiltAngle,
-  calculateFlappyPipeGeometry
+  generateStarfield
 } from "../../shared/rendering/geometry";
 import {
   calculateWarpFactor,
@@ -15,9 +12,15 @@ import {
   BACKGROUND_NEBULAE,
   MegastructureData
 } from "./FlappyBirdBackgroundData";
-import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
-import { processFlappyBirdParticleEvents, applyFlappyParticlePhysics } from "./particleEvents";
+import { applyFlappyParticlePhysics } from "./particleEvents";
+import {
+  resolveFlappyBirdDrawContext,
+  resolveFlappyPipeDrawContext,
+  maybeSpawnBackgroundDebris,
+  resolveGlideEnergyState,
+  resolveSectorEventInfo
+} from "./FlappyBirdRenderUtils";
 
 // DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
 // Primitivas de dibujo específicas de Canvas/Skia mantenidas intencionalmente separadas. Ver docs/tech-debt/duplication.md
@@ -124,44 +127,32 @@ function getCachedCanvasGradient(
  */
 export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const { size = 15 } = render;
+    const drawCtx = resolveFlappyBirdDrawContext(world, entity, FLAPPY_CANVAS_PARTICLE_POOL);
+    if (!drawCtx) return;
 
-    const transform = world.getComponent(entity, "Transform") as TransformComponent;
-    const birdComp = world.getComponent(entity, "Bird");
-    if (!transform || !birdComp) return;
-
-    const health = world.getComponent(entity, "Health");
-    const x = transform.worldX ?? transform.x;
-    const y = transform.worldY ?? transform.y;
-
-    processFlappyBirdParticleEvents(world, entity, birdComp, FLAPPY_CANVAS_PARTICLE_POOL, x, y, size);
-
-    const vy = birdComp.velocityY;
-    const isAlive = birdComp.isAlive;
-
-    const flashState = resolveHitFlash(render, render.color || "yellow", 1.0, 0.35);
-    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "interval", multiplier: 0.01, dimOpacity: 0.35 });
-
-    let globalOpacity = flashState.isFlashing ? flashState.opacity : 1.0;
-    if (invState.isInvulnerable) {
-      globalOpacity = invState.opacity;
-    }
+    const {
+      render,
+      birdComp,
+      transform,
+      size,
+      vy,
+      isAlive,
+      globalOpacity,
+      angleRad,
+      scaleX,
+      scaleY,
+      isDyingGlitch,
+      speed,
+    } = drawCtx;
 
     ctx.save();
     ctx.globalAlpha = globalOpacity;
 
     // --- VELOCITY TILT AND SQUASH AND STRETCH ---
-    const { angleRad } = calculateBirdTiltAngle(vy);
     ctx.rotate(angleRad);
-
-    const speed = Math.abs(vy);
-    const { scaleX, scaleY } = calculateSquashAndStretch(vy);
     ctx.scale(scaleX, scaleY);
 
     // --- RGB CHROMATIC ABERRATION SPLIT ON DEATH ---
-    const isDyingGlitch = render.hitFlashFrames && render.hitFlashFrames > 0;
     if (isDyingGlitch) {
       ctx.save();
       ctx.translate(-3, -1);
@@ -325,27 +316,23 @@ function drawArrowheadPath(ctx: CanvasRenderingContext2D, size: number) {
 
 export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const pos = world.getComponent(entity, "Transform");
-    if (!render || !pos) return;
+    const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
+    if (!pipeCtx) return;
 
-    const { size = 60 } = render;
-    const width = size;
-    const halfWidth = width / 2;
+    const {
+      pos,
+      pipe,
+      width,
+      halfWidth,
+      variant,
+      geometry,
+      capHeight,
+      capWidth,
+      capHalfWidth,
+      beaconPulse,
+    } = pipeCtx;
 
-    const pipe = world.getComponent(entity, "Pipe");
-    if (!pipe) return;
-    const variant = pipe.visualVariant || "standard";
-
-    const config = world.getResource<{ worldHeight: number }>("GameConfig");
-    const worldHeight = config?.worldHeight ?? 600;
-
-    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(
-      pos.y,
-      pipe.gapY,
-      pipe.gapSize,
-      worldHeight
-    );
+    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = geometry;
 
     // --- METALLIC PILLAR BODY VARIANT GRADIENT ---
     const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {
@@ -404,11 +391,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     }
 
     // --- REINFORCED DOCKING COLLAR AT THE GAP MOUTH ---
-    const capHeight = 28;
-    const capExtraWidth = 12;
-    const capWidth = width + capExtraWidth;
-    const capHalfWidth = capWidth / 2;
-
     const collarGrad = getCachedCanvasGradient(ctx, `collar_${capHalfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
       if (variant === "damaged") {
@@ -470,8 +452,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     }
 
     // --- STROBOSCOPIC RED WARNING BEACONS (#FF0000) WITH SOFT AMBIENT GLOW HALO ---
-    const beaconPulse = 0.35 + 0.65 * Math.abs(Math.sin(world.tick * 0.2));
-
     ctx.save();
     // Soft radial ambient light halo projecting onto nearby background
     const beaconGlowGrad = getCachedCanvasGradient(ctx, `beacon_halo_${beaconPulse.toFixed(2)}`, () => {
@@ -774,16 +754,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     }
 
     // --- SPORADIC DISTANT BACKGROUND DEBRIS / SPARKS ---
-    // Deterministically spawn faint distant sparks/shards approx every 4-8 seconds (240-480 ticks)
-    if (world.tick % 300 === 0 && world.renderRandom.next() > 0.3) {
-      const dx = world.renderRandom.nextRange(20, width - 20);
-      const dy = world.renderRandom.nextRange(40, height * 0.7);
-      const angle = world.renderRandom.next() * Math.PI * 2;
-      const speed = world.renderRandom.nextRange(15, 35);
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-      spawnVisualParticle("star", dx, dy, vx, vy, world.renderRandom.nextRange(1.0, 2.0), world.renderRandom.nextRange(1.5, 3.0), "#5A6173", angle);
-    }
+    maybeSpawnBackgroundDebris(world, width, height, spawnVisualParticle);
 
     // Hypervelocity combo factor calculation
     let warpFactor = 1.0;
@@ -863,51 +834,39 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     drawCanvasVisualParticles(ctx);
 
     // --- GLIDE ENERGY METER HUD OVERLAY ---
-    const birds = world.query("Bird", "GlideEnergy");
-    if (birds.length > 0) {
-      const energy = world.getComponent(birds[0], "GlideEnergy");
-      if (energy) {
-        ctx.save();
-        const barW = 120;
-        const barH = 8;
-        const bx = (width - barW) / 2;
-        const by = height - 25;
-        const ratio = Math.max(0, Math.min(1, energy.currentEnergy / energy.maxEnergy));
+    const glideState = resolveGlideEnergyState(world, width, height);
+    if (glideState) {
+      const { ratio, isOverheated, barW, barH, bx, by, fillColor } = glideState;
+      ctx.save();
+      ctx.fillStyle = "rgba(10, 15, 25, 0.75)";
+      ctx.fillRect(bx, by, barW, barH);
 
-        ctx.fillStyle = "rgba(10, 15, 25, 0.75)";
-        ctx.fillRect(bx, by, barW, barH);
+      ctx.fillStyle = fillColor;
+      ctx.fillRect(bx, by, barW * ratio, barH);
 
-        const fillColor = energy.isOverheated ? "#FF3300" : ratio < 0.3 ? "#FFC000" : "#00F3FF";
-        ctx.fillStyle = fillColor;
-        ctx.fillRect(bx, by, barW * ratio, barH);
+      ctx.strokeStyle = isOverheated ? "#FF3300" : "#5A6173";
+      ctx.lineWidth = 1.0;
+      ctx.strokeRect(bx, by, barW, barH);
 
-        ctx.strokeStyle = energy.isOverheated ? "#FF0000" : "#5A6173";
-        ctx.lineWidth = 1.0;
-        ctx.strokeRect(bx, by, barW, barH);
-
-        if (energy.isOverheated) {
-          ctx.fillStyle = "#FF3300";
-          ctx.font = "bold 10px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("THRUST OVERHEAT", width / 2, by - 4);
-        }
-        ctx.restore();
+      if (isOverheated) {
+        ctx.fillStyle = "#FF3300";
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("THRUST OVERHEAT", width / 2, by - 4);
       }
+      ctx.restore();
     }
 
     // --- SECTOR EVENT HUD OVERLAY BANNER ---
-    const sectorEvent = gameState.currentSectorEvent ?? "none";
-    if (sectorEvent !== "none") {
+    const sectorInfo = resolveSectorEventInfo(gameState.currentSectorEvent ?? "none");
+    if (sectorInfo) {
       ctx.save();
-      const bannerText = sectorEvent === "solar_flare" ? "SECTOR EVENT: SOLAR FLARE (+25% SPEED)"
-        : sectorEvent === "asteroid_storm" ? "SECTOR EVENT: DUST STORM (-15% SPEED)"
-        : "SECTOR EVENT: HYPER WARP (2X COMBO BOOST)";
       ctx.fillStyle = "rgba(0, 243, 255, 0.15)";
       ctx.fillRect(0, 10, width, 22);
-      ctx.fillStyle = sectorEvent === "solar_flare" ? "#FFC000" : sectorEvent === "asteroid_storm" ? "#D3D9E2" : "#00F3FF";
+      ctx.fillStyle = sectorInfo.textColor;
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(bannerText, width / 2, 25);
+      ctx.fillText(sectorInfo.bannerText, width / 2, 25);
       ctx.restore();
     }
 

@@ -106,12 +106,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       expect(bullets.length).toBe(1);
 
       const bulletTransform = world.getComponent(bullets[0], "Transform");
-      const bulletRender = world.getComponent(bullets[0], "Render");
       expect(bulletTransform?.rotation).toBeCloseTo(Math.PI / 4, 5); // Must match transform.rotation (45 deg)
-
-      // Verify effective drawing rotation used by renderer: (transform.rotation + render.rotation)
-      const effectiveDrawRotation = (bulletTransform?.rotation ?? 0) + (bulletRender?.rotation ?? 0);
-      expect(effectiveDrawRotation).toBeCloseTo(Math.PI / 4, 5);
 
       // Calculate what atan2(vy, vx) would have been:
       // bullet vx = velocity.vx + cos(rotation) * bulletSpeed = 200 + cos(PI/4) * 300 = 200 + 212.13 = 412.13

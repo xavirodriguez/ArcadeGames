@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { Platform } from "react-native";
 import { useKeepAwake } from "./useKeepAwake";
 import { useGameServices } from "../providers/GameServicesProvider";
-import { WebAudioPlayer } from "@tiny-aster/core";
 import { ExpoAudioPlayer } from "../audio/ExpoAudioPlayer";
+import { WebAudioPlayer } from "@tiny-aster/core";
 import type { BaseGame, BaseGameConfig, IAssetProvider, IAudioPlayer } from "@tiny-aster/core";
 
 export type GameConfig = BaseGameConfig & {
@@ -59,17 +59,28 @@ export function useGame<
 ): UseGameResult<TGame, TState, TInput> {
   const { seed, gameOptions, initialState = null } = options;
 
+  const serializedGameOptions = useMemo(() => {
+    try {
+      return JSON.stringify(gameOptions ?? {});
+    } catch {
+      return "";
+    }
+  }, [gameOptions]);
+
   const defaultAudio = useMemo(() => {
     return Platform.OS === "web" ? new WebAudioPlayer() : new ExpoAudioPlayer();
   }, []);
+
+  const audioPlayer = options.audio ?? defaultAudio;
 
   const config = useMemo(() => ({
     isMultiplayer,
     seed,
     gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) },
     assetProvider: options.assetProvider,
-    audio: options.audio ?? defaultAudio
-  }), [isMultiplayer, seed, gameOptions, options.assetProvider, options.audio, defaultAudio]);
+    audio: audioPlayer
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [isMultiplayer, seed, serializedGameOptions, options.assetProvider, audioPlayer]);
 
   const [game, setGame] = useState<TGame | null>(null);
   const [isReady, setIsReady] = useState(false);

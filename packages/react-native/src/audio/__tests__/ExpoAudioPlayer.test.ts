@@ -1,158 +1,160 @@
-import { createAudioPlayer } from "expo-audio";
 import { ExpoAudioPlayer } from "../ExpoAudioPlayer";
-import { SHARED_AUDIO_MANIFEST } from "@tiny-aster/core";
+import { createAudioPlayer } from "expo-audio";
 
-const mockPlay = jest.fn();
-const mockPause = jest.fn();
-const mockSeekTo = jest.fn().mockResolvedValue(undefined);
-const mockRemove = jest.fn();
-const mockSetPlaybackRate = jest.fn();
-
-const createMockAudioPlayer = () => ({
-  play: mockPlay,
-  pause: mockPause,
-  seekTo: mockSeekTo,
-  remove: mockRemove,
-  setPlaybackRate: mockSetPlaybackRate,
-  volume: 1.0,
-  playbackRate: 1.0,
-  loop: false,
+jest.mock("expo-audio", () => {
+  return {
+    createAudioPlayer: jest.fn()
+  };
 });
 
-let mockCreatedPlayers: ReturnType<typeof createMockAudioPlayer>[] = [];
-
-jest.mock("expo-audio", () => ({
-  createAudioPlayer: jest.fn().mockImplementation(() => {
-    const player = createMockAudioPlayer();
-    mockCreatedPlayers.push(player);
-    return player;
-  }),
-}));
-
 describe("ExpoAudioPlayer", () => {
-  let player: ExpoAudioPlayer;
-  let warnSpy: jest.SpyInstance;
+  let mockPlayer: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreatedPlayers = [];
-    player = new ExpoAudioPlayer();
-    warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    mockPlayer = {
+      volume: 1.0,
+      playbackRate: 1.0,
+      loop: false,
+      pan: 0,
+      play: jest.fn(),
+      pause: jest.fn(),
+      seekTo: jest.fn().mockResolvedValue(undefined),
+      setPlaybackRate: jest.fn(),
+      remove: jest.fn()
+    };
+
+    (createAudioPlayer as jest.Mock).mockReturnValue(mockPlayer);
   });
 
-  afterEach(() => {
-    warnSpy.mockRestore();
+  test("loadSFX initializes AudioPlayer with resolved source and stores player", async () => {
+    const player = new ExpoAudioPlayer();
+    await player.loadSFX("shoot", "/assets/audio/combat/shoot.wav");
+
+    expect(createAudioPlayer).toHaveBeenCalledWith({ uri: "/assets/audio/combat/shoot.wav" });
   });
 
-  test("loadSFX resolves source from manifest and creates player", async () => {
-    const shootAsset = SHARED_AUDIO_MANIFEST.find((a) => a.id === "shoot");
+  test("loadSFX resolves manifest path when options is omitted", async () => {
+    const player = new ExpoAudioPlayer();
     await player.loadSFX("shoot");
 
-    expect(createAudioPlayer).toHaveBeenCalledWith({ uri: shootAsset?.path });
-    expect(mockCreatedPlayers.length).toBe(1);
+    expect(createAudioPlayer).toHaveBeenCalledWith({ uri: "/assets/audio/combat/shoot.wav" });
   });
 
-  test("loadSFX respects custom URI options", async () => {
-    await player.loadSFX("custom", "https://example.com/sound.mp3");
+  test("loadSFX handles creation failure defensively without throwing", async () => {
+    const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    (createAudioPlayer as jest.Mock).mockImplementationOnce(() => {
+      throw new Error("Native audio engine init failed");
+    });
 
-    expect(createAudioPlayer).toHaveBeenCalledWith({ uri: "https://example.com/sound.mp3" });
+    const player = new ExpoAudioPlayer();
+    await expect(player.loadSFX("shoot", "/test.wav")).resolves.not.toThrow();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[ExpoAudioPlayer] Failed to load/create AudioPlayer for SFX "shoot":'),
+      expect.any(Error)
+    );
+    consoleSpy.mockRestore();
   });
 
-  test("playSFX triggers play on loaded player and applies volume", async () => {
-    await player.loadSFX("shoot");
-    player.playSFX("shoot", { volume: 0.5 });
+  test("playSFX triggers playback with correct volume, pitch and seekTo(0)", async () => {
+    const player = new ExpoAudioPlayer();
+    await player.loadSFX("laser", "/audio/laser.wav");
 
-    const createdPlayer = mockCreatedPlayers[0];
-    expect(mockSeekTo).toHaveBeenCalledWith(0);
-    expect(mockPlay).toHaveBeenCalled();
-    // Default master (1.0) * sfx (0.85) * volume (0.5) = 0.425
-    expect(createdPlayer.volume).toBeCloseTo(0.425, 3);
+    player.setMasterVolume(1.0);
+    player.setSFXVolume(0.8);
+
+    player.playSFX("laser", { volume: 0.5, playbackRate: 1.2 });
+
+    expect(mockPlayer.volume).toBeCloseTo(0.4); // 1.0 * 0.8 * 0.5
+    expect(mockPlayer.setPlaybackRate).toHaveBeenCalledWith(1.2);
+    expect(mockPlayer.seekTo).toHaveBeenCalledWith(0);
+    expect(mockPlayer.play).toHaveBeenCalled();
   });
 
-  test("playSFX lazily creates player if not preloaded", () => {
-    player.playSFX("shoot");
+  test("playSFX respects cooldownMs rate limiting", async () => {
+    const player = new ExpoAudioPlayer();
+    await player.loadSFX("bounce", "/audio/bounce.wav");
 
-    expect(createAudioPlayer).toHaveBeenCalled();
-    expect(mockPlay).toHaveBeenCalled();
+    player.playSFX("bounce", { cooldownMs: 100 });
+    player.playSFX("bounce", { cooldownMs: 100 }); // Should be rate-limited
+
+    expect(mockPlayer.play).toHaveBeenCalledTimes(1);
   });
 
-  test("playSFX respects cooldownMs rate-limiting", () => {
-    player.playSFX("shoot", { cooldownMs: 100 });
-    expect(mockPlay).toHaveBeenCalledTimes(1);
+  test("playSFX applies random pitch variation when pitchRange is specified", async () => {
+    const player = new ExpoAudioPlayer();
+    await player.loadSFX("hit", "/audio/hit.wav");
 
-    // Call immediately again - should be rate-limited
-    player.playSFX("shoot", { cooldownMs: 100 });
-    expect(mockPlay).toHaveBeenCalledTimes(1);
-  });
+    player.playSFX("hit", { pitchRange: 0.1 }); // ±10%
 
-  test("playSFX applies pitch variation when pitchRange is provided", () => {
-    player.playSFX("shoot", { pitchRange: 0.1 });
-
-    expect(mockSetPlaybackRate).toHaveBeenCalled();
-    const appliedRate = mockSetPlaybackRate.mock.calls[0][0];
+    expect(mockPlayer.setPlaybackRate).toHaveBeenCalled();
+    const appliedRate = mockPlayer.setPlaybackRate.mock.calls[0][0];
     expect(appliedRate).toBeGreaterThanOrEqual(0.9);
     expect(appliedRate).toBeLessThanOrEqual(1.1);
   });
 
-  test("playBGM sets loop, volume, and starts playback", () => {
-    player.playBGM("dark_atmosphere");
-
-    expect(createAudioPlayer).toHaveBeenCalled();
-    const bgmPlayer = mockCreatedPlayers[0];
-    expect(bgmPlayer.loop).toBe(true);
-    // master (1.0) * bgm (0.35) = 0.35
-    expect(bgmPlayer.volume).toBeCloseTo(0.35, 2);
-    expect(mockPlay).toHaveBeenCalled();
-  });
-
-  test("pauseBGM and stopBGM control BGM playback correctly", () => {
-    player.playBGM("dark_atmosphere");
-    expect(mockPlay).toHaveBeenCalledTimes(1);
-
-    player.pauseBGM();
-    expect(mockPause).toHaveBeenCalledTimes(1);
-
-    player.stopBGM();
-    expect(mockPause).toHaveBeenCalledTimes(2);
-    expect(mockRemove).toHaveBeenCalledTimes(1);
-  });
-
-  test("playSpatialSFX attenuates volume based on listener distance", () => {
-    // Distance = 50, maxDistance = 100 -> spatial factor = 0.5
-    player.playSpatialSFX("shoot", 50, 0, 0, 0, 100);
-
-    expect(mockPlay).toHaveBeenCalled();
-    const createdPlayer = mockCreatedPlayers[0];
-    // master (1.0) * sfx (0.85) * spatialFactor (0.5) = 0.425
-    expect(createdPlayer.volume).toBeCloseTo(0.425, 3);
-  });
-
-  test("playSpatialSFX drops sound if distance exceeds maxDistance", () => {
-    player.playSpatialSFX("shoot", 150, 0, 0, 0, 100);
-
-    expect(mockPlay).not.toHaveBeenCalled();
-  });
-
-  test("volume setters update global volumes and sync active BGM player", () => {
-    player.playBGM("dark_atmosphere");
-    const bgmPlayer = mockCreatedPlayers[0];
-
-    player.setMasterVolume(0.5);
+  test("playBGM initializes background music with looping and calculated volume", () => {
+    const player = new ExpoAudioPlayer();
+    player.setMasterVolume(0.8);
     player.setBGMVolume(0.5);
 
-    // master (0.5) * bgm (0.5) = 0.25
-    expect(bgmPlayer.volume).toBeCloseTo(0.25, 2);
+    player.playBGM("bgm1", "/audio/bgm.mp3");
+
+    expect(createAudioPlayer).toHaveBeenCalledWith({ uri: "/audio/bgm.mp3" });
+    expect(mockPlayer.loop).toBe(true);
+    expect(mockPlayer.volume).toBeCloseTo(0.4); // 0.8 * 0.5
+    expect(mockPlayer.play).toHaveBeenCalled();
   });
 
-  test("logs console.warn defensively if audio creation fails", () => {
-    (createAudioPlayer as jest.Mock).mockImplementationOnce(() => {
-      throw new Error("Native audio engine error");
-    });
+  test("stopBGM pauses and removes active BGM player", () => {
+    const player = new ExpoAudioPlayer();
+    player.playBGM("bgm1", "/audio/bgm.mp3");
+    player.stopBGM();
 
-    expect(() => player.playSFX("failing_sound")).not.toThrow();
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[ExpoAudioPlayer]'),
-      expect.any(Error)
-    );
+    expect(mockPlayer.pause).toHaveBeenCalled();
+    expect(mockPlayer.remove).toHaveBeenCalled();
+  });
+
+  test("pauseBGM pauses active BGM player", () => {
+    const player = new ExpoAudioPlayer();
+    player.playBGM("bgm1", "/audio/bgm.mp3");
+    player.pauseBGM();
+
+    expect(mockPlayer.pause).toHaveBeenCalled();
+  });
+
+  test("setMasterVolume updates master and active BGM player volume", () => {
+    const player = new ExpoAudioPlayer();
+    player.setBGMVolume(0.5);
+    player.playBGM("bgm1", "/audio/bgm.mp3");
+
+    player.setMasterVolume(0.5);
+    expect(mockPlayer.volume).toBeCloseTo(0.25); // 0.5 * 0.5
+  });
+
+  test("playSpatialSFX attenuates volume and sets pan based on distance", async () => {
+    const player = new ExpoAudioPlayer();
+    await player.loadSFX("explosion", "/audio/explosion.wav");
+
+    player.setMasterVolume(1.0);
+    player.setSFXVolume(1.0);
+
+    // Emitter at (50, 0), Listener at (0, 0), maxDistance = 100
+    // distance = 50 -> volumeScale = 0.5, pan = 0.5
+    player.playSpatialSFX("explosion", 50, 0, 0, 0, 100);
+
+    expect(mockPlayer.volume).toBeCloseTo(0.5);
+    expect(mockPlayer.pan).toBeCloseTo(0.5);
+    expect(mockPlayer.play).toHaveBeenCalled();
+  });
+
+  test("playSpatialSFX produces no sound when distance exceeds maxDistance", async () => {
+    const player = new ExpoAudioPlayer();
+    await player.loadSFX("explosion", "/audio/explosion.wav");
+
+    player.playSpatialSFX("explosion", 200, 0, 0, 0, 100);
+    expect(mockPlayer.play).not.toHaveBeenCalled();
   });
 });

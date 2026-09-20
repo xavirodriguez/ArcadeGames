@@ -1,9 +1,9 @@
 module.exports = {
   projects: [
     "<rootDir>/packages/core/jest.config.cjs",
+    "<rootDir>/packages/react-native/jest.config.cjs",
     "<rootDir>/packages/gameplay-kit/jest.config.cjs",
     "<rootDir>/packages/network/jest.config.cjs",
-    "<rootDir>/packages/react-native/jest.config.cjs",
     "<rootDir>/server/jest.config.cjs",
     "<rootDir>/src/games/arkanoid/jest.config.cjs",
     "<rootDir>/src/games/asteroids/jest.config.cjs",

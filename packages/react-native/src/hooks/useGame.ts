@@ -59,13 +59,9 @@ export function useGame<
 ): UseGameResult<TGame, TState, TInput> {
   const { seed, gameOptions, initialState = null } = options;
 
-  const serializedGameOptions = useMemo(() => {
-    try {
-      return JSON.stringify(gameOptions ?? {});
-    } catch {
-      return "";
-    }
-  }, [gameOptions]);
+  const defaultAudio = useMemo(() => {
+    return Platform.OS === "web" ? new WebAudioPlayer() : new ExpoAudioPlayer();
+  }, []);
 
   const defaultAudio = useMemo(() => {
     return Platform.OS === "web" ? new WebAudioPlayer() : new ExpoAudioPlayer();

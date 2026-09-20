@@ -1,7 +1,5 @@
 import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity } from "@tiny-aster/core";
-import type { SkColor, SkPath, SkShader } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
-import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
 import { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
 import { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate } from "./ParallaxSystem";
@@ -9,6 +7,23 @@ import { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionSt
 import { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme } from "./CelestialBodiesSystem";
 import { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint } from "./MotionTrailSystem";
 import { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme } from "./LevelThemeSystem";
+
+import {
+  getVFXState,
+  getActiveLevelTheme,
+  getScreenAndVFXState,
+  readCanvasSize,
+  getOrCreateCached,
+  createParallaxLayer,
+  SpeedLine,
+  MatrixColumn,
+  AccretionParticle,
+  DistantAsteroid,
+  WARP_LINE_COUNT,
+  MATRIX_COLUMN_COUNT,
+  ACCRETION_PARTICLE_COUNT,
+  TRAIL_LENGTH
+} from "./SharedVFXInternal";
 
 export { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor };
 export { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow };
@@ -18,285 +33,15 @@ export { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };
 export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };
 export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
 
-/**
- * Dynamically resolves the active LevelVisualTheme based on world resource or level progress.
- * @public
- */
-export function getActiveLevelTheme<TComponents extends CoreComponentRegistry = CoreComponentRegistry>(
-  world: World<TComponents>
-): LevelVisualTheme {
-  const resourceTheme = world.getResource<LevelThemeName>("ActiveLevelThemeName");
-  if (resourceTheme) {
-    return getLevelTheme(resourceTheme);
-  }
-  const gameState = world.getSingleton("GameState" as Extract<keyof TComponents, string>) as { level?: number } | undefined;
-  const level = gameState?.level || 1;
-  const themes: LevelThemeName[] = ["deep_space", "violet_nebula", "industrial_orbit", "volcanic_rift", "alien_bloom"];
-  const themeName = themes[(level - 1) % themes.length];
-  return getLevelTheme(themeName);
-}
+export { getActiveLevelTheme, getScreenAndVFXState, readCanvasSize, createParallaxLayer };
 
-/**
- * Returns screen dimensions and state for VFX drawers.
- * @public
- */
-export function getScreenAndVFXState<TComponents extends ComponentRegistry = ComponentRegistry>(
-  world: World<TComponents>
-): {
-  width: number;
-  height: number;
-  state: VFXWorldState;
-} {
-  const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-  const state = getVFXState(world);
-  return {
-    width: screen.width,
-    height: screen.height,
-    state
-  };
-}
-
-/**
- * Reads width and height from a Canvas Rendering Context safely.
- * @public
- */
-export function readCanvasSize(ctx: CanvasRenderingContext2D): { width: number; height: number } {
-  return {
-    width: ctx.canvas ? ctx.canvas.width : 800,
-    height: ctx.canvas ? ctx.canvas.height : 600
-  };
-}
-
-// -------------------------------------------------------------
-// Constants
-// -------------------------------------------------------------
-const STAR_COUNT = 80;
-const WARP_LINE_COUNT = 45;
-const NEBULA_CLOUD_COUNT = 4;
-const MATRIX_COLUMN_COUNT = 30;
-const ACCRETION_PARTICLE_COUNT = 15;
-const TRAIL_LENGTH = 10;
-const DISTANT_ASTEROID_COUNT = 12;
-const MILKY_WAY_DUST_PARTICLE_COUNT = 25;
-
-// -------------------------------------------------------------
-// VFX World State Isolation & Structures
-// -------------------------------------------------------------
-interface Star {
-  x: number;
-  y: number;
-  speed: number;
-  size: number;
-  twinklePhase: number;
-  twinkleSpeed: number;
-  color: string;
-  skColor?: SkColor | null;
-}
-
-interface SpeedLine {
-  angle: number;
-  radius: number;
-  length: number;
-  speed: number;
-  color: string;
-  skColor?: SkColor | null;
-}
-
-interface NebulaCloud {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  color: string;
-  skColor?: SkColor | null;
-}
-
-interface MatrixColumn {
-  x: number;
-  y: number;
-  speed: number;
-  length: number;
-  intensity: number;
-}
-
-interface AccretionParticle {
-  angle: number;
-  radius: number;
-  speed: number;
-  size: number;
-}
-
-interface TrailPoint {
-  x: number;
-  y: number;
-  alpha: number;
-}
-
-interface MilkyWayDustParticle {
-  x: number;
-  y: number;
-  size: number;
-  alpha: number;
-  twinklePhase: number;
-  twinkleSpeed: number;
-  color: string;
-  skColor?: SkColor | null;
-}
-
-interface MilkyWayBandState {
-  angle: number;
-  particles: MilkyWayDustParticle[];
-}
-
-interface RingingPlanetState {
-  x: number;
-  y: number;
-  radius: number;
-  ringInnerRadius: number;
-  ringOuterRadius: number;
-  ringTilt: number;
-  craters: { x: number; y: number; radius: number }[];
-  moonX: number;
-  moonY: number;
-  moonRadius: number;
-  moonCraters: { x: number; y: number; radius: number }[];
-}
-
-interface DistantAsteroid {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  rotation: number;
-  angularVelocity: number;
-  points: { x: number; y: number }[];
-  color: string;
-  skColor?: SkColor | null;
-  skPath?: SkPath | null;
-}
-
-interface SpaceStationBeacon {
-  x: number;
-  y: number;
-  color: string;
-  skColor?: SkColor | null;
-  twinklePhase: number;
-  twinkleSpeed: number;
-}
-
-interface SpaceStationState {
-  x: number;
-  y: number;
-  rotation: number;
-  rotationSpeed: number;
-  coreRadius: number;
-  ringRadius: number;
-  panelLength: number;
-  panelWidth: number;
-  beacons: SpaceStationBeacon[];
-}
-
-interface VFXWorldState {
-  stars: Star[];
-  lines: SpeedLine[];
-  nebulae: NebulaCloud[];
-  matrixColumns: MatrixColumn[];
-  accretionParticles: AccretionParticle[];
-  trailPoints: TrailPoint[];
-  distantAsteroids: DistantAsteroid[];
-  planet?: RingingPlanetState;
-  milkyWay?: MilkyWayBandState;
-  station?: SpaceStationState;
-  starsInitialized: boolean;
-  warpLinesInitialized: boolean;
-  nebulaeInitialized: boolean;
-  matrixInitialized: boolean;
-  vortexInitialized: boolean;
-  trailInitialized: boolean;
-  planetInitialized: boolean;
-  distantAsteroidsInitialized: boolean;
-  milkyWayInitialized: boolean;
-  stationInitialized: boolean;
-  timePhase: number; // Incremented exactly once per render tick to be entity-independent
-  cachedCRTGradient?: CanvasGradient | null; // Cached CanvasRadialGradient
-  cachedSkiaShader?: SkShader | null; // Cached Skia Shader
-  cachedPlanetGradient?: CanvasGradient | null; // Cached CanvasRadialGradient for Ringing Planet
-  cachedPlanetSkiaShader?: SkShader | null; // Cached Skia Shader for Ringing Planet
-  cachedRingGradient?: CanvasGradient | null; // Cached CanvasLinearGradient for Planet Rings
-  cachedRingSkiaShader?: SkShader | null; // Cached Skia Shader for Planet Rings
-  cachedMilkyWayGradient?: CanvasGradient | null; // Cached CanvasLinearGradient for Diffuse Milky Way
-  cachedMilkyWaySkiaShader?: SkShader | null; // Cached Skia Shader for Diffuse Milky Way
-  cachedStationGradient?: CanvasGradient | null; // Cached CanvasRadialGradient for Space Station Hub
-  cachedStationSkiaShader?: SkShader | null; // Cached Skia Shader for Space Station Hub
-  lastWidth: number;
-  lastHeight: number;
-  lastCRTWidth?: number;
-  lastCRTHeight?: number;
-}
-
-const worldStateMap = new WeakMap<World<ComponentRegistry>, VFXWorldState>();
-
-function getVFXState<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents>): VFXWorldState {
-  let state = worldStateMap.get(world as World<ComponentRegistry>);
-  if (!state) {
-    state = {
-      stars: [],
-      lines: [],
-      nebulae: [],
-      matrixColumns: [],
-      accretionParticles: [],
-      trailPoints: [],
-      distantAsteroids: [],
-      starsInitialized: false,
-      warpLinesInitialized: false,
-      nebulaeInitialized: false,
-      matrixInitialized: false,
-      vortexInitialized: false,
-      trailInitialized: false,
-      planetInitialized: false,
-      distantAsteroidsInitialized: false,
-      milkyWayInitialized: false,
-      stationInitialized: false,
-      timePhase: 0,
-      lastWidth: 0,
-      lastHeight: 0
-    };
-    worldStateMap.set(world, state);
-  }
-  return state;
-}
-
-// -------------------------------------------------------------
-// Cache Helpers
-// -------------------------------------------------------------
-type CachedVFXKey =
-  | "cachedCRTGradient"
-  | "cachedSkiaShader"
-  | "cachedPlanetGradient"
-  | "cachedPlanetSkiaShader"
-  | "cachedRingGradient"
-  | "cachedRingSkiaShader"
-  | "cachedMilkyWayGradient"
-  | "cachedMilkyWaySkiaShader"
-  | "cachedStationGradient"
-  | "cachedStationSkiaShader";
-
-function getOrCreateCached<T>(
-  state: VFXWorldState,
-  cacheKey: CachedVFXKey,
-  width: number,
-  height: number,
-  create: () => T
-): T {
-  if (!state[cacheKey] || state.lastCRTWidth !== width || state.lastCRTHeight !== height) {
-    (state as Record<CachedVFXKey, unknown>)[cacheKey] = create();
-    state.lastCRTWidth = width;
-    state.lastCRTHeight = height;
-  }
-  return state[cacheKey] as T;
-}
+// Export layered effects
+export { ScrollingStarfieldEffect, SkiaScrollingStarfieldEffect } from "./layers/ScrollingStarfieldLayer";
+export { DriftingNebulaBackgroundEffect, SkiaDriftingNebulaBackgroundEffect } from "./layers/DriftingNebulaLayer";
+export { DiffuseMilkyWayBackgroundEffect, SkiaDiffuseMilkyWayBackgroundEffect } from "./layers/DiffuseMilkyWayLayer";
+export { DistantAsteroidBeltBackgroundEffect, SkiaDistantAsteroidBeltBackgroundEffect } from "./layers/DistantAsteroidBeltLayer";
+export { DistantSpaceStationBackgroundEffect, SkiaDistantSpaceStationBackgroundEffect } from "./layers/DistantSpaceStationLayer";
+export { RingingPlanetBackgroundEffect, SkiaRingingPlanetBackgroundEffect } from "./layers/RingingPlanetLayer";
 
 // -------------------------------------------------------------
 // Pure Calculation & State Update Helpers
@@ -418,41 +163,12 @@ function computeThrusterPlume(timePhase: number, size: number) {
   return { plumeLength };
 }
 
-// -------------------------------------------------------------
-// Initializers
-// -------------------------------------------------------------
 function pickColor(rng: any, colors: string[]): { color: string; skColor: any } {
   const color = colors[rng.nextInt(0, colors.length)];
   return { color, skColor: Skia ? Skia.Color(color) : null };
 }
 
-function initializeStars(world: World, state: VFXWorldState) {
-  const rng = world.renderRandom;
-  const colors = [
-    COSMIC_ARCADE_PALETTE.white,
-    COSMIC_ARCADE_PALETTE.iceBlue,
-    COSMIC_ARCADE_PALETTE.plasmaYellow,
-    COSMIC_ARCADE_PALETTE.mutedBlue
-  ];
-
-  state.stars = [];
-  for (let i = 0; i < STAR_COUNT; i++) {
-    const { color, skColor } = pickColor(rng, colors);
-    state.stars.push({
-      x: rng.nextRange(0, 800),
-      y: rng.nextRange(0, 600),
-      speed: rng.nextRange(0.2, 1.2),
-      size: rng.nextRange(1.0, 2.5),
-      twinklePhase: rng.nextRange(0, Math.PI * 2),
-      twinkleSpeed: rng.nextRange(0.02, 0.08),
-      color,
-      skColor
-    });
-  }
-  state.starsInitialized = true;
-}
-
-function initializeLines(world: World, state: VFXWorldState, maxRadius: number) {
+function initializeLines(world: World, state: any, maxRadius: number) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.white,
@@ -475,32 +191,7 @@ function initializeLines(world: World, state: VFXWorldState, maxRadius: number) 
   state.warpLinesInitialized = true;
 }
 
-function initializeNebulae(world: World, state: VFXWorldState) {
-  const rng = world.renderRandom;
-  const colors = [
-    COSMIC_ARCADE_PALETTE.nebulaPurple,
-    COSMIC_ARCADE_PALETTE.electricIndigo,
-    COSMIC_ARCADE_PALETTE.cosmicNavy,
-    COSMIC_ARCADE_PALETTE.deepSpace
-  ];
-
-  state.nebulae = [];
-  for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
-    const color = colors[i % colors.length];
-    state.nebulae.push({
-      x: rng.nextRange(50, 750),
-      y: rng.nextRange(50, 550),
-      vx: rng.nextRange(-0.05, 0.05),
-      vy: rng.nextRange(-0.05, 0.05),
-      radius: rng.nextRange(100, 220),
-      color,
-      skColor: Skia ? Skia.Color(color) : null
-    });
-  }
-  state.nebulaeInitialized = true;
-}
-
-function initializeMatrix(world: World, state: VFXWorldState) {
+function initializeMatrix(world: World, state: any) {
   const rng = world.renderRandom;
   state.matrixColumns = [];
   for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
@@ -515,7 +206,7 @@ function initializeMatrix(world: World, state: VFXWorldState) {
   state.matrixInitialized = true;
 }
 
-function initializeVortex(world: World, state: VFXWorldState) {
+function initializeVortex(world: World, state: any) {
   const rng = world.renderRandom;
   state.accretionParticles = [];
   for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
@@ -529,190 +220,6 @@ function initializeVortex(world: World, state: VFXWorldState) {
   state.vortexInitialized = true;
 }
 
-function initializeMilkyWay(world: World, state: VFXWorldState) {
-  const rng = world.renderRandom;
-  const angle = rng.nextRange(-0.4, -0.2);
-  const colors = [
-    COSMIC_ARCADE_PALETTE.white,
-    COSMIC_ARCADE_PALETTE.iceBlue,
-    COSMIC_ARCADE_PALETTE.electricIndigo,
-    COSMIC_ARCADE_PALETTE.neonMagenta,
-    COSMIC_ARCADE_PALETTE.neonCyan
-  ];
-
-  const particles: MilkyWayDustParticle[] = [];
-  for (let i = 0; i < MILKY_WAY_DUST_PARTICLE_COUNT; i++) {
-    const { color, skColor } = pickColor(rng, colors);
-    particles.push({
-      x: rng.nextRange(-200, 1000),
-      y: rng.nextRange(-80, 80),
-      size: rng.nextRange(1.0, 2.8),
-      alpha: rng.nextRange(0.3, 0.8),
-      twinklePhase: rng.nextRange(0, Math.PI * 2),
-      twinkleSpeed: rng.nextRange(0.01, 0.05),
-      color,
-      skColor
-    });
-  }
-
-  state.milkyWay = {
-    angle,
-    particles
-  };
-  state.milkyWayInitialized = true;
-}
-
-function initializeRingingPlanet(world: World, state: VFXWorldState) {
-  const rng = world.renderRandom;
-  const planetX = rng.nextRange(550, 680);
-  const planetY = rng.nextRange(120, 220);
-  const radius = rng.nextRange(50, 75);
-
-  const craters: { x: number; y: number; radius: number }[] = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = rng.nextRange(0, Math.PI * 2);
-    const dist = rng.nextRange(0.1, 0.7) * radius;
-    craters.push({
-      x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist,
-      radius: rng.nextRange(0.12, 0.22) * radius
-    });
-  }
-
-  const moonAngle = rng.nextRange(-Math.PI * 0.25, Math.PI * 0.25);
-  const moonDist = radius * rng.nextRange(2.2, 2.8);
-  const moonRadius = radius * rng.nextRange(0.22, 0.32);
-  const moonX = planetX + Math.cos(moonAngle) * moonDist;
-  const moonY = planetY + Math.sin(moonAngle) * moonDist;
-
-  const moonCraters: { x: number; y: number; radius: number }[] = [];
-  for (let i = 0; i < 4; i++) {
-    const angle = rng.nextRange(0, Math.PI * 2);
-    const dist = rng.nextRange(0.1, 0.6) * moonRadius;
-    moonCraters.push({
-      x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist,
-      radius: rng.nextRange(0.15, 0.3) * moonRadius
-    });
-  }
-
-  state.planet = {
-    x: planetX,
-    y: planetY,
-    radius,
-    ringInnerRadius: radius * 1.3,
-    ringOuterRadius: radius * 2.1,
-    ringTilt: -0.35,
-    craters,
-    moonX,
-    moonY,
-    moonRadius,
-    moonCraters
-  };
-  state.planetInitialized = true;
-}
-
-function initializeDistantAsteroids(world: World, state: VFXWorldState) {
-  const rng = world.renderRandom;
-  const colors = [
-    COSMIC_ARCADE_PALETTE.cosmicNavy,
-    COSMIC_ARCADE_PALETTE.electricIndigo,
-    COSMIC_ARCADE_PALETTE.mutedPurple,
-    COSMIC_ARCADE_PALETTE.mutedBlue
-  ];
-
-  state.distantAsteroids = [];
-  for (let i = 0; i < DISTANT_ASTEROID_COUNT; i++) {
-    const { color, skColor } = pickColor(rng, colors);
-    const radius = rng.nextRange(8, 22);
-    const seed = rng.nextInt(0, 100000);
-    const points = computeAsteroidSilhouette(seed, radius, 9);
-
-    let skPath: any = null;
-    if (Skia && points.length > 0) {
-      skPath = Skia.Path.Make();
-      skPath.moveTo(points[0].x, points[0].y);
-      for (let p = 1; p < points.length; p++) {
-        skPath.lineTo(points[p].x, points[p].y);
-      }
-      skPath.close();
-    }
-
-    state.distantAsteroids.push({
-      x: rng.nextRange(0, 800),
-      y: rng.nextRange(0, 600),
-      vx: rng.nextRange(-0.25, -0.05),
-      vy: rng.nextRange(-0.08, 0.08),
-      radius,
-      rotation: rng.nextRange(0, Math.PI * 2),
-      angularVelocity: rng.nextRange(-0.01, 0.01),
-      points,
-      color,
-      skColor,
-      skPath
-    });
-  }
-  state.distantAsteroidsInitialized = true;
-}
-
-function initializeSpaceStation(world: World, state: VFXWorldState) {
-  const rng = world.renderRandom;
-  const x = rng.nextRange(150, 280);
-  const y = rng.nextRange(100, 200);
-  const rotation = rng.nextRange(0, Math.PI * 2);
-  const rotationSpeed = rng.nextRange(0.001, 0.003);
-  const coreRadius = rng.nextRange(12, 18);
-  const ringRadius = coreRadius * rng.nextRange(2.2, 2.8);
-  const panelLength = ringRadius * rng.nextRange(1.8, 2.4);
-  const panelWidth = rng.nextRange(6, 10);
-
-  const beaconColors = [
-    COSMIC_ARCADE_PALETTE.dangerRed,
-    COSMIC_ARCADE_PALETTE.neonCyan,
-    COSMIC_ARCADE_PALETTE.solarOrange,
-    COSMIC_ARCADE_PALETTE.neonMagenta
-  ];
-  const beacons: SpaceStationBeacon[] = [];
-
-  const beaconPositions = [
-    { x: -panelLength, y: 0 },
-    { x: panelLength, y: 0 },
-    { x: 0, y: -ringRadius },
-    { x: 0, y: ringRadius },
-    { x: -ringRadius, y: 0 },
-    { x: ringRadius, y: 0 }
-  ];
-
-  for (let i = 0; i < beaconPositions.length; i++) {
-    const { color, skColor } = pickColor(rng, beaconColors);
-    beacons.push({
-      x: beaconPositions[i].x,
-      y: beaconPositions[i].y,
-      color,
-      skColor,
-      twinklePhase: rng.nextRange(0, Math.PI * 2),
-      twinkleSpeed: rng.nextRange(0.04, 0.09)
-    });
-  }
-
-  state.station = {
-    x,
-    y,
-    rotation,
-    rotationSpeed,
-    coreRadius,
-    ringRadius,
-    panelLength,
-    panelWidth,
-    beacons
-  };
-  state.stationInitialized = true;
-}
-
-// =============================================================
-// I. ORIGINAL 5 EFFECTS (CANVAS & SKIA)
-// =============================================================
-
 // -------------------------------------------------------------
 // 1. RetroCRTScanlinesEffect (Canvas & Skia)
 // -------------------------------------------------------------
@@ -724,14 +231,12 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Cor
 
     ctx.save();
 
-    // 1. Scanline overlay
     ctx.fillStyle = COSMIC_ARCADE_PALETTE.voidBlack;
     ctx.globalAlpha = 0.15;
     for (let y = 0; y < height; y += 4) {
       ctx.fillRect(0, y, width, 2);
     }
 
-    // 2. Radial vignette gradient caching
     const gradient = getOrCreateCached(state, "cachedCRTGradient", width, height, () => {
       const centerX = width / 2;
       const centerY = height / 2;
@@ -750,7 +255,6 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Cor
     ctx.globalAlpha = 1.0;
     ctx.fillRect(0, 0, width, height);
 
-    // 3. Phosphor flickering
     const randomFlicker = world.renderRandom.next();
     if (randomFlicker > 0.95) {
       ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
@@ -812,708 +316,6 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, CoreComponentRegistr
   }
 };
 
-// -------------------------------------------------------------
-// 18. DiffuseMilkyWayBackgroundEffect (Canvas & Skia)
-// -------------------------------------------------------------
-export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (!state.milkyWayInitialized) {
-      initializeMilkyWay(world, state);
-    }
-    const milkyWay = state.milkyWay;
-    if (!milkyWay) return;
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
-
-    ctx.save();
-
-    const centerX = wrapParallaxCoordinate(width / 2 - offsetX * 0.1, width * 2);
-    const centerY = height / 2;
-    const bandHeight = 220;
-
-    ctx.translate(centerX, centerY);
-    ctx.rotate(milkyWay.angle);
-
-    // Reuse/cache radial/linear gradient across frame iterations via getOrCreateCached helper
-    const gradient = getOrCreateCached(state, "cachedMilkyWayGradient", width, height, () => {
-      const grad = ctx.createLinearGradient(0, -bandHeight / 2, 0, bandHeight / 2);
-      grad.addColorStop(0, hexToRgba(COSMIC_ARCADE_PALETTE.nebulaPurple, 0));
-      grad.addColorStop(0.2, hexToRgba(COSMIC_ARCADE_PALETTE.electricIndigo, 0.08));
-      grad.addColorStop(0.5, hexToRgba(COSMIC_ARCADE_PALETTE.mutedPurple, 0.18));
-      grad.addColorStop(0.8, hexToRgba(COSMIC_ARCADE_PALETTE.electricIndigo, 0.08));
-      grad.addColorStop(1, hexToRgba(COSMIC_ARCADE_PALETTE.nebulaPurple, 0));
-      return grad;
-    });
-
-    // Soft galactic dust band glow
-    ctx.fillStyle = gradient;
-    ctx.fillRect(-width, -bandHeight / 2, width * 2, bandHeight);
-
-    // Inner bright core stream
-    ctx.fillStyle = hexToRgba(COSMIC_ARCADE_PALETTE.iceBlue, 0.05);
-    // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:901-905. Considerar extraer a función compartida. Ref: 2929995c
-    ctx.fillRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3);
-
-    // Embedded star dust particles along galactic plane
-    for (let i = 0; i < milkyWay.particles.length; i++) {
-      const p = milkyWay.particles[i];
-      p.twinklePhase += p.twinkleSpeed;
-      const twinkle = 0.5 + 0.5 * Math.sin(p.twinklePhase);
-
-      ctx.fillStyle = p.color;
-      ctx.globalAlpha = p.alpha * twinkle;
-      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-    }
-
-    ctx.restore();
-  }
-};
-
-export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
-    if (!Skia) return;
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (!state.milkyWayInitialized) {
-      initializeMilkyWay(world, state);
-    }
-    const milkyWay = state.milkyWay;
-    if (!milkyWay) return;
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
-
-    canvas.save();
-
-    const centerX = wrapParallaxCoordinate(width / 2 - offsetX * 0.1, width * 2);
-    const centerY = height / 2;
-    const bandHeight = 220;
-
-    canvas.translate(centerX, centerY);
-    canvas.rotate((milkyWay.angle * 180) / Math.PI, 0, 0);
-
-    const shader = getOrCreateCached(state, "cachedMilkyWaySkiaShader", width, height, () => {
-      return Skia.Shader.MakeLinearGradient(
-        Skia.Point(0, -bandHeight / 2),
-        Skia.Point(0, bandHeight / 2),
-        [
-          getSkiaColor(COSMIC_ARCADE_PALETTE.nebulaPurple, 0),
-          getSkiaColor(COSMIC_ARCADE_PALETTE.electricIndigo, 0.08),
-          getSkiaColor(COSMIC_ARCADE_PALETTE.mutedPurple, 0.18),
-          getSkiaColor(COSMIC_ARCADE_PALETTE.electricIndigo, 0.08),
-          getSkiaColor(COSMIC_ARCADE_PALETTE.nebulaPurple, 0)
-        ],
-        [0.0, 0.2, 0.5, 0.8, 1.0],
-        Skia.TileMode.Clamp
-      );
-    });
-
-    const bandPaint = Skia.Paint();
-    bandPaint.setShader(shader);
-    canvas.drawRect(Skia.XYWHRect(-width, -bandHeight / 2, width * 2, bandHeight), bandPaint);
-
-    // Inner bright core stream
-    const corePaint = Skia.Paint();
-    corePaint.setColor(getSkiaColor(COSMIC_ARCADE_PALETTE.iceBlue, 0.05));
-    canvas.drawRect(Skia.XYWHRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3), corePaint);
-
-    // Embedded star dust particles
-    const particlePaint = Skia.Paint();
-    for (let i = 0; i < milkyWay.particles.length; i++) {
-      const p = milkyWay.particles[i];
-      p.twinklePhase += p.twinkleSpeed;
-      const twinkle = 0.5 + 0.5 * Math.sin(p.twinklePhase);
-
-      particlePaint.setColor(p.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
-      particlePaint.setAlphaf(p.alpha * twinkle);
-      canvas.drawRect(
-        Skia.XYWHRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size),
-        particlePaint
-      );
-    }
-
-    canvas.restore();
-  }
-};
-
-// -------------------------------------------------------------
-// 17. DistantAsteroidBeltBackgroundEffect (Canvas & Skia)
-// -------------------------------------------------------------
-export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (!state.distantAsteroidsInitialized) {
-      initializeDistantAsteroids(world, state);
-    }
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
-
-    ctx.save();
-
-    for (let i = 0; i < state.distantAsteroids.length; i++) {
-      const ast = state.distantAsteroids[i];
-      ast.x += ast.vx;
-      ast.y += ast.vy;
-      ast.rotation += ast.angularVelocity;
-
-      const posX = wrapParallaxCoordinate(ast.x - offsetX * 0.1, width, ast.radius * 2);
-
-      ctx.save();
-      ctx.translate(posX, ast.y);
-      ctx.rotate(ast.rotation);
-
-      ctx.fillStyle = ast.color;
-      ctx.strokeStyle = COSMIC_ARCADE_PALETTE.mutedBlue;
-      ctx.globalAlpha = 0.35;
-      ctx.lineWidth = 1;
-
-      ctx.beginPath();
-      if (ast.points.length > 0) {
-        ctx.moveTo(ast.points[0].x, ast.points[0].y);
-        for (let p = 1; p < ast.points.length; p++) {
-          ctx.lineTo(ast.points[p].x, ast.points[p].y);
-        }
-        ctx.closePath();
-      }
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    ctx.restore();
-  }
-};
-
-export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
-    if (!Skia) return;
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (!state.distantAsteroidsInitialized) {
-      initializeDistantAsteroids(world, state);
-    }
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
-
-    canvas.save();
-
-    const fillPaint = Skia.Paint();
-    fillPaint.setAlphaf(0.35);
-
-    const strokePaint = Skia.Paint();
-    strokePaint.setStyle(Skia.PaintStyle.Stroke);
-    strokePaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.mutedBlue));
-    strokePaint.setAlphaf(0.35);
-    strokePaint.setStrokeWidth(1);
-
-    for (let i = 0; i < state.distantAsteroids.length; i++) {
-      const ast = state.distantAsteroids[i];
-      ast.x += ast.vx;
-      ast.y += ast.vy;
-      ast.rotation += ast.angularVelocity;
-
-      const posX = wrapParallaxCoordinate(ast.x - offsetX * 0.1, width, ast.radius * 2);
-
-      canvas.save();
-      canvas.translate(posX, ast.y);
-      canvas.rotate((ast.rotation * 180) / Math.PI, 0, 0);
-
-      fillPaint.setColor(ast.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.cosmicNavy));
-      fillPaint.setAlphaf(0.35);
-
-      if (ast.skPath) {
-        canvas.drawPath(ast.skPath, fillPaint);
-        canvas.drawPath(ast.skPath, strokePaint);
-      }
-
-      canvas.restore();
-    }
-
-    canvas.restore();
-  }
-};
-
-// -------------------------------------------------------------
-// 19. DistantSpaceStationBackgroundEffect (Canvas & Skia)
-// -------------------------------------------------------------
-export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (!state.stationInitialized) {
-      initializeSpaceStation(world, state);
-    }
-    const st = state.station;
-    if (!st) return;
-
-    st.rotation += st.rotationSpeed;
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer5_near_objects");
-    const posX = wrapParallaxCoordinate(st.x - offsetX * 0.1, width);
-
-    ctx.save();
-    ctx.translate(posX, st.y);
-    ctx.rotate(st.rotation);
-
-    // Solar panel arrays (horizontal truss extensions)
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.stationPanels;
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.cosmicNavy;
-    ctx.globalAlpha = 0.6;
-    ctx.lineWidth = 1;
-
-    ctx.fillRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth);
-    ctx.strokeRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth);
-
-    // Solar grid division lines
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.stationSteel;
-    ctx.globalAlpha = 0.35;
-    for (let x = -st.panelLength + 6; x < st.panelLength; x += 8) {
-      ctx.beginPath();
-      ctx.moveTo(x, -st.panelWidth / 2);
-      ctx.lineTo(x, st.panelWidth / 2);
-      ctx.stroke();
-    }
-
-    // Outer Rotating Hab Ring
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.stationSteel;
-    ctx.lineWidth = 2.5;
-    ctx.globalAlpha = 0.55;
-    ctx.beginPath();
-    ctx.arc(0, 0, st.ringRadius, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Structural spoke struts
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 0.4;
-    ctx.beginPath();
-    ctx.moveTo(-st.ringRadius, 0);
-    ctx.lineTo(st.ringRadius, 0);
-    ctx.moveTo(0, -st.ringRadius);
-    ctx.lineTo(0, st.ringRadius);
-    ctx.stroke();
-
-    // Central Core Hub Gradient Caching
-    const hubGrad = getOrCreateCached(state, "cachedStationGradient", width, height, () => {
-      const grad = ctx.createRadialGradient(
-        -st.coreRadius * 0.2, -st.coreRadius * 0.2, 1,
-        0, 0, st.coreRadius
-      );
-      grad.addColorStop(0, COSMIC_ARCADE_PALETTE.white);
-      grad.addColorStop(0.5, COSMIC_ARCADE_PALETTE.stationSteel);
-      grad.addColorStop(1, COSMIC_ARCADE_PALETTE.voidBlack);
-      return grad;
-    });
-
-    ctx.fillStyle = hubGrad;
-    ctx.globalAlpha = 0.85;
-    ctx.beginPath();
-    ctx.arc(0, 0, st.coreRadius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Inner core viewport ring
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.neonCyan;
-    ctx.globalAlpha = 0.7;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(0, 0, st.coreRadius * 0.5, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Blinking Warning Beacons
-    for (let i = 0; i < st.beacons.length; i++) {
-      const b = st.beacons[i];
-      b.twinklePhase += b.twinkleSpeed;
-      const pulse = 0.3 + 0.7 * Math.sin(b.twinklePhase);
-
-      ctx.fillStyle = b.color;
-      ctx.globalAlpha = pulse;
-
-      // Glow aura
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Core point
-      ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
-      ctx.globalAlpha = Math.min(1.0, pulse * 1.2);
-      ctx.fillRect(b.x - 1, b.y - 1, 2, 2);
-    }
-
-    ctx.restore();
-  }
-};
-
-export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
-    if (!Skia) return;
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (!state.stationInitialized) {
-      initializeSpaceStation(world, state);
-    }
-    const st = state.station;
-    if (!st) return;
-
-    st.rotation += st.rotationSpeed;
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer5_near_objects");
-    const posX = wrapParallaxCoordinate(st.x - offsetX * 0.1, width);
-
-    canvas.save();
-    canvas.translate(posX, st.y);
-    canvas.rotate((st.rotation * 180) / Math.PI, 0, 0);
-
-    // Solar panel arrays
-    const panelPaint = Skia.Paint();
-    panelPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationPanels));
-    panelPaint.setAlphaf(0.6);
-    canvas.drawRect(
-      Skia.XYWHRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth),
-      panelPaint
-    );
-
-    const panelStrokePaint = Skia.Paint();
-    panelStrokePaint.setStyle(Skia.PaintStyle.Stroke);
-    panelStrokePaint.setStrokeWidth(1);
-    panelStrokePaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.cosmicNavy));
-    panelStrokePaint.setAlphaf(0.6);
-    canvas.drawRect(
-      Skia.XYWHRect(-st.panelLength, -st.panelWidth / 2, st.panelLength * 2, st.panelWidth),
-      panelStrokePaint
-    );
-
-    // Solar grid division lines
-    const gridPaint = Skia.Paint();
-    gridPaint.setStyle(Skia.PaintStyle.Stroke);
-    gridPaint.setStrokeWidth(1);
-    gridPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
-    gridPaint.setAlphaf(0.35);
-    for (let x = -st.panelLength + 6; x < st.panelLength; x += 8) {
-      canvas.drawLine(x, -st.panelWidth / 2, x, st.panelWidth / 2, gridPaint);
-    }
-
-    // Outer Rotating Hab Ring
-    const ringPaint = Skia.Paint();
-    ringPaint.setStyle(Skia.PaintStyle.Stroke);
-    ringPaint.setStrokeWidth(2.5);
-    ringPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
-    ringPaint.setAlphaf(0.55);
-    canvas.drawCircle(0, 0, st.ringRadius, ringPaint);
-
-    // Structural spoke struts
-    const spokePaint = Skia.Paint();
-    spokePaint.setStyle(Skia.PaintStyle.Stroke);
-    spokePaint.setStrokeWidth(1);
-    spokePaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
-    spokePaint.setAlphaf(0.4);
-    canvas.drawLine(-st.ringRadius, 0, st.ringRadius, 0, spokePaint);
-    canvas.drawLine(0, -st.ringRadius, 0, st.ringRadius, spokePaint);
-
-    // Central Core Hub Gradient Caching
-    const hubShader = getOrCreateCached(state, "cachedStationSkiaShader", width, height, () => {
-      return Skia.Shader.MakeRadialGradient(
-        Skia.Point(-st.coreRadius * 0.2, -st.coreRadius * 0.2),
-        st.coreRadius,
-        [
-          Skia.Color(COSMIC_ARCADE_PALETTE.white),
-          Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel),
-          Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack)
-        ],
-        [0.0, 0.5, 1.0],
-        Skia.TileMode.Clamp
-      );
-    });
-
-    const hubPaint = Skia.Paint();
-    hubPaint.setShader(hubShader);
-    hubPaint.setAlphaf(0.85);
-    canvas.drawCircle(0, 0, st.coreRadius, hubPaint);
-
-    // Inner core viewport ring
-    const viewportPaint = Skia.Paint();
-    viewportPaint.setStyle(Skia.PaintStyle.Stroke);
-    viewportPaint.setStrokeWidth(1);
-    viewportPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.neonCyan));
-    viewportPaint.setAlphaf(0.7);
-    canvas.drawCircle(0, 0, st.coreRadius * 0.5, viewportPaint);
-
-    // Blinking Warning Beacons
-    const beaconPaint = Skia.Paint();
-    const beaconCorePaint = Skia.Paint();
-    beaconCorePaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
-
-    for (let i = 0; i < st.beacons.length; i++) {
-      const b = st.beacons[i];
-      b.twinklePhase += b.twinkleSpeed;
-      const pulse = 0.3 + 0.7 * Math.sin(b.twinklePhase);
-
-      beaconPaint.setColor(b.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.dangerRed));
-      beaconPaint.setAlphaf(pulse);
-      canvas.drawCircle(b.x, b.y, 3.5, beaconPaint);
-
-      beaconCorePaint.setAlphaf(Math.min(1.0, pulse * 1.2));
-      canvas.drawRect(Skia.XYWHRect(b.x - 1, b.y - 1, 2, 2), beaconCorePaint);
-    }
-
-    canvas.restore();
-  }
-};
-
-// -------------------------------------------------------------
-// 16. RingingPlanetBackgroundEffect (Canvas & Skia)
-// -------------------------------------------------------------
-export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (!state.planetInitialized) {
-      initializeRingingPlanet(world, state);
-    }
-    const planet = state.planet;
-    if (!planet) return;
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
-    const posX = wrapParallaxCoordinate(planet.x - offsetX * 0.1, width, planet.radius * 3);
-
-    ctx.save();
-
-    const theme = getActiveLevelTheme(world);
-    const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
-
-    // 1. Back section of rings (drawn behind planet)
-    ctx.save();
-    ctx.translate(posX, planet.y);
-    ctx.rotate(planet.ringTilt);
-    ctx.scale(1.0, 0.32);
-
-    ctx.strokeStyle = planetTheme.ringColorBase;
-    ctx.globalAlpha = 0.35;
-    ctx.lineWidth = planet.ringOuterRadius - planet.ringInnerRadius;
-    const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
-
-    ctx.beginPath();
-    ctx.arc(0, 0, midRingRadius, Math.PI, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-
-    // 2. Planet body gradient caching using CelestialBodiesSystem
-    const planetGrad = getOrCreateCached(state, "cachedPlanetGradient", width, height, () => {
-      const grad = ctx.createRadialGradient(
-        -planet.radius * 0.3, -planet.radius * 0.3, planet.radius * 0.1,
-        0, 0, planet.radius
-      );
-      grad.addColorStop(0, planetTheme.bodyGradient[0]);
-      grad.addColorStop(0.5, planetTheme.bodyGradient[1]);
-      grad.addColorStop(1, planetTheme.bodyGradient[2]);
-      return grad;
-    });
-
-    ctx.save();
-    ctx.translate(posX, planet.y);
-
-    // Atmosphere halo
-    ctx.strokeStyle = planetTheme.atmosphereColor;
-    ctx.globalAlpha = 0.25;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(0, 0, planet.radius + 2, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.fillStyle = planetGrad;
-    ctx.globalAlpha = 1.0;
-    ctx.beginPath();
-    ctx.arc(0, 0, planet.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Planet Craters
-    ctx.fillStyle = hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0.25);
-    ctx.globalAlpha = 0.25;
-    for (let i = 0; i < planet.craters.length; i++) {
-      const crater = planet.craters[i];
-      ctx.beginPath();
-      ctx.arc(crater.x, crater.y, crater.radius, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-
-    // 3. Front section of rings (drawn over planet)
-    ctx.save();
-    ctx.translate(posX, planet.y);
-    ctx.rotate(planet.ringTilt);
-    ctx.scale(1.0, 0.32);
-
-    ctx.strokeStyle = planetTheme.ringColorHighlight;
-    ctx.globalAlpha = 0.6;
-    ctx.lineWidth = planet.ringOuterRadius - planet.ringInnerRadius;
-
-    ctx.beginPath();
-    ctx.arc(0, 0, midRingRadius, 0, Math.PI);
-    ctx.stroke();
-
-    // Ring shadow gap
-    ctx.strokeStyle = hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0.8);
-    ctx.globalAlpha = 0.4;
-    ctx.lineWidth = (planet.ringOuterRadius - planet.ringInnerRadius) * 0.15;
-    ctx.beginPath();
-    ctx.arc(0, 0, midRingRadius * 0.96, 0, Math.PI);
-    ctx.stroke();
-
-    ctx.restore();
-
-    // 4. Cratered Moon
-    ctx.save();
-    ctx.translate(planet.moonX, planet.moonY);
-
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.stationSteel;
-    ctx.globalAlpha = 0.85;
-    ctx.beginPath();
-    ctx.arc(0, 0, planet.moonRadius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Moon craters
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.cosmicNavy;
-    ctx.globalAlpha = 0.5;
-    for (let i = 0; i < planet.moonCraters.length; i++) {
-      const mc = planet.moonCraters[i];
-      ctx.beginPath();
-      ctx.arc(mc.x, mc.y, mc.radius, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-
-    ctx.restore();
-  }
-};
-
-export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
-    if (!Skia) return;
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (!state.planetInitialized) {
-      initializeRingingPlanet(world, state);
-    }
-    const planet = state.planet;
-    if (!planet) return;
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer4_distant_asteroids");
-    const posX = wrapParallaxCoordinate(planet.x - offsetX * 0.1, width, planet.radius * 3);
-    const theme = getActiveLevelTheme(world);
-    const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
-
-    canvas.save();
-
-    const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
-    const ringThickness = planet.ringOuterRadius - planet.ringInnerRadius;
-
-    // 1. Back section of rings
-    canvas.save();
-    canvas.translate(posX, planet.y);
-    canvas.rotate((planet.ringTilt * 180) / Math.PI, 0, 0);
-    canvas.scale(1.0, 0.32);
-
-    const backRingPaint = Skia.Paint();
-    backRingPaint.setStyle(Skia.PaintStyle.Stroke);
-    backRingPaint.setStrokeWidth(ringThickness);
-    backRingPaint.setColor(Skia.Color(planetTheme.ringColorBase));
-    backRingPaint.setAlphaf(0.35);
-
-    const backRingPath = Skia.Path.Make();
-    backRingPath.addArc(
-      Skia.XYWHRect(-midRingRadius, -midRingRadius, midRingRadius * 2, midRingRadius * 2),
-      180, 180
-    );
-    canvas.drawPath(backRingPath, backRingPaint);
-    canvas.restore();
-
-    // 2. Planet body
-    canvas.save();
-    canvas.translate(posX, planet.y);
-
-    // Atmosphere halo
-    const atmosPaint = Skia.Paint();
-    atmosPaint.setStyle(Skia.PaintStyle.Stroke);
-    atmosPaint.setStrokeWidth(3);
-    atmosPaint.setColor(Skia.Color(planetTheme.atmosphereColor));
-    atmosPaint.setAlphaf(0.25);
-    canvas.drawCircle(0, 0, planet.radius + 2, atmosPaint);
-
-    const planetShader = getOrCreateCached(state, "cachedPlanetSkiaShader", width, height, () => {
-      return Skia.Shader.MakeRadialGradient(
-        Skia.Point(-planet.radius * 0.3, -planet.radius * 0.3),
-        planet.radius,
-        [
-          Skia.Color(planetTheme.bodyGradient[0]),
-          Skia.Color(planetTheme.bodyGradient[1]),
-          Skia.Color(planetTheme.bodyGradient[2])
-        ],
-        [0.0, 0.5, 1.0],
-        Skia.TileMode.Clamp
-      );
-    });
-
-    const planetPaint = Skia.Paint();
-    planetPaint.setShader(planetShader);
-    canvas.drawCircle(0, 0, planet.radius, planetPaint);
-
-    // Planet craters
-    const craterPaint = Skia.Paint();
-    craterPaint.setColor(getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0.25));
-    craterPaint.setAlphaf(0.25);
-    for (let i = 0; i < planet.craters.length; i++) {
-      const crater = planet.craters[i];
-      canvas.drawCircle(crater.x, crater.y, crater.radius, craterPaint);
-    }
-    canvas.restore();
-
-    // 3. Front section of rings
-    canvas.save();
-    canvas.translate(posX, planet.y);
-    canvas.rotate((planet.ringTilt * 180) / Math.PI, 0, 0);
-    canvas.scale(1.0, 0.32);
-
-    const frontRingPaint = Skia.Paint();
-    frontRingPaint.setStyle(Skia.PaintStyle.Stroke);
-    frontRingPaint.setStrokeWidth(ringThickness);
-    frontRingPaint.setColor(Skia.Color(planetTheme.ringColorHighlight));
-    frontRingPaint.setAlphaf(0.6);
-
-    const frontRingPath = Skia.Path.Make();
-    frontRingPath.addArc(
-      Skia.XYWHRect(-midRingRadius, -midRingRadius, midRingRadius * 2, midRingRadius * 2),
-      0, 180
-    );
-    canvas.drawPath(frontRingPath, frontRingPaint);
-
-    // Ring shadow gap
-    const gapPaint = Skia.Paint();
-    gapPaint.setStyle(Skia.PaintStyle.Stroke);
-    gapPaint.setStrokeWidth(ringThickness * 0.15);
-    gapPaint.setColor(getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0.8));
-    gapPaint.setAlphaf(0.4);
-
-    const gapPath = Skia.Path.Make();
-    gapPath.addArc(
-      Skia.XYWHRect(-midRingRadius * 0.96, -midRingRadius * 0.96, midRingRadius * 1.92, midRingRadius * 1.92),
-      0, 180
-    );
-    canvas.drawPath(gapPath, gapPaint);
-    canvas.restore();
-
-    // 4. Cratered Moon
-    canvas.save();
-    canvas.translate(planet.moonX, planet.moonY);
-
-    const moonPaint = Skia.Paint();
-    moonPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
-    moonPaint.setAlphaf(0.85);
-    canvas.drawCircle(0, 0, planet.moonRadius, moonPaint);
-
-    const moonCraterPaint = Skia.Paint();
-    moonCraterPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.cosmicNavy));
-    moonCraterPaint.setAlphaf(0.5);
-    for (let i = 0; i < planet.moonCraters.length; i++) {
-      const mc = planet.moonCraters[i];
-      canvas.drawCircle(mc.x, mc.y, mc.radius, moonCraterPaint);
-    }
-    canvas.restore();
-
-    canvas.restore();
-  }
-};
-
 /**
  * Registers all shared VFX shape drawers to a Renderer instance for both Canvas and Skia backends.
  */
@@ -1563,74 +365,6 @@ export function createSharedParticle<
 ): number {
   return pool.acquire(world, { x, y, dx, dy, size, color, ttl });
 }
-
-// -------------------------------------------------------------
-// 2. ScrollingStarfieldEffect (Canvas & Skia)
-// -------------------------------------------------------------
-export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
-
-    if (!state.starsInitialized) {
-      initializeStars(world, state);
-    }
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer2_distant_stars");
-    const theme = getActiveLevelTheme(world);
-    const starSpeedMult = theme.starSpeed || 1.0;
-
-    ctx.save();
-
-    for (let i = 0; i < STAR_COUNT; i++) {
-      const star = state.stars[i];
-      const posX = wrapParallaxCoordinate(star.x - star.speed * starSpeedMult - offsetX * 0.1, width);
-
-      star.twinklePhase += star.twinkleSpeed;
-      const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
-      const currentSize = star.size * twinkle;
-
-      ctx.fillStyle = star.color;
-      ctx.fillRect(posX - currentSize / 2, star.y - currentSize / 2, currentSize, currentSize);
-    }
-
-    ctx.restore();
-  }
-};
-
-export const SkiaScrollingStarfieldEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
-    if (!Skia) return;
-    const { width, height, state } = getScreenAndVFXState(world);
-
-    if (!state.starsInitialized) {
-      initializeStars(world, state);
-    }
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer2_distant_stars");
-    const theme = getActiveLevelTheme(world);
-    const starSpeedMult = theme.starSpeed || 1.0;
-
-    canvas.save();
-    const paint = Skia.Paint();
-
-    for (let i = 0; i < STAR_COUNT; i++) {
-      const star = state.stars[i];
-      const posX = wrapParallaxCoordinate(star.x - star.speed * starSpeedMult - offsetX * 0.1, width);
-
-      star.twinklePhase += star.twinkleSpeed;
-      const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
-      const currentSize = star.size * twinkle;
-
-      paint.setColor(star.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
-      canvas.drawRect(
-        Skia.XYWHRect(posX - currentSize / 2, star.y - currentSize / 2, currentSize, currentSize),
-        paint
-      );
-    }
-
-    canvas.restore();
-  }
-};
 
 // -------------------------------------------------------------
 // 3. HyperdriveWarpSpeedLinesEffect (Canvas & Skia)
@@ -1753,7 +487,6 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, CoreComponentRegistr
       canvas.drawCircle(0, 0, radius * pulseFactor, paint);
     });
 
-    // Arc discharge sparks - identical RNG consumption & drawing for Canvas/Skia parity
     const rng = world.renderRandom;
     const sparkPaint = Skia.Paint();
     sparkPaint.setStyle(Skia.PaintStyle.Stroke);
@@ -1875,93 +608,6 @@ export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, CoreComponentRegistry> 
   }
 };
 
-// =============================================================
-// II. 10 NEW ADDITIONAL EFFECTS (CANVAS & SKIA)
-// =============================================================
-
-// -------------------------------------------------------------
-// 6. DriftingNebulaBackgroundEffect (Canvas & Skia)
-// -------------------------------------------------------------
-export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world) {
-    const state = getVFXState(world);
-    if (!state.nebulaeInitialized) {
-      initializeNebulae(world, state);
-    }
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
-    const theme = getActiveLevelTheme(world);
-
-    ctx.save();
-
-    for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
-      const neb = state.nebulae[i];
-      neb.x += neb.vx;
-      neb.y += neb.vy;
-
-      const posX = neb.x - offsetX * 0.1;
-      const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
-
-      ctx.fillStyle = nebColorHex;
-      ctx.globalAlpha = 0.012 * theme.ambientGlow;
-
-      for (let r = neb.radius; r > 10; r -= 20) {
-        ctx.beginPath();
-        ctx.arc(posX, neb.y, r, 0, Math.PI * 2);
-        ctx.fill();
-
-        const offsetAngle = state.timePhase * 0.05 + i;
-        const lobeX = posX + Math.cos(offsetAngle) * (r * 0.25);
-        const lobeY = neb.y + Math.sin(offsetAngle) * (r * 0.25);
-        ctx.beginPath();
-        ctx.arc(lobeX, lobeY, r * 0.7, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    ctx.restore();
-  }
-};
-
-export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
-    if (!Skia) return;
-    const state = getVFXState(world);
-    if (!state.nebulaeInitialized) {
-      initializeNebulae(world, state);
-    }
-
-    const { offsetX } = computeParallaxOffset(state.timePhase, 0, "layer1_nebula");
-    const theme = getActiveLevelTheme(world);
-
-    canvas.save();
-    const paint = Skia.Paint();
-
-    for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
-      const neb = state.nebulae[i];
-      neb.x += neb.vx;
-      neb.y += neb.vy;
-
-      const posX = neb.x - offsetX * 0.1;
-      const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
-
-      paint.setColor(Skia.Color(nebColorHex));
-      paint.setAlphaf(0.012 * theme.ambientGlow);
-
-      for (let r = neb.radius; r > 10; r -= 20) {
-        canvas.drawCircle(posX, neb.y, r, paint);
-
-        const offsetAngle = state.timePhase * 0.05 + i;
-        const lobeX = posX + Math.cos(offsetAngle) * (r * 0.25);
-        const lobeY = neb.y + Math.sin(offsetAngle) * (r * 0.25);
-        canvas.drawCircle(lobeX, lobeY, r * 0.7, paint);
-      }
-    }
-
-    canvas.restore();
-  }
-};
-
 // -------------------------------------------------------------
 // 7. MatrixDigitalRainEffect (Canvas & Skia)
 // -------------------------------------------------------------
@@ -1979,14 +625,12 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Cor
       const col = state.matrixColumns[i];
       updateMatrixColumn(col, height, world.renderRandom);
 
-      // Draw streaming pixel cubes rather than allocating strings per frame
       ctx.fillStyle = COSMIC_ARCADE_PALETTE.matrixGreen;
       ctx.globalAlpha = col.intensity * 0.15;
       for (let j = 0; j < col.length; j++) {
         ctx.fillRect(col.x, col.y - j * 8, 4, 6);
       }
 
-      // Leading bright tip
       ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
       ctx.globalAlpha = col.intensity;
       ctx.fillRect(col.x, col.y, 4, 6);
@@ -2018,7 +662,6 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, CoreComponentRegistr
         canvas.drawRect(Skia.XYWHRect(col.x, col.y - j * 8, 4, 6), paint);
       }
 
-      // Bright tip
       paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
       paint.setAlphaf(col.intensity);
       canvas.drawRect(Skia.XYWHRect(col.x, col.y, 4, 6), paint);
@@ -2052,7 +695,7 @@ export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, Core
     const { width, height } = getScreenAndVFXState(world);
 
     const rng = world.renderRandom;
-    if (rng.next() < 0.96) return; // Keep glitches highly responsive & sparse
+    if (rng.next() < 0.96) return;
 
     ctx.save();
     ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
@@ -2114,7 +757,6 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Cor
       glowCtx.fill();
     });
 
-    // Inner white hot core
     ctx.fillStyle = flameColors.core;
     ctx.globalAlpha = 0.85;
     ctx.beginPath();
@@ -2156,7 +798,6 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, CoreComponentRegistr
       canvas.drawPath(pathOuter, paint);
     });
 
-    // Inner white hot core
     const paintInner = Skia.Paint();
     paintInner.setColor(Skia.Color(flameColors.core));
     paintInner.setAlphaf(0.85);
@@ -2192,7 +833,6 @@ export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComp
       glowCtx.stroke();
     });
 
-    // Electrical Discharges (Deterministic zig-zags)
     const rng = world.renderRandom;
     ctx.strokeStyle = COSMIC_ARCADE_PALETTE.iceBlue;
     ctx.lineWidth = 1;
@@ -2229,7 +869,6 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<any, CoreComponentRegistry> = 
       canvas.drawLine(0, 0, 0, -length, paint);
     });
 
-    // Electrical discharges
     const rng = world.renderRandom;
     const sparkPaint = Skia.Paint();
     sparkPaint.setStyle(Skia.PaintStyle.Stroke);
@@ -2262,7 +901,6 @@ export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, Core
 
     ctx.save();
 
-    // Red alert pulse
     ctx.strokeStyle = COSMIC_ARCADE_PALETTE.dangerRed;
     ctx.globalAlpha = 0.12 + 0.08 * Math.sin(timePhase * 3);
     ctx.lineWidth = 14;
@@ -2310,7 +948,6 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Core
 
     ctx.save();
 
-    // 1. Accretion Disk (Concentric spiraling glowing paths)
     ctx.strokeStyle = COSMIC_ARCADE_PALETTE.nebulaPurple;
     ctx.globalAlpha = 0.3;
     for (let r = baseSize; r > 5; r -= 6) {
@@ -2320,14 +957,12 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Core
       ctx.stroke();
     }
 
-    // 2. Black Hole Center
     ctx.fillStyle = COSMIC_ARCADE_PALETTE.voidBlack;
     ctx.globalAlpha = 1.0;
     ctx.beginPath();
     ctx.arc(0, 0, baseSize * 0.4, 0, Math.PI * 2);
     ctx.fill();
 
-    // 3. Spiraling Matter Particles
     ctx.fillStyle = COSMIC_ARCADE_PALETTE.neonMagenta;
     for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
       const p = state.accretionParticles[i];
@@ -2358,7 +993,6 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<any, CoreComponentRegistry
     canvas.save();
     const paint = Skia.Paint();
 
-    // Accretion disk rings
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.nebulaPurple));
     paint.setAlphaf(0.3);
@@ -2367,12 +1001,10 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<any, CoreComponentRegistry
       canvas.drawCircle(0, 0, r, paint);
     }
 
-    // Black Hole Center
     const centerPaint = Skia.Paint();
     centerPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack));
     canvas.drawCircle(0, 0, baseSize * 0.4, centerPaint);
 
-    // Particles
     const pPaint = Skia.Paint();
     pPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.neonMagenta));
 
@@ -2517,19 +1149,16 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Core
 
     ctx.save();
 
-    // Fades and floats upward with high-contrast stroke + fill
     ctx.font = "bold 14px monospace";
     ctx.textAlign = "center";
     ctx.globalAlpha = alpha;
 
-    // Outer dark outline
     if (typeof ctx.strokeText === "function") {
       ctx.strokeStyle = COSMIC_ARCADE_PALETTE.voidBlack;
       ctx.lineWidth = 3;
       ctx.strokeText(label, 0, offsetY);
     }
 
-    // Inner glowing fill text
     if (typeof ctx.fillText === "function") {
       ctx.fillStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
       ctx.fillText(label, 0, offsetY);
@@ -2554,7 +1183,6 @@ export const SkiaFloatingTextScoreEffect: ShapeDrawer<any, CoreComponentRegistry
     paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
     paint.setAlphaf(alpha);
 
-    // Skia draws text or representative indicator cubes cleanly
     canvas.drawRect(Skia.XYWHRect(-10, -progress * 50, 20, 6), paint);
 
     canvas.restore();

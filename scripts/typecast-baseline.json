@@ -194,11 +194,6 @@
     "unknownCount": 0,
     "total": 1
   },
-  "packages/core/tests/CombatRollbackResimulation.test.ts": {
-    "anyCount": 80,
-    "unknownCount": 0,
-    "total": 80
-  },
   "packages/core/tests/ConfigService.test.ts": {
     "anyCount": 0,
     "unknownCount": 1,
@@ -384,11 +379,6 @@
     "unknownCount": 0,
     "total": 3
   },
-  "packages/gameplay-kit/src/combat/__tests__/CombatSystem.test.ts": {
-    "anyCount": 51,
-    "unknownCount": 0,
-    "total": 51
-  },
   "packages/gameplay-kit/src/combat/systems/CombatSystem.ts": {
     "anyCount": 15,
     "unknownCount": 0,
@@ -485,9 +475,9 @@
     "total": 4
   },
   "server/src/__tests__/SpaceInvadersRoom.test.ts": {
-    "anyCount": 37,
-    "unknownCount": 12,
-    "total": 49
+    "anyCount": 0,
+    "unknownCount": 4,
+    "total": 4
   },
   "server/src/index.ts": {
     "anyCount": 5,
@@ -588,11 +578,6 @@
     "anyCount": 7,
     "unknownCount": 0,
     "total": 7
-  },
-  "src/games/asteroids/__tests__/AsteroidsGameplay.test.ts": {
-    "anyCount": 46,
-    "unknownCount": 0,
-    "total": 46
   },
   "src/games/asteroids/__tests__/AsteroidsStoryMode.test.ts": {
     "anyCount": 6,
@@ -834,6 +819,11 @@
     "unknownCount": 0,
     "total": 12
   },
+  "src/games/shared/rendering/SharedVFX.ts": {
+    "anyCount": 0,
+    "unknownCount": 18,
+    "total": 18
+  },
   "src/games/shared/story/DialogueSystem.ts": {
     "anyCount": 14,
     "unknownCount": 0,
@@ -860,9 +850,9 @@
     "total": 1
   },
   "src/games/space-invaders/SpaceInvadersGame.ts": {
-    "anyCount": 23,
-    "unknownCount": 0,
-    "total": 23
+    "anyCount": 3,
+    "unknownCount": 4,
+    "total": 7
   },
   "src/games/space-invaders/__tests__/AchievementAndBossReactivity.test.ts": {
     "anyCount": 10,

@@ -209,6 +209,6 @@ export function createEmitter<
   } as ParticleEmitterComponent;
 
   const { entity, add } = createDeferredEntity(world);
-  add(component as TComponents["ParticleEmitter"]);
+  (add as unknown as (comp: ParticleEmitterComponent) => void)(component);
   return entity;
 }

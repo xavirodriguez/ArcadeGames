@@ -137,12 +137,17 @@ export class SpaceInvadersArcadeAdapter extends BaseMiniGameEncounter<SpaceInvad
 
     game.start();
 
-    const eventBus = (game as any).eventBus || (game as any).getEventBus?.();
+    interface GameWithEventBus {
+      eventBus?: import("@tiny-aster/core").EventBus;
+      getEventBus?: () => import("@tiny-aster/core").EventBus;
+    }
+
+    const eventBus = (game as unknown as GameWithEventBus).eventBus || game.getEventBus?.();
     if (eventBus) {
-      eventBus.on("game:over" as any, (payload: any) => {
+      eventBus.on("game:over", (payload: Record<string, unknown>) => {
         this.emitResult(context, payload);
       });
-      eventBus.on("level:completed" as any, (payload: any) => {
+      eventBus.on("level:completed", (payload: Record<string, unknown>) => {
         this.emitResult(context, payload);
       });
     }

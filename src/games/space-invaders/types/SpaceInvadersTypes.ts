@@ -99,7 +99,7 @@ export interface DraftStateComponent extends Component {
 /**
  * Component registry mapping for Space Invaders.
  */
-export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry {
+export interface SpaceInvadersComponentRegistry extends CoreComponentRegistry, MultiplayerRegistry {
   Input: InputComponent;
   Player: PlayerComponent;
   Invader: InvaderComponent;
@@ -146,8 +146,8 @@ export interface InputState {
 export interface InputComponent extends Component, InputState {
   type: "Input";
   shootCooldownRemaining: number;
-  actions?: Set<string>;
-  axes?: Record<string, number>;
+  actions: Set<string>;
+  axes: Record<string, number>;
 }
 
 /**

@@ -664,7 +664,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const { BENEFICIAL_MUTATORS } = require("../../../utils/MutatorRegistry");
       BENEFICIAL_MUTATORS.hyper_drift.apply(world);
 
-      const updatedConfig = world.getResource<Record<string, number>>("GameConfig");
+      const updatedConfig = world.getResource<AsteroidConfig & { FRICTION?: number }>("GameConfig");
       expect(updatedConfig?.SHIP_THRUST).toBe(300);
       expect(updatedConfig?.FRICTION).toBe(0.95);
     });
@@ -676,7 +676,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const { BENEFICIAL_MUTATORS } = require("../../../utils/MutatorRegistry");
       BENEFICIAL_MUTATORS.bouncing_bullets.apply(world);
 
-      const updatedConfig = world.getResource<Record<string, string>>("GameConfig");
+      const updatedConfig = world.getResource<AsteroidConfig & { BULLET_BOUNDARY_BEHAVIOR?: string }>("GameConfig");
       expect(updatedConfig?.BULLET_BOUNDARY_BEHAVIOR).toBe("bounce");
 
       // Spawn bullet, should have a Boundary component with mode = bounce

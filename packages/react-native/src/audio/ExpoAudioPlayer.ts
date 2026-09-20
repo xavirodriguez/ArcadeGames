@@ -43,29 +43,35 @@ export class ExpoAudioPlayer implements IAudioPlayer {
    */
   public async loadSFX(id: string, options?: unknown): Promise<void> {
     try {
-      let source: unknown = options;
+      let sourcePathOrUri: unknown = null;
 
-      if (!source || source === id) {
+      if (typeof options === "string") {
+        sourcePathOrUri = options;
+      } else if (typeof options === "number") {
+        sourcePathOrUri = options;
+      } else if (typeof options === "object" && options !== null) {
+        const obj = options as Record<string, unknown>;
+        if (obj.uri || obj.path || obj.source) {
+          sourcePathOrUri = obj.uri || obj.path || obj.source;
+        }
+      }
+
+      if (!sourcePathOrUri || sourcePathOrUri === id) {
         const manifestEntry = SHARED_AUDIO_MANIFEST.find((a: AudioAssetDefinition) => a.id === id);
         if (manifestEntry) {
-          source = manifestEntry.path;
+          sourcePathOrUri = manifestEntry.path;
         } else {
-          source = id;
+          sourcePathOrUri = id;
         }
       }
 
       let sourceToLoad: AudioSource = null;
-      if (typeof source === "string") {
-        sourceToLoad = { uri: source };
-      } else if (typeof source === "number") {
-        sourceToLoad = source;
-      } else if (typeof source === "object" && source !== null) {
-        const srcObj = source as Record<string, unknown>;
-        if (srcObj.uri || srcObj.path) {
-          sourceToLoad = { uri: String(srcObj.uri || srcObj.path) };
-        } else {
-          sourceToLoad = source as AudioSource;
-        }
+      if (typeof sourcePathOrUri === "string") {
+        sourceToLoad = { uri: sourcePathOrUri };
+      } else if (typeof sourcePathOrUri === "number") {
+        sourceToLoad = sourcePathOrUri;
+      } else if (typeof sourcePathOrUri === "object" && sourcePathOrUri !== null) {
+        sourceToLoad = sourcePathOrUri as AudioSource;
       }
 
       const player = createAudioPlayer(sourceToLoad);
@@ -194,7 +200,7 @@ export class ExpoAudioPlayer implements IAudioPlayer {
         if (typeof this.bgmPlayer.remove === "function") {
           this.bgmPlayer.remove();
         }
-      } catch (e) {
+      } catch (_e) {
         // Defensive safe catch
       }
     }
@@ -209,7 +215,7 @@ export class ExpoAudioPlayer implements IAudioPlayer {
     if (this.bgmPlayer) {
       try {
         this.bgmPlayer.pause();
-      } catch (e) {
+      } catch (_e) {
         // Defensive safe catch
       }
     }
@@ -225,7 +231,7 @@ export class ExpoAudioPlayer implements IAudioPlayer {
     if (this.bgmPlayer) {
       try {
         this.bgmPlayer.volume = Math.max(0, Math.min(1, this.masterVolume * this.bgmVolume));
-      } catch (e) {
+      } catch (_e) {
         // Defensive safe catch
       }
     }
@@ -250,7 +256,7 @@ export class ExpoAudioPlayer implements IAudioPlayer {
     if (this.bgmPlayer) {
       try {
         this.bgmPlayer.volume = Math.max(0, Math.min(1, this.masterVolume * this.bgmVolume));
-      } catch (e) {
+      } catch (_e) {
         // Defensive safe catch
       }
     }

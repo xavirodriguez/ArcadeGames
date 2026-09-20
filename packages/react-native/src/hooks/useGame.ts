@@ -79,6 +79,7 @@ export function useGame<
     gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) },
     assetProvider: options.assetProvider,
     audio: audioPlayer
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [isMultiplayer, seed, serializedGameOptions, options.assetProvider, audioPlayer]);
 
   const [game, setGame] = useState<TGame | null>(null);

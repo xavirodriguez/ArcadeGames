@@ -1445,18 +1445,18 @@
     },
     {
       "firstFile": {
-        "end": 225,
+        "end": 226,
         "endLoc": {
           "column": 13,
-          "line": 225,
-          "position": 8160
+          "line": 226,
+          "position": 8200
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 216,
+        "start": 217,
         "startLoc": {
           "column": 8,
-          "line": 216,
-          "position": 7869
+          "line": 217,
+          "position": 7909
         }
       },
       "format": "typescript",
@@ -1464,18 +1464,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 319,
+        "end": 320,
         "endLoc": {
           "column": 13,
-          "line": 319,
-          "position": 11220
+          "line": 320,
+          "position": 11260
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 310,
+        "start": 311,
         "startLoc": {
           "column": 8,
-          "line": 310,
-          "position": 10929
+          "line": 311,
+          "position": 10969
         }
       },
       "tokens": 51
@@ -6329,7 +6329,7 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-20T16:48:19.662Z",
+    "detectionDate": "2026-09-20T21:31:03.579Z",
     "formats": {
       "typescript": {
         "clones": 171,

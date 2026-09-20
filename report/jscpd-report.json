@@ -2,370 +2,666 @@
   "duplicates": [
     {
       "firstFile": {
-        "end": 53,
+        "end": 43,
         "endLoc": {
-          "column": 27,
-          "line": 53,
-          "position": 1799
+          "column": 93,
+          "line": 43,
+          "position": 1733
         },
-        "name": "FlappyBirdMissions.ts",
-        "start": 48,
+        "name": "ecs/EntityBuilder.ts",
+        "start": 38,
         "startLoc": {
-          "column": 27,
-          "line": 48,
-          "position": 1577
+          "column": 22,
+          "line": 38,
+          "position": 1321
         }
       },
       "format": "typescript",
-      "fragment": "    onUpdate: (world, state) => {\n      const birds = world.query(\"Bird\");\n      if (birds.length > 0) {\n        const b = world.getComponent(birds[0], \"Bird\") as BirdComponent | undefined;\n        if (b && b.isGliding) {\n          state.customData.failedGlide = true;",
+      "fragment": "  public static create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {\n    return createBuilderInstance((w, e, cb) => new EntityBuilder(w, e, cb), world, undefined, false);",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 177,
+        "end": 65,
         "endLoc": {
-          "column": 27,
-          "line": 177,
-          "position": 6007
+          "column": 93,
+          "line": 65,
+          "position": 2851
         },
-        "name": "FlappyBirdMissions.ts",
-        "start": 172,
+        "name": "ecs/EntityBuilder.ts",
+        "start": 60,
         "startLoc": {
-          "column": 38,
-          "line": 172,
-          "position": 5785
+          "column": 30,
+          "line": 60,
+          "position": 2439
         }
       },
-      "tokens": 54
+      "tokens": 72
     },
     {
       "firstFile": {
-        "end": 23,
+        "end": 110,
         "endLoc": {
+          "column": 32,
+          "line": 110,
+          "position": 4524
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 94,
+        "startLoc": {
           "column": 33,
-          "line": 23,
-          "position": 871
-        },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 1,
-        "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
+          "line": 94,
+          "position": 4061
         }
       },
       "format": "typescript",
-      "fragment": "import { ShapeDrawer, EffectDrawer, TransformComponent } from \"@tiny-aster/core\";\nimport { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";\nimport { createParticlePool, VisualParticlePool } from \"../../shared/rendering/VisualParticlePool\";\nimport { applyFlappyParticlePhysics } from \"./particleEvents\";\nimport {\n  resolveFlappyBirdDrawContext,\n  resolveFlappyPipeDrawContext,\n  maybeSpawnBackgroundDebris,\n  resolveGlideEnergyState,\n  resolveSectorEventInfo\n} from \"./FlappyBirdRenderUtils\";",
+      "fragment": "const ryB = worldAnchorBy - posBy;\n\n      const vxA = velA ? velA.vx : 0;\n      const vyA = velA ? velA.vy : 0;\n      const wA = velA ? velA.angularVelocity : 0;\n\n      const vxB = velB ? velB.vx : 0;\n      const vyB = velB ? velB.vy : 0;\n      const wB = velB ? velB.angularVelocity : 0;\n\n      const vpAx = vxA - wA * ryA;\n      const vpAy = vyA + wA * rxA;\n      const vpBx = vxB - wB * ryB;\n      const vpBy = vyB + wB * rxB;\n\n      const relVx = vpBx - vpAx;\n      const relVy = vpBy - vpAy;",
       "isNew": false,
-      "lines": 23,
+      "lines": 17,
       "secondFile": {
-        "end": 23,
+        "end": 167,
         "endLoc": {
-          "column": 33,
-          "line": 23,
-          "position": 871
+          "column": 30,
+          "line": 167,
+          "position": 5930
         },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 1,
+        "name": "physics/dynamics/PhysicsSolveSystem.ts",
+        "start": 151,
         "startLoc": {
-          "column": 0,
-          "line": 1,
-          "position": 0
+          "column": 44,
+          "line": 151,
+          "position": 5491
         }
       },
-      "tokens": 82
+      "tokens": 117
     },
     {
       "firstFile": {
-        "end": 45,
+        "end": 154,
         "endLoc": {
-          "column": 9,
-          "line": 45,
-          "position": 1637
+          "column": 12,
+          "line": 154,
+          "position": 6023
         },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 32,
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 126,
         "startLoc": {
-          "column": 40,
-          "line": 32,
-          "position": 1365
+          "column": 34,
+          "line": 126,
+          "position": 5083
         }
       },
       "format": "typescript",
-      "fragment": "export const FLAPPY_CANVAS_PARTICLE_POOL: VisualParticlePool = createParticlePool(150);\n\nexport function spawnVisualParticle(\n  type: \"spark\" | \"shard\" | \"star\",\n  x: number,\n  y: number,\n  vx: number,\n  vy: number,\n  maxLife: number,\n  size: number,\n  color: string,\n  angle = 0,\n  angularVelocity = 0\n): void {",
+      "fragment": "const fSpring = stiffness * deltaL;\n        const fDamping = damping * (relVx * nx + relVy * ny);\n        const totalForce = fSpring + fDamping;\n\n        const Fx = totalForce * nx;\n        const Fy = totalForce * ny;\n\n        if (velA && !isStaticA) {\n          const vA = w.getMutableComponent(entityA, \"Velocity\");\n          if (vA) {\n            vA.vx += Fx * invMassA * deltaTime;\n            vA.vy += Fy * invMassA * deltaTime;\n            if (invInertiaA > 0) {\n              vA.angularVelocity += (rxA * Fy - ryA * Fx) * invInertiaA * deltaTime;\n            }\n          }\n        }\n\n        if (velB && !isStaticB) {\n          const vB = w.getMutableComponent(entityB, \"Velocity\");\n          if (vB) {\n            vB.vx -= Fx * invMassB * deltaTime;\n            vB.vy -= Fy * invMassB * deltaTime;\n            if (invInertiaB > 0) {\n              vB.angularVelocity -= (rxB * Fy - ryB * Fx) * invInertiaB * deltaTime;\n            }\n          }\n        }\n      } else if (joint.jointType === \"distance\") {",
       "isNew": false,
-      "lines": 14,
+      "lines": 29,
       "secondFile": {
-        "end": 63,
+        "end": 203,
         "endLoc": {
-          "column": 9,
-          "line": 63,
-          "position": 2140
+          "column": 16,
+          "line": 203,
+          "position": 7865
         },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 50,
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 175,
         "startLoc": {
-          "column": 38,
-          "line": 50,
-          "position": 1868
+          "column": 43,
+          "line": 175,
+          "position": 6825
         }
       },
-      "tokens": 59
+      "tokens": 185
     },
     {
       "firstFile": {
-        "end": 59,
+        "end": 226,
         "endLoc": {
-          "column": 37,
-          "line": 59,
-          "position": 2151
+          "column": 13,
+          "line": 226,
+          "position": 8840
         },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 54,
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 208,
         "startLoc": {
-          "column": 47,
-          "line": 54,
-          "position": 1986
+          "column": 32,
+          "line": 208,
+          "position": 8207
         }
       },
       "format": "typescript",
-      "fragment": "  const particles = FLAPPY_CANVAS_PARTICLE_POOL.getActiveParticles();\n  for (let i = 0; i < particles.length; i++) {\n    const p = particles[i];\n    if (!p.active) continue;\n\n    const ratio = p.life / p.maxLife;",
+      "fragment": "const corrY = err * ny * percent;\n\n            if (!isStaticA && transA) {\n              const tA = w.getMutableComponent(entityA, \"Transform\");\n              if (tA) {\n                tA.x += corrX * (invMassA / totalInvMass);\n                tA.y += corrY * (invMassA / totalInvMass);\n                tA.dirty = true;\n              }\n            }\n\n            if (!isStaticB && transB) {\n              const tB = w.getMutableComponent(entityB, \"Transform\");\n              if (tB) {\n                tB.x -= corrX * (invMassB / totalInvMass);\n                tB.y -= corrY * (invMassB / totalInvMass);\n                tB.dirty = true;\n              }\n            }",
       "isNew": false,
-      "lines": 6,
+      "lines": 19,
       "secondFile": {
-        "end": 103,
+        "end": 286,
         "endLoc": {
-          "column": 37,
-          "line": 103,
-          "position": 3344
+          "column": 11,
+          "line": 286,
+          "position": 11311
         },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 98,
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 268,
         "startLoc": {
-          "column": 45,
-          "line": 98,
-          "position": 3179
+          "column": 26,
+          "line": 268,
+          "position": 10710
         }
       },
-      "tokens": 50
+      "tokens": 115
     },
     {
       "firstFile": {
-        "end": 338,
+        "end": 262,
         "endLoc": {
-          "column": 9,
-          "line": 338,
-          "position": 10931
+          "column": 13,
+          "line": 262,
+          "position": 10553
         },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 319,
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 238,
         "startLoc": {
-          "column": 4,
-          "line": 319,
-          "position": 10518
+          "column": 29,
+          "line": 238,
+          "position": 9518
         }
       },
       "format": "typescript",
-      "fragment": "    const pipeCtx = resolveFlappyPipeDrawContext(world, entity);\n    if (!pipeCtx) return;\n\n    const {\n      pos,\n      pipe,\n      width,\n      halfWidth,\n      variant,\n      geometry,\n      capHeight,\n      capWidth,\n      capHalfWidth,\n      beaconPulse,\n    } = pipeCtx;\n\n    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = geometry;\n\n    // --- METALLIC PILLAR BODY VARIANT GRADIENT ---\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {",
+      "fragment": "const impulseY = impulse * ny;\n\n              if (velA && !isStaticA) {\n                const vA = w.getMutableComponent(entityA, \"Velocity\");\n                if (vA) {\n                  vA.vx -= impulseX * invMassA;\n                  vA.vy -= impulseY * invMassA;\n                  if (invInertiaA > 0) {\n                    vA.angularVelocity -= (rxA * impulseY - ryA * impulseX) * invInertiaA;\n                  }\n                }\n              }\n\n              if (velB && !isStaticB) {\n                                // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/PhysicsSolveSystem.ts:198-206. Considerar extraer a función compartida. Ref: d81d7c34\nconst vB = w.getMutableComponent(entityB, \"Velocity\");\n                if (vB) {\n                  vB.vx += impulseX * invMassB;\n                  vB.vy += impulseY * invMassB;\n                  if (invInertiaB > 0) {\n                    vB.angularVelocity += (rxB * impulseY - ryB * impulseX) * invInertiaB;\n                  }\n                }\n              }\n            }",
       "isNew": false,
-      "lines": 20,
+      "lines": 25,
       "secondFile": {
-        "end": 331,
+        "end": 315,
         "endLoc": {
           "column": 9,
-          "line": 331,
-          "position": 10959
+          "line": 315,
+          "position": 12290
         },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 313,
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 292,
         "startLoc": {
-          "column": 4,
-          "line": 313,
-          "position": 10599
+          "column": 52,
+          "line": 292,
+          "position": 11519
         }
       },
-      "tokens": 59
+      "tokens": 136
     },
     {
       "firstFile": {
-        "end": 508,
+        "end": 253,
         "endLoc": {
-          "column": 14,
-          "line": 508,
-          "position": 17398
+          "column": 10,
+          "line": 253,
+          "position": 10187
         },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 500,
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 241,
         "startLoc": {
-          "column": 19,
-          "line": 500,
-          "position": 16958
+          "column": 28,
+          "line": 241,
+          "position": 9589
         }
       },
       "format": "typescript",
-      "fragment": "        ctx.stroke();\n\n        if (world.tick % 4 === 0) {\n          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;\n          const sparkAngle = world.renderRandom.next() * Math.PI * 2;\n          const sparkSpeed = world.renderRandom.nextRange(20, 60);\n          spawnVisualParticle(\"spark\", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, \"#00F3FF\");\n        }\n      } else {",
+      "fragment": "                const vA = w.getMutableComponent(entityA, \"Velocity\");\n                if (vA) {\n                  vA.vx -= impulseX * invMassA;\n                  vA.vy -= impulseY * invMassA;\n                  if (invInertiaA > 0) {\n                    vA.angularVelocity -= (rxA * impulseY - ryA * impulseX) * invInertiaA;\n                  }\n                }\n              }\n\n              if (velB && !isStaticB) {\n                                // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/PhysicsSolveSystem.ts:198-206. Considerar extraer a función compartida. Ref: d81d7c34\nconst vB = w.getMutableComponent(entityB, \"Velocity\");",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 198,
+        "endLoc": {
+          "column": 16,
+          "line": 198,
+          "position": 6866
+        },
+        "name": "physics/dynamics/PhysicsSolveSystem.ts",
+        "start": 187,
+        "startLoc": {
+          "column": 22,
+          "line": 187,
+          "position": 6548
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 261,
+        "endLoc": {
+          "column": 15,
+          "line": 261,
+          "position": 10539
+        },
+        "name": "physics/dynamics/JointSolverSystem.ts",
+        "start": 253,
+        "startLoc": {
+          "column": 12,
+          "line": 253,
+          "position": 10189
+        }
+      },
+      "format": "typescript",
+      "fragment": "const vB = w.getMutableComponent(entityB, \"Velocity\");\n                if (vB) {\n                  vB.vx += impulseX * invMassB;\n                  vB.vy += impulseY * invMassB;\n                  if (invInertiaB > 0) {\n                    vB.angularVelocity += (rxB * impulseY - ryB * impulseX) * invInertiaB;\n                  }\n                }\n              }",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 489,
+        "end": 206,
         "endLoc": {
-          "column": 14,
-          "line": 489,
-          "position": 16771
+          "column": 5,
+          "line": 206,
+          "position": 7142
         },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 481,
+        "name": "physics/dynamics/PhysicsSolveSystem.ts",
+        "start": 198,
         "startLoc": {
-          "column": 98,
-          "line": 481,
-          "position": 16331
+          "column": 22,
+          "line": 198,
+          "position": 6872
         }
       },
-      "tokens": 102
+      "tokens": 55
     },
     {
       "firstFile": {
-        "end": 742,
+        "end": 127,
         "endLoc": {
-          "column": 11,
-          "line": 742,
-          "position": 25693
+          "column": 22,
+          "line": 127,
+          "position": 5039
         },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 735,
+        "name": "physics/systems/TileCollisionSystem.ts",
+        "start": 119,
         "startLoc": {
-          "column": 36,
-          "line": 735,
-          "position": 25363
+          "column": 15,
+          "line": 119,
+          "position": 4697
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillRect(0, 0, width, height);\n\n    // --- ANIMATED LOW-OPACITY RADIAL NEBULAE CLOUDS ---\n    for (let n = 0; n < BACKGROUND_NEBULAE.length; n++) {\n      const neb = BACKGROUND_NEBULAE[n];\n      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;\n      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;\n      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}`, () => {",
+      "fragment": "      xTileLoop: for (let ty = minTileY; ty <= maxTileY; ty++) {\n        const row = tilemap.data[ty];\n        if (!row) continue;\n        for (let tx = minTileX; tx <= maxTileX; tx++) {\n          const tileId = row[tx];\n          if (tileId === undefined || tileId === 0) continue;\n\n          const tileDef = tileDefinitions[tileId];\n          if (!tileDef || !tileDef.solid || tileDef.oneWay) continue;",
       "isNew": false,
-      "lines": 8,
+      "lines": 9,
       "secondFile": {
-        "end": 708,
+        "end": 169,
         "endLoc": {
-          "column": 11,
-          "line": 708,
-          "position": 25254
+          "column": 22,
+          "line": 169,
+          "position": 6538
         },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 701,
+        "name": "physics/systems/TileCollisionSystem.ts",
+        "start": 161,
         "startLoc": {
-          "column": 61,
-          "line": 701,
-          "position": 24924
-        }
-      },
-      "tokens": 78
-    },
-    {
-      "firstFile": {
-        "end": 767,
-        "endLoc": {
-          "column": 5,
-          "line": 767,
-          "position": 26634
-        },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 754,
-        "startLoc": {
-          "column": 4,
-          "line": 754,
-          "position": 26152
-        }
-      },
-      "format": "typescript",
-      "fragment": "    }\n\n    // --- SPORADIC DISTANT BACKGROUND DEBRIS / SPARKS ---\n    maybeSpawnBackgroundDebris(world, width, height, spawnVisualParticle);\n\n    // Hypervelocity combo factor calculation\n    let warpFactor = 1.0;\n    const comboEntities = world.query(\"Combo\");\n    if (comboEntities.length > 0) {\n      const combo = world.getComponent(comboEntities[0], \"Combo\") as any;\n      if (combo && combo.multiplier > 1) {\n        warpFactor = 1.0 + (combo.multiplier - 1) * 0.35;\n      }\n    }",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 739,
-        "endLoc": {
-          "column": 5,
-          "line": 739,
-          "position": 26351
-        },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 726,
-        "startLoc": {
-          "column": 4,
-          "line": 726,
-          "position": 25869
+          "column": 15,
+          "line": 161,
+          "position": 6196
         }
       },
       "tokens": 80
     },
     {
       "firstFile": {
-        "end": 809,
+        "end": 188,
         "endLoc": {
-          "column": 64,
-          "line": 809,
-          "position": 28305
+          "column": 15,
+          "line": 188,
+          "position": 7339
         },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 798,
+        "name": "physics/systems/TileCollisionSystem.ts",
+        "start": 180,
         "startLoc": {
-          "column": 4,
-          "line": 798,
-          "position": 27721
+          "column": 42,
+          "line": 180,
+          "position": 6938
         }
       },
       "format": "typescript",
-      "fragment": "    }\n\n    // --- AD-HOC RADIAL WARP SPEED LINES (WARPFACTOR > 1.5) ---\n    // Opting for an ad-hoc local implementation instead of registering global SharedVFX\n    // to preserve zero side-effects on shared VFX state across other minigames (e.g. Geometry Wars)\n    // while pinning radial speed lines strictly to Flappy Bird's viewport center and combo factor.\n    if (warpFactor > 1.5) {\n      const cx = width / 2;\n      const cy = height / 2;\n      const lineCount = 20;\n      const maxR = Math.sqrt(cx * cx + cy * cy);\n      const intensity = Math.min((warpFactor - 1.5) / 1.5, 1.0);",
+      "fragment": "              if (isDescending && wasAbove) {\n                trans.y = tileTop - halfH - offsetY;\n                vel.vy = 0;\n                isGrounded = true;\n                const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);\n                if (res.onIce !== undefined) onIce = res.onIce;\n                if (res.isGrounded !== undefined) isGrounded = res.isGrounded;\n                break yTileLoop;\n              }",
       "isNew": false,
-      "lines": 12,
+      "lines": 9,
       "secondFile": {
-        "end": 778,
+        "end": 198,
         "endLoc": {
-          "column": 64,
-          "line": 778,
-          "position": 27968
+          "column": 15,
+          "line": 198,
+          "position": 7789
         },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 767,
+        "name": "physics/systems/TileCollisionSystem.ts",
+        "start": 190,
         "startLoc": {
-          "column": 4,
-          "line": 767,
-          "position": 27384
+          "column": 27,
+          "line": 190,
+          "position": 7388
         }
       },
-      "tokens": 61
+      "tokens": 72
     },
     {
       "firstFile": {
-        "end": 818,
+        "end": 142,
         "endLoc": {
-          "column": 48,
-          "line": 818,
-          "position": 28662
+          "column": 16,
+          "line": 142,
+          "position": 5161
         },
-        "name": "rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 813,
+        "name": "systems/EnemyBehaviorRegistry.ts",
+        "start": 134,
         "startLoc": {
-          "column": 25,
-          "line": 813,
-          "position": 28434
+          "column": 58,
+          "line": 134,
+          "position": 4804
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.lineWidth = 1.2;\n\n      for (let l = 0; l < lineCount; l++) {\n        const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);\n        const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);\n        const outerR = innerR + 40 * warpFactor;",
+      "fragment": "          const speed = (data.patrolSpeed as number) ?? 80;\n          const sensor = world.getComponent(entity, \"PlayerSensor\");\n          const trans = world.getComponent(entity, \"Transform\");\n\n          const dir = getHorizontalDirectionToPlayer(world, entity, sensor, trans);\n\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vy = -jumpVel;",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 186,
+        "endLoc": {
+          "column": 16,
+          "line": 186,
+          "position": 6669
+        },
+        "name": "systems/EnemyBehaviorRegistry.ts",
+        "start": 178,
+        "startLoc": {
+          "column": 65,
+          "line": 178,
+          "position": 6312
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 114,
+        "endLoc": {
+          "column": 41,
+          "line": 114,
+          "position": 4525
+        },
+        "name": "arkanoid/ArkanoidGame.ts",
+        "start": 109,
+        "startLoc": {
+          "column": 4,
+          "line": 109,
+          "position": 4284
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.setupCommonArcadeResources();\n    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };\n\n    this.blueprints.register(\"ball\", {\n      spawn: (world, entity, _args: {}) => {\n        const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || DEFAULT_ARKANOID_CONFIG;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 790,
+        "end": 117,
         "endLoc": {
-          "column": 48,
-          "line": 790,
-          "position": 28403
+          "column": 41,
+          "line": 117,
+          "position": 4883
         },
-        "name": "rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 785,
+        "name": "pong/PongGame.ts",
+        "start": 111,
         "startLoc": {
-          "column": 31,
-          "line": 785,
-          "position": 28175
+          "column": 4,
+          "line": 111,
+          "position": 4615
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 172,
+        "endLoc": {
+          "column": 15,
+          "line": 172,
+          "position": 6543
+        },
+        "name": "arkanoid/ArkanoidGame.ts",
+        "start": 164,
+        "startLoc": {
+          "column": 11,
+          "line": 164,
+          "position": 6246
+        }
+      },
+      "format": "typescript",
+      "fragment": "          })\n          .withCollider({\n            shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,\n            layer: CollisionLayers.PLAYER,\n            mask: CollisionLayers.PROJECTILE\n          });\n\n        world.addComponent(entity, {\n          type: \"Paddle\",",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 186,
+        "endLoc": {
+          "column": 42,
+          "line": 186,
+          "position": 7576
+        },
+        "name": "pong/PongGame.ts",
+        "start": 179,
+        "startLoc": {
+          "column": 18,
+          "line": 179,
+          "position": 7289
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 280,
+        "endLoc": {
+          "column": 9,
+          "line": 280,
+          "position": 10926
+        },
+        "name": "arkanoid/ArkanoidGame.ts",
+        "start": 273,
+        "startLoc": {
+          "column": 78,
+          "line": 273,
+          "position": 10662
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.world.addSystem(new PowerUpSystem(), { phase: SystemPhase.Simulation });\n\n    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });\n\n    this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });\n    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });\n\n    this.stateSystem = new ArkanoidGameStateSystem();",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 187,
+        "endLoc": {
+          "column": 9,
+          "line": 187,
+          "position": 7844
+        },
+        "name": "asteroids/AsteroidsGame.ts",
+        "start": 183,
+        "startLoc": {
+          "column": 89,
+          "line": 183,
+          "position": 7583
+        }
+      },
+      "tokens": 65
+    },
+    {
+      "firstFile": {
+        "end": 299,
+        "endLoc": {
+          "column": 27,
+          "line": 299,
+          "position": 12154
+        },
+        "name": "arkanoid/ArkanoidGame.ts",
+        "start": 291,
+        "startLoc": {
+          "column": 44,
+          "line": 291,
+          "position": 11790
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });\n    this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });\n    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });\n  }\n\n  protected override async onInitializeEntities(): Promise<void> {\n    this.world.gameplayRandom.unlock();\n    try {\n      ArkanoidEntityFactory.createPaddle(this.world);",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 272,
+        "endLoc": {
+          "column": 23,
+          "line": 272,
+          "position": 11390
+        },
+        "name": "pong/PongGame.ts",
+        "start": 263,
+        "startLoc": {
+          "column": 44,
+          "line": 263,
+          "position": 10961
+        }
+      },
+      "tokens": 74
+    },
+    {
+      "firstFile": {
+        "end": 321,
+        "endLoc": {
+          "column": 44,
+          "line": 321,
+          "position": 12869
+        },
+        "name": "arkanoid/ArkanoidGame.ts",
+        "start": 303,
+        "startLoc": {
+          "column": 53,
+          "line": 303,
+          "position": 12344
+        }
+      },
+      "format": "typescript",
+      "fragment": "      this.stateSystem.spawnLevelBricks(this.world, 1);\n\n      const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];\n      for (const mutatorId of activeBeneficials) {\n        const mutator = BENEFICIAL_MUTATORS[mutatorId];\n        if (mutator) {\n          mutator.apply(this.world);\n        }\n      }\n    } finally {\n      this.world.gameplayRandom.lock();\n    }\n  }\n\n  protected override async onBeforeRestart(): Promise<void> {\n    this.stateSystem?.resetGameOverState(this.world);\n  }\n\n  public override update(dt: number): void {",
+      "isNew": false,
+      "lines": 19,
+      "secondFile": {
+        "end": 295,
+        "endLoc": {
+          "column": 44,
+          "line": 295,
+          "position": 12150
+        },
+        "name": "pong/PongGame.ts",
+        "start": 275,
+        "startLoc": {
+          "column": 50,
+          "line": 275,
+          "position": 11582
+        }
+      },
+      "tokens": 104
+    },
+    {
+      "firstFile": {
+        "end": 15,
+        "endLoc": {
+          "column": 9,
+          "line": 15,
+          "position": 725
+        },
+        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
+        "start": 7,
+        "startLoc": {
+          "column": 94,
+          "line": 7,
+          "position": 465
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 23,
+        "endLoc": {
+          "column": 9,
+          "line": 23,
+          "position": 1025
+        },
+        "name": "pong/rendering/PongCanvasVisuals.ts",
+        "start": 15,
+        "startLoc": {
+          "column": 86,
+          "line": 15,
+          "position": 765
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 15,
+        "endLoc": {
+          "column": 34,
+          "line": 15,
+          "position": 750
+        },
+        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
+        "start": 9,
+        "startLoc": {
+          "column": 4,
+          "line": 9,
+          "position": 504
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 17,
+        "endLoc": {
+          "column": 34,
+          "line": 17,
+          "position": 816
+        },
+        "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
+        "start": 11,
+        "startLoc": {
+          "column": 4,
+          "line": 11,
+          "position": 570
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 12,
+          "line": 36,
+          "position": 1155
+        },
+        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
+        "start": 26,
+        "startLoc": {
+          "column": 22,
+          "line": 26,
+          "position": 995
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.shadowBlur = 0;\n    ctx.fillStyle = colors.white;\n    ctx.beginPath();\n    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);\n    ctx.fill();\n\n    ctx.restore();\n  }\n};\n\nexport const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 84,
+        "endLoc": {
+          "column": 12,
+          "line": 84,
+          "position": 2996
+        },
+        "name": "pong/rendering/PongCanvasVisuals.ts",
+        "start": 67,
+        "startLoc": {
+          "column": 16,
+          "line": 67,
+          "position": 2626
         }
       },
       "tokens": 53
@@ -816,55 +1112,18 @@
     },
     {
       "firstFile": {
-        "end": 32,
-        "endLoc": {
-          "column": 35,
-          "line": 32,
-          "position": 1172
-        },
-        "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 21,
-        "startLoc": {
-          "column": 4,
-          "line": 21,
-          "position": 840
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const eventBus = world.getEventBus();\n    if (eventBus) {\n      eventBus.on(\"combat:hit\", (event: CombatHitEvent) => {\n        this.onCombatHit(world, event);\n      });\n      eventBus.on(\"combat:death\", (event: CombatDeathEvent) => {\n        this.onCombatDeath(world, event);\n      });\n    }\n  }\n\n  private onCombatHit(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, event: CombatHitEvent): void {",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 63,
-        "endLoc": {
-          "column": 35,
-          "line": 63,
-          "position": 3005
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 52,
-        "startLoc": {
-          "column": 4,
-          "line": 52,
-          "position": 2673
-        }
-      },
-      "tokens": 73
-    },
-    {
-      "firstFile": {
-        "end": 273,
+        "end": 258,
         "endLoc": {
           "column": 19,
-          "line": 273,
-          "position": 11034
+          "line": 258,
+          "position": 10471
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 265,
+        "start": 250,
         "startLoc": {
           "column": 32,
-          "line": 265,
-          "position": 10764
+          "line": 250,
+          "position": 10201
         }
       },
       "format": "typescript",
@@ -872,18 +1131,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 432,
+        "end": 417,
         "endLoc": {
           "column": 13,
-          "line": 432,
-          "position": 16909
+          "line": 417,
+          "position": 16346
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 424,
+        "start": 409,
         "startLoc": {
           "column": 29,
-          "line": 424,
-          "position": 16687
+          "line": 409,
+          "position": 16124
         }
       },
       "tokens": 55
@@ -2814,11 +3073,11 @@
     },
     {
       "firstFile": {
-        "end": 20,
+        "end": 23,
         "endLoc": {
-          "column": 95,
-          "line": 20,
-          "position": 900
+          "column": 33,
+          "line": 23,
+          "position": 871
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 1,
@@ -2829,15 +3088,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "import { ShapeDrawer, EffectDrawer, TransformComponent } from \"@tiny-aster/core\";\nimport { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield,\n  calculateSquashAndStretch,\n  calculateBirdTiltAngle,\n  calculateFlappyPipeGeometry\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";\nimport { resolveHitFlash, resolveInvulnerabilityPulse } from \"../../shared/rendering/RenderUtils\";\nimport { createParticlePool, VisualParticlePool } from \"../../shared/rendering/VisualParticlePool\";\nimport { processFlappyBirdParticleEvents, applyFlappyParticlePhysics } from \"./particleEvents\";",
+      "fragment": "import { ShapeDrawer, EffectDrawer, TransformComponent } from \"@tiny-aster/core\";\nimport { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";\nimport { createParticlePool, VisualParticlePool } from \"../../shared/rendering/VisualParticlePool\";\nimport { applyFlappyParticlePhysics } from \"./particleEvents\";\nimport {\n  resolveFlappyBirdDrawContext,\n  resolveFlappyPipeDrawContext,\n  maybeSpawnBackgroundDebris,\n  resolveGlideEnergyState,\n  resolveSectorEventInfo\n} from \"./FlappyBirdRenderUtils\";",
       "isNew": false,
-      "lines": 20,
+      "lines": 23,
       "secondFile": {
-        "end": 20,
+        "end": 23,
         "endLoc": {
-          "column": 95,
-          "line": 20,
-          "position": 900
+          "column": 33,
+          "line": 23,
+          "position": 871
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 1,
@@ -2847,22 +3106,22 @@
           "position": 0
         }
       },
-      "tokens": 84
+      "tokens": 82
     },
     {
       "firstFile": {
-        "end": 42,
+        "end": 45,
         "endLoc": {
           "column": 9,
-          "line": 42,
-          "position": 1666
+          "line": 45,
+          "position": 1637
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 29,
+        "start": 32,
         "startLoc": {
           "column": 40,
-          "line": 29,
-          "position": 1394
+          "line": 32,
+          "position": 1365
         }
       },
       "format": "typescript",
@@ -2870,36 +3129,36 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 60,
+        "end": 63,
         "endLoc": {
           "column": 9,
-          "line": 60,
-          "position": 2169
+          "line": 63,
+          "position": 2140
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 47,
+        "start": 50,
         "startLoc": {
           "column": 38,
-          "line": 47,
-          "position": 1897
+          "line": 50,
+          "position": 1868
         }
       },
       "tokens": 59
     },
     {
       "firstFile": {
-        "end": 56,
+        "end": 59,
         "endLoc": {
           "column": 37,
-          "line": 56,
-          "position": 2180
+          "line": 59,
+          "position": 2151
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 51,
+        "start": 54,
         "startLoc": {
           "column": 47,
-          "line": 51,
-          "position": 2015
+          "line": 54,
+          "position": 1986
         }
       },
       "format": "typescript",
@@ -2907,36 +3166,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 100,
+        "end": 103,
         "endLoc": {
           "column": 37,
-          "line": 100,
-          "position": 3373
+          "line": 103,
+          "position": 3344
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 95,
+        "start": 98,
         "startLoc": {
           "column": 45,
-          "line": 95,
-          "position": 3208
+          "line": 98,
+          "position": 3179
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 57,
+        "end": 60,
         "endLoc": {
           "column": 8,
-          "line": 57,
-          "position": 2189
+          "line": 60,
+          "position": 2160
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 51,
+        "start": 54,
         "startLoc": {
           "column": 66,
-          "line": 51,
-          "position": 2034
+          "line": 54,
+          "position": 2005
         }
       },
       "format": "typescript",
@@ -2962,129 +3221,55 @@
     },
     {
       "firstFile": {
-        "end": 139,
-        "endLoc": {
-          "column": 60,
-          "line": 139,
-          "position": 4605
-        },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 127,
-        "startLoc": {
-          "column": 4,
-          "line": 127,
-          "position": 4096
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const { size = 15 } = render;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    const birdComp = world.getComponent(entity, \"Bird\");\n    if (!transform || !birdComp) return;\n\n    const health = world.getComponent(entity, \"Health\");\n    const x = transform.worldX ?? transform.x;\n    const y = transform.worldY ?? transform.y;\n\n    processFlappyBirdParticleEvents(world, entity, birdComp, FLAPPY_CANVAS_PARTICLE_POOL, x, y, size);",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 182,
-        "endLoc": {
-          "column": 60,
-          "line": 182,
-          "position": 6274
-        },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 170,
-        "startLoc": {
-          "column": 4,
-          "line": 170,
-          "position": 5765
-        }
-      },
-      "tokens": 106
-    },
-    {
-      "firstFile": {
-        "end": 150,
-        "endLoc": {
-          "column": 5,
-          "line": 150,
-          "position": 5107
-        },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 139,
-        "startLoc": {
-          "column": 88,
-          "line": 139,
-          "position": 4633
-        }
-      },
-      "format": "typescript",
-      "fragment": "    processFlappyBirdParticleEvents(world, entity, birdComp, FLAPPY_CANVAS_PARTICLE_POOL, x, y, size);\n\n    const vy = birdComp.velocityY;\n    const isAlive = birdComp.isAlive;\n\n    const flashState = resolveHitFlash(render, render.color || \"yellow\", 1.0, 0.35);\n    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: \"interval\", multiplier: 0.01, dimOpacity: 0.35 });\n\n    let globalOpacity = flashState.isFlashing ? flashState.opacity : 1.0;\n    if (invState.isInvulnerable) {\n      globalOpacity = invState.opacity;\n    }",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 193,
-        "endLoc": {
-          "column": 5,
-          "line": 193,
-          "position": 6774
-        },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 182,
-        "startLoc": {
-          "column": 86,
-          "line": 182,
-          "position": 6300
-        }
-      },
-      "tokens": 93
-    },
-    {
-      "firstFile": {
-        "end": 351,
+        "end": 338,
         "endLoc": {
           "column": 9,
-          "line": 351,
-          "position": 12186
+          "line": 338,
+          "position": 10931
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 328,
+        "start": 319,
         "startLoc": {
           "column": 4,
-          "line": 328,
-          "position": 11456
+          "line": 319,
+          "position": 10518
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    const pos = world.getComponent(entity, \"Transform\");\n    if (!render || !pos) return;\n\n    const { size = 60 } = render;\n    const width = size;\n    const halfWidth = width / 2;\n\n    const pipe = world.getComponent(entity, \"Pipe\");\n    if (!pipe) return;\n    const variant = pipe.visualVariant || \"standard\";\n\n    const config = world.getResource<{ worldHeight: number }>(\"GameConfig\");\n    const worldHeight = config?.worldHeight ?? 600;\n\n    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = calculateFlappyPipeGeometry(\n      pos.y,\n      pipe.gapY,\n      pipe.gapSize,\n      worldHeight\n    );\n\n    // --- METALLIC PILLAR BODY VARIANT GRADIENT ---\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {",
+      "fragment": "    const pipeCtx = resolveFlappyPipeDrawContext(world, entity);\n    if (!pipeCtx) return;\n\n    const {\n      pos,\n      pipe,\n      width,\n      halfWidth,\n      variant,\n      geometry,\n      capHeight,\n      capWidth,\n      capHalfWidth,\n      beaconPulse,\n    } = pipeCtx;\n\n    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = geometry;\n\n    // --- METALLIC PILLAR BODY VARIANT GRADIENT ---\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {",
       "isNew": false,
-      "lines": 24,
+      "lines": 20,
       "secondFile": {
-        "end": 346,
+        "end": 331,
         "endLoc": {
           "column": 9,
-          "line": 346,
-          "position": 12190
+          "line": 331,
+          "position": 10959
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 324,
+        "start": 313,
         "startLoc": {
           "column": 4,
-          "line": 324,
-          "position": 11513
+          "line": 313,
+          "position": 10599
         }
       },
-      "tokens": 140
+      "tokens": 59
     },
     {
       "firstFile": {
-        "end": 528,
+        "end": 508,
         "endLoc": {
           "column": 14,
-          "line": 528,
-          "position": 18870
+          "line": 508,
+          "position": 17398
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 520,
+        "start": 500,
         "startLoc": {
           "column": 19,
-          "line": 520,
-          "position": 18430
+          "line": 500,
+          "position": 16958
         }
       },
       "format": "typescript",
@@ -3092,36 +3277,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 511,
+        "end": 489,
         "endLoc": {
           "column": 14,
-          "line": 511,
-          "position": 18219
+          "line": 489,
+          "position": 16771
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 503,
+        "start": 481,
         "startLoc": {
           "column": 98,
-          "line": 503,
-          "position": 17779
+          "line": 481,
+          "position": 16331
         }
       },
       "tokens": 102
     },
     {
       "firstFile": {
-        "end": 762,
+        "end": 742,
         "endLoc": {
           "column": 11,
-          "line": 762,
-          "position": 27165
+          "line": 742,
+          "position": 25693
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 755,
+        "start": 735,
         "startLoc": {
           "column": 36,
-          "line": 755,
-          "position": 26835
+          "line": 735,
+          "position": 25363
         }
       },
       "format": "typescript",
@@ -3129,73 +3314,73 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 730,
+        "end": 708,
         "endLoc": {
           "column": 11,
-          "line": 730,
-          "position": 26702
+          "line": 708,
+          "position": 25254
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 723,
+        "start": 701,
         "startLoc": {
           "column": 61,
-          "line": 723,
-          "position": 26372
+          "line": 701,
+          "position": 24924
         }
       },
       "tokens": 78
     },
     {
       "firstFile": {
-        "end": 796,
+        "end": 767,
         "endLoc": {
           "column": 5,
-          "line": 796,
-          "position": 28686
+          "line": 767,
+          "position": 26634
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 774,
+        "start": 754,
         "startLoc": {
           "column": 4,
-          "line": 774,
-          "position": 27624
+          "line": 754,
+          "position": 26152
         }
       },
       "format": "typescript",
-      "fragment": "    }\n\n    // --- SPORADIC DISTANT BACKGROUND DEBRIS / SPARKS ---\n    // Deterministically spawn faint distant sparks/shards approx every 4-8 seconds (240-480 ticks)\n    if (world.tick % 300 === 0 && world.renderRandom.next() > 0.3) {\n      const dx = world.renderRandom.nextRange(20, width - 20);\n      const dy = world.renderRandom.nextRange(40, height * 0.7);\n      const angle = world.renderRandom.next() * Math.PI * 2;\n      const speed = world.renderRandom.nextRange(15, 35);\n      const vx = Math.cos(angle) * speed;\n      const vy = Math.sin(angle) * speed;\n      spawnVisualParticle(\"star\", dx, dy, vx, vy, world.renderRandom.nextRange(1.0, 2.0), world.renderRandom.nextRange(1.5, 3.0), \"#5A6173\", angle);\n    }\n\n    // Hypervelocity combo factor calculation\n    let warpFactor = 1.0;\n    const comboEntities = world.query(\"Combo\");\n    if (comboEntities.length > 0) {\n      const combo = world.getComponent(comboEntities[0], \"Combo\") as any;\n      if (combo && combo.multiplier > 1) {\n        warpFactor = 1.0 + (combo.multiplier - 1) * 0.35;\n      }\n    }",
+      "fragment": "    }\n\n    // --- SPORADIC DISTANT BACKGROUND DEBRIS / SPARKS ---\n    maybeSpawnBackgroundDebris(world, width, height, spawnVisualParticle);\n\n    // Hypervelocity combo factor calculation\n    let warpFactor = 1.0;\n    const comboEntities = world.query(\"Combo\");\n    if (comboEntities.length > 0) {\n      const combo = world.getComponent(comboEntities[0], \"Combo\") as any;\n      if (combo && combo.multiplier > 1) {\n        warpFactor = 1.0 + (combo.multiplier - 1) * 0.35;\n      }\n    }",
       "isNew": false,
-      "lines": 23,
+      "lines": 14,
       "secondFile": {
-        "end": 770,
+        "end": 739,
         "endLoc": {
           "column": 5,
-          "line": 770,
-          "position": 28379
+          "line": 739,
+          "position": 26351
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 748,
+        "start": 726,
         "startLoc": {
           "column": 4,
-          "line": 748,
-          "position": 27317
+          "line": 726,
+          "position": 25869
         }
       },
-      "tokens": 217
+      "tokens": 80
     },
     {
       "firstFile": {
-        "end": 838,
+        "end": 809,
         "endLoc": {
           "column": 64,
-          "line": 838,
-          "position": 30357
+          "line": 809,
+          "position": 28305
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 827,
+        "start": 798,
         "startLoc": {
           "column": 4,
-          "line": 827,
-          "position": 29773
+          "line": 798,
+          "position": 27721
         }
       },
       "format": "typescript",
@@ -3203,36 +3388,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 809,
+        "end": 778,
         "endLoc": {
           "column": 64,
-          "line": 809,
-          "position": 29996
+          "line": 778,
+          "position": 27968
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 798,
+        "start": 767,
         "startLoc": {
           "column": 4,
-          "line": 798,
-          "position": 29412
+          "line": 767,
+          "position": 27384
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 847,
+        "end": 818,
         "endLoc": {
           "column": 48,
-          "line": 847,
-          "position": 30714
+          "line": 818,
+          "position": 28662
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 842,
+        "start": 813,
         "startLoc": {
           "column": 25,
-          "line": 842,
-          "position": 30486
+          "line": 813,
+          "position": 28434
         }
       },
       "format": "typescript",
@@ -3240,95 +3425,21 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 821,
+        "end": 790,
         "endLoc": {
           "column": 48,
-          "line": 821,
-          "position": 30431
+          "line": 790,
+          "position": 28403
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 816,
+        "start": 785,
         "startLoc": {
           "column": 31,
-          "line": 816,
-          "position": 30203
+          "line": 785,
+          "position": 28175
         }
       },
       "tokens": 67
-    },
-    {
-      "firstFile": {
-        "end": 877,
-        "endLoc": {
-          "column": 11,
-          "line": 877,
-          "position": 31731
-        },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 871,
-        "startLoc": {
-          "column": 8,
-          "line": 871,
-          "position": 31517
-        }
-      },
-      "format": "typescript",
-      "fragment": "        const barW = 120;\n        const barH = 8;\n        const bx = (width - barW) / 2;\n        const by = height - 25;\n        const ratio = Math.max(0, Math.min(1, energy.currentEnergy / energy.maxEnergy));\n\n        ctx.fillStyle = \"rgba(10, 15, 25, 0.75)\";",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 853,
-        "endLoc": {
-          "column": 13,
-          "line": 853,
-          "position": 31434
-        },
-        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 847,
-        "startLoc": {
-          "column": 8,
-          "line": 847,
-          "position": 31218
-        }
-      },
-      "tokens": 53
-    },
-    {
-      "firstFile": {
-        "end": 251,
-        "endLoc": {
-          "column": 83,
-          "line": 251,
-          "position": 9538
-        },
-        "name": "flappybird/systems/FlappyBirdCollisionSystem.ts",
-        "start": 245,
-        "startLoc": {
-          "column": 44,
-          "line": 245,
-          "position": 9338
-        }
-      },
-      "format": "typescript",
-      "fragment": "    world: World<FlappyBirdComponentRegistry>,\n    entityA: Entity,\n    entityB: Entity,\n    type1: T1,\n    type2: T2\n  ): Record<T1 | T2, Entity> | undefined {\n    if (world.hasComponent(entityA, type1) && world.hasComponent(entityB, type2)) {",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 575,
-        "endLoc": {
-          "column": 83,
-          "line": 575,
-          "position": 21815
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 569,
-        "startLoc": {
-          "column": 47,
-          "line": 569,
-          "position": 21615
-        }
-      },
-      "tokens": 51
     },
     {
       "firstFile": {
@@ -6030,72 +6141,35 @@
         }
       },
       "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 549,
-        "endLoc": {
-          "column": 3,
-          "line": 549,
-          "position": 20876
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 533,
-        "startLoc": {
-          "column": 89,
-          "line": 533,
-          "position": 20274
-        }
-      },
-      "format": "typescript",
-      "fragment": "  private removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: Entity): void {\n    if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, \"Transform\")) {\n      return;\n    }\n    const reclaimable = world.getComponent(bullet, \"Reclaimable\");\n    if (reclaimable) {\n      if (typeof reclaimable.onReclaim === \"function\") {\n        reclaimable.onReclaim({ world, entity: bullet });\n      } else {\n        const pool = world.getResource<any>(reclaimable.poolId);\n        if (pool && typeof pool.release === \"function\") {\n          pool.release({ world, entity: bullet });\n        }\n      }\n    }\n    world.getCommandBuffer().removeEntity(bullet);\n  }",
-      "isNew": false,
-      "lines": 17,
-      "secondFile": {
-        "end": 24,
-        "endLoc": {
-          "column": 1,
-          "line": 24,
-          "position": 1088
-        },
-        "name": "space-invaders/systems/SpaceInvadersInputSystem.ts",
-        "start": 8,
-        "startLoc": {
-          "column": 88,
-          "line": 8,
-          "position": 518
-        }
-      },
-      "tokens": 128
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-20T22:36:25.449Z",
+    "detectionDate": "2026-09-20T23:24:58.457Z",
     "formats": {
       "typescript": {
-        "clones": 172,
-        "duplicatedLines": 1679,
-        "duplicatedTokens": 13505,
-        "lines": 67114,
+        "clones": 166,
+        "duplicatedLines": 1607,
+        "duplicatedTokens": 12781,
+        "lines": 67285,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.5017135023989034,
-        "percentageTokens": 3.8252155489842856,
-        "sources": 405,
-        "tokens": 353052
+        "percentage": 2.38834807163558,
+        "percentageTokens": 3.6226708162559595,
+        "sources": 406,
+        "tokens": 352806
       }
     },
     "total": {
-      "clones": 172,
-      "duplicatedLines": 1679,
-      "duplicatedTokens": 13505,
-      "lines": 67114,
+      "clones": 166,
+      "duplicatedLines": 1607,
+      "duplicatedTokens": 12781,
+      "lines": 67285,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.5017135023989034,
-      "percentageTokens": 3.8252155489842856,
-      "sources": 405,
-      "tokens": 353052
+      "percentage": 2.38834807163558,
+      "percentageTokens": 3.6226708162559595,
+      "sources": 406,
+      "tokens": 352806
     }
   }
 }

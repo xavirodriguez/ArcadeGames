@@ -3,7 +3,7 @@ import { System } from "@tiny-aster/core";
 import { Entity } from "@tiny-aster/core";
 import { EventBus } from "@tiny-aster/core";
 import { TransformComponent, HealthComponent, RenderComponent, TTLComponent } from "@tiny-aster/core";
-import { spawnScorePopup, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
+import { spawnScorePopup, CombatHitEvent, CombatDeathEvent, subscribeToCombatEvents } from "@tiny-aster/gameplay-kit";
 import {
   GameStateComponent,
   InvaderComponent,
@@ -39,7 +39,6 @@ import { applyComboKill } from "../../shared/arcade/ComboUtils";
 export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry> {
   private config?: SpaceInvadersConfig;
   private destroyedEntities = new Set<number>();
-  private pairResult: { [key: string]: Entity } = {};
 
   constructor(private _particlePool: ParticlePool) {
     super();
@@ -49,15 +48,10 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     if (!this.config) {
       this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
-    const eventBus = world.getEventBus();
-    if (eventBus) {
-      eventBus.on("combat:hit", (event: CombatHitEvent) => {
-        this.onCombatHit(world, event);
-      });
-      eventBus.on("combat:death", (event: CombatDeathEvent) => {
-        this.onCombatDeath(world, event);
-      });
-    }
+    subscribeToCombatEvents(world, {
+      onHit: (event) => this.onCombatHit(world, event),
+      onDeath: (event) => this.onCombatDeath(world, event)
+    });
   }
 
   private onCombatHit(world: World<SpaceInvadersComponentRegistry>, event: CombatHitEvent): void {
@@ -354,13 +348,13 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
   }
 
   private resolveBulletBossCollision(world: World<SpaceInvadersComponentRegistry>, e1: Entity, e2: Entity): boolean {
-    const pair = this.matchPair(world, e1, e2, "PlayerBullet", "Boss");
+    const pair = WorldUtils.matchPair(world, e1, e2, "PlayerBullet", "Boss");
     // Handled by CombatSystem & combat:hit reaction
     return pair !== undefined;
   }
 
   private resolveBulletInvaderCollision(world: World<SpaceInvadersComponentRegistry>, e1: Entity, e2: Entity): boolean {
-    const pair = this.matchPair(world, e1, e2, "PlayerBullet", "Invader");
+    const pair = WorldUtils.matchPair(world, e1, e2, "PlayerBullet", "Invader");
     // Handled by CombatSystem & combat:death / combat:hit reaction
     return pair !== undefined;
   }
@@ -371,8 +365,8 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     e2: Entity,
     destroyedEntities: Set<number>
   ): boolean {
-    const bulletShield = this.matchPair(world, e1, e2, "PlayerBullet", "Shield") ||
-                         this.matchPair(world, e1, e2, "EnemyBullet", "Shield");
+    const bulletShield = WorldUtils.matchPair(world, e1, e2, "PlayerBullet", "Shield") ||
+                         WorldUtils.matchPair(world, e1, e2, "EnemyBullet", "Shield");
     if (!bulletShield) return false;
 
     const bullet = (bulletShield as Record<string, Entity>).PlayerBullet || (bulletShield as Record<string, Entity>).EnemyBullet;
@@ -413,7 +407,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         const updatedDmg = world.getComponent(bullet, "Damage");
         if (updatedDmg && (updatedDmg.piercing ?? 0) <= 0) {
           destroyedEntities.add(bullet);
-          this.removeBulletSafely(world, bullet);
+          WorldUtils.removeOrReclaim(world, bullet);
         }
       } else if (world.hasComponent(bullet, "PlayerBullet")) {
         // Charged shot logic: passing through own shield supercharges bullet
@@ -427,20 +421,20 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         }
       } else {
         destroyedEntities.add(bullet);
-        this.removeBulletSafely(world, bullet);
+        WorldUtils.removeOrReclaim(world, bullet);
       }
     }
     return true;
   }
 
   private resolveEnemyBulletPlayerCollision(world: World<SpaceInvadersComponentRegistry>, e1: Entity, e2: Entity): boolean {
-    const pair = this.matchPair(world, e1, e2, "EnemyBullet", "Player");
+    const pair = WorldUtils.matchPair(world, e1, e2, "EnemyBullet", "Player");
     // Handled by CombatSystem & combat:hit reaction
     return pair !== undefined;
   }
 
   private resolveInvaderPlayerCollision(world: World<SpaceInvadersComponentRegistry>, e1: Entity, e2: Entity): boolean {
-    const pair = this.matchPair(world, e1, e2, "Invader", "Player");
+    const pair = WorldUtils.matchPair(world, e1, e2, "Invader", "Player");
     if (!pair) return false;
 
     world.mutateSingleton("GameState", gs => {
@@ -455,7 +449,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     e2: Entity,
     destroyedEntities: Set<number>
   ): boolean {
-    const pair = this.matchPair(world, e1, e2, "Invader", "Shield");
+    const pair = WorldUtils.matchPair(world, e1, e2, "Invader", "Shield");
     if (!pair) return false;
 
     const shield = pair.Shield;
@@ -530,24 +524,6 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
-  private removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: Entity): void {
-    if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, "Transform")) {
-      return;
-    }
-    const reclaimable = world.getComponent(bullet, "Reclaimable");
-    if (reclaimable) {
-      if (typeof reclaimable.onReclaim === "function") {
-        reclaimable.onReclaim({ world, entity: bullet });
-      } else {
-        const pool = world.getResource<any>(reclaimable.poolId);
-        if (pool && typeof pool.release === "function") {
-          pool.release({ world, entity: bullet });
-        }
-      }
-    }
-    world.getCommandBuffer().removeEntity(bullet);
-  }
-
   private checkInvadersBottom(world: World<SpaceInvadersComponentRegistry>, _gameState: GameStateComponent): void {
     const invaders = world.query("Invader", "Transform");
     const limit = GAME_CONFIG.worldHeight - 100;
@@ -565,31 +541,4 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     }
   }
 
-  private matchPair<T1 extends ComponentType<SpaceInvadersComponentRegistry>, T2 extends ComponentType<SpaceInvadersComponentRegistry>>(
-    world: World<SpaceInvadersComponentRegistry>,
-    entityA: Entity,
-    entityB: Entity,
-    type1: T1,
-    type2: T2
-  ): Record<T1 | T2, Entity> | undefined {
-    if (world.hasComponent(entityA, type1) && world.hasComponent(entityB, type2)) {
-      this.clearPairResult();
-      this.pairResult[type1 as string] = entityA;
-      this.pairResult[type2 as string] = entityB;
-      return this.pairResult as Record<T1 | T2, Entity>;
-    }
-    if (world.hasComponent(entityB, type1) && world.hasComponent(entityA, type2)) {
-      this.clearPairResult();
-      this.pairResult[type1 as string] = entityB;
-      this.pairResult[type2 as string] = entityA;
-      return this.pairResult as Record<T1 | T2, Entity>;
-    }
-    return undefined;
-  }
-
-  private clearPairResult(): void {
-    for (const key in this.pairResult) {
-      delete this.pairResult[key];
-    }
-  }
 }

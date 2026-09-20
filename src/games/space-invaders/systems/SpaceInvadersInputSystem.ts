@@ -5,23 +5,6 @@ import { PlayerBulletPool } from "../EntityPool";
 import { createPlayerBullet } from "../EntityFactory";
 import { GameSystem } from "./GameSystem";
 
-function removeBulletSafely(world: World<SpaceInvadersComponentRegistry>, bullet: number): void {
-  if (!WorldUtils.isAliveAndTracked(world, bullet) || !world.hasComponent(bullet, "Transform")) {
-    return;
-  }
-  const reclaimable = world.getComponent(bullet, "Reclaimable");
-  if (reclaimable) {
-    if (typeof reclaimable.onReclaim === "function") {
-      reclaimable.onReclaim({ world, entity: bullet });
-    } else {
-      const pool = world.getResource<any>(reclaimable.poolId);
-      if (pool && typeof pool.release === "function") {
-        pool.release({ world, entity: bullet });
-      }
-    }
-  }
-  world.getCommandBuffer().removeEntity(bullet);
-}
 
 const InputUtils = {
   isPressed(inputState: { buttons: Record<string, boolean> }, button: string): boolean {
@@ -136,7 +119,7 @@ export class SpaceInvadersInputSystem extends GameSystem {
               const dx = bPos.x - pos.x;
               const dy = bPos.y - pos.y;
               if (Math.sqrt(dx * dx + dy * dy) <= radius) {
-                removeBulletSafely(world, bEntity);
+                WorldUtils.removeOrReclaim(world, bEntity);
                 clearedBulletsCount++;
               }
             }

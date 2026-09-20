@@ -5333,6 +5333,8 @@ export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;
 export class WorldUtils {
     static isAliveAndTracked<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, entity: Entity): boolean;
     static isEntityActive<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, entity: Entity): boolean;
+    static matchPair<TComponents extends ComponentRegistry, T1 extends ComponentType<TComponents>, T2 extends ComponentType<TComponents>>(world: World<TComponents, any, any>, entityA: Entity, entityB: Entity, type1: T1, type2: T2): Record<T1 | T2, Entity> | undefined;
+    static removeOrReclaim<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents, any, any>, entity: Entity): void;
 }
 
 // @public

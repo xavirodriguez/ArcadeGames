@@ -6,6 +6,13 @@ import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutato
 import { loadAndMutateConfig } from "../shared/configHelper";
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG, BossComponent, WaveDefinition, InputComponent, PlayerComponent, InvaderComponent, EnemyBulletComponent, PlayerBulletComponent, ShieldComponent, FormationComponent, SpawnDirectorComponent } from "./types/SpaceInvadersTypes";
+import { createInputComponent } from "./EntityFactory";
+
+function ensureInputComponent(world: World<SpaceInvadersComponentRegistry>, entity: number): void {
+  if (!world.hasComponent(entity, "Input")) {
+    world.addComponent(entity, createInputComponent());
+  }
+}
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
@@ -464,17 +471,7 @@ export class SpaceInvadersGame
           const tick = world.tick + 1; // Upcoming tick
           const frame = this._player.getInputs().find((i) => i.tick === tick);
           if (frame) {
-            if (!world.hasComponent(playerEntity, "Input")) {
-              world.addComponent(playerEntity, {
-                type: "Input",
-                moveLeft: false,
-                moveRight: false,
-                shoot: false,
-                shootCooldownRemaining: 0,
-                actions: new Set<string>(),
-                axes: {}
-              } as InputComponent);
-            }
+            ensureInputComponent(world, playerEntity);
             world.mutateComponent(playerEntity, "Input", (inputComp: InputComponent) => {
               inputComp.moveLeft = frame.actions.includes("moveLeft");
               inputComp.moveRight = frame.actions.includes("moveRight");
@@ -699,17 +696,7 @@ export class SpaceInvadersGame
     const world = this.getWorld();
     const playerEntity = world.query("Player")[0];
     if (playerEntity !== undefined) {
-      if (!world.hasComponent(playerEntity, "Input")) {
-        world.addComponent(playerEntity, {
-          type: "Input",
-          moveLeft: false,
-          moveRight: false,
-          shoot: false,
-          shootCooldownRemaining: 0,
-          actions: new Set<string>(),
-          axes: {}
-        } as InputComponent);
-      }
+      ensureInputComponent(world, playerEntity);
       world.mutateComponent(playerEntity, "Input", (inputComp: InputComponent) => {
         const inp = input as Record<string, unknown>;
         // CanonicalInputState support
@@ -754,15 +741,7 @@ export class SpaceInvadersGame
           commands.addComponent(entity, { type: "LocalPlayer" });
         }
         if (!world.hasComponent(entity, "Input")) {
-          commands.addComponent(entity, {
-            type: "Input",
-            moveLeft: false,
-            moveRight: false,
-            shoot: false,
-            shootCooldownRemaining: 0,
-            actions: new Set<string>(),
-            axes: {}
-          });
+          commands.addComponent(entity, createInputComponent());
         }
       },
       sync: (world, entity, state) => {

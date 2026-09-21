@@ -3,6 +3,7 @@ import { System } from "../../ecs/System";
 import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { Collision } from "../collision/CollisionTypes";
 import { Entity } from "../../ecs/Entity";
+import { PhysicsUtils } from "../utils/PhysicsUtils";
 
 /**
  * System that solves physical collision constraints and impulse responses.
@@ -183,27 +184,8 @@ export class PhysicsSolveSystem<
     const impulseX = j * normalX;
     const impulseY = j * normalY;
 
-    if (velA && !isStaticA) {
-      const vA = world.getMutableComponent(entityA, "Velocity");
-      if (vA) {
-        vA.vx -= impulseX * invMassA;
-        vA.vy -= impulseY * invMassA;
-        if (invInertiaA > 0) {
-          vA.angularVelocity -= (rxA * impulseY - ryA * impulseX) * invInertiaA;
-        }
-      }
-    }
-
-    if (velB && !isStaticB) {
-      const vB = world.getMutableComponent(entityB, "Velocity");
-      if (vB) {
-        vB.vx += impulseX * invMassB;
-        vB.vy += impulseY * invMassB;
-        if (invInertiaB > 0) {
-          vB.angularVelocity += (rxB * impulseY - ryB * impulseX) * invInertiaB;
-        }
-      }
-    }
+    PhysicsUtils.applyBodyImpulse(world, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, impulseX, impulseY, -1.0);
+    PhysicsUtils.applyBodyImpulse(world, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, impulseX, impulseY, 1.0);
 
     // 3. Tangential Friction Impulse
     if (friction > 0) {
@@ -226,27 +208,8 @@ export class PhysicsSolveSystem<
         const frictionImpulseX = jt * tangentX;
         const frictionImpulseY = jt * tangentY;
 
-        if (velA && !isStaticA) {
-          const vA = world.getMutableComponent(entityA, "Velocity");
-          if (vA) {
-            vA.vx -= frictionImpulseX * invMassA;
-            vA.vy -= frictionImpulseY * invMassA;
-            if (invInertiaA > 0) {
-              vA.angularVelocity -= (rxA * frictionImpulseY - ryA * frictionImpulseX) * invInertiaA;
-            }
-          }
-        }
-
-        if (velB && !isStaticB) {
-          const vB = world.getMutableComponent(entityB, "Velocity");
-          if (vB) {
-            vB.vx += frictionImpulseX * invMassB;
-            vB.vy += frictionImpulseY * invMassB;
-            if (invInertiaB > 0) {
-              vB.angularVelocity += (rxB * frictionImpulseY - ryB * frictionImpulseX) * invInertiaB;
-            }
-          }
-        }
+        PhysicsUtils.applyBodyImpulse(world, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, frictionImpulseX, frictionImpulseY, -1.0);
+        PhysicsUtils.applyBodyImpulse(world, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, frictionImpulseX, frictionImpulseY, 1.0);
       }
     }
   }

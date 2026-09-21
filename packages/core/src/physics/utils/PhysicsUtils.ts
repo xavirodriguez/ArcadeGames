@@ -56,4 +56,47 @@ export class PhysicsUtils {
   public static tickTimer(remaining: number, deltaTime: number): number {
     return remaining > 0 ? Math.max(0, remaining - deltaTime) : 0;
   }
+
+  /**
+   * Applies a linear and angular force or impulse to a rigid body's velocity component.
+   *
+   * @remarks
+   * Zero heap allocation helper that safely checks body status and mutates `Velocity`.
+   *
+   * @param world - Simulation world containing the entity.
+   * @param entity - Target entity ID.
+   * @param hasVelocity - Truthy if entity has a Velocity component.
+   * @param isStatic - True if body is static or has zero inverse mass.
+   * @param invMass - Inverse mass of the body (0 if static).
+   * @param invInertia - Inverse rotational inertia of the body (0 if static/infinite).
+   * @param rx - X offset of force/impulse application point relative to center of mass.
+   * @param ry - Y offset of force/impulse application point relative to center of mass.
+   * @param fx - Force or impulse X component.
+   * @param fy - Force or impulse Y component.
+   * @param scale - Scaling factor (e.g. `+deltaTime` / `-deltaTime` for forces, or `+1.0` / `-1.0` for impulses).
+   */
+  public static applyBodyImpulse(
+    world: import("../../ecs/World").World<import("../../ecs/CoreComponents").CoreComponentRegistry>,
+    entity: import("../../ecs/Entity").Entity,
+    hasVelocity: unknown,
+    isStatic: boolean,
+    invMass: number,
+    invInertia: number,
+    rx: number,
+    ry: number,
+    fx: number,
+    fy: number,
+    scale: number
+  ): void {
+    if (hasVelocity && !isStatic) {
+      const v = world.getMutableComponent(entity, "Velocity");
+      if (v) {
+        v.vx += fx * invMass * scale;
+        v.vy += fy * invMass * scale;
+        if (invInertia > 0) {
+          v.angularVelocity += (rx * fy - ry * fx) * invInertia * scale;
+        }
+      }
+    }
+  }
 }

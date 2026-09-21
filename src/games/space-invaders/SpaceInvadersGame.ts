@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System, BaseGameConfig } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System, BaseGameConfig, CanonicalInputState } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
 import { EnemyFactory } from "./EnemyFactory";
@@ -28,12 +28,12 @@ import { TransformComponent, VelocityComponent, RenderComponent, ColliderCompone
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 
-export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, any>> {
+export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, unknown>> {
   player: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
   invader: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number, row: number, col: number }>;
   shield: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number, row: number, col: number }>;
-  state: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, {}>;
-  formation: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, {}>;
+  state: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, Record<string, never>>;
+  formation: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, Record<string, never>>;
   player_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
   enemy_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
   boss: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { level: number }>;
@@ -518,7 +518,7 @@ export class SpaceInvadersGame
     }
   }
 
-  public initializeRenderer(renderer: Renderer<any, any>): void {
+  public initializeRenderer(renderer: Renderer<SpaceInvadersComponentRegistry>): void {
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         const {
@@ -625,7 +625,7 @@ export class SpaceInvadersGame
     });
 
     if (allPlayersReady) {
-      world.mutateSingleton("GameState", (gs: any) => {
+      world.mutateSingleton("GameState", (gs: GameStateComponent) => {
         gs.phase = "PLAYING";
         // Also clean DraftState components from players to prepare for next wave
         allPlayers.forEach(p => {
@@ -695,7 +695,7 @@ export class SpaceInvadersGame
     this.isMultiplayer = active;
   }
 
-  public override setInputState(input: any): void {
+  public override setInputState(input: Partial<InputState> | CanonicalInputState | Record<string, unknown>): void {
     const world = this.getWorld();
     const playerEntity = world.query("Player")[0];
     if (playerEntity !== undefined) {
@@ -711,16 +711,19 @@ export class SpaceInvadersGame
         } as InputComponent);
       }
       world.mutateComponent(playerEntity, "Input", (inputComp: InputComponent) => {
+        const inp = input as Record<string, unknown>;
         // CanonicalInputState support
-        if (input && typeof input === "object" && input.axes) {
-          const moveX = input.axes.moveX ?? 0;
+        if (inp && typeof inp === "object" && inp.axes && typeof inp.axes === "object") {
+          const axes = inp.axes as Record<string, number>;
+          const moveX = axes.moveX ?? 0;
           inputComp.moveLeft = moveX < 0;
           inputComp.moveRight = moveX > 0;
-          inputComp.shoot = input.actions instanceof Set ? input.actions.has("fire") : !!input.actions?.includes?.("fire");
-        } else {
-          if (input.moveLeft !== undefined) inputComp.moveLeft = input.moveLeft;
-          if (input.moveRight !== undefined) inputComp.moveRight = input.moveRight;
-          if (input.shoot !== undefined) inputComp.shoot = input.shoot;
+          const actions = inp.actions;
+          inputComp.shoot = actions instanceof Set ? actions.has("fire") : (Array.isArray(actions) ? actions.includes("fire") : false);
+        } else if (inp) {
+          if (typeof inp.moveLeft === "boolean") inputComp.moveLeft = inp.moveLeft;
+          if (typeof inp.moveRight === "boolean") inputComp.moveRight = inp.moveRight;
+          if (typeof inp.shoot === "boolean") inputComp.shoot = inp.shoot;
         }
       });
     }
@@ -730,13 +733,20 @@ export class SpaceInvadersGame
     this.setInputState(input);
   }
 
-  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<Record<string, unknown>, any, SpaceInvadersComponentRegistry>[] = [
+  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<
+    Record<string, unknown>,
+    unknown,
+    SpaceInvadersComponentRegistry,
+    SpaceInvadersEventRegistry,
+    SpaceInvadersBlueprintMap
+  >[] = [
     {
       serverIdPrefix: "player",
       localPlayerPolicy: "mark",
       getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; sessionId?: string }>,
       spawn: (world, entity, state) => {
-        this.blueprints.get("player")?.spawn(world, entity, { x: state.x, y: state.y });
+        const item = state as { x: number; y: number };
+        this.blueprints.get("player")?.spawn(world, entity, { x: item.x, y: item.y });
       },
       onLocalPlayerMark: (world, entity) => {
         const commands = world.getCommandBuffer();
@@ -756,8 +766,9 @@ export class SpaceInvadersGame
         }
       },
       sync: (world, entity, state) => {
+        const item = state as { alive: boolean };
         world.mutateComponent(entity, "Render", render => {
-          render.color = state.alive ? "green" : "red";
+          render.color = item.alive ? "green" : "red";
         });
       }
     },
@@ -766,7 +777,7 @@ export class SpaceInvadersGame
       getStateMap: (root) => {
         if (!root.invaders || typeof root.invaders !== "object") return undefined;
         const result: Record<string, { x: number; y: number; alive: boolean; id: string }> = {};
-        for (const [id, inv] of Object.entries(root.invaders as Record<string, any>)) {
+        for (const [id, inv] of Object.entries(root.invaders as Record<string, { x: number; y: number; alive: boolean; id: string }>)) {
           if (inv && inv.alive) {
             result[id] = inv;
           }
@@ -774,7 +785,8 @@ export class SpaceInvadersGame
         return result;
       },
       spawn: (world, entity, state) => {
-        this.blueprints.get("invader")?.spawn(world, entity, { x: state.x, y: state.y, row: 0, col: 0 });
+        const item = state as { x: number; y: number };
+        this.blueprints.get("invader")?.spawn(world, entity, { x: item.x, y: item.y, row: 0, col: 0 });
       },
       sync: () => {}
     },
@@ -782,8 +794,9 @@ export class SpaceInvadersGame
       serverIdPrefix: "bullet",
       getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; ownerId: string }>,
       spawn: (world, entity, state) => {
-        const bpName = state.ownerId === "player" ? "player_bullet" : "enemy_bullet";
-        this.blueprints.get(bpName)?.spawn(world, entity, { x: state.x, y: state.y });
+        const item = state as { x: number; y: number; ownerId: string };
+        const bpName = item.ownerId === "player" ? "player_bullet" : "enemy_bullet";
+        this.blueprints.get(bpName)?.spawn(world, entity, { x: item.x, y: item.y });
       },
       sync: () => {}
     }
@@ -814,21 +827,22 @@ export class SpaceInvadersGame
     });
 
     const entries: InterpolationSnapshotEntry[] = [];
-    if (state.players) {
-      Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
+    if (state.players && typeof state.players === "object") {
+      Object.entries(state.players as Record<string, { x: number; y: number }>).forEach(([sessionId, p]) => {
         const entityId = replicator.getLocalId(`player_${sessionId}`);
-        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
+        if (entityId !== undefined && p) entries.push({ entityId, x: p.x, y: p.y });
       });
     }
-    if (state.invaders) {
-      Object.entries(state.invaders as Record<string, any>).forEach(([id, p]) => {
-        if (!p.alive) return;
+    if (state.invaders && typeof state.invaders === "object") {
+      Object.entries(state.invaders as Record<string, { x: number; y: number; alive: boolean }>).forEach(([id, p]) => {
+        if (!p || !p.alive) return;
         const entityId = replicator.getLocalId(`invader_${id}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
       });
     }
-    if (state.bullets) {
-      Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
+    if (state.bullets && typeof state.bullets === "object") {
+      Object.entries(state.bullets as Record<string, { x: number; y: number }>).forEach(([id, p]) => {
+        if (!p) return;
         const entityId = replicator.getLocalId(`bullet_${id}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
       });

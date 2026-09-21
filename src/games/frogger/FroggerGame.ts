@@ -16,7 +16,8 @@ import {
   ScreenShakeSystem,
   GameDefinition,
   preloadSharedAudioManifest,
-  SHARED_AUDIO_MANIFEST
+  SHARED_AUDIO_MANIFEST,
+  World
 } from "@tiny-aster/core";
 import { AchievementSystem, PowerUpSystem, LootSystem } from "@tiny-aster/gameplay-kit";
 import {
@@ -286,7 +287,7 @@ export class FroggerGame extends BaseGame<
     this.setInputState(input);
   }
 
-  public initializeRenderer(renderer: Renderer<any, any>): void {
+  public initializeRenderer(renderer: Renderer<FroggerComponentRegistry>): void {
     initializeFroggerRenderer(renderer);
   }
 
@@ -349,7 +350,7 @@ export class NullFroggerGame extends NullBaseGame<FroggerState, FroggerInput, Fr
 }
 
 // Mutator hooks
-registerMutatorHook("fast_traffic", (world) => {
+registerMutatorHook("fast_traffic", (world: World<FroggerComponentRegistry>) => {
   const vehicles = world.query("Vehicle", "Velocity");
   for (let i = 0; i < vehicles.length; i++) {
     world.mutateComponent(vehicles[i], "Velocity", (v) => {

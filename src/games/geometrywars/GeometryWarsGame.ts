@@ -24,7 +24,7 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
  * Main game class for Geometry Wars.
  * @public
  */
-import { NetworkManager, WorldSnapshot, InputFrame, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer } from "@tiny-aster/core";
+import { NetworkManager, WorldSnapshot, InputFrame, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState } from "@tiny-aster/core";
 
 function createTransformComponent(x: number, y: number, rotation: number): TransformComponent {
   return {
@@ -96,7 +96,7 @@ export class GeometryWarsGame extends BaseGame<
   private config: GeometryWarsConfig;
   private currentScene!: GeometryWarsGameScene;
   public isMultiplayer = false;
-  private networkManager!: NetworkManager<any>;
+  private networkManager!: NetworkManager<GeometryWarsComponentRegistry>;
 
   constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any; headless?: boolean; isMultiplayer?: boolean; theme?: any } = {}) {
     super({
@@ -163,13 +163,13 @@ export class GeometryWarsGame extends BaseGame<
     if (!activeWorld.hasComponent(entityId, "Player")) {
       return;
     }
-    activeWorld.mutateComponent(entityId, "Player", (p: any) => {
+    activeWorld.mutateComponent(entityId, "Player", (p) => {
       if (input.axes?.moveX !== undefined) p.moveX = input.axes.moveX;
       if (input.axes?.moveY !== undefined) p.moveY = input.axes.moveY;
     });
 
     if (activeWorld.hasComponent(entityId, "Aim")) {
-      activeWorld.mutateComponent(entityId, "Aim", (aim: any) => {
+      activeWorld.mutateComponent(entityId, "Aim", (aim) => {
         if (input.axes?.aimX !== undefined && input.axes?.aimY !== undefined) {
           aim.aimX = input.axes.aimX;
           aim.aimY = input.axes.aimY;
@@ -191,7 +191,13 @@ export class GeometryWarsGame extends BaseGame<
     this.runSimulationStep(deltaTime, false);
   }
 
-  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<Record<string, unknown>, any, GeometryWarsComponentRegistry>[] = [
+  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<
+    Record<string, unknown>,
+    any,
+    GeometryWarsComponentRegistry,
+    GeometryWarsEventRegistry,
+    GeometryWarsBlueprintRegistry
+  >[] = [
     {
       serverIdPrefix: "player",
       localPlayerPolicy: "skip",
@@ -257,42 +263,35 @@ export class GeometryWarsGame extends BaseGame<
       });
     }
 
-    const world = this.getWorld();
     const replicator = this.networkManager.getReplicator();
-    const currentServerEntities = new Set<string>();
-
-    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {
-      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);
-    });
-
     const entries: InterpolationSnapshotEntry[] = [];
     if (state.players) {
-        Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
-            const entityId = replicator.getLocalId(`player_${sessionId}`);
-            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-        });
+      Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
+        const entityId = replicator.getLocalId(`player_${sessionId}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
+      });
     }
     if (state.enemies) {
-        Object.entries(state.enemies as Record<string, any>).forEach(([id, p]) => {
-            const entityId = replicator.getLocalId(`enemy_${id}`);
-            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-        });
+      Object.entries(state.enemies as Record<string, any>).forEach(([id, p]) => {
+        const entityId = replicator.getLocalId(`enemy_${id}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
+      });
     }
     if (state.bullets) {
-        Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
-            const entityId = replicator.getLocalId(`bullet_${id}`);
-            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-        });
+      Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
+        const entityId = replicator.getLocalId(`bullet_${id}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
+      });
     }
 
-    const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);
-    this.networkManager.processServerUpdate(snapshot.tick, snapshot);
-
-    pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());
-
-    if (!world.isUpdating) {
-        world.flush();
-    }
+    applyServerState(
+      this.getWorld(),
+      this.networkManager,
+      this.ENTITY_SYNC_DESCRIPTORS,
+      state,
+      entries,
+      localSessionId
+    );
   }
 
 
@@ -311,7 +310,7 @@ export class GeometryWarsGame extends BaseGame<
       const actions = input.actions;
 
       if (sceneWorld.hasComponent(player, "Player")) {
-        sceneWorld.mutateComponent(player, "Player", (p: any) => {
+        sceneWorld.mutateComponent(player, "Player", (p) => {
           if (axes.moveX !== undefined) p.moveX = axes.moveX;
           if (axes.moveY !== undefined) p.moveY = axes.moveY;
           if (actions !== undefined) {
@@ -323,10 +322,10 @@ export class GeometryWarsGame extends BaseGame<
       }
 
       if (sceneWorld.hasComponent(player, "Aim")) {
-        sceneWorld.mutateComponent(player, "Aim", (aim: any) => {
+        sceneWorld.mutateComponent(player, "Aim", (aim) => {
           if (axes.aimX !== undefined && axes.aimY !== undefined) {
             if (input.mouseAbsolute) {
-              const playerTransform = sceneWorld.getComponent(player, "Transform") as TransformComponent | undefined;
+              const playerTransform = sceneWorld.getComponent(player, "Transform");
               if (playerTransform) {
                 const worldMouse = Camera2DSystem.screenToWorld(sceneWorld, axes.aimX, axes.aimY);
                 aim.aimX = worldMouse.x - playerTransform.x;
@@ -396,7 +395,7 @@ export class GeometryWarsGame extends BaseGame<
     }
   }
 
-  public getGameState(): any {
+  public getGameState(): GeometryWarsStateComponent & { combo: number; multiplier: number; comboTimerRemaining: number } {
     const sceneWorld = this.currentScene ? this.currentScene.getWorld() : this.world;
     const state = sceneWorld.getSingleton("GeometryWarsState");
     if (state) {

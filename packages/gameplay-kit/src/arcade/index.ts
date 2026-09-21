@@ -11,5 +11,6 @@ export * from "./helpers/spawnScorePopup";
 export * from "./AttractModeController";
 export * from "./ParticlePool";
 export * from "./blueprints/enemyBlueprints";
+export * from "./blueprints/environmentBlueprints";
 export * from "./helpers/inputHelpers";
 export * from "./helpers/platformerSystemRegistry";

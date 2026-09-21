@@ -27,7 +27,7 @@ import { PongGameStateSystem } from "./systems/PongGameStateSystem";
 import { ComboSystem } from "@tiny-aster/core";
 import { AchievementSystem } from "@tiny-aster/gameplay-kit";
 import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorRegistry";
-import { loadAndMutateConfig } from "../shared/configHelper";
+import { loadAndMutateConfig, runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 
 registerMutatorHook((world: World, mutatorId: string) => {
@@ -266,26 +266,12 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    // Temporarily unlock gameplayRandom for spawning initialization
-    this.world.gameplayRandom.unlock();
-    try {
+    runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
       PongEntityFactory.createBall(this.world);
       PongEntityFactory.createPaddle(this.world, "left");
       PongEntityFactory.createPaddle(this.world, "right");
       PongEntityFactory.createGameState(this.world);
-
-
-      // Apply active beneficial mutators
-      const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
-      for (const mutatorId of activeBeneficials) {
-        const mutator = BENEFICIAL_MUTATORS[mutatorId];
-        if (mutator) {
-          mutator.apply(this.world);
-        }
-      }
-    } finally {
-      this.world.gameplayRandom.lock();
-    }
+    });
   }
 
   protected override async onBeforeRestart(): Promise<void> {

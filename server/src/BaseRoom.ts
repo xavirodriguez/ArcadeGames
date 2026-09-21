@@ -48,7 +48,7 @@ export interface ISimulationEngine {
   applyInputToEntity?(entity: number, input: InputFrame): void;
   runSimulationStep?(dt: number, isReplaying?: boolean): void;
   destroy?(): void;
-  blueprints?: { get(id: string): any };
+  blueprints?: { get(id: string): unknown };
 }
 
 /**
@@ -311,7 +311,7 @@ export abstract class BaseRoom<
   protected replicate(): void {
     if (this.replicationStrategy) {
       const currentTick = this.roomState?.serverTick ?? 0;
-      this.replicationStrategy.replicate(this, (this as any).clients, this.state, currentTick);
+      this.replicationStrategy.replicate(this, this.clients, this.state, currentTick);
     }
   }
 

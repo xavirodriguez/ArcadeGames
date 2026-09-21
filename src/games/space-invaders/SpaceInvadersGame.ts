@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System, BaseGameConfig, CanonicalInputState } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System, BaseGameConfig, CanonicalInputState } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
 import { EnemyFactory } from "./EnemyFactory";
@@ -799,12 +799,6 @@ export class SpaceInvadersGame
     }
 
     const replicator = this.networkManager.getReplicator();
-    const currentServerEntities = new Set<string>();
-
-    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {
-      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);
-    });
-
     const entries: InterpolationSnapshotEntry[] = [];
     if (state.players && typeof state.players === "object") {
       Object.entries(state.players as Record<string, { x: number; y: number }>).forEach(([sessionId, p]) => {
@@ -827,22 +821,14 @@ export class SpaceInvadersGame
       });
     }
 
-    const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);
-    this.networkManager.processServerUpdate(snapshot.tick, snapshot, localSessionId);
-
-    pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());
-
-    // Deferred CommandBuffer Flush Lifecycle:
-    // When updateFromServer is executed out-of-band (e.g., upon receiving a server network snapshot message
-    // between game loop frames), world.isUpdating is false.
-    // Structural changes like entity removal or deferred blueprint additions queue commands into WorldCommandBuffer.
-    // Flushing when !world.isUpdating immediately materializes queued entity/component state, preventing
-    // transient "ghost entities" or unapplied network components prior to system queries or rendering.
-    // If updateFromServer is called during active frame execution (world.isUpdating === true), flush is deferred
-    // to the end of world.update() tick to avoid structural mutation during system query iteration.
-    if (!world.isUpdating) {
-      world.flush();
-    }
+    applyServerState(
+      world,
+      this.networkManager,
+      this.ENTITY_SYNC_DESCRIPTORS,
+      state,
+      entries,
+      localSessionId
+    );
   }
 
   public isGameOver(): boolean {

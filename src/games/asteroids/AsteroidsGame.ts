@@ -99,8 +99,8 @@ export class AsteroidsGame
   private config: AsteroidConfig;
   public mode: "deathmatch" | "story" = "deathmatch";
 
-  public get networkManager(): NetworkManager<any> | undefined { return this.network.networkManager; }
-  public set networkManager(val: NetworkManager<any> | undefined) { this.network.networkManager = val; }
+  public get networkManager(): NetworkManager<AsteroidsComponentRegistry> | undefined { return this.network.networkManager; }
+  public set networkManager(val: NetworkManager<AsteroidsComponentRegistry> | undefined) { this.network.networkManager = val; }
   public get lastProcessedFullStateVersion(): number { return this.network.lastProcessedFullStateVersion; }
   public set lastProcessedFullStateVersion(val: number) { this.network.lastProcessedFullStateVersion = val; }
   public get isMultiplayer(): boolean { return this.network.isMultiplayer; }
@@ -128,12 +128,12 @@ export class AsteroidsGame
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("PowerUpEffects", new PowerUpRegistry());
 
-    this.eventBus.on("loot:spawn", (event: any) => {
+    this.eventBus.on("loot:spawn", (event) => {
       createPowerUp({
         world: this.world,
         x: event.x,
         y: event.y,
-        lootType: event.lootType
+        lootType: event.lootType || "shield"
       });
     });
 
@@ -200,18 +200,19 @@ export class AsteroidsGame
     this.missionSystem = new MissionSystem();
     this.world.addSystem(this.missionSystem, { phase: SystemPhase.GameRules });
 
-    this.eventBus.on("mission:completed", (event: any) => {
+    this.eventBus.on("mission:completed", (event) => {
       if (this.world.isReSimulating) return;
-      if (event?.reward?.scoreBonus) {
+      const payload = event as { reward?: { scoreBonus?: number; mutatorId?: string } };
+      if (payload?.reward?.scoreBonus) {
         const gs = this.world.getSingleton("GameState");
         if (gs) {
           this.world.mutateSingleton("GameState", (state) => {
-            state.score += event.reward.scoreBonus;
+            state.score += payload.reward!.scoreBonus!;
           });
         }
       }
-      if (event?.reward?.mutatorId) {
-        const mutator = MutatorRegistry.get(event.reward.mutatorId);
+      if (payload?.reward?.mutatorId) {
+        const mutator = MutatorRegistry.get(payload.reward.mutatorId);
         if (mutator) {
           mutator.apply(this.world);
         }
@@ -465,7 +466,7 @@ export class AsteroidsGame
       comboTimerRemaining,
       isDialogueActive,
       dialogueText
-    } as any;
+    };
   }
 
   public isGameOver(): boolean {
@@ -489,7 +490,7 @@ export class AsteroidsGame
           axes: {}
         });
       }
-      this.world.mutateComponent(localPlayer, "Input", (inputComp: any) => {
+      this.world.mutateComponent(localPlayer, "Input", (inputComp) => {
         if (!inputComp.actions || typeof inputComp.actions !== "object" || inputComp.actions instanceof Set) {
           inputComp.actions = {};
         }

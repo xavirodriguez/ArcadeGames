@@ -45,6 +45,17 @@ export { DistantAsteroidBeltBackgroundEffect, SkiaDistantAsteroidBeltBackgroundE
 export { DistantSpaceStationBackgroundEffect, SkiaDistantSpaceStationBackgroundEffect } from "./layers/DistantSpaceStationLayer";
 export { RingingPlanetBackgroundEffect, SkiaRingingPlanetBackgroundEffect } from "./layers/RingingPlanetLayer";
 
+// Export Mission HUD shared utilities
+export {
+  resolveMissionHudModel,
+  createCanvasMissionHUD,
+  createSkiaMissionHUD,
+  drawCanvasMissionHUD,
+  drawSkiaMissionHUD,
+  MissionHudViewModel,
+  MissionHudOptions
+} from "./SharedMissionHUD";
+
 // -------------------------------------------------------------
 // Pure Calculation & State Update Helpers
 // -------------------------------------------------------------
@@ -368,25 +379,30 @@ export function createSharedParticle<
   return pool.acquire(world, { x, y, dx, dy, size, color, ttl });
 }
 
+function resolveWarpLinesContext(world: World<CoreComponentRegistry>) {
+  const { width, height, state } = getScreenAndVFXState(world);
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
+
+  if (!state.warpLinesInitialized) {
+    initializeLines(world, state, maxRadius);
+  }
+  return { centerX, centerY, maxRadius, lines: state.lines };
+}
+
 // -------------------------------------------------------------
 // 3. HyperdriveWarpSpeedLinesEffect (Canvas & Skia)
 // -------------------------------------------------------------
 export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-
-    if (!state.warpLinesInitialized) {
-      initializeLines(world, state, maxRadius);
-    }
+    const { centerX, centerY, maxRadius, lines } = resolveWarpLinesContext(world);
 
     ctx.save();
     ctx.lineWidth = 1.5;
 
     for (let i = 0; i < WARP_LINE_COUNT; i++) {
-      const line = state.lines[i];
+      const line = lines[i];
       updateSpeedLine(line, maxRadius, world.renderRandom);
       const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
 
@@ -404,14 +420,7 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
 export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const { width, height, state } = getScreenAndVFXState(world);
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-
-    if (!state.warpLinesInitialized) {
-      initializeLines(world, state, maxRadius);
-    }
+    const { centerX, centerY, maxRadius, lines } = resolveWarpLinesContext(world);
 
     canvas.save();
     const paint = Skia.Paint();
@@ -419,7 +428,7 @@ export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, CoreComponent
     paint.setStrokeWidth(1.5);
 
     for (let i = 0; i < WARP_LINE_COUNT; i++) {
-      const line = state.lines[i];
+      const line = lines[i];
       updateSpeedLine(line, maxRadius, world.renderRandom);
       const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
 
@@ -933,20 +942,27 @@ export const SkiaScreenBorderGlowEffect: EffectDrawer<any, CoreComponentRegistry
   }
 };
 
+function resolveVortexContext(world: World<CoreComponentRegistry>, entity: Entity) {
+  const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
+  if (!render) return null;
+
+  const baseSize = render.size || 30;
+  const state = getVFXState(world);
+
+  if (!state.vortexInitialized) {
+    initializeVortex(world, state);
+  }
+  return { baseSize, state };
+}
+
 // -------------------------------------------------------------
 // 12. SingularityVortexEffect (Canvas & Skia)
 // -------------------------------------------------------------
 export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
-
-    const baseSize = render.size || 30;
-    const state = getVFXState(world);
-
-    if (!state.vortexInitialized) {
-      initializeVortex(world, state);
-    }
+    const vCtx = resolveVortexContext(world, entity);
+    if (!vCtx) return;
+    const { baseSize, state } = vCtx;
 
     ctx.save();
 
@@ -982,15 +998,9 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Core
 export const SkiaSingularityVortexEffect: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
-
-    const baseSize = render.size || 30;
-    const state = getVFXState(world);
-
-    if (!state.vortexInitialized) {
-      initializeVortex(world, state);
-    }
+    const vCtx = resolveVortexContext(world, entity);
+    if (!vCtx) return;
+    const { baseSize, state } = vCtx;
 
     canvas.save();
     const paint = Skia.Paint();

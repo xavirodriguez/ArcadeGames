@@ -1,6 +1,6 @@
 import { type Client } from "@colyseus/core";
 import { AsteroidsState, Player, Asteroid, Bullet } from "./schema/GameState";
-import { ReplayFrame } from "./NetTypes";
+import { ReplayFrame, InputFrame } from "./NetTypes";
 import { World, InterestManagerSystem, ReplicationStateTracker, NetworkDeltaSystem, NetworkBudgetManager, WorldSnapshot, Schedule, SystemPhase } from "@tiny-aster/core";
 import { AsteroidsGame, createShip, createAsteroid, AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../../src/games/asteroids";
 import { z } from "zod";
@@ -135,7 +135,7 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
       });
     });
 
-    this.onMessage("metrics", (client: any) => {
+    this.onMessage("metrics", (client: Client) => {
       client.send("metrics", {
         protocolVersion: this.state.protocolVersion,
         ...this.networkMetrics.getMetrics()
@@ -149,7 +149,8 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
     const gameplayRandom = this.world.gameplayRandom;
     const player = new Player();
     player.sessionId = client.sessionId;
-    player.name = (options as any)?.name || `Player ${this.nextPlayerNumber++}`;
+    const joinOpts = options as { name?: string } | undefined;
+    player.name = joinOpts?.name || `Player ${this.nextPlayerNumber++}`;
 
     const wasLocked = gameplayRandom.isLocked();
     if (wasLocked) gameplayRandom.unlock();
@@ -190,7 +191,7 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
   }
 
   protected override collectInputsForTick(): void {
-    const currentInputs: Record<string, any> = {};
+    const currentInputs: Record<string, InputFrame[]> = {};
     this.state.players.forEach((_player: Player, sessionId: string) => {
       const entity = this.playerEntities.get(sessionId);
       if (entity === undefined) return;
@@ -219,7 +220,7 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
   protected override replicate(): void {
     if (this.replicationStrategy) {
       const { totalBytesSentThisTick, totalSerializationMs, totalEntitiesFiltered } =
-        this.replicationStrategy.replicate(this, (this as any).clients, this.state, this.state.serverTick);
+        this.replicationStrategy.replicate(this, this.clients, this.state, this.state.serverTick);
 
       const trackedEntitiesCount = this.state.players.size + this.state.asteroids.size + this.state.bullets.size;
 
@@ -227,8 +228,8 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
         totalBytesSentThisTick,
         trackedEntitiesCount,
         totalSerializationMs,
-        (this as any).clients.length,
-        (this as any).clients.length > 0 ? totalEntitiesFiltered / (this as any).clients.length : 0
+        this.clients.length,
+        this.clients.length > 0 ? totalEntitiesFiltered / this.clients.length : 0
       );
     }
   }

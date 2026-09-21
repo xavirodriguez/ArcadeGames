@@ -36,7 +36,7 @@ export class GeometryWarsGame extends BaseGame<
   private config: GeometryWarsConfig;
   private currentScene!: GeometryWarsGameScene;
   public isMultiplayer = false;
-  private networkManager!: NetworkManager<any>;
+  private networkManager!: NetworkManager<GeometryWarsComponentRegistry>;
 
   constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any; headless?: boolean; isMultiplayer?: boolean; theme?: any } = {}) {
     super({
@@ -103,13 +103,13 @@ export class GeometryWarsGame extends BaseGame<
     if (!activeWorld.hasComponent(entityId, "Player")) {
       return;
     }
-    activeWorld.mutateComponent(entityId, "Player", (p: any) => {
+    activeWorld.mutateComponent(entityId, "Player", (p) => {
       if (input.axes?.moveX !== undefined) p.moveX = input.axes.moveX;
       if (input.axes?.moveY !== undefined) p.moveY = input.axes.moveY;
     });
 
     if (activeWorld.hasComponent(entityId, "Aim")) {
-      activeWorld.mutateComponent(entityId, "Aim", (aim: any) => {
+      activeWorld.mutateComponent(entityId, "Aim", (aim) => {
         if (input.axes?.aimX !== undefined && input.axes?.aimY !== undefined) {
           aim.aimX = input.axes.aimX;
           aim.aimY = input.axes.aimY;
@@ -131,26 +131,32 @@ export class GeometryWarsGame extends BaseGame<
     this.runSimulationStep(deltaTime, false);
   }
 
-  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<Record<string, unknown>, any, GeometryWarsComponentRegistry>[] = [
+  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<
+    Record<string, unknown>,
+    any,
+    GeometryWarsComponentRegistry,
+    GeometryWarsEventRegistry,
+    GeometryWarsBlueprintRegistry
+  >[] = [
     {
       serverIdPrefix: "player",
       localPlayerPolicy: "skip",
       getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; angle: number }>,
       spawn: (world, entity, state) => {
         const commands = world.getCommandBuffer();
-        commands.addComponent(entity, { type: "Player" } as any);
-        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-        commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: colors.cyan, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
-        commands.addComponent(entity, { type: "Health", current: state.alive ? 1 : 0, max: 1 } as any);
+        commands.addComponent(entity, { type: "Player", moveX: 0, moveY: 0, fireCooldownRemaining: 0, invulnRemaining: 0, useBomb: false });
+        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false });
+        commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: colors.cyan, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 });
+        commands.addComponent(entity, { type: "Health", current: state.alive ? 1 : 0, max: 1 });
       },
       sync: (world, entity, state) => {
-        world.mutateComponent(entity, "Transform", (t: any) => {
+        world.mutateComponent(entity, "Transform", (t) => {
           t.x = state.x;
           t.y = state.y;
           t.rotation = state.angle;
         });
 
-        world.mutateComponent(entity, "Render", (render: any) => {
+        world.mutateComponent(entity, "Render", (render) => {
           render.rotation = state.angle;
           render.color = state.alive ? colors.cyan : "gray";
         });
@@ -161,11 +167,11 @@ export class GeometryWarsGame extends BaseGame<
       getStateMap: (root) => root.enemies as Record<string, { x: number; y: number; angle: number; type: string }>,
       spawn: (world, entity, state) => {
         const commands = world.getCommandBuffer();
-        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-        commands.addComponent(entity, { type: "Render", shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 } as any);
+        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false });
+        commands.addComponent(entity, { type: "Render", shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 });
       },
       sync: (world, entity, state) => {
-        world.mutateComponent(entity, "Transform", (t: any) => {
+        world.mutateComponent(entity, "Transform", (t) => {
           t.x = state.x;
           t.y = state.y;
           t.rotation = state.angle;
@@ -177,11 +183,11 @@ export class GeometryWarsGame extends BaseGame<
       getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; angle: number }>,
       spawn: (world, entity, state) => {
         const commands = world.getCommandBuffer();
-        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false } as any);
-        commands.addComponent(entity, { type: "Render", shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, visible: true, opacity: 1, order: 2, hitFlashFrames: 0, angularVelocity: 0 } as any);
+        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false });
+        commands.addComponent(entity, { type: "Render", shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, visible: true, opacity: 1, order: 2, hitFlashFrames: 0, angularVelocity: 0 });
       },
       sync: (world, entity, state) => {
-        world.mutateComponent(entity, "Transform", (t: any) => {
+        world.mutateComponent(entity, "Transform", (t) => {
           t.x = state.x;
           t.y = state.y;
           t.rotation = state.angle;
@@ -247,7 +253,7 @@ export class GeometryWarsGame extends BaseGame<
       const actions = input.actions;
 
       if (sceneWorld.hasComponent(player, "Player")) {
-        sceneWorld.mutateComponent(player, "Player", (p: any) => {
+        sceneWorld.mutateComponent(player, "Player", (p) => {
           if (axes.moveX !== undefined) p.moveX = axes.moveX;
           if (axes.moveY !== undefined) p.moveY = axes.moveY;
           if (actions !== undefined) {
@@ -259,10 +265,10 @@ export class GeometryWarsGame extends BaseGame<
       }
 
       if (sceneWorld.hasComponent(player, "Aim")) {
-        sceneWorld.mutateComponent(player, "Aim", (aim: any) => {
+        sceneWorld.mutateComponent(player, "Aim", (aim) => {
           if (axes.aimX !== undefined && axes.aimY !== undefined) {
             if (input.mouseAbsolute) {
-              const playerTransform = sceneWorld.getComponent(player, "Transform") as TransformComponent | undefined;
+              const playerTransform = sceneWorld.getComponent(player, "Transform");
               if (playerTransform) {
                 const worldMouse = Camera2DSystem.screenToWorld(sceneWorld, axes.aimX, axes.aimY);
                 aim.aimX = worldMouse.x - playerTransform.x;
@@ -332,7 +338,7 @@ export class GeometryWarsGame extends BaseGame<
     }
   }
 
-  public getGameState(): any {
+  public getGameState(): GeometryWarsStateComponent & { combo: number; multiplier: number; comboTimerRemaining: number } {
     const sceneWorld = this.currentScene ? this.currentScene.getWorld() : this.world;
     const state = sceneWorld.getSingleton("GeometryWarsState");
     if (state) {

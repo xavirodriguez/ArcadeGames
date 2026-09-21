@@ -147,6 +147,45 @@ export function drawNeonShape(
 }
 
 /**
+ * Draws a glowing orb with an outer neon stroke and a bright white inner core in Canvas.
+ * @public
+ */
+export function drawGlowOrbCanvas(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  color: string,
+  coreScale: number = 0.4,
+  strokeWidth: number = 2.0,
+  style: "fill" | "stroke" = "fill"
+): void {
+  ctx.save();
+
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = color;
+
+  if (style === "stroke") {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = strokeWidth;
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = colors.white;
+  ctx.beginPath();
+  ctx.arc(0, 0, size * coreScale, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/**
  * Renders a slow scrolling neon-cyber grid along with soft CRT scanlines and screen vignette.
  */
 export function drawProceduralGrid(

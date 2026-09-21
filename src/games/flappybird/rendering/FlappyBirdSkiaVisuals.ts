@@ -19,7 +19,8 @@ import {
   resolveFlappyPipeDrawContext,
   maybeSpawnBackgroundDebris,
   resolveGlideEnergyState,
-  resolveSectorEventInfo
+  resolveSectorEventInfo,
+  resolveBackgroundWarpState
 } from "./FlappyBirdRenderUtils";
 
 // DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
@@ -728,15 +729,9 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     // --- SPORADIC DISTANT BACKGROUND DEBRIS / SPARKS ---
     maybeSpawnBackgroundDebris(world, width, height, spawnVisualParticle);
 
-    // Hypervelocity combo factor calculation
-    let warpFactor = 1.0;
-    const comboEntities = world.query("Combo");
-    if (comboEntities.length > 0) {
-      const combo = world.getComponent(comboEntities[0], "Combo") as any;
-      if (combo && combo.multiplier > 1) {
-        warpFactor = 1.0 + (combo.multiplier - 1) * 0.35;
-      }
-    }
+    // Resolve background warp and speed line parameters
+    const warpState = resolveBackgroundWarpState(world, width, height);
+    const { warpFactor, showWarpLines, intensity, cx, cy, lineCount, maxR } = warpState;
 
     if (!staticStars) {
       staticStars = generateStarfield(width, height);
@@ -767,16 +762,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     }
 
     // --- AD-HOC RADIAL WARP SPEED LINES (WARPFACTOR > 1.5) ---
-    // Opting for an ad-hoc local implementation instead of registering global SharedVFX
-    // to preserve zero side-effects on shared VFX state across other minigames (e.g. Geometry Wars)
-    // while pinning radial speed lines strictly to Flappy Bird's viewport center and combo factor.
-    if (warpFactor > 1.5) {
-      const cx = width / 2;
-      const cy = height / 2;
-      const lineCount = 20;
-      const maxR = Math.sqrt(cx * cx + cy * cy);
-      const intensity = Math.min((warpFactor - 1.5) / 1.5, 1.0);
-
+    if (showWarpLines) {
       canvas.save();
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);

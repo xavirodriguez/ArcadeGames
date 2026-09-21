@@ -8,6 +8,19 @@ import {
   getActiveLevelTheme
 } from "../SharedVFXInternal";
 
+export function advanceNebulaCloud(
+  neb: NebulaCloud,
+  timePhase: number,
+  index: number,
+  offsetX: number
+): { posX: number; offsetAngle: number } {
+  neb.x += neb.vx;
+  neb.y += neb.vy;
+  const posX = neb.x - offsetX * 0.1;
+  const offsetAngle = timePhase * 0.05 + index;
+  return { posX, offsetAngle };
+}
+
 const driftingNebulaLayer = createParallaxLayer<NebulaCloud[]>({
   layerName: "layer1_nebula",
   isInitialized: (state) => state.nebulaeInitialized,
@@ -27,10 +40,7 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
 
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
       const neb = nebulae[i];
-      neb.x += neb.vx;
-      neb.y += neb.vy;
-
-      const posX = neb.x - offsetX * 0.1;
+      const { posX, offsetAngle } = advanceNebulaCloud(neb, state.timePhase, i, offsetX);
       const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
 
       ctx.fillStyle = nebColorHex;
@@ -41,7 +51,6 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
         ctx.arc(posX, neb.y, r, 0, Math.PI * 2);
         ctx.fill();
 
-        const offsetAngle = state.timePhase * 0.05 + i;
         const lobeX = posX + Math.cos(offsetAngle) * (r * 0.25);
         const lobeY = neb.y + Math.sin(offsetAngle) * (r * 0.25);
         ctx.beginPath();
@@ -68,10 +77,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponent
 
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
       const neb = nebulae[i];
-      neb.x += neb.vx;
-      neb.y += neb.vy;
-
-      const posX = neb.x - offsetX * 0.1;
+      const { posX, offsetAngle } = advanceNebulaCloud(neb, state.timePhase, i, offsetX);
       const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
 
       paint.setColor(Skia.Color(nebColorHex));
@@ -80,7 +86,6 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponent
       for (let r = neb.radius; r > 10; r -= 20) {
         canvas.drawCircle(posX, neb.y, r, paint);
 
-        const offsetAngle = state.timePhase * 0.05 + i;
         const lobeX = posX + Math.cos(offsetAngle) * (r * 0.25);
         const lobeY = neb.y + Math.sin(offsetAngle) * (r * 0.25);
         canvas.drawCircle(lobeX, lobeY, r * 0.7, paint);

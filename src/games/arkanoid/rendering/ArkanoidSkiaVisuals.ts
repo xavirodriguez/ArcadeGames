@@ -3,6 +3,7 @@ import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidType
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "../../shared/rendering/ProceduralShapeUtils";
+import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> = {
@@ -18,21 +19,7 @@ export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> =
     const ballColor = render.color || colors.cyan;
     const paint = getPaint();
 
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ballColor));
-    paint.setStrokeWidth(2.0);
-    canvas.drawCircle(0, 0, size, paint);
-
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(colors.white));
-    canvas.drawCircle(0, 0, size * 0.4, paint);
-
-    canvas.restore();
+    drawGlowOrbSkia(canvas, paint, size, ballColor, 0.4, 2.0);
   }
 };
 

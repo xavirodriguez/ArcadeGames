@@ -1,4 +1,4 @@
-import { World, TransformComponent, RenderComponent, HealthComponent } from "@tiny-aster/core";
+import { World, TransformComponent, RenderComponent, HealthComponent, ComboComponent } from "@tiny-aster/core";
 import {
   FlappyBirdComponentRegistry,
   BirdComponent,
@@ -284,4 +284,52 @@ export function resolveSectorEventInfo(sectorEvent: string): FlappySectorEventIn
       : "#00F3FF";
 
   return { sectorEvent, bannerText, textColor };
+}
+
+/**
+ * Common warp and combo factor calculation for Flappy Bird parallax background.
+ */
+export interface FlappyBackgroundWarpState {
+  warpFactor: number;
+  showWarpLines: boolean;
+  intensity: number;
+  cx: number;
+  cy: number;
+  lineCount: number;
+  maxR: number;
+}
+
+/**
+ * Resolves background warp factor, combo boost, and radial speed line calculations.
+ */
+export function resolveBackgroundWarpState(
+  world: World<FlappyBirdComponentRegistry>,
+  width: number,
+  height: number
+): FlappyBackgroundWarpState {
+  let warpFactor = 1.0;
+  const comboEntities = world.query("Combo");
+  if (comboEntities.length > 0) {
+    const combo = world.getComponent(comboEntities[0], "Combo") as ComboComponent | undefined;
+    if (combo && combo.multiplier > 1) {
+      warpFactor = 1.0 + (combo.multiplier - 1) * 0.35;
+    }
+  }
+
+  const cx = width / 2;
+  const cy = height / 2;
+  const lineCount = 20;
+  const maxR = Math.sqrt(cx * cx + cy * cy);
+  const intensity = Math.min((warpFactor - 1.5) / 1.5, 1.0);
+  const showWarpLines = warpFactor > 1.5;
+
+  return {
+    warpFactor,
+    showWarpLines,
+    intensity,
+    cx,
+    cy,
+    lineCount,
+    maxR
+  };
 }

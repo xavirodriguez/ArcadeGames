@@ -1,5 +1,6 @@
-import { ConfigService } from "@tiny-aster/core";
+import { ConfigService, World } from "@tiny-aster/core";
 import { z } from "zod";
+import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
 
 export interface MutatorLike {
   apply: (cfg: any) => any;
@@ -53,4 +54,35 @@ export function loadAndMutateConfig<T extends Record<string, any>>(
 ): T {
   const baseConfig = ConfigService.load<T>(gameId, schema, rawConfig);
   return applyMutators(baseConfig, mutatorsParam);
+}
+
+/**
+ * Executes an initialization action within a `gameplayRandom` unlocked block,
+ * ensuring that `gameplayRandom` is always locked afterwards via `finally`.
+ * Also applies active beneficial mutators if specified in `gameOptions`.
+ *
+ * @param world - The ECS World instance.
+ * @param gameOptions - Game options containing active beneficial mutator IDs.
+ * @param initFn - Callback function that creates entities and performs setup.
+ * @public
+ */
+export function runWithUnlockedRandomAndMutators(
+  world: World<any, any, any>,
+  gameOptions: Record<string, unknown> | undefined,
+  initFn: () => void
+): void {
+  world.gameplayRandom.unlock();
+  try {
+    initFn();
+
+    const activeBeneficials = (gameOptions?.activeBeneficialMutators as string[]) || [];
+    for (const mutatorId of activeBeneficials) {
+      const mutator = BENEFICIAL_MUTATORS[mutatorId];
+      if (mutator) {
+        mutator.apply(world);
+      }
+    }
+  } finally {
+    world.gameplayRandom.lock();
+  }
 }

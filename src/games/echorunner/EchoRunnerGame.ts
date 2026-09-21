@@ -52,7 +52,7 @@ import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAU
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
-import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
+import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -304,46 +304,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       }
     });
 
-    this.blueprints.register("checkpoint_node", {
-      spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withRender({ shape: "node", size: 32, order: 1 });
-
-        world.addComponent(entity, {
-          type: "RespawnPoint",
-          x: args.x,
-          y: args.y - 10,
-          checkpointId: args.id
-        } as { type: string; [key: string]: unknown });
-      }
-    });
-
+    registerPlatformerEnvironmentBlueprints(this.blueprints);
     registerPlatformerEnemyBlueprints(this.blueprints);
-
-    this.blueprints.register("moving_platform", {
-      spawn: (world, entity, args: { x: number; y: number; ampX: number; ampY: number; freq: number }) => {
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withVelocity()
-          .withCollider2D({
-            shape: { type: "aabb", halfWidth: 30, halfHeight: 10 },
-            layer: 2
-          })
-          .withRender({ shape: "paddle", size: 60, order: 1 });
-
-        world.addComponent(entity, {
-          type: "MovingPlatform",
-          pattern: "sine",
-          startX: args.x,
-          startY: args.y,
-          amplitudeX: args.ampX,
-          amplitudeY: args.ampY,
-          frequency: args.freq,
-          elapsed: 0
-        } as { type: string; [key: string]: unknown });
-      }
-    });
 
     // Register State Machine Behaviors
     registerEnemyStateMachines(this.world);

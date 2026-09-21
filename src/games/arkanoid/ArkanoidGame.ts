@@ -31,7 +31,7 @@ import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { CombatSystem, CollisionLayers, AchievementSystem, PowerUpSystem, SharedParticlePool } from "@tiny-aster/gameplay-kit";
 import { ComboSystem } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
-import { loadAndMutateConfig } from "../shared/configHelper";
+import { loadAndMutateConfig, runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
 import { ArkanoidInputSystem } from "./systems/ArkanoidInputSystem";
@@ -294,24 +294,13 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    this.world.gameplayRandom.unlock();
-    try {
+    runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
       ArkanoidEntityFactory.createPaddle(this.world);
       ArkanoidEntityFactory.createBall(this.world);
       ArkanoidEntityFactory.createGameState(this.world);
 
       this.stateSystem.spawnLevelBricks(this.world, 1);
-
-      const activeBeneficials = (this._config.gameOptions?.activeBeneficialMutators as string[]) || [];
-      for (const mutatorId of activeBeneficials) {
-        const mutator = BENEFICIAL_MUTATORS[mutatorId];
-        if (mutator) {
-          mutator.apply(this.world);
-        }
-      }
-    } finally {
-      this.world.gameplayRandom.lock();
-    }
+    });
   }
 
   protected override async onBeforeRestart(): Promise<void> {

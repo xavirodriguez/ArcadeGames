@@ -16,7 +16,7 @@ import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 import { SpawnDirectorComponent } from "@tiny-aster/gameplay-kit";
 
-interface BasicEnemyParams {
+interface EnemyParams {
   x: number;
   y: number;
   shape: string;
@@ -25,58 +25,22 @@ interface BasicEnemyParams {
   radius: number;
   maxSpeed: number;
   maxAcceleration: number;
-  steeringMode?: "seek" | "flee";
-}
-
-function spawnBasicEnemy(
-  w: World<any, any, any>,
-  entity: number,
-  params: BasicEnemyParams
-): void {
-  EntityBuilder.fromEntity(w, entity)
-    .withTransform({ x: params.x, y: params.y })
-    .withVelocity()
-    .withRender({ shape: params.shape, size: params.size, color: params.color, order: 1 })
-    .withCollider({
-      shape: { type: ShapeType.Circle, radius: params.radius } as CircleShape,
-      layer: CollisionLayers.ENEMY,
-      mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-    })
-    .withCollisionEvents();
-
-  attachEnemyDefaults(w, entity, { currentHp: 1, maxHp: 1, faction: "enemy" });
-  w.addComponent(entity, {
-    type: "Steering",
-    mode: params.steeringMode ?? "seek",
-    targetFaction: "player",
-    maxSpeed: params.maxSpeed,
-    maxAcceleration: params.maxAcceleration
-  } as GeometryWarsComponentRegistry["Steering"]);
-}
-
-interface SeekerEnemyParams {
-  x: number;
-  y: number;
-  shape: string;
-  size: number;
-  color: string;
-  radius: number;
+  order?: number;
   health?: number;
-  maxSpeed: number;
-  maxAcceleration: number;
+  hasContactDamage?: boolean;
   steeringMode?: "seek" | "flee";
   arrivalRadius?: number;
 }
 
-function spawnSeekerEnemy(
+function spawnEnemyEntity(
   w: World<any, any, any>,
   entity: number,
-  params: SeekerEnemyParams
+  params: EnemyParams
 ): void {
   EntityBuilder.fromEntity(w, entity)
     .withTransform({ x: params.x, y: params.y })
     .withVelocity()
-    .withRender({ shape: params.shape, size: params.size, color: params.color, order: 3 })
+    .withRender({ shape: params.shape, size: params.size, color: params.color, order: params.order ?? 1 })
     .withCollider({
       shape: { type: ShapeType.Circle, radius: params.radius } as CircleShape,
       layer: CollisionLayers.ENEMY,
@@ -86,13 +50,17 @@ function spawnSeekerEnemy(
 
   const health = params.health ?? 1;
   attachEnemyDefaults(w, entity, { currentHp: health, maxHp: health, faction: "enemy" });
-  w.addComponent(entity, {
-    type: "Damage",
-    amount: 1,
-    category: "enemy_contact",
-    friendlyFire: false,
-    consumption: "none"
-  } as DamageComponent);
+
+  if (params.hasContactDamage) {
+    w.addComponent(entity, {
+      type: "Damage",
+      amount: 1,
+      category: "enemy_contact",
+      friendlyFire: false,
+      consumption: "none"
+    } as DamageComponent);
+  }
+
   w.addComponent(entity, {
     type: "Steering",
     mode: params.steeringMode ?? "seek",
@@ -201,7 +169,7 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("enemy_chaser", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnBasicEnemy(w, entity, {
+      spawnEnemyEntity(w, entity, {
         x: args.x,
         y: args.y,
         shape: "gw_chaser",
@@ -216,7 +184,7 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("enemy_evader", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnBasicEnemy(w, entity, {
+      spawnEnemyEntity(w, entity, {
         x: args.x,
         y: args.y,
         shape: "gw_evader",
@@ -231,7 +199,7 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("enemy_grunt", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnBasicEnemy(w, entity, {
+      spawnEnemyEntity(w, entity, {
         x: args.x,
         y: args.y,
         shape: "gw_grunt",
@@ -275,14 +243,16 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("seeker", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnSeekerEnemy(w, entity, {
+      spawnEnemyEntity(w, entity, {
         x: args.x,
         y: args.y,
         shape: "gw_seeker",
         size: 12,
         color: colors.pink,
         radius: 6,
+        order: 3,
         health: 2,
+        hasContactDamage: true,
         maxSpeed: 120,
         maxAcceleration: 80,
         arrivalRadius: 10
@@ -292,14 +262,16 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("evader", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnSeekerEnemy(w, entity, {
+      spawnEnemyEntity(w, entity, {
         x: args.x,
         y: args.y,
         shape: "gw_evader",
         size: 12,
         color: colors.green,
         radius: 6,
+        order: 3,
         health: 1,
+        hasContactDamage: true,
         maxSpeed: 100,
         maxAcceleration: 60,
         steeringMode: "flee"
@@ -309,14 +281,16 @@ export function registerGeometryWarsBlueprints(
 
   registry.register("fast_seeker", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnSeekerEnemy(w, entity, {
+      spawnEnemyEntity(w, entity, {
         x: args.x,
         y: args.y,
         shape: "gw_fast_seeker",
         size: 8,
         color: colors.pink,
         radius: 4,
+        order: 3,
         health: 1,
+        hasContactDamage: true,
         maxSpeed: 200,
         maxAcceleration: 150,
         arrivalRadius: 5

@@ -11,6 +11,55 @@ export interface FroggerBlueprintMap extends Record<string, BlueprintDefinition<
   state: BlueprintDefinition<FroggerComponentRegistry, any, {}>;
 }
 
+interface MovingGridObstacleParams {
+  row: number;
+  x: number;
+  speed: number;
+  direction: number;
+  width: number;
+  shape: string;
+  color: string;
+  order: number;
+}
+
+function spawnMovingGridObstacle(
+  w: World<FroggerComponentRegistry>,
+  entity: number,
+  params: MovingGridObstacleParams
+): void {
+  const config = w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
+  const y = params.row * config.GRID_SIZE + config.GRID_SIZE / 2;
+  const height = config.GRID_SIZE - 10;
+  const vx = params.speed * params.direction;
+
+  EntityBuilder.fromEntity(w, entity)
+    .withTransform({ x: params.x, y })
+    .withVelocity({ vx, vy: 0 })
+    .withRender({
+      shape: params.shape,
+      size: params.width,
+      color: params.color,
+      order: params.order,
+    })
+    .withCollider({
+      shape: { type: ShapeType.Box, width: params.width, height } as BoxShape,
+      layer: CollisionLayers.ENEMY,
+      mask: CollisionLayers.PLAYER,
+    })
+    .withCollisionEvents();
+
+  w.addComponent(entity, {
+    type: "Boundary",
+    width: config.worldWidth,
+    height: config.worldHeight,
+    minX: -params.width,
+    maxX: config.worldWidth + params.width,
+    minY: 0,
+    maxY: config.worldHeight,
+    mode: "wrap",
+  } as BoundaryComponent);
+}
+
 export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>, blueprints: any) {
   blueprints.register("frogger", {
     spawn: (w: World<FroggerComponentRegistry>, entity: number, args: { gridX: number; gridY: number }) => {
@@ -60,37 +109,18 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
   blueprints.register("vehicle", {
     spawn: (w: World<FroggerComponentRegistry>, entity: number, args: { row: number; x: number; speed: number; direction: number; vehicleType: "car" | "truck" }) => {
       const config = w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-      const y = args.row * config.GRID_SIZE + config.GRID_SIZE / 2;
       const width = args.vehicleType === "truck" ? config.GRID_SIZE * 2 : config.GRID_SIZE * 1.2;
-      const height = config.GRID_SIZE - 10;
-      const vx = args.speed * args.direction;
 
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x: args.x, y })
-        .withVelocity({ vx, vy: 0 })
-        .withRender({
-          shape: args.vehicleType === "truck" ? "truck" : "car",
-          size: width,
-          color: args.vehicleType === "truck" ? "#FF2A6D" : "#00F3FF",
-          order: 5,
-        })
-        .withCollider({
-          shape: { type: ShapeType.Box, width, height } as BoxShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER,
-        })
-        .withCollisionEvents();
-
-      w.addComponent(entity, {
-        type: "Boundary",
-        width: config.worldWidth,
-        height: config.worldHeight,
-        minX: -width,
-        maxX: config.worldWidth + width,
-        minY: 0,
-        maxY: config.worldHeight,
-        mode: "wrap",
-      } as BoundaryComponent);
+      spawnMovingGridObstacle(w, entity, {
+        row: args.row,
+        x: args.x,
+        speed: args.speed,
+        direction: args.direction,
+        width,
+        shape: args.vehicleType === "truck" ? "truck" : "car",
+        color: args.vehicleType === "truck" ? "#FF2A6D" : "#00F3FF",
+        order: 5,
+      });
 
       w.addComponent(entity, {
         type: "Vehicle",
@@ -105,37 +135,18 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
   blueprints.register("log", {
     spawn: (w: World<FroggerComponentRegistry>, entity: number, args: { row: number; x: number; speed: number; direction: number; length: number; logType: "log" | "turtle" }) => {
       const config = w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-      const y = args.row * config.GRID_SIZE + config.GRID_SIZE / 2;
       const width = config.GRID_SIZE * args.length;
-      const height = config.GRID_SIZE - 10;
-      const vx = args.speed * args.direction;
 
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({ x: args.x, y })
-        .withVelocity({ vx, vy: 0 })
-        .withRender({
-          shape: args.logType === "turtle" ? "turtle" : "log",
-          size: width,
-          color: args.logType === "turtle" ? "#00D2FF" : "#8B5A2B",
-          order: 4,
-        })
-        .withCollider({
-          shape: { type: ShapeType.Box, width, height } as BoxShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER,
-        })
-        .withCollisionEvents();
-
-      w.addComponent(entity, {
-        type: "Boundary",
-        width: config.worldWidth,
-        height: config.worldHeight,
-        minX: -width,
-        maxX: config.worldWidth + width,
-        minY: 0,
-        maxY: config.worldHeight,
-        mode: "wrap",
-      } as BoundaryComponent);
+      spawnMovingGridObstacle(w, entity, {
+        row: args.row,
+        x: args.x,
+        speed: args.speed,
+        direction: args.direction,
+        width,
+        shape: args.logType === "turtle" ? "turtle" : "log",
+        color: args.logType === "turtle" ? "#00D2FF" : "#8B5A2B",
+        order: 4,
+      });
 
       w.addComponent(entity, {
         type: "Log",

@@ -1,4 +1,4 @@
-import { World, SystemPhase, EventBus, CoreComponentRegistry, CoreEvents, TransformComponent, HealthComponent, CollisionEventsComponent } from "@tiny-aster/core";
+import { World, SystemPhase, EventBus, CoreComponentRegistry, CoreEvents, EventRegistry, TransformComponent, HealthComponent, CollisionEventsComponent } from "@tiny-aster/core";
 import { CombatSystem } from "../systems/CombatSystem";
 import { CombatHitEvent, CombatDeathEvent } from "../types/CombatTypes";
 import { DamageComponent, FactionComponent } from "../../index";
@@ -8,7 +8,7 @@ interface TestCombatComponentRegistry extends CoreComponentRegistry {
   Faction: FactionComponent;
 }
 
-interface TestCombatEventRegistry extends CoreEvents, Record<string, unknown> {
+interface TestCombatEventRegistry extends CoreEvents, EventRegistry {
   "combat:hit": CombatHitEvent;
   "combat:death": CombatDeathEvent;
 }

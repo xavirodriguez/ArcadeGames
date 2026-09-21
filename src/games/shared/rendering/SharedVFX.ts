@@ -1,4 +1,5 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService } from "@tiny-aster/core";
+import type { SkColor } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
 import { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
@@ -19,6 +20,7 @@ import {
   MatrixColumn,
   AccretionParticle,
   DistantAsteroid,
+  VFXWorldState,
   WARP_LINE_COUNT,
   MATRIX_COLUMN_COUNT,
   ACCRETION_PARTICLE_COUNT,
@@ -46,7 +48,7 @@ export { RingingPlanetBackgroundEffect, SkiaRingingPlanetBackgroundEffect } from
 // -------------------------------------------------------------
 // Pure Calculation & State Update Helpers
 // -------------------------------------------------------------
-export function updateSpeedLine(line: SpeedLine, maxRadius: number, rng: any): void {
+export function updateSpeedLine(line: SpeedLine, maxRadius: number, rng: RandomService): void {
   line.radius += line.speed;
   if (line.radius > maxRadius) {
     line.radius = rng.nextRange(10, 50);
@@ -65,7 +67,7 @@ export function computeSpeedLineCoordinates(centerX: number, centerY: number, an
   };
 }
 
-export function updateMatrixColumn(col: MatrixColumn, height: number, rng: any): void {
+export function updateMatrixColumn(col: MatrixColumn, height: number, rng: RandomService): void {
   col.y += col.speed;
   if (col.y > height) {
     col.y = -150;
@@ -73,7 +75,7 @@ export function updateMatrixColumn(col: MatrixColumn, height: number, rng: any):
   }
 }
 
-export function updateAccretionParticle(p: AccretionParticle, baseSize: number, rng: any): void {
+export function updateAccretionParticle(p: AccretionParticle, baseSize: number, rng: RandomService): void {
   p.angle -= p.speed;
   p.radius -= 0.2;
   if (p.radius < 5) {
@@ -163,12 +165,12 @@ function computeThrusterPlume(timePhase: number, size: number) {
   return { plumeLength };
 }
 
-function pickColor(rng: any, colors: string[]): { color: string; skColor: any } {
+function pickColor(rng: RandomService, colors: string[]): { color: string; skColor: SkColor | null } {
   const color = colors[rng.nextInt(0, colors.length)];
   return { color, skColor: Skia ? Skia.Color(color) : null };
 }
 
-function initializeLines(world: World, state: any, maxRadius: number) {
+function initializeLines(world: World<ComponentRegistry>, state: VFXWorldState, maxRadius: number) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.white,
@@ -514,7 +516,7 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, CoreComponentRegistr
 // 5. DebrisShockwaveEffect (Canvas & Skia)
 // -------------------------------------------------------------
 function drawShockwaveSparks(
-  rng: any,
+  rng: RandomService,
   currentRadius: number,
   drawSpark: (sparkX: number, sparkY: number, sparkSize: number) => void
 ): void {
@@ -675,7 +677,7 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, CoreComponentRegistr
 // 8. CRTGlitchShudderEffect (Canvas & Skia)
 // -------------------------------------------------------------
 function drawCRTGlitchLines(
-  rng: any,
+  rng: RandomService,
   height: number,
   drawLine: (offset: number, y: number, h: number, alpha: number) => void
 ): void {

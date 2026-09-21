@@ -1,4 +1,4 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService } from "@tiny-aster/core";
 import type { SkColor, SkPath, SkShader } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
@@ -280,7 +280,7 @@ export function getOrCreateCached<T>(
 export interface ParallaxLayerOptions<TState> {
   layerName: ParallaxLayerName;
   isInitialized: (state: VFXWorldState) => boolean;
-  initialize: (world: World<any>, state: VFXWorldState) => void;
+  initialize: (world: World<ComponentRegistry>, state: VFXWorldState) => void;
   getState: (state: VFXWorldState) => TState;
 }
 
@@ -319,12 +319,12 @@ export function createParallaxLayer<TState>(options: ParallaxLayerOptions<TState
   };
 }
 
-export function pickColor(rng: any, colors: string[]): { color: string; skColor: any } {
+export function pickColor(rng: RandomService, colors: string[]): { color: string; skColor: SkColor | null } {
   const color = colors[rng.nextInt(0, colors.length)];
   return { color, skColor: Skia ? Skia.Color(color) : null };
 }
 
-export function initializeStars(world: World<any>, state: VFXWorldState) {
+export function initializeStars(world: World<ComponentRegistry>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.white,
@@ -350,7 +350,7 @@ export function initializeStars(world: World<any>, state: VFXWorldState) {
   state.starsInitialized = true;
 }
 
-export function initializeNebulae(world: World<any>, state: VFXWorldState) {
+export function initializeNebulae(world: World<ComponentRegistry>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.nebulaPurple,
@@ -375,7 +375,7 @@ export function initializeNebulae(world: World<any>, state: VFXWorldState) {
   state.nebulaeInitialized = true;
 }
 
-export function initializeMilkyWay(world: World<any>, state: VFXWorldState) {
+export function initializeMilkyWay(world: World<ComponentRegistry>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const angle = rng.nextRange(-0.4, -0.2);
   const colors = [
@@ -408,7 +408,7 @@ export function initializeMilkyWay(world: World<any>, state: VFXWorldState) {
   state.milkyWayInitialized = true;
 }
 
-export function initializeRingingPlanet(world: World<any>, state: VFXWorldState) {
+export function initializeRingingPlanet(world: World<ComponentRegistry>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const planetX = rng.nextRange(550, 680);
   const planetY = rng.nextRange(120, 220);
@@ -458,7 +458,7 @@ export function initializeRingingPlanet(world: World<any>, state: VFXWorldState)
   state.planetInitialized = true;
 }
 
-export function initializeDistantAsteroids(world: World<any>, state: VFXWorldState) {
+export function initializeDistantAsteroids(world: World<ComponentRegistry>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const colors = [
     COSMIC_ARCADE_PALETTE.cosmicNavy,
@@ -501,7 +501,7 @@ export function initializeDistantAsteroids(world: World<any>, state: VFXWorldSta
   state.distantAsteroidsInitialized = true;
 }
 
-export function initializeSpaceStation(world: World<any>, state: VFXWorldState) {
+export function initializeSpaceStation(world: World<ComponentRegistry>, state: VFXWorldState) {
   const rng = world.renderRandom;
   const x = rng.nextRange(150, 280);
   const y = rng.nextRange(100, 200);

@@ -45,6 +45,17 @@ export { DistantAsteroidBeltBackgroundEffect, SkiaDistantAsteroidBeltBackgroundE
 export { DistantSpaceStationBackgroundEffect, SkiaDistantSpaceStationBackgroundEffect } from "./layers/DistantSpaceStationLayer";
 export { RingingPlanetBackgroundEffect, SkiaRingingPlanetBackgroundEffect } from "./layers/RingingPlanetLayer";
 
+// Export Mission HUD shared utilities
+export {
+  resolveMissionHudModel,
+  createCanvasMissionHUD,
+  createSkiaMissionHUD,
+  drawCanvasMissionHUD,
+  drawSkiaMissionHUD,
+  MissionHudViewModel,
+  MissionHudOptions
+} from "./SharedMissionHUD";
+
 // -------------------------------------------------------------
 // Pure Calculation & State Update Helpers
 // -------------------------------------------------------------

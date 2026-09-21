@@ -37,6 +37,48 @@ function getPowerUpColor(lootType: string, world?: World<any, any, any>): string
   return colors.gold;
 }
 
+interface MovingCircularEnemyParams {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  angularVelocity?: number;
+  shape: string;
+  radius: number;
+  color: string;
+  order?: number;
+}
+
+function buildMovingCircularEnemy(
+  w: World<any, any, any>,
+  entity: number,
+  params: MovingCircularEnemyParams
+): void {
+  EntityBuilder.fromEntity(w, entity)
+    .withTransform({
+      x: params.x,
+      y: params.y,
+      dirty: true
+    })
+    .withVelocity({
+      vx: params.vx,
+      vy: params.vy,
+      ...(params.angularVelocity !== undefined ? { angularVelocity: params.angularVelocity } : {})
+    })
+    .withRender({
+      shape: params.shape,
+      size: params.radius * 2,
+      color: params.color,
+      ...(params.order !== undefined ? { order: params.order } : {})
+    })
+    .withCollider({
+      shape: { type: ShapeType.Circle, radius: params.radius } as CircleShape,
+      layer: CollisionLayers.ENEMY,
+      mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+    })
+    .withCollisionEvents();
+}
+
 /**
  * Registers ship, bullet, asteroid, and powerup blueprints.
  * Keeping them in a single place allows unifying test world runs with game runs.
@@ -197,30 +239,18 @@ export function registerAsteroidsBlueprints(
       else if (args.size === "small") radius = 10;
 
       const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
-      const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy");
+      const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy") || colors.cyan;
 
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({
-          x: args.x,
-          y: args.y,
-          dirty: true
-        })
-        .withVelocity({
-          vx: args.vx !== undefined ? args.vx : randVx,
-          vy: args.vy !== undefined ? args.vy : randVy,
-          angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng
-        })
-        .withRender({
-          shape: "asteroid",
-          size: radius * 2,
-          color: tint
-        })
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-        })
-        .withCollisionEvents();
+      buildMovingCircularEnemy(w, entity, {
+        x: args.x,
+        y: args.y,
+        vx: args.vx !== undefined ? args.vx : randVx,
+        vy: args.vy !== undefined ? args.vy : randVy,
+        angularVelocity: args.angularVelocity !== undefined ? args.angularVelocity : randAng,
+        shape: "asteroid",
+        radius,
+        color: tint
+      });
 
       w.addComponent(entity, {
         type: "Asteroid",
@@ -293,28 +323,16 @@ export function registerAsteroidsBlueprints(
       const radius = ufoSize === "large" ? 18 : 10;
       const speed = ufoSize === "large" ? 100 : 160;
 
-      EntityBuilder.fromEntity(w, entity)
-        .withTransform({
-          x: args.x,
-          y: args.y,
-          dirty: true
-        })
-        .withVelocity({
-          vx: args.vx ?? (w.gameplayRandom.next() > 0.5 ? speed : -speed),
-          vy: args.vy ?? (w.gameplayRandom.next() - 0.5) * (speed * 0.5)
-        })
-        .withRender({
-          shape: "ufo",
-          size: radius * 2,
-          color: tint,
-          order: 3
-        })
-        .withCollider({
-          shape: { type: ShapeType.Circle, radius } as CircleShape,
-          layer: CollisionLayers.ENEMY,
-          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
-        })
-        .withCollisionEvents();
+      buildMovingCircularEnemy(w, entity, {
+        x: args.x,
+        y: args.y,
+        vx: args.vx ?? (w.gameplayRandom.next() > 0.5 ? speed : -speed),
+        vy: args.vy ?? (w.gameplayRandom.next() - 0.5) * (speed * 0.5),
+        shape: "ufo",
+        radius,
+        color: tint,
+        order: 3
+      });
 
       w.addComponent(entity, {
         type: "Ufo",

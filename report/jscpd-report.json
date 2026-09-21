@@ -1371,18 +1371,18 @@
     },
     {
       "firstFile": {
-        "end": 127,
+        "end": 169,
         "endLoc": {
           "column": 115,
-          "line": 127,
-          "position": 4700
+          "line": 169,
+          "position": 5725
         },
         "name": "asteroids/EntityFactory.ts",
-        "start": 122,
+        "start": 164,
         "startLoc": {
           "column": 45,
-          "line": 122,
-          "position": 4536
+          "line": 164,
+          "position": 5561
         }
       },
       "format": "typescript",
@@ -1390,58 +1390,21 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 174,
+        "end": 142,
         "endLoc": {
           "column": 115,
-          "line": 174,
-          "position": 5961
+          "line": 142,
+          "position": 4990
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 169,
+        "start": 137,
         "startLoc": {
           "column": 61,
-          "line": 169,
-          "position": 5797
+          "line": 137,
+          "position": 4826
         }
       },
       "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 226,
-        "endLoc": {
-          "column": 13,
-          "line": 226,
-          "position": 8200
-        },
-        "name": "asteroids/EntityFactory.ts",
-        "start": 217,
-        "startLoc": {
-          "column": 8,
-          "line": 217,
-          "position": 7909
-        }
-      },
-      "format": "typescript",
-      "fragment": "        })\n        .withCollider({\n          shape: { type: ShapeType.Circle, radius } as CircleShape,\n          layer: CollisionLayers.ENEMY,\n          mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE\n        })\n        .withCollisionEvents();\n\n      w.addComponent(entity, {\n        type: \"Asteroid\",",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 320,
-        "endLoc": {
-          "column": 13,
-          "line": 320,
-          "position": 11260
-        },
-        "name": "asteroids/EntityFactory.ts",
-        "start": 311,
-        "startLoc": {
-          "column": 8,
-          "line": 311,
-          "position": 10969
-        }
-      },
-      "tokens": 51
     },
     {
       "firstFile": {
@@ -3147,117 +3110,6 @@
     },
     {
       "firstFile": {
-        "end": 251,
-        "endLoc": {
-          "column": 83,
-          "line": 251,
-          "position": 9538
-        },
-        "name": "flappybird/systems/FlappyBirdCollisionSystem.ts",
-        "start": 245,
-        "startLoc": {
-          "column": 44,
-          "line": 245,
-          "position": 9338
-        }
-      },
-      "format": "typescript",
-      "fragment": "    world: World<FlappyBirdComponentRegistry>,\n    entityA: Entity,\n    entityB: Entity,\n    type1: T1,\n    type2: T2\n  ): Record<T1 | T2, Entity> | undefined {\n    if (world.hasComponent(entityA, type1) && world.hasComponent(entityB, type2)) {",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 575,
-        "endLoc": {
-          "column": 83,
-          "line": 575,
-          "position": 21815
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 569,
-        "startLoc": {
-          "column": 47,
-          "line": 569,
-          "position": 21615
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 72,
-        "endLoc": {
-          "column": 22,
-          "line": 72,
-          "position": 3312
-        },
-        "name": "frogger/EntityFactory.ts",
-        "start": 64,
-        "startLoc": {
-          "column": 96,
-          "line": 64,
-          "position": 3055
-        }
-      },
-      "format": "typescript",
-      "fragment": "      const width = args.vehicleType === \"truck\" ? config.GRID_SIZE * 2 : config.GRID_SIZE * 1.2;\n      const height = config.GRID_SIZE - 10;\n      const vx = args.speed * args.direction;\n\n      EntityBuilder.fromEntity(w, entity)\n        .withTransform({ x: args.x, y })\n        .withVelocity({ vx, vy: 0 })\n        .withRender({\n          shape: args.vehicleType === \"truck\" ? \"truck\" : \"car\",",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 117,
-        "endLoc": {
-          "column": 22,
-          "line": 117,
-          "position": 4875
-        },
-        "name": "frogger/EntityFactory.ts",
-        "start": 109,
-        "startLoc": {
-          "column": 50,
-          "line": 109,
-          "position": 4618
-        }
-      },
-      "tokens": 61
-    },
-    {
-      "firstFile": {
-        "end": 96,
-        "endLoc": {
-          "column": 13,
-          "line": 96,
-          "position": 4036
-        },
-        "name": "frogger/EntityFactory.ts",
-        "start": 75,
-        "startLoc": {
-          "column": 18,
-          "line": 75,
-          "position": 3467
-        }
-      },
-      "format": "typescript",
-      "fragment": "          order: 5,\n        })\n        .withCollider({\n          shape: { type: ShapeType.Box, width, height } as BoxShape,\n          layer: CollisionLayers.ENEMY,\n          mask: CollisionLayers.PLAYER,\n        })\n        .withCollisionEvents();\n\n      w.addComponent(entity, {\n        type: \"Boundary\",\n        width: config.worldWidth,\n        height: config.worldHeight,\n        minX: -width,\n        maxX: config.worldWidth + width,\n        minY: 0,\n        maxY: config.worldHeight,\n        mode: \"wrap\",\n      } as BoundaryComponent);\n\n      w.addComponent(entity, {\n        type: \"Vehicle\",",
-      "isNew": false,
-      "lines": 22,
-      "secondFile": {
-        "end": 141,
-        "endLoc": {
-          "column": 13,
-          "line": 141,
-          "position": 5594
-        },
-        "name": "frogger/EntityFactory.ts",
-        "start": 120,
-        "startLoc": {
-          "column": 18,
-          "line": 120,
-          "position": 5025
-        }
-      },
-      "tokens": 106
-    },
-    {
-      "firstFile": {
         "end": 17,
         "endLoc": {
           "column": 26,
@@ -3591,148 +3443,185 @@
     },
     {
       "firstFile": {
-        "end": 207,
+        "end": 175,
         "endLoc": {
           "column": 14,
-          "line": 207,
-          "position": 7215
+          "line": 175,
+          "position": 6245
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 202,
+        "start": 170,
         "startLoc": {
           "column": 34,
-          "line": 202,
-          "position": 7034
+          "line": 170,
+          "position": 6063
         }
       },
       "format": "typescript",
-      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnBasicEnemy(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",",
+      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnEnemyEntity(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 222,
+        "end": 190,
         "endLoc": {
           "column": 14,
-          "line": 222,
-          "position": 7584
+          "line": 190,
+          "position": 6615
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 217,
+        "start": 185,
         "startLoc": {
           "column": 34,
-          "line": 217,
-          "position": 7403
+          "line": 185,
+          "position": 6433
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 207,
+        "end": 175,
         "endLoc": {
           "column": 14,
-          "line": 207,
-          "position": 7215
+          "line": 175,
+          "position": 6245
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 202,
+        "start": 170,
         "startLoc": {
           "column": 34,
-          "line": 202,
-          "position": 7034
+          "line": 170,
+          "position": 6063
         }
       },
       "format": "typescript",
-      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnBasicEnemy(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",",
+      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnEnemyEntity(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 237,
+        "end": 205,
         "endLoc": {
           "column": 14,
-          "line": 237,
-          "position": 7950
+          "line": 205,
+          "position": 6982
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 232,
+        "start": 200,
         "startLoc": {
           "column": 33,
-          "line": 232,
-          "position": 7769
+          "line": 200,
+          "position": 6800
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 281,
+        "end": 175,
         "endLoc": {
           "column": 14,
-          "line": 281,
-          "position": 9151
+          "line": 175,
+          "position": 6245
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 276,
+        "start": 170,
         "startLoc": {
-          "column": 28,
-          "line": 276,
-          "position": 8969
+          "column": 34,
+          "line": 170,
+          "position": 6063
         }
       },
       "format": "typescript",
-      "fragment": "  registry.register(\"seeker\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnSeekerEnemy(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_seeker\",",
+      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnEnemyEntity(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 298,
+        "end": 249,
         "endLoc": {
           "column": 14,
-          "line": 298,
-          "position": 9560
+          "line": 249,
+          "position": 8183
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 293,
+        "start": 244,
         "startLoc": {
           "column": 28,
-          "line": 293,
-          "position": 9378
+          "line": 244,
+          "position": 8001
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 281,
+        "end": 176,
         "endLoc": {
-          "column": 14,
-          "line": 281,
-          "position": 9151
+          "column": 13,
+          "line": 176,
+          "position": 6272
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 276,
+        "start": 170,
         "startLoc": {
-          "column": 28,
-          "line": 276,
-          "position": 8969
+          "column": 34,
+          "line": 170,
+          "position": 6063
         }
       },
       "format": "typescript",
-      "fragment": "  registry.register(\"seeker\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnSeekerEnemy(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_seeker\",",
+      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnEnemyEntity(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",\n        size: 14,",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 269,
+        "endLoc": {
+          "column": 13,
+          "line": 269,
+          "position": 8669
+        },
+        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "start": 263,
+        "startLoc": {
+          "column": 28,
+          "line": 263,
+          "position": 8460
+        }
+      },
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 175,
+        "endLoc": {
+          "column": 14,
+          "line": 175,
+          "position": 6245
+        },
+        "name": "geometrywars/entities/GeometryWarsEntities.ts",
+        "start": 170,
+        "startLoc": {
+          "column": 34,
+          "line": 170,
+          "position": 6063
+        }
+      },
+      "format": "typescript",
+      "fragment": "  registry.register(\"enemy_chaser\", {\n    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {\n      spawnEnemyEntity(w, entity, {\n        x: args.x,\n        y: args.y,\n        shape: \"gw_chaser\",",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 315,
+        "end": 287,
         "endLoc": {
           "column": 14,
-          "line": 315,
-          "position": 9978
+          "line": 287,
+          "position": 9110
         },
         "name": "geometrywars/entities/GeometryWarsEntities.ts",
-        "start": 310,
+        "start": 282,
         "startLoc": {
           "column": 33,
-          "line": 310,
-          "position": 9796
+          "line": 282,
+          "position": 8928
         }
       },
       "tokens": 55
@@ -5774,32 +5663,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-20T23:33:46.345Z",
+    "detectionDate": "2026-09-21T09:19:49.894Z",
     "formats": {
       "typescript": {
-        "clones": 158,
-        "duplicatedLines": 1511,
-        "duplicatedTokens": 12244,
-        "lines": 67276,
+        "clones": 153,
+        "duplicatedLines": 1446,
+        "duplicatedTokens": 11833,
+        "lines": 67244,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 2.2459718175872525,
-        "percentageTokens": 3.469105580488689,
+        "percentage": 2.150377728868003,
+        "percentageTokens": 3.3573937567740875,
         "sources": 406,
-        "tokens": 352944
+        "tokens": 352446
       }
     },
     "total": {
-      "clones": 158,
-      "duplicatedLines": 1511,
-      "duplicatedTokens": 12244,
-      "lines": 67276,
+      "clones": 153,
+      "duplicatedLines": 1446,
+      "duplicatedTokens": 11833,
+      "lines": 67244,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 2.2459718175872525,
-      "percentageTokens": 3.469105580488689,
+      "percentage": 2.150377728868003,
+      "percentageTokens": 3.3573937567740875,
       "sources": 406,
-      "tokens": 352944
+      "tokens": 352446
     }
   }
 }

@@ -2,6 +2,7 @@ import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
 import { CoreComponentRegistry } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
+import { PhysicsUtils } from "../utils/PhysicsUtils";
 
 /**
  * System that solves physical joint and spring constraints across connected entities.
@@ -90,8 +91,7 @@ export class JointSolverSystem<
       const rxA = worldAnchorAx - posAx;
       const ryA = worldAnchorAy - posAy;
       const rxB = worldAnchorBx - posBx;
-            // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/PhysicsSolveSystem.ts:151-167. Considerar extraer a función compartida. Ref: cb8b6a3e
-const ryB = worldAnchorBy - posBy;
+      const ryB = worldAnchorBy - posBy;
 
       const vxA = velA ? velA.vx : 0;
       const vyA = velA ? velA.vy : 0;
@@ -122,35 +122,15 @@ const ryB = worldAnchorBy - posBy;
         }
 
         const deltaL = dist - restLength;
-                // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/JointSolverSystem.ts:173-201. Considerar extraer a función compartida. Ref: 0d4e8583
-const fSpring = stiffness * deltaL;
+        const fSpring = stiffness * deltaL;
         const fDamping = damping * (relVx * nx + relVy * ny);
         const totalForce = fSpring + fDamping;
 
         const Fx = totalForce * nx;
         const Fy = totalForce * ny;
 
-        if (velA && !isStaticA) {
-          const vA = w.getMutableComponent(entityA, "Velocity");
-          if (vA) {
-            vA.vx += Fx * invMassA * deltaTime;
-            vA.vy += Fy * invMassA * deltaTime;
-            if (invInertiaA > 0) {
-              vA.angularVelocity += (rxA * Fy - ryA * Fx) * invInertiaA * deltaTime;
-            }
-          }
-        }
-
-        if (velB && !isStaticB) {
-          const vB = w.getMutableComponent(entityB, "Velocity");
-          if (vB) {
-            vB.vx -= Fx * invMassB * deltaTime;
-            vB.vy -= Fy * invMassB * deltaTime;
-            if (invInertiaB > 0) {
-              vB.angularVelocity -= (rxB * Fy - ryB * Fx) * invInertiaB * deltaTime;
-            }
-          }
-        }
+        PhysicsUtils.applyBodyImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, Fx, Fy, deltaTime);
+        PhysicsUtils.applyBodyImpulse(w, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, -deltaTime);
       } else if (joint.jointType === "distance") {
         const restLength = joint.restLength;
         const maxDistance = joint.maxDistance;
@@ -179,33 +159,13 @@ const fSpring = stiffness * deltaL;
             const Fx = totalForce * nx;
             const Fy = totalForce * ny;
 
-            if (velA && !isStaticA) {
-              const vA = w.getMutableComponent(entityA, "Velocity");
-              if (vA) {
-                vA.vx += Fx * invMassA * deltaTime;
-                vA.vy += Fy * invMassA * deltaTime;
-                if (invInertiaA > 0) {
-                  vA.angularVelocity += (rxA * Fy - ryA * Fx) * invInertiaA * deltaTime;
-                }
-              }
-            }
-
-            if (velB && !isStaticB) {
-              const vB = w.getMutableComponent(entityB, "Velocity");
-              if (vB) {
-                vB.vx -= Fx * invMassB * deltaTime;
-                vB.vy -= Fy * invMassB * deltaTime;
-                if (invInertiaB > 0) {
-                  vB.angularVelocity -= (rxB * Fy - ryB * Fx) * invInertiaB * deltaTime;
-                }
-              }
-            }
+            PhysicsUtils.applyBodyImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, Fx, Fy, deltaTime);
+            PhysicsUtils.applyBodyImpulse(w, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, -deltaTime);
           } else {
             // Rigid distance constraint
             const percent = 0.8;
             const corrX = err * nx * percent;
-                        // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/JointSolverSystem.ts:263-281. Considerar extraer a función compartida. Ref: 3193328a
-const corrY = err * ny * percent;
+            const corrY = err * ny * percent;
 
             if (!isStaticA && transA) {
               const tA = w.getMutableComponent(entityA, "Transform");
@@ -234,31 +194,10 @@ const corrY = err * ny * percent;
             if (effectiveInvMass > 0) {
               const impulse = -velAlongNormal / effectiveInvMass;
               const impulseX = impulse * nx;
-                            // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/JointSolverSystem.ts:287-310. Considerar extraer a función compartida. Ref: f667d271
-const impulseY = impulse * ny;
+              const impulseY = impulse * ny;
 
-              if (velA && !isStaticA) {
-                const vA = w.getMutableComponent(entityA, "Velocity");
-                if (vA) {
-                  vA.vx -= impulseX * invMassA;
-                  vA.vy -= impulseY * invMassA;
-                  if (invInertiaA > 0) {
-                    vA.angularVelocity -= (rxA * impulseY - ryA * impulseX) * invInertiaA;
-                  }
-                }
-              }
-
-              if (velB && !isStaticB) {
-                                // TODO(refactor): código duplicado detectado (bloque) con physics/dynamics/PhysicsSolveSystem.ts:198-206. Considerar extraer a función compartida. Ref: d81d7c34
-const vB = w.getMutableComponent(entityB, "Velocity");
-                if (vB) {
-                  vB.vx += impulseX * invMassB;
-                  vB.vy += impulseY * invMassB;
-                  if (invInertiaB > 0) {
-                    vB.angularVelocity += (rxB * impulseY - ryB * impulseX) * invInertiaB;
-                  }
-                }
-              }
+              PhysicsUtils.applyBodyImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, impulseX, impulseY, -1.0);
+              PhysicsUtils.applyBodyImpulse(w, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, impulseX, impulseY, 1.0);
             }
           }
         }
@@ -291,27 +230,8 @@ const vB = w.getMutableComponent(entityB, "Velocity");
           const impulseX = -relVx / effectiveInvMass;
           const impulseY = -relVy / effectiveInvMass;
 
-          if (velA && !isStaticA) {
-            const vA = w.getMutableComponent(entityA, "Velocity");
-            if (vA) {
-              vA.vx -= impulseX * invMassA;
-              vA.vy -= impulseY * invMassA;
-              if (invInertiaA > 0) {
-                vA.angularVelocity -= (rxA * impulseY - ryA * impulseX) * invInertiaA;
-              }
-            }
-          }
-
-          if (velB && !isStaticB) {
-            const vB = w.getMutableComponent(entityB, "Velocity");
-            if (vB) {
-              vB.vx += impulseX * invMassB;
-              vB.vy += impulseY * invMassB;
-              if (invInertiaB > 0) {
-                vB.angularVelocity += (rxB * impulseY - ryB * impulseX) * invInertiaB;
-              }
-            }
-          }
+          PhysicsUtils.applyBodyImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, impulseX, impulseY, -1.0);
+          PhysicsUtils.applyBodyImpulse(w, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, impulseX, impulseY, 1.0);
         }
 
         if (joint.enableMotor && joint.motorSpeed !== undefined) {

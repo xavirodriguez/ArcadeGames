@@ -9,6 +9,19 @@ import {
   getActiveLevelTheme
 } from "../SharedVFXInternal";
 
+export function advanceStarPosition(
+  star: Star,
+  starSpeedMult: number,
+  offsetX: number,
+  wrapCoordinate: (val: number) => number
+): { posX: number; currentSize: number } {
+  const posX = wrapCoordinate(star.x - star.speed * starSpeedMult - offsetX * 0.1);
+  star.twinklePhase += star.twinkleSpeed;
+  const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
+  const currentSize = star.size * twinkle;
+  return { posX, currentSize };
+}
+
 const starfieldLayer = createParallaxLayer<Star[]>({
   layerName: "layer2_distant_stars",
   isInitialized: (state) => state.starsInitialized,
@@ -29,11 +42,7 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
 
     for (let i = 0; i < STAR_COUNT; i++) {
       const star = stars[i];
-      const posX = wrapCoordinate(star.x - star.speed * starSpeedMult - offsetX * 0.1);
-
-      star.twinklePhase += star.twinkleSpeed;
-      const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
-      const currentSize = star.size * twinkle;
+      const { posX, currentSize } = advanceStarPosition(star, starSpeedMult, offsetX, wrapCoordinate);
 
       ctx.fillStyle = star.color;
       ctx.fillRect(posX - currentSize / 2, star.y - currentSize / 2, currentSize, currentSize);
@@ -58,11 +67,7 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, CoreComponentRegist
 
     for (let i = 0; i < STAR_COUNT; i++) {
       const star = stars[i];
-      const posX = wrapCoordinate(star.x - star.speed * starSpeedMult - offsetX * 0.1);
-
-      star.twinklePhase += star.twinkleSpeed;
-      const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
-      const currentSize = star.size * twinkle;
+      const { posX, currentSize } = advanceStarPosition(star, starSpeedMult, offsetX, wrapCoordinate);
 
       paint.setColor(star.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
       canvas.drawRect(

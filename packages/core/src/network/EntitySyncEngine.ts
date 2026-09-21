@@ -1,5 +1,7 @@
 import { World, ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
-import { IStateReplicator, WorldLike } from "./NetworkManager";
+import { IStateReplicator, WorldLike, NetworkManager } from "./NetworkManager";
+import { pruneStaleEntities } from "./pruneStaleEntities";
+import { buildInterpolationSnapshot, InterpolationSnapshotEntry } from "./interpolationSnapshot";
 
 /**
  * Local player synchronization policy during network updates.
@@ -119,4 +121,46 @@ export function syncEntitiesFromServer<
 
     descriptor.sync(world, entity, itemState, key);
   });
+}
+
+/**
+ * Generic server state application helper for multiplayer games.
+ * Synchronizes entities via sync descriptors, builds an interpolation snapshot,
+ * passes the update to networkManager, prunes stale entities, and flushes the world buffer if not updating.
+ *
+ * @param world - ECS world instance.
+ * @param networkManager - Network manager handling replication and interpolation.
+ * @param descriptors - Array of entity synchronization descriptors.
+ * @param state - Raw server state payload.
+ * @param entries - Array of interpolation snapshot entries for this frame.
+ * @param localSessionId - Optional session ID of the local client player.
+ * @public
+ */
+export function applyServerState<
+  TComponents extends ComponentRegistry = ComponentRegistry,
+  TEvents extends Record<string, unknown> = Record<string, unknown>,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+>(
+  world: World<TComponents, TEvents, TBlueprints>,
+  networkManager: NetworkManager<TComponents>,
+  descriptors: EntitySyncDescriptor<Record<string, unknown>, unknown, TComponents, any, any>[],
+  state: Record<string, unknown>,
+  entries: InterpolationSnapshotEntry[],
+  localSessionId?: string
+): void {
+  const replicator = networkManager.getReplicator();
+  const currentServerEntities = new Set<string>();
+
+  descriptors.forEach((descriptor) => {
+    syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);
+  });
+
+  const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);
+  networkManager.processServerUpdate(snapshot.tick, snapshot, localSessionId);
+
+  pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());
+
+  if (!world.isUpdating) {
+    world.flush();
+  }
 }

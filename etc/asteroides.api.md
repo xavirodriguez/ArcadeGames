@@ -77,6 +77,9 @@ export interface AoSWorldSnapshot extends BaseWorldSnapshot {
 export function applyInputFrameToEntity<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents>, entityId: number, input: Pick<InputFrame, "actions" | "axes">): void;
 
 // @public
+export function applyServerState<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends Record<string, unknown> = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, networkManager: NetworkManager<TComponents>, descriptors: EntitySyncDescriptor<Record<string, unknown>, unknown, TComponents, any, any>[], state: Record<string, unknown>, entries: InterpolationSnapshotEntry[], localSessionId?: string): void;
+
+// @public
 export const ARCADE_DEBUG_RUN_VERSION = 1;
 
 // @public

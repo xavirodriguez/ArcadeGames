@@ -7,6 +7,18 @@ import {
   initializeDistantAsteroids
 } from "../SharedVFXInternal";
 
+export function advanceDistantAsteroid(
+  ast: DistantAsteroid,
+  offsetX: number,
+  wrapCoordinate: (val: number, margin?: number) => number
+): { posX: number; y: number; rotation: number } {
+  ast.x += ast.vx;
+  ast.y += ast.vy;
+  ast.rotation += ast.angularVelocity;
+  const posX = wrapCoordinate(ast.x - offsetX * 0.1, ast.radius * 2);
+  return { posX, y: ast.y, rotation: ast.rotation };
+}
+
 const distantAsteroidsLayer = createParallaxLayer<DistantAsteroid[]>({
   layerName: "layer4_distant_asteroids",
   isInitialized: (state) => state.distantAsteroidsInitialized,
@@ -24,15 +36,11 @@ export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingCo
 
     for (let i = 0; i < asteroids.length; i++) {
       const ast = asteroids[i];
-      ast.x += ast.vx;
-      ast.y += ast.vy;
-      ast.rotation += ast.angularVelocity;
-
-      const posX = wrapCoordinate(ast.x - offsetX * 0.1, ast.radius * 2);
+      const { posX, y, rotation } = advanceDistantAsteroid(ast, offsetX, wrapCoordinate);
 
       ctx.save();
-      ctx.translate(posX, ast.y);
-      ctx.rotate(ast.rotation);
+      ctx.translate(posX, y);
+      ctx.rotate(rotation);
 
       ctx.fillStyle = ast.color;
       ctx.strokeStyle = COSMIC_ARCADE_PALETTE.mutedBlue;
@@ -77,15 +85,11 @@ export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, CoreComp
 
     for (let i = 0; i < asteroids.length; i++) {
       const ast = asteroids[i];
-      ast.x += ast.vx;
-      ast.y += ast.vy;
-      ast.rotation += ast.angularVelocity;
-
-      const posX = wrapCoordinate(ast.x - offsetX * 0.1, ast.radius * 2);
+      const { posX, y, rotation } = advanceDistantAsteroid(ast, offsetX, wrapCoordinate);
 
       canvas.save();
-      canvas.translate(posX, ast.y);
-      canvas.rotate((ast.rotation * 180) / Math.PI, 0, 0);
+      canvas.translate(posX, y);
+      canvas.rotate((rotation * 180) / Math.PI, 0, 0);
 
       fillPaint.setColor(ast.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.cosmicNavy));
       fillPaint.setAlphaf(0.35);

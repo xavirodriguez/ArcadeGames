@@ -3,59 +3,12 @@ import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 import { ComboComponent } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
-import { CanvasMotionTrail, getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
-import { drawNeonShapeSkia } from "../../shared/rendering/SkiaNeonUtils";
+import { getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
+import { drawNeonShapeSkia, SkiaMotionTrail } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
-
-/**
- * Zero-allocation, high-performance Skia motion trail tracker and renderer.
- * Inherits state tracking logic from CanvasMotionTrail and provides Skia-specific drawing.
- */
-export class SkiaMotionTrail extends CanvasMotionTrail {
-  public drawSkia(
-    canvas: any,
-    paint: any,
-    entityId: number,
-    currentX: number,
-    currentY: number,
-    length: number,
-    size: number,
-    outerColorStr: string,
-    innerColorStr: string
-  ): void {
-    const trail = this.getTrail(entityId);
-    const drawLength = Math.min(length, this.maxPoints);
-
-    for (let i = drawLength - 1; i >= 0; i--) {
-      const p = trail[i];
-      if (!p.active) continue;
-
-      const ratio = 1 - (i / drawLength);
-      const alpha = ratio * 0.4;
-      const trailSize = size * (0.3 + 0.7 * ratio);
-
-      canvas.save();
-      canvas.translate(p.x - currentX, p.y - currentY);
-
-      // Outer glow circle
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(outerColorStr));
-      paint.setAlphaf(alpha);
-      canvas.drawCircle(0, 0, trailSize * 1.5, paint);
-
-      // Inner core circle
-      paint.setColor(Skia.Color(innerColorStr));
-      paint.setAlphaf(alpha * 0.5);
-      canvas.drawCircle(0, 0, trailSize, paint);
-
-      canvas.restore();
-    }
-  }
-}
+export { SkiaMotionTrail };
 
 // Instantiate the reusable, zero-allocation Skia motion trail helper
 const ballSkiaMotionTrail = new SkiaMotionTrail(30);

@@ -1,6 +1,6 @@
 import { type Client } from "@colyseus/core";
 import { AsteroidsState, Player, Asteroid, Bullet } from "./schema/GameState";
-import { ReplayFrame } from "./NetTypes";
+import { ReplayFrame, InputFrame } from "./NetTypes";
 import { World, InterestManagerSystem, ReplicationStateTracker, NetworkDeltaSystem, NetworkBudgetManager, WorldSnapshot, Schedule, SystemPhase } from "@tiny-aster/core";
 import { AsteroidsGame, createShip, createAsteroid, AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../../src/games/asteroids";
 import { z } from "zod";

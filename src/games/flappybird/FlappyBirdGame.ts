@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry, FlappyBirdEventRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
@@ -523,36 +523,30 @@ export class FlappyBirdGame
 
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
-    const world = this.getWorld();
+
     const replicator = this.networkManager.getReplicator();
-    const currentServerEntities = new Set<string>();
-
-    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {
-      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);
-    });
-
     const entries: InterpolationSnapshotEntry[] = [];
     if (state.players) {
-        Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
-            const entityId = replicator.getLocalId(`player_${sessionId}`);
-            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
-        });
+      Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
+        const entityId = replicator.getLocalId(`player_${sessionId}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
+      });
     }
     if (state.pipes) {
-        Object.entries(state.pipes as Record<string, any>).forEach(([id, p]) => {
-            const entityId = replicator.getLocalId(`pipe_${id}`);
-            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: 0 });
-        });
+      Object.entries(state.pipes as Record<string, any>).forEach(([id, p]) => {
+        const entityId = replicator.getLocalId(`pipe_${id}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: 0 });
+      });
     }
 
-    const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);
-    this.networkManager.processServerUpdate(snapshot.tick, snapshot);
-
-    pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());
-
-    if (!world.isUpdating) {
-        world.flush();
-    }
+    applyServerState(
+      this.getWorld(),
+      this.networkManager,
+      this.ENTITY_SYNC_DESCRIPTORS,
+      state,
+      entries,
+      localSessionId
+    );
   }
 
   public initializeRenderer(renderer: Renderer<any, any>): void {

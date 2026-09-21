@@ -22,7 +22,7 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
  * Main game class for Geometry Wars.
  * @public
  */
-import { NetworkManager, WorldSnapshot, InputFrame, pruneStaleEntities, buildInterpolationSnapshot, InterpolationSnapshotEntry, EntitySyncDescriptor, syncEntitiesFromServer } from "@tiny-aster/core";
+import { NetworkManager, WorldSnapshot, InputFrame, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState } from "@tiny-aster/core";
 
 export class GeometryWarsGame extends BaseGame<
   GeometryWarsStateComponent, // GameState description returned to HUD
@@ -200,42 +200,35 @@ export class GeometryWarsGame extends BaseGame<
       });
     }
 
-    const world = this.getWorld();
     const replicator = this.networkManager.getReplicator();
-    const currentServerEntities = new Set<string>();
-
-    this.ENTITY_SYNC_DESCRIPTORS.forEach(descriptor => {
-      syncEntitiesFromServer(world, replicator, descriptor, state, currentServerEntities, localSessionId);
-    });
-
     const entries: InterpolationSnapshotEntry[] = [];
     if (state.players) {
-        Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
-            const entityId = replicator.getLocalId(`player_${sessionId}`);
-            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-        });
+      Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
+        const entityId = replicator.getLocalId(`player_${sessionId}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
+      });
     }
     if (state.enemies) {
-        Object.entries(state.enemies as Record<string, any>).forEach(([id, p]) => {
-            const entityId = replicator.getLocalId(`enemy_${id}`);
-            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-        });
+      Object.entries(state.enemies as Record<string, any>).forEach(([id, p]) => {
+        const entityId = replicator.getLocalId(`enemy_${id}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
+      });
     }
     if (state.bullets) {
-        Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
-            const entityId = replicator.getLocalId(`bullet_${id}`);
-            if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-        });
+      Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
+        const entityId = replicator.getLocalId(`bullet_${id}`);
+        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
+      });
     }
 
-    const snapshot = buildInterpolationSnapshot((state.tick as number) || 0, entries);
-    this.networkManager.processServerUpdate(snapshot.tick, snapshot);
-
-    pruneStaleEntities(replicator, currentServerEntities, world.getCommandBuffer());
-
-    if (!world.isUpdating) {
-        world.flush();
-    }
+    applyServerState(
+      this.getWorld(),
+      this.networkManager,
+      this.ENTITY_SYNC_DESCRIPTORS,
+      state,
+      entries,
+      localSessionId
+    );
   }
 
 

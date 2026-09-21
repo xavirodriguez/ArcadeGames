@@ -1,7 +1,7 @@
 import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidTypes";
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
-import { drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
+import { drawGlowOrbCanvas, drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 
 export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
@@ -13,23 +13,9 @@ export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidCom
     if (!transform) return;
 
     const size = render.size ?? 8;
+    const color = render.color || colors.cyan;
 
-    ctx.save();
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = render.color || colors.cyan;
-
-    ctx.fillStyle = render.color || colors.cyan;
-    ctx.beginPath();
-    ctx.arc(0, 0, size, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = colors.white;
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
+    drawGlowOrbCanvas(ctx, size, color, 0.4, 2.0, "fill");
   }
 };
 

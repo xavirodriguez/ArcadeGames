@@ -47,7 +47,7 @@ import { PlatformerGoalSystem, LevelGoalComponent } from "./systems/PlatformerGo
 import { PlatformerDamageSystem } from "./systems/PlatformerDamageSystem";
 import { PlatformerDashSystem } from "./systems/PlatformerDashSystem";
 import { PlatformerWallJumpSystem } from "./systems/PlatformerWallJumpSystem";
-import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
+import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems } from "@tiny-aster/gameplay-kit";
 import { drawPlatformerPlayer, drawPlatformerGoal, drawPlatformerTilemap } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../echorunner/rendering/EchoRunnerCanvasVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -206,21 +206,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     registerCollectibleBlueprint("collectible_fragment", "fragment", 10);
     registerCollectibleBlueprint("collectible_coin", "coin", 20);
 
-    this.blueprints.register("checkpoint_node", {
-      spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withRender({ shape: "node", size: 32, order: 1 });
-
-        world.addComponent(entity, {
-          type: "RespawnPoint",
-          x: args.x,
-          y: args.y - 10,
-          checkpointId: args.id
-        } as { type: string; [key: string]: unknown });
-      }
-    });
-
+    registerPlatformerEnvironmentBlueprints(this.blueprints);
     registerPlatformerEnemyBlueprints(this.blueprints);
 
     const registerPowerUpBlueprint = (

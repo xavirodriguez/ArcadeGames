@@ -39,32 +39,32 @@ export interface MutatorComponentRegistry extends ComponentRegistry {
   };
 }
 
-export type MutatorHookWithId = (world: World<any>) => void;
-export type MutatorHookGeneric = (world: World<any>, mutatorId: string) => void;
+export type MutatorHookWithId<TComponents extends ComponentRegistry = ComponentRegistry> = (world: World<TComponents>) => void;
+export type MutatorHookGeneric<TComponents extends ComponentRegistry = ComponentRegistry> = (world: World<TComponents>, mutatorId: string) => void;
 
-const MUTATOR_HOOKS: Record<string, MutatorHookWithId[]> = {};
-const genericMutatorHooks: MutatorHookGeneric[] = [];
+const MUTATOR_HOOKS: Record<string, MutatorHookWithId<any>[]> = {};
+const genericMutatorHooks: MutatorHookGeneric<any>[] = [];
 
 /**
  * Registers a game-specific hook to run when a mutator is applied.
  */
-export function registerMutatorHook(mutatorId: string, hook: MutatorHookWithId): void;
-export function registerMutatorHook(hook: MutatorHookGeneric): void;
-export function registerMutatorHook(
-  arg1: string | MutatorHookGeneric,
-  arg2?: MutatorHookWithId
+export function registerMutatorHook<TComponents extends ComponentRegistry = ComponentRegistry>(mutatorId: string, hook: MutatorHookWithId<TComponents>): void;
+export function registerMutatorHook<TComponents extends ComponentRegistry = ComponentRegistry>(hook: MutatorHookGeneric<TComponents>): void;
+export function registerMutatorHook<TComponents extends ComponentRegistry = ComponentRegistry>(
+  arg1: string | MutatorHookGeneric<TComponents>,
+  arg2?: MutatorHookWithId<TComponents>
 ): void {
   if (typeof arg1 === "string" && arg2) {
     if (!MUTATOR_HOOKS[arg1]) {
       MUTATOR_HOOKS[arg1] = [];
     }
-    MUTATOR_HOOKS[arg1].push(arg2);
+    MUTATOR_HOOKS[arg1].push(arg2 as MutatorHookWithId<any>);
   } else if (typeof arg1 === "function") {
-    genericMutatorHooks.push(arg1);
+    genericMutatorHooks.push(arg1 as MutatorHookGeneric<any>);
   }
 }
 
-function runMutatorHooks(world: World<any>, mutatorId: string): void {
+function runMutatorHooks(world: World<ComponentRegistry>, mutatorId: string): void {
   for (const hook of genericMutatorHooks) {
     try {
       hook(world, mutatorId);
@@ -87,7 +87,7 @@ function runMutatorHooks(world: World<any>, mutatorId: string): void {
 /**
  * Applies all registered game-specific hooks for a mutator.
  */
-export function applyMutatorHooks(mutatorId: string, world: World<any>): void {
+export function applyMutatorHooks(mutatorId: string, world: World<ComponentRegistry>): void {
   runMutatorHooks(world, mutatorId);
 }
 
@@ -119,13 +119,13 @@ export interface BeneficialMutator {
   /**
    * Conditions under which this mutator can be drafted by a player.
    */
-  canDraft: (world: World<any>, context: MutatorTargetContext) => boolean;
+  canDraft: (world: World<ComponentRegistry>, context: MutatorTargetContext) => boolean;
   /**
    * Transformation function that applies the mutator effect to a World.
    * @param world - The ECS world where the effect should be applied.
    * @param context - Optional player targeting context.
    */
-  apply: (world: World<any>, context?: MutatorTargetContext) => void;
+  apply: (world: World<ComponentRegistry>, context?: MutatorTargetContext) => void;
 }
 
 /**
@@ -174,18 +174,19 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
       return world.query("Player", "Health").length > 0;
     },
     apply: (world, context) => {
-      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      const mWorld = world as World<MutatorComponentRegistry>;
+      const config = mWorld.getResource<Record<string, unknown>>("GameConfig");
       if (config) {
         const newConfig = { ...config };
         if (typeof newConfig.PLAYER_INITIAL_LIVES === "number") {
           newConfig.PLAYER_INITIAL_LIVES += 1;
         }
-        world.setResource("GameConfig", newConfig);
+        mWorld.setResource("GameConfig", newConfig);
       }
 
-      const gameState = world.getSingleton("GameState");
+      const gameState = mWorld.getSingleton("GameState");
       if (gameState) {
-        world.mutateSingleton("GameState", (gs) => {
+        mWorld.mutateSingleton("GameState", (gs) => {
           if (typeof gs.lives === "number") {
             gs.lives += 1;
           }
@@ -194,14 +195,14 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
 
       const target = context?.targetEntity;
       if (target !== undefined) {
-        world.mutateComponent(target, "Health", (h) => {
+        mWorld.mutateComponent(target, "Health", (h) => {
           h.current += 1;
           h.max += 1;
         });
       } else {
-        const players = world.query("Player", "Health");
+        const players = mWorld.query("Player", "Health");
         for (const player of players) {
-          world.mutateComponent(player, "Health", (h) => {
+          mWorld.mutateComponent(player, "Health", (h) => {
             h.current += 1;
             h.max += 1;
           });
@@ -226,25 +227,26 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
       return world.query("Combo").length > 0;
     },
     apply: (world, context) => {
-      world.setResource("HasComboHeadStart", true);
+      const mWorld = world as World<MutatorComponentRegistry>;
+      mWorld.setResource("HasComboHeadStart", true);
 
-      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      const config = mWorld.getResource<Record<string, unknown>>("GameConfig");
       const comboTimeout = config && typeof config.COMBO_TIMEOUT === "number"
         ? config.COMBO_TIMEOUT / 1000
         : 2.0;
 
       const target = context?.targetEntity;
-      if (target !== undefined && world.hasComponent(target, "Combo")) {
-        world.mutateComponent(target, "Combo", (c) => {
+      if (target !== undefined && mWorld.hasComponent(target, "Combo")) {
+        mWorld.mutateComponent(target, "Combo", (c) => {
           c.combo = 5;
           c.multiplier = 2;
           c.timerRemaining = comboTimeout;
         });
       } else {
-        const comboEntities = world.query("Combo");
+        const comboEntities = mWorld.query("Combo");
         const comboEntity = comboEntities[0];
         if (comboEntity !== undefined) {
-          world.mutateComponent(comboEntity, "Combo", (c) => {
+          mWorld.mutateComponent(comboEntity, "Combo", (c) => {
             c.combo = 5;
             c.multiplier = 2;
             c.timerRemaining = comboTimeout;
@@ -264,25 +266,27 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     supportedGames: ["ALL"],
     xpCost: 1000,
     canDraft: (world, context) => {
+      const mWorld = world as World<MutatorComponentRegistry>;
       const target = context?.targetEntity;
       if (target !== undefined) {
-        const health = world.getComponent(target, "Health");
+        const health = mWorld.getComponent(target, "Health");
         return !!health && (health.invulnerableRemaining ?? 0) <= 0;
       }
-      return world.query("Player", "Health").length > 0;
+      return mWorld.query("Player", "Health").length > 0;
     },
     apply: (world, context) => {
-      world.setResource("HasShieldPulse", true);
+      const mWorld = world as World<MutatorComponentRegistry>;
+      mWorld.setResource("HasShieldPulse", true);
 
       const target = context?.targetEntity;
       if (target !== undefined) {
-        world.mutateComponent(target, "Health", (h) => {
+        mWorld.mutateComponent(target, "Health", (h) => {
           h.invulnerableRemaining = 3.0; // 3 seconds
         });
       } else {
-        const players = world.query("Player", "Health");
+        const players = mWorld.query("Player", "Health");
         for (const player of players) {
-          world.mutateComponent(player, "Health", (h) => {
+          mWorld.mutateComponent(player, "Health", (h) => {
             h.invulnerableRemaining = 3.0; // 3 seconds
           });
         }
@@ -385,22 +389,24 @@ export const BENEFICIAL_MUTATORS: Record<string, BeneficialMutator> = {
     supportedGames: ["space-invaders"],
     xpCost: 600,
     canDraft: (world, context) => {
+      const mWorld = world as World<MutatorComponentRegistry>;
       const target = context?.targetEntity;
       if (target !== undefined) {
-        return world.hasComponent(target, "EmpAbility");
+        return mWorld.hasComponent(target, "EmpAbility");
       }
-      return world.query("Player", "EmpAbility").length > 0;
+      return mWorld.query("Player", "EmpAbility").length > 0;
     },
     apply: (world, context) => {
+      const mWorld = world as World<MutatorComponentRegistry>;
       const target = context?.targetEntity;
-      if (target !== undefined && world.hasComponent(target, "EmpAbility")) {
-        world.mutateComponent(target, "EmpAbility", (emp) => {
+      if (target !== undefined && mWorld.hasComponent(target, "EmpAbility")) {
+        mWorld.mutateComponent(target, "EmpAbility", (emp) => {
           emp.chargePerKill *= 1.5;
         });
       } else {
-        const players = world.query("Player", "EmpAbility");
+        const players = mWorld.query("Player", "EmpAbility");
         for (const p of players) {
-          world.mutateComponent(p, "EmpAbility", (emp) => {
+          mWorld.mutateComponent(p, "EmpAbility", (emp) => {
             emp.chargePerKill *= 1.5;
           });
         }
@@ -461,32 +467,34 @@ export const NEGATIVE_MUTATORS: Record<string, BeneficialMutator> = {
     supportedGames: ["space-invaders", "asteroids"],
     xpCost: 0,
     canDraft: (world, context) => {
+      const mWorld = world as World<MutatorComponentRegistry>;
       const target = context?.targetEntity;
       if (target !== undefined) {
-        const health = world.getComponent(target, "Health");
+        const health = mWorld.getComponent(target, "Health");
         return !!health && health.max > 1;
       }
-      return world.query("Player", "Health").length > 0;
+      return mWorld.query("Player", "Health").length > 0;
     },
     apply: (world, context) => {
-      const config = world.getResource<Record<string, unknown>>("GameConfig");
+      const mWorld = world as World<MutatorComponentRegistry>;
+      const config = mWorld.getResource<Record<string, unknown>>("GameConfig");
       if (config) {
         const newConfig = { ...config };
         if (typeof newConfig.PLAYER_INITIAL_LIVES === "number" && newConfig.PLAYER_INITIAL_LIVES > 1) {
           newConfig.PLAYER_INITIAL_LIVES -= 1;
         }
-        world.setResource("GameConfig", newConfig);
+        mWorld.setResource("GameConfig", newConfig);
       }
       const target = context?.targetEntity;
       if (target !== undefined) {
-        world.mutateComponent(target, "Health", (h) => {
+        mWorld.mutateComponent(target, "Health", (h) => {
           if (h.current > 1) h.current -= 1;
           if (h.max > 1) h.max -= 1;
         });
       } else {
-        const players = world.query("Player", "Health");
+        const players = mWorld.query("Player", "Health");
         for (const player of players) {
-          world.mutateComponent(player, "Health", (h) => {
+          mWorld.mutateComponent(player, "Health", (h) => {
             if (h.current > 1) h.current -= 1;
             if (h.max > 1) h.max -= 1;
           });
@@ -569,7 +577,7 @@ export class MutatorRegistry {
   }
 
   public static generateDraft(
-    world: World<any>,
+    world: World<ComponentRegistry>,
     gameId: string,
     count: number,
     context: MutatorTargetContext

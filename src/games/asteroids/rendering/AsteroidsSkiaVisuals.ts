@@ -1,11 +1,13 @@
 import { EffectDrawer, ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, SHIP_FORWARD_AXIS } from "@tiny-aster/core";
-import { ActiveMissionState } from "../../shared/missions/MissionTypes";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+
+export { drawSkiaAsteroidsMissionHUD };
 
 // Memory-safe WeakMaps keyed by render components for zero-allocation Skia Path caching
 const cachedShipPaths = new WeakMap<any, { ship: any; cockpit: any }>();
@@ -158,46 +160,6 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
     const domePath = Skia.Path.Make();
     domePath.addArc({ x: -radius * 0.45, y: -radius * 0.65, width: radius * 0.9, height: radius * 0.9 }, 180, 180);
     canvas.drawPath(domePath, paint);
-
-    canvas.restore();
-  }
-};
-
-/**
- * Overlay shape drawer for React Native Skia Mission HUD.
- */
-export const drawSkiaAsteroidsMissionHUD: EffectDrawer<any, AsteroidsComponentRegistry> = {
-  draw(canvas, world) {
-    if (!Skia) return;
-    const activeMission = world.getResource<ActiveMissionState>("ActiveMission");
-    if (!activeMission) return;
-
-    canvas.save();
-    const paint = getPaint();
-    paint.reset();
-    paint.setAntiAlias(true);
-
-    const x = 20;
-    const y = 80;
-    const width = 280;
-    const height = 48;
-
-    let statusColor = "#00D9FF";
-    if (activeMission.completed) {
-      statusColor = "#00FF41";
-    } else if (activeMission.failed) {
-      statusColor = "#FF4444";
-    }
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("rgba(10, 14, 39, 0.85)"));
-    const rect = Skia.XYWHRect(x, y, width, height);
-    canvas.drawRect(rect, paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(statusColor));
-    paint.setStrokeWidth(1.5);
-    canvas.drawRect(rect, paint);
 
     canvas.restore();
   }

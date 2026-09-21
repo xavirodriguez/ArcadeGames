@@ -1205,73 +1205,36 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 222,
+        "end": 184,
         "endLoc": {
           "column": 5,
-          "line": 222,
-          "position": 7824
+          "line": 184,
+          "position": 6813
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 213,
+        "start": 175,
         "startLoc": {
           "column": 4,
-          "line": 213,
-          "position": 7457
+          "line": 175,
+          "position": 6446
         }
       },
       "tokens": 85
     },
     {
       "firstFile": {
-        "end": 75,
-        "endLoc": {
-          "column": 2,
-          "line": 75,
-          "position": 2487
-        },
-        "name": "asteroids/rendering/AsteroidsMissionHUD.ts",
-        "start": 10,
-        "startLoc": {
-          "column": 103,
-          "line": 10,
-          "position": 442
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawAsteroidsMissionHUD: EffectDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {\n  draw(ctx, world) {\n    const activeMission = world.getResource<ActiveMissionState>(\"ActiveMission\");\n    if (!activeMission) return;\n\n    ctx.save();\n    const x = 20;\n    const y = 80;\n    const width = 280;\n    const height = 48;\n\n    ctx.fillStyle = \"rgba(10, 14, 39, 0.85)\";\n    ctx.fillRect(x, y, width, height);\n\n    let statusColor: string = colors.cyan;\n    let statusText = `🎯 ${activeMission.title.toUpperCase()}`;\n\n    if (activeMission.completed) {\n      statusColor = colors.green;\n      statusText = `★ ${activeMission.title.toUpperCase()} (COMPLETADA)`;\n    } else if (activeMission.failed) {\n      statusColor = colors.pink;\n      statusText = `✕ ${activeMission.title.toUpperCase()} (FALLIDA)`;\n    }\n\n    ctx.strokeStyle = statusColor;\n    ctx.lineWidth = 1.5;\n    ctx.strokeRect(x, y, width, height);\n\n    ctx.font = \"bold 12px monospace\";\n    ctx.fillStyle = statusColor;\n    ctx.textAlign = \"left\";\n    ctx.textBaseline = \"top\";\n    ctx.shadowColor = statusColor;\n    ctx.shadowBlur = 6;\n    ctx.fillText(statusText, x + 8, y + 6);\n\n    ctx.font = \"11px monospace\";\n    ctx.fillStyle = colors.white;\n    ctx.shadowBlur = 0;\n\n    let progressStr = `${activeMission.currentCount} / ${activeMission.targetCount}`;\n    if (activeMission.targetTimer > 0) {\n      progressStr = `${activeMission.currentTimer.toFixed(1)}s / ${activeMission.targetTimer}s`;\n    }\n    ctx.fillText(progressStr, x + 8, y + 26);\n\n    const barX = x + 130;\n    const barY = y + 28;\n    const barW = width - 140;\n    const barH = 8;\n    const ratio = activeMission.targetCount > 0\n      ? Math.min(1, Math.max(0, activeMission.currentCount / activeMission.targetCount))\n      : activeMission.targetTimer > 0\n      ? Math.min(1, Math.max(0, (activeMission.targetTimer - activeMission.currentTimer) / activeMission.targetTimer))\n      : 0;\n\n    ctx.fillStyle = \"rgba(255, 255, 255, 0.2)\";\n    ctx.fillRect(barX, barY, barW, barH);\n\n    ctx.fillStyle = statusColor;\n    ctx.fillRect(barX, barY, barW * ratio, barH);\n\n    ctx.restore();\n  }\n};",
-      "isNew": false,
-      "lines": 66,
-      "secondFile": {
-        "end": 75,
-        "endLoc": {
-          "column": 2,
-          "line": 75,
-          "position": 2501
-        },
-        "name": "flappybird/rendering/FlappyBirdMissionHUD.ts",
-        "start": 10,
-        "startLoc": {
-          "column": 105,
-          "line": 10,
-          "position": 456
-        }
-      },
-      "tokens": 443
-    },
-    {
-      "firstFile": {
-        "end": 51,
+        "end": 53,
         "endLoc": {
           "column": 31,
-          "line": 51,
-          "position": 2143
+          "line": 53,
+          "position": 2184
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 45,
+        "start": 47,
         "startLoc": {
           "column": 40,
-          "line": 45,
-          "position": 1923
+          "line": 47,
+          "position": 1964
         }
       },
       "format": "typescript",
@@ -1279,36 +1242,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 147,
+        "end": 149,
         "endLoc": {
           "column": 31,
-          "line": 147,
-          "position": 5560
+          "line": 149,
+          "position": 5601
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 141,
+        "start": 143,
         "startLoc": {
           "column": 33,
-          "line": 141,
-          "position": 5340
+          "line": 143,
+          "position": 5381
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 51,
+        "end": 53,
         "endLoc": {
           "column": 31,
-          "line": 51,
-          "position": 2143
+          "line": 53,
+          "position": 2184
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 45,
+        "start": 47,
         "startLoc": {
           "column": 40,
-          "line": 45,
-          "position": 1923
+          "line": 47,
+          "position": 1964
         }
       },
       "format": "typescript",
@@ -1316,58 +1279,21 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 261,
+        "end": 223,
         "endLoc": {
           "column": 31,
-          "line": 261,
-          "position": 8894
+          "line": 223,
+          "position": 7883
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 255,
+        "start": 217,
         "startLoc": {
           "column": 36,
-          "line": 255,
-          "position": 8674
+          "line": 217,
+          "position": 7663
         }
       },
       "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 204,
-        "endLoc": {
-          "column": 2,
-          "line": 204,
-          "position": 7134
-        },
-        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 169,
-        "startLoc": {
-          "column": 86,
-          "line": 169,
-          "position": 6237
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaAsteroidsMissionHUD: EffectDrawer<any, AsteroidsComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const activeMission = world.getResource<ActiveMissionState>(\"ActiveMission\");\n    if (!activeMission) return;\n\n    canvas.save();\n    const paint = getPaint();\n    paint.reset();\n    paint.setAntiAlias(true);\n\n    const x = 20;\n    const y = 80;\n    const width = 280;\n    const height = 48;\n\n    let statusColor = \"#00D9FF\";\n    if (activeMission.completed) {\n      statusColor = \"#00FF41\";\n    } else if (activeMission.failed) {\n      statusColor = \"#FF4444\";\n    }\n\n    paint.setStyle(Skia.PaintStyle.Fill);\n    paint.setColor(Skia.Color(\"rgba(10, 14, 39, 0.85)\"));\n    const rect = Skia.XYWHRect(x, y, width, height);\n    canvas.drawRect(rect, paint);\n\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setColor(Skia.Color(statusColor));\n    paint.setStrokeWidth(1.5);\n    canvas.drawRect(rect, paint);\n\n    canvas.restore();\n  }\n};",
-      "isNew": false,
-      "lines": 36,
-      "secondFile": {
-        "end": 45,
-        "endLoc": {
-          "column": 2,
-          "line": 45,
-          "position": 1349
-        },
-        "name": "flappybird/rendering/FlappyBirdSkiaMissionHUD.ts",
-        "start": 10,
-        "startLoc": {
-          "column": 88,
-          "line": 10,
-          "position": 452
-        }
-      },
-      "tokens": 209
     },
     {
       "firstFile": {
@@ -3887,18 +3813,18 @@
     },
     {
       "firstFile": {
-        "end": 173,
+        "end": 184,
         "endLoc": {
           "column": 8,
-          "line": 173,
-          "position": 7553
+          "line": 184,
+          "position": 7796
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 168,
+        "start": 179,
         "startLoc": {
           "column": 0,
-          "line": 168,
-          "position": 7322
+          "line": 179,
+          "position": 7565
         }
       },
       "format": "typescript",

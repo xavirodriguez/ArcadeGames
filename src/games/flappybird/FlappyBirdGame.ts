@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, RenderContext, EventRegistry, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, IAudioPlayer, Mutator, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry, FlappyBirdEventRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
@@ -35,9 +35,9 @@ import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBi
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
-export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, any, any>> {
-  bird: BlueprintDefinition<FlappyBirdComponentRegistry, any, { x: number, y: number }>;
-  pipe: BlueprintDefinition<FlappyBirdComponentRegistry, any, {
+export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, unknown>> {
+  bird: BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, { x: number, y: number }>;
+  pipe: BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, {
     x: number;
     gapY: number;
     visualVariant?: "standard" | "damaged" | "rusted";
@@ -46,8 +46,8 @@ export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefiniti
     oscillationAmplitude?: number;
     isNarrowGap?: boolean;
   }>;
-  ground: BlueprintDefinition<FlappyBirdComponentRegistry, any, {}>;
-  state: BlueprintDefinition<FlappyBirdComponentRegistry, any, {}>;
+  ground: BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, {}>;
+  state: BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, {}>;
 }
 
 export class FlappyBirdGame
@@ -56,14 +56,14 @@ export class FlappyBirdGame
 
   private gameStateSystem!: FlappyBirdGameStateSystem;
   private missionSystem!: MissionSystem;
-  private networkManager!: NetworkManager<any>;
+  private networkManager!: NetworkManager<FlappyBirdComponentRegistry>;
   public readonly gameId = "flappybird";
   private baseConfig: FlappyBirdConfigType;
   private config: FlappyBirdConfigType;
   public isMultiplayer = false;
   private activeRendererType: "canvas" | "skia" = "canvas";
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, audio?: any, theme?: Theme } = {}) {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, audio?: IAudioPlayer, theme?: Theme } = {}) {
     const seed = config.gameOptions?.seed as number || config.seed;
     super({
       pauseKey: DEFAULT_FLAPPY_BIRD_CONFIG.KEYS.PAUSE,
@@ -137,7 +137,7 @@ export class FlappyBirdGame
           multiplier: 1,
           timerRemaining: 0,
           timerDuration: 2.0
-        } as any);
+        } as ComboComponent);
         world.addComponent(entity, {
           type: "GlideEnergy",
           currentEnergy: 100,
@@ -148,7 +148,7 @@ export class FlappyBirdGame
           overheatCooldownTicks: 0,
         });
 
-        createEmitter(world as any, {
+        createEmitter(world, {
           type: "spawn",
           x: args.x,
           y: args.y,
@@ -327,18 +327,19 @@ export class FlappyBirdGame
     this.missionSystem = new MissionSystem();
     this.world.addSystem(this.missionSystem as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.GameRules });
 
-    this.eventBus.on("mission:completed", (event: any) => {
+    this.eventBus.on("mission:completed", (event: unknown) => {
       if (this.world.isReSimulating) return;
-      if (event?.reward?.scoreBonus) {
+      const payload = event as { reward?: { scoreBonus?: number; mutatorId?: string } } | undefined;
+      if (payload?.reward?.scoreBonus) {
         const gs = this.world.getSingleton("FlappyState");
         if (gs) {
           this.world.mutateSingleton("FlappyState", (state) => {
-            state.score += event.reward.scoreBonus;
+            state.score += payload.reward!.scoreBonus!;
           });
         }
       }
-      if (event?.reward?.mutatorId) {
-        const mutator = MutatorRegistry.get(event.reward.mutatorId);
+      if (payload?.reward?.mutatorId) {
+        const mutator = MutatorRegistry.get(payload.reward.mutatorId);
         if (mutator) {
           mutator.apply(this.world);
         }
@@ -359,7 +360,7 @@ export class FlappyBirdGame
 
     this.world.addSystem(new AchievementSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
-    const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as any[];
+    const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as Mutator<FlappyBirdComponentRegistry>[];
     this.world.addSystem(new MutatorSystem(activeMutators) as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Simulation });
 
     // Visual / Presentation
@@ -403,8 +404,8 @@ export class FlappyBirdGame
         interpolationDelay: 100
       });
     }
-    this.world.addSystem(new LocalPredictionSystem(this.networkManager, () => {}) as System<any>, { phase: SystemPhase.Input });
-    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager) as System<any>, { phase: SystemPhase.Presentation });
+    this.world.addSystem(new LocalPredictionSystem(this.networkManager as unknown as NetworkManager<MultiplayerRegistry>, () => {}) as unknown as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Input });
+    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager as unknown as NetworkManager<MultiplayerRegistry>) as unknown as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Presentation });
   }
 
   protected override async onInitializeEntities(): Promise<void> {
@@ -445,7 +446,7 @@ export class FlappyBirdGame
     this.isMultiplayer = active;
   }
 
-  public override setInputState(input: any): void {
+  public override setInputState(input: Record<string, unknown> | object): void {
     const world = this.getWorld();
     const birdEntity = world.query("Bird")[0];
     if (birdEntity !== undefined) {
@@ -455,22 +456,24 @@ export class FlappyBirdGame
           flap: false,
           glide: false,
           flapCooldownRemaining: 0,
-        } as any);
+        });
       }
-      world.mutateComponent(birdEntity, "FlappyInput", (inputComp: any) => {
-        if (input && typeof input === "object" && input.axes) {
-          const moveY = input.axes.moveY ?? 0;
-          const actions = input.actions;
-          const hasAction = (name: string) => actions instanceof Set ? actions.has(name) : !!actions?.includes?.(name);
+      world.mutateComponent(birdEntity, "FlappyInput", (inputComp) => {
+        const inputObj = input as Record<string, unknown>;
+        if (inputObj && typeof inputObj === "object" && inputObj.axes) {
+          const axes = inputObj.axes as Record<string, number>;
+          const moveY = axes.moveY ?? 0;
+          const actions = inputObj.actions as Set<string> | string[] | undefined;
+          const hasAction = (name: string) => actions instanceof Set ? actions.has(name) : !!(actions as string[])?.includes?.(name);
 
           inputComp.flap = hasAction("confirm") || hasAction("fire") || moveY < 0;
           inputComp.glide = hasAction("boost") || moveY > 0;
         } else {
-          if (input.flap !== undefined) {
-            inputComp.flap = input.flap;
+          if (typeof inputObj.flap === "boolean") {
+            inputComp.flap = inputObj.flap;
           }
-          if (input.glide !== undefined) {
-            inputComp.glide = input.glide;
+          if (typeof inputObj.glide === "boolean") {
+            inputComp.glide = inputObj.glide;
           }
         }
       });
@@ -481,11 +484,12 @@ export class FlappyBirdGame
     this.setInputState(input);
   }
 
-  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<Record<string, unknown>, any, FlappyBirdComponentRegistry>[] = [
+  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<Record<string, unknown>, unknown, FlappyBirdComponentRegistry>[] = [
     {
       serverIdPrefix: "player",
-      getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; velocityY: number }>,
-      spawn: (world, entity, state) => {
+      getStateMap: (root) => root.players as Record<string, unknown>,
+      spawn: (world, entity, rawState) => {
+        const state = rawState as { x: number; y: number; alive: boolean; velocityY: number };
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: 0, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         commands.addComponent(entity, { type: "Render", shape: "bird", size: 15, color: "yellow", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
@@ -497,7 +501,8 @@ export class FlappyBirdGame
           nearMissTimer: 0
         } as BirdComponent);
       },
-      sync: (world, entity, state) => {
+      sync: (world, entity, rawState) => {
+        const state = rawState as { x: number; y: number; alive: boolean; velocityY: number };
         world.mutateComponent(entity, "Bird", bird => {
           bird.isAlive = state.alive;
           bird.velocityY = state.velocityY;
@@ -510,8 +515,9 @@ export class FlappyBirdGame
     },
     {
       serverIdPrefix: "pipe",
-      getStateMap: (root) => root.pipes as Record<string, { x: number; gapY: number; id: string }>,
-      spawn: (world, entity, state) => {
+      getStateMap: (root) => root.pipes as Record<string, unknown>,
+      spawn: (world, entity, rawState) => {
+        const state = rawState as { x: number; gapY: number; id: string };
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, { type: "Transform", x: state.x, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: state.x, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false } as TransformComponent);
         commands.addComponent(entity, { type: "Render", shape: "pipe", size: 60, color: "green", rotation: 0, visible: true, opacity: 1, order: 0, hitFlashFrames: 0, angularVelocity: 0 } as RenderComponent);
@@ -527,13 +533,13 @@ export class FlappyBirdGame
     const replicator = this.networkManager.getReplicator();
     const entries: InterpolationSnapshotEntry[] = [];
     if (state.players) {
-      Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
+      Object.entries(state.players as Record<string, { x: number; y: number }>).forEach(([sessionId, p]) => {
         const entityId = replicator.getLocalId(`player_${sessionId}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
       });
     }
     if (state.pipes) {
-      Object.entries(state.pipes as Record<string, any>).forEach(([id, p]) => {
+      Object.entries(state.pipes as Record<string, { x: number }>).forEach(([id, p]) => {
         const entityId = replicator.getLocalId(`pipe_${id}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: 0 });
       });
@@ -549,7 +555,7 @@ export class FlappyBirdGame
     );
   }
 
-  public initializeRenderer(renderer: Renderer<any, any>): void {
+  public initializeRenderer(renderer: Renderer<FlappyBirdComponentRegistry, RenderContext>): void {
     if (renderer.type === "canvas") {
       this.activeRendererType = "canvas";
       const { drawFlappyBird, drawFlappyPipe, drawFlappyGround, scrollingBackgroundEffect } = require("./rendering/FlappyBirdCanvasVisuals");
@@ -620,7 +626,7 @@ export class NullFlappyBirdGame extends NullBaseGame<FlappyBirdState, FlappyBird
 // GAME-SPECIFIC MUTATOR HOOKS (DECOUPLED FROM CORE REGISTRY)
 // ==========================================================================
 
-registerMutatorHook("combo_head_start", (world: World) => {
+registerMutatorHook("combo_head_start", (world: World<FlappyBirdComponentRegistry>) => {
   const comboEntities = world.query("Combo");
   if (comboEntities.length > 0) {
     world.mutateComponent(comboEntities[0], "Combo", (c) => {

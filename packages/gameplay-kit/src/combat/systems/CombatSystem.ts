@@ -1,4 +1,4 @@
-import { System, World, Entity, EventBus, ComponentRegistry, WorldUtils } from "@tiny-aster/core";
+import { System, World, Entity, EventBus, CoreComponentRegistry, WorldUtils } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent } from "../components/CombatComponents";
 
 /**
@@ -7,7 +7,7 @@ import { DamageComponent, FactionComponent } from "../components/CombatComponent
  * @public
  */
 export class CombatSystem<
-  TComponents extends ComponentRegistry = ComponentRegistry,
+  TComponents extends CoreComponentRegistry = CoreComponentRegistry,
   TEvents extends Record<string, any> = Record<string, any>
 > extends System<TComponents, TEvents> {
   // Safe for determinism/rollback. Reusable Set avoids per-tick heap allocations during combat resolution.

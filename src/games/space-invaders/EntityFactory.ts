@@ -46,7 +46,7 @@ export function createInputComponent(): InputComponent {
  * Includes input handling, health, and boundary constraints.
  * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
-export function createPlayer(world: World<any>, x: number, y: number, deferred?: boolean): Entity {
+export function createPlayer(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "player", { x, y });
 }
 
@@ -57,7 +57,7 @@ export function createPlayer(world: World<any>, x: number, y: number, deferred?:
  * @remarks Actual component composition lives in `./EnemyFactory`, not here —
  * this function only forwards to the "invader" blueprint.
  */
-export function createInvader(world: World<any>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
+export function createInvader(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "invader", { x, y, row, col });
 }
 
@@ -68,7 +68,7 @@ export function createInvader(world: World<any>, x: number, y: number, row: numb
  * by the caller — the two games use different pooling patterns, this is not a bug.
  * Color is hardcoded ("#00FF00") rather than theme-driven.
  */
-export function createPlayerBullet(world: World<any>, x: number, y: number, pool: PlayerBulletPool): Entity {
+export function createPlayerBullet(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, pool: PlayerBulletPool): Entity {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
   return pool.acquire(
     world,
@@ -89,7 +89,7 @@ export function createPlayerBullet(world: World<any>, x: number, y: number, pool
  * @remarks See createPlayerBullet for the explicit-pool pattern used here.
  * Color is hardcoded ("#FF0000") rather than theme-driven.
  */
-export function createEnemyBullet(world: World<any>, x: number, y: number, pool: EnemyBulletPool): Entity {
+export function createEnemyBullet(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, pool: EnemyBulletPool): Entity {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
   return pool.acquire(
     world,
@@ -109,7 +109,7 @@ export function createEnemyBullet(world: World<any>, x: number, y: number, pool:
  * Creates a single destructible block of a shield/bunker.
  * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
-export function createShieldSegment(world: World<any>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
+export function createShieldSegment(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, row: number, col: number, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "shield", { x, y, row, col });
 }
 
@@ -117,7 +117,7 @@ export function createShieldSegment(world: World<any>, x: number, y: number, row
  * Creates the global game state entity.
  * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
-export function createGameState(world: World<any>, deferred?: boolean): Entity {
+export function createGameState(world: World<SpaceInvadersComponentRegistry>, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "state", {});
 }
 
@@ -125,7 +125,7 @@ export function createGameState(world: World<any>, deferred?: boolean): Entity {
  * Creates the singleton entity that coordinates the invader grid movement.
  * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
-export function createFormationController(world: World<any>, deferred?: boolean): Entity {
+export function createFormationController(world: World<SpaceInvadersComponentRegistry>, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "formation", {});
 }
 
@@ -134,7 +134,7 @@ export function createFormationController(world: World<any>, deferred?: boolean)
  * (INVADER_START_X/Y, INVADER_SPACING_X/Y, INVADER_ROWS/COLS).
  * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
-export function spawnInvaderWave(world: World<any>, _level: number, deferred?: boolean): void {
+export function spawnInvaderWave(world: World<SpaceInvadersComponentRegistry>, _level: number, deferred?: boolean): void {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
   const startX = config.INVADER_START_X;
   const startY = config.INVADER_START_Y;
@@ -163,7 +163,7 @@ export function spawnInvaderWave(world: World<any>, _level: number, deferred?: b
  * spaced by SHIELD_SPACING starting at SHIELD_START_X/Y.
  * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
-export function spawnShields(world: World<any>, deferred?: boolean): void {
+export function spawnShields(world: World<SpaceInvadersComponentRegistry>, deferred?: boolean): void {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
   const count = config.SHIELD_COUNT;
   const segmentsX = config.SHIELD_SEGMENTS_X;

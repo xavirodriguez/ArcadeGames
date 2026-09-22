@@ -1,6 +1,11 @@
 import { World } from "./World";
 import { Entity } from "./Entity";
-import { ComponentRegistry, ComponentType } from "./Component";
+import { Component, ComponentRegistry, ComponentType } from "./Component";
+
+interface WorldLike {
+  hasEntity?: (entity: Entity) => boolean;
+  isAlive?: (entity: Entity) => boolean;
+}
 
 /**
  * Utility functions for ECS World entity activity and lifecycle tracking.
@@ -9,33 +14,37 @@ import { ComponentRegistry, ComponentType } from "./Component";
 export class WorldUtils {
   /**
    * Checks if an entity is active in the world by verifying `world.hasEntity` or `Transform` component presence.
+   * The passed World must register a Transform component.
    *
    * @param world - The ECS World instance.
    * @param entity - The target entity ID.
    * @returns `true` if the entity exists and is active in the world.
    */
-  static isEntityActive<TComponents extends ComponentRegistry = ComponentRegistry>(
-    world: World<TComponents, any, any>,
+  static isEntityActive<TComponents extends ComponentRegistry & { Transform: Component } = ComponentRegistry & { Transform: Component }>(
+    world: World<TComponents>,
     entity: Entity
   ): boolean {
-    if (typeof (world as any).hasEntity === "function") {
-      return (world as any).hasEntity(entity);
+    const w = world as unknown as WorldLike;
+    if (typeof w.hasEntity === "function") {
+      return w.hasEntity(entity);
     }
-    return world.hasComponent(entity, "Transform" as any);
+    return world.hasComponent(entity, "Transform" as Extract<keyof TComponents, string>);
   }
 
   /**
    * Checks if an entity is alive (not marked for reclamation) and active in the world.
+   * The passed World must register a Transform component.
    *
    * @param world - The ECS World instance.
    * @param entity - The target entity ID.
    * @returns `true` if the entity is alive and active.
    */
-  static isAliveAndTracked<TComponents extends ComponentRegistry = ComponentRegistry>(
-    world: World<TComponents, any, any>,
+  static isAliveAndTracked<TComponents extends ComponentRegistry & { Transform: Component } = ComponentRegistry & { Transform: Component }>(
+    world: World<TComponents>,
     entity: Entity
   ): boolean {
-    if (typeof (world as any).isAlive === "function" && !(world as any).isAlive(entity)) {
+    const w = world as unknown as WorldLike;
+    if (typeof w.isAlive === "function" && !w.isAlive(entity)) {
       return false;
     }
     return WorldUtils.isEntityActive(world, entity);
@@ -43,20 +52,21 @@ export class WorldUtils {
 
   /**
    * Safely checks if an entity is alive, active, and has a Transform component, then reclaims or removes it.
+   * The passed World must register a Transform component.
    *
    * @param world - The ECS World instance.
    * @param entity - The target entity ID to remove or reclaim.
    * @public
    */
-  static removeOrReclaim<TComponents extends ComponentRegistry = ComponentRegistry>(
-    world: World<TComponents, any, any>,
+  static removeOrReclaim<TComponents extends ComponentRegistry & { Transform: Component } = ComponentRegistry & { Transform: Component }>(
+    world: World<TComponents>,
     entity: Entity
   ): void {
     if (!WorldUtils.isAliveAndTracked(world, entity) || !world.hasComponent(entity, "Transform" as Extract<keyof TComponents, string>)) {
       return;
     }
     const reclaimable = world.getComponent(entity, "Reclaimable" as Extract<keyof TComponents, string>) as {
-      onReclaim?: (ctx: { world: World<TComponents, any, any>; entity: Entity }) => void;
+      onReclaim?: (ctx: { world: World<TComponents>; entity: Entity }) => void;
       poolId?: string;
     } | undefined;
 
@@ -64,7 +74,7 @@ export class WorldUtils {
       if (typeof reclaimable.onReclaim === "function") {
         reclaimable.onReclaim({ world, entity });
       } else if (reclaimable.poolId) {
-        const pool = world.getResource<{ release?: (ctx: { world: World<TComponents, any, any>; entity: Entity }) => void }>(reclaimable.poolId);
+        const pool = world.getResource<{ release?: (ctx: { world: World<TComponents>; entity: Entity }) => void }>(reclaimable.poolId);
         if (pool && typeof pool.release === "function") {
           pool.release({ world, entity });
         }
@@ -89,7 +99,7 @@ export class WorldUtils {
     T1 extends ComponentType<TComponents>,
     T2 extends ComponentType<TComponents>
   >(
-    world: World<TComponents, any, any>,
+    world: World<TComponents>,
     entityA: Entity,
     entityB: Entity,
     type1: T1,

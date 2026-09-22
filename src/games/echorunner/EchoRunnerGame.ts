@@ -53,6 +53,7 @@ import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
+import { createPlatformerMovementConfig, setupTilemapEntity } from "../shared/componentBuilders";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -217,14 +218,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
         const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
 
-        world.addComponent(entity, {
-          type: "PlatformerMovementConfig",
-          acceleration: config.PLAYER_ACCEL,
-          maxSpeed: config.PLAYER_SPEED,
-          deceleration: config.PLAYER_DECEL,
-          airAcceleration: config.PLAYER_AIR_ACCEL,
-          airDeceleration: config.PLAYER_AIR_DECEL
-        } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, createPlatformerMovementConfig(config) as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerInput",
           moveDir: 0,
@@ -257,16 +251,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     this.blueprints.register("tilemap", {
       spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
         const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
-        EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: 0, y: 0 })
-          .withRender({ shape: "tilemap", size: config.TILE_SIZE, order: 0 });
-
-        world.addComponent(entity, {
-          type: "Tilemap",
-          data: args.data,
-          tileSize: config.TILE_SIZE,
-          tileDefinitions: args.tileDefinitions
-        } as { type: string; [key: string]: unknown });
+        setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
       }
     });
 

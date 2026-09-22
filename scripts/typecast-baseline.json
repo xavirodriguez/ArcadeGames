@@ -801,8 +801,8 @@
   },
   "src/games/shared/rendering/SharedVFX.ts": {
     "anyCount": 0,
-    "unknownCount": 17,
-    "total": 17
+    "unknownCount": 16,
+    "total": 16
   },
   "src/games/shared/story/DialogueSystem.ts": {
     "anyCount": 14,

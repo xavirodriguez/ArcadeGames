@@ -6,6 +6,52 @@ import { MotionTrailBuffer, computeMotionTrailSegment, TrailPoint } from "./Moti
 export { TrailPoint };
 
 /**
+ * Creates and initializes a Skia Paint configured for Fill operations.
+ *
+ * @param colorStr - Color string or hex token.
+ * @param alpha - Optional opacity scaling factor between 0.0 and 1.0. Defaults to 1.0.
+ * @param existingPaint - Optional pre-allocated Skia Paint instance to reset and reuse.
+ * @returns Configured Skia Paint object.
+ * @public
+ */
+export function makeFillPaint(colorStr: string, alpha: number = 1.0, existingPaint?: any): any {
+  if (!Skia) return undefined;
+  const paint = existingPaint || Skia.Paint();
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(colorStr));
+  if (alpha < 1.0) {
+    paint.setAlphaf(alpha);
+  }
+  return paint;
+}
+
+/**
+ * Creates and initializes a Skia Paint configured for Stroke operations.
+ *
+ * @param colorStr - Color string or hex token.
+ * @param strokeWidth - Width of stroke lines. Defaults to 1.0.
+ * @param alpha - Optional opacity scaling factor between 0.0 and 1.0. Defaults to 1.0.
+ * @param existingPaint - Optional pre-allocated Skia Paint instance to reset and reuse.
+ * @returns Configured Skia Paint object.
+ * @public
+ */
+export function makeStrokePaint(colorStr: string, strokeWidth: number = 1.0, alpha: number = 1.0, existingPaint?: any): any {
+  if (!Skia) return undefined;
+  const paint = existingPaint || Skia.Paint();
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setColor(Skia.Color(colorStr));
+  paint.setStrokeWidth(strokeWidth);
+  if (alpha < 1.0) {
+    paint.setAlphaf(alpha);
+  }
+  return paint;
+}
+
+/**
  * Generic shape drawing helper for Skia that handles pulsing neon glows,
  * body fills, and bright white high-tech inner cores.
  *
@@ -34,23 +80,15 @@ export function drawNeonShapeSkia(
   const pulseFactor = computeNeonPulse(tick);
 
   // 1. Draw outer glowing outline
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Stroke);
-  paint.setColor(Skia.Color(color));
-  paint.setStrokeWidth(2.0);
+  makeStrokePaint(color, 2.0, 1.0, paint);
   drawOutline(canvas, paint, pulseFactor, 1.0);
 
   // 2. Draw outer glowing semi-transparent body fill
-  paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(glowAlphaColor));
+  makeFillPaint(glowAlphaColor, 1.0, paint);
   drawOutline(canvas, paint, 1.0, 1.0);
 
   // 3. Draw bright white core
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(colors.white));
+  makeFillPaint(colors.white, 1.0, paint);
   drawCore(canvas, paint);
 
   canvas.restore();
@@ -104,11 +142,7 @@ export class SkiaMotionTrail {
       canvas.translate(p.x - currentX, p.y - currentY);
 
       // Outer glow circle
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(outerColorStr));
-      paint.setAlphaf(alpha);
+      makeFillPaint(outerColorStr, alpha, paint);
       canvas.drawCircle(0, 0, trailSize * 1.5, paint);
 
       // Inner core circle
@@ -136,16 +170,10 @@ export function drawGlowOrbSkia(
   if (!Skia) return;
   canvas.save();
 
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Stroke);
-  paint.setColor(Skia.Color(color));
-  paint.setStrokeWidth(strokeWidth);
+  makeStrokePaint(color, strokeWidth, 1.0, paint);
   canvas.drawCircle(0, 0, size, paint);
 
-  paint.reset();
-  paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(colors.white));
+  makeFillPaint(colors.white, 1.0, paint);
   canvas.drawCircle(0, 0, size * coreScale, paint);
 
   canvas.restore();

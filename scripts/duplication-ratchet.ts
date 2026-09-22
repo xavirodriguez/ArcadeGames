@@ -90,6 +90,35 @@ const currentData: BaselineData = {
   totalLines: currentStats.lines
 };
 
+function computeFolderBreakdown(duplicates: JSCPDReport["duplicates"]): Record<string, { lines: number; clones: number }> {
+  const breakdown: Record<string, { lines: number; clones: number }> = {};
+
+  const categorizeFile = (filepath: string): string => {
+    if (filepath.includes("/rendering/")) return "rendering/";
+    if (filepath.includes("/physics/")) return "physics/";
+    if (filepath.includes("/entities/") || filepath.includes("/blueprints/")) return "entities/";
+    if (filepath.includes("/systems/")) return "systems/";
+    if (filepath.includes("/shared/")) return "shared/";
+    return "other/";
+  };
+
+  for (const dup of duplicates) {
+    const folder1 = categorizeFile(dup.firstFile.name);
+    const folder2 = categorizeFile(dup.secondFile.name);
+    const key = folder1 === folder2 ? folder1 : `${folder1} <-> ${folder2}`;
+
+    if (!breakdown[key]) {
+      breakdown[key] = { lines: 0, clones: 0 };
+    }
+    breakdown[key].lines += dup.lines;
+    breakdown[key].clones += 1;
+  }
+
+  return breakdown;
+}
+
+const folderBreakdown = computeFolderBreakdown(report.duplicates);
+
 if (isUpdateMode) {
   fs.writeFileSync(BASELINE_FILE, JSON.stringify(currentData, null, 2) + "\n", "utf-8");
   console.log(`✅ Baseline de duplicación actualizado exitosamente en '${path.relative(process.cwd(), BASELINE_FILE)}'.`);
@@ -122,6 +151,14 @@ function writeGithubSummary() {
   md += `| **Clones Detectados** | ${currentData.clones} | ${baseline.clones} | ${currentData.clones <= baseline.clones ? "✅" : "⚠️"} |\n`;
   md += `| **Líneas Totales Escaneadas** | ${currentData.totalLines} | ${baseline.totalLines} | - |\n\n`;
 
+  md += `### 📂 Desglose de Duplicación por Carpeta\n\n`;
+  md += `| Carpeta / Categoría | Líneas Duplicadas | Clones |\n`;
+  md += `| --- | --- | --- |\n`;
+  for (const [folder, stats] of Object.entries(folderBreakdown).sort((a, b) => b[1].lines - a[1].lines)) {
+    md += `| \`${folder}\` | ${stats.lines} | ${stats.clones} |\n`;
+  }
+  md += `\n`;
+
   // Sort clones by line count descending and pick top 10
   const topClones = [...report.duplicates]
     .sort((a, b) => b.lines - a.lines)
@@ -148,6 +185,10 @@ console.log(`===========================================================`);
 console.log(`Líneas duplicadas actuales: ${currentData.duplicatedLines} (${currentData.percentage}%)`);
 console.log(`Líneas duplicadas baseline: ${baseline.duplicatedLines} (${baseline.percentage}%)`);
 console.log(`Total clones: ${currentData.clones}`);
+console.log(`\n📂 Desglose por carpeta:`);
+for (const [folder, stats] of Object.entries(folderBreakdown).sort((a, b) => b[1].lines - a[1].lines)) {
+  console.log(`   - ${folder.padEnd(20)}: ${stats.lines} líneas (${stats.clones} clones)`);
+}
 
 if (isRegression) {
   console.error(`\n❌ REGRESION DE DUPLICACION DETECTADA:`);

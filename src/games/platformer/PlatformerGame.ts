@@ -41,6 +41,7 @@ import {
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
+import { createPlatformerMovementConfig, setupTilemapEntity } from "../shared/componentBuilders";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { PlatformerGoalSystem, LevelGoalComponent } from "./systems/PlatformerGoalSystem";
@@ -267,14 +268,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
         world.addComponent(entity, { type: "Sprite", assetKey, anchor: { x: 0.5, y: 0.5 } });
         const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
 
-        world.addComponent(entity, {
-          type: "PlatformerMovementConfig",
-          acceleration: config.PLAYER_ACCEL,
-          maxSpeed: config.PLAYER_SPEED,
-          deceleration: config.PLAYER_DECEL,
-          airAcceleration: config.PLAYER_AIR_ACCEL,
-          airDeceleration: config.PLAYER_AIR_DECEL
-        } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, createPlatformerMovementConfig(config) as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerInput",
           moveDir: 0,
@@ -328,16 +322,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.blueprints.register("tilemap", {
       spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
         const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
-        EntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: 0, y: 0 })
-          .withRender({ shape: "tilemap", size: config.TILE_SIZE, order: 0 });
-
-        world.addComponent(entity, {
-          type: "Tilemap",
-          data: args.data,
-          tileSize: config.TILE_SIZE,
-          tileDefinitions: args.tileDefinitions
-        } as { type: string; [key: string]: unknown });
+        setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
       }
     });
 

@@ -53,7 +53,8 @@ export interface MatrixColumn {
   y: number;
   speed: number;
   length: number;
-  intensity: number;
+  intensity?: number;
+  chars: string[];
 }
 
 export interface AccretionParticle {
@@ -166,6 +167,8 @@ export interface VFXWorldState {
   cachedMilkyWaySkiaShader?: SkShader | null;
   cachedStationGradient?: CanvasGradient | null;
   cachedStationSkiaShader?: SkShader | null;
+  scanlines?: number[] | null;
+  matrixCols?: MatrixColumn[] | null;
   lastWidth: number;
   lastHeight: number;
   lastCRTWidth?: number;
@@ -260,7 +263,9 @@ export type CachedVFXKey =
   | "cachedMilkyWayGradient"
   | "cachedMilkyWaySkiaShader"
   | "cachedStationGradient"
-  | "cachedStationSkiaShader";
+  | "cachedStationSkiaShader"
+  | "scanlines"
+  | "matrixCols";
 
 export function getOrCreateCached<T>(
   state: VFXWorldState,

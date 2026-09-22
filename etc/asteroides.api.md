@@ -1961,7 +1961,7 @@ export function getGameplaySystemContextAndEntities<TRegistry extends CoreCompon
 }) | null;
 
 // @public
-export function getHorizontalDirectionToPlayer(world: World, _entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
+export function getHorizontalDirectionToPlayer(world: World, entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
 
 // @public
 export interface GroundDetectorComponent extends Component {
@@ -3392,6 +3392,7 @@ export interface PhysicsTransformLike {
 
 // @public
 export class PhysicsUtils {
+    static applyBodyImpulse(world: World<CoreComponentRegistry>, entity: Entity, hasVelocity: unknown, isStatic: boolean, invMass: number, invInertia: number, rx: number, ry: number, fx: number, fy: number, scale: number): void;
     static circleOverlap(x1: number, y1: number, r1: number, x2: number, y2: number, r2: number): boolean;
     static clamp(value: number, min: number, max: number): number;
     static lerp(a: number, b: number, t: number): number;

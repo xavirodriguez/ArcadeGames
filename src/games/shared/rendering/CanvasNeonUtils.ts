@@ -6,60 +6,35 @@
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, hexToRgba } from "./CosmicPalette";
+import { MotionTrailBuffer, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
 
-export interface TrailPoint {
-  x: number;
-  y: number;
-  active: boolean;
-}
+export { TrailPoint };
 
 /**
- * Zero-allocation, high-performance motion trail tracker and renderer.
- * Keeps a pre-allocated pool of trail points per entity to avoid GC overhead.
+ * Zero-allocation, high-performance motion trail tracker and renderer for Canvas.
+ * Delegates buffer tracking and update logic to MotionTrailBuffer.
  */
 export class CanvasMotionTrail {
-  private readonly trails = new Map<number, TrailPoint[]>();
+  private readonly trailBuffer: MotionTrailBuffer;
   protected readonly maxPoints: number;
 
   constructor(maxPoints: number = 30) {
     this.maxPoints = maxPoints;
+    this.trailBuffer = new MotionTrailBuffer(maxPoints);
   }
 
   /**
    * Retrieves or initializes the trail points buffer for a specific entity ID.
    */
   public getTrail(entityId: number): TrailPoint[] {
-    let trail = this.trails.get(entityId);
-    if (!trail) {
-      trail = [];
-      for (let i = 0; i < this.maxPoints; i++) {
-        trail.push({ x: 0, y: 0, active: false });
-      }
-      this.trails.set(entityId, trail);
-    }
-    return trail;
+    return this.trailBuffer.getTrail(entityId);
   }
 
   /**
    * Updates the trail coordinates when the entity moves beyond a small threshold.
    */
   public update(entityId: number, x: number, y: number, minDistanceSq: number = 4): void {
-    const trail = this.getTrail(entityId);
-    const lastPoint = trail[0];
-    const dx = x - lastPoint.x;
-    const dy = y - lastPoint.y;
-    const distSq = dx * dx + dy * dy;
-
-    if (!lastPoint.active || distSq > minDistanceSq) {
-      for (let i = this.maxPoints - 1; i > 0; i--) {
-        trail[i].x = trail[i - 1].x;
-        trail[i].y = trail[i - 1].y;
-        trail[i].active = trail[i - 1].active;
-      }
-      trail[0].x = x;
-      trail[0].y = y;
-      trail[0].active = true;
-    }
+    this.trailBuffer.update(entityId, x, y, minDistanceSq);
   }
 
   /**
@@ -82,9 +57,7 @@ export class CanvasMotionTrail {
       const p = trail[i];
       if (!p.active) continue;
 
-      const ratio = 1 - (i / drawLength);
-      const alpha = ratio * 0.4;
-      const trailSize = size * (0.3 + 0.7 * ratio);
+      const { alpha, trailSize } = computeMotionTrailSegment(i, drawLength, size);
 
       ctx.save();
       ctx.translate(p.x - currentX, p.y - currentY);

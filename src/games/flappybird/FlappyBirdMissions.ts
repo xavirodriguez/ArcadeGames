@@ -2,6 +2,15 @@ import { World, ComboComponent } from "@tiny-aster/core";
 import { MissionDefinition, ActiveMissionState } from "../shared/missions/MissionTypes";
 import { FlappyBirdState, BirdComponent } from "./types/FlappyBirdTypes";
 
+function isBirdGliding(world: World): boolean {
+  const birds = world.query("Bird");
+  if (birds.length > 0) {
+    const b = world.getComponent(birds[0], "Bird") as BirdComponent | undefined;
+    return Boolean(b && b.isGliding);
+  }
+  return false;
+}
+
 /**
  * Registry of the Flappy Bird mini-missions.
  * @public
@@ -46,13 +55,9 @@ export const FLAPPY_BIRD_MINI_MISSIONS: MissionDefinition[] = [
       }
     },
     onUpdate: (world, state) => {
-      const birds = world.query("Bird");
-      if (birds.length > 0) {
-        const b = world.getComponent(birds[0], "Bird") as BirdComponent | undefined;
-        if (b && b.isGliding) {
-          state.customData.failedGlide = true;
-          state.failed = true;
-        }
+      if (isBirdGliding(world)) {
+        state.customData.failedGlide = true;
+        state.failed = true;
       }
     }
   },
@@ -170,15 +175,11 @@ export const FLAPPY_BIRD_MINI_MISSIONS: MissionDefinition[] = [
       state.customData = { glideTimer: 0 };
     },
     onUpdate: (world, state, deltaTime) => {
-      const birds = world.query("Bird");
-      if (birds.length > 0) {
-        const b = world.getComponent(birds[0], "Bird") as BirdComponent | undefined;
-        if (b && b.isGliding) {
-          state.customData.glideTimer += deltaTime;
-          state.currentCount = Math.min(5, Math.floor(state.customData.glideTimer));
-          if (state.customData.glideTimer >= 5) {
-            state.completed = true;
-          }
+      if (isBirdGliding(world)) {
+        state.customData.glideTimer += deltaTime;
+        state.currentCount = Math.min(5, Math.floor(state.customData.glideTimer));
+        if (state.customData.glideTimer >= 5) {
+          state.completed = true;
         }
       }
     }

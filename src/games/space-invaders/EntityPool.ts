@@ -51,9 +51,27 @@ function createBulletPoolConfig(config: BulletPoolConfig) {
 }
 
 /**
+ * Abstract base bullet pool for Space Invaders projectiles.
+ */
+export abstract class SpaceInvadersBulletPool extends ProjectilePool<any, ProjectileParams> {
+  public acquireInvaderBullet(
+    world: World,
+    x: number,
+    y: number,
+    dx: number,
+    dy: number,
+    size: number,
+    color: string,
+    ttl: number
+  ): Entity {
+    return this.acquire(world, { x, y, dx, dy, size, color, ttl });
+  }
+}
+
+/**
  * Standardized Player Bullet Pool for Space Invaders.
  */
-export class PlayerBulletPool extends ProjectilePool<any, ProjectileParams> {
+export class PlayerBulletPool extends SpaceInvadersBulletPool {
   constructor() {
     super(createBulletPoolConfig({
       shape: "player_bullet",
@@ -65,16 +83,12 @@ export class PlayerBulletPool extends ProjectilePool<any, ProjectileParams> {
       faction: "player"
     }));
   }
-
-  public acquireInvaderBullet(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {
-    return this.acquire(world, { x, y, dx, dy, size, color, ttl });
-  }
 }
 
 /**
  * Standardized Enemy Bullet Pool for Space Invaders.
  */
-export class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {
+export class EnemyBulletPool extends SpaceInvadersBulletPool {
   constructor() {
     super(createBulletPoolConfig({
       shape: "enemy_bullet",
@@ -85,10 +99,6 @@ export class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {
       damageCategory: "enemy_bullet",
       faction: "enemy"
     }));
-  }
-
-  public acquireInvaderBullet(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {
-    return this.acquire(world, { x, y, dx, dy, size, color, ttl });
   }
 }
 

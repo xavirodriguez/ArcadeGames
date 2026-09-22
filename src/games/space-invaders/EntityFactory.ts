@@ -17,6 +17,21 @@ import {
 import { EnemyFactory } from "./EnemyFactory";
 
 /**
+ * Creates a default, strongly-typed InputComponent.
+ */
+export function createInputComponent(): InputComponent {
+  return {
+    type: "Input",
+    moveLeft: false,
+    moveRight: false,
+    shoot: false,
+    shootCooldownRemaining: 0,
+    actions: new Set<string>(),
+    axes: {}
+  };
+}
+
+/**
  * Entity factory for the Space Invaders game domain.
  *
  * Coordinates the creation of players, invaders, shields, and formation controllers.

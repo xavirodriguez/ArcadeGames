@@ -261,43 +261,6 @@
     },
     {
       "firstFile": {
-        "end": 142,
-        "endLoc": {
-          "column": 16,
-          "line": 142,
-          "position": 5161
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 134,
-        "startLoc": {
-          "column": 58,
-          "line": 134,
-          "position": 4804
-        }
-      },
-      "format": "typescript",
-      "fragment": "          const speed = (data.patrolSpeed as number) ?? 80;\n          const sensor = world.getComponent(entity, \"PlayerSensor\");\n          const trans = world.getComponent(entity, \"Transform\");\n\n          const dir = getHorizontalDirectionToPlayer(world, entity, sensor, trans);\n\n          if (world.hasComponent(entity, \"Velocity\")) {\n            world.mutateComponent(entity, \"Velocity\", (v) => {\n              v.vy = -jumpVel;",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 186,
-        "endLoc": {
-          "column": 16,
-          "line": 186,
-          "position": 6669
-        },
-        "name": "systems/EnemyBehaviorRegistry.ts",
-        "start": 178,
-        "startLoc": {
-          "column": 65,
-          "line": 178,
-          "position": 6312
-        }
-      },
-      "tokens": 66
-    },
-    {
-      "firstFile": {
         "end": 114,
         "endLoc": {
           "column": 41,
@@ -942,7 +905,7 @@
         }
       },
       "format": "typescript",
-      "fragment": "      const events = world.getComponent(eEntity, \"CollisionEvents\");\n      if (!events) continue;\n\n      for (const col of events.collisions) {\n        const other = col.otherEntity;\n        if (!WorldUtils.isEntityActive(world, other)) continue;\n\n        if (world.hasComponent(other, \"Ball\")) {",
+      "fragment": "      const events = world.getComponent(eEntity, \"CollisionEvents\");\n      if (!events) continue;\n\n      for (const col of events.collisions) {\n        const other = col.otherEntity;\n        if (!WorldUtils.isEntityActive(world, other)) continue;\n\n        if (world.hasComponent(other, \"Ball\") || world.hasComponent(other, \"Paddle\")) {",
       "isNew": false,
       "lines": 8,
       "secondFile": {
@@ -1057,18 +1020,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 74,
+        "end": 79,
         "endLoc": {
           "column": 29,
-          "line": 74,
-          "position": 2494
+          "line": 79,
+          "position": 2579
         },
         "name": "flappybird/FlappyBirdMissions.ts",
-        "start": 67,
+        "start": 72,
         "startLoc": {
           "column": 30,
-          "line": 67,
-          "position": 2204
+          "line": 72,
+          "position": 2289
         }
       },
       "tokens": 68
@@ -2145,43 +2108,6 @@
         }
       },
       "tokens": 91
-    },
-    {
-      "firstFile": {
-        "end": 53,
-        "endLoc": {
-          "column": 27,
-          "line": 53,
-          "position": 1799
-        },
-        "name": "flappybird/FlappyBirdMissions.ts",
-        "start": 48,
-        "startLoc": {
-          "column": 27,
-          "line": 48,
-          "position": 1577
-        }
-      },
-      "format": "typescript",
-      "fragment": "    onUpdate: (world, state) => {\n      const birds = world.query(\"Bird\");\n      if (birds.length > 0) {\n        const b = world.getComponent(birds[0], \"Bird\") as BirdComponent | undefined;\n        if (b && b.isGliding) {\n          state.customData.failedGlide = true;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 177,
-        "endLoc": {
-          "column": 27,
-          "line": 177,
-          "position": 6007
-        },
-        "name": "flappybird/FlappyBirdMissions.ts",
-        "start": 172,
-        "startLoc": {
-          "column": 38,
-          "line": 172,
-          "position": 5785
-        }
-      },
-      "tokens": 54
     },
     {
       "firstFile": {
@@ -4257,43 +4183,6 @@
     },
     {
       "firstFile": {
-        "end": 77,
-        "endLoc": {
-          "column": 12,
-          "line": 77,
-          "position": 2224
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 66,
-        "startLoc": {
-          "column": 4,
-          "line": 66,
-          "position": 1923
-        }
-      },
-      "format": "typescript",
-      "fragment": "    }));\n  }\n\n  public acquireInvaderBullet(world: World, x: number, y: number, dx: number, dy: number, size: number, color: string, ttl: number): Entity {\n    return this.acquire(world, { x, y, dx, dy, size, color, ttl });\n  }\n}\n\n/**\n * Standardized Enemy Bullet Pool for Space Invaders.\n */\nexport class EnemyBulletPool extends ProjectilePool<any, ProjectileParams> {",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 98,
-        "endLoc": {
-          "column": 12,
-          "line": 98,
-          "position": 2896
-        },
-        "name": "space-invaders/EntityPool.ts",
-        "start": 87,
-        "startLoc": {
-          "column": 4,
-          "line": 87,
-          "position": 2599
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
         "end": 478,
         "endLoc": {
           "column": 89,
@@ -4727,6 +4616,32 @@
       "percentageTokens": 2.6060383607480944,
       "sources": 405,
       "tokens": 351453
+    "detectionDate": "2026-09-22T00:12:03.308Z",
+    "formats": {
+      "typescript": {
+        "clones": 128,
+        "duplicatedLines": 1102,
+        "duplicatedTokens": 9504,
+        "lines": 67241,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 1.6388810398417633,
+        "percentageTokens": 2.700943795701339,
+        "sources": 404,
+        "tokens": 351877
+      }
+    },
+    "total": {
+      "clones": 128,
+      "duplicatedLines": 1102,
+      "duplicatedTokens": 9504,
+      "lines": 67241,
+      "newClones": 0,
+      "newDuplicatedLines": 0,
+      "percentage": 1.6388810398417633,
+      "percentageTokens": 2.700943795701339,
+      "sources": 404,
+      "tokens": 351877
     }
   }
 }

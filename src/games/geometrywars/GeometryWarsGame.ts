@@ -6,6 +6,8 @@ import {
   World,
   Camera2DSystem,
   TransformComponent,
+  RenderComponent,
+  HealthComponent,
   WebAudioPlayer,
   GameDefinition,
   ConfigService,
@@ -23,6 +25,64 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
  * @public
  */
 import { NetworkManager, WorldSnapshot, InputFrame, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState } from "@tiny-aster/core";
+
+function createTransformComponent(x: number, y: number, rotation: number): TransformComponent {
+  return {
+    type: "Transform",
+    x,
+    y,
+    rotation,
+    scaleX: 1,
+    scaleY: 1,
+    worldX: x,
+    worldY: y,
+    worldRotation: rotation,
+    worldScaleX: 1,
+    worldScaleY: 1,
+    dirty: false
+  };
+}
+
+function createRenderComponent(options: {
+  shape: string;
+  size: number;
+  color: string;
+  rotation: number;
+  order?: number;
+}): RenderComponent {
+  return {
+    type: "Render",
+    shape: options.shape,
+    size: options.size,
+    color: options.color,
+    rotation: options.rotation,
+    visible: true,
+    opacity: 1,
+    order: options.order ?? 1,
+    hitFlashFrames: 0,
+    angularVelocity: 0
+  };
+}
+
+function createHealthComponent(current: number, max: number): HealthComponent {
+  return {
+    type: "Health",
+    current,
+    max
+  };
+}
+
+function syncTransformFromState(
+  world: World<GeometryWarsComponentRegistry>,
+  entity: number,
+  state: { x: number; y: number; angle: number }
+): void {
+  world.mutateComponent(entity, "Transform", (t: TransformComponent) => {
+    t.x = state.x;
+    t.y = state.y;
+    t.rotation = state.angle;
+  });
+}
 
 export class GeometryWarsGame extends BaseGame<
   GeometryWarsStateComponent, // GameState description returned to HUD
@@ -144,19 +204,18 @@ export class GeometryWarsGame extends BaseGame<
       getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; angle: number }>,
       spawn: (world, entity, state) => {
         const commands = world.getCommandBuffer();
-        commands.addComponent(entity, { type: "Player", moveX: 0, moveY: 0, fireCooldownRemaining: 0, invulnRemaining: 0, useBomb: false });
-        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false });
-        commands.addComponent(entity, { type: "Render", shape: "gw_player", size: 16, color: colors.cyan, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 });
-        commands.addComponent(entity, { type: "Health", current: state.alive ? 1 : 0, max: 1 });
+        commands.addComponent(entity, { type: "Player", fireCooldownRemaining: 0, invulnRemaining: 0, moveX: 0, moveY: 0 });
+        commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
+        commands.addComponent(
+          entity,
+          createRenderComponent({ shape: "gw_player", size: 16, color: colors.cyan, rotation: state.angle, order: 1 })
+        );
+        commands.addComponent(entity, createHealthComponent(state.alive ? 1 : 0, 1));
       },
       sync: (world, entity, state) => {
-        world.mutateComponent(entity, "Transform", (t) => {
-          t.x = state.x;
-          t.y = state.y;
-          t.rotation = state.angle;
-        });
+        syncTransformFromState(world, entity, state);
 
-        world.mutateComponent(entity, "Render", (render) => {
+        world.mutateComponent(entity, "Render", (render: RenderComponent) => {
           render.rotation = state.angle;
           render.color = state.alive ? colors.cyan : "gray";
         });
@@ -167,15 +226,14 @@ export class GeometryWarsGame extends BaseGame<
       getStateMap: (root) => root.enemies as Record<string, { x: number; y: number; angle: number; type: string }>,
       spawn: (world, entity, state) => {
         const commands = world.getCommandBuffer();
-        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false });
-        commands.addComponent(entity, { type: "Render", shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 });
+        commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
+        commands.addComponent(
+          entity,
+          createRenderComponent({ shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, order: 1 })
+        );
       },
       sync: (world, entity, state) => {
-        world.mutateComponent(entity, "Transform", (t) => {
-          t.x = state.x;
-          t.y = state.y;
-          t.rotation = state.angle;
-        });
+        syncTransformFromState(world, entity, state);
       }
     },
     {
@@ -183,15 +241,14 @@ export class GeometryWarsGame extends BaseGame<
       getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; angle: number }>,
       spawn: (world, entity, state) => {
         const commands = world.getCommandBuffer();
-        commands.addComponent(entity, { type: "Transform", x: state.x, y: state.y, rotation: state.angle, scaleX: 1, scaleY: 1, worldX: state.x, worldY: state.y, worldRotation: state.angle, worldScaleX: 1, worldScaleY: 1, dirty: false });
-        commands.addComponent(entity, { type: "Render", shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, visible: true, opacity: 1, order: 2, hitFlashFrames: 0, angularVelocity: 0 });
+        commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
+        commands.addComponent(
+          entity,
+          createRenderComponent({ shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, order: 2 })
+        );
       },
       sync: (world, entity, state) => {
-        world.mutateComponent(entity, "Transform", (t) => {
-          t.x = state.x;
-          t.y = state.y;
-          t.rotation = state.angle;
-        });
+        syncTransformFromState(world, entity, state);
       }
     }
   ];

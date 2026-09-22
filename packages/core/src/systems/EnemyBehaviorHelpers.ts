@@ -91,14 +91,16 @@ export function timedTransition(
  */
 export function getHorizontalDirectionToPlayer(
   world: World,
-  _entity: Entity,
+  entity: Entity,
   sensor?: PlayerSensorComponent,
   trans?: TransformComponent
 ): number {
-  if (sensor && sensor.detectedPlayerEntity !== undefined && trans) {
-    const playerTrans = world.getComponent(sensor.detectedPlayerEntity, "Transform");
+  const s = sensor ?? world.getComponent(entity, "PlayerSensor");
+  const t = trans ?? world.getComponent(entity, "Transform");
+  if (s && s.detectedPlayerEntity !== undefined && t) {
+    const playerTrans = world.getComponent(s.detectedPlayerEntity, "Transform");
     if (playerTrans) {
-      return playerTrans.x > trans.x ? 1 : -1;
+      return playerTrans.x > t.x ? 1 : -1;
     }
   }
   return 1;

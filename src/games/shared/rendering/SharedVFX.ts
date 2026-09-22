@@ -293,8 +293,8 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Cor
   }
 };
 
-export const SkiaRetroCRTScanlinesEffect: EffectDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaRetroCRTScanlinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
 
@@ -431,8 +431,8 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
   }
 };
 
-export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { centerX, centerY, maxRadius, lines } = resolveWarpLinesContext(world);
 
@@ -492,8 +492,8 @@ export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, Cor
   }
 };
 
-export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     const dCtx = getDrawerContext(world, entity, 35, true);
     if (!dCtx) return;
 
@@ -589,8 +589,8 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, CoreCo
   }
 };
 
-export const SkiaDebrisShockwaveEffect: ShapeDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaDebrisShockwaveEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     if (!Skia) return;
     const render = getRenderComponent(world, entity);
     if (!render) return;
@@ -662,8 +662,8 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Cor
   }
 };
 
-export const SkiaMatrixDigitalRainEffect: EffectDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { height, state } = getScreenAndVFXState(world);
 
@@ -731,8 +731,8 @@ export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaCRTGlitchShudderEffect: EffectDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaCRTGlitchShudderEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { width, height } = getScreenAndVFXState(world);
 
@@ -791,8 +791,8 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Cor
   }
 };
 
-export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     const dCtx = getDrawerContext(world, entity, 10, true);
     if (!dCtx) return;
 
@@ -870,8 +870,8 @@ export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComp
   }
 };
 
-export const SkiaLaserRailBeamEffect: ShapeDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaLaserRailBeamEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     const dCtx = getDrawerContext(world, entity, 300, true);
     if (!dCtx) return;
 
@@ -927,8 +927,8 @@ export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaScreenBorderGlowEffect: EffectDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaScreenBorderGlowEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
     const timePhase = state.timePhase;
@@ -1000,8 +1000,8 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaSingularityVortexEffect: ShapeDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaSingularityVortexEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     if (!Skia) return;
     const vCtx = resolveVortexContext(world, entity);
     if (!vCtx) return;
@@ -1067,8 +1067,8 @@ export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, CoreC
   }
 };
 
-export const SkiaCometMotionTrailEffect: ShapeDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaCometMotionTrailEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     const dCtx = getDrawerContext(world, entity, 15, true);
     if (!dCtx) return;
 
@@ -1119,8 +1119,8 @@ export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaRGBHologramGlitchEffect: ShapeDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaRGBHologramGlitchEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     const dCtx = getDrawerContext(world, entity, 20, true);
     if (!dCtx) return;
 
@@ -1179,8 +1179,8 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaFloatingTextScoreEffect: ShapeDrawer<unknown, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaFloatingTextScoreEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     if (!Skia) return;
     const render = getRenderComponent(world, entity);
     if (!render) return;

@@ -95,7 +95,7 @@ export function renderCanvasGlow(
  * Executes a glow rendering pass in Skia using cached paints to avoid per-frame allocations.
  */
 export function renderSkiaGlow(
-  _canvas: Record<string, unknown>,
+  _canvas: unknown,
   glow: GlowStyle,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   drawShapeSkia: (paint: any, isHighlight?: boolean) => void

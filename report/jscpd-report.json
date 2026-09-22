@@ -2093,18 +2093,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 214,
+        "end": 271,
         "endLoc": {
           "column": 75,
-          "line": 214,
-          "position": 9051
+          "line": 271,
+          "position": 9422
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 209,
+        "start": 266,
         "startLoc": {
           "column": 4,
-          "line": 209,
-          "position": 8681
+          "line": 266,
+          "position": 9052
         }
       },
       "tokens": 91
@@ -2629,77 +2629,40 @@
     },
     {
       "firstFile": {
-        "end": 157,
+        "end": 232,
         "endLoc": {
-          "column": 11,
-          "line": 157,
-          "position": 6330
+          "column": 40,
+          "line": 232,
+          "position": 7876
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 150,
+        "start": 226,
         "startLoc": {
-          "column": 93,
-          "line": 150,
-          "position": 6120
+          "column": 112,
+          "line": 226,
+          "position": 7595
         }
       },
       "format": "typescript",
-      "fragment": "        commands.addComponent(entity, { type: \"Health\", current: state.alive ? 1 : 0, max: 1 });\n      },\n      sync: (world, entity, state) => {\n        world.mutateComponent(entity, \"Transform\", (t) => {\n          t.x = state.x;\n          t.y = state.y;\n          t.rotation = state.angle;\n        });",
+      "fragment": "      getStateMap: (root) => root.enemies as Record<string, { x: number; y: number; angle: number; type: string }>,\n      spawn: (world, entity, state) => {\n        const commands = world.getCommandBuffer();\n        commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));\n        commands.addComponent(\n          entity,\n          createRenderComponent({ shape: state.type || \"gw_seeker\", size: 12, color: colors.pink, rotation: state.angle, order: 1 })",
       "isNew": false,
-      "lines": 8,
+      "lines": 7,
       "secondFile": {
-        "end": 178,
+        "end": 247,
         "endLoc": {
-          "column": 11,
-          "line": 178,
-          "position": 7435
+          "column": 40,
+          "line": 247,
+          "position": 8515
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 171,
+        "start": 241,
         "startLoc": {
-          "column": 218,
-          "line": 171,
-          "position": 7225
+          "column": 98,
+          "line": 241,
+          "position": 8234
         }
       },
       "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 180,
-        "endLoc": {
-          "column": 5,
-          "line": 180,
-          "position": 7449
-        },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 171,
-        "startLoc": {
-          "column": 178,
-          "line": 171,
-          "position": 7185
-        }
-      },
-      "format": "typescript",
-      "fragment": "        commands.addComponent(entity, { type: \"Render\", shape: state.type || \"gw_seeker\", size: 12, color: colors.pink, rotation: state.angle, visible: true, opacity: 1, order: 1, hitFlashFrames: 0, angularVelocity: 0 });\n      },\n      sync: (world, entity, state) => {\n        world.mutateComponent(entity, \"Transform\", (t) => {\n          t.x = state.x;\n          t.y = state.y;\n          t.rotation = state.angle;\n        });\n      }\n    },",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 196,
-        "endLoc": {
-          "column": 5,
-          "line": 196,
-          "position": 8349
-        },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 187,
-        "startLoc": {
-          "column": 163,
-          "line": 187,
-          "position": 8085
-        }
-      },
-      "tokens": 66
     },
     {
       "firstFile": {
@@ -3369,77 +3332,77 @@
     },
     {
       "firstFile": {
-        "end": 68,
+        "end": 43,
         "endLoc": {
           "column": 8,
-          "line": 68,
-          "position": 1936
+          "line": 43,
+          "position": 1387
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 20,
+        "start": 17,
         "startLoc": {
           "column": 31,
-          "line": 20,
-          "position": 574
+          "line": 17,
+          "position": 616
         }
       },
       "format": "typescript",
-      "fragment": "export class CanvasMotionTrail {\n  private readonly trails = new Map<number, TrailPoint[]>();\n  protected readonly maxPoints: number;\n\n  constructor(maxPoints: number = 30) {\n    this.maxPoints = maxPoints;\n  }\n\n  /**\n   * Retrieves or initializes the trail points buffer for a specific entity ID.\n   */\n  public getTrail(entityId: number): TrailPoint[] {\n    let trail = this.trails.get(entityId);\n    if (!trail) {\n      trail = [];\n      for (let i = 0; i < this.maxPoints; i++) {\n        trail.push({ x: 0, y: 0, active: false });\n      }\n      this.trails.set(entityId, trail);\n    }\n    return trail;\n  }\n\n  /**\n   * Updates the trail coordinates when the entity moves beyond a small threshold.\n   */\n  public update(entityId: number, x: number, y: number, minDistanceSq: number = 4): void {\n    const trail = this.getTrail(entityId);\n    const lastPoint = trail[0];\n    const dx = x - lastPoint.x;\n    const dy = y - lastPoint.y;\n    const distSq = dx * dx + dy * dy;\n\n    if (!lastPoint.active || distSq > minDistanceSq) {\n      for (let i = this.maxPoints - 1; i > 0; i--) {\n        trail[i].x = trail[i - 1].x;\n        trail[i].y = trail[i - 1].y;\n        trail[i].active = trail[i - 1].active;\n      }\n      trail[0].x = x;\n      trail[0].y = y;\n      trail[0].active = true;\n    }\n  }\n\n  /**\n   * Draws a fading motion trail with dynamic length, scaling, and colors.\n   */\n  public draw(",
+      "fragment": "export class CanvasMotionTrail {\n  private readonly trailBuffer: MotionTrailBuffer;\n  protected readonly maxPoints: number;\n\n  constructor(maxPoints: number = 30) {\n    this.maxPoints = maxPoints;\n    this.trailBuffer = new MotionTrailBuffer(maxPoints);\n  }\n\n  /**\n   * Retrieves or initializes the trail points buffer for a specific entity ID.\n   */\n  public getTrail(entityId: number): TrailPoint[] {\n    return this.trailBuffer.getTrail(entityId);\n  }\n\n  /**\n   * Updates the trail coordinates when the entity moves beyond a small threshold.\n   */\n  public update(entityId: number, x: number, y: number, minDistanceSq: number = 4): void {\n    this.trailBuffer.update(entityId, x, y, minDistanceSq);\n  }\n\n  /**\n   * Draws a fading motion trail with dynamic length, scaling, and colors.\n   */\n  public draw(",
       "isNew": false,
-      "lines": 49,
+      "lines": 27,
       "secondFile": {
-        "end": 106,
+        "end": 82,
         "endLoc": {
           "column": 8,
-          "line": 106,
-          "position": 3131
+          "line": 82,
+          "position": 2650
         },
         "name": "shared/rendering/SkiaNeonUtils.ts",
-        "start": 67,
+        "start": 65,
         "startLoc": {
           "column": 29,
-          "line": 67,
-          "position": 2043
+          "line": 65,
+          "position": 2153
         }
       },
-      "tokens": 308
+      "tokens": 103
     },
     {
       "firstFile": {
-        "end": 87,
+        "end": 60,
         "endLoc": {
-          "column": 51,
-          "line": 87,
-          "position": 2474
+          "column": 82,
+          "line": 60,
+          "position": 1881
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 78,
+        "start": 53,
         "startLoc": {
           "column": 4,
-          "line": 78,
-          "position": 2145
+          "line": 53,
+          "position": 1596
         }
       },
       "format": "typescript",
-      "fragment": "    const trail = this.getTrail(entityId);\n    const drawLength = Math.min(length, this.maxPoints);\n\n    for (let i = drawLength - 1; i >= 0; i--) {\n      const p = trail[i];\n      if (!p.active) continue;\n\n      const ratio = 1 - (i / drawLength);\n      const alpha = ratio * 0.4;\n      const trailSize = size * (0.3 + 0.7 * ratio);",
+      "fragment": "    const trail = this.getTrail(entityId);\n    const drawLength = Math.min(length, this.maxPoints);\n\n    for (let i = drawLength - 1; i >= 0; i--) {\n      const p = trail[i];\n      if (!p.active) continue;\n\n      const { alpha, trailSize } = computeMotionTrailSegment(i, drawLength, size);",
       "isNew": false,
-      "lines": 10,
+      "lines": 8,
       "secondFile": {
-        "end": 127,
+        "end": 101,
         "endLoc": {
-          "column": 51,
-          "line": 127,
-          "position": 3700
+          "column": 82,
+          "line": 101,
+          "position": 3175
         },
         "name": "shared/rendering/SkiaNeonUtils.ts",
-        "start": 118,
+        "start": 94,
         "startLoc": {
           "column": 4,
-          "line": 118,
-          "position": 3371
+          "line": 94,
+          "position": 2890
         }
       },
-      "tokens": 89
+      "tokens": 74
     },
     {
       "firstFile": {
@@ -3447,14 +3410,14 @@
         "endLoc": {
           "column": 106,
           "line": 10,
-          "position": 1170
+          "position": 1180
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 3,
         "startLoc": {
           "column": 36,
           "line": 3,
-          "position": 337
+          "position": 347
         }
       },
       "format": "typescript",
@@ -3484,14 +3447,14 @@
         "endLoc": {
           "column": 6,
           "line": 38,
-          "position": 2170
+          "position": 2180
         },
         "name": "shared/rendering/SharedVFX.ts",
         "start": 28,
         "startLoc": {
           "column": 28,
           "line": 28,
-          "position": 1504
+          "position": 1514
         }
       },
       "format": "typescript",
@@ -3517,18 +3480,18 @@
     },
     {
       "firstFile": {
-        "end": 184,
+        "end": 198,
         "endLoc": {
           "column": 8,
-          "line": 184,
-          "position": 7796
+          "line": 198,
+          "position": 8309
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 179,
+        "start": 193,
         "startLoc": {
           "column": 0,
-          "line": 179,
-          "position": 7565
+          "line": 193,
+          "position": 8078
         }
       },
       "format": "typescript",
@@ -3554,18 +3517,18 @@
     },
     {
       "firstFile": {
-        "end": 407,
+        "end": 422,
         "endLoc": {
           "column": 117,
-          "line": 407,
-          "position": 16524
+          "line": 422,
+          "position": 17100
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 402,
+        "start": 417,
         "startLoc": {
           "column": 23,
-          "line": 402,
-          "position": 16267
+          "line": 417,
+          "position": 16843
         }
       },
       "format": "typescript",
@@ -3573,184 +3536,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 433,
+        "end": 449,
         "endLoc": {
           "column": 117,
-          "line": 433,
-          "position": 17297
+          "line": 449,
+          "position": 17936
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 428,
+        "start": 444,
         "startLoc": {
           "column": 29,
-          "line": 428,
-          "position": 17040
+          "line": 444,
+          "position": 17679
         }
       },
       "tokens": 65
     },
     {
       "firstFile": {
-        "end": 454,
-        "endLoc": {
-          "column": 23,
-          "line": 454,
-          "position": 18027
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 448,
-        "startLoc": {
-          "column": 4,
-          "line": 448,
-          "position": 17775
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 35;\n    const radius = size * 1.3;\n    const timePhase = getVFXState(world).timePhase;\n    const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 491,
-        "endLoc": {
-          "column": 23,
-          "line": 491,
-          "position": 19250
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 485,
-        "startLoc": {
-          "column": 4,
-          "line": 485,
-          "position": 18998
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 488,
-        "endLoc": {
-          "column": 31,
-          "line": 488,
-          "position": 19139
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 482,
-        "startLoc": {
-          "column": 41,
-          "line": 482,
-          "position": 18893
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 35;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 790,
-        "endLoc": {
-          "column": 31,
-          "line": 790,
-          "position": 28699
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 784,
-        "startLoc": {
-          "column": 41,
-          "line": 784,
-          "position": 28453
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 488,
-        "endLoc": {
-          "column": 31,
-          "line": 488,
-          "position": 19139
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 482,
-        "startLoc": {
-          "column": 41,
-          "line": 482,
-          "position": 18893
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 35;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 1072,
-        "endLoc": {
-          "column": 31,
-          "line": 1072,
-          "position": 37859
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1066,
-        "startLoc": {
-          "column": 39,
-          "line": 1066,
-          "position": 37613
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 488,
-        "endLoc": {
-          "column": 31,
-          "line": 488,
-          "position": 19139
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 482,
-        "startLoc": {
-          "column": 41,
-          "line": 482,
-          "position": 18893
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 35;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 1127,
-        "endLoc": {
-          "column": 31,
-          "line": 1127,
-          "position": 39706
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1121,
-        "startLoc": {
-          "column": 40,
-          "line": 1121,
-          "position": 39460
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 505,
+        "end": 519,
         "endLoc": {
           "column": 15,
-          "line": 505,
-          "position": 19826
+          "line": 519,
+          "position": 20339
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 498,
+        "start": 512,
         "startLoc": {
           "column": 50,
-          "line": 498,
-          "position": 19602
+          "line": 512,
+          "position": 20115
         }
       },
       "format": "typescript",
@@ -3758,36 +3573,73 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 887,
+        "end": 900,
         "endLoc": {
           "column": 15,
-          "line": 887,
-          "position": 31981
+          "line": 900,
+          "position": 32443
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 880,
+        "start": 893,
         "startLoc": {
           "column": 38,
-          "line": 880,
-          "position": 31757
+          "line": 893,
+          "position": 32219
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 552,
+        "end": 566,
         "endLoc": {
-          "column": 95,
-          "line": 552,
-          "position": 21427
+          "column": 9,
+          "line": 566,
+          "position": 21854
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 546,
+        "start": 558,
+        "startLoc": {
+          "column": 34,
+          "line": 558,
+          "position": 21567
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = getRenderComponent(world, entity);\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;\n\n    const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 1170,
+        "endLoc": {
+          "column": 9,
+          "line": 1170,
+          "position": 41004
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 1162,
+        "startLoc": {
+          "column": 36,
+          "line": 1162,
+          "position": 40717
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 566,
+        "endLoc": {
+          "column": 95,
+          "line": 566,
+          "position": 21940
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 560,
         "startLoc": {
           "column": 4,
-          "line": 546,
-          "position": 21154
+          "line": 560,
+          "position": 21667
         }
       },
       "format": "typescript",
@@ -3795,110 +3647,73 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 590,
+        "end": 605,
         "endLoc": {
           "column": 95,
-          "line": 590,
-          "position": 22603
+          "line": 605,
+          "position": 23179
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 584,
+        "start": 599,
         "startLoc": {
           "column": 4,
-          "line": 584,
-          "position": 22330
+          "line": 599,
+          "position": 22906
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 756,
+        "end": 603,
         "endLoc": {
-          "column": 64,
-          "line": 756,
-          "position": 27806
+          "column": 30,
+          "line": 603,
+          "position": 23082
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 749,
+        "start": 596,
         "startLoc": {
-          "column": 4,
-          "line": 749,
-          "position": 27427
+          "column": 38,
+          "line": 596,
+          "position": 22801
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 10;\n    const timePhase = getVFXState(world).timePhase;\n    const { plumeLength } = computeThrusterPlume(timePhase, size);\n    const flameColors = getThrusterFlameColors();\n    const glowStyle = getGlowStyle(flameColors.inner, \"normal\");",
+      "fragment": "export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, CoreComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const render = getRenderComponent(world, entity);\n    if (!render) return;\n\n    const { progress, alpha } = computeEffectProgress(world, entity);\n    if (alpha <= 0.01) return;",
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 794,
+        "end": 1202,
         "endLoc": {
-          "column": 64,
-          "line": 794,
-          "position": 28937
+          "column": 30,
+          "line": 1202,
+          "position": 41950
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 787,
+        "start": 1195,
         "startLoc": {
-          "column": 4,
-          "line": 787,
-          "position": 28558
+          "column": 40,
+          "line": 1195,
+          "position": 41669
         }
       },
-      "tokens": 73
+      "tokens": 64
     },
     {
       "firstFile": {
-        "end": 836,
-        "endLoc": {
-          "column": 77,
-          "line": 836,
-          "position": 30416
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 831,
-        "startLoc": {
-          "column": 4,
-          "line": 831,
-          "position": 30138
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const length = render.size || 300;\n    const timePhase = getVFXState(world).timePhase;\n    const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, \"strong\");",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 874,
-        "endLoc": {
-          "column": 77,
-          "line": 874,
-          "position": 31509
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 869,
-        "startLoc": {
-          "column": 4,
-          "line": 869,
-          "position": 31231
-        }
-      },
-      "tokens": 54
-    },
-    {
-      "firstFile": {
-        "end": 990,
+        "end": 1004,
         "endLoc": {
           "column": 45,
-          "line": 990,
-          "position": 35114
+          "line": 1004,
+          "position": 35605
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 984,
+        "start": 998,
         "startLoc": {
           "column": 53,
-          "line": 984,
-          "position": 34854
+          "line": 998,
+          "position": 35345
         }
       },
       "format": "typescript",
@@ -3906,95 +3721,58 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 1028,
+        "end": 1043,
         "endLoc": {
           "column": 45,
-          "line": 1028,
-          "position": 36315
+          "line": 1043,
+          "position": 36869
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1021,
+        "start": 1036,
         "startLoc": {
           "column": 66,
-          "line": 1021,
-          "position": 36054
+          "line": 1036,
+          "position": 36608
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 1048,
+        "end": 1062,
         "endLoc": {
           "column": 68,
-          "line": 1048,
-          "position": 37179
+          "line": 1062,
+          "position": 37647
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1041,
+        "start": 1056,
         "startLoc": {
-          "column": 4,
-          "line": 1041,
-          "position": 36756
+          "column": 51,
+          "line": 1056,
+          "position": 37357
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 15;\n    const timePhase = getVFXState(world).timePhase;\n    const trailParams = computeTrailParameters(1.0, 1.0, size);\n    const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);\n    const glowStyle = getGlowStyle(trailParams.glowColor, \"normal\");",
+      "fragment": "    const dCtx = getDrawerContext(world, entity, 15);\n    if (!dCtx) return;\n\n    const { size, timePhase } = dCtx;\n    const trailParams = computeTrailParameters(1.0, 1.0, size);\n    const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);\n    const glowStyle = getGlowStyle(trailParams.glowColor, \"normal\");",
       "isNew": false,
-      "lines": 8,
+      "lines": 7,
       "secondFile": {
-        "end": 1076,
+        "end": 1089,
         "endLoc": {
           "column": 68,
-          "line": 1076,
-          "position": 38141
+          "line": 1089,
+          "position": 38569
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 1069,
+        "start": 1083,
         "startLoc": {
-          "column": 4,
-          "line": 1069,
-          "position": 37718
+          "column": 57,
+          "line": 1083,
+          "position": 38279
         }
       },
-      "tokens": 80
-    },
-    {
-      "firstFile": {
-        "end": 1103,
-        "endLoc": {
-          "column": 58,
-          "line": 1103,
-          "position": 39093
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1098,
-        "startLoc": {
-          "column": 4,
-          "line": 1098,
-          "position": 38837
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\") as RenderComponent | undefined;\n    if (!render) return;\n\n    const size = render.size || 20;\n    const timePhase = getVFXState(world).timePhase;\n    const layers = computeHologramLayers(timePhase, size);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 1129,
-        "endLoc": {
-          "column": 58,
-          "line": 1129,
-          "position": 39821
-        },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 1124,
-        "startLoc": {
-          "column": 4,
-          "line": 1124,
-          "position": 39565
-        }
-      },
-      "tokens": 52
+      "tokens": 56
     },
     {
       "firstFile": {
@@ -4180,43 +3958,6 @@
         }
       },
       "tokens": 61
-    },
-    {
-      "firstFile": {
-        "end": 478,
-        "endLoc": {
-          "column": 89,
-          "line": 478,
-          "position": 21166
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 466,
-        "startLoc": {
-          "column": 19,
-          "line": 466,
-          "position": 20672
-        }
-      },
-      "format": "typescript",
-      "fragment": "          if (frame) {\n            if (!world.hasComponent(playerEntity, \"Input\")) {\n              world.addComponent(playerEntity, {\n                type: \"Input\",\n                moveLeft: false,\n                moveRight: false,\n                shoot: false,\n                shootCooldownRemaining: 0,\n                actions: new Set<string>(),\n                axes: {}\n              } as InputComponent);\n            }\n            world.mutateComponent(playerEntity, \"Input\", (inputComp: InputComponent) => {",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 713,
-        "endLoc": {
-          "column": 83,
-          "line": 713,
-          "position": 30056
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 701,
-        "startLoc": {
-          "column": 34,
-          "line": 701,
-          "position": 29634
-        }
-      },
-      "tokens": 77
     },
     {
       "firstFile": {
@@ -4590,58 +4331,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-22T00:25:49.981Z",
+    "detectionDate": "2026-09-22T01:39:03.290Z",
     "formats": {
       "typescript": {
-        "clones": 127,
-        "duplicatedLines": 1044,
-        "duplicatedTokens": 9159,
-        "lines": 67137,
+        "clones": 117,
+        "duplicatedLines": 947,
+        "duplicatedTokens": 8307,
+        "lines": 67283,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 1.5550292685106573,
-        "percentageTokens": 2.6060383607480944,
-        "sources": 405,
-        "tokens": 351453
+        "percentage": 1.4074877755153603,
+        "percentageTokens": 2.3646388709397352,
+        "sources": 406,
+        "tokens": 351301
       }
     },
     "total": {
-      "clones": 127,
-      "duplicatedLines": 1044,
-      "duplicatedTokens": 9159,
-      "lines": 67137,
+      "clones": 117,
+      "duplicatedLines": 947,
+      "duplicatedTokens": 8307,
+      "lines": 67283,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 1.5550292685106573,
-      "percentageTokens": 2.6060383607480944,
-      "sources": 405,
-      "tokens": 351453
-    "detectionDate": "2026-09-22T00:12:03.308Z",
-    "formats": {
-      "typescript": {
-        "clones": 128,
-        "duplicatedLines": 1102,
-        "duplicatedTokens": 9504,
-        "lines": 67241,
-        "newClones": 0,
-        "newDuplicatedLines": 0,
-        "percentage": 1.6388810398417633,
-        "percentageTokens": 2.700943795701339,
-        "sources": 404,
-        "tokens": 351877
-      }
-    },
-    "total": {
-      "clones": 128,
-      "duplicatedLines": 1102,
-      "duplicatedTokens": 9504,
-      "lines": 67241,
-      "newClones": 0,
-      "newDuplicatedLines": 0,
-      "percentage": 1.6388810398417633,
-      "percentageTokens": 2.700943795701339,
-      "sources": 404,
-      "tokens": 351877
+      "percentage": 1.4074877755153603,
+      "percentageTokens": 2.3646388709397352,
+      "sources": 406,
+      "tokens": 351301
     }
   }
 }

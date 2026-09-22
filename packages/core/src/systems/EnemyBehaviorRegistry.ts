@@ -132,10 +132,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
         onEnter(world, entity, data) {
           const jumpVel = (data.jumpVelocity as number) ?? 250;
           const speed = (data.patrolSpeed as number) ?? 80;
-          const sensor = world.getComponent(entity, "PlayerSensor");
-          const trans = world.getComponent(entity, "Transform");
-
-          const dir = getHorizontalDirectionToPlayer(world, entity, sensor, trans);
+          const dir = getHorizontalDirectionToPlayer(world, entity);
 
           if (world.hasComponent(entity, "Velocity")) {
             world.mutateComponent(entity, "Velocity", (v) => {
@@ -176,10 +173,7 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
       Attack: {
         onEnter(world, entity, data) {
           const chargeSpeed = (data.chargeSpeed as number) ?? 300;
-          const sensor = world.getComponent(entity, "PlayerSensor");
-          const trans = world.getComponent(entity, "Transform");
-
-          const dir = getHorizontalDirectionToPlayer(world, entity, sensor, trans);
+          const dir = getHorizontalDirectionToPlayer(world, entity);
 
           if (world.hasComponent(entity, "Velocity")) {
             world.mutateComponent(entity, "Velocity", (v) => {

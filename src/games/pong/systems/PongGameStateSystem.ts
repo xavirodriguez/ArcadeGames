@@ -1,5 +1,5 @@
-import { World, BaseGameStateSystem, TransformComponent, VelocityComponent, EventBus, createEmitter } from "@tiny-aster/core";
-import { type PongState, type PongComponentRegistry } from "../types";
+import { World, BaseGameStateSystem, TransformComponent, VelocityComponent, ScreenShakeComponent, TTLComponent, ComboComponent, createEmitter } from "@tiny-aster/core";
+import { type PongState, type PongComponentRegistry, type BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 
 export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComponentRegistry> {
@@ -25,7 +25,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
       return;
     }
 
-    world.mutateSingleton("PongState" as any, (gs: any) => {
+    world.mutateSingleton("PongState", (gs: PongState) => {
       // Decrement shield_pulse remaining timer if active
       if (gs.shieldPulseRemaining !== undefined && gs.shieldPulseRemaining > 0) {
         gs.shieldPulseRemaining = Math.max(0, gs.shieldPulseRemaining - deltaTime);
@@ -36,7 +36,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
         gs.scoreFreezeRemaining = Math.max(0, gs.scoreFreezeRemaining - deltaTime);
 
         // Lock ball movement during freeze
-        const balls = world.query("Ball" as any);
+        const balls = world.query("Ball");
         balls.forEach(ball => {
           world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
             v.vx = 0;
@@ -56,7 +56,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
               v.vx = scorer === "p1" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START;
               v.vy = this.config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1);
             });
-            world.mutateComponent(ball, "Ball" as any, (b: any) => {
+            world.mutateComponent(ball, "Ball", (b: BallComponent) => {
               b.spinFactor = 0;
             });
           });
@@ -65,7 +65,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
         return;
       }
 
-      const balls = world.query("Ball" as any);
+      const balls = world.query("Ball");
       balls.forEach(ball => {
         const transform = world.getComponent(ball, "Transform") as TransformComponent;
 
@@ -88,15 +88,15 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
               // Trigger visual feedback (Screen shake, particles, and sfx)
               const eventBus = world.getEventBus();
               eventBus.emitDeferred("PlaySFX", { name: "hit" });
-              const shake = world.getSingleton("ScreenShake" as any) as any;
+              const shake = world.getSingleton("ScreenShake");
               if (shake) {
-                world.mutateSingleton("ScreenShake" as any, (s: any) => {
+                world.mutateSingleton("ScreenShake", (s: ScreenShakeComponent) => {
                   s.remaining = 0.3;
                   s.intensity = 8;
                 });
               }
 
-              const emitter = createEmitter(world as any, {
+              const emitter = createEmitter(world, {
                 type: "shield_bounce",
                 x: 0,
                 y: transform.y,
@@ -108,7 +108,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
                 color: "#00FFFF",
                 size: [2, 4]
               });
-              world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 0.55 } as any);
+              world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 0.55 } as TTLComponent);
             } else {
               gs.scoreP2 += 1;
               scorer = "p2";
@@ -124,10 +124,10 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
 
           if (scored && scorer) {
             // Reset combo on score
-            const comboEntities = world.query("Combo" as any);
+            const comboEntities = world.query("Combo");
             const comboEntity = comboEntities[0];
             if (comboEntity !== undefined) {
-              world.mutateComponent(comboEntity, "Combo" as any, (c: any) => {
+              world.mutateComponent(comboEntity, "Combo", (c: ComboComponent) => {
                 c.combo = 0;
                 c.multiplier = 1;
                 c.timerRemaining = 0;
@@ -137,7 +137,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
             // Trigger particle celebration explosion at the scoring border (30+ particles)
             const emitterX = scorer === "p1" ? this.config.worldWidth : 0;
             const celebrationColor = scorer === "p1" ? "#FF00FF" : "#00FFFF";
-            const emitter = createEmitter(world as any, {
+            const emitter = createEmitter(world, {
               type: "goal_celebration",
               x: emitterX,
               y: transform.y,
@@ -150,7 +150,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
               size: [3, 6],
               angle: scorer === "p1" ? [135, 225] : [-45, 45] // Explode inwards
             });
-            world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 1.2 } as any);
+            world.getCommandBuffer().addComponent(emitter, { type: "TTL", remaining: 1.2 } as TTLComponent);
 
             // Play score audio
             const eventBus = world.getEventBus();
@@ -187,7 +187,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
   }
 
   protected getGameState(world: World<PongComponentRegistry>): PongState | undefined {
-    return world.getSingleton("PongState" as any) as PongState | undefined;
+    return world.getSingleton("PongState");
   }
 
   public isGameOver(): boolean {

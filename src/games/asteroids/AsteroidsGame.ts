@@ -47,6 +47,9 @@ import {
   WebAudioPlayer,
   WebAssetProvider,
   NullBaseGame,
+  RenderContext,
+  Mutator,
+  CompactInputFrame,
   preloadSharedAudioManifest
 } from "@tiny-aster/core";
 
@@ -114,7 +117,7 @@ export class AsteroidsGame
       config.theme = createThemeFromGameAccents("asteroids");
     }
     super(config);
-    this.mode = (config.gameOptions as any)?.mode || "deathmatch";
+    this.mode = (config.gameOptions as { mode?: "deathmatch" | "story" })?.mode || "deathmatch";
     this.network = new NetworkController<AsteroidsComponentRegistry>(this.world);
     this.isMultiplayer = config.isMultiplayer || false;
     this.baseConfig = ConfigService.load<AsteroidConfig>(this.gameId, AsteroidConfigSchema, asteroidsConfigRaw);
@@ -229,8 +232,7 @@ export class AsteroidsGame
       this.world.addSystem(new DialogueSystem(), { phase: SystemPhase.Simulation });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activeMutators = (this._config.gameOptions?.mutators as any[]) || [];
+    const activeMutators = (this._config.gameOptions?.mutators as Mutator<AsteroidsComponentRegistry>[]) || [];
     this.world.addSystem(new MutatorSystem(activeMutators), { phase: SystemPhase.Simulation });
 
     if (!this.isHeadless) {
@@ -239,7 +241,7 @@ export class AsteroidsGame
       this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new TrailSystem(), { phase: SystemPhase.Presentation });
-      this.world.addSystem(new ParticleSystem(this.particlePool as any), { phase: SystemPhase.Presentation });
+      this.world.addSystem(new ParticleSystem(this.particlePool), { phase: SystemPhase.Presentation });
       this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
     }
 
@@ -255,7 +257,7 @@ export class AsteroidsGame
               const tPlane = { rotation: transform.rotation };
               const vPlane = { vx: velocity.vx, vy: velocity.vy };
 
-              const phys = computeShipPhysics(tPlane, vPlane, input as any, this.config, dt);
+              const phys = computeShipPhysics(tPlane, vPlane, input as unknown as Parameters<typeof computeShipPhysics>[2], this.config, dt);
 
               world.mutateComponent(entity, "Velocity", (v) => {
                   v.vx = phys.vx;
@@ -387,7 +389,7 @@ export class AsteroidsGame
   /**
    * Registers game-specific rendering logic to the provided renderer.
    */
-  public initializeRenderer(renderer: Renderer<AsteroidsComponentRegistry, any>): void {
+  public initializeRenderer(renderer: Renderer<AsteroidsComponentRegistry, RenderContext>): void {
     if (this.isHeadless) return;
     initializeAsteroidsRenderer(renderer);
     SharedVFX.registerSharedVFX(renderer);
@@ -478,7 +480,7 @@ export class AsteroidsGame
    * Mapped fields: rotateLeft, rotateRight, thrust, shoot, hyperspace, rotationAmount.
    * Ensures that the LocalPlayer entity has the "Input" component, adding it if missing.
    */
-  public setInputState(input: any): void {
+  public setInputState(input: Record<string, unknown> | object): void {
     // Paso 1: Unificar el puente de Inputs
     const localPlayer = this.world.query("LocalPlayer")[0];
     if (localPlayer !== undefined) {
@@ -496,11 +498,13 @@ export class AsteroidsGame
         }
         if (!inputComp.axes) inputComp.axes = {};
 
-        if (input && typeof input === "object" && input.axes) {
-          const moveX = input.axes.moveX ?? 0;
-          const moveY = input.axes.moveY ?? 0;
-          const actions = input.actions;
-          const hasAction = (name: string) => actions instanceof Set ? actions.has(name) : !!actions?.includes?.(name);
+        const inputObj = input as Record<string, unknown>;
+        if (inputObj && typeof inputObj === "object" && inputObj.axes) {
+          const axes = inputObj.axes as Record<string, number>;
+          const moveX = axes.moveX ?? 0;
+          const moveY = axes.moveY ?? 0;
+          const actions = inputObj.actions as Set<string> | string[] | undefined;
+          const hasAction = (name: string) => actions instanceof Set ? actions.has(name) : !!(actions as string[])?.includes?.(name);
 
           inputComp.actions["rotateLeft"] = moveX < 0;
           inputComp.actions["rotateRight"] = moveX > 0;
@@ -509,24 +513,24 @@ export class AsteroidsGame
           inputComp.actions["hyperspace"] = hasAction("hyperspace");
         } else {
           // Only write fields that are defined in the payload (!== undefined)
-          if (input.rotateLeft !== undefined) {
-            inputComp.actions["rotateLeft"] = input.rotateLeft;
+          if (typeof inputObj.rotateLeft === "boolean") {
+            inputComp.actions["rotateLeft"] = inputObj.rotateLeft;
           }
-          if (input.rotateRight !== undefined) {
-            inputComp.actions["rotateRight"] = input.rotateRight;
+          if (typeof inputObj.rotateRight === "boolean") {
+            inputComp.actions["rotateRight"] = inputObj.rotateRight;
           }
-          if (input.thrust !== undefined) {
-            inputComp.actions["thrust"] = input.thrust;
+          if (typeof inputObj.thrust === "boolean") {
+            inputComp.actions["thrust"] = inputObj.thrust;
           }
-          if (input.shoot !== undefined) {
-            inputComp.actions["shoot"] = input.shoot;
+          if (typeof inputObj.shoot === "boolean") {
+            inputComp.actions["shoot"] = inputObj.shoot;
           }
-          if (input.hyperspace !== undefined) {
-            inputComp.actions["hyperspace"] = input.hyperspace;
+          if (typeof inputObj.hyperspace === "boolean") {
+            inputComp.actions["hyperspace"] = inputObj.hyperspace;
           }
-          if (input.rotationAmount !== undefined) {
-            inputComp.axes["rotate_x"] = input.rotationAmount;
-            inputComp.axes["horizontal"] = input.rotationAmount;
+          if (typeof inputObj.rotationAmount === "number") {
+            inputComp.axes["rotate_x"] = inputObj.rotationAmount;
+            inputComp.axes["horizontal"] = inputObj.rotationAmount;
           }
         }
       });
@@ -551,7 +555,7 @@ export class NullAsteroidsGame extends NullBaseGame<GameStateComponent, InputSta
 
 export { AsteroidsDefinition } from "./AsteroidsDefinition";
 
-registerMutatorHook("story_fragment", (world: World) => {
+registerMutatorHook("story_fragment", (world: World<AsteroidsComponentRegistry>) => {
   const eventBus = world.getEventBus();
   if (eventBus) {
     eventBus.emit("story:beat_reached", { beatId: "asteroids_story_beat", dialogueReference: "story.chapter_1_fragment_1" });

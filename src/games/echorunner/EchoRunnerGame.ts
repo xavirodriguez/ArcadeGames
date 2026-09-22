@@ -8,7 +8,10 @@ import {
   SystemPhase,
   BlueprintDefinition,
   CoreComponentRegistry,
+  EventRegistry,
+  RenderContext,
   WebAudioPlayer,
+  IAudioPlayer,
   EventBus,
   PhysicsIntegrateSystem,
   PlatformerMovementSystem,
@@ -62,6 +65,14 @@ export interface EchoRunnerConfig {
   levelData?: { templates: SegmentTemplate[]; grammar: string[] };
 }
 
+export interface EchoRunnerBlueprintMap extends Record<string, BlueprintDefinition<CoreComponentRegistry, EventRegistry, unknown>> {
+  pulse_hitbox: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { dir: number; x: number; y: number; parent: number }>;
+  player: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number }>;
+  tilemap: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { data: number[][]; tileDefinitions: Record<number, unknown> }>;
+  collectible_fragment: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number; id: string }>;
+  collectible_core: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number; id: string }>;
+}
+
 /**
  * System that manages triggering the Pulse attack and processing its cooldowns.
  */
@@ -70,22 +81,24 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
     const players = world.query("PlatformerInput", "Transform");
     for (let i = 0; i < players.length; i++) {
       const player = players[i];
-      const input = world.getComponent(player, "PlatformerInput") as any;
+      const input = world.getComponent(player, "PlatformerInput") as { pulseCooldown?: number; pulsePressed?: boolean } | undefined;
       const trans = world.getComponent(player, "Transform")!;
+
+      if (!input) continue;
 
       // Manage attack cooldowns
       let cd = input.pulseCooldown ?? 0;
       if (cd > 0) {
         cd = PhysicsUtils.tickTimer(cd, deltaTime);
-        world.mutateComponent(player, "PlatformerInput" as any, (inp: any) => {
-          inp.pulseCooldown = cd;
+        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
+          (inp as { pulseCooldown?: number }).pulseCooldown = cd;
         });
       }
 
       // Read trigger and fire!
       if (input.pulsePressed && cd <= 0) {
-        world.mutateComponent(player, "PlatformerInput" as any, (inp: any) => {
-          inp.pulseCooldown = 0.45; // Cooldown of 0.45s
+        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
+          (inp as { pulseCooldown?: number }).pulseCooldown = 0.45; // Cooldown of 0.45s
         });
 
         // Determine direction of attack
@@ -98,22 +111,22 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
         }
 
         // Play sound
-        const audio = world.getResource<any>("AudioPlayer") || (world as any).audio;
+        const audio = world.getResource<IAudioPlayer>("AudioPlayer") || world.getResource<IAudioPlayer>("Audio");
         if (audio) {
           audio.playSFX("pulse");
         }
 
         // Spawn pulse attack hitbox child entity via deferred commands
-        world.commands.spawnFromBlueprint("pulse_hitbox" as any, {
+        world.commands.spawnFromBlueprint("pulse_hitbox", {
           dir,
           x: trans.x,
           y: trans.y,
           parent: player
-        } as any);
+        });
 
         // Clear pulse triggers
-        world.mutateComponent(player, "PlatformerInput" as any, (inp: any) => {
-          inp.pulsePressed = false;
+        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
+          (inp as { pulsePressed?: boolean }).pulsePressed = false;
         });
       }
     }
@@ -137,7 +150,7 @@ class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
   }
 }
 
-export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, EchoRunnerEventRegistry, any> {
+export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, EchoRunnerEventRegistry, EchoRunnerBlueprintMap> {
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;
@@ -214,7 +227,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           .withCollisionEvents();
 
         world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
-        world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as any);
+        world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] } as TagComponent);
         world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
         const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
 
@@ -249,7 +262,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     });
 
     this.blueprints.register("tilemap", {
-      spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
+      spawn: (world, entity, args: { data: number[][]; tileDefinitions: Record<number, unknown> }) => {
         const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
         setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
       }
@@ -313,9 +326,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     // Listen to Hit Detection events
     const eventBus = this.world.getEventBus();
     if (eventBus) {
-      eventBus.on("hitbox:hit", (event: any) => {
-        const victim = event.victim;
-        const attacker = event.attacker;
+      eventBus.on("hitbox:hit", (event: unknown) => {
+        const payload = event as { victim?: number; attacker?: number } | undefined;
+        const victim = payload?.victim;
+        const attacker = payload?.attacker;
 
         // If player hits an enemy
         if (attacker && this.world.hasComponent(attacker, "PlatformerInput") && victim && this.world.hasComponent(victim, "Enemy")) {
@@ -392,7 +406,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     const playerEntity = this.world.createEntity();
     const playerBp = this.blueprints.get("player");
     if (playerBp) {
-      playerBp.spawn(this.world as any, playerEntity, { x: 100, y: 350 });
+      playerBp.spawn(this.world, playerEntity, { x: 100, y: 350 });
     } else {
       throw new Error("[EchoRunnerGame] Blueprint 'player' is not registered.");
     }
@@ -423,7 +437,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   }
 
   public override update(dt: number): void {
-    const runState = this.world.getResource<any>("RunState");
+    const runState = this.world.getResource<RunState>("RunState");
     if (runState) {
       runState.elapsedTime += dt;
     }
@@ -451,7 +465,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     }
   }
 
-  public initializeRenderer(renderer: Renderer<any, any>): void {
+  public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
     if (renderer.type === "canvas") {
       const {
         drawEchoBackground,
@@ -507,7 +521,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   }
 
   public getGameState(): EchoRunnerGameState {
-    const runState = this.world.getResource<any>("RunState");
+    const runState = this.world.getResource<RunState>("RunState");
     const score = runState ? runState.collectedTemporalIds.length * 10 + runState.collectedPermanentIds.length * 100 : 0;
 
     return {

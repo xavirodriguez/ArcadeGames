@@ -1,4 +1,5 @@
-import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, RenderContext, TransformComponent } from "@tiny-aster/core";
+import type { SkCanvas, SkPaint, SkPath, SkShader } from "@shopify/react-native-skia";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import {
@@ -29,19 +30,22 @@ import {
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 // Zero-allocation shader cache for React Native Skia bridge
-const skiaShaderCache = new Map<string, any>();
-let staticStars: any[] | null = null;
+const skiaShaderCache = new Map<string, SkShader>();
+let staticStars: StarfieldStar[] | null = null;
 
-function getCachedSkiaShader(key: string, factory: () => any): any {
+function getCachedSkiaShader(key: string, factory: () => SkShader | null): SkShader | null {
   let shader = skiaShaderCache.get(key);
   if (!shader) {
     if (skiaShaderCache.size > 40) {
       skiaShaderCache.clear();
     }
-    shader = factory();
-    skiaShaderCache.set(key, shader);
+    const created = factory();
+    if (created) {
+      shader = created;
+      skiaShaderCache.set(key, shader);
+    }
   }
-  return shader;
+  return shader || null;
 }
 
 // ============================================================================
@@ -69,33 +73,39 @@ function updateVisualParticles(): void {
   FLAPPY_SKIA_PARTICLE_POOL.update(0.016, applyFlappyParticlePhysics);
 }
 
-let diamondSparkPath: any = null;
-function getDiamondSparkPath(): any {
+let diamondSparkPath: SkPath | null = null;
+function getDiamondSparkPath(): SkPath | null {
   if (!diamondSparkPath && Skia) {
-    diamondSparkPath = Skia.Path.Make();
-    diamondSparkPath.moveTo(2.5, 0);
-    diamondSparkPath.lineTo(0, -0.6);
-    diamondSparkPath.lineTo(-2.5, 0);
-    diamondSparkPath.lineTo(0, 0.6);
-    diamondSparkPath.close();
+    const p = Skia.Path.Make();
+    if (p) {
+      p.moveTo(2.5, 0);
+      p.lineTo(0, -0.6);
+      p.lineTo(-2.5, 0);
+      p.lineTo(0, 0.6);
+      p.close();
+      diamondSparkPath = p;
+    }
   }
   return diamondSparkPath;
 }
 
-let shardPolyPath: any = null;
-function getShardPolyPath(): any {
+let shardPolyPath: SkPath | null = null;
+function getShardPolyPath(): SkPath | null {
   if (!shardPolyPath && Skia) {
-    shardPolyPath = Skia.Path.Make();
-    shardPolyPath.moveTo(1.2, -0.8);
-    shardPolyPath.lineTo(0.4, 1.1);
-    shardPolyPath.lineTo(-1.1, 0.3);
-    shardPolyPath.lineTo(-0.6, -1.0);
-    shardPolyPath.close();
+    const p = Skia.Path.Make();
+    if (p) {
+      p.moveTo(1.2, -0.8);
+      p.lineTo(0.4, 1.1);
+      p.lineTo(-1.1, 0.3);
+      p.lineTo(-0.6, -1.0);
+      p.close();
+      shardPolyPath = p;
+    }
   }
   return shardPolyPath;
 }
 
-function drawSkiaVisualParticles(canvas: any, paint: any): void {
+function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
   const particles = FLAPPY_SKIA_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
@@ -153,24 +163,28 @@ function drawSkiaVisualParticles(canvas: any, paint: any): void {
 // PLAYER SHIP ("INTERCEPTOR") RENDERING WITH TITANIUM HULL & CYAN COCKPIT
 // ============================================================================
 
-let cachedArrowheadPath: any = null;
-function getArrowheadPath(size: number): any {
+let cachedArrowheadPath: SkPath | null = null;
+function getArrowheadPath(size: number): SkPath | null {
   if (!cachedArrowheadPath && Skia) {
-    cachedArrowheadPath = Skia.Path.Make();
-    cachedArrowheadPath.moveTo(size * 1.2, 0);
-    cachedArrowheadPath.lineTo(-size * 0.7, -size * 0.85);
-    cachedArrowheadPath.lineTo(-size * 0.4, -size * 0.35);
-    cachedArrowheadPath.lineTo(-size * 0.55, 0);
-    cachedArrowheadPath.lineTo(-size * 0.4, size * 0.35);
-    cachedArrowheadPath.lineTo(-size * 0.7, size * 0.85);
-    cachedArrowheadPath.close();
+    const p = Skia.Path.Make();
+    if (p) {
+      p.moveTo(size * 1.2, 0);
+      p.lineTo(-size * 0.7, -size * 0.85);
+      p.lineTo(-size * 0.4, -size * 0.35);
+      p.lineTo(-size * 0.55, 0);
+      p.lineTo(-size * 0.4, size * 0.35);
+      p.lineTo(-size * 0.7, size * 0.85);
+      p.close();
+      cachedArrowheadPath = p;
+    }
   }
   return cachedArrowheadPath;
 }
 
-export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
+export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const drawCtx = resolveFlappyBirdDrawContext(world, entity, FLAPPY_SKIA_PARTICLE_POOL);
     if (!drawCtx) return;
 
@@ -188,11 +202,11 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     const paint = getPaint();
 
-    canvas.save();
+    skCanvas.save();
 
     // Velocity Tilt & Squash-and-Stretch
-    canvas.rotate(angleDeg, 0, 0);
-    canvas.scale(scaleX, scaleY);
+    skCanvas.rotate(angleDeg, 0, 0);
+    skCanvas.scale(scaleX, scaleY);
 
     // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
     if (isAlive) {
@@ -206,7 +220,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(trailColor));
       paint.setStrokeWidth(trailWidth);
-      canvas.drawLine(-size * 0.55, 0, -size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0, paint);
+      skCanvas.drawLine(-size * 0.55, 0, -size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0, paint);
     }
 
     // --- THERMONUCLEAR REACTIVE THRUSTER FLAME ---
@@ -224,7 +238,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
       );
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setShader(flameShader);
+      if (flameShader) paint.setShader(flameShader);
       paint.setAlphaf(globalOpacity);
 
       const flamePath = Skia.Path.Make();
@@ -232,7 +246,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
       flamePath.lineTo(-size * 0.55 - flameLength, 0);
       flamePath.lineTo(-size * 0.55, flameWidth * 0.5);
       flamePath.close();
-      canvas.drawPath(flamePath, paint);
+      skCanvas.drawPath(flamePath, paint);
     }
 
     // --- TITANIUM HULL GRADIENT SHADER ---
@@ -253,19 +267,19 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(hullShader);
+    if (hullShader) paint.setShader(hullShader);
     paint.setAlphaf(globalOpacity);
 
     const arrowheadPath = getArrowheadPath(size);
     if (arrowheadPath) {
-      canvas.drawPath(arrowheadPath, paint);
+      skCanvas.drawPath(arrowheadPath, paint);
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color("#1A1D24"));
       paint.setStrokeWidth(1.2);
       paint.setAlphaf(globalOpacity);
-      canvas.drawPath(arrowheadPath, paint);
+      skCanvas.drawPath(arrowheadPath, paint);
     }
 
     // --- ELLIPTICAL CYAN COCKPIT ---
@@ -273,17 +287,17 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#00F3FF"));
     paint.setAlphaf(globalOpacity);
-    canvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.7, size * 0.36), paint);
+    skCanvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.7, size * 0.36), paint);
 
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color("rgba(0, 0, 0, 0.7)"));
     paint.setStrokeWidth(0.8);
-    canvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.7, size * 0.36), paint);
+    skCanvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.7, size * 0.36), paint);
 
     // Reflection dot
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#FFFFFF"));
-    canvas.drawCircle(size * 0.25, -size * 0.09, size * 0.06, paint);
+    skCanvas.drawCircle(size * 0.25, -size * 0.09, size * 0.06, paint);
 
     // --- COYOTE TIME DANGER PULSE OVERLAY ---
     if (render.dangerPulseIntensity && render.dangerPulseIntensity > 0) {
@@ -296,11 +310,11 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
         paint.setColor(Skia.Color("#FF0000"));
         paint.setStrokeWidth(2.2);
         paint.setAlphaf(alpha);
-        canvas.drawPath(dangerPath, paint);
+        skCanvas.drawPath(dangerPath, paint);
       }
     }
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -308,9 +322,10 @@ export const drawSkiaFlappyBird: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 // CONTAINMENT TOWERS (OBSTACLES) — INDUSTRIAL METALLIC PILLARS & RED BEACONS
 // ============================================================================
 
-export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
+export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
     if (!pipeCtx) return;
 
@@ -367,14 +382,14 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     });
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(pillarShader);
-    canvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
+    if (pillarShader) paint.setShader(pillarShader);
+    skCanvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color("#121218"));
     paint.setStrokeWidth(1.5);
-    canvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
+    skCanvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
 
     // Additional surface detail per variant
     if (variant === "damaged") {
@@ -386,12 +401,12 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
       crackPath.moveTo(-halfWidth + width * 0.2, pipeY + pipeHeight * 0.2);
       crackPath.lineTo(-halfWidth + width * 0.4, pipeY + pipeHeight * 0.28);
       crackPath.lineTo(-halfWidth + width * 0.3, pipeY + pipeHeight * 0.38);
-      canvas.drawPath(crackPath, paint);
+      skCanvas.drawPath(crackPath, paint);
     } else if (variant === "rusted") {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color("rgba(180, 80, 30, 0.3)"));
-      canvas.drawRect(Skia.XYWHRect(-halfWidth + 4, pipeY + pipeHeight * 0.1, width * 0.4, pipeHeight * 0.3), paint);
+      skCanvas.drawRect(Skia.XYWHRect(-halfWidth + 4, pipeY + pipeHeight * 0.1, width * 0.4, pipeHeight * 0.3), paint);
     }
 
     // Docking Collar Cap at gap mouth
@@ -430,14 +445,14 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
     });
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(collarShader);
-    canvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
+    if (collarShader) paint.setShader(collarShader);
+    skCanvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(pipe.isNarrowGap ? "#FFD700" : "#121218"));
     paint.setStrokeWidth(pipe.isNarrowGap ? 2.0 : 1.5);
-    canvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
+    skCanvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
 
     // Stroboscopic Red Warning Beacons (#FF0000) strictly bound to world.tick with soft glow halo
     const beaconHaloShader = getCachedSkiaShader(`beacon_halo_${beaconPulse.toFixed(2)}`, () =>
@@ -454,20 +469,20 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(beaconHaloShader);
-    canvas.drawCircle(0, beaconY, 45, paint);
+    if (beaconHaloShader) paint.setShader(beaconHaloShader);
+    skCanvas.drawCircle(0, beaconY, 45, paint);
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#FF0000"));
     paint.setAlphaf(beaconPulse);
-    canvas.drawCircle(-capHalfWidth + 8, beaconY, 3.5, paint);
-    canvas.drawCircle(capHalfWidth - 8, beaconY, 3.5, paint);
+    skCanvas.drawCircle(-capHalfWidth + 8, beaconY, 3.5, paint);
+    skCanvas.drawCircle(capHalfWidth - 8, beaconY, 3.5, paint);
 
     paint.setColor(Skia.Color("#FFFFFF"));
     paint.setAlphaf(beaconPulse);
-    canvas.drawCircle(-capHalfWidth + 8, beaconY, 1.2, paint);
-    canvas.drawCircle(capHalfWidth - 8, beaconY, 1.2, paint);
+    skCanvas.drawCircle(-capHalfWidth + 8, beaconY, 1.2, paint);
+    skCanvas.drawCircle(capHalfWidth - 8, beaconY, 1.2, paint);
 
     // --- LASER GATE OVERLAY & SPARKS ---
     if (pipe.movementType === "laser_gate" && isTopPipe) {
@@ -479,7 +494,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
         paint.setColor(Skia.Color("#00F3FF"));
         paint.setAlphaf(0.7 + 0.3 * laserPulse);
         paint.setStrokeWidth(3.0);
-        canvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
+        skCanvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
 
         if (world.tick % 4 === 0) {
           const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
@@ -491,7 +506,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
         paint.setColor(Skia.Color("#FF0000"));
         paint.setAlphaf(0.25);
         paint.setStrokeWidth(1.0);
-        canvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
+        skCanvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
       }
     }
   }
@@ -501,9 +516,10 @@ export const drawSkiaFlappyPipe: ShapeDrawer<any, FlappyBirdComponentRegistry> =
 // STATION HULL GROUND — INDUSTRIAL METALLIC BASE WITH CAUTION STRIPES
 // ============================================================================
 
-export const drawSkiaFlappyGround: ShapeDrawer<any, FlappyBirdComponentRegistry> = {
+export const drawSkiaFlappyGround: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
@@ -525,8 +541,8 @@ export const drawSkiaFlappyGround: ShapeDrawer<any, FlappyBirdComponentRegistry>
     );
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setShader(baseShader);
-    canvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, height), paint);
+    if (baseShader) paint.setShader(baseShader);
+    skCanvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, height), paint);
 
     // Yellow / Black caution stripe top rim with non-linear flickering
     const hazardFlicker = calculateGroundHazardFlicker(world.tick);
@@ -535,7 +551,7 @@ export const drawSkiaFlappyGround: ShapeDrawer<any, FlappyBirdComponentRegistry>
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#FFCC00"));
     paint.setAlphaf(hazardFlicker);
-    canvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, 8), paint);
+    skCanvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, 8), paint);
 
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color("#111116"));
@@ -544,19 +560,19 @@ export const drawSkiaFlappyGround: ShapeDrawer<any, FlappyBirdComponentRegistry>
     const stripeOffset = (world.tick * 3) % 24;
 
     for (let sx = -width / 2 - 24; sx < width / 2 + 24; sx += 20) {
-      canvas.drawLine(sx + stripeOffset, -height / 2, sx + stripeOffset - 10, -height / 2 + 8, paint);
+      skCanvas.drawLine(sx + stripeOffset, -height / 2, sx + stripeOffset - 10, -height / 2 + 8, paint);
     }
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color("#5A6173"));
     paint.setStrokeWidth(1.0);
-    canvas.drawLine(-width / 2, -height / 2, width / 2, -height / 2, paint);
+    skCanvas.drawLine(-width / 2, -height / 2, width / 2, -height / 2, paint);
   }
 };
 
 // Helper to draw 8 distinct megastructure silhouette designs in Skia
-function drawSkiaMegastructure(canvas: any, paint: any, data: MegastructureData): void {
+function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: MegastructureData): void {
   if (!Skia) return;
   const { megaIndex, megaX, megaY, beaconAlpha, structureOpacity } = data;
   canvas.save();
@@ -684,9 +700,10 @@ function drawSkiaMegastructure(canvas: any, paint: any, data: MegastructureData)
 // THE DEEP VOID PARALLAX BACKGROUND (#050510)
 // ============================================================================
 
-export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponentRegistry> = {
+export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBirdComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const gameState = world.getSingleton("FlappyState");
     if (!gameState) return;
     const { width = 400, height = 600 } = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };
@@ -699,7 +716,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#050510"));
-    canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
+    skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     // --- ANIMATED LOW-OPACITY RADIAL NEBULAE CLOUDS ---
     for (let n = 0; n < BACKGROUND_NEBULAE.length; n++) {
@@ -722,7 +739,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setShader(nebShader);
         paint.setAlphaf(0.35);
-        canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
+        skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
       }
     }
 
@@ -750,20 +767,20 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       paint.setAlphaf(star.alpha);
       if (star.layer === 2) {
         paint.setColor(Skia.Color("#5A6173"));
-        canvas.drawRect(Skia.XYWHRect(sx, star.y, star.size, star.size), paint);
+        skCanvas.drawRect(Skia.XYWHRect(sx, star.y, star.size, star.size), paint);
       } else if (star.layer === 0) {
         paint.setColor(Skia.Color("#FFFFFF"));
-        canvas.drawRect(Skia.XYWHRect(sx, star.y, star.size, star.size), paint);
+        skCanvas.drawRect(Skia.XYWHRect(sx, star.y, star.size, star.size), paint);
       } else {
         paint.setColor(Skia.Color("#E0E5FF"));
         const pLen = warpFactor > 1.2 ? Math.min(star.size * 3 * warpFactor, 10) : star.size;
-        canvas.drawRect(Skia.XYWHRect(sx, star.y, pLen, star.size), paint);
+        skCanvas.drawRect(Skia.XYWHRect(sx, star.y, pLen, star.size), paint);
       }
     }
 
     // --- AD-HOC RADIAL WARP SPEED LINES (WARPFACTOR > 1.5) ---
     if (showWarpLines) {
-      canvas.save();
+      skCanvas.save();
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color("#00F3FF"));
@@ -774,7 +791,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
         const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);
         const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);
         const outerR = innerR + 40 * warpFactor;
-        canvas.drawLine(
+        skCanvas.drawLine(
           cx + Math.cos(angle) * innerR,
           cy + Math.sin(angle) * innerR,
           cx + Math.cos(angle) * outerR,
@@ -782,17 +799,17 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
           paint
         );
       }
-      canvas.restore();
+      skCanvas.restore();
     }
 
     // --- OCCASIONAL ISOLATED ABANDONED MEGASTRUCTURE SILHOUETTE ---
     const megaData = calculateMegastructureData(tick, width, height);
     if (megaData.visible) {
-      drawSkiaMegastructure(canvas, paint, megaData);
+      drawSkiaMegastructure(skCanvas, paint, megaData);
     }
 
     // Draw active sparks & shards
-    drawSkiaVisualParticles(canvas, paint);
+    drawSkiaVisualParticles(skCanvas, paint);
 
     // --- GLIDE ENERGY METER HUD OVERLAY ---
     const glideState = resolveGlideEnergyState(world, width, height);
@@ -801,15 +818,15 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color("rgba(10, 15, 25, 0.75)"));
-      canvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
+      skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
 
       paint.setColor(Skia.Color(fillColor));
-      canvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
+      skCanvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(isOverheated ? "#FF0000" : "#5A6173"));
       paint.setStrokeWidth(1.0);
-      canvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
+      skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
     }
 
     // --- SECTOR EVENT HUD OVERLAY BANNER ---
@@ -818,14 +835,14 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color("rgba(0, 243, 255, 0.15)"));
-      canvas.drawRect(Skia.XYWHRect(0, 10, width, 22), paint);
+      skCanvas.drawRect(Skia.XYWHRect(0, 10, width, 22), paint);
     }
 
     // CRT Scanlines Overlay
     paint.reset();
     paint.setColor(Skia.Color("rgba(0, 0, 0, 0.06)"));
     for (let ly = 0; ly < height; ly += 3) {
-      canvas.drawRect(Skia.XYWHRect(0, ly, width, 1), paint);
+      skCanvas.drawRect(Skia.XYWHRect(0, ly, width, 1), paint);
     }
 
     // Edge Vignette Overlay
@@ -844,7 +861,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<any, FlappyBirdComponen
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setShader(vignShader);
-      canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
+      skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
     }
   },
 };

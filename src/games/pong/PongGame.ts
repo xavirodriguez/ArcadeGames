@@ -30,10 +30,10 @@ import { BENEFICIAL_MUTATORS, registerMutatorHook } from "../../utils/MutatorReg
 import { loadAndMutateConfig, runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { PongVelocityGuardrailSystem } from "./systems/PongVelocityGuardrailSystem";
 
-registerMutatorHook((world: World, mutatorId: string) => {
+registerMutatorHook((world: World<PongComponentRegistry>, mutatorId: string) => {
   if (mutatorId === "extra_life") {
-    if (world.getSingleton("PongState" as any)) {
-      world.mutateSingleton("PongState" as any, (gs: any) => {
+    if (world.getSingleton("PongState")) {
+      world.mutateSingleton("PongState", (gs: PongState) => {
         if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
           gs.scoreP1 = 1;
         }
@@ -61,12 +61,12 @@ export type PongMode = "local" | "ai" | "online";
  * Implementa una física de rebotes basada en el ángulo de incidencia y el movimiento
  * relativo de las paletas (spin). Gestiona modos de juego contra IA o multijugador local.
  */
-import { TransformComponent, VelocityComponent, ColliderComponent, BoundaryComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, ColliderComponent, BoundaryComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder, RenderComponent, RenderContext, Mutator, IAssetProvider, IAudioPlayer } from "@tiny-aster/core";
 
-export interface PongBlueprintMap extends Record<string, BlueprintDefinition<PongComponentRegistry, any, any>> {
-  ball: BlueprintDefinition<PongComponentRegistry, any, {}>;
-  paddle: BlueprintDefinition<PongComponentRegistry, any, { side: "left" | "right" }>;
-  state: BlueprintDefinition<PongComponentRegistry, any, {}>;
+export interface PongBlueprintMap extends Record<string, BlueprintDefinition<PongComponentRegistry, PongEventRegistry, unknown>> {
+  ball: BlueprintDefinition<PongComponentRegistry, PongEventRegistry, {}>;
+  paddle: BlueprintDefinition<PongComponentRegistry, PongEventRegistry, { side: "left" | "right" }>;
+  state: BlueprintDefinition<PongComponentRegistry, PongEventRegistry, {}>;
 }
 
 export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegistry, PongEventRegistry, PongBlueprintMap> {
@@ -80,7 +80,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   private stallStartTime = 0;
   private isStalled = false;
 
-  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode, assetProvider?: any, audio?: any, theme?: Theme } | PongMode = "local") {
+  constructor(config: { isMultiplayer?: boolean, seed?: number, gameOptions?: Record<string, unknown>, mode?: PongMode, assetProvider?: IAssetProvider, audio?: IAudioPlayer, theme?: Theme } | PongMode = "local") {
     const isConfig = typeof config === "object" && config !== null;
     const mode = isConfig
       ? (config.gameOptions?.mode as PongMode || config.mode || "local")
@@ -176,7 +176,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
               { x: config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
               { x: -config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
             ]
-          } as any)
+          } as unknown as Partial<RenderComponent>)
           .withCollider({
             shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,
             layer: CollisionLayers.PLAYER,
@@ -232,14 +232,14 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
     this.stateSystem = new PongGameStateSystem(this.config);
     if (this.unifiedInput instanceof System) {
-      this.world.addSystem(this.unifiedInput as any, { phase: SystemPhase.Input });
+      this.world.addSystem(this.unifiedInput, { phase: SystemPhase.Input });
     }
 
     if (mode === "online") {
       this.networkController = new NetworkController();
       this.world.addSystem(new PongInputSystem(undefined, this.networkController), { phase: SystemPhase.Simulation });
     } else {
-      this.world.addSystem(new PongInputSystem(aiDifficulty as any), { phase: SystemPhase.Simulation });
+      this.world.addSystem(new PongInputSystem(aiDifficulty as "easy" | "medium" | "hard" | undefined), { phase: SystemPhase.Simulation });
     }
 
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
@@ -256,7 +256,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation });
 
-    const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as any[];
+    const activeMutators = (this._config.gameOptions?.mutators || this._config.gameOptions?.activeMutators || []) as Mutator<PongComponentRegistry>[];
     this.world.addSystem(new MutatorSystem(activeMutators), { phase: SystemPhase.Simulation });
 
     // Visual / Presentation
@@ -307,7 +307,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     }
   }
 
-  public initializeRenderer(renderer: Renderer<PongComponentRegistry, any>): void {
+  public initializeRenderer(renderer: Renderer<PongComponentRegistry, RenderContext>): void {
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         const { drawPongBall, drawPongPaddle, drawPongBackground } = require("./rendering/PongCanvasVisuals");
@@ -345,8 +345,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
   protected shouldStallSimulation(): boolean {
     if (this.networkController) {
-      const inputSystem = (this.world as any).systems?.find((s: any) => s.system instanceof PongInputSystem)?.system as PongInputSystem;
-      return !this.networkController.hasInputForTick(inputSystem?.currentTick + 1 || 0);
+      const inputSystem = this.world.schedule.getSystems().find(s => s instanceof PongInputSystem) as PongInputSystem | undefined;
+      return !this.networkController.hasInputForTick((inputSystem?.currentTick || 0) + 1);
     }
     return false;
   }
@@ -355,7 +355,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     if (this._config.gameOptions?.mode !== "online" || !payload) return;
 
     if (payload.kind === "delta") {
-      const state = payload as any;
+      const state = payload as { tick?: number; input?: PongInput; input_relay?: unknown };
       if (this.networkController && state.input_relay) {
           this.networkController.onInputReceived({
               tick: state.tick as number,
@@ -372,7 +372,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
 
 registerMutatorHook("faster_bullets", (genericWorld) => {
   const world = genericWorld as unknown as World<PongComponentRegistry>;
-  const config = world.getResource<Record<string, any>>("GameConfig");
+  const config = world.getResource<PongConfig>("GameConfig");
   if (config && typeof config.PADDLE_SPEED === "number") {
     const newConfig = { ...config };
     newConfig.PADDLE_SPEED = Math.round(newConfig.PADDLE_SPEED * 1.15);
@@ -380,11 +380,11 @@ registerMutatorHook("faster_bullets", (genericWorld) => {
   }
 });
 
-registerMutatorHook("extra_life", (world: World) => {
+registerMutatorHook("extra_life", (world: World<PongComponentRegistry>) => {
   world.setResource("ExtraLifeScoreP1", 1);
   const pongState = world.getSingleton("PongState");
   if (pongState) {
-    world.mutateSingleton("PongState", (gs: any) => {
+    world.mutateSingleton("PongState", (gs: PongState) => {
       if (typeof gs.scoreP1 === "number" && gs.scoreP1 === 0) {
         gs.scoreP1 = 1;
       }

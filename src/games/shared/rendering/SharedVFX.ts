@@ -218,7 +218,7 @@ function initializeLines(world: World<ComponentRegistry>, state: VFXWorldState, 
   state.warpLinesInitialized = true;
 }
 
-function initializeMatrix(world: World, state: any) {
+function initializeMatrix(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   state.matrixColumns = [];
   for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
@@ -233,7 +233,7 @@ function initializeMatrix(world: World, state: any) {
   state.matrixInitialized = true;
 }
 
-function initializeVortex(world: World, state: any) {
+function initializeVortex(world: World, state: VFXWorldState) {
   const rng = world.renderRandom;
   state.accretionParticles = [];
   for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
@@ -294,20 +294,21 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Cor
 };
 
 export const SkiaRetroCRTScanlinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world) {
+  draw(canvas, world) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const { width, height, state } = getScreenAndVFXState(world);
 
     state.timePhase += 0.04;
 
-    canvas.save();
+    skCanvas.save();
 
     const paint = Skia.Paint();
 
     paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack));
     paint.setAlphaf(0.15);
     for (let y = 0; y < height; y += 4) {
-      canvas.drawRect(Skia.XYWHRect(0, y, width, 2), paint);
+      skCanvas.drawRect(Skia.XYWHRect(0, y, width, 2), paint);
     }
 
     const shader = getOrCreateCached(state, "cachedSkiaShader", width, height, () => {
@@ -329,17 +330,17 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<RenderContext, CoreCompon
 
     paint.setShader(shader);
     paint.setAlphaf(1.0);
-    canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
+    skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     const randomFlicker = world.renderRandom.next();
     if (randomFlicker > 0.95) {
       const flickerPaint = Skia.Paint();
       flickerPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
       flickerPaint.setAlphaf(0.005 + (randomFlicker - 0.95) * 0.15);
-      canvas.drawRect(Skia.XYWHRect(0, 0, width, height), flickerPaint);
+      skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), flickerPaint);
     }
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -386,7 +387,7 @@ export function createSharedParticle<
   dx: number,
   dy: number,
   color: string,
-  pool: { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: any) => number },
+  pool: { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: { x: number; y: number; dx: number; dy: number; size: number; color: string; ttl: number }) => number },
   size = 3,
   ttl = 0.8
 ): number {
@@ -432,11 +433,12 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
 };
 
 export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world) {
+  draw(canvas, world) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const { centerX, centerY, maxRadius, lines } = resolveWarpLinesContext(world);
 
-    canvas.save();
+    skCanvas.save();
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(1.5);
@@ -447,10 +449,10 @@ export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<RenderContext, Cor
       const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
 
       paint.setColor(line.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
-      canvas.drawLine(x1, y1, x2, y2, paint);
+      skCanvas.drawLine(x1, y1, x2, y2, paint);
     }
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -493,7 +495,8 @@ export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, Cor
 };
 
 export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world, entity) {
+  draw(canvas, world, entity) {
+    const skCanvas = canvas as unknown as SkCanvas;
     const dCtx = getDrawerContext(world, entity, 35, true);
     if (!dCtx) return;
 
@@ -502,11 +505,11 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<RenderContext, CoreCompon
     const { pulseFactor } = computeShieldBubbleParams(timePhase);
     const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "normal");
 
-    canvas.save();
-    renderSkiaGlow(canvas, glowStyle, (paint, isHighlight) => {
+    skCanvas.save();
+    renderSkiaGlow(skCanvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(isHighlight ? 1.5 : 3);
-      canvas.drawCircle(0, 0, radius * pulseFactor, paint);
+      skCanvas.drawCircle(0, 0, radius * pulseFactor, paint);
     });
 
     const rng = world.renderRandom;
@@ -525,10 +528,10 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<RenderContext, CoreCompon
         (arcStart * 180) / Math.PI,
         (arcLen * 180) / Math.PI
       );
-      canvas.drawPath(path, sparkPaint);
+      skCanvas.drawPath(path, sparkPaint);
     }
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -590,8 +593,9 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, CoreCo
 };
 
 export const SkiaDebrisShockwaveEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world, entity) {
+  draw(canvas, world, entity) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const render = getRenderComponent(world, entity);
     if (!render) return;
 
@@ -600,7 +604,7 @@ export const SkiaDebrisShockwaveEffect: ShapeDrawer<RenderContext, CoreComponent
 
     const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);
 
-    canvas.save();
+    skCanvas.save();
 
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -608,25 +612,25 @@ export const SkiaDebrisShockwaveEffect: ShapeDrawer<RenderContext, CoreComponent
     paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.solarOrange));
     paint.setAlphaf(alpha);
     paint.setStrokeWidth(strokeWidth);
-    canvas.drawCircle(0, 0, currentRadius, paint);
+    skCanvas.drawCircle(0, 0, currentRadius, paint);
 
     paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
     paint.setAlphaf(alpha * 0.7);
     paint.setStrokeWidth(strokeWidth * 0.5);
-    canvas.drawCircle(0, 0, currentRadius * 1.2, paint);
+    skCanvas.drawCircle(0, 0, currentRadius * 1.2, paint);
 
     const sparkPaint = Skia.Paint();
     sparkPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
     sparkPaint.setAlphaf(alpha);
 
     drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
-      canvas.drawRect(
+      skCanvas.drawRect(
         Skia.XYWHRect(sparkX - sparkSize / 2, sparkY - sparkSize / 2, sparkSize, sparkSize),
         sparkPaint
       );
     });
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -663,15 +667,16 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Cor
 };
 
 export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world) {
+  draw(canvas, world) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const { height, state } = getScreenAndVFXState(world);
 
     if (!state.matrixInitialized) {
       initializeMatrix(world, state);
     }
 
-    canvas.save();
+    skCanvas.save();
     const paint = Skia.Paint();
 
     for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
@@ -681,15 +686,15 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreCompon
       paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.matrixGreen));
       paint.setAlphaf(col.intensity * 0.15);
       for (let j = 0; j < col.length; j++) {
-        canvas.drawRect(Skia.XYWHRect(col.x, col.y - j * 8, 4, 6), paint);
+        skCanvas.drawRect(Skia.XYWHRect(col.x, col.y - j * 8, 4, 6), paint);
       }
 
       paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
       paint.setAlphaf(col.intensity);
-      canvas.drawRect(Skia.XYWHRect(col.x, col.y, 4, 6), paint);
+      skCanvas.drawRect(Skia.XYWHRect(col.x, col.y, 4, 6), paint);
     }
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -732,23 +737,24 @@ export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, Core
 };
 
 export const SkiaCRTGlitchShudderEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world) {
+  draw(canvas, world) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const { width, height } = getScreenAndVFXState(world);
 
     const rng = world.renderRandom;
     if (rng.next() < 0.96) return;
 
-    canvas.save();
+    skCanvas.save();
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
 
     drawCRTGlitchLines(rng, height, (offset, y, h, alpha) => {
       paint.setAlphaf(alpha);
-      canvas.drawRect(Skia.XYWHRect(offset, y, width, h), paint);
+      skCanvas.drawRect(Skia.XYWHRect(offset, y, width, h), paint);
     });
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -792,7 +798,8 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Cor
 };
 
 export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world, entity) {
+  draw(canvas, world, entity) {
+    const skCanvas = canvas as unknown as SkCanvas;
     const dCtx = getDrawerContext(world, entity, 10, true);
     if (!dCtx) return;
 
@@ -801,8 +808,8 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreCompon
     const flameColors = getThrusterFlameColors();
     const glowStyle = getGlowStyle(flameColors.inner, "normal");
 
-    canvas.save();
-    renderSkiaGlow(canvas, glowStyle, (paint, isHighlight) => {
+    skCanvas.save();
+    renderSkiaGlow(skCanvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Fill);
       if (isHighlight) {
         paint.setColor(Skia.Color(flameColors.core));
@@ -814,7 +821,7 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreCompon
       pathOuter.lineTo(size / 2, 0);
       pathOuter.lineTo(0, plumeLength);
       pathOuter.close();
-      canvas.drawPath(pathOuter, paint);
+      skCanvas.drawPath(pathOuter, paint);
     });
 
     const paintInner = Skia.Paint();
@@ -825,9 +832,9 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreCompon
     pathInner.lineTo(size / 3, 0);
     pathInner.lineTo(0, plumeLength * 0.65);
     pathInner.close();
-    canvas.drawPath(pathInner, paintInner);
+    skCanvas.drawPath(pathInner, paintInner);
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -871,18 +878,19 @@ export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComp
 };
 
 export const SkiaLaserRailBeamEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world, entity) {
+  draw(canvas, world, entity) {
+    const skCanvas = canvas as unknown as SkCanvas;
     const dCtx = getDrawerContext(world, entity, 300, true);
     if (!dCtx) return;
 
     const { size: length, timePhase } = dCtx;
     const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "strong");
 
-    canvas.save();
-    renderSkiaGlow(canvas, glowStyle, (paint, isHighlight) => {
+    skCanvas.save();
+    renderSkiaGlow(skCanvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(isHighlight ? 3 : 8 + 2 * Math.sin(timePhase * 6));
-      canvas.drawLine(0, 0, 0, -length, paint);
+      skCanvas.drawLine(0, 0, 0, -length, paint);
     });
 
     const rng = world.renderRandom;
@@ -901,9 +909,9 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<RenderContext, CoreComponentRe
       const curX = rng.nextRange(-10, 10);
       path.lineTo(curX, curY);
     }
-    canvas.drawPath(path, sparkPaint);
+    skCanvas.drawPath(path, sparkPaint);
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -928,12 +936,13 @@ export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, Core
 };
 
 export const SkiaScreenBorderGlowEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world) {
+  draw(canvas, world) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const { width, height, state } = getScreenAndVFXState(world);
     const timePhase = state.timePhase;
 
-    canvas.save();
+    skCanvas.save();
 
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -941,9 +950,9 @@ export const SkiaScreenBorderGlowEffect: EffectDrawer<RenderContext, CoreCompone
     paint.setAlphaf(0.12 + 0.08 * Math.sin(timePhase * 3));
     paint.setStrokeWidth(14);
 
-    canvas.drawRect(Skia.XYWHRect(7, 7, width - 14, height - 14), paint);
+    skCanvas.drawRect(Skia.XYWHRect(7, 7, width - 14, height - 14), paint);
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -1001,13 +1010,14 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Core
 };
 
 export const SkiaSingularityVortexEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world, entity) {
+  draw(canvas, world, entity) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const vCtx = resolveVortexContext(world, entity);
     if (!vCtx) return;
     const { baseSize, state } = vCtx;
 
-    canvas.save();
+    skCanvas.save();
     const paint = Skia.Paint();
 
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -1015,12 +1025,12 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<RenderContext, CoreCompone
     paint.setAlphaf(0.3);
     for (let r = baseSize; r > 5; r -= 6) {
       paint.setStrokeWidth(2);
-      canvas.drawCircle(0, 0, r, paint);
+      skCanvas.drawCircle(0, 0, r, paint);
     }
 
     const centerPaint = Skia.Paint();
     centerPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack));
-    canvas.drawCircle(0, 0, baseSize * 0.4, centerPaint);
+    skCanvas.drawCircle(0, 0, baseSize * 0.4, centerPaint);
 
     const pPaint = Skia.Paint();
     pPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.neonMagenta));
@@ -1031,10 +1041,10 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<RenderContext, CoreCompone
 
       const x = Math.cos(p.angle) * p.radius;
       const y = Math.sin(p.angle) * p.radius;
-      canvas.drawRect(Skia.XYWHRect(x - p.size / 2, y - p.size / 2, p.size, p.size), pPaint);
+      skCanvas.drawRect(Skia.XYWHRect(x - p.size / 2, y - p.size / 2, p.size, p.size), pPaint);
     }
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -1068,7 +1078,8 @@ export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, CoreC
 };
 
 export const SkiaCometMotionTrailEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world, entity) {
+  draw(canvas, world, entity) {
+    const skCanvas = canvas as unknown as SkCanvas;
     const dCtx = getDrawerContext(world, entity, 15, true);
     if (!dCtx) return;
 
@@ -1077,18 +1088,18 @@ export const SkiaCometMotionTrailEffect: ShapeDrawer<RenderContext, CoreComponen
     const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
     const glowStyle = getGlowStyle(trailParams.glowColor, "normal");
 
-    canvas.save();
-    renderSkiaGlow(canvas, glowStyle, (paint) => {
+    skCanvas.save();
+    renderSkiaGlow(skCanvas, glowStyle, (paint) => {
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(1);
       for (let i = 0; i < segments.length; i++) {
         const seg = segments[i];
         paint.setAlphaf(seg.alpha);
-        canvas.drawCircle(seg.wiggle, seg.offset, seg.radius, paint);
+        skCanvas.drawCircle(seg.wiggle, seg.offset, seg.radius, paint);
       }
     });
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -1120,14 +1131,15 @@ export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, Core
 };
 
 export const SkiaRGBHologramGlitchEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world, entity) {
+  draw(canvas, world, entity) {
+    const skCanvas = canvas as unknown as SkCanvas;
     const dCtx = getDrawerContext(world, entity, 20, true);
     if (!dCtx) return;
 
     const { size, timePhase } = dCtx;
     const layers = computeHologramLayers(timePhase, size);
 
-    canvas.save();
+    skCanvas.save();
 
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -1137,10 +1149,10 @@ export const SkiaRGBHologramGlitchEffect: ShapeDrawer<RenderContext, CoreCompone
       const layer = layers[i];
       paint.setColor(Skia.Color(layer.color));
       paint.setAlphaf(layer.alpha);
-      canvas.drawCircle(layer.x, 0, layer.radius, paint);
+      skCanvas.drawCircle(layer.x, 0, layer.radius, paint);
     }
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };
 
@@ -1180,22 +1192,23 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Core
 };
 
 export const SkiaFloatingTextScoreEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas: any, world, entity) {
+  draw(canvas, world, entity) {
     if (!Skia) return;
+    const skCanvas = canvas as unknown as SkCanvas;
     const render = getRenderComponent(world, entity);
     if (!render) return;
 
     const { progress, alpha } = computeEffectProgress(world, entity);
     if (alpha <= 0.01) return;
 
-    canvas.save();
+    skCanvas.save();
 
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
     paint.setAlphaf(alpha);
 
-    canvas.drawRect(Skia.XYWHRect(-10, -progress * 50, 20, 6), paint);
+    skCanvas.drawRect(Skia.XYWHRect(-10, -progress * 50, 20, 6), paint);
 
-    canvas.restore();
+    skCanvas.restore();
   }
 };

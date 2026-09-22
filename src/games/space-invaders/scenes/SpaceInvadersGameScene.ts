@@ -10,8 +10,11 @@ import {
   BoundarySystem,
   CollisionSystem2D,
   MutatorSystem,
+  Mutator,
+  System,
   SystemPhase,
-  HierarchySystem
+  HierarchySystem,
+  BlueprintRegistryMap
 } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 import { ComboSystem } from "@tiny-aster/core";
@@ -75,7 +78,20 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     this.world.setResource("ScreenConfig", { width: GAME_CONFIG.worldWidth, height: GAME_CONFIG.worldHeight });
 
     // Generate procedural Wave Definitions
-    const waveDefs: any[] = [];
+    interface WaveSpawnDef {
+      blueprintId: string;
+      args?: Record<string, unknown>;
+      delay?: number;
+    }
+    interface WaveDefinition {
+      id: string;
+      cooldown?: number;
+      isBossWave?: boolean;
+      totalInvaders: number;
+      spawns: WaveSpawnDef[];
+    }
+
+    const waveDefs: WaveDefinition[] = [];
     const maxLevels = 50;
     const config = this.config || GAME_CONFIG;
     const startX = config.INVADER_START_X;
@@ -99,7 +115,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
         const { rows, cols } = getFormationSize(lvl, config);
         const totalInvaders = rows * cols;
         const offsetX = ((config.INVADER_COLS - cols) * spacingX) / 2;
-        const spawns: any[] = [];
+        const spawns: WaveSpawnDef[] = [];
         for (let row = 0; row < rows; row++) {
           for (let col = 0; col < cols; col++) {
             spawns.push({
@@ -124,17 +140,29 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     }
     this.world.setResource("WaveDefinitions", waveDefs);
 
-    const eventBus = (this.game as unknown as { eventBus: EventBus }).eventBus;
-    if (eventBus) {
-      this.world.setResource("EventBus", eventBus);
+    type GameInternal = ISpaceInvadersGame & {
+      eventBus?: EventBus;
+      blueprints?: BlueprintRegistryMap<SpaceInvadersComponentRegistry>;
+      unifiedInput?: unknown;
+      _config?: {
+        headless?: boolean;
+        gameOptions?: {
+          mutators?: (string | { id: string })[];
+          activeMutators?: (string | { id: string })[];
+          beneficialMutators?: string[];
+        };
+      };
+    };
+    const gameInternal = this.game as GameInternal;
+
+    if (gameInternal.eventBus) {
+      this.world.setResource("EventBus", gameInternal.eventBus);
     }
-    const blueprints = (this.game as unknown as { blueprints: any }).blueprints;
-    if (blueprints) {
-      this.world.setResource("BlueprintRegistry", blueprints);
+    if (gameInternal.blueprints) {
+      this.world.setResource("BlueprintRegistry", gameInternal.blueprints);
     }
-    const inputSystem = (this.game as unknown as { unifiedInput: any }).unifiedInput;
-    if (inputSystem) {
-      this.world.setResource("InputSystem", inputSystem);
+    if (gameInternal.unifiedInput) {
+      this.world.setResource("InputSystem", gameInternal.unifiedInput);
     }
 
     this.world.setResource("PlayerBulletPool", this.playerBulletPool);
@@ -158,15 +186,15 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     this.world.addSystem(new KamikazeSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new BossSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new LootSystem() as any, { phase: SystemPhase.GameRules, group: "simulation" });
-    this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Simulation, group: "simulation" });
+    this.world.addSystem(new LootSystem() as unknown as System<SpaceInvadersComponentRegistry>, { phase: SystemPhase.GameRules, group: "simulation" });
+    this.world.addSystem(new PowerUpSystem() as unknown as System<SpaceInvadersComponentRegistry>, { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new SpaceInvadersGameStateSystem(this.game), { phase: SystemPhase.GameRules, group: "simulation" });
     this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules, group: "simulation" });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
 
-    const mutators = (this.game as any)._config.gameOptions?.mutators || (this.game as any)._config.gameOptions?.activeMutators || [];
-    this.world.addSystem(new MutatorSystem(mutators), { phase: SystemPhase.Simulation, group: "simulation" });
+    const mutators = gameInternal._config?.gameOptions?.mutators || gameInternal._config?.gameOptions?.activeMutators || [];
+    this.world.addSystem(new MutatorSystem(mutators as unknown as Mutator<SpaceInvadersComponentRegistry>[]), { phase: SystemPhase.Simulation, group: "simulation" });
 
     // New WaveTransitionSystem
     this.world.addSystem(new WaveTransitionSystem(), { phase: SystemPhase.Simulation, group: "transition" });
@@ -181,8 +209,8 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     if (this.game.isMultiplayer) return; // Wait for server state
 
     // Apply beneficial mutators if any are active before creating entities so they can set resources (e.g. HasComboHeadStart)
-    const activeMutators = (this.game as any)._config.gameOptions?.mutators || (this.game as any)._config.gameOptions?.activeMutators || [];
-    const beneficial = (this.game as any)._config.gameOptions?.beneficialMutators || [];
+    const activeMutators = gameInternal._config?.gameOptions?.mutators || gameInternal._config?.gameOptions?.activeMutators || [];
+    const beneficial = gameInternal._config?.gameOptions?.beneficialMutators || [];
 
     const beneficialSet = new Set<string>();
     for (const m of activeMutators) {
@@ -201,7 +229,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
       BENEFICIAL_MUTATORS[bId].apply(this.world);
     }
 
-    const isHeadless = (this.game as any)._config?.headless === true;
+    const isHeadless = gameInternal._config?.headless === true;
     this.world.setResource("IsHeadless", isHeadless);
 
     createGameState(this.world);
@@ -211,9 +239,9 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
   }
 
   public override onExit(world: World): void {
-    (this.playerBulletPool as any).clear?.();
-    (this.enemyBulletPool as any).clear?.();
-    (this.particlePool as any).clear?.();
+    this.playerBulletPool.clear();
+    this.enemyBulletPool.clear();
+    this.particlePool.clear();
 
     world.deleteResource("PlayerBulletPool");
     world.deleteResource("EnemyBulletPool");

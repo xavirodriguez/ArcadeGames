@@ -2,6 +2,7 @@
 import {
   BaseGame,
   Renderer,
+  RenderContext,
   SceneManager,
   World,
   Camera2DSystem,
@@ -11,6 +12,10 @@ import {
   WebAudioPlayer,
   GameDefinition,
   ConfigService,
+  IAssetProvider,
+  IAudioPlayer,
+  Theme,
+  Mutator,
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
@@ -98,7 +103,7 @@ export class GeometryWarsGame extends BaseGame<
   public isMultiplayer = false;
   private networkManager!: NetworkManager<GeometryWarsComponentRegistry>;
 
-  constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any; headless?: boolean; isMultiplayer?: boolean; theme?: any } = {}) {
+  constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: IAssetProvider; audio?: IAudioPlayer; headless?: boolean; isMultiplayer?: boolean; theme?: Theme } = {}) {
     super({
       pauseKey: "Escape",
       isMultiplayer: options.isMultiplayer || false,
@@ -120,7 +125,7 @@ export class GeometryWarsGame extends BaseGame<
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    const mutators = (this._config.gameOptions?.mutators as any[]) || (this._config.gameOptions?.activeMutators as any[]) || [];
+    const mutators = (this._config.gameOptions?.mutators as { apply: (cfg: GeometryWarsConfig) => GeometryWarsConfig }[]) || (this._config.gameOptions?.activeMutators as { apply: (cfg: GeometryWarsConfig) => GeometryWarsConfig }[]) || [];
     this.config = mutators.length > 0
       ? mutators.reduce((cfg, m) => m.apply(cfg), { ...this.baseConfig })
       : { ...this.baseConfig };
@@ -193,7 +198,7 @@ export class GeometryWarsGame extends BaseGame<
 
   private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<
     Record<string, unknown>,
-    any,
+    unknown,
     GeometryWarsComponentRegistry,
     GeometryWarsEventRegistry,
     GeometryWarsBlueprintRegistry
@@ -201,8 +206,9 @@ export class GeometryWarsGame extends BaseGame<
     {
       serverIdPrefix: "player",
       localPlayerPolicy: "skip",
-      getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; angle: number }>,
-      spawn: (world, entity, state) => {
+      getStateMap: (root) => root.players as Record<string, unknown>,
+      spawn: (world, entity, rawState) => {
+        const state = rawState as { x: number; y: number; alive: boolean; angle: number };
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, { type: "Player", fireCooldownRemaining: 0, invulnRemaining: 0, moveX: 0, moveY: 0 });
         commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
@@ -212,7 +218,8 @@ export class GeometryWarsGame extends BaseGame<
         );
         commands.addComponent(entity, createHealthComponent(state.alive ? 1 : 0, 1));
       },
-      sync: (world, entity, state) => {
+      sync: (world, entity, rawState) => {
+        const state = rawState as { x: number; y: number; alive: boolean; angle: number };
         syncTransformFromState(world, entity, state);
 
         world.mutateComponent(entity, "Render", (render: RenderComponent) => {
@@ -223,8 +230,9 @@ export class GeometryWarsGame extends BaseGame<
     },
     {
       serverIdPrefix: "enemy",
-      getStateMap: (root) => root.enemies as Record<string, { x: number; y: number; angle: number; type: string }>,
-      spawn: (world, entity, state) => {
+      getStateMap: (root) => root.enemies as Record<string, unknown>,
+      spawn: (world, entity, rawState) => {
+        const state = rawState as { x: number; y: number; angle: number; type: string };
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
         commands.addComponent(
@@ -232,14 +240,16 @@ export class GeometryWarsGame extends BaseGame<
           createRenderComponent({ shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, order: 1 })
         );
       },
-      sync: (world, entity, state) => {
+      sync: (world, entity, rawState) => {
+        const state = rawState as { x: number; y: number; angle: number };
         syncTransformFromState(world, entity, state);
       }
     },
     {
       serverIdPrefix: "bullet",
-      getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; angle: number }>,
-      spawn: (world, entity, state) => {
+      getStateMap: (root) => root.bullets as Record<string, unknown>,
+      spawn: (world, entity, rawState) => {
+        const state = rawState as { x: number; y: number; angle: number };
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
         commands.addComponent(
@@ -247,7 +257,8 @@ export class GeometryWarsGame extends BaseGame<
           createRenderComponent({ shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, order: 2 })
         );
       },
-      sync: (world, entity, state) => {
+      sync: (world, entity, rawState) => {
+        const state = rawState as { x: number; y: number; angle: number };
         syncTransformFromState(world, entity, state);
       }
     }
@@ -266,19 +277,19 @@ export class GeometryWarsGame extends BaseGame<
     const replicator = this.networkManager.getReplicator();
     const entries: InterpolationSnapshotEntry[] = [];
     if (state.players) {
-      Object.entries(state.players as Record<string, any>).forEach(([sessionId, p]) => {
+      Object.entries(state.players as Record<string, { x: number; y: number; angle: number }>).forEach(([sessionId, p]) => {
         const entityId = replicator.getLocalId(`player_${sessionId}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
       });
     }
     if (state.enemies) {
-      Object.entries(state.enemies as Record<string, any>).forEach(([id, p]) => {
+      Object.entries(state.enemies as Record<string, { x: number; y: number; angle: number }>).forEach(([id, p]) => {
         const entityId = replicator.getLocalId(`enemy_${id}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
       });
     }
     if (state.bullets) {
-      Object.entries(state.bullets as Record<string, any>).forEach(([id, p]) => {
+      Object.entries(state.bullets as Record<string, { x: number; y: number; angle: number }>).forEach(([id, p]) => {
         const entityId = replicator.getLocalId(`bullet_${id}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
       });
@@ -299,32 +310,33 @@ export class GeometryWarsGame extends BaseGame<
    * Twin-stick Input Bridge.
    * Maps input onto Player and Aim components in the ECS world.
    */
-  public override setInputState(input: any): void {
+  public override setInputState(input: Record<string, unknown> | object): void {
     const sceneWorld = this.currentScene ? this.currentScene.getWorld() : this.world;
     const players = sceneWorld.query("Player");
     if (players.length > 0) {
       const player = players[0];
 
+      const inputObj = input as Record<string, unknown>;
       // CanonicalInputState support
-      const axes = input.axes ?? input;
-      const actions = input.actions;
+      const axes = ((inputObj.axes as Record<string, number> | undefined) ?? inputObj) as Record<string, number | undefined>;
+      const actions = inputObj.actions as Set<string> | Record<string, boolean> | undefined;
 
       if (sceneWorld.hasComponent(player, "Player")) {
         sceneWorld.mutateComponent(player, "Player", (p) => {
-          if (axes.moveX !== undefined) p.moveX = axes.moveX;
-          if (axes.moveY !== undefined) p.moveY = axes.moveY;
+          if (typeof axes.moveX === "number") p.moveX = axes.moveX;
+          if (typeof axes.moveY === "number") p.moveY = axes.moveY;
           if (actions !== undefined) {
             p.useBomb = actions instanceof Set ? actions.has("bomb") : !!actions.bomb;
-          } else if (input.bomb !== undefined) {
-            p.useBomb = !!input.bomb;
+          } else if (inputObj.bomb !== undefined) {
+            p.useBomb = !!inputObj.bomb;
           }
         });
       }
 
       if (sceneWorld.hasComponent(player, "Aim")) {
         sceneWorld.mutateComponent(player, "Aim", (aim) => {
-          if (axes.aimX !== undefined && axes.aimY !== undefined) {
-            if (input.mouseAbsolute) {
+          if (typeof axes.aimX === "number" && typeof axes.aimY === "number") {
+            if (inputObj.mouseAbsolute) {
               const playerTransform = sceneWorld.getComponent(player, "Transform");
               if (playerTransform) {
                 const worldMouse = Camera2DSystem.screenToWorld(sceneWorld, axes.aimX, axes.aimY);
@@ -338,15 +350,15 @@ export class GeometryWarsGame extends BaseGame<
           }
           if (actions !== undefined) {
             aim.isFiring = actions instanceof Set ? actions.has("fire") : !!actions.fire;
-          } else if (input.fire !== undefined) {
-            aim.isFiring = !!input.fire;
+          } else if (inputObj.fire !== undefined) {
+            aim.isFiring = !!inputObj.fire;
           }
         });
       }
     }
   }
 
-  public initializeRenderer(renderer: Renderer<GeometryWarsComponentRegistry, any>): void {
+  public initializeRenderer(renderer: Renderer<GeometryWarsComponentRegistry, RenderContext>): void {
     const { registerSharedVFX } = require("../shared/rendering/SharedVFX");
     registerSharedVFX(renderer);
 

@@ -5,7 +5,7 @@ import { InputFrame } from "./NetTypes";
 import { ClientAckTracker, World, ComponentRegistry, EventRegistry } from "@tiny-aster/core";
 import { ReplicationStrategy } from "./replication/ReplicationStrategy";
 
-const GenericRoom = ColyseusRoom as any as { new <T extends Schema = Schema>(): ColyseusRoom<{ state: T }> };
+const GenericRoom = ColyseusRoom as unknown as { new <T extends Schema = Schema>(): ColyseusRoom<{ state: T }> };
 
 export const BaseRoomOptionsSchema = z.object({
   seed: z.number().int().optional(),

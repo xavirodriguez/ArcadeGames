@@ -42,8 +42,8 @@ export interface MutatorComponentRegistry extends ComponentRegistry {
 export type MutatorHookWithId<TComponents extends ComponentRegistry = ComponentRegistry> = (world: World<TComponents>) => void;
 export type MutatorHookGeneric<TComponents extends ComponentRegistry = ComponentRegistry> = (world: World<TComponents>, mutatorId: string) => void;
 
-const MUTATOR_HOOKS: Record<string, MutatorHookWithId<any>[]> = {};
-const genericMutatorHooks: MutatorHookGeneric<any>[] = [];
+const MUTATOR_HOOKS: Record<string, MutatorHookWithId<ComponentRegistry>[]> = {};
+const genericMutatorHooks: MutatorHookGeneric<ComponentRegistry>[] = [];
 
 /**
  * Registers a game-specific hook to run when a mutator is applied.
@@ -58,9 +58,9 @@ export function registerMutatorHook<TComponents extends ComponentRegistry = Comp
     if (!MUTATOR_HOOKS[arg1]) {
       MUTATOR_HOOKS[arg1] = [];
     }
-    MUTATOR_HOOKS[arg1].push(arg2 as MutatorHookWithId<any>);
+    MUTATOR_HOOKS[arg1].push(arg2 as unknown as MutatorHookWithId<ComponentRegistry>);
   } else if (typeof arg1 === "function") {
-    genericMutatorHooks.push(arg1 as MutatorHookGeneric<any>);
+    genericMutatorHooks.push(arg1 as unknown as MutatorHookGeneric<ComponentRegistry>);
   }
 }
 

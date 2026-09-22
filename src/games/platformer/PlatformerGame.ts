@@ -3,9 +3,11 @@ import {
   GameDefinition,
   World,
   SystemPhase,
+  System,
   BlueprintDefinition,
   Component,
   CoreComponentRegistry,
+  EventRegistry,
   ConfigService,
   WebAudioPlayer,
   PhysicsIntegrateSystem,
@@ -15,6 +17,7 @@ import {
   PlatformerCoyoteSystem,
   TTLSystem,
   Renderer,
+  RenderContext,
   TilemapRenderSystem,
   Camera2DSystem,
   EnemySensorSystem,
@@ -33,6 +36,8 @@ import {
   TransformComponent,
   VelocityComponent,
   Collider2DComponent,
+  BoxShape,
+  ShapeType,
   TagComponent,
   HealthComponent,
   Theme,
@@ -78,14 +83,14 @@ export interface PlatformerGameState extends Component {
   isGameOver: boolean;
 }
 
-export interface PlatformerBlueprintMap extends Record<string, BlueprintDefinition<CoreComponentRegistry, any, any>> {
-  player: BlueprintDefinition<CoreComponentRegistry, any, { x: number; y: number }>;
-  tilemap: BlueprintDefinition<CoreComponentRegistry, any, { data: number[][]; tileDefinitions: any }>;
+export interface PlatformerBlueprintMap extends Record<string, BlueprintDefinition<CoreComponentRegistry, EventRegistry, unknown>> {
+  player: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number }>;
+  tilemap: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { data: number[][]; tileDefinitions: Record<number, unknown> }>;
 }
 
 export const PLATFORMER_CONFIG = DEFAULT_PLATFORMER_CONFIG;
 
-export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, any, PlatformerBlueprintMap> {
+export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, EventRegistry, PlatformerBlueprintMap> {
   public readonly gameId = "platformer";
   private gameOver = false;
   private levelPlan!: LevelPlan;
@@ -120,17 +125,18 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     // Register PowerUp effects
     const powerUpRegistry = new PowerUpRegistry({
       double_jump: {
-        apply(world: World<any>, player: number) {
+        apply(world: World<CoreComponentRegistry>, player: number) {
           if (world.hasComponent(player, "PlatformerJumper")) {
-            world.mutateComponent(player, "PlatformerJumper", (j: any) => {
-              j.maxJumps = 2;
-              j.jumpsRemaining = 2;
+            world.mutateComponent(player, "PlatformerJumper", (j: unknown) => {
+              const jumper = j as { maxJumps: number; jumpsRemaining: number };
+              jumper.maxJumps = 2;
+              jumper.jumpsRemaining = 2;
             });
           }
         }
       },
       dash_unlock: {
-        apply(world: World<any>, player: number) {
+        apply(world: World<CoreComponentRegistry>, player: number) {
           world.commands.addComponent(player, {
             type: "DashUnlocked",
             unlocked: true,
@@ -138,15 +144,15 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
             cooldown: 0,
             cooldownMax: 0.8,
             dashTimeRemaining: 0
-          });
+          } as unknown as Component);
         }
       },
       wall_jump_unlock: {
-        apply(world: World<any>, player: number) {
+        apply(world: World<CoreComponentRegistry>, player: number) {
           world.commands.addComponent(player, {
             type: "WallJumpUnlocked",
             unlocked: true
-          });
+          } as unknown as Component);
         }
       }
     });
@@ -158,9 +164,10 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       eventBus.on("level:completed", () => {
         this.gameOver = true;
       });
-      eventBus.on("PlaySFX", (event: any) => {
-        if (event && event.name) {
-          this.audio.playSFX(event.name);
+      eventBus.on("PlaySFX", (event: unknown) => {
+        const sfx = event as { name?: string } | undefined;
+        if (sfx && sfx.name) {
+          this.audio.playSFX(sfx.name);
         }
       });
       eventBus.on("CollectiblePickedUp", () => {
@@ -259,7 +266,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withVelocity()
-          .withCollider({ shape: { type: "aabb", halfWidth: 10, halfHeight: 15 } as any })
+          .withCollider({ shape: { type: ShapeType.Box, width: 20, height: 30 } as BoxShape })
           .withRender({ shape: "player", size: 24, color: tint, order: 2 });
 
         world.addComponent(entity, { type: "Health", current: 3, max: 3 } as HealthComponent);
@@ -326,7 +333,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     });
 
     this.blueprints.register("tilemap", {
-      spawn: (world, entity, args: { data: number[][]; tileDefinitions: any }) => {
+      spawn: (world, entity, args: { data: number[][]; tileDefinitions: Record<number, unknown> }) => {
         const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: 0, y: 0 })
@@ -355,13 +362,13 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.world.addSystem(new PlatformerGoalSystem(), { phase: SystemPhase.Simulation });
 
     // Game-specific collision systems
-    this.world.addSystem(new PowerUpSystem() as any, { phase: SystemPhase.Collision });
+    this.world.addSystem(new PowerUpSystem() as unknown as System<CoreComponentRegistry>, { phase: SystemPhase.Collision });
 
     // Game-specific presentation systems
     this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
   }
 
-  public initializeRenderer(renderer: Renderer<any, any>): void {
+  public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
     renderer.registerShape("tilemap", drawPlatformerTilemap);
     renderer.registerShape("player", drawPlatformerPlayer);
     renderer.registerShape("goal", drawPlatformerGoal);
@@ -404,7 +411,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
 
     // Spawn player
     const playerEntity = this.world.createEntity();
-    this.blueprints.get("player")?.spawn(this.world as any, playerEntity, { x: 100, y: 350 });
+    this.blueprints.get("player")?.spawn(this.world, playerEntity, { x: 100, y: 350 });
 
     // Spawn Main Follow Camera
     const cameraEntity = this.world.createEntity();

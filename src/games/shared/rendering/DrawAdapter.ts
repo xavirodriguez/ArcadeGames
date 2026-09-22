@@ -1,3 +1,4 @@
+import type { SkCanvas } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { renderCanvasGlow, renderSkiaGlow, getGlowStyle } from "./GlowSystem";
 
@@ -16,6 +17,16 @@ export interface IDrawAdapter {
   drawArc(x: number, y: number, radius: number, startAngleRad: number, sweepAngleRad: number, color: string, strokeWidth?: number, alpha?: number): void;
   drawText(text: string, x: number, y: number, color: string, alpha?: number, fontSize?: number): void;
   drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void): void;
+}
+
+interface SkiaCanvasLike {
+  save?: () => void;
+  restore?: () => void;
+  drawCircle?: (x: number, y: number, radius: number, paint: unknown) => void;
+  drawRect?: (rect: unknown, paint: unknown) => void;
+  drawLine?: (x1: number, y1: number, x2: number, y2: number, paint: unknown) => void;
+  drawPath?: (path: unknown, paint: unknown) => void;
+  drawText?: (text: string, x: number, y: number, paint: unknown) => void;
 }
 
 /**
@@ -110,70 +121,74 @@ export class CanvasDrawAdapter implements IDrawAdapter {
  * @public
  */
 export class SkiaDrawAdapter implements IDrawAdapter {
-  constructor(private canvas: any) {}
+  private get skCanvas(): SkiaCanvasLike {
+    return this.canvas as SkiaCanvasLike;
+  }
+
+  constructor(private canvas: SkCanvas | unknown) {}
 
   public save(): void {
-    if (this.canvas && typeof this.canvas.save === "function") {
-      this.canvas.save();
+    if (this.skCanvas.save) {
+      this.skCanvas.save();
     }
   }
 
   public restore(): void {
-    if (this.canvas && typeof this.canvas.restore === "function") {
-      this.canvas.restore();
+    if (this.skCanvas.restore) {
+      this.skCanvas.restore();
     }
   }
 
   public fillCircle(x: number, y: number, radius: number, color: string, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001) return;
+    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawCircle) return;
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha);
-    this.canvas.drawCircle(x, y, Math.max(0, radius), paint);
+    this.skCanvas.drawCircle(x, y, Math.max(0, radius), paint);
   }
 
   public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001) return;
+    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawCircle) return;
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(strokeWidth);
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha);
-    this.canvas.drawCircle(x, y, Math.max(0, radius), paint);
+    this.skCanvas.drawCircle(x, y, Math.max(0, radius), paint);
   }
 
   public fillRect(x: number, y: number, width: number, height: number, color: string, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001) return;
+    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawRect) return;
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha);
-    this.canvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
+    this.skCanvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
   }
 
   public strokeRect(x: number, y: number, width: number, height: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001) return;
+    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawRect) return;
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(strokeWidth);
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha);
-    this.canvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
+    this.skCanvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
   }
 
   public drawLine(x1: number, y1: number, x2: number, y2: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001) return;
+    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawLine) return;
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(strokeWidth);
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha);
-    this.canvas.drawLine(x1, y1, x2, y2, paint);
+    this.skCanvas.drawLine(x1, y1, x2, y2, paint);
   }
 
   public drawArc(x: number, y: number, radius: number, startAngleRad: number, sweepAngleRad: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001) return;
+    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawPath) return;
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(strokeWidth);
@@ -186,22 +201,20 @@ export class SkiaDrawAdapter implements IDrawAdapter {
       (startAngleRad * 180) / Math.PI,
       (sweepAngleRad * 180) / Math.PI
     );
-    this.canvas.drawPath(path, paint);
+    this.skCanvas.drawPath(path, paint);
   }
 
   public drawText(text: string, x: number, y: number, color: string, alpha: number = 1.0, _fontSize: number = 14): void {
-    if (!Skia || alpha <= 0.001) return;
+    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawText) return;
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha);
-    if (typeof this.canvas.drawText === "function") {
-      this.canvas.drawText(text, x, y, paint);
-    }
+    this.skCanvas.drawText(text, x, y, paint);
   }
 
   public drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void): void {
     const glowStyle = getGlowStyle(glowColorStr, "normal");
-    renderSkiaGlow(this.canvas, glowStyle, () => {
+    renderSkiaGlow(this.skCanvas, glowStyle, () => {
       drawFn(this);
     });
   }

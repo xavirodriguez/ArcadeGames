@@ -1149,18 +1149,55 @@
     },
     {
       "firstFile": {
+        "end": 227,
+        "endLoc": {
+          "column": 30,
+          "line": 227,
+          "position": 8079
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 219,
+        "startLoc": {
+          "column": 106,
+          "line": 219,
+          "position": 7775
+        }
+      },
+      "format": "typescript",
+      "fragment": "        const config = world.getResource<EchoRunnerConfigType>(\"GameConfig\") || DEFAULT_ECHO_RUNNER_CONFIG;\n\n        world.addComponent(entity, createPlatformerMovementConfig(config) as { type: string; [key: string]: unknown });\n        world.addComponent(entity, {\n          type: \"PlatformerInput\",\n          moveDir: 0,\n          jumpPressed: false,\n          jumpHeld: false,\n          jumpReleased: false,",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 277,
+        "endLoc": {
+          "column": 30,
+          "line": 277,
+          "position": 9676
+        },
+        "name": "platformer/PlatformerGame.ts",
+        "start": 269,
+        "startLoc": {
+          "column": 105,
+          "line": 269,
+          "position": 9372
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
         "end": 236,
         "endLoc": {
           "column": 53,
           "line": 236,
-          "position": 8426
+          "position": 8463
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 230,
         "startLoc": {
           "column": 8,
           "line": 230,
-          "position": 8109
+          "position": 8146
         }
       },
       "format": "typescript",
@@ -1172,14 +1209,14 @@
         "endLoc": {
           "column": 53,
           "line": 294,
-          "position": 10372
+          "position": 10409
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 288,
         "startLoc": {
           "column": 78,
           "line": 288,
-          "position": 10055
+          "position": 10092
         }
       },
       "tokens": 51
@@ -1190,14 +1227,14 @@
         "endLoc": {
           "column": 41,
           "line": 253,
-          "position": 9216
+          "position": 9253
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 247,
         "startLoc": {
           "column": 106,
           "line": 247,
-          "position": 8984
+          "position": 9021
         }
       },
       "format": "typescript",
@@ -1209,14 +1246,14 @@
         "endLoc": {
           "column": 41,
           "line": 324,
-          "position": 11628
+          "position": 11665
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 318,
         "startLoc": {
           "column": 8,
           "line": 318,
-          "position": 11396
+          "position": 11433
         }
       },
       "tokens": 62
@@ -1227,14 +1264,14 @@
         "endLoc": {
           "column": 49,
           "line": 316,
-          "position": 11632
+          "position": 11669
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 306,
         "startLoc": {
           "column": 52,
           "line": 306,
-          "position": 11136
+          "position": 11173
         }
       },
       "format": "typescript",
@@ -1264,14 +1301,14 @@
         "endLoc": {
           "column": 82,
           "line": 382,
-          "position": 14067
+          "position": 14104
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 371,
         "startLoc": {
           "column": 63,
           "line": 371,
-          "position": 13569
+          "position": 13606
         }
       },
       "format": "typescript",
@@ -1283,14 +1320,14 @@
         "endLoc": {
           "column": 82,
           "line": 373,
-          "position": 13956
+          "position": 13993
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 364,
         "startLoc": {
           "column": 61,
           "line": 364,
-          "position": 13523
+          "position": 13560
         }
       },
       "tokens": 92
@@ -1301,14 +1338,14 @@
         "endLoc": {
           "column": 17,
           "line": 411,
-          "position": 15039
+          "position": 15076
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 401,
         "startLoc": {
           "column": 4,
           "line": 401,
-          "position": 14775
+          "position": 14812
         }
       },
       "format": "typescript",
@@ -1320,14 +1357,14 @@
         "endLoc": {
           "column": 17,
           "line": 405,
-          "position": 15088
+          "position": 15125
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 395,
         "startLoc": {
           "column": 4,
           "line": 395,
-          "position": 14824
+          "position": 14861
         }
       },
       "tokens": 54
@@ -3184,18 +3221,18 @@
     },
     {
       "firstFile": {
-        "end": 50,
+        "end": 61,
         "endLoc": {
           "column": 13,
-          "line": 50,
-          "position": 2101
+          "line": 61,
+          "position": 2585
         },
         "name": "shared/rendering/DrawAdapter.ts",
-        "start": 45,
+        "start": 56,
         "startLoc": {
           "column": 50,
-          "line": 45,
-          "position": 1869
+          "line": 56,
+          "position": 2353
         }
       },
       "format": "typescript",
@@ -3203,73 +3240,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 67,
+        "end": 78,
         "endLoc": {
           "column": 13,
-          "line": 67,
-          "position": 2760
+          "line": 78,
+          "position": 3244
         },
         "name": "shared/rendering/DrawAdapter.ts",
-        "start": 62,
+        "start": 73,
         "startLoc": {
           "column": 63,
-          "line": 62,
-          "position": 2528
+          "line": 73,
+          "position": 3012
         }
       },
       "tokens": 58
     },
     {
       "firstFile": {
-        "end": 51,
+        "end": 62,
         "endLoc": {
           "column": 13,
-          "line": 51,
-          "position": 2127
+          "line": 62,
+          "position": 2611
         },
         "name": "shared/rendering/DrawAdapter.ts",
-        "start": 45,
+        "start": 56,
         "startLoc": {
           "column": 50,
-          "line": 45,
-          "position": 1869
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {\n    if (alpha <= 0.001) return;\n    this.ctx.strokeStyle = color;\n    this.ctx.lineWidth = strokeWidth;\n    this.ctx.globalAlpha = alpha;\n    this.ctx.beginPath();\n    this.ctx.arc(x, y, Math.max(0, radius), 0, Math.PI * 2);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 76,
-        "endLoc": {
-          "column": 13,
-          "line": 76,
-          "position": 3112
-        },
-        "name": "shared/rendering/DrawAdapter.ts",
-        "start": 70,
-        "startLoc": {
-          "column": 56,
-          "line": 70,
-          "position": 2854
-        }
-      },
-      "tokens": 66
-    },
-    {
-      "firstFile": {
-        "end": 51,
-        "endLoc": {
-          "column": 43,
-          "line": 51,
-          "position": 2157
-        },
-        "name": "shared/rendering/DrawAdapter.ts",
-        "start": 45,
-        "startLoc": {
-          "column": 50,
-          "line": 45,
-          "position": 1869
+          "line": 56,
+          "position": 2353
         }
       },
       "format": "typescript",
@@ -3279,167 +3279,130 @@
       "secondFile": {
         "end": 87,
         "endLoc": {
-          "column": 43,
+          "column": 13,
           "line": 87,
-          "position": 3564
+          "position": 3596
         },
         "name": "shared/rendering/DrawAdapter.ts",
         "start": 81,
         "startLoc": {
-          "column": 91,
+          "column": 56,
           "line": 81,
-          "position": 3276
+          "position": 3338
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 62,
+        "endLoc": {
+          "column": 43,
+          "line": 62,
+          "position": 2641
+        },
+        "name": "shared/rendering/DrawAdapter.ts",
+        "start": 56,
+        "startLoc": {
+          "column": 50,
+          "line": 56,
+          "position": 2353
+        }
+      },
+      "format": "typescript",
+      "fragment": "  public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {\n    if (alpha <= 0.001) return;\n    this.ctx.strokeStyle = color;\n    this.ctx.lineWidth = strokeWidth;\n    this.ctx.globalAlpha = alpha;\n    this.ctx.beginPath();\n    this.ctx.arc(x, y, Math.max(0, radius), 0, Math.PI * 2);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 98,
+        "endLoc": {
+          "column": 43,
+          "line": 98,
+          "position": 4048
+        },
+        "name": "shared/rendering/DrawAdapter.ts",
+        "start": 92,
+        "startLoc": {
+          "column": 91,
+          "line": 92,
+          "position": 3760
         }
       },
       "tokens": 81
     },
     {
       "firstFile": {
-        "end": 133,
+        "end": 158,
         "endLoc": {
-          "column": 16,
-          "line": 133,
-          "position": 4960
+          "column": 18,
+          "line": 158,
+          "position": 5966
         },
         "name": "shared/rendering/DrawAdapter.ts",
-        "start": 127,
+        "start": 152,
         "startLoc": {
-          "column": 48,
-          "line": 127,
-          "position": 4708
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public fillCircle(x: number, y: number, radius: number, color: string, alpha: number = 1.0): void {\n    if (!Skia || alpha <= 0.001) return;\n    const paint = Skia.Paint();\n    paint.setStyle(Skia.PaintStyle.Fill);\n    paint.setColor(Skia.Color(color));\n    paint.setAlphaf(alpha);\n    this.canvas.drawCircle(x, y, Math.max(0, radius), paint);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 152,
-        "endLoc": {
-          "column": 16,
+          "column": 60,
           "line": 152,
-          "position": 5745
-        },
-        "name": "shared/rendering/DrawAdapter.ts",
-        "start": 146,
-        "startLoc": {
-          "column": 61,
-          "line": 146,
-          "position": 5493
-        }
-      },
-      "tokens": 70
-    },
-    {
-      "firstFile": {
-        "end": 143,
-        "endLoc": {
-          "column": 16,
-          "line": 143,
-          "position": 5381
-        },
-        "name": "shared/rendering/DrawAdapter.ts",
-        "start": 136,
-        "startLoc": {
-          "column": 50,
-          "line": 136,
-          "position": 5061
+          "position": 5756
         }
       },
       "format": "typescript",
-      "fragment": "  public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {\n    if (!Skia || alpha <= 0.001) return;\n    const paint = Skia.Paint();\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(strokeWidth);\n    paint.setColor(Skia.Color(color));\n    paint.setAlphaf(alpha);\n    this.canvas.drawCircle(x, y, Math.max(0, radius), paint);",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 162,
-        "endLoc": {
-          "column": 16,
-          "line": 162,
-          "position": 6186
-        },
-        "name": "shared/rendering/DrawAdapter.ts",
-        "start": 155,
-        "startLoc": {
-          "column": 63,
-          "line": 155,
-          "position": 5866
-        }
-      },
-      "tokens": 83
-    },
-    {
-      "firstFile": {
-        "end": 143,
-        "endLoc": {
-          "column": 16,
-          "line": 143,
-          "position": 5381
-        },
-        "name": "shared/rendering/DrawAdapter.ts",
-        "start": 136,
-        "startLoc": {
-          "column": 50,
-          "line": 136,
-          "position": 5061
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {\n    if (!Skia || alpha <= 0.001) return;\n    const paint = Skia.Paint();\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(strokeWidth);\n    paint.setColor(Skia.Color(color));\n    paint.setAlphaf(alpha);\n    this.canvas.drawCircle(x, y, Math.max(0, radius), paint);",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 172,
-        "endLoc": {
-          "column": 16,
-          "line": 172,
-          "position": 6620
-        },
-        "name": "shared/rendering/DrawAdapter.ts",
-        "start": 165,
-        "startLoc": {
-          "column": 56,
-          "line": 165,
-          "position": 6300
-        }
-      },
-      "tokens": 83
-    },
-    {
-      "firstFile": {
-        "end": 142,
-        "endLoc": {
-          "column": 27,
-          "line": 142,
-          "position": 5364
-        },
-        "name": "shared/rendering/DrawAdapter.ts",
-        "start": 136,
-        "startLoc": {
-          "column": 50,
-          "line": 136,
-          "position": 5061
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {\n    if (!Skia || alpha <= 0.001) return;\n    const paint = Skia.Paint();\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(strokeWidth);\n    paint.setColor(Skia.Color(color));\n    paint.setAlphaf(alpha);",
+      "fragment": "    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawCircle) return;\n    const paint = Skia.Paint();\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(strokeWidth);\n    paint.setColor(Skia.Color(color));\n    paint.setAlphaf(alpha);\n    this.skCanvas.drawCircle(x, y, Math.max(0, radius), paint);",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 181,
+        "end": 177,
         "endLoc": {
-          "column": 27,
-          "line": 181,
-          "position": 7052
+          "column": 18,
+          "line": 177,
+          "position": 6829
         },
         "name": "shared/rendering/DrawAdapter.ts",
-        "start": 175,
+        "start": 171,
         "startLoc": {
-          "column": 91,
-          "line": 175,
-          "position": 6749
+          "column": 58,
+          "line": 171,
+          "position": 6619
         }
       },
-      "tokens": 79
+      "tokens": 53
+    },
+    {
+      "firstFile": {
+        "end": 158,
+        "endLoc": {
+          "column": 18,
+          "line": 158,
+          "position": 5966
+        },
+        "name": "shared/rendering/DrawAdapter.ts",
+        "start": 152,
+        "startLoc": {
+          "column": 60,
+          "line": 152,
+          "position": 5756
+        }
+      },
+      "format": "typescript",
+      "fragment": "    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawCircle) return;\n    const paint = Skia.Paint();\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(strokeWidth);\n    paint.setColor(Skia.Color(color));\n    paint.setAlphaf(alpha);\n    this.skCanvas.drawCircle(x, y, Math.max(0, radius), paint);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 187,
+        "endLoc": {
+          "column": 18,
+          "line": 187,
+          "position": 7292
+        },
+        "name": "shared/rendering/DrawAdapter.ts",
+        "start": 181,
+        "startLoc": {
+          "column": 58,
+          "line": 181,
+          "position": 7082
+        }
+      },
+      "tokens": 53
     },
     {
       "firstFile": {
@@ -3517,18 +3480,18 @@
     },
     {
       "firstFile": {
-        "end": 414,
+        "end": 423,
         "endLoc": {
           "column": 7,
-          "line": 414,
-          "position": 17916
+          "line": 423,
+          "position": 18262
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 407,
+        "start": 416,
         "startLoc": {
           "column": 35,
-          "line": 407,
-          "position": 17650
+          "line": 416,
+          "position": 17996
         }
       },
       "format": "typescript",
@@ -3536,36 +3499,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 870,
+        "end": 883,
         "endLoc": {
           "column": 7,
-          "line": 870,
-          "position": 33980
+          "line": 883,
+          "position": 34632
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 863,
+        "start": 876,
         "startLoc": {
           "column": 37,
-          "line": 863,
-          "position": 33714
+          "line": 876,
+          "position": 34366
         }
       },
       "tokens": 59
     },
     {
       "firstFile": {
-        "end": 462,
+        "end": 471,
         "endLoc": {
           "column": 43,
-          "line": 462,
-          "position": 19909
+          "line": 471,
+          "position": 20265
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 449,
+        "start": 458,
         "startLoc": {
           "column": 28,
-          "line": 449,
-          "position": 19536
+          "line": 458,
+          "position": 19892
         }
       },
       "format": "typescript",
@@ -3573,18 +3536,18 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 496,
+        "end": 506,
         "endLoc": {
           "column": 43,
-          "line": 496,
-          "position": 21132
+          "line": 506,
+          "position": 21546
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 483,
+        "start": 493,
         "startLoc": {
           "column": 70,
-          "line": 483,
-          "position": 20759
+          "line": 493,
+          "position": 21173
         }
       },
       "tokens": 112
@@ -4183,32 +4146,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-22T16:35:39.911Z",
+    "detectionDate": "2026-09-22T17:48:47.534Z",
     "formats": {
       "typescript": {
-        "clones": 113,
-        "duplicatedLines": 869,
-        "duplicatedTokens": 7852,
-        "lines": 67214,
+        "clones": 112,
+        "duplicatedLines": 863,
+        "duplicatedTokens": 7697,
+        "lines": 67240,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 1.2928854107775165,
-        "percentageTokens": 2.235171210357166,
+        "percentage": 1.283462224866151,
+        "percentageTokens": 2.1891665126068345,
         "sources": 408,
-        "tokens": 351293
+        "tokens": 351595
       }
     },
     "total": {
-      "clones": 113,
-      "duplicatedLines": 869,
-      "duplicatedTokens": 7852,
-      "lines": 67214,
+      "clones": 112,
+      "duplicatedLines": 863,
+      "duplicatedTokens": 7697,
+      "lines": 67240,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 1.2928854107775165,
-      "percentageTokens": 2.235171210357166,
+      "percentage": 1.283462224866151,
+      "percentageTokens": 2.1891665126068345,
       "sources": 408,
-      "tokens": 351293
+      "tokens": 351595
     }
   }
 }

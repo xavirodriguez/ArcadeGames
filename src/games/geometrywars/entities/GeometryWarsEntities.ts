@@ -2,6 +2,7 @@ import {
   World,
   ShapeType,
   BlueprintRegistry,
+  BlueprintDefinition,
   CircleShape,
   resolveThemeColor,
   EntityBuilder,
@@ -33,7 +34,7 @@ interface EnemyParams {
 }
 
 function spawnEnemyEntity(
-  w: World<any, any, any>,
+  w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>,
   entity: number,
   params: EnemyParams
 ): void {
@@ -72,6 +73,96 @@ function spawnEnemyEntity(
 }
 
 /**
+ * Type definition for Geometry Wars enemy blueprint definitions.
+ */
+type EnemyBlueprintDef = BlueprintDefinition<
+  GeometryWarsComponentRegistry,
+  GeometryWarsEventRegistry,
+  { x: number; y: number }
+>;
+
+/**
+ * Helper to construct an enemy blueprint definition from configuration options.
+ */
+function createEnemyBlueprint(config: Omit<EnemyParams, "x" | "y">): EnemyBlueprintDef {
+  return {
+    spawn: (w, entity, args) => {
+      spawnEnemyEntity(w, entity, {
+        x: args.x,
+        y: args.y,
+        ...config
+      });
+    }
+  };
+}
+
+/**
+ * Configuration table for Geometry Wars enemy blueprints.
+ */
+const ENEMY_DEFS: Record<string, EnemyBlueprintDef> = {
+  enemy_chaser: createEnemyBlueprint({
+    shape: "gw_chaser",
+    size: 14,
+    color: colors.pink,
+    radius: 7,
+    maxSpeed: 140,
+    maxAcceleration: 150
+  }),
+  enemy_evader: createEnemyBlueprint({
+    shape: "gw_evader",
+    size: 14,
+    color: "#ffaa00",
+    radius: 7,
+    maxSpeed: 120,
+    maxAcceleration: 100
+  }),
+  enemy_grunt: createEnemyBlueprint({
+    shape: "gw_grunt",
+    size: 10,
+    color: colors.cyan,
+    radius: 5,
+    maxSpeed: 250,
+    maxAcceleration: 280
+  }),
+  seeker: createEnemyBlueprint({
+    shape: "gw_seeker",
+    size: 12,
+    color: colors.pink,
+    radius: 6,
+    order: 3,
+    health: 2,
+    hasContactDamage: true,
+    maxSpeed: 120,
+    maxAcceleration: 80,
+    arrivalRadius: 10
+  }),
+  evader: createEnemyBlueprint({
+    shape: "gw_evader",
+    size: 12,
+    color: colors.green,
+    radius: 6,
+    order: 3,
+    health: 1,
+    hasContactDamage: true,
+    maxSpeed: 100,
+    maxAcceleration: 60,
+    steeringMode: "flee"
+  }),
+  fast_seeker: createEnemyBlueprint({
+    shape: "gw_fast_seeker",
+    size: 8,
+    color: colors.pink,
+    radius: 4,
+    order: 3,
+    health: 1,
+    hasContactDamage: true,
+    maxSpeed: 200,
+    maxAcceleration: 150,
+    arrivalRadius: 5
+  })
+};
+
+/**
  * Registers Geometry Wars blueprints.
  * @public
  */
@@ -81,7 +172,7 @@ export function registerGeometryWarsBlueprints(
   const registry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry") || new BlueprintRegistry();
 
   registry.register("player", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
+    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, entity: number, args: { x: number; y: number }) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
       const tint = resolveThemeColor(w, "player");
 
@@ -139,7 +230,7 @@ export function registerGeometryWarsBlueprints(
   });
 
   registry.register("bullet", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation: number }) => {
+    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation: number }) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
       const tint = resolveThemeColor(w, "bullet", "secondary");
 
@@ -167,53 +258,12 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
-  registry.register("enemy_chaser", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnEnemyEntity(w, entity, {
-        x: args.x,
-        y: args.y,
-        shape: "gw_chaser",
-        size: 14,
-        color: colors.pink,
-        radius: 7,
-        maxSpeed: 140,
-        maxAcceleration: 150
-      });
-    }
-  });
-
-  registry.register("enemy_evader", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnEnemyEntity(w, entity, {
-        x: args.x,
-        y: args.y,
-        shape: "gw_evader",
-        size: 14,
-        color: "#ffaa00",
-        radius: 7,
-        maxSpeed: 120,
-        maxAcceleration: 100
-      });
-    }
-  });
-
-  registry.register("enemy_grunt", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnEnemyEntity(w, entity, {
-        x: args.x,
-        y: args.y,
-        shape: "gw_grunt",
-        size: 10,
-        color: colors.cyan,
-        radius: 5,
-        maxSpeed: 250,
-        maxAcceleration: 280
-      });
-    }
-  });
+  for (const [key, blueprint] of Object.entries(ENEMY_DEFS)) {
+    registry.register(key, blueprint);
+  }
 
   registry.register("spawn_director", {
-    spawn: (w: World<any, any, any>, entity: number) => {
+    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, entity: number) => {
       w.addComponent(entity, {
         type: "SpawnDirector",
         waveIndex: 0,
@@ -227,7 +277,7 @@ export function registerGeometryWarsBlueprints(
   });
 
   registry.register("state", {
-    spawn: (w: World<any, any, any>, entity: number) => {
+    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, entity: number) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
       w.addComponent(entity, {
         type: "GeometryWarsState",
@@ -238,63 +288,6 @@ export function registerGeometryWarsBlueprints(
         isGameOver: false,
         gameTime: 0
       } as GeometryWarsComponentRegistry["GeometryWarsState"]);
-    }
-  });
-
-  registry.register("seeker", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnEnemyEntity(w, entity, {
-        x: args.x,
-        y: args.y,
-        shape: "gw_seeker",
-        size: 12,
-        color: colors.pink,
-        radius: 6,
-        order: 3,
-        health: 2,
-        hasContactDamage: true,
-        maxSpeed: 120,
-        maxAcceleration: 80,
-        arrivalRadius: 10
-      });
-    }
-  });
-
-  registry.register("evader", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnEnemyEntity(w, entity, {
-        x: args.x,
-        y: args.y,
-        shape: "gw_evader",
-        size: 12,
-        color: colors.green,
-        radius: 6,
-        order: 3,
-        health: 1,
-        hasContactDamage: true,
-        maxSpeed: 100,
-        maxAcceleration: 60,
-        steeringMode: "flee"
-      });
-    }
-  });
-
-  registry.register("fast_seeker", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      spawnEnemyEntity(w, entity, {
-        x: args.x,
-        y: args.y,
-        shape: "gw_fast_seeker",
-        size: 8,
-        color: colors.pink,
-        radius: 4,
-        order: 3,
-        health: 1,
-        hasContactDamage: true,
-        maxSpeed: 200,
-        maxAcceleration: 150,
-        arrivalRadius: 5
-      });
     }
   });
 

@@ -22,6 +22,7 @@ export class PhysicsSolveSystem<
   TRegistry extends CoreComponentRegistry = CoreComponentRegistry
 > extends System<TRegistry> {
   private processedPairs = new Set<string>();
+  private relVel = { x: 0, y: 0 };
 
   /**
    * Solves active physical collision constraints across matching entities in the world.
@@ -104,26 +105,12 @@ export class PhysicsSolveSystem<
     if (depth > 0) {
       const slop = 0.01;
       const percent = 0.8;
-      const penCorrection = (Math.max(depth - slop, 0) / totalInvMass) * percent;
+      const penCorrection = Math.max(depth - slop, 0) * percent;
       const corrX = penCorrection * normalX;
       const corrY = penCorrection * normalY;
 
-      if (!isStaticA) {
-        const tA = world.getMutableComponent(entityA, "Transform");
-        if (tA) {
-          tA.x -= corrX * invMassA;
-          tA.y -= corrY * invMassA;
-          tA.dirty = true;
-        }
-      }
-      if (!isStaticB) {
-        const tB = world.getMutableComponent(entityB, "Transform");
-        if (tB) {
-          tB.x += corrX * invMassB;
-          tB.y += corrY * invMassB;
-          tB.dirty = true;
-        }
-      }
+      PhysicsUtils.applyPositionCorrection(world, entityA, isStaticA, transA, -corrX, -corrY, invMassA / totalInvMass);
+      PhysicsUtils.applyPositionCorrection(world, entityB, isStaticB, transB, corrX, corrY, invMassB / totalInvMass);
     }
 
     // 2. Impulse Resolution
@@ -151,21 +138,9 @@ export class PhysicsSolveSystem<
     const rxB = cpCount > 0 ? cx - posBx : 0;
     const ryB = cpCount > 0 ? cy - posBy : 0;
 
-    const vxA = velA ? velA.vx : 0;
-    const vyA = velA ? velA.vy : 0;
-    const wA = velA ? velA.angularVelocity : 0;
-
-    const vxB = velB ? velB.vx : 0;
-    const vyB = velB ? velB.vy : 0;
-    const wB = velB ? velB.angularVelocity : 0;
-
-    const vpAx = vxA - wA * ryA;
-    const vpAy = vyA + wA * rxA;
-    const vpBx = vxB - wB * ryB;
-    const vpBy = vyB + wB * rxB;
-
-    const relVx = vpBx - vpAx;
-    const relVy = vpBy - vpAy;
+    PhysicsUtils.computeRelativePointVelocity(velA, rxA, ryA, velB, rxB, ryB, this.relVel);
+    const relVx = this.relVel.x;
+    const relVy = this.relVel.y;
 
     const velAlongNormal = relVx * normalX + relVy * normalY;
 

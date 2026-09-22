@@ -1,4 +1,4 @@
-import { TransformComponent, VelocityComponent } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, EntityBuilder, World, Entity, CoreComponentRegistry } from "@tiny-aster/core";
 
 /**
  * Audit of Player Blueprints Across Games:
@@ -81,4 +81,57 @@ export function createStandardVelocity(
     vy,
     angularVelocity
   };
+}
+
+/**
+ * Constructs a PlatformerMovementConfig component object from a game configuration object.
+ *
+ * @param config - Game configuration containing platformer speed parameters.
+ * @returns PlatformerMovementConfig component definition object.
+ * @public
+ */
+export function createPlatformerMovementConfig(config: {
+  PLAYER_ACCEL: number;
+  PLAYER_SPEED: number;
+  PLAYER_DECEL: number;
+  PLAYER_AIR_ACCEL: number;
+  PLAYER_AIR_DECEL: number;
+}): Record<string, unknown> {
+  return {
+    type: "PlatformerMovementConfig",
+    acceleration: config.PLAYER_ACCEL,
+    maxSpeed: config.PLAYER_SPEED,
+    deceleration: config.PLAYER_DECEL,
+    airAcceleration: config.PLAYER_AIR_ACCEL,
+    airDeceleration: config.PLAYER_AIR_DECEL
+  };
+}
+
+/**
+ * Configures an entity with tilemap rendering and data components.
+ *
+ * @param world - Target simulation world.
+ * @param entity - Target entity ID.
+ * @param tileSize - Width/height of each grid tile in pixels.
+ * @param data - 2D tile layout index array.
+ * @param tileDefinitions - Tile definitions metadata dictionary.
+ * @public
+ */
+export function setupTilemapEntity(
+  world: World<CoreComponentRegistry>,
+  entity: Entity,
+  tileSize: number,
+  data: number[][],
+  tileDefinitions: unknown
+): void {
+  EntityBuilder.fromEntity(world, entity)
+    .withTransform({ x: 0, y: 0 })
+    .withRender({ shape: "tilemap", size: tileSize, order: 0 });
+
+  world.addComponent(entity, {
+    type: "Tilemap",
+    data,
+    tileSize,
+    tileDefinitions
+  } as { type: string; [key: string]: unknown });
 }

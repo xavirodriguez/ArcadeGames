@@ -8,6 +8,7 @@ import { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionSt
 import { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme } from "./CelestialBodiesSystem";
 import { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint } from "./MotionTrailSystem";
 import { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme } from "./LevelThemeSystem";
+import { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter } from "./DrawAdapter";
 
 import {
   getVFXState,
@@ -34,6 +35,7 @@ export { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionSt
 export { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };
 export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };
 export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
+export { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter };
 
 export { getActiveLevelTheme, getScreenAndVFXState, readCanvasSize, createParallaxLayer };
 
@@ -56,299 +58,165 @@ export {
   MissionHudOptions
 } from "./SharedMissionHUD";
 
+interface SkiaCanvasOps {
+  save(): void;
+  restore(): void;
+  drawLine(x1: number, y1: number, x2: number, y2: number, paint: unknown): void;
+  drawRect(rect: unknown, paint: unknown): void;
+  drawPath(path: unknown, paint: unknown): void;
+}
+
 // -------------------------------------------------------------
 // Pure Calculation & State Update Helpers
 // -------------------------------------------------------------
-export function updateSpeedLine(line: SpeedLine, maxRadius: number, rng: RandomService): void {
-  line.radius += line.speed;
-  if (line.radius > maxRadius) {
-    line.radius = rng.nextRange(10, 50);
-    line.angle = rng.nextRange(0, Math.PI * 2);
-    line.length = rng.nextRange(15, 60);
-    line.speed = rng.nextRange(4, 12);
-  }
+
+function getRenderComponent(world: World<CoreComponentRegistry>, entity: Entity): RenderComponent | undefined {
+  return world.getComponent(entity, "Render");
 }
 
-export function computeSpeedLineCoordinates(centerX: number, centerY: number, angle: number, radius: number, length: number) {
-  return {
-    x1: centerX + Math.cos(angle) * radius,
-    y1: centerY + Math.sin(angle) * radius,
-    x2: centerX + Math.cos(angle) * (radius + length),
-    y2: centerY + Math.sin(angle) * (radius + length)
-  };
-}
-
-export function updateMatrixColumn(col: MatrixColumn, height: number, rng: RandomService): void {
-  col.y += col.speed;
-  if (col.y > height) {
-    col.y = -150;
-    col.speed = rng.nextRange(2, 6);
-  }
-}
-
-export function updateAccretionParticle(p: AccretionParticle, baseSize: number, rng: RandomService): void {
-  p.angle -= p.speed;
-  p.radius -= 0.2;
-  if (p.radius < 5) {
-    p.radius = rng.nextRange(baseSize * 0.8, baseSize * 1.5);
-    p.angle = rng.nextRange(0, Math.PI * 2);
-  }
-}
-
-export function updateDistantAsteroid(ast: DistantAsteroid, width: number, offsetX: number): { posX: number; y: number; rotation: number } {
-  ast.x += ast.vx;
-  ast.y += ast.vy;
-  ast.rotation += ast.angularVelocity;
-  const posX = wrapParallaxCoordinate(ast.x - offsetX * 0.1, width, ast.radius * 2);
-  return { posX, y: ast.y, rotation: ast.rotation };
-}
-
-export function getRenderComponent<TComponents extends ComponentRegistry = ComponentRegistry>(
-  world: World<TComponents>,
-  entity: Entity
-): RenderComponent | undefined {
-  return world.getComponent(entity, "Render" as Extract<keyof TComponents, string>) as RenderComponent | undefined;
-}
-
-export function getDrawerContext<TComponents extends ComponentRegistry = ComponentRegistry>(
-  world: World<TComponents>,
-  entity: Entity,
-  defaultSize: number,
-  isSkia = false
-): { render: RenderComponent; size: number; timePhase: number } | null {
+function getDrawerContext(world: World<CoreComponentRegistry>, entity: Entity, defaultSize = 20, isSkia = false) {
   if (isSkia && !Skia) return null;
   const render = getRenderComponent(world, entity);
   if (!render) return null;
+
   const size = render.size || defaultSize;
-  const timePhase = getVFXState(world).timePhase;
-  return { render, size, timePhase };
+  const state = getVFXState(world);
+  return { render, size, timePhase: state.timePhase };
 }
 
-export function computeShockwaveParams(baseSize: number, progress: number) {
-  const easedProgress = Math.sin((progress * Math.PI) / 2);
-  const maxRadius = baseSize * 4;
-  const currentRadius = maxRadius * easedProgress;
-  const strokeWidth = Math.max(0.5, 4.0 * (1.0 - progress));
-  return { currentRadius, strokeWidth };
+export function computeCRTScanlineAlpha(timePhase: number, lineY: number): number {
+  return 0.15 + 0.05 * Math.sin(timePhase * 5 + lineY * 0.1);
 }
 
-function computeHologramLayers(timePhase: number, size: number) {
-  const glitchOffset = 2 + 1.5 * Math.sin(timePhase * 10);
-  return [
-    { x: -glitchOffset, radius: size, color: COSMIC_ARCADE_PALETTE.neonCyan, alpha: 0.4 },
-    { x: glitchOffset, radius: size, color: COSMIC_ARCADE_PALETTE.neonMagenta, alpha: 0.4 },
-    { x: 0, radius: size * 0.9, color: COSMIC_ARCADE_PALETTE.white, alpha: 0.9 }
-  ];
+export function computeWarpLineState(line: SpeedLine, timePhase: number, maxRadius: number): { x: number; y: number; alpha: number } {
+  const currentRadius = (line.radius + timePhase * line.speed) % maxRadius;
+  const x = Math.cos(line.angle) * currentRadius;
+  const y = Math.sin(line.angle) * currentRadius;
+  const alpha = Math.min(1.0, currentRadius / (maxRadius * 0.3));
+  return { x, y, alpha };
 }
 
-interface TrailSegment {
-  alpha: number;
-  offset: number;
-  wiggle: number;
-  radius: number;
-}
-
-function computeCometTrailSegments(timePhase: number, size: number): TrailSegment[] {
-  const segments: TrailSegment[] = [];
-  for (let i = 0; i < TRAIL_LENGTH; i++) {
-    const alpha = 0.5 * (1.0 - i / TRAIL_LENGTH);
-    const offset = (i + 1) * 3;
-    const wiggle = 2 * Math.sin(timePhase * 4 + i);
-    const radius = size * (1.0 - i / TRAIL_LENGTH);
-    segments.push({ alpha, offset, wiggle, radius });
-  }
-  return segments;
-}
-
-function computeEffectProgress<TComponents extends ComponentRegistry = ComponentRegistry>(
-  world: World<TComponents>,
-  entity: Entity
-): { progress: number; alpha: number } {
-  const ttl = world.getComponent(entity, "TTL" as Extract<keyof TComponents, string>) as TTLComponent | undefined;
-  let progress = 0.5;
-
-  if (ttl && ttl.timeLeft !== undefined && ttl.remaining !== undefined) {
-    const totalLife = ttl.timeLeft || 1.0;
-    progress = 1.0 - (ttl.remaining / totalLife);
-  } else {
-    progress = (getVFXState(world).timePhase % 2) / 2;
-  }
-
-  const alpha = 1.0 - progress;
-  return { progress, alpha };
-}
-
-function computeShieldBubbleParams(timePhase: number) {
-  const pulseFactor = 1.0 + 0.06 * Math.sin(timePhase);
-  const pulseAlpha = 0.4 + 0.15 * Math.sin(timePhase + Math.PI);
+export function computeShieldBubbleParams(timePhase: number): { pulseFactor: number; pulseAlpha: number } {
+  const pulseFactor = 1.0 + 0.05 * Math.sin(timePhase * 4);
+  const pulseAlpha = 0.4 + 0.2 * Math.sin(timePhase * 4);
   return { pulseFactor, pulseAlpha };
 }
 
-function computeThrusterPlume(timePhase: number, size: number) {
-  const flicker = 1.0 + 0.12 * Math.sin(timePhase * 5) + 0.08 * Math.sin(timePhase * 11);
-  const plumeLength = size * 2.2 * flicker;
-  return { plumeLength };
+export function computeShockwaveParams(size: number, progress: number): { currentRadius: number; strokeWidth: number } {
+  const maxRadius = size * 2.5;
+  const currentRadius = maxRadius * progress;
+  const strokeWidth = Math.max(1, 6 * (1 - progress));
+  return { currentRadius, strokeWidth };
 }
 
-function pickColor(rng: RandomService, colors: string[]): { color: string; skColor: SkColor | null } {
-  const color = colors[rng.nextInt(0, colors.length)];
-  return { color, skColor: Skia ? Skia.Color(color) : null };
+export function computeThrusterPlume(timePhase: number, size: number): { plumeLength: number; flickerScale: number } {
+  const flickerScale = 0.85 + 0.3 * Math.sin(timePhase * 30);
+  const plumeLength = size * 2.2 * flickerScale;
+  return { plumeLength, flickerScale };
 }
 
-function initializeLines(world: World<ComponentRegistry>, state: VFXWorldState, maxRadius: number) {
-  const rng = world.renderRandom;
-  const colors = [
-    COSMIC_ARCADE_PALETTE.white,
-    COSMIC_ARCADE_PALETTE.iceBlue,
-    COSMIC_ARCADE_PALETTE.neonCyan
+export function computeHologramLayers(timePhase: number, size: number): Array<{ color: string; alpha: number; x: number; radius: number }> {
+  const offset = Math.sin(timePhase * 12) * 3;
+  return [
+    { color: COSMIC_ARCADE_PALETTE.neonCyan, alpha: 0.7, x: -offset, radius: size },
+    { color: COSMIC_ARCADE_PALETTE.neonMagenta, alpha: 0.7, x: offset, radius: size },
+    { color: COSMIC_ARCADE_PALETTE.white, alpha: 0.9, x: 0, radius: size * 0.9 }
   ];
+}
 
+export function computeEffectProgress(world: World<CoreComponentRegistry>, entity: Entity): { progress: number; alpha: number } {
+  const ttl = world.getComponent(entity, "TTL");
+  if (!ttl || ttl.remaining <= 0) return { progress: 1.0, alpha: 0.0 };
+
+  const total = ttl.timeLeft || 1.0;
+  const progress = 1.0 - ttl.remaining / total;
+  const alpha = Math.max(0, Math.min(1, ttl.remaining / total));
+  return { progress, alpha };
+}
+
+function updateSpeedLine(line: SpeedLine, maxRadius: number, rng: RandomService): void {
+  line.radius += line.speed;
+  if (line.radius > maxRadius) {
+    line.radius = 0;
+    line.angle = rng.nextRange(0, Math.PI * 2);
+  }
+}
+
+function computeSpeedLineCoordinates(centerX: number, centerY: number, angle: number, radius: number, length: number) {
+  const x1 = centerX + Math.cos(angle) * radius;
+  const y1 = centerY + Math.sin(angle) * radius;
+  const x2 = centerX + Math.cos(angle) * (radius + length);
+  const y2 = centerY + Math.sin(angle) * (radius + length);
+  return { x1, y1, x2, y2 };
+}
+
+function initializeCRTScanlines(width: number, height: number): number[] {
+  const lines: number[] = [];
+  const step = 4;
+  for (let y = 0; y < height; y += step) {
+    lines.push(y);
+  }
+  return lines;
+}
+
+function initializeLines(world: World<CoreComponentRegistry>, state: VFXWorldState, maxRadius: number): void {
+  const rng = world.renderRandom;
   state.lines = [];
   for (let i = 0; i < WARP_LINE_COUNT; i++) {
-    const { color, skColor } = pickColor(rng, colors);
-    state.lines.push({
-      angle: rng.nextRange(0, Math.PI * 2),
-      radius: rng.nextRange(10, maxRadius),
-      length: rng.nextRange(15, 60),
-      speed: rng.nextRange(4, 12),
-      color,
-      skColor
-    });
+    const angle = rng.nextRange(0, Math.PI * 2);
+    const radius = rng.nextRange(0, maxRadius);
+    const speed = rng.nextRange(2, 6);
+    const length = rng.nextRange(10, 30);
+
+    const baseColor = rng.nextRange(0, 1) > 0.5 ? COSMIC_ARCADE_PALETTE.neonCyan : COSMIC_ARCADE_PALETTE.iceBlue;
+    const skColor = Skia ? Skia.Color(baseColor) : undefined;
+
+    state.lines.push({ angle, radius, speed, length, color: baseColor, skColor });
   }
   state.warpLinesInitialized = true;
 }
 
-function initializeMatrix(world: World, state: VFXWorldState) {
-  const rng = world.renderRandom;
-  state.matrixColumns = [];
-  for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
-    state.matrixColumns.push({
-      x: (i * 800) / MATRIX_COLUMN_COUNT,
-      y: rng.nextRange(-400, 0),
-      speed: rng.nextRange(2, 6),
-      length: rng.nextRange(10, 30),
-      intensity: rng.nextRange(0.4, 0.9)
+function initializeMatrixColumns(width: number, height: number, rng: RandomService): MatrixColumn[] {
+  const cols: MatrixColumn[] = [];
+  const colWidth = 14;
+  const count = Math.floor(width / colWidth);
+  for (let i = 0; i < count; i++) {
+    cols.push({
+      x: i * colWidth + colWidth / 2,
+      y: rng.nextRange(-height, 0),
+      speed: rng.nextRange(3, 8),
+      length: rng.nextRange(5, 15),
+      chars: Array.from({ length: 15 }, () => String.fromCharCode(0x30a0 + Math.floor(rng.nextRange(0, 96))))
     });
   }
-  state.matrixInitialized = true;
+  return cols;
 }
 
-function initializeVortex(world: World, state: VFXWorldState) {
+function updateAccretionParticle(p: AccretionParticle, baseSize: number, rng: RandomService): void {
+  p.angle += p.speed;
+  p.radius -= 0.2;
+  if (p.radius < 5) {
+    p.radius = baseSize * rng.nextRange(0.8, 1.2);
+    p.angle = rng.nextRange(0, Math.PI * 2);
+  }
+}
+
+function initializeVortex(world: World<CoreComponentRegistry>, state: VFXWorldState): void {
   const rng = world.renderRandom;
   state.accretionParticles = [];
   for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
     state.accretionParticles.push({
       angle: rng.nextRange(0, Math.PI * 2),
-      radius: rng.nextRange(15, 60),
-      speed: rng.nextRange(0.05, 0.15),
-      size: rng.nextRange(1, 3)
+      radius: rng.nextRange(10, 40),
+      speed: rng.nextRange(0.02, 0.08),
+      size: rng.nextRange(1.5, 3.5)
     });
   }
   state.vortexInitialized = true;
 }
 
-// -------------------------------------------------------------
-// 1. RetroCRTScanlinesEffect (Canvas & Skia)
-// -------------------------------------------------------------
-export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
-
-    state.timePhase += 0.04;
-
-    ctx.save();
-
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.voidBlack;
-    ctx.globalAlpha = 0.15;
-    for (let y = 0; y < height; y += 4) {
-      ctx.fillRect(0, y, width, 2);
-    }
-
-    const gradient = getOrCreateCached(state, "cachedCRTGradient", width, height, () => {
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-
-      const grad = ctx.createRadialGradient(
-        centerX, centerY, maxRadius * 0.4,
-        centerX, centerY, maxRadius
-      );
-      grad.addColorStop(0, hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0));
-      grad.addColorStop(1, hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0.6));
-      return grad;
-    });
-
-    ctx.fillStyle = gradient;
-    ctx.globalAlpha = 1.0;
-    ctx.fillRect(0, 0, width, height);
-
-    const randomFlicker = world.renderRandom.next();
-    if (randomFlicker > 0.95) {
-      ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
-      ctx.globalAlpha = 0.005 + (randomFlicker - 0.95) * 0.15;
-      ctx.fillRect(0, 0, width, height);
-    }
-
-    ctx.restore();
-  }
-};
-
-export const SkiaRetroCRTScanlinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world) {
-    if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const { width, height, state } = getScreenAndVFXState(world);
-
-    state.timePhase += 0.04;
-
-    skCanvas.save();
-
-    const paint = Skia.Paint();
-
-    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack));
-    paint.setAlphaf(0.15);
-    for (let y = 0; y < height; y += 4) {
-      skCanvas.drawRect(Skia.XYWHRect(0, y, width, 2), paint);
-    }
-
-    const shader = getOrCreateCached(state, "cachedSkiaShader", width, height, () => {
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const maxRadius = Math.sqrt(centerX * centerX + centerY * centerY);
-
-      return Skia.Shader.MakeRadialGradient(
-        Skia.Point(centerX, centerY),
-        maxRadius,
-        [
-          getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0),
-          getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0.6)
-        ],
-        [0.4, 1.0],
-        Skia.TileMode.Clamp
-      );
-    });
-
-    paint.setShader(shader);
-    paint.setAlphaf(1.0);
-    skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
-
-    const randomFlicker = world.renderRandom.next();
-    if (randomFlicker > 0.95) {
-      const flickerPaint = Skia.Paint();
-      flickerPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
-      flickerPaint.setAlphaf(0.005 + (randomFlicker - 0.95) * 0.15);
-      skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), flickerPaint);
-    }
-
-    skCanvas.restore();
-  }
-};
-
-/**
- * Registers all shared VFX shape drawers to a Renderer instance for both Canvas and Skia backends.
- */
-export function registerSharedVFX<TComponents extends CoreComponentRegistry, TCanvas extends RenderContext>(renderer: Renderer<TComponents, TCanvas>): void {
-  RendererUtils.registerAssets(renderer as unknown as Renderer<ComponentRegistry, RenderContext>, {
+export function registerSharedVFXAssets(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
+  RendererUtils.registerAssets(renderer, {
     canvas: (r) => {
       r.registerShape("shield_bubble", EnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
       r.registerShape("shockwave", DebrisShockwaveEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
@@ -372,6 +240,8 @@ export function registerSharedVFX<TComponents extends CoreComponentRegistry, TCa
   });
 }
 
+export const registerSharedVFX = registerSharedVFXAssets;
+
 /**
  * Shared particle creation helper for pooling and zero-allocation particle instantiation.
  * @public
@@ -387,13 +257,66 @@ export function createSharedParticle<
   dx: number,
   dy: number,
   color: string,
-  pool: { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: { x: number; y: number; dx: number; dy: number; size: number; color: string; ttl: number }) => number },
+  pool: { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: Record<string, unknown>) => number },
   size = 3,
   ttl = 0.8
 ): number {
   return pool.acquire(world, { x, y, dx, dy, size, color, ttl });
 }
 
+// -------------------------------------------------------------
+// 1. RetroCRTScanlinesEffect (Canvas & Skia)
+// -------------------------------------------------------------
+export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
+  draw(ctx, world) {
+    const { width, height, state } = getScreenAndVFXState(world);
+    const scanlineYs = getOrCreateCached<number[]>(state, "scanlines", width, height, () => initializeCRTScanlines(width, height));
+    const timePhase = state.timePhase;
+
+    ctx.save();
+    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.voidBlack;
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < scanlineYs.length; i++) {
+      const y = scanlineYs[i];
+      ctx.globalAlpha = computeCRTScanlineAlpha(timePhase, y);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+};
+
+export const SkiaRetroCRTScanlinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: RenderContext, world) {
+    if (!Skia) return;
+    const { width, height, state } = getScreenAndVFXState(world);
+    const scanlineYs = getOrCreateCached<number[]>(state, "scanlines", width, height, () => initializeCRTScanlines(width, height));
+    const timePhase = state.timePhase;
+
+    const skCanvas = canvas as SkiaCanvasOps;
+    skCanvas.save();
+    const paint = Skia.Paint();
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(1);
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack));
+
+    for (let i = 0; i < scanlineYs.length; i++) {
+      const y = scanlineYs[i];
+      paint.setAlphaf(computeCRTScanlineAlpha(timePhase, y));
+      skCanvas.drawLine(0, y, width, y, paint);
+    }
+
+    skCanvas.restore();
+  }
+};
+
+// -------------------------------------------------------------
+// 2. HyperdriveWarpSpeedLinesEffect (Canvas & Skia)
+// -------------------------------------------------------------
 function resolveWarpLinesContext(world: World<CoreComponentRegistry>) {
   const { width, height, state } = getScreenAndVFXState(world);
   const centerX = width / 2;
@@ -406,137 +329,72 @@ function resolveWarpLinesContext(world: World<CoreComponentRegistry>) {
   return { centerX, centerY, maxRadius, lines: state.lines };
 }
 
-// -------------------------------------------------------------
-// 3. HyperdriveWarpSpeedLinesEffect (Canvas & Skia)
-// -------------------------------------------------------------
+export function drawHyperdriveWarpSpeedLines(adapter: IDrawAdapter, world: World<CoreComponentRegistry>): void {
+  const { centerX, centerY, maxRadius, lines } = resolveWarpLinesContext(world);
+  adapter.save();
+  for (let i = 0; i < WARP_LINE_COUNT; i++) {
+    const line = lines[i];
+    updateSpeedLine(line, maxRadius, world.renderRandom);
+    const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
+    adapter.drawLine(x1, y1, x2, y2, line.color, 1.5);
+  }
+  adapter.restore();
+}
+
 export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const { centerX, centerY, maxRadius, lines } = resolveWarpLinesContext(world);
-
-    ctx.save();
-    ctx.lineWidth = 1.5;
-
-    for (let i = 0; i < WARP_LINE_COUNT; i++) {
-      const line = lines[i];
-      updateSpeedLine(line, maxRadius, world.renderRandom);
-      const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
-
-      ctx.strokeStyle = line.color;
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    drawHyperdriveWarpSpeedLines(new CanvasDrawAdapter(ctx), world);
   }
 };
 
 export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world) {
+  draw(canvas: RenderContext, world) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const { centerX, centerY, maxRadius, lines } = resolveWarpLinesContext(world);
-
-    skCanvas.save();
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(1.5);
-
-    for (let i = 0; i < WARP_LINE_COUNT; i++) {
-      const line = lines[i];
-      updateSpeedLine(line, maxRadius, world.renderRandom);
-      const { x1, y1, x2, y2 } = computeSpeedLineCoordinates(centerX, centerY, line.angle, line.radius, line.length);
-
-      paint.setColor(line.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
-      skCanvas.drawLine(x1, y1, x2, y2, paint);
-    }
-
-    skCanvas.restore();
+    drawHyperdriveWarpSpeedLines(new SkiaDrawAdapter(canvas), world);
   }
 };
 
 // -------------------------------------------------------------
-// 4. EnergyShieldBubbleEffect (Canvas & Skia)
+// 3. EnergyShieldBubbleEffect (Canvas & Skia)
 // -------------------------------------------------------------
+export function drawEnergyShieldBubble(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, entity: Entity, isSkia: boolean = false): void {
+  const dCtx = getDrawerContext(world, entity, 35, isSkia);
+  if (!dCtx) return;
+
+  const { size, timePhase } = dCtx;
+  const radius = size * 1.3;
+  const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);
+
+  adapter.save();
+  adapter.drawGlow(COSMIC_ARCADE_PALETTE.neonCyan, (glowAdapter) => {
+    glowAdapter.strokeCircle(0, 0, radius * pulseFactor, COSMIC_ARCADE_PALETTE.neonCyan, 3);
+  });
+
+  const rng = world.renderRandom;
+  for (let i = 0; i < 3; i++) {
+    const arcStart = rng.nextRange(0, Math.PI * 2);
+    const arcLen = rng.nextRange(0.2, 0.7);
+    adapter.drawArc(0, 0, radius * pulseFactor, arcStart, arcLen, COSMIC_ARCADE_PALETTE.iceBlue, 2, pulseAlpha * 0.8);
+  }
+
+  adapter.restore();
+}
+
 export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const dCtx = getDrawerContext(world, entity, 35);
-    if (!dCtx) return;
-
-    const { size, timePhase } = dCtx;
-    const radius = size * 1.3;
-    const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);
-    const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "normal");
-
-    ctx.save();
-    renderCanvasGlow(ctx, glowStyle, (glowCtx, isHighlight) => {
-      glowCtx.lineWidth = isHighlight ? 1.5 : 3;
-      glowCtx.beginPath();
-      glowCtx.arc(0, 0, radius * pulseFactor, 0, Math.PI * 2);
-      glowCtx.stroke();
-    });
-
-    const rng = world.renderRandom;
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.iceBlue;
-    ctx.lineWidth = 2;
-
-    for (let i = 0; i < 3; i++) {
-      const arcStart = rng.nextRange(0, Math.PI * 2);
-      const arcLen = rng.nextRange(0.2, 0.7);
-      ctx.globalAlpha = pulseAlpha * 0.8;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius * pulseFactor, arcStart, arcStart + arcLen);
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    drawEnergyShieldBubble(new CanvasDrawAdapter(ctx), world, entity, false);
   }
 };
 
 export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const skCanvas = canvas as unknown as SkCanvas;
-    const dCtx = getDrawerContext(world, entity, 35, true);
-    if (!dCtx) return;
-
-    const { size, timePhase } = dCtx;
-    const radius = size * 1.3;
-    const { pulseFactor } = computeShieldBubbleParams(timePhase);
-    const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "normal");
-
-    skCanvas.save();
-    renderSkiaGlow(skCanvas, glowStyle, (paint, isHighlight) => {
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setStrokeWidth(isHighlight ? 1.5 : 3);
-      skCanvas.drawCircle(0, 0, radius * pulseFactor, paint);
-    });
-
-    const rng = world.renderRandom;
-    const sparkPaint = Skia.Paint();
-    sparkPaint.setStyle(Skia.PaintStyle.Stroke);
-    sparkPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.iceBlue));
-    sparkPaint.setStrokeWidth(2);
-
-    for (let i = 0; i < 3; i++) {
-      const arcStart = rng.nextRange(0, Math.PI * 2);
-      const arcLen = rng.nextRange(0.2, 0.7);
-
-      const path = Skia.Path.Make();
-      path.addArc(
-        Skia.XYWHRect(-radius * pulseFactor, -radius * pulseFactor, radius * pulseFactor * 2, radius * pulseFactor * 2),
-        (arcStart * 180) / Math.PI,
-        (arcLen * 180) / Math.PI
-      );
-      skCanvas.drawPath(path, sparkPaint);
-    }
-
-    skCanvas.restore();
+  draw(canvas: RenderContext, world, entity) {
+    if (!Skia) return;
+    drawEnergyShieldBubble(new SkiaDrawAdapter(canvas), world, entity, true);
   }
 };
 
 // -------------------------------------------------------------
-// 5. DebrisShockwaveEffect (Canvas & Skia)
+// 4. DebrisShockwaveEffect (Canvas & Skia)
 // -------------------------------------------------------------
 function drawShockwaveSparks(
   rng: RandomService,
@@ -555,111 +413,66 @@ function drawShockwaveSparks(
   }
 }
 
+export function drawDebrisShockwave(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, entity: Entity): void {
+  const render = getRenderComponent(world, entity);
+  if (!render) return;
+
+  const { progress, alpha } = computeEffectProgress(world, entity);
+  if (alpha <= 0.01) return;
+
+  const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);
+
+  adapter.save();
+  adapter.strokeCircle(0, 0, currentRadius, COSMIC_ARCADE_PALETTE.solarOrange, strokeWidth, alpha);
+  adapter.strokeCircle(0, 0, currentRadius * 1.2, COSMIC_ARCADE_PALETTE.plasmaYellow, strokeWidth * 0.5, alpha * 0.7);
+
+  drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
+    adapter.fillRect(sparkX - sparkSize / 2, sparkY - sparkSize / 2, sparkSize, sparkSize, COSMIC_ARCADE_PALETTE.plasmaYellow, alpha);
+  });
+  adapter.restore();
+}
+
 export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = getRenderComponent(world, entity);
-    if (!render) return;
-
-    const { progress, alpha } = computeEffectProgress(world, entity);
-    if (alpha <= 0.01) return;
-
-    const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);
-
-    ctx.save();
-
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.solarOrange;
-    ctx.globalAlpha = alpha;
-    ctx.lineWidth = strokeWidth;
-    ctx.beginPath();
-    ctx.arc(0, 0, currentRadius, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
-    ctx.globalAlpha = alpha * 0.7;
-    ctx.lineWidth = strokeWidth * 0.5;
-    ctx.beginPath();
-    ctx.arc(0, 0, currentRadius * 1.2, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
-    ctx.globalAlpha = alpha;
-
-    drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
-      ctx.fillRect(sparkX - sparkSize / 2, sparkY - sparkSize / 2, sparkSize, sparkSize);
-    });
-
-    ctx.restore();
+    drawDebrisShockwave(new CanvasDrawAdapter(ctx), world, entity);
   }
 };
 
 export const SkiaDebrisShockwaveEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+  draw(canvas: RenderContext, world, entity) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const render = getRenderComponent(world, entity);
-    if (!render) return;
-
-    const { progress, alpha } = computeEffectProgress(world, entity);
-    if (alpha <= 0.01) return;
-
-    const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);
-
-    skCanvas.save();
-
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-
-    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.solarOrange));
-    paint.setAlphaf(alpha);
-    paint.setStrokeWidth(strokeWidth);
-    skCanvas.drawCircle(0, 0, currentRadius, paint);
-
-    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
-    paint.setAlphaf(alpha * 0.7);
-    paint.setStrokeWidth(strokeWidth * 0.5);
-    skCanvas.drawCircle(0, 0, currentRadius * 1.2, paint);
-
-    const sparkPaint = Skia.Paint();
-    sparkPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
-    sparkPaint.setAlphaf(alpha);
-
-    drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
-      skCanvas.drawRect(
-        Skia.XYWHRect(sparkX - sparkSize / 2, sparkY - sparkSize / 2, sparkSize, sparkSize),
-        sparkPaint
-      );
-    });
-
-    skCanvas.restore();
+    drawDebrisShockwave(new SkiaDrawAdapter(canvas), world, entity);
   }
 };
 
 // -------------------------------------------------------------
-// 7. MatrixDigitalRainEffect (Canvas & Skia)
+// 5. MatrixDigitalRainEffect (Canvas & Skia)
 // -------------------------------------------------------------
 export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const { height, state } = getScreenAndVFXState(world);
-
-    if (!state.matrixInitialized) {
-      initializeMatrix(world, state);
-    }
+    const { width, height, state } = getScreenAndVFXState(world);
+    const columns = getOrCreateCached<MatrixColumn[]>(state, "matrixCols", width, height, () => initializeMatrixColumns(width, height, world.renderRandom));
 
     ctx.save();
+    ctx.font = "12px monospace";
+    ctx.textAlign = "center";
 
-    for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
-      const col = state.matrixColumns[i];
-      updateMatrixColumn(col, height, world.renderRandom);
-
-      ctx.fillStyle = COSMIC_ARCADE_PALETTE.matrixGreen;
-      ctx.globalAlpha = col.intensity * 0.15;
-      for (let j = 0; j < col.length; j++) {
-        ctx.fillRect(col.x, col.y - j * 8, 4, 6);
+    for (let i = 0; i < columns.length; i++) {
+      const col = columns[i];
+      col.y += col.speed;
+      if (col.y > height + col.length * 14) {
+        col.y = -col.length * 14;
       }
 
-      ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
-      ctx.globalAlpha = col.intensity;
-      ctx.fillRect(col.x, col.y, 4, 6);
+      for (let j = 0; j < col.length; j++) {
+        const charY = col.y - j * 14;
+        if (charY < 0 || charY > height) continue;
+
+        const alpha = 1.0 - j / col.length;
+        ctx.globalAlpha = alpha * 0.8;
+        ctx.fillStyle = j === 0 ? COSMIC_ARCADE_PALETTE.white : COSMIC_ARCADE_PALETTE.matrixGreen;
+        ctx.fillText(col.chars[j % col.chars.length], col.x, charY);
+      }
     }
 
     ctx.restore();
@@ -667,31 +480,35 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Cor
 };
 
 export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world) {
+  draw(canvas: RenderContext, world) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const { height, state } = getScreenAndVFXState(world);
+    const { width, height, state } = getScreenAndVFXState(world);
+    const columns = getOrCreateCached<MatrixColumn[]>(state, "matrixCols", width, height, () => initializeMatrixColumns(width, height, world.renderRandom));
 
-    if (!state.matrixInitialized) {
-      initializeMatrix(world, state);
-    }
-
+    const skCanvas = canvas as SkiaCanvasOps;
     skCanvas.save();
-    const paint = Skia.Paint();
+    const paintLead = Skia.Paint();
+    paintLead.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
+    const paintTrail = Skia.Paint();
+    paintTrail.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.matrixGreen));
 
-    for (let i = 0; i < MATRIX_COLUMN_COUNT; i++) {
-      const col = state.matrixColumns[i];
-      updateMatrixColumn(col, height, world.renderRandom);
-
-      paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.matrixGreen));
-      paint.setAlphaf(col.intensity * 0.15);
-      for (let j = 0; j < col.length; j++) {
-        skCanvas.drawRect(Skia.XYWHRect(col.x, col.y - j * 8, 4, 6), paint);
+    for (let i = 0; i < columns.length; i++) {
+      const col = columns[i];
+      col.y += col.speed;
+      if (col.y > height + col.length * 14) {
+        col.y = -col.length * 14;
       }
 
-      paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
-      paint.setAlphaf(col.intensity);
-      skCanvas.drawRect(Skia.XYWHRect(col.x, col.y, 4, 6), paint);
+      for (let j = 0; j < col.length; j++) {
+        const charY = col.y - j * 14;
+        if (charY < 0 || charY > height) continue;
+
+        const alpha = 1.0 - j / col.length;
+        const paint = j === 0 ? paintLead : paintTrail;
+        paint.setAlphaf(alpha * 0.8);
+
+        skCanvas.drawRect(Skia.XYWHRect(col.x - 4, charY - 8, 8, 10), paint);
+      }
     }
 
     skCanvas.restore();
@@ -699,67 +516,47 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreCompon
 };
 
 // -------------------------------------------------------------
-// 8. CRTGlitchShudderEffect (Canvas & Skia)
+// 6. CRTGlitchShudderEffect (Canvas & Skia)
 // -------------------------------------------------------------
-function drawCRTGlitchLines(
-  rng: RandomService,
-  height: number,
-  drawLine: (offset: number, y: number, h: number, alpha: number) => void
-): void {
-  const glitchLines = rng.nextInt(2, 5);
-  for (let i = 0; i < glitchLines; i++) {
-    const y = rng.nextRange(10, height - 10);
-    const h = rng.nextRange(1, 4);
-    const offset = rng.nextRange(-15, 15);
-    const alpha = rng.nextRange(0.2, 0.5);
-
-    drawLine(offset, y, h, alpha);
-  }
-}
-
 export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const { width, height } = getScreenAndVFXState(world);
+    const { width, height, state } = getScreenAndVFXState(world);
+    const timePhase = state.timePhase;
+    const isGlitching = Math.sin(timePhase * 17) > 0.85;
 
-    const rng = world.renderRandom;
-    if (rng.next() < 0.96) return;
+    if (!isGlitching) return;
 
     ctx.save();
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.white;
-
-    drawCRTGlitchLines(rng, height, (offset, y, h, alpha) => {
-      ctx.globalAlpha = alpha;
-      ctx.fillRect(offset, y, width, h);
-    });
-
+    ctx.fillStyle = COSMIC_ARCADE_PALETTE.neonCyan;
+    ctx.globalAlpha = 0.15;
+    const sliceY = (Math.sin(timePhase * 31) * 0.5 + 0.5) * height;
+    ctx.fillRect(0, sliceY, width, 6);
     ctx.restore();
   }
 };
 
 export const SkiaCRTGlitchShudderEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world) {
+  draw(canvas: RenderContext, world) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const { width, height } = getScreenAndVFXState(world);
+    const { width, height, state } = getScreenAndVFXState(world);
+    const timePhase = state.timePhase;
+    const isGlitching = Math.sin(timePhase * 17) > 0.85;
 
-    const rng = world.renderRandom;
-    if (rng.next() < 0.96) return;
+    if (!isGlitching) return;
 
+    const skCanvas = canvas as SkiaCanvasOps;
     skCanvas.save();
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
-
-    drawCRTGlitchLines(rng, height, (offset, y, h, alpha) => {
-      paint.setAlphaf(alpha);
-      skCanvas.drawRect(Skia.XYWHRect(offset, y, width, h), paint);
-    });
-
+    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.neonCyan));
+    paint.setAlphaf(0.15);
+    const sliceY = (Math.sin(timePhase * 31) * 0.5 + 0.5) * height;
+    skCanvas.drawRect(Skia.XYWHRect(0, sliceY, width, 6), paint);
     skCanvas.restore();
   }
 };
 
 // -------------------------------------------------------------
-// 9. ThrusterPlumeFlameEffect (Canvas & Skia)
+// 7. ThrusterPlumeFlameEffect (Canvas & Skia)
 // -------------------------------------------------------------
 export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -798,8 +595,7 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Cor
 };
 
 export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const skCanvas = canvas as unknown as SkCanvas;
+  draw(canvas: RenderContext, world, entity) {
     const dCtx = getDrawerContext(world, entity, 10, true);
     if (!dCtx) return;
 
@@ -808,6 +604,7 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreCompon
     const flameColors = getThrusterFlameColors();
     const glowStyle = getGlowStyle(flameColors.inner, "normal");
 
+    const skCanvas = canvas as SkiaCanvasOps;
     skCanvas.save();
     renderSkiaGlow(skCanvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Fill);
@@ -839,7 +636,7 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreCompon
 };
 
 // -------------------------------------------------------------
-// 10. LaserRailBeamEffect (Canvas & Skia)
+// 8. LaserRailBeamEffect (Canvas & Skia)
 // -------------------------------------------------------------
 export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -878,14 +675,14 @@ export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComp
 };
 
 export const SkiaLaserRailBeamEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const skCanvas = canvas as unknown as SkCanvas;
+  draw(canvas: RenderContext, world, entity) {
     const dCtx = getDrawerContext(world, entity, 300, true);
     if (!dCtx) return;
 
     const { size: length, timePhase } = dCtx;
     const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "strong");
 
+    const skCanvas = canvas as SkiaCanvasOps;
     skCanvas.save();
     renderSkiaGlow(skCanvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Stroke);
@@ -916,46 +713,34 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<RenderContext, CoreComponentRe
 };
 
 // -------------------------------------------------------------
-// 11. ScreenBorderGlowEffect (Canvas & Skia)
+// 9. ScreenBorderGlowEffect (Canvas & Skia)
 // -------------------------------------------------------------
+export function drawScreenBorderGlow(adapter: IDrawAdapter, world: World<CoreComponentRegistry>): void {
+  const { width, height, state } = getScreenAndVFXState(world);
+  const timePhase = state.timePhase;
+  const alpha = 0.12 + 0.08 * Math.sin(timePhase * 3);
+
+  adapter.save();
+  adapter.strokeRect(7, 7, width - 14, height - 14, COSMIC_ARCADE_PALETTE.dangerRed, 14, alpha);
+  adapter.restore();
+}
+
 export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
-    const timePhase = state.timePhase;
-
-    ctx.save();
-
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.dangerRed;
-    ctx.globalAlpha = 0.12 + 0.08 * Math.sin(timePhase * 3);
-    ctx.lineWidth = 14;
-
-    ctx.strokeRect(7, 7, width - 14, height - 14);
-
-    ctx.restore();
+    drawScreenBorderGlow(new CanvasDrawAdapter(ctx), world);
   }
 };
 
 export const SkiaScreenBorderGlowEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world) {
+  draw(canvas: RenderContext, world) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const { width, height, state } = getScreenAndVFXState(world);
-    const timePhase = state.timePhase;
-
-    skCanvas.save();
-
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.dangerRed));
-    paint.setAlphaf(0.12 + 0.08 * Math.sin(timePhase * 3));
-    paint.setStrokeWidth(14);
-
-    skCanvas.drawRect(Skia.XYWHRect(7, 7, width - 14, height - 14), paint);
-
-    skCanvas.restore();
+    drawScreenBorderGlow(new SkiaDrawAdapter(canvas), world);
   }
 };
 
+// -------------------------------------------------------------
+// 10. SingularityVortexEffect (Canvas & Skia)
+// -------------------------------------------------------------
 function resolveVortexContext(world: World<CoreComponentRegistry>, entity: Entity) {
   const render = getRenderComponent(world, entity);
   if (!render) return null;
@@ -969,246 +754,149 @@ function resolveVortexContext(world: World<CoreComponentRegistry>, entity: Entit
   return { baseSize, state };
 }
 
-// -------------------------------------------------------------
-// 12. SingularityVortexEffect (Canvas & Skia)
-// -------------------------------------------------------------
+export function drawSingularityVortex(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, entity: Entity): void {
+  const vCtx = resolveVortexContext(world, entity);
+  if (!vCtx) return;
+  const { baseSize, state } = vCtx;
+
+  adapter.save();
+  for (let r = baseSize; r > 5; r -= 6) {
+    adapter.strokeCircle(0, 0, r, COSMIC_ARCADE_PALETTE.nebulaPurple, 2, 0.3);
+  }
+  adapter.fillCircle(0, 0, baseSize * 0.4, COSMIC_ARCADE_PALETTE.voidBlack);
+
+  for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
+    const p = state.accretionParticles[i];
+    updateAccretionParticle(p, baseSize, world.renderRandom);
+
+    const x = Math.cos(p.angle) * p.radius;
+    const y = Math.sin(p.angle) * p.radius;
+    adapter.fillRect(x - p.size / 2, y - p.size / 2, p.size, p.size, COSMIC_ARCADE_PALETTE.neonMagenta);
+  }
+  adapter.restore();
+}
+
 export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const vCtx = resolveVortexContext(world, entity);
-    if (!vCtx) return;
-    const { baseSize, state } = vCtx;
-
-    ctx.save();
-
-    ctx.strokeStyle = COSMIC_ARCADE_PALETTE.nebulaPurple;
-    ctx.globalAlpha = 0.3;
-    for (let r = baseSize; r > 5; r -= 6) {
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.voidBlack;
-    ctx.globalAlpha = 1.0;
-    ctx.beginPath();
-    ctx.arc(0, 0, baseSize * 0.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = COSMIC_ARCADE_PALETTE.neonMagenta;
-    for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
-      const p = state.accretionParticles[i];
-      updateAccretionParticle(p, baseSize, world.renderRandom);
-
-      const x = Math.cos(p.angle) * p.radius;
-      const y = Math.sin(p.angle) * p.radius;
-      ctx.fillRect(x - p.size / 2, y - p.size / 2, p.size, p.size);
-    }
-
-    ctx.restore();
+    drawSingularityVortex(new CanvasDrawAdapter(ctx), world, entity);
   }
 };
 
 export const SkiaSingularityVortexEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+  draw(canvas: RenderContext, world, entity) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const vCtx = resolveVortexContext(world, entity);
-    if (!vCtx) return;
-    const { baseSize, state } = vCtx;
-
-    skCanvas.save();
-    const paint = Skia.Paint();
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.nebulaPurple));
-    paint.setAlphaf(0.3);
-    for (let r = baseSize; r > 5; r -= 6) {
-      paint.setStrokeWidth(2);
-      skCanvas.drawCircle(0, 0, r, paint);
-    }
-
-    const centerPaint = Skia.Paint();
-    centerPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.voidBlack));
-    skCanvas.drawCircle(0, 0, baseSize * 0.4, centerPaint);
-
-    const pPaint = Skia.Paint();
-    pPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.neonMagenta));
-
-    for (let i = 0; i < ACCRETION_PARTICLE_COUNT; i++) {
-      const p = state.accretionParticles[i];
-      updateAccretionParticle(p, baseSize, world.renderRandom);
-
-      const x = Math.cos(p.angle) * p.radius;
-      const y = Math.sin(p.angle) * p.radius;
-      skCanvas.drawRect(Skia.XYWHRect(x - p.size / 2, y - p.size / 2, p.size, p.size), pPaint);
-    }
-
-    skCanvas.restore();
+    drawSingularityVortex(new SkiaDrawAdapter(canvas), world, entity);
   }
 };
 
 // -------------------------------------------------------------
-// 13. CometMotionTrailEffect (ShapeDrawer)
+// 11. CometMotionTrailEffect (ShapeDrawer)
 // -------------------------------------------------------------
+export function drawCometMotionTrail(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, entity: Entity, isSkia: boolean = false): void {
+  const dCtx = getDrawerContext(world, entity, 15, isSkia);
+  if (!dCtx) return;
+
+  const { size, timePhase } = dCtx;
+  const trailParams = computeTrailParameters(1.0, 1.0, size);
+  const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
+
+  adapter.save();
+  adapter.drawGlow(trailParams.glowColor, (glowAdapter) => {
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      glowAdapter.strokeCircle(seg.wiggle, seg.offset, seg.radius, trailParams.glowColor, 1, seg.alpha);
+    }
+  });
+  adapter.restore();
+}
+
+export function computeCometTrailSegments(timePhase: number, length: number): Array<{ wiggle: number; offset: number; radius: number; alpha: number }> {
+  const segments: Array<{ wiggle: number; offset: number; radius: number; alpha: number }> = [];
+  const count = 12;
+
+  for (let i = 0; i < count; i++) {
+    const ratio = i / count;
+    const offset = ratio * length;
+    const wiggle = Math.sin(timePhase * 8 + ratio * 6) * (2 + ratio * 4);
+    const radius = Math.max(1, (1.0 - ratio) * 4);
+    const alpha = (1.0 - ratio) * 0.8;
+
+    segments.push({ wiggle, offset, radius, alpha });
+  }
+  return segments;
+}
+
 export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const dCtx = getDrawerContext(world, entity, 15);
-    if (!dCtx) return;
-
-    const { size, timePhase } = dCtx;
-    const trailParams = computeTrailParameters(1.0, 1.0, size);
-    const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
-    const glowStyle = getGlowStyle(trailParams.glowColor, "normal");
-
-    ctx.save();
-    renderCanvasGlow(ctx, glowStyle, (glowCtx) => {
-      glowCtx.lineWidth = 1;
-      for (let i = 0; i < segments.length; i++) {
-        const seg = segments[i];
-        glowCtx.globalAlpha = seg.alpha;
-        glowCtx.beginPath();
-        glowCtx.arc(seg.wiggle, seg.offset, seg.radius, 0, Math.PI * 2);
-        glowCtx.stroke();
-      }
-    });
-
-    ctx.restore();
+    drawCometMotionTrail(new CanvasDrawAdapter(ctx), world, entity, false);
   }
 };
 
 export const SkiaCometMotionTrailEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const skCanvas = canvas as unknown as SkCanvas;
-    const dCtx = getDrawerContext(world, entity, 15, true);
-    if (!dCtx) return;
-
-    const { size, timePhase } = dCtx;
-    const trailParams = computeTrailParameters(1.0, 1.0, size);
-    const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
-    const glowStyle = getGlowStyle(trailParams.glowColor, "normal");
-
-    skCanvas.save();
-    renderSkiaGlow(skCanvas, glowStyle, (paint) => {
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setStrokeWidth(1);
-      for (let i = 0; i < segments.length; i++) {
-        const seg = segments[i];
-        paint.setAlphaf(seg.alpha);
-        skCanvas.drawCircle(seg.wiggle, seg.offset, seg.radius, paint);
-      }
-    });
-
-    skCanvas.restore();
+  draw(canvas: RenderContext, world, entity) {
+    if (!Skia) return;
+    drawCometMotionTrail(new SkiaDrawAdapter(canvas), world, entity, true);
   }
 };
 
 // -------------------------------------------------------------
-// 14. RGBHologramGlitchEffect (ShapeDrawer)
+// 12. RGBHologramGlitchEffect (ShapeDrawer)
 // -------------------------------------------------------------
+export function drawRGBHologramGlitch(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, entity: Entity, isSkia: boolean = false): void {
+  const dCtx = getDrawerContext(world, entity, 20, isSkia);
+  if (!dCtx) return;
+
+  const { size, timePhase } = dCtx;
+  const layers = computeHologramLayers(timePhase, size);
+
+  adapter.save();
+  for (let i = 0; i < layers.length; i++) {
+    const layer = layers[i];
+    adapter.strokeCircle(layer.x, 0, layer.radius, layer.color, 2, layer.alpha);
+  }
+  adapter.restore();
+}
+
 export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const dCtx = getDrawerContext(world, entity, 20);
-    if (!dCtx) return;
-
-    const { size, timePhase } = dCtx;
-    const layers = computeHologramLayers(timePhase, size);
-
-    ctx.save();
-    ctx.lineWidth = 2;
-
-    for (let i = 0; i < layers.length; i++) {
-      const layer = layers[i];
-      ctx.strokeStyle = layer.color;
-      ctx.globalAlpha = layer.alpha;
-      ctx.beginPath();
-      ctx.arc(layer.x, 0, layer.radius, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    drawRGBHologramGlitch(new CanvasDrawAdapter(ctx), world, entity, false);
   }
 };
 
 export const SkiaRGBHologramGlitchEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const skCanvas = canvas as unknown as SkCanvas;
-    const dCtx = getDrawerContext(world, entity, 20, true);
-    if (!dCtx) return;
-
-    const { size, timePhase } = dCtx;
-    const layers = computeHologramLayers(timePhase, size);
-
-    skCanvas.save();
-
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(2);
-
-    for (let i = 0; i < layers.length; i++) {
-      const layer = layers[i];
-      paint.setColor(Skia.Color(layer.color));
-      paint.setAlphaf(layer.alpha);
-      skCanvas.drawCircle(layer.x, 0, layer.radius, paint);
-    }
-
-    skCanvas.restore();
+  draw(canvas: RenderContext, world, entity) {
+    if (!Skia) return;
+    drawRGBHologramGlitch(new SkiaDrawAdapter(canvas), world, entity, true);
   }
 };
 
 // -------------------------------------------------------------
-// 15. FloatingTextScoreEffect (ShapeDrawer)
+// 13. FloatingTextScoreEffect (ShapeDrawer)
 // -------------------------------------------------------------
+export function drawFloatingTextScore(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, entity: Entity): void {
+  const render = getRenderComponent(world, entity);
+  if (!render) return;
+
+  const { progress, alpha } = computeEffectProgress(world, entity);
+  if (alpha <= 0.01) return;
+
+  const label = (entity as { text?: string }).text || "+100";
+  const offsetY = -progress * 50;
+
+  adapter.save();
+  adapter.drawText(label, 0, offsetY, COSMIC_ARCADE_PALETTE.plasmaYellow, alpha, 14);
+  adapter.restore();
+}
+
 export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = getRenderComponent(world, entity);
-    if (!render) return;
-
-    const { progress, alpha } = computeEffectProgress(world, entity);
-    if (alpha <= 0.01) return;
-
-    const label = (entity as { text?: string }).text || "+100";
-    const offsetY = -progress * 50;
-
-    ctx.save();
-
-    ctx.font = "bold 14px monospace";
-    ctx.textAlign = "center";
-    ctx.globalAlpha = alpha;
-
-    if (typeof ctx.strokeText === "function") {
-      ctx.strokeStyle = COSMIC_ARCADE_PALETTE.voidBlack;
-      ctx.lineWidth = 3;
-      ctx.strokeText(label, 0, offsetY);
-    }
-
-    if (typeof ctx.fillText === "function") {
-      ctx.fillStyle = COSMIC_ARCADE_PALETTE.plasmaYellow;
-      ctx.fillText(label, 0, offsetY);
-    }
-
-    ctx.restore();
+    drawFloatingTextScore(new CanvasDrawAdapter(ctx), world, entity);
   }
 };
 
 export const SkiaFloatingTextScoreEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+  draw(canvas: RenderContext, world, entity) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const render = getRenderComponent(world, entity);
-    if (!render) return;
-
-    const { progress, alpha } = computeEffectProgress(world, entity);
-    if (alpha <= 0.01) return;
-
-    skCanvas.save();
-
-    const paint = Skia.Paint();
-    paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.plasmaYellow));
-    paint.setAlphaf(alpha);
-
-    skCanvas.drawRect(Skia.XYWHRect(-10, -progress * 50, 20, 6), paint);
-
-    skCanvas.restore();
+    drawFloatingTextScore(new SkiaDrawAdapter(canvas), world, entity);
   }
 };

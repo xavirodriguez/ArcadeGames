@@ -3393,8 +3393,25 @@ export interface PhysicsTransformLike {
 // @public
 export class PhysicsUtils {
     static applyBodyImpulse(world: World<CoreComponentRegistry>, entity: Entity, hasVelocity: unknown, isStatic: boolean, invMass: number, invInertia: number, rx: number, ry: number, fx: number, fy: number, scale: number): void;
+    static applyPositionCorrection(world: World<CoreComponentRegistry>, entity: Entity, isStatic: boolean, hasTransform: unknown, corrX: number, corrY: number, weight: number): void;
     static circleOverlap(x1: number, y1: number, r1: number, x2: number, y2: number, r2: number): boolean;
     static clamp(value: number, min: number, max: number): number;
+    static computePointVelocity(vx: number, vy: number, w: number, rx: number, ry: number, out: {
+        x: number;
+        y: number;
+    }): void;
+    static computeRelativePointVelocity(velA: {
+        vx: number;
+        vy: number;
+        angularVelocity: number;
+    } | undefined | null, rxA: number, ryA: number, velB: {
+        vx: number;
+        vy: number;
+        angularVelocity: number;
+    } | undefined | null, rxB: number, ryB: number, out: {
+        x: number;
+        y: number;
+    }): void;
     static lerp(a: number, b: number, t: number): number;
     static tickTimer(remaining: number, deltaTime: number): number;
 }

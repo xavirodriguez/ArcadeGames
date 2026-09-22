@@ -58,6 +58,95 @@ export class PhysicsUtils {
   }
 
   /**
+   * Calculates the linear velocity at an offset point (rx, ry) on a 2D rigid body.
+   *
+   * @param vx - Linear velocity X component of body center.
+   * @param vy - Linear velocity Y component of body center.
+   * @param w - Angular velocity of body in radians per second.
+   * @param rx - X offset of target point relative to body center.
+   * @param ry - Y offset of target point relative to body center.
+   * @param out - Target object to populate with resultant velocity components.
+   */
+  public static computePointVelocity(
+    vx: number,
+    vy: number,
+    w: number,
+    rx: number,
+    ry: number,
+    out: { x: number; y: number }
+  ): void {
+    out.x = vx - w * ry;
+    out.y = vy + w * rx;
+  }
+
+  /**
+   * Calculates the relative velocity vector (vB - vA) between points on two interacting bodies.
+   *
+   * @param velA - Velocity component or state of Body A.
+   * @param rxA - X offset of contact point relative to Body A center.
+   * @param ryA - Y offset of contact point relative to Body A center.
+   * @param velB - Velocity component or state of Body B.
+   * @param rxB - X offset of contact point relative to Body B center.
+   * @param ryB - Y offset of contact point relative to Body B center.
+   * @param out - Target object to populate with relative velocity components (relVx, relVy).
+   */
+  public static computeRelativePointVelocity(
+    velA: { vx: number; vy: number; angularVelocity: number } | undefined | null,
+    rxA: number,
+    ryA: number,
+    velB: { vx: number; vy: number; angularVelocity: number } | undefined | null,
+    rxB: number,
+    ryB: number,
+    out: { x: number; y: number }
+  ): void {
+    const vxA = velA ? velA.vx : 0;
+    const vyA = velA ? velA.vy : 0;
+    const wA = velA ? velA.angularVelocity : 0;
+
+    const vxB = velB ? velB.vx : 0;
+    const vyB = velB ? velB.vy : 0;
+    const wB = velB ? velB.angularVelocity : 0;
+
+    const vpAx = vxA - wA * ryA;
+    const vpAy = vyA + wA * rxA;
+    const vpBx = vxB - wB * ryB;
+    const vpBy = vyB + wB * rxB;
+
+    out.x = vpBx - vpAx;
+    out.y = vpBy - vpAy;
+  }
+
+  /**
+   * Applies positional displacement to a body's Transform component if the body is non-static.
+   *
+   * @param world - Simulation world containing the entity.
+   * @param entity - Target entity ID.
+   * @param isStatic - True if body is static or immobile.
+   * @param hasTransform - Truthy if body possesses a Transform component.
+   * @param corrX - X displacement vector component.
+   * @param corrY - Y displacement vector component.
+   * @param weight - Mass weighting factor (e.g. invMass / totalInvMass).
+   */
+  public static applyPositionCorrection(
+    world: import("../../ecs/World").World<import("../../ecs/CoreComponents").CoreComponentRegistry>,
+    entity: import("../../ecs/Entity").Entity,
+    isStatic: boolean,
+    hasTransform: unknown,
+    corrX: number,
+    corrY: number,
+    weight: number
+  ): void {
+    if (!isStatic && hasTransform) {
+      const t = world.getMutableComponent(entity, "Transform");
+      if (t) {
+        t.x += corrX * weight;
+        t.y += corrY * weight;
+        t.dirty = true;
+      }
+    }
+  }
+
+  /**
    * Applies a linear and angular force or impulse to a rigid body's velocity component.
    *
    * @remarks

@@ -1,7 +1,6 @@
 import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
 import { CoreComponentRegistry } from "../../ecs/CoreComponents";
-import { Entity } from "../../ecs/Entity";
 import { PhysicsUtils } from "../utils/PhysicsUtils";
 
 /**
@@ -19,6 +18,8 @@ import { PhysicsUtils } from "../utils/PhysicsUtils";
 export class JointSolverSystem<
   TRegistry extends CoreComponentRegistry = CoreComponentRegistry
 > extends System<TRegistry> {
+  private relVel = { x: 0, y: 0 };
+
   /**
    * Solves active joint constraints across all entities carrying a JointComponent.
    *
@@ -93,21 +94,9 @@ export class JointSolverSystem<
       const rxB = worldAnchorBx - posBx;
       const ryB = worldAnchorBy - posBy;
 
-      const vxA = velA ? velA.vx : 0;
-      const vyA = velA ? velA.vy : 0;
-      const wA = velA ? velA.angularVelocity : 0;
-
-      const vxB = velB ? velB.vx : 0;
-      const vyB = velB ? velB.vy : 0;
-      const wB = velB ? velB.angularVelocity : 0;
-
-      const vpAx = vxA - wA * ryA;
-      const vpAy = vyA + wA * rxA;
-      const vpBx = vxB - wB * ryB;
-      const vpBy = vyB + wB * rxB;
-
-      const relVx = vpBx - vpAx;
-      const relVy = vpBy - vpAy;
+      PhysicsUtils.computeRelativePointVelocity(velA, rxA, ryA, velB, rxB, ryB, this.relVel);
+      const relVx = this.relVel.x;
+      const relVy = this.relVel.y;
 
       if (joint.jointType === "spring") {
         const restLength = joint.restLength;
@@ -167,23 +156,8 @@ export class JointSolverSystem<
             const corrX = err * nx * percent;
             const corrY = err * ny * percent;
 
-            if (!isStaticA && transA) {
-              const tA = w.getMutableComponent(entityA, "Transform");
-              if (tA) {
-                tA.x += corrX * (invMassA / totalInvMass);
-                tA.y += corrY * (invMassA / totalInvMass);
-                tA.dirty = true;
-              }
-            }
-
-            if (!isStaticB && transB) {
-              const tB = w.getMutableComponent(entityB, "Transform");
-              if (tB) {
-                tB.x -= corrX * (invMassB / totalInvMass);
-                tB.y -= corrY * (invMassB / totalInvMass);
-                tB.dirty = true;
-              }
-            }
+            PhysicsUtils.applyPositionCorrection(w, entityA, isStaticA, transA, corrX, corrY, invMassA / totalInvMass);
+            PhysicsUtils.applyPositionCorrection(w, entityB, isStaticB, transB, -corrX, -corrY, invMassB / totalInvMass);
 
             const velAlongNormal = relVx * nx + relVy * ny;
             const rAcrossN = rxA * ny - ryA * nx;
@@ -203,26 +177,8 @@ export class JointSolverSystem<
         }
       } else if (joint.jointType === "revolute") {
         if (dist > 0.0001) {
-          const corrX = dx;
-          const corrY = dy;
-
-          if (!isStaticA && transA) {
-            const tA = w.getMutableComponent(entityA, "Transform");
-            if (tA) {
-              tA.x += corrX * (invMassA / totalInvMass);
-              tA.y += corrY * (invMassA / totalInvMass);
-              tA.dirty = true;
-            }
-          }
-
-          if (!isStaticB && transB) {
-            const tB = w.getMutableComponent(entityB, "Transform");
-            if (tB) {
-              tB.x -= corrX * (invMassB / totalInvMass);
-              tB.y -= corrY * (invMassB / totalInvMass);
-              tB.dirty = true;
-            }
-          }
+          PhysicsUtils.applyPositionCorrection(w, entityA, isStaticA, transA, dx, dy, invMassA / totalInvMass);
+          PhysicsUtils.applyPositionCorrection(w, entityB, isStaticB, transB, -dx, -dy, invMassB / totalInvMass);
         }
 
         const effectiveInvMass = invMassA + invMassB;
@@ -236,6 +192,8 @@ export class JointSolverSystem<
 
         if (joint.enableMotor && joint.motorSpeed !== undefined) {
           const targetMotorSpeed = joint.motorSpeed;
+          const wA = velA ? velA.angularVelocity : 0;
+          const wB = velB ? velB.angularVelocity : 0;
           const relW = wB - wA;
           const errW = relW - targetMotorSpeed;
           const invInertiaSum = invInertiaA + invInertiaB;

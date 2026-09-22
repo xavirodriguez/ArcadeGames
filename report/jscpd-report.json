@@ -2241,18 +2241,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 43,
+        "end": 27,
         "endLoc": {
           "column": 8,
-          "line": 43,
-          "position": 1734
+          "line": 27,
+          "position": 1076
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 37,
+        "start": 21,
         "startLoc": {
           "column": 10,
-          "line": 37,
-          "position": 1579
+          "line": 21,
+          "position": 921
         }
       },
       "tokens": 50
@@ -2851,18 +2851,18 @@
     },
     {
       "firstFile": {
-        "end": 42,
+        "end": 26,
         "endLoc": {
           "column": 37,
-          "line": 42,
-          "position": 1725
+          "line": 26,
+          "position": 1067
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 37,
+        "start": 21,
         "startLoc": {
           "column": 5,
-          "line": 37,
-          "position": 1574
+          "line": 21,
+          "position": 916
         }
       },
       "format": "typescript",
@@ -2870,110 +2870,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 55,
+        "end": 37,
         "endLoc": {
           "column": 37,
-          "line": 55,
-          "position": 2016
+          "line": 37,
+          "position": 1299
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 50,
+        "start": 32,
         "startLoc": {
           "column": 8,
-          "line": 50,
-          "position": 1865
+          "line": 32,
+          "position": 1148
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 96,
-        "endLoc": {
-          "column": 51,
-          "line": 96,
-          "position": 3617
-        },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 84,
-        "startLoc": {
-          "column": 45,
-          "line": 84,
-          "position": 2935
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const color = render.color ?? colors.cyan;\n    const x = transform.worldX ?? transform.x;\n    const y = transform.worldY ?? transform.y;\n\n    // Trigger thruster smoke/engine particles trailing behind on movement\n    const velocity = world.getComponent(entity, \"Velocity\");\n    if (velocity && (Math.abs(velocity.vx) > 10 || Math.abs(velocity.vy) > 10)) {\n      if (world.tick % 3 === 0) {\n        const angle = Math.atan2(velocity.vy, velocity.vx) + Math.PI; // opposite direction\n        const spreadAngle = angle + (world.renderRandom.next() - 0.5) * 0.4;\n        const pSpeed = world.renderRandom.nextRange(30, 80);\n        const pvx = Math.cos(spreadAngle) * pSpeed;\n        const pvy = Math.sin(spreadAngle) * pSpeed;",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 114,
-        "endLoc": {
-          "column": 51,
-          "line": 114,
-          "position": 4042
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 101,
-        "startLoc": {
-          "column": 43,
-          "line": 101,
-          "position": 3359
-        }
-      },
-      "tokens": 152
-    },
-    {
-      "firstFile": {
-        "end": 125,
-        "endLoc": {
-          "column": 65,
-          "line": 125,
-          "position": 4618
-        },
-        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 105,
-        "startLoc": {
-          "column": 8,
-          "line": 105,
-          "position": 3877
-        }
-      },
-      "format": "typescript",
-      "fragment": "        );\n      }\n    }\n\n    // Trigger Muzzle Flash Sparks based on hitFlashFrames set on firing\n    if (render.hitFlashFrames && render.hitFlashFrames > 0) {\n      const aim = world.getComponent(entity, \"Aim\");\n      if (aim) {\n        const ax = aim.aimX;\n        const ay = aim.aimY;\n        const alen = Math.sqrt(ax * ax + ay * ay);\n        if (alen > 0.1) {\n          const nax = ax / alen;\n          const nay = ay / alen;\n          const noseX = x + nax * 12;\n          const noseY = y + nay * 12;\n\n          // Spawn muzzle flash sparks\n          for (let i = 0; i < 4; i++) {\n            const spreadAngle = Math.atan2(nay, nax) + (world.renderRandom.next() - 0.5) * 0.6;\n            const pSpeed = world.renderRandom.nextRange(80, 160);",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 143,
-        "endLoc": {
-          "column": 65,
-          "line": 143,
-          "position": 5045
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 123,
-        "startLoc": {
-          "column": 8,
-          "line": 123,
-          "position": 4304
-        }
-      },
-      "tokens": 158
-    },
-    {
-      "firstFile": {
-        "end": 206,
+        "end": 141,
         "endLoc": {
           "column": 33,
-          "line": 206,
-          "position": 6848
+          "line": 141,
+          "position": 4384
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 201,
+        "start": 136,
         "startLoc": {
           "column": 23,
-          "line": 201,
-          "position": 6592
+          "line": 136,
+          "position": 4128
         }
       },
       "format": "typescript",
@@ -2981,36 +2907,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 231,
+        "end": 166,
         "endLoc": {
           "column": 33,
-          "line": 231,
-          "position": 7451
+          "line": 166,
+          "position": 4987
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 226,
+        "start": 161,
         "startLoc": {
           "column": 23,
-          "line": 226,
-          "position": 7195
+          "line": 161,
+          "position": 4731
         }
       },
       "tokens": 53
     },
     {
       "firstFile": {
-        "end": 302,
+        "end": 237,
         "endLoc": {
           "column": 41,
-          "line": 302,
-          "position": 9174
+          "line": 237,
+          "position": 6710
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 297,
+        "start": 232,
         "startLoc": {
           "column": 28,
-          "line": 297,
-          "position": 8910
+          "line": 232,
+          "position": 6446
         }
       },
       "format": "typescript",
@@ -3018,36 +2944,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 327,
+        "end": 262,
         "endLoc": {
           "column": 41,
-          "line": 327,
-          "position": 9772
+          "line": 262,
+          "position": 7308
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 322,
+        "start": 257,
         "startLoc": {
           "column": 28,
-          "line": 322,
-          "position": 9508
+          "line": 257,
+          "position": 7044
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 406,
+        "end": 337,
         "endLoc": {
           "column": 5,
-          "line": 406,
-          "position": 12188
+          "line": 337,
+          "position": 9606
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 396,
+        "start": 327,
         "startLoc": {
           "column": 36,
-          "line": 396,
-          "position": 11880
+          "line": 327,
+          "position": 9298
         }
       },
       "format": "typescript",
@@ -3055,36 +2981,36 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 422,
+        "end": 353,
         "endLoc": {
           "column": 5,
-          "line": 422,
-          "position": 12657
+          "line": 353,
+          "position": 10075
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 412,
+        "start": 343,
         "startLoc": {
           "column": 37,
-          "line": 412,
-          "position": 12349
+          "line": 343,
+          "position": 9767
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 66,
+        "end": 48,
         "endLoc": {
           "column": 3,
-          "line": 66,
-          "position": 2307
+          "line": 48,
+          "position": 1590
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 56,
+        "start": 38,
         "startLoc": {
           "column": 4,
-          "line": 56,
-          "position": 2021
+          "line": 38,
+          "position": 1304
         }
       },
       "format": "typescript",
@@ -3110,18 +3036,18 @@
     },
     {
       "firstFile": {
-        "end": 368,
+        "end": 296,
         "endLoc": {
           "column": 5,
-          "line": 368,
-          "position": 11910
+          "line": 296,
+          "position": 9264
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 356,
+        "start": 284,
         "startLoc": {
           "column": 36,
-          "line": 356,
-          "position": 11520
+          "line": 284,
+          "position": 8874
         }
       },
       "format": "typescript",
@@ -3129,18 +3055,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 387,
+        "end": 315,
         "endLoc": {
           "column": 5,
-          "line": 387,
-          "position": 12480
+          "line": 315,
+          "position": 9834
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 375,
+        "start": 303,
         "startLoc": {
           "column": 37,
-          "line": 375,
-          "position": 12090
+          "line": 303,
+          "position": 9444
         }
       },
       "tokens": 80
@@ -4331,32 +4257,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-22T01:48:28.187Z",
+    "detectionDate": "2026-09-22T13:04:33.144Z",
     "formats": {
       "typescript": {
-        "clones": 117,
-        "duplicatedLines": 947,
-        "duplicatedTokens": 8309,
-        "lines": 67270,
+        "clones": 115,
+        "duplicatedLines": 915,
+        "duplicatedTokens": 7999,
+        "lines": 67240,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 1.4077597740448937,
-        "percentageTokens": 2.3650331457587948,
-        "sources": 406,
-        "tokens": 351327
+        "percentage": 1.3607971445568114,
+        "percentageTokens": 2.2799501768607433,
+        "sources": 407,
+        "tokens": 350841
       }
     },
     "total": {
-      "clones": 117,
-      "duplicatedLines": 947,
-      "duplicatedTokens": 8309,
-      "lines": 67270,
+      "clones": 115,
+      "duplicatedLines": 915,
+      "duplicatedTokens": 7999,
+      "lines": 67240,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 1.4077597740448937,
-      "percentageTokens": 2.3650331457587948,
-      "sources": 406,
-      "tokens": 351327
+      "percentage": 1.3607971445568114,
+      "percentageTokens": 2.2799501768607433,
+      "sources": 407,
+      "tokens": 350841
     }
   }
 }

@@ -1,39 +1,23 @@
-import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
-import { getDrawable, getRenderGuard, getDrawableTransform } from "../../shared/rendering/renderingUtils";
+import { getDrawable, getDrawableTransform } from "../../shared/rendering/renderingUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
-import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
-import { resolveGridDisplacementContext, monitorBulletsAndSpawnTrails } from "./GeometryWarsRenderUtils";
+import {
+  getActiveParticles,
+  updatePlayerShipVisuals,
+  prepareGeometryWarsFramePrologue,
+  GEOMETRY_WARS_PARTICLE_POOL,
+  spawnVisualParticle,
+  resetVisualState
+} from "./GeometryWarsVisualLogic";
 
-// ============================================================================
-// ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL FOR CANVAS
-// ============================================================================
-
-export const GEOMETRY_WARS_CANVAS_PARTICLE_POOL: VisualParticlePool = createParticlePool(250);
-
-export function spawnVisualParticle(
-  x: number,
-  y: number,
-  vx: number,
-  vy: number,
-  maxLife: number,
-  size: number,
-  color: string
-): void {
-  GEOMETRY_WARS_CANVAS_PARTICLE_POOL.spawn(x, y, vx, vy, maxLife, size, color);
-}
-
-function updateVisualParticles(dt: number = 0.016): void {
-  GEOMETRY_WARS_CANVAS_PARTICLE_POOL.update(dt, (p) => {
-    p.vx *= 0.94; // friction
-    p.vy *= 0.94;
-  });
-}
+// For backwards compatibility if imported elsewhere
+export { GEOMETRY_WARS_PARTICLE_POOL, spawnVisualParticle, resetVisualState };
 
 function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
-  const particles = GEOMETRY_WARS_CANVAS_PARTICLE_POOL.getActiveParticles();
+  const particles = getActiveParticles();
   ctx.save();
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
@@ -85,57 +69,8 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
-    // Trigger thruster smoke/engine particles trailing behind on movement
-    const velocity = world.getComponent(entity, "Velocity");
-    if (velocity && (Math.abs(velocity.vx) > 10 || Math.abs(velocity.vy) > 10)) {
-      if (world.tick % 3 === 0) {
-        const angle = Math.atan2(velocity.vy, velocity.vx) + Math.PI; // opposite direction
-        const spreadAngle = angle + (world.renderRandom.next() - 0.5) * 0.4;
-        const pSpeed = world.renderRandom.nextRange(30, 80);
-        const pvx = Math.cos(spreadAngle) * pSpeed;
-        const pvy = Math.sin(spreadAngle) * pSpeed;
-        spawnVisualParticle(
-          x - Math.cos(angle) * 8,
-          y - Math.sin(angle) * 8,
-          pvx,
-          pvy,
-          world.renderRandom.nextRange(0.3, 0.6),
-          world.renderRandom.nextRange(2.5, 4.0),
-          colors.cyan
-        );
-      }
-    }
-
-    // Trigger Muzzle Flash Sparks based on hitFlashFrames set on firing
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      const aim = world.getComponent(entity, "Aim");
-      if (aim) {
-        const ax = aim.aimX;
-        const ay = aim.aimY;
-        const alen = Math.sqrt(ax * ax + ay * ay);
-        if (alen > 0.1) {
-          const nax = ax / alen;
-          const nay = ay / alen;
-          const noseX = x + nax * 12;
-          const noseY = y + nay * 12;
-
-          // Spawn muzzle flash sparks
-          for (let i = 0; i < 4; i++) {
-            const spreadAngle = Math.atan2(nay, nax) + (world.renderRandom.next() - 0.5) * 0.6;
-            const pSpeed = world.renderRandom.nextRange(80, 160);
-            spawnVisualParticle(
-              noseX,
-              noseY,
-              Math.cos(spreadAngle) * pSpeed,
-              Math.sin(spreadAngle) * pSpeed,
-              world.renderRandom.nextRange(0.15, 0.35),
-              world.renderRandom.nextRange(2.0, 3.5),
-              colors.white
-            );
-          }
-        }
-      }
-    }
+    // Trigger thruster smoke/engine particles and muzzle flash sparks
+    updatePlayerShipVisuals(world, entity, render, x, y, color);
 
     ctx.save();
 
@@ -374,17 +309,13 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
     const { width, height } = screen;
 
-    // 1. Process visual particles updates and drawings
-    updateVisualParticles();
+    // 1. Frame prologue: update particles, monitor bullet trails, resolve grid displacement context
+    const { playerX, playerY, bulletCount } = prepareGeometryWarsFramePrologue(world, width, height, colors.gold, colors.pink);
+
+    // 2. Render visual particles
     drawCanvasVisualParticles(ctx);
 
-    // 2. Monitor bullet states for trail and explosion spawns
-    monitorBulletsAndSpawnTrails(world, spawnVisualParticle, colors.gold, colors.pink);
-
-    // 3. Resolve grid displacement context
-    const { playerX, playerY, bulletCount } = resolveGridDisplacementContext(world, width, height);
-
-    // 5. Draw Deforming Grid Lines
+    // 3. Draw Deforming Grid Lines
     ctx.save();
     ctx.strokeStyle = "rgba(0, 160, 255, 0.16)"; // Translucent neon blue
     ctx.lineWidth = 0.8;

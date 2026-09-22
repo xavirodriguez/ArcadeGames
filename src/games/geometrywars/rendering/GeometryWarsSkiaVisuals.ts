@@ -3,39 +3,16 @@ import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { ensureSkiaAvailable, getRenderGuard, getDrawableTransform, defineSkiaShape } from "../../shared/rendering/renderingUtils";
+import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
+import { resolveGridDisplacementContext, monitorBulletsAndSpawnTrails } from "./GeometryWarsRenderUtils";
 
-import type { SkColor } from "@shopify/react-native-skia";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 // ============================================================================
 // ZERO-ALLOCATION FILE-LEVEL PRE-ALLOCATED VISUAL PARTICLE POOL
 // ============================================================================
 
-interface VisualParticle {
-  active: boolean;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  size: number;
-  color: string;
-  skColor?: SkColor | null;
-}
-
-const PARTICLE_POOL_SIZE = 250;
-const PARTICLE_POOL: VisualParticle[] = Array.from({ length: PARTICLE_POOL_SIZE }, () => ({
-  active: false,
-  x: 0,
-  y: 0,
-  vx: 0,
-  vy: 0,
-  life: 0,
-  maxLife: 0,
-  size: 0,
-  color: ""
-}));
+export const GEOMETRY_WARS_SKIA_PARTICLE_POOL: VisualParticlePool = createParticlePool(250);
 
 /**
  * Spawns a custom particle from our zero-allocation pool.
@@ -49,42 +26,17 @@ export function spawnSkiaVisualParticle(
   size: number,
   color: string
 ): void {
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
-    if (!p.active) {
-      p.active = true;
-      p.x = x;
-      p.y = y;
-      p.vx = vx;
-      p.vy = vy;
-      p.life = maxLife;
-      p.maxLife = maxLife;
-      p.size = size;
-      p.color = color;
-      p.skColor = Skia ? Skia.Color(color) : null;
-      break;
-    }
-  }
+  GEOMETRY_WARS_SKIA_PARTICLE_POOL.spawn(x, y, vx, vy, maxLife, size, color);
 }
 
 /**
  * Updates active particles with friction and limits.
  */
 function updateVisualParticles(dt: number = 0.016): void {
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
-    if (p.active) {
-      p.life -= dt;
-      if (p.life <= 0) {
-        p.active = false;
-        continue;
-      }
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vx *= 0.94; // friction
-      p.vy *= 0.94;
-    }
-  }
+  GEOMETRY_WARS_SKIA_PARTICLE_POOL.update(dt, (p) => {
+    p.vx *= 0.94; // friction
+    p.vy *= 0.94;
+  });
 }
 
 /**
@@ -94,9 +46,10 @@ function drawVisualParticles(canvas: any): void {
   if (!ensureSkiaAvailable()) return;
   const paint = getPaint();
 
+  const particles = GEOMETRY_WARS_SKIA_PARTICLE_POOL.getActiveParticles();
   canvas.save();
-  for (let i = 0; i < PARTICLE_POOL.length; i++) {
-    const p = PARTICLE_POOL[i];
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
     if (!p.active) continue;
 
     const ratio = p.life / p.maxLife;
@@ -112,69 +65,6 @@ function drawVisualParticles(canvas: any): void {
     );
   }
   canvas.restore();
-}
-
-
-// ============================================================================
-// DECOUPLED BULLET DEATH & TRAIL MONITOR
-// ============================================================================
-
-const LAST_BULLETS_MAP = new Map<number, { x: number; y: number }>();
-const CURRENT_BULLETS_SET = new Set<number>();
-
-function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry>): void {
-  CURRENT_BULLETS_SET.clear();
-
-  // Find all active bullets in this frame
-  const entities = world.query("Transform", "Render");
-  for (const ent of entities) {
-    const render = getRenderGuard(world, ent);
-    if (render && render.shape === "gw_bullet") {
-      CURRENT_BULLETS_SET.add(ent);
-      const transform = getDrawableTransform(world, ent)!;
-      const bx = transform.worldX ?? transform.x;
-      const by = transform.worldY ?? transform.y;
-
-      LAST_BULLETS_MAP.set(ent, { x: bx, y: by });
-
-      // Spawn a continuous subtle neon yellow trail spark particle
-      if (world.tick % 2 === 0) {
-        spawnSkiaVisualParticle(
-          bx,
-          by,
-          (world.renderRandom.next() - 0.5) * 15,
-          (world.renderRandom.next() - 0.5) * 15,
-          0.3,
-          2.0,
-          "#ffff00"
-        );
-      }
-    }
-  }
-
-  // Find bullets that were removed (present in LAST_BULLETS_MAP but not in CURRENT_BULLETS_SET)
-  for (const [id, pos] of LAST_BULLETS_MAP.entries()) {
-    if (!CURRENT_BULLETS_SET.has(id)) {
-      // Bullet died/expired! Spawn a stunning splash explosion of neon particles
-      const sparkCount = 8 + world.renderRandom.nextInt(0, 4);
-      for (let s = 0; s < sparkCount; s++) {
-        const angle = world.renderRandom.next() * Math.PI * 2;
-        const speed = world.renderRandom.nextRange(40, 100);
-        const vx = Math.cos(angle) * speed;
-        const vy = Math.sin(angle) * speed;
-        spawnSkiaVisualParticle(
-          pos.x,
-          pos.y,
-          vx,
-          vy,
-          world.renderRandom.nextRange(0.4, 0.7),
-          world.renderRandom.nextRange(2.0, 3.5),
-          world.renderRandom.next() > 0.4 ? "#ffff00" : "#ff00ff"
-        );
-      }
-      LAST_BULLETS_MAP.delete(id);
-    }
-  }
 }
 
 // ============================================================================
@@ -443,31 +333,10 @@ export const drawSkiaGeometryWarsBackground: EffectDrawer<any, GeometryWarsCompo
     drawVisualParticles(canvas);
 
     // 2. Monitor bullet states for trail and explosion spawns
-    monitorBulletsAndSpawnTrails(world);
+    monitorBulletsAndSpawnTrails(world, spawnSkiaVisualParticle, "#ffff00", "#ff00ff");
 
-    // 3. Fetch Player coordinates for real-time grid displacement
-    let playerX = width / 2;
-    let playerY = height / 2;
-    const players = world.query("Player", "Transform");
-    if (players.length > 0) {
-      const transform = getDrawableTransform(world, players[0])!;
-      playerX = transform.worldX ?? transform.x;
-      playerY = transform.worldY ?? transform.y;
-    }
-
-    // 4. Collect active bullets coordinates (up to 100) to displace the grid
-    let bulletCount = 0;
-    const entities = world.query("Transform", "Render");
-    for (const ent of entities) {
-      if (bulletCount >= 100) break;
-      const render = getRenderGuard(world, ent);
-      if (render && render.shape === "gw_bullet") {
-        const trans = getDrawableTransform(world, ent)!;
-        BULLET_COORDS[bulletCount].x = trans.worldX ?? trans.x;
-        BULLET_COORDS[bulletCount].y = trans.worldY ?? trans.y;
-        bulletCount++;
-      }
-    }
+    // 3. Resolve grid displacement context
+    const { playerX, playerY, bulletCount } = resolveGridDisplacementContext(world, width, height);
 
     // 5. Draw Deforming Grid Lines via Skia DrawLine
     const paint = getPaint();

@@ -5,6 +5,7 @@ import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/Procedu
 import { getDrawable, getRenderGuard, getDrawableTransform } from "../../shared/rendering/renderingUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
+import { resolveGridDisplacementContext, monitorBulletsAndSpawnTrails } from "./GeometryWarsRenderUtils";
 
 // ============================================================================
 // ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL FOR CANVAS
@@ -46,68 +47,6 @@ function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
     ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
   }
   ctx.restore();
-}
-
-// ============================================================================
-// DECOUPLED BULLET DEATH & TRAIL MONITOR
-// ============================================================================
-
-const LAST_BULLETS_MAP = new Map<number, { x: number; y: number }>();
-const CURRENT_BULLETS_SET = new Set<number>();
-
-function monitorBulletsAndSpawnTrails(world: World<GeometryWarsComponentRegistry>): void {
-  CURRENT_BULLETS_SET.clear();
-
-  // Find all active bullets in this frame
-  const entities = world.query("Transform", "Render");
-  for (const ent of entities) {
-    const render = getRenderGuard(world, ent);
-    if (render && render.shape === "gw_bullet") {
-      CURRENT_BULLETS_SET.add(ent);
-      const transform = getDrawableTransform(world, ent)!;
-      const bx = transform.worldX ?? transform.x;
-      const by = transform.worldY ?? transform.y;
-
-      LAST_BULLETS_MAP.set(ent, { x: bx, y: by });
-
-      // Spawn a continuous subtle neon yellow trail spark particle
-      if (world.tick % 2 === 0) {
-        spawnVisualParticle(
-          bx,
-          by,
-          (world.renderRandom.next() - 0.5) * 15,
-          (world.renderRandom.next() - 0.5) * 15,
-          0.3,
-          2.0,
-          colors.gold
-        );
-      }
-    }
-  }
-
-  // Find bullets that were removed (present in LAST_BULLETS_MAP but not in CURRENT_BULLETS_SET)
-  for (const [id, pos] of LAST_BULLETS_MAP.entries()) {
-    if (!CURRENT_BULLETS_SET.has(id)) {
-      // Bullet died/expired! Spawn a stunning splash explosion of neon particles
-      const sparkCount = 8 + world.renderRandom.nextInt(0, 4);
-      for (let s = 0; s < sparkCount; s++) {
-        const angle = world.renderRandom.next() * Math.PI * 2;
-        const speed = world.renderRandom.nextRange(40, 100);
-        const vx = Math.cos(angle) * speed;
-        const vy = Math.sin(angle) * speed;
-        spawnVisualParticle(
-          pos.x,
-          pos.y,
-          vx,
-          vy,
-          world.renderRandom.nextRange(0.4, 0.7),
-          world.renderRandom.nextRange(2.0, 3.5),
-          world.renderRandom.next() > 0.4 ? colors.gold : colors.pink
-        );
-      }
-      LAST_BULLETS_MAP.delete(id);
-    }
-  }
 }
 
 // ============================================================================
@@ -440,31 +379,10 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
     drawCanvasVisualParticles(ctx);
 
     // 2. Monitor bullet states for trail and explosion spawns
-    monitorBulletsAndSpawnTrails(world);
+    monitorBulletsAndSpawnTrails(world, spawnVisualParticle, colors.gold, colors.pink);
 
-    // 3. Fetch Player coordinates for real-time grid displacement
-    let playerX = width / 2;
-    let playerY = height / 2;
-    const players = world.query("Player", "Transform");
-    if (players.length > 0) {
-      const transform = getDrawableTransform(world, players[0])!;
-      playerX = transform.worldX ?? transform.x;
-      playerY = transform.worldY ?? transform.y;
-    }
-
-    // 4. Collect active bullets coordinates (up to 100) to displace the grid
-    let bulletCount = 0;
-    const entities = world.query("Transform", "Render");
-    for (const ent of entities) {
-      if (bulletCount >= 100) break;
-      const render = getRenderGuard(world, ent);
-      if (render && render.shape === "gw_bullet") {
-        const trans = getDrawableTransform(world, ent)!;
-        BULLET_COORDS[bulletCount].x = trans.worldX ?? trans.x;
-        BULLET_COORDS[bulletCount].y = trans.worldY ?? trans.y;
-        bulletCount++;
-      }
-    }
+    // 3. Resolve grid displacement context
+    const { playerX, playerY, bulletCount } = resolveGridDisplacementContext(world, width, height);
 
     // 5. Draw Deforming Grid Lines
     ctx.save();

@@ -1,5 +1,5 @@
 import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService } from "@tiny-aster/core";
-import type { SkColor } from "@shopify/react-native-skia";
+import type { SkCanvas, SkColor } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
 import { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
@@ -108,6 +108,20 @@ export function getRenderComponent<TComponents extends ComponentRegistry = Compo
   entity: Entity
 ): RenderComponent | undefined {
   return world.getComponent(entity, "Render" as Extract<keyof TComponents, string>) as RenderComponent | undefined;
+}
+
+export function getDrawerContext<TComponents extends ComponentRegistry = ComponentRegistry>(
+  world: World<TComponents>,
+  entity: Entity,
+  defaultSize: number,
+  isSkia = false
+): { render: RenderComponent; size: number; timePhase: number } | null {
+  if (isSkia && !Skia) return null;
+  const render = getRenderComponent(world, entity);
+  if (!render) return null;
+  const size = render.size || defaultSize;
+  const timePhase = getVFXState(world).timePhase;
+  return { render, size, timePhase };
 }
 
 export function computeShockwaveParams(baseSize: number, progress: number) {
@@ -279,8 +293,8 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Cor
   }
 };
 
-export const SkiaRetroCRTScanlinesEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaRetroCRTScanlinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
 
@@ -417,8 +431,8 @@ export const HyperdriveWarpSpeedLinesEffect: EffectDrawer<CanvasRenderingContext
   }
 };
 
-export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { centerX, centerY, maxRadius, lines } = resolveWarpLinesContext(world);
 
@@ -445,12 +459,11 @@ export const SkiaHyperdriveWarpSpeedLinesEffect: EffectDrawer<any, CoreComponent
 // -------------------------------------------------------------
 export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+    const dCtx = getDrawerContext(world, entity, 35);
+    if (!dCtx) return;
 
-    const size = render.size || 35;
+    const { size, timePhase } = dCtx;
     const radius = size * 1.3;
-    const timePhase = getVFXState(world).timePhase;
     const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);
     const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "normal");
 
@@ -479,15 +492,13 @@ export const EnergyShieldBubbleEffect: ShapeDrawer<CanvasRenderingContext2D, Cor
   }
 };
 
-export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
+    const dCtx = getDrawerContext(world, entity, 35, true);
+    if (!dCtx) return;
 
-    const size = render.size || 35;
+    const { size, timePhase } = dCtx;
     const radius = size * 1.3;
-    const timePhase = getVFXState(world).timePhase;
     const { pulseFactor } = computeShieldBubbleParams(timePhase);
     const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "normal");
 
@@ -578,8 +589,8 @@ export const DebrisShockwaveEffect: ShapeDrawer<CanvasRenderingContext2D, CoreCo
   }
 };
 
-export const SkiaDebrisShockwaveEffect: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaDebrisShockwaveEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     if (!Skia) return;
     const render = getRenderComponent(world, entity);
     if (!render) return;
@@ -651,8 +662,8 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Cor
   }
 };
 
-export const SkiaMatrixDigitalRainEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { height, state } = getScreenAndVFXState(world);
 
@@ -720,8 +731,8 @@ export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaCRTGlitchShudderEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaCRTGlitchShudderEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { width, height } = getScreenAndVFXState(world);
 
@@ -746,11 +757,10 @@ export const SkiaCRTGlitchShudderEffect: EffectDrawer<any, CoreComponentRegistry
 // -------------------------------------------------------------
 export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+    const dCtx = getDrawerContext(world, entity, 10);
+    if (!dCtx) return;
 
-    const size = render.size || 10;
-    const timePhase = getVFXState(world).timePhase;
+    const { size, timePhase } = dCtx;
     const { plumeLength } = computeThrusterPlume(timePhase, size);
     const flameColors = getThrusterFlameColors();
     const glowStyle = getGlowStyle(flameColors.inner, "normal");
@@ -781,14 +791,12 @@ export const ThrusterPlumeFlameEffect: ShapeDrawer<CanvasRenderingContext2D, Cor
   }
 };
 
-export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
+    const dCtx = getDrawerContext(world, entity, 10, true);
+    if (!dCtx) return;
 
-    const size = render.size || 10;
-    const timePhase = getVFXState(world).timePhase;
+    const { size, timePhase } = dCtx;
     const { plumeLength } = computeThrusterPlume(timePhase, size);
     const flameColors = getThrusterFlameColors();
     const glowStyle = getGlowStyle(flameColors.inner, "normal");
@@ -828,11 +836,10 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<any, CoreComponentRegistr
 // -------------------------------------------------------------
 export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+    const dCtx = getDrawerContext(world, entity, 300);
+    if (!dCtx) return;
 
-    const length = render.size || 300;
-    const timePhase = getVFXState(world).timePhase;
+    const { size: length, timePhase } = dCtx;
     const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "strong");
 
     ctx.save();
@@ -863,14 +870,12 @@ export const LaserRailBeamEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComp
   }
 };
 
-export const SkiaLaserRailBeamEffect: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+export const SkiaLaserRailBeamEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
+    const dCtx = getDrawerContext(world, entity, 300, true);
+    if (!dCtx) return;
 
-    const length = render.size || 300;
-    const timePhase = getVFXState(world).timePhase;
+    const { size: length, timePhase } = dCtx;
     const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "strong");
 
     canvas.save();
@@ -922,8 +927,8 @@ export const ScreenBorderGlowEffect: EffectDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaScreenBorderGlowEffect: EffectDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world) {
+export const SkiaScreenBorderGlowEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
     const timePhase = state.timePhase;
@@ -943,7 +948,7 @@ export const SkiaScreenBorderGlowEffect: EffectDrawer<any, CoreComponentRegistry
 };
 
 function resolveVortexContext(world: World<CoreComponentRegistry>, entity: Entity) {
-  const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
+  const render = getRenderComponent(world, entity);
   if (!render) return null;
 
   const baseSize = render.size || 30;
@@ -995,8 +1000,8 @@ export const SingularityVortexEffect: ShapeDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaSingularityVortexEffect: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaSingularityVortexEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     if (!Skia) return;
     const vCtx = resolveVortexContext(world, entity);
     if (!vCtx) return;
@@ -1038,11 +1043,10 @@ export const SkiaSingularityVortexEffect: ShapeDrawer<any, CoreComponentRegistry
 // -------------------------------------------------------------
 export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+    const dCtx = getDrawerContext(world, entity, 15);
+    if (!dCtx) return;
 
-    const size = render.size || 15;
-    const timePhase = getVFXState(world).timePhase;
+    const { size, timePhase } = dCtx;
     const trailParams = computeTrailParameters(1.0, 1.0, size);
     const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
     const glowStyle = getGlowStyle(trailParams.glowColor, "normal");
@@ -1063,14 +1067,12 @@ export const CometMotionTrailEffect: ShapeDrawer<CanvasRenderingContext2D, CoreC
   }
 };
 
-export const SkiaCometMotionTrailEffect: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+export const SkiaCometMotionTrailEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
+    const dCtx = getDrawerContext(world, entity, 15, true);
+    if (!dCtx) return;
 
-    const size = render.size || 15;
-    const timePhase = getVFXState(world).timePhase;
+    const { size, timePhase } = dCtx;
     const trailParams = computeTrailParameters(1.0, 1.0, size);
     const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
     const glowStyle = getGlowStyle(trailParams.glowColor, "normal");
@@ -1095,11 +1097,10 @@ export const SkiaCometMotionTrailEffect: ShapeDrawer<any, CoreComponentRegistry>
 // -------------------------------------------------------------
 export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+    const dCtx = getDrawerContext(world, entity, 20);
+    if (!dCtx) return;
 
-    const size = render.size || 20;
-    const timePhase = getVFXState(world).timePhase;
+    const { size, timePhase } = dCtx;
     const layers = computeHologramLayers(timePhase, size);
 
     ctx.save();
@@ -1118,14 +1119,12 @@ export const RGBHologramGlitchEffect: ShapeDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaRGBHologramGlitchEffect: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-    if (!render) return;
+export const SkiaRGBHologramGlitchEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
+    const dCtx = getDrawerContext(world, entity, 20, true);
+    if (!dCtx) return;
 
-    const size = render.size || 20;
-    const timePhase = getVFXState(world).timePhase;
+    const { size, timePhase } = dCtx;
     const layers = computeHologramLayers(timePhase, size);
 
     canvas.save();
@@ -1150,7 +1149,7 @@ export const SkiaRGBHologramGlitchEffect: ShapeDrawer<any, CoreComponentRegistry
 // -------------------------------------------------------------
 export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
+    const render = getRenderComponent(world, entity);
     if (!render) return;
 
     const { progress, alpha } = computeEffectProgress(world, entity);
@@ -1180,10 +1179,10 @@ export const FloatingTextScoreEffect: ShapeDrawer<CanvasRenderingContext2D, Core
   }
 };
 
-export const SkiaFloatingTextScoreEffect: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const SkiaFloatingTextScoreEffect: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(canvas: any, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
+    const render = getRenderComponent(world, entity);
     if (!render) return;
 
     const { progress, alpha } = computeEffectProgress(world, entity);

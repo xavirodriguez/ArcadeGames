@@ -129,28 +129,40 @@ export const drawParticle: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCom
   }
 };
 
+function drawDiamondEnemy(
+  ctx: CanvasRenderingContext2D,
+  world: any,
+  entity: number,
+  defaultSize: number,
+  aspectX: number = 1.0,
+  strokeWidth: number = 1.5,
+  shadowBlur: number = 8
+): void {
+  const drawable = getDrawable(world, entity, defaultSize);
+  if (!drawable) return;
+  const { render, size } = drawable;
+  const color = render.color ?? colors.pink;
+
+  applyNeonStroke(ctx, color, strokeWidth, shadowBlur);
+
+  ctx.beginPath();
+  ctx.moveTo(0, -size);
+  ctx.lineTo(size * aspectX, 0);
+  ctx.lineTo(0, size);
+  ctx.lineTo(-size * aspectX, 0);
+  ctx.closePath();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
 /**
  * Shape drawer for Chaser enemy (magenta diamond).
  * @public
  */
 export const drawChaser: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const drawable = getDrawable(world, entity, 14);
-    if (!drawable) return;
-    const { render, size } = drawable;
-    const color = render.color ?? colors.pink;
-
-    applyNeonStroke(ctx, color, 2, 10);
-
-    ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(size, 0);
-    ctx.lineTo(0, size);
-    ctx.lineTo(-size, 0);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
+    drawDiamondEnemy(ctx, world, entity, 14, 1.0, 2, 10);
   }
 };
 
@@ -231,22 +243,7 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
  */
 export const drawEnemySeeker: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const drawable = getDrawable(world, entity, 12);
-    if (!drawable) return;
-    const { render, size } = drawable;
-    const color = render.color ?? colors.pink;
-
-    applyNeonStroke(ctx, color);
-
-    ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(size / 2, 0);
-    ctx.lineTo(0, size);
-    ctx.lineTo(-size / 2, 0);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
+    drawDiamondEnemy(ctx, world, entity, 12, 0.5, 1.5, 8);
   }
 };
 
@@ -300,6 +297,32 @@ export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, Geometry
 // GEOMETRY WARS BACKGROUND NEON DEFORMING GRID EFFECT
 // ============================================================================
 
+function drawDeformingGridLines(
+  ctx: CanvasRenderingContext2D,
+  outerMax: number,
+  innerMax: number,
+  playerX: number,
+  playerY: number,
+  bulletCount: number,
+  getPointCoords: (outer: number, inner: number) => { x: number; y: number }
+): void {
+  for (let outer = 0; outer <= outerMax; outer += 40) {
+    ctx.beginPath();
+    let first = true;
+    for (let inner = 0; inner <= innerMax; inner += 25) {
+      const pt = getPointCoords(outer, inner);
+      const displaced = getDisplacedPoint(pt.x, pt.y, playerX, playerY, BULLET_COORDS, bulletCount);
+      if (first) {
+        ctx.moveTo(displaced.x, displaced.y);
+        first = false;
+      } else {
+        ctx.lineTo(displaced.x, displaced.y);
+      }
+    }
+    ctx.stroke();
+  }
+}
+
 /**
  * High-fidelity, deforming glowing neon blue background grid.
  * @public
@@ -321,36 +344,10 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
     ctx.lineWidth = 0.8;
 
     // Draw horizontal grid lines
-    for (let y = 0; y <= height; y += 40) {
-      ctx.beginPath();
-      let first = true;
-      for (let x = 0; x <= width; x += 25) {
-        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
-        if (first) {
-          ctx.moveTo(displaced.x, displaced.y);
-          first = false;
-        } else {
-          ctx.lineTo(displaced.x, displaced.y);
-        }
-      }
-      ctx.stroke();
-    }
+    drawDeformingGridLines(ctx, height, width, playerX, playerY, bulletCount, (y, x) => ({ x, y }));
 
     // Draw vertical grid lines
-    for (let x = 0; x <= width; x += 40) {
-      ctx.beginPath();
-      let first = true;
-      for (let y = 0; y <= height; y += 25) {
-        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
-        if (first) {
-          ctx.moveTo(displaced.x, displaced.y);
-          first = false;
-        } else {
-          ctx.lineTo(displaced.x, displaced.y);
-        }
-      }
-      ctx.stroke();
-    }
+    drawDeformingGridLines(ctx, width, height, playerX, playerY, bulletCount, (x, y) => ({ x, y }));
 
     ctx.restore();
   }

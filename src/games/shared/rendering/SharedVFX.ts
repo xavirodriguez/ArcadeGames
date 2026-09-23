@@ -134,6 +134,19 @@ export function computeEffectProgress(world: World<CoreComponentRegistry>, entit
   return { progress, alpha };
 }
 
+function prepareEffectRender(
+  world: World<CoreComponentRegistry>,
+  entity: Entity
+): { render: RenderComponent; progress: number; alpha: number } | null {
+  const render = getRenderComponent(world, entity);
+  if (!render) return null;
+
+  const { progress, alpha } = computeEffectProgress(world, entity);
+  if (alpha <= 0.01) return null;
+
+  return { render, progress, alpha };
+}
+
 function updateSpeedLine(line: SpeedLine, maxRadius: number, rng: RandomService): void {
   line.radius += line.speed;
   if (line.radius > maxRadius) {
@@ -190,6 +203,28 @@ function initializeMatrixColumns(width: number, height: number, rng: RandomServi
     });
   }
   return cols;
+}
+
+function forEachMatrixChar(
+  columns: MatrixColumn[],
+  height: number,
+  callback: (col: MatrixColumn, charY: number, alpha: number, isLead: boolean, charIndex: number) => void
+): void {
+  for (let i = 0; i < columns.length; i++) {
+    const col = columns[i];
+    col.y += col.speed;
+    if (col.y > height + col.length * 14) {
+      col.y = -col.length * 14;
+    }
+
+    for (let j = 0; j < col.length; j++) {
+      const charY = col.y - j * 14;
+      if (charY < 0 || charY > height) continue;
+
+      const alpha = (1.0 - j / col.length) * 0.8;
+      callback(col, charY, alpha, j === 0, j);
+    }
+  }
 }
 
 function updateAccretionParticle(p: AccretionParticle, baseSize: number, rng: RandomService): void {
@@ -414,12 +449,10 @@ function drawShockwaveSparks(
 }
 
 export function drawDebrisShockwave(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, entity: Entity): void {
-  const render = getRenderComponent(world, entity);
-  if (!render) return;
+  const effect = prepareEffectRender(world, entity);
+  if (!effect) return;
 
-  const { progress, alpha } = computeEffectProgress(world, entity);
-  if (alpha <= 0.01) return;
-
+  const { render, progress, alpha } = effect;
   const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);
 
   adapter.save();
@@ -457,23 +490,11 @@ export const MatrixDigitalRainEffect: EffectDrawer<CanvasRenderingContext2D, Cor
     ctx.font = "12px monospace";
     ctx.textAlign = "center";
 
-    for (let i = 0; i < columns.length; i++) {
-      const col = columns[i];
-      col.y += col.speed;
-      if (col.y > height + col.length * 14) {
-        col.y = -col.length * 14;
-      }
-
-      for (let j = 0; j < col.length; j++) {
-        const charY = col.y - j * 14;
-        if (charY < 0 || charY > height) continue;
-
-        const alpha = 1.0 - j / col.length;
-        ctx.globalAlpha = alpha * 0.8;
-        ctx.fillStyle = j === 0 ? COSMIC_ARCADE_PALETTE.white : COSMIC_ARCADE_PALETTE.matrixGreen;
-        ctx.fillText(col.chars[j % col.chars.length], col.x, charY);
-      }
-    }
+    forEachMatrixChar(columns, height, (col, charY, alpha, isLead, j) => {
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = isLead ? COSMIC_ARCADE_PALETTE.white : COSMIC_ARCADE_PALETTE.matrixGreen;
+      ctx.fillText(col.chars[j % col.chars.length], col.x, charY);
+    });
 
     ctx.restore();
   }
@@ -492,24 +513,11 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreCompon
     const paintTrail = Skia.Paint();
     paintTrail.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.matrixGreen));
 
-    for (let i = 0; i < columns.length; i++) {
-      const col = columns[i];
-      col.y += col.speed;
-      if (col.y > height + col.length * 14) {
-        col.y = -col.length * 14;
-      }
-
-      for (let j = 0; j < col.length; j++) {
-        const charY = col.y - j * 14;
-        if (charY < 0 || charY > height) continue;
-
-        const alpha = 1.0 - j / col.length;
-        const paint = j === 0 ? paintLead : paintTrail;
-        paint.setAlphaf(alpha * 0.8);
-
-        skCanvas.drawRect(Skia.XYWHRect(col.x - 4, charY - 8, 8, 10), paint);
-      }
-    }
+    forEachMatrixChar(columns, height, (col, charY, alpha, isLead) => {
+      const paint = isLead ? paintLead : paintTrail;
+      paint.setAlphaf(alpha);
+      skCanvas.drawRect(Skia.XYWHRect(col.x - 4, charY - 8, 8, 10), paint);
+    });
 
     skCanvas.restore();
   }
@@ -874,12 +882,10 @@ export const SkiaRGBHologramGlitchEffect: ShapeDrawer<RenderContext, CoreCompone
 // 13. FloatingTextScoreEffect (ShapeDrawer)
 // -------------------------------------------------------------
 export function drawFloatingTextScore(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, entity: Entity): void {
-  const render = getRenderComponent(world, entity);
-  if (!render) return;
+  const effect = prepareEffectRender(world, entity);
+  if (!effect) return;
 
-  const { progress, alpha } = computeEffectProgress(world, entity);
-  if (alpha <= 0.01) return;
-
+  const { progress, alpha } = effect;
   const label = (entity as { text?: string }).text || "+100";
   const offsetY = -progress * 50;
 

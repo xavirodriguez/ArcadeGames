@@ -2,6 +2,7 @@ import { ShapeDrawer, EffectDrawer, resolveThemeColor } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 import { Skia } from "../../shared/rendering/SkiaContext";
+import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 import { shouldSkipFroggerRenderDueToInvulnerability, isFroggerInvulnerable } from "./FroggerRenderUtils";
 
 function drawSkiaRoundedBox(
@@ -20,8 +21,7 @@ function drawSkiaRoundedBox(
 
 export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     if (shouldSkipFroggerRenderDueToInvulnerability(world, entity)) {
@@ -51,8 +51,7 @@ export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 
 export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const width = render.size || 48;
@@ -63,8 +62,7 @@ export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 
 export const drawTruckSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const width = render.size || 80;
@@ -85,8 +83,7 @@ export const drawTruckSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 
 export const drawLogSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const width = render.size || 120;
@@ -96,8 +93,7 @@ export const drawLogSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 
 export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const width = render.size || 80;

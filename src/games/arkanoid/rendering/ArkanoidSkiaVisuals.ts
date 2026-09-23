@@ -5,12 +5,12 @@ import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "../../shared/rendering/ProceduralShapeUtils";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 
 export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
 
     const transform = world.getComponent(entity, "Transform") as TransformComponent;
     if (!transform) return;
@@ -25,9 +25,8 @@ export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> =
 
 export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
 
     const config = world.getResource<ArkanoidConfig>("GameConfig") || { PADDLE_WIDTH: 100, PADDLE_HEIGHT: 16 };
     const w = config.PADDLE_WIDTH;
@@ -91,9 +90,8 @@ function drawFilledSkiaRoundRect(
 
 export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
 
     const capsuleColor = render.color || colors.cyan;
     drawFilledSkiaRoundRect(canvas, 24, 14, capsuleColor, 7, 7);
@@ -102,9 +100,8 @@ export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry
 
 export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
 
     const brick = world.getComponent(entity, "Brick") as BrickComponent | undefined;
     const config = world.getResource<ArkanoidConfig>("GameConfig") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };

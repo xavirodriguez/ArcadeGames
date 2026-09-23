@@ -1740,6 +1740,9 @@ export function findTriggeringPlayer<TComponents extends ComponentRegistry>(worl
 export type FlappyBirdRoleKey = CommonRoleKey | "bird" | "pipe" | "ground";
 
 // @public
+export function forEachSolidTileInRange(tilemapData: number[][], tileDefinitions: Record<number, TileDefinition>, minTileX: number, maxTileX: number, minTileY: number, maxTileY: number, callback: (tx: number, ty: number, tileDef: TileDefinition) => boolean | void): void;
+
+// @public
 export function forEachTileInBounds(minTileX: number, minTileY: number, maxTileX: number, maxTileY: number, callback: (tx: number, ty: number) => boolean | void): void;
 
 // @public
@@ -3393,6 +3396,7 @@ export interface PhysicsTransformLike {
 // @public
 export class PhysicsUtils {
     static applyBodyImpulse(world: World<CoreComponentRegistry>, entity: Entity, hasVelocity: unknown, isStatic: boolean, invMass: number, invInertia: number, rx: number, ry: number, fx: number, fy: number, scale: number): void;
+    static applyBodyPairImpulse(world: World<CoreComponentRegistry>, entityA: Entity, velA: unknown, isStaticA: boolean, invMassA: number, invInertiaA: number, rxA: number, ryA: number, entityB: Entity, velB: unknown, isStaticB: boolean, invMassB: number, invInertiaB: number, rxB: number, ryB: number, fx: number, fy: number, scaleA?: number, scaleB?: number): void;
     static applyPositionCorrection(world: World<CoreComponentRegistry>, entity: Entity, isStatic: boolean, hasTransform: unknown, corrX: number, corrY: number, weight: number): void;
     static circleOverlap(x1: number, y1: number, r1: number, x2: number, y2: number, r2: number): boolean;
     static clamp(value: number, min: number, max: number): number;

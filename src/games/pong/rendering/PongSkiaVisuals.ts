@@ -6,6 +6,7 @@ import { colors } from "../../../theme/colors";
 import { getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
 import { drawNeonShapeSkia, SkiaMotionTrail } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 
 export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
 export { SkiaMotionTrail };
@@ -19,9 +20,8 @@ const ballSkiaMotionTrail = new SkiaMotionTrail(30);
  */
 export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
 
     const transform = world.getComponent(entity, "Transform") as TransformComponent;
     if (!transform) return;
@@ -86,9 +86,8 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
  */
 export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
 
     const paddle = world.getComponent(entity, "Paddle");
     if (!paddle) return;

@@ -1,7 +1,7 @@
 import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
-import { defineSkiaShape } from "../../shared/rendering/renderingUtils";
+import { defineSkiaShape, getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import {
@@ -102,9 +102,8 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
 
 export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
     const size = render.size || 20;
 
     const vel = world.getComponent(entity, "Velocity");
@@ -241,9 +240,8 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
 
 export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
     const size = render.size || 16;
     const elapsed = world.tick * 0.016;
     const hoverOffset = Math.sin(elapsed * 6) * 4;
@@ -295,9 +293,8 @@ export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
 
 export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
     const size = render.size || 24;
     const elapsed = world.tick * 0.016;
     const hoverOffset = Math.sin(elapsed * 4) * 6;
@@ -339,9 +336,8 @@ export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
 
 export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
     const size = render.size || 32;
     const respawnPoint = world.getComponent(entity, "RespawnPoint" as any) as any;
     const runState = world.getResource<any>("RunState");
@@ -388,9 +384,8 @@ export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
 
 export const drawSkiaPulseAttack: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
     const size = render.size || 35;
 
     const paint = getPaint();

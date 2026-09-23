@@ -53,11 +53,16 @@ export class CanvasDrawAdapter implements IDrawAdapter {
     this.ctx.fill();
   }
 
-  public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (alpha <= 0.001) return;
+  private prepareCanvasStroke(color: string, strokeWidth: number, alpha: number): boolean {
+    if (alpha <= 0.001) return false;
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = strokeWidth;
     this.ctx.globalAlpha = alpha;
+    return true;
+  }
+
+  public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
+    if (!this.prepareCanvasStroke(color, strokeWidth, alpha)) return;
     this.ctx.beginPath();
     this.ctx.arc(x, y, Math.max(0, radius), 0, Math.PI * 2);
     this.ctx.stroke();
@@ -71,18 +76,12 @@ export class CanvasDrawAdapter implements IDrawAdapter {
   }
 
   public strokeRect(x: number, y: number, width: number, height: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (alpha <= 0.001) return;
-    this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = strokeWidth;
-    this.ctx.globalAlpha = alpha;
+    if (!this.prepareCanvasStroke(color, strokeWidth, alpha)) return;
     this.ctx.strokeRect(x, y, width, height);
   }
 
   public drawLine(x1: number, y1: number, x2: number, y2: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (alpha <= 0.001) return;
-    this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = strokeWidth;
-    this.ctx.globalAlpha = alpha;
+    if (!this.prepareCanvasStroke(color, strokeWidth, alpha)) return;
     this.ctx.beginPath();
     this.ctx.moveTo(x1, y1);
     this.ctx.lineTo(x2, y2);
@@ -90,10 +89,7 @@ export class CanvasDrawAdapter implements IDrawAdapter {
   }
 
   public drawArc(x: number, y: number, radius: number, startAngleRad: number, sweepAngleRad: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (alpha <= 0.001) return;
-    this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = strokeWidth;
-    this.ctx.globalAlpha = alpha;
+    if (!this.prepareCanvasStroke(color, strokeWidth, alpha)) return;
     this.ctx.beginPath();
     this.ctx.arc(x, y, Math.max(0, radius), startAngleRad, startAngleRad + sweepAngleRad);
     this.ctx.stroke();
@@ -139,61 +135,62 @@ export class SkiaDrawAdapter implements IDrawAdapter {
     }
   }
 
-  public fillCircle(x: number, y: number, radius: number, color: string, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawCircle) return;
+  private createSkiaPaint(
+    style: unknown,
+    color: string,
+    alpha: number,
+    strokeWidth?: number
+  ): any {
+    if (!Skia || alpha <= 0.001) return null;
     const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setStyle(style);
+    if (strokeWidth !== undefined) {
+      paint.setStrokeWidth(strokeWidth);
+    }
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha);
+    return paint;
+  }
+
+  public fillCircle(x: number, y: number, radius: number, color: string, alpha: number = 1.0): void {
+    if (!this.skCanvas.drawCircle) return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle.Fill, color, alpha);
+    if (!paint) return;
     this.skCanvas.drawCircle(x, y, Math.max(0, radius), paint);
   }
 
   public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawCircle) return;
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(strokeWidth);
-    paint.setColor(Skia.Color(color));
-    paint.setAlphaf(alpha);
+    if (!this.skCanvas.drawCircle) return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle.Stroke, color, alpha, strokeWidth);
+    if (!paint) return;
     this.skCanvas.drawCircle(x, y, Math.max(0, radius), paint);
   }
 
   public fillRect(x: number, y: number, width: number, height: number, color: string, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawRect) return;
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(color));
-    paint.setAlphaf(alpha);
+    if (!this.skCanvas.drawRect) return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle.Fill, color, alpha);
+    if (!paint) return;
     this.skCanvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
   }
 
   public strokeRect(x: number, y: number, width: number, height: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawRect) return;
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(strokeWidth);
-    paint.setColor(Skia.Color(color));
-    paint.setAlphaf(alpha);
+    if (!this.skCanvas.drawRect) return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle.Stroke, color, alpha, strokeWidth);
+    if (!paint) return;
     this.skCanvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
   }
 
   public drawLine(x1: number, y1: number, x2: number, y2: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawLine) return;
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(strokeWidth);
-    paint.setColor(Skia.Color(color));
-    paint.setAlphaf(alpha);
+    if (!this.skCanvas.drawLine) return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle.Stroke, color, alpha, strokeWidth);
+    if (!paint) return;
     this.skCanvas.drawLine(x1, y1, x2, y2, paint);
   }
 
   public drawArc(x: number, y: number, radius: number, startAngleRad: number, sweepAngleRad: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawPath) return;
-    const paint = Skia.Paint();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(strokeWidth);
-    paint.setColor(Skia.Color(color));
-    paint.setAlphaf(alpha);
+    if (!this.skCanvas.drawPath) return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle.Stroke, color, alpha, strokeWidth);
+    if (!paint) return;
 
     const path = Skia.Path.Make();
     path.addArc(

@@ -99,32 +99,32 @@ function createEnemyBlueprint(config: Omit<EnemyParams, "x" | "y">): EnemyBluepr
 /**
  * Configuration table for Geometry Wars enemy blueprints.
  */
-const ENEMY_DEFS: Record<string, EnemyBlueprintDef> = {
-  enemy_chaser: createEnemyBlueprint({
+const ENEMY_CONFIGS: Record<string, Omit<EnemyParams, "x" | "y">> = {
+  enemy_chaser: {
     shape: "gw_chaser",
     size: 14,
     color: colors.pink,
     radius: 7,
     maxSpeed: 140,
     maxAcceleration: 150
-  }),
-  enemy_evader: createEnemyBlueprint({
+  },
+  enemy_evader: {
     shape: "gw_evader",
     size: 14,
     color: "#ffaa00",
     radius: 7,
     maxSpeed: 120,
     maxAcceleration: 100
-  }),
-  enemy_grunt: createEnemyBlueprint({
+  },
+  enemy_grunt: {
     shape: "gw_grunt",
     size: 10,
     color: colors.cyan,
     radius: 5,
     maxSpeed: 250,
     maxAcceleration: 280
-  }),
-  seeker: createEnemyBlueprint({
+  },
+  seeker: {
     shape: "gw_seeker",
     size: 12,
     color: colors.pink,
@@ -135,8 +135,8 @@ const ENEMY_DEFS: Record<string, EnemyBlueprintDef> = {
     maxSpeed: 120,
     maxAcceleration: 80,
     arrivalRadius: 10
-  }),
-  evader: createEnemyBlueprint({
+  },
+  evader: {
     shape: "gw_evader",
     size: 12,
     color: colors.green,
@@ -147,8 +147,8 @@ const ENEMY_DEFS: Record<string, EnemyBlueprintDef> = {
     maxSpeed: 100,
     maxAcceleration: 60,
     steeringMode: "flee"
-  }),
-  fast_seeker: createEnemyBlueprint({
+  },
+  fast_seeker: {
     shape: "gw_fast_seeker",
     size: 8,
     color: colors.pink,
@@ -159,8 +159,19 @@ const ENEMY_DEFS: Record<string, EnemyBlueprintDef> = {
     maxSpeed: 200,
     maxAcceleration: 150,
     arrivalRadius: 5
-  })
+  }
 };
+
+/**
+ * Factory helper to register a simple enemy blueprint in the BlueprintRegistry.
+ */
+export function registerSimpleEnemy(
+  registry: BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>,
+  id: string,
+  config: Omit<EnemyParams, "x" | "y">
+): void {
+  registry.register(id, createEnemyBlueprint(config));
+}
 
 /**
  * Registers Geometry Wars blueprints.
@@ -258,8 +269,8 @@ export function registerGeometryWarsBlueprints(
     }
   });
 
-  for (const [key, blueprint] of Object.entries(ENEMY_DEFS)) {
-    registry.register(key, blueprint);
+  for (const [key, config] of Object.entries(ENEMY_CONFIGS)) {
+    registerSimpleEnemy(registry, key, config);
   }
 
   registry.register("spawn_director", {

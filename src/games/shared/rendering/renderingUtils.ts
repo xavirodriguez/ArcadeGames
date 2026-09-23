@@ -62,6 +62,20 @@ export function ensureSkiaAvailable(): boolean {
 }
 
 /**
+ * Returns the RenderComponent if present and visible and Skia is available, otherwise null.
+ * @public
+ */
+export function getVisibleSkiaRender<TRegistry extends Record<string, any> = Record<string, any>>(
+  world: World<TRegistry>,
+  entity: Entity
+): RenderComponent | null {
+  if (!Skia) return null;
+  const render = world.getComponent(entity, "Render" as Extract<keyof TRegistry, string>) as RenderComponent | undefined;
+  if (!render || !render.visible) return null;
+  return render;
+}
+
+/**
  * Returns the RenderComponent if present and visible, otherwise null.
  * Agnostic of rendering context (works for Canvas2D and Skia).
  * @public

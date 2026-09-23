@@ -4,6 +4,7 @@ import { ComponentRegistry } from "../../ecs/Component";
 import {
   CoreComponentRegistry,
   TilemapComponent,
+  TileDefinition,
   TransformComponent,
   VelocityComponent,
   Collider2DComponent,
@@ -28,6 +29,37 @@ export function forEachTileInBounds(
   for (let ty = minTileY; ty <= maxTileY; ty++) {
     for (let tx = minTileX; tx <= maxTileX; tx++) {
       if (callback(tx, ty) === true) {
+        return;
+      }
+    }
+  }
+}
+
+/**
+ * Iterates over solid/active tile definitions within specified matrix grid bounds.
+ * Returning true from callback breaks early out of iteration.
+ * @public
+ */
+export function forEachSolidTileInRange(
+  tilemapData: number[][],
+  tileDefinitions: Record<number, TileDefinition>,
+  minTileX: number,
+  maxTileX: number,
+  minTileY: number,
+  maxTileY: number,
+  callback: (tx: number, ty: number, tileDef: TileDefinition) => boolean | void
+): void {
+  for (let ty = minTileY; ty <= maxTileY; ty++) {
+    const row = tilemapData[ty];
+    if (!row) continue;
+    for (let tx = minTileX; tx <= maxTileX; tx++) {
+      const tileId = row[tx];
+      if (tileId === undefined || tileId === 0) continue;
+
+      const tileDef = tileDefinitions[tileId];
+      if (!tileDef) continue;
+
+      if (callback(tx, ty, tileDef) === true) {
         return;
       }
     }
@@ -115,16 +147,15 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       let minTileY = Math.floor((playerMinY - tilemapY) / tileSize);
       let maxTileY = Math.floor((playerMaxY - tilemapY - EPSILON) / tileSize);
 
-      // Direct nested loop eliminates closure allocation per frame
-      xTileLoop: for (let ty = minTileY; ty <= maxTileY; ty++) {
-        const row = tilemap.data[ty];
-        if (!row) continue;
-        for (let tx = minTileX; tx <= maxTileX; tx++) {
-          const tileId = row[tx];
-          if (tileId === undefined || tileId === 0) continue;
-
-          const tileDef = tileDefinitions[tileId];
-          if (!tileDef || !tileDef.solid || tileDef.oneWay) continue;
+      forEachSolidTileInRange(
+        tilemap.data,
+        tileDefinitions,
+        minTileX,
+        maxTileX,
+        minTileY,
+        maxTileY,
+        (tx, _ty, tileDef) => {
+          if (!tileDef.solid || tileDef.oneWay) return;
 
           const tileLeft = tilemapX + tx * tileSize;
           const tileRight = tileLeft + tileSize;
@@ -133,15 +164,15 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
             trans.x = tileLeft - halfW - offsetX;
             vel.vx = 0;
             currentX = trans.x;
-            break xTileLoop;
+            return true;
           } else if (vel.vx < 0) {
             trans.x = tileRight + halfW - offsetX;
             vel.vx = 0;
             currentX = trans.x;
-            break xTileLoop;
+            return true;
           }
         }
-      }
+      );
 
       // --- Resolve Y axis ---
       currentY = trans.y;
@@ -157,17 +188,14 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
 
       const oldVy = vel.vy;
 
-      // Direct nested loop eliminates closure allocation per frame
-      yTileLoop: for (let ty = minTileY; ty <= maxTileY; ty++) {
-        const row = tilemap.data[ty];
-        if (!row) continue;
-        for (let tx = minTileX; tx <= maxTileX; tx++) {
-          const tileId = row[tx];
-          if (tileId === undefined || tileId === 0) continue;
-
-          const tileDef = tileDefinitions[tileId];
-          if (!tileDef) continue;
-
+      forEachSolidTileInRange(
+        tilemap.data,
+        tileDefinitions,
+        minTileX,
+        maxTileX,
+        minTileY,
+        maxTileY,
+        (_tx, ty, tileDef) => {
           const tileTop = tilemapY + ty * tileSize;
           const tileBottom = tileTop + tileSize;
 
@@ -178,30 +206,24 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
               const wasAbove = prevPlayerBottom <= tileTop + 1.0;
 
               if (isDescending && wasAbove) {
-                trans.y = tileTop - halfH - offsetY;
-                vel.vy = 0;
-                isGrounded = true;
-                const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
-                if (res.onIce !== undefined) onIce = res.onIce;
-                if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
-                break yTileLoop;
+                const landing = this.applyLandingOnTile(world, entity, trans, vel, tileTop, halfH, offsetY, oldVy, tileDef);
+                isGrounded = landing.isGrounded;
+                if (landing.onIce) onIce = true;
+                return true;
               }
             } else {
               if (oldVy > 0) {
-                trans.y = tileTop - halfH - offsetY;
-                vel.vy = 0;
-                isGrounded = true;
-                const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
-                if (res.onIce !== undefined) onIce = res.onIce;
-                if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
-                break yTileLoop;
+                const landing = this.applyLandingOnTile(world, entity, trans, vel, tileTop, halfH, offsetY, oldVy, tileDef);
+                isGrounded = landing.isGrounded;
+                if (landing.onIce) onIce = true;
+                return true;
               } else if (oldVy < 0) {
                 trans.y = tileBottom + halfH - offsetY;
                 vel.vy = 0;
                 if (tileDef.kind === "spike") {
                   this.handleSpikeCollision(world, entity);
                 }
-                break yTileLoop;
+                return true;
               }
             }
           } else {
@@ -209,7 +231,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
             if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
           }
         }
-      }
+      );
 
       if (world.hasComponent(entity, groundStateType)) {
         const targetIceMultiplier = onIce ? 0.2 : 1.0;
@@ -223,6 +245,27 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
         }
       }
     }
+  }
+
+  private applyLandingOnTile(
+    world: World<TRegistry>,
+    entity: Entity,
+    trans: TransformComponent,
+    vel: VelocityComponent,
+    tileTop: number,
+    halfH: number,
+    offsetY: number,
+    oldVy: number,
+    tileDef: TileDefinition
+  ): { isGrounded: boolean; onIce: boolean } {
+    trans.y = tileTop - halfH - offsetY;
+    vel.vy = 0;
+    let isGrounded = true;
+    let onIce = false;
+    const res = this.applyTileKindEffect(world, entity, vel, oldVy, tileDef);
+    if (res.onIce !== undefined) onIce = res.onIce;
+    if (res.isGrounded !== undefined) isGrounded = res.isGrounded;
+    return { isGrounded, onIce };
   }
 
   private hasTileColliderTag(world: World<TRegistry>, entity: Entity): boolean {

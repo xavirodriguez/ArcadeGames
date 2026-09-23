@@ -257,7 +257,7 @@ export function createSharedParticle<
   dx: number,
   dy: number,
   color: string,
-  pool: { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: Record<string, unknown>) => number },
+  pool: { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: { x: number; y: number; dx?: number; dy?: number; vx?: number; vy?: number; size: number; color: string; ttl: number }) => number },
   size = 3,
   ttl = 0.8
 ): number {
@@ -297,7 +297,7 @@ export const SkiaRetroCRTScanlinesEffect: EffectDrawer<RenderContext, CoreCompon
     const scanlineYs = getOrCreateCached<number[]>(state, "scanlines", width, height, () => initializeCRTScanlines(width, height));
     const timePhase = state.timePhase;
 
-    const skCanvas = canvas as SkiaCanvasOps;
+    const skCanvas = canvas as unknown as SkiaCanvasOps;
     skCanvas.save();
     const paint = Skia.Paint();
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -485,7 +485,7 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreCompon
     const { width, height, state } = getScreenAndVFXState(world);
     const columns = getOrCreateCached<MatrixColumn[]>(state, "matrixCols", width, height, () => initializeMatrixColumns(width, height, world.renderRandom));
 
-    const skCanvas = canvas as SkiaCanvasOps;
+    const skCanvas = canvas as unknown as SkiaCanvasOps;
     skCanvas.save();
     const paintLead = Skia.Paint();
     paintLead.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.white));
@@ -544,7 +544,7 @@ export const SkiaCRTGlitchShudderEffect: EffectDrawer<RenderContext, CoreCompone
 
     if (!isGlitching) return;
 
-    const skCanvas = canvas as SkiaCanvasOps;
+    const skCanvas = canvas as unknown as SkiaCanvasOps;
     skCanvas.save();
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.neonCyan));
@@ -604,7 +604,7 @@ export const SkiaThrusterPlumeFlameEffect: ShapeDrawer<RenderContext, CoreCompon
     const flameColors = getThrusterFlameColors();
     const glowStyle = getGlowStyle(flameColors.inner, "normal");
 
-    const skCanvas = canvas as SkiaCanvasOps;
+    const skCanvas = canvas as unknown as SkiaCanvasOps;
     skCanvas.save();
     renderSkiaGlow(skCanvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Fill);
@@ -682,7 +682,7 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<RenderContext, CoreComponentRe
     const { size: length, timePhase } = dCtx;
     const glowStyle = getGlowStyle(COSMIC_ARCADE_PALETTE.neonCyan, "strong");
 
-    const skCanvas = canvas as SkiaCanvasOps;
+    const skCanvas = canvas as unknown as SkiaCanvasOps;
     skCanvas.save();
     renderSkiaGlow(skCanvas, glowStyle, (paint, isHighlight) => {
       paint.setStyle(Skia.PaintStyle.Stroke);

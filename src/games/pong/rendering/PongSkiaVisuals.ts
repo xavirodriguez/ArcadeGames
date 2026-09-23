@@ -4,8 +4,9 @@ import { PongConfig } from "../types/PongConfigSchema";
 import { ComboComponent } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
 import { getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
-import { drawNeonShapeSkia, SkiaMotionTrail } from "../../shared/rendering/SkiaNeonUtils";
+import { drawNeonShapeSkia, SkiaMotionTrail, drawSkiaBackgroundGrid } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 
 export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
 export { SkiaMotionTrail };
@@ -19,9 +20,8 @@ const ballSkiaMotionTrail = new SkiaMotionTrail(30);
  */
 export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
 
     const transform = world.getComponent(entity, "Transform") as TransformComponent;
     if (!transform) return;
@@ -86,9 +86,8 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
  */
 export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
 
     const paddle = world.getComponent(entity, "Paddle");
     if (!paddle) return;
@@ -137,27 +136,8 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
 
     const paint = getPaint();
 
-    // 1. Solid deep space dark background
-    paint.reset();
-    paint.setColor(Skia.Color(colors.background));
-    canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
-
-    // 2. Scrolling cyber-neon grid lines
-    const gridSize = 40;
-    const scrollOffset = (world.tick * 0.3) % gridSize;
-
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 240, 255, 0.04)"));
-    paint.setStrokeWidth(1.0);
-
-    for (let x = 0; x < width; x += gridSize) {
-      canvas.drawLine(x, 0, x, height, paint);
-    }
-
-    for (let y = scrollOffset; y < height; y += gridSize) {
-      canvas.drawLine(0, y, width, y, paint);
-    }
+    // 1 & 2. Draw space background and scrolling cyber grid
+    drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 40, 0.3, "rgba(0, 240, 255, 0.04)");
 
     // 3. Draw Pong center divider
     canvas.save();

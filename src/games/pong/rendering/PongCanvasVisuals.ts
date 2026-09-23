@@ -1,8 +1,8 @@
-import { ShapeDrawer, EffectDrawer, World, TransformComponent } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, ComboComponent } from "@tiny-aster/core";
 import { PongComponentRegistry, BallComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
-import { ComboComponent } from "@tiny-aster/core";
-import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
+import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, getComboReaction, canvasRoundRectPath } from "../../shared/rendering/CanvasNeonUtils";
+import { getVisibleCanvasRenderAndTransform } from "../../shared/rendering/renderingUtils";
 import { colors } from "../../../theme/colors";
 
 // Instantiate the reusable, zero-allocation motion trail helper
@@ -14,12 +14,10 @@ const ballMotionTrail = new CanvasMotionTrail(30);
  */
 export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const target = getVisibleCanvasRenderAndTransform(world, entity);
+    if (!target) return;
 
-    const transform = world.getComponent(entity, "Transform") as TransformComponent;
-    if (!transform) return;
-
+    const { render, transform } = target;
     const ballComp = world.getComponent(entity, "Ball") as BallComponent | undefined;
     const size = render.size ?? 8;
 
@@ -106,21 +104,13 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
       (ctx, widthScale, heightScale) => {
         const pw = w * widthScale;
         const ph = h * heightScale;
-        if (ctx.roundRect) {
-          ctx.roundRect(-pw / 2, -ph / 2, pw, ph, 4);
-        } else {
-          ctx.rect(-pw / 2, -ph / 2, pw, ph);
-        }
+        canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);
       },
       // 2. Draw white core path
       (ctx) => {
         const coreW = w * 0.4;
         const coreH = h * 0.9;
-        if (ctx.roundRect) {
-          ctx.roundRect(-coreW / 2, -coreH / 2, coreW, coreH, 2);
-        } else {
-          ctx.rect(-coreW / 2, -coreH / 2, coreW, coreH);
-        }
+        canvasRoundRectPath(ctx, -coreW / 2, -coreH / 2, coreW, coreH, 2);
       }
     );
   }

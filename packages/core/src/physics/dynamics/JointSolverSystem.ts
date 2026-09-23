@@ -118,8 +118,7 @@ export class JointSolverSystem<
         const Fx = totalForce * nx;
         const Fy = totalForce * ny;
 
-        PhysicsUtils.applyBodyImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, Fx, Fy, deltaTime);
-        PhysicsUtils.applyBodyImpulse(w, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, -deltaTime);
+        PhysicsUtils.applyBodyPairImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, deltaTime, -deltaTime);
       } else if (joint.jointType === "distance") {
         const restLength = joint.restLength;
         const maxDistance = joint.maxDistance;
@@ -148,8 +147,7 @@ export class JointSolverSystem<
             const Fx = totalForce * nx;
             const Fy = totalForce * ny;
 
-            PhysicsUtils.applyBodyImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, Fx, Fy, deltaTime);
-            PhysicsUtils.applyBodyImpulse(w, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, -deltaTime);
+            PhysicsUtils.applyBodyPairImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, deltaTime, -deltaTime);
           } else {
             // Rigid distance constraint
             const percent = 0.8;
@@ -170,8 +168,7 @@ export class JointSolverSystem<
               const impulseX = impulse * nx;
               const impulseY = impulse * ny;
 
-              PhysicsUtils.applyBodyImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, impulseX, impulseY, -1.0);
-              PhysicsUtils.applyBodyImpulse(w, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, impulseX, impulseY, 1.0);
+              PhysicsUtils.applyBodyPairImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, impulseX, impulseY);
             }
           }
         }
@@ -186,8 +183,7 @@ export class JointSolverSystem<
           const impulseX = -relVx / effectiveInvMass;
           const impulseY = -relVy / effectiveInvMass;
 
-          PhysicsUtils.applyBodyImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, impulseX, impulseY, -1.0);
-          PhysicsUtils.applyBodyImpulse(w, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, impulseX, impulseY, 1.0);
+          PhysicsUtils.applyBodyPairImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, impulseX, impulseY);
         }
 
         if (joint.enableMotor && joint.motorSpeed !== undefined) {

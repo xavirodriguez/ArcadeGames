@@ -147,6 +147,54 @@ export class PhysicsUtils {
   }
 
   /**
+   * Applies equal and opposite linear/angular impulses or forces to two interacting rigid bodies.
+   *
+   * @param world - Simulation world containing the entities.
+   * @param entityA - Target entity A ID.
+   * @param velA - Truthy if entity A has Velocity.
+   * @param isStaticA - True if body A is static.
+   * @param invMassA - Inverse mass of body A.
+   * @param invInertiaA - Inverse inertia of body A.
+   * @param rxA - X offset relative to body A center.
+   * @param ryA - Y offset relative to body A center.
+   * @param entityB - Target entity B ID.
+   * @param velB - Truthy if entity B has Velocity.
+   * @param isStaticB - True if body B is static.
+   * @param invMassB - Inverse mass of body B.
+   * @param invInertiaB - Inverse inertia of body B.
+   * @param rxB - X offset relative to body B center.
+   * @param ryB - Y offset relative to body B center.
+   * @param fx - Impulse or force X component.
+   * @param fy - Impulse or force Y component.
+   * @param scaleA - Scale factor for body A (default -1.0).
+   * @param scaleB - Scale factor for body B (default 1.0).
+   */
+  public static applyBodyPairImpulse(
+    world: import("../../ecs/World").World<import("../../ecs/CoreComponents").CoreComponentRegistry>,
+    entityA: import("../../ecs/Entity").Entity,
+    velA: unknown,
+    isStaticA: boolean,
+    invMassA: number,
+    invInertiaA: number,
+    rxA: number,
+    ryA: number,
+    entityB: import("../../ecs/Entity").Entity,
+    velB: unknown,
+    isStaticB: boolean,
+    invMassB: number,
+    invInertiaB: number,
+    rxB: number,
+    ryB: number,
+    fx: number,
+    fy: number,
+    scaleA: number = -1.0,
+    scaleB: number = 1.0
+  ): void {
+    PhysicsUtils.applyBodyImpulse(world, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, fx, fy, scaleA);
+    PhysicsUtils.applyBodyImpulse(world, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, fx, fy, scaleB);
+  }
+
+  /**
    * Applies a linear and angular force or impulse to a rigid body's velocity component.
    *
    * @remarks

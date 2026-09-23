@@ -6,6 +6,7 @@ import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rende
 import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 
 export { drawSkiaAsteroidsMissionHUD };
 
@@ -46,8 +47,7 @@ function setupAsteroidStrokePaint(
  */
 export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const size = render.size || 15;
@@ -142,8 +142,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
  */
 export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const size = render.size || 36;
@@ -171,8 +170,7 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
  */
 export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
 
@@ -216,8 +214,7 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
  */
 export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+    const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const size = render.size || 2;

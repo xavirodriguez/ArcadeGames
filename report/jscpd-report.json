@@ -1704,32 +1704,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-23T19:51:18.725Z",
+    "detectionDate": "2026-09-23T20:06:52.454Z",
     "formats": {
       "typescript": {
         "clones": 46,
         "duplicatedLines": 363,
         "duplicatedTokens": 3065,
-        "lines": 67700,
+        "lines": 67738,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.5361890694239291,
-        "percentageTokens": 0.8676451854892359,
+        "percentage": 0.5358882754140956,
+        "percentageTokens": 0.867299007345867,
         "sources": 411,
-        "tokens": 353255
+        "tokens": 353396
       }
     },
     "total": {
       "clones": 46,
       "duplicatedLines": 363,
       "duplicatedTokens": 3065,
-      "lines": 67700,
+      "lines": 67738,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.5361890694239291,
-      "percentageTokens": 0.8676451854892359,
+      "percentage": 0.5358882754140956,
+      "percentageTokens": 0.867299007345867,
       "sources": 411,
-      "tokens": 353255
+      "tokens": 353396
     }
   }
 }

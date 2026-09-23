@@ -1,12 +1,50 @@
 import { World } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 
+export interface RenderComponentLike {
+  visible?: boolean;
+  size?: number;
+  color?: string;
+  hitFlashFrames?: number;
+}
+
+export interface StateMachineComponentLike {
+  currentState?: string;
+}
+
+export interface VelocityComponentLike {
+  vx: number;
+  vy: number;
+}
+
+export interface GroundStateComponentLike {
+  isGrounded?: boolean;
+}
+
+export interface PlatformerInputComponentLike {
+  pulseCooldown?: number;
+}
+
+export interface HealthComponentLike {
+  invulnerableRemaining?: number;
+}
+
+export interface RespawnPointComponentLike {
+  checkpointId?: string;
+}
+
+export interface RunStateResource {
+  collectedTemporalIds?: string[];
+  activeCheckpoint?: string;
+  elapsedTime?: number;
+}
+
 /**
  * Common draw context helper for EchoRunner entity drawers.
  * @public
  */
 export interface EchoDrawContext {
-  render: unknown;
+  render: RenderComponentLike;
   size: number;
   isHitFlash: boolean;
   state: string;
@@ -17,11 +55,11 @@ export function resolveEchoDrawContext(
   entity: number,
   defaultSize: number = 20
 ): EchoDrawContext | null {
-  const render = world.getComponent(entity, "Render");
+  const render = world.getComponent(entity, "Render") as RenderComponentLike | undefined;
   if (!render || !render.visible) return null;
 
   const size = render.size || defaultSize;
-  const sm = world.getComponent(entity, "StateMachine");
+  const sm = world.getComponent(entity, "StateMachine") as StateMachineComponentLike | undefined;
   const state = sm && typeof sm === "object" && "currentState" in sm && typeof sm.currentState === "string" ? sm.currentState : "Idle";
   const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
 
@@ -171,7 +209,7 @@ export function resolveMemoryFragmentColors(collectedCount: number): { strokeCol
 }
 
 export interface EchoPlayerDrawContext {
-  render: any;
+  render: RenderComponentLike;
   size: number;
   vx: number;
   vy: number;
@@ -179,25 +217,25 @@ export interface EchoPlayerDrawContext {
   isAttacking: boolean;
   isInvulnerable: boolean;
   isHitFlash: boolean;
-  health: any;
+  health?: HealthComponentLike;
 }
 
 export function resolveEchoPlayerDrawContext(
   world: World,
   entity: number
 ): EchoPlayerDrawContext | null {
-  const render = world.getComponent(entity, "Render");
+  const render = world.getComponent(entity, "Render") as RenderComponentLike | undefined;
   if (!render || !render.visible) return null;
   const size = render.size || 20;
 
-  const vel = world.getComponent(entity, "Velocity");
-  const groundState = world.getComponent(entity, "PlatformerGroundState" as any) as any;
-  const input = world.getComponent(entity, "PlatformerInput" as any) as any;
-  const health = world.getComponent(entity, "Health" as any) as any;
+  const vel = world.getComponent(entity, "Velocity") as VelocityComponentLike | undefined;
+  const groundState = world.getComponent(entity, "PlatformerGroundState") as GroundStateComponentLike | undefined;
+  const input = world.getComponent(entity, "PlatformerInput") as PlatformerInputComponentLike | undefined;
+  const health = world.getComponent(entity, "Health") as HealthComponentLike | undefined;
 
   const vx = vel ? vel.vx : 0;
   const vy = vel ? vel.vy : 0;
-  const isGrounded = groundState ? groundState.isGrounded : true;
+  const isGrounded = groundState ? groundState.isGrounded ?? true : true;
   const isAttacking = Boolean(input && input.pulseCooldown !== undefined && input.pulseCooldown > 0.25);
   const isInvulnerable = Boolean(health && health.invulnerableRemaining && health.invulnerableRemaining > 0);
   const isHitFlash = Boolean(render.hitFlashFrames !== undefined && render.hitFlashFrames > 0);
@@ -216,7 +254,7 @@ export function resolveEchoPlayerDrawContext(
 }
 
 export interface EchoMemoryFragmentDrawContext {
-  render: any;
+  render: RenderComponentLike;
   size: number;
   elapsed: number;
   hoverOffset: number;
@@ -228,13 +266,13 @@ export function resolveEchoMemoryFragmentDrawContext(
   world: World,
   entity: number
 ): EchoMemoryFragmentDrawContext | null {
-  const render = world.getComponent(entity, "Render");
+  const render = world.getComponent(entity, "Render") as RenderComponentLike | undefined;
   if (!render || !render.visible) return null;
   const size = render.size || 16;
   const elapsed = world.tick * 0.016;
   const hoverOffset = Math.sin(elapsed * 6) * 4;
 
-  const runState = world.getResource<any>("RunState");
+  const runState = world.getResource<RunStateResource>("RunState");
   const collectedCount = runState?.collectedTemporalIds?.length || 0;
   const { strokeColor, fillColor } = resolveMemoryFragmentColors(collectedCount);
 
@@ -249,7 +287,7 @@ export function resolveEchoMemoryFragmentDrawContext(
 }
 
 export interface EchoCollectibleDrawContext {
-  render: any;
+  render: RenderComponentLike;
   size: number;
   elapsed: number;
   hoverOffset: number;
@@ -260,7 +298,7 @@ export function resolveEchoCollectibleDrawContext(
   entity: number,
   defaultSize = 24
 ): EchoCollectibleDrawContext | null {
-  const render = world.getComponent(entity, "Render");
+  const render = world.getComponent(entity, "Render") as RenderComponentLike | undefined;
   if (!render || !render.visible) return null;
   const size = render.size || defaultSize;
   const elapsed = world.tick * 0.016;
@@ -275,7 +313,7 @@ export function resolveEchoCollectibleDrawContext(
 }
 
 export interface EchoCheckpointDrawContext {
-  render: any;
+  render: RenderComponentLike;
   size: number;
   isActive: boolean;
 }
@@ -284,11 +322,11 @@ export function resolveEchoCheckpointDrawContext(
   world: World,
   entity: number
 ): EchoCheckpointDrawContext | null {
-  const render = world.getComponent(entity, "Render");
+  const render = world.getComponent(entity, "Render") as RenderComponentLike | undefined;
   if (!render || !render.visible) return null;
   const size = render.size || 32;
-  const respawnPoint = world.getComponent(entity, "RespawnPoint" as any) as any;
-  const runState = world.getResource<any>("RunState");
+  const respawnPoint = world.getComponent(entity, "RespawnPoint") as RespawnPointComponentLike | undefined;
+  const runState = world.getResource<RunStateResource>("RunState");
   const isActive = Boolean(runState && respawnPoint && runState.activeCheckpoint === respawnPoint.checkpointId);
 
   return {
@@ -308,7 +346,7 @@ export function resolveEchoBackgroundContext(world: World): EchoBackgroundContex
   const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
   const width = screenConfig.width;
   const height = screenConfig.height;
-  const runState = world.getResource<any>("RunState");
+  const runState = world.getResource<RunStateResource>("RunState");
   const elapsed = runState?.elapsedTime || (world.tick * 0.016);
 
   return { width, height, elapsed };

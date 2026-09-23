@@ -11,6 +11,26 @@ import { MotionTrailBuffer, computeMotionTrailSegment, TrailPoint } from "./Moti
 export { TrailPoint };
 
 /**
+ * Draws a rounded rectangle path on Canvas 2D context using `ctx.roundRect` if available,
+ * falling back to standard `ctx.rect` otherwise.
+ * @public
+ */
+export function canvasRoundRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radius: number
+): void {
+  if (ctx.roundRect) {
+    ctx.roundRect(x, y, w, h, radius);
+  } else {
+    ctx.rect(x, y, w, h);
+  }
+}
+
+/**
  * Zero-allocation, high-performance motion trail tracker and renderer for Canvas.
  * Delegates buffer tracking and update logic to MotionTrailBuffer.
  */

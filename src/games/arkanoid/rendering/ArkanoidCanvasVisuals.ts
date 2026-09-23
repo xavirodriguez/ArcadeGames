@@ -1,19 +1,17 @@
-import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidTypes";
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
-import { drawGlowOrbCanvas, drawNeonShape, drawProceduralGrid } from "../../shared/rendering/CanvasNeonUtils";
+import { drawGlowOrbCanvas, drawNeonShape, drawProceduralGrid, canvasRoundRectPath } from "../../shared/rendering/CanvasNeonUtils";
+import { getVisibleCanvasRenderAndTransform } from "../../shared/rendering/renderingUtils";
 import { colors } from "../../../theme/colors";
 
 export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const target = getVisibleCanvasRenderAndTransform(world, entity);
+    if (!target) return;
 
-    const transform = world.getComponent(entity, "Transform") as TransformComponent;
-    if (!transform) return;
-
-    const size = render.size ?? 8;
-    const color = render.color || colors.cyan;
+    const size = target.render.size ?? 8;
+    const color = target.render.color || colors.cyan;
 
     drawGlowOrbCanvas(ctx, size, color, 0.4, 2.0, "fill");
   }
@@ -39,20 +37,12 @@ export const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidC
       (ctx, widthScale, heightScale) => {
         const pw = w * widthScale;
         const ph = h * heightScale;
-        if (ctx.roundRect) {
-          ctx.roundRect(-pw / 2, -ph / 2, pw, ph, 4);
-        } else {
-          ctx.rect(-pw / 2, -ph / 2, pw, ph);
-        }
+        canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);
       },
       (ctx) => {
         const coreW = w * 0.6;
         const coreH = h * 0.5;
-        if (ctx.roundRect) {
-          ctx.roundRect(-coreW / 2, -coreH / 2, coreW, coreH, 2);
-        } else {
-          ctx.rect(-coreW / 2, -coreH / 2, coreW, coreH);
-        }
+        canvasRoundRectPath(ctx, -coreW / 2, -coreH / 2, coreW, coreH, 2);
       }
     );
   }
@@ -75,13 +65,9 @@ export const drawArkanoidCapsule: ShapeDrawer<CanvasRenderingContext2D, Arkanoid
     ctx.shadowColor = capsuleColor;
     ctx.fillStyle = capsuleColor;
 
-    if (ctx.roundRect) {
-      ctx.beginPath();
-      ctx.roundRect(-w / 2, -h / 2, w, h, 7);
-      ctx.fill();
-    } else {
-      ctx.fillRect(-w / 2, -h / 2, w, h);
-    }
+    ctx.beginPath();
+    canvasRoundRectPath(ctx, -w / 2, -h / 2, w, h, 7);
+    ctx.fill();
 
     ctx.shadowBlur = 0;
     ctx.fillStyle = colors.background;
@@ -120,13 +106,9 @@ export const drawArkanoidBrick: ShapeDrawer<CanvasRenderingContext2D, ArkanoidCo
     ctx.shadowColor = brickColor;
     ctx.fillStyle = brickColor;
 
-    if (ctx.roundRect) {
-      ctx.beginPath();
-      ctx.roundRect(-w / 2, -h / 2, w, h, 3);
-      ctx.fill();
-    } else {
-      ctx.fillRect(-w / 2, -h / 2, w, h);
-    }
+    ctx.beginPath();
+    canvasRoundRectPath(ctx, -w / 2, -h / 2, w, h, 3);
+    ctx.fill();
 
     ctx.shadowBlur = 0;
     ctx.fillStyle = "rgba(255, 255, 255, 0.3)";

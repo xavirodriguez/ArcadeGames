@@ -13,19 +13,6 @@ import {
   WebAudioPlayer,
   IAudioPlayer,
   EventBus,
-  PhysicsIntegrateSystem,
-  PlatformerMovementSystem,
-  PlatformerGravitySystem,
-  TileCollisionSystem,
-  PlatformerCoyoteSystem,
-  MovingPlatformSystem,
-  PlatformCarrySystem,
-  HitDetectionSystem,
-  JuiceSystem,
-  ScreenShakeSystem,
-  RenderUpdateSystem,
-  Camera2DSystem,
-  TilemapRenderSystem,
   Renderer,
   TransformComponent,
   VelocityComponent,
@@ -34,17 +21,10 @@ import {
   HealthComponent,
   RenderComponent,
   RunState,
-  CheckpointSystem,
-  DeathSystem,
-  RespawnSystem,
-  CollectibleSystem,
-  EnemySensorSystem,
-  StateMachineSystem,
   registerEnemyStateMachines,
   SegmentTemplate,
   SegmentGenerator,
   LevelPlan,
-  TTLComponent,
   EntityBuilder,
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST
@@ -56,7 +36,7 @@ import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
-import { createPlatformerMovementConfig, setupTilemapEntity } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems } from "../shared/componentBuilders";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -231,7 +211,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         world.addComponent(entity, { type: "Hurtbox" } as { type: string; [key: string]: unknown });
         const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
 
-        world.addComponent(entity, createPlatformerMovementConfig(config) as { type: string; [key: string]: unknown });
+        setupPlatformerMovementComponents(world, entity, config);
         world.addComponent(entity, {
           type: "PlatformerInput",
           moveDir: 0,
@@ -242,31 +222,16 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           pulseCooldown: 0
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
-          type: "PlatformerGravityConfig",
-          riseGravity: config.RISE_GRAVITY,
-          fallGravity: config.FALL_GRAVITY,
-          jumpVelocity: config.PLAYER_JUMP_VEL,
-          minJumpVelocity: config.PLAYER_MIN_JUMP_VEL,
-          apexThreshold: config.APEX_THRESHOLD,
-          apexGravityMultiplier: config.APEX_GRAVITY_MULTIPLIER
-        } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, {
           type: "PlatformerJumper",
           coyoteTimer: 0,
           jumpBufferTimer: 0,
           coyoteTimeMax: config.COYOTE_TIME_MAX,
           jumpBufferMax: config.JUMP_BUFFER_MAX
         } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false, iceMultiplier: 1.0 } as { type: string; [key: string]: unknown });
       }
     });
 
-    this.blueprints.register("tilemap", {
-      spawn: (world, entity, args: { data: number[][]; tileDefinitions: Record<number, unknown> }) => {
-        const config = world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
-        setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
-      }
-    });
+    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
     this.blueprints.register("collectible_fragment", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
@@ -319,9 +284,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });
 
     // Game-specific presentation systems
-    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+    registerPresentationSystems(this.world);
 
     // Listen to Hit Detection events
     const eventBus = this.world.getEventBus();
@@ -387,49 +350,40 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         5: { solid: true, oneWay: true, kind: "normal" as const }
       };
 
-    const levelData = this.customLevelData ?? defaultLevelData;
-    const templates = levelData.templates as SegmentTemplate[];
-    const grammar = levelData.grammar as string[];
+      const levelData = this.customLevelData ?? defaultLevelData;
+      const templates = levelData.templates as SegmentTemplate[];
+      const grammar = levelData.grammar as string[];
 
-    // Generate deterministic Plan using SegmentGenerator
-    const levelSeed = this.getSeed() || 41873;
-    this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
+      // Generate deterministic Plan using SegmentGenerator
+      const levelSeed = this.getSeed() || 41873;
+      this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
 
-    // Set world resources
-    this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
+      // Set world resources
+      this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
 
-    // Instantiate Plan
-    const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
-    SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
+      // Instantiate Plan
+      const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
+      SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
 
-    // Spawn Player
-    const playerEntity = this.world.createEntity();
-    const playerBp = this.blueprints.get("player");
-    if (playerBp) {
-      playerBp.spawn(this.world, playerEntity, { x: 100, y: 350 });
-    } else {
-      throw new Error("[EchoRunnerGame] Blueprint 'player' is not registered.");
-    }
+      // Spawn Player
+      const playerEntity = this.world.createEntity();
+      const playerBp = this.blueprints.get("player");
+      if (playerBp) {
+        playerBp.spawn(this.world, playerEntity, { x: 100, y: 350 });
+      } else {
+        throw new Error("[EchoRunnerGame] Blueprint 'player' is not registered.");
+      }
 
-    // Spawn Main Follow Camera centered on player
-    const cameraEntity = this.world.createEntity();
-    this.world.addComponent(cameraEntity, {
-      type: "Camera2D",
-      zoom: 1.0,
-      x: 0,
-      y: 0,
-      targetX: 0,
-      targetY: 0,
-      isMain: true,
-      followEntity: playerEntity,
-      lookAheadX: 80,
-      smoothingX: 6.0,
-      smoothingY: 6.0,
-      verticalDeadzone: 45
-    });
+      // Spawn Main Follow Camera centered on player
+      createMainCamera2D(this.world, playerEntity, {
+        lookAheadX: 80,
+        smoothingX: 6.0,
+        smoothingY: 6.0,
+        verticalDeadzone: 45
+      });
 
-    // Flush all deferred commands from SegmentGenerator and blueprint spawns
-    this.world.flush();
+      // Flush all deferred commands from SegmentGenerator and blueprint spawns
+      this.world.flush();
     } catch (err) {
       console.error("[EchoRunnerGame] Failed to initialize entities:", err);
       throw err instanceof Error ? err : new Error(`[EchoRunnerGame] Initialization error: ${String(err)}`);
@@ -513,10 +467,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       renderer.registerShape("core", drawSkiaMemoryCore);
       renderer.registerShape("node", drawSkiaCheckpointNode);
       renderer.registerShape("pulse_attack", drawSkiaPulseAttack);
-      renderer.registerShape("sentinel", drawSkiaSentinel);
-      renderer.registerShape("hopper", drawSkiaHopper);
-      renderer.registerShape("watcher", drawSkiaWatcher);
-      renderer.registerShape("charger", drawSkiaCharger);
+      renderer.registerShape("sentinel", drawSentinel);
+      renderer.registerShape("hopper", drawHopper);
+      renderer.registerShape("watcher", drawWatcher);
+      renderer.registerShape("charger", drawCharger);
     }
   }
 

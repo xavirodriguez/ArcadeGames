@@ -1,7 +1,6 @@
 import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
-import { defineSkiaShape, getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import {
@@ -10,8 +9,12 @@ import {
   resolveSentinelVisualState,
   resolveWatcherVisualState,
   resolveChargerVisualState,
-  resolveMemoryFragmentColors,
-  resolveEchoDrawContext
+  resolveEchoDrawContext,
+  resolveEchoPlayerDrawContext,
+  resolveEchoMemoryFragmentDrawContext,
+  resolveEchoCollectibleDrawContext,
+  resolveEchoCheckpointDrawContext,
+  resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
 
 function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number): true {
@@ -37,20 +40,14 @@ function drawSkiaHitFlashRect(canvas: any, paint: any, x: number, y: number, w: 
 export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const width = screenConfig.width;
-    const height = screenConfig.height;
-    const runState = world.getResource<any>("RunState");
-    const elapsed = runState?.elapsedTime || (world.tick * 0.016);
+    const { width, height, elapsed } = resolveEchoBackgroundContext(world);
 
     const paint = getPaint();
 
-    // Solid Archive Void background
     paint.reset();
     paint.setColor(Skia.Color(ECHO_PALETTE.archiveVoidDark));
     canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
-    // Parallax distant memory grid
     const bgGridSize = 80;
     const bgOffsetX = (elapsed * 5) % bgGridSize;
     const bgOffsetY = (elapsed * 3) % bgGridSize;
@@ -67,7 +64,6 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
       canvas.drawLine(0, y, width, y, paint);
     }
 
-    // Foreground digital matrix grid
     paint.setColor(Skia.Color(ECHO_PALETTE.archiveGridLine));
     const gridSize = 40;
     const offsetX = (elapsed * 15) % gridSize;
@@ -80,7 +76,6 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
       canvas.drawLine(0, y, width, y, paint);
     }
 
-    // Data Pillars (motifs)
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(ECHO_PALETTE.archiveDataStream));
@@ -90,7 +85,6 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
       canvas.drawRect(Skia.XYWHRect(px, py, 12 + (i % 2) * 8, 40 + (i % 3) * 30), paint);
     }
 
-    // Ambient circuit dots
     for (let i = 0; i < 6; i++) {
       const px = (i * 143 + elapsed * 8) % width;
       const py = (i * 187 + elapsed * 12) % height;
@@ -102,52 +96,36 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
 
 export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
-    const size = render.size || 20;
+    const playerCtx = resolveEchoPlayerDrawContext(world, entity);
+    if (!playerCtx) return;
 
-    const vel = world.getComponent(entity, "Velocity");
-    const groundState = world.getComponent(entity, "PlatformerGroundState" as any) as any;
-    const input = world.getComponent(entity, "PlatformerInput" as any) as any;
-    const health = world.getComponent(entity, "Health" as any) as any;
-
-    const vx = vel ? vel.vx : 0;
-    const vy = vel ? vel.vy : 0;
-    const isGrounded = groundState ? groundState.isGrounded : true;
-    const isAttacking = input && input.pulseCooldown !== undefined && input.pulseCooldown > 0.25;
-    const isInvulnerable = health && health.invulnerableRemaining && health.invulnerableRemaining > 0;
-    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+    const { render, size, vx, vy, isGrounded, isAttacking, health } = playerCtx;
 
     const paint = getPaint();
     canvas.save();
 
-    // 1. Hit Flash effect
     const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
     if (flashState.isFlashing) {
       return drawSkiaHitFlashCircle(canvas, paint, size * 0.65);
     }
 
-    // 2. Invulnerability translucency
     let alpha = 1.0;
     const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
     if (invState.isInvulnerable) {
       alpha = invState.opacity;
     }
 
-    // 3. Pose calculations
     const { tiltAngle, hoverY, leftLegX, leftLegY, rightLegX, rightLegY } = calculateEchoPlayerPose(size, isGrounded, vx, vy, world.tick);
 
     canvas.translate(0, hoverY);
     canvas.rotate((tiltAngle * 180) / Math.PI, 0, 0);
 
-    // Shadow
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("rgba(0, 0, 0, 0.35)"));
     paint.setAlphaf(alpha);
     canvas.drawOval(Skia.XYWHRect(-size * 0.5, size * 0.7 - hoverY - size * 0.15, size, size * 0.3), paint);
 
-    // Pulse attack aura
     if (isAttacking) {
       paint.reset();
       paint.setAntiAlias(true);
@@ -158,7 +136,6 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
       canvas.drawCircle(0, 0, size * 0.85, paint);
     }
 
-    // Back Comms Antenna
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -170,7 +147,6 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     paint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawCircle(-size * 0.32, -size * 0.85, 2, paint);
 
-    // Head
     const headPath = Skia.Path.Make();
     headPath.addArc(Skia.XYWHRect(-size * 0.35, -size * 0.75, size * 0.7, size * 0.7), 180, 180);
     headPath.close();
@@ -187,12 +163,10 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     paint.setStrokeWidth(2.0);
     canvas.drawPath(headPath, paint);
 
-    // Visor
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(ECHO_PALETTE.corruptionCrimson));
     canvas.drawOval(Skia.XYWHRect(size * 0.08 - size * 0.24, -size * 0.45 - size * 0.07, size * 0.48, size * 0.14), paint);
 
-    // Torso
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -205,12 +179,10 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     paint.setStrokeWidth(2.0);
     canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6), 4, 4), paint);
 
-    // Energy Core
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(isAttacking ? ECHO_PALETTE.restorationWhite : ECHO_PALETTE.restorationCyan));
     canvas.drawCircle(0, size * 0.1, isAttacking ? size * 0.16 : size * 0.12, paint);
 
-    // Front Arm / Cannon
     if (isAttacking) {
       paint.setColor(Skia.Color(ECHO_PALETTE.restorationCyan));
       canvas.drawRect(Skia.XYWHRect(size * 0.1, -size * 0.05, size * 0.4, size * 0.18), paint);
@@ -218,12 +190,10 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
       canvas.drawCircle(size * 0.5, size * 0.04, 3, paint);
     }
 
-    // Feet / Legs
     paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderLight));
     canvas.drawCircle(leftLegX, leftLegY, size * 0.08, paint);
     canvas.drawCircle(rightLegX, rightLegY, size * 0.08, paint);
 
-    // Thruster flame when jumping
     if (!isGrounded && vy < -20) {
       paint.setColor(Skia.Color(ECHO_PALETTE.restorationCyan));
       const flamePath = Skia.Path.Make();
@@ -240,15 +210,10 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
 
 export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
-    const size = render.size || 16;
-    const elapsed = world.tick * 0.016;
-    const hoverOffset = Math.sin(elapsed * 6) * 4;
+    const fragCtx = resolveEchoMemoryFragmentDrawContext(world, entity);
+    if (!fragCtx) return;
 
-    const runState = world.getResource<any>("RunState");
-    const collectedCount = runState?.collectedTemporalIds?.length || 0;
-    const { strokeColor, fillColor } = resolveMemoryFragmentColors(collectedCount);
+    const { size, elapsed, hoverOffset, strokeColor, fillColor } = fragCtx;
 
     const paint = getPaint();
     canvas.save();
@@ -293,11 +258,10 @@ export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
 
 export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
-    const size = render.size || 24;
-    const elapsed = world.tick * 0.016;
-    const hoverOffset = Math.sin(elapsed * 4) * 6;
+    const coreCtx = resolveEchoCollectibleDrawContext(world, entity, 24);
+    if (!coreCtx) return;
+
+    const { size, elapsed, hoverOffset } = coreCtx;
 
     const paint = getPaint();
     canvas.save();
@@ -336,12 +300,10 @@ export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
 
 export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
-    const size = render.size || 32;
-    const respawnPoint = world.getComponent(entity, "RespawnPoint" as any) as any;
-    const runState = world.getResource<any>("RunState");
-    const isActive = runState && respawnPoint && runState.activeCheckpoint === respawnPoint.checkpointId;
+    const cpCtx = resolveEchoCheckpointDrawContext(world, entity);
+    if (!cpCtx) return;
+
+    const { size, isActive } = cpCtx;
 
     const paint = getPaint();
     canvas.save();
@@ -384,8 +346,8 @@ export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
 
 export const drawSkiaPulseAttack: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const render = world.getComponent(entity, "Render");
+    if (!render || !render.visible) return;
     const size = render.size || 35;
 
     const paint = getPaint();

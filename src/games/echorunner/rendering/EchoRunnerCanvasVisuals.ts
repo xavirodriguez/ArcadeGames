@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, World, CoreComponentRegistry } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import {
@@ -7,8 +7,12 @@ import {
   resolveSentinelVisualState,
   resolveWatcherVisualState,
   resolveChargerVisualState,
-  resolveMemoryFragmentColors,
-  resolveEchoDrawContext
+  resolveEchoDrawContext,
+  resolveEchoPlayerDrawContext,
+  resolveEchoMemoryFragmentDrawContext,
+  resolveEchoCollectibleDrawContext,
+  resolveEchoCheckpointDrawContext,
+  resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
 
 const gradientCache = new Map<number, CanvasGradient>();
@@ -68,17 +72,13 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number): Ca
 
 export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-    const width = screenConfig.width;
-    const height = screenConfig.height;
-    const runState = world.getResource<any>("RunState");
-    const elapsed = runState?.elapsedTime || (world.tick * 0.016);
+    const { width, height, elapsed } = resolveEchoBackgroundContext(world);
 
     // Deep Archive Void Background
     ctx.fillStyle = ECHO_PALETTE.archiveVoidDark;
     ctx.fillRect(0, 0, width, height);
 
-    // Layer 1: Parallax Distant Memory Grid (slow scroll)
+    // Layer 1: Parallax Distant Memory Grid
     ctx.strokeStyle = ECHO_PALETTE.archiveGridLineSecondary;
     ctx.lineWidth = 1;
 
@@ -118,7 +118,7 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
       ctx.stroke();
     }
 
-    // Layer 3: Memory Stream Data Pillars (Vertical floating data motifs)
+    // Layer 3: Memory Stream Data Pillars
     ctx.fillStyle = ECHO_PALETTE.archiveDataStream;
     for (let i = 0; i < 4; i++) {
       const px = ((i * 210 + elapsed * 20) % width);
@@ -126,7 +126,7 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
       ctx.fillRect(px, py, 12 + (i % 2) * 8, 40 + (i % 3) * 30);
     }
 
-    // Ambient particles (corrupted purple vs restored cyan data bits)
+    // Ambient particles
     for (let i = 0; i < 6; i++) {
       const px = ((i * 143 + elapsed * 8) % width);
       const py = ((i * 187 + elapsed * 12) % height);
@@ -140,49 +140,33 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
 
 export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    const size = render.size || 20;
+    const playerCtx = resolveEchoPlayerDrawContext(world, entity);
+    if (!playerCtx) return;
 
-    const vel = world.getComponent(entity, "Velocity");
-    const groundState = world.getComponent(entity, "PlatformerGroundState" as any) as any;
-    const input = world.getComponent(entity, "PlatformerInput" as any) as any;
-    const health = world.getComponent(entity, "Health" as any) as any;
-
-    const vx = vel ? vel.vx : 0;
-    const vy = vel ? vel.vy : 0;
-    const isGrounded = groundState ? groundState.isGrounded : true;
-    const isAttacking = input && input.pulseCooldown !== undefined && input.pulseCooldown > 0.25;
-    const isInvulnerable = health && health.invulnerableRemaining && health.invulnerableRemaining > 0;
-    const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+    const { render, size, vx, vy, isGrounded, isAttacking, health } = playerCtx;
 
     ctx.save();
 
-    // 1. Hit Flash effect (bright white flash)
     const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
     if (flashState.isFlashing) {
       return drawCanvasHitFlashCircle(ctx, size * 0.65);
     }
 
-    // 2. Invulnerability translucency flickering
     const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
     if (invState.isInvulnerable) {
       ctx.globalAlpha = invState.opacity;
     }
 
-    // 3. Pose calculations
     const { tiltAngle, hoverY, leftLegX, leftLegY, rightLegX, rightLegY } = calculateEchoPlayerPose(size, isGrounded, vx, vy, world.tick);
 
     ctx.translate(0, hoverY);
     ctx.rotate(tiltAngle);
 
-    // Ground Shadow
     ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
     ctx.beginPath();
     ctx.ellipse(0, size * 0.7 - hoverY, size * 0.5, size * 0.15, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Pulse attack aura if firing
     if (isAttacking) {
       ctx.strokeStyle = ECHO_PALETTE.restorationCyan;
       ctx.lineWidth = 2;
@@ -193,11 +177,9 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.stroke();
     }
 
-    // Main Body Glow
     ctx.shadowColor = ECHO_PALETTE.restorationCyan;
     ctx.shadowBlur = 10;
 
-    // --- Back Asymmetric Antenna (Back of head) ---
     ctx.strokeStyle = ECHO_PALETTE.corruptionCrimson;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -210,7 +192,6 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.arc(-size * 0.32, -size * 0.85, 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- Head ---
     ctx.fillStyle = ECHO_PALETTE.archiveSlate;
     ctx.strokeStyle = ECHO_PALETTE.restorationCyan;
     ctx.lineWidth = 2;
@@ -220,14 +201,12 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.fill();
     ctx.stroke();
 
-    // --- Visor (Asymmetric extending forward +X) ---
     ctx.shadowColor = ECHO_PALETTE.corruptionCrimson;
     ctx.fillStyle = ECHO_PALETTE.corruptionCrimson;
     ctx.beginPath();
     ctx.ellipse(size * 0.08, -size * 0.45, size * 0.24, size * 0.07, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- Torso ---
     ctx.shadowColor = ECHO_PALETTE.restorationCyan;
     ctx.fillStyle = ECHO_PALETTE.archiveBorderDark;
     ctx.beginPath();
@@ -239,13 +218,11 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.fill();
     ctx.stroke();
 
-    // --- Energy Core ---
     ctx.fillStyle = isAttacking ? ECHO_PALETTE.restorationWhite : ECHO_PALETTE.restorationCyan;
     ctx.beginPath();
     ctx.arc(0, size * 0.1, isAttacking ? size * 0.16 : size * 0.12, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- Front Arm / Cannon ---
     if (isAttacking) {
       ctx.fillStyle = ECHO_PALETTE.restorationCyan;
       ctx.fillRect(size * 0.1, -size * 0.05, size * 0.4, size * 0.18);
@@ -255,14 +232,12 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.fill();
     }
 
-    // --- Thruster Feet / Legs ---
     ctx.fillStyle = ECHO_PALETTE.archiveBorderLight;
     ctx.beginPath();
     ctx.arc(leftLegX, leftLegY, size * 0.08, 0, Math.PI * 2);
     ctx.arc(rightLegX, rightLegY, size * 0.08, 0, Math.PI * 2);
     ctx.fill();
 
-    // Thruster flame particles when jumping/rising
     if (!isGrounded && vy < -20) {
       ctx.fillStyle = ECHO_PALETTE.restorationCyan;
       ctx.beginPath();
@@ -279,15 +254,10 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
 
 export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    const size = render.size || 16;
-    const elapsed = world.tick * 0.016;
-    const hoverOffset = Math.sin(elapsed * 6) * 4;
+    const fragCtx = resolveEchoMemoryFragmentDrawContext(world, entity);
+    if (!fragCtx) return;
 
-    const runState = world.getResource<any>("RunState");
-    const collectedCount = runState?.collectedTemporalIds?.length || 0;
-    const { strokeColor, fillColor } = resolveMemoryFragmentColors(collectedCount);
+    const { size, elapsed, hoverOffset, strokeColor, fillColor } = fragCtx;
 
     ctx.save();
     ctx.translate(0, hoverOffset);
@@ -296,7 +266,6 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     ctx.shadowColor = strokeColor;
     ctx.shadowBlur = 8;
 
-    // Glowing diamond
     ctx.fillStyle = fillColor;
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2;
@@ -310,7 +279,6 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     ctx.fill();
     ctx.stroke();
 
-    // Inner core
     ctx.fillStyle = ECHO_PALETTE.restorationWhite;
     ctx.beginPath();
     ctx.moveTo(0, -size * 0.25);
@@ -326,32 +294,27 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
 
 export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    const size = render.size || 24;
-    const elapsed = world.tick * 0.016;
-    const hoverOffset = Math.sin(elapsed * 4) * 6;
+    const coreCtx = resolveEchoCollectibleDrawContext(world, entity, 24);
+    if (!coreCtx) return;
+
+    const { size, elapsed, hoverOffset } = coreCtx;
 
     ctx.save();
     ctx.translate(0, hoverOffset);
 
-    // Glow
     ctx.shadowColor = ECHO_PALETTE.restorationGold;
     ctx.shadowBlur = 15;
 
-    // Orbiting ring 1
     ctx.strokeStyle = ECHO_PALETTE.restorationGoldGlow;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.ellipse(0, 0, size * 0.8, size * 0.3, elapsed * 2, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Orbiting ring 2
     ctx.beginPath();
     ctx.ellipse(0, 0, size * 0.8, size * 0.3, -elapsed * 1.5, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Main Sphere
     const gradient = getMemoryCoreGradient(ctx, size);
 
     ctx.fillStyle = gradient;
@@ -365,12 +328,10 @@ export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
 
 export const drawCheckpointNode: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    const size = render.size || 32;
-    const respawnPoint = world.getComponent(entity, "RespawnPoint" as any) as any;
-    const runState = world.getResource<any>("RunState");
-    const isActive = runState && respawnPoint && runState.activeCheckpoint === respawnPoint.checkpointId;
+    const cpCtx = resolveEchoCheckpointDrawContext(world, entity);
+    if (!cpCtx) return;
+
+    const { size, isActive } = cpCtx;
 
     ctx.save();
 
@@ -378,23 +339,19 @@ export const drawCheckpointNode: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     ctx.shadowColor = statusColor;
     ctx.shadowBlur = 10;
 
-    // Base
     ctx.fillStyle = ECHO_PALETTE.archiveSlate;
     ctx.strokeStyle = ECHO_PALETTE.archiveBorderLight;
     ctx.lineWidth = 2;
     ctx.fillRect(-size * 0.4, size * 0.3, size * 0.8, size * 0.2);
     ctx.strokeRect(-size * 0.4, size * 0.3, size * 0.8, size * 0.2);
 
-    // Pillar
     ctx.fillStyle = ECHO_PALETTE.archiveBorderDark;
     ctx.fillRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8);
     ctx.strokeRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8);
 
-    // Screen
     ctx.fillStyle = statusColor;
     ctx.fillRect(-size * 0.18, -size * 0.4, size * 0.36, size * 0.35);
 
-    // Core symbol
     ctx.fillStyle = statusColor;
     ctx.beginPath();
     if (isActive) {
@@ -448,7 +405,6 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
     ctx.shadowColor = glowColor;
     ctx.shadowBlur = 10;
 
-    // TELEGRAPHING OVERLAY
     if (isAlert) {
       const pulse = Math.sin(world.tick * 0.5) * 3;
       ctx.fillStyle = ECHO_PALETTE.corruptionAmber;
@@ -477,7 +433,6 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
       ctx.stroke();
     }
 
-    // Outer casing
     ctx.fillStyle = ECHO_PALETTE.archiveBorderDark;
     ctx.strokeStyle = glowColor;
     ctx.lineWidth = 2;
@@ -487,13 +442,11 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
     ctx.fill();
     ctx.stroke();
 
-    // Sensor Eye
     ctx.fillStyle = isAlert && Math.floor(world.tick / 4) % 2 === 0 ? ECHO_PALETTE.restorationWhite : glowColor;
     ctx.beginPath();
     ctx.arc(0, -size * 0.05, size * 0.15, 0, Math.PI * 2);
     ctx.fill();
 
-    // Anti-grav hover spikes
     ctx.strokeStyle = ECHO_PALETTE.archiveBorderLight;
     ctx.beginPath();
     ctx.moveTo(-size * 0.45, size * 0.1);

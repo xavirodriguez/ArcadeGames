@@ -3,7 +3,11 @@ import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 import { Skia } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
-import { shouldSkipFroggerRenderDueToInvulnerability, isFroggerInvulnerable } from "./FroggerRenderUtils";
+import {
+  resolveFroggerPlayerDrawContext,
+  resolveFroggerShellSegments,
+  resolveFroggerGoalContext,
+} from "./FroggerRenderUtils";
 
 function drawSkiaRoundedBox(
   canvas: any,
@@ -21,18 +25,11 @@ function drawSkiaRoundedBox(
 
 export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const playerCtx = resolveFroggerPlayerDrawContext(world, entity);
+    if (!playerCtx) return;
 
-    if (shouldSkipFroggerRenderDueToInvulnerability(world, entity)) {
-      return;
-    }
+    const { half, isInvuln, primaryColor } = playerCtx;
 
-    const isInvuln = isFroggerInvulnerable(world, entity);
-    const size = render.size || 32;
-    const half = size / 2;
-
-    const primaryColor = resolveThemeColor(world, "frogger", "player") || "#39FF14";
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(isInvuln ? "#A3FF80" : primaryColor));
     canvas.drawCircle(0, 0, half, paint);
@@ -97,17 +94,13 @@ export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     if (!render) return;
 
     const width = render.size || 80;
-    const halfW = width / 2;
+    const segments = resolveFroggerShellSegments(width);
 
     const paintOuter = Skia.Paint();
     paintOuter.setColor(Skia.Color("#00D2FF"));
 
-    const segmentCount = Math.floor(width / 35);
-    const step = width / segmentCount;
-
-    for (let i = 0; i < segmentCount; i++) {
-      const segX = -halfW + i * step + step / 2;
-      canvas.drawCircle(segX, 0, 14, paintOuter);
+    for (let i = 0; i < segments.length; i++) {
+      canvas.drawCircle(segments[i].segX, 0, 14, paintOuter);
     }
   },
 };
@@ -115,15 +108,13 @@ export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const pad = world.getComponent(entity, "GoalLilyPad");
-    const render = world.getComponent(entity, "Render");
-    if (!render || !pad) return;
+    const goalCtx = resolveFroggerGoalContext(world, entity);
+    if (!goalCtx) return;
 
-    const size = render.size || 36;
-    const half = size / 2;
+    const { half, occupied } = goalCtx;
 
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color(pad.occupied ? "#39FF14" : "#00AA44"));
+    paint.setColor(Skia.Color(occupied ? "#39FF14" : "#00AA44"));
     canvas.drawCircle(0, 0, half, paint);
   },
 };

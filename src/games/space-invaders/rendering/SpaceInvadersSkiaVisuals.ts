@@ -1,9 +1,20 @@
-import { ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, TransformComponent } from "@tiny-aster/core";
-import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
+import { ShapeDrawer } from "@tiny-aster/core";
+import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
-import { isPlayerShooting, calculatePlayerTilt, calculateThrusterPlumeLength } from "./SpaceInvadersVisualUtils";
-import { calculateBossPhase, calculateBossVibrato, calculateBulletProximity, calculateParticleHeatColor, calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
-import { computeSinePulse } from "./shared/SpaceInvadersPulseUtils";
+import {
+  isPlayerShooting,
+  calculatePlayerTilt,
+  calculateThrusterPlumeLength,
+  resolveMuzzleFlashState,
+  resolveShieldPulseState,
+  resolveInvaderColor,
+  resolveKamikazeAimVector,
+  resolveBulletTrailContext,
+  resolveBossVisualState,
+  resolveParticleState,
+  resolveExplosionParticleData,
+} from "./SpaceInvadersVisualUtils";
+import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
 import { EXPLOSION_PARTICLE_POOL, updateExplosionParticles } from "./ExplosionParticlePool";
 
@@ -35,36 +46,36 @@ export function drawExplosionParticlesSkia(canvas: any): void {
 
   canvas.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
-    const p = EXPLOSION_PARTICLE_POOL[i];
-    if (!p.active) continue;
+    const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
+    if (!data) continue;
 
-    const ratio = Math.max(0, p.life / p.maxLife);
+    const { ratio, type, x, y, radius, size, color, skColor } = data;
 
-    if (p.type === "ring") {
+    if (type === "ring") {
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(p.skColor || Skia.Color(p.color));
+      paint.setColor(skColor || Skia.Color(color));
       paint.setStrokeWidth(2.5 * ratio);
       paint.setAlphaf(ratio * 0.8);
-      canvas.drawCircle(p.x, p.y, Math.max(0.1, p.radius), paint);
-    } else if (p.type === "debris") {
+      canvas.drawCircle(x, y, Math.max(0.1, radius), paint);
+    } else if (type === "debris") {
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(p.skColor || Skia.Color(p.color));
+      paint.setColor(skColor || Skia.Color(color));
       paint.setAlphaf(ratio);
       canvas.drawRect(
-        Skia.XYWHRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size),
+        Skia.XYWHRect(x - size / 2, y - size / 2, size, size),
         paint
       );
-    } else if (p.type === "smoke") {
+    } else if (type === "smoke") {
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(p.skColor || Skia.Color(p.color));
+      paint.setColor(skColor || Skia.Color(color));
       paint.setAlphaf(ratio * 0.35);
-      canvas.drawCircle(p.x, p.y, Math.max(0.1, p.size), paint);
+      canvas.drawCircle(x, y, Math.max(0.1, size), paint);
     }
   }
   canvas.restore();
@@ -80,17 +91,11 @@ export const drawSkiaExplosionBackgroundEffect = {
   }
 };
 
-// Memory-safe caching for zero-allocation player ship pathing
 const cachedPlayerPaths = new WeakMap<any, { chassis: any; cockpit: any; reflection: any }>();
 const cachedShieldCracks = new WeakMap<any, { x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; x4: number; y4: number }>();
 
 /**
  * Visuals for the player ship using React Native Skia.
- * Functional visual parity with HTML5 Canvas:
- * - High-fidelity futuristic cockpit chassis design.
- * - Dynamic tilt/leaning on movement based on horizontal velocity.
- * - Flickering, dual-stage thruster plasma plume tail.
- * - Glowing defensive neon invulnerability bubble shield when invulnerable.
  */
 export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
@@ -108,7 +113,6 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
     canvas.save();
 
-    // 1. Dynamic tilt/lean based on horizontal velocity
     const velocity = world.getComponent(entity, "Velocity");
     if (velocity) {
       const tilt = calculatePlayerTilt(velocity.vx);
@@ -119,7 +123,6 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     paint.reset();
     paint.setAntiAlias(true);
 
-    // Role-specific visual aura / range feedback
     const tick = world.tick;
     if (role === "hunter") {
       const auraRadius = size * 1.8 + Math.sin(tick * 0.15) * 4;
@@ -144,10 +147,8 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
       canvas.drawCircle(0, 0, size * 0.9, paint);
     }
 
-    // 2. Flickering dual-stage thruster plume tail (at the bottom)
     const plumeLength = calculateThrusterPlumeLength(tick, size);
 
-    // Outer plasma flame
     paint.setStyle(Skia!.PaintStyle.Fill);
     paint.setColor(Skia!.Color(colors.orangeDark));
     paint.setAlphaf(opacity * 0.8);
@@ -158,7 +159,6 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     outerFlame.close();
     canvas.drawPath(outerFlame, paint);
 
-    // Inner hotter core flame
     paint.setColor(Skia!.Color(colors.gold));
     paint.setAlphaf(opacity);
     const innerFlame = Skia!.Path.Make();
@@ -168,23 +168,20 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     innerFlame.close();
     canvas.drawPath(innerFlame, paint);
 
-    // 3. Retrieve or create cached paths for static chassis
     let paths = cachedPlayerPaths.get(render);
     if (!paths) {
-      // Main central chassis
       const chassis = Skia!.Path.Make();
-      chassis.moveTo(0, -size / 2); // nose tip
+      chassis.moveTo(0, -size / 2);
       chassis.lineTo(size / 4, -size / 6);
-      chassis.lineTo(size / 2, size / 4); // right sweep wing
+      chassis.lineTo(size / 2, size / 4);
       chassis.lineTo(size / 3, size / 4);
-      chassis.lineTo(size / 5, size / 6); // right hull intake
-      chassis.lineTo(-size / 5, size / 6); // left hull intake
+      chassis.lineTo(size / 5, size / 6);
+      chassis.lineTo(-size / 5, size / 6);
       chassis.lineTo(-size / 3, size / 4);
-      chassis.lineTo(-size / 2, size / 4); // left sweep wing
+      chassis.lineTo(-size / 2, size / 4);
       chassis.lineTo(-size / 4, -size / 6);
       chassis.close();
 
-      // High-energy cockpit glass canopy
       const cockpit = Skia!.Path.Make();
       cockpit.moveTo(0, -size / 3);
       cockpit.lineTo(size / 6, -size / 10);
@@ -193,7 +190,6 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
       cockpit.lineTo(-size / 6, -size / 10);
       cockpit.close();
 
-      // Inner bright white cockpit reflection
       const reflection = Skia!.Path.Make();
       reflection.moveTo(-size / 12, -size / 5);
       reflection.lineTo(0, -size / 4);
@@ -204,7 +200,6 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
       cachedPlayerPaths.set(render, paths);
     }
 
-    // Draw central chassis
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia!.PaintStyle.Fill);
@@ -212,24 +207,20 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     paint.setAlphaf(opacity);
     canvas.drawPath(paths.chassis, paint);
 
-    // Neon Wingtips / Cannons
     paint.setStyle(Skia!.PaintStyle.Stroke);
     paint.setColor(Skia!.Color(colors.cyan));
     paint.setStrokeWidth(2);
     canvas.drawLine(-size / 3, size / 6, -size / 3, -size / 3, paint);
     canvas.drawLine(size / 3, size / 6, size / 3, -size / 3, paint);
 
-    // Cannons white cores
     paint.setStyle(Skia!.PaintStyle.Fill);
     paint.setColor(Skia!.Color(colors.white));
     canvas.drawRect(Skia!.XYWHRect(-size / 3 - 1, -size / 3, 2, size / 4), paint);
     canvas.drawRect(Skia!.XYWHRect(size / 3 - 1, -size / 3, 2, size / 4), paint);
 
-    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares / Muzzle Flash
     const isShooting = isPlayerShooting(world, entity);
-    const muzzleFlashFrames = render.muzzleFlashFrames ?? 0;
-    if (isShooting || muzzleFlashFrames > 0) {
-      const flashSize = (3.5 + 1.5 * Math.sin(tick * 0.8)) * (muzzleFlashFrames > 0 ? 1.8 : 1.0);
+    const { flashSize, muzzleFlashFrames, shouldDrawFlash } = resolveMuzzleFlashState(render, isShooting, tick);
+    if (shouldDrawFlash) {
       if (muzzleFlashFrames > 0) {
         paint.setColor(Skia!.Color("#FFFFFF"));
         canvas.drawCircle(0, -size / 2 - 4, flashSize * 1.5, paint);
@@ -237,32 +228,23 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
       paint.setColor(Skia!.Color("#00FFFF"));
       canvas.drawCircle(-size / 3, -size / 3 - 2, flashSize, paint);
       canvas.drawCircle(size / 3, -size / 3 - 2, flashSize, paint);
-
-      if (muzzleFlashFrames > 0) {
-        render.muzzleFlashFrames = muzzleFlashFrames - 1;
-      }
     }
 
-    // High-energy cockpit glass canopy (Cyan)
     paint.setColor(Skia!.Color(colors.cyan));
     canvas.drawPath(paths.cockpit, paint);
 
-    // Inner bright white cockpit reflection
     paint.setColor(Skia!.Color(colors.white));
     canvas.drawPath(paths.reflection, paint);
 
     canvas.restore();
 
-    // 4. Glowing defensive neon invulnerability bubble shield (Pulsing blue/cyan)
     const health = world.getComponent(entity, "Health");
-    if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
-      const shieldPulse = computeSinePulse(tick, 0.25, 0.08, 1.0);
-      const shieldAlpha = 0.35 + 0.15 * Math.sin(tick / 4 + Math.PI);
-      const radius = size * 0.72 * shieldPulse;
+    const shieldState = resolveShieldPulseState(health, size, tick);
+    if (shieldState.isInvulnerable) {
+      const { shieldAlpha, radius } = shieldState;
 
       canvas.save();
 
-      // Soft shield body fill
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia!.PaintStyle.Fill);
@@ -270,14 +252,12 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
       paint.setAlphaf(shieldAlpha * 0.5);
       canvas.drawCircle(0, 0, radius, paint);
 
-      // Outer ring
       paint.setStyle(Skia!.PaintStyle.Stroke);
       paint.setColor(Skia!.Color(colors.cyan));
       paint.setStrokeWidth(3);
       paint.setAlphaf(shieldAlpha);
       canvas.drawCircle(0, 0, radius, paint);
 
-      // Inner electric ring
       paint.setColor(Skia!.Color(colors.blue));
       paint.setStrokeWidth(1.5);
       paint.setAlphaf(shieldAlpha * 0.6);
@@ -290,31 +270,15 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
 /**
  * Visuals for an invader using React Native Skia.
- * Row-based colors, pulsing cyber eye core, leg animations.
  */
 export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    let baseColor = render.color || colors.white;
-
     const invaderComp = world.getComponent(entity, "Invader");
     const enemyTag = world.getComponent(entity, "EnemyTag");
-    const isTeleporter = enemyTag?.variant === "teleporter" || render.color === "#00D9FF";
-
-    if (invaderComp && !isTeleporter && render.color !== "#00D9FF") {
-      const row = invaderComp.row;
-      if (row === 0) {
-        baseColor = colors.magentaHot; // Hot Magenta
-      } else if (row <= 2) {
-        baseColor = colors.cyan; // Electric Cyan
-      } else {
-        baseColor = colors.gold; // Cyber Gold
-      }
-    } else if (isTeleporter) {
-      baseColor = "#00D9FF";
-    }
+    const { baseColor, isTeleporter } = resolveInvaderColor(render, invaderComp, enemyTag);
 
     const flash = getRenderFlash(render, baseColor, 15);
     const size = flash.size;
@@ -333,16 +297,13 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     paint.setColor(Skia!.Color(colorStr));
     paint.setAlphaf(opacity);
 
-    // Draw Head/Antennae
     canvas.drawRect(Skia!.XYWHRect(-s * 4, -s * 5, s, s), paint);
     canvas.drawRect(Skia!.XYWHRect(s * 3, -s * 5, s, s), paint);
     canvas.drawRect(Skia!.XYWHRect(-s * 3, -s * 4, s, s), paint);
     canvas.drawRect(Skia!.XYWHRect(s * 2, -s * 4, s, s), paint);
 
-    // Main Face
     canvas.drawRect(Skia!.XYWHRect(-s * 4, -s * 3, s * 8, s * 4), paint);
 
-    // Tentacles/Legs that animate!
     if (animPhase) {
       canvas.drawRect(Skia!.XYWHRect(-s * 5, -s, s, s * 3), paint);
       canvas.drawRect(Skia!.XYWHRect(s * 4, -s, s, s * 3), paint);
@@ -359,24 +320,17 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
       canvas.drawRect(Skia!.XYWHRect(s * 1, s, s * 2, s), paint);
     }
 
-    // Glowing alien cyber-cores/eyes (Dynamic glowing orange/red center)
-    const eyePulse = computeSinePulse(tick, 1 / 6, 0.5, 0.5);
+    const eyePulse = (1.0 + Math.sin(tick * 0.3)) * 0.5;
     paint.setColor(Skia!.Color(colors.redHot));
     paint.setAlphaf(opacity * eyePulse);
     canvas.drawRect(Skia!.XYWHRect(-s * 2, -s * 2, s, s), paint);
     canvas.drawRect(Skia!.XYWHRect(s, -s * 2, s, s), paint);
 
-    // Draw telegraphing laser line and crosshair or warning column indicator
-    const kami = world.getComponent(entity, "Kamikaze");
-    if (kami) {
-      if (kami.phase === "telegraphing") {
+    const kamiAim = resolveKamikazeAimVector(world, entity);
+    if (kamiAim) {
+      const { phase, relTargetX, relTargetY, blinkAlpha, pulse, bottomRelY } = kamiAim;
+      if (phase === "telegraphing") {
         canvas.save();
-        const blinkAlpha = 0.3 + 0.7 * Math.abs(Math.sin(tick * 0.3));
-        const pos = world.getComponent(entity, "Transform");
-        const targetX = kami.targetX ?? (pos ? pos.x : 0);
-        const targetY = kami.targetY ?? GAME_CONFIG.worldHeight;
-        const relTargetX = targetX - (pos ? pos.x : 0);
-        const relTargetY = targetY - (pos ? pos.y : 0);
 
         paint.reset();
         paint.setAntiAlias(true);
@@ -394,12 +348,8 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
         canvas.drawLine(relTargetX, relTargetY - 16, relTargetX, relTargetY + 16, paint);
 
         canvas.restore();
-      } else if (kami.phase === "warning") {
-        const pulse = computeSinePulse(tick, 0.4, 0.4, 0.6);
+      } else if (phase === "warning") {
         canvas.save();
-
-        const pos = world.getComponent(entity, "Transform");
-        const bottomRelY = pos ? GAME_CONFIG.worldHeight - pos.y - 35 : 450;
 
         const arrowPath = Skia!.Path.Make();
         arrowPath.moveTo(0, bottomRelY);
@@ -428,37 +378,32 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
 
 /**
  * Visuals for bullets using React Native Skia.
- * High-energy cyan plasma bolts for player, crimson glowing plasma for enemy.
  */
 export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    const flash = getRenderFlash(render, colors.cyan, 4);
-    const size = flash.size;
-    const isPlayerBullet = world.hasComponent(entity, "PlayerBullet");
-
-    const glowColor = render.color || (isPlayerBullet ? colors.cyan : colors.redHot);
-    const coreColor = colors.white;
-    const proximityFactor = calculateBulletProximity(world, entity, isPlayerBullet);
-
-    const transform = world.getComponent(entity, "Transform");
-    const currentX = transform ? (transform.worldX ?? transform.x) : 0;
-    const currentY = transform ? (transform.worldY ?? transform.y) : 0;
-
     const trail = getBulletSkiaTrailBuffer(render);
-    trail.pushPosition(currentX, currentY, transform?.rotation ?? 0, world.tick);
+    const bulletContext = resolveBulletTrailContext(world, entity, render, trail);
+
+    const {
+      size,
+      glowColor,
+      coreColor,
+      currentX,
+      currentY,
+      points,
+      baseTrailAlpha,
+      baseAuraAlpha,
+      auraSizeScale,
+    } = bulletContext;
 
     canvas.save();
 
     const paint = getPaint();
     paint.reset();
     paint.setStyle(Skia!.PaintStyle.Fill);
-
-    // 1. Draw glowing outer fading capsules as historical motion trails from CircularPositionBuffer
-    const points = trail.getPoints();
-    const baseTrailAlpha = isPlayerBullet ? 0.25 : (0.25 + proximityFactor * 0.25);
 
     paint.setColor(Skia!.Color(glowColor));
     for (let i = 1; i < points.length; i++) {
@@ -471,17 +416,12 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
       canvas.drawRect(Skia!.XYWHRect(relX - pointWidth / 2, relY - pointWidth, pointWidth, pointWidth * 2), paint);
     }
 
-    // 2. Draw outer energetic glowing aura
-    const baseAuraAlpha = isPlayerBullet ? 0.4 : (0.4 + proximityFactor * 0.4);
     paint.setAlphaf(baseAuraAlpha);
-    const auraSizeScale = 1.0 + proximityFactor * 0.3;
     canvas.drawRect(Skia!.XYWHRect(-size * 1.25 * auraSizeScale, -size * 1.25 * auraSizeScale, size * 2.5 * auraSizeScale, size * 2.5 * auraSizeScale), paint);
 
-    // 3. Draw solid primary energetic bolt
     paint.setAlphaf(1.0);
     canvas.drawRect(Skia!.XYWHRect(-size / 2, -size, size, size * 2), paint);
 
-    // 4. Draw bright white core
     paint.setColor(Skia!.Color(coreColor));
     canvas.drawRect(Skia!.XYWHRect(-size / 4, -size * 0.7, size / 2, size * 1.4), paint);
 
@@ -497,45 +437,41 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    const boss = world.getComponent(entity, "Boss");
-    const health = world.getComponent(entity, "Health");
-
-    const currentHp = health ? health.current : (boss ? boss.hp : 50);
-    const maxHp = health ? health.max : (boss ? boss.maxHp : 50);
-    const hpRatio = calculateShieldHpRatio(currentHp, maxHp);
-
-    const { phase, baseColor, accentColor, scaleMultiplier } = calculateBossPhase(hpRatio);
+    const bossState = resolveBossVisualState(world, entity, render);
+    const {
+      hpRatio,
+      phase,
+      baseColor,
+      accentColor,
+      scaleMultiplier,
+      scale,
+      shakeX,
+      shakeY,
+      vibX,
+      vibY,
+      s,
+      coreRadius,
+    } = bossState;
 
     const flash = getRenderFlash(render, baseColor, 80);
-    const size = flash.size;
-    const colorStr = flash.color;
     const opacity = flash.opacity;
-
-    const scale = phase === 3 ? 1.3 : phase === 2 ? 1.15 : 1.0;
-    const tick = world.tick;
 
     canvas.save();
     if (phase === 3) {
-      const shakeX = Math.sin(tick * 0.8) * 3;
-      const shakeY = Math.cos(tick * 0.9) * 3;
       canvas.translate(shakeX, shakeY);
     }
     canvas.scale(scale, scale);
 
-    const { vibX, vibY } = calculateBossVibrato(phase, tick);
     canvas.translate(vibX, vibY);
     canvas.scale(scaleMultiplier, scaleMultiplier);
-
-    const s = size / 20;
 
     const paint = getPaint();
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia!.PaintStyle.Fill);
-    paint.setColor(Skia!.Color(colorStr));
+    paint.setColor(Skia!.Color(flash.color));
     paint.setAlphaf(opacity);
 
-    // Hull Path
     const hull = Skia!.Path.Make();
     hull.moveTo(0, -s * 8);
     hull.lineTo(s * 4, -s * 4);
@@ -553,23 +489,16 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
 
     canvas.drawPath(hull, paint);
 
-    // Cannons
     paint.setStyle(Skia!.PaintStyle.Stroke);
     paint.setColor(Skia!.Color(accentColor));
     paint.setStrokeWidth(2.5);
     canvas.drawLine(-s * 8, -s * 2, -s * 8, -s * 6, paint);
     canvas.drawLine(s * 8, -s * 2, s * 8, -s * 6, paint);
 
-    // Core
-    const pulseSpeed = phase === 3 ? 0.3 : phase === 2 ? 0.15 : 0.08;
-    const corePulse = computeSinePulse(tick, pulseSpeed, 0.5, 0.5);
-    const coreRadius = s * (3.5 + 1.2 * corePulse);
-
     paint.setStyle(Skia!.PaintStyle.Fill);
     paint.setColor(Skia!.Color(phase === 3 ? colors.white : accentColor));
     canvas.drawCircle(0, 0, coreRadius, paint);
 
-    // Cracks
     if (hpRatio < 1.0) {
       paint.setStyle(Skia!.PaintStyle.Stroke);
       paint.setColor(Skia!.Color("rgba(0,0,0,0.85)"));
@@ -587,7 +516,6 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
 
 /**
  * Visuals for shield blocks using React Native Skia.
- * Layered high-tech structures, cracks, etc.
  */
 export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
@@ -610,25 +538,21 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
     paint.reset();
     paint.setAntiAlias(true);
 
-    // Draw glowing semi-transparent high-tech energy cell fill
     paint.setStyle(Skia!.PaintStyle.Fill);
     paint.setColor(Skia!.Color(colorStr));
     paint.setAlphaf(opacity * (0.15 + 0.5 * ratio));
     canvas.drawRect(Skia!.XYWHRect(-size / 2, -size / 2, size, size), paint);
 
-    // Draw glowing contours
     paint.setStyle(Skia!.PaintStyle.Stroke);
     paint.setStrokeWidth(1.5);
     paint.setAlphaf(opacity * (0.3 + 0.7 * ratio));
     canvas.drawRect(Skia!.XYWHRect(-size / 2, -size / 2, size, size), paint);
 
-    // Draw cracks
     if (ratio < 1.0) {
       paint.setColor(Skia!.Color("rgba(0,0,0,0.85)"));
       paint.setStrokeWidth(1.5);
       paint.setAlphaf(opacity);
 
-      // Fetch or store deterministic crack coordinates based on entity ID
       let coords = cachedShieldCracks.get(render);
       if (!coords) {
         const x1 = -size / 2 + ((entity * 17) % size);
@@ -657,28 +581,14 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
 
 /**
  * Visuals for particles using React Native Skia.
- * Zero-allocation heat-dissipation color shifting and scaling.
  */
 export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    const flash = getRenderFlash(render, colors.white, 2);
-    const size = flash.size;
-    const colorStr = flash.color;
-
-    const ttl = world.getComponent(entity, "TTL");
-    let progress = 0.5;
-
-    if (ttl && ttl.remaining !== undefined) {
-      const totalLife = ttl.timeLeft || 0.5;
-      progress = Math.max(0, Math.min(1.0, 1.0 - (ttl.remaining / totalLife)));
-    }
-
-    const particleColor = calculateParticleHeatColor(colorStr, progress);
-
-    const currentSize = Math.max(0.5, size * (1.1 - progress));
+    const particleState = resolveParticleState(world, entity, render);
+    const { progress, particleColor, currentSize } = particleState;
 
     canvas.save();
 

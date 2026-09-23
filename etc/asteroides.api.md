@@ -1740,7 +1740,7 @@ export function findTriggeringPlayer<TComponents extends ComponentRegistry>(worl
 export type FlappyBirdRoleKey = CommonRoleKey | "bird" | "pipe" | "ground";
 
 // @public
-export function forEachSolidTileInRange(tilemapData: number[][], tileDefinitions: Record<number, any>, minTileX: number, maxTileX: number, minTileY: number, maxTileY: number, callback: (tx: number, ty: number, tileDef: any) => boolean | void): void;
+export function forEachSolidTileInRange(tilemapData: number[][], tileDefinitions: Record<number, TileDefinition>, minTileX: number, maxTileX: number, minTileY: number, maxTileY: number, callback: (tx: number, ty: number, tileDef: TileDefinition) => boolean | void): void;
 
 // @public
 export function forEachTileInBounds(minTileX: number, minTileY: number, maxTileX: number, maxTileY: number, callback: (tx: number, ty: number) => boolean | void): void;

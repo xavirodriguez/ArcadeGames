@@ -4,6 +4,7 @@ import { ComponentRegistry } from "../../ecs/Component";
 import {
   CoreComponentRegistry,
   TilemapComponent,
+  TileDefinition,
   TransformComponent,
   VelocityComponent,
   Collider2DComponent,
@@ -41,12 +42,12 @@ export function forEachTileInBounds(
  */
 export function forEachSolidTileInRange(
   tilemapData: number[][],
-  tileDefinitions: Record<number, any>,
+  tileDefinitions: Record<number, TileDefinition>,
   minTileX: number,
   maxTileX: number,
   minTileY: number,
   maxTileY: number,
-  callback: (tx: number, ty: number, tileDef: any) => boolean | void
+  callback: (tx: number, ty: number, tileDef: TileDefinition) => boolean | void
 ): void {
   for (let ty = minTileY; ty <= maxTileY; ty++) {
     const row = tilemapData[ty];
@@ -255,7 +256,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     halfH: number,
     offsetY: number,
     oldVy: number,
-    tileDef: any
+    tileDef: TileDefinition
   ): { isGrounded: boolean; onIce: boolean } {
     trans.y = tileTop - halfH - offsetY;
     vel.vy = 0;

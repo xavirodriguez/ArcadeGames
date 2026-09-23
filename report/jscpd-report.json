@@ -76,18 +76,18 @@
     },
     {
       "firstFile": {
-        "end": 114,
+        "end": 111,
         "endLoc": {
           "column": 41,
-          "line": 114,
-          "position": 4559
+          "line": 111,
+          "position": 4592
         },
         "name": "arkanoid/ArkanoidGame.ts",
-        "start": 109,
+        "start": 106,
         "startLoc": {
           "column": 4,
-          "line": 109,
-          "position": 4318
+          "line": 106,
+          "position": 4351
         }
       },
       "format": "typescript",
@@ -95,73 +95,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 117,
+        "end": 115,
         "endLoc": {
           "column": 41,
-          "line": 117,
-          "position": 5083
+          "line": 115,
+          "position": 5128
         },
         "name": "pong/PongGame.ts",
-        "start": 111,
+        "start": 109,
         "startLoc": {
           "column": 4,
-          "line": 111,
-          "position": 4815
+          "line": 109,
+          "position": 4860
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 172,
-        "endLoc": {
-          "column": 15,
-          "line": 172,
-          "position": 6577
-        },
-        "name": "arkanoid/ArkanoidGame.ts",
-        "start": 164,
-        "startLoc": {
-          "column": 11,
-          "line": 164,
-          "position": 6280
-        }
-      },
-      "format": "typescript",
-      "fragment": "          })\n          .withCollider({\n            shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,\n            layer: CollisionLayers.PLAYER,\n            mask: CollisionLayers.PROJECTILE\n          });\n\n        world.addComponent(entity, {\n          type: \"Paddle\",",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 186,
-        "endLoc": {
-          "column": 42,
-          "line": 186,
-          "position": 7808
-        },
-        "name": "pong/PongGame.ts",
-        "start": 179,
-        "startLoc": {
-          "column": 50,
-          "line": 179,
-          "position": 7521
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 280,
+        "end": 273,
         "endLoc": {
           "column": 9,
-          "line": 280,
-          "position": 10960
+          "line": 273,
+          "position": 10835
         },
         "name": "arkanoid/ArkanoidGame.ts",
-        "start": 273,
+        "start": 266,
         "startLoc": {
           "column": 78,
-          "line": 273,
-          "position": 10696
+          "line": 266,
+          "position": 10571
         }
       },
       "format": "typescript",
@@ -187,166 +150,55 @@
     },
     {
       "firstFile": {
-        "end": 298,
+        "end": 43,
         "endLoc": {
-          "column": 27,
-          "line": 298,
-          "position": 12221
+          "column": 25,
+          "line": 43,
+          "position": 1705
         },
-        "name": "arkanoid/ArkanoidGame.ts",
-        "start": 291,
+        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
+        "start": 36,
         "startLoc": {
-          "column": 44,
-          "line": 291,
-          "position": 11824
+          "column": 15,
+          "line": 36,
+          "position": 1476
         }
       },
       "format": "typescript",
-      "fragment": "    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });\n    this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });\n    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });\n  }\n\n  protected override async onInitializeEntities(): Promise<void> {\n    runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {\n      ArkanoidEntityFactory.createPaddle(this.world);",
+      "fragment": "      glowColor,\n      (ctx, widthScale, heightScale) => {\n        const pw = w * widthScale;\n        const ph = h * heightScale;\n        canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);\n      },\n      (ctx) => {\n        const coreW = w * 0.6;",
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 270,
-        "endLoc": {
-          "column": 23,
-          "line": 270,
-          "position": 11641
-        },
-        "name": "pong/PongGame.ts",
-        "start": 263,
-        "startLoc": {
-          "column": 44,
-          "line": 263,
-          "position": 11248
-        }
-      },
-      "tokens": 78
-    },
-    {
-      "firstFile": {
-        "end": 15,
-        "endLoc": {
-          "column": 9,
-          "line": 15,
-          "position": 744
-        },
-        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 7,
-        "startLoc": {
-          "column": 94,
-          "line": 7,
-          "position": 484
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const size = render.size ?? 8;",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 23,
-        "endLoc": {
-          "column": 9,
-          "line": 23,
-          "position": 1025
-        },
-        "name": "pong/rendering/PongCanvasVisuals.ts",
-        "start": 15,
-        "startLoc": {
-          "column": 86,
-          "line": 15,
-          "position": 765
-        }
-      },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
-        "end": 49,
+        "end": 111,
         "endLoc": {
           "column": 25,
-          "line": 49,
-          "position": 1811
-        },
-        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 38,
-        "startLoc": {
-          "column": 15,
-          "line": 38,
-          "position": 1489
-        }
-      },
-      "format": "typescript",
-      "fragment": "      glowColor,\n      (ctx, widthScale, heightScale) => {\n        const pw = w * widthScale;\n        const ph = h * heightScale;\n        if (ctx.roundRect) {\n          ctx.roundRect(-pw / 2, -ph / 2, pw, ph, 4);\n        } else {\n          ctx.rect(-pw / 2, -ph / 2, pw, ph);\n        }\n      },\n      (ctx) => {\n        const coreW = w * 0.6;",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 117,
-        "endLoc": {
-          "column": 25,
-          "line": 117,
-          "position": 4125
+          "line": 111,
+          "position": 4005
         },
         "name": "pong/rendering/PongCanvasVisuals.ts",
-        "start": 104,
+        "start": 102,
         "startLoc": {
           "column": 20,
-          "line": 104,
-          "position": 3740
+          "line": 102,
+          "position": 3713
         }
       },
-      "tokens": 87
+      "tokens": 57
     },
     {
       "firstFile": {
-        "end": 61,
-        "endLoc": {
-          "column": 12,
-          "line": 61,
-          "position": 2063
-        },
-        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 50,
-        "startLoc": {
-          "column": 29,
-          "line": 50,
-          "position": 1846
-        }
-      },
-      "format": "typescript",
-      "fragment": "        const coreH = h * 0.5;\n        if (ctx.roundRect) {\n          ctx.roundRect(-coreW / 2, -coreH / 2, coreW, coreH, 2);\n        } else {\n          ctx.rect(-coreW / 2, -coreH / 2, coreW, coreH);\n        }\n      }\n    );\n  }\n};\n\nexport const drawArkanoidCapsule: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 134,
-        "endLoc": {
-          "column": 12,
-          "line": 134,
-          "position": 4575
-        },
-        "name": "pong/rendering/PongCanvasVisuals.ts",
-        "start": 118,
-        "startLoc": {
-          "column": 29,
-          "line": 118,
-          "position": 4160
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 116,
+        "end": 102,
         "endLoc": {
           "column": 5,
-          "line": 116,
-          "position": 3879
+          "line": 102,
+          "position": 3587
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 100,
+        "start": 86,
         "startLoc": {
           "column": 34,
-          "line": 100,
-          "position": 3225
+          "line": 86,
+          "position": 2933
         }
       },
       "format": "typescript",
@@ -358,14 +210,14 @@
         "endLoc": {
           "column": 5,
           "line": 120,
-          "position": 3846
+          "position": 3870
         },
         "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
         "start": 104,
         "startLoc": {
           "column": 15,
           "line": 104,
-          "position": 3192
+          "position": 3216
         }
       },
       "tokens": 135
@@ -376,14 +228,14 @@
         "endLoc": {
           "column": 9,
           "line": 18,
-          "position": 898
+          "position": 922
         },
         "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
         "start": 10,
         "startLoc": {
           "column": 77,
           "line": 10,
-          "position": 655
+          "position": 679
         }
       },
       "format": "typescript",
@@ -395,91 +247,54 @@
         "endLoc": {
           "column": 9,
           "line": 29,
-          "position": 1285
+          "position": 1309
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
         "start": 21,
         "startLoc": {
           "column": 69,
           "line": 21,
-          "position": 1042
+          "position": 1066
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 139,
+        "end": 134,
         "endLoc": {
-          "column": 20,
-          "line": 139,
-          "position": 4426
+          "column": 68,
+          "line": 134,
+          "position": 4362
         },
         "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
         "start": 129,
         "startLoc": {
           "column": 51,
           "line": 129,
-          "position": 4105
+          "position": 4129
         }
       },
       "format": "typescript",
-      "fragment": "    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { worldWidth: 800, worldHeight: 600 };\n    const width = config.worldWidth;\n    const height = config.worldHeight;\n\n    const paint = getPaint();\n\n    paint.reset();\n    paint.setColor(Skia.Color(colors.background));\n    canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);\n\n    const gridSize = 50;",
+      "fragment": "    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { worldWidth: 800, worldHeight: 600 };\n    const width = config.worldWidth;\n    const height = config.worldHeight;\n    const paint = getPaint();\n\n    drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 50, 0.25, \"rgba(0, 240, 255, 0.05)\");",
       "isNew": false,
-      "lines": 11,
+      "lines": 6,
       "secondFile": {
-        "end": 145,
+        "end": 140,
         "endLoc": {
-          "column": 20,
-          "line": 145,
-          "position": 5313
+          "column": 68,
+          "line": 140,
+          "position": 5226
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
         "start": 133,
         "startLoc": {
           "column": 47,
           "line": 133,
-          "position": 4907
+          "position": 4931
         }
       },
-      "tokens": 79
-    },
-    {
-      "firstFile": {
-        "end": 153,
-        "endLoc": {
-          "column": 5,
-          "line": 153,
-          "position": 4856
-        },
-        "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
-        "start": 144,
-        "startLoc": {
-          "column": 55,
-          "line": 144,
-          "position": 4607
-        }
-      },
-      "format": "typescript",
-      "fragment": "    paint.setColor(Skia.Color(\"rgba(0, 240, 255, 0.05)\"));\n    paint.setStrokeWidth(1.0);\n\n    for (let x = 0; x < width; x += gridSize) {\n      canvas.drawLine(x, 0, x, height, paint);\n    }\n\n    for (let y = scrollOffset; y < height; y += gridSize) {\n      canvas.drawLine(0, y, width, y, paint);\n    }",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 159,
-        "endLoc": {
-          "column": 5,
-          "line": 159,
-          "position": 5742
-        },
-        "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 150,
-        "startLoc": {
-          "column": 55,
-          "line": 150,
-          "position": 5493
-        }
-      },
-      "tokens": 74
+      "tokens": 50
     },
     {
       "firstFile": {
@@ -779,18 +594,18 @@
     },
     {
       "firstFile": {
-        "end": 182,
+        "end": 162,
         "endLoc": {
           "column": 36,
-          "line": 182,
-          "position": 6850
+          "line": 162,
+          "position": 6488
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 171,
+        "start": 151,
         "startLoc": {
           "column": 28,
-          "line": 171,
-          "position": 6370
+          "line": 151,
+          "position": 6008
         }
       },
       "format": "typescript",
@@ -798,243 +613,58 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 124,
+        "end": 106,
         "endLoc": {
           "column": 36,
-          "line": 124,
-          "position": 4518
+          "line": 106,
+          "position": 4166
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 113,
+        "start": 95,
         "startLoc": {
           "column": 28,
-          "line": 113,
-          "position": 4038
+          "line": 95,
+          "position": 3686
         }
       },
       "tokens": 101
     },
     {
       "firstFile": {
-        "end": 240,
+        "end": 359,
         "endLoc": {
-          "column": 30,
-          "line": 240,
-          "position": 9080
+          "column": 84,
+          "line": 359,
+          "position": 13730
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 232,
-        "startLoc": {
-          "column": 106,
-          "line": 232,
-          "position": 8776
-        }
-      },
-      "format": "typescript",
-      "fragment": "        const config = world.getResource<EchoRunnerConfigType>(\"GameConfig\") || DEFAULT_ECHO_RUNNER_CONFIG;\n\n        world.addComponent(entity, createPlatformerMovementConfig(config) as { type: string; [key: string]: unknown });\n        world.addComponent(entity, {\n          type: \"PlatformerInput\",\n          moveDir: 0,\n          jumpPressed: false,\n          jumpHeld: false,\n          jumpReleased: false,",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 284,
-        "endLoc": {
-          "column": 30,
-          "line": 284,
-          "position": 10067
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 276,
-        "startLoc": {
-          "column": 105,
-          "line": 276,
-          "position": 9763
-        }
-      },
-      "tokens": 54
-    },
-    {
-      "firstFile": {
-        "end": 249,
-        "endLoc": {
-          "column": 53,
-          "line": 249,
-          "position": 9464
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 243,
-        "startLoc": {
-          "column": 8,
-          "line": 243,
-          "position": 9147
-        }
-      },
-      "format": "typescript",
-      "fragment": "        } as { type: string; [key: string]: unknown });\n        world.addComponent(entity, {\n          type: \"PlatformerGravityConfig\",\n          riseGravity: config.RISE_GRAVITY,\n          fallGravity: config.FALL_GRAVITY,\n          jumpVelocity: config.PLAYER_JUMP_VEL,\n          minJumpVelocity: config.PLAYER_MIN_JUMP_VEL,",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 301,
-        "endLoc": {
-          "column": 53,
-          "line": 301,
-          "position": 10800
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 295,
-        "startLoc": {
-          "column": 78,
-          "line": 295,
-          "position": 10483
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 266,
-        "endLoc": {
-          "column": 41,
-          "line": 266,
-          "position": 10274
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 260,
-        "startLoc": {
-          "column": 106,
-          "line": 260,
-          "position": 10022
-        }
-      },
-      "format": "typescript",
-      "fragment": "        world.addComponent(entity, { type: \"PlatformerGroundState\", isGrounded: false, iceMultiplier: 1.0 } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    this.blueprints.register(\"tilemap\", {\n      spawn: (world, entity, args: { data: number[][]; tileDefinitions: Record<number, unknown> }) => {\n        const config = world.getResource<EchoRunnerConfigType>(\"GameConfig\") || DEFAULT_ECHO_RUNNER_CONFIG;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 331,
-        "endLoc": {
-          "column": 41,
-          "line": 331,
-          "position": 12076
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 325,
-        "startLoc": {
-          "column": 8,
-          "line": 325,
-          "position": 11824
-        }
-      },
-      "tokens": 67
-    },
-    {
-      "firstFile": {
-        "end": 329,
-        "endLoc": {
-          "column": 53,
-          "line": 329,
-          "position": 12694
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 319,
-        "startLoc": {
-          "column": 52,
-          "line": 319,
-          "position": 12194
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });\n\n    // Game-specific presentation systems\n    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });\n    this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });\n    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });\n\n    // Listen to Hit Detection events\n    const eventBus = this.world.getEventBus();\n    if (eventBus) {\n      eventBus.on(\"hitbox:hit\", (event: unknown) => {",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 269,
-        "endLoc": {
-          "column": 82,
-          "line": 269,
-          "position": 11617
-        },
-        "name": "pong/PongGame.ts",
-        "start": 260,
-        "startLoc": {
-          "column": 57,
-          "line": 260,
-          "position": 11135
-        }
-      },
-      "tokens": 100
-    },
-    {
-      "firstFile": {
-        "end": 396,
-        "endLoc": {
-          "column": 82,
-          "line": 396,
-          "position": 15220
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 385,
+        "start": 348,
         "startLoc": {
           "column": 63,
-          "line": 385,
-          "position": 14722
+          "line": 348,
+          "position": 13220
         }
       },
       "format": "typescript",
-      "fragment": "        3: { solid: true, kind: \"bounce\" as const, bounce: 1.5 },\n        4: { solid: true, kind: \"spike\" as const },\n        5: { solid: true, oneWay: true, kind: \"normal\" as const }\n      };\n\n    const levelData = this.customLevelData ?? defaultLevelData;\n    const templates = levelData.templates as SegmentTemplate[];\n    const grammar = levelData.grammar as string[];\n\n    // Generate deterministic Plan using SegmentGenerator\n    const levelSeed = this.getSeed() || 41873;\n    this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);",
+      "fragment": "        3: { solid: true, kind: \"bounce\" as const, bounce: 1.5 },\n        4: { solid: true, kind: \"spike\" as const },\n        5: { solid: true, oneWay: true, kind: \"normal\" as const }\n      };\n\n      const levelData = this.customLevelData ?? defaultLevelData;\n      const templates = levelData.templates as SegmentTemplate[];\n      const grammar = levelData.grammar as string[];\n\n      // Generate deterministic Plan using SegmentGenerator\n      const levelSeed = this.getSeed() || 41873;\n      this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);",
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 380,
+        "end": 349,
         "endLoc": {
           "column": 82,
-          "line": 380,
-          "position": 14469
+          "line": 349,
+          "position": 13304
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 371,
+        "start": 340,
         "startLoc": {
           "column": 61,
-          "line": 371,
-          "position": 14036
+          "line": 340,
+          "position": 12871
         }
       },
       "tokens": 92
-    },
-    {
-      "firstFile": {
-        "end": 425,
-        "endLoc": {
-          "column": 17,
-          "line": 425,
-          "position": 16185
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 415,
-        "startLoc": {
-          "column": 4,
-          "line": 415,
-          "position": 15921
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const cameraEntity = this.world.createEntity();\n    this.world.addComponent(cameraEntity, {\n      type: \"Camera2D\",\n      zoom: 1.0,\n      x: 0,\n      y: 0,\n      targetX: 0,\n      targetY: 0,\n      isMain: true,\n      followEntity: playerEntity,\n      lookAheadX: 80,",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 412,
-        "endLoc": {
-          "column": 17,
-          "line": 412,
-          "position": 15594
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 402,
-        "startLoc": {
-          "column": 4,
-          "line": 402,
-          "position": 15330
-        }
-      },
-      "tokens": 54
     },
     {
       "firstFile": {
@@ -1427,18 +1057,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 115,
+        "end": 113,
         "endLoc": {
           "column": 29,
-          "line": 115,
-          "position": 4987
+          "line": 113,
+          "position": 5032
         },
         "name": "pong/PongGame.ts",
-        "start": 108,
+        "start": 106,
         "startLoc": {
           "column": 82,
-          "line": 108,
-          "position": 4726
+          "line": 106,
+          "position": 4771
         }
       },
       "tokens": 53
@@ -1926,18 +1556,18 @@
     },
     {
       "firstFile": {
-        "end": 229,
+        "end": 211,
         "endLoc": {
           "column": 47,
-          "line": 229,
-          "position": 7812
+          "line": 211,
+          "position": 7460
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 224,
+        "start": 206,
         "startLoc": {
           "column": 33,
-          "line": 224,
-          "position": 7554
+          "line": 206,
+          "position": 7202
         }
       },
       "format": "typescript",
@@ -1945,73 +1575,73 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 251,
+        "end": 233,
         "endLoc": {
           "column": 45,
-          "line": 251,
-          "position": 8516
+          "line": 233,
+          "position": 8164
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 246,
+        "start": 228,
         "startLoc": {
           "column": 35,
-          "line": 246,
-          "position": 8268
+          "line": 228,
+          "position": 7916
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 33,
+        "end": 31,
         "endLoc": {
           "column": 108,
-          "line": 33,
-          "position": 1598
+          "line": 31,
+          "position": 1571
         },
         "name": "pong/rendering/PongCanvasVisuals.ts",
-        "start": 18,
+        "start": 20,
         "startLoc": {
-          "column": 34,
-          "line": 18,
-          "position": 891
+          "column": 40,
+          "line": 20,
+          "position": 987
         }
       },
       "format": "typescript",
-      "fragment": "    if (!render || !render.visible) return;\n\n    const transform = world.getComponent(entity, \"Transform\") as TransformComponent;\n    if (!transform) return;\n\n    const ballComp = world.getComponent(entity, \"Ball\") as BallComponent | undefined;\n    const size = render.size ?? 8;\n\n    const x = transform.worldX ?? transform.x;\n    const y = transform.worldY ?? transform.y;\n\n    // 1. Fetch Combo component to dynamically shift trail length and color using shared getComboReaction utility\n    const comboComponent = world.getSingleton(\"Combo\") as ComboComponent | undefined;\n    const multiplier = comboComponent?.multiplier ?? 1;\n\n    const { trailLength, trailColor, trailColorInner, mainColor: ballColor } = getComboReaction(multiplier);",
+      "fragment": "    const { render, transform } = target;\n    const ballComp = world.getComponent(entity, \"Ball\") as BallComponent | undefined;\n    const size = render.size ?? 8;\n\n    const x = transform.worldX ?? transform.x;\n    const y = transform.worldY ?? transform.y;\n\n    // 1. Fetch Combo component to dynamically shift trail length and color using shared getComboReaction utility\n    const comboComponent = world.getSingleton(\"Combo\") as ComboComponent | undefined;\n    const multiplier = comboComponent?.multiplier ?? 1;\n\n    const { trailLength, trailColor, trailColorInner, mainColor: ballColor } = getComboReaction(multiplier);",
       "isNew": false,
-      "lines": 16,
+      "lines": 12,
       "secondFile": {
         "end": 39,
         "endLoc": {
           "column": 108,
           "line": 39,
-          "position": 1858
+          "position": 1882
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 24,
+        "start": 27,
         "startLoc": {
-          "column": 15,
-          "line": 24,
-          "position": 1151
+          "column": 26,
+          "line": 27,
+          "position": 1297
         }
       },
-      "tokens": 112
+      "tokens": 89
     },
     {
       "firstFile": {
-        "end": 98,
+        "end": 96,
         "endLoc": {
           "column": 89,
-          "line": 98,
-          "position": 3657
+          "line": 96,
+          "position": 3630
         },
         "name": "pong/rendering/PongCanvasVisuals.ts",
-        "start": 87,
+        "start": 85,
         "startLoc": {
           "column": 34,
-          "line": 87,
-          "position": 3198
+          "line": 85,
+          "position": 3171
         }
       },
       "format": "typescript",
@@ -2023,14 +1653,14 @@
         "endLoc": {
           "column": 89,
           "line": 101,
-          "position": 3999
+          "position": 4023
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
         "start": 90,
         "startLoc": {
           "column": 15,
           "line": 90,
-          "position": 3540
+          "position": 3564
         }
       },
       "tokens": 90
@@ -2074,18 +1704,18 @@
     },
     {
       "firstFile": {
-        "end": 43,
+        "end": 63,
         "endLoc": {
           "column": 8,
-          "line": 43,
-          "position": 1387
+          "line": 63,
+          "position": 1802
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 17,
+        "start": 37,
         "startLoc": {
           "column": 31,
-          "line": 17,
-          "position": 616
+          "line": 37,
+          "position": 1031
         }
       },
       "format": "typescript",
@@ -2111,18 +1741,18 @@
     },
     {
       "firstFile": {
-        "end": 60,
+        "end": 80,
         "endLoc": {
           "column": 82,
-          "line": 60,
-          "position": 1881
+          "line": 80,
+          "position": 2296
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 53,
+        "start": 73,
         "startLoc": {
           "column": 4,
-          "line": 53,
-          "position": 1596
+          "line": 73,
+          "position": 2011
         }
       },
       "format": "typescript",
@@ -2851,32 +2481,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-23T13:00:00.345Z",
+    "detectionDate": "2026-09-23T19:09:43.473Z",
     "formats": {
       "typescript": {
-        "clones": 77,
-        "duplicatedLines": 641,
-        "duplicatedTokens": 5452,
-        "lines": 67426,
+        "clones": 67,
+        "duplicatedLines": 545,
+        "duplicatedTokens": 4722,
+        "lines": 67493,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.9506718476552071,
-        "percentageTokens": 1.5461622449413668,
+        "percentage": 0.8074911472300831,
+        "percentageTokens": 1.3397531018320172,
         "sources": 408,
-        "tokens": 352615
+        "tokens": 352453
       }
     },
     "total": {
-      "clones": 77,
-      "duplicatedLines": 641,
-      "duplicatedTokens": 5452,
-      "lines": 67426,
+      "clones": 67,
+      "duplicatedLines": 545,
+      "duplicatedTokens": 4722,
+      "lines": 67493,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.9506718476552071,
-      "percentageTokens": 1.5461622449413668,
+      "percentage": 0.8074911472300831,
+      "percentageTokens": 1.3397531018320172,
       "sources": 408,
-      "tokens": 352615
+      "tokens": 352453
     }
   }
 }

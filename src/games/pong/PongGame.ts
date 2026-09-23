@@ -3,9 +3,6 @@ import {
   BaseGame,
   MovementSystem,
   BoundarySystem,
-  JuiceSystem,
-  ScreenShakeSystem,
-  RenderUpdateSystem,
   AssetLoader,
   CollisionSystem2D,
   ConfigService,
@@ -50,6 +47,7 @@ import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongC
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { createPaddleColliderConfig, registerPresentationSystems } from "../shared/componentBuilders";
 import pongConfigRaw from "./config/pong.json";
 
 export type PongMode = "local" | "ai" | "online";
@@ -177,11 +175,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
               { x: -config.PADDLE_WIDTH / 2, y: config.PADDLE_HEIGHT / 2 },
             ]
           } as unknown as Partial<RenderComponent>)
-          .withCollider({
-            shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,
-            layer: CollisionLayers.PLAYER,
-            mask: CollisionLayers.PROJECTILE
-          });
+          .withCollider(createPaddleColliderConfig(config.PADDLE_WIDTH, config.PADDLE_HEIGHT));
 
         world.addComponent(entity, { type: "Tag", tags: ["Paddle", args.side] } as { type: string; [key: string]: unknown });
         world.addComponent(entity, { type: "Paddle", side: args.side, previousY: y, lastVelocityY: 0 } as { type: string; [key: string]: unknown });
@@ -192,14 +186,6 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
       spawn: (world, entity, _args: {}) => {
         const hasShieldPulse = world.getResource("HasShieldPulse") === true;
         const initialScoreP1 = world.getResource("ExtraLifeScoreP1") === 1 ? 1 : 0;
-
-        const comboObj = {
-          type: "Combo",
-          combo: 0,
-          multiplier: 1,
-          timerRemaining: 0,
-          timerDuration: 2.0
-        };
 
         world.addComponent(entity, {
           type: "PongState",
@@ -260,9 +246,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new MutatorSystem(activeMutators), { phase: SystemPhase.Simulation });
 
     // Visual / Presentation
-    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+    registerPresentationSystems(this.world);
   }
 
   protected override async onInitializeEntities(): Promise<void> {

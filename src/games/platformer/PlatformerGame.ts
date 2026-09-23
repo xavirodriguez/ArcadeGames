@@ -10,35 +10,17 @@ import {
   EventRegistry,
   ConfigService,
   WebAudioPlayer,
-  PhysicsIntegrateSystem,
-  PlatformerMovementSystem,
-  PlatformerGravitySystem,
-  TileCollisionSystem,
-  PlatformerCoyoteSystem,
   TTLSystem,
   Renderer,
   RenderContext,
-  TilemapRenderSystem,
-  Camera2DSystem,
-  EnemySensorSystem,
-  StateMachineSystem,
   registerEnemyStateMachines,
-  HitDetectionSystem,
-  CollectibleSystem,
-  CheckpointSystem,
-  DeathSystem,
-  RespawnSystem,
   AnimationSystem,
   RunState,
   SegmentTemplate,
   SegmentGenerator,
   LevelPlan,
-  TransformComponent,
-  VelocityComponent,
-  Collider2DComponent,
   BoxShape,
   ShapeType,
-  TagComponent,
   HealthComponent,
   Theme,
   resolveThemeColor,
@@ -46,7 +28,7 @@ import {
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
-import { createPlatformerMovementConfig, setupTilemapEntity } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D } from "../shared/componentBuilders";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { PlatformerGoalSystem, LevelGoalComponent } from "./systems/PlatformerGoalSystem";
@@ -275,7 +257,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
         world.addComponent(entity, { type: "Sprite", assetKey, anchor: { x: 0.5, y: 0.5 } });
         const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
 
-        world.addComponent(entity, createPlatformerMovementConfig(config) as { type: string; [key: string]: unknown });
+        setupPlatformerMovementComponents(world, entity, config);
         world.addComponent(entity, {
           type: "PlatformerInput",
           moveDir: 0,
@@ -294,13 +276,6 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, { type: "WallJumpUnlocked", unlocked: true } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
-          type: "PlatformerGravityConfig",
-          riseGravity: config.RISE_GRAVITY,
-          fallGravity: config.FALL_GRAVITY,
-          jumpVelocity: config.PLAYER_JUMP_VEL,
-          minJumpVelocity: config.PLAYER_MIN_JUMP_VEL
-        } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, {
           type: "PlatformerJumper",
           coyoteTimer: 0,
           jumpBufferTimer: 0,
@@ -309,7 +284,6 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
           maxJumps: 2,
           jumpsRemaining: 2
         } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false, iceMultiplier: 1.0 } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "Animator",
           isPlaying: true,
@@ -326,12 +300,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       }
     });
 
-    this.blueprints.register("tilemap", {
-      spawn: (world, entity, args: { data: number[][]; tileDefinitions: Record<number, unknown> }) => {
-        const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
-        setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
-      }
-    });
+    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_PLATFORMER_CONFIG);
 
     // Add Input Systems
     this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });
@@ -399,16 +368,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.blueprints.get("player")?.spawn(this.world, playerEntity, { x: 100, y: 350 });
 
     // Spawn Main Follow Camera
-    const cameraEntity = this.world.createEntity();
-    this.world.addComponent(cameraEntity, {
-      type: "Camera2D",
-      zoom: 1.0,
-      x: 0,
-      y: 0,
-      targetX: 0,
-      targetY: 0,
-      isMain: true,
-      followEntity: playerEntity,
+    createMainCamera2D(this.world, playerEntity, {
       lookAheadX: 40,
       smoothingX: 3.5,
       smoothingY: 3.5,

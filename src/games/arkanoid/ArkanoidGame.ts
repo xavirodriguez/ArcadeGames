@@ -2,9 +2,6 @@ import {
   BaseGame,
   MovementSystem,
   BoundarySystem,
-  JuiceSystem,
-  ScreenShakeSystem,
-  RenderUpdateSystem,
   AssetLoader,
   CollisionSystem2D,
   ConfigService,
@@ -16,7 +13,6 @@ import {
   System,
   ShapeType,
   CircleShape,
-  BoxShape,
   BlueprintDefinition,
   Theme,
   resolveThemeColor,
@@ -33,6 +29,7 @@ import { ComboSystem } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
 import { loadAndMutateConfig, runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { createPaddleColliderConfig, registerPresentationSystems } from "../shared/componentBuilders";
 
 import { ArkanoidInputSystem } from "./systems/ArkanoidInputSystem";
 import { ArkanoidSpinSystem } from "./systems/ArkanoidSpinSystem";
@@ -162,11 +159,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
             color: tint,
             order: 1
           })
-          .withCollider({
-            shape: { type: ShapeType.Box, width: config.PADDLE_WIDTH, height: config.PADDLE_HEIGHT } as BoxShape,
-            layer: CollisionLayers.PLAYER,
-            mask: CollisionLayers.PROJECTILE
-          });
+          .withCollider(createPaddleColliderConfig(config.PADDLE_WIDTH, config.PADDLE_HEIGHT));
 
         world.addComponent(entity, {
           type: "Paddle",
@@ -197,7 +190,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
             order: 1
           })
           .withCollider({
-            shape: { type: ShapeType.Box, width: config.BRICK_WIDTH, height: config.BRICK_HEIGHT } as BoxShape,
+            shape: { type: ShapeType.Box, width: config.BRICK_WIDTH, height: config.BRICK_HEIGHT },
             layer: CollisionLayers.ENEMY,
             mask: CollisionLayers.PROJECTILE
           })
@@ -288,9 +281,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.world.addSystem(new BrickRulesSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
 
-    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+    registerPresentationSystems(this.world);
   }
 
   protected override async onInitializeEntities(): Promise<void> {

@@ -178,3 +178,42 @@ export function drawGlowOrbSkia(
 
   canvas.restore();
 }
+
+/**
+ * Renders background rectangle and scrolling grid lines for Skia canvas.
+ * @public
+ */
+export function drawSkiaBackgroundGrid(
+  canvas: any,
+  paint: any,
+  width: number,
+  height: number,
+  tick: number,
+  gridSize: number = 40,
+  scrollSpeed: number = 0.3,
+  gridColorStr: string = "rgba(0, 240, 255, 0.04)",
+  bgColorStr: string = colors.background
+): void {
+  if (!Skia) return;
+
+  // 1. Solid background
+  paint.reset();
+  paint.setColor(Skia.Color(bgColorStr));
+  canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
+
+  // 2. Scrolling cyber-neon grid lines
+  const scrollOffset = (tick * scrollSpeed) % gridSize;
+
+  paint.reset();
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setColor(Skia.Color(gridColorStr));
+  paint.setStrokeWidth(1.0);
+
+  for (let x = 0; x < width; x += gridSize) {
+    canvas.drawLine(x, 0, x, height, paint);
+  }
+
+  for (let y = scrollOffset; y < height; y += gridSize) {
+    canvas.drawLine(0, y, width, y, paint);
+  }
+}

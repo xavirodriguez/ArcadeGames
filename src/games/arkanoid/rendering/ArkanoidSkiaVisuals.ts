@@ -3,7 +3,7 @@ import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidType
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "../../shared/rendering/ProceduralShapeUtils";
-import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
+import { drawGlowOrbSkia, drawSkiaBackgroundGrid } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 
@@ -129,27 +129,8 @@ export const drawSkiaArkanoidBackground: EffectDrawer<any, ArkanoidComponentRegi
     const config = world.getResource<ArkanoidConfig>("GameConfig") || { worldWidth: 800, worldHeight: 600 };
     const width = config.worldWidth;
     const height = config.worldHeight;
-
     const paint = getPaint();
 
-    paint.reset();
-    paint.setColor(Skia.Color(colors.background));
-    canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
-
-    const gridSize = 50;
-    const scrollOffset = (world.tick * 0.25) % gridSize;
-
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 240, 255, 0.05)"));
-    paint.setStrokeWidth(1.0);
-
-    for (let x = 0; x < width; x += gridSize) {
-      canvas.drawLine(x, 0, x, height, paint);
-    }
-
-    for (let y = scrollOffset; y < height; y += gridSize) {
-      canvas.drawLine(0, y, width, y, paint);
-    }
+    drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 50, 0.25, "rgba(0, 240, 255, 0.05)");
   }
 };

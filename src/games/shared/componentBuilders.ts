@@ -1,4 +1,19 @@
-import { TransformComponent, VelocityComponent, EntityBuilder, World, Entity, CoreComponentRegistry } from "@tiny-aster/core";
+import {
+  TransformComponent,
+  VelocityComponent,
+  EntityBuilder,
+  World,
+  Entity,
+  CoreComponentRegistry,
+  SystemPhase,
+  JuiceSystem,
+  ScreenShakeSystem,
+  RenderUpdateSystem,
+  ShapeType,
+  BoxShape,
+  Component
+} from "@tiny-aster/core";
+import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 
 /**
  * Audit of Player Blueprints Across Games:
@@ -84,6 +99,28 @@ export function createStandardVelocity(
 }
 
 /**
+ * Common configuration properties for platformer/runner physics.
+ * @public
+ */
+export interface CommonPlatformerConfig {
+  PLAYER_ACCEL: number;
+  PLAYER_SPEED: number;
+  PLAYER_DECEL: number;
+  PLAYER_AIR_ACCEL: number;
+  PLAYER_AIR_DECEL: number;
+  PLAYER_JUMP_VEL: number;
+  PLAYER_MIN_JUMP_VEL: number;
+  RISE_GRAVITY: number;
+  FALL_GRAVITY: number;
+  APEX_THRESHOLD?: number;
+  APEX_GRAVITY_MULTIPLIER?: number;
+  COYOTE_TIME_MAX?: number;
+  JUMP_BUFFER_MAX?: number;
+  TILE_SIZE?: number;
+  [key: string]: unknown;
+}
+
+/**
  * Constructs a PlatformerMovementConfig component object from a game configuration object.
  *
  * @param config - Game configuration containing platformer speed parameters.
@@ -96,7 +133,7 @@ export function createPlatformerMovementConfig(config: {
   PLAYER_DECEL: number;
   PLAYER_AIR_ACCEL: number;
   PLAYER_AIR_DECEL: number;
-}): Record<string, unknown> {
+}): Component & { type: string; [key: string]: unknown } {
   return {
     type: "PlatformerMovementConfig",
     acceleration: config.PLAYER_ACCEL,
@@ -105,6 +142,36 @@ export function createPlatformerMovementConfig(config: {
     airAcceleration: config.PLAYER_AIR_ACCEL,
     airDeceleration: config.PLAYER_AIR_DECEL
   };
+}
+
+/**
+ * Attaches common platformer movement, gravity, and ground-state components to a player entity.
+ *
+ * @param world - Simulation world.
+ * @param entity - Entity ID.
+ * @param config - Platformer physics configuration.
+ * @public
+ */
+export function setupPlatformerMovementComponents(
+  world: World<CoreComponentRegistry>,
+  entity: Entity,
+  config: CommonPlatformerConfig
+): void {
+  world.addComponent(entity, createPlatformerMovementConfig(config));
+  world.addComponent(entity, {
+    type: "PlatformerGravityConfig",
+    riseGravity: config.RISE_GRAVITY,
+    fallGravity: config.FALL_GRAVITY,
+    jumpVelocity: config.PLAYER_JUMP_VEL,
+    minJumpVelocity: config.PLAYER_MIN_JUMP_VEL,
+    ...(config.APEX_THRESHOLD !== undefined ? { apexThreshold: config.APEX_THRESHOLD } : {}),
+    ...(config.APEX_GRAVITY_MULTIPLIER !== undefined ? { apexGravityMultiplier: config.APEX_GRAVITY_MULTIPLIER } : {})
+  } as { type: string; [key: string]: unknown });
+  world.addComponent(entity, {
+    type: "PlatformerGroundState",
+    isGrounded: false,
+    iceMultiplier: 1.0
+  } as { type: string; [key: string]: unknown });
 }
 
 /**
@@ -134,4 +201,104 @@ export function setupTilemapEntity(
     tileSize,
     tileDefinitions
   } as { type: string; [key: string]: unknown });
+}
+
+/**
+ * Interface representing any blueprint registry capable of registering blueprints.
+ * @public
+ */
+export interface RegistrableBlueprintRegistry {
+  register(name: string, definition: any): void;
+}
+
+/**
+ * Registers the standard 'tilemap' blueprint in the provided blueprint map.
+ *
+ * @param blueprints - Blueprint registry instance.
+ * @param defaultConfig - Fallback config containing default TILE_SIZE.
+ * @public
+ */
+export function registerPlatformerTilemapBlueprint(
+  blueprints: RegistrableBlueprintRegistry,
+  defaultConfig: { TILE_SIZE: number }
+): void {
+  blueprints.register("tilemap", {
+    spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { data: number[][]; tileDefinitions: Record<number, unknown> }) => {
+      const config = world.getResource<{ TILE_SIZE: number }>("GameConfig") || defaultConfig;
+      setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
+    }
+  });
+}
+
+/**
+ * Configuration options for creating a main 2D follow camera entity.
+ * @public
+ */
+export interface Camera2DOptions {
+  zoom?: number;
+  lookAheadX?: number;
+  smoothingX?: number;
+  smoothingY?: number;
+  verticalDeadzone?: number;
+}
+
+/**
+ * Creates and initializes a main Camera2D entity tracking a target entity.
+ *
+ * @param world - Simulation world.
+ * @param followEntity - Target entity to track.
+ * @param options - Camera tuning options.
+ * @returns Spawned camera entity ID.
+ * @public
+ */
+export function createMainCamera2D(
+  world: World<CoreComponentRegistry>,
+  followEntity: Entity,
+  options: Camera2DOptions = {}
+): Entity {
+  const cameraEntity = world.createEntity();
+  world.addComponent(cameraEntity, {
+    type: "Camera2D",
+    zoom: options.zoom ?? 1.0,
+    x: 0,
+    y: 0,
+    targetX: 0,
+    targetY: 0,
+    isMain: true,
+    followEntity,
+    lookAheadX: options.lookAheadX ?? 40,
+    smoothingX: options.smoothingX ?? 3.5,
+    smoothingY: options.smoothingY ?? 3.5,
+    verticalDeadzone: options.verticalDeadzone ?? 45
+  } as { type: string; [key: string]: unknown });
+  return cameraEntity;
+}
+
+/**
+ * Registers standard presentation systems (Juice, ScreenShake, RenderUpdate) to the world.
+ *
+ * @param world - Target simulation world.
+ * @public
+ */
+export function registerPresentationSystems<TReg extends CoreComponentRegistry = CoreComponentRegistry>(
+  world: World<TReg>
+): void {
+  world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
+  world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
+  world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+}
+
+/**
+ * Creates a standard BoxShape collider configuration for paddle entities.
+ *
+ * @param width - Paddle width.
+ * @param height - Paddle height.
+ * @public
+ */
+export function createPaddleColliderConfig(width: number, height: number) {
+  return {
+    shape: { type: ShapeType.Box, width, height } as BoxShape,
+    layer: CollisionLayers.PLAYER,
+    mask: CollisionLayers.PROJECTILE
+  };
 }

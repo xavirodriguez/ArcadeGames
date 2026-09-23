@@ -76,6 +76,24 @@ export function getVisibleSkiaRender<TRegistry extends Record<string, any> = Rec
 }
 
 /**
+ * Returns both RenderComponent and TransformComponent if render is present and visible,
+ * otherwise null. Works for Canvas rendering contexts.
+ * @public
+ */
+export function getVisibleCanvasRenderAndTransform<TRegistry extends Record<string, any> = Record<string, any>>(
+  world: World<TRegistry>,
+  entity: Entity
+): { render: RenderComponent; transform: TransformComponent } | null {
+  const render = world.getComponent(entity, "Render" as Extract<keyof TRegistry, string>) as RenderComponent | undefined;
+  if (!render || !render.visible) return null;
+
+  const transform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as TransformComponent | undefined;
+  if (!transform) return null;
+
+  return { render, transform };
+}
+
+/**
  * Returns the RenderComponent if present and visible, otherwise null.
  * Agnostic of rendering context (works for Canvas2D and Skia).
  * @public

@@ -67,8 +67,7 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
    * - Skips emitters whose `SpatialNode.active === false` (culled/inactive).  
    * - Only calls `getMutableComponent` (bumping `stateVersion`) for emitters  
    *   that are actually active and enabled — resting/inactive emitters incur  
-   *   zero mutation cost (see Bolt's "Guarding Mutators with Read-Only Checks"  
-   *   pattern in .jules/bolt.md).  
+   *   zero mutation cost.  
    * - Burst emitters (`config.burst`) fire all `config.count` particles on the  
    *   first tick (`elapsed === 0`), then deactivate themselves if not looping  
    *   and `rate === 0`.  

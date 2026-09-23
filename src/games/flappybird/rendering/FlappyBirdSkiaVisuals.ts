@@ -24,9 +24,6 @@ import {
   resolveBackgroundWarpState
 } from "./FlappyBirdRenderUtils";
 
-// DUP-04: duplicación intencional de dibujadores visuales entre Canvas2D y Skia.
-// Primitivas de dibujo específicas de Canvas/Skia mantenidas intencionalmente separadas. Ver docs/tech-debt/duplication.md
-
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 
 // Zero-allocation shader cache for React Native Skia bridge

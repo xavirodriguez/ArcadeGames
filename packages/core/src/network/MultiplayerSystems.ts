@@ -375,7 +375,7 @@ export class BinaryCompression {
  * @remarks  
  * Interest here is purely Euclidean distance between each player's `Transform`  
  * and every other entity's `Transform` — an O(players × entities) full  
- * recompute every tick (see `.agents/devin_audit.md`'s "O(n^2) complexity"  
+ * recompute every tick complexity"  
  * category if this ever needs spatial partitioning instead). Player identity  
  * is detected structurally by scanning for any component carrying a  
  * `sessionId` field, rather than a fixed component name — this is a broad,  

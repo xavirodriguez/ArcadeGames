@@ -162,11 +162,13 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
 
           if (vel.vx > 0) {
             trans.x = tileLeft - halfW - offsetX;
+            trans.dirty = true;
             vel.vx = 0;
             currentX = trans.x;
             return true;
           } else if (vel.vx < 0) {
             trans.x = tileRight + halfW - offsetX;
+            trans.dirty = true;
             vel.vx = 0;
             currentX = trans.x;
             return true;
@@ -219,6 +221,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
                 return true;
               } else if (oldVy < 0) {
                 trans.y = tileBottom + halfH - offsetY;
+                trans.dirty = true;
                 vel.vy = 0;
                 if (tileDef.kind === "spike") {
                   this.handleSpikeCollision(world, entity);
@@ -259,6 +262,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     tileDef: TileDefinition
   ): { isGrounded: boolean; onIce: boolean } {
     trans.y = tileTop - halfH - offsetY;
+    trans.dirty = true;
     vel.vy = 0;
     let isGrounded = true;
     let onIce = false;

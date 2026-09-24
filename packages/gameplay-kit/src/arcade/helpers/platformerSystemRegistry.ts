@@ -15,6 +15,7 @@ import {
   TileCollisionSystem,
   CollectibleSystem,
   HitDetectionSystem,
+  HierarchySystem,
   Camera2DSystem,
   TilemapRenderSystem
 } from "@tiny-aster/core";
@@ -60,6 +61,9 @@ export function registerCommonPlatformerSystems(
   world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
   world.addSystem(new CollectibleSystem(), { phase: SystemPhase.Collision });
   world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });
+
+  // Transform phase
+  world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
 
   // Presentation phase
   world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });

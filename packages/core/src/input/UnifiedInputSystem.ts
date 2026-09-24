@@ -32,6 +32,21 @@ import { InputSystem } from "./InputSystem";
 export class UnifiedInputSystem extends System<ComponentRegistry> implements InputSystem {
   private static warned = false;
   private overrides: Record<string, boolean> = {};
+  private bindings = new Map<string, string[]>();
+  private activeKeys = new Set<string>();
+  private isListening = false;
+
+  private handleKeyDown = (event: KeyboardEvent) => {
+    this.activeKeys.add(event.code);
+  };
+
+  private handleKeyUp = (event: KeyboardEvent) => {
+    this.activeKeys.delete(event.code);
+  };
+
+  private handleBlur = () => {
+    this.activeKeys.clear();
+  };
 
   constructor() {
     super();
@@ -39,12 +54,35 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
       console.warn("UnifiedInputSystem is deprecated. Use React Bridge input routing via BaseGame.setInputState() instead.");
       UnifiedInputSystem.warned = true;
     }
+
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+      window.addEventListener("keydown", this.handleKeyDown);
+      window.addEventListener("keyup", this.handleKeyUp);
+      window.addEventListener("blur", this.handleBlur);
+      this.isListening = true;
+    }
   }
 
-  public bind(_action: string, _keys: string[]): void {}
+  /**
+   * Binds an action string to an array of key codes.
+   */
+  public bind(action: string, keys: string[]): void {
+    this.bindings.set(action, keys);
+  }
 
   /**
-   * Manually sets an input action state.
+   * Manually sets key state directly (useful for tests or programmatic input injection).
+   */
+  public setKeyState(code: string, pressed: boolean): void {
+    if (pressed) {
+      this.activeKeys.add(code);
+    } else {
+      this.activeKeys.delete(code);
+    }
+  }
+
+  /**
+   * Manually sets an input action state override.
    *
    * @param action - Action string name.
    * @param pressed - Whether action is pressed.
@@ -73,16 +111,40 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
    */
   public update(_world: World<ComponentRegistry>, _deltaTime: number): void {
       // Input logic
-      // In a real implementation, this would combine raw inputs with overrides
   }
 
   /**
    * Returns the state of an action.
    *
    * @param action - Action string name.
-   * @returns `true` if action override is active, `false` otherwise.
+   * @returns `true` if action override or bound key is pressed, `false` otherwise.
    */
   public getAction(action: string): boolean {
-    return !!this.overrides[action];
+    if (this.overrides[action] !== undefined) {
+      return this.overrides[action];
+    }
+    const boundKeys = this.bindings.get(action);
+    if (boundKeys) {
+      for (let i = 0; i < boundKeys.length; i++) {
+        if (this.activeKeys.has(boundKeys[i])) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Performs cleanup and unregisters window event listeners.
+   */
+  public dispose(): void {
+    if (this.isListening && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
+      window.removeEventListener("keydown", this.handleKeyDown);
+      window.removeEventListener("keyup", this.handleKeyUp);
+      window.removeEventListener("blur", this.handleBlur);
+      this.isListening = false;
+    }
+    this.activeKeys.clear();
+    this.bindings.clear();
   }
 }

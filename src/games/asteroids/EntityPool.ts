@@ -56,11 +56,12 @@ function createAsteroidsBulletPoolConfig() {
       data.ttl.timeLeft = ttlVal;
 
       if (gameConfig?.BULLET_BOUNDARY_BEHAVIOR === "bounce") {
-        const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+        const worldWidth = gameConfig?.worldWidth ?? 800;
+        const worldHeight = gameConfig?.worldHeight ?? 600;
         world.addComponent(entity, {
           type: "Boundary",
-          width: screen.width,
-          height: screen.height,
+          width: worldWidth,
+          height: worldHeight,
           mode: "bounce"
         } as BoundaryComponent);
       }
@@ -201,7 +202,9 @@ function createAsteroidsPoolConfig(): PrefabConfig<AsteroidComponents, AsteroidP
       }
     },
     initializer: (data: AsteroidComponents, p: AsteroidParams, world: World, entity: Entity) => {
-      const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      const gameConfig = world.getResource<any>("GameConfig");
+      const worldWidth = gameConfig?.worldWidth ?? 800;
+      const worldHeight = gameConfig?.worldHeight ?? 600;
       const randVx = (world.gameplayRandom.next() - 0.5) * 100;
       const randVy = (world.gameplayRandom.next() - 0.5) * 100;
       const randAng = (world.gameplayRandom.next() - 0.5) * 2;
@@ -230,8 +233,8 @@ function createAsteroidsPoolConfig(): PrefabConfig<AsteroidComponents, AsteroidP
       }
       data.asteroid.size = p.size;
 
-      data.boundary.width = screen.width;
-      data.boundary.height = screen.height;
+      data.boundary.width = worldWidth;
+      data.boundary.height = worldHeight;
 
       data.health.current = 1;
       data.health.max = 1;

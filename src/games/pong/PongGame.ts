@@ -211,8 +211,8 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     const aiDifficulty = mode === "ai" ? "medium" : undefined;
 
     // Bind inputs for UnifiedInputSystem
-    this.unifiedInput.bind("p1Up", ["KeyW"]);
-    this.unifiedInput.bind("p1Down", ["KeyS"]);
+    this.unifiedInput.bind("p1Up", mode !== "local" ? ["KeyW", "ArrowUp"] : ["KeyW"]);
+    this.unifiedInput.bind("p1Down", mode !== "local" ? ["KeyS", "ArrowDown"] : ["KeyS"]);
     this.unifiedInput.bind("p2Up", ["ArrowUp"]);
     this.unifiedInput.bind("p2Down", ["ArrowDown"]);
 

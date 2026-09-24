@@ -97,8 +97,9 @@ export function registerAsteroidsBlueprints(
 
   registry.register("ship", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
       const gameConfig = w.getResource<any>("GameConfig");
+      const worldWidth = gameConfig?.worldWidth ?? 800;
+      const worldHeight = gameConfig?.worldHeight ?? 600;
       const theme = w.getResource<Theme>("Theme");
       const useSprites = gameConfig?.USE_SPRITES !== false;
 
@@ -140,8 +141,8 @@ export function registerAsteroidsBlueprints(
       } as HealthComponent);
       w.addComponent(entity, {
         type: "Boundary",
-        width: screen.width,
-        height: screen.height,
+        width: worldWidth,
+        height: worldHeight,
         mode: "wrap"
       } as BoundaryComponent);
       w.addComponent(entity, {
@@ -214,11 +215,12 @@ export function registerAsteroidsBlueprints(
       } as FactionComponent);
 
       if (gameConfig?.BULLET_BOUNDARY_BEHAVIOR === "bounce") {
-        const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+        const worldWidth = gameConfig?.worldWidth ?? 800;
+        const worldHeight = gameConfig?.worldHeight ?? 600;
         w.addComponent(entity, {
           type: "Boundary",
-          width: screen.width,
-          height: screen.height,
+          width: worldWidth,
+          height: worldHeight,
           mode: "bounce"
         } as BoundaryComponent);
       }
@@ -227,7 +229,9 @@ export function registerAsteroidsBlueprints(
 
   registry.register("asteroid", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
-      const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      const gameConfig = w.getResource<any>("GameConfig");
+      const worldWidth = gameConfig?.worldWidth ?? 800;
+      const worldHeight = gameConfig?.worldHeight ?? 600;
       const randVx = (w.gameplayRandom.next() - 0.5) * 100;
       const randVy = (w.gameplayRandom.next() - 0.5) * 100;
       const randAng = (w.gameplayRandom.next() - 0.5) * 2;
@@ -258,8 +262,8 @@ export function registerAsteroidsBlueprints(
       } as AsteroidsComponentRegistry["Asteroid"]);
       w.addComponent(entity, {
         type: "Boundary",
-        width: screen.width,
-        height: screen.height,
+        width: worldWidth,
+        height: worldHeight,
         mode: "wrap"
       } as BoundaryComponent);
       attachEnemyDefaults(w, entity, {
@@ -317,7 +321,9 @@ export function registerAsteroidsBlueprints(
 
   registry.register("ufo", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size?: "large" | "small"; vx?: number; vy?: number }) => {
-      const screen = w.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      const gameConfig = w.getResource<any>("GameConfig");
+      const worldWidth = gameConfig?.worldWidth ?? 800;
+      const worldHeight = gameConfig?.worldHeight ?? 600;
       const tint = resolveThemeColor(w, "ufo", "enemy") || "#ff0055";
       const ufoSize = args.size ?? "large";
       const radius = ufoSize === "large" ? 18 : 10;
@@ -341,8 +347,8 @@ export function registerAsteroidsBlueprints(
 
       w.addComponent(entity, {
         type: "Boundary",
-        width: screen.width,
-        height: screen.height,
+        width: worldWidth,
+        height: worldHeight,
         mode: "wrap"
       } as BoundaryComponent);
 
@@ -573,24 +579,22 @@ export const spawnAsteroidWave = (world: World<AsteroidsComponentRegistry, Aster
         INITIAL_ASTEROID_COUNT: 5
     };
     const count = (config.INITIAL_ASTEROID_COUNT ?? 5) + (level - 1);
-    const screen = world.getResource<{ width: number, height: number }>("ScreenConfig") || {
-        width: config.worldWidth ?? 800,
-        height: config.worldHeight ?? 600
-    };
+    const worldWidth = config.worldWidth ?? 800;
+    const worldHeight = config.worldHeight ?? 600;
 
     const rand = world.gameplayRandom;
     const MAX_SPAWN_ATTEMPTS = 20;
 
     for (let i = 0; i < count; i++) {
-        let x = rand.next() * screen.width;
-        let y = rand.next() * screen.height;
+        let x = rand.next() * worldWidth;
+        let y = rand.next() * worldHeight;
 
-        const centerX = screen.width / 2;
-        const centerY = screen.height / 2;
+        const centerX = worldWidth / 2;
+        const centerY = worldHeight / 2;
         let attempts = 0;
         while (Math.hypot(x - centerX, y - centerY) < 150 && attempts < MAX_SPAWN_ATTEMPTS) {
-            x = rand.next() * screen.width;
-            y = rand.next() * screen.height;
+            x = rand.next() * worldWidth;
+            y = rand.next() * worldHeight;
             attempts++;
         }
 

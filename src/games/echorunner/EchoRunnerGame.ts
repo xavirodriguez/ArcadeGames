@@ -435,7 +435,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       }
     }
 
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV !== "asdg") {
       (this as any)._dbgFrames = ((this as any)._dbgFrames ?? 0) + 1;
       if ((this as any)._dbgFrames % 30 === 0) {
         const player = this.world.query("Tag").find(e =>

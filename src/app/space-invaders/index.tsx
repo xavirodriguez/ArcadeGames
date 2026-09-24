@@ -222,32 +222,34 @@ export default function SpaceInvadersScreen() {
           />
         }
         controlsSlot={
-          <View style={styles.controls} pointerEvents="box-none">
-            <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
-              <VirtualJoystick
-                joystickId="movement_joystick"
-                type="movement"
-                onMove={(x, y) => {
-                  const moveLeft = x < -0.25;
-                  const moveRight = x > 0.25;
-                  handleMultiplayerInput({
-                    moveLeft,
-                    moveRight,
-                  });
-                }}
-                onRelease={() => {
-                  handleMultiplayerInput({
-                    moveLeft: false,
-                    moveRight: false,
-                  });
-                }}
+          !gameState?.isGameOver ? (
+            <View style={styles.controls} pointerEvents="box-none">
+              <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+                <VirtualJoystick
+                  joystickId="movement_joystick"
+                  type="movement"
+                  onMove={(x, y) => {
+                    const moveLeft = x < -0.25;
+                    const moveRight = x > 0.25;
+                    handleMultiplayerInput({
+                      moveLeft,
+                      moveRight,
+                    });
+                  }}
+                  onRelease={() => {
+                    handleMultiplayerInput({
+                      moveLeft: false,
+                      moveRight: false,
+                    });
+                  }}
+                />
+              </View>
+              <ShootButton
+                onPressIn={handleShootPress}
+                onPressOut={handleShootRelease}
               />
             </View>
-            <ShootButton
-              onPressIn={handleShootPress}
-              onPressOut={handleShootRelease}
-            />
-          </View>
+          ) : null
         }
         debugSlot={<DebugOverlay game={game} room={room} />}
         overlaySlot={

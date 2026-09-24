@@ -328,13 +328,13 @@ describe("Echo Runner Game Simulation Tests", () => {
     try {
       await testGame.init();
       const testWorld = testGame.getWorld();
-      const levelPlan = (testGame as any).levelPlan;
-      const gameConfig = testWorld.getResource<any>("GameConfig");
+      const levelPlan = testGame.getLevelPlan();
+      const gameConfig = testWorld.getResource<{ TILE_SIZE: number; worldWidth?: number; worldHeight?: number }>("GameConfig");
 
       expect(gameConfig).toBeDefined();
-      expect(gameConfig.worldWidth).toBe(levelPlan.totalWidth * gameConfig.TILE_SIZE);
-      expect(gameConfig.worldHeight).toBe(levelPlan.totalHeight * gameConfig.TILE_SIZE);
-      expect(gameConfig.worldWidth).toBeGreaterThan(1000);
+      expect(gameConfig?.worldWidth).toBe(levelPlan.totalWidth * (gameConfig?.TILE_SIZE ?? 40));
+      expect(gameConfig?.worldHeight).toBe(levelPlan.totalHeight * (gameConfig?.TILE_SIZE ?? 40));
+      expect(gameConfig?.worldWidth).toBeGreaterThan(1000);
 
       const cameraEntity = testWorld.query("Camera2D")[0];
       expect(cameraEntity).toBeDefined();

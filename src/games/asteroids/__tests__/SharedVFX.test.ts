@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, TTLComponent } from "@tiny-aster/core";
 import * as SharedVFX from "../../shared/rendering/SharedVFX";
 
 // Simple mock for CanvasRenderingContext2D
@@ -158,7 +158,7 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
       type: "TTL",
       remaining: 0.8,
       timeLeft: 1.0
-    } as any);
+    } as TTLComponent);
 
     SharedVFX.DebrisShockwaveEffect.draw(ctx, world, entity);
     expect(drawCalls.length).toBeGreaterThan(0);
@@ -333,7 +333,7 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
       type: "TTL",
       remaining: 0.8,
       timeLeft: 1.0
-    } as any);
+    } as TTLComponent);
 
     SharedVFX.FloatingTextScoreEffect.draw(ctx, world, entity);
     expect(drawCalls.length).toBeGreaterThan(0);

@@ -41,3 +41,15 @@ export class RendererUtils {
     }
   }
 }
+
+/**
+ * Resolves effective viewport width and height from a GameConfig resource.
+ * @public
+ */
+export function resolveViewportDimensions(
+  gameConfig?: { worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }
+): { viewportWidth: number; viewportHeight: number } {
+  const viewportWidth = gameConfig?.viewportWidth ?? (gameConfig?.worldWidth && gameConfig.worldWidth < 2000 ? gameConfig.worldWidth : 800);
+  const viewportHeight = gameConfig?.viewportHeight ?? (gameConfig?.worldHeight && gameConfig.worldHeight < 2000 ? gameConfig.worldHeight : 600);
+  return { viewportWidth, viewportHeight };
+}

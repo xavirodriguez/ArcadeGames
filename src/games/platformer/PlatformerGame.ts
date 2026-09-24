@@ -28,7 +28,7 @@ import {
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, syncLevelWorldDimensions } from "../shared/componentBuilders";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { PlatformerGoalSystem, LevelGoalComponent } from "./systems/PlatformerGoalSystem";
@@ -348,17 +348,9 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     const levelSeed = this.getSeed() || 41873;
     this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
 
+    syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_PLATFORMER_CONFIG);
+
     const config = this.world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
-    const worldWidth = this.levelPlan.totalWidth * config.TILE_SIZE;
-    const worldHeight = this.levelPlan.totalHeight * config.TILE_SIZE;
-
-    // Update GameConfig resource with world size dimensions so camera clamping and spatial systems work properly
-    this.world.setResource("GameConfig", {
-      ...config,
-      worldWidth,
-      worldHeight
-    });
-
     this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
     SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
     this.world.flush();

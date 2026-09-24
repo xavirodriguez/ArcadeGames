@@ -36,7 +36,7 @@ import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, syncLevelWorldDimensions } from "../shared/componentBuilders";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -134,9 +134,14 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;
+  private dbgFrames = 0;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
   private baseConfig: EchoRunnerConfigType;
   private config: EchoRunnerConfigType;
+
+  public getLevelPlan(): LevelPlan {
+    return this.levelPlan;
+  }
 
   constructor(config: EchoRunnerConfig = {}) {
     super({
@@ -379,13 +384,15 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         5: { solid: true, oneWay: true, kind: "normal" as const }
       };
 
-      const levelData = this.customLevelData ?? defaultLevelData;
-      const templates = levelData.templates as SegmentTemplate[];
-      const grammar = levelData.grammar as string[];
+      const rawData = this.customLevelData ?? defaultLevelData;
+      const runnerSeed = this.getSeed() || 41873;
+      this.levelPlan = SegmentGenerator.generatePlan(
+        rawData.templates as SegmentTemplate[],
+        rawData.grammar as string[],
+        runnerSeed
+      );
 
-      // Generate deterministic Plan using SegmentGenerator
-      const levelSeed = this.getSeed() || 41873;
-      this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
+      syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);
 
       // Set world resources
       this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
@@ -436,13 +443,13 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     }
 
     if (process.env.NODE_ENV !== "asdg") {
-      (this as any)._dbgFrames = ((this as any)._dbgFrames ?? 0) + 1;
-      if ((this as any)._dbgFrames % 30 === 0) {
+      this.dbgFrames = (this.dbgFrames ?? 0) + 1;
+      if (this.dbgFrames % 30 === 0) {
         const player = this.world.query("Tag").find(e =>
           this.world.getComponent(e, "Tag")?.tags?.includes("Player")
         );
         console.log("[EchoDebug]", {
-          frame: (this as any)._dbgFrames,
+          frame: this.dbgFrames,
           dt,
           paused: this.isPausedState?.(),
           elapsed: runState?.elapsedTime,

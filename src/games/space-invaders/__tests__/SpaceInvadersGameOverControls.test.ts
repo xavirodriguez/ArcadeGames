@@ -16,9 +16,9 @@ describe("Space Invaders Game Over & Controls Layer Integration", () => {
       isPaused: false,
       getWorld: () => world,
       setInputState: jest.fn(),
-    } as any;
+    };
 
-    gameStateSystem = new SpaceInvadersGameStateSystem(mockGame);
+    gameStateSystem = new SpaceInvadersGameStateSystem(mockGame as never);
     world.addSystem(gameStateSystem, { phase: SystemPhase.GameRules });
 
     world.setResource("GameConfig", { PLAYER_INITIAL_LIVES: 3 });
@@ -36,15 +36,15 @@ describe("Space Invaders Game Over & Controls Layer Integration", () => {
       intermissionRemaining: 0,
       continueCountdownRemaining: 0,
       continuesRemaining: 0,
-    } as any);
+    });
   });
 
   it("should trigger isGameOver when lives reach 0 and no continues remain", () => {
     // Process game rules tick
     world.update(0.1);
 
-    const gameState = world.getSingleton("GameState") as any;
-    expect(gameState.isGameOver).toBe(true);
+    const gameState = world.getSingleton("GameState");
+    expect(gameState?.isGameOver).toBe(true);
   });
 
   it("should conditionally hide controlsSlot when isGameOver is true so touch events reach REINITIALIZE MISSION", () => {
@@ -53,7 +53,7 @@ describe("Space Invaders Game Over & Controls Layer Integration", () => {
       gs.isGameOver = true;
     });
 
-    const gameState = world.getSingleton("GameState") as any;
+    const gameState = world.getSingleton("GameState");
 
     // Simulate the controlsSlot render condition: !gameState?.isGameOver
     const shouldRenderControls = !gameState?.isGameOver;
@@ -67,7 +67,7 @@ describe("Space Invaders Game Over & Controls Layer Integration", () => {
       gs.isGameOver = true;
     });
 
-    let gameState = world.getSingleton("GameState") as any;
+    let gameState = world.getSingleton("GameState");
     expect(!gameState?.isGameOver).toBe(false);
 
     // 2. Simulate onRestart (e.g. game.restart())
@@ -77,8 +77,8 @@ describe("Space Invaders Game Over & Controls Layer Integration", () => {
       gs.score = 0;
     });
 
-    gameState = world.getSingleton("GameState") as any;
-    expect(gameState.isGameOver).toBe(false);
+    gameState = world.getSingleton("GameState");
+    expect(gameState?.isGameOver).toBe(false);
 
     // 3. controlsSlot should render again for active gameplay
     const shouldRenderControls = !gameState?.isGameOver;

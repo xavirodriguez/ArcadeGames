@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState, resolveViewportDimensions } from "@tiny-aster/core";
 import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
 import { CanvasSpriteDrawer } from "./CanvasSpriteDrawer";
 
@@ -143,9 +143,8 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       }
     }
 
-    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
-    const worldWidth = gameConfig?.worldWidth ?? 800;
-    const worldHeight = gameConfig?.worldHeight ?? 600;
+    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }>("GameConfig");
+    const { viewportWidth, viewportHeight } = resolveViewportDimensions(gameConfig);
 
     let scale = 1;
     let offsetX = 0;
@@ -153,11 +152,11 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
 
     if (screenConfig && screenConfig.width > 0 && screenConfig.height > 0) {
       scale = Math.min(
-        screenConfig.width / worldWidth,
-        screenConfig.height / worldHeight
+        screenConfig.width / viewportWidth,
+        screenConfig.height / viewportHeight
       );
-      offsetX = (screenConfig.width - worldWidth * scale) / 2;
-      offsetY = (screenConfig.height - worldHeight * scale) / 2;
+      offsetX = (screenConfig.width - viewportWidth * scale) / 2;
+      offsetY = (screenConfig.height - viewportHeight * scale) / 2;
     }
 
     ctx.fillStyle = "#000000";
@@ -168,7 +167,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     ctx.scale(scale, scale);
 
     ctx.beginPath();
-    ctx.rect(0, 0, worldWidth, worldHeight);
+    ctx.rect(0, 0, viewportWidth, viewportHeight);
     ctx.clip();
 
     // Draw background effects first (e.g. scrolling skies)

@@ -338,6 +338,35 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         this.audio.playSFX("game_over");
       });
     }
+
+    console.log("[EchoDebug] sistemas registrados:", [
+      "PauseSystem",
+      "InputBridgeSystem",
+      "ArcadeControlSystem",
+      "AudioSystem",
+      "ParticleSystem",
+      "PlatformerInputSystem",
+      "EchoRunnerAttackSystem",
+      "PlatformerMovementSystem",
+      "PlatformerGravitySystem",
+      "PlatformerCoyoteSystem",
+      "MovingPlatformSystem",
+      "PlatformCarrySystem",
+      "EnemySensorSystem",
+      "StateMachineSystem",
+      "CheckpointSystem",
+      "DeathSystem",
+      "RespawnSystem",
+      "PhysicsIntegrateSystem",
+      "TileCollisionSystem",
+      "CollectibleSystem",
+      "HitDetectionSystem",
+      "Camera2DSystem",
+      "TilemapRenderSystem",
+      "EchoRunnerDamageSystem",
+      "SpriteRenderSystem",
+      "DebugRenderSystem"
+    ]);
   }
 
   protected override async onInitializeEntities(): Promise<void> {
@@ -402,6 +431,26 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         this.gameOver = true;
         this.eventBus.emit("game:over", {
           state: this.getGameState()
+        });
+      }
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      (this as any)._dbgFrames = ((this as any)._dbgFrames ?? 0) + 1;
+      if ((this as any)._dbgFrames % 30 === 0) {
+        const player = this.world.query("Tag").find(e =>
+          this.world.getComponent(e, "Tag")?.tags?.includes("Player")
+        );
+        console.log("[EchoDebug]", {
+          frame: (this as any)._dbgFrames,
+          dt,
+          paused: this.isPausedState?.(),
+          elapsed: runState?.elapsedTime,
+          playerEntity: player,
+          transform: player ? this.world.getComponent(player, "Transform") : null,
+          velocity: player ? this.world.getComponent(player, "Velocity") : null,
+          grounded: player ? this.world.getComponent(player, "PlatformerGroundState") : null,
+          input: player ? this.world.getComponent(player, "PlatformerInput") : null
         });
       }
     }

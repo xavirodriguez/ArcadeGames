@@ -155,6 +155,8 @@ describe("Echo Runner Game Simulation Tests", () => {
       fill: jest.fn(),
       fillRect: jest.fn(),
       strokeRect: jest.fn(),
+      rect: jest.fn(),
+      clip: jest.fn(),
       arc: jest.fn(),
       ellipse: jest.fn(),
       closePath: jest.fn(),

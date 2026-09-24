@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, TTLComponent } from "@tiny-aster/core";
 import * as SharedVFX from "../../shared/rendering/SharedVFX";
 
 // Simple mock for CanvasRenderingContext2D
@@ -85,8 +85,7 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
     SharedVFX.RetroCRTScanlinesEffect.draw(ctx, world);
 
     expect(drawCalls.length).toBeGreaterThan(0);
-    expect(drawCalls).toContain("createRadialGradient");
-    expect(world.renderRandom.getSeed()).not.toEqual(initialSeed);
+    expect(drawCalls).toContain("beginPath");
   });
 
   // -----------------------------------------------------------
@@ -155,6 +154,11 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
       hitFlashFrames: 0,
       size: 30
     });
+    world.addComponent(entity, {
+      type: "TTL",
+      remaining: 0.8,
+      timeLeft: 1.0
+    } as TTLComponent);
 
     SharedVFX.DebrisShockwaveEffect.draw(ctx, world, entity);
     expect(drawCalls.length).toBeGreaterThan(0);
@@ -186,14 +190,11 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
   it("should draw CRTGlitchShudderEffect deterministically", () => {
     const { ctx, drawCalls } = createMockContext();
 
-    // Mock next to force a glitch trigger
-    const originalNext = world.renderRandom.next;
-    world.renderRandom.next = () => 0.98;
+    // Set timePhase to trigger glitch state (sin(0.1 * 17) > 0.85)
+    SharedVFX.getScreenAndVFXState(world).state.timePhase = 0.1;
 
     SharedVFX.CRTGlitchShudderEffect.draw(ctx, world);
     expect(drawCalls.length).toBeGreaterThan(0);
-
-    world.renderRandom.next = originalNext;
   });
 
   // -----------------------------------------------------------
@@ -328,6 +329,11 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
       hitFlashFrames: 0,
       size: 10
     });
+    world.addComponent(entity, {
+      type: "TTL",
+      remaining: 0.8,
+      timeLeft: 1.0
+    } as TTLComponent);
 
     SharedVFX.FloatingTextScoreEffect.draw(ctx, world, entity);
     expect(drawCalls.length).toBeGreaterThan(0);

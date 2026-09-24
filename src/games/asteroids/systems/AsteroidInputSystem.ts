@@ -143,13 +143,11 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           if (isHyperspaceHeld && hCooldown <= 0) {
               const totalPrepTime = config.HYPERSPACE_PREP_TIME ?? 0.5;
               if (!prepActive && previewEntityId === undefined) {
-                  const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || {
-                      width: config.worldWidth ?? 800,
-                      height: config.worldHeight ?? 600
-                  };
+                  const worldWidth = config.worldWidth ?? 800;
+                  const worldHeight = config.worldHeight ?? 600;
                   const rand = world.gameplayRandom;
-                  const rx = rand.next() * screen.width;
-                  const ry = rand.next() * screen.height;
+                  const rx = rand.next() * worldWidth;
+                  const ry = rand.next() * worldHeight;
 
                   // Create preview entity once at prep start via CommandBuffer (AST-007)
                   const previewEntity = world.reserveEntityId();

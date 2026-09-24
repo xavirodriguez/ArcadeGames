@@ -18,6 +18,7 @@ import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { hapticSelection } from "../../utils/haptics";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { colors } from "../../theme";
@@ -56,6 +57,36 @@ export default function PongScreen() {
 
   const isMulti = mode === "online";
   const { game, gameState, handleInput, isReady, restart } = usePongGame(started ? mode : null, initialSeed);
+
+  const handleGameInput = (input: Record<string, boolean>) => {
+      if (isMulti && room) {
+          room.send("input", {
+              tick: localTickRef.current,
+              input: input
+          });
+      } else {
+          handleInput(input);
+      }
+  };
+
+  // Web keyboard controls for game controls
+  useKeyboardControls(game, isReady, (inputPayload) => {
+    const payload: Record<string, boolean> = {};
+    if (typeof inputPayload.p1Up === "boolean") payload.p1Up = inputPayload.p1Up;
+    if (typeof inputPayload.p1Down === "boolean") payload.p1Down = inputPayload.p1Down;
+
+    if (mode === "local") {
+      if (typeof inputPayload.p2Up === "boolean") payload.p2Up = inputPayload.p2Up;
+      if (typeof inputPayload.p2Down === "boolean") payload.p2Down = inputPayload.p2Down;
+    } else {
+      if (inputPayload.p2Up) payload.p1Up = true;
+      if (inputPayload.p2Down) payload.p1Down = true;
+    }
+
+    if (Object.keys(payload).length > 0) {
+      handleGameInput(payload);
+    }
+  });
 
   // Handle incoming daily challenge parameters
   useEffect(() => {
@@ -164,17 +195,6 @@ export default function PongScreen() {
   }
 
   if (!game || !isReady) return null;
-
-  const handleGameInput = (input: Record<string, boolean>) => {
-      if (isMulti && room) {
-          room.send("input", {
-              tick: localTickRef.current,
-              input: input
-          });
-      } else {
-          handleInput(input);
-      }
-  };
 
   return (
     <GameErrorBoundary gameId="pong">

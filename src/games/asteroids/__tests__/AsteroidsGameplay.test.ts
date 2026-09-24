@@ -162,6 +162,22 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       expect(world.getComponent(ship, "Boundary")).toBeDefined();
     });
 
+    it("should set entity boundary dimensions from GameConfig worldWidth/worldHeight instead of ScreenConfig", () => {
+      world.setResource("ScreenConfig", { width: 1920, height: 1080 });
+      world.setResource("GameConfig", { worldWidth: 800, worldHeight: 600 });
+
+      const ship = createShip({ world, x: 400, y: 300 });
+      const asteroid = createAsteroid({ world, x: 200, y: 200, size: "large" });
+
+      const shipBoundary = world.getComponent(ship, "Boundary");
+      const asteroidBoundary = world.getComponent(asteroid, "Boundary");
+
+      expect(shipBoundary?.width).toBe(800);
+      expect(shipBoundary?.height).toBe(600);
+      expect(asteroidBoundary?.width).toBe(800);
+      expect(asteroidBoundary?.height).toBe(600);
+    });
+
     it("should create a bullet with appropriate TTL and Collider components", () => {
       const bullet = createBullet({ world, x: 100, y: 200, vx: 50, vy: -50, ownerId: "player" });
       expect(world.hasEntity(bullet)).toBe(true);

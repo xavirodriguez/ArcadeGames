@@ -324,44 +324,46 @@ function AsteroidsGameContent({
             />
           }
           controlsSlot={
-            <View style={styles.controls} pointerEvents="box-none">
-              <View style={styles.leftControlArea} pointerEvents="box-none">
-                <VirtualJoystick
-                  joystickId="movement_joystick"
-                  type="movement"
-                  onMove={(x, y) => {
-                    const rotateLeft = x < -0.25;
-                    const rotateRight = x > 0.25;
-                    const thrust = y < -0.25;
-                    handleMultiplayerInput({
-                      rotateLeft,
-                      rotateRight,
-                      thrust,
-                      rotationAmount: x,
-                    });
-                  }}
-                  onRelease={() => {
-                    handleMultiplayerInput({
-                      rotateLeft: false,
-                      rotateRight: false,
-                      thrust: false,
-                      rotationAmount: 0,
-                    });
-                  }}
-                />
+            !gameState?.isGameOver ? (
+              <View style={styles.controls} pointerEvents="box-none">
+                <View style={styles.leftControlArea} pointerEvents="box-none">
+                  <VirtualJoystick
+                    joystickId="movement_joystick"
+                    type="movement"
+                    onMove={(x, y) => {
+                      const rotateLeft = x < -0.25;
+                      const rotateRight = x > 0.25;
+                      const thrust = y < -0.25;
+                      handleMultiplayerInput({
+                        rotateLeft,
+                        rotateRight,
+                        thrust,
+                        rotationAmount: x,
+                      });
+                    }}
+                    onRelease={() => {
+                      handleMultiplayerInput({
+                        rotateLeft: false,
+                        rotateRight: false,
+                        thrust: false,
+                        rotationAmount: 0,
+                      });
+                    }}
+                  />
+                </View>
+                <View style={styles.rightControlArea} pointerEvents="box-none">
+                  <HyperspaceButton
+                    onPressIn={handleHyperspacePress}
+                    onPressOut={handleHyperspaceRelease}
+                  />
+                  <View style={styles.spacer20} />
+                  <ShootButton
+                    onPressIn={handleShootPress}
+                    onPressOut={handleShootRelease}
+                  />
+                </View>
               </View>
-              <View style={styles.rightControlArea} pointerEvents="box-none">
-                <HyperspaceButton
-                  onPressIn={handleHyperspacePress}
-                  onPressOut={handleHyperspaceRelease}
-                />
-                <View style={styles.spacer20} />
-                <ShootButton
-                  onPressIn={handleShootPress}
-                  onPressOut={handleShootRelease}
-                />
-              </View>
-            </View>
+            ) : null
           }
           debugSlot={<DebugOverlay game={game} room={room} />}
           overlaySlot={

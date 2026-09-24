@@ -34,19 +34,7 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
   private overrides: Record<string, boolean> = {};
   private bindings = new Map<string, string[]>();
   private activeKeys = new Set<string>();
-  private isListening = false;
-
-  private handleKeyDown = (event: KeyboardEvent) => {
-    this.activeKeys.add(event.code);
-  };
-
-  private handleKeyUp = (event: KeyboardEvent) => {
-    this.activeKeys.delete(event.code);
-  };
-
-  private handleBlur = () => {
-    this.activeKeys.clear();
-  };
+  private listenerCleanups: Array<() => void> = [];
 
   constructor() {
     super();
@@ -56,10 +44,21 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
     }
 
     if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
-      window.addEventListener("keydown", this.handleKeyDown);
-      window.addEventListener("keyup", this.handleKeyUp);
-      window.addEventListener("blur", this.handleBlur);
-      this.isListening = true;
+      const handleKey = (evt: KeyboardEvent) => {
+        if (evt.type === "keydown") this.activeKeys.add(evt.code);
+        else if (evt.type === "keyup") this.activeKeys.delete(evt.code);
+      };
+      const handleReset = () => this.activeKeys.clear();
+
+      window.addEventListener("keydown", handleKey);
+      window.addEventListener("keyup", handleKey);
+      window.addEventListener("blur", handleReset);
+
+      this.listenerCleanups.push(() => {
+        window.removeEventListener("keydown", handleKey);
+        window.removeEventListener("keyup", handleKey);
+        window.removeEventListener("blur", handleReset);
+      });
     }
   }
 
@@ -138,12 +137,8 @@ export class UnifiedInputSystem extends System<ComponentRegistry> implements Inp
    * Performs cleanup and unregisters window event listeners.
    */
   public dispose(): void {
-    if (this.isListening && typeof window !== "undefined" && typeof window.removeEventListener === "function") {
-      window.removeEventListener("keydown", this.handleKeyDown);
-      window.removeEventListener("keyup", this.handleKeyUp);
-      window.removeEventListener("blur", this.handleBlur);
-      this.isListening = false;
-    }
+    this.listenerCleanups.forEach(fn => fn());
+    this.listenerCleanups.length = 0;
     this.activeKeys.clear();
     this.bindings.clear();
   }

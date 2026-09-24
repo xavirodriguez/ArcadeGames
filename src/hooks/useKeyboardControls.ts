@@ -16,21 +16,24 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
     // Keep track of active keyboard states
     const activeKeys = new Set<string>();
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (activeKeys.has(e.code)) return; // Prevent repeated triggers
-      activeKeys.add(e.code);
-      updateGameInput([e.code]);
+    const onKeyChange = (evt: KeyboardEvent, isPressed: boolean) => {
+      const kCode = evt.code;
+      if (isPressed) {
+        if (activeKeys.has(kCode)) return;
+        activeKeys.add(kCode);
+      } else {
+        if (!activeKeys.has(kCode)) return;
+        activeKeys.delete(kCode);
+      }
+      updateGameInput([kCode]);
     };
 
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (!activeKeys.has(e.code)) return;
-      activeKeys.delete(e.code);
-      updateGameInput([e.code]);
-    };
+    const handleKeyDown = (e: KeyboardEvent) => onKeyChange(e, true);
+    const handleKeyUp = (e: KeyboardEvent) => onKeyChange(e, false);
 
     const handleBlur = () => {
       activeKeys.clear();
-      updateGameInput(); // Empty args triggers a full reset payload
+      updateGameInput();
     };
 
     const updateGameInput = (affectedKeys?: string[]) => {

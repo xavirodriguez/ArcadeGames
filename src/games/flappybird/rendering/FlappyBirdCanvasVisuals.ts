@@ -1,5 +1,5 @@
-import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
-import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import {
   StarfieldStar,
@@ -12,8 +12,12 @@ import {
   BACKGROUND_NEBULAE,
   MegastructureData
 } from "./FlappyBirdBackgroundData";
-import { createParticlePool, VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
-import { applyFlappyParticlePhysics } from "./particleEvents";
+import {
+  FLAPPY_PARTICLE_POOL,
+  spawnVisualParticle,
+  updateVisualParticles,
+  resolveFlappyParticleData,
+} from "./FlappyBirdParticles";
 import {
   resolveFlappyBirdDrawContext,
   resolveFlappyPipeDrawContext,
@@ -23,58 +27,36 @@ import {
   resolveBackgroundWarpState
 } from "./FlappyBirdRenderUtils";
 
-// ============================================================================
-// ZERO-ALLOCATION PRE-ALLOCATED VISUAL PARTICLE POOL (NEON VOID SPARKS & SHARDS)
-// ============================================================================
-
-export const FLAPPY_CANVAS_PARTICLE_POOL: VisualParticlePool = createParticlePool(150);
-
-export function spawnVisualParticle(
-  type: "spark" | "shard" | "star",
-  x: number,
-  y: number,
-  vx: number,
-  vy: number,
-  maxLife: number,
-  size: number,
-  color: string,
-  angle = 0,
-  angularVelocity = 0
-): void {
-  FLAPPY_CANVAS_PARTICLE_POOL.spawn(x, y, vx, vy, maxLife, size, color, { type, angle, angularVelocity });
-}
-
-function updateVisualParticles(): void {
-  FLAPPY_CANVAS_PARTICLE_POOL.update(0.016, applyFlappyParticlePhysics);
-}
+export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
 
 function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
-  const particles = FLAPPY_CANVAS_PARTICLE_POOL.getActiveParticles();
+  const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
-    const p = particles[i];
-    if (!p.active) continue;
+    const data = resolveFlappyParticleData(particles[i]);
+    if (!data) continue;
 
-    const ratio = p.life / p.maxLife;
+    const { type, x, y, size, color, angle, ratio } = data;
+
     ctx.save();
-    ctx.translate(p.x, p.y);
-    if (p.angle !== undefined && p.angle !== 0) {
-      ctx.rotate(p.angle);
+    ctx.translate(x, y);
+    if (angle !== undefined && angle !== 0) {
+      ctx.rotate(angle);
     }
     ctx.globalAlpha = ratio;
 
-    if (p.type === "spark") {
-      ctx.fillStyle = p.color;
+    if (type === "spark") {
+      ctx.fillStyle = color;
       ctx.beginPath();
-      const sz = p.size;
+      const sz = size;
       ctx.moveTo(sz * 0.8, 0);
       ctx.lineTo(0, -sz * 0.2);
       ctx.lineTo(-sz * 0.8, 0);
       ctx.lineTo(0, sz * 0.2);
       ctx.closePath();
       ctx.fill();
-    } else if (p.type === "shard") {
+    } else if (type === "shard") {
       ctx.fillStyle = "#5A6173";
-      const sz = p.size;
+      const sz = size;
       ctx.beginPath();
       ctx.moveTo(sz * 0.4, -sz * 0.3);
       ctx.lineTo(sz * 0.1, sz * 0.4);
@@ -86,9 +68,9 @@ function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
       ctx.strokeStyle = "#FF3300";
       ctx.lineWidth = 0.6;
       ctx.stroke();
-    } else if (p.type === "star") {
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    } else if (type === "star") {
+      ctx.fillStyle = color;
+      ctx.fillRect(-size / 2, -size / 2, size, size);
     }
 
     ctx.restore();
@@ -121,11 +103,10 @@ function getCachedCanvasGradient(
 
 /**
  * Player Ship ("Interceptor") shape drawer.
- * Arrowhead spearhead silhouette, titanium hull, cyan cockpit, thermonuclear thruster flame.
  */
 export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
-    const drawCtx = resolveFlappyBirdDrawContext(world, entity, FLAPPY_CANVAS_PARTICLE_POOL);
+    const drawCtx = resolveFlappyBirdDrawContext(world, entity, FLAPPY_PARTICLE_POOL);
     if (!drawCtx) return;
 
     const {
@@ -146,11 +127,9 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.save();
     ctx.globalAlpha = globalOpacity;
 
-    // --- VELOCITY TILT AND SQUASH AND STRETCH ---
     ctx.rotate(angleRad);
     ctx.scale(scaleX, scaleY);
 
-    // --- RGB CHROMATIC ABERRATION SPLIT ON DEATH ---
     if (isDyingGlitch) {
       ctx.save();
       ctx.translate(-3, -1);
@@ -167,7 +146,6 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.restore();
     }
 
-    // --- CYAN LIGHT TRAIL / PARAMETERIZED COSMETIC TRAIL ---
     if (isAlive) {
       const warpFactor = calculateWarpFactor(world);
       const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
@@ -187,15 +165,14 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.restore();
     }
 
-    // --- THERMONUCLEAR REACTIVE THRUSTER FLAME ---
     if (isAlive) {
       const { flameLength, flameWidth } = computeFlappyThrusterFlame(size, vy, world.tick);
 
       const flameGrad = getCachedCanvasGradient(ctx, `flame_${size}`, () => {
         const g = ctx.createLinearGradient(-size * 0.55, 0, -size * 2.2, 0);
-        g.addColorStop(0, "#FFFFFF");   // White thermonuclear core
-        g.addColorStop(0.35, "#FFC000"); // Hot yellow-orange
-        g.addColorStop(1.0, "#FF3300");  // Thermonuclear red tip
+        g.addColorStop(0, "#FFFFFF");
+        g.addColorStop(0.35, "#FFC000");
+        g.addColorStop(1.0, "#FF3300");
         return g;
       });
 
@@ -208,15 +185,14 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.fill();
     }
 
-    // --- TITANIUM HULL GRADIENT ---
     const hullGrad = getCachedCanvasGradient(ctx, `hull_${size}_${isAlive}`, () => {
       const g = ctx.createLinearGradient(-size * 0.7, 0, size * 1.2, 0);
       if (isAlive) {
-        g.addColorStop(0, "#5A6173"); // Dark titanium tail
-        g.addColorStop(0.5, "#8B93A5"); // Mid-tone titanium
-        g.addColorStop(1.0, "#D3D9E2"); // Light metallic nose
+        g.addColorStop(0, "#5A6173");
+        g.addColorStop(0.5, "#8B93A5");
+        g.addColorStop(1.0, "#D3D9E2");
       } else {
-        g.addColorStop(0, "#3A3F4B"); // Lead gray dead state
+        g.addColorStop(0, "#3A3F4B");
         g.addColorStop(0.6, "#5A6173");
         g.addColorStop(1.0, "#696969");
       }
@@ -227,13 +203,11 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     drawArrowheadPath(ctx, size);
     ctx.fill();
 
-    // Dark armor plate seam border
     ctx.strokeStyle = "#1A1D24";
     ctx.lineWidth = 1.2;
     drawArrowheadPath(ctx, size);
     ctx.stroke();
 
-    // Structural panel detail line
     ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
     ctx.lineWidth = 0.8;
     ctx.beginPath();
@@ -241,7 +215,6 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.lineTo(-size * 0.2, 0);
     ctx.stroke();
 
-    // --- ELLIPTICAL CYAN COCKPIT (ONLY CYAN SATURATED ELEMENT ON SCREEN) ---
     ctx.save();
     ctx.fillStyle = "#00F3FF";
     ctx.shadowColor = "#00F3FF";
@@ -258,13 +231,11 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.ellipse(size * 0.15, -size * 0.05, size * 0.35, size * 0.18, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Off-center white highlight reflection dot (no eyes/pupils)
     ctx.fillStyle = "#FFFFFF";
     ctx.beginPath();
     ctx.arc(size * 0.25, -size * 0.09, size * 0.06, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- COYOTE TIME DANGER PULSE OVERLAY ---
     if (render.dangerPulseIntensity && render.dangerPulseIntensity > 0) {
       const pulse = 0.5 + 0.5 * Math.sin(world.tick * 0.4);
       const alpha = render.dangerPulseIntensity * pulse;
@@ -278,9 +249,8 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.restore();
     }
 
-    ctx.restore(); // Squash-and-stretch pop
+    ctx.restore();
 
-    // --- TACTICAL NEAR MISS OVERLAY ---
     if (birdComp.nearMissTimer > 0) {
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -299,19 +269,18 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
 function drawArrowheadPath(ctx: CanvasRenderingContext2D, size: number) {
   ctx.beginPath();
-  ctx.moveTo(size * 1.2, 0);                   // Prow (nose tip)
-  ctx.lineTo(-size * 0.7, -size * 0.85);       // Top fin tip
-  ctx.lineTo(-size * 0.4, -size * 0.35);       // Top wing notch
-  ctx.lineTo(-size * 0.55, 0);                 // Rear engine notch center
-  ctx.lineTo(-size * 0.4, size * 0.35);        // Bottom wing notch
-  ctx.lineTo(-size * 0.7, size * 0.85);        // Bottom fin tip
+  ctx.moveTo(size * 1.2, 0);
+  ctx.lineTo(-size * 0.7, -size * 0.85);
+  ctx.lineTo(-size * 0.4, -size * 0.35);
+  ctx.lineTo(-size * 0.55, 0);
+  ctx.lineTo(-size * 0.4, size * 0.35);
+  ctx.lineTo(-size * 0.7, size * 0.85);
   ctx.closePath();
 }
 
-// ============================================================================
-// CONTAINMENT TOWERS (OBSTACLES) — INDUSTRIAL METALLIC PILLARS & RED BEACONS
-// ============================================================================
-
+/**
+ * Containment Towers (Obstacles) Shape Drawer.
+ */
 export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
     const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
@@ -332,7 +301,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = geometry;
 
-    // --- METALLIC PILLAR BODY VARIANT GRADIENT ---
     const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
       if (variant === "damaged") {
@@ -360,7 +328,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.fillStyle = pillarGrad;
     ctx.fillRect(-halfWidth, pipeY, width, pipeHeight);
 
-    // Dark vertical armor panel seams
     ctx.strokeStyle = "#121218";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(-halfWidth, pipeY, width, pipeHeight);
@@ -374,7 +341,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.lineTo(-halfWidth + width * 0.7, pipeY + pipeHeight);
     ctx.stroke();
 
-    // Additional surface detail per variant
     if (variant === "damaged") {
       ctx.strokeStyle = "#0D0E12";
       ctx.lineWidth = 1.2;
@@ -388,7 +354,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.fillRect(-halfWidth + 4, pipeY + pipeHeight * 0.1, width * 0.4, pipeHeight * 0.3);
     }
 
-    // --- REINFORCED DOCKING COLLAR AT THE GAP MOUTH ---
     const collarGrad = getCachedCanvasGradient(ctx, `collar_${capHalfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
       if (variant === "damaged") {
@@ -419,7 +384,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.lineWidth = pipe.isNarrowGap ? 2.0 : 1.5;
     ctx.strokeRect(-capHalfWidth, capYOffset, capWidth, capHeight);
 
-    // Collar bevel line
     ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.lineWidth = 1.0;
     ctx.beginPath();
@@ -432,7 +396,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     }
     ctx.stroke();
 
-    // Industrial Rivets along collar
     const rivetCount = 4;
     for (let r = 0; r < rivetCount; r++) {
       const rx = -capHalfWidth + 8 + r * ((capWidth - 16) / (rivetCount - 1));
@@ -449,9 +412,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.fill();
     }
 
-    // --- STROBOSCOPIC RED WARNING BEACONS (#FF0000) WITH SOFT AMBIENT GLOW HALO ---
     ctx.save();
-    // Soft radial ambient light halo projecting onto nearby background
     const beaconGlowGrad = getCachedCanvasGradient(ctx, `beacon_halo_${beaconPulse.toFixed(2)}`, () => {
       const g = ctx.createRadialGradient(0, beaconY, 4, 0, beaconY, 45);
       g.addColorStop(0, "rgba(255, 0, 0, 0.25)");
@@ -468,7 +429,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.shadowColor = "#FF0000";
     ctx.shadowBlur = beaconPulse * 12;
 
-    // Beacons on left and right edges of the docking lip
     ctx.beginPath();
     ctx.arc(-capHalfWidth + 8, beaconY, 3.5, 0, Math.PI * 2);
     ctx.arc(capHalfWidth - 8, beaconY, 3.5, 0, Math.PI * 2);
@@ -482,7 +442,6 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.fill();
     ctx.restore();
 
-    // --- LASER GATE OVERLAY & SPARKS ---
     if (pipe.movementType === "laser_gate" && isTopPipe) {
       const laserActive = pipe.laserActive ?? true;
       const laserPulse = 0.5 + 0.5 * Math.sin(world.tick * 0.3);
@@ -516,10 +475,9 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
   }
 };
 
-// ============================================================================
-// STATION HULL GROUND — INDUSTRIAL METALLIC BASE WITH CAUTION STRIPES
-// ============================================================================
-
+/**
+ * Station Hull Ground Shape Drawer.
+ */
 export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -528,7 +486,6 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     const width = size;
     const height = 40;
 
-    // Dark industrial metal base
     const baseGrad = getCachedCanvasGradient(ctx, `base_${height}`, () => {
       const g = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
       g.addColorStop(0, "#22222C");
@@ -538,7 +495,6 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     ctx.fillStyle = baseGrad;
     ctx.fillRect(-width / 2, -height / 2, width, height);
 
-    // Yellow / Black hazard warning caution rim at the top with non-linear flickering
     const hazardHeight = 8;
     const hazardFlicker = calculateGroundHazardFlicker(world.tick);
 
@@ -547,11 +503,10 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     ctx.rect(-width / 2, -height / 2, width, hazardHeight);
     ctx.clip();
 
-    ctx.fillStyle = "#FFCC00"; // Yellow caution
+    ctx.fillStyle = "#FFCC00";
     ctx.globalAlpha = hazardFlicker;
     ctx.fillRect(-width / 2, -height / 2, width, hazardHeight);
 
-    // Black diagonal stripes scrolling with camera
     ctx.fillStyle = "#111116";
     ctx.globalAlpha = hazardFlicker;
     const stripeWidth = 12;
@@ -568,7 +523,6 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     }
     ctx.restore();
 
-    // Top bounding metal seam
     ctx.strokeStyle = "#5A6173";
     ctx.lineWidth = 1.0;
     ctx.beginPath();
@@ -576,7 +530,6 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     ctx.lineTo(width / 2, -height / 2);
     ctx.stroke();
 
-    // Bottom dark bounding line
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -586,15 +539,13 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
   }
 };
 
-// Helper to draw 8 distinct megastructure silhouette designs in Canvas2D
 function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: MegastructureData): void {
   const { megaIndex, megaX, megaY, beaconAlpha, structureOpacity } = data;
   ctx.save();
   ctx.globalAlpha = structureOpacity;
-  ctx.fillStyle = "rgba(15, 18, 28, 0.65)"; // Dark void silhouette
+  ctx.fillStyle = "rgba(15, 18, 28, 0.65)";
 
   if (megaIndex === 0) {
-    // Design 0: Radial Station (Hub core + radial spoke arms)
     ctx.beginPath();
     ctx.arc(megaX, megaY, 36, 0, Math.PI * 2);
     ctx.fill();
@@ -609,7 +560,6 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX, megaY - 85, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else if (megaIndex === 1) {
-    // Design 1: Ship Wreckage (Angular wedge hull fragment + solar arrays)
     ctx.beginPath();
     ctx.moveTo(megaX - 60, megaY - 30);
     ctx.lineTo(megaX + 70, megaY - 10);
@@ -626,7 +576,6 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX + 70, megaY - 10, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else if (megaIndex === 2) {
-    // Design 2: Broken Ring (Fragmented orbital ring arc)
     ctx.lineWidth = 14;
     ctx.strokeStyle = "rgba(15, 18, 28, 0.65)";
     ctx.beginPath();
@@ -641,7 +590,6 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX - 10, megaY - 60, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else if (megaIndex === 3) {
-    // Design 3: Communications Tower (Tall lattice spire + transmitter dish)
     ctx.fillRect(megaX - 6, megaY - 90, 12, 180);
     ctx.fillRect(megaX - 25, megaY - 40, 50, 6);
     ctx.fillRect(megaX - 35, megaY + 10, 70, 8);
@@ -655,7 +603,6 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX, megaY - 90, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else if (megaIndex === 4) {
-    // Design 4: Solar Farm Arrays (Grid of angled solar panels)
     ctx.fillRect(megaX - 80, megaY - 10, 160, 8);
     ctx.fillRect(megaX - 70, megaY - 50, 30, 40);
     ctx.fillRect(megaX - 20, megaY - 50, 30, 40);
@@ -666,7 +613,6 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX + 75, megaY - 10, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else if (megaIndex === 5) {
-    // Design 5: Mining Rig Hull (Blocky industrial excavator frame)
     ctx.fillRect(megaX - 50, megaY - 40, 100, 80);
     ctx.fillRect(megaX - 80, megaY - 15, 30, 30);
     ctx.fillRect(megaX + 50, megaY - 25, 40, 50);
@@ -676,7 +622,6 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX - 80, megaY - 15, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else if (megaIndex === 6) {
-    // Design 6: Orbital Relay Spire (Twin pylons with central power core)
     ctx.fillRect(megaX - 45, megaY - 80, 10, 160);
     ctx.fillRect(megaX + 35, megaY - 80, 10, 160);
     ctx.beginPath();
@@ -689,7 +634,6 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX + 40, megaY - 80, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else {
-    // Design 7: Derelict Habitat Ring (Dual concentric outer ring arches)
     ctx.lineWidth = 10;
     ctx.strokeStyle = "rgba(15, 18, 28, 0.65)";
     ctx.beginPath();
@@ -710,10 +654,6 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
   ctx.restore();
 }
 
-// ============================================================================
-// THE DEEP VOID PARALLAX BACKGROUND (#050510) WITH WARP & MEGASTRUCTURE
-// ============================================================================
-
 let staticStars: StarfieldStar[] | null = null;
 
 export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
@@ -728,11 +668,9 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     updateVisualParticles();
 
-    // --- DEEP VOID BASE (#050510) ---
     ctx.fillStyle = "#050510";
     ctx.fillRect(0, 0, width, height);
 
-    // --- ANIMATED LOW-OPACITY RADIAL NEBULAE CLOUDS ---
     for (let n = 0; n < BACKGROUND_NEBULAE.length; n++) {
       const neb = BACKGROUND_NEBULAE[n];
       const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;
@@ -751,14 +689,11 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
-    // --- SPORADIC DISTANT BACKGROUND DEBRIS / SPARKS ---
     maybeSpawnBackgroundDebris(world, width, height, spawnVisualParticle);
 
-    // Resolve background warp and speed line parameters
     const warpState = resolveBackgroundWarpState(world, width, height);
     const { warpFactor, showWarpLines, intensity, cx, cy, lineCount, maxR } = warpState;
 
-    // --- PARALLAX STARFIELD LAYERS ---
     const tick = world.tick;
     for (let i = 0; i < staticStars.length; i++) {
       const star = staticStars[i];
@@ -776,10 +711,8 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(starX, star.y, star.size, star.size);
       } else {
-        // Pale white-blue / violet non-saturated star
         ctx.fillStyle = "#E0E5FF";
         if (warpFactor > 1.2) {
-          // Hypervelocity speed-line stretch
           const lineLength = Math.min(star.size * 3 * warpFactor, 12);
           ctx.fillRect(starX, star.y, lineLength, star.size * 0.8);
         } else {
@@ -789,7 +722,6 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
-    // --- AD-HOC RADIAL WARP SPEED LINES (WARPFACTOR > 1.5) ---
     if (showWarpLines) {
       ctx.save();
       ctx.strokeStyle = "rgba(0, 243, 255, " + (0.15 * intensity).toFixed(3) + ")";
@@ -807,16 +739,13 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
-    // --- OCCASIONAL ISOLATED ABANDONED MEGASTRUCTURE SILHOUETTE ---
     const megaData = calculateMegastructureData(tick, width, height);
     if (megaData.visible) {
       drawCanvasMegastructure(ctx, megaData);
     }
 
-    // --- DRAW ACTIVE PARTICLES (SPARKS & SHARDS) ---
     drawCanvasVisualParticles(ctx);
 
-    // --- GLIDE ENERGY METER HUD OVERLAY ---
     const glideState = resolveGlideEnergyState(world, width, height);
     if (glideState) {
       const { ratio, isOverheated, barW, barH, bx, by, fillColor } = glideState;
@@ -840,7 +769,6 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
-    // --- SECTOR EVENT HUD OVERLAY BANNER ---
     const sectorInfo = resolveSectorEventInfo(gameState.currentSectorEvent ?? "none");
     if (sectorInfo) {
       ctx.save();
@@ -853,14 +781,12 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
-    // --- CRT SCANLINES & SCREEN VIGNETTE ---
     ctx.save();
     ctx.fillStyle = "rgba(0, 0, 0, 0.06)";
     for (let ly = 0; ly < height; ly += 3) {
       ctx.fillRect(0, ly, width, 1);
     }
 
-    // Subtle dark edge vignette
     const vignGrad = getCachedCanvasGradient(ctx, `vign_${width}_${height}`, () => {
       const g = ctx.createRadialGradient(
         width / 2, height / 2, width * 0.4,

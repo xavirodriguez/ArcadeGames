@@ -1,6 +1,6 @@
 # Copy/paste detection report
 
-> Duplications detection: Found 67 exact clones with 545(0.81%) duplicated lines in 408 (1 formats) files.
+> Duplications detection: Found 46 exact clones with 363(0.54%) duplicated lines in 411 (1 formats) files.
 
 | Format | Files analyzed | Total lines | Total tokens | Clones found | Duplicated lines | Duplicated tokens |
 |--------|---------------|-------------|--------------|--------------|------------------|-------------------|

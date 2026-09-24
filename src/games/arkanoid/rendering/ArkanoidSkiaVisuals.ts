@@ -1,38 +1,33 @@
-import { ShapeDrawer, EffectDrawer, TransformComponent } from "@tiny-aster/core";
-import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidTypes";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { ArkanoidComponentRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "../../shared/rendering/ProceduralShapeUtils";
 import { drawGlowOrbSkia, drawSkiaBackgroundGrid } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
+import {
+  resolveArkanoidBallContext,
+  resolveArkanoidPaddleContext,
+  resolveArkanoidBrickContext,
+} from "./ArkanoidRenderUtils";
 
 export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const ballCtx = resolveArkanoidBallContext(world, entity);
+    if (!ballCtx) return;
 
-    const transform = world.getComponent(entity, "Transform") as TransformComponent;
-    if (!transform) return;
-
-    const size = render.size ?? 8;
-    const ballColor = render.color || colors.cyan;
     const paint = getPaint();
-
-    drawGlowOrbSkia(canvas, paint, size, ballColor, 0.4, 2.0);
+    drawGlowOrbSkia(canvas, paint, ballCtx.size, ballCtx.color, 0.4, 2.0);
   }
 };
 
 export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const paddleCtx = resolveArkanoidPaddleContext(world, entity);
+    if (!paddleCtx) return;
 
-    const config = world.getResource<ArkanoidConfig>("GameConfig") || { PADDLE_WIDTH: 100, PADDLE_HEIGHT: 16 };
-    const w = config.PADDLE_WIDTH;
-    const h = config.PADDLE_HEIGHT;
-
-    const color = render.color || colors.cyan;
+    const { w, h, primaryColor } = paddleCtx;
     const paint = getPaint();
 
     canvas.save();
@@ -44,7 +39,7 @@ export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry>
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(color));
+    paint.setColor(Skia.Color(primaryColor));
     paint.setStrokeWidth(2.0);
     canvas.drawRoundRect(
       Skia.RRectXY(Skia.XYWHRect(-pw / 2, -ph / 2, pw, ph), 4, 4),
@@ -100,25 +95,10 @@ export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry
 
 export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const brickCtx = resolveArkanoidBrickContext(world, entity);
+    if (!brickCtx) return;
 
-    const brick = world.getComponent(entity, "Brick") as BrickComponent | undefined;
-    const config = world.getResource<ArkanoidConfig>("GameConfig") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };
-    const w = config.BRICK_WIDTH;
-    const h = config.BRICK_HEIGHT;
-
-    let brickColor: string = colors.cyan;
-    if (brick) {
-      if (brick.kind === "explosive") brickColor = colors.orange;
-      else if (brick.kind === "regenerable") brickColor = colors.green;
-      else if (brick.kind === "gravitational") brickColor = colors.purple;
-    }
-
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      brickColor = colors.white;
-    }
-
+    const { w, h, brickColor } = brickCtx;
     drawFilledSkiaRoundRect(canvas, w, h, brickColor, 3, 3);
   }
 };

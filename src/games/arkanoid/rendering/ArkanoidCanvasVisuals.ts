@@ -1,33 +1,29 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
-import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidTypes";
+import { ArkanoidComponentRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { drawGlowOrbCanvas, drawNeonShape, drawProceduralGrid, canvasRoundRectPath } from "../../shared/rendering/CanvasNeonUtils";
-import { getVisibleCanvasRenderAndTransform } from "../../shared/rendering/renderingUtils";
 import { colors } from "../../../theme/colors";
+import {
+  resolveArkanoidBallContext,
+  resolveArkanoidPaddleContext,
+  resolveArkanoidBrickContext,
+} from "./ArkanoidRenderUtils";
 
 export const drawArkanoidBall: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world, entity) {
-    const target = getVisibleCanvasRenderAndTransform(world, entity);
-    if (!target) return;
+    const ballCtx = resolveArkanoidBallContext(world, entity);
+    if (!ballCtx) return;
 
-    const size = target.render.size ?? 8;
-    const color = target.render.color || colors.cyan;
-
-    drawGlowOrbCanvas(ctx, size, color, 0.4, 2.0, "fill");
+    drawGlowOrbCanvas(ctx, ballCtx.size, ballCtx.color, 0.4, 2.0, "fill");
   }
 };
 
 export const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const paddleCtx = resolveArkanoidPaddleContext(world, entity);
+    if (!paddleCtx) return;
 
-    const config = world.getResource<ArkanoidConfig>("GameConfig") || { PADDLE_WIDTH: 100, PADDLE_HEIGHT: 16 };
-    const w = config.PADDLE_WIDTH;
-    const h = config.PADDLE_HEIGHT;
-
-    const primaryColor = render.color || colors.cyan;
-    const glowColor = "rgba(0, 243, 255, 0.25)";
+    const { w, h, primaryColor, glowColor } = paddleCtx;
 
     drawNeonShape(
       ctx,
@@ -82,24 +78,10 @@ export const drawArkanoidCapsule: ShapeDrawer<CanvasRenderingContext2D, Arkanoid
 
 export const drawArkanoidBrick: ShapeDrawer<CanvasRenderingContext2D, ArkanoidComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const brickCtx = resolveArkanoidBrickContext(world, entity);
+    if (!brickCtx) return;
 
-    const brick = world.getComponent(entity, "Brick") as BrickComponent | undefined;
-    const config = world.getResource<ArkanoidConfig>("GameConfig") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };
-    const w = config.BRICK_WIDTH;
-    const h = config.BRICK_HEIGHT;
-
-    let brickColor: string = colors.cyan;
-    if (brick) {
-      if (brick.kind === "explosive") brickColor = colors.orange;
-      else if (brick.kind === "regenerable") brickColor = colors.green;
-      else if (brick.kind === "gravitational") brickColor = colors.purple;
-    }
-
-    if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-      brickColor = colors.white;
-    }
+    const { w, h, brickColor } = brickCtx;
 
     ctx.save();
     ctx.shadowBlur = 8;

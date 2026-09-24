@@ -1,57 +1,36 @@
-import { ShapeDrawer, EffectDrawer, World, TransformComponent } from "@tiny-aster/core";
-import { PongComponentRegistry, BallComponent } from "../types";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { PongComponentRegistry } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
-import { ComboComponent } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
-import { getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
 import { drawNeonShapeSkia, SkiaMotionTrail, drawSkiaBackgroundGrid } from "../../shared/rendering/SkiaNeonUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
-import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
+import { resolvePongBallContext, resolvePongPaddleContext } from "./PongRenderUtils";
 
 export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
 export { SkiaMotionTrail };
 
-// Instantiate the reusable, zero-allocation Skia motion trail helper
 const ballSkiaMotionTrail = new SkiaMotionTrail(30);
 
 /**
- * Upgraded, high-fidelity Skia ball shape drawer with a swirling core and dynamic fading afterimage trails.
+ * Upgraded, high-fidelity Skia ball shape drawer.
  * @public
  */
 export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const ballCtx = resolvePongBallContext(world, entity);
+    if (!ballCtx) return;
 
-    const transform = world.getComponent(entity, "Transform") as TransformComponent;
-    if (!transform) return;
-
-    const ballComp = world.getComponent(entity, "Ball") as BallComponent | undefined;
-    const size = render.size ?? 8;
-
-    const x = transform.worldX ?? transform.x;
-    const y = transform.worldY ?? transform.y;
-
-    // 1. Fetch Combo component to dynamically shift trail length and color using shared getComboReaction utility
-    const comboComponent = world.getSingleton("Combo") as ComboComponent | undefined;
-    const multiplier = comboComponent?.multiplier ?? 1;
-
-    const { trailLength, trailColor, trailColorInner, mainColor: ballColor } = getComboReaction(multiplier);
+    const { size, x, y, spin, swirlRotation, trailLength, trailColor, trailColorInner, ballColor } = ballCtx;
 
     const paint = getPaint();
 
-    // 2. Update and draw trails using the generic zero-allocation motion trail tracker
     ballSkiaMotionTrail.update(entity, x, y, 4);
     ballSkiaMotionTrail.drawSkia(canvas, paint, entity, x, y, trailLength, size, trailColor, trailColorInner);
 
-    // 3. Render the ball with a swirling core reflecting actual spinFactor
     canvas.save();
 
-    const spin = ballComp ? ballComp.spinFactor : 0;
-    const swirlRotation = (world.tick * spin * 0.08) % (Math.PI * 2);
     canvas.rotate((swirlRotation * 180) / Math.PI, 0, 0);
 
-    // Outer neon ring
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -59,7 +38,6 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
     paint.setStrokeWidth(2.0);
     canvas.drawCircle(0, 0, size, paint);
 
-    // Swirling lines path
     paint.setColor(Skia.Color(colors.white));
     paint.setStrokeWidth(1.5);
     const swirlPath = Skia.Path.Make();
@@ -69,7 +47,6 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
     swirlPath.quadTo(0, size * spin * 1.5, size, 0);
     canvas.drawPath(swirlPath, paint);
 
-    // Hot inner core
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(colors.white));
@@ -80,25 +57,15 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
 };
 
 /**
- * Upgraded, high-fidelity Skia paddle shape drawer with side-specific neon glowing hues,
- * inner cores, and pulsing contours.
+ * Upgraded, high-fidelity Skia paddle shape drawer.
  * @public
  */
 export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const paddleCtx = resolvePongPaddleContext(world, entity);
+    if (!paddleCtx) return;
 
-    const paddle = world.getComponent(entity, "Paddle");
-    if (!paddle) return;
-
-    const config = world.getResource<PongConfig>("GameConfig") || { PADDLE_WIDTH: 15, PADDLE_HEIGHT: 80 };
-    const w = config.PADDLE_WIDTH;
-    const h = config.PADDLE_HEIGHT;
-
-    const isLeft = paddle.side === "left";
-    const color = isLeft ? colors.pink : colors.cyan;
-    const glowAlphaColor = isLeft ? "rgba(255, 0, 85, 0.15)" : "rgba(0, 240, 255, 0.15)";
+    const { w, h, color, glowAlphaColor } = paddleCtx;
 
     const paint = getPaint();
 
@@ -124,7 +91,6 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
 
 /**
  * Procedural retro space-grid background effect drawer for React Native Skia.
- * Includes center divider, goals overlays, protective boundaries, and vignettes.
  * @public
  */
 export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = {
@@ -136,24 +102,20 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
 
     const paint = getPaint();
 
-    // 1 & 2. Draw space background and scrolling cyber grid
     drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 40, 0.3, "rgba(0, 240, 255, 0.04)");
 
-    // 3. Draw Pong center divider
     canvas.save();
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color("rgba(255, 0, 85, 0.3)"));
     paint.setStrokeWidth(3.0);
 
-    // Draw dashed center divider line
     const dashLength = 10;
     const dashGap = 15;
     for (let dy = 0; dy < height; dy += (dashLength + dashGap)) {
       canvas.drawLine(width / 2, dy, width / 2, Math.min(height, dy + dashLength), paint);
     }
 
-    // Inner bright white divider line
     paint.setColor(Skia.Color("rgba(255, 255, 255, 0.8)"));
     paint.setStrokeWidth(1.5);
     for (let dy = 0; dy < height; dy += (dashLength + dashGap)) {
@@ -161,7 +123,6 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
     }
     canvas.restore();
 
-    // 4. Draw protective neon shield barrier behind Player 1 if shield_pulse is active
     const state = world.getSingleton("PongState");
     if (state && state.shieldPulseRemaining !== undefined && state.shieldPulseRemaining > 0) {
       canvas.save();
@@ -171,7 +132,6 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
       paint.setStrokeWidth(4.0);
       paint.setAlphaf((0.4 + 0.3 * Math.sin(world.tick / 5)) * 0.6);
 
-      // Create shield curve path (an arc behind P1 boundary line)
       const shieldPath = Skia.Path.Make();
       const rect = Skia.XYWHRect(-height * 0.8, -height * 0.3, height * 1.6, height * 1.6);
       shieldPath.addArc(rect, -60, 120);
@@ -179,15 +139,10 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
       canvas.restore();
     }
 
-    // 5. Draw scored goal transition freeze overlay if active
     if (state && state.scoreFreezeRemaining !== undefined && state.scoreFreezeRemaining > 0) {
       canvas.save();
-      const text = state.lastScorer === "p1" ? "P1 SCORES!" : "P2 SCORES!";
       const neonColor = state.lastScorer === "p1" ? colors.pink : colors.cyan;
 
-      // Since drawing rich complex text on raw Skia canvas without a pre-loaded custom font can crash in some runtimes,
-      // we draw a beautiful, pulsing neon bounding indicator box in the center representing the goal freeze frame!
-      // This ensures 100% stable execution while providing a gorgeous high-fidelity visual indicator.
       const pulseFactor = 1.0 + 0.1 * Math.sin(world.tick / 4);
       const gw = 200 * pulseFactor;
       const gh = 60 * pulseFactor;
@@ -214,12 +169,11 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
       canvas.restore();
     }
 
-    // 6. Vignette border
     paint.reset();
     paint.setColor(Skia.Color("rgba(0, 0, 0, 0.4)"));
-    canvas.drawRect(Skia.XYWHRect(0, 0, width, 12), paint); // Top edge
-    canvas.drawRect(Skia.XYWHRect(0, height - 12, width, 12), paint); // Bottom edge
-    canvas.drawRect(Skia.XYWHRect(0, 0, 12, height), paint); // Left edge
-    canvas.drawRect(Skia.XYWHRect(width - 12, 0, 12, height), paint); // Right edge
+    canvas.drawRect(Skia.XYWHRect(0, 0, width, 12), paint);
+    canvas.drawRect(Skia.XYWHRect(0, height - 12, width, 12), paint);
+    canvas.drawRect(Skia.XYWHRect(0, 0, 12, height), paint);
+    canvas.drawRect(Skia.XYWHRect(width - 12, 0, 12, height), paint);
   }
 };

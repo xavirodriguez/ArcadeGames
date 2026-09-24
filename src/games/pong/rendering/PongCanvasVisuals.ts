@@ -1,9 +1,9 @@
-import { ShapeDrawer, EffectDrawer, ComboComponent } from "@tiny-aster/core";
-import { PongComponentRegistry, BallComponent } from "../types";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { PongComponentRegistry } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
-import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, getComboReaction, canvasRoundRectPath } from "../../shared/rendering/CanvasNeonUtils";
-import { getVisibleCanvasRenderAndTransform } from "../../shared/rendering/renderingUtils";
+import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, canvasRoundRectPath } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
+import { resolvePongBallContext, resolvePongPaddleContext } from "./PongRenderUtils";
 
 // Instantiate the reusable, zero-allocation motion trail helper
 const ballMotionTrail = new CanvasMotionTrail(30);
@@ -14,31 +14,18 @@ const ballMotionTrail = new CanvasMotionTrail(30);
  */
 export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
-    const target = getVisibleCanvasRenderAndTransform(world, entity);
-    if (!target) return;
+    const ballCtx = resolvePongBallContext(world, entity);
+    if (!ballCtx) return;
 
-    const { render, transform } = target;
-    const ballComp = world.getComponent(entity, "Ball") as BallComponent | undefined;
-    const size = render.size ?? 8;
+    const { size, x, y, spin, swirlRotation, trailLength, trailColor, trailColorInner, ballColor } = ballCtx;
 
-    const x = transform.worldX ?? transform.x;
-    const y = transform.worldY ?? transform.y;
-
-    // 1. Fetch Combo component to dynamically shift trail length and color using shared getComboReaction utility
-    const comboComponent = world.getSingleton("Combo") as ComboComponent | undefined;
-    const multiplier = comboComponent?.multiplier ?? 1;
-
-    const { trailLength, trailColor, trailColorInner, mainColor: ballColor } = getComboReaction(multiplier);
-
-    // 2. Update and draw trails using the generic zero-allocation motion trail tracker
+    // Update and draw trails using the generic zero-allocation motion trail tracker
     ballMotionTrail.update(entity, x, y, 4);
     ballMotionTrail.draw(ctx, entity, x, y, trailLength, size, trailColor, trailColorInner);
 
-    // 3. Render the ball with a swirling core reflecting actual spinFactor
+    // Render the ball with a swirling core reflecting actual spinFactor
     ctx.save();
 
-    const spin = ballComp ? ballComp.spinFactor : 0;
-    const swirlRotation = (world.tick * spin * 0.08) % (Math.PI * 2);
     ctx.rotate(swirlRotation);
 
     // Glow effect
@@ -76,37 +63,26 @@ export const drawPongBall: ShapeDrawer<CanvasRenderingContext2D, PongComponentRe
 
 /**
  * Upgraded, high-fidelity paddle shape drawer with side-specific neon glowing hues,
- * inner cores, and pulsing contours. Leverages the generic drawNeonShape utility.
+ * inner cores, and pulsing contours.
  * @public
  */
 export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const paddleCtx = resolvePongPaddleContext(world, entity);
+    if (!paddleCtx) return;
 
-    const paddle = world.getComponent(entity, "Paddle");
-    if (!paddle) return;
-
-    const config = world.getResource<PongConfig>("GameConfig") || { PADDLE_WIDTH: 15, PADDLE_HEIGHT: 80 };
-    const w = config.PADDLE_WIDTH;
-    const h = config.PADDLE_HEIGHT;
-
-    const isLeft = paddle.side === "left";
-    const color = isLeft ? colors.pink : colors.cyan;
-    const glowAlphaColor = isLeft ? "rgba(255, 0, 85, 0.15)" : "rgba(0, 240, 255, 0.15)";
+    const { w, h, color, glowAlphaColor } = paddleCtx;
 
     drawNeonShape(
       ctx,
       world.tick,
       color,
       glowAlphaColor,
-      // 1. Draw outline path
       (ctx, widthScale, heightScale) => {
         const pw = w * widthScale;
         const ph = h * heightScale;
         canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);
       },
-      // 2. Draw white core path
       (ctx) => {
         const coreW = w * 0.4;
         const coreH = h * 0.9;
@@ -117,8 +93,7 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
 };
 
 /**
- * Procedural retro space-grid background effect drawer with scrolling grid, CRT scanlines, screen vignette,
- * scored freeze neon overlays, and protective neon shield rendering.
+ * Procedural retro space-grid background effect drawer.
  * @public
  */
 export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComponentRegistry> = {
@@ -127,10 +102,8 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
     const width = config.worldWidth;
     const height = config.worldHeight;
 
-    // Draw the generic space grid
     drawProceduralGrid(ctx, width, height, world.tick, 40, 0.3);
 
-    // Add Pong-specific decorative overlay (Neon Center Divider)
     ctx.save();
     ctx.strokeStyle = "rgba(255, 0, 85, 0.3)";
     ctx.shadowColor = colors.pink;
@@ -143,7 +116,6 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
     ctx.lineTo(width / 2, height);
     ctx.stroke();
 
-    // Inner bright white divider line
     ctx.shadowBlur = 0;
     ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
     ctx.lineWidth = 1.5;
@@ -154,7 +126,6 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
 
     ctx.restore();
 
-    // Draw floating neon "GOAL!" transition freeze text and countdown overlays if active
     const state = world.getSingleton("PongState");
     if (state && state.scoreFreezeRemaining !== undefined && state.scoreFreezeRemaining > 0) {
       ctx.save();
@@ -164,7 +135,6 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      // Drawing Pulsing Glow drop shadow text
       const pulseFactor = 1.0 + 0.1 * Math.sin(world.tick / 4);
       ctx.font = `bold ${Math.round(48 * pulseFactor)}px monospace`;
 
@@ -173,7 +143,6 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
       ctx.fillStyle = neonColor;
       ctx.fillText(text, width / 2, height / 2);
 
-      // White inner text
       ctx.shadowBlur = 0;
       ctx.fillStyle = colors.white;
       ctx.fillText(text, width / 2, height / 2);
@@ -181,7 +150,6 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
       ctx.restore();
     }
 
-    // Draw the glowing neon shield barrier behind Player 1 if shield_pulse is active
     if (state && state.shieldPulseRemaining !== undefined && state.shieldPulseRemaining > 0) {
       ctx.save();
       ctx.strokeStyle = colors.cyan;
@@ -191,7 +159,6 @@ export const drawPongBackground: EffectDrawer<CanvasRenderingContext2D, PongComp
       ctx.globalAlpha = 0.4 + 0.3 * Math.sin(world.tick / 5);
 
       ctx.beginPath();
-      // Draw a sleek curved arc barrier right at the P1 defensive line
       ctx.arc(0, height / 2, height * 0.8, -Math.PI / 3, Math.PI / 3);
       ctx.stroke();
       ctx.restore();

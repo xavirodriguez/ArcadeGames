@@ -273,4 +273,53 @@ describe("Echo Runner Game Simulation Tests", () => {
       testGame.destroy();
     }
   });
+
+  it("should update worldX and worldY coordinates to match x and y after simulation ticks, including child entities", async () => {
+    const testGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await testGame.init();
+      const testWorld = testGame.getWorld();
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+
+      // Update frames until player is grounded
+      for (let i = 0; i < 40; i++) {
+        testGame.update(0.016);
+      }
+
+      let playerTrans = testWorld.getComponent(playerEntity, "Transform")!;
+      // Player should be grounded at y ≈ 425 and worldY should follow y (not frozen at spawn 350)
+      expect(Math.abs(playerTrans.worldY - playerTrans.y)).toBeLessThan(1.0);
+      expect(playerTrans.worldY).toBeGreaterThan(400);
+
+      const spawnWorldX = playerTrans.worldX;
+
+      // Move player right
+      testGame.setInputState({ moveRight: true });
+      for (let i = 0; i < 10; i++) {
+        testGame.update(0.016);
+      }
+
+      playerTrans = testWorld.getComponent(playerEntity, "Transform")!;
+      expect(playerTrans.x).toBeGreaterThan(100);
+      expect(playerTrans.worldX).toBeCloseTo(playerTrans.x, 1);
+      expect(playerTrans.worldX).toBeGreaterThan(spawnWorldX);
+
+      // Trigger pulse attack child entity
+      testGame.setInputState({ pulse: true });
+      testGame.update(0.016);
+
+      const hitboxes = testWorld.query("Hitbox");
+      expect(hitboxes.length).toBe(1);
+      const pulseEntity = hitboxes[0];
+      const pulseTrans = testWorld.getComponent(pulseEntity, "Transform")!;
+
+      expect(pulseTrans.parentEntity).toBe(playerEntity);
+      // Local x is dir * 25 (dir = 1), local y is 0.
+      // So worldX should be playerTrans.worldX + 25, worldY should be playerTrans.worldY.
+      expect(pulseTrans.worldX).toBeCloseTo(playerTrans.worldX + 25, 1);
+      expect(Math.abs(pulseTrans.worldY - playerTrans.worldY)).toBeLessThan(1.0);
+    } finally {
+      testGame.destroy();
+    }
+  });
 });

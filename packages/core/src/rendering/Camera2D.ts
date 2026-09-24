@@ -11,6 +11,8 @@ import {
 interface WorldSizeConfig {
   worldWidth?: number;
   worldHeight?: number;
+  viewportWidth?: number;
+  viewportHeight?: number;
 }
 
 /**
@@ -25,8 +27,9 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const cameras = world.query("Camera2D");
     const gameConfig = world.getResource<WorldSizeConfig>("GameConfig");
-    const viewportWidth = gameConfig?.worldWidth ?? 800;
-    const viewportHeight = gameConfig?.worldHeight ?? 600;
+    const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
+    const viewportWidth = gameConfig?.viewportWidth ?? screenConfig?.width ?? 800;
+    const viewportHeight = gameConfig?.viewportHeight ?? screenConfig?.height ?? 600;
     const worldWidth = gameConfig?.worldWidth;
     const worldHeight = gameConfig?.worldHeight;
 

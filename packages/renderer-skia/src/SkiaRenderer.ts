@@ -45,10 +45,10 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
   public render(world: World<TRegistry>, canvas: SkCanvas, _interpolation?: number): void {
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
-    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
+    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }>("GameConfig");
 
-    const worldWidth = gameConfig?.worldWidth ?? 800;
-    const worldHeight = gameConfig?.worldHeight ?? 600;
+    const viewportWidth = gameConfig?.viewportWidth ?? (gameConfig?.worldWidth && gameConfig.worldWidth < 2000 ? gameConfig.worldWidth : 800);
+    const viewportHeight = gameConfig?.viewportHeight ?? (gameConfig?.worldHeight && gameConfig.worldHeight < 2000 ? gameConfig.worldHeight : 600);
 
     let scale = 1;
     let offsetX = 0;
@@ -56,11 +56,11 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
     if (screenConfig && screenConfig.width > 0 && screenConfig.height > 0) {
       scale = Math.min(
-        screenConfig.width / worldWidth,
-        screenConfig.height / worldHeight
+        screenConfig.width / viewportWidth,
+        screenConfig.height / viewportHeight
       );
-      offsetX = (screenConfig.width - worldWidth * scale) / 2;
-      offsetY = (screenConfig.height - worldHeight * scale) / 2;
+      offsetX = (screenConfig.width - viewportWidth * scale) / 2;
+      offsetY = (screenConfig.height - viewportHeight * scale) / 2;
     }
 
     canvas.save();
@@ -74,7 +74,7 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
     canvas.translate(offsetX, offsetY);
     canvas.scale(scale, scale);
-    canvas.clipRect(Skia.XYWHRect(0, 0, worldWidth, worldHeight), ClipOp.Intersect, true);
+    canvas.clipRect(Skia.XYWHRect(0, 0, viewportWidth, viewportHeight), ClipOp.Intersect, true);
 
     // Draw background effects first (e.g. scrolling starfield, retro CRT)
     for (const drawer of this.backgroundEffects.values()) {

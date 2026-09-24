@@ -355,6 +355,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     // Update GameConfig resource with world size dimensions so camera clamping and spatial systems work properly
     this.world.setResource("GameConfig", {
       ...config,
+      viewportWidth: config.worldWidth ?? 800,
+      viewportHeight: config.worldHeight ?? 600,
       worldWidth,
       worldHeight
     });

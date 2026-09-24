@@ -322,4 +322,41 @@ describe("Echo Runner Game Simulation Tests", () => {
       testGame.destroy();
     }
   });
+
+  it("should update GameConfig worldWidth/worldHeight with level dimensions and allow Camera2D to follow player beyond initial screen bounds", async () => {
+    const testGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await testGame.init();
+      const testWorld = testGame.getWorld();
+      const levelPlan = (testGame as any).levelPlan;
+      const gameConfig = testWorld.getResource<any>("GameConfig");
+
+      expect(gameConfig).toBeDefined();
+      expect(gameConfig.worldWidth).toBe(levelPlan.totalWidth * gameConfig.TILE_SIZE);
+      expect(gameConfig.worldHeight).toBe(levelPlan.totalHeight * gameConfig.TILE_SIZE);
+      expect(gameConfig.worldWidth).toBeGreaterThan(1000);
+
+      const cameraEntity = testWorld.query("Camera2D")[0];
+      expect(cameraEntity).toBeDefined();
+
+      const initialCam = testWorld.getComponent(cameraEntity, "Camera2D")!;
+      const initialCamX = initialCam.x;
+
+      // Move player significantly to the right
+      testGame.setInputState({ moveRight: true });
+      for (let i = 0; i < 120; i++) {
+        testGame.update(0.016);
+      }
+
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+      const playerTrans = testWorld.getComponent(playerEntity, "Transform")!;
+      expect(playerTrans.x).toBeGreaterThan(400);
+
+      const updatedCam = testWorld.getComponent(cameraEntity, "Camera2D")!;
+      expect(updatedCam.x).toBeGreaterThan(initialCamX);
+      expect(updatedCam.x).toBeGreaterThan(0);
+    } finally {
+      testGame.destroy();
+    }
+  });
 });

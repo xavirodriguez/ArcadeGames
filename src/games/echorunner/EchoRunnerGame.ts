@@ -387,11 +387,23 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       const levelSeed = this.getSeed() || 41873;
       this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
 
+      const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
+      const worldWidth = this.levelPlan.totalWidth * config.TILE_SIZE;
+      const worldHeight = this.levelPlan.totalHeight * config.TILE_SIZE;
+
+      // Update GameConfig resource with world size dimensions so camera clamping and spatial systems work properly
+      this.world.setResource("GameConfig", {
+        ...config,
+        viewportWidth: config.worldWidth ?? 800,
+        viewportHeight: config.worldHeight ?? 600,
+        worldWidth,
+        worldHeight
+      });
+
       // Set world resources
       this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
 
       // Instantiate Plan
-      const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
       SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
 
       // Spawn Player

@@ -557,18 +557,18 @@
     },
     {
       "firstFile": {
-        "end": 162,
+        "end": 167,
         "endLoc": {
           "column": 36,
-          "line": 162,
-          "position": 6488
+          "line": 167,
+          "position": 6608
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 151,
+        "start": 156,
         "startLoc": {
           "column": 28,
-          "line": 151,
-          "position": 6008
+          "line": 156,
+          "position": 6128
         }
       },
       "format": "typescript",
@@ -580,54 +580,17 @@
         "endLoc": {
           "column": 36,
           "line": 106,
-          "position": 4166
+          "position": 4192
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 95,
         "startLoc": {
           "column": 28,
           "line": 95,
-          "position": 3686
+          "position": 3712
         }
       },
       "tokens": 101
-    },
-    {
-      "firstFile": {
-        "end": 359,
-        "endLoc": {
-          "column": 84,
-          "line": 359,
-          "position": 13730
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 348,
-        "startLoc": {
-          "column": 63,
-          "line": 348,
-          "position": 13220
-        }
-      },
-      "format": "typescript",
-      "fragment": "        3: { solid: true, kind: \"bounce\" as const, bounce: 1.5 },\n        4: { solid: true, kind: \"spike\" as const },\n        5: { solid: true, oneWay: true, kind: \"normal\" as const }\n      };\n\n      const levelData = this.customLevelData ?? defaultLevelData;\n      const templates = levelData.templates as SegmentTemplate[];\n      const grammar = levelData.grammar as string[];\n\n      // Generate deterministic Plan using SegmentGenerator\n      const levelSeed = this.getSeed() || 41873;\n      this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 349,
-        "endLoc": {
-          "column": 82,
-          "line": 349,
-          "position": 13304
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 340,
-        "startLoc": {
-          "column": 61,
-          "line": 340,
-          "position": 12871
-        }
-      },
-      "tokens": 92
     },
     {
       "firstFile": {
@@ -1116,14 +1079,14 @@
         "endLoc": {
           "column": 47,
           "line": 211,
-          "position": 7460
+          "position": 7486
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 206,
         "startLoc": {
           "column": 33,
           "line": 206,
-          "position": 7202
+          "position": 7228
         }
       },
       "format": "typescript",
@@ -1135,14 +1098,14 @@
         "endLoc": {
           "column": 45,
           "line": 233,
-          "position": 8164
+          "position": 8190
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 228,
         "startLoc": {
           "column": 35,
           "line": 228,
-          "position": 7916
+          "position": 7942
         }
       },
       "tokens": 61
@@ -1704,32 +1667,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-24T12:38:06.546Z",
+    "detectionDate": "2026-09-24T22:30:59.816Z",
     "formats": {
       "typescript": {
-        "clones": 67,
-        "duplicatedLines": 545,
-        "duplicatedTokens": 4722,
-        "lines": 67555,
+        "clones": 45,
+        "duplicatedLines": 352,
+        "duplicatedTokens": 2973,
+        "lines": 67893,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.806750055510325,
-        "percentageTokens": 1.3387882860277793,
-        "sources": 408,
-        "tokens": 352707
+        "percentage": 0.5184628754068903,
+        "percentageTokens": 0.8394392444199739,
+        "sources": 411,
+        "tokens": 354165
       }
     },
     "total": {
-      "clones": 67,
-      "duplicatedLines": 545,
-      "duplicatedTokens": 4722,
-      "lines": 67555,
+      "clones": 45,
+      "duplicatedLines": 352,
+      "duplicatedTokens": 2973,
+      "lines": 67893,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.806750055510325,
-      "percentageTokens": 1.3387882860277793,
-      "sources": 408,
-      "tokens": 352707
+      "percentage": 0.5184628754068903,
+      "percentageTokens": 0.8394392444199739,
+      "sources": 411,
+      "tokens": 354165
     }
   }
 }

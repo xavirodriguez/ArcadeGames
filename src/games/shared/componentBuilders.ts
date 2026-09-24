@@ -302,3 +302,29 @@ export function createPaddleColliderConfig(width: number, height: number) {
     mask: CollisionLayers.PROJECTILE
   };
 }
+
+/**
+ * Updates the 'GameConfig' resource in the world with total level dimensions calculated from a LevelPlan.
+ *
+ * @param world - Target simulation world.
+ * @param levelPlan - Generated level plan containing total tile dimensions.
+ * @param defaultConfig - Fallback config object.
+ * @public
+ */
+export function syncLevelWorldDimensions(
+  world: World<CoreComponentRegistry>,
+  levelPlan: { totalWidth: number; totalHeight: number },
+  defaultConfig: Record<string, unknown> & { TILE_SIZE: number; worldWidth?: number; worldHeight?: number }
+): void {
+  const config = world.getResource<typeof defaultConfig>("GameConfig") || defaultConfig;
+  const worldWidth = levelPlan.totalWidth * config.TILE_SIZE;
+  const worldHeight = levelPlan.totalHeight * config.TILE_SIZE;
+
+  world.setResource("GameConfig", {
+    ...config,
+    viewportWidth: config.worldWidth ?? 800,
+    viewportHeight: config.worldHeight ?? 600,
+    worldWidth,
+    worldHeight
+  });
+}

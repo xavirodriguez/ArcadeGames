@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState, resolveViewportDimensions } from "@tiny-aster/core";
 import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
 import { CanvasSpriteDrawer } from "./CanvasSpriteDrawer";
 
@@ -144,8 +144,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     }
 
     const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }>("GameConfig");
-    const viewportWidth = gameConfig?.viewportWidth ?? (gameConfig?.worldWidth && gameConfig.worldWidth < 2000 ? gameConfig.worldWidth : 800);
-    const viewportHeight = gameConfig?.viewportHeight ?? (gameConfig?.worldHeight && gameConfig.worldHeight < 2000 ? gameConfig.worldHeight : 600);
+    const { viewportWidth, viewportHeight } = resolveViewportDimensions(gameConfig);
 
     let scale = 1;
     let offsetX = 0;

@@ -36,7 +36,7 @@ import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, syncLevelWorldDimensions } from "../shared/componentBuilders";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -384,31 +384,21 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         5: { solid: true, oneWay: true, kind: "normal" as const }
       };
 
-      const levelData = this.customLevelData ?? defaultLevelData;
-      const templates = levelData.templates as SegmentTemplate[];
-      const grammar = levelData.grammar as string[];
+      const rawData = this.customLevelData ?? defaultLevelData;
+      const runnerSeed = this.getSeed() || 41873;
+      this.levelPlan = SegmentGenerator.generatePlan(
+        rawData.templates as SegmentTemplate[],
+        rawData.grammar as string[],
+        runnerSeed
+      );
 
-      // Generate deterministic Plan using SegmentGenerator
-      const levelSeed = this.getSeed() || 41873;
-      this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, levelSeed);
-
-      const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
-      const worldWidth = this.levelPlan.totalWidth * config.TILE_SIZE;
-      const worldHeight = this.levelPlan.totalHeight * config.TILE_SIZE;
-
-      // Update GameConfig resource with world size dimensions so camera clamping and spatial systems work properly
-      this.world.setResource("GameConfig", {
-        ...config,
-        viewportWidth: config.worldWidth ?? 800,
-        viewportHeight: config.worldHeight ?? 600,
-        worldWidth,
-        worldHeight
-      });
+      syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);
 
       // Set world resources
       this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
 
       // Instantiate Plan
+      const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
       SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
 
       // Spawn Player

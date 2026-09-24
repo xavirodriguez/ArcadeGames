@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent, resolveViewportDimensions } from "@tiny-aster/core";
 import { SkCanvas, SkPaint, Skia, PaintStyle, ClipOp } from "@shopify/react-native-skia";
 import { SkiaCircleDrawer, SkiaBoxDrawer } from "./SkiaShapeDrawers";
 import { SkiaSpriteDrawer } from "./SkiaSpriteDrawer";
@@ -46,9 +46,7 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
   public render(world: World<TRegistry>, canvas: SkCanvas, _interpolation?: number): void {
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
     const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }>("GameConfig");
-
-    const viewportWidth = gameConfig?.viewportWidth ?? (gameConfig?.worldWidth && gameConfig.worldWidth < 2000 ? gameConfig.worldWidth : 800);
-    const viewportHeight = gameConfig?.viewportHeight ?? (gameConfig?.worldHeight && gameConfig.worldHeight < 2000 ? gameConfig.worldHeight : 600);
+    const { viewportWidth, viewportHeight } = resolveViewportDimensions(gameConfig);
 
     let scale = 1;
     let offsetX = 0;

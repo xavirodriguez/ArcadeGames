@@ -218,7 +218,7 @@ export class World<
   public get entities(): ReadonlyArray<Entity> {
     if (!this.cachedEntities) {
       if (isDev) {
-        this.cachedEntities = Array.from(this.activeEntities).sort((a, b) => a - b);
+        this.cachedEntities = Array.from(this.activeEntities).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
         Object.freeze(this.cachedEntities);
       } else {
         const arr: Entity[] = this._cachedEntitiesArray;
@@ -226,7 +226,7 @@ export class World<
         for (const entity of this.activeEntities) {
           arr.push(entity);
         }
-        arr.sort((a, b) => a - b);
+        arr.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
         this.cachedEntities = arr;
       }
     }
@@ -383,7 +383,7 @@ export class World<
     if (this.activeEntities.delete(entity)) {
       const index = unpackEntityIndex(entity);
       const generation = unpackEntityGeneration(entity);
-      const nextGen = (generation % 4095) + 1;
+      const nextGen = (generation + 1) & 0xFFF;
       this.generations[index] = nextGen;
       this.freeEntities.push(index);
 

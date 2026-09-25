@@ -200,6 +200,7 @@ describe("World Snapshots", () => {
 
     it("should compute deterministic hash for SoA snapshots and detect numeric and non-numeric changes", () => {
       const world1 = new World<CoreComponentRegistry>();
+      world1.gameplayRandom.setSeed(12345);
       world1.setResource("UseSoASnapshots", true);
       const entity1 = world1.createEntity();
       world1.addComponent(entity1, {
@@ -210,6 +211,7 @@ describe("World Snapshots", () => {
       });
 
       const world2 = new World<CoreComponentRegistry>();
+      world2.gameplayRandom.setSeed(12345);
       world2.setResource("UseSoASnapshots", true);
       const entity2 = world2.createEntity();
       world2.addComponent(entity2, {

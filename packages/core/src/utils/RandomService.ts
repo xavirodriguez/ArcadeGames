@@ -16,12 +16,17 @@ export class RandomService {
   private seed: number;
   private locked = false;
 
-  constructor(seed: number = Math.random()) {
-    this.seed = seed;
+  constructor(seed: number = Math.floor(Math.random() * 233280)) {
+    this.seed = this.normalizeSeed(seed);
+  }
+
+  private normalizeSeed(seed: number): number {
+    if (!Number.isFinite(seed)) return 0;
+    return Math.floor(Math.abs(seed)) % 233280;
   }
 
   public setSeed(seed: number): void {
-    this.seed = seed;
+    this.seed = this.normalizeSeed(seed);
   }
 
   public getSeed(): number {

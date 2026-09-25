@@ -298,10 +298,10 @@ describe("ObjectPool", () => {
 describe("RandomService", () => {
   it("should generate deterministic random values", () => {
     const rng = new RandomService(12345);
-    expect(rng.getSeed()).toBe(12345);
+    expect(rng.getSeed()).toBe(12345 % 233280);
 
     rng.setSeed(54321);
-    expect(rng.getSeed()).toBe(54321);
+    expect(rng.getSeed()).toBe(54321 % 233280);
 
     const val1 = rng.next();
     expect(val1).toBeGreaterThanOrEqual(0);
@@ -330,6 +330,34 @@ describe("RandomService", () => {
     rng.unlock();
     expect(rng.isLocked()).toBe(false);
     expect(() => rng.next()).not.toThrow();
+  });
+
+  it("should normalize fractional seeds to integer within [0, 233280) and preserve sequence consistency", () => {
+    const floatSeed = 1234.5678;
+    const expectedNormalizedSeed = Math.floor(floatSeed) % 233280;
+
+    const rngFloat = new RandomService(floatSeed);
+    const rngInt = new RandomService(expectedNormalizedSeed);
+
+    expect(rngFloat.getSeed()).toBe(expectedNormalizedSeed);
+
+    const seqFloat = [rngFloat.next(), rngFloat.next(), rngFloat.next()];
+    const seqInt = [rngInt.next(), rngInt.next(), rngInt.next()];
+
+    expect(seqFloat).toEqual(seqInt);
+    seqFloat.forEach(val => {
+      expect(val).toBeGreaterThanOrEqual(0);
+      expect(val).toBeLessThan(1);
+    });
+  });
+
+  it("should default constructor seed to an integer in [0, 233280)", () => {
+    const rng = new RandomService();
+    const seed = rng.getSeed();
+
+    expect(Number.isInteger(seed)).toBe(true);
+    expect(seed).toBeGreaterThanOrEqual(0);
+    expect(seed).toBeLessThan(233280);
   });
 });
 

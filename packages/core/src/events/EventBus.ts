@@ -240,8 +240,8 @@ export class EventBus<TEvents extends EventRegistry = EventRegistry> {
         for (let i = 0; i < handlersToIterate.length; i++) {
           try {
             handlersToIterate[i](payload, event);
-          } catch (_e) {
-            // Silently catch handler errors to prevent crashing the main loop
+          } catch (e) {
+            console.error(`[EventBus] Error in handler for event "${event}":`, e);
           }
         }
       }

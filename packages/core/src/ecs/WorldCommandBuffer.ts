@@ -215,10 +215,24 @@ export class WorldCommandBuffer<
     this.commands = this.commandsPool;
     this.commandsPool = temp;
 
-    for (let i = 0; i < len; i++) {
-      temp[i].execute(world);
+    let firstError: unknown = null;
+    try {
+      for (let i = 0; i < len; i++) {
+        try {
+          temp[i].execute(world);
+        } catch (err) {
+          if (firstError === null) {
+            firstError = err;
+          }
+        }
+      }
+    } finally {
+      temp.length = 0;
     }
-    temp.length = 0;
+
+    if (firstError !== null) {
+      throw firstError;
+    }
   }
 
   /**

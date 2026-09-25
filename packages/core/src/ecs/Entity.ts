@@ -25,7 +25,7 @@ export const INDEX_MASK = (1 << INDEX_BITS) - 1;
  * @public
  */
 export function packEntity(index: number, generation: number): Entity {
-  return ((generation & 0xFFF) << INDEX_BITS) | (index & INDEX_MASK);
+  return (((generation & 0xFFF) << INDEX_BITS) | (index & INDEX_MASK)) >>> 0;
 }
 
 /**
@@ -33,7 +33,7 @@ export function packEntity(index: number, generation: number): Entity {
  * @public
  */
 export function unpackEntityIndex(entity: Entity): number {
-  return entity & INDEX_MASK;
+  return (entity & INDEX_MASK) >>> 0;
 }
 
 /**
@@ -41,5 +41,5 @@ export function unpackEntityIndex(entity: Entity): number {
  * @public
  */
 export function unpackEntityGeneration(entity: Entity): number {
-  return (entity >> INDEX_BITS) & 0xFFF;
+  return (entity >>> INDEX_BITS) & 0xFFF;
 }

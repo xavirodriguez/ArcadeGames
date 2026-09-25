@@ -1,5 +1,5 @@
 import { World, CoreComponentRegistry, TransformComponent } from "../src";
-import { unpackEntityIndex, unpackEntityGeneration } from "../src/ecs/Entity";
+import { packEntity, unpackEntityIndex, unpackEntityGeneration } from "../src/ecs/Entity";
 
 describe("Generational Handles and ECS Versioning Integration Tests", () => {
   let world: World<CoreComponentRegistry>;
@@ -110,6 +110,61 @@ describe("Generational Handles and ECS Versioning Integration Tests", () => {
   });
 
   describe("3. Generational Handles", () => {
+    it("should generate positive unsigned entity IDs when generation >= 2048", () => {
+      const e = world.createEntity();
+      world.removeEntity(e);
+      const slotIndex = unpackEntityIndex(e);
+
+      // Artificially advance generation for slotIndex to 2048
+      world.generations[slotIndex] = 2048;
+
+      const newEntity = world.createEntity();
+      expect(unpackEntityIndex(newEntity)).toBe(slotIndex);
+      expect(unpackEntityGeneration(newEntity)).toBe(2048);
+      expect(newEntity).toBeGreaterThanOrEqual(0);
+      expect(Number.isInteger(newEntity)).toBe(true);
+      // Bit 31 set: 2048 << 20 = 0x80000000 = 2147483648
+      expect(newEntity).toBeGreaterThan(0);
+    });
+
+    it("should wrap generation correctly from 4095 to 0 on removeEntity", () => {
+      const e = world.createEntity();
+      const slotIndex = unpackEntityIndex(e);
+
+      // Artificially set generation to 4095
+      world.generations[slotIndex] = 4095;
+      // Re-pack entity with generation 4095
+      const e4095 = packEntity(slotIndex, 4095);
+      world.activateEntity(e4095);
+
+      world.removeEntity(e4095);
+
+      expect(world.generations[slotIndex]).toBe(0);
+
+      const recycled = world.createEntity();
+      expect(unpackEntityIndex(recycled)).toBe(slotIndex);
+      expect(unpackEntityGeneration(recycled)).toBe(0);
+    });
+
+    it("should sort active entities correctly even with large unsigned IDs", () => {
+      // Create entities with low and high generations causing bit 31 set
+      const e1 = world.createEntity(); // low ID e.g. 1
+      const e2 = world.createEntity(); // low ID e.g. 2
+
+      const index2 = unpackEntityIndex(e2);
+      world.generations[index2] = 2048; // e2 becomes high unsigned number > 2^31
+
+      // Re-create e2 with generation 2048
+      world.removeEntity(e2);
+      const e2High = world.createEntity();
+
+      const sorted = world.entities;
+      expect(sorted.length).toBe(2);
+      expect(sorted[0]).toBe(e1);
+      expect(sorted[1]).toBe(e2High);
+      expect(e1 < e2High).toBe(true);
+    });
+
     it("should handle generational checks correctly on slot reuse", () => {
       const a = world.createEntity();
       world.removeEntity(a);

@@ -103,4 +103,32 @@ describe("CampaignSaveManager & Integration", () => {
     expect(metaB.getState().discoveredMetaEvidence).toHaveLength(1);
     expect(metaB.getState().discoveredMetaEvidence[0].id).toBe("evidence_meta_1");
   });
+
+  it("falls back to entryNodeId when restoring an envelope containing a non-existent node ID", async () => {
+    const storage = new MemoryStorageProvider();
+    const manager = new CampaignSaveManager(storage);
+
+    const runtimeA = new StoryRuntime(sampleGraph);
+    const metaA = new MetaProgressionService(undefined, storage, false);
+
+    // Save campaign state
+    await manager.saveCampaign("slot_invalid_node", runtimeA, metaA);
+
+    // Corrupt saved raw JSON in storage so currentNodeId points to a removed/non-existent node ID
+    const key = manager.getStorageKey("slot_invalid_node");
+    const rawEnvelope = await storage.getItem(key);
+    const parsed = JSON.parse(rawEnvelope!);
+    parsed.narrative.story.currentNodeId = "deleted_deprecated_node_999";
+    await storage.setItem(key, JSON.stringify(parsed));
+
+    // Restore into new runtime B with sampleGraph
+    const runtimeB = new StoryRuntime(sampleGraph);
+    const metaB = new MetaProgressionService(undefined, storage, false);
+
+    const loadedEnvelope = await manager.loadCampaign("slot_invalid_node", runtimeB, metaB);
+
+    expect(loadedEnvelope).not.toBeNull();
+    // Should fall back to entryNodeId ("start") rather than leaving currentNodeId null
+    expect(runtimeB.getCurrentNode()?.id).toBe("start");
+  });
 });

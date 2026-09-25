@@ -130,4 +130,49 @@ describe("ArcadeOrchestrator Direct Unit Tests", () => {
     expect(runtime.getState().objectives["obj_test"]?.completed).toBe(false);
     expect(runtime.getCurrentNodeId()).toBe("gameplay_node");
   });
+
+  it("evaluates outcome rules matching secondaryObjectives in MiniGameResult", () => {
+    const runtime = new StoryRuntime(minimalGraph);
+    const orchestrator = new ArcadeOrchestrator({ runtime });
+
+    const encounterWithSecondary: MiniGameEncounter = {
+      id: "enc_secondary_01",
+      gameId: "asteroids",
+      outcomeRules: [
+        {
+          id: "rule_no_damage_bonus",
+          priority: 20,
+          condition: {
+            secondaryObjective: "no_damage",
+            operator: "==",
+            value: true
+          },
+          effects: [
+            { type: "setFlag", key: "flawlessDefense", value: true }
+          ]
+        }
+      ]
+    };
+
+    const runContext = orchestrator.startRun(encounterWithSecondary, runtime.getState());
+    orchestrator.notifyPlaying();
+
+    const result: MiniGameResult = {
+      runId: runContext.runId,
+      gameId: "asteroids",
+      score: 1000,
+      completed: true,
+      durationMs: 20000,
+      metrics: {},
+      secretsFound: [],
+      secondaryObjectives: {
+        no_damage: true,
+        bonus_targets: 3
+      }
+    };
+
+    const effects = orchestrator.submitResult(result);
+    expect(effects).toEqual([{ type: "setFlag", key: "flawlessDefense", value: true }]);
+    expect(runtime.getFlag("flawlessDefense")).toBe(true);
+  });
 });

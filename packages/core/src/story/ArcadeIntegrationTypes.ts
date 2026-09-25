@@ -95,6 +95,8 @@ export interface MiniGameResult {
   readonly metrics: Readonly<Record<string, number>>;
   /** List of secret items or hidden achievements discovered during the run. */
   readonly secretsFound: ReadonlyArray<string>;
+  /** Optional structured secondary objectives or side challenge completion results. */
+  readonly secondaryObjectives?: Readonly<Record<string, boolean | number>>;
 }
 
 /**
@@ -143,6 +145,11 @@ export type OutcomeLeafCondition =
       readonly metric: string;
       readonly operator: OutcomeComparisonOperator;
       readonly value: number;
+    }
+  | {
+      readonly secondaryObjective: string;
+      readonly operator?: OutcomeComparisonOperator;
+      readonly value?: boolean | number;
     }
   | {
       readonly secret: string;

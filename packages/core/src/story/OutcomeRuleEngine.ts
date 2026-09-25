@@ -77,6 +77,13 @@ export class OutcomeRuleEngine {
       return this.compare(metricValue, condition.value, condition.operator);
     }
 
+    if ("secondaryObjective" in condition) {
+      const objValue = result.secondaryObjectives ? result.secondaryObjectives[condition.secondaryObjective] : undefined;
+      if (objValue === undefined) return false;
+      const targetVal = condition.value !== undefined ? condition.value : true;
+      return this.compare(objValue, targetVal, condition.operator || "==");
+    }
+
     if ("secret" in condition) {
       return Array.isArray(result.secretsFound)
         ? result.secretsFound.includes(condition.secret)

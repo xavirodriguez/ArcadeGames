@@ -432,6 +432,21 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     ? currentNode.dialogue.lines
     : undefined;
 
+  // Auto-advance empty dialogue or cutscene nodes to prevent campaign soft-locks
+  useEffect(() => {
+    if (!currentNode) return;
+    const isDialogue = currentNode.type === "dialogue";
+    const isCutscene = currentNode.type === "cutscene";
+
+    if (isDialogue || isCutscene) {
+      const queue = isDialogue ? currentNode.dialogue?.lines : currentNode.cutscene?.dialogueQueue;
+      if (!queue || queue.length === 0) {
+        console.warn(`[CampaignScreen] Auto-advancing empty ${currentNode.type} node '${currentNode.id}'`);
+        runtimeRef.current?.evaluateTransitions();
+      }
+    }
+  }, [currentNode]);
+
   const renderNarrativeContent = () => (
     <>
       {currentNode?.title && (

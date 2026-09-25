@@ -465,4 +465,38 @@ describe("StoryRuntime & StoryGraph Engine Tests", () => {
     // Now it should transition to next_node
     expect(runtime.getCurrentNode()?.id).toBe("next_node");
   });
+
+  it("should auto-advance empty dialogue and empty cutscene nodes without soft-locking", () => {
+    const emptyNodeGraph: StoryGraph = {
+      id: "empty_node_test",
+      title: "Empty Node Test",
+      entryNodeId: "node_empty_dialogue",
+      nodes: {
+        node_empty_dialogue: {
+          id: "node_empty_dialogue",
+          type: "dialogue",
+          dialogue: { id: "diag_empty", lines: [] },
+          transitions: [{ targetNodeId: "node_empty_cutscene" }]
+        },
+        node_empty_cutscene: {
+          id: "node_empty_cutscene",
+          type: "cutscene",
+          cutscene: { id: "cs_empty", dialogueQueue: [] },
+          transitions: [{ targetNodeId: "node_final" }]
+        },
+        node_final: {
+          id: "node_final",
+          type: "dialogue",
+          dialogue: { id: "diag_final", lines: [{ textKey: "final_message" }] }
+        }
+      }
+    };
+
+    const runtime = new StoryRuntime();
+    runtime.bindWorld(world);
+    runtime.loadGraph(emptyNodeGraph, true);
+
+    // Both empty dialogue and empty cutscene should auto-advance to node_final in single tick
+    expect(runtime.getCurrentNode()?.id).toBe("node_final");
+  });
 });

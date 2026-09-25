@@ -83,6 +83,63 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
       particleShape: "circle",
       backgroundLayers: ["starfield"],
     },
+    asteroids: {
+      starDensity: 1.0,
+      starSpeed: 1.0,
+      ambientGlow: 0.4,
+      particleShape: "shard",
+      backgroundLayers: ["starfield", "distant_asteroid_belt"],
+    },
+    'space-invaders': {
+      starDensity: 0.8,
+      starSpeed: 0.2,
+      ambientGlow: 0.3,
+      particleShape: "polygon",
+      backgroundLayers: ["starfield", "distant_space_station"],
+    },
+    geometrywars: {
+      starDensity: 0.1,
+      starSpeed: 0.1,
+      ambientGlow: 0.1,
+      particleShape: "polygon",
+      backgroundLayers: ["diffuse_milky_way"],
+    },
+    'flappy-bird': {
+      starDensity: 0.8,
+      starSpeed: 1.5,
+      ambientGlow: 0.5,
+      planetProfile: "purple",
+      particleShape: "circle",
+      backgroundLayers: ["starfield", "drifting_nebula", "ringing_planet"],
+    },
+    platformer: {
+      starDensity: 0.8,
+      starSpeed: 0.4,
+      ambientGlow: 0.4,
+      particleShape: "circle",
+      backgroundLayers: ["starfield", "distant_space_station"],
+    },
+    arkanoid: {
+      starDensity: 0.5,
+      starSpeed: 0.2,
+      ambientGlow: 0.3,
+      particleShape: "circle",
+      backgroundLayers: ["starfield"],
+    },
+    frogger: {
+      starDensity: 0.3,
+      starSpeed: 0.1,
+      ambientGlow: 0.2,
+      particleShape: "circle",
+      backgroundLayers: ["starfield"],
+    },
+    campaign: {
+      starDensity: 0.8,
+      starSpeed: 0.8,
+      ambientGlow: 0.5,
+      particleShape: "circle",
+      backgroundLayers: ["starfield", "drifting_nebula"],
+    },
   };
 
   const defaultVfx = defaultVfxProfiles[game];

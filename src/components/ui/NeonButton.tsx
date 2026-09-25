@@ -9,6 +9,7 @@ interface NeonButtonProps {
   children: string;
   onPress: () => void;
   variant?: "cyan" | "pink" | "green" | "white" | "system" | "warning" | "danger" | "success";
+  shapeVariant?: "rounded" | "sharp" | "pill";
   bordered?: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
@@ -20,6 +21,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
   children,
   onPress,
   variant = "cyan",
+  shapeVariant = "rounded",
   bordered = false,
   style,
   textStyle,
@@ -51,16 +53,25 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
     onPress();
   };
 
+  const resolvedRadius =
+    shapeVariant === "sharp"
+      ? radius.xs
+      : shapeVariant === "pill"
+        ? radius.round
+        : radius.xl;
+
   const dynamicButtonStyle: ViewStyle = bordered
     ? {
         backgroundColor: "transparent",
         borderWidth: highContrast ? 3 : 2,
         borderColor: variantColor,
+        borderRadius: resolvedRadius,
       }
     : {
         backgroundColor: variantColor,
         borderWidth: highContrast ? 2 : 0,
         borderColor: highContrast ? semanticColors.neutral[50] : "transparent",
+        borderRadius: resolvedRadius,
       };
 
   const dynamicTextStyle: TextStyle = bordered

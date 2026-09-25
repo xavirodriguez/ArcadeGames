@@ -1246,36 +1246,36 @@
         "endLoc": {
           "column": 106,
           "line": 11,
-          "position": 1256
+          "position": 1283
         },
         "name": "shared/rendering/SharedVFXInternal.ts",
         "start": 4,
         "startLoc": {
           "column": 66,
           "line": 4,
-          "position": 423
+          "position": 450
         }
       },
       "tokens": 100
     },
     {
       "firstFile": {
-        "end": 38,
+        "end": 40,
         "endLoc": {
           "column": 6,
-          "line": 38,
-          "position": 2261
+          "line": 40,
+          "position": 2310
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 29,
+        "start": 31,
         "startLoc": {
           "column": 28,
-          "line": 29,
-          "position": 1596
+          "line": 31,
+          "position": 1645
         }
       },
       "format": "typescript",
-      "fragment": "} from \"./SharedVFXInternal\";\n\nexport { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor };\nexport { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow };\nexport { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate };\nexport { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState };\nexport { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };\nexport { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };\nexport { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };\nexport { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter };",
+      "fragment": "} from \"./SharedVFXInternal\";\n\nexport { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor };\nexport { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow };\nexport { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate };\nexport { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState };\nexport { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };\nexport { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };\nexport { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };\nexport { ActiveVisualContext, getActiveVisualContext };",
       "isNew": false,
       "lines": 10,
       "secondFile": {
@@ -1283,14 +1283,14 @@
         "endLoc": {
           "column": 6,
           "line": 21,
-          "position": 1921
+          "position": 1948
         },
         "name": "shared/rendering/SharedVFXInternal.ts",
         "start": 11,
         "startLoc": {
           "column": 105,
           "line": 11,
-          "position": 1255
+          "position": 1282
         }
       },
       "tokens": 87
@@ -1334,18 +1334,55 @@
     },
     {
       "firstFile": {
-        "end": 53,
+        "end": 27,
         "endLoc": {
-          "column": 59,
-          "line": 53,
-          "position": 2167
+          "column": 26,
+          "line": 27,
+          "position": 1068
         },
         "name": "shared/rendering/layers/DiffuseMilkyWayLayer.ts",
-        "start": 48,
+        "start": 21,
+        "startLoc": {
+          "column": 4,
+          "line": 21,
+          "position": 728
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    if (theme.backgroundLayers && !theme.backgroundLayers.includes(\"diffuse_milky_way\")) return;\n\n    const layerCtx = diffuseMilkyWayLayer(world);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: milkyWay, offsetX, wrapCoordinate } = layerCtx;\n    if (!milkyWay) return;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 77,
+        "endLoc": {
+          "column": 26,
+          "line": 77,
+          "position": 3008
+        },
+        "name": "shared/rendering/layers/DiffuseMilkyWayLayer.ts",
+        "start": 71,
+        "startLoc": {
+          "column": 4,
+          "line": 71,
+          "position": 2668
+        }
+      },
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 57,
+        "endLoc": {
+          "column": 59,
+          "line": 57,
+          "position": 2340
+        },
+        "name": "shared/rendering/layers/DiffuseMilkyWayLayer.ts",
+        "start": 52,
         "startLoc": {
           "column": 72,
-          "line": 48,
-          "position": 1967
+          "line": 52,
+          "position": 2140
         }
       },
       "format": "typescript",
@@ -1353,73 +1390,110 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 109,
+        "end": 116,
         "endLoc": {
           "column": 59,
-          "line": 109,
-          "position": 4205
+          "line": 116,
+          "position": 4525
         },
         "name": "shared/rendering/layers/DiffuseMilkyWayLayer.ts",
-        "start": 105,
+        "start": 112,
         "startLoc": {
           "column": 37,
-          "line": 105,
-          "position": 4006
+          "line": 112,
+          "position": 4326
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 26,
+        "end": 37,
         "endLoc": {
-          "column": 54,
-          "line": 26,
-          "position": 961
+          "column": 72,
+          "line": 37,
+          "position": 1409
         },
-        "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
-        "start": 20,
+        "name": "shared/rendering/layers/DistantAsteroidBeltLayer.ts",
+        "start": 32,
         "startLoc": {
           "column": 4,
-          "line": 20,
-          "position": 690
+          "line": 32,
+          "position": 1112
         }
       },
       "format": "typescript",
-      "fragment": "    const layerCtx = spaceStationLayer(world);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: st, offsetX, wrapCoordinate } = layerCtx;\n    if (!st) return;\n\n    st.rotation += st.rotationSpeed;\n    const posX = wrapCoordinate(st.x - offsetX * 0.1);",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    if (theme.backgroundLayers && !theme.backgroundLayers.includes(\"distant_asteroid_belt\")) return;\n\n    const layerCtx = distantAsteroidsLayer(world);\n    if (!layerCtx) return;\n    const { layerState: asteroids, offsetX, wrapCoordinate } = layerCtx;",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 119,
+        "end": 80,
         "endLoc": {
-          "column": 54,
-          "line": 119,
-          "position": 3821
+          "column": 72,
+          "line": 80,
+          "position": 2629
         },
-        "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
-        "start": 113,
+        "name": "shared/rendering/layers/DistantAsteroidBeltLayer.ts",
+        "start": 75,
         "startLoc": {
           "column": 4,
-          "line": 113,
-          "position": 3550
+          "line": 75,
+          "position": 2332
         }
       },
-      "tokens": 63
+      "tokens": 54
     },
     {
       "firstFile": {
-        "end": 92,
+        "end": 30,
         "endLoc": {
-          "column": 57,
-          "line": 92,
-          "position": 3066
+          "column": 54,
+          "line": 30,
+          "position": 1138
         },
         "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
-        "start": 87,
+        "start": 21,
+        "startLoc": {
+          "column": 4,
+          "line": 21,
+          "position": 716
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    if (theme.backgroundLayers && !theme.backgroundLayers.includes(\"distant_space_station\")) return;\n\n    const layerCtx = spaceStationLayer(world);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: st, offsetX, wrapCoordinate } = layerCtx;\n    if (!st) return;\n\n    st.rotation += st.rotationSpeed;\n    const posX = wrapCoordinate(st.x - offsetX * 0.1);",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 126,
+        "endLoc": {
+          "column": 54,
+          "line": 126,
+          "position": 4149
+        },
+        "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
+        "start": 117,
+        "startLoc": {
+          "column": 4,
+          "line": 117,
+          "position": 3727
+        }
+      },
+      "tokens": 89
+    },
+    {
+      "firstFile": {
+        "end": 96,
+        "endLoc": {
+          "column": 57,
+          "line": 96,
+          "position": 3243
+        },
+        "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
+        "start": 91,
         "startLoc": {
           "column": 15,
-          "line": 87,
-          "position": 2884
+          "line": 91,
+          "position": 3061
         }
       },
       "format": "typescript",
@@ -1427,36 +1501,73 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 200,
+        "end": 207,
         "endLoc": {
           "column": 57,
-          "line": 200,
-          "position": 6898
+          "line": 207,
+          "position": 7226
         },
         "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
-        "start": 195,
+        "start": 202,
         "startLoc": {
           "column": 68,
-          "line": 195,
-          "position": 6716
+          "line": 202,
+          "position": 7044
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 44,
+        "end": 38,
         "endLoc": {
-          "column": 91,
-          "line": 44,
-          "position": 1390
+          "column": 61,
+          "line": 38,
+          "position": 1210
         },
         "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
-        "start": 39,
+        "start": 33,
+        "startLoc": {
+          "column": 4,
+          "line": 33,
+          "position": 932
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    if (theme.backgroundLayers && !theme.backgroundLayers.includes(\"drifting_nebula\")) return;\n\n    const layerCtx = driftingNebulaLayer(world);\n    if (!layerCtx) return;\n    const { layerState: nebulae, state, offsetX } = layerCtx;",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 75,
+        "endLoc": {
+          "column": 61,
+          "line": 75,
+          "position": 2422
+        },
+        "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
+        "start": 70,
+        "startLoc": {
+          "column": 4,
+          "line": 70,
+          "position": 2144
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 45,
+        "endLoc": {
+          "column": 91,
+          "line": 45,
+          "position": 1491
+        },
+        "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
+        "start": 40,
         "startLoc": {
           "column": 12,
-          "line": 39,
-          "position": 1123
+          "line": 40,
+          "position": 1224
         }
       },
       "format": "typescript",
@@ -1464,58 +1575,95 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 81,
+        "end": 83,
         "endLoc": {
           "column": 91,
-          "line": 81,
-          "position": 2539
+          "line": 83,
+          "position": 2738
         },
         "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
-        "start": 76,
+        "start": 78,
         "startLoc": {
           "column": 28,
-          "line": 76,
-          "position": 2272
+          "line": 78,
+          "position": 2471
         }
       },
       "tokens": 66
     },
     {
       "firstFile": {
-        "end": 27,
+        "end": 30,
         "endLoc": {
           "column": 77,
-          "line": 27,
-          "position": 1065
+          "line": 30,
+          "position": 1212
         },
         "name": "shared/rendering/layers/RingingPlanetLayer.ts",
         "start": 22,
         "startLoc": {
           "column": 4,
           "line": 22,
-          "position": 799
+          "position": 802
         }
       },
       "format": "typescript",
-      "fragment": "    const layerCtx = ringingPlanetLayer(world);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;\n    if (!planet) return;\n\n    const posX = wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    if (theme.backgroundLayers && !theme.backgroundLayers.includes(\"ringing_planet\")) return;\n\n    const layerCtx = ringingPlanetLayer(world);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;\n    if (!planet) return;\n\n    const posX = wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);",
       "isNew": false,
-      "lines": 6,
+      "lines": 9,
       "secondFile": {
-        "end": 139,
+        "end": 143,
         "endLoc": {
           "column": 77,
-          "line": 139,
-          "position": 4443
+          "line": 143,
+          "position": 4687
         },
         "name": "shared/rendering/layers/RingingPlanetLayer.ts",
-        "start": 134,
+        "start": 135,
         "startLoc": {
           "column": 4,
-          "line": 134,
-          "position": 4177
+          "line": 135,
+          "position": 4277
         }
       },
-      "tokens": 61
+      "tokens": 87
+    },
+    {
+      "firstFile": {
+        "end": 42,
+        "endLoc": {
+          "column": 115,
+          "line": 42,
+          "position": 1526
+        },
+        "name": "shared/rendering/layers/ScrollingStarfieldLayer.ts",
+        "start": 34,
+        "startLoc": {
+          "column": 4,
+          "line": 34,
+          "position": 1085
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    if (theme.backgroundLayers && !theme.backgroundLayers.includes(\"starfield\")) return;\n\n    const layerCtx = starfieldLayer(world);\n    if (!layerCtx) return;\n    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;\n\n    const starSpeedMult = theme.starSpeed || 1.0;\n    const activeStarCount = Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (theme.starDensity ?? 1.0))));",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 69,
+        "endLoc": {
+          "column": 115,
+          "line": 69,
+          "position": 2470
+        },
+        "name": "shared/rendering/layers/ScrollingStarfieldLayer.ts",
+        "start": 61,
+        "startLoc": {
+          "column": 4,
+          "line": 61,
+          "position": 2029
+        }
+      },
+      "tokens": 95
     },
     {
       "firstFile": {
@@ -1667,32 +1815,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-24T22:30:59.816Z",
+    "detectionDate": "2026-09-25T02:21:05.267Z",
     "formats": {
       "typescript": {
-        "clones": 45,
-        "duplicatedLines": 352,
-        "duplicatedTokens": 2973,
-        "lines": 67893,
+        "clones": 49,
+        "duplicatedLines": 382,
+        "duplicatedTokens": 3295,
+        "lines": 68026,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.5184628754068903,
-        "percentageTokens": 0.8394392444199739,
+        "percentage": 0.5615499955899215,
+        "percentageTokens": 0.9282003898723338,
         "sources": 411,
-        "tokens": 354165
+        "tokens": 354988
       }
     },
     "total": {
-      "clones": 45,
-      "duplicatedLines": 352,
-      "duplicatedTokens": 2973,
-      "lines": 67893,
+      "clones": 49,
+      "duplicatedLines": 382,
+      "duplicatedTokens": 3295,
+      "lines": 68026,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.5184628754068903,
-      "percentageTokens": 0.8394392444199739,
+      "percentage": 0.5615499955899215,
+      "percentageTokens": 0.9282003898723338,
       "sources": 411,
-      "tokens": 354165
+      "tokens": 354988
     }
   }
 }

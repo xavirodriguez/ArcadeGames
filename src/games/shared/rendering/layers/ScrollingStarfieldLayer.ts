@@ -31,11 +31,13 @@ const starfieldLayer = createParallaxLayer<Star[]>({
 
 export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("starfield")) return;
+
     const layerCtx = starfieldLayer(world);
     if (!layerCtx) return;
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
 
-    const theme = getActiveVisualContext(world);
     const starSpeedMult = theme.starSpeed || 1.0;
     const activeStarCount = Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (theme.starDensity ?? 1.0))));
 
@@ -56,11 +58,13 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
 export const SkiaScrollingStarfieldEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("starfield")) return;
+
     const layerCtx = starfieldLayer(world);
     if (!layerCtx) return;
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
 
-    const theme = getActiveVisualContext(world);
     const starSpeedMult = theme.starSpeed || 1.0;
     const activeStarCount = Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (theme.starDensity ?? 1.0))));
 

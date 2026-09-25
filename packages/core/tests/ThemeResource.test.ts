@@ -30,6 +30,11 @@ describe("Theme Resource & Entity Factory Integration", () => {
     expect(() => {
       world.setResource("Theme", JSON.parse('{"spriteMap": {}, "colorMap": 123}'));
     }).toThrow(/colorMap must be an object/);
+
+    // Invalid vfxProfile shape should throw
+    expect(() => {
+      world.setResource("Theme", JSON.parse('{"spriteMap": {}, "colorMap": {}, "vfxProfile": 123}'));
+    }).toThrow(/vfxProfile must be an object/);
   });
 
   it("should fall back to default assetKey and GAME_ACCENTS color when default Theme resource is set", () => {

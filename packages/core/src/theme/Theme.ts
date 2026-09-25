@@ -75,6 +75,19 @@ export type GameRoleKey =
   | GeometryWarsRoleKey;
 
 /**
+ * Visual profile configuration for game-specific background and particle visual effects.
+ * @public
+ */
+export interface GameVisualProfile {
+  starDensity?: number;
+  starSpeed?: number;
+  ambientGlow?: number;
+  planetProfile?: "blue" | "purple" | "toxic" | "volcanic";
+  backgroundLayers?: string[];
+  particleShape?: "circle" | "polygon" | "shard";
+}
+
+/**
  * Interface representing visual skin, asset mappings, and narrative lore configuration
  * injected into the game world as a transversal ECS resource.
  *
@@ -109,6 +122,11 @@ export interface Theme<TRole extends string = string> {
    * Optional lore or narrative HUD texts indexed by logical key (e.g., `"title"`, `"subtitle"`).
    */
   lore?: Record<string, string>;
+
+  /**
+   * Optional visual profile defining background FX and particle parameters per game.
+   */
+  vfxProfile?: GameVisualProfile;
 }
 
 /**

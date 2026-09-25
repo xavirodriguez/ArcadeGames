@@ -6,7 +6,7 @@ import {
   Star,
   STAR_COUNT,
   initializeStars,
-  getActiveLevelTheme
+  getActiveVisualContext
 } from "../SharedVFXInternal";
 
 export function advanceStarPosition(
@@ -35,12 +35,13 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
     if (!layerCtx) return;
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
 
-    const theme = getActiveLevelTheme(world);
+    const theme = getActiveVisualContext(world);
     const starSpeedMult = theme.starSpeed || 1.0;
+    const activeStarCount = Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (theme.starDensity ?? 1.0))));
 
     ctx.save();
 
-    for (let i = 0; i < STAR_COUNT; i++) {
+    for (let i = 0; i < activeStarCount; i++) {
       const star = stars[i];
       const { posX, currentSize } = advanceStarPosition(star, starSpeedMult, offsetX, wrapCoordinate);
 
@@ -59,13 +60,14 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, CoreComponentRegist
     if (!layerCtx) return;
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
 
-    const theme = getActiveLevelTheme(world);
+    const theme = getActiveVisualContext(world);
     const starSpeedMult = theme.starSpeed || 1.0;
+    const activeStarCount = Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (theme.starDensity ?? 1.0))));
 
     canvas.save();
     const paint = Skia.Paint();
 
-    for (let i = 0; i < STAR_COUNT; i++) {
+    for (let i = 0; i < activeStarCount; i++) {
       const star = stars[i];
       const { posX, currentSize } = advanceStarPosition(star, starSpeedMult, offsetX, wrapCoordinate);
 

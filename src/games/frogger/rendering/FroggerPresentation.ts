@@ -7,41 +7,29 @@ import { Renderer } from "@tiny-aster/core";
 export function initializeFroggerRenderer(renderer: Renderer<any, any>): void {
   try {
     if (renderer.type === "canvas") {
-      const {
-        drawFroggerCanvas,
-        drawCarCanvas,
-        drawTruckCanvas,
-        drawLogCanvas,
-        drawTurtleCanvas,
-        drawLilyPadCanvas,
-        froggerBackgroundCanvasEffect,
-      } = require("./FroggerCanvasVisuals");
-
-      renderer.registerShape("frogger", drawFroggerCanvas);
-      renderer.registerShape("car", drawCarCanvas);
-      renderer.registerShape("truck", drawTruckCanvas);
-      renderer.registerShape("log", drawLogCanvas);
-      renderer.registerShape("turtle", drawTurtleCanvas);
-      renderer.registerShape("lily_pad", drawLilyPadCanvas);
-      renderer.registerBackgroundEffect("froggerBackground", froggerBackgroundCanvasEffect);
+      const visuals = require("./FroggerCanvasVisuals");
+      const shapeMap: Record<string, any> = {
+        frogger: visuals.drawFroggerCanvas,
+        car: visuals.drawCarCanvas,
+        truck: visuals.drawTruckCanvas,
+        log: visuals.drawLogCanvas,
+        turtle: visuals.drawTurtleCanvas,
+        lily_pad: visuals.drawLilyPadCanvas,
+      };
+      Object.entries(shapeMap).forEach(([name, fn]) => renderer.registerShape(name, fn));
+      renderer.registerBackgroundEffect("froggerBackground", visuals.froggerBackgroundCanvasEffect);
     } else if (renderer.type === "skia") {
-      const {
-        drawFroggerSkia,
-        drawCarSkia,
-        drawTruckSkia,
-        drawLogSkia,
-        drawTurtleSkia,
-        drawLilyPadSkia,
-        froggerBackgroundSkiaEffect,
-      } = require("./FroggerSkiaVisuals");
-
-      renderer.registerShape("frogger", drawFroggerSkia);
-      renderer.registerShape("car", drawCarSkia);
-      renderer.registerShape("truck", drawTruckSkia);
-      renderer.registerShape("log", drawLogSkia);
-      renderer.registerShape("turtle", drawTurtleSkia);
-      renderer.registerShape("lily_pad", drawLilyPadSkia);
-      renderer.registerBackgroundEffect("froggerBackground", froggerBackgroundSkiaEffect);
+      const visuals = require("./FroggerSkiaVisuals");
+      const shapeMap: Record<string, any> = {
+        frogger: visuals.drawFroggerSkia,
+        car: visuals.drawCarSkia,
+        truck: visuals.drawTruckSkia,
+        log: visuals.drawLogSkia,
+        turtle: visuals.drawTurtleSkia,
+        lily_pad: visuals.drawLilyPadSkia,
+      };
+      Object.entries(shapeMap).forEach(([name, fn]) => renderer.registerShape(name, fn));
+      renderer.registerBackgroundEffect("froggerBackground", visuals.froggerBackgroundSkiaEffect);
     }
   } catch (err) {
     console.error("[Frogger] Failed to register shapes:", err);

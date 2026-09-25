@@ -29,6 +29,9 @@ import {
 } from "./FlappyBirdRenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { SkiaMotionTrail } from "../../shared/rendering/SkiaNeonUtils";
+
+const birdSkiaTrail = new SkiaMotionTrail(20);
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_SKIA_PARTICLE_POOL, spawnVisualParticle };
 
@@ -174,6 +177,14 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
     } = drawCtx;
 
     const paint = getPaint();
+
+    const transform = world.getComponent(entity, "Transform");
+    if (transform && paint) {
+      const bx = transform.worldX ?? transform.x;
+      const by = transform.worldY ?? transform.y;
+      birdSkiaTrail.update(entity, bx, by, 3);
+      birdSkiaTrail.drawSkia(skCanvas, paint, entity, bx, by, 12, size, "#00F3FF", "#FFFFFF");
+    }
 
     skCanvas.save();
 

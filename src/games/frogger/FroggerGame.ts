@@ -139,6 +139,23 @@ export class FroggerGame extends BaseGame<
   protected override async onInitializeEntities(): Promise<void> {
     const config = this.config;
 
+    const cameraEntity = this.world.createEntity();
+    this.world.addComponent(cameraEntity, {
+      type: "Camera2D",
+      x: config.worldWidth / 2,
+      y: config.worldHeight / 2,
+      zoom: 1,
+      targetX: config.worldWidth / 2,
+      targetY: config.worldHeight / 2,
+      isMain: true
+    } as any);
+    this.world.addComponent(cameraEntity, {
+      type: "ScreenShake",
+      intensity: 0,
+      duration: 0,
+      remaining: 0
+    } as any);
+
     // Create State singleton
     this.spawnBlueprint("state", {});
 

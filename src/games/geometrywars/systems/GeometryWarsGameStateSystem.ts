@@ -51,6 +51,9 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
 
     // 1. Player death logic
     if (world.hasComponent(deadEntity, "Player")) {
+      world.mutateComponent(deadEntity, "Render", (r) => {
+        r.glowIntensity = "critical";
+      });
       world.mutateComponent(stateEntity, "GeometryWarsState", (s) => {
         s.lives -= 1;
         if (s.lives <= 0) {

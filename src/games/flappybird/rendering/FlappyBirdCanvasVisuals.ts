@@ -1,4 +1,7 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { CanvasMotionTrail } from "../../shared/rendering/CanvasNeonUtils";
+
+const birdCanvasTrail = new CanvasMotionTrail(20);
 import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import {
@@ -123,6 +126,13 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       isDyingGlitch,
       speed,
     } = drawCtx;
+
+    if (transform) {
+      const bx = transform.worldX ?? transform.x;
+      const by = transform.worldY ?? transform.y;
+      birdCanvasTrail.update(entity, bx, by, 3);
+      birdCanvasTrail.draw(ctx, entity, bx, by, 12, size, "#00F3FF", "#FFFFFF");
+    }
 
     ctx.save();
     ctx.globalAlpha = globalOpacity;

@@ -6,6 +6,7 @@ import {
   MovementSystem,
   TTLSystem,
   JuiceSystem,
+  ScreenShakeSystem,
   RenderUpdateSystem,
   BoundarySystem,
   CollisionSystem2D,
@@ -201,6 +202,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
 
     // Visual / Presentation Systems
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
+    this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation, group: "presentation" }); // No trails
     this.world.addSystem(new SpaceInvadersRenderSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
     this.world.addSystem(new ComboHUDRenderSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
@@ -233,6 +235,24 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     this.world.setResource("IsHeadless", isHeadless);
 
     createGameState(this.world);
+
+    const cameraEntity = this.world.createEntity();
+    this.world.addComponent(cameraEntity, {
+      type: "Camera2D",
+      x: GAME_CONFIG.worldWidth / 2,
+      y: GAME_CONFIG.worldHeight / 2,
+      zoom: 1,
+      targetX: GAME_CONFIG.worldWidth / 2,
+      targetY: GAME_CONFIG.worldHeight / 2,
+      isMain: true
+    } as any);
+    this.world.addComponent(cameraEntity, {
+      type: "ScreenShake",
+      intensity: 0,
+      duration: 0,
+      remaining: 0
+    } as any);
+
     createPlayer(this.world, GAME_CONFIG.worldWidth / 2, GAME_CONFIG.worldHeight - 50);
     createFormationController(this.world);
     spawnShields(this.world);

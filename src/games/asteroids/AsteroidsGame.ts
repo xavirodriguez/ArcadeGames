@@ -295,8 +295,27 @@ export class AsteroidsGame
             storyBeatText: beat ? beat.readyText : undefined
         } as GameStateComponent);
 
-        // Create Player Ship
         const screen = this.world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+
+        // Create Main Camera with ScreenShake component
+        const cameraEntity = this.world.createEntity();
+        this.world.addComponent(cameraEntity, {
+          type: "Camera2D",
+          x: screen.width / 2,
+          y: screen.height / 2,
+          zoom: 1,
+          targetX: screen.width / 2,
+          targetY: screen.height / 2,
+          isMain: true
+        });
+        this.world.addComponent(cameraEntity, {
+          type: "ScreenShake",
+          intensity: 0,
+          duration: 0,
+          remaining: 0
+        });
+
+        // Create Player Ship
         const ship = createShip({
             world: this.world,
             x: screen.width / 2,

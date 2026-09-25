@@ -1,6 +1,9 @@
 import { ShapeDrawer, ShapeType, CircleShape, SHIP_FORWARD_AXIS } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
-import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
+import { CanvasMotionTrail, drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
+
+const shipCanvasTrail = new CanvasMotionTrail(20);
+const bulletCanvasTrail = new CanvasMotionTrail(20);
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
@@ -37,6 +40,14 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     const size = render.size || 15;
     let baseColor = render.color || colors.cyan;
     const tick = Math.floor((world.tick * 5) / 12);
+
+    const transform = world.getComponent(entity, "Transform");
+    if (transform) {
+      const tx = transform.worldX ?? transform.x;
+      const ty = transform.worldY ?? transform.y;
+      shipCanvasTrail.update(entity, tx, ty, 4);
+      shipCanvasTrail.draw(ctx, entity, tx, ty, 10, size, baseColor, colors.white);
+    }
 
     ctx.save();
 
@@ -227,6 +238,14 @@ export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, Asteroid
     const size = render.size || 2;
     const color = render.color || colors.green; // Glowing laser green
     const length = size * 4;
+
+    const transform = world.getComponent(entity, "Transform");
+    if (transform) {
+      const tx = transform.worldX ?? transform.x;
+      const ty = transform.worldY ?? transform.y;
+      bulletCanvasTrail.update(entity, tx, ty, 2);
+      bulletCanvasTrail.draw(ctx, entity, tx, ty, 8, size, color, colors.white);
+    }
 
     ctx.save();
 

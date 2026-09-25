@@ -421,11 +421,17 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       }
 
       // Spawn Main Follow Camera centered on player
-      createMainCamera2D(this.world, playerEntity, {
+      const camEntity = createMainCamera2D(this.world, playerEntity, {
         lookAheadX: 80,
         smoothingX: 6.0,
         smoothingY: 6.0,
         verticalDeadzone: 45
+      });
+      this.world.addComponent(camEntity, {
+        type: "ScreenShake",
+        intensity: 0,
+        duration: 0,
+        remaining: 0
       });
 
       // Flush all deferred commands from SegmentGenerator and blueprint spawns

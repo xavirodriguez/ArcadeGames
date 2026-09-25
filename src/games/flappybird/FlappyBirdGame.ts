@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, RenderContext, EventRegistry, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, IAudioPlayer, Mutator, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, ScreenShakeSystem, Renderer, RenderContext, EventRegistry, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, IAudioPlayer, Mutator, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry, FlappyBirdEventRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
@@ -365,6 +365,7 @@ export class FlappyBirdGame
 
     // Visual / Presentation
     this.world.addSystem(new JuiceSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ScreenShakeSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Presentation });
     this.world.addSystem(new FlappyBirdRenderSystem(), { phase: SystemPhase.Presentation });
 
     // Register visual feedback listener for obstacle pipe clearance
@@ -411,6 +412,24 @@ export class FlappyBirdGame
   protected override async onInitializeEntities(): Promise<void> {
     if (this.isMultiplayer) return;
     const config = this.world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
+
+    const cameraEntity = this.world.createEntity();
+    this.world.addComponent(cameraEntity, {
+      type: "Camera2D",
+      x: config.worldWidth / 2,
+      y: config.worldHeight / 2,
+      zoom: 1,
+      targetX: config.worldWidth / 2,
+      targetY: config.worldHeight / 2,
+      isMain: true
+    } as any);
+    this.world.addComponent(cameraEntity, {
+      type: "ScreenShake",
+      intensity: 0,
+      duration: 0,
+      remaining: 0
+    } as any);
+
     createGameState(this.world);
     createBird({ world: this.world, x: config.BIRD_X, y: config.BIRD_START_Y });
     createGround(this.world);

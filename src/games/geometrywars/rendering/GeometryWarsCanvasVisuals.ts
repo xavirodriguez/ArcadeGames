@@ -4,6 +4,7 @@ import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { getDrawable, getDrawableTransform } from "../../shared/rendering/renderingUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { CanvasMotionTrail } from "../../shared/rendering/CanvasNeonUtils";
 import {
   getActiveParticles,
   updatePlayerShipVisuals,
@@ -12,6 +13,9 @@ import {
   spawnVisualParticle,
   resetVisualState
 } from "./GeometryWarsVisualLogic";
+
+const gwShipCanvasTrail = new CanvasMotionTrail(20);
+const gwBulletCanvasTrail = new CanvasMotionTrail(20);
 
 // For backwards compatibility if imported elsewhere
 export { GEOMETRY_WARS_PARTICLE_POOL, spawnVisualParticle, resetVisualState };
@@ -71,6 +75,9 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
 
     // Trigger thruster smoke/engine particles and muzzle flash sparks
     updatePlayerShipVisuals(world, entity, render, x, y, color);
+
+    gwShipCanvasTrail.update(entity, x, y, 4);
+    gwShipCanvasTrail.draw(ctx, entity, x, y, 12, size, color, colors.white);
 
     ctx.save();
 
@@ -224,6 +231,14 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     if (!drawable) return;
     const { render, size } = drawable;
     const color = render.color ?? colors.gold;
+
+    const transform = getDrawableTransform(world, entity);
+    if (transform) {
+      const bx = transform.worldX ?? transform.x;
+      const by = transform.worldY ?? transform.y;
+      gwBulletCanvasTrail.update(entity, bx, by, 2);
+      gwBulletCanvasTrail.draw(ctx, entity, bx, by, 8, size, color, colors.white);
+    }
 
     applyNeonStroke(ctx, color);
 

@@ -1,6 +1,6 @@
 import type { SkCanvas } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
-import { renderCanvasGlow, renderSkiaGlow, getGlowStyle } from "./GlowSystem";
+import { renderCanvasGlow, renderSkiaGlow, getGlowStyle, GlowIntensity } from "./GlowSystem";
 
 /**
  * Platform-agnostic drawing adapter interface for unifying Canvas 2D and Skia rendering operations.
@@ -16,7 +16,7 @@ export interface IDrawAdapter {
   drawLine(x1: number, y1: number, x2: number, y2: number, color: string, strokeWidth?: number, alpha?: number): void;
   drawArc(x: number, y: number, radius: number, startAngleRad: number, sweepAngleRad: number, color: string, strokeWidth?: number, alpha?: number): void;
   drawText(text: string, x: number, y: number, color: string, alpha?: number, fontSize?: number): void;
-  drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void): void;
+  drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void, intensity?: GlowIntensity): void;
 }
 
 interface SkiaCanvasLike {
@@ -104,8 +104,8 @@ export class CanvasDrawAdapter implements IDrawAdapter {
     this.ctx.fillText(text, x, y);
   }
 
-  public drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void): void {
-    const glowStyle = getGlowStyle(glowColorStr, "normal");
+  public drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void, intensity: GlowIntensity = "normal"): void {
+    const glowStyle = getGlowStyle(glowColorStr, intensity);
     renderCanvasGlow(this.ctx, glowStyle, () => {
       drawFn(this);
     });
@@ -209,8 +209,8 @@ export class SkiaDrawAdapter implements IDrawAdapter {
     this.skCanvas.drawText(text, x, y, paint);
   }
 
-  public drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void): void {
-    const glowStyle = getGlowStyle(glowColorStr, "normal");
+  public drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void, intensity: GlowIntensity = "normal"): void {
+    const glowStyle = getGlowStyle(glowColorStr, intensity);
     renderSkiaGlow(this.skCanvas, glowStyle, () => {
       drawFn(this);
     });

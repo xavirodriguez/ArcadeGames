@@ -129,6 +129,15 @@ export class BossSystem extends GameSystem {
         });
       }
 
+      // If boss is in phase 3, bump render glow intensity to "critical"
+      world.mutateComponent(entity, "Render", (r) => {
+        if (boss.phase === 3) {
+          r.glowIntensity = "critical";
+        } else if (boss.phase === 2) {
+          r.glowIntensity = "strong";
+        }
+      });
+
       if (boss.hp <= 0) {
         this.destroyBoss(world, entity);
       }
@@ -137,6 +146,9 @@ export class BossSystem extends GameSystem {
   }
 
   private destroyBoss(world: World<SpaceInvadersComponentRegistry>, entity: number): void {
+    world.mutateComponent(entity, "Render", (r) => {
+      r.glowIntensity = "critical";
+    });
     const pos = world.getComponent(entity, "Transform")!;
     createEmitter(world, {
         type: "explosion",

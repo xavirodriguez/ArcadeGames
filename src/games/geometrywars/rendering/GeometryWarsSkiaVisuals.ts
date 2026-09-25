@@ -13,6 +13,10 @@ import {
 } from "./GeometryWarsVisualLogic";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { SkiaMotionTrail } from "../../shared/rendering/SkiaNeonUtils";
+
+const gwShipSkiaTrail = new SkiaMotionTrail(20);
+const gwBulletSkiaTrail = new SkiaMotionTrail(20);
 
 // For backwards compatibility if imported elsewhere
 export {
@@ -89,6 +93,11 @@ export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry>
     updatePlayerShipVisuals(world, entity, render, x, y, color);
 
     const paint = getPaint();
+    if (paint) {
+      gwShipSkiaTrail.update(entity, x, y, 4);
+      gwShipSkiaTrail.drawSkia(canvas, paint, entity, x, y, 12, size, color, "#ffffff");
+    }
+
     canvas.save();
 
     let visualOpacity = render.opacity ?? 1.0;
@@ -194,12 +203,28 @@ export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = de
  * Skia shape drawer for the bullets.
  * @public
  */
-export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = defineSkiaShape(
-  { defaultSize: 4, defaultColor: "#ffff00", strokeWidth: 1.5 },
-  (canvas, paint, size) => {
+export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!ensureSkiaAvailable()) return;
+    const render = getRenderGuard(world, entity);
+    const transform = getDrawableTransform(world, entity);
+    const paint = getPaint();
+    if (!render || !transform || !paint) return;
+
+    const size = render.size ?? 4;
+    const color = render.color ?? "#ffff00";
+    const bx = transform.worldX ?? transform.x;
+    const by = transform.worldY ?? transform.y;
+
+    gwBulletSkiaTrail.update(entity, bx, by, 2);
+    gwBulletSkiaTrail.drawSkia(canvas, paint, entity, bx, by, 8, size, color, "#ffffff");
+
+    canvas.save();
+    setupSkiaStrokePaint(paint, color, 1.5, render.opacity ?? 1.0);
     canvas.drawLine(-size, 0, size, 0, paint);
+    canvas.restore();
   }
-);
+};
 
 /**
  * Skia shape drawer for enemy seeker (neon diamond/star).

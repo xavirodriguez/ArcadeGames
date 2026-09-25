@@ -7,6 +7,10 @@ import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
+import { SkiaMotionTrail } from "../../shared/rendering/SkiaNeonUtils";
+
+const shipSkiaTrail = new SkiaMotionTrail(20);
+const bulletSkiaTrail = new SkiaMotionTrail(20);
 
 export { drawSkiaAsteroidsMissionHUD };
 
@@ -51,10 +55,18 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     if (!render) return;
 
     const size = render.size || 15;
+    let { opacity, colorStr } = resolveAsteroidOpacityAndColor(render, colors.cyan);
+
+    const transform = world.getComponent(entity, "Transform");
+    const trailPaint = getPaint();
+    if (transform && trailPaint) {
+      const tx = transform.worldX ?? transform.x;
+      const ty = transform.worldY ?? transform.y;
+      shipSkiaTrail.update(entity, tx, ty, 4);
+      shipSkiaTrail.drawSkia(canvas, trailPaint, entity, tx, ty, 10, size, colorStr, colors.white);
+    }
 
     canvas.save();
-
-    let { opacity, colorStr } = resolveAsteroidOpacityAndColor(render, colors.cyan);
 
     // Invulnerability Pulse
     if (world.hasComponent(entity, "Invulnerable")) {
@@ -220,6 +232,15 @@ export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistr
     const size = render.size || 2;
     const colorStr = render.color || colors.green; // Glowing laser green
     const length = size * 4;
+
+    const transform = world.getComponent(entity, "Transform");
+    const trailPaint = getPaint();
+    if (transform && trailPaint) {
+      const tx = transform.worldX ?? transform.x;
+      const ty = transform.worldY ?? transform.y;
+      bulletSkiaTrail.update(entity, tx, ty, 2);
+      bulletSkiaTrail.drawSkia(canvas, trailPaint, entity, tx, ty, 8, size, colorStr, colors.white);
+    }
 
     canvas.save();
 

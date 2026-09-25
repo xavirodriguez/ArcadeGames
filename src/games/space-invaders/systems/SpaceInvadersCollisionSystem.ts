@@ -235,7 +235,12 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         else if (nextMultiplier >= 2) popupColor = "#00FFFF"; // Cyan
 
         const popupText = nextMultiplier > 1 ? `+${scoreGain} (x${nextMultiplier})` : `+${scoreGain}`;
-        spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
+        const popupEntity = spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
+        if (nextMultiplier >= 6 && popupEntity !== undefined) {
+          world.mutateComponent(popupEntity, "Render", (r) => {
+            r.glowIntensity = "critical";
+          });
+        }
       }
 
       // Contextual screen shake: light for single kills, medium for fast combo chains

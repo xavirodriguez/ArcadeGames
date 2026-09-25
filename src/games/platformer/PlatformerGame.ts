@@ -11,6 +11,8 @@ import {
   ConfigService,
   WebAudioPlayer,
   TTLSystem,
+  JuiceSystem,
+  ScreenShakeSystem,
   Renderer,
   RenderContext,
   registerEnemyStateMachines,
@@ -324,6 +326,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.world.addSystem(new PowerUpSystem() as unknown as System<CoreComponentRegistry>, { phase: SystemPhase.Collision });
 
     // Game-specific presentation systems
+    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
   }
 
@@ -365,11 +369,17 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.blueprints.get("player")?.spawn(this.world, playerEntity, { x: 100, y: 350 });
 
     // Spawn Main Follow Camera
-    createMainCamera2D(this.world, playerEntity, {
+    const camEntity = createMainCamera2D(this.world, playerEntity, {
       lookAheadX: 40,
       smoothingX: 3.5,
       smoothingY: 3.5,
       verticalDeadzone: 45
+    });
+    this.world.addComponent(camEntity, {
+      type: "ScreenShake",
+      intensity: 0,
+      duration: 0,
+      remaining: 0
     });
 
     this.world.flush();

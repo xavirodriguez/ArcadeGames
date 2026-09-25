@@ -340,6 +340,8 @@ export interface RenderComponent extends Component {
   muzzleFlashFrames?: number;
   /** Danger pulse effect intensity (0.0 to 1.0) for warning state visuals. */
   dangerPulseIntensity?: number;
+  /** Glow intensity preset level for glow pass rendering. */
+  glowIntensity?: "subtle" | "normal" | "strong" | "critical";
   /** Primitive shape descriptor if no sprite ID is set. */
   shape?: string;
   /** Base rendering scale size or radius. */

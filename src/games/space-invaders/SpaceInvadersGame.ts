@@ -533,6 +533,8 @@ export class SpaceInvadersGame
         r.registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
         r.registerShape("shield_block", drawSpaceInvadersShield);
         r.registerShape("particle", drawSpaceInvadersParticle);
+        r.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
+        r.registerBackgroundEffect("drifting_nebula", SharedVFX.DriftingNebulaBackgroundEffect);
         const { drawSpaceInvadersComboHUD } = require("./systems/ComboHUDRenderSystem");
         r.registerBackgroundEffect("combo_hud", drawSpaceInvadersComboHUD);
         const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
@@ -555,6 +557,8 @@ export class SpaceInvadersGame
         r.registerShape("enemy_bullet", drawSkiaSpaceInvadersBullet);
         r.registerShape("shield_block", drawSkiaSpaceInvadersShield);
         r.registerShape("particle", drawSkiaSpaceInvadersParticle);
+        r.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
+        r.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
         r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
       }
     });

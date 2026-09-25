@@ -60,12 +60,14 @@ describe("Narrative Engine Architecture Subsystems", () => {
         id: "node_path_a",
         type: "dialogue",
         title: "Path A Dialogue",
+        dialogue: { id: "d_path_a", lines: [{ textKey: "path_a_text" }] },
         transitions: [{ targetNodeId: "node_ending" }]
       },
       node_path_b: {
         id: "node_path_b",
         type: "dialogue",
         title: "Path B Dialogue",
+        dialogue: { id: "d_path_b", lines: [{ textKey: "path_b_text" }] },
         transitions: [{ targetNodeId: "node_ending" }]
       },
       node_ending: {

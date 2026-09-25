@@ -1926,6 +1926,22 @@ export class GameSession {
 }
 
 // @public
+export interface GameVisualProfile {
+    // (undocumented)
+    ambientGlow?: number;
+    // (undocumented)
+    backgroundLayers?: string[];
+    // (undocumented)
+    particleShape?: "circle" | "polygon" | "shard";
+    // (undocumented)
+    planetProfile?: "blue" | "purple" | "toxic" | "volcanic";
+    // (undocumented)
+    starDensity?: number;
+    // (undocumented)
+    starSpeed?: number;
+}
+
+// @public
 export type GeometryWarsRoleKey = CommonRoleKey | "chaser" | "evader" | "grunt" | "seeker" | "fast_seeker";
 
 // @public
@@ -2770,6 +2786,7 @@ export interface MiniGameResult {
     readonly metrics: Readonly<Record<string, number>>;
     readonly runId: string;
     readonly score: number;
+    readonly secondaryObjectives?: Readonly<Record<string, boolean | number>>;
     readonly secretsFound: ReadonlyArray<string>;
 }
 
@@ -3284,6 +3301,10 @@ export type OutcomeLeafCondition = {
     readonly metric: string;
     readonly operator: OutcomeComparisonOperator;
     readonly value: number;
+} | {
+    readonly secondaryObjective: string;
+    readonly operator?: OutcomeComparisonOperator;
+    readonly value?: boolean | number;
 } | {
     readonly secret: string;
 };
@@ -3943,6 +3964,17 @@ export function resolveThemeColorWithFallback<TRole extends string = GameRoleKey
 
 // @public
 export function resolveTransitionEffect(effect?: string | ITransitionEffect): ITransitionEffect | undefined;
+
+// @public
+export function resolveViewportDimensions(gameConfig?: {
+    worldWidth?: number;
+    worldHeight?: number;
+    viewportWidth?: number;
+    viewportHeight?: number;
+}): {
+    viewportWidth: number;
+    viewportHeight: number;
+};
 
 // @public
 export interface RespawnableComponent extends Component {
@@ -4989,6 +5021,7 @@ export interface Theme<TRole extends string = string> {
     colorMap: Partial<Record<TRole, string>>;
     lore?: Record<string, string>;
     spriteMap: Partial<Record<TRole, string>>;
+    vfxProfile?: GameVisualProfile;
 }
 
 // @public
@@ -5154,10 +5187,11 @@ export class TTLSystem extends System<CoreComponentRegistry> {
 // @public @deprecated
 export class UnifiedInputSystem extends System<ComponentRegistry> implements InputSystem {
     constructor();
-    // (undocumented)
-    bind(_action: string, _keys: string[]): void;
+    bind(action: string, keys: string[]): void;
     clearOverride(action: string): void;
+    dispose(): void;
     getAction(action: string): boolean;
+    setKeyState(code: string, pressed: boolean): void;
     setOverride(action: string, pressed: boolean): void;
     update(_world: World<ComponentRegistry>, _deltaTime: number): void;
 }

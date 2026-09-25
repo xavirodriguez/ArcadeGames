@@ -33,12 +33,11 @@ export async function loadAudioAssets(
 ): Promise<void> {
   if (!audio || !assets || assets.length === 0) return;
 
-  for (let i = 0; i < assets.length; i++) {
-    const asset = assets[i];
-    try {
-      await audio.loadSFX(asset.id, asset.path);
-    } catch (e) {
-      console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
-    }
-  }
+  await Promise.all(
+    assets.map((asset) =>
+      audio.loadSFX(asset.id, asset.path).catch((e) => {
+        console.error(`[Audio] Failed to load asset "${asset.id}" from "${asset.path}":`, e);
+      })
+    )
+  );
 }

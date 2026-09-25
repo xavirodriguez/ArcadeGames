@@ -1,4 +1,5 @@
 import { WebAudioPlayer } from "../WebAudioPlayer";
+import { preloadSharedAudioManifest } from "../AudioEventMap";
 
 // Mock targets
 const mockGainSetValueAtTime = jest.fn();
@@ -198,5 +199,16 @@ describe("WebAudioPlayer", () => {
     player.playSpatialSFX("hit", 10, 0, 0, 0, 100);
     expect(mockStereoPannerSetValueAtTime).toHaveBeenCalled();
     expect(mockSourceStart).toHaveBeenCalled();
+  });
+
+  test("preloadSharedAudioManifest preloads all manifest assets in parallel safely", async () => {
+    const mockLoadSFX = jest.fn().mockResolvedValue(undefined);
+    const mockAudioPlayer: any = {
+      loadSFX: mockLoadSFX
+    };
+
+    await expect(preloadSharedAudioManifest(mockAudioPlayer)).resolves.not.toThrow();
+    expect(mockLoadSFX).toHaveBeenCalled();
+    expect(mockLoadSFX.mock.calls.length).toBeGreaterThan(10);
   });
 });

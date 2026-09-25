@@ -1926,32 +1926,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-25T17:14:10.926Z",
+    "detectionDate": "2026-09-25T21:23:05.720Z",
     "formats": {
       "typescript": {
         "clones": 52,
         "duplicatedLines": 404,
         "duplicatedTokens": 3509,
-        "lines": 68064,
+        "lines": 68077,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.5935590032910203,
-        "percentageTokens": 0.9876411167184083,
+        "percentage": 0.5934456571235512,
+        "percentageTokens": 0.9871354505124158,
         "sources": 411,
-        "tokens": 355291
+        "tokens": 355473
       }
     },
     "total": {
       "clones": 52,
       "duplicatedLines": 404,
       "duplicatedTokens": 3509,
-      "lines": 68064,
+      "lines": 68077,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.5935590032910203,
-      "percentageTokens": 0.9876411167184083,
+      "percentage": 0.5934456571235512,
+      "percentageTokens": 0.9871354505124158,
       "sources": 411,
-      "tokens": 355291
+      "tokens": 355473
     }
   }
 }

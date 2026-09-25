@@ -5,7 +5,7 @@ import {
   NebulaCloud,
   NEBULA_CLOUD_COUNT,
   initializeNebulae,
-  getActiveLevelTheme
+  getActiveVisualContext
 } from "../SharedVFXInternal";
 
 export function advanceNebulaCloud(
@@ -34,7 +34,7 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
     if (!layerCtx) return;
     const { layerState: nebulae, state, offsetX } = layerCtx;
 
-    const theme = getActiveLevelTheme(world);
+    const theme = getActiveVisualContext(world);
 
     ctx.save();
 
@@ -70,7 +70,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponent
     if (!layerCtx) return;
     const { layerState: nebulae, state, offsetX } = layerCtx;
 
-    const theme = getActiveLevelTheme(world);
+    const theme = getActiveVisualContext(world);
 
     canvas.save();
     const paint = Skia.Paint();

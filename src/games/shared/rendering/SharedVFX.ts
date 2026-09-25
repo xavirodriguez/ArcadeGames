@@ -13,6 +13,8 @@ import { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter } from "./DrawAdapter"
 import {
   getVFXState,
   getActiveLevelTheme,
+  getActiveVisualContext,
+  ActiveVisualContext,
   getScreenAndVFXState,
   readCanvasSize,
   getOrCreateCached,
@@ -35,6 +37,7 @@ export { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionSt
 export { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };
 export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };
 export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
+export { ActiveVisualContext, getActiveVisualContext };
 export { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter };
 
 export { getActiveLevelTheme, getScreenAndVFXState, readCanvasSize, createParallaxLayer };

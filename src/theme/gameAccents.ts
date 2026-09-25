@@ -1,5 +1,5 @@
 import { colors } from './colors';
-import type { Theme } from '@tiny-aster/core';
+import type { Theme, GameVisualProfile } from '@tiny-aster/core';
 
 /**
  * Mapeo de paletas de juego a tokens de color existentes.
@@ -74,6 +74,19 @@ export function getGameAccentColors(game: GameKey) {
  */
 export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<Theme>): Theme {
   const accentColors = getGameAccentColors(game);
+
+  const defaultVfxProfiles: Partial<Record<GameKey, GameVisualProfile>> = {
+    pong: {
+      starDensity: 0.2,
+      starSpeed: 0.0,
+      ambientGlow: 0.2,
+      particleShape: "circle",
+      backgroundLayers: ["starfield"],
+    },
+  };
+
+  const defaultVfx = defaultVfxProfiles[game];
+
   const defaultColorMap: Record<string, string> = {
     primary: accentColors.primary,
     secondary: accentColors.secondary,
@@ -113,5 +126,8 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     spriteMap: { ...customTheme?.spriteMap },
     colorMap: { ...defaultColorMap, ...customTheme?.colorMap },
     lore: { ...customTheme?.lore },
+    vfxProfile: customTheme?.vfxProfile
+      ? { ...defaultVfx, ...customTheme.vfxProfile }
+      : defaultVfx,
   };
 }

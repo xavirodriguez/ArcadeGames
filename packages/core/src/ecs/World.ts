@@ -840,6 +840,9 @@ function assertResourceShape(name: string, value: unknown): void {
       if (value.colorMap !== undefined && !isRecord(value.colorMap)) {
         throw new Error(`[World] Resource "Theme" colorMap must be an object.`);
       }
+      if (value.vfxProfile !== undefined && !isRecord(value.vfxProfile)) {
+        throw new Error(`[World] Resource "Theme" vfxProfile must be an object.`);
+      }
       break;
     }
     case "GameplayFreeze":

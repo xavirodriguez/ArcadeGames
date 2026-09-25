@@ -6,7 +6,7 @@ import {
   createParallaxLayer,
   RingingPlanetState,
   initializeRingingPlanet,
-  getActiveLevelTheme,
+  getActiveVisualContext,
   getOrCreateCached
 } from "../SharedVFXInternal";
 
@@ -28,7 +28,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
 
     ctx.save();
 
-    const theme = getActiveLevelTheme(world);
+    const theme = getActiveVisualContext(world);
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
 
     ctx.save();
@@ -137,7 +137,7 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
     if (!planet) return;
 
     const posX = wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);
-    const theme = getActiveLevelTheme(world);
+    const theme = getActiveVisualContext(world);
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
 
     canvas.save();

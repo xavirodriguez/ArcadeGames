@@ -1,4 +1,4 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
 import type { SkColor, SkPath, SkShader } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
@@ -17,6 +17,24 @@ export { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionSt
 export { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };
 export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };
 export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
+
+export interface ActiveVisualContext {
+  starDensity: number;
+  starSpeed: number;
+  ambientGlow: number;
+  planetProfile?: PlanetType;
+  backgroundLayers?: string[];
+  particleShape?: "circle" | "polygon" | "shard";
+  nebulaPalette: readonly string[];
+  backgroundColor: string;
+  asteroidTint?: string;
+  enemyAccent: string;
+  playerAccent: string;
+  parallaxProfile: string;
+  explosionProfile: ExplosionType;
+  stationProfile?: string;
+  crtIntensity?: number;
+}
 
 export interface Star {
   x: number;
@@ -228,6 +246,37 @@ export function getActiveLevelTheme<TComponents extends CoreComponentRegistry = 
   const themes: LevelThemeName[] = ["deep_space", "violet_nebula", "industrial_orbit", "volcanic_rift", "alien_bloom"];
   const themeName = themes[(level - 1) % themes.length];
   return getLevelTheme(themeName);
+}
+
+export function getActiveVisualContext<TComponents extends CoreComponentRegistry = CoreComponentRegistry>(
+  world: World<TComponents>
+): ActiveVisualContext {
+  const levelTheme = getActiveLevelTheme(world);
+  const hasExplicitCampaignTheme = Boolean(world.getResource<LevelThemeName>("ActiveLevelThemeName"));
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  const vfxProfile = theme?.vfxProfile;
+
+  if (hasExplicitCampaignTheme) {
+    return {
+      ...levelTheme,
+      starDensity: levelTheme.starDensity,
+      starSpeed: levelTheme.starSpeed,
+      ambientGlow: levelTheme.ambientGlow,
+      planetProfile: levelTheme.planetProfile ?? vfxProfile?.planetProfile,
+      backgroundLayers: vfxProfile?.backgroundLayers,
+      particleShape: vfxProfile?.particleShape ?? "circle",
+    };
+  }
+
+  return {
+    ...levelTheme,
+    starDensity: vfxProfile?.starDensity ?? levelTheme.starDensity,
+    starSpeed: vfxProfile?.starSpeed ?? levelTheme.starSpeed,
+    ambientGlow: vfxProfile?.ambientGlow ?? levelTheme.ambientGlow,
+    planetProfile: vfxProfile?.planetProfile ?? levelTheme.planetProfile,
+    backgroundLayers: vfxProfile?.backgroundLayers,
+    particleShape: vfxProfile?.particleShape ?? "circle",
+  };
 }
 
 export function getScreenAndVFXState<TComponents extends ComponentRegistry = ComponentRegistry>(

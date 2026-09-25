@@ -108,16 +108,40 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const bulletTransform = world.getComponent(bullets[0], "Transform");
       expect(bulletTransform?.rotation).toBeCloseTo(Math.PI / 4, 5); // Must match transform.rotation (45 deg)
 
-      // Calculate what atan2(vy, vx) would have been:
-      // bullet vx = velocity.vx + cos(rotation) * bulletSpeed = 200 + cos(PI/4) * 300 = 200 + 212.13 = 412.13
-      // bullet vy = velocity.vy + sin(rotation) * bulletSpeed = 0 + sin(PI/4) * 300 = 212.13
-      // atan2(212.13, 412.13) = 0.474 rad (approx 27 degrees), not 45 degrees!
+      // Bullet velocity does not inherit ship velocity; direction matches ship angle directly
       const bulletVelocity = world.getComponent(bullets[0], "Velocity");
       expect(bulletVelocity).toBeDefined();
       if (bulletVelocity) {
         const expectedAtan2 = Math.atan2(bulletVelocity.vy, bulletVelocity.vx);
-        expect(bulletTransform?.rotation).not.toBeCloseTo(expectedAtan2, 3);
+        expect(bulletTransform?.rotation).toBeCloseTo(expectedAtan2, 5);
       }
+    });
+
+    it("should set render.rotation to 0 on bullets so rotation is not doubled", () => {
+      const angle = -Math.PI / 6; // -30 degrees
+
+      // 1. Bullet created via blueprint / factory
+      const bulletBp = createBullet({ world, x: 100, y: 100, rotation: angle, speed: 300 });
+      const bpTransform = world.getComponent(bulletBp, "Transform");
+      const bpRender = world.getComponent(bulletBp, "Render");
+
+      expect(bpTransform?.rotation).toBeCloseTo(angle, 5);
+      expect(bpRender?.rotation).toBe(0);
+      const effectiveBpRotation = (bpTransform?.rotation ?? 0) + (bpRender?.rotation ?? 0);
+      expect(effectiveBpRotation).toBeCloseTo(angle, 5);
+
+      // 2. Bullet created via BulletPool
+      const pool = new (require("../EntityPool").BulletPool)();
+      world.setResource("BulletPool", pool);
+      const bulletPooled = createBullet({ world, x: 100, y: 100, rotation: angle, speed: 300 });
+
+      const poolTransform = world.getComponent(bulletPooled, "Transform");
+      const poolRender = world.getComponent(bulletPooled, "Render");
+
+      expect(poolTransform?.rotation).toBeCloseTo(angle, 5);
+      expect(poolRender?.rotation).toBe(0);
+      const effectivePoolRotation = (poolTransform?.rotation ?? 0) + (poolRender?.rotation ?? 0);
+      expect(effectivePoolRotation).toBeCloseTo(angle, 5);
     });
   });
 

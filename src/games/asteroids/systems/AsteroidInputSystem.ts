@@ -73,8 +73,8 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           if (this.hasAction(input, "shoot") && cooldown <= 0) {
               const bulletSpeed = config.BULLET_SPEED ?? 300;
               const forward = getForwardVector(transform.rotation);
-              const vx = velocity.vx + forward.x * bulletSpeed;
-              const vy = velocity.vy + forward.y * bulletSpeed;
+              const vx = forward.x * bulletSpeed;
+              const vy = forward.y * bulletSpeed;
 
               createBullet({
                   world,

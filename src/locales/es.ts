@@ -149,6 +149,19 @@ export const es = {
     shield_boost: "🛡️ MEJORA DE ESCUDO",
     extra_lives_active: "❤️ BONO DE VIDAS EXTRA",
     objective: "OBJETIVO",
+    poc: {
+      title_start: "Inicio: Crisis en la estación",
+      title_act1_intro: "Despliegue Orbital",
+      title_act1_gameplay: "Acto 1: Despeje de Asteroides",
+      title_bridge_choice: "Elección de Ruta Táctica",
+      title_act2_si: "Acto 2: Space Invaders",
+      title_act2_fb: "Acto 2: Canal de Escombros",
+      title_act3_asteroids: "Acto 3: Asteroids Clímax",
+      title_act3_si: "Acto 3: Space Invaders Clímax",
+      title_ending_flawless: "Final: Victoria Impecable",
+      title_ending_pyrrhic: "Final: Victoria Pirrórica",
+      title_ending_survival: "Final: Supervivencia"
+    }
   },
   asteroids: {
     instructions: "↑ Empujar  ←→ Rotar  Espacio Disparar  Shift Hiperspacio",

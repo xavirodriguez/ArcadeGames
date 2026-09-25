@@ -589,8 +589,11 @@ export class StoryRuntime {
       this.eventBus.emit(node.emitEvent.name, (node.emitEvent.payload || {}) as Record<string, number | string | boolean>);
     }
 
-    // Invisible branch node handling: auto-evaluate transitions immediately without UI pause
-    if (node.type === "branch") {
+    // Invisible branch node or empty dialogue/cutscene node handling: auto-evaluate transitions immediately without UI pause
+    const isEmptyDialogue = node.type === "dialogue" && (!node.dialogue?.lines || node.dialogue.lines.length === 0);
+    const isEmptyCutscene = node.type === "cutscene" && (!node.cutscene?.dialogueQueue || node.cutscene.dialogueQueue.length === 0);
+
+    if (node.type === "branch" || isEmptyDialogue || isEmptyCutscene) {
       const transitioned = this.evaluateTransitions();
       if (transitioned && this.state.currentNodeId !== nodeId) {
         return true;
@@ -978,7 +981,13 @@ export class StoryRuntime {
       this.state.evidence = [];
     }
     if (this.state.currentNodeId) {
-      this.navigateToNode(this.state.currentNodeId);
+      const navigated = this.navigateToNode(this.state.currentNodeId);
+      if (!navigated && this.graph?.entryNodeId) {
+        console.warn(`[StoryRuntime] Restored node '${this.state.currentNodeId}' not found in graph; falling back to entry node '${this.graph.entryNodeId}'.`);
+        this.navigateToNode(this.graph.entryNodeId);
+      }
+    } else if (this.graph?.entryNodeId) {
+      this.navigateToNode(this.graph.entryNodeId);
     } else {
       this.emitStateChanged();
     }

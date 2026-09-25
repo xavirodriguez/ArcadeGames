@@ -56,6 +56,19 @@ export const en = {
     shield_boost: "🛡️ SHIELD BOOST",
     extra_lives_active: "❤️ EXTRA LIVES BONUS",
     objective: "OBJECTIVE",
+    poc: {
+      title_start: "Start: Station Crisis",
+      title_act1_intro: "Orbital Deployment",
+      title_act1_gameplay: "Act 1: Asteroid Clearance",
+      title_bridge_choice: "Tactical Route Choice",
+      title_act2_si: "Act 2: Space Invaders",
+      title_act2_fb: "Act 2: Debris Channel",
+      title_act3_asteroids: "Act 3: Asteroids Climax",
+      title_act3_si: "Act 3: Space Invaders Climax",
+      title_ending_flawless: "Ending: Flawless Victory",
+      title_ending_pyrrhic: "Ending: Pyrrhic Victory",
+      title_ending_survival: "Ending: Survival"
+    }
   },
   asteroids: {
     instructions: "↑ Thrust  ←→ Rotate  Space Shoot  Shift Hyperspace",

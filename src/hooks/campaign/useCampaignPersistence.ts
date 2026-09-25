@@ -94,8 +94,12 @@ export async function executeCampaignLoad(
       arcadeOrchestrator?.reset();
       const restoredNode = runtime.getCurrentNode();
       const sceneFromMeta = typeof restoredNode?.meta?.sceneToLoad === "string" ? restoredNode.meta.sceneToLoad : undefined;
-      const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || sceneFromMeta || defaultGameId;
-      await switchGame(targetGame, envelope.activeGameSeed);
+      const isGameplayNode = restoredNode?.type === "gameplay" || Boolean(restoredNode?.sceneToLoad || sceneFromMeta);
+
+      if (isGameplayNode) {
+        const targetGame = envelope.activeGameId || restoredNode?.sceneToLoad || sceneFromMeta || defaultGameId;
+        await switchGame(targetGame, envelope.activeGameSeed);
+      }
       setStatusMessage?.(getLocalizedText("campaign.load_success") || "Campaign Loaded Successfully!");
     }
     return envelope;

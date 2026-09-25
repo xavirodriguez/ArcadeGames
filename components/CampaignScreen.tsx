@@ -489,6 +489,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         <DialogueBoxComponent
           dialogueQueue={activeDialogueQueue}
           getLocalizedText={getLocalizedText}
+          onComplete={() => runtimeRef.current?.evaluateTransitions()}
         />
       )}
 

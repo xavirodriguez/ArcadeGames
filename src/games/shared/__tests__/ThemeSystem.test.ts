@@ -11,7 +11,15 @@ import {
   getGameAccentColors,
   createThemeFromGameAccents,
 } from "../../../theme";
-import { getActiveVisualContext } from "../rendering/SharedVFX";
+import {
+  getActiveVisualContext,
+  ScrollingStarfieldEffect,
+  DistantAsteroidBeltBackgroundEffect,
+  DistantSpaceStationBackgroundEffect,
+  DriftingNebulaBackgroundEffect,
+  RingingPlanetBackgroundEffect,
+  DiffuseMilkyWayBackgroundEffect
+} from "../rendering/SharedVFX";
 
 describe("Design System Theme Tokens Architecture", () => {
   it("exports valid semantic and core color tokens", () => {
@@ -47,12 +55,81 @@ describe("Design System Theme Tokens Architecture", () => {
     expect(theme.colorMap?.boss).toBe(colors.magentaHot);
   });
 
-  it("includes vfxProfile in createThemeFromGameAccents for Pong pilot", () => {
+  it("includes vfxProfile in createThemeFromGameAccents for all games", () => {
     const pongTheme = createThemeFromGameAccents("pong");
     expect(pongTheme.vfxProfile).toBeDefined();
     expect(pongTheme.vfxProfile?.starDensity).toBe(0.2);
-    expect(pongTheme.vfxProfile?.starSpeed).toBe(0.0);
-    expect(pongTheme.vfxProfile?.particleShape).toBe("circle");
+    expect(pongTheme.vfxProfile?.backgroundLayers).toEqual(["starfield"]);
+
+    const asteroidsTheme = createThemeFromGameAccents("asteroids");
+    expect(asteroidsTheme.vfxProfile?.particleShape).toBe("shard");
+    expect(asteroidsTheme.vfxProfile?.backgroundLayers).toEqual(["starfield", "distant_asteroid_belt"]);
+
+    const invadersTheme = createThemeFromGameAccents("space-invaders");
+    expect(invadersTheme.vfxProfile?.particleShape).toBe("polygon");
+    expect(invadersTheme.vfxProfile?.backgroundLayers).toEqual(["starfield", "distant_space_station"]);
+
+    const gwTheme = createThemeFromGameAccents("geometrywars");
+    expect(gwTheme.vfxProfile?.particleShape).toBe("polygon");
+    expect(gwTheme.vfxProfile?.backgroundLayers).toEqual(["diffuse_milky_way"]);
+
+    const flappyTheme = createThemeFromGameAccents("flappy-bird");
+    expect(flappyTheme.vfxProfile?.planetProfile).toBe("purple");
+    expect(flappyTheme.vfxProfile?.backgroundLayers).toEqual(["starfield", "drifting_nebula", "ringing_planet"]);
+
+    const platformerTheme = createThemeFromGameAccents("platformer");
+    expect(platformerTheme.vfxProfile?.backgroundLayers).toEqual(["starfield", "distant_space_station"]);
+  });
+
+  it("filters background layer rendering based on vfxProfile backgroundLayers", () => {
+    const world = new World();
+
+    // 1. Theme with backgroundLayers: ["starfield"] only
+    world.setResource(THEME_RESOURCE_KEY, {
+      spriteMap: {},
+      colorMap: {},
+      vfxProfile: {
+        backgroundLayers: ["starfield"]
+      }
+    });
+
+    const saveMock = jest.fn();
+    const mockCtx = ({
+      save: saveMock,
+      restore: jest.fn(),
+      fillRect: jest.fn(),
+      beginPath: jest.fn(),
+      stroke: jest.fn(),
+      fill: jest.fn(),
+      translate: jest.fn(),
+      rotate: jest.fn(),
+    } as Partial<CanvasRenderingContext2D>) as CanvasRenderingContext2D;
+
+    // ScrollingStarfieldEffect SHOULD draw
+    ScrollingStarfieldEffect.draw(mockCtx, world);
+    expect(saveMock).toHaveBeenCalled();
+
+    saveMock.mockClear();
+
+    // DistantAsteroidBeltBackgroundEffect SHOULD NOT draw
+    DistantAsteroidBeltBackgroundEffect.draw(mockCtx, world);
+    expect(mockCtx.save).not.toHaveBeenCalled();
+
+    // DistantSpaceStationBackgroundEffect SHOULD NOT draw
+    DistantSpaceStationBackgroundEffect.draw(mockCtx, world);
+    expect(mockCtx.save).not.toHaveBeenCalled();
+
+    // DriftingNebulaBackgroundEffect SHOULD NOT draw
+    DriftingNebulaBackgroundEffect.draw(mockCtx, world);
+    expect(mockCtx.save).not.toHaveBeenCalled();
+
+    // RingingPlanetBackgroundEffect SHOULD NOT draw
+    RingingPlanetBackgroundEffect.draw(mockCtx, world);
+    expect(mockCtx.save).not.toHaveBeenCalled();
+
+    // DiffuseMilkyWayBackgroundEffect SHOULD NOT draw
+    DiffuseMilkyWayBackgroundEffect.draw(mockCtx, world);
+    expect(mockCtx.save).not.toHaveBeenCalled();
   });
 
   it("resolves getActiveVisualContext with correct precedence for standalone vs campaign mode", () => {

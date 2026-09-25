@@ -30,11 +30,12 @@ const driftingNebulaLayer = createParallaxLayer<NebulaCloud[]>({
 
 export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("drifting_nebula")) return;
+
     const layerCtx = driftingNebulaLayer(world);
     if (!layerCtx) return;
     const { layerState: nebulae, state, offsetX } = layerCtx;
-
-    const theme = getActiveVisualContext(world);
 
     ctx.save();
 
@@ -66,11 +67,12 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
 export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("drifting_nebula")) return;
+
     const layerCtx = driftingNebulaLayer(world);
     if (!layerCtx) return;
     const { layerState: nebulae, state, offsetX } = layerCtx;
-
-    const theme = getActiveVisualContext(world);
 
     canvas.save();
     const paint = Skia.Paint();

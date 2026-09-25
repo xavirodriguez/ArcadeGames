@@ -42,13 +42,27 @@ export { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter };
 
 export { getActiveLevelTheme, getScreenAndVFXState, readCanvasSize, createParallaxLayer };
 
-// Export layered effects
-export { ScrollingStarfieldEffect, SkiaScrollingStarfieldEffect } from "./layers/ScrollingStarfieldLayer";
-export { DriftingNebulaBackgroundEffect, SkiaDriftingNebulaBackgroundEffect } from "./layers/DriftingNebulaLayer";
-export { DiffuseMilkyWayBackgroundEffect, SkiaDiffuseMilkyWayBackgroundEffect } from "./layers/DiffuseMilkyWayLayer";
-export { DistantAsteroidBeltBackgroundEffect, SkiaDistantAsteroidBeltBackgroundEffect } from "./layers/DistantAsteroidBeltLayer";
-export { DistantSpaceStationBackgroundEffect, SkiaDistantSpaceStationBackgroundEffect } from "./layers/DistantSpaceStationLayer";
-export { RingingPlanetBackgroundEffect, SkiaRingingPlanetBackgroundEffect } from "./layers/RingingPlanetLayer";
+import { ScrollingStarfieldEffect, SkiaScrollingStarfieldEffect } from "./layers/ScrollingStarfieldLayer";
+import { DriftingNebulaBackgroundEffect, SkiaDriftingNebulaBackgroundEffect } from "./layers/DriftingNebulaLayer";
+import { DiffuseMilkyWayBackgroundEffect, SkiaDiffuseMilkyWayBackgroundEffect } from "./layers/DiffuseMilkyWayLayer";
+import { DistantAsteroidBeltBackgroundEffect, SkiaDistantAsteroidBeltBackgroundEffect } from "./layers/DistantAsteroidBeltLayer";
+import { DistantSpaceStationBackgroundEffect, SkiaDistantSpaceStationBackgroundEffect } from "./layers/DistantSpaceStationLayer";
+import { RingingPlanetBackgroundEffect, SkiaRingingPlanetBackgroundEffect } from "./layers/RingingPlanetLayer";
+
+export {
+  ScrollingStarfieldEffect,
+  SkiaScrollingStarfieldEffect,
+  DriftingNebulaBackgroundEffect,
+  SkiaDriftingNebulaBackgroundEffect,
+  DiffuseMilkyWayBackgroundEffect,
+  SkiaDiffuseMilkyWayBackgroundEffect,
+  DistantAsteroidBeltBackgroundEffect,
+  SkiaDistantAsteroidBeltBackgroundEffect,
+  DistantSpaceStationBackgroundEffect,
+  SkiaDistantSpaceStationBackgroundEffect,
+  RingingPlanetBackgroundEffect,
+  SkiaRingingPlanetBackgroundEffect
+};
 
 // Export Mission HUD shared utilities
 export {
@@ -264,6 +278,13 @@ export function registerSharedVFXAssets(renderer: Renderer<CoreComponentRegistry
       r.registerShape("comet_trail", CometMotionTrailEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
       r.registerShape("hologram_glitch", RGBHologramGlitchEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
       r.registerShape("floating_text", FloatingTextScoreEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+
+      r.registerBackgroundEffect("diffuse_milky_way", DiffuseMilkyWayBackgroundEffect);
+      r.registerBackgroundEffect("drifting_nebula", DriftingNebulaBackgroundEffect);
+      r.registerBackgroundEffect("starfield", ScrollingStarfieldEffect);
+      r.registerBackgroundEffect("distant_space_station", DistantSpaceStationBackgroundEffect);
+      r.registerBackgroundEffect("distant_asteroid_belt", DistantAsteroidBeltBackgroundEffect);
+      r.registerBackgroundEffect("ringing_planet", RingingPlanetBackgroundEffect);
     },
     skia: (r) => {
       r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
@@ -274,6 +295,13 @@ export function registerSharedVFXAssets(renderer: Renderer<CoreComponentRegistry
       r.registerShape("comet_trail", SkiaCometMotionTrailEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
       r.registerShape("hologram_glitch", SkiaRGBHologramGlitchEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
       r.registerShape("floating_text", SkiaFloatingTextScoreEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+
+      r.registerBackgroundEffect("diffuse_milky_way", SkiaDiffuseMilkyWayBackgroundEffect);
+      r.registerBackgroundEffect("drifting_nebula", SkiaDriftingNebulaBackgroundEffect);
+      r.registerBackgroundEffect("starfield", SkiaScrollingStarfieldEffect);
+      r.registerBackgroundEffect("distant_space_station", SkiaDistantSpaceStationBackgroundEffect);
+      r.registerBackgroundEffect("distant_asteroid_belt", SkiaDistantAsteroidBeltBackgroundEffect);
+      r.registerBackgroundEffect("ringing_planet", SkiaRingingPlanetBackgroundEffect);
     }
   });
 }

@@ -19,6 +19,9 @@ const ringingPlanetLayer = createParallaxLayer<RingingPlanetState | undefined>({
 
 export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("ringing_planet")) return;
+
     const layerCtx = ringingPlanetLayer(world);
     if (!layerCtx) return;
     const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;
@@ -27,8 +30,6 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     const posX = wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);
 
     ctx.save();
-
-    const theme = getActiveVisualContext(world);
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
 
     ctx.save();
@@ -131,13 +132,15 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
 export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("ringing_planet")) return;
+
     const layerCtx = ringingPlanetLayer(world);
     if (!layerCtx) return;
     const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;
     if (!planet) return;
 
     const posX = wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);
-    const theme = getActiveVisualContext(world);
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
 
     canvas.save();

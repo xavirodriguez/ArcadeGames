@@ -4,7 +4,8 @@ import { COSMIC_ARCADE_PALETTE } from "../CosmicPalette";
 import {
   createParallaxLayer,
   DistantAsteroid,
-  initializeDistantAsteroids
+  initializeDistantAsteroids,
+  getActiveVisualContext
 } from "../SharedVFXInternal";
 
 export function advanceDistantAsteroid(
@@ -28,6 +29,9 @@ const distantAsteroidsLayer = createParallaxLayer<DistantAsteroid[]>({
 
 export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("distant_asteroid_belt")) return;
+
     const layerCtx = distantAsteroidsLayer(world);
     if (!layerCtx) return;
     const { layerState: asteroids, offsetX, wrapCoordinate } = layerCtx;
@@ -68,6 +72,9 @@ export const DistantAsteroidBeltBackgroundEffect: EffectDrawer<CanvasRenderingCo
 export const SkiaDistantAsteroidBeltBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("distant_asteroid_belt")) return;
+
     const layerCtx = distantAsteroidsLayer(world);
     if (!layerCtx) return;
     const { layerState: asteroids, offsetX, wrapCoordinate } = layerCtx;

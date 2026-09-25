@@ -5,7 +5,8 @@ import {
   createParallaxLayer,
   MilkyWayBandState,
   initializeMilkyWay,
-  getOrCreateCached
+  getOrCreateCached,
+  getActiveVisualContext
 } from "../SharedVFXInternal";
 
 const diffuseMilkyWayLayer = createParallaxLayer<MilkyWayBandState | undefined>({
@@ -17,6 +18,9 @@ const diffuseMilkyWayLayer = createParallaxLayer<MilkyWayBandState | undefined>(
 
 export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("diffuse_milky_way")) return;
+
     const layerCtx = diffuseMilkyWayLayer(world);
     if (!layerCtx) return;
     const { width, height, state, layerState: milkyWay, offsetX, wrapCoordinate } = layerCtx;
@@ -64,6 +68,9 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
 export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
+    const theme = getActiveVisualContext(world);
+    if (theme.backgroundLayers && !theme.backgroundLayers.includes("diffuse_milky_way")) return;
+
     const layerCtx = diffuseMilkyWayLayer(world);
     if (!layerCtx) return;
     const { width, height, state, layerState: milkyWay, offsetX, wrapCoordinate } = layerCtx;

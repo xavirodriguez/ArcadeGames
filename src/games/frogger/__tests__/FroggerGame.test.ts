@@ -290,4 +290,33 @@ describe("FroggerGame Engine & Mechanics", () => {
     expect(state.isGameOver).toBe(true);
     expect(game.isGameOver()).toBe(true);
   });
+
+  it("initializes renderer shapes and background effects safely and idempotently", () => {
+    const registeredCanvasShapes: string[] = [];
+    const registeredCanvasEffects: string[] = [];
+    const mockCanvasRenderer: any = {
+      type: "canvas",
+      registerShape: jest.fn((name) => registeredCanvasShapes.push(name)),
+      registerBackgroundEffect: jest.fn((name) => registeredCanvasEffects.push(name)),
+    };
+
+    expect(() => game.initializeRenderer(mockCanvasRenderer)).not.toThrow();
+    expect(registeredCanvasShapes).toEqual(["frogger", "car", "truck", "log", "turtle", "lily_pad"]);
+    expect(registeredCanvasEffects).toEqual(["froggerBackground"]);
+
+    // Re-registering shouldn't throw error
+    expect(() => game.initializeRenderer(mockCanvasRenderer)).not.toThrow();
+
+    const registeredSkiaShapes: string[] = [];
+    const registeredSkiaEffects: string[] = [];
+    const mockSkiaRenderer: any = {
+      type: "skia",
+      registerShape: jest.fn((name) => registeredSkiaShapes.push(name)),
+      registerBackgroundEffect: jest.fn((name) => registeredSkiaEffects.push(name)),
+    };
+
+    expect(() => game.initializeRenderer(mockSkiaRenderer)).not.toThrow();
+    expect(registeredSkiaShapes).toEqual(["frogger", "car", "truck", "log", "turtle", "lily_pad"]);
+    expect(registeredSkiaEffects).toEqual(["froggerBackground"]);
+  });
 });

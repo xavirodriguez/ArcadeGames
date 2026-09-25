@@ -44,9 +44,10 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
 
     if (!rendererRef.current) {
       rendererRef.current = new EngineCanvasRenderer();
-      if (onInitialize) {
-        onInitialize(rendererRef.current);
-      }
+    }
+
+    if (onInitialize && rendererRef.current) {
+      onInitialize(rendererRef.current);
     }
 
     const unsub = gameLoop?.subscribeRender((_alpha) => {

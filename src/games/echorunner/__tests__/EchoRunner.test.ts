@@ -359,4 +359,55 @@ describe("Echo Runner Game Simulation Tests", () => {
       testGame.destroy();
     }
   });
+
+  it("should detect player overlapping collectibles and collect fragment and core entities", async () => {
+    const testGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await testGame.init();
+      const testWorld = testGame.getWorld();
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+      const playerTrans = testWorld.getComponent(playerEntity, "Transform")!;
+
+      // Spawn a collectible fragment directly at player's position
+      const fragEntity = testWorld.createEntity();
+      testGame.blueprints.get("collectible_fragment")?.spawn(testWorld, fragEntity, {
+        x: playerTrans.x,
+        y: playerTrans.y,
+        id: "test_frag_1"
+      });
+      testWorld.flush();
+
+      expect(testWorld.isAlive(fragEntity)).toBe(true);
+
+      // Advance game simulation frame to let CollisionSystem2D & CollectibleSystem process pickup
+      testGame.update(0.016);
+
+      // Collectible entity should be removed from world
+      expect(testWorld.isAlive(fragEntity)).toBe(false);
+
+      // RunState should have recorded collectible ID
+      const runState = testWorld.getResource<any>("RunState");
+      expect(runState.collectedTemporalIds).toContain("test_frag_1");
+      expect(testGame.getGameState().fragments).toBeGreaterThan(0);
+
+      // Now spawn a collectible core at player's position
+      const coreEntity = testWorld.createEntity();
+      testGame.blueprints.get("collectible_core")?.spawn(testWorld, coreEntity, {
+        x: playerTrans.x,
+        y: playerTrans.y,
+        id: "archive_core_1"
+      });
+      testWorld.flush();
+
+      expect(testWorld.isAlive(coreEntity)).toBe(true);
+
+      testGame.update(0.016);
+
+      expect(testWorld.isAlive(coreEntity)).toBe(false);
+      expect(runState.collectedPermanentIds).toContain("archive_core_1");
+      expect(testGame.getGameState().cores).toBe(1);
+    } finally {
+      testGame.destroy();
+    }
+  });
 });

@@ -240,8 +240,13 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
     this.blueprints.register("collectible_fragment", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        EntityBuilder.fromEntity(world, entity)
+        ArcadeEntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 10, halfHeight: 10 },
+            isTrigger: true
+          })
+          .withCollisionEvents()
           .withRender({ shape: "fragment", size: 16, order: 1 });
 
         world.addComponent(entity, {
@@ -257,8 +262,13 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
     this.blueprints.register("collectible_core", {
       spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        EntityBuilder.fromEntity(world, entity)
+        ArcadeEntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
+            isTrigger: true
+          })
+          .withCollisionEvents()
           .withRender({ shape: "core", size: 24, order: 1 });
 
         world.addComponent(entity, {

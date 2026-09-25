@@ -12,6 +12,7 @@ import {
   DeathSystem,
   RespawnSystem,
   PhysicsIntegrateSystem,
+  CollisionSystem2D,
   TileCollisionSystem,
   CollectibleSystem,
   HitDetectionSystem,
@@ -58,6 +59,7 @@ export function registerCommonPlatformerSystems(
   world.addSystem(new PhysicsIntegrateSystem(), { phase: SystemPhase.Simulation, priority: -10 });
 
   // Collision phase
+  world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
   world.addSystem(new TileCollisionSystem(), { phase: SystemPhase.Collision });
   world.addSystem(new CollectibleSystem(), { phase: SystemPhase.Collision });
   world.addSystem(new HitDetectionSystem(), { phase: SystemPhase.Collision });

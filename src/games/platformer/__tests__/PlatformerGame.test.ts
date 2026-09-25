@@ -224,6 +224,8 @@ describe("Platformer Game Simulation Tests", () => {
       fill: jest.fn(),
       fillRect: jest.fn(),
       strokeRect: jest.fn(),
+      rect: jest.fn(),
+      clip: jest.fn(),
       arc: jest.fn(),
       ellipse: jest.fn(),
       closePath: jest.fn(),
@@ -233,5 +235,26 @@ describe("Platformer Game Simulation Tests", () => {
     } as unknown as CanvasRenderingContext2D;
 
     expect(() => renderer.render(world, dummyCtx)).not.toThrow();
+  });
+
+  it("should collect collectibles when player overlaps them", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const playerTrans = world.getComponent(playerEntity, "Transform")!;
+
+    // Spawn a collectible fragment directly at player's position
+    const fragEntity = world.createEntity();
+    game.blueprints.get("collectible_fragment")?.spawn(world, fragEntity, {
+      x: playerTrans.x,
+      y: playerTrans.y,
+      id: "plat_frag_1"
+    });
+    world.flush();
+
+    expect(world.isAlive(fragEntity)).toBe(true);
+
+    game.update(0.016);
+
+    expect(world.isAlive(fragEntity)).toBe(false);
+    expect(game.getGameState().score).toBeGreaterThan(0);
   });
 });

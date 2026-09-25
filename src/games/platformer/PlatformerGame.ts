@@ -175,6 +175,11 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
         spawn: (world, entity, args: { x: number; y: number; id: string }) => {
           ArcadeEntityBuilder.fromEntity(world, entity)
             .withTransform({ x: args.x, y: args.y })
+            .withCollider2D({
+              shape: { type: "aabb", halfWidth: 10, halfHeight: 10 },
+              isTrigger: true
+            })
+            .withCollisionEvents()
             .withRender({
               shape: "fragment",
               size,

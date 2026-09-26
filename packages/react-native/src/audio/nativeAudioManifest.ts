@@ -161,7 +161,7 @@ export const SHARED_AUDIO_MANIFEST_NATIVE: AudioAssetDefinition[] = SHARED_AUDIO
   const nativeSource = NATIVE_AUDIO_MAP[asset.id] ?? NATIVE_AUDIO_MAP[asset.path] ?? asset.path;
   return {
     id: asset.id,
-    path: typeof nativeSource === "string" ? nativeSource : (nativeSource as unknown as string)
+    path: typeof nativeSource === "string" ? nativeSource : String(nativeSource)
   };
 });
 
@@ -201,8 +201,8 @@ export function resolveNativeAudioSource(sourceInput: unknown): unknown {
   }
 
   if (typeof sourceInput === "object" && sourceInput !== null) {
-    const obj = sourceInput as Record<string, unknown>;
-    const pathOrUri = (obj.uri || obj.path || obj.source) as unknown;
+    const obj = sourceInput as { uri?: string | number; path?: string | number; source?: string | number };
+    const pathOrUri = obj.uri ?? obj.path ?? obj.source;
 
     if (typeof pathOrUri === "string") {
       const mapped = NATIVE_AUDIO_MAP[pathOrUri];

@@ -181,10 +181,11 @@ export default tseslint.config(
       ],
     },
   },
-  // Override estricto para React Native (Fronteras de React Native)
+  // Override para React Native (Fronteras y permitiendo require para Metro assets)
   {
     files: ["packages/react-native/src/**/*.{ts,tsx}"],
     rules: {
+      "@typescript-eslint/no-require-imports": "off",
       "no-restricted-imports": [
         "error",
         {

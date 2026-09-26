@@ -691,10 +691,10 @@ export abstract class BaseGame<
       this.unifiedInput.dispose();
     }
 
-    if (typeof (this.audio as unknown as { dispose?: () => void })?.dispose === "function") {
-      (this.audio as unknown as { dispose: () => void }).dispose();
-    } else if (typeof (this.audio as unknown as { releaseAll?: () => void })?.releaseAll === "function") {
-      (this.audio as unknown as { releaseAll: () => void }).releaseAll();
+    if (typeof this.audio?.dispose === "function") {
+      this.audio.dispose();
+    } else if (typeof this.audio?.releaseAll === "function") {
+      this.audio.releaseAll();
     }
   }
 

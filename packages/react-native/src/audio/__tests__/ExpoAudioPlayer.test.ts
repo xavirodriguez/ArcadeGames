@@ -21,7 +21,7 @@ jest.mock("expo-audio", () => ({
 }));
 
 import { ExpoAudioPlayer, configureNativeAudioMode } from "../ExpoAudioPlayer";
-import { resolveNativeAudioSource, NATIVE_AUDIO_MAP } from "../nativeAudioManifest";
+import { resolveNativeAudioSource } from "../nativeAudioManifest";
 
 describe("ExpoAudioPlayer", () => {
   let mockPlayer: any;

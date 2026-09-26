@@ -147,6 +147,16 @@ export interface IAudioPlayer {
     listenerY: number,
     maxDistance: number
   ): void;
+
+  /**
+   * Optional teardown method to release native or web audio resources.
+   */
+  dispose?(): void;
+
+  /**
+   * Optional teardown method alias to release native or web audio resources.
+   */
+  releaseAll?(): void;
 }
 
 /**

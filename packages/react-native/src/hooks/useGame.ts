@@ -73,10 +73,10 @@ export function useGame<
 
   useEffect(() => {
     return () => {
-      if (typeof (defaultAudio as unknown as { dispose?: () => void })?.dispose === "function") {
-        (defaultAudio as unknown as { dispose: () => void }).dispose();
-      } else if (typeof (defaultAudio as unknown as { releaseAll?: () => void })?.releaseAll === "function") {
-        (defaultAudio as unknown as { releaseAll: () => void }).releaseAll();
+      if (typeof defaultAudio.dispose === "function") {
+        defaultAudio.dispose();
+      } else if (typeof defaultAudio.releaseAll === "function") {
+        defaultAudio.releaseAll();
       }
     };
   }, [defaultAudio]);

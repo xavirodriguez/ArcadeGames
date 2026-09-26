@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Platform, TextInput } from "r
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
-import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { ComboDisplay } from "@/components/ComboDisplay";
 import { FlappyBirdUI } from "@/components/FlappyBirdUI";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
@@ -244,10 +244,10 @@ export default function FlappyBirdScreen() {
           </>
         }
         canvasSlot={
-          <CanvasRenderer
+          <GameRenderer
             world={game.getWorld()}
             gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+            onInitialize={(renderer) => game.initializeRenderer(renderer as any)}
           />
         }
         controlsSlot={

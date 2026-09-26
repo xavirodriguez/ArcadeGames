@@ -34,7 +34,7 @@ import {
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
 import { useTranslation } from "../src/hooks/useTranslation";
-import { CanvasRenderer } from "./CanvasRenderer";
+import { GameRenderer } from "./GameRenderer";
 import { useStoryEventBridge } from "../src/hooks/campaign/useStoryEventBridge";
 import { useCampaignPersistence } from "../src/hooks/campaign/useCampaignPersistence";
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
@@ -560,7 +560,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     <View style={styles.container}>
       {/* Active Minigame Rendering Layer */}
       {activeGame ? (
-        <CanvasRenderer
+        <GameRenderer
           world={activeGame.world as any}
           gameLoop={activeGame.getGameLoop()}
         />

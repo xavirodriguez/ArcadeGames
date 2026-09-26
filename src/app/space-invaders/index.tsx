@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, FC } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { ComboDisplay } from "@/components/ComboDisplay";
 import { SpaceInvadersUI } from "@/components/SpaceInvadersUI";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
@@ -215,10 +215,10 @@ export default function SpaceInvadersScreen() {
           </>
         }
         canvasSlot={
-          <CanvasRenderer
-            world={() => game.getWorld()}
+          <GameRenderer
+            world={game.getWorld()}
             gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+            onInitialize={(renderer) => game.initializeRenderer(renderer as any)}
           />
         }
         controlsSlot={

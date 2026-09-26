@@ -4,7 +4,7 @@ import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
-import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useEchoRunnerGame } from "@/hooks/useEchoRunnerGame";
 import { useTouchDevice } from "@/hooks/useTouchDevice";
@@ -202,10 +202,10 @@ function EchoRunnerContent() {
         </View>
 
         {/* Canvas Renderer */}
-        <CanvasRenderer
+        <GameRenderer
           world={game.getWorld()}
           gameLoop={game.getGameLoop()}
-          onInitialize={(renderer) => game.initializeRenderer(renderer)}
+          onInitialize={(renderer) => game.initializeRenderer(renderer as any)}
         />
 
         {/* Virtual controls for touch devices */}

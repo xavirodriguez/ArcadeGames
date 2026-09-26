@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator }
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { router } from "expo-router";
-import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useArkanoidGame } from "@/hooks/useArkanoidGame";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -120,10 +120,10 @@ export default function ArkanoidScreen() {
             </View>
           }
           canvasSlot={
-            <CanvasRenderer
+            <GameRenderer
               world={game.getWorld()}
               gameLoop={game.getGameLoop()}
-              onInitialize={(renderer) => game.initializeRenderer(renderer)}
+              onInitialize={(renderer) => game.initializeRenderer(renderer as any)}
             />
           }
           controlsSlot={

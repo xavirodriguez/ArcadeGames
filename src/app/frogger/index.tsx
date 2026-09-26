@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Pressable, Platform } from "r
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
-import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useFroggerGame } from "@/hooks/useFroggerGame";
 import { SeedWidget } from "@/components/SeedWidget";
@@ -170,10 +170,10 @@ export default function FroggerScreen() {
             </View>
           }
           canvasSlot={
-            <CanvasRenderer
+            <GameRenderer
               world={game.getWorld()}
               gameLoop={game.getGameLoop()}
-              onInitialize={handleInitializeRenderer}
+              onInitialize={(renderer) => game?.initializeRenderer?.(renderer as any)}
             />
           }
           controlsSlot={

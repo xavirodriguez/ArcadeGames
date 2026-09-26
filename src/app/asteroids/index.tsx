@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator }
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { router, useLocalSearchParams } from "expo-router";
-import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { ComboDisplay } from "@/components/ComboDisplay";
 import { GameUI } from "@/components/GameUI";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
@@ -317,10 +317,10 @@ function AsteroidsGameContent({
             </>
           }
           canvasSlot={
-            <CanvasRenderer
+            <GameRenderer
               world={game.getWorld()}
               gameLoop={game.getGameLoop()}
-              onInitialize={(renderer) => game.initializeRenderer(renderer)}
+              onInitialize={(renderer) => game.initializeRenderer(renderer as any)}
             />
           }
           controlsSlot={

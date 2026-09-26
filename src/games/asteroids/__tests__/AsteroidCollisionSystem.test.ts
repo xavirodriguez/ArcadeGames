@@ -232,6 +232,11 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
     const state = world.getSingleton("GameState")!;
     expect(state.lives).toBe(2);
     expect(state.isGameOver).toBe(false);
+
+    // Verify transform rotation is reset to 0 and dirty flag is set to true on respawn
+    const shipTransform = world.getComponent(ship, "Transform")!;
+    expect(shipTransform.rotation).toBe(0);
+    expect(shipTransform.dirty).toBe(true);
   });
 
   it("should trigger onCombatDeath exactly once per asteroid when HasCombatSystem is true", () => {

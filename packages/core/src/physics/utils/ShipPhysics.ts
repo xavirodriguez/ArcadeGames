@@ -51,7 +51,7 @@ export function computeShipPhysics(
   const thrust = actionsSet.has("thrust") || input.thrust === true;
 
   // 1. Rotation handling
-  if (rotationAmount !== undefined) {
+  if (rotationAmount !== undefined && rotationAmount !== 0) {
     rotation += rotationAmount * config.SHIP_ROTATION_SPEED * deltaTimeSec;
   } else {
     if (rotateLeft) {

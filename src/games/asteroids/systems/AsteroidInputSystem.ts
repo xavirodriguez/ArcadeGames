@@ -57,6 +57,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           const mutTrans = world.getMutableComponent(entity, "Transform");
           if (mutTrans) {
               mutTrans.rotation = phys.rotation;
+              mutTrans.dirty = true;
           }
 
           // 2. Process shooting

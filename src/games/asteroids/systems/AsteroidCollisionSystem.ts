@@ -303,6 +303,8 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
       world.mutateComponent(ship, "Transform", (t) => {
         t.x = screen.width / 2;
         t.y = screen.height / 2;
+        t.rotation = 0;
+        t.dirty = true;
       });
       world.mutateComponent(ship, "Velocity", (v) => {
         v.vx = 0;

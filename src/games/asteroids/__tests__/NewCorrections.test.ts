@@ -194,9 +194,9 @@ describe("Phase 1-3 New Corrections Unit Tests", () => {
       result = computeShipPhysics(transform, velocity, { rotateRight: true } as any, config, 0.1);
       expect(result.rotation).toBeCloseTo(4.0 * 0.1, 4); // 0.4
 
-      // rotationAmount is 0, rotateRight is true (rotationAmount takes precedence, so 0 rotation)
+      // rotationAmount is 0, rotateRight is true (rotationAmount 0 allows fallback to discrete rotateRight)
       result = computeShipPhysics(transform, velocity, { rotationAmount: 0, rotateRight: true } as any, config, 0.1);
-      expect(result.rotation).toBe(0);
+      expect(result.rotation).toBeCloseTo(4.0 * 0.1, 4); // 0.4
     });
   });
 });

@@ -1,4 +1,4 @@
-import { CoreComponentRegistry, CoreEvents, Component, BlueprintRegistryMap } from "@tiny-aster/core";
+import { CoreComponentRegistry, CoreEvents, Component, BlueprintRegistryMap, MultiplayerRegistry } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { SpawnDirectorComponent, WaveMemberComponent } from "@tiny-aster/gameplay-kit";
 import { ComboComponent } from "@tiny-aster/core";
@@ -68,7 +68,7 @@ export interface GeometryWarsInput extends Record<string, any> {
  * Registry containing all components used in Geometry Wars.
  * @public
  */
-export interface GeometryWarsComponentRegistry extends CoreComponentRegistry {
+export interface GeometryWarsComponentRegistry extends CoreComponentRegistry, MultiplayerRegistry {
   GeometryWarsState: GeometryWarsStateComponent;
   Aim: AimComponent;
   Player: PlayerComponent;

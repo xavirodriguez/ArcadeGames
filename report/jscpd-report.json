@@ -1112,6 +1112,80 @@
     },
     {
       "firstFile": {
+        "end": 289,
+        "endLoc": {
+          "column": 39,
+          "line": 289,
+          "position": 9730
+        },
+        "name": "geometrywars/GeometryWarsGame.ts",
+        "start": 282,
+        "startLoc": {
+          "column": 83,
+          "line": 282,
+          "position": 9448
+        }
+      },
+      "format": "typescript",
+      "fragment": "        commands.addComponent(entity, createHealthComponent(state.alive ? 1 : 0, 1));\n      },\n      onLocalPlayerMark: (world, entity) => {\n        const commands = world.getCommandBuffer();\n        if (!world.hasComponent(entity, \"LocalPlayer\")) {\n          commands.addComponent(entity, { type: \"LocalPlayer\" });\n        }\n        if (!world.hasComponent(entity, \"Player\")) {",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 743,
+        "endLoc": {
+          "column": 39,
+          "line": 743,
+          "position": 31493
+        },
+        "name": "space-invaders/SpaceInvadersGame.ts",
+        "start": 736,
+        "startLoc": {
+          "column": 84,
+          "line": 736,
+          "position": 31211
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 338,
+        "endLoc": {
+          "column": 34,
+          "line": 338,
+          "position": 11776
+        },
+        "name": "geometrywars/GeometryWarsGame.ts",
+        "start": 328,
+        "startLoc": {
+          "column": 8,
+          "line": 328,
+          "position": 11529
+        }
+      },
+      "format": "typescript",
+      "fragment": "        );\n      },\n      sync: () => {}\n    }\n  ];\n\n  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {\n    if (!this.isMultiplayer || !state) return;\n    const world = this.getWorld();\n\n    const gs = world.getSingleton(\"GeometryWarsState\");",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 789,
+        "endLoc": {
+          "column": 34,
+          "line": 789,
+          "position": 33313
+        },
+        "name": "space-invaders/SpaceInvadersGame.ts",
+        "start": 778,
+        "startLoc": {
+          "column": 82,
+          "line": 778,
+          "position": 32988
+        }
+      },
+      "tokens": 60
+    },
+    {
+      "firstFile": {
         "end": 26,
         "endLoc": {
           "column": 37,
@@ -1926,32 +2000,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-26T17:24:07.776Z",
+    "detectionDate": "2026-09-26T20:06:55.785Z",
     "formats": {
       "typescript": {
-        "clones": 52,
-        "duplicatedLines": 404,
-        "duplicatedTokens": 3509,
-        "lines": 68096,
+        "clones": 54,
+        "duplicatedLines": 421,
+        "duplicatedTokens": 3627,
+        "lines": 68176,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.5932800751879699,
-        "percentageTokens": 0.9871521125730377,
+        "percentage": 0.6175193616521943,
+        "percentageTokens": 1.0187658523842829,
         "sources": 411,
-        "tokens": 355467
+        "tokens": 356019
       }
     },
     "total": {
-      "clones": 52,
-      "duplicatedLines": 404,
-      "duplicatedTokens": 3509,
-      "lines": 68096,
+      "clones": 54,
+      "duplicatedLines": 421,
+      "duplicatedTokens": 3627,
+      "lines": 68176,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.5932800751879699,
-      "percentageTokens": 0.9871521125730377,
+      "percentage": 0.6175193616521943,
+      "percentageTokens": 1.0187658523842829,
       "sources": 411,
-      "tokens": 355467
+      "tokens": 356019
     }
   }
 }

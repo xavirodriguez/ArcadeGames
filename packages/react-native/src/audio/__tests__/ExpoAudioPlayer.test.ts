@@ -1,17 +1,34 @@
-import { ExpoAudioPlayer } from "../ExpoAudioPlayer";
-import { createAudioPlayer } from "expo-audio";
+import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 
-jest.mock("expo-audio", () => {
-  return {
-    createAudioPlayer: jest.fn()
-  };
-});
+let appStateListener: ((state: string) => void) | null = null;
+const mockRemoveSubscription = jest.fn();
+
+jest.mock("react-native", () => ({
+  Platform: {
+    OS: "ios"
+  },
+  AppState: {
+    addEventListener: jest.fn((_event: string, callback: (state: string) => void) => {
+      appStateListener = callback;
+      return { remove: mockRemoveSubscription };
+    })
+  }
+}));
+
+jest.mock("expo-audio", () => ({
+  createAudioPlayer: jest.fn(),
+  setAudioModeAsync: jest.fn().mockResolvedValue(undefined)
+}));
+
+import { ExpoAudioPlayer, configureNativeAudioMode } from "../ExpoAudioPlayer";
+import { resolveNativeAudioSource, NATIVE_AUDIO_MAP } from "../nativeAudioManifest";
 
 describe("ExpoAudioPlayer", () => {
   let mockPlayer: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    appStateListener = null;
 
     mockPlayer = {
       volume: 1.0,
@@ -28,18 +45,26 @@ describe("ExpoAudioPlayer", () => {
     (createAudioPlayer as jest.Mock).mockReturnValue(mockPlayer);
   });
 
-  test("loadSFX initializes AudioPlayer with resolved source and stores player", async () => {
+  test("loadSFX initializes AudioPlayer with resolved source and stores player in pool", async () => {
     const player = new ExpoAudioPlayer();
     await player.loadSFX("shoot", "/assets/audio/combat/shoot.wav");
 
-    expect(createAudioPlayer).toHaveBeenCalledWith({ uri: "/assets/audio/combat/shoot.wav" });
+    const expectedSource = resolveNativeAudioSource("/assets/audio/combat/shoot.wav");
+    const expectedSourceToLoad =
+      typeof expectedSource === "string" ? { uri: expectedSource } : expectedSource;
+
+    expect(createAudioPlayer).toHaveBeenCalledWith(expectedSourceToLoad);
   });
 
-  test("loadSFX resolves manifest path when options is omitted", async () => {
+  test("loadSFX resolves manifest path or native module ID when options is omitted", async () => {
     const player = new ExpoAudioPlayer();
     await player.loadSFX("shoot");
 
-    expect(createAudioPlayer).toHaveBeenCalledWith({ uri: "/assets/audio/combat/shoot.wav" });
+    const expectedSource = resolveNativeAudioSource("shoot");
+    const expectedSourceToLoad =
+      typeof expectedSource === "string" ? { uri: expectedSource } : expectedSource;
+
+    expect(createAudioPlayer).toHaveBeenCalledWith(expectedSourceToLoad);
   });
 
   test("loadSFX handles creation failure defensively without throwing", async () => {
@@ -102,7 +127,11 @@ describe("ExpoAudioPlayer", () => {
 
     player.playBGM("bgm1", "/audio/bgm.mp3");
 
-    expect(createAudioPlayer).toHaveBeenCalledWith({ uri: "/audio/bgm.mp3" });
+    const expectedSource = resolveNativeAudioSource("/audio/bgm.mp3");
+    const expectedSourceToLoad =
+      typeof expectedSource === "string" ? { uri: expectedSource } : expectedSource;
+
+    expect(createAudioPlayer).toHaveBeenCalledWith(expectedSourceToLoad);
     expect(mockPlayer.loop).toBe(true);
     expect(mockPlayer.volume).toBeCloseTo(0.4); // 0.8 * 0.5
     expect(mockPlayer.play).toHaveBeenCalled();
@@ -156,5 +185,51 @@ describe("ExpoAudioPlayer", () => {
 
     player.playSpatialSFX("explosion", 200, 0, 0, 0, 100);
     expect(mockPlayer.play).not.toHaveBeenCalled();
+  });
+
+  test("configures native audio mode on init and provides configureNativeAudioMode export", async () => {
+    await configureNativeAudioMode();
+    expect(setAudioModeAsync).toHaveBeenCalledWith({
+      playsInSilentMode: true,
+      shouldPlayInBackground: false,
+      interruptionMode: "doNotMix"
+    });
+  });
+
+  test("handles AppState changes by pausing BGM on background and resuming on active", () => {
+    const player = new ExpoAudioPlayer();
+    player.playBGM("bgm1", "/audio/bgm.mp3");
+
+    expect(appStateListener).not.toBeNull();
+
+    // Transition to background
+    appStateListener!("background");
+    expect(mockPlayer.pause).toHaveBeenCalled();
+
+    // Transition back to active
+    appStateListener!("active");
+    expect(mockPlayer.play).toHaveBeenCalled();
+  });
+
+  test("pools SFX players for rapid triggers without cut-offs", async () => {
+    const player = new ExpoAudioPlayer();
+    await player.loadSFX("shoot", "/assets/audio/combat/shoot.wav");
+
+    // Play multiple times rapidly
+    player.playSFX("shoot");
+    player.playSFX("shoot");
+
+    expect(mockPlayer.play).toHaveBeenCalled();
+  });
+
+  test("dispose / releaseAll stops BGM, removes players and removes AppState listener", async () => {
+    const player = new ExpoAudioPlayer();
+    await player.loadSFX("shoot", "/assets/audio/combat/shoot.wav");
+    player.playBGM("bgm1", "/audio/bgm.mp3");
+
+    player.dispose();
+
+    expect(mockPlayer.remove).toHaveBeenCalled();
+    expect(mockRemoveSubscription).toHaveBeenCalled();
   });
 });

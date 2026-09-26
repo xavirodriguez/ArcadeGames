@@ -71,6 +71,16 @@ export function useGame<
     return Platform.OS === "web" ? new WebAudioPlayer() : new ExpoAudioPlayer();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (typeof (defaultAudio as unknown as { dispose?: () => void })?.dispose === "function") {
+        (defaultAudio as unknown as { dispose: () => void }).dispose();
+      } else if (typeof (defaultAudio as unknown as { releaseAll?: () => void })?.releaseAll === "function") {
+        (defaultAudio as unknown as { releaseAll: () => void }).releaseAll();
+      }
+    };
+  }, [defaultAudio]);
+
   const audioPlayer = options.audio ?? defaultAudio;
 
   const config = useMemo(() => ({

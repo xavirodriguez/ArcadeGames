@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
-import { GameServicesProvider } from "@tiny-aster/react-native";
+import { GameServicesProvider, configureNativeAudioMode } from "@tiny-aster/react-native";
 import { AudioSettingsService } from "../services/AudioSettingsService";
 import { Platform, View, ActivityIndicator, Text } from "react-native";
 
@@ -11,7 +11,10 @@ export default function RootLayout() {
   const [skiaReady, setSkiaReady] = useState(Platform.OS !== "web");
 
   useEffect(() => {
-    if (Platform.OS !== "web") return;
+    if (Platform.OS !== "web") {
+      configureNativeAudioMode().catch(() => {});
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {

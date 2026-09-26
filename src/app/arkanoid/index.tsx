@@ -15,16 +15,14 @@ import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "@/utils/haptics";
 import { colors } from "../../theme";
-import {
-  GameScreen,
-  GameTitle,
-  GameInstructions,
-  PlayerNameInput,
-  HighScoreText,
-  BackButton,
-  NeonButton,
-  GameLayoutShell,
-} from "../../components/ui";
+import { GameScreen } from "../../components/ui/GameScreen";
+import { GameTitle } from "../../components/ui/GameTitle";
+import { GameInstructions } from "../../components/ui/GameInstructions";
+import { PlayerNameInput } from "../../components/ui/PlayerNameInput";
+import { HighScoreText } from "../../components/ui/HighScoreText";
+import { BackButton } from "../../components/ui/BackButton";
+import { NeonButton } from "../../components/ui/NeonButton";
+import { GameLayoutShell } from "../../components/ui/GameLayoutShell";
 
 export default function ArkanoidScreen() {
   const { t } = useTranslation();
@@ -109,14 +107,14 @@ export default function ArkanoidScreen() {
               accessibilityRole="button"
               accessibilityLabel={t.common.back}
             >
-              <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
+              <Text style={sharedScreenStyles.backButtonText}>{`← ${t.common.menu}`}</Text>
             </TouchableOpacity>
           }
           centerHudSlot={
             <View style={styles.hud}>
-              <Text style={styles.hudText}>SCORE {gameState?.score ?? 0}</Text>
-              <Text style={styles.hudText}>LIVES {gameState?.lives ?? 3}</Text>
-              <Text style={styles.hudText}>LVL {gameState?.level ?? 1}</Text>
+              <Text style={styles.hudText}>{`SCORE ${gameState?.score ?? 0}`}</Text>
+              <Text style={styles.hudText}>{`LIVES ${gameState?.lives ?? 3}`}</Text>
+              <Text style={styles.hudText}>{`LVL ${gameState?.level ?? 1}`}</Text>
             </View>
           }
           canvasSlot={

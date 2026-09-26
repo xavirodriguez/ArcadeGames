@@ -64,4 +64,39 @@ test.describe("Game Launch Test Suite", () => {
 
     expect(pageErrors, `Unhandled errors opening Campaign from menu: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
   });
+
+  test("Can navigate to Arkanoid from main menu and verify route", async ({ page }) => {
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (err) => pageErrors.push(err));
+
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    const arkanoidBtn = page.locator('text=/Arkanoid/i').first();
+    await expect(arkanoidBtn).toBeVisible();
+    await arkanoidBtn.click();
+
+    await page.waitForTimeout(1000);
+    await expect(page).toHaveURL(/\/arkanoid/);
+    expect(pageErrors, `Unhandled errors navigating to Arkanoid: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
+  });
+
+  test("Can open /arkanoid, click SOLO, and verify canvas/game mounts", async ({ page }) => {
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (err) => pageErrors.push(err));
+
+    await page.goto("/arkanoid");
+    await page.waitForLoadState("networkidle");
+
+    const soloBtn = page.getByText("SOLO").first();
+    await expect(soloBtn).toBeVisible();
+    await soloBtn.click();
+
+    await page.waitForTimeout(1000);
+
+    // Verify canvas / game container mounts cleanly
+    const body = page.locator("body");
+    await expect(body).toBeVisible();
+    expect(pageErrors, `Unhandled errors on Arkanoid SOLO start: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
+  });
 });

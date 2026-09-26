@@ -15,21 +15,30 @@ import {
   IAssetProvider,
   IAudioPlayer,
   Theme,
-  Mutator,
   preloadSharedAudioManifest,
-  SHARED_AUDIO_MANIFEST
+  SHARED_AUDIO_MANIFEST,
+  NetworkManager,
+  NullTransport,
+  LocalPredictionSystem,
+  RemoteInterpolationSystem,
+  NetworkController,
+  SystemPhase,
+  InputFrame,
+  InterpolationSnapshotEntry,
+  EntitySyncDescriptor,
+  applyServerState
 } from "@tiny-aster/core";
-import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, GeometryWarsStateComponent, GeometryWarsInput, GeometryWarsBlueprintRegistry } from "./types/GeometryWarsRegistry";
+import {
+  GeometryWarsComponentRegistry,
+  GeometryWarsEventRegistry,
+  GeometryWarsStateComponent,
+  GeometryWarsInput,
+  GeometryWarsBlueprintRegistry
+} from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { colors } from "../../theme/colors";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
-
-/**
- * Main game class for Geometry Wars.
- * @public
- */
-import { NetworkManager, WorldSnapshot, InputFrame, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState } from "@tiny-aster/core";
 
 function createTransformComponent(x: number, y: number, rotation: number): TransformComponent {
   return {
@@ -77,18 +86,6 @@ function createHealthComponent(current: number, max: number): HealthComponent {
   };
 }
 
-function syncTransformFromState(
-  world: World<GeometryWarsComponentRegistry>,
-  entity: number,
-  state: { x: number; y: number; angle: number }
-): void {
-  world.mutateComponent(entity, "Transform", (t: TransformComponent) => {
-    t.x = state.x;
-    t.y = state.y;
-    t.rotation = state.angle;
-  });
-}
-
 export class GeometryWarsGame extends BaseGame<
   GeometryWarsStateComponent, // GameState description returned to HUD
   GeometryWarsInput, // Input frame type mapping
@@ -100,8 +97,15 @@ export class GeometryWarsGame extends BaseGame<
   private baseConfig: GeometryWarsConfig;
   private config: GeometryWarsConfig;
   private currentScene!: GeometryWarsGameScene;
-  public isMultiplayer = false;
   private networkManager!: NetworkManager<GeometryWarsComponentRegistry>;
+  private network: NetworkController<GeometryWarsComponentRegistry>;
+
+  public get isMultiplayer(): boolean {
+    return this.network.isMultiplayer;
+  }
+  public set isMultiplayer(val: boolean) {
+    this.network.isMultiplayer = val;
+  }
 
   constructor(options: { seed?: number; gameOptions?: Record<string, unknown>; assetProvider?: IAssetProvider; audio?: IAudioPlayer; headless?: boolean; isMultiplayer?: boolean; theme?: Theme } = {}) {
     super({
@@ -114,6 +118,7 @@ export class GeometryWarsGame extends BaseGame<
       audio: options.audio || new WebAudioPlayer()
     });
 
+    this.network = new NetworkController<GeometryWarsComponentRegistry>(this.world);
     this.isMultiplayer = options.isMultiplayer || false;
 
     this.baseConfig = ConfigService.load<GeometryWarsConfig>(
@@ -134,6 +139,68 @@ export class GeometryWarsGame extends BaseGame<
     this.world.setResource("GameConfig", this.config);
     this.setupCommonArcadeResources();
     this.world.setResource("BlueprintRegistry", this.blueprints);
+
+    if (!this.networkManager) {
+      this.networkManager = NetworkManager.registerGame(this.gameId, this, {
+        strategy: 'hybrid',
+        interpolationDelay: 100,
+        transport: this.isMultiplayer ? undefined : new NullTransport()
+      });
+    } else if (!this.isMultiplayer) {
+      this.networkManager.setTransport(new NullTransport());
+    }
+
+    this.world.addSystem(
+      new LocalPredictionSystem(this.networkManager, {
+        simulateFn: (world, input, dt) => {
+          const speed = this.config.PLAYER_SPEED ?? 220;
+          const localQuery = world.query("Transform", "LocalPlayer", "Player");
+          for (const entity of localQuery) {
+            const player = world.getComponent(entity, "Player");
+            const transform = world.getComponent(entity, "Transform");
+            if (!player || !transform) continue;
+
+            const inp = input as InputFrame;
+            let moveX = player.moveX;
+            let moveY = player.moveY;
+            if (inp && inp.axes) {
+              if (typeof inp.axes.moveX === "number") moveX = inp.axes.moveX;
+              if (typeof inp.axes.moveY === "number") moveY = inp.axes.moveY;
+            }
+
+            let dx = moveX;
+            let dy = moveY;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len > 1.0) {
+              dx /= len;
+              dy /= len;
+            }
+
+            const vx = dx * speed;
+            const vy = dy * speed;
+
+            world.mutateComponent(entity, "Velocity", (v) => {
+              v.vx = vx;
+              v.vy = vy;
+            });
+
+            world.mutateComponent(entity, "Transform", (t) => {
+              let newX = t.x + vx * dt;
+              let newY = t.y + vy * dt;
+
+              const halfSize = 8;
+              newX = Math.max(halfSize, Math.min(this.config.worldWidth - halfSize, newX));
+              newY = Math.max(halfSize, Math.min(this.config.worldHeight - halfSize, newY));
+
+              t.x = newX;
+              t.y = newY;
+            });
+          }
+        }
+      }),
+      { phase: SystemPhase.Input }
+    );
+    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });
 
     // 2. Initialize and transition to main gameplay scene
     this.currentScene = new GeometryWarsGameScene(this.config, this.isHeadless, this.world);
@@ -160,7 +227,7 @@ export class GeometryWarsGame extends BaseGame<
   }
 
   public setMultiplayerMode(active: boolean) {
-    this.isMultiplayer = active;
+    this.network.setMultiplayerMode(active);
   }
 
   public applyInputToEntity(entityId: number, input: InputFrame) {
@@ -189,11 +256,7 @@ export class GeometryWarsGame extends BaseGame<
   }
 
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
-    const localPlayer = this.getWorld().query("Player")[0];
-    if (localPlayer !== undefined) {
-      this.applyInputToEntity(localPlayer, input);
-    }
-    this.runSimulationStep(deltaTime, false);
+    this.network.predictLocalPlayer(input, deltaTime);
   }
 
   private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<
@@ -205,7 +268,7 @@ export class GeometryWarsGame extends BaseGame<
   >[] = [
     {
       serverIdPrefix: "player",
-      localPlayerPolicy: "skip",
+      localPlayerPolicy: "mark",
       getStateMap: (root) => root.players as Record<string, unknown>,
       spawn: (world, entity, rawState) => {
         const state = rawState as { x: number; y: number; alive: boolean; angle: number };
@@ -218,10 +281,20 @@ export class GeometryWarsGame extends BaseGame<
         );
         commands.addComponent(entity, createHealthComponent(state.alive ? 1 : 0, 1));
       },
+      onLocalPlayerMark: (world, entity) => {
+        const commands = world.getCommandBuffer();
+        if (!world.hasComponent(entity, "LocalPlayer")) {
+          commands.addComponent(entity, { type: "LocalPlayer" });
+        }
+        if (!world.hasComponent(entity, "Player")) {
+          commands.addComponent(entity, { type: "Player", fireCooldownRemaining: 0, invulnRemaining: 0, moveX: 0, moveY: 0 });
+        }
+        if (!world.hasComponent(entity, "Aim")) {
+          commands.addComponent(entity, { type: "Aim", aimX: 0, aimY: 0, isFiring: false });
+        }
+      },
       sync: (world, entity, rawState) => {
-        const state = rawState as { x: number; y: number; alive: boolean; angle: number };
-        syncTransformFromState(world, entity, state);
-
+        const state = rawState as { alive: boolean; angle: number };
         world.mutateComponent(entity, "Render", (render: RenderComponent) => {
           render.rotation = state.angle;
           render.color = state.alive ? colors.cyan : "gray";
@@ -240,10 +313,7 @@ export class GeometryWarsGame extends BaseGame<
           createRenderComponent({ shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, order: 1 })
         );
       },
-      sync: (world, entity, rawState) => {
-        const state = rawState as { x: number; y: number; angle: number };
-        syncTransformFromState(world, entity, state);
-      }
+      sync: () => {}
     },
     {
       serverIdPrefix: "bullet",
@@ -257,20 +327,29 @@ export class GeometryWarsGame extends BaseGame<
           createRenderComponent({ shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, order: 2 })
         );
       },
-      sync: (world, entity, rawState) => {
-        const state = rawState as { x: number; y: number; angle: number };
-        syncTransformFromState(world, entity, state);
-      }
+      sync: () => {}
     }
   ];
 
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
+    const world = this.getWorld();
 
-    if (!this.networkManager) {
-      this.networkManager = NetworkManager.registerGame(this.gameId, this, {
-        strategy: 'snapshot',
-        interpolationDelay: 100
+    const gs = world.getSingleton("GeometryWarsState");
+    if (gs) {
+      world.mutateSingleton("GeometryWarsState", (currentGs) => {
+        if (state.score !== undefined) {
+          currentGs.score = Number(state.score);
+        }
+        if (state.gameOver !== undefined) {
+          currentGs.isGameOver = !!state.gameOver;
+        }
+        if (state.wave !== undefined) {
+          currentGs.wave = Number(state.wave);
+        }
+        if (state.bombs !== undefined) {
+          currentGs.bombs = Number(state.bombs);
+        }
       });
     }
 
@@ -279,24 +358,26 @@ export class GeometryWarsGame extends BaseGame<
     if (state.players) {
       Object.entries(state.players as Record<string, { x: number; y: number; angle: number }>).forEach(([sessionId, p]) => {
         const entityId = replicator.getLocalId(`player_${sessionId}`);
-        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
+        if (entityId !== undefined && p) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
       });
     }
     if (state.enemies) {
       Object.entries(state.enemies as Record<string, { x: number; y: number; angle: number }>).forEach(([id, p]) => {
+        if (!p) return;
         const entityId = replicator.getLocalId(`enemy_${id}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
       });
     }
     if (state.bullets) {
       Object.entries(state.bullets as Record<string, { x: number; y: number; angle: number }>).forEach(([id, p]) => {
+        if (!p) return;
         const entityId = replicator.getLocalId(`bullet_${id}`);
         if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
       });
     }
 
     applyServerState(
-      this.getWorld(),
+      world,
       this.networkManager,
       this.ENTITY_SYNC_DESCRIPTORS,
       state,
@@ -304,7 +385,6 @@ export class GeometryWarsGame extends BaseGame<
       localSessionId
     );
   }
-
 
   /**
    * Twin-stick Input Bridge.

@@ -690,6 +690,12 @@ export abstract class BaseGame<
     if (typeof this.unifiedInput?.dispose === "function") {
       this.unifiedInput.dispose();
     }
+
+    if (typeof this.audio?.dispose === "function") {
+      this.audio.dispose();
+    } else if (typeof this.audio?.releaseAll === "function") {
+      this.audio.releaseAll();
+    }
   }
 
   /**

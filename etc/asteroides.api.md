@@ -2050,11 +2050,13 @@ export interface IAssetProvider {
 
 // @public
 export interface IAudioPlayer {
+    dispose?(): void;
     loadSFX(id: string, options: unknown): Promise<void>;
     pauseBGM(): void;
     playBGM(id: string, options?: unknown): void;
     playSFX(id: string, options?: unknown): void;
     playSpatialSFX(id: string, x: number, y: number, listenerX: number, listenerY: number, maxDistance: number): void;
+    releaseAll?(): void;
     setBGMVolume(v: number): void;
     setMasterVolume(v: number): void;
     setSFXVolume(v: number): void;
@@ -5267,11 +5269,13 @@ export class WebAssetProvider implements IAssetProvider {
 // @public
 export class WebAudioPlayer implements IAudioPlayer {
     constructor();
+    dispose(): void;
     loadSFX(id: string, options: unknown): Promise<void>;
     pauseBGM(): void;
     playBGM(id: string, options?: unknown): void;
     playSFX(id: string, options?: unknown): void;
     playSpatialSFX(id: string, x: number, y: number, listenerX: number, listenerY: number, maxDistance: number): void;
+    releaseAll(): void;
     setBGMVolume(v: number): void;
     setMasterVolume(v: number): void;
     setSFXVolume(v: number): void;

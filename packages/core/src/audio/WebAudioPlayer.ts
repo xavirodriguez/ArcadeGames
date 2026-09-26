@@ -379,4 +379,26 @@ export class WebAudioPlayer implements IAudioPlayer {
       console.warn(`[WebAudioPlayer] Error playing spatial SFX "${id}":`, e);
     }
   }
+
+  /**
+   * Disposes web audio context resources and stops music.
+   * @public
+   */
+  public dispose(): void {
+    this.stopBGM();
+    if (this.ctx && this.ctx.state !== "closed") {
+      this.ctx.close().catch(() => {});
+      this.ctx = null;
+    }
+    this.sfxCache.clear();
+    this.sfxLastPlayTime.clear();
+  }
+
+  /**
+   * Alias for {@link WebAudioPlayer.dispose} to release resources.
+   * @public
+   */
+  public releaseAll(): void {
+    this.dispose();
+  }
 }

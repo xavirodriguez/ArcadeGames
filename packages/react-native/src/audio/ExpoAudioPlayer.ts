@@ -1,13 +1,38 @@
-import { createAudioPlayer, type AudioPlayer, type AudioSource } from "expo-audio";
+import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioSource } from "expo-audio";
+import { AppState, type AppStateStatus, type NativeEventSubscription } from "react-native";
 import {
   SHARED_AUDIO_MANIFEST,
   type AudioAssetDefinition,
   type AudioPlayOptions,
   type IAudioPlayer
 } from "@tiny-aster/core";
+import { resolveNativeAudioSource } from "./nativeAudioManifest";
 
 interface AudioPlayerWithPan extends AudioPlayer {
   pan?: number;
+}
+
+const MAX_SFX_POOL_SIZE = 4;
+
+/**
+ * Configures the native audio mode settings for Expo audio.
+ *
+ * @remarks
+ * Sets silent mode playback, restricts background playback, and sets interruption handling to `doNotMix`.
+ * @public
+ */
+export async function configureNativeAudioMode(): Promise<void> {
+  try {
+    if (typeof setAudioModeAsync === "function") {
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+        interruptionMode: "doNotMix"
+      });
+    }
+  } catch (e) {
+    console.warn("[ExpoAudioPlayer] Failed to configure native audio mode:", e);
+  }
 }
 
 /**
@@ -16,25 +41,70 @@ interface AudioPlayerWithPan extends AudioPlayer {
  * @remarks
  * Designed for native React Native/Expo environments (iOS, Android, Hermes) where
  * Web Audio API (`window.AudioContext`) is unavailable. Manages preloaded sound effect
- * players, background music playback, volume controls, cooldown rate-limiting, and spatial audio panning.
+ * player pools, background music playback, volume controls, cooldown rate-limiting,
+ * spatial audio panning, AppState lifecycle pause/resume, and resource disposal.
  *
  * @public
  */
 export class ExpoAudioPlayer implements IAudioPlayer {
-  private sfxPlayers = new Map<string, AudioPlayer>();
+  private sfxPools = new Map<string, AudioPlayer[]>();
+  private sfxPoolIndices = new Map<string, number>();
+  private sfxSources = new Map<string, unknown>();
   private sfxLastPlayTime = new Map<string, number>();
+
   private bgmPlayer: AudioPlayer | null = null;
   private currentBgmUrl: string | null = null;
+  private wasBgmPlayingBeforeBackground = false;
 
   private masterVolume = 1.0;
   private sfxVolume = 0.85;
   private bgmVolume = 0.35;
 
+  private appStateSubscription: NativeEventSubscription | null = null;
+
+  constructor() {
+    configureNativeAudioMode().catch(() => {});
+
+    if (typeof AppState?.addEventListener === "function") {
+      try {
+        this.appStateSubscription = AppState.addEventListener("change", this.handleAppStateChange);
+      } catch (_e) {
+        // Safe fallback when AppState listener cannot be registered
+      }
+    }
+  }
+
   /**
-   * Preloads a sound effect using `expo-audio`.
+   * Handles React Native AppState changes to pause BGM on background and resume on active.
+   */
+  private handleAppStateChange = (nextAppState: AppStateStatus): void => {
+    if (nextAppState === "background" || nextAppState === "inactive") {
+      if (this.bgmPlayer) {
+        try {
+          this.wasBgmPlayingBeforeBackground = true;
+          this.bgmPlayer.pause();
+        } catch (_e) {
+          // Defensive safe catch
+        }
+      }
+    } else if (nextAppState === "active") {
+      configureNativeAudioMode().catch(() => {});
+      if (this.wasBgmPlayingBeforeBackground && this.bgmPlayer) {
+        try {
+          this.bgmPlayer.play();
+        } catch (_e) {
+          // Defensive safe catch
+        }
+      }
+      this.wasBgmPlayingBeforeBackground = false;
+    }
+  };
+
+  /**
+   * Preloads a sound effect using `expo-audio` and registers it in the sound player pool.
    *
    * @param id - Sound effect identifier.
-   * @param options - Audio source path, URI, or configuration object.
+   * @param options - Audio source path, URI, module ID, or configuration object.
    *
    * @example
    * ```ts
@@ -43,18 +113,7 @@ export class ExpoAudioPlayer implements IAudioPlayer {
    */
   public async loadSFX(id: string, options?: unknown): Promise<void> {
     try {
-      let sourcePathOrUri: unknown = null;
-
-      if (typeof options === "string") {
-        sourcePathOrUri = options;
-      } else if (typeof options === "number") {
-        sourcePathOrUri = options;
-      } else if (typeof options === "object" && options !== null) {
-        const obj = options as Record<string, unknown>;
-        if (obj.uri || obj.path || obj.source) {
-          sourcePathOrUri = obj.uri || obj.path || obj.source;
-        }
-      }
+      let sourcePathOrUri: unknown = options;
 
       if (!sourcePathOrUri || sourcePathOrUri === id) {
         const manifestEntry = SHARED_AUDIO_MANIFEST.find((a: AudioAssetDefinition) => a.id === id);
@@ -65,18 +124,23 @@ export class ExpoAudioPlayer implements IAudioPlayer {
         }
       }
 
+      const resolvedSource = resolveNativeAudioSource(sourcePathOrUri);
+      this.sfxSources.set(id, resolvedSource);
+
       let sourceToLoad: AudioSource = null;
-      if (typeof sourcePathOrUri === "string") {
-        sourceToLoad = { uri: sourcePathOrUri };
-      } else if (typeof sourcePathOrUri === "number") {
-        sourceToLoad = sourcePathOrUri;
-      } else if (typeof sourcePathOrUri === "object" && sourcePathOrUri !== null) {
-        sourceToLoad = sourcePathOrUri as AudioSource;
+      if (typeof resolvedSource === "number") {
+        sourceToLoad = resolvedSource;
+      } else if (typeof resolvedSource === "string") {
+        sourceToLoad = { uri: resolvedSource };
+      } else if (typeof resolvedSource === "object" && resolvedSource !== null) {
+        sourceToLoad = resolvedSource as AudioSource;
       }
 
       const player = createAudioPlayer(sourceToLoad);
       if (player) {
-        this.sfxPlayers.set(id, player);
+        const pool = this.sfxPools.get(id) || [];
+        pool.push(player);
+        this.sfxPools.set(id, pool);
       }
     } catch (e) {
       console.warn(`[ExpoAudioPlayer] Failed to load/create AudioPlayer for SFX "${id}":`, e);
@@ -84,7 +148,7 @@ export class ExpoAudioPlayer implements IAudioPlayer {
   }
 
   /**
-   * Triggers playback for a preloaded sound effect with cooldowns, volume scaling, and pitch.
+   * Triggers playback for a preloaded sound effect with cooldowns, volume scaling, pitch, and pooling.
    *
    * @param id - Sound effect identifier.
    * @param options - Playback options like volume, pitchRange, or cooldownMs.
@@ -101,21 +165,60 @@ export class ExpoAudioPlayer implements IAudioPlayer {
     }
     this.sfxLastPlayTime.set(id, now);
 
-    const player = this.sfxPlayers.get(id);
-    if (!player) {
+    const pool = this.sfxPools.get(id);
+    if (!pool || pool.length === 0) {
       // Lazy attempt to load/create if sound was requested without prior loadSFX
-      this.loadSFX(id, options).then(() => {
-        const loadedPlayer = this.sfxPlayers.get(id);
-        if (loadedPlayer) {
-          this.triggerPlayerSFX(id, loadedPlayer, opts);
-        }
-      }).catch((e) => {
-        console.warn(`[ExpoAudioPlayer] Failed lazy load for SFX "${id}":`, e);
-      });
+      this.loadSFX(id, options)
+        .then(() => {
+          const loadedPool = this.sfxPools.get(id);
+          if (loadedPool && loadedPool.length > 0) {
+            const player = this.selectPlayerFromPool(id, loadedPool);
+            this.triggerPlayerSFX(id, player, opts);
+          }
+        })
+        .catch((e) => {
+          console.warn(`[ExpoAudioPlayer] Failed lazy load for SFX "${id}":`, e);
+        });
       return;
     }
 
+    const player = this.selectPlayerFromPool(id, pool);
     this.triggerPlayerSFX(id, player, opts);
+  }
+
+  /**
+   * Selects an available player from the pool, expanding the pool up to `MAX_SFX_POOL_SIZE` if needed.
+   */
+  private selectPlayerFromPool(id: string, pool: AudioPlayer[]): AudioPlayer {
+    const currentIndex = this.sfxPoolIndices.get(id) || 0;
+    let selectedPlayer = pool[currentIndex % pool.length];
+
+    // Check if we can allocate a new player instance up to max pool size
+    if (pool.length < MAX_SFX_POOL_SIZE) {
+      const rawSource = this.sfxSources.get(id);
+      if (rawSource !== undefined) {
+        let sourceToLoad: AudioSource = null;
+        if (typeof rawSource === "number") {
+          sourceToLoad = rawSource;
+        } else if (typeof rawSource === "string") {
+          sourceToLoad = { uri: rawSource };
+        } else if (typeof rawSource === "object" && rawSource !== null) {
+          sourceToLoad = rawSource as AudioSource;
+        }
+        try {
+          const newPlayer = createAudioPlayer(sourceToLoad);
+          if (newPlayer) {
+            pool.push(newPlayer);
+            selectedPlayer = newPlayer;
+          }
+        } catch (_e) {
+          // Fall back to round-robin selected player if allocation fails
+        }
+      }
+    }
+
+    this.sfxPoolIndices.set(id, currentIndex + 1);
+    return selectedPlayer;
   }
 
   /**
@@ -151,11 +254,11 @@ export class ExpoAudioPlayer implements IAudioPlayer {
    * Starts background music playback.
    *
    * @param id - Track identifier.
-   * @param options - BGM source URL or path.
+   * @param options - BGM source URL, path, or module ID.
    */
   public playBGM(id: string, options?: unknown): void {
-    const source: unknown = typeof options === "string" ? options : id;
-    const url = typeof source === "string" ? source : id;
+    const rawSource = options !== undefined ? options : id;
+    const url = typeof rawSource === "string" ? rawSource : String(id);
 
     if (this.currentBgmUrl === url && this.bgmPlayer) {
       try {
@@ -170,13 +273,15 @@ export class ExpoAudioPlayer implements IAudioPlayer {
 
     try {
       this.currentBgmUrl = url;
+      const resolvedSource = resolveNativeAudioSource(rawSource);
       let sourceToLoad: AudioSource = null;
-      if (typeof source === "string") {
-        sourceToLoad = { uri: source };
-      } else if (typeof source === "number") {
-        sourceToLoad = source;
-      } else if (typeof source === "object" && source !== null) {
-        sourceToLoad = source as AudioSource;
+
+      if (typeof resolvedSource === "number") {
+        sourceToLoad = resolvedSource;
+      } else if (typeof resolvedSource === "string") {
+        sourceToLoad = { uri: resolvedSource };
+      } else if (typeof resolvedSource === "object" && resolvedSource !== null) {
+        sourceToLoad = resolvedSource as AudioSource;
       }
 
       this.bgmPlayer = createAudioPlayer(sourceToLoad);
@@ -206,6 +311,7 @@ export class ExpoAudioPlayer implements IAudioPlayer {
     }
     this.currentBgmUrl = null;
     this.bgmPlayer = null;
+    this.wasBgmPlayingBeforeBackground = false;
   }
 
   /**
@@ -289,13 +395,14 @@ export class ExpoAudioPlayer implements IAudioPlayer {
     const volumeScale = 1.0 - distance / maxDistance;
     const pan = maxDistance > 0 ? Math.max(-1, Math.min(1, dx / maxDistance)) : 0;
 
-    const player = this.sfxPlayers.get(id);
-    if (!player) {
+    const pool = this.sfxPools.get(id);
+    if (!pool || pool.length === 0) {
       this.playSFX(id, { volume: volumeScale });
       return;
     }
 
     try {
+      const player = this.selectPlayerFromPool(id, pool);
       const targetVol = Math.max(0, Math.min(1, this.masterVolume * this.sfxVolume * volumeScale));
       player.volume = targetVol;
       const panPlayer = player as AudioPlayerWithPan;
@@ -309,5 +416,44 @@ export class ExpoAudioPlayer implements IAudioPlayer {
     } catch (e) {
       console.warn(`[ExpoAudioPlayer] Error playing spatial SFX "${id}":`, e);
     }
+  }
+
+  /**
+   * Disposes all active audio players (SFX pools and BGM) and cleans up native resources.
+   *
+   * @public
+   */
+  public dispose(): void {
+    this.appStateSubscription?.remove();
+    this.appStateSubscription = null;
+
+    this.stopBGM();
+
+    for (const pool of this.sfxPools.values()) {
+      for (const player of pool) {
+        try {
+          player.pause();
+          if (typeof player.remove === "function") {
+            player.remove();
+          }
+        } catch (_e) {
+          // Defensive safe catch
+        }
+      }
+    }
+
+    this.sfxPools.clear();
+    this.sfxPoolIndices.clear();
+    this.sfxSources.clear();
+    this.sfxLastPlayTime.clear();
+  }
+
+  /**
+   * Alias for {@link dispose} to release all native audio resources.
+   *
+   * @public
+   */
+  public releaseAll(): void {
+    this.dispose();
   }
 }

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import { Platform } from "react-native";
 import { useKeepAwake } from "../hooks/useKeepAwake";
+import { configureNativeAudioMode } from "../audio/ExpoAudioPlayer";
 
 /**
  * Adapter interface for the audio settings service.
@@ -53,8 +55,12 @@ export function GameServicesProvider({
   const [isMuted, setIsMuted] = useState<boolean>(() => audioService.isMuted());
   const [keepAwakeRequests, setKeepAwakeRequests] = useState<Record<string, boolean>>({});
 
-  // Subscribe to external audio service updates
+  // Configure native audio mode and subscribe to external audio service updates
   useEffect(() => {
+    if (Platform.OS !== "web") {
+      configureNativeAudioMode().catch(() => {});
+    }
+
     const unsubscribe = audioService.subscribe((muted) => {
       setIsMuted(muted);
     });

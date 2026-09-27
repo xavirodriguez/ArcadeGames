@@ -533,10 +533,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       renderer.registerShape("core", drawSkiaMemoryCore);
       renderer.registerShape("node", drawSkiaCheckpointNode);
       renderer.registerShape("pulse_attack", drawSkiaPulseAttack);
-      renderer.registerShape("sentinel", drawSentinel);
-      renderer.registerShape("hopper", drawHopper);
-      renderer.registerShape("watcher", drawWatcher);
-      renderer.registerShape("charger", drawCharger);
+      renderer.registerShape("sentinel", drawSkiaSentinel);
+      renderer.registerShape("hopper", drawSkiaHopper);
+      renderer.registerShape("watcher", drawSkiaWatcher);
+      renderer.registerShape("charger", drawSkiaCharger);
     }
   }
 

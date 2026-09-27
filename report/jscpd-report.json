@@ -742,80 +742,6 @@
     },
     {
       "firstFile": {
-        "end": 132,
-        "endLoc": {
-          "column": 84,
-          "line": 132,
-          "position": 3660
-        },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
-        "start": 127,
-        "startLoc": {
-          "column": 29,
-          "line": 127,
-          "position": 3384
-        }
-      },
-      "format": "typescript",
-      "fragment": "    return new EchoRunnerGame({ seed: context.seed });\n  }\n\n  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {\n    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;\n    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1500));",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 131,
-        "endLoc": {
-          "column": 84,
-          "line": 131,
-          "position": 3671
-        },
-        "name": "flappybird/story/FlappyBirdEncounter.ts",
-        "start": 126,
-        "startLoc": {
-          "column": 29,
-          "line": 126,
-          "position": 3395
-        }
-      },
-      "tokens": 65
-    },
-    {
-      "firstFile": {
-        "end": 132,
-        "endLoc": {
-          "column": 84,
-          "line": 132,
-          "position": 3660
-        },
-        "name": "echorunner/story/EchoRunnerEncounter.ts",
-        "start": 127,
-        "startLoc": {
-          "column": 52,
-          "line": 127,
-          "position": 3407
-        }
-      },
-      "format": "typescript",
-      "fragment": "    return new EchoRunnerGame({ seed: context.seed });\n  }\n\n  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {\n    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;\n    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1500));",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 130,
-        "endLoc": {
-          "column": 84,
-          "line": 130,
-          "position": 3586
-        },
-        "name": "platformer/story/PlatformerEncounter.ts",
-        "start": 125,
-        "startLoc": {
-          "column": 30,
-          "line": 125,
-          "position": 3333
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
         "end": 89,
         "endLoc": {
           "column": 79,
@@ -1109,6 +1035,43 @@
         }
       },
       "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 131,
+        "endLoc": {
+          "column": 84,
+          "line": 131,
+          "position": 3671
+        },
+        "name": "flappybird/story/FlappyBirdEncounter.ts",
+        "start": 126,
+        "startLoc": {
+          "column": 52,
+          "line": 126,
+          "position": 3418
+        }
+      },
+      "format": "typescript",
+      "fragment": "    return new FlappyBirdGame({ seed: context.seed });\n  }\n\n  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {\n    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;\n    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 10));",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 130,
+        "endLoc": {
+          "column": 84,
+          "line": 130,
+          "position": 3586
+        },
+        "name": "platformer/story/PlatformerEncounter.ts",
+        "start": 125,
+        "startLoc": {
+          "column": 30,
+          "line": 125,
+          "position": 3333
+        }
+      },
+      "tokens": 57
     },
     {
       "firstFile": {
@@ -2000,32 +1963,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-26T20:06:55.785Z",
+    "detectionDate": "2026-09-27T12:05:09.727Z",
     "formats": {
       "typescript": {
-        "clones": 54,
-        "duplicatedLines": 421,
-        "duplicatedTokens": 3627,
-        "lines": 68176,
+        "clones": 53,
+        "duplicatedLines": 416,
+        "duplicatedTokens": 3562,
+        "lines": 68180,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.6175193616521943,
-        "percentageTokens": 1.0187658523842829,
+        "percentage": 0.6101496039894397,
+        "percentageTokens": 1.0001909404378153,
         "sources": 411,
-        "tokens": 356019
+        "tokens": 356132
       }
     },
     "total": {
-      "clones": 54,
-      "duplicatedLines": 421,
-      "duplicatedTokens": 3627,
-      "lines": 68176,
+      "clones": 53,
+      "duplicatedLines": 416,
+      "duplicatedTokens": 3562,
+      "lines": 68180,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.6175193616521943,
-      "percentageTokens": 1.0187658523842829,
+      "percentage": 0.6101496039894397,
+      "percentageTokens": 1.0001909404378153,
       "sources": 411,
-      "tokens": 356019
+      "tokens": 356132
     }
   }
 }

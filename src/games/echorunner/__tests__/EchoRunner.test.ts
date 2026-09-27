@@ -1,6 +1,44 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, EventRegistry, MiniGameRunContext, RunState, ConfigService, Renderer, RenderContext } from "@tiny-aster/core";
 import { CanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { EchoRunnerGame } from "../EchoRunnerGame";
+import { EchoRunnerArcadeAdapter } from "../story/EchoRunnerEncounter";
+import { EchoRunnerConfigSchema, EchoRunnerConfig } from "../types/EchoRunnerConfigSchema";
+
+class TestEchoRunnerAdapter extends EchoRunnerArcadeAdapter {
+  public getGame(): EchoRunnerGame | null {
+    return this.game;
+  }
+  public buildTestResult(context: MiniGameRunContext, payload?: unknown) {
+    return this.buildResult(context, payload);
+  }
+}
+
+const mockPaintInstance = {
+  reset: jest.fn(),
+  setAntiAlias: jest.fn(),
+  setStyle: jest.fn(),
+  setColor: jest.fn(),
+  setStrokeWidth: jest.fn(),
+  setAlphaf: jest.fn()
+};
+
+jest.mock("@shopify/react-native-skia", () => ({
+  Skia: {
+    Color: jest.fn((col) => col),
+    PaintStyle: { Fill: 0, Stroke: 1 },
+    XYWHRect: jest.fn((x, y, w, h) => ({ x, y, w, h })),
+    RRectXY: jest.fn((rect, rx, ry) => ({ rect, rx, ry })),
+    Paint: jest.fn(() => mockPaintInstance),
+    Path: {
+      Make: jest.fn(() => ({
+        addArc: jest.fn(),
+        close: jest.fn(),
+        moveTo: jest.fn(),
+        lineTo: jest.fn()
+      }))
+    }
+  }
+}));
 
 describe("Echo Runner Game Simulation Tests", () => {
   let game: EchoRunnerGame;
@@ -17,6 +55,40 @@ describe("Echo Runner Game Simulation Tests", () => {
 
   afterEach(() => {
     game?.destroy();
+  });
+
+  it("should maintain expected registered platformer and echorunner systems schedule snapshot", () => {
+    const registeredSystems = (world.schedule as any).systems.map((s: any) => ({
+      phase: s.phase,
+      systemName: s.system.constructor.name
+    }));
+
+    expect(registeredSystems).toMatchSnapshot();
+  });
+
+  it("should throw a descriptive validation error when invalid config overrides are passed to ConfigService.load", () => {
+    expect(() => {
+      ConfigService.load("echorunner", EchoRunnerConfigSchema, { PLAYER_SPEED: -5 });
+    }).toThrow(/Configuration validation failed for game "echorunner"/);
+
+    expect(() => {
+      ConfigService.load("echorunner", EchoRunnerConfigSchema, { TILE_SIZE: 0 });
+    }).toThrow(/Configuration validation failed for game "echorunner"/);
+
+    expect(() => {
+      ConfigService.load("echorunner", EchoRunnerConfigSchema, { PLAYER_JUMP_VEL: "super_high" });
+    }).toThrow(/Configuration validation failed for game "echorunner"/);
+  });
+
+  it("should correctly parse and apply valid config overrides when loaded via ConfigService.load", () => {
+    const loaded = ConfigService.load<EchoRunnerConfig>("echorunner", EchoRunnerConfigSchema, {
+      PLAYER_SPEED: 350,
+      TILE_SIZE: 32
+    });
+
+    expect(loaded.PLAYER_SPEED).toBe(350);
+    expect(loaded.TILE_SIZE).toBe(32);
+    expect(loaded.worldWidth).toBe(800); // verify Zod defaults are merged
   });
 
   it("should initialize with 1 attempt, 0 deaths, 0 fragments, and 0 cores collected", () => {
@@ -92,7 +164,6 @@ describe("Echo Runner Game Simulation Tests", () => {
 
     // Place enemy directly on top of the player
     const pTrans = world.getComponent(playerEntity, "Transform")!;
-    const eTrans = world.getComponent(enemyEntity, "Transform")!;
 
     world.mutateComponent(enemyEntity, "Transform", (t) => {
       t.x = pTrans.x;
@@ -135,64 +206,128 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(game.kernel.getState()).toBe("GAME_OVER");
   });
 
-  it("should initialize renderer with valid shape and background drawers and render a frame without errors", () => {
-    const renderer = new CanvasRenderer();
-    expect(() => game.initializeRenderer(renderer as any)).not.toThrow();
+  it("should render a frame with CanvasRenderer executing background and shape drawing functions on the 2D context", async () => {
+    const testGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await testGame.init();
+      const testWorld = testGame.getWorld();
+      const renderer = new CanvasRenderer();
+      testGame.initializeRenderer(renderer as Renderer<CoreComponentRegistry, RenderContext>);
 
-    // Create a dummy 2D canvas context for testing rendering
-    const dummyCtx = {
-      canvas: { width: 800, height: 600 },
-      clearRect: jest.fn(),
-      save: jest.fn(),
-      restore: jest.fn(),
-      translate: jest.fn(),
-      rotate: jest.fn(),
-      scale: jest.fn(),
-      beginPath: jest.fn(),
-      moveTo: jest.fn(),
-      lineTo: jest.fn(),
-      stroke: jest.fn(),
-      fill: jest.fn(),
-      fillRect: jest.fn(),
-      strokeRect: jest.fn(),
-      rect: jest.fn(),
-      clip: jest.fn(),
-      arc: jest.fn(),
-      ellipse: jest.fn(),
-      closePath: jest.fn(),
-      createLinearGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
-      createRadialGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
-      roundRect: jest.fn(),
-    } as unknown as CanvasRenderingContext2D;
+      const mockCtx: Partial<CanvasRenderingContext2D> = {
+        canvas: { width: 800, height: 600 } as HTMLCanvasElement,
+        clearRect: jest.fn(),
+        save: jest.fn(),
+        restore: jest.fn(),
+        translate: jest.fn(),
+        rotate: jest.fn(),
+        scale: jest.fn(),
+        beginPath: jest.fn(),
+        moveTo: jest.fn(),
+        lineTo: jest.fn(),
+        stroke: jest.fn(),
+        fill: jest.fn(),
+        fillRect: jest.fn(),
+        strokeRect: jest.fn(),
+        rect: jest.fn(),
+        clip: jest.fn(),
+        arc: jest.fn(),
+        ellipse: jest.fn(),
+        closePath: jest.fn(),
+        createLinearGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
+        createRadialGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
+        roundRect: jest.fn(),
+      };
 
-    expect(() => renderer.render(world, dummyCtx)).not.toThrow();
+      renderer.render(testWorld, mockCtx as CanvasRenderingContext2D);
+
+      // Verify specific drawing calls were executed on the 2D context
+      expect(mockCtx.fillRect).toHaveBeenCalledWith(0, 0, 800, 600); // Letterbox / void fill
+      expect(mockCtx.save).toHaveBeenCalled();
+      expect(mockCtx.restore).toHaveBeenCalled();
+      expect(mockCtx.translate).toHaveBeenCalled();
+      expect(mockCtx.beginPath).toHaveBeenCalled();
+      expect(mockCtx.fill).toHaveBeenCalled();
+    } finally {
+      testGame.destroy();
+    }
   });
 
-  it("should register all shapes for Skia renderer when renderer type is skia", () => {
-    const registeredShapes: string[] = [];
-    const registeredEffects: string[] = [];
-    const skiaRenderer = {
-      type: "skia",
-      registerShape: jest.fn((name) => registeredShapes.push(name)),
-      registerBackgroundEffect: jest.fn((name) => registeredEffects.push(name)),
-    };
+  it("should register and execute all Skia visual drawers on a frame draw call", async () => {
+    const testGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await testGame.init();
+      const testWorld = testGame.getWorld();
 
-    game.initializeRenderer(skiaRenderer as any);
+      const registeredShapes = new Map<string, any>();
+      const registeredEffects = new Map<string, any>();
 
-    expect(registeredEffects).toContain("echo_bg");
-    expect(registeredShapes).toEqual(
-      expect.arrayContaining([
-        "player",
-        "fragment",
-        "core",
-        "node",
-        "pulse_attack",
-        "sentinel",
-        "hopper",
-        "watcher",
-        "charger"
-      ])
-    );
+      const skiaRenderer: Partial<Renderer<CoreComponentRegistry, RenderContext>> = {
+        type: "skia",
+        registerShape: (name: string, drawer: any) => { registeredShapes.set(name, drawer); },
+        registerBackgroundEffect: (name: string, drawer: any) => { registeredEffects.set(name, drawer); },
+      };
+
+      testGame.initializeRenderer(skiaRenderer as Renderer<CoreComponentRegistry, RenderContext>);
+
+      expect(registeredEffects.has("echo_bg")).toBe(true);
+      expect(Array.from(registeredShapes.keys())).toEqual(
+        expect.arrayContaining([
+          "player",
+          "fragment",
+          "core",
+          "node",
+          "pulse_attack",
+          "sentinel",
+          "hopper",
+          "watcher",
+          "charger"
+        ])
+      );
+
+      const mockSkiaCanvas = {
+        save: jest.fn(),
+        restore: jest.fn(),
+        translate: jest.fn(),
+        rotate: jest.fn(),
+        scale: jest.fn(),
+        drawRect: jest.fn(),
+        drawLine: jest.fn(),
+        drawCircle: jest.fn(),
+        drawOval: jest.fn(),
+        drawPath: jest.fn(),
+        drawRoundRect: jest.fn(),
+      };
+
+      // 1. Execute Skia Background Effect
+      const bgDrawer = registeredEffects.get("echo_bg");
+      bgDrawer.draw(mockSkiaCanvas, testWorld);
+      expect(mockSkiaCanvas.drawRect).toHaveBeenCalled();
+      expect(mockSkiaCanvas.drawLine).toHaveBeenCalled();
+
+      // 2. Execute Skia Player Shape Drawer
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+      const playerDrawer = registeredShapes.get("player");
+      playerDrawer.draw(mockSkiaCanvas, testWorld, playerEntity);
+
+      expect(mockSkiaCanvas.save).toHaveBeenCalled();
+      expect(mockSkiaCanvas.translate).toHaveBeenCalled();
+      expect(mockSkiaCanvas.rotate).toHaveBeenCalled();
+      expect(mockSkiaCanvas.drawPath).toHaveBeenCalled();
+      expect(mockSkiaCanvas.restore).toHaveBeenCalled();
+
+      // 3. Execute enemy and collectible drawers
+      const enemies = testWorld.query("Enemy");
+      for (const enemy of enemies) {
+        const render = testWorld.getComponent(enemy, "Render");
+        if (render && render.shape && registeredShapes.has(render.shape)) {
+          registeredShapes.get(render.shape).draw(mockSkiaCanvas, testWorld, enemy);
+        }
+      }
+      expect(mockSkiaCanvas.drawCircle).toHaveBeenCalled();
+    } finally {
+      testGame.destroy();
+    }
   });
 
   it("should throw a descriptive error when required player blueprint is missing during entity initialization", async () => {
@@ -358,6 +493,140 @@ describe("Echo Runner Game Simulation Tests", () => {
     } finally {
       testGame.destroy();
     }
+  });
+
+  it("should handle full gameplay death lifecycle by respawning player at active checkpoint and incrementing attempts and deaths", async () => {
+    const lifecycleGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await lifecycleGame.init();
+      const testWorld = lifecycleGame.getWorld();
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+
+      let state = lifecycleGame.getGameState();
+      expect(state.attempts).toBe(1);
+      expect(state.deaths).toBe(0);
+
+      const runState = testWorld.getResource<RunState>("RunState");
+      expect(runState).toBeDefined();
+      runState!.activeCheckpoint = "checkpoint_node_1";
+
+      const cpEntity = testWorld.createEntity();
+      testWorld.addComponent(cpEntity, {
+        type: "RespawnPoint",
+        checkpointId: "checkpoint_node_1",
+        x: 400,
+        y: 300
+      } as CoreComponentRegistry["RespawnPoint"] & { type: "RespawnPoint" });
+      testWorld.flush();
+
+      testWorld.mutateComponent(playerEntity, "Health", (h) => {
+        h.current = 0;
+      });
+
+      // Frame 1: DeathSystem detects health <= 0, marks Dead, increments attempt and deaths
+      lifecycleGame.update(0.016);
+
+      state = lifecycleGame.getGameState();
+      expect(state.deaths).toBe(1);
+      expect(state.attempts).toBe(2);
+
+      // Frame 2: RespawnSystem resets position to active checkpoint, restores health, removes Dead
+      lifecycleGame.update(0.016);
+
+      expect(testWorld.hasComponent(playerEntity, "Dead")).toBe(false);
+      const playerTrans = testWorld.getComponent(playerEntity, "Transform")!;
+      expect(playerTrans.x).toBe(400);
+      expect(playerTrans.y).toBe(300);
+
+      const health = testWorld.getComponent(playerEntity, "Health")!;
+      expect(health.current).toBe(health.max);
+    } finally {
+      lifecycleGame.destroy();
+    }
+  });
+
+  it("should trigger death when falling below DeathPlaneY and respawn player at default start position", async () => {
+    const lifecycleGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await lifecycleGame.init();
+      const testWorld = lifecycleGame.getWorld();
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+
+      testWorld.mutateComponent(playerEntity, "Transform", (t) => {
+        t.y = 1050;
+      });
+
+      // Frame 1: DeathSystem detects y >= DeathPlaneY
+      lifecycleGame.update(0.016);
+      expect(lifecycleGame.getGameState().deaths).toBe(1);
+
+      // Frame 2: RespawnSystem resets player to start position (100, 350)
+      lifecycleGame.update(0.016);
+      const playerTrans = testWorld.getComponent(playerEntity, "Transform")!;
+      expect(playerTrans.x).toBe(100);
+      expect(playerTrans.y).toBe(350);
+    } finally {
+      lifecycleGame.destroy();
+    }
+  });
+
+  it("should generate deterministic level plans when instantiated with identical seeds", async () => {
+    const seed = 98765;
+    const game1 = new EchoRunnerGame({ seed });
+    const game2 = new EchoRunnerGame({ seed });
+    const gameDifferentSeed = new EchoRunnerGame({ seed: 12345 });
+
+    try {
+      await game1.init();
+      await game2.init();
+      await gameDifferentSeed.init();
+
+      const plan1 = game1.getLevelPlan();
+      const plan2 = game2.getLevelPlan();
+      const planDiff = gameDifferentSeed.getLevelPlan();
+
+      expect(plan1).toBeDefined();
+      expect(plan2).toBeDefined();
+
+      // Deep equality check for determinism
+      expect(plan1).toEqual(plan2);
+
+      // Verify different seed produces different level plan
+      expect(plan1).not.toEqual(planDiff);
+    } finally {
+      game1.destroy();
+      game2.destroy();
+      gameDifferentSeed.destroy();
+    }
+  });
+
+  it("should reflect actual game state score in buildResult when payload score is omitted in EchoRunnerArcadeAdapter", async () => {
+    const adapter = new TestEchoRunnerAdapter();
+    const context: MiniGameRunContext = {
+      runId: "test_run_01",
+      encounterId: "echo_runner_dash_01",
+      gameId: "echorunner",
+      seed: 41873,
+      config: { targetScore: 1500 },
+      modifiers: []
+    };
+
+    const dummyHost = {} as HTMLElement;
+    adapter.initialize(context, dummyHost);
+
+    const gameInstance = adapter.getGame()!;
+    await gameInstance.init();
+
+    const runState = gameInstance.getWorld().getResource<RunState>("RunState");
+    expect(runState).toBeDefined();
+    runState!.collectedTemporalIds.push("frag_1", "frag_2"); // 2 * 10 = 20
+    runState!.collectedPermanentIds.push("core_1"); // 1 * 100 = 100 -> score = 120
+
+    const result = adapter.buildTestResult(context, {});
+    expect(result.score).toBe(120);
+    expect(gameInstance.getGameState().score).toBe(120);
+
+    adapter.dispose();
   });
 
   it("should detect player overlapping collectibles and collect fragment and core entities", async () => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
-import { GameRenderer } from "@/components/GameRenderer";
+import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { ComboDisplay } from "@/src/components/ComboDisplay";
 import { GameErrorBoundary } from "@/src/components/GameErrorBoundary";
 import { useGeometryWarsGame } from "@/src/hooks/useGeometryWarsGame";
@@ -298,10 +298,10 @@ export default function GeometryWarsScreen() {
             </>
           }
           canvasSlot={
-            <GameRenderer
+            <CanvasRenderer
               world={game.getWorld()}
               gameLoop={game.getGameLoop()}
-              onInitialize={(renderer) => game.initializeRenderer(renderer as any)}
+              onInitialize={(renderer) => game.initializeRenderer(renderer)}
             />
           }
           controlsSlot={

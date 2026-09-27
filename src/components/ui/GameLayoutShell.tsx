@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleSheet, View, ViewStyle, StyleProp } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Layer } from "./Layer";
 import { OrientationGuard } from "./OrientationGuard";
 
@@ -29,7 +28,7 @@ export interface GameLayoutShellProps {
 
 /**
  * GameLayoutShell unifies HUD slots, controls, canvas, and overlays across arcade screens
- * while enforcing declarative layer ordering through <Layer level={...}> and applying safe area insets.
+ * while enforcing declarative layer ordering through <Layer level={...}>.
  */
 export const GameLayoutShell: React.FC<GameLayoutShellProps> = ({
   topLeftSlot,
@@ -43,20 +42,6 @@ export const GameLayoutShell: React.FC<GameLayoutShellProps> = ({
   backgroundSlot,
   style,
 }) => {
-  const insets = useSafeAreaInsets();
-
-  const safeHeaderStyle = {
-    paddingTop: Math.max(insets.top, 10),
-    paddingLeft: Math.max(insets.left, 16),
-    paddingRight: Math.max(insets.right, 16),
-  };
-
-  const safeControlsStyle = {
-    paddingBottom: Math.max(insets.bottom, 16),
-    paddingLeft: Math.max(insets.left, 16),
-    paddingRight: Math.max(insets.right, 16),
-  };
-
   return (
     <OrientationGuard>
       <View style={[styles.container, style]}>
@@ -71,14 +56,14 @@ export const GameLayoutShell: React.FC<GameLayoutShellProps> = ({
 
         {/* Custom HUD Surface */}
         {hudSlot && (
-          <Layer level="HUD_SURFACE" style={[styles.hudSurfaceLayer, safeHeaderStyle]} pointerEvents="box-none">
+          <Layer level="HUD_SURFACE" style={styles.hudSurfaceLayer} pointerEvents="box-none">
             {hudSlot}
           </Layer>
         )}
 
         {/* Standard top slots (top-left, top-right, top-center) */}
         {(topLeftSlot || topRightSlot || centerHudSlot) && (
-          <Layer level="HUD_INTERACTIVES" style={[styles.headerSlotsLayer, safeHeaderStyle]} pointerEvents="box-none">
+          <Layer level="HUD_INTERACTIVES" style={styles.headerSlotsLayer} pointerEvents="box-none">
             <View style={styles.topLeftSlotContainer} pointerEvents="box-none">
               {topLeftSlot}
             </View>
@@ -93,7 +78,7 @@ export const GameLayoutShell: React.FC<GameLayoutShellProps> = ({
 
         {/* Touch controls layer */}
         {controlsSlot && (
-          <Layer level="CONTROLS" style={[styles.controlsLayer, safeControlsStyle]} pointerEvents="box-none">
+          <Layer level="CONTROLS" style={styles.controlsLayer} pointerEvents="box-none">
             {controlsSlot}
           </Layer>
         )}
@@ -137,6 +122,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    paddingHorizontal: 16,
+    paddingTop: 10,
   },
   topLeftSlotContainer: {
     alignItems: "flex-start",

@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
-import { GameRenderer } from "@/components/GameRenderer";
+import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { PongControls } from "@/components/PongControls";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { usePongGame } from "@/hooks/usePongGame";
@@ -210,10 +210,10 @@ export default function PongScreen() {
           </View>
         }
         canvasSlot={
-          <GameRenderer
+          <CanvasRenderer
             world={game.getWorld()}
             gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer as any)}
+            onInitialize={(renderer) => game.initializeRenderer(renderer)}
           />
         }
         controlsSlot={

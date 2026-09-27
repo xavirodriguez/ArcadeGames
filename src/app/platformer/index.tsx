@@ -4,7 +4,7 @@ import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
-import { GameRenderer } from "@/components/GameRenderer";
+import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { useTranslation } from "@/hooks/useTranslation";
 import { usePlatformerGame } from "@/hooks/usePlatformerGame";
 import { useTouchDevice } from "@/hooks/useTouchDevice";
@@ -187,10 +187,10 @@ function PlatformerContent() {
           </View>
         }
         canvasSlot={
-          <GameRenderer
+          <CanvasRenderer
             world={game.getWorld()}
             gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer as any)}
+            onInitialize={(renderer) => game.initializeRenderer(renderer)}
           />
         }
         controlsSlot={

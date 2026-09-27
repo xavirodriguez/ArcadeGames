@@ -1,8 +1,17 @@
-import { World, CoreComponentRegistry, MiniGameRunContext, RunState, ConfigService } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, EventRegistry, MiniGameRunContext, RunState, ConfigService, Renderer, RenderContext } from "@tiny-aster/core";
 import { CanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { EchoRunnerGame } from "../EchoRunnerGame";
 import { EchoRunnerArcadeAdapter } from "../story/EchoRunnerEncounter";
 import { EchoRunnerConfigSchema, EchoRunnerConfig } from "../types/EchoRunnerConfigSchema";
+
+class TestEchoRunnerAdapter extends EchoRunnerArcadeAdapter {
+  public getGame(): EchoRunnerGame | null {
+    return this.game;
+  }
+  public buildTestResult(context: MiniGameRunContext, payload?: unknown) {
+    return this.buildResult(context, payload);
+  }
+}
 
 const mockPaintInstance = {
   reset: jest.fn(),
@@ -203,10 +212,10 @@ describe("Echo Runner Game Simulation Tests", () => {
       await testGame.init();
       const testWorld = testGame.getWorld();
       const renderer = new CanvasRenderer();
-      testGame.initializeRenderer(renderer as any);
+      testGame.initializeRenderer(renderer as Renderer<CoreComponentRegistry, RenderContext>);
 
-      const mockCtx = {
-        canvas: { width: 800, height: 600 },
+      const mockCtx: Partial<CanvasRenderingContext2D> = {
+        canvas: { width: 800, height: 600 } as HTMLCanvasElement,
         clearRect: jest.fn(),
         save: jest.fn(),
         restore: jest.fn(),
@@ -228,9 +237,9 @@ describe("Echo Runner Game Simulation Tests", () => {
         createLinearGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
         createRadialGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
         roundRect: jest.fn(),
-      } as unknown as CanvasRenderingContext2D;
+      };
 
-      renderer.render(testWorld, mockCtx);
+      renderer.render(testWorld, mockCtx as CanvasRenderingContext2D);
 
       // Verify specific drawing calls were executed on the 2D context
       expect(mockCtx.fillRect).toHaveBeenCalledWith(0, 0, 800, 600); // Letterbox / void fill
@@ -253,13 +262,13 @@ describe("Echo Runner Game Simulation Tests", () => {
       const registeredShapes = new Map<string, any>();
       const registeredEffects = new Map<string, any>();
 
-      const skiaRenderer = {
+      const skiaRenderer: Partial<Renderer<CoreComponentRegistry, RenderContext>> = {
         type: "skia",
-        registerShape: (name: string, drawer: any) => registeredShapes.set(name, drawer),
-        registerBackgroundEffect: (name: string, drawer: any) => registeredEffects.set(name, drawer),
+        registerShape: (name: string, drawer: any) => { registeredShapes.set(name, drawer); },
+        registerBackgroundEffect: (name: string, drawer: any) => { registeredEffects.set(name, drawer); },
       };
 
-      testGame.initializeRenderer(skiaRenderer as any);
+      testGame.initializeRenderer(skiaRenderer as Renderer<CoreComponentRegistry, RenderContext>);
 
       expect(registeredEffects.has("echo_bg")).toBe(true);
       expect(Array.from(registeredShapes.keys())).toEqual(
@@ -507,7 +516,7 @@ describe("Echo Runner Game Simulation Tests", () => {
         checkpointId: "checkpoint_node_1",
         x: 400,
         y: 300
-      } as any);
+      } as CoreComponentRegistry["RespawnPoint"] & { type: "RespawnPoint" });
       testWorld.flush();
 
       testWorld.mutateComponent(playerEntity, "Health", (h) => {
@@ -592,7 +601,7 @@ describe("Echo Runner Game Simulation Tests", () => {
   });
 
   it("should reflect actual game state score in buildResult when payload score is omitted in EchoRunnerArcadeAdapter", async () => {
-    const adapter = new EchoRunnerArcadeAdapter();
+    const adapter = new TestEchoRunnerAdapter();
     const context: MiniGameRunContext = {
       runId: "test_run_01",
       encounterId: "echo_runner_dash_01",
@@ -605,7 +614,7 @@ describe("Echo Runner Game Simulation Tests", () => {
     const dummyHost = {} as HTMLElement;
     adapter.initialize(context, dummyHost);
 
-    const gameInstance = (adapter as any).game as EchoRunnerGame;
+    const gameInstance = adapter.getGame()!;
     await gameInstance.init();
 
     const runState = gameInstance.getWorld().getResource<RunState>("RunState");
@@ -613,7 +622,7 @@ describe("Echo Runner Game Simulation Tests", () => {
     runState!.collectedTemporalIds.push("frag_1", "frag_2"); // 2 * 10 = 20
     runState!.collectedPermanentIds.push("core_1"); // 1 * 100 = 100 -> score = 120
 
-    const result = (adapter as any).buildResult(context, {});
+    const result = adapter.buildTestResult(context, {});
     expect(result.score).toBe(120);
     expect(gameInstance.getGameState().score).toBe(120);
 

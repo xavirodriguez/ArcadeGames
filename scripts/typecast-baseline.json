@@ -479,10 +479,15 @@
     "unknownCount": 0,
     "total": 5
   },
-  "src/app/asteroids/index.tsx": {
+  "src/app/arkanoid/index.tsx": {
     "anyCount": 1,
     "unknownCount": 0,
     "total": 1
+  },
+  "src/app/asteroids/index.tsx": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
   },
   "src/app/blindstation/index.tsx": {
     "anyCount": 2,
@@ -494,15 +499,45 @@
     "unknownCount": 0,
     "total": 1
   },
+  "src/app/echorunner/index.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
   "src/app/flappybird/index.tsx": {
-    "anyCount": 0,
+    "anyCount": 1,
     "unknownCount": 2,
-    "total": 2
+    "total": 3
+  },
+  "src/app/frogger/index.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/app/geometrywars/index.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
   },
   "src/app/index.tsx": {
     "anyCount": 3,
     "unknownCount": 0,
     "total": 3
+  },
+  "src/app/platformer/index.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/app/pong/index.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/app/space-invaders/index.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
   },
   "src/components/ArcadeStage.tsx": {
     "anyCount": 0,
@@ -530,6 +565,11 @@
     "total": 1
   },
   "src/components/LeaderboardOverlay.tsx": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/components/SkiaGameRenderer.tsx": {
     "anyCount": 1,
     "unknownCount": 0,
     "total": 1
@@ -621,13 +661,8 @@
   },
   "src/games/echorunner/__tests__/EchoRunner.test.ts": {
     "anyCount": 12,
-    "unknownCount": 1,
-    "total": 13
-  },
-  "src/games/echorunner/story/EchoRunnerEncounter.ts": {
-    "anyCount": 1,
     "unknownCount": 0,
-    "total": 1
+    "total": 12
   },
   "src/games/flappybird/FlappyBirdGame.ts": {
     "anyCount": 0,

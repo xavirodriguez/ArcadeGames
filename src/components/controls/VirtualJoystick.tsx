@@ -10,7 +10,7 @@ import Animated, {
 import { World, Component } from "@tiny-aster/core";
 import { useTranslation } from "../../hooks/useTranslation";
 
-export type JoystickType = "movement" | "rotation" | "aim";
+export type JoystickType = "movement" | "rotation";
 
 export interface VirtualJoystickComponent extends Component {
   type: "VirtualJoystick";
@@ -171,12 +171,12 @@ export function VirtualJoystick({
   }));
 
   const defaultLabel =
-    type === "rotation" || type === "aim"
+    type === "rotation"
       ? t?.accessibility?.joystick_rotation_label || "Rotation joystick"
       : t?.accessibility?.joystick_movement_label || "Movement joystick";
 
   const defaultHint =
-    type === "rotation" || type === "aim"
+    type === "rotation"
       ? t?.accessibility?.joystick_rotation_hint || "Drag to aim or rotate"
       : t?.accessibility?.joystick_movement_hint || "Drag to steer or move in direction";
 

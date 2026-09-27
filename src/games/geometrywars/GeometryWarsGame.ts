@@ -275,6 +275,7 @@ export class GeometryWarsGame extends BaseGame<
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, { type: "Player", fireCooldownRemaining: 0, invulnRemaining: 0, moveX: 0, moveY: 0 });
         commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
+        commands.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
         commands.addComponent(
           entity,
           createRenderComponent({ shape: "gw_player", size: 16, color: colors.cyan, rotation: state.angle, order: 1 })
@@ -288,6 +289,9 @@ export class GeometryWarsGame extends BaseGame<
         }
         if (!world.hasComponent(entity, "Player")) {
           commands.addComponent(entity, { type: "Player", fireCooldownRemaining: 0, invulnRemaining: 0, moveX: 0, moveY: 0 });
+        }
+        if (!world.hasComponent(entity, "Velocity")) {
+          commands.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
         }
         if (!world.hasComponent(entity, "Aim")) {
           commands.addComponent(entity, { type: "Aim", aimX: 0, aimY: 0, isFiring: false });

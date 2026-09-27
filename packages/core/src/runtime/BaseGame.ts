@@ -830,7 +830,7 @@ export abstract class BaseGame<
    * Returns the random seed used to initialize the game world simulation.
    */
   public getSeed(): number {
-    return (this._config.gameOptions?.seed as number) ?? 0;
+    return (this._config.gameOptions?.seed as number) ?? this._config.seed ?? 0;
   }
 
   /**

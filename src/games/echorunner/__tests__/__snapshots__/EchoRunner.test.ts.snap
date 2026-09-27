@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Echo Runner Game Simulation Tests should maintain expected registered platformer and echorunner systems schedule snapshot 1`] = `
+[
+  {
+    "phase": "Input",
+    "systemName": "PlatformerInputSystem",
+  },
+  {
+    "phase": "Input",
+    "systemName": "EchoRunnerAttackSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "PlatformerMovementSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "PlatformerGravitySystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "PlatformerCoyoteSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "MovingPlatformSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "PlatformCarrySystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "EnemySensorSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "StateMachineSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "CheckpointSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "DeathSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "RespawnSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "PhysicsIntegrateSystem",
+  },
+  {
+    "phase": "Collision",
+    "systemName": "CollisionSystem2D",
+  },
+  {
+    "phase": "Collision",
+    "systemName": "TileCollisionSystem",
+  },
+  {
+    "phase": "Collision",
+    "systemName": "CollectibleSystem",
+  },
+  {
+    "phase": "Collision",
+    "systemName": "HitDetectionSystem",
+  },
+  {
+    "phase": "Transform",
+    "systemName": "HierarchySystem",
+  },
+  {
+    "phase": "Presentation",
+    "systemName": "Camera2DSystem",
+  },
+  {
+    "phase": "Presentation",
+    "systemName": "TilemapRenderSystem",
+  },
+  {
+    "phase": "Simulation",
+    "systemName": "EchoRunnerDamageSystem",
+  },
+  {
+    "phase": "Presentation",
+    "systemName": "JuiceSystem",
+  },
+  {
+    "phase": "Presentation",
+    "systemName": "ScreenShakeSystem",
+  },
+  {
+    "phase": "Presentation",
+    "systemName": "RenderUpdateSystem",
+  },
+]
+`;

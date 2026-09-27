@@ -128,7 +128,7 @@ export class EchoRunnerArcadeAdapter extends BaseArcadeAdapter<EchoRunnerGame> {
   }
 
   protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
+    const score = payload?.score ?? this.game?.getGameState().score ?? 0;
     const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1500));
     const durationMs = payload?.durationMs ?? 35000;
     const collisions = payload?.collisions ?? 0;

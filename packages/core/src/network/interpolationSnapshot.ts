@@ -32,9 +32,13 @@ export function toTransformComponent(x: number, y: number, rotation = 0): Transf
  * @public
  */
 export interface InterpolationSnapshotEntry {
+  /** Target entity ID. */
   entityId: number;
+  /** Spatial X position coordinate in world space. */
   x: number;
+  /** Spatial Y position coordinate in world space. */
   y: number;
+  /** Entity rotation angle in radians. */
   rotation?: number;
 }
 

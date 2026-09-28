@@ -23,14 +23,22 @@ export interface MetaEvidence {
  * @public
  */
 export interface MetaProgressionState {
+  /** Numeric save file format version. */
   readonly saveVersion: number;
+  /** Schema structure migration version. */
   readonly schemaVersion: number;
+  /** Version string of narrative content bundle. */
   readonly contentVersion: string;
+  /** Total count of successfully completed campaign runs. */
   readonly completedRuns: number;
+  /** Identifiers of unlocked narrative endings across all runs. */
   readonly completedEndings: ReadonlyArray<string>;
+  /** Collection of meta evidence discovered across runs. */
   readonly discoveredMetaEvidence: ReadonlyArray<MetaEvidence>;
+  /** Identifiers of unlocked permanent game modifiers. */
   readonly unlockedModifiers: ReadonlyArray<string>;
-  readonly miniGameMastery: Readonly<Record<string, number>>; // gameId -> mastery level (1-5)
+  /** Map of minigame IDs to mastery levels (clamped between 1 and 5). */
+  readonly miniGameMastery: Readonly<Record<string, number>>;
 }
 
 /**

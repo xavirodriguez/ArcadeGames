@@ -428,18 +428,18 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 346,
+        "end": 348,
         "endLoc": {
           "column": 7,
-          "line": 346,
-          "position": 15057
+          "line": 348,
+          "position": 15136
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 336,
+        "start": 338,
         "startLoc": {
           "column": 50,
-          "line": 336,
-          "position": 14766
+          "line": 338,
+          "position": 14845
         }
       },
       "tokens": 62
@@ -465,18 +465,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 469,
+        "end": 471,
         "endLoc": {
           "column": 20,
-          "line": 469,
-          "position": 20343
+          "line": 471,
+          "position": 20422
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 464,
+        "start": 466,
         "startLoc": {
           "column": 62,
-          "line": 464,
-          "position": 20063
+          "line": 466,
+          "position": 20142
         }
       },
       "tokens": 66
@@ -816,11 +816,196 @@
     },
     {
       "firstFile": {
-        "end": 28,
+        "end": 302,
+        "endLoc": {
+          "column": 11,
+          "line": 302,
+          "position": 12679
+        },
+        "name": "flappybird/FlappyBirdGame.ts",
+        "start": 288,
+        "startLoc": {
+          "column": 35,
+          "line": 288,
+          "position": 12250
+        }
+      },
+      "format": "typescript",
+      "fragment": "        world.addComponent(entity, {\n          type: \"FlappyState\",\n          score: 0,\n          isGameOver: false,\n          highScore: 0,\n          pipeSpawnTimer: 0,\n          gameOverLogged: false,\n          pipesSpawnedCount: 0,\n          currentSectorEvent: \"none\",\n          sectorEventTicks: 0,\n          sectorEventDuration: 0,\n          pipeSpeedMultiplier: 1.0,\n          currentScenario: \"open_space\",\n          scenarioTransitionTicks: 0,\n        });",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 131,
+        "endLoc": {
+          "column": 3,
+          "line": 131,
+          "position": 3430
+        },
+        "name": "flappybird/types/FlappyBirdTypes.ts",
+        "start": 117,
+        "startLoc": {
+          "column": 67,
+          "line": 117,
+          "position": 3113
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 32,
+        "endLoc": {
+          "column": 30,
+          "line": 32,
+          "position": 1177
+        },
+        "name": "flappybird/ScenarioDefinitions.ts",
+        "start": 22,
+        "startLoc": {
+          "column": 9,
+          "line": 22,
+          "position": 785
+        }
+      },
+      "format": "typescript",
+      "fragment": "    theme: {\n      nebulae: [\n        { xRatio: 0.25, yRatio: 0.3, radius: 180, colorHex: \"#2A0044\" },\n        { xRatio: 0.75, yRatio: 0.65, radius: 210, colorHex: \"#002838\" },\n        { xRatio: 0.5, yRatio: 0.45, radius: 150, colorHex: \"#1C0033\" },\n      ],\n      megaIndex: 0,\n      palette: {\n        textColor: \"#00F3FF\",\n        bannerBg: \"rgba(0, 243, 255, 0.15)\",\n        primaryGlow: \"#00F3FF\",",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 117,
+        "endLoc": {
+          "column": 96,
+          "line": 117,
+          "position": 3678
+        },
+        "name": "flappybird/rendering/FlappyBirdBackgroundData.ts",
+        "start": 110,
+        "startLoc": {
+          "column": 12,
+          "line": 110,
+          "position": 3324
+        }
+      },
+      "tokens": 79
+    },
+    {
+      "firstFile": {
+        "end": 66,
+        "endLoc": {
+          "column": 30,
+          "line": 66,
+          "position": 2159
+        },
+        "name": "flappybird/ScenarioDefinitions.ts",
+        "start": 56,
+        "startLoc": {
+          "column": 9,
+          "line": 56,
+          "position": 1769
+        }
+      },
+      "format": "typescript",
+      "fragment": "    theme: {\n      nebulae: [\n        { xRatio: 0.2, yRatio: 0.4, radius: 220, colorHex: \"#3A1C08\" },\n        { xRatio: 0.8, yRatio: 0.3, radius: 190, colorHex: \"#221008\" },\n        { xRatio: 0.5, yRatio: 0.7, radius: 170, colorHex: \"#482612\" },\n      ],\n      megaIndex: 1,\n      palette: {\n        textColor: \"#D3D9E2\",\n        bannerBg: \"rgba(211, 217, 226, 0.15)\",\n        primaryGlow: \"#8B93A5\",",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 126,
+        "endLoc": {
+          "column": 98,
+          "line": 126,
+          "position": 4053
+        },
+        "name": "flappybird/rendering/FlappyBirdBackgroundData.ts",
+        "start": 119,
+        "startLoc": {
+          "column": 15,
+          "line": 119,
+          "position": 3701
+        }
+      },
+      "tokens": 79
+    },
+    {
+      "firstFile": {
+        "end": 100,
+        "endLoc": {
+          "column": 30,
+          "line": 100,
+          "position": 3150
+        },
+        "name": "flappybird/ScenarioDefinitions.ts",
+        "start": 90,
+        "startLoc": {
+          "column": 9,
+          "line": 90,
+          "position": 2762
+        }
+      },
+      "format": "typescript",
+      "fragment": "    theme: {\n      nebulae: [\n        { xRatio: 0.3, yRatio: 0.2, radius: 200, colorHex: \"#441C00\" },\n        { xRatio: 0.7, yRatio: 0.5, radius: 230, colorHex: \"#330800\" },\n        { xRatio: 0.4, yRatio: 0.8, radius: 160, colorHex: \"#552800\" },\n      ],\n      megaIndex: 2,\n      palette: {\n        textColor: \"#FFC000\",\n        bannerBg: \"rgba(255, 192, 0, 0.15)\",\n        primaryGlow: \"#FF3300\",",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 135,
+        "endLoc": {
+          "column": 96,
+          "line": 135,
+          "position": 4424
+        },
+        "name": "flappybird/rendering/FlappyBirdBackgroundData.ts",
+        "start": 128,
+        "startLoc": {
+          "column": 13,
+          "line": 128,
+          "position": 4074
+        }
+      },
+      "tokens": 79
+    },
+    {
+      "firstFile": {
+        "end": 135,
+        "endLoc": {
+          "column": 30,
+          "line": 135,
+          "position": 4184
+        },
+        "name": "flappybird/ScenarioDefinitions.ts",
+        "start": 125,
+        "startLoc": {
+          "column": 9,
+          "line": 125,
+          "position": 3795
+        }
+      },
+      "format": "typescript",
+      "fragment": "    theme: {\n      nebulae: [\n        { xRatio: 0.15, yRatio: 0.5, radius: 240, colorHex: \"#001A44\" },\n        { xRatio: 0.85, yRatio: 0.4, radius: 200, colorHex: \"#003366\" },\n        { xRatio: 0.5, yRatio: 0.2, radius: 180, colorHex: \"#000D22\" },\n      ],\n      megaIndex: 3,\n      palette: {\n        textColor: \"#00F3FF\",\n        bannerBg: \"rgba(0, 243, 255, 0.2)\",\n        primaryGlow: \"#00F3FF\",",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 144,
+        "endLoc": {
+          "column": 95,
+          "line": 144,
+          "position": 4798
+        },
+        "name": "flappybird/rendering/FlappyBirdBackgroundData.ts",
+        "start": 137,
+        "startLoc": {
+          "column": 15,
+          "line": 137,
+          "position": 4447
+        }
+      },
+      "tokens": 79
+    },
+    {
+      "firstFile": {
+        "end": 30,
         "endLoc": {
           "column": 33,
-          "line": 28,
-          "position": 845
+          "line": 30,
+          "position": 906
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 1,
@@ -831,15 +1016,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "import { ShapeDrawer, EffectDrawer } from \"@tiny-aster/core\";\nimport { FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";\nimport {\n  FLAPPY_PARTICLE_POOL,\n  spawnVisualParticle,\n  updateVisualParticles,\n  resolveFlappyParticleData,\n} from \"./FlappyBirdParticles\";\nimport {\n  resolveFlappyBirdDrawContext,\n  resolveFlappyPipeDrawContext,\n  maybeSpawnBackgroundDebris,\n  resolveGlideEnergyState,\n  resolveSectorEventInfo,\n  resolveBackgroundWarpState\n} from \"./FlappyBirdRenderUtils\";",
+      "fragment": "import { ShapeDrawer, EffectDrawer } from \"@tiny-aster/core\";\nimport { FlappyBirdComponentRegistry } from \"../types/FlappyBirdTypes\";\nimport { computeFlappyThrusterFlame } from \"../../shared/rendering/ProceduralShapeUtils\";\nimport {\n  StarfieldStar,\n  generateStarfield\n} from \"../../shared/rendering/geometry\";\nimport {\n  calculateWarpFactor,\n  calculateMegastructureData,\n  calculateGroundHazardFlicker,\n  calculateScenarioTransitionOverlay,\n  getThemeForScenario,\n  BACKGROUND_NEBULAE,\n  MegastructureData\n} from \"./FlappyBirdBackgroundData\";\nimport {\n  FLAPPY_PARTICLE_POOL,\n  spawnVisualParticle,\n  updateVisualParticles,\n  resolveFlappyParticleData,\n} from \"./FlappyBirdParticles\";\nimport {\n  resolveFlappyBirdDrawContext,\n  resolveFlappyPipeDrawContext,\n  maybeSpawnBackgroundDebris,\n  resolveGlideEnergyState,\n  resolveSectorEventInfo,\n  resolveBackgroundWarpState\n} from \"./FlappyBirdRenderUtils\";",
       "isNew": false,
-      "lines": 28,
+      "lines": 30,
       "secondFile": {
-        "end": 29,
+        "end": 31,
         "endLoc": {
           "column": 33,
-          "line": 29,
-          "position": 947
+          "line": 31,
+          "position": 1008
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 2,
@@ -849,22 +1034,22 @@
           "position": 162
         }
       },
-      "tokens": 70
+      "tokens": 74
     },
     {
       "firstFile": {
-        "end": 38,
+        "end": 40,
         "endLoc": {
           "column": 36,
-          "line": 38,
-          "position": 1237
+          "line": 40,
+          "position": 1298
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 32,
+        "start": 34,
         "startLoc": {
           "column": 64,
-          "line": 32,
-          "position": 997
+          "line": 34,
+          "position": 1058
         }
       },
       "format": "typescript",
@@ -872,36 +1057,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 92,
+        "end": 94,
         "endLoc": {
           "column": 36,
-          "line": 92,
-          "position": 2653
+          "line": 94,
+          "position": 2714
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 86,
+        "start": 88,
         "startLoc": {
           "column": 65,
-          "line": 86,
-          "position": 2413
+          "line": 88,
+          "position": 2474
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 304,
+        "end": 306,
         "endLoc": {
           "column": 9,
-          "line": 304,
-          "position": 8730
+          "line": 306,
+          "position": 8791
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 286,
+        "start": 288,
         "startLoc": {
           "column": 4,
-          "line": 286,
-          "position": 8370
+          "line": 288,
+          "position": 8431
         }
       },
       "format": "typescript",
@@ -909,36 +1094,36 @@
       "isNew": false,
       "lines": 19,
       "secondFile": {
-        "end": 309,
+        "end": 311,
         "endLoc": {
           "column": 9,
-          "line": 309,
-          "position": 9489
+          "line": 311,
+          "position": 9550
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 291,
+        "start": 293,
         "startLoc": {
           "column": 4,
-          "line": 291,
-          "position": 9129
+          "line": 293,
+          "position": 9190
         }
       },
       "tokens": 59
     },
     {
       "firstFile": {
-        "end": 465,
+        "end": 467,
         "endLoc": {
           "column": 14,
-          "line": 465,
-          "position": 14733
+          "line": 467,
+          "position": 14794
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 457,
+        "start": 459,
         "startLoc": {
           "column": 19,
-          "line": 457,
-          "position": 14293
+          "line": 459,
+          "position": 14354
         }
       },
       "format": "typescript",
@@ -946,73 +1131,73 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 462,
+        "end": 464,
         "endLoc": {
           "column": 14,
-          "line": 462,
-          "position": 15114
+          "line": 464,
+          "position": 15175
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 454,
+        "start": 456,
         "startLoc": {
           "column": 100,
-          "line": 454,
-          "position": 14674
+          "line": 456,
+          "position": 14735
         }
       },
       "tokens": 102
     },
     {
       "firstFile": {
-        "end": 678,
+        "end": 683,
         "endLoc": {
           "column": 11,
-          "line": 678,
-          "position": 21594
+          "line": 683,
+          "position": 21751
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 672,
+        "start": 674,
         "startLoc": {
           "column": 36,
-          "line": 672,
-          "position": 21322
+          "line": 674,
+          "position": 21383
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillRect(0, 0, width, height);\n\n    for (let n = 0; n < BACKGROUND_NEBULAE.length; n++) {\n      const neb = BACKGROUND_NEBULAE[n];\n      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;\n      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;\n      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}`, () => {",
+      "fragment": "    ctx.fillRect(0, 0, width, height);\n\n    const scenarioTheme = getThemeForScenario(gameState.currentScenario);\n    const nebulae = scenarioTheme.nebulae;\n\n    for (let n = 0; n < nebulae.length; n++) {\n      const neb = nebulae[n];\n      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;\n      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;\n      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {",
       "isNew": false,
-      "lines": 7,
+      "lines": 10,
       "secondFile": {
-        "end": 662,
+        "end": 667,
         "endLoc": {
           "column": 11,
-          "line": 662,
-          "position": 22770
+          "line": 667,
+          "position": 22927
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 656,
+        "start": 658,
         "startLoc": {
           "column": 63,
-          "line": 656,
-          "position": 22498
+          "line": 658,
+          "position": 22559
         }
       },
-      "tokens": 78
+      "tokens": 95
     },
     {
       "firstFile": {
-        "end": 733,
+        "end": 738,
         "endLoc": {
           "column": 48,
-          "line": 733,
-          "position": 23620
+          "line": 738,
+          "position": 23804
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 728,
+        "start": 733,
         "startLoc": {
           "column": 25,
-          "line": 728,
-          "position": 23392
+          "line": 733,
+          "position": 23576
         }
       },
       "format": "typescript",
@@ -1020,18 +1205,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 726,
+        "end": 731,
         "endLoc": {
           "column": 48,
-          "line": 726,
-          "position": 25128
+          "line": 731,
+          "position": 25312
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 721,
+        "start": 726,
         "startLoc": {
           "column": 31,
-          "line": 721,
-          "position": 24900
+          "line": 726,
+          "position": 25084
         }
       },
       "tokens": 67
@@ -1075,18 +1260,18 @@
     },
     {
       "firstFile": {
-        "end": 289,
+        "end": 290,
         "endLoc": {
           "column": 39,
-          "line": 289,
-          "position": 9730
+          "line": 290,
+          "position": 9825
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 282,
+        "start": 283,
         "startLoc": {
           "column": 83,
-          "line": 282,
-          "position": 9448
+          "line": 283,
+          "position": 9543
         }
       },
       "format": "typescript",
@@ -1112,18 +1297,18 @@
     },
     {
       "firstFile": {
-        "end": 338,
+        "end": 342,
         "endLoc": {
           "column": 34,
-          "line": 338,
-          "position": 11776
+          "line": 342,
+          "position": 12033
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 328,
+        "start": 332,
         "startLoc": {
           "column": 8,
-          "line": 328,
-          "position": 11529
+          "line": 332,
+          "position": 11786
         }
       },
       "format": "typescript",
@@ -1963,32 +2148,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-27T12:05:09.727Z",
+    "detectionDate": "2026-09-28T21:26:33.736Z",
     "formats": {
       "typescript": {
-        "clones": 53,
-        "duplicatedLines": 416,
-        "duplicatedTokens": 3562,
-        "lines": 68180,
+        "clones": 58,
+        "duplicatedLines": 475,
+        "duplicatedTokens": 3955,
+        "lines": 69006,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.6101496039894397,
-        "percentageTokens": 1.0001909404378153,
-        "sources": 411,
-        "tokens": 356132
+        "percentage": 0.6883459409326725,
+        "percentageTokens": 1.1017817942746346,
+        "sources": 414,
+        "tokens": 358964
       }
     },
     "total": {
-      "clones": 53,
-      "duplicatedLines": 416,
-      "duplicatedTokens": 3562,
-      "lines": 68180,
+      "clones": 58,
+      "duplicatedLines": 475,
+      "duplicatedTokens": 3955,
+      "lines": 69006,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.6101496039894397,
-      "percentageTokens": 1.0001909404378153,
-      "sources": 411,
-      "tokens": 356132
+      "percentage": 0.6883459409326725,
+      "percentageTokens": 1.1017817942746346,
+      "sources": 414,
+      "tokens": 358964
     }
   }
 }

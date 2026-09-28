@@ -79,11 +79,17 @@ export type GameRoleKey =
  * @public
  */
 export interface GameVisualProfile {
+  /** Background starfield density factor. */
   starDensity?: number;
+  /** Background starfield scroll/parallax speed scalar. */
   starSpeed?: number;
+  /** Ambient lighting glow intensity. */
   ambientGlow?: number;
+  /** Celestial planet background rendering style palette. */
   planetProfile?: "blue" | "purple" | "toxic" | "volcanic";
+  /** Identifiers for background layer drawers enabled in visual context. */
   backgroundLayers?: string[];
+  /** Shape geometry variant used when spawning particle effects. */
   particleShape?: "circle" | "polygon" | "shard";
 }
 

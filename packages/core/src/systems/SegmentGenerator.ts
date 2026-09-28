@@ -19,13 +19,21 @@ export interface SegmentSpawnPoint {
  * @public
  */
 export interface SegmentTemplate {
+  /** Unique template identifier. */
   id: string;
+  /** Entry connection point in segment tile coordinates. */
   entry: { x: number; y: number };
+  /** Exit connection point in segment tile coordinates. */
   exit: { x: number; y: number };
-  bounds: { width: number; height: number }; // in tiles
+  /** Segment grid dimensions in tile units. */
+  bounds: { width: number; height: number };
+  /** Relative difficulty rating of the segment. */
   difficulty: number;
+  /** Tags used by level generator grammars to match templates. */
   tags: string[];
-  tileData: number[][]; // 2D array of tile types
+  /** 2D grid matrix of tile type IDs. */
+  tileData: number[][];
+  /** List of entity spawn points within the segment. */
   spawnPoints: SegmentSpawnPoint[];
 }
 
@@ -34,13 +42,20 @@ export interface SegmentTemplate {
  * @public
  */
 export interface SegmentInstance {
+  /** ID of the source template. */
   templateId: string;
-  offsetX: number; // in tiles
-  offsetY: number; // in tiles
+  /** X position offset in global tile coordinates. */
+  offsetX: number;
+  /** Y position offset in global tile coordinates. */
+  offsetY: number;
+  /** 2D grid matrix of tile type IDs. */
   tileData: number[][];
+  /** Entity spawn points within this instance. */
   spawnPoints: SegmentSpawnPoint[];
-  entry: { x: number; y: number }; // in tiles relative to segment
-  exit: { x: number; y: number }; // in tiles relative to segment
+  /** Entry connection point relative to this segment in tiles. */
+  entry: { x: number; y: number };
+  /** Exit connection point relative to this segment in tiles. */
+  exit: { x: number; y: number };
 }
 
 /**
@@ -48,10 +63,15 @@ export interface SegmentInstance {
  * @public
  */
 export interface LevelPlan {
+  /** Random seed used for level generation. */
   seed: number;
+  /** Placed segment instances composing the level. */
   segments: SegmentInstance[];
-  totalWidth: number; // in tiles
-  totalHeight: number; // in tiles
+  /** Total level width in tile units. */
+  totalWidth: number;
+  /** Total level height in tile units. */
+  totalHeight: number;
+  /** Stitched 2D global grid matrix of tile IDs. */
   globalTilemap: number[][];
 }
 

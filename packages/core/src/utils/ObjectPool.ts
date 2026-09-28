@@ -23,11 +23,13 @@ export class ObjectPool<T> {
     }
   }
 
+  /** Retrieves an available instance from the pool or allocates a new one via factory. */
   public acquire(): T {
     const obj = this.pool.pop() || this.factory();
     return obj;
   }
 
+  /** Returns an instance to the pool after running the optional reset handler. */
   public release(obj: T): void {
     if (this.reset) {
       this.reset(obj);
@@ -35,10 +37,12 @@ export class ObjectPool<T> {
     this.pool.push(obj);
   }
 
+  /** Empties all pooled instances. */
   public clear(): void {
     this.pool = [];
   }
 
+  /** Current number of available pooled instances in storage. */
   public get size(): number {
     return this.pool.length;
   }

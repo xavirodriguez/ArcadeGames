@@ -91,6 +91,7 @@ export class LocalPredictionSystem<
         }
     }
 
+    /** Executes prediction step and records input frame onto prediction buffer. */
     public update(world: World<TRegistry>, deltaTime: number): void {
         if (world.getResource("IsPaused") === true) return;
         const dtSec = deltaTime;
@@ -129,9 +130,12 @@ export class LocalPredictionSystem<
         }
     }
 
+    /** Lifecycle callback when system is registered. */
     public override onRegister(_world: World<TRegistry>): void {}
+    /** Lifecycle cleanup callback. */
     public override dispose(): void {}
 
+    /** Performs state reconciliation against authoritative server tick state. */
     public reconcile(
         world: World<TRegistry>,
         serverTick: number,

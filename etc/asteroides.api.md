@@ -643,18 +643,14 @@ export function checkProjectionOverlap(minA: number, maxA: number, minB: number,
 
 // @public
 export interface ChoiceNodeBuilder extends CommonNodeBuilderMethods<ChoiceNodeBuilder> {
-    // (undocumented)
     addChoice(choice: StoryChoice): ChoiceNodeBuilder;
-    // (undocumented)
     addChoice(id: string, titleKey: string, targetNodeId: string, options?: {
         descriptionKey?: string;
         condition?: StoryCondition;
         effects?: StoryEffect[];
         rewindPolicy?: RewindPolicy;
     }): ChoiceNodeBuilder;
-    // (undocumented)
     addDialogueLine(line: DialogueLine): ChoiceNodeBuilder;
-    // (undocumented)
     setDialogue(dialogue: Dialogue): ChoiceNodeBuilder;
 }
 
@@ -813,23 +809,14 @@ export interface Command<TComponents extends ComponentRegistry, TEvents extends 
 
 // @public
 export interface CommonNodeBuilderMethods<TBuilder> {
-    // (undocumented)
     addEffect(effect: StoryEffect): TBuilder;
-    // (undocumented)
     addTransition(targetNodeId: string, condition?: StoryCondition, priority?: number): TBuilder;
-    // (undocumented)
     build(): StoryNode;
-    // (undocumented)
     setCheckpoint(checkpoint?: boolean): TBuilder;
-    // (undocumented)
     setEmitEvent(name: string, payload?: Record<string, number | string | boolean>): TBuilder;
-    // (undocumented)
     setIsEndNode(isEndNode?: boolean): TBuilder;
-    // (undocumented)
     setMeta(meta: Record<string, unknown>): TBuilder;
-    // (undocumented)
     setSceneToLoad(sceneToLoad: string): TBuilder;
-    // (undocumented)
     setTitle(title: string): TBuilder;
 }
 
@@ -1488,55 +1475,36 @@ export class DivergenceDetector {
 
 // @public
 export interface DrawCirclePayload {
-    // (undocumented)
     color: string;
-    // (undocumented)
     radius: number;
-    // (undocumented)
     x: number;
-    // (undocumented)
     y: number;
 }
 
 // @public
 export interface DrawLinePayload {
-    // (undocumented)
     color: string;
-    // (undocumented)
     x1: number;
-    // (undocumented)
     x2: number;
-    // (undocumented)
     y1: number;
-    // (undocumented)
     y2: number;
 }
 
 // @public
 export interface DrawSpritePayload {
-    // (undocumented)
     height: number;
-    // (undocumented)
     rotation: number;
-    // (undocumented)
     spriteId: string;
-    // (undocumented)
     width: number;
-    // (undocumented)
     x: number;
-    // (undocumented)
     y: number;
 }
 
 // @public
 export interface DrawTextPayload {
-    // (undocumented)
     color: string;
-    // (undocumented)
     text: string;
-    // (undocumented)
     x: number;
-    // (undocumented)
     y: number;
 }
 
@@ -1927,17 +1895,11 @@ export class GameSession {
 
 // @public
 export interface GameVisualProfile {
-    // (undocumented)
     ambientGlow?: number;
-    // (undocumented)
     backgroundLayers?: string[];
-    // (undocumented)
     particleShape?: "circle" | "polygon" | "shard";
-    // (undocumented)
     planetProfile?: "blue" | "purple" | "toxic" | "volcanic";
-    // (undocumented)
     starDensity?: number;
-    // (undocumented)
     starSpeed?: number;
 }
 
@@ -2241,13 +2203,9 @@ export interface InternalWorldSnapshotAccess {
 
 // @public
 export interface InterpolationSnapshotEntry {
-    // (undocumented)
     entityId: number;
-    // (undocumented)
     rotation?: number;
-    // (undocumented)
     x: number;
-    // (undocumented)
     y: number;
 }
 
@@ -2286,15 +2244,10 @@ export function isGameplayFrozen(world: World): boolean;
 
 // @public
 export interface IStateReplicator<TComponents extends ComponentRegistry = ComponentRegistry> {
-    // (undocumented)
     getLocalId(serverId: string): number | undefined;
-    // (undocumented)
     getMappings(): Map<string, number>;
-    // (undocumented)
     removeMapping(serverId: string): void;
-    // (undocumented)
     replicate(world: WorldLike<TComponents>, snapshot: WorldSnapshot): void;
-    // (undocumented)
     resolveEntity(serverId: string, world: WorldLike<TComponents>, serverComponents?: Record<string, Record<string, unknown>>): number;
 }
 
@@ -2382,23 +2335,14 @@ export class KeyboardInputProvider<TExtra extends string = never> implements Inp
 
 // @public
 export interface KeyboardMapConfig<TExtra extends string = never> {
-    // (undocumented)
     actions?: Record<string, CanonicalActionName<TExtra>>;
-    // (undocumented)
     aimDown?: string[];
-    // (undocumented)
     aimLeft?: string[];
-    // (undocumented)
     aimRight?: string[];
-    // (undocumented)
     aimUp?: string[];
-    // (undocumented)
     moveDown?: string[];
-    // (undocumented)
     moveLeft?: string[];
-    // (undocumented)
     moveRight?: string[];
-    // (undocumented)
     moveUp?: string[];
 }
 
@@ -2427,15 +2371,10 @@ export function layer(bit: number): number;
 
 // @public
 export interface LevelPlan {
-    // (undocumented)
     globalTilemap: number[][];
-    // (undocumented)
     seed: number;
-    // (undocumented)
     segments: SegmentInstance[];
-    // (undocumented)
     totalHeight: number;
-    // (undocumented)
     totalWidth: number;
 }
 
@@ -2467,13 +2406,9 @@ export interface LocalPredictionOptions<TRegistry extends MultiplayerRegistry = 
 // @public
 export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = MultiplayerRegistry, TInput = Record<string, unknown>> extends System<TRegistry> {
     constructor(networkManager: NetworkManager<TRegistry>, optionsOrSimulateFn?: LocalPredictionOptions<TRegistry, TInput> | ((world: World<TRegistry>, input: TInput, dt: number) => void), queryComponents?: Extract<keyof TRegistry, string>[], reconcileQueryComponents?: Extract<keyof TRegistry, string>[], reconcileFn?: (world: World<TRegistry>, entity: number, input: TInput, dt: number) => void);
-    // (undocumented)
     dispose(): void;
-    // (undocumented)
     onRegister(_world: World<TRegistry>): void;
-    // (undocumented)
     reconcile(world: World<TRegistry>, serverTick: number, serverState: AuthoritativeServerState): void;
-    // (undocumented)
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
@@ -2527,39 +2462,24 @@ export class MetaProgressionService {
 
 // @public
 export interface MetaProgressionState {
-    // (undocumented)
     readonly completedEndings: ReadonlyArray<string>;
-    // (undocumented)
     readonly completedRuns: number;
-    // (undocumented)
     readonly contentVersion: string;
-    // (undocumented)
     readonly discoveredMetaEvidence: ReadonlyArray<MetaEvidence>;
-    // (undocumented)
     readonly miniGameMastery: Readonly<Record<string, number>>;
-    // (undocumented)
     readonly saveVersion: number;
-    // (undocumented)
     readonly schemaVersion: number;
-    // (undocumented)
     readonly unlockedModifiers: ReadonlyArray<string>;
 }
 
 // @public
 export interface MidGameDirectorRule {
-    // (undocumented)
     readonly condition?: (event: GameplayEvent, snapshot: StoryRuntimeSnapshot) => boolean;
-    // (undocumented)
     readonly cooldownMs?: number;
-    // (undocumented)
     readonly cue: NarrativeCue;
-    // (undocumented)
     readonly eventName: string;
-    // (undocumented)
     readonly id: string;
-    // (undocumented)
     readonly maxTriggersPerRun?: number;
-    // (undocumented)
     readonly once?: boolean;
 }
 
@@ -2914,27 +2834,16 @@ export const NARRATIVE_SAVE_VERSION = 1;
 
 // @public
 export interface NarrativeCue {
-    // (undocumented)
     readonly audioCueId?: string;
-    // (undocumented)
     readonly durationMs?: number;
-    // (undocumented)
     readonly id: string;
-    // (undocumented)
     readonly interruptPolicy?: CueInterruptPolicy;
-    // (undocumented)
     readonly messageKey?: string;
-    // (undocumented)
     readonly pauseSimulation?: boolean;
-    // (undocumented)
     readonly payload?: Readonly<Record<string, unknown>>;
-    // (undocumented)
     readonly priority: number;
-    // (undocumented)
     readonly rawText?: string;
-    // (undocumented)
     readonly titleKey?: string;
-    // (undocumented)
     readonly type: NarrativeCueType;
 }
 
@@ -3073,21 +2982,13 @@ export class NetworkBudgetManager {
 // @public
 export class NetworkController<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
     constructor(world: World<TComponents, TEvents, TBlueprints>, runSimStep?: (deltaTime: number, isResimulating: boolean) => void);
-    // (undocumented)
     applyInputToEntity(entityId: number, input: InputFrame): void;
-    // (undocumented)
     isMultiplayer: boolean;
-    // (undocumented)
     lastProcessedFullStateVersion: number;
-    // (undocumented)
     networkManager?: NetworkManager<TComponents>;
-    // (undocumented)
     predictLocalPlayer(input: InputFrame, deltaTime: number): void;
-    // (undocumented)
     runSimulationStep(deltaTime: number, isResimulating: boolean): void;
-    // (undocumented)
     setMultiplayerMode(active: boolean): void;
-    // (undocumented)
     updateFromServer(payload: ServerUpdatePayload, localSessionId?: string): void;
 }
 
@@ -3101,21 +3002,13 @@ export class NetworkDeltaSystem<TComponents extends ComponentRegistry = Componen
 // @public
 export class NetworkManager<TComponents extends ComponentRegistry = ComponentRegistry, TServerEvents extends Record<string, unknown> = Record<string, unknown>, TClientEvents extends Record<string, unknown> = Record<string, unknown>> {
     constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>);
-    // (undocumented)
     getReplicator(): IStateReplicator<TComponents>;
-    // (undocumented)
     getStrategy(): unknown;
-    // (undocumented)
     getTransport(): NetworkTransport<TServerEvents, TClientEvents>;
-    // (undocumented)
     processServerUpdate(_tick: number, snapshot: WorldSnapshot, _sessionId?: string): void;
-    // (undocumented)
     static registerGame<TComponents extends ComponentRegistry = ComponentRegistry, TServer extends Record<string, unknown> = Record<string, unknown>, TClient extends Record<string, unknown> = Record<string, unknown>>(_gameId: string, _game: unknown, options?: RegisterGameOptions<TComponents, TServer, TClient>): NetworkManager<TComponents, TServer, TClient>;
-    // (undocumented)
     reset(): void;
-    // (undocumented)
     setTransport(transport: NetworkTransport<TServerEvents, TClientEvents>): void;
-    // (undocumented)
     world?: INetworkableWorld<TComponents>;
 }
 
@@ -3127,28 +3020,19 @@ export class NetworkReplicationUtils {
 
 // @public
 export class NetworkReplicator<TComponents extends ComponentRegistry = ComponentRegistry> implements IStateReplicator<TComponents> {
-    // (undocumented)
     getLocalId(serverId: string): number | undefined;
-    // (undocumented)
     getMappings(): Map<string, number>;
-    // (undocumented)
     removeMapping(serverId: string): void;
-    // (undocumented)
     replicate(world: WorldLike<TComponents>, snapshot: WorldSnapshot): void;
-    // (undocumented)
     resolveEntity(serverId: string, world: WorldLike<TComponents>, serverComponents?: Record<string, Record<string, unknown>>): number;
 }
 
 // @public
 export interface NetworkTransport<TServerEvents extends Record<string, unknown> = Record<string, unknown>, TClientEvents extends Record<string, unknown> = Record<string, unknown>> {
     connect(url: string): Promise<void>;
-    // (undocumented)
     disconnect(): void;
-    // (undocumented)
     readonly isOffline: boolean;
-    // (undocumented)
     onMessage<K extends keyof TServerEvents>(type: K, handler: (message: TServerEvents[K]) => void): void;
-    // (undocumented)
     send<K extends keyof TClientEvents>(type: K, message: TClientEvents[K]): void;
 }
 
@@ -3167,69 +3051,37 @@ export class NullAudioPlayer implements IAudioPlayer {
 
 // @public
 export abstract class NullBaseGame<TState = unknown, TInput extends object = Record<string, unknown>, TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry> implements IGame<TState, TInput, TComponents, TEvents> {
-    // (undocumented)
     destroy(): void;
-    // (undocumented)
     enterGameplayFreeze(duration?: number): void;
-    // (undocumented)
     protected _eventBus: EventBus<TEvents>;
-    // (undocumented)
     exitGameplayFreeze(): void;
-    // (undocumented)
     getEventBus(): EventBus<TEvents>;
-    // (undocumented)
     getGameLoop(): GameLoop;
-    // (undocumented)
     getGameplayFreezeRemaining(): number | undefined;
-    // (undocumented)
     abstract getGameState(): TState;
-    // (undocumented)
     getInputSystem(): IInputSystem<TInput>;
-    // (undocumented)
     getSeed(): number;
-    // (undocumented)
     getWorld(): World<TComponents, TEvents>;
-    // (undocumented)
     hash(): string;
-    // (undocumented)
     init(): Promise<void>;
-    // (undocumented)
     initializeRenderer(): void;
-    // (undocumented)
     protected _inputSystem: NullInputSystem<TInput>;
-    // (undocumented)
     isGameOver(): boolean;
-    // (undocumented)
     isGameplayFrozen(): boolean;
-    // (undocumented)
     isPausedState(): boolean;
-    // (undocumented)
     protected _loop: GameLoop;
-    // (undocumented)
     pause(): void;
-    // (undocumented)
     restart(): Promise<void>;
-    // (undocumented)
     restore(_snapshot: WorldSnapshot): void;
-    // (undocumented)
     resume(): void;
-    // (undocumented)
     setInputState(_input: Partial<TInput>): void;
-    // (undocumented)
     snapshot(): WorldSnapshot;
-    // (undocumented)
     start(): void;
-    // (undocumented)
     get state(): TState;
-    // (undocumented)
     step(_input: CompactInputFrame): void;
-    // (undocumented)
     stop(): void;
-    // (undocumented)
     subscribe(_cb: (state: TState) => void): () => void;
-    // (undocumented)
     get tick(): number;
-    // (undocumented)
     protected _world: World<TComponents, TEvents, BlueprintRegistryMap<TComponents, EventRegistry>>;
 }
 
@@ -3266,13 +3118,9 @@ export interface ObjectiveNodeBuilder extends CommonNodeBuilderMethods<Objective
 // @public
 export class ObjectPool<T> {
     constructor(factory: () => T, reset?: (obj: T) => void, initialSize?: number);
-    // (undocumented)
     acquire(): T;
-    // (undocumented)
     clear(): void;
-    // (undocumented)
     release(obj: T): void;
-    // (undocumented)
     get size(): number;
 }
 
@@ -3350,19 +3198,12 @@ export interface ParticleEmitterConfig {
 
 // @public
 export interface ParticleParams {
-    // (undocumented)
     color: string;
-    // (undocumented)
     size: number;
-    // (undocumented)
     ttl: number;
-    // (undocumented)
     vx: number;
-    // (undocumented)
     vy: number;
-    // (undocumented)
     x: number;
-    // (undocumented)
     y: number;
 }
 
@@ -3549,13 +3390,9 @@ export interface PredictedState {
 
 // @public
 export interface PrefabConfig<T extends Record<string, Component>, I> {
-    // (undocumented)
     factory: () => T;
-    // (undocumented)
     initializer: (components: T, params: I, world: World, entity: Entity) => void;
-    // (undocumented)
     initialSize?: number;
-    // (undocumented)
     reset: (data: T) => void;
 }
 
@@ -3573,41 +3410,25 @@ export function preloadSharedAudioManifest(audio: IAudioPlayer): Promise<void>;
 
 // @public
 export interface ProjectileComponents extends Record<string, Component> {
-    // (undocumented)
     collider: Collider2DComponent;
-    // (undocumented)
     position: TransformComponent;
-    // (undocumented)
     reclaimable: ReclaimableComponent;
-    // (undocumented)
     render: RenderComponent;
-    // (undocumented)
     ttl: TTLComponent;
-    // (undocumented)
     velocity: VelocityComponent;
 }
 
 // @public
 export interface ProjectileParams {
-    // (undocumented)
     color: string;
-    // (undocumented)
     dx: number;
-    // (undocumented)
     dy: number;
-    // (undocumented)
     layer?: number;
-    // (undocumented)
     mask?: number;
-    // (undocumented)
     shape?: string;
-    // (undocumented)
     size: number;
-    // (undocumented)
     ttl: number;
-    // (undocumented)
     x: number;
-    // (undocumented)
     y: number;
 }
 
@@ -3652,24 +3473,15 @@ export class RadialWipeTransition extends BaseOffscreenTransitionEffect {
 // @public
 export class RandomService {
     constructor(seed?: number);
-    // (undocumented)
     getSeed(): number;
-    // (undocumented)
     isLocked(): boolean;
-    // (undocumented)
     lock(): void;
     next(): number;
-    // (undocumented)
     nextInt(min: number, max: number): number;
-    // (undocumented)
     nextRange(min: number, max: number): number;
-    // (undocumented)
     range(min: number, max: number): number;
-    // (undocumented)
     rangeInt(min: number, max: number): number;
-    // (undocumented)
     setSeed(seed: number): void;
-    // (undocumented)
     unlock(): void;
 }
 
@@ -3812,13 +3624,9 @@ export class RenderCommandBufferImpl implements RenderCommandBuffer {
 
 // @public
 export enum RenderCommandType {
-    // (undocumented)
     DrawCircle = "DrawCircle",
-    // (undocumented)
     DrawLine = "DrawLine",
-    // (undocumented)
     DrawSprite = "DrawSprite",
-    // (undocumented)
     DrawText = "DrawText"
 }
 
@@ -4084,34 +3892,27 @@ export abstract class Scene<TComponents extends ComponentRegistry = CoreComponen
 
 // @public
 export interface SceneEventRegistry extends Record<string, unknown> {
-    // (undocumented)
     "scene:error": {
         action: string;
         error: unknown;
     };
-    // (undocumented)
     "scene:transition:error": {
         scene: Scene<ComponentRegistry>;
         error: unknown;
     };
-    // (undocumented)
     "scene:transition:progress": {
         progress: number;
     };
-    // (undocumented)
     "scene:transition:start": {
         scene: Scene<ComponentRegistry>;
     };
-    // (undocumented)
     "scene:transition:success": {
         scene: Scene<ComponentRegistry>;
     };
-    // (undocumented)
     "scene:transition:timeout": {
         scene: Scene<ComponentRegistry>;
         error: unknown;
     };
-    // (undocumented)
     "scene:warning": {
         message: string;
     };
@@ -4181,25 +3982,18 @@ export class SegmentGenerator {
 
 // @public
 export interface SegmentInstance {
-    // (undocumented)
     entry: {
         x: number;
         y: number;
     };
-    // (undocumented)
     exit: {
         x: number;
         y: number;
     };
-    // (undocumented)
     offsetX: number;
-    // (undocumented)
     offsetY: number;
-    // (undocumented)
     spawnPoints: SegmentSpawnPoint[];
-    // (undocumented)
     templateId: string;
-    // (undocumented)
     tileData: number[][];
 }
 
@@ -4217,50 +4011,34 @@ export interface SegmentSpawnPoint {
 
 // @public
 export interface SegmentTemplate {
-    // (undocumented)
     bounds: {
         width: number;
         height: number;
     };
-    // (undocumented)
     difficulty: number;
-    // (undocumented)
     entry: {
         x: number;
         y: number;
     };
-    // (undocumented)
     exit: {
         x: number;
         y: number;
     };
-    // (undocumented)
     id: string;
-    // (undocumented)
     spawnPoints: SegmentSpawnPoint[];
-    // (undocumented)
     tags: string[];
-    // (undocumented)
     tileData: number[][];
 }
 
 // @public
 export interface SemanticValidationContext {
-    // (undocumented)
     readonly existingEncounterIds?: ReadonlyArray<string>;
-    // (undocumented)
     readonly knownEvidenceIds?: ReadonlyArray<string>;
-    // (undocumented)
     readonly knownFlagKeys?: ReadonlyArray<string>;
-    // (undocumented)
     readonly knownGameIds?: ReadonlyArray<string>;
-    // (undocumented)
     readonly knownMetrics?: ReadonlyArray<string>;
-    // (undocumented)
     readonly knownSecrets?: ReadonlyArray<string>;
-    // (undocumented)
     readonly knownVariableKeys?: ReadonlyArray<string>;
-    // (undocumented)
     readonly storyGraph?: StoryGraph;
 }
 
@@ -4740,52 +4518,32 @@ export interface StoryNode {
 // @public
 export class StoryNodeBuilder implements DialogueNodeBuilder, ChoiceNodeBuilder, CutsceneNodeBuilder, GameplayNodeBuilder, ObjectiveNodeBuilder, BranchNodeBuilder {
     constructor(id: string);
-    // (undocumented)
     addChoice(choiceOrId: StoryChoice | string, titleKey?: string, targetNodeId?: string, options?: {
         descriptionKey?: string;
         condition?: StoryCondition;
         effects?: StoryEffect[];
         rewindPolicy?: RewindPolicy;
     }): this;
-    // (undocumented)
     addDialogueLine(line: DialogueLine): this;
-    // (undocumented)
     addEffect(effect: StoryEffect): this;
-    // (undocumented)
     addTransition(targetNodeId: string, condition?: StoryCondition, priority?: number): this;
-    // (undocumented)
     asBranch(): BranchNodeBuilder;
-    // (undocumented)
     asChoice(): ChoiceNodeBuilder;
-    // (undocumented)
     asCutscene(): CutsceneNodeBuilder;
-    // (undocumented)
     asDialogue(): DialogueNodeBuilder;
-    // (undocumented)
     asGameplay(): GameplayNodeBuilder;
-    // (undocumented)
     asObjective(): ObjectiveNodeBuilder;
     build(): StoryNode;
     static node(id: string): StoryNodeBuilder;
-    // (undocumented)
     setAutoAdvance(autoAdvance: boolean): this;
-    // (undocumented)
     setCheckpoint(checkpoint?: boolean): this;
-    // (undocumented)
     setCutscene(cutscene: Cutscene): this;
-    // (undocumented)
     setDialogue(dialogue: Dialogue): this;
-    // (undocumented)
     setEmitEvent(name: string, payload?: Record<string, number | string | boolean>): this;
-    // (undocumented)
     setIsEndNode(isEndNode?: boolean): this;
-    // (undocumented)
     setMeta(meta: Record<string, unknown>): this;
-    // (undocumented)
     setObjective(objective: StoryObjective): this;
-    // (undocumented)
     setSceneToLoad(sceneToLoad: string): this;
-    // (undocumented)
     setTitle(title: string): this;
 }
 
@@ -5016,6 +4774,32 @@ export interface TelemetryEvent {
 export class TerminalPresenter implements NarrativePresenter {
     // (undocumented)
     buildViewModel(context: NarrativePresentationContext): NarrativePresentationModel;
+}
+
+// @public
+export class TestTransport<TServerEvents extends Record<string, unknown> = Record<string, unknown>, TClientEvents extends Record<string, unknown> = Record<string, unknown>> implements NetworkTransport<TServerEvents, TClientEvents> {
+    // (undocumented)
+    connect(_url: string): Promise<void>;
+    // (undocumented)
+    disconnect(): void;
+    // (undocumented)
+    readonly isOffline = false;
+    // (undocumented)
+    latencyMs: number;
+    // (undocumented)
+    onMessage<K extends keyof TServerEvents>(type: K, handler: (message: TServerEvents[K]) => void): void;
+    // (undocumented)
+    packetLossRate: number;
+    // (undocumented)
+    send<K extends keyof TClientEvents>(type: K, message: TClientEvents[K]): void;
+    // (undocumented)
+    sentMessages: {
+        type: keyof TClientEvents;
+        message: unknown;
+        timestamp: number;
+    }[];
+    // (undocumented)
+    simulateServerMessage<K extends keyof TServerEvents>(type: K, message: TServerEvents[K], delayMs?: number): void;
 }
 
 // @public
@@ -5289,12 +5073,9 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
     addComponent<K extends ComponentType<TComponents>>(entity: Entity, component: TComponents[K] & {
         type: K;
     }): void;
-    // (undocumented)
     addSystem(system: System<TComponents, TEvents>, config?: SystemConfig): void;
     advanceTick(): void;
-    // (undocumented)
     clear(): void;
-    // (undocumented)
     clearSystems(): void;
     get commands(): WorldCommandBuffer<TComponents, TEvents, TBlueprints>;
     // @internal
@@ -5302,45 +5083,33 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
     createEntity(): Entity;
     // @internal
     debugMode: boolean;
-    // (undocumented)
     deleteResource(name: string): void;
     deltaSnapshot(sinceVersion: number): Partial<WorldSnapshot>;
     get entities(): ReadonlyArray<Entity>;
-    // (undocumented)
     flush(): void;
     get gameplayRandom(): RandomService;
     // @internal
     generations: number[];
     getAllEntities(): ReadonlyArray<Entity>;
-    // (undocumented)
     getCommandBuffer(): WorldCommandBuffer<TComponents, TEvents, TBlueprints>;
     getComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): TComponents[K] | undefined;
-    // (undocumented)
     getEntityComponentTypes(entity: Entity): string[];
-    // (undocumented)
     getEventBus(): EventBus<TEvents>;
     getMutableComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): TComponents[K] | undefined;
-    // (undocumented)
     getQuery<K extends ComponentType<TComponents>>(...componentTypes: K[]): Query<TComponents>;
-    // (undocumented)
     getResource<T>(name: string): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "InternalWorldAccess" needs to be exported by the entry point index.d.ts
     //
     // @internal
     getSerializationView(): InternalWorldAccess<TComponents>;
-    // (undocumented)
     getSingleton<K extends ComponentType<TComponents>>(type: K): TComponents[K] | undefined;
-    // (undocumented)
     hasComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): boolean;
-    // (undocumented)
     hasEntity(entity: Entity): boolean;
     isAlive(entity: Entity): boolean;
     isReSimulating: boolean;
     isUpdating: boolean;
     mutateComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K, updater: (component: TComponents[K]) => void): boolean;
-    // (undocumented)
     mutateSingleton<K extends ComponentType<TComponents>>(type: K, mutator: (component: TComponents[K]) => void): void;
-    // (undocumented)
     query<K extends ComponentType<TComponents>>(...componentTypes: K[]): ReadonlyArray<Entity>;
     readComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): DeepReadonly<TComponents[K]> | undefined;
     reclaimEntity(entity: Entity): void;
@@ -5348,14 +5117,12 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
         allowMutationDuringUpdate?: boolean;
     }): void;
     removeComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): void;
-    // (undocumented)
     removeEntity(entity: Entity): void;
     // @internal
     renderRandom: RandomService;
     reserveEntityId(): Entity;
     restore(state: WorldSnapshot): void;
     get schedule(): Schedule<TComponents, TEvents, TBlueprints>;
-    // (undocumented)
     setResource<T>(name: string, resource: T): void;
     snapshot(target?: WorldSnapshot): WorldSnapshot;
     get stateVersion(): number;
@@ -5379,13 +5146,9 @@ export class WorldCommandBuffer<TComponents extends ComponentRegistry = Componen
 
 // @public
 export interface WorldLike<TComponents extends ComponentRegistry = ComponentRegistry> {
-    // (undocumented)
     addComponent<K extends Extract<keyof TComponents, string>>(entity: number, component: TComponents[K]): void;
-    // (undocumented)
     createEntity(): number;
-    // (undocumented)
     hasComponent(entity: number, type: string): boolean;
-    // (undocumented)
     mutateComponent<K extends Extract<keyof TComponents, string>>(entity: number, type: K, updater: (existing: TComponents[K]) => void): boolean;
 }
 

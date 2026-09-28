@@ -48,21 +48,30 @@ export class StoryGraphBuildError extends Error {
  * @public
  */
 export interface CommonNodeBuilderMethods<TBuilder> {
+  /** Sets the user-visible title of the story node. */
   setTitle(title: string): TBuilder;
+  /** Sets the scene ID to trigger when this node becomes active. */
   setSceneToLoad(sceneToLoad: string): TBuilder;
+  /** Flags whether this node represents a terminal ending in the story graph. */
   setIsEndNode(isEndNode?: boolean): TBuilder;
+  /** Sets whether reaching this node saves narrative progression as a restore checkpoint. */
   setCheckpoint(checkpoint?: boolean): TBuilder;
+  /** Attaches custom metadata properties to the story node. */
   setMeta(meta: Record<string, unknown>): TBuilder;
+  /** Appends a narrative effect to execute when this node is entered. */
   addEffect(effect: StoryEffect): TBuilder;
+  /** Appends an outgoing transition rule targeting another node. */
   addTransition(
     targetNodeId: string,
     condition?: StoryCondition,
     priority?: number
   ): TBuilder;
+  /** Sets an event payload to emit on the event bus when this node triggers. */
   setEmitEvent(
     name: string,
     payload?: Record<string, number | string | boolean>
   ): TBuilder;
+  /** Constructs and returns the final plain `StoryNode` object. */
   build(): StoryNode;
 }
 
@@ -85,9 +94,13 @@ export interface DialogueNodeBuilder
  */
 export interface ChoiceNodeBuilder
   extends CommonNodeBuilderMethods<ChoiceNodeBuilder> {
+  /** Sets the optional introductory dialogue displayed alongside the choices. */
   setDialogue(dialogue: Dialogue): ChoiceNodeBuilder;
+  /** Appends a single line to the introductory dialogue. */
   addDialogueLine(line: DialogueLine): ChoiceNodeBuilder;
+  /** Appends a choice definition object. */
   addChoice(choice: StoryChoice): ChoiceNodeBuilder;
+  /** Appends a choice option with individual parameters. */
   addChoice(
     id: string,
     titleKey: string,
@@ -189,66 +202,79 @@ export class StoryNodeBuilder
     return new StoryNodeBuilder(id);
   }
 
+  /** Configures this node as a dialogue node. */
   public asDialogue(): DialogueNodeBuilder {
     this.type = "dialogue";
     return this;
   }
 
+  /** Configures this node as a cutscene node. */
   public asCutscene(): CutsceneNodeBuilder {
     this.type = "cutscene";
     return this;
   }
 
+  /** Configures this node as a choice node. */
   public asChoice(): ChoiceNodeBuilder {
     this.type = "choice";
     return this;
   }
 
+  /** Configures this node as a gameplay node. */
   public asGameplay(): GameplayNodeBuilder {
     this.type = "gameplay";
     return this;
   }
 
+  /** Configures this node as an objective node. */
   public asObjective(): ObjectiveNodeBuilder {
     this.type = "objective";
     return this;
   }
 
+  /** Configures this node as a logical branch node. */
   public asBranch(): BranchNodeBuilder {
     this.type = "branch";
     return this;
   }
 
+  /** Sets the title of the node. */
   public setTitle(title: string): this {
     this.title = title;
     return this;
   }
 
+  /** Sets the scene ID to trigger when this node is reached. */
   public setSceneToLoad(sceneToLoad: string): this {
     this.sceneToLoad = sceneToLoad;
     return this;
   }
 
+  /** Sets whether this node acts as a narrative graph terminal end node. */
   public setIsEndNode(isEndNode = true): this {
     this.isEndNode = isEndNode;
     return this;
   }
 
+  /** Sets whether progress is saved at this node as a restore checkpoint. */
   public setCheckpoint(checkpoint = true): this {
     this.checkpoint = checkpoint;
     return this;
   }
 
+  /** Sets metadata KV pairs on the node. */
   public setMeta(meta: Record<string, unknown>): this {
     this.meta = meta;
     return this;
   }
 
+  /** Appends a narrative effect to execute when this node is triggered. */
   public addEffect(effect: StoryEffect): this {
     this.effects.push(effect);
     return this;
   }
 
+  /** Appends a conditional or direct transition to another target node. */
   public addTransition(
     targetNodeId: string,
     condition?: StoryCondition,
@@ -269,6 +295,7 @@ export class StoryNodeBuilder
     return this;
   }
 
+  /** Sets an event payload emitted on the EventBus when this node triggers. */
   public setEmitEvent(
     name: string,
     payload?: Record<string, number | string | boolean>
@@ -277,11 +304,13 @@ export class StoryNodeBuilder
     return this;
   }
 
+  /** Sets the complete dialogue structure for this node. */
   public setDialogue(dialogue: Dialogue): this {
     this.dialogue = dialogue;
     return this;
   }
 
+  /** Appends a single dialogue line to the active dialogue queue or cutscene queue. */
   public addDialogueLine(line: DialogueLine): this {
     if (this.type === "cutscene") {
       if (!this.cutscene) {
@@ -300,6 +329,7 @@ export class StoryNodeBuilder
     return this;
   }
 
+  /** Toggles automatic advance behavior for dialogue lines. */
   public setAutoAdvance(autoAdvance: boolean): this {
     if (!this.dialogue) {
       this.dialogue = { id: `dlg_${this.id}`, lines: [] };
@@ -308,11 +338,13 @@ export class StoryNodeBuilder
     return this;
   }
 
+  /** Sets the cutscene configuration for this node. */
   public setCutscene(cutscene: Cutscene): this {
     this.cutscene = cutscene;
     return this;
   }
 
+  /** Appends a player choice option to this choice node. */
   public addChoice(
     choiceOrId: StoryChoice | string,
     titleKey?: string,
@@ -349,6 +381,7 @@ export class StoryNodeBuilder
     return this;
   }
 
+  /** Sets the objective required to complete this gameplay/objective node. */
   public setObjective(objective: StoryObjective): this {
     this.objective = objective;
     return this;

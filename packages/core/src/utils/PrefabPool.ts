@@ -9,9 +9,13 @@ import { ComponentSetPool } from "./ComponentSetPool";
  * @public
  */
 export interface PrefabConfig<T extends Record<string, Component>, I> {
+  /** Component set instantiation factory callback. */
   factory: () => T;
+  /** Component set reset handler callback run prior to pool recycling. */
   reset: (data: T) => void;
+  /** Initialization callback configuring components when acquired for an entity. */
   initializer: (components: T, params: I, world: World, entity: Entity) => void;
+  /** Pre-allocated initial capacity size of the component set pool. */
   initialSize?: number;
 }
 

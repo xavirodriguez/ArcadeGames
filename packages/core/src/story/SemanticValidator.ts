@@ -26,13 +26,21 @@ export interface SemanticValidationError {
  * @public
  */
 export interface SemanticValidationContext {
+  /** Known minigame IDs registered in the game registry. */
   readonly knownGameIds?: ReadonlyArray<string>;
+  /** Known encounter IDs to check for duplicate declarations. */
   readonly existingEncounterIds?: ReadonlyArray<string>;
+  /** Story graph instance used for target node verification. */
   readonly storyGraph?: StoryGraph;
+  /** Known evidence IDs registered in the story system. */
   readonly knownEvidenceIds?: ReadonlyArray<string>;
+  /** Known narrative variable keys. */
   readonly knownVariableKeys?: ReadonlyArray<string>;
+  /** Known narrative flag keys. */
   readonly knownFlagKeys?: ReadonlyArray<string>;
+  /** Known gameplay metrics tracked during minigame sessions. */
   readonly knownMetrics?: ReadonlyArray<string>;
+  /** Known secret identifiers. */
   readonly knownSecrets?: ReadonlyArray<string>;
 }
 

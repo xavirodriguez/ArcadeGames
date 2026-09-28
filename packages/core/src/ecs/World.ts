@@ -175,7 +175,7 @@ export class World<
    */
   public debugMode = false;
 
-  /** Current simulation tick. */
+  /** Current simulation tick index. */
   public get tick(): number { return this._tick; }
   /** Incremented on structural changes (entity create/remove, component add/remove). */
   public get structureVersion(): number { return this._structureVersion; }
@@ -183,7 +183,9 @@ export class World<
   public get stateVersion(): number { return this._stateVersion; }
   /** Seeded RNG service intended for gameplay logic to support reproducibility. */
   public get gameplayRandom(): RandomService { return this._gameplayRandom; }
+  /** Retrieves the central EventBus instance registered as a world resource. */
   public getEventBus(): EventBus<TEvents> { return this.getResource<EventBus<TEvents>>("EventBus")!; }
+  /** Returns the structural command buffer instance. */
   public getCommandBuffer(): WorldCommandBuffer<TComponents, TEvents, TBlueprints> { return this.commandBuffer; }
 
   /**
@@ -243,6 +245,7 @@ export class World<
     return this.entities;
   }
 
+  /** Retrieves array of component type keys attached to an entity. */
   public getEntityComponentTypes(entity: Entity): string[] {
     const set = this.entityComponentSets.get(entity);
     return set ? Array.from(set) : [];
@@ -372,6 +375,7 @@ export class World<
     this.commandBuffer.removeEntity(entity);
   }
 
+  /** Removes an entity and purges all attached components from world storage. */
   removeEntity(entity: Entity): void {
     this.checkUpdatingMutation("removeEntity");
     if (!this.isAlive(entity)) {
@@ -397,10 +401,12 @@ export class World<
     }
   }
 
+  /** Checks if an entity is active and alive in the world. */
   public hasEntity(entity: Entity): boolean {
     return this.isAlive(entity);
   }
 
+  /** Clears all entities, components, resources, and resets simulation tick. */
   public clear(): void {
     this.activeEntities.forEach(e => this.removeEntity(e));
     this.freeEntities = [];
@@ -413,6 +419,7 @@ export class World<
     this.cachedEntities = null;
   }
 
+  /** Unregisters all systems from default schedule. */
   public clearSystems(): void {
     this.defaultSchedule.clearSystems();
   }
@@ -469,6 +476,7 @@ export class World<
     this.updateComponentVersion(entity, type);
   }
 
+  /** Checks if a component of specified type is attached to an entity. */
   public hasComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): boolean {
     if (!this.isAlive(entity)) return false;
     return this.componentIndex.get(type as string)?.has(entity) ?? false;
@@ -631,6 +639,7 @@ export class World<
     return true;
   }
 
+  /** Retrieves or creates a cached Query instance matching entities with componentTypes. */
   getQuery<K extends ComponentType<TComponents>>(...componentTypes: K[]): Query<TComponents> {
     const key = [...componentTypes].sort().join(",");
     let query = this.queries.get(key);
@@ -649,6 +658,7 @@ export class World<
     return query;
   }
 
+  /** Evaluates matching active entities for given componentTypes. */
   query<K extends ComponentType<TComponents>>(...componentTypes: K[]): ReadonlyArray<Entity> {
     return this.getQuery(...componentTypes).getEntities();
   }
@@ -663,6 +673,7 @@ export class World<
     }
   }
 
+  /** Registers a system into the world schedule. */
   addSystem(system: System<TComponents, TEvents>, config: SystemConfig = {}): void {
     this.defaultSchedule.addSystem(system, config, this);
   }
@@ -691,6 +702,7 @@ export class World<
     this.defaultSchedule.update(this, deltaTime);
   }
 
+  /** Flushes deferred structural commands from WorldCommandBuffer onto the world. */
   public flush(): void {
     const random = this.gameplayRandom;
     const wasLocked = random ? random.isLocked() : false;
@@ -717,12 +729,14 @@ export class World<
     this._tick++;
   }
 
+  /** Reads singleton component instance of type K from matching entity. */
   getSingleton<K extends ComponentType<TComponents>>(type: K): TComponents[K] | undefined {
     const entities = this.query(type);
     if (entities.length === 0) return undefined;
     return this.getComponent(entities[0], type);
   }
 
+  /** Mutates singleton component of type K on the first matching entity. */
   mutateSingleton<K extends ComponentType<TComponents>>(
     type: K,
     mutator: (component: TComponents[K]) => void
@@ -733,6 +747,7 @@ export class World<
     }
   }
 
+  /** Sets a global resource object by name key. */
   setResource<T>(name: string, resource: T): void {
     if (isDev) {
       assertResourceShape(name, resource);
@@ -740,6 +755,7 @@ export class World<
     this.resources.set(name, resource);
   }
 
+  /** Retrieves a global resource object by name key. */
   getResource<T>(name: string): T | undefined {
     const value = this.resources.get(name);
     if (isDev) {
@@ -748,6 +764,7 @@ export class World<
     return value as T;
   }
 
+  /** Removes a global resource by name key. */
   deleteResource(name: string): void {
     this.resources.delete(name);
   }

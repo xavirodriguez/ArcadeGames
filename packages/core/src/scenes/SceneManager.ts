@@ -23,12 +23,19 @@ function isTestEnvironment(): boolean {
  * @public
  */
 export interface SceneEventRegistry extends Record<string, unknown> {
+  /** Emitted when scene transition process initiates. */
   "scene:transition:start": { scene: Scene<ComponentRegistry> };
+  /** Emitted with normalized progress value during transition sequence. */
   "scene:transition:progress": { progress: number };
+  /** Emitted when transition completes successfully. */
   "scene:transition:success": { scene: Scene<ComponentRegistry> };
+  /** Emitted when transition operation times out. */
   "scene:transition:timeout": { scene: Scene<ComponentRegistry>; error: unknown };
+  /** Emitted when transition encounters an execution error. */
   "scene:transition:error": { scene: Scene<ComponentRegistry>; error: unknown };
+  /** Emitted when scene operation error occurs. */
   "scene:error": { action: string; error: unknown };
+  /** Emitted on non-fatal scene manager warning. */
   "scene:warning": { message: string };
 }
 

@@ -9,12 +9,19 @@ import { createDeferredEntity } from "../ecs/EntityHelpers";
  * @public  
  */  
 export interface ParticleParams {
+  /** Spawn X coordinate in world space. */
   x: number;
+  /** Spawn Y coordinate in world space. */
   y: number;
+  /** Initial horizontal velocity vector component. */
   vx: number;
+  /** Initial vertical velocity vector component. */
   vy: number;
+  /** Particle size in pixels. */
   size: number;
+  /** Render color string. */
   color: string;
+  /** Particle lifetime duration in seconds. */
   ttl: number;
 }
 

@@ -16,8 +16,11 @@ export class NetworkController<
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > {
+  /** Network manager instance handling transport and replication. */
   public networkManager?: NetworkManager<TComponents>;
+  /** State version index of last processed authoritative server update. */
   public lastProcessedFullStateVersion = -1;
+  /** Indicates whether network multiplayer mode is currently active. */
   public isMultiplayer = false;
   private world: World<TComponents, TEvents, TBlueprints>;
   private runSimStep: (deltaTime: number, isResimulating: boolean) => void;
@@ -27,6 +30,7 @@ export class NetworkController<
     this.runSimStep = runSimStep ?? ((dt) => world.update(dt));
   }
 
+  /** Toggles multiplayer simulation mode. */
   public setMultiplayerMode(active: boolean) {
     this.isMultiplayer = active;
     if (!active) {
@@ -34,10 +38,12 @@ export class NetworkController<
     }
   }
 
+  /** Applies input frame commands onto target local entity. */
   public applyInputToEntity(entityId: number, input: InputFrame) {
     applyInputFrameToEntity(this.world, entityId, input);
   }
 
+  /** Executes client prediction step for local player input frame. */
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
     const localPlayerType = "LocalPlayer" as Extract<keyof TComponents, string>;
     const localPlayer = this.world.query(localPlayerType)[0];
@@ -56,6 +62,7 @@ export class NetworkController<
     }
   }
 
+  /** Executes an individual simulation step unlocking RNG. */
   public runSimulationStep(deltaTime: number, isResimulating: boolean) {
     const random = this.world.gameplayRandom;
     const wasLocked = random ? random.isLocked() : false;
@@ -73,6 +80,7 @@ export class NetworkController<
     }
   }
 
+  /** Processes incoming authoritative server update payload. */
   public updateFromServer(payload: ServerUpdatePayload, localSessionId?: string) {
     if (!this.isMultiplayer || !payload || !this.networkManager) return;
 

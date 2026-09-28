@@ -25,14 +25,23 @@ export interface InputProvider<TExtra extends string = never> {
  * @public
  */
 export interface KeyboardMapConfig<TExtra extends string = never> {
+  /** Key code bindings mapping to upward movement (`moveY = -1`). */
   moveUp?: string[];
+  /** Key code bindings mapping to downward movement (`moveY = 1`). */
   moveDown?: string[];
+  /** Key code bindings mapping to leftward movement (`moveX = -1`). */
   moveLeft?: string[];
+  /** Key code bindings mapping to rightward movement (`moveX = 1`). */
   moveRight?: string[];
+  /** Key code bindings mapping to upward aim vector (`aimY = -1`). */
   aimUp?: string[];
+  /** Key code bindings mapping to downward aim vector (`aimY = 1`). */
   aimDown?: string[];
+  /** Key code bindings mapping to leftward aim vector (`aimX = -1`). */
   aimLeft?: string[];
+  /** Key code bindings mapping to rightward aim vector (`aimX = 1`). */
   aimRight?: string[];
+  /** Mapping of keyboard key code strings to canonical action names. */
   actions?: Record<string, CanonicalActionName<TExtra>>;
 }
 

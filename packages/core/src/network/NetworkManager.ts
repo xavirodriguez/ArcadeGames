@@ -9,9 +9,13 @@ import { ComponentRegistry } from "../ecs/Component";
  * @public
  */
 export interface WorldLike<TComponents extends ComponentRegistry = ComponentRegistry> {
+  /** Allocates or recycles an entity ID. */
   createEntity(): number;
+  /** Checks if entity possesses component type. */
   hasComponent(entity: number, type: string): boolean;
+  /** Safely mutates an existing component on the entity. */
   mutateComponent<K extends Extract<keyof TComponents, string>>(entity: number, type: K, updater: (existing: TComponents[K]) => void): boolean;
+  /** Appends component payload to entity. */
   addComponent<K extends Extract<keyof TComponents, string>>(entity: number, component: TComponents[K]): void;
 }
 
@@ -26,10 +30,15 @@ export type INetworkableWorld<TComponents extends ComponentRegistry = ComponentR
  * @public
  */
 export interface IStateReplicator<TComponents extends ComponentRegistry = ComponentRegistry> {
+  /** Returns mapping table from server entity ID strings to local numeric entity IDs. */
   getMappings(): Map<string, number>;
+  /** Resolves local entity ID for given server ID string. */
   getLocalId(serverId: string): number | undefined;
+  /** Removes entity ID mapping for given server ID. */
   removeMapping(serverId: string): void;
+  /** Resolves or spawns local entity corresponding to server ID and applies component state. */
   resolveEntity(serverId: string, world: WorldLike<TComponents>, serverComponents?: Record<string, Record<string, unknown>>): number;
+  /** Replicates entire WorldSnapshot state onto local target world. */
   replicate(world: WorldLike<TComponents>, snapshot: WorldSnapshot): void;
 }
 
@@ -40,18 +49,22 @@ export interface IStateReplicator<TComponents extends ComponentRegistry = Compon
 export class NetworkReplicator<TComponents extends ComponentRegistry = ComponentRegistry> implements IStateReplicator<TComponents> {
   private serverToLocal = new Map<string, number>();
 
+  /** Returns mapping table from server entity ID strings to local numeric entity IDs. */
   public getMappings(): Map<string, number> {
     return this.serverToLocal;
   }
 
+  /** Resolves local entity ID for given server ID string. */
   public getLocalId(serverId: string): number | undefined {
     return this.serverToLocal.get(serverId);
   }
 
+  /** Removes entity ID mapping for given server ID. */
   public removeMapping(serverId: string): void {
     this.serverToLocal.delete(serverId);
   }
 
+  /** Resolves or spawns local entity corresponding to server ID and applies component state. */
   public resolveEntity(serverId: string, world: WorldLike<TComponents>, serverComponents: Record<string, Record<string, unknown>> = {}): number {
     let localId = this.serverToLocal.get(serverId);
     if (localId === undefined) {
@@ -79,6 +92,7 @@ export class NetworkReplicator<TComponents extends ComponentRegistry = Component
     return actualLocalId;
   }
 
+  /** Replicates entire WorldSnapshot state onto local target world. */
   public replicate(world: WorldLike<TComponents>, snapshot: WorldSnapshot): void {
     if (!snapshot || !snapshot.entities) return;
 
@@ -130,12 +144,14 @@ export class NetworkManager<
 > {
   private transport: NetworkTransport<TServerEvents, TClientEvents>;
   private replicator: IStateReplicator<TComponents> = new NetworkReplicator<TComponents>();
+  /** Associated ECS world instance used for replication. */
   public world?: INetworkableWorld<TComponents>;
 
   constructor(transport?: NetworkTransport<TServerEvents, TClientEvents>) {
     this.transport = transport || new NullTransport<TServerEvents, TClientEvents>();
   }
 
+  /** Static factory registering a network-enabled game instance and initializing NetworkManager. */
   public static registerGame<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TServer extends Record<string, unknown> = Record<string, unknown>,
@@ -148,24 +164,29 @@ export class NetworkManager<
     return manager;
   }
 
+  /** Returns active network transport adapter instance. */
   public getTransport(): NetworkTransport<TServerEvents, TClientEvents> {
     return this.transport;
   }
 
+  /** Sets active network transport adapter instance. */
   public setTransport(transport: NetworkTransport<TServerEvents, TClientEvents>): void {
     this.transport = transport;
   }
 
+  /** Returns state replicator instance. */
   public getReplicator(): IStateReplicator<TComponents> {
     return this.replicator;
   }
 
+  /** Returns prediction strategy stub. */
   public getStrategy(): unknown {
     return {
       recordPrediction: (_input: unknown, _world: unknown) => {}
     };
   }
 
+  /** Processes incoming server tick snapshot update. */
   public processServerUpdate(_tick: number, snapshot: WorldSnapshot, _sessionId?: string): void {
     if (this.transport.isOffline) {
       return;
@@ -176,6 +197,7 @@ export class NetworkManager<
     }
   }
 
+  /** Resets replicator mappings and manager state. */
   public reset(): void {
     this.replicator = new NetworkReplicator<TComponents>();
   }

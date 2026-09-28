@@ -3,9 +3,13 @@
  * @public
  */
 export enum RenderCommandType {
+  /** Command to render a textured sprite primitive. */
   DrawSprite = "DrawSprite",
+  /** Command to render a filled circle primitive. */
   DrawCircle = "DrawCircle",
+  /** Command to render a line segment primitive. */
   DrawLine = "DrawLine",
+  /** Command to render text string content. */
   DrawText = "DrawText"
 }
 
@@ -14,11 +18,17 @@ export enum RenderCommandType {
  * @public
  */
 export interface DrawSpritePayload {
+  /** Registered sprite or texture asset identifier. */
   spriteId: string;
+  /** Center X coordinate in screen space. */
   x: number;
+  /** Center Y coordinate in screen space. */
   y: number;
+  /** Rendered sprite width in pixels. */
   width: number;
+  /** Rendered sprite height in pixels. */
   height: number;
+  /** Rotation angle in radians. */
   rotation: number;
 }
 
@@ -27,9 +37,13 @@ export interface DrawSpritePayload {
  * @public
  */
 export interface DrawCirclePayload {
+  /** Center X coordinate in screen space. */
   x: number;
+  /** Center Y coordinate in screen space. */
   y: number;
+  /** Circle radius in pixels. */
   radius: number;
+  /** Fill color string. */
   color: string;
 }
 
@@ -38,10 +52,15 @@ export interface DrawCirclePayload {
  * @public
  */
 export interface DrawLinePayload {
+  /** Start point X coordinate in screen space. */
   x1: number;
+  /** Start point Y coordinate in screen space. */
   y1: number;
+  /** End point X coordinate in screen space. */
   x2: number;
+  /** End point Y coordinate in screen space. */
   y2: number;
+  /** Line color string. */
   color: string;
 }
 
@@ -50,9 +69,13 @@ export interface DrawLinePayload {
  * @public
  */
 export interface DrawTextPayload {
+  /** String text content to draw. */
   text: string;
+  /** Anchor X coordinate in screen space. */
   x: number;
+  /** Anchor Y coordinate in screen space. */
   y: number;
+  /** Text color string. */
   color: string;
 }
 

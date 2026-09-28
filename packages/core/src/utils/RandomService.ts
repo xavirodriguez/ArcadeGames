@@ -20,22 +20,27 @@ export class RandomService {
     this.seed = seed;
   }
 
+  /** Sets the current state seed of the generator. */
   public setSeed(seed: number): void {
     this.seed = seed;
   }
 
+  /** Retrieves the current state seed of the generator. */
   public getSeed(): number {
     return this.seed;
   }
 
+  /** Locks random generation to enforce determinism checks during specific simulation phases. */
   public lock(): void {
     this.locked = true;
   }
 
+  /** Unlocks random generation. */
   public unlock(): void {
     this.locked = false;
   }
 
+  /** Returns whether random generation is currently locked. */
   public isLocked(): boolean {
     return this.locked;
   }
@@ -54,18 +59,22 @@ export class RandomService {
     return this.seed / 233280;
   }
 
+  /** Generates a pseudo-random floating-point number in `[min, max)`. */
   public range(min: number, max: number): number {
     return min + this.next() * (max - min);
   }
 
+  /** Generates a pseudo-random integer in `[min, max)`. */
   public rangeInt(min: number, max: number): number {
     return Math.floor(this.range(min, max));
   }
 
+  /** Alias for `range(min, max)`. */
   public nextRange(min: number, max: number): number {
       return this.range(min, max);
   }
 
+  /** Alias for `rangeInt(min, max)`. */
   public nextInt(min: number, max: number): number {
       return this.rangeInt(min, max);
   }

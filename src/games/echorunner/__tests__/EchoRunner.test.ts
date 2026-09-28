@@ -64,6 +64,7 @@ describe("Echo Runner Game Simulation Tests", () => {
     }));
 
     expect(registeredSystems).toMatchSnapshot();
+    expect(world.schedule.getSystems().length).toBeGreaterThan(0);
   });
 
   it("should throw a descriptive validation error when invalid config overrides are passed to ConfigService.load", () => {
@@ -206,128 +207,114 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(game.kernel.getState()).toBe("GAME_OVER");
   });
 
-  it("should render a frame with CanvasRenderer executing background and shape drawing functions on the 2D context", async () => {
-    const testGame = new EchoRunnerGame({ seed: 41873 });
-    try {
-      await testGame.init();
-      const testWorld = testGame.getWorld();
-      const renderer = new CanvasRenderer();
-      testGame.initializeRenderer(renderer as Renderer<CoreComponentRegistry, RenderContext>);
+  it("should render a frame with CanvasRenderer executing background and shape drawing functions on the 2D context", () => {
+    const renderer = new CanvasRenderer();
+    game.initializeRenderer(renderer as Renderer<CoreComponentRegistry, RenderContext>);
 
-      const mockCtx: Partial<CanvasRenderingContext2D> = {
-        canvas: { width: 800, height: 600 } as HTMLCanvasElement,
-        clearRect: jest.fn(),
-        save: jest.fn(),
-        restore: jest.fn(),
-        translate: jest.fn(),
-        rotate: jest.fn(),
-        scale: jest.fn(),
-        beginPath: jest.fn(),
-        moveTo: jest.fn(),
-        lineTo: jest.fn(),
-        stroke: jest.fn(),
-        fill: jest.fn(),
-        fillRect: jest.fn(),
-        strokeRect: jest.fn(),
-        rect: jest.fn(),
-        clip: jest.fn(),
-        arc: jest.fn(),
-        ellipse: jest.fn(),
-        closePath: jest.fn(),
-        createLinearGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
-        createRadialGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
-        roundRect: jest.fn(),
-      };
+    const mockCtx: Partial<CanvasRenderingContext2D> = {
+      canvas: { width: 800, height: 600 } as HTMLCanvasElement,
+      clearRect: jest.fn(),
+      save: jest.fn(),
+      restore: jest.fn(),
+      translate: jest.fn(),
+      rotate: jest.fn(),
+      scale: jest.fn(),
+      beginPath: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      stroke: jest.fn(),
+      fill: jest.fn(),
+      fillRect: jest.fn(),
+      strokeRect: jest.fn(),
+      rect: jest.fn(),
+      clip: jest.fn(),
+      arc: jest.fn(),
+      ellipse: jest.fn(),
+      closePath: jest.fn(),
+      createLinearGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
+      createRadialGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
+      roundRect: jest.fn(),
+    };
 
-      renderer.render(testWorld, mockCtx as CanvasRenderingContext2D);
+    renderer.render(world, mockCtx as CanvasRenderingContext2D);
 
-      // Verify specific drawing calls were executed on the 2D context
-      expect(mockCtx.fillRect).toHaveBeenCalledWith(0, 0, 800, 600); // Letterbox / void fill
-      expect(mockCtx.save).toHaveBeenCalled();
-      expect(mockCtx.restore).toHaveBeenCalled();
-      expect(mockCtx.translate).toHaveBeenCalled();
-      expect(mockCtx.beginPath).toHaveBeenCalled();
-      expect(mockCtx.fill).toHaveBeenCalled();
-    } finally {
-      testGame.destroy();
-    }
+    // Verify specific drawing calls were executed on the 2D context
+    expect(mockCtx.fillRect).toHaveBeenCalledWith(0, 0, 800, 600); // Letterbox / void fill
+    expect(mockCtx.save).toHaveBeenCalled();
+    expect(mockCtx.restore).toHaveBeenCalled();
+    expect(mockCtx.translate).toHaveBeenCalled();
+    expect(mockCtx.beginPath).toHaveBeenCalled();
+    expect(mockCtx.fill).toHaveBeenCalled();
+    expect(mockCtx.arc).toHaveBeenCalled();
   });
 
-  it("should register and execute all Skia visual drawers on a frame draw call", async () => {
-    const testGame = new EchoRunnerGame({ seed: 41873 });
-    try {
-      await testGame.init();
-      const testWorld = testGame.getWorld();
+  it("should register and execute all Skia visual drawers on a frame draw call", () => {
+    const registeredShapes = new Map<string, any>();
+    const registeredEffects = new Map<string, any>();
 
-      const registeredShapes = new Map<string, any>();
-      const registeredEffects = new Map<string, any>();
+    const skiaRenderer: Partial<Renderer<CoreComponentRegistry, RenderContext>> = {
+      type: "skia",
+      registerShape: (name: string, drawer: any) => { registeredShapes.set(name, drawer); },
+      registerBackgroundEffect: (name: string, drawer: any) => { registeredEffects.set(name, drawer); },
+    };
 
-      const skiaRenderer: Partial<Renderer<CoreComponentRegistry, RenderContext>> = {
-        type: "skia",
-        registerShape: (name: string, drawer: any) => { registeredShapes.set(name, drawer); },
-        registerBackgroundEffect: (name: string, drawer: any) => { registeredEffects.set(name, drawer); },
-      };
+    game.initializeRenderer(skiaRenderer as Renderer<CoreComponentRegistry, RenderContext>);
 
-      testGame.initializeRenderer(skiaRenderer as Renderer<CoreComponentRegistry, RenderContext>);
+    expect(registeredEffects.has("echo_bg")).toBe(true);
+    expect(Array.from(registeredShapes.keys())).toEqual(
+      expect.arrayContaining([
+        "player",
+        "fragment",
+        "core",
+        "node",
+        "pulse_attack",
+        "sentinel",
+        "hopper",
+        "watcher",
+        "charger"
+      ])
+    );
 
-      expect(registeredEffects.has("echo_bg")).toBe(true);
-      expect(Array.from(registeredShapes.keys())).toEqual(
-        expect.arrayContaining([
-          "player",
-          "fragment",
-          "core",
-          "node",
-          "pulse_attack",
-          "sentinel",
-          "hopper",
-          "watcher",
-          "charger"
-        ])
-      );
+    const mockSkiaCanvas = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      translate: jest.fn(),
+      rotate: jest.fn(),
+      scale: jest.fn(),
+      drawRect: jest.fn(),
+      drawLine: jest.fn(),
+      drawCircle: jest.fn(),
+      drawOval: jest.fn(),
+      drawPath: jest.fn(),
+      drawRoundRect: jest.fn(),
+    };
 
-      const mockSkiaCanvas = {
-        save: jest.fn(),
-        restore: jest.fn(),
-        translate: jest.fn(),
-        rotate: jest.fn(),
-        scale: jest.fn(),
-        drawRect: jest.fn(),
-        drawLine: jest.fn(),
-        drawCircle: jest.fn(),
-        drawOval: jest.fn(),
-        drawPath: jest.fn(),
-        drawRoundRect: jest.fn(),
-      };
+    // 1. Execute Skia Background Effect
+    const bgDrawer = registeredEffects.get("echo_bg");
+    bgDrawer.draw(mockSkiaCanvas, world);
+    expect(mockSkiaCanvas.drawRect).toHaveBeenCalled();
+    expect(mockSkiaCanvas.drawLine).toHaveBeenCalled();
 
-      // 1. Execute Skia Background Effect
-      const bgDrawer = registeredEffects.get("echo_bg");
-      bgDrawer.draw(mockSkiaCanvas, testWorld);
-      expect(mockSkiaCanvas.drawRect).toHaveBeenCalled();
-      expect(mockSkiaCanvas.drawLine).toHaveBeenCalled();
+    // 2. Execute Skia Player Shape Drawer
+    const playerEntity = world.query("PlatformerInput")[0];
+    const playerDrawer = registeredShapes.get("player");
+    playerDrawer.draw(mockSkiaCanvas, world, playerEntity);
 
-      // 2. Execute Skia Player Shape Drawer
-      const playerEntity = testWorld.query("PlatformerInput")[0];
-      const playerDrawer = registeredShapes.get("player");
-      playerDrawer.draw(mockSkiaCanvas, testWorld, playerEntity);
+    expect(mockSkiaCanvas.save).toHaveBeenCalled();
+    expect(mockSkiaCanvas.translate).toHaveBeenCalled();
+    expect(mockSkiaCanvas.rotate).toHaveBeenCalled();
+    expect(mockSkiaCanvas.drawPath).toHaveBeenCalled();
+    expect(mockSkiaCanvas.restore).toHaveBeenCalled();
 
-      expect(mockSkiaCanvas.save).toHaveBeenCalled();
-      expect(mockSkiaCanvas.translate).toHaveBeenCalled();
-      expect(mockSkiaCanvas.rotate).toHaveBeenCalled();
-      expect(mockSkiaCanvas.drawPath).toHaveBeenCalled();
-      expect(mockSkiaCanvas.restore).toHaveBeenCalled();
-
-      // 3. Execute enemy and collectible drawers
-      const enemies = testWorld.query("Enemy");
-      for (const enemy of enemies) {
-        const render = testWorld.getComponent(enemy, "Render");
-        if (render && render.shape && registeredShapes.has(render.shape)) {
-          registeredShapes.get(render.shape).draw(mockSkiaCanvas, testWorld, enemy);
-        }
+    // 3. Execute enemy and collectible drawers
+    const enemies = world.query("Enemy");
+    for (const enemy of enemies) {
+      const render = world.getComponent(enemy, "Render");
+      if (render && render.shape && registeredShapes.has(render.shape)) {
+        registeredShapes.get(render.shape).draw(mockSkiaCanvas, world, enemy);
       }
-      expect(mockSkiaCanvas.drawCircle).toHaveBeenCalled();
-    } finally {
-      testGame.destroy();
     }
+    expect(mockSkiaCanvas.drawCircle).toHaveBeenCalled();
   });
 
   it("should throw a descriptive error when required player blueprint is missing during entity initialization", async () => {

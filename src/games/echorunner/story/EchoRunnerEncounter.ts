@@ -7,6 +7,7 @@ import {
 } from "@tiny-aster/core";
 import { EchoRunnerGame } from "../EchoRunnerGame";
 import { applyStandardEncounterModifiers } from "../../shared/story/helpers/encounterHelpers";
+import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
 export const ECHO_RUNNER_DASH_ENCOUNTER_ID = "echo_runner_dash_01";
 
@@ -113,11 +114,6 @@ export const echoRunnerDashEncounter: MiniGameEncounter = {
     }
   ]
 };
-
-/**
- * ArcadeGameAdapter implementation for Echo Runner encounters.
- */
-import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
 /**
  * ArcadeGameAdapter implementation for Echo Runner encounters.

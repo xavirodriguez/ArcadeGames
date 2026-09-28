@@ -10,6 +10,8 @@ import {
   calculateWarpFactor,
   calculateMegastructureData,
   calculateGroundHazardFlicker,
+  calculateScenarioTransitionOverlay,
+  getThemeForScenario,
   BACKGROUND_NEBULAE,
   MegastructureData
 } from "./FlappyBirdBackgroundData";
@@ -655,11 +657,14 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
     paint.setColor(Skia.Color("#050510"));
     skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
-    for (let n = 0; n < BACKGROUND_NEBULAE.length; n++) {
-      const neb = BACKGROUND_NEBULAE[n];
+    const scenarioTheme = getThemeForScenario(gameState.currentScenario);
+    const nebulae = scenarioTheme.nebulae;
+
+    for (let n = 0; n < nebulae.length; n++) {
+      const neb = nebulae[n];
       const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;
       const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;
-      const nebShader = getCachedSkiaShader(`neb_${n}_${width}_${height}`, () =>
+      const nebShader = getCachedSkiaShader(`neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () =>
         Skia.Shader.MakeTwoPointConicalGradient(
           Skia.Point(nx, ny),
           10,
@@ -735,9 +740,18 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
       skCanvas.restore();
     }
 
-    const megaData = calculateMegastructureData(tick, width, height);
+    const megaData = calculateMegastructureData(tick, width, height, 1600, scenarioTheme.megaIndex);
     if (megaData.visible) {
       drawSkiaMegastructure(skCanvas, paint, megaData);
+    }
+
+    const transitionAlpha = calculateScenarioTransitionOverlay(gameState.scenarioTransitionTicks ?? 0);
+    if (transitionAlpha > 0) {
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color(scenarioTheme.palette?.primaryGlow || "#00F3FF"));
+      paint.setAlphaf(transitionAlpha * 0.25);
+      skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
     }
 
     drawSkiaVisualParticles(skCanvas, paint);

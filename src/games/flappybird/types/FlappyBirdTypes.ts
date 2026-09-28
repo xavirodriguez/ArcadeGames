@@ -87,6 +87,8 @@ export interface PipeComponent extends Component {
   isTopPipe?: boolean;
 }
 
+export type ScenarioId = "open_space" | "asteroid_belt" | "solar_storm" | "warp_corridor";
+
 /**
  * Component to track global game progress and state.
  */
@@ -103,6 +105,10 @@ export interface FlappyBirdState extends Component {
   sectorEventTicks?: number;
   sectorEventDuration?: number;
   pipeSpeedMultiplier?: number;
+
+  currentScenario: ScenarioId;
+  previousScenario?: ScenarioId;
+  scenarioTransitionTicks?: number;
 }
 
 /**
@@ -120,6 +126,8 @@ export const INITIAL_FLAPPY_STATE: FlappyBirdState = Object.freeze({
   sectorEventTicks: 0,
   sectorEventDuration: 0,
   pipeSpeedMultiplier: 1.0,
+  currentScenario: "open_space",
+  scenarioTransitionTicks: 0,
 });
 
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "./FlappyBirdConfigSchema";

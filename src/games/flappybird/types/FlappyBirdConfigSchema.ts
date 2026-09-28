@@ -33,7 +33,10 @@ export const FlappyBirdConfigSchema = BaseConfigSchema.extend({
     FLAP: "Space",
     PAUSE: "KeyP",
     RESTART: "KeyR"
-  })
+  }),
+
+  SCENARIO_ROTATION_ENABLED: z.boolean().default(true),
+  PIPES_PER_SCENARIO: z.number().default(5)
 });
 
 export type FlappyBirdConfig = z.infer<typeof FlappyBirdConfigSchema>;

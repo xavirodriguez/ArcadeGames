@@ -9,6 +9,8 @@ import {
   calculateWarpFactor,
   calculateMegastructureData,
   calculateGroundHazardFlicker,
+  calculateScenarioTransitionOverlay,
+  getThemeForScenario,
   BACKGROUND_NEBULAE,
   MegastructureData
 } from "./FlappyBirdBackgroundData";
@@ -671,11 +673,14 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     ctx.fillStyle = "#050510";
     ctx.fillRect(0, 0, width, height);
 
-    for (let n = 0; n < BACKGROUND_NEBULAE.length; n++) {
-      const neb = BACKGROUND_NEBULAE[n];
+    const scenarioTheme = getThemeForScenario(gameState.currentScenario);
+    const nebulae = scenarioTheme.nebulae;
+
+    for (let n = 0; n < nebulae.length; n++) {
+      const neb = nebulae[n];
       const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;
       const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;
-      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}`, () => {
+      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {
         const g = ctx.createRadialGradient(nx, ny, 10, nx, ny, neb.radius);
         g.addColorStop(0, neb.colorHex);
         g.addColorStop(0.6, neb.colorHex + "66");
@@ -739,9 +744,18 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
-    const megaData = calculateMegastructureData(tick, width, height);
+    const megaData = calculateMegastructureData(tick, width, height, 1600, scenarioTheme.megaIndex);
     if (megaData.visible) {
       drawCanvasMegastructure(ctx, megaData);
+    }
+
+    const transitionAlpha = calculateScenarioTransitionOverlay(gameState.scenarioTransitionTicks ?? 0);
+    if (transitionAlpha > 0) {
+      ctx.save();
+      ctx.fillStyle = scenarioTheme.palette?.primaryGlow || "#00F3FF";
+      ctx.globalAlpha = transitionAlpha * 0.25;
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
     }
 
     drawCanvasVisualParticles(ctx);

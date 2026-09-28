@@ -1,30 +1,91 @@
-import { World, BaseGame, TransformComponent } from "@tiny-aster/core";
+import { World, EventBus, BaseGameStateSystem } from "@tiny-aster/core";
 import {
   PipeComponent,
   FLAPPY_CONFIG,
-  FlappyBirdState
+  FlappyBirdState,
+  ScenarioId,
+  FlappyBirdComponentRegistry
 } from "../types/FlappyBirdTypes";
 import { IFlappyBirdGame, IFlappyStateSystem } from "../types/GameInterfaces";
 import { createPipe } from "../EntityFactory";
-import { EventBus } from "@tiny-aster/core";
-import { BaseGameStateSystem } from "@tiny-aster/core";
+import { getScenarioConfig } from "../ScenarioDefinitions";
+import { FlappyBirdConfig } from "../types/FlappyBirdConfigSchema";
+
+export const SCENARIO_ORDER: ScenarioId[] = [
+  "open_space",
+  "asteroid_belt",
+  "solar_storm",
+  "warp_corridor",
+];
+
+export function selectScenario(
+  pipesSpawnedCount: number,
+  config?: Partial<FlappyBirdConfig>
+): ScenarioId {
+  if (config?.SCENARIO_ROTATION_ENABLED === false) {
+    return "open_space";
+  }
+  const pipesPerScenario = config?.PIPES_PER_SCENARIO ?? 5;
+  const index = Math.floor(pipesSpawnedCount / pipesPerScenario) % SCENARIO_ORDER.length;
+  return SCENARIO_ORDER[index];
+}
 
 /**
- * System that manages game logic: scores, spawner, and game over condition.
+ * System that manages game logic: scores, scenario rotation, spawner, and game over condition.
  */
-import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
-
 export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdState, FlappyBirdComponentRegistry> implements IFlappyStateSystem {
-  constructor(game: IFlappyBirdGame, private config: typeof FLAPPY_CONFIG = FLAPPY_CONFIG) {
+  constructor(game: IFlappyBirdGame, private config: FlappyBirdConfig = FLAPPY_CONFIG) {
     super("FlappyState");
   }
 
   protected updateGameState(world: World<FlappyBirdComponentRegistry>, gameState: FlappyBirdState, deltaTime: number): void {
+    const pipesSpawned = gameState.pipesSpawnedCount ?? 0;
+    const activeScenarioId = selectScenario(pipesSpawned, this.config);
+
+    // --- SCENARIO ROTATION & OVERRIDES ---
+    if (gameState.currentScenario !== activeScenarioId) {
+      const prevScenario = gameState.currentScenario;
+      const newScenarioConfig = getScenarioConfig(activeScenarioId);
+
+      world.mutateSingleton("FlappyState", (gs) => {
+        gs.previousScenario = prevScenario;
+        gs.currentScenario = activeScenarioId;
+        gs.scenarioTransitionTicks = 30;
+        if (newScenarioConfig.associatedSectorEvent) {
+          gs.currentSectorEvent = newScenarioConfig.associatedSectorEvent;
+          gs.sectorEventDuration = 300;
+        }
+      });
+
+      const eventBus = world.getResource<EventBus>("EventBus");
+      if (eventBus) {
+        eventBus.emitDeferred("flappy:scenario_changed", {
+          from: prevScenario,
+          to: activeScenarioId,
+        });
+        if (newScenarioConfig.associatedSectorEvent && newScenarioConfig.associatedSectorEvent !== "none") {
+          eventBus.emitDeferred("flappy:sector_event_started", {
+            event: newScenarioConfig.associatedSectorEvent,
+          });
+        }
+      }
+    }
+
+    if ((gameState.scenarioTransitionTicks ?? 0) > 0) {
+      world.mutateSingleton("FlappyState", (gs) => {
+        gs.scenarioTransitionTicks = (gs.scenarioTransitionTicks ?? 0) - 1;
+      });
+    }
+
+    const activeScenarioConfig = getScenarioConfig(gameState.currentScenario ?? "open_space");
+    const scenarioOverrides = activeScenarioConfig.configOverrides;
+    const scenarioSpeedMult = scenarioOverrides?.pipeSpeedMultiplier ?? 1.0;
+
     // --- SECTOR ENVIRONMENTAL EVENTS ---
     const eventTicks = (gameState.sectorEventTicks ?? 0) + 1;
     let currentEvent = gameState.currentSectorEvent ?? "none";
     let eventDuration = gameState.sectorEventDuration ?? 0;
-    let pipeSpeedMultiplier = 1.0;
+    let eventSpeedMultiplier = 1.0;
 
     if (currentEvent === "none" && eventTicks % 600 === 0) { // Trigger every 10 seconds
       const nextEventRand = world.gameplayRandom.nextInt(0, 3);
@@ -68,51 +129,36 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         }
       } else {
         eventDuration--;
-        if (currentEvent === "solar_flare") pipeSpeedMultiplier = 1.25;
-        else if (currentEvent === "hyper_warp") pipeSpeedMultiplier = 1.4;
-        else if (currentEvent === "asteroid_storm") pipeSpeedMultiplier = 0.85;
+        if (currentEvent === "solar_flare") eventSpeedMultiplier = 1.25;
+        else if (currentEvent === "hyper_warp") eventSpeedMultiplier = 1.4;
+        else if (currentEvent === "asteroid_storm") eventSpeedMultiplier = 0.85;
       }
     }
+
+    const totalPipeSpeedMultiplier = scenarioSpeedMult * eventSpeedMultiplier;
 
     world.mutateSingleton("FlappyState", (gs) => {
       gs.sectorEventTicks = eventTicks;
       gs.currentSectorEvent = currentEvent;
       gs.sectorEventDuration = eventDuration;
-      gs.pipeSpeedMultiplier = pipeSpeedMultiplier;
+      gs.pipeSpeedMultiplier = totalPipeSpeedMultiplier;
     });
 
     // Update Pipe Spawner
     world.mutateSingleton("FlappyState", (gs) => {
-        gs.pipeSpawnTimer += deltaTime;
+      gs.pipeSpawnTimer += deltaTime;
     });
 
-    if (gameState.pipeSpawnTimer >= this.config.PIPE_SPAWN_INTERVAL / 1000) {
+    const spawnIntervalMs = scenarioOverrides?.PIPE_SPAWN_INTERVAL ?? this.config.PIPE_SPAWN_INTERVAL;
+    if (gameState.pipeSpawnTimer >= spawnIntervalMs / 1000) {
       const margin = this.config.PIPE_SPAWN_MARGIN;
       const gapY = world.gameplayRandom.nextInt(margin, this.config.worldHeight - margin);
-
-      const pipesSpawned = gameState.pipesSpawnedCount ?? 0;
-      const cyclePos = pipesSpawned % 10;
-      let movementType: PipeComponent["movementType"] = "static";
-      let oscillationAmplitude: number | undefined;
-      let isNarrowGap = false;
-
-      if (cyclePos === 3) {
-        movementType = "oscillating";
-        oscillationAmplitude = 40;
-      } else if (cyclePos === 7) {
-        movementType = "laser_gate";
-      } else if (cyclePos === 9) {
-        isNarrowGap = true;
-      }
 
       createPipe({
         world,
         x: this.config.worldWidth + this.config.PIPE_WIDTH,
         gapY,
         deferred: true,
-        movementType,
-        oscillationAmplitude,
-        isNarrowGap,
       });
 
       world.mutateSingleton("FlappyState", (gs) => {
@@ -121,23 +167,22 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
       });
     }
 
-    // Update velocity of pipes based on pipeSpeedMultiplier and handle scoring / cleanup
+    // Update velocity of pipes based on totalPipeSpeedMultiplier and handle scoring / cleanup
     const pipes = world.query("Pipe", "Transform", "Velocity");
     pipes.forEach((entity) => {
       const pos = world.getComponent(entity, "Transform");
       const pipe = world.getComponent(entity, "Pipe");
-      const vel = world.getComponent(entity, "Velocity");
 
-      if (pos && pipe && vel) {
+      if (pos && pipe) {
         world.mutateComponent(entity, "Velocity", (v) => {
-          v.vx = -this.config.PIPE_SPEED * pipeSpeedMultiplier;
+          v.vx = -this.config.PIPE_SPEED * totalPipeSpeedMultiplier;
         });
 
         if (pos.x < -this.config.PIPE_WIDTH) {
           world.getCommandBuffer().removeEntity(entity);
         } else if (!pipe.scored && pos.x < this.config.BIRD_X) {
           world.mutateComponent(entity, "Pipe", p => {
-             p.scored = true;
+            p.scored = true;
           });
 
           let multiplier = 1;
@@ -152,10 +197,10 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
           }
 
           world.mutateSingleton("FlappyState", (gs) => {
-              gs.score += multiplier;
-              if (gs.score > gs.highScore) {
-                gs.highScore = gs.score;
-              }
+            gs.score += multiplier;
+            if (gs.score > gs.highScore) {
+              gs.highScore = gs.score;
+            }
           });
           const eventBus = world.getResource<EventBus>("EventBus");
           if (eventBus) {
@@ -186,12 +231,12 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
   public resetGameOverState(world?: World<FlappyBirdComponentRegistry>): void {
     const w = world || (this._world as World<FlappyBirdComponentRegistry>);
     if (w) {
-        w.mutateSingleton("FlappyState", (state) => {
-            state.gameOverLogged = false;
-            state.isGameOver = false;
-            state.score = 0;
-            state.pipeSpawnTimer = 0;
-        });
+      w.mutateSingleton("FlappyState", (state) => {
+        state.gameOverLogged = false;
+        state.isGameOver = false;
+        state.score = 0;
+        state.pipeSpawnTimer = 0;
+      });
     }
   }
 }

@@ -237,11 +237,11 @@
     },
     {
       "title": "GeometryWars",
-      "purpose": "Documents GeometryWarsGame.ts and its supporting structure in src/games/geometrywars/: EntityPool.ts, and the entities/, scenes/, systems/, rendering/, types/, and config/ folders. Covers the game's mechanics and contextualizes the GEOMETRYWARS_ROADMAP.md and GEOMETRYWARS_MULTIPLAYER_ROADMAP.md documents found at the repository root.",
+      "purpose": "Documents GeometryWarsGame.ts and its supporting structure in src/games/geometrywars/: EntityPool.ts, and the entities/, scenes/, systems/, rendering/, types/, and config/ folders. Covers the game's mechanics and client multiplayer support with NetworkManager, prediction, and interpolation.",
       "parent": "Game Implementations",
       "page_notes": [
         {
-          "content": "Before citing anything from GEOMETRYWARS_ROADMAP.md or GEOMETRYWARS_MULTIPLAYER_ROADMAP.md, cross-check against the actual code in src/games/geometrywars/ to determine what is already implemented versus still proposed. Present the roadmap docs explicitly as design history, not as a live task list, consistent with the repo_notes guidance on audit documents."
+          "content": "Before citing anything from GEOMETRYWARS_ROADMAP.md, cross-check against the actual code in src/games/geometrywars/ to determine what is already implemented versus still proposed. Present the roadmap doc explicitly as design history, not as a live task list, consistent with the repo_notes guidance on audit documents."
         }
       ]
     },

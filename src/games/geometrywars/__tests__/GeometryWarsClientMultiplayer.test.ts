@@ -148,4 +148,43 @@ describe("Geometry Wars Client Authoritative Multiplayer", () => {
 
     game.destroy();
   });
+
+  it("should move local player entity using predictLocalPlayer without waiting for server snapshot", async () => {
+    const game = new GeometryWarsGame({
+      headless: true,
+      isMultiplayer: true,
+      gameOptions: { seed: 1234 }
+    });
+
+    await game.init();
+    const world = game.getWorld();
+
+    // Trigger updateFromServer to spawn local player for session 'local1'
+    game.updateFromServer({
+      players: {
+        "local1": { x: 100, y: 100, alive: true, angle: 0 }
+      }
+    }, "local1");
+
+    const localPlayers = world.query("LocalPlayer", "Transform");
+    expect(localPlayers.length).toBe(1);
+    const localEntity = localPlayers[0];
+    const initialTransform = world.getComponent(localEntity, "Transform")!;
+    const startX = initialTransform.x;
+
+    const inputFrame: InputFrame = {
+      protocolVersion: 1,
+      tick: 1,
+      timestamp: Date.now(),
+      actions: [],
+      axes: { moveX: 1, moveY: 0 }
+    };
+
+    game.predictLocalPlayer(inputFrame, 0.1);
+
+    const updatedTransform = world.getComponent(localEntity, "Transform")!;
+    expect(updatedTransform.x).toBeGreaterThan(startX);
+
+    game.destroy();
+  });
 });

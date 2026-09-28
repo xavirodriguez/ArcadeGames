@@ -167,6 +167,7 @@ export * from "./systems/HitDetectionSystem";
 // Network
 export * from "./network/NetworkTransport";
 export * from "./network/NullTransport";
+export * from "./network/TestTransport";
 export * from "./network/NetworkManager";
 export * from "./network/LocalPredictionSystem";
 export * from "./network/RemoteInterpolationSystem";

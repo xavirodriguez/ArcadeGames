@@ -297,6 +297,8 @@ export class FlappyBirdGame
           sectorEventTicks: 0,
           sectorEventDuration: 0,
           pipeSpeedMultiplier: 1.0,
+          currentScenario: "open_space",
+          scenarioTransitionTicks: 0,
         });
       }
     });

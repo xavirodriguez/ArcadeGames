@@ -1,8 +1,5 @@
-import { World, Entity, Component, createDeferredEntity, spawnBlueprintEntity } from "@tiny-aster/core";
-import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
-import { createEmitter } from "@tiny-aster/core";
-import { CollisionLayers } from "@tiny-aster/gameplay-kit";
-import { Collider2DComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent } from "@tiny-aster/core";
+import { World, Entity, spawnBlueprintEntity } from "@tiny-aster/core";
+import { getScenarioConfig, samplePipeFromRecipe } from "./ScenarioDefinitions";
 
 /**
  * Entity factory for the Flappy Bird game domain.
@@ -13,7 +10,6 @@ import { Collider2DComponent, TransformComponent, VelocityComponent, RenderCompo
  *
  * @packageDocumentation
  */
-
 
 /**
  * Parameters for creating a bird entity.
@@ -44,10 +40,6 @@ export interface CreatePipeParams {
 
 /**
  * Creates the bird (player) entity.
- *
- * @remarks
- * Includes gravity physics, input handling, and a specialized input buffer
- * to make jump timing more forgiving.
  */
 export function createBird(options: CreateBirdParams): Entity {
   return spawnBlueprintEntity(options.world, "bird", { x: options.x, y: options.y });
@@ -55,23 +47,42 @@ export function createBird(options: CreateBirdParams): Entity {
 
 /**
  * Creates a vertical pair of pipe entities (top and bottom).
- * @param options.gapY - The vertical center of the gap between pipes.
+ * Reads the active scenario recipe to sample properties if explicit options are omitted.
  */
 export function createPipe(options: CreatePipeParams): void {
+  const gameState = options.world.getSingleton("FlappyState");
+  const scenarioConfig = getScenarioConfig(gameState?.currentScenario ?? "open_space");
+
+  let visualVariant = options.visualVariant;
+  let movementType = options.movementType;
+  let oscillationSpeed = options.oscillationSpeed;
+  let oscillationAmplitude = options.oscillationAmplitude;
+  let isNarrowGap = options.isNarrowGap;
+
+  if (movementType === undefined && visualVariant === undefined) {
+    const sampled = samplePipeFromRecipe(scenarioConfig.pipeRecipe, options.world.gameplayRandom);
+    visualVariant = sampled.visualVariant;
+    movementType = sampled.movementType;
+    oscillationSpeed = sampled.oscillationSpeed;
+    oscillationAmplitude = sampled.oscillationAmplitude;
+    if (isNarrowGap === undefined) {
+      isNarrowGap = sampled.isNarrowGap;
+    }
+  }
+
   spawnBlueprintEntity(options.world, "pipe", {
     x: options.x,
     gapY: options.gapY,
-    visualVariant: options.visualVariant,
-    movementType: options.movementType,
-    oscillationSpeed: options.oscillationSpeed,
-    oscillationAmplitude: options.oscillationAmplitude,
-    isNarrowGap: options.isNarrowGap,
+    visualVariant,
+    movementType,
+    oscillationSpeed,
+    oscillationAmplitude,
+    isNarrowGap,
   });
 }
 
 /**
  * Creates the ground entity.
- * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
 export function createGround(world: World<any>, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "ground", {});
@@ -79,7 +90,6 @@ export function createGround(world: World<any>, deferred?: boolean): Entity {
 
 /**
  * Creates the global game state entity.
- * @param deferred - Currently unused; reserved parameter, ignored by this function.
  */
 export function createGameState(world: World<any>, deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "state", {});

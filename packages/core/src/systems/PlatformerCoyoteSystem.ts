@@ -9,6 +9,7 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
  * @public
  */
 export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+  /** Updates coyote time and jump buffer timers across platformer entities. */
   public update(world: World<TRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const jumperType = "PlatformerJumper" as Extract<keyof TRegistry, string>;

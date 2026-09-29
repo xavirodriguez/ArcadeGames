@@ -18,6 +18,7 @@ export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
   // Numeric composite key (entity & 0x3FFFFFF) * 67108864 + (hostileEntity & 0x3FFFFFF) avoids string allocations
   private _grazedEntities: Set<number> = new Set();
 
+  /** Accumulates kinetic energy from entity speed and graze events, triggering burst shockwaves when charged. */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
 

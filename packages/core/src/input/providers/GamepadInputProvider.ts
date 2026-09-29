@@ -34,6 +34,7 @@ export class GamepadInputProvider<TExtra extends string = never> implements Inpu
     return value;
   }
 
+  /** Retrieves snapshot of connected Gamepad API axes and button states. */
   public getInputState(): CanonicalInputState<TExtra> {
     const state = createEmptyCanonicalInputState<TExtra>();
     state.timestamp = Date.now();

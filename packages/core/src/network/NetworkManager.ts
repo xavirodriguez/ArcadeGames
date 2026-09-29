@@ -128,8 +128,11 @@ export interface RegisterGameOptions<
   TServerEvents extends Record<string, unknown> = Record<string, unknown>,
   TClientEvents extends Record<string, unknown> = Record<string, unknown>
 > {
+  /** Optional network transport adapter instance. */
   transport?: NetworkTransport<TServerEvents, TClientEvents>;
+  /** Target networkable ECS world instance. */
   world?: INetworkableWorld<TComponents>;
+  /** Index signature allowing custom setup options. */
   [key: string]: unknown;
 }
 

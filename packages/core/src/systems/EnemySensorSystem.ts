@@ -8,6 +8,7 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
  * @public
  */
 export class EnemySensorSystem extends System<CoreComponentRegistry> {
+  /** Updates enemy sensors and ground detectors relative to level geometry and player entities. */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const tilemaps = world.query("Tilemap", "Transform");

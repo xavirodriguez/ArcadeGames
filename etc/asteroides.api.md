@@ -1288,7 +1288,6 @@ export class CutsceneScene extends Scene {
     getCurrentIndex(): number;
     getCurrentLine(): string;
     getLines(): string[];
-    // (undocumented)
     onEnter(world: World): void;
 }
 
@@ -1322,7 +1321,6 @@ export interface DeadComponent extends Component {
 
 // @public
 export class DeathSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -1463,7 +1461,6 @@ export interface DistanceJointOptions {
 
 // @public
 export class DitherTransition extends BaseTransitionEffect {
-    // (undocumented)
     protected readonly autoSave = false;
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
@@ -1555,7 +1552,6 @@ export interface EnemyComponent extends Component {
 
 // @public
 export class EnemySensorSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -1590,7 +1586,6 @@ export class EntityBuilder<TComponents extends ComponentRegistry = CoreComponent
 
 // @public
 export interface EntityRemover {
-    // (undocumented)
     removeEntity(entity: number): void;
 }
 
@@ -1678,7 +1673,6 @@ export interface FactionComponent extends Component {
 
 // @public
 export class FadeTransition extends BaseTransitionEffect {
-    // (undocumented)
     protected readonly autoSave = false;
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
@@ -1810,7 +1804,6 @@ export interface GameLoopConfig {
 // @public
 export class GamepadInputProvider<TExtra extends string = never> implements InputProvider<TExtra> {
     constructor(options?: GamepadProviderOptions);
-    // (undocumented)
     getInputState(): CanonicalInputState<TExtra>;
 }
 
@@ -1993,7 +1986,6 @@ export interface HitboxComponent extends Component {
 
 // @public
 export class HitDetectionSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
@@ -2211,7 +2203,6 @@ export interface InterpolationSnapshotEntry {
 
 // @public
 export class InvulnerabilitySystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -2230,7 +2221,6 @@ export interface IPredictionModel<TRegistry extends MultiplayerRegistry = Multip
 
 // @public
 export interface IPrefabPool<TParams> {
-    // (undocumented)
     acquire(world: World, params: TParams): Entity;
 }
 
@@ -2362,7 +2352,6 @@ export interface KineticAccumulatorComponent extends Component {
 // @public
 export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
     clearGrazeCache(): void;
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -3103,7 +3092,6 @@ export class NullInputSystem<TInput extends object = Record<string, unknown>> im
 export class NullTransport<TServerEvents extends Record<string, unknown> = Record<string, unknown>, TClientEvents extends Record<string, unknown> = Record<string, unknown>> implements NetworkTransport<TServerEvents, TClientEvents> {
     connect(_url: string): Promise<void>;
     disconnect(): void;
-    // (undocumented)
     readonly isOffline = true;
     onMessage<K extends keyof TServerEvents>(_type: K, _handler: (message: TServerEvents[K]) => void): void;
     send<K extends keyof TClientEvents>(_type: K, _message: TClientEvents[K]): void;
@@ -3286,7 +3274,6 @@ export class PhysicsUtils {
 
 // @public
 export class PixelateTransition extends BaseTransitionEffect {
-    // (undocumented)
     protected readonly autoSave = false;
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
@@ -3298,7 +3285,6 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
 
 // @public
 export class PlatformerCoyoteSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
-    // (undocumented)
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
@@ -3524,11 +3510,8 @@ export function registerEnemyStateMachines(world: World<CoreComponentRegistry>):
 
 // @public
 export interface RegisterGameOptions<TComponents extends ComponentRegistry = ComponentRegistry, TServerEvents extends Record<string, unknown> = Record<string, unknown>, TClientEvents extends Record<string, unknown> = Record<string, unknown>> {
-    // (undocumented)
     [key: string]: unknown;
-    // (undocumented)
     transport?: NetworkTransport<TServerEvents, TClientEvents>;
-    // (undocumented)
     world?: INetworkableWorld<TComponents>;
 }
 
@@ -3695,7 +3678,6 @@ export interface RenderSnapshot {
 
 // @public
 export class RenderUpdateSystem extends System<CoreComponentRegistry> {
-    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 

@@ -96,15 +96,12 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = loadAndMutateConfig(this.gameId, ArkanoidConfigSchema, arkanoidConfigRaw, this._config.gameOptions);
+    this.config = this.setupArcadeGameConfig(this.baseConfig, (_cfg, options) => loadAndMutateConfig(this.gameId, ArkanoidConfigSchema, arkanoidConfigRaw, options));
 
-    this.world.setResource("GameConfig", this.config);
     this.world.setResource("ParticlePool", this.particlePool);
     if (arkanoidConfigRaw.grid) {
       this.world.setResource("LevelGrid", arkanoidConfigRaw.grid);
     }
-    this.setupCommonArcadeResources();
-    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
 
     this.blueprints.register("ball", {
       spawn: (world, entity, _args: {}) => {

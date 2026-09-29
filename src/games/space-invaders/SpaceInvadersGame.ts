@@ -19,6 +19,7 @@ import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
+import { markLocalPlayerEntity } from "../shared/networkUtils";
 import spaceInvadersConfigRaw from "./config/space-invaders.json";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
@@ -736,10 +737,8 @@ export class SpaceInvadersGame
         this.blueprints.get("player")?.spawn(world, entity, { x: item.x, y: item.y });
       },
       onLocalPlayerMark: (world, entity) => {
+        markLocalPlayerEntity(world, entity);
         const commands = world.getCommandBuffer();
-        if (!world.hasComponent(entity, "LocalPlayer")) {
-          commands.addComponent(entity, { type: "LocalPlayer" });
-        }
         if (!world.hasComponent(entity, "Input")) {
           commands.addComponent(entity, createInputComponent());
         }

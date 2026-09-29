@@ -1,5 +1,6 @@
 import { World, ComboComponent } from "@tiny-aster/core";
 import { MissionDefinition, ActiveMissionState } from "../shared/missions/MissionTypes";
+import { createComboMultiplierMissionOnUpdate } from "../shared/missions/MissionHelpers";
 import { FlappyBirdState, BirdComponent } from "./types/FlappyBirdTypes";
 
 function isBirdGliding(world: World): boolean {
@@ -70,18 +71,7 @@ export const FLAPPY_BIRD_MINI_MISSIONS: MissionDefinition[] = [
     conditionType: "state_threshold",
     targetCount: 4,
     reward: { scoreBonus: 800 },
-    onUpdate: (world, state) => {
-      const combos = world.query("Combo");
-      if (combos.length > 0) {
-        const c = world.getComponent(combos[0], "Combo") as ComboComponent | undefined;
-        if (c) {
-          state.currentCount = c.multiplier;
-          if (c.multiplier >= 4) {
-            state.completed = true;
-          }
-        }
-      }
-    }
+    onUpdate: createComboMultiplierMissionOnUpdate(4)
   },
   {
     id: "superviviente_sector",

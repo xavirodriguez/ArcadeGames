@@ -373,6 +373,26 @@ export function createParallaxLayer<TState>(options: ParallaxLayerOptions<TState
   };
 }
 
+/**
+ * Standardizes parallax layer initialization and visual context checks for background layer drawers across Canvas and Skia implementations.
+ * @public
+ */
+export function resolveLayerFrame<TState, TComponents extends CoreComponentRegistry = CoreComponentRegistry>(
+  world: World<TComponents>,
+  layerName: string,
+  layerFn: (world: World<TComponents>) => ParallaxLayerContext<TState> | null
+): (ParallaxLayerContext<NonNullable<TState>> & { layerState: NonNullable<TState> }) | null {
+  const theme = getActiveVisualContext(world);
+  if (theme.backgroundLayers && !theme.backgroundLayers.includes(layerName)) {
+    return null;
+  }
+  const layerCtx = layerFn(world);
+  if (!layerCtx || !layerCtx.layerState) {
+    return null;
+  }
+  return layerCtx as ParallaxLayerContext<NonNullable<TState>> & { layerState: NonNullable<TState> };
+}
+
 export function pickColor(rng: RandomService, colors: string[]): { color: string; skColor: SkColor | null } {
   const color = colors[rng.nextInt(0, colors.length)];
   return { color, skColor: Skia ? Skia.Color(color) : null };

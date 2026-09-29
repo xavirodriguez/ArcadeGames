@@ -6,7 +6,8 @@ import {
   Star,
   STAR_COUNT,
   initializeStars,
-  getActiveVisualContext
+  getActiveVisualContext,
+  resolveLayerFrame
 } from "../SharedVFXInternal";
 
 export function advanceStarPosition(
@@ -32,9 +33,7 @@ const starfieldLayer = createParallaxLayer<Star[]>({
 export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const theme = getActiveVisualContext(world);
-    if (theme.backgroundLayers && !theme.backgroundLayers.includes("starfield")) return;
-
-    const layerCtx = starfieldLayer(world);
+    const layerCtx = resolveLayerFrame(world, "starfield", starfieldLayer);
     if (!layerCtx) return;
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
 
@@ -59,9 +58,7 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, CoreComponentRegist
   draw(canvas, world) {
     if (!Skia) return;
     const theme = getActiveVisualContext(world);
-    if (theme.backgroundLayers && !theme.backgroundLayers.includes("starfield")) return;
-
-    const layerCtx = starfieldLayer(world);
+    const layerCtx = resolveLayerFrame(world, "starfield", starfieldLayer);
     if (!layerCtx) return;
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
 

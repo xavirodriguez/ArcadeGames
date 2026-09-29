@@ -1,5 +1,6 @@
 import { World, TransformComponent, ComboComponent } from "@tiny-aster/core";
 import { MissionDefinition, ActiveMissionState } from "../shared/missions/MissionTypes";
+import { createComboMultiplierMissionOnUpdate } from "../shared/missions/MissionHelpers";
 import { GameStateComponent } from "./types/AsteroidTypes";
 
 /**
@@ -172,18 +173,7 @@ export const ASTEROIDS_MINI_MISSIONS: MissionDefinition[] = [
     conditionType: "state_threshold",
     targetCount: 5,
     reward: { scoreBonus: 800, achievementId: "combo_king" },
-    onUpdate: (world, state) => {
-      const combos = world.query("Combo");
-      if (combos.length > 0) {
-        const c = world.getComponent(combos[0], "Combo") as ComboComponent | undefined;
-        if (c) {
-          state.currentCount = c.multiplier;
-          if (c.multiplier >= 5) {
-            state.completed = true;
-          }
-        }
-      }
-    }
+    onUpdate: createComboMultiplierMissionOnUpdate(5)
   },
   {
     id: "precision_bajo_presion",

@@ -112,23 +112,32 @@ export interface FlappyBirdState extends Component {
 }
 
 /**
+ * Factory for creating default FlappyBirdState with optional overrides.
+ * @public
+ */
+export function createFlappyState(overrides?: Partial<FlappyBirdState>): FlappyBirdState {
+  return {
+    type: "FlappyState",
+    score: 0,
+    isGameOver: false,
+    highScore: 0,
+    pipeSpawnTimer: 0,
+    gameOverLogged: false,
+    pipesSpawnedCount: 0,
+    currentSectorEvent: "none",
+    sectorEventTicks: 0,
+    sectorEventDuration: 0,
+    pipeSpeedMultiplier: 1.0,
+    currentScenario: "open_space",
+    scenarioTransitionTicks: 0,
+    ...overrides,
+  };
+}
+
+/**
  * Null Object for FlappyBirdState.
  */
-export const INITIAL_FLAPPY_STATE: FlappyBirdState = Object.freeze({
-  type: "FlappyState",
-  score: 0,
-  isGameOver: false,
-  highScore: 0,
-  pipeSpawnTimer: 0,
-  gameOverLogged: false,
-  pipesSpawnedCount: 0,
-  currentSectorEvent: "none",
-  sectorEventTicks: 0,
-  sectorEventDuration: 0,
-  pipeSpeedMultiplier: 1.0,
-  currentScenario: "open_space",
-  scenarioTransitionTicks: 0,
-});
+export const INITIAL_FLAPPY_STATE: FlappyBirdState = Object.freeze(createFlappyState());
 
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "./FlappyBirdConfigSchema";
 

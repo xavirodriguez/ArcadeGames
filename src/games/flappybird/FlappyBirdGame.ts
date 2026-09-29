@@ -1,5 +1,5 @@
 import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, RenderContext, EventRegistry, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, IAudioPlayer, Mutator, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
-import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry, FlappyBirdEventRegistry } from "./types/FlappyBirdTypes";
+import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, createFlappyState, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry, FlappyBirdEventRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
 import { MissionSystem } from "../shared/missions/MissionSystem";
@@ -282,21 +282,7 @@ export class FlappyBirdGame
 
     this.blueprints.register("state", {
       spawn: (world, entity, _args: {}) => {
-        world.addComponent(entity, {
-          type: "FlappyState",
-          score: 0,
-          isGameOver: false,
-          highScore: 0,
-          pipeSpawnTimer: 0,
-          gameOverLogged: false,
-          pipesSpawnedCount: 0,
-          currentSectorEvent: "none",
-          sectorEventTicks: 0,
-          sectorEventDuration: 0,
-          pipeSpeedMultiplier: 1.0,
-          currentScenario: "open_space",
-          scenarioTransitionTicks: 0,
-        });
+        world.addComponent(entity, createFlappyState());
       }
     });
 

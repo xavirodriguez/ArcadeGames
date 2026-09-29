@@ -5,7 +5,8 @@ import {
   NebulaCloud,
   NEBULA_CLOUD_COUNT,
   initializeNebulae,
-  getActiveVisualContext
+  getActiveVisualContext,
+  resolveLayerFrame
 } from "../SharedVFXInternal";
 
 export function advanceNebulaCloud(
@@ -31,9 +32,7 @@ const driftingNebulaLayer = createParallaxLayer<NebulaCloud[]>({
 export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const theme = getActiveVisualContext(world);
-    if (theme.backgroundLayers && !theme.backgroundLayers.includes("drifting_nebula")) return;
-
-    const layerCtx = driftingNebulaLayer(world);
+    const layerCtx = resolveLayerFrame(world, "drifting_nebula", driftingNebulaLayer);
     if (!layerCtx) return;
     const { layerState: nebulae, state, offsetX } = layerCtx;
 
@@ -68,9 +67,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponent
   draw(canvas, world) {
     if (!Skia) return;
     const theme = getActiveVisualContext(world);
-    if (theme.backgroundLayers && !theme.backgroundLayers.includes("drifting_nebula")) return;
-
-    const layerCtx = driftingNebulaLayer(world);
+    const layerCtx = resolveLayerFrame(world, "drifting_nebula", driftingNebulaLayer);
     if (!layerCtx) return;
     const { layerState: nebulae, state, offsetX } = layerCtx;
 

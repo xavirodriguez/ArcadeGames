@@ -28,7 +28,7 @@ import {
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, syncLevelWorldDimensions } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, syncLevelWorldDimensions, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { PlatformerGoalSystem, LevelGoalComponent } from "./systems/PlatformerGoalSystem";
@@ -164,42 +164,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     // Register state machines
     registerEnemyStateMachines(this.world);
 
-    // Blueprints
-    const registerCollectibleBlueprint = (
-      id: string,
-      kind: string,
-      value: number,
-      size = 16
-    ) => {
-      this.blueprints.register(id, {
-        spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-          ArcadeEntityBuilder.fromEntity(world, entity)
-            .withTransform({ x: args.x, y: args.y })
-            .withCollider2D({
-              shape: { type: "aabb", halfWidth: 10, halfHeight: 10 },
-              isTrigger: true
-            })
-            .withCollisionEvents()
-            .withRender({
-              shape: "fragment",
-              size,
-              order: 1
-            });
-
-          world.addComponent(entity, {
-            type: "Collectible",
-            kind,
-            value,
-            persistent: false,
-            collectOnce: false,
-            id: args.id
-          } as { type: string; [key: string]: unknown });
-        }
-      });
-    };
-
-    registerCollectibleBlueprint("collectible_fragment", "fragment", 10);
-    registerCollectibleBlueprint("collectible_coin", "coin", 20);
+    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
+    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_coin", "coin", 20, 16, 10, "fragment", false, false);
 
     registerPlatformerEnvironmentBlueprints(this.blueprints);
     registerPlatformerEnemyBlueprints(this.blueprints);

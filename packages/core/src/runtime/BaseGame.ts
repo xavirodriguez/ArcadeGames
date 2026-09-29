@@ -660,6 +660,26 @@ export abstract class BaseGame<
   }
 
   /**
+   * Applies mutators to base config, registers GameConfig in world, and sets up common arcade resources.
+   *
+   * @param baseConfig - Base game configuration object.
+   * @param mutatorFn - Optional custom mutator application function.
+   * @returns Resolved and mutated configuration.
+   */
+  protected setupArcadeGameConfig<T>(
+    baseConfig: T,
+    mutatorFn?: (base: T, options?: Record<string, unknown>) => T
+  ): T {
+    const resolvedConfig = mutatorFn
+      ? mutatorFn(baseConfig, this._config.gameOptions)
+      : baseConfig;
+    this.world.setResource("GameConfig", resolvedConfig);
+    this.setupCommonArcadeResources();
+    this._config.gameOptions = { ...this._config.gameOptions, ...(resolvedConfig as object) };
+    return resolvedConfig;
+  }
+
+  /**
    * Applies server state update payload to world entities and immediately flushes queued command buffer mutations.
    *
    * @remarks

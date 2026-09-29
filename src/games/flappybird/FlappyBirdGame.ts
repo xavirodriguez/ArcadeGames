@@ -4,7 +4,7 @@ import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAU
 import { ComboSystem } from "@tiny-aster/core";
 import { MissionSystem } from "../shared/missions/MissionSystem";
 import { FLAPPY_BIRD_MINI_MISSIONS } from "./FlappyBirdMissions";
-import { MutatorRegistry } from "../../utils/MutatorRegistry";
+import { applyMissionReward } from "../shared/missions/MissionHelpers";
 import { FlappyBirdGameStateSystem } from "./systems/FlappyBirdGameStateSystem";
 import { FlappyBirdInputSystem } from "./systems/FlappyBirdInputSystem";
 import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";
@@ -83,10 +83,7 @@ export class FlappyBirdGame
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = applyMutators(this.baseConfig, this._config.gameOptions);
-    this.world.setResource("GameConfig", this.config);
-    this.setupCommonArcadeResources();
-    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
+    this.config = this.setupArcadeGameConfig(this.baseConfig, applyMutators);
 
     // Register blueprints
     this.blueprints.register("bird", {
@@ -332,20 +329,7 @@ export class FlappyBirdGame
     this.eventBus.on("mission:completed", (event: unknown) => {
       if (this.world.isReSimulating) return;
       const payload = event as { reward?: { scoreBonus?: number; mutatorId?: string } } | undefined;
-      if (payload?.reward?.scoreBonus) {
-        const gs = this.world.getSingleton("FlappyState");
-        if (gs) {
-          this.world.mutateSingleton("FlappyState", (state) => {
-            state.score += payload.reward!.scoreBonus!;
-          });
-        }
-      }
-      if (payload?.reward?.mutatorId) {
-        const mutator = MutatorRegistry.get(payload.reward.mutatorId);
-        if (mutator) {
-          mutator.apply(this.world);
-        }
-      }
+      applyMissionReward(this.world, payload?.reward, "FlappyState");
 
       // Rotate to next mission deterministically
       const activeMission = this.missionSystem.getActiveMission();

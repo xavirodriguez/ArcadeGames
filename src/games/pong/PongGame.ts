@@ -103,11 +103,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = loadAndMutateConfig(this.gameId, PongConfigSchema, pongConfigRaw, this._config.gameOptions);
-
-    this.world.setResource("GameConfig", this.config);
-    this.setupCommonArcadeResources();
-    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
+    this.config = this.setupArcadeGameConfig(this.baseConfig, (_cfg, options) => loadAndMutateConfig(this.gameId, PongConfigSchema, pongConfigRaw, options));
 
     // Register blueprints
     this.blueprints.register("ball", {

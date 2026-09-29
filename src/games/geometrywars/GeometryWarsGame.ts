@@ -39,6 +39,7 @@ import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { colors } from "../../theme/colors";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { markLocalPlayerEntity } from "../shared/networkUtils";
 
 function createTransformComponent(x: number, y: number, rotation: number): TransformComponent {
   return {
@@ -283,10 +284,8 @@ export class GeometryWarsGame extends BaseGame<
         commands.addComponent(entity, createHealthComponent(state.alive ? 1 : 0, 1));
       },
       onLocalPlayerMark: (world, entity) => {
+        markLocalPlayerEntity(world, entity);
         const commands = world.getCommandBuffer();
-        if (!world.hasComponent(entity, "LocalPlayer")) {
-          commands.addComponent(entity, { type: "LocalPlayer" });
-        }
         if (!world.hasComponent(entity, "Player")) {
           commands.addComponent(entity, { type: "Player", fireCooldownRemaining: 0, invulnRemaining: 0, moveX: 0, moveY: 0 });
         }

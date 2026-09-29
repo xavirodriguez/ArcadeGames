@@ -76,55 +76,18 @@
     },
     {
       "firstFile": {
-        "end": 111,
-        "endLoc": {
-          "column": 41,
-          "line": 111,
-          "position": 4592
-        },
-        "name": "arkanoid/ArkanoidGame.ts",
-        "start": 106,
-        "startLoc": {
-          "column": 4,
-          "line": 106,
-          "position": 4351
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.setupCommonArcadeResources();\n    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };\n\n    this.blueprints.register(\"ball\", {\n      spawn: (world, entity, _args: {}) => {\n        const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || DEFAULT_ARKANOID_CONFIG;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 115,
-        "endLoc": {
-          "column": 41,
-          "line": 115,
-          "position": 5128
-        },
-        "name": "pong/PongGame.ts",
-        "start": 109,
-        "startLoc": {
-          "column": 4,
-          "line": 109,
-          "position": 4860
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 273,
+        "end": 270,
         "endLoc": {
           "column": 9,
-          "line": 273,
-          "position": 10835
+          "line": 270,
+          "position": 10708
         },
         "name": "arkanoid/ArkanoidGame.ts",
-        "start": 266,
+        "start": 263,
         "startLoc": {
           "column": 78,
-          "line": 266,
-          "position": 10571
+          "line": 263,
+          "position": 10444
         }
       },
       "format": "typescript",
@@ -136,14 +99,14 @@
         "endLoc": {
           "column": 9,
           "line": 190,
-          "position": 7976
+          "position": 7985
         },
         "name": "asteroids/AsteroidsGame.ts",
         "start": 186,
         "startLoc": {
           "column": 89,
           "line": 186,
-          "position": 7715
+          "position": 7724
         }
       },
       "tokens": 65
@@ -409,55 +372,18 @@
     },
     {
       "firstFile": {
-        "end": 222,
-        "endLoc": {
-          "column": 7,
-          "line": 222,
-          "position": 9646
-        },
-        "name": "asteroids/AsteroidsGame.ts",
-        "start": 212,
-        "startLoc": {
-          "column": 48,
-          "line": 212,
-          "position": 9355
-        }
-      },
-      "format": "typescript",
-      "fragment": "          this.world.mutateSingleton(\"GameState\", (state) => {\n            state.score += payload.reward!.scoreBonus!;\n          });\n        }\n      }\n      if (payload?.reward?.mutatorId) {\n        const mutator = MutatorRegistry.get(payload.reward.mutatorId);\n        if (mutator) {\n          mutator.apply(this.world);\n        }\n      }",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 348,
-        "endLoc": {
-          "column": 7,
-          "line": 348,
-          "position": 15136
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 338,
-        "startLoc": {
-          "column": 50,
-          "line": 338,
-          "position": 14845
-        }
-      },
-      "tokens": 62
-    },
-    {
-      "firstFile": {
-        "end": 509,
+        "end": 496,
         "endLoc": {
           "column": 20,
-          "line": 509,
-          "position": 21302
+          "line": 496,
+          "position": 20923
         },
         "name": "asteroids/AsteroidsGame.ts",
-        "start": 504,
+        "start": 491,
         "startLoc": {
           "column": 39,
-          "line": 504,
-          "position": 21022
+          "line": 491,
+          "position": 20643
         }
       },
       "format": "typescript",
@@ -465,18 +391,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 471,
+        "end": 455,
         "endLoc": {
           "column": 20,
-          "line": 471,
-          "position": 20422
+          "line": 455,
+          "position": 19869
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 466,
+        "start": 450,
         "startLoc": {
           "column": 62,
-          "line": 466,
-          "position": 20142
+          "line": 450,
+          "position": 19589
         }
       },
       "tokens": 66
@@ -517,6 +443,43 @@
         }
       },
       "tokens": 68
+    },
+    {
+      "firstFile": {
+        "end": 181,
+        "endLoc": {
+          "column": 29,
+          "line": 181,
+          "position": 6639
+        },
+        "name": "asteroids/AsteroidsMissions.ts",
+        "start": 175,
+        "startLoc": {
+          "column": 29,
+          "line": 175,
+          "position": 6381
+        }
+      },
+      "format": "typescript",
+      "fragment": "    onUpdate: (world, state) => {\n      const combos = world.query(\"Combo\");\n      if (combos.length > 0) {\n        const c = world.getComponent(combos[0], \"Combo\") as ComboComponent | undefined;\n        if (c) {\n          state.currentCount = c.multiplier;\n          if (c.multiplier >= 5) {",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 17,
+        "endLoc": {
+          "column": 27,
+          "line": 17,
+          "position": 742
+        },
+        "name": "shared/missions/MissionHelpers.ts",
+        "start": 11,
+        "startLoc": {
+          "column": 57,
+          "line": 11,
+          "position": 496
+        }
+      },
+      "tokens": 59
     },
     {
       "firstFile": {
@@ -561,14 +524,14 @@
         "endLoc": {
           "column": 36,
           "line": 167,
-          "position": 6608
+          "position": 6645
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 156,
         "startLoc": {
           "column": 28,
           "line": 156,
-          "position": 6128
+          "position": 6165
         }
       },
       "format": "typescript",
@@ -580,128 +543,17 @@
         "endLoc": {
           "column": 36,
           "line": 106,
-          "position": 4192
+          "position": 4229
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 95,
         "startLoc": {
           "column": 28,
           "line": 95,
-          "position": 3712
+          "position": 3749
         }
       },
       "tokens": 101
-    },
-    {
-      "firstFile": {
-        "end": 246,
-        "endLoc": {
-          "column": 45,
-          "line": 246,
-          "position": 9595
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 241,
-        "startLoc": {
-          "column": 51,
-          "line": 241,
-          "position": 9335
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.blueprints.register(\"collectible_fragment\", {\n      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        ArcadeEntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withCollider2D({\n            shape: { type: \"aabb\", halfWidth: 10, halfHeight: 10 },",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 268,
-        "endLoc": {
-          "column": 45,
-          "line": 268,
-          "position": 10337
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 263,
-        "startLoc": {
-          "column": 47,
-          "line": 263,
-          "position": 10077
-        }
-      },
-      "tokens": 65
-    },
-    {
-      "firstFile": {
-        "end": 250,
-        "endLoc": {
-          "column": 47,
-          "line": 250,
-          "position": 9739
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 241,
-        "startLoc": {
-          "column": 51,
-          "line": 241,
-          "position": 9335
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.blueprints.register(\"collectible_fragment\", {\n      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        ArcadeEntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withCollider2D({\n            shape: { type: \"aabb\", halfWidth: 10, halfHeight: 10 },\n            isTrigger: true\n          })\n          .withCollisionEvents()\n          .withRender({ shape: \"fragment\", size: 16, order: 1 });",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 185,
-        "endLoc": {
-          "column": 18,
-          "line": 185,
-          "position": 6697
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 174,
-        "startLoc": {
-          "column": 33,
-          "line": 174,
-          "position": 6247
-        }
-      },
-      "tokens": 90
-    },
-    {
-      "firstFile": {
-        "end": 272,
-        "endLoc": {
-          "column": 11,
-          "line": 272,
-          "position": 10445
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 264,
-        "startLoc": {
-          "column": 70,
-          "line": 264,
-          "position": 10151
-        }
-      },
-      "format": "typescript",
-      "fragment": "      spawn: (world, entity, args: { x: number; y: number; id: string }) => {\n        ArcadeEntityBuilder.fromEntity(world, entity)\n          .withTransform({ x: args.x, y: args.y })\n          .withCollider2D({\n            shape: { type: \"aabb\", halfWidth: 12, halfHeight: 12 },\n            isTrigger: true\n          })\n          .withCollisionEvents()\n          .withRender({ shape: \"core\", size: 24, order: 1 });",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 220,
-        "endLoc": {
-          "column": 13,
-          "line": 220,
-          "position": 7782
-        },
-        "name": "platformer/PlatformerGame.ts",
-        "start": 212,
-        "startLoc": {
-          "column": 60,
-          "line": 212,
-          "position": 7472
-        }
-      },
-      "tokens": 59
     },
     {
       "firstFile": {
@@ -742,92 +594,18 @@
     },
     {
       "firstFile": {
-        "end": 89,
-        "endLoc": {
-          "column": 79,
-          "line": 89,
-          "position": 5313
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 82,
-        "startLoc": {
-          "column": 47,
-          "line": 82,
-          "position": 4993
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.isMultiplayer = !!config.isMultiplayer;\n  }\n\n  protected override async onRegisterSystems(): Promise<void> {\n    this.config = applyMutators(this.baseConfig, this._config.gameOptions);\n    this.world.setResource(\"GameConfig\", this.config);\n    this.setupCommonArcadeResources();\n    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 91,
-        "endLoc": {
-          "column": 79,
-          "line": 91,
-          "position": 3051
-        },
-        "name": "frogger/FroggerGame.ts",
-        "start": 84,
-        "startLoc": {
-          "column": 17,
-          "line": 84,
-          "position": 2731
-        }
-      },
-      "tokens": 70
-    },
-    {
-      "firstFile": {
-        "end": 92,
-        "endLoc": {
-          "column": 29,
-          "line": 92,
-          "position": 5371
-        },
-        "name": "flappybird/FlappyBirdGame.ts",
-        "start": 86,
-        "startLoc": {
-          "column": 47,
-          "line": 86,
-          "position": 5111
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.config = applyMutators(this.baseConfig, this._config.gameOptions);\n    this.world.setResource(\"GameConfig\", this.config);\n    this.setupCommonArcadeResources();\n    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };\n\n    // Register blueprints\n    this.blueprints.register(\"bird\", {",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 113,
-        "endLoc": {
-          "column": 29,
-          "line": 113,
-          "position": 5032
-        },
-        "name": "pong/PongGame.ts",
-        "start": 106,
-        "startLoc": {
-          "column": 82,
-          "line": 106,
-          "position": 4771
-        }
-      },
-      "tokens": 53
-    },
-    {
-      "firstFile": {
-        "end": 302,
+        "end": 299,
         "endLoc": {
           "column": 11,
-          "line": 302,
-          "position": 12679
+          "line": 299,
+          "position": 12516
         },
         "name": "flappybird/FlappyBirdGame.ts",
-        "start": 288,
+        "start": 285,
         "startLoc": {
           "column": 35,
-          "line": 288,
-          "position": 12250
+          "line": 285,
+          "position": 12087
         }
       },
       "format": "typescript",
@@ -1260,55 +1038,18 @@
     },
     {
       "firstFile": {
-        "end": 290,
-        "endLoc": {
-          "column": 39,
-          "line": 290,
-          "position": 9825
-        },
-        "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 283,
-        "startLoc": {
-          "column": 83,
-          "line": 283,
-          "position": 9543
-        }
-      },
-      "format": "typescript",
-      "fragment": "        commands.addComponent(entity, createHealthComponent(state.alive ? 1 : 0, 1));\n      },\n      onLocalPlayerMark: (world, entity) => {\n        const commands = world.getCommandBuffer();\n        if (!world.hasComponent(entity, \"LocalPlayer\")) {\n          commands.addComponent(entity, { type: \"LocalPlayer\" });\n        }\n        if (!world.hasComponent(entity, \"Player\")) {",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 743,
-        "endLoc": {
-          "column": 39,
-          "line": 743,
-          "position": 31493
-        },
-        "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 736,
-        "startLoc": {
-          "column": 84,
-          "line": 736,
-          "position": 31211
-        }
-      },
-      "tokens": 58
-    },
-    {
-      "firstFile": {
-        "end": 342,
+        "end": 341,
         "endLoc": {
           "column": 34,
-          "line": 342,
-          "position": 12033
+          "line": 341,
+          "position": 12009
         },
         "name": "geometrywars/GeometryWarsGame.ts",
-        "start": 332,
+        "start": 331,
         "startLoc": {
           "column": 8,
-          "line": 332,
-          "position": 11786
+          "line": 331,
+          "position": 11762
         }
       },
       "format": "typescript",
@@ -1316,18 +1057,18 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 789,
+        "end": 788,
         "endLoc": {
           "column": 34,
-          "line": 789,
-          "position": 33313
+          "line": 788,
+          "position": 33289
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 778,
+        "start": 777,
         "startLoc": {
           "column": 82,
-          "line": 778,
-          "position": 32988
+          "line": 777,
+          "position": 32964
         }
       },
       "tokens": 60
@@ -1408,18 +1149,18 @@
     },
     {
       "firstFile": {
-        "end": 216,
+        "end": 182,
         "endLoc": {
           "column": 47,
-          "line": 216,
-          "position": 7666
+          "line": 182,
+          "position": 6865
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 211,
+        "start": 177,
         "startLoc": {
           "column": 33,
-          "line": 211,
-          "position": 7408
+          "line": 177,
+          "position": 6607
         }
       },
       "format": "typescript",
@@ -1427,18 +1168,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 238,
+        "end": 204,
         "endLoc": {
           "column": 45,
-          "line": 238,
-          "position": 8370
+          "line": 204,
+          "position": 7569
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 233,
+        "start": 199,
         "startLoc": {
           "column": 35,
-          "line": 233,
-          "position": 8122
+          "line": 199,
+          "position": 7321
         }
       },
       "tokens": 61
@@ -2148,32 +1889,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-28T21:26:33.736Z",
+    "detectionDate": "2026-09-29T09:38:28.924Z",
     "formats": {
       "typescript": {
-        "clones": 58,
-        "duplicatedLines": 475,
-        "duplicatedTokens": 3955,
-        "lines": 69006,
+        "clones": 51,
+        "duplicatedLines": 424,
+        "duplicatedTokens": 3501,
+        "lines": 69021,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.6883459409326725,
-        "percentageTokens": 1.1017817942746346,
-        "sources": 414,
-        "tokens": 358964
+        "percentage": 0.6143057909911477,
+        "percentageTokens": 0.9757225949037237,
+        "sources": 416,
+        "tokens": 358811
       }
     },
     "total": {
-      "clones": 58,
-      "duplicatedLines": 475,
-      "duplicatedTokens": 3955,
-      "lines": 69006,
+      "clones": 51,
+      "duplicatedLines": 424,
+      "duplicatedTokens": 3501,
+      "lines": 69021,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.6883459409326725,
-      "percentageTokens": 1.1017817942746346,
-      "sources": 414,
-      "tokens": 358964
+      "percentage": 0.6143057909911477,
+      "percentageTokens": 0.9757225949037237,
+      "sources": 416,
+      "tokens": 358811
     }
   }
 }

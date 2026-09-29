@@ -6,6 +6,7 @@ import { IStateReplicator } from "./NetworkManager";
  * @public
  */
 export interface EntityRemover {
+  /** Removes an entity by numeric entity ID. */
   removeEntity(entity: number): void;
 }
 

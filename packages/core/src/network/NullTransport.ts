@@ -12,6 +12,7 @@ export class NullTransport<
   TServerEvents extends Record<string, unknown> = Record<string, unknown>,
   TClientEvents extends Record<string, unknown> = Record<string, unknown>
 > implements NetworkTransport<TServerEvents, TClientEvents> {
+  /** Indicates that this transport instance operates in offline mode. */
   public readonly isOffline = true;
   /**
    * Immediately resolves without establishing a connection.

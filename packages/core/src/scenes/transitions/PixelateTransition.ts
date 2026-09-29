@@ -39,6 +39,7 @@ function getOffscreen(width: number, height: number): { canvas: HTMLCanvasElemen
  * @public
  */
 export class PixelateTransition extends BaseTransitionEffect {
+  /** Indicates whether canvas state auto-saving is enabled for this transition. */
   protected override readonly autoSave = false;
 
   /**

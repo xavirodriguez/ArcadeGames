@@ -15,6 +15,7 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
  * @public
  */
 export class RenderUpdateSystem extends System<CoreComponentRegistry> {
+  /** Updates procedural rotation and hit-flash timers for render components prior to presentation. */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.isReSimulating) return;
 

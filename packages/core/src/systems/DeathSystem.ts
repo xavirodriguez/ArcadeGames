@@ -9,6 +9,7 @@ import { getGameplaySystemContextAndEntities } from "./systemHelpers";
  * @public
  */
 export class DeathSystem extends System<CoreComponentRegistry> {
+  /** Executes health and death-plane checks across active player entities. */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     const ctx = getGameplaySystemContextAndEntities(world, "PlatformerInput", "Transform");
     if (!ctx) return;

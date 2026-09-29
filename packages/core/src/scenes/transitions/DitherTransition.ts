@@ -10,6 +10,7 @@ import { iterateGridBlocks } from "./GridTransitionUtils";
  * @public
  */
 export class DitherTransition extends BaseTransitionEffect {
+  /** Indicates whether canvas state auto-saving is enabled for this transition. */
   protected override readonly autoSave = false;
 
   private static readonly BAYER_4X4 = [

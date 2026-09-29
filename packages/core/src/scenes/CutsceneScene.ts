@@ -18,6 +18,7 @@ export class CutsceneScene extends Scene {
     this.onCompleteCallback = onComplete;
   }
 
+  /** Lifecycle hook executed when entering the cutscene scene. */
   public override onEnter(world: World): void {
     this.currentIndex = 0;
     const eventBus = world.getEventBus();

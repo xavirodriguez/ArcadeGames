@@ -8,6 +8,7 @@ import { findMatchingEntityInTriggersOrCollisions } from "../physics/collision/c
  * @public
  */
 export class HitDetectionSystem extends System<CoreComponentRegistry> {
+  /** Detects overlap triggers between hitboxes and hurtboxes and emits hit events. */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const hitboxes = world.query("CollisionEvents", "Hitbox");

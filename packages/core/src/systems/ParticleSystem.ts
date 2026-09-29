@@ -33,6 +33,13 @@ export interface ParticleParams {
  * @public  
  */  
 export interface IPrefabPool<TParams> {
+    /**
+     * Acquires or instantiates a particle entity handle populated with specified particle parameters.
+     *
+     * @param world - Target ECS world instance.
+     * @param params - Particle parameters for initializing particle components.
+     * @returns Entity ID handle of acquired particle entity.
+     */
     acquire(world: World, params: TParams): Entity;
 }
 

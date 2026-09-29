@@ -9,6 +9,7 @@ import { BaseTransitionEffect } from "./BaseTransitionEffect";
  * @public
  */
 export class FadeTransition extends BaseTransitionEffect {
+  /** Indicates whether canvas state auto-saving is enabled for this transition. */
   protected override readonly autoSave = false;
 
   /**

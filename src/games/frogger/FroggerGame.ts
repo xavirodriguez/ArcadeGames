@@ -85,10 +85,7 @@ export class FroggerGame extends BaseGame<
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = applyMutators(this.baseConfig, this._config.gameOptions);
-    this.world.setResource("GameConfig", this.config);
-    this.setupCommonArcadeResources();
-    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
+    this.config = this.setupArcadeGameConfig(this.baseConfig, applyMutators);
 
     registerFroggerBlueprints(this.world, this.blueprints);
 

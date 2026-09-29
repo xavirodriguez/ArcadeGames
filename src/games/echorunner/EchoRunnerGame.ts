@@ -36,7 +36,7 @@ import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, syncLevelWorldDimensions } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, syncLevelWorldDimensions, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -238,49 +238,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
     registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
-    this.blueprints.register("collectible_fragment", {
-      spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withCollider2D({
-            shape: { type: "aabb", halfWidth: 10, halfHeight: 10 },
-            isTrigger: true
-          })
-          .withCollisionEvents()
-          .withRender({ shape: "fragment", size: 16, order: 1 });
-
-        world.addComponent(entity, {
-          type: "Collectible",
-          kind: "fragment",
-          value: 10,
-          persistent: false,
-          collectOnce: false,
-          id: args.id
-        } as { type: string; [key: string]: unknown });
-      }
-    });
-
-    this.blueprints.register("collectible_core", {
-      spawn: (world, entity, args: { x: number; y: number; id: string }) => {
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withCollider2D({
-            shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
-            isTrigger: true
-          })
-          .withCollisionEvents()
-          .withRender({ shape: "core", size: 24, order: 1 });
-
-        world.addComponent(entity, {
-          type: "Collectible",
-          kind: "core",
-          value: 100,
-          persistent: true,
-          collectOnce: true,
-          id: args.id
-        } as { type: string; [key: string]: unknown });
-      }
-    });
+    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
+    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
 
     registerPlatformerEnvironmentBlueprints(this.blueprints);
     registerPlatformerEnemyBlueprints(this.blueprints);

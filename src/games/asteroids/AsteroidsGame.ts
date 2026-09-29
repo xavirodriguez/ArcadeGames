@@ -57,7 +57,7 @@ import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem, PowerUpRegistry } from "@tiny-aster/gameplay-kit";
 import { MissionSystem } from "../shared/missions/MissionSystem";
 import { ASTEROIDS_MINI_MISSIONS, ASTEROIDS_MISSIONS } from "./AsteroidsMissions";
-import { MutatorRegistry } from "../../utils/MutatorRegistry";
+import { applyMissionReward } from "../shared/missions/MissionHelpers";
 import { StoryDirectorSystem, DialogueSystem } from "../shared/story";
 import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -206,20 +206,7 @@ export class AsteroidsGame
     this.eventBus.on("mission:completed", (event) => {
       if (this.world.isReSimulating) return;
       const payload = event as { reward?: { scoreBonus?: number; mutatorId?: string } };
-      if (payload?.reward?.scoreBonus) {
-        const gs = this.world.getSingleton("GameState");
-        if (gs) {
-          this.world.mutateSingleton("GameState", (state) => {
-            state.score += payload.reward!.scoreBonus!;
-          });
-        }
-      }
-      if (payload?.reward?.mutatorId) {
-        const mutator = MutatorRegistry.get(payload.reward.mutatorId);
-        if (mutator) {
-          mutator.apply(this.world);
-        }
-      }
+      applyMissionReward(this.world, payload?.reward, "GameState");
     });
 
     if (this.mode === "story") {

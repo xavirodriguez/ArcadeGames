@@ -13,7 +13,7 @@ import {
   BoxShape,
   Component
 } from "@tiny-aster/core";
-import { CollisionLayers } from "@tiny-aster/gameplay-kit";
+import { CollisionLayers, ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 
 /**
  * Audit of Player Blueprints Across Games:
@@ -326,5 +326,53 @@ export function syncLevelWorldDimensions(
     viewportHeight: config.worldHeight ?? 600,
     worldWidth,
     worldHeight
+  });
+}
+
+/**
+ * Helper to register collectible blueprints with trigger colliders in a blueprint registry.
+ *
+ * @param blueprints - Blueprint registry instance.
+ * @param id - Blueprint ID name.
+ * @param kind - Collectible kind identifier.
+ * @param value - Score value.
+ * @param size - Render size.
+ * @param halfSize - Trigger collider AABB half size.
+ * @param shape - Render shape.
+ * @param persistent - Whether collectible persists across sessions.
+ * @param collectOnce - Whether collectible can only be collected once.
+ * @public
+ */
+export function registerCollectibleTriggerBlueprint(
+  blueprints: RegistrableBlueprintRegistry,
+  id: string,
+  kind: string,
+  value: number,
+  size: number,
+  halfSize: number,
+  shape: string,
+  persistent = false,
+  collectOnce = false
+): void {
+  blueprints.register(id, {
+    spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { x: number; y: number; id: string }) => {
+      ArcadeEntityBuilder.fromEntity(world, entity)
+        .withTransform({ x: args.x, y: args.y })
+        .withCollider2D({
+          shape: { type: "aabb", halfWidth: halfSize, halfHeight: halfSize },
+          isTrigger: true
+        })
+        .withCollisionEvents()
+        .withRender({ shape, size, order: 1 });
+
+      world.addComponent(entity, {
+        type: "Collectible",
+        kind,
+        value,
+        persistent,
+        collectOnce,
+        id: args.id
+      } as { type: string; [key: string]: unknown });
+    }
   });
 }

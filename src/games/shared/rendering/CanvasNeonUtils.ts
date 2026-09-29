@@ -6,7 +6,7 @@
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, hexToRgba } from "./CosmicPalette";
-import { MotionTrailBuffer, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
+import { MotionTrailBase, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
 
 export { TrailPoint };
 
@@ -34,29 +34,7 @@ export function canvasRoundRectPath(
  * Zero-allocation, high-performance motion trail tracker and renderer for Canvas.
  * Delegates buffer tracking and update logic to MotionTrailBuffer.
  */
-export class CanvasMotionTrail {
-  private readonly trailBuffer: MotionTrailBuffer;
-  protected readonly maxPoints: number;
-
-  constructor(maxPoints: number = 30) {
-    this.maxPoints = maxPoints;
-    this.trailBuffer = new MotionTrailBuffer(maxPoints);
-  }
-
-  /**
-   * Retrieves or initializes the trail points buffer for a specific entity ID.
-   */
-  public getTrail(entityId: number): TrailPoint[] {
-    return this.trailBuffer.getTrail(entityId);
-  }
-
-  /**
-   * Updates the trail coordinates when the entity moves beyond a small threshold.
-   */
-  public update(entityId: number, x: number, y: number, minDistanceSq: number = 4): void {
-    this.trailBuffer.update(entityId, x, y, minDistanceSq);
-  }
-
+export class CanvasMotionTrail extends MotionTrailBase {
   /**
    * Draws a fading motion trail with dynamic length, scaling, and colors.
    */

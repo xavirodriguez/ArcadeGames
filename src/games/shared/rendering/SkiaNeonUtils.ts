@@ -1,9 +1,22 @@
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "./ProceduralShapeUtils";
 import { Skia } from "./SkiaContext";
-import { MotionTrailBuffer, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
+import { MotionTrailBase, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
 
 export { TrailPoint };
+
+function initSkiaPaint(style: any, colorStr: string, alpha: number = 1.0, existingPaint?: any): any {
+  if (!Skia) return undefined;
+  const paint = existingPaint || Skia.Paint();
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(style);
+  paint.setColor(Skia.Color(colorStr));
+  if (alpha < 1.0) {
+    paint.setAlphaf(alpha);
+  }
+  return paint;
+}
 
 /**
  * Creates and initializes a Skia Paint configured for Fill operations.
@@ -15,16 +28,7 @@ export { TrailPoint };
  * @public
  */
 export function makeFillPaint(colorStr: string, alpha: number = 1.0, existingPaint?: any): any {
-  if (!Skia) return undefined;
-  const paint = existingPaint || Skia.Paint();
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(colorStr));
-  if (alpha < 1.0) {
-    paint.setAlphaf(alpha);
-  }
-  return paint;
+  return initSkiaPaint(Skia?.PaintStyle.Fill, colorStr, alpha, existingPaint);
 }
 
 /**
@@ -38,15 +42,9 @@ export function makeFillPaint(colorStr: string, alpha: number = 1.0, existingPai
  * @public
  */
 export function makeStrokePaint(colorStr: string, strokeWidth: number = 1.0, alpha: number = 1.0, existingPaint?: any): any {
-  if (!Skia) return undefined;
-  const paint = existingPaint || Skia.Paint();
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Stroke);
-  paint.setColor(Skia.Color(colorStr));
-  paint.setStrokeWidth(strokeWidth);
-  if (alpha < 1.0) {
-    paint.setAlphaf(alpha);
+  const paint = initSkiaPaint(Skia?.PaintStyle.Stroke, colorStr, alpha, existingPaint);
+  if (paint) {
+    paint.setStrokeWidth(strokeWidth);
   }
   return paint;
 }
@@ -100,23 +98,7 @@ export function drawNeonShapeSkia(
  * Pure Skia utility with zero Canvas dependencies.
  * @public
  */
-export class SkiaMotionTrail {
-  private readonly trailBuffer: MotionTrailBuffer;
-  protected readonly maxPoints: number;
-
-  constructor(maxPoints: number = 30) {
-    this.maxPoints = maxPoints;
-    this.trailBuffer = new MotionTrailBuffer(maxPoints);
-  }
-
-  public getTrail(entityId: number): TrailPoint[] {
-    return this.trailBuffer.getTrail(entityId);
-  }
-
-  public update(entityId: number, x: number, y: number, minDistanceSq: number = 4): void {
-    this.trailBuffer.update(entityId, x, y, minDistanceSq);
-  }
-
+export class SkiaMotionTrail extends MotionTrailBase {
   public drawSkia(
     canvas: any,
     paint: any,

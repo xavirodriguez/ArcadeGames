@@ -2,7 +2,9 @@ import { FlappyBirdConfigSchema } from "../types/FlappyBirdConfigSchema";
 import { selectScenario } from "../systems/FlappyBirdGameStateSystem";
 import { createPipe } from "../EntityFactory";
 import { FlappyBirdGame } from "../FlappyBirdGame";
-import { getScenarioConfig } from "../ScenarioDefinitions";
+import { getScenarioConfig, SCENARIOS } from "../ScenarioDefinitions";
+import { createFlappyState, INITIAL_FLAPPY_STATE } from "../types/FlappyBirdTypes";
+import { SCENARIO_THEMES } from "../rendering/FlappyBirdBackgroundData";
 
 describe("FlappyBird Scenario System", () => {
   describe("selectScenario pure function", () => {
@@ -154,6 +156,27 @@ describe("FlappyBird Scenario System", () => {
       });
       expect(parsed.SCENARIO_ROTATION_ENABLED).toBe(false);
       expect(parsed.PIPES_PER_SCENARIO).toBe(12);
+    });
+  });
+
+  describe("Characterization tests for refactored data factories and scenario themes", () => {
+    it("should produce identical default state in createFlappyState as INITIAL_FLAPPY_STATE", () => {
+      const stateFromFactory = createFlappyState();
+      expect(stateFromFactory).toEqual(INITIAL_FLAPPY_STATE);
+    });
+
+    it("should support overrides in createFlappyState", () => {
+      const customState = createFlappyState({ score: 100, isGameOver: true });
+      expect(customState.score).toBe(100);
+      expect(customState.isGameOver).toBe(true);
+      expect(customState.type).toBe("FlappyState");
+    });
+
+    it("should derive scenario themes directly from SCENARIO_THEMES", () => {
+      expect(SCENARIOS.open_space.theme).toEqual(SCENARIO_THEMES.open_space);
+      expect(SCENARIOS.asteroid_belt.theme).toEqual(SCENARIO_THEMES.asteroid_belt);
+      expect(SCENARIOS.solar_storm.theme).toEqual(SCENARIO_THEMES.solar_storm);
+      expect(SCENARIOS.warp_corridor.theme).toEqual(SCENARIO_THEMES.warp_corridor);
     });
   });
 });

@@ -2,6 +2,7 @@ import { RandomService } from "@tiny-aster/core";
 import { ScenarioConfig, PipeRecipe, PipeVariantOption, PipeMovementOption } from "./types/ScenarioConfig";
 import { ScenarioId } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfig } from "./types/FlappyBirdConfigSchema";
+import { SCENARIO_THEMES } from "./rendering/FlappyBirdBackgroundData";
 
 export const SCENARIOS: Record<ScenarioId, ScenarioConfig> = {
   open_space: {
@@ -19,19 +20,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioConfig> = {
       GAP_SIZE: 140,
       PIPE_SPAWN_INTERVAL: 2400,
     },
-    theme: {
-      nebulae: [
-        { xRatio: 0.25, yRatio: 0.3, radius: 180, colorHex: "#2A0044" },
-        { xRatio: 0.75, yRatio: 0.65, radius: 210, colorHex: "#002838" },
-        { xRatio: 0.5, yRatio: 0.45, radius: 150, colorHex: "#1C0033" },
-      ],
-      megaIndex: 0,
-      palette: {
-        textColor: "#00F3FF",
-        bannerBg: "rgba(0, 243, 255, 0.15)",
-        primaryGlow: "#00F3FF",
-      },
-    },
+    theme: SCENARIO_THEMES.open_space,
     durationInPipes: 5,
     associatedSectorEvent: "none",
   },
@@ -53,19 +42,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioConfig> = {
       GAP_SIZE: 125,
       PIPE_SPAWN_INTERVAL: 2200,
     },
-    theme: {
-      nebulae: [
-        { xRatio: 0.2, yRatio: 0.4, radius: 220, colorHex: "#3A1C08" },
-        { xRatio: 0.8, yRatio: 0.3, radius: 190, colorHex: "#221008" },
-        { xRatio: 0.5, yRatio: 0.7, radius: 170, colorHex: "#482612" },
-      ],
-      megaIndex: 1,
-      palette: {
-        textColor: "#D3D9E2",
-        bannerBg: "rgba(211, 217, 226, 0.15)",
-        primaryGlow: "#8B93A5",
-      },
-    },
+    theme: SCENARIO_THEMES.asteroid_belt,
     durationInPipes: 5,
     associatedSectorEvent: "asteroid_storm",
   },
@@ -87,19 +64,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioConfig> = {
       GAP_SIZE: 135,
       PIPE_SPAWN_INTERVAL: 2000,
     },
-    theme: {
-      nebulae: [
-        { xRatio: 0.3, yRatio: 0.2, radius: 200, colorHex: "#441C00" },
-        { xRatio: 0.7, yRatio: 0.5, radius: 230, colorHex: "#330800" },
-        { xRatio: 0.4, yRatio: 0.8, radius: 160, colorHex: "#552800" },
-      ],
-      megaIndex: 2,
-      palette: {
-        textColor: "#FFC000",
-        bannerBg: "rgba(255, 192, 0, 0.15)",
-        primaryGlow: "#FF3300",
-      },
-    },
+    theme: SCENARIO_THEMES.solar_storm,
     durationInPipes: 5,
     associatedSectorEvent: "solar_flare",
   },
@@ -122,19 +87,7 @@ export const SCENARIOS: Record<ScenarioId, ScenarioConfig> = {
       GAP_SIZE: 120,
       PIPE_SPAWN_INTERVAL: 1800,
     },
-    theme: {
-      nebulae: [
-        { xRatio: 0.15, yRatio: 0.5, radius: 240, colorHex: "#001A44" },
-        { xRatio: 0.85, yRatio: 0.4, radius: 200, colorHex: "#003366" },
-        { xRatio: 0.5, yRatio: 0.2, radius: 180, colorHex: "#000D22" },
-      ],
-      megaIndex: 3,
-      palette: {
-        textColor: "#00F3FF",
-        bannerBg: "rgba(0, 243, 255, 0.2)",
-        primaryGlow: "#00F3FF",
-      },
-    },
+    theme: SCENARIO_THEMES.warp_corridor,
     durationInPipes: 5,
     associatedSectorEvent: "hyper_warp",
   },

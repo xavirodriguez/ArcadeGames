@@ -131,3 +131,32 @@ export class MotionTrailBuffer {
     return this.maxPoints;
   }
 }
+
+/**
+ * Common base class for Canvas and Skia motion trail implementations.
+ * Manages trail point buffer tracking without graphics rendering dependencies.
+ * @public
+ */
+export class MotionTrailBase {
+  private readonly trailBuffer: MotionTrailBuffer;
+  protected readonly maxPoints: number;
+
+  constructor(maxPoints: number = 30) {
+    this.maxPoints = maxPoints;
+    this.trailBuffer = new MotionTrailBuffer(maxPoints);
+  }
+
+  /**
+   * Retrieves or initializes the trail points buffer for a specific entity ID.
+   */
+  public getTrail(entityId: number): TrailPoint[] {
+    return this.trailBuffer.getTrail(entityId);
+  }
+
+  /**
+   * Updates the trail coordinates when the entity moves beyond a small threshold.
+   */
+  public update(entityId: number, x: number, y: number, minDistanceSq: number = 4): void {
+    this.trailBuffer.update(entityId, x, y, minDistanceSq);
+  }
+}

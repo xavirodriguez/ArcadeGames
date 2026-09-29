@@ -6,7 +6,7 @@ import {
   SpaceStationState,
   initializeSpaceStation,
   getOrCreateCached,
-  getActiveVisualContext
+  resolveLayerFrame
 } from "../SharedVFXInternal";
 
 const spaceStationLayer = createParallaxLayer<SpaceStationState | undefined>({
@@ -18,13 +18,9 @@ const spaceStationLayer = createParallaxLayer<SpaceStationState | undefined>({
 
 export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const theme = getActiveVisualContext(world);
-    if (theme.backgroundLayers && !theme.backgroundLayers.includes("distant_space_station")) return;
-
-    const layerCtx = spaceStationLayer(world);
+    const layerCtx = resolveLayerFrame(world, "distant_space_station", spaceStationLayer);
     if (!layerCtx) return;
     const { width, height, state, layerState: st, offsetX, wrapCoordinate } = layerCtx;
-    if (!st) return;
 
     st.rotation += st.rotationSpeed;
     const posX = wrapCoordinate(st.x - offsetX * 0.1);
@@ -114,13 +110,9 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
 export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const theme = getActiveVisualContext(world);
-    if (theme.backgroundLayers && !theme.backgroundLayers.includes("distant_space_station")) return;
-
-    const layerCtx = spaceStationLayer(world);
+    const layerCtx = resolveLayerFrame(world, "distant_space_station", spaceStationLayer);
     if (!layerCtx) return;
     const { width, height, state, layerState: st, offsetX, wrapCoordinate } = layerCtx;
-    if (!st) return;
 
     st.rotation += st.rotationSpeed;
     const posX = wrapCoordinate(st.x - offsetX * 0.1);

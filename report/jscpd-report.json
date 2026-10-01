@@ -1297,43 +1297,6 @@
     },
     {
       "firstFile": {
-        "end": 29,
-        "endLoc": {
-          "column": 9,
-          "line": 29,
-          "position": 1299
-        },
-        "name": "shared/story/DialogueSystem.ts",
-        "start": 24,
-        "startLoc": {
-          "column": 22,
-          "line": 24,
-          "position": 1020
-        }
-      },
-      "format": "typescript",
-      "fragment": "      if (!currentLine) {\n        // No lines left or empty lines, close dialogue box\n        world.getCommandBuffer().removeComponent(entity, dialogueType);\n        if (eventBus) {\n          (eventBus as unknown as { emit: (e: string, p?: unknown) => void }).emit(\"dialogue:completed\", {});\n        }",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 62,
-        "endLoc": {
-          "column": 13,
-          "line": 62,
-          "position": 2676
-        },
-        "name": "shared/story/DialogueSystem.ts",
-        "start": 58,
-        "startLoc": {
-          "column": 48,
-          "line": 58,
-          "position": 2441
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
         "end": 49,
         "endLoc": {
           "column": 50,
@@ -1445,32 +1408,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-09-29T17:04:41.947Z",
+    "detectionDate": "2026-10-01T00:35:31.448Z",
     "formats": {
       "typescript": {
-        "clones": 39,
-        "duplicatedLines": 301,
-        "duplicatedTokens": 2605,
-        "lines": 68949,
+        "clones": 38,
+        "duplicatedLines": 296,
+        "duplicatedTokens": 2553,
+        "lines": 68955,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.4365545548158784,
-        "percentageTokens": 0.7273894954346187,
+        "percentage": 0.4292654629831049,
+        "percentageTokens": 0.7128397716008879,
         "sources": 416,
-        "tokens": 358130
+        "tokens": 358145
       }
     },
     "total": {
-      "clones": 39,
-      "duplicatedLines": 301,
-      "duplicatedTokens": 2605,
-      "lines": 68949,
+      "clones": 38,
+      "duplicatedLines": 296,
+      "duplicatedTokens": 2553,
+      "lines": 68955,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.4365545548158784,
-      "percentageTokens": 0.7273894954346187,
+      "percentage": 0.4292654629831049,
+      "percentageTokens": 0.7128397716008879,
       "sources": 416,
-      "tokens": 358130
+      "tokens": 358145
     }
   }
 }

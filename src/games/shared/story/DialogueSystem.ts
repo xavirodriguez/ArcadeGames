@@ -23,10 +23,7 @@ export class DialogueSystem<
       const currentLine = dialogue.lines[dialogue.currentLineIndex];
       if (!currentLine) {
         // No lines left or empty lines, close dialogue box
-        world.getCommandBuffer().removeComponent(entity, dialogueType);
-        if (eventBus) {
-          (eventBus as unknown as { emit: (e: string, p?: unknown) => void }).emit("dialogue:completed", {});
-        }
+        this.finishDialogue(world, entity, dialogueType, eventBus);
         continue;
       }
 
@@ -56,10 +53,7 @@ export class DialogueSystem<
           // Advance to next line
           const nextIndex = dialogue.currentLineIndex + 1;
           if (nextIndex >= dialogue.lines.length) {
-            world.getCommandBuffer().removeComponent(entity, dialogueType);
-            if (eventBus) {
-              (eventBus as unknown as { emit: (e: string, p?: unknown) => void }).emit("dialogue:completed", {});
-            }
+            this.finishDialogue(world, entity, dialogueType, eventBus);
           } else {
             world.mutateComponent(entity, dialogueType, (d: unknown) => {
               const db = d as DialogueBoxComponent;
@@ -73,6 +67,18 @@ export class DialogueSystem<
           }
         }
       }
+    }
+  }
+
+  private finishDialogue(
+    world: World<TComponents, TEvents>,
+    entity: number,
+    dialogueType: Extract<keyof TComponents, string>,
+    eventBus: EventBus<TEvents> | undefined
+  ): void {
+    world.getCommandBuffer().removeComponent(entity, dialogueType);
+    if (eventBus) {
+      (eventBus as unknown as { emit: (e: string, p?: unknown) => void }).emit("dialogue:completed", {});
     }
   }
 

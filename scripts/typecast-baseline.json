@@ -786,8 +786,8 @@
   },
   "src/games/shared/story/DialogueSystem.ts": {
     "anyCount": 0,
-    "unknownCount": 3,
-    "total": 3
+    "unknownCount": 2,
+    "total": 2
   },
   "src/games/shared/story/StoryDirectorSystem.ts": {
     "anyCount": 5,

@@ -341,6 +341,7 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     protected runDeterministicStep(deltaTime: number, targetWorld?: World<TComponents, TEvents, TBlueprints>): void;
     sceneManager: SceneManager<TComponents>;
     setInputState(input: Partial<TInput>): void;
+    protected setupArcadeGameConfig<T>(baseConfig: T, mutatorFn?: (base: T, options?: Record<string, unknown>) => T): T;
     protected setupCommonArcadeResources(canvas?: HTMLCanvasElement): void;
     snapshot(): WorldSnapshot;
     start(): void;

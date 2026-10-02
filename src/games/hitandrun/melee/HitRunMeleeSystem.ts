@@ -5,6 +5,7 @@ import {
   Entity
 } from "@tiny-aster/core";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
+import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import {
   DEFAULT_MELEE_ATTACK_CONFIG,
   MELEE_MAX_HITS_PER_SWING,
@@ -16,14 +17,6 @@ import {
 
 const MELEE_CONFIG_RESOURCE = "MeleeAttackConfig";
 
-/**
- * HitRunMeleeSystem — sword attack with startup / active / recovery.
- *
- * Hitbox exists only during `active` (trigger collider for overlap queries).
- * Damage is applied once per enemy per swing in this system (not via Damage+
- * CombatSystem) so multi-frame overlaps cannot multi-hit.
- * Emits combat:hit / combat:death deferred for juice (Paso B).
- */
 export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
@@ -102,6 +95,8 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
   }
 
   private wantsAttack(world: World<CoreComponentRegistry>, entity: Entity): boolean {
+    if (isPlayerControlLocked(world, entity)) return false;
+
     const input = world.getComponent(entity, "PlatformerInput") as
       | MeleeAttackInput
       | undefined;
@@ -228,7 +223,6 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       triggersExited: []
     });
 
-    // No Damage component: avoids CombatSystem multi-hit on sustained overlap.
     world.addComponent(e, {
       type: "Faction",
       faction: "player",

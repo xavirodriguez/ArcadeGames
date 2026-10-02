@@ -5,13 +5,13 @@ import type {
 
 /**
  * Catálogo data-driven de enemigos.
- * Añadir un tipo nuevo = una entrada aquí + (opcional) blueprint visual.
+ * behaviorTags impulsan FSM + flanqueo.
  */
 export const HIT_RUN_ENEMY_ARCHETYPES: Record<
   string,
   EnemyArchetypeDefinition
 > = {
-  /** Carne de cañón — spawns densos, poca vida. */
+  /** Carne de cañón — flanqueo en grupo (pinza por indexInGroup). */
   popcorn: {
     id: "popcorn",
     poolId: "enemy_popcorn",
@@ -21,10 +21,10 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     size: 10,
     color: "#f97316",
     speed: 60,
-    behaviorTags: ["walk", "shoot_slow"]
+    behaviorTags: ["walk", "shoot_slow", "flank"]
   },
 
-  /** Bloque denso tipo "muro" de Metal Slug. */
+  /** Muro denso — avanza en bloque, poco flanqueo. */
   wall: {
     id: "wall",
     poolId: "enemy_wall",
@@ -37,7 +37,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     behaviorTags: ["walk", "block"]
   },
 
-  /** Salta plataformas. */
+  /** Hopper con sesgo lateral al saltar. */
   hopper: {
     id: "hopper",
     poolId: "enemy_hopper",
@@ -47,10 +47,10 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     size: 12,
     color: "#a855f7",
     speed: 80,
-    behaviorTags: ["hop"]
+    behaviorTags: ["hop", "flank"]
   },
 
-  /** Carga hacia el jugador. */
+  /** Carga directa; flanqueo breve opcional. */
   charger: {
     id: "charger",
     poolId: "enemy_charger",
@@ -63,7 +63,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     behaviorTags: ["charge"]
   },
 
-  /** Mini-boss / elite de oleada. */
+  /** Elite: ángulo lateral + disparo pesado. */
   elite: {
     id: "elite",
     poolId: "enemy_elite",
@@ -73,7 +73,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     size: 22,
     color: "#eab308",
     speed: 50,
-    behaviorTags: ["shoot_heavy", "tank"]
+    behaviorTags: ["shoot_heavy", "tank", "flank"]
   }
 };
 

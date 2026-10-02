@@ -9,13 +9,11 @@ import type {
   IHitRunEnemyPool
 } from "./HitRunWaveTypes";
 import { ENEMY_POOL_RESOURCE } from "./HitRunWaveTypes";
+import { attachEnemyAI } from "../ai/attachEnemyAI";
 
 /**
  * Pool / factory de enemigos para Hit&Run.
- *
- * Implementación inicial: createEntity + componentes data-driven del arquetipo.
- * Cuando exista PrefabPool por tipo, acquireEnemy delegará al pool concreto
- * sin cambiar WaveSystem.
+ * Tras spawnear componentes base, adjunta AI según behaviorTags.
  */
 export class HitRunEnemyPool implements IHitRunEnemyPool {
   public acquireEnemy(
@@ -30,6 +28,10 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     const shape = arch?.shape ?? "enemy";
     const health = arch?.health ?? 1;
     const faction = arch?.faction ?? "enemy";
+    const behaviorTags = [
+      ...(params.tags ?? []),
+      ...(arch?.behaviorTags ?? [])
+    ];
 
     world.addComponent(entity, {
       type: "Transform",
@@ -105,13 +107,18 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       tags: ["Enemy", params.archetypeId, ...(params.tags ?? []), ...(arch?.behaviorTags ?? [])]
     });
 
-    // Marcador de arquetipo para AI / sistemas
     world.addComponent(entity, {
       type: "Enemy",
       kind: params.archetypeId as "patrol" | "jumper" | "charger",
       archetypeId: params.archetypeId,
       indexInGroup: params.indexInGroup ?? 0,
       groupSize: params.groupSize ?? 1
+    });
+
+    // AI data-driven por behaviorTags
+    attachEnemyAI(world, entity, {
+      archetypeId: params.archetypeId,
+      tags: behaviorTags
     });
 
     return entity;

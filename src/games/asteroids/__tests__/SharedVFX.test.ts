@@ -48,15 +48,15 @@ const createMockContext = () => {
         addColorStop(offset: number, color: string) {
           drawCalls.push(`addColorStop:${offset},${color}`);
         }
-      } as any;
+      };
     },
-    setStrokeStyle(color: string) { this.strokeStyle = color; },
-    setFillStyle(color: string) { this.fillStyle = color; },
+    setStrokeStyle(color: string) { (ctx as { strokeStyle: string }).strokeStyle = color; },
+    setFillStyle(color: string) { (ctx as { fillStyle: string }).fillStyle = color; },
     fillStyle: "",
     strokeStyle: "",
     lineWidth: 1,
     globalAlpha: 1.0,
-  } as any;
+  } as unknown as CanvasRenderingContext2D;
 
   return { ctx, drawCalls };
 };
@@ -424,7 +424,17 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
     });
 
     it("should compute advanceStationFrame and increment rotation", () => {
-      const st = { x: 100, rotation: 0, rotationSpeed: 0.05 } as any;
+      const st = {
+        x: 100,
+        y: 100,
+        rotation: 0,
+        rotationSpeed: 0.05,
+        coreRadius: 10,
+        ringRadius: 20,
+        panelLength: 30,
+        panelWidth: 5,
+        beacons: []
+      };
       const wrap = (val: number) => val;
       const posX = advanceStationFrame(st, 10, wrap);
       expect(st.rotation).toBeCloseTo(0.05);
@@ -432,7 +442,19 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
     });
 
     it("should resolve planet position using resolvePlanetPosition", () => {
-      const planet = { x: 200, radius: 50 } as any;
+      const planet = {
+        x: 200,
+        y: 100,
+        radius: 50,
+        ringInnerRadius: 65,
+        ringOuterRadius: 105,
+        ringTilt: -0.35,
+        craters: [],
+        moonX: 300,
+        moonY: 100,
+        moonRadius: 15,
+        moonCraters: []
+      };
       const wrap = (val: number, margin?: number) => val + (margin || 0);
       const posX = resolvePlanetPosition(planet, 20, wrap);
       expect(posX).toBe(198 + 150);

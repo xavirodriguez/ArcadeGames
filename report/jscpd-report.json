@@ -2,1049 +2,13 @@
   "duplicates": [
     {
       "firstFile": {
-        "end": 188,
-        "endLoc": {
-          "column": 9,
-          "line": 188,
-          "position": 6164
-        },
-        "name": "core/src/audio/WebAudioPlayer.ts",
-        "start": 177,
-        "startLoc": {
-          "column": 5,
-          "line": 177,
-          "position": 5901
-        }
-      },
-      "format": "typescript",
-      "fragment": "    };\n\n    const now = performance.now();\n    if (opts.cooldownMs && opts.cooldownMs > 0) {\n      const last = this.sfxLastPlayTime.get(id) || 0;\n      if (now - last < opts.cooldownMs) {\n        return;\n      }\n    }\n    this.sfxLastPlayTime.set(id, now);\n\n    const buffer = this.sfxCache.get(id);",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 168,
-        "endLoc": {
-          "column": 9,
-          "line": 168,
-          "position": 5507
-        },
-        "name": "react-native/src/audio/ExpoAudioPlayer.ts",
-        "start": 157,
-        "startLoc": {
-          "column": 101,
-          "line": 157,
-          "position": 5244
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 204,
-        "endLoc": {
-          "column": 10,
-          "line": 204,
-          "position": 6657
-        },
-        "name": "core/src/audio/WebAudioPlayer.ts",
-        "start": 195,
-        "startLoc": {
-          "column": 28,
-          "line": 195,
-          "position": 6327
-        }
-      },
-      "format": "typescript",
-      "fragment": "      source.buffer = buffer;\n\n      // Apply playback rate / pitch variation\n      let rate = opts.playbackRate ?? 1.0;\n      if (opts.pitchRange && opts.pitchRange > 0) {\n        // Random pitch offset within ±pitchRange (e.g., 0.05 for ±5%)\n        const delta = (Math.random() * 2 - 1) * opts.pitchRange;\n        rate *= 1.0 + delta;\n      }\n      if (source.playbackRate) {",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 238,
-        "endLoc": {
-          "column": 10,
-          "line": 238,
-          "position": 8033
-        },
-        "name": "react-native/src/audio/ExpoAudioPlayer.ts",
-        "start": 230,
-        "startLoc": {
-          "column": 31,
-          "line": 230,
-          "position": 7822
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 115,
-        "endLoc": {
-          "column": 1,
-          "line": 115,
-          "position": 2678
-        },
-        "name": "core/src/network/NetTypes.ts",
-        "start": 31,
-        "startLoc": {
-          "column": 0,
-          "line": 31,
-          "position": 855
-        }
-      },
-      "format": "typescript",
-      "fragment": "export interface PredictedState {\n  /** The simulation tick for this state. */\n  tick: number;\n  /** Unique identifier of the entity. */\n  entityId: string;\n  /** Physical state at this tick. */\n  state: {\n    x: number;\n    y: number;\n    vx: number;\n    vy: number;\n    angle?: number;\n  };\n  /** List of entity IDs active at this tick. */\n  entities: string[];\n}\n\n/**\n * Captured visual state for interpolation.\n * @public\n */\nexport interface EntitySnapshot {\n  /** The server or simulation tick this snapshot represents. */\n  tick: number;\n  /** World X position. */\n  x: number;\n  /** World Y position. */\n  y: number;\n  /** Rotation in radians. */\n  angle?: number;\n  /** Wall-clock time when the state was received or captured. */\n  timestamp: number;\n}\n\n/**\n * Single tick frame payload stored within a session replay recording.\n *\n * @example\n * ```ts\n * const frame: ReplayFrame = {\n *   tick: 120,\n *   inputs: { player_1: [] },\n *   events: [\"enemy:spawned\"]\n * };\n * ```\n *\n * @public\n */\nexport interface ReplayFrame {\n  /** Simulation tick number for this frame. */\n  tick: number;\n  /** Player inputs indexed by session/client ID. */\n  inputs: Record<string, InputFrame[]>;\n  /** Key events emitted during this frame. */\n  events: string[];\n}\n\n/**\n * Complete recorded session replay archive data.\n *\n * @example\n * ```ts\n * const replay: ReplayData = {\n *   version: 1,\n *   roomId: \"room_01\",\n *   startTick: 0,\n *   endTick: 300,\n *   frames: []\n * };\n * ```\n *\n * @public\n */\nexport interface ReplayData {\n  /** Replay schema version number. */\n  version: number;\n  /** Server room identifier. */\n  roomId: string;\n  /** Starting simulation tick. */\n  startTick: number;\n  /** Final ending simulation tick. */\n  endTick: number;\n  /** Chronological array of replay frames. */\n  frames: ReplayFrame[];\n}",
-      "isNew": false,
-      "lines": 85,
-      "secondFile": {
-        "end": 74,
-        "endLoc": {
-          "column": 1,
-          "line": 74,
-          "position": 1768
-        },
-        "name": "network/src/NetTypes.ts",
-        "start": 29,
-        "startLoc": {
-          "column": 0,
-          "line": 29,
-          "position": 773
-        }
-      },
-      "tokens": 124
-    },
-    {
-      "firstFile": {
-        "end": 56,
-        "endLoc": {
-          "column": 15,
-          "line": 56,
-          "position": 1331
-        },
-        "name": "gameplay-kit/src/arcade/ParticlePool.ts",
-        "start": 33,
-        "startLoc": {
-          "column": 22,
-          "line": 33,
-          "position": 803
-        }
-      },
-      "format": "typescript",
-      "fragment": "      factory: () => ({\n        position: {\n          type: \"Transform\",\n          x: 0,\n          y: 0,\n          rotation: 0,\n          scaleX: 1,\n          scaleY: 1,\n          worldX: 0,\n          worldY: 0,\n          worldRotation: 0,\n          worldScaleX: 1,\n          worldScaleY: 1,\n          dirty: false\n        } as TransformComponent,\n        velocity: {\n          type: \"Velocity\",\n          vx: 0,\n          vy: 0,\n          angularVelocity: 0\n        } as VelocityComponent,\n        render: {\n          type: \"Render\",\n          shape,",
-      "isNew": false,
-      "lines": 24,
-      "secondFile": {
-        "end": 63,
-        "endLoc": {
-          "column": 15,
-          "line": 63,
-          "position": 1777
-        },
-        "name": "gameplay-kit/src/pooling/ProjectilePoolConfig.ts",
-        "start": 45,
-        "startLoc": {
-          "column": 44,
-          "line": 45,
-          "position": 1297
-        }
-      },
-      "tokens": 85
-    },
-    {
-      "firstFile": {
-        "end": 46,
-        "endLoc": {
-          "column": 16,
-          "line": 46,
-          "position": 1089
-        },
-        "name": "gameplay-kit/src/arcade/ParticlePool.ts",
-        "start": 33,
-        "startLoc": {
-          "column": 22,
-          "line": 33,
-          "position": 803
-        }
-      },
-      "format": "typescript",
-      "fragment": "      factory: () => ({\n        position: {\n          type: \"Transform\",\n          x: 0,\n          y: 0,\n          rotation: 0,\n          scaleX: 1,\n          scaleY: 1,\n          worldX: 0,\n          worldY: 0,\n          worldRotation: 0,\n          worldScaleX: 1,\n          worldScaleY: 1,\n          dirty: false",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 158,
-        "endLoc": {
-          "column": 164,
-          "line": 158,
-          "position": 4300
-        },
-        "name": "games/asteroids/EntityPool.ts",
-        "start": 157,
-        "startLoc": {
-          "column": 13,
-          "line": 157,
-          "position": 4134
-        }
-      },
-      "tokens": 50
-    },
-    {
-      "firstFile": {
-        "end": 69,
-        "endLoc": {
-          "column": 16,
-          "line": 69,
-          "position": 1683
-        },
-        "name": "gameplay-kit/src/arcade/ParticlePool.ts",
-        "start": 56,
-        "startLoc": {
-          "column": 10,
-          "line": 56,
-          "position": 1326
-        }
-      },
-      "format": "typescript",
-      "fragment": "          shape,\n          size: 0,\n          color: \"\",\n          rotation: 0,\n          visible: true,\n          opacity: 1,\n          order,\n          hitFlashFrames: 0,\n          angularVelocity: 0\n        } as RenderComponent,\n        collider: {\n          type: \"Collider\",\n          shape: { type: ShapeType.Circle, radius: 0 } as CircleShape,\n          layer: 0,",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 76,
-        "endLoc": {
-          "column": 16,
-          "line": 76,
-          "position": 2145
-        },
-        "name": "gameplay-kit/src/pooling/ProjectilePoolConfig.ts",
-        "start": 63,
-        "startLoc": {
-          "column": 26,
-          "line": 63,
-          "position": 1788
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 131,
-        "endLoc": {
-          "column": 13,
-          "line": 131,
-          "position": 3660
-        },
-        "name": "gameplay-kit/src/arcade/ParticlePool.ts",
-        "start": 119,
-        "startLoc": {
-          "column": 8,
-          "line": 119,
-          "position": 3344
-        }
-      },
-      "format": "typescript",
-      "fragment": "        data.position.x = p.x;\n        data.position.y = p.y;\n        data.position.worldX = p.x;\n        data.position.worldY = p.y;\n        data.position.dirty = true;\n\n        data.velocity.vx = p.dx;\n        data.velocity.vy = p.dy;\n\n        data.render.size = p.size;\n        data.render.color = p.color;\n\n        data.ttl.remaining = p.ttl;",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 188,
-        "endLoc": {
-          "column": 11,
-          "line": 188,
-          "position": 5387
-        },
-        "name": "gameplay-kit/src/pooling/ProjectilePoolConfig.ts",
-        "start": 177,
-        "startLoc": {
-          "column": 6,
-          "line": 177,
-          "position": 5090
-        }
-      },
-      "tokens": 90
-    },
-    {
-      "firstFile": {
-        "end": 24,
-        "endLoc": {
-          "column": 43,
-          "line": 24,
-          "position": 799
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 18,
-        "startLoc": {
-          "column": 38,
-          "line": 18,
-          "position": 499
-        }
-      },
-      "format": "typescript",
-      "fragment": "  blueprints.register(\"enemy_sentinel\", {\n    spawn: (world: World<CoreComponentRegistry>, entity: number, args: { x: number; y: number }) => {\n      ArcadeEntityBuilder.fromEntity(world, entity)\n        .withTransform({ x: args.x, y: args.y })\n        .withVelocity()\n        .withCollider2D({\n          shape: { type: \"aabb\", halfWidth: 11, halfHeight: 11 },",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 56,
-        "endLoc": {
-          "column": 43,
-          "line": 56,
-          "position": 2590
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 50,
-        "startLoc": {
-          "column": 36,
-          "line": 50,
-          "position": 2290
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
-        "end": 24,
-        "endLoc": {
-          "column": 43,
-          "line": 24,
-          "position": 799
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 18,
-        "startLoc": {
-          "column": 38,
-          "line": 18,
-          "position": 499
-        }
-      },
-      "format": "typescript",
-      "fragment": "  blueprints.register(\"enemy_sentinel\", {\n    spawn: (world: World<CoreComponentRegistry>, entity: number, args: { x: number; y: number }) => {\n      ArcadeEntityBuilder.fromEntity(world, entity)\n        .withTransform({ x: args.x, y: args.y })\n        .withVelocity()\n        .withCollider2D({\n          shape: { type: \"aabb\", halfWidth: 11, halfHeight: 11 },",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 87,
-        "endLoc": {
-          "column": 43,
-          "line": 87,
-          "position": 4192
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 81,
-        "startLoc": {
-          "column": 37,
-          "line": 81,
-          "position": 3892
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
-        "end": 24,
-        "endLoc": {
-          "column": 43,
-          "line": 24,
-          "position": 799
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 19,
-        "startLoc": {
-          "column": 63,
-          "line": 19,
-          "position": 566
-        }
-      },
-      "format": "typescript",
-      "fragment": "    spawn: (world: World<CoreComponentRegistry>, entity: number, args: { x: number; y: number }) => {\n      ArcadeEntityBuilder.fromEntity(world, entity)\n        .withTransform({ x: args.x, y: args.y })\n        .withVelocity()\n        .withCollider2D({\n          shape: { type: \"aabb\", halfWidth: 11, halfHeight: 11 },",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 203,
-        "endLoc": {
-          "column": 45,
-          "line": 203,
-          "position": 7874
-        },
-        "name": "games/echorunner/EchoRunnerGame.ts",
-        "start": 198,
-        "startLoc": {
-          "column": 27,
-          "line": 198,
-          "position": 7631
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 50,
-        "endLoc": {
-          "column": 22,
-          "line": 50,
-          "position": 2276
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 43,
-        "startLoc": {
-          "column": 27,
-          "line": 43,
-          "position": 2065
-        }
-      },
-      "format": "typescript",
-      "fragment": "        machineId: \"patrol\",\n        elapsedMs: 0\n      } as { type: string; [key: string]: unknown });\n      world.addComponent(entity, { type: \"Hurtbox\" } as { type: string; [key: string]: unknown });\n    }\n  });\n\n  blueprints.register(\"enemy_hopper\", {",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 81,
-        "endLoc": {
-          "column": 22,
-          "line": 81,
-          "position": 3877
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 74,
-        "startLoc": {
-          "column": 27,
-          "line": 74,
-          "position": 3666
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 48,
-        "endLoc": {
-          "column": 5,
-          "line": 48,
-          "position": 2252
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 43,
-        "startLoc": {
-          "column": 27,
-          "line": 43,
-          "position": 2065
-        }
-      },
-      "format": "typescript",
-      "fragment": "        machineId: \"patrol\",\n        elapsedMs: 0\n      } as { type: string; [key: string]: unknown });\n      world.addComponent(entity, { type: \"Hurtbox\" } as { type: string; [key: string]: unknown });\n    }\n  });",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 110,
-        "endLoc": {
-          "column": 5,
-          "line": 110,
-          "position": 5476
-        },
-        "name": "gameplay-kit/src/arcade/blueprints/enemyBlueprints.ts",
-        "start": 105,
-        "startLoc": {
-          "column": 28,
-          "line": 105,
-          "position": 5289
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 32,
-        "endLoc": {
-          "column": 99,
-          "line": 32,
-          "position": 1262
-        },
-        "name": "gameplay-kit/src/arcade/builders/ArcadeEntityBuilder.ts",
-        "start": 27,
-        "startLoc": {
-          "column": 31,
-          "line": 27,
-          "position": 838
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public static override create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): ArcadeEntityBuilder<TComponents, TEvents, TBlueprints> {\n    return createBuilderInstance((w, e, cb) => new ArcadeEntityBuilder(w, e, cb), world, undefined, false);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 54,
-        "endLoc": {
-          "column": 99,
-          "line": 54,
-          "position": 2384
-        },
-        "name": "gameplay-kit/src/arcade/builders/ArcadeEntityBuilder.ts",
-        "start": 49,
-        "startLoc": {
-          "column": 39,
-          "line": 49,
-          "position": 1960
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
-        "end": 51,
-        "endLoc": {
-          "column": 7,
-          "line": 51,
-          "position": 2398
-        },
-        "name": "gameplay-kit/src/combat/systems/CombatSystem.ts",
-        "start": 38,
-        "startLoc": {
-          "column": 47,
-          "line": 38,
-          "position": 1694
-        }
-      },
-      "format": "typescript",
-      "fragment": "          const entityB = collision.otherEntity;\n\n          // Double Security A: Process each pair exactly once\n          if (entityA >= entityB) continue;\n\n          // Double Security B: Ensure both entities still exist and aren't already queued for destruction\n          if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;\n          if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;\n\n          // Resolve damage in both directions (A damages B, and B damages A)\n          this.resolveDamageDirection(world, entityA, entityB, this.destroyedEntities);\n          this.resolveDamageDirection(world, entityB, entityA, this.destroyedEntities);\n        }\n      }",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 69,
-        "endLoc": {
-          "column": 7,
-          "line": 69,
-          "position": 3388
-        },
-        "name": "gameplay-kit/src/combat/systems/CombatSystem.ts",
-        "start": 57,
-        "startLoc": {
-          "column": 52,
-          "line": 57,
-          "position": 2685
-        }
-      },
-      "tokens": 87
-    },
-    {
-      "firstFile": {
-        "end": 48,
-        "endLoc": {
-          "column": 15,
-          "line": 48,
-          "position": 2220
-        },
-        "name": "gameplay-kit/src/combat/systems/CombatSystem.ts",
-        "start": 38,
-        "startLoc": {
-          "column": 35,
-          "line": 38,
-          "position": 1682
-        }
-      },
-      "format": "typescript",
-      "fragment": "          const entityB = collision.otherEntity;\n\n          // Double Security A: Process each pair exactly once\n          if (entityA >= entityB) continue;\n\n          // Double Security B: Ensure both entities still exist and aren't already queued for destruction\n          if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;\n          if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;\n\n          // Resolve damage in both directions (A damages B, and B damages A)\n          this.resolveDamageDirection(world, entityA, entityB, this.destroyedEntities);",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 317,
-        "endLoc": {
-          "column": 13,
-          "line": 317,
-          "position": 12537
-        },
-        "name": "games/space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 306,
-        "startLoc": {
-          "column": 29,
-          "line": 306,
-          "position": 12037
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 160,
-        "endLoc": {
-          "column": 23,
-          "line": 160,
-          "position": 4545
-        },
-        "name": "gameplay-kit/src/pooling/ProjectilePoolConfig.ts",
-        "start": 150,
-        "startLoc": {
-          "column": 27,
-          "line": 150,
-          "position": 4248
-        }
-      },
-      "format": "typescript",
-      "fragment": "      data.ttl.timeLeft = 0;\n\n      if (data.collisionEvents) {\n        data.collisionEvents.collisions.length = 0;\n        data.collisionEvents.activeTriggers.length = 0;\n        data.collisionEvents.triggersEntered.length = 0;\n        data.collisionEvents.triggersExited.length = 0;\n      }\n    },\n\n    initializer: (data: Record<string, any>, p: TParams, world: World, entity: Entity) => {",
-      "isNew": false,
-      "lines": 11,
-      "secondFile": {
-        "end": 204,
-        "endLoc": {
-          "column": 23,
-          "line": 204,
-          "position": 6130
-        },
-        "name": "games/asteroids/EntityPool.ts",
-        "start": 196,
-        "startLoc": {
-          "column": 25,
-          "line": 196,
-          "position": 5835
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 137,
-        "endLoc": {
-          "column": 7,
-          "line": 137,
-          "position": 4523
-        },
-        "name": "react-native/src/audio/ExpoAudioPlayer.ts",
-        "start": 128,
-        "startLoc": {
-          "column": 44,
-          "line": 128,
-          "position": 4142
-        }
-      },
-      "format": "typescript",
-      "fragment": "      this.sfxSources.set(id, resolvedSource);\n\n      let sourceToLoad: AudioSource = null;\n      if (typeof resolvedSource === \"number\") {\n        sourceToLoad = resolvedSource;\n      } else if (typeof resolvedSource === \"string\") {\n        sourceToLoad = { uri: resolvedSource };\n      } else if (typeof resolvedSource === \"object\" && resolvedSource !== null) {\n        sourceToLoad = resolvedSource as AudioSource;\n      }",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 285,
-        "endLoc": {
-          "column": 7,
-          "line": 285,
-          "position": 9468
-        },
-        "name": "react-native/src/audio/ExpoAudioPlayer.ts",
-        "start": 276,
-        "startLoc": {
-          "column": 63,
-          "line": 276,
-          "position": 9087
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 351,
-        "endLoc": {
-          "column": 8,
-          "line": 351,
-          "position": 11026
-        },
-        "name": "react-native/src/audio/ExpoAudioPlayer.ts",
-        "start": 336,
-        "startLoc": {
-          "column": 22,
-          "line": 336,
-          "position": 10670
-        }
-      },
-      "format": "typescript",
-      "fragment": "    this.masterVolume = Math.max(0, Math.min(1, v));\n    if (this.bgmPlayer) {\n      try {\n        this.bgmPlayer.volume = Math.max(0, Math.min(1, this.masterVolume * this.bgmVolume));\n      } catch (_e) {\n        // Defensive safe catch\n      }\n    }\n  }\n\n  /**\n   * Sets the sound effects (SFX) bus volume.\n   *\n   * @param v - Volume ratio between 0.0 and 1.0.\n   */\n  public setSFXVolume(v: number): void {",
-      "isNew": false,
-      "lines": 16,
-      "secondFile": {
-        "end": 381,
-        "endLoc": {
-          "column": 8,
-          "line": 381,
-          "position": 11919
-        },
-        "name": "react-native/src/audio/ExpoAudioPlayer.ts",
-        "start": 361,
-        "startLoc": {
-          "column": 19,
-          "line": 361,
-          "position": 11290
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 160,
-        "endLoc": {
-          "column": 5,
-          "line": 160,
-          "position": 6630
-        },
-        "name": "renderer-canvas/src/CanvasRenderer.ts",
-        "start": 146,
-        "startLoc": {
-          "column": 4,
-          "line": 146,
-          "position": 5996
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }>(\"GameConfig\");\n    const { viewportWidth, viewportHeight } = resolveViewportDimensions(gameConfig);\n\n    let scale = 1;\n    let offsetX = 0;\n    let offsetY = 0;\n\n    if (screenConfig && screenConfig.width > 0 && screenConfig.height > 0) {\n      scale = Math.min(\n        screenConfig.width / viewportWidth,\n        screenConfig.height / viewportHeight\n      );\n      offsetX = (screenConfig.width - viewportWidth * scale) / 2;\n      offsetY = (screenConfig.height - viewportHeight * scale) / 2;\n    }",
-      "isNew": false,
-      "lines": 15,
-      "secondFile": {
-        "end": 62,
-        "endLoc": {
-          "column": 5,
-          "line": 62,
-          "position": 2788
-        },
-        "name": "renderer-skia/src/SkiaRenderer.ts",
-        "start": 48,
-        "startLoc": {
-          "column": 4,
-          "line": 48,
-          "position": 2154
-        }
-      },
-      "tokens": 125
-    },
-    {
-      "firstFile": {
-        "end": 192,
-        "endLoc": {
-          "column": 5,
-          "line": 192,
-          "position": 7662
-        },
-        "name": "renderer-canvas/src/CanvasRenderer.ts",
-        "start": 180,
-        "startLoc": {
-          "column": 32,
-          "line": 180,
-          "position": 7225
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const renderType = \"Render\" as Extract<keyof TRegistry, string>;\n    const colliderType = \"Collider\" as Extract<keyof TRegistry, string>;\n\n    const cameras = world.query(cameraType);\n    let mainCameraEntity: Entity | undefined;\n\n    for (let i = 0; i < cameras.length; i++) {\n      const cam = world.getComponent(cameras[i], cameraType) as Camera2DComponent | undefined;\n      if (cam?.isMain) {\n        mainCameraEntity = cameras[i];\n        break;\n      }\n    }",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 97,
-        "endLoc": {
-          "column": 5,
-          "line": 97,
-          "position": 4173
-        },
-        "name": "renderer-skia/src/SkiaRenderer.ts",
-        "start": 84,
-        "startLoc": {
-          "column": 44,
-          "line": 84,
-          "position": 3715
-        }
-      },
-      "tokens": 93
-    },
-    {
-      "firstFile": {
-        "end": 208,
-        "endLoc": {
-          "column": 7,
-          "line": 208,
-          "position": 8235
-        },
-        "name": "renderer-canvas/src/CanvasRenderer.ts",
-        "start": 191,
-        "startLoc": {
-          "column": 6,
-          "line": 191,
-          "position": 7655
-        }
-      },
-      "format": "typescript",
-      "fragment": "      }\n    }\n\n    const entities = world.query(transformType, renderType);\n\n    if (this.sortedEntities.length !== entities.length) {\n      this.sortedEntities = [...entities];\n    } else {\n      for (let i = 0; i < entities.length; i++) {\n        this.sortedEntities[i] = entities[i];\n      }\n    }\n\n    this.sortedEntities.sort((a, b) => {\n      const renderA = world.getComponent(a, renderType) as RenderComponent | undefined;\n      const renderB = world.getComponent(b, renderType) as RenderComponent | undefined;\n      return (renderA?.order || 0) - (renderB?.order || 0);\n    });",
-      "isNew": false,
-      "lines": 18,
-      "secondFile": {
-        "end": 130,
-        "endLoc": {
-          "column": 7,
-          "line": 130,
-          "position": 5358
-        },
-        "name": "renderer-skia/src/SkiaRenderer.ts",
-        "start": 112,
-        "startLoc": {
-          "column": 6,
-          "line": 112,
-          "position": 4720
-        }
-      },
-      "tokens": 135
-    },
-    {
-      "firstFile": {
-        "end": 246,
-        "endLoc": {
-          "column": 68,
-          "line": 246,
-          "position": 10045
-        },
-        "name": "renderer-canvas/src/CanvasRenderer.ts",
-        "start": 235,
-        "startLoc": {
-          "column": 81,
-          "line": 235,
-          "position": 9327
-        }
-      },
-      "format": "typescript",
-      "fragment": "      const visualOffsetType = \"VisualOffset\" as Extract<keyof TRegistry, string>;\n      const visualOffset = world.getComponent(entity, visualOffsetType) as unknown as { offsetX: number; offsetY: number; scaleX?: number; scaleY?: number } | undefined;\n      const offsetX = visualOffset?.offsetX ?? 0;\n      const offsetY = visualOffset?.offsetY ?? 0;\n      const visualScaleX = visualOffset?.scaleX ?? 1;\n      const visualScaleY = visualOffset?.scaleY ?? 1;\n\n      const x = transform.worldX ?? transform.x;\n      const y = transform.worldY ?? transform.y;\n      const rotation = (transform.worldRotation ?? transform.rotation ?? 0) + (render.rotation ?? 0);\n      const scaleX = transform.worldScaleX ?? transform.scaleX ?? 1;\n      const scaleY = transform.worldScaleY ?? transform.scaleY ?? 1;",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 151,
-        "endLoc": {
-          "column": 68,
-          "line": 151,
-          "position": 6483
-        },
-        "name": "renderer-skia/src/SkiaRenderer.ts",
-        "start": 139,
-        "startLoc": {
-          "column": 19,
-          "line": 139,
-          "position": 5764
-        }
-      },
-      "tokens": 144
-    },
-    {
-      "firstFile": {
-        "end": 268,
-        "endLoc": {
-          "column": 24,
-          "line": 268,
-          "position": 10935
-        },
-        "name": "renderer-canvas/src/CanvasRenderer.ts",
-        "start": 260,
-        "startLoc": {
-          "column": 29,
-          "line": 260,
-          "position": 10537
-        }
-      },
-      "format": "typescript",
-      "fragment": "        customDrawer.draw(ctx, world, entity);\n      } else {\n        // 2. Try default collider shape drawer\n        const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;\n        if (collider && collider.enabled) {\n          const shapeTypeStr = ShapeType[collider.shape.type];\n          const drawer = this.shapeDrawers.get(shapeTypeStr);\n          if (drawer) {\n            drawer.draw(ctx, world, entity);",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 171,
-        "endLoc": {
-          "column": 24,
-          "line": 171,
-          "position": 7418
-        },
-        "name": "renderer-skia/src/SkiaRenderer.ts",
-        "start": 163,
-        "startLoc": {
-          "column": 32,
-          "line": 163,
-          "position": 7011
-        }
-      },
-      "tokens": 67
-    },
-    {
-      "firstFile": {
-        "end": 11,
-        "endLoc": {
-          "column": 7,
-          "line": 11,
-          "position": 652
-        },
-        "name": "renderer-canvas/src/CanvasShapeDrawers.ts",
-        "start": 6,
-        "startLoc": {
-          "column": 31,
-          "line": 6,
-          "position": 253
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class CanvasCircleDrawer<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> implements ShapeDrawer<CanvasRenderingContext2D, TRegistry> {\n  public draw(ctx: CanvasRenderingContext2D, world: World<TRegistry>, entity: number): void {\n    const colliderType = \"Collider\" as Extract<keyof TRegistry, string>;\n    const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;\n\n    let radius = 5;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 41,
-        "endLoc": {
-          "column": 7,
-          "line": 41,
-          "position": 1775
-        },
-        "name": "renderer-canvas/src/CanvasShapeDrawers.ts",
-        "start": 36,
-        "startLoc": {
-          "column": 28,
-          "line": 36,
-          "position": 1376
-        }
-      },
-      "tokens": 66
-    },
-    {
-      "firstFile": {
-        "end": 22,
-        "endLoc": {
-          "column": 48,
-          "line": 22,
-          "position": 1149
-        },
-        "name": "renderer-canvas/src/CanvasShapeDrawers.ts",
-        "start": 16,
-        "startLoc": {
-          "column": 53,
-          "line": 16,
-          "position": 845
-        }
-      },
-      "format": "typescript",
-      "fragment": "      radius = (collider.shape as CircleShape).radius;\n      offsetX = collider.offsetX ?? 0;\n      offsetY = collider.offsetY ?? 0;\n    } else {\n      const renderType = \"Render\" as Extract<keyof TRegistry, string>;\n      const render = world.getComponent(entity, renderType) as RenderComponent | undefined;\n      if (render && render.size !== undefined) {",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 55,
-        "endLoc": {
-          "column": 48,
-          "line": 55,
-          "position": 2339
-        },
-        "name": "renderer-canvas/src/CanvasShapeDrawers.ts",
-        "start": 49,
-        "startLoc": {
-          "column": 27,
-          "line": 49,
-          "position": 2035
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 46,
-        "endLoc": {
-          "column": 12,
-          "line": 46,
-          "position": 1374
-        },
-        "name": "renderer-canvas/src/CanvasSpriteDrawer.ts",
-        "start": 34,
-        "startLoc": {
-          "column": 4,
-          "line": 34,
-          "position": 962
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const sprite = world.getComponent(entity, \"Sprite\" as Extract<keyof TRegistry, string>) as SpriteComponent | undefined;\n    if (!sprite) return;\n\n    const assetLoader = world.getResource<AssetLoader>(\"AssetLoader\");\n    if (!assetLoader) return;\n\n    const key = sprite.textureId || sprite.assetKey;\n    if (!key) return;\n\n    const rawImg = assetLoader.get<unknown>(key);\n    if (!rawImg) return;\n\n    let img: HTMLImageElementMock | null = null;",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 59,
-        "endLoc": {
-          "column": 12,
-          "line": 59,
-          "position": 1863
-        },
-        "name": "renderer-skia/src/SkiaSpriteDrawer.ts",
-        "start": 47,
-        "startLoc": {
-          "column": 4,
-          "line": 47,
-          "position": 1451
-        }
-      },
-      "tokens": 92
-    },
-    {
-      "firstFile": {
-        "end": 76,
-        "endLoc": {
-          "column": 39,
-          "line": 76,
-          "position": 2452
-        },
-        "name": "renderer-canvas/src/CanvasSpriteDrawer.ts",
-        "start": 67,
-        "startLoc": {
-          "column": 7,
-          "line": 67,
-          "position": 2198
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.save();\n\n    // Anchor\n    const anchorX = sprite.anchor?.x ?? 0.5;\n    const anchorY = sprite.anchor?.y ?? 0.5;\n\n    // Apply flip\n    const flipX = sprite.flipX ? -1 : 1;\n    const flipY = sprite.flipY ? -1 : 1;\n    if (sprite.flipX || sprite.flipY) {",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 88,
-        "endLoc": {
-          "column": 39,
-          "line": 88,
-          "position": 2768
-        },
-        "name": "renderer-skia/src/SkiaSpriteDrawer.ts",
-        "start": 79,
-        "startLoc": {
-          "column": 10,
-          "line": 79,
-          "position": 2520
-        }
-      },
-      "tokens": 62
-    },
-    {
-      "firstFile": {
-        "end": 13,
-        "endLoc": {
-          "column": 76,
-          "line": 13,
-          "position": 781
-        },
-        "name": "renderer-skia/src/SkiaShapeDrawers.ts",
-        "start": 7,
-        "startLoc": {
-          "column": 29,
-          "line": 7,
-          "position": 292
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class SkiaCircleDrawer<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> implements ShapeDrawer<SkCanvas, TRegistry> {\n  constructor(private readonly paint: SkPaint) {}\n\n  public draw(canvas: SkCanvas, world: World<TRegistry>, entity: number): void {\n    const colliderType = \"Collider\" as Extract<keyof TRegistry, string>;\n    const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;\n    if (!collider || !collider.enabled || collider.shape.type !== ShapeType.Circle) return;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 32,
-        "endLoc": {
-          "column": 76,
-          "line": 32,
-          "position": 1581
-        },
-        "name": "renderer-skia/src/SkiaShapeDrawers.ts",
-        "start": 26,
-        "startLoc": {
-          "column": 26,
-          "line": 26,
-          "position": 1092
-        }
-      },
-      "tokens": 93
-    },
-    {
-      "firstFile": {
         "end": 270,
         "endLoc": {
           "column": 9,
           "line": 270,
           "position": 10708
         },
-        "name": "games/arkanoid/ArkanoidGame.ts",
+        "name": "arkanoid/ArkanoidGame.ts",
         "start": 263,
         "startLoc": {
           "column": 78,
@@ -1063,7 +27,7 @@
           "line": 190,
           "position": 7985
         },
-        "name": "games/asteroids/AsteroidsGame.ts",
+        "name": "asteroids/AsteroidsGame.ts",
         "start": 186,
         "startLoc": {
           "column": 89,
@@ -1081,7 +45,7 @@
           "line": 39,
           "position": 1408
         },
-        "name": "games/arkanoid/rendering/ArkanoidCanvasVisuals.ts",
+        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
         "start": 32,
         "startLoc": {
           "column": 15,
@@ -1100,7 +64,7 @@
           "line": 87,
           "position": 2784
         },
-        "name": "games/pong/rendering/PongCanvasVisuals.ts",
+        "name": "pong/rendering/PongCanvasVisuals.ts",
         "start": 80,
         "startLoc": {
           "column": 20,
@@ -1118,7 +82,7 @@
           "line": 23,
           "position": 815
         },
-        "name": "games/arkanoid/rendering/ArkanoidRenderUtils.ts",
+        "name": "arkanoid/rendering/ArkanoidRenderUtils.ts",
         "start": 16,
         "startLoc": {
           "column": 23,
@@ -1137,7 +101,7 @@
           "line": 32,
           "position": 1062
         },
-        "name": "games/pong/rendering/PongRenderUtils.ts",
+        "name": "pong/rendering/PongRenderUtils.ts",
         "start": 25,
         "startLoc": {
           "column": 19,
@@ -1155,7 +119,7 @@
           "line": 114,
           "position": 3524
         },
-        "name": "games/arkanoid/rendering/ArkanoidSkiaVisuals.ts",
+        "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
         "start": 109,
         "startLoc": {
           "column": 51,
@@ -1174,7 +138,7 @@
           "line": 105,
           "position": 3394
         },
-        "name": "games/pong/rendering/PongSkiaVisuals.ts",
+        "name": "pong/rendering/PongSkiaVisuals.ts",
         "start": 99,
         "startLoc": {
           "column": 47,
@@ -1192,7 +156,7 @@
           "line": 258,
           "position": 10471
         },
-        "name": "games/arkanoid/systems/ArkanoidCollisionSystem.ts",
+        "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
         "start": 250,
         "startLoc": {
           "column": 32,
@@ -1211,7 +175,7 @@
           "line": 417,
           "position": 16346
         },
-        "name": "games/arkanoid/systems/ArkanoidCollisionSystem.ts",
+        "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
         "start": 409,
         "startLoc": {
           "column": 29,
@@ -1229,7 +193,7 @@
           "line": 114,
           "position": 4297
         },
-        "name": "games/arkanoid/systems/ArkanoidEnemySystems.ts",
+        "name": "arkanoid/systems/ArkanoidEnemySystems.ts",
         "start": 107,
         "startLoc": {
           "column": 47,
@@ -1248,7 +212,7 @@
           "line": 215,
           "position": 8120
         },
-        "name": "games/arkanoid/systems/ArkanoidPowerUpSystems.ts",
+        "name": "arkanoid/systems/ArkanoidPowerUpSystems.ts",
         "start": 208,
         "startLoc": {
           "column": 47,
@@ -1266,7 +230,7 @@
           "line": 15,
           "position": 822
         },
-        "name": "games/arkanoid/systems/ArkanoidGameStateSystem.ts",
+        "name": "arkanoid/systems/ArkanoidGameStateSystem.ts",
         "start": 8,
         "startLoc": {
           "column": 37,
@@ -1285,7 +249,7 @@
           "line": 70,
           "position": 2736
         },
-        "name": "games/arkanoid/systems/ArkanoidPowerUpSystems.ts",
+        "name": "arkanoid/systems/ArkanoidPowerUpSystems.ts",
         "start": 63,
         "startLoc": {
           "column": 41,
@@ -1303,7 +267,7 @@
           "line": 10,
           "position": 656
         },
-        "name": "games/arkanoid/systems/ArkanoidInputSystem.ts",
+        "name": "arkanoid/systems/ArkanoidInputSystem.ts",
         "start": 5,
         "startLoc": {
           "column": 33,
@@ -1322,7 +286,7 @@
           "line": 10,
           "position": 619
         },
-        "name": "games/arkanoid/systems/ArkanoidSpinSystem.ts",
+        "name": "arkanoid/systems/ArkanoidSpinSystem.ts",
         "start": 5,
         "startLoc": {
           "column": 32,
@@ -1340,7 +304,7 @@
           "line": 496,
           "position": 20923
         },
-        "name": "games/asteroids/AsteroidsGame.ts",
+        "name": "asteroids/AsteroidsGame.ts",
         "start": 491,
         "startLoc": {
           "column": 39,
@@ -1359,7 +323,7 @@
           "line": 441,
           "position": 19480
         },
-        "name": "games/flappybird/FlappyBirdGame.ts",
+        "name": "flappybird/FlappyBirdGame.ts",
         "start": 436,
         "startLoc": {
           "column": 62,
@@ -1377,7 +341,7 @@
           "line": 187,
           "position": 6348
         },
-        "name": "games/asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
         "start": 178,
         "startLoc": {
           "column": 54,
@@ -1396,7 +360,7 @@
           "line": 182,
           "position": 6819
         },
-        "name": "games/asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
         "start": 173,
         "startLoc": {
           "column": 53,
@@ -1414,7 +378,7 @@
           "line": 164,
           "position": 6484
         },
-        "name": "games/echorunner/EchoRunnerGame.ts",
+        "name": "echorunner/EchoRunnerGame.ts",
         "start": 156,
         "startLoc": {
           "column": 28,
@@ -1433,7 +397,7 @@
           "line": 103,
           "position": 4068
         },
-        "name": "games/platformer/PlatformerGame.ts",
+        "name": "platformer/PlatformerGame.ts",
         "start": 95,
         "startLoc": {
           "column": 28,
@@ -1451,7 +415,7 @@
           "line": 639,
           "position": 19433
         },
-        "name": "games/echorunner/rendering/EchoRunnerCanvasVisuals.ts",
+        "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
         "start": 634,
         "startLoc": {
           "column": 25,
@@ -1470,7 +434,7 @@
           "line": 646,
           "position": 22480
         },
-        "name": "games/echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
         "start": 641,
         "startLoc": {
           "column": 31,
@@ -1488,7 +452,7 @@
           "line": 30,
           "position": 906
         },
-        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 1,
         "startLoc": {
           "column": 60,
@@ -1507,7 +471,7 @@
           "line": 31,
           "position": 1008
         },
-        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 2,
         "startLoc": {
           "column": 85,
@@ -1525,7 +489,7 @@
           "line": 40,
           "position": 1298
         },
-        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 34,
         "startLoc": {
           "column": 64,
@@ -1544,7 +508,7 @@
           "line": 94,
           "position": 2714
         },
-        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 88,
         "startLoc": {
           "column": 65,
@@ -1562,7 +526,7 @@
           "line": 306,
           "position": 8791
         },
-        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 288,
         "startLoc": {
           "column": 4,
@@ -1581,7 +545,7 @@
           "line": 311,
           "position": 9550
         },
-        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 293,
         "startLoc": {
           "column": 4,
@@ -1599,7 +563,7 @@
           "line": 467,
           "position": 14794
         },
-        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 459,
         "startLoc": {
           "column": 19,
@@ -1618,7 +582,7 @@
           "line": 464,
           "position": 15175
         },
-        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 456,
         "startLoc": {
           "column": 100,
@@ -1636,7 +600,7 @@
           "line": 683,
           "position": 21751
         },
-        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 674,
         "startLoc": {
           "column": 36,
@@ -1655,7 +619,7 @@
           "line": 667,
           "position": 22927
         },
-        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 658,
         "startLoc": {
           "column": 63,
@@ -1673,7 +637,7 @@
           "line": 738,
           "position": 23804
         },
-        "name": "games/flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
         "start": 733,
         "startLoc": {
           "column": 25,
@@ -1692,7 +656,7 @@
           "line": 731,
           "position": 25312
         },
-        "name": "games/flappybird/rendering/FlappyBirdSkiaVisuals.ts",
+        "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
         "start": 726,
         "startLoc": {
           "column": 31,
@@ -1710,7 +674,7 @@
           "line": 131,
           "position": 3671
         },
-        "name": "games/flappybird/story/FlappyBirdEncounter.ts",
+        "name": "flappybird/story/FlappyBirdEncounter.ts",
         "start": 126,
         "startLoc": {
           "column": 52,
@@ -1729,7 +693,7 @@
           "line": 130,
           "position": 3586
         },
-        "name": "games/platformer/story/PlatformerEncounter.ts",
+        "name": "platformer/story/PlatformerEncounter.ts",
         "start": 125,
         "startLoc": {
           "column": 30,
@@ -1747,7 +711,7 @@
           "line": 341,
           "position": 12009
         },
-        "name": "games/geometrywars/GeometryWarsGame.ts",
+        "name": "geometrywars/GeometryWarsGame.ts",
         "start": 331,
         "startLoc": {
           "column": 8,
@@ -1766,7 +730,7 @@
           "line": 788,
           "position": 33289
         },
-        "name": "games/space-invaders/SpaceInvadersGame.ts",
+        "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 777,
         "startLoc": {
           "column": 82,
@@ -1784,7 +748,7 @@
           "line": 26,
           "position": 1067
         },
-        "name": "games/geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
+        "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
         "start": 21,
         "startLoc": {
           "column": 5,
@@ -1803,7 +767,7 @@
           "line": 37,
           "position": 1299
         },
-        "name": "games/geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
+        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
         "start": 32,
         "startLoc": {
           "column": 8,
@@ -1821,7 +785,7 @@
           "line": 182,
           "position": 6865
         },
-        "name": "games/platformer/PlatformerGame.ts",
+        "name": "platformer/PlatformerGame.ts",
         "start": 177,
         "startLoc": {
           "column": 33,
@@ -1840,7 +804,7 @@
           "line": 204,
           "position": 7569
         },
-        "name": "games/platformer/PlatformerGame.ts",
+        "name": "platformer/PlatformerGame.ts",
         "start": 199,
         "startLoc": {
           "column": 35,
@@ -1858,7 +822,7 @@
           "line": 56,
           "position": 2183
         },
-        "name": "games/pong/systems/PongGameStateSystem.ts",
+        "name": "pong/systems/PongGameStateSystem.ts",
         "start": 51,
         "startLoc": {
           "column": 12,
@@ -1877,7 +841,7 @@
           "line": 178,
           "position": 7094
         },
-        "name": "games/pong/systems/PongGameStateSystem.ts",
+        "name": "pong/systems/PongGameStateSystem.ts",
         "start": 173,
         "startLoc": {
           "column": 14,
@@ -1895,7 +859,7 @@
           "line": 58,
           "position": 1644
         },
-        "name": "games/shared/rendering/CanvasNeonUtils.ts",
+        "name": "shared/rendering/CanvasNeonUtils.ts",
         "start": 51,
         "startLoc": {
           "column": 4,
@@ -1914,7 +878,7 @@
           "line": 121,
           "position": 4093
         },
-        "name": "games/shared/rendering/SkiaNeonUtils.ts",
+        "name": "shared/rendering/SkiaNeonUtils.ts",
         "start": 114,
         "startLoc": {
           "column": 4,
@@ -1932,7 +896,7 @@
           "line": 10,
           "position": 1180
         },
-        "name": "games/shared/rendering/SharedVFX.ts",
+        "name": "shared/rendering/SharedVFX.ts",
         "start": 3,
         "startLoc": {
           "column": 36,
@@ -1951,7 +915,7 @@
           "line": 11,
           "position": 1283
         },
-        "name": "games/shared/rendering/SharedVFXInternal.ts",
+        "name": "shared/rendering/SharedVFXInternal.ts",
         "start": 4,
         "startLoc": {
           "column": 66,
@@ -1969,7 +933,7 @@
           "line": 52,
           "position": 1659
         },
-        "name": "games/shared/rendering/layers/DriftingNebulaLayer.ts",
+        "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
         "start": 47,
         "startLoc": {
           "column": 12,
@@ -1988,7 +952,7 @@
           "line": 88,
           "position": 2828
         },
-        "name": "games/shared/rendering/layers/DriftingNebulaLayer.ts",
+        "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
         "start": 83,
         "startLoc": {
           "column": 28,
@@ -2006,7 +970,7 @@
           "line": 36,
           "position": 1377
         },
-        "name": "games/shared/rendering/layers/RingingPlanetLayer.ts",
+        "name": "shared/rendering/layers/RingingPlanetLayer.ts",
         "start": 31,
         "startLoc": {
           "column": 4,
@@ -2025,7 +989,7 @@
           "line": 146,
           "position": 4764
         },
-        "name": "games/shared/rendering/layers/RingingPlanetLayer.ts",
+        "name": "shared/rendering/layers/RingingPlanetLayer.ts",
         "start": 141,
         "startLoc": {
           "column": 4,
@@ -2037,40 +1001,40 @@
     },
     {
       "firstFile": {
-        "end": 49,
+        "end": 45,
         "endLoc": {
-          "column": 77,
-          "line": 49,
-          "position": 1762
+          "column": 70,
+          "line": 45,
+          "position": 1609
         },
-        "name": "games/shared/rendering/layers/ScrollingStarfieldLayer.ts",
-        "start": 44,
+        "name": "shared/rendering/layers/ScrollingStarfieldLayer.ts",
+        "start": 39,
         "startLoc": {
           "column": 4,
-          "line": 44,
-          "position": 1467
+          "line": 39,
+          "position": 1271
         }
       },
       "format": "typescript",
-      "fragment": "    const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"starfield\", starfieldLayer);\n    if (!layerCtx) return;\n    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;\n\n    const { starSpeedMult, activeStarCount } = resolveStarfieldParams(theme);",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"starfield\", starfieldLayer);\n    if (!layerCtx) return;\n    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;\n\n    const starSpeedMult = theme.starSpeed || 1.0;\n    const activeStarCount = resolveActiveStarCount(theme.starDensity);",
       "isNew": false,
-      "lines": 6,
+      "lines": 7,
       "secondFile": {
-        "end": 73,
+        "end": 70,
         "endLoc": {
-          "column": 77,
-          "line": 73,
-          "position": 2560
+          "column": 70,
+          "line": 70,
+          "position": 2450
         },
-        "name": "games/shared/rendering/layers/ScrollingStarfieldLayer.ts",
-        "start": 68,
+        "name": "shared/rendering/layers/ScrollingStarfieldLayer.ts",
+        "start": 64,
         "startLoc": {
           "column": 4,
-          "line": 68,
-          "position": 2265
+          "line": 64,
+          "position": 2112
         }
       },
-      "tokens": 52
+      "tokens": 59
     },
     {
       "firstFile": {
@@ -2080,7 +1044,7 @@
           "line": 49,
           "position": 1747
         },
-        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 44,
         "startLoc": {
           "column": 5,
@@ -2099,7 +1063,7 @@
           "line": 52,
           "position": 1792
         },
-        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 47,
         "startLoc": {
           "column": 8,
@@ -2117,7 +1081,7 @@
           "line": 432,
           "position": 12955
         },
-        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 427,
         "startLoc": {
           "column": 29,
@@ -2136,7 +1100,7 @@
           "line": 413,
           "position": 14429
         },
-        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 408,
         "startLoc": {
           "column": 42,
@@ -2154,7 +1118,7 @@
           "line": 478,
           "position": 14144
         },
-        "name": "games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
         "start": 459,
         "startLoc": {
           "column": 54,
@@ -2173,7 +1137,7 @@
           "line": 456,
           "position": 15643
         },
-        "name": "games/space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
+        "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
         "start": 437,
         "startLoc": {
           "column": 55,
@@ -2182,442 +1146,35 @@
         }
       },
       "tokens": 54
-    },
-    {
-      "firstFile": {
-        "end": 56,
-        "endLoc": {
-          "column": 17,
-          "line": 56,
-          "position": 2513
-        },
-        "name": "games/space-invaders/systems/SpaceInvadersGameStateSystem.ts",
-        "start": 45,
-        "startLoc": {
-          "column": 26,
-          "line": 45,
-          "position": 2108
-        }
-      },
-      "format": "typescript",
-      "fragment": "            const shuffle = <T>(array: T[], r: { next: () => number }): T[] => {\n              const result = [...array];\n              for (let i = result.length - 1; i > 0; i--) {\n                const j = Math.floor(r.next() * (i + 1));\n                const temp = result[i];\n                result[i] = result[j];\n                result[j] = temp;\n              }\n              return result;\n            };\n\n            const shuffledBeneficial = shuffle(beneficialKeys, rng);",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 619,
-        "endLoc": {
-          "column": 11,
-          "line": 619,
-          "position": 21126
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 608,
-        "startLoc": {
-          "column": 25,
-          "line": 608,
-          "position": 20781
-        }
-      },
-      "tokens": 107
-    },
-    {
-      "firstFile": {
-        "end": 71,
-        "endLoc": {
-          "column": 1,
-          "line": 71,
-          "position": 2338
-        },
-        "name": "hooks/useAsteroidsGame.ts",
-        "start": 51,
-        "startLoc": {
-          "column": 54,
-          "line": 51,
-          "position": 1920
-        }
-      },
-      "format": "typescript",
-      "fragment": "  const { highScore, updateHighScore } = useHighScore();\n\n  // Update high score when game is over\n  useEffect(() => {\n    if (gameState?.isGameOver) {\n      updateHighScore(gameState.score);\n    }\n  }, [gameState?.isGameOver, gameState?.score, updateHighScore]);\n\n  return {\n    game,\n    gameState: gameState ?? INITIAL_GAME_STATE,\n    handleInput,\n    isPaused,\n    isReady,\n    togglePause,\n    highScore,\n    seed: game?.getSeed(),\n    restartWithSeed: restart\n  };\n}",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 53,
-        "endLoc": {
-          "column": 1,
-          "line": 53,
-          "position": 1852
-        },
-        "name": "hooks/useSpaceInvadersGame.ts",
-        "start": 33,
-        "startLoc": {
-          "column": 81,
-          "line": 33,
-          "position": 1434
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
-        "end": 17,
-        "endLoc": {
-          "column": 66,
-          "line": 17,
-          "position": 800
-        },
-        "name": "hooks/useFlappyBirdGame.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 33,
-          "line": 11,
-          "position": 493
-        }
-      },
-      "format": "typescript",
-      "fragment": "export function useFlappyBirdGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {\n  const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);\n\n  useEffect(() => {\n    MutatorService.isMutatorModeEnabled().then(enabled => {\n      if (enabled) {\n        setActiveMutators(MutatorService.getActiveMutatorsForGame(\"flappybird\"));",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 19,
-        "endLoc": {
-          "column": 66,
-          "line": 19,
-          "position": 947
-        },
-        "name": "hooks/useSpaceInvadersGame.ts",
-        "start": 13,
-        "startLoc": {
-          "column": 36,
-          "line": 13,
-          "position": 640
-        }
-      },
-      "tokens": 63
-    },
-    {
-      "firstFile": {
-        "end": 25,
-        "endLoc": {
-          "column": 12,
-          "line": 25,
-          "position": 1017
-        },
-        "name": "hooks/useFlappyBirdGame.ts",
-        "start": 17,
-        "startLoc": {
-          "column": 78,
-          "line": 17,
-          "position": 812
-        }
-      },
-      "format": "typescript",
-      "fragment": "        setActiveMutators(MutatorService.getActiveMutatorsForGame(\"flappybird\"));\n      }\n    });\n  }, []);\n\n  const gameOptions = useMemo(() => ({ activeMutators }), [activeMutators]);\n\n  const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =\n    useGame<FlappyBirdGame, FlappyBirdState, FlappyBirdInput>(",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 27,
-        "endLoc": {
-          "column": 12,
-          "line": 27,
-          "position": 1168
-        },
-        "name": "hooks/useSpaceInvadersGame.ts",
-        "start": 19,
-        "startLoc": {
-          "column": 82,
-          "line": 19,
-          "position": 963
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 151,
-        "endLoc": {
-          "column": 84,
-          "line": 151,
-          "position": 5174
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 145,
-        "startLoc": {
-          "column": 5,
-          "line": 145,
-          "position": 4850
-        }
-      },
-      "format": "typescript",
-      "fragment": "    },\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.PLAYER_BULLET_SPEED === \"number\") {\n          newConfig.PLAYER_BULLET_SPEED = Math.round(newConfig.PLAYER_BULLET_SPEED * 1.10);",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 520,
-        "endLoc": {
-          "column": 84,
-          "line": 520,
-          "position": 18048
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 514,
-        "startLoc": {
-          "column": 38,
-          "line": 514,
-          "position": 17724
-        }
-      },
-      "tokens": 63
-    },
-    {
-      "firstFile": {
-        "end": 181,
-        "endLoc": {
-          "column": 62,
-          "line": 181,
-          "position": 6201
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 174,
-        "startLoc": {
-          "column": 18,
-          "line": 174,
-          "position": 5856
-        }
-      },
-      "format": "typescript",
-      "fragment": "      return world.query(\"Player\", \"Health\").length > 0;\n    },\n    apply: (world, context) => {\n      const mWorld = world as World<MutatorComponentRegistry>;\n      const config = mWorld.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.PLAYER_INITIAL_LIVES === \"number\") {",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 483,
-        "endLoc": {
-          "column": 62,
-          "line": 483,
-          "position": 16696
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 476,
-        "startLoc": {
-          "column": 19,
-          "line": 476,
-          "position": 16351
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
-        "end": 273,
-        "endLoc": {
-          "column": 26,
-          "line": 273,
-          "position": 9184
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 267,
-        "startLoc": {
-          "column": 16,
-          "line": 267,
-          "position": 8917
-        }
-      },
-      "format": "typescript",
-      "fragment": "    xpCost: 1000,\n    canDraft: (world, context) => {\n      const mWorld = world as World<MutatorComponentRegistry>;\n      const target = context?.targetEntity;\n      if (target !== undefined) {\n        const health = mWorld.getComponent(target, \"Health\");\n        return !!health && (health.invulnerableRemaining ?? 0) <= 0;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 474,
-        "endLoc": {
-          "column": 26,
-          "line": 474,
-          "position": 16307
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 468,
-        "startLoc": {
-          "column": 13,
-          "line": 468,
-          "position": 16040
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 310,
-        "endLoc": {
-          "column": 29,
-          "line": 310,
-          "position": 10489
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 304,
-        "startLoc": {
-          "column": 15,
-          "line": 304,
-          "position": 10245
-        }
-      },
-      "format": "typescript",
-      "fragment": "    xpCost: 400,\n    canDraft: (world, context) => true,\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.GRAVITY === \"number\") {",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 353,
-        "endLoc": {
-          "column": 29,
-          "line": 353,
-          "position": 12004
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 347,
-        "startLoc": {
-          "column": 15,
-          "line": 347,
-          "position": 11760
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 309,
-        "endLoc": {
-          "column": 40,
-          "line": 309,
-          "position": 10459
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 304,
-        "startLoc": {
-          "column": 15,
-          "line": 304,
-          "position": 10245
-        }
-      },
-      "format": "typescript",
-      "fragment": "    xpCost: 400,\n    canDraft: (world, context) => true,\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 376,
-        "endLoc": {
-          "column": 40,
-          "line": 376,
-          "position": 12838
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 371,
-        "startLoc": {
-          "column": 15,
-          "line": 371,
-          "position": 12624
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
-        "end": 310,
-        "endLoc": {
-          "column": 29,
-          "line": 310,
-          "position": 10489
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 304,
-        "startLoc": {
-          "column": 15,
-          "line": 304,
-          "position": 10245
-        }
-      },
-      "format": "typescript",
-      "fragment": "    xpCost: 400,\n    canDraft: (world, context) => true,\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.GRAVITY === \"number\") {",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 450,
-        "endLoc": {
-          "column": 29,
-          "line": 450,
-          "position": 15409
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 444,
-        "startLoc": {
-          "column": 13,
-          "line": 444,
-          "position": 15165
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 450,
-        "endLoc": {
-          "column": 29,
-          "line": 450,
-          "position": 15409
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 443,
-        "startLoc": {
-          "column": 37,
-          "line": 443,
-          "position": 15149
-        }
-      },
-      "format": "typescript",
-      "fragment": "    supportedGames: [\"space-invaders\"],\n    xpCost: 0,\n    canDraft: (world, context) => true,\n    apply: (world, context) => {\n      const config = world.getResource<Record<string, unknown>>(\"GameConfig\");\n      if (config) {\n        const newConfig = { ...config };\n        if (typeof newConfig.INVADER_SPEED === \"number\") {",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 519,
-        "endLoc": {
-          "column": 29,
-          "line": 519,
-          "position": 17928
-        },
-        "name": "utils/MutatorRegistry.ts",
-        "start": 512,
-        "startLoc": {
-          "column": 50,
-          "line": 512,
-          "position": 17668
-        }
-      },
-      "tokens": 61
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-02T09:59:24.913Z",
+    "detectionDate": "2026-10-02T10:14:25.854Z",
     "formats": {
       "typescript": {
-        "clones": 70,
-        "duplicatedLines": 687,
-        "duplicatedTokens": 4856,
-        "lines": 81625,
+        "clones": 31,
+        "duplicatedLines": 244,
+        "duplicatedTokens": 1992,
+        "lines": 69019,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.8416539050535987,
-        "percentageTokens": 1.147312463083284,
-        "sources": 537,
-        "tokens": 423250
+        "percentage": 0.353525840710529,
+        "percentageTokens": 0.556413701408073,
+        "sources": 416,
+        "tokens": 358007
       }
     },
     "total": {
-      "clones": 70,
-      "duplicatedLines": 687,
-      "duplicatedTokens": 4856,
-      "lines": 81625,
+      "clones": 31,
+      "duplicatedLines": 244,
+      "duplicatedTokens": 1992,
+      "lines": 69019,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.8416539050535987,
-      "percentageTokens": 1.147312463083284,
-      "sources": 537,
-      "tokens": 423250
+      "percentage": 0.353525840710529,
+      "percentageTokens": 0.556413701408073,
+      "sources": 416,
+      "tokens": 358007
     }
   }
 }

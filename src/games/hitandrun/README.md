@@ -1,70 +1,94 @@
 # Hit&Run
 
-**Option A clone** of `echorunner` — platformer + run-and-gun (Metal Slug feel).
+Platformer + run-and-gun (Metal Slug feel) on `@tiny-aster/core`.
 
-## Status
+**Branch:** `feature/hit-and-run` · **gameId:** `hitandrun` · **Route:** `/hitandrun`
 
-- Branch: `feature/hit-and-run`
-- `gameId`: `hitandrun`
-- Route: `/hitandrun`
+---
 
-## Task A — Juice / Feedback ✅
+## Sprint status
 
-```
-systems/HitRunFeedbackSystem.ts
-registerHitRunFeedback(world)
-```
+| Task | Status | Entry point |
+|------|--------|-------------|
+| **A — Juice** | ✅ | `registerHitRunFeedback(world)` |
+| **B — Arsenal** | ✅ | `registerHitRunWeapons(world)` |
+| **C — Wave Director** | ✅ | `registerHitRunWaves(world)` |
 
-Resources: `HitStopRemaining`, `HitRunScreenShake`  
-Events: `combat:hit` / `combat:death` → hit-stop, shake, `hitFlashFrames`
-
-## Task B — Arsenal data-driven ✅
-
-```
-weapons/
-  HitRunWeaponTypes.ts      # defs + ExplosivePayload + combat:explosion
-  HitRunWeaponCatalog.ts    # hmg | shotgun | rocket
-  HitRunBulletPool.ts       # PlayerBulletPool resource
-  fireWeapon.ts             # single / cone / rocket spawn
-  HitRunWeaponSystem.ts     # cooldown + fire + recoil
-  HitRunExplosionSystem.ts  # radial chain (remove-component → AOE)
-  registerHitRunWeapons.ts
-```
-
-| Arma | Cadencia | Consumption | Category (juice) | Notas |
-|------|----------|-------------|------------------|-------|
-| **HMG** | 0.08s | destroy-entity | `bullet` | Hitbox pequeña, recoil |
-| **Shotgun** | 0.55s | destroy-entity | `shotgun` | 5 pellets, cono 0.45 rad |
-| **Rocket** | 1.1s | remove-component | `explosive` | AOE `combat:explosion` |
-
-### Integración
+### Boot mínimo
 
 ```ts
-import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
-import { registerHitRunWeapons } from "./weapons";
-
-// onRegisterSystems:
 registerHitRunFeedback(this.world);
 registerHitRunWeapons(this.world);
+registerHitRunWaves(this.world, { script: WAVE_OPENING });
 
-// Al spawnear jugador, añadir:
+// jugador
 world.addComponent(player, {
   type: "HitRunWeapon",
-  weaponId: "hmg", // | "shotgun" | "rocket"
+  weaponId: "hmg",
   cooldownRemaining: 0
 });
-// PlatformerInput debe exponer firePressed / fireHeld (y opcional aimX/aimY)
 ```
 
-**CombatSystem no se modifica.** Solo se rellenan `Damage.amount`, `category`, `consumption` al acquire del pool.
+---
 
-## Task C — Wave Director (pendiente)
+## Task A — Feedback
 
-JSON declarativo de spawns por tiempo.
+Events `combat:hit` / `combat:death` → `HitStopRemaining`, `HitRunScreenShake`, `Render.hitFlashFrames`.
 
-## Run
+## Task B — Arsenal
 
-```bash
-git checkout feature/hit-and-run
-pnpm start
+| Arma | consumption | category |
+|------|-------------|----------|
+| HMG | destroy-entity | bullet |
+| Shotgun | destroy-entity | shotgun |
+| Rocket | remove-component | explosive → AOE |
+
+## Task C — Wave Director
+
 ```
+waves/
+  HitRunWaveTypes.ts
+  HitRunEnemyArchetypes.ts   # popcorn, wall, hopper, charger, elite
+  sampleWaves.ts             # opening, pressure, boss_lead, endless
+  waveFormations.ts          # point, line, column, wall, scatter, drop
+  HitRunEnemyPool.ts
+  HitRunWaveSystem.ts
+  registerHitRunWaves.ts
+```
+
+### JSON de oleada
+
+```json
+[
+  { "t": 0, "type": "popcorn", "count": 6, "formation": "line" },
+  { "t": 5, "type": "wall", "count": 5, "formation": "wall" },
+  { "t": 8, "type": "hopper", "count": 4, "formation": "drop", "interval": 0.15 }
+]
+```
+
+- `t`: segundos desde el inicio del script
+- `formation`: `point` | `line` | `column` | `wall` | `scatter` | `drop`
+- `interval`: stagger entre unidades del mismo evento
+- `loop` + `loopDelay` en el script para endless
+
+### Cambio de script en runtime
+
+```ts
+import { startWaveScript, WAVE_PRESSURE } from "./waves";
+startWaveScript(world, WAVE_PRESSURE);
+```
+
+### Determinismo
+
+- Timeline y formaciones fijas (sin `Math.random`)
+- Scatter usa hash de índice reproducible
+- Respeta `isSimulationFrozen` (hit-stop / pause)
+
+---
+
+## Próximos pasos opcionales
+
+1. Detach completo de `EchoRunnerGame`
+2. PrefabPool real por arquetipo de enemigo
+3. Modos `kids` / `violent` (paleta + damage tables)
+4. AI StateMachines por `behaviorTags`

@@ -9,34 +9,82 @@
  * HitAndRunGame implementation (same systems, blueprints, gameId "hitandrun").
  */
 import {
-  EchoRunnerGame,
   EchoRunnerDefinition
 } from "../echorunner/EchoRunnerGame";
 import type { EchoRunnerConfig } from "../echorunner/EchoRunnerGame";
+import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import type {
   HitAndRunGameState,
   HitAndRunInput
 } from "./types/HitAndRunTypes";
+import {
+  CoreComponentRegistry,
+  EventRegistry,
+  WebAudioPlayer,
+  RunState,
+  Renderer,
+  RenderContext
+} from "@tiny-aster/core";
+import { EchoRunnerBlueprintMap } from "../echorunner/EchoRunnerGame";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
 /**
- * HitAndRunGame extends EchoRunnerGame with a distinct gameId so high-scores,
- * story encounters and routing stay separate from EchoRunner.
+ * HitAndRunGame is an arcade platformer game based on EchoRunner with a distinct gameId "hitandrun".
  */
-export class HitAndRunGame extends EchoRunnerGame {
-  public override readonly gameId = "hitandrun";
+export class HitAndRunGame extends PlatformerArcadeGame<
+  HitAndRunGameState,
+  HitAndRunInput,
+  CoreComponentRegistry,
+  EventRegistry,
+  EchoRunnerBlueprintMap
+> {
+  public readonly gameId = "hitandrun";
+  private gameOver = false;
 
   constructor(config: HitAndRunConfig = {}) {
-    super(config);
+    super({
+      pauseKey: "KeyP",
+      restartKey: "KeyR",
+      gameOptions: config.gameOptions,
+      seed: config.seed,
+      audio: new WebAudioPlayer()
+    });
   }
 
-  public override getGameState(): HitAndRunGameState {
-    const base = super.getGameState();
+  public update(dt: number): void {
+    this.world.update(dt);
+  }
+
+  protected override async onRegisterSystems(): Promise<void> {
+    await super.onRegisterSystems();
+  }
+
+  protected override async onInitializeEntities(): Promise<void> {
+    // Scaffold initial entities
+  }
+
+  public initializeRenderer(_renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
+    // Initialize renderer
+  }
+
+  public getGameState(): HitAndRunGameState {
+    const rs = this.world.getResource<RunState>("RunState");
     return {
-      ...base,
-      type: "HitAndRunGameState"
+      type: "HitAndRunGameState",
+      score: rs ? rs.collectedTemporalIds.length * 10 + rs.collectedPermanentIds.length * 100 : 0,
+      isGameOver: this.gameOver,
+      attempts: rs?.attempt ?? 1,
+      deaths: rs?.deaths ?? 0,
+      fragments: rs?.collectedTemporalIds.length ?? 0,
+      cores: rs?.collectedPermanentIds.length ?? 0,
+      activeCheckpoint: rs?.activeCheckpoint ?? null,
+      elapsedTime: rs?.elapsedTime ?? 0
     };
+  }
+
+  public isGameOver(): boolean {
+    return this.gameOver;
   }
 }
 

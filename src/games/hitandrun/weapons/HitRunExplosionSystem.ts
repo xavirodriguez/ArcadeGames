@@ -45,11 +45,11 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
     if (this.subscribed) return;
     this.subscribed = true;
 
-    eventBus.on("combat:hit" as any, (payload: unknown) => {
+    eventBus.on("combat:hit", (payload: unknown) => {
       this.pendingHits.push(payload as CombatHitLike);
     });
 
-    eventBus.on("combat:explosion" as any, (payload: unknown) => {
+    eventBus.on("combat:explosion", (payload: unknown) => {
       this.pendingExplosions.push(payload as CombatExplosionPayload);
     });
   }
@@ -79,7 +79,7 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
       const source = hit.sourceEntity;
       if (source === undefined || !world.hasEntity(source)) continue;
 
-      const payload = world.getComponent(source, "ExplosivePayload" as any) as
+      const payload = world.getComponent(source, "ExplosivePayload") as
         | ExplosivePayloadComponent
         | undefined;
       if (!payload || payload.detonated) continue;
@@ -88,7 +88,7 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
       if (!transform) continue;
 
       // Marcar detonado (evitar doble cadena)
-      const mut = world.getMutableComponent(source, "ExplosivePayload" as any) as
+      const mut = world.getMutableComponent(source, "ExplosivePayload") as
         | ExplosivePayloadComponent
         | undefined;
       if (mut) {
@@ -106,7 +106,7 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
       };
 
       if (bus) {
-        bus.emitDeferred("combat:explosion" as any, explosion);
+        bus.emitDeferred("combat:explosion", explosion);
       }
       // También encolar local por si el flush de deferred es al final del frame
       this.pendingExplosions.push(explosion);
@@ -135,12 +135,12 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
           continue;
         }
         // No dañar al shooter aliado si comparte faction player
-        const faction = world.getComponent(entity, "Faction" as any) as
+        const faction = world.getComponent(entity, "Faction") as
           | { faction?: string }
           | undefined;
         if (faction?.faction === "player") continue;
 
-        if (world.hasComponent(entity, "Dead" as any)) continue;
+        if (world.hasComponent(entity, "Dead")) continue;
 
         const tr = world.getComponent(entity, "Transform");
         if (!tr) continue;
@@ -177,7 +177,7 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
         }
 
         if (bus) {
-          bus.emitDeferred("combat:hit" as any, {
+          bus.emitDeferred("combat:hit", {
             targetEntity: target,
             sourceEntity: boom.sourceEntity,
             amount: boom.damage,
@@ -186,8 +186,8 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
           });
 
           if (next <= 0) {
-            world.getCommandBuffer().addComponent(target, { type: "Dead" } as any);
-            bus.emitDeferred("combat:death" as any, {
+            world.getCommandBuffer().addComponent(target, { type: "Dead" });
+            bus.emitDeferred("combat:death", {
               entity: target,
               sourceEntity: boom.sourceEntity,
               category: boom.category
@@ -198,7 +198,7 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
 
       // SFX de explosión (solo presentación)
       if (!world.isReSimulating && bus) {
-        bus.emit("PlaySFX" as any, { name: "explosion_large" });
+          bus.emit("PlaySFX", { name: "explosion_large" });
       }
     }
   }

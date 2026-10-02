@@ -36,12 +36,12 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (isSimulationFrozen(world)) return;
 
-    const shooters = world.query("HitRunWeapon" as any, "Transform");
+    const shooters = world.query("HitRunWeapon", "Transform");
     const len = shooters.length;
 
     for (let i = 0; i < len; i++) {
       const entity = shooters[i];
-      const weaponState = world.getMutableComponent(entity, "HitRunWeapon" as any) as
+      const weaponState = world.getMutableComponent(entity, "HitRunWeapon") as
         | HitRunWeaponState
         | undefined;
       if (!weaponState) continue;

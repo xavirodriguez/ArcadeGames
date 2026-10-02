@@ -44,39 +44,40 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       worldScaleX: 1,
       worldScaleY: 1,
       dirty: true
-    } as any);
+    });
 
     world.addComponent(entity, {
       type: "Velocity",
       vx: 0,
       vy: 0,
       angularVelocity: 0
-    } as any);
+    });
 
     world.addComponent(entity, {
       type: "Health",
       current: health,
       max: health
-    } as any);
+    });
 
     world.addComponent(entity, {
       type: "Faction",
-      faction,
       value: faction
-    } as any);
+    });
 
     world.addComponent(entity, {
       type: "Hurtbox"
-    } as any);
+    });
 
     world.addComponent(entity, {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
       layer: 1 << 4,
       mask: 0xffff,
+      offsetX: 0,
+      offsetY: 0,
       isTrigger: false,
       enabled: true
-    } as any);
+    });
 
     world.addComponent(entity, {
       type: "CollisionEvents",
@@ -84,7 +85,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       activeTriggers: [],
       triggersEntered: [],
       triggersExited: []
-    } as any);
+    });
 
     world.addComponent(entity, {
       type: "Render",
@@ -97,20 +98,21 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       rotation: 0,
       angularVelocity: 0,
       hitFlashFrames: 0
-    } as any);
+    });
 
     world.addComponent(entity, {
       type: "Tag",
       tags: ["Enemy", params.archetypeId, ...(params.tags ?? []), ...(arch?.behaviorTags ?? [])]
-    } as any);
+    });
 
     // Marcador de arquetipo para AI / sistemas
     world.addComponent(entity, {
       type: "Enemy",
+      kind: params.archetypeId as "patrol" | "jumper" | "charger",
       archetypeId: params.archetypeId,
       indexInGroup: params.indexInGroup ?? 0,
       groupSize: params.groupSize ?? 1
-    } as any);
+    });
 
     return entity;
   }

@@ -17,7 +17,7 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid";
   href: Href;
 }
 
@@ -30,6 +30,7 @@ const GAMES: GameEntry[] = [
   { id: "arkanoid", key: "arkanoid", href: "/arkanoid" },
   { id: "geometrywars", key: "geometrywars", href: "/geometrywars" },
   { id: "echorunner", key: "echorunner", href: "/echorunner" },
+  { id: "hitandrun", key: "hitandrun", href: "/hitandrun" },
   { id: "platformer", key: "platformer", href: "/platformer" },
   { id: "frogger", key: "frogger", href: "/frogger" },
   { id: "cyoa", key: "cyoa", href: "/cyoa" },
@@ -53,12 +54,6 @@ export default function HomeScreen() {
     I18nService.init();
     AudioSettingsService.init();
 
-    // Listen for level up events to refresh the profile summary
-    // Since index.tsx is the entry point, we can rely on it being mounted
-    // but the EventBus is usually per-game.
-    // However, PlayerProfileService is a singleton.
-
-    // We'll refresh when focusing the screen too
     const interval = setInterval(refreshProfile, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -79,7 +74,6 @@ export default function HomeScreen() {
                  gameId === "frogger" ? "/frogger" :
                  "/space-invaders";
 
-      // For MVP we just navigate to asteroids with the seed
       router.push({
           pathname: path as any,
           params: { seed: seed.toString(), isDaily: "true" }

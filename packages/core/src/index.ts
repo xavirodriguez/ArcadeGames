@@ -136,6 +136,7 @@ export * from "./rendering/RenderSnapshot";
 export * from "./rendering/RenderCommandBuffer";
 export * from "./rendering/RenderPipeline";
 export * from "./rendering/Camera2D";
+export * from "./rendering/procedural";
 
 // Systems
 export * from "./systems/BaseGameStateSystem";

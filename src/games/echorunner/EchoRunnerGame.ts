@@ -161,9 +161,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
-
-    this.world.setResource("GameConfig", this.config);
+    this.config = this.setupArcadeGameConfig(this.baseConfig, resolveAndApplyMutators);
     await super.onRegisterSystems();
 
     // Register blueprints

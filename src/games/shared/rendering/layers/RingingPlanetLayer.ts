@@ -11,6 +11,14 @@ import {
   resolveLayerFrame
 } from "../SharedVFXInternal";
 
+export function resolvePlanetPosition(
+  planet: RingingPlanetState,
+  offsetX: number,
+  wrapCoordinate: (val: number, margin?: number) => number
+): number {
+  return wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);
+}
+
 const ringingPlanetLayer = createParallaxLayer<RingingPlanetState | undefined>({
   layerName: "layer4_distant_asteroids",
   isInitialized: (state) => state.planetInitialized,
@@ -25,7 +33,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     if (!layerCtx) return;
     const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;
 
-    const posX = wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);
+    const posX = resolvePlanetPosition(planet, offsetX, wrapCoordinate);
 
     ctx.save();
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
@@ -135,7 +143,7 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
     if (!layerCtx) return;
     const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;
 
-    const posX = wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);
+    const posX = resolvePlanetPosition(planet, offsetX, wrapCoordinate);
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
 
     canvas.save();

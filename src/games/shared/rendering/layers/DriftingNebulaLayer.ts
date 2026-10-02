@@ -22,6 +22,14 @@ export function advanceNebulaCloud(
   return { posX, offsetAngle };
 }
 
+export function resolveNebulaCloudColor(
+  theme: { nebulaPalette: readonly string[] },
+  index: number,
+  defaultColor: string
+): string {
+  return theme.nebulaPalette[index % theme.nebulaPalette.length] || defaultColor;
+}
+
 const driftingNebulaLayer = createParallaxLayer<NebulaCloud[]>({
   layerName: "layer1_nebula",
   isInitialized: (state) => state.nebulaeInitialized,
@@ -41,7 +49,7 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
       const neb = nebulae[i];
       const { posX, offsetAngle } = advanceNebulaCloud(neb, state.timePhase, i, offsetX);
-      const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
+      const nebColorHex = resolveNebulaCloudColor(theme, i, neb.color);
 
       ctx.fillStyle = nebColorHex;
       ctx.globalAlpha = 0.012 * theme.ambientGlow;
@@ -77,7 +85,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponent
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
       const neb = nebulae[i];
       const { posX, offsetAngle } = advanceNebulaCloud(neb, state.timePhase, i, offsetX);
-      const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;
+      const nebColorHex = resolveNebulaCloudColor(theme, i, neb.color);
 
       paint.setColor(Skia.Color(nebColorHex));
       paint.setAlphaf(0.012 * theme.ambientGlow);

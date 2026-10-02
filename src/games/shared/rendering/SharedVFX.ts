@@ -12,35 +12,18 @@ import { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter } from "./DrawAdapter"
 
 import {
   getVFXState,
-  getActiveLevelTheme,
-  getActiveVisualContext,
-  ActiveVisualContext,
   getScreenAndVFXState,
-  readCanvasSize,
   getOrCreateCached,
-  createParallaxLayer,
   SpeedLine,
   MatrixColumn,
   AccretionParticle,
-  DistantAsteroid,
   VFXWorldState,
   WARP_LINE_COUNT,
-  MATRIX_COLUMN_COUNT,
-  ACCRETION_PARTICLE_COUNT,
-  TRAIL_LENGTH
+  ACCRETION_PARTICLE_COUNT
 } from "./SharedVFXInternal";
 
-export { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor };
-export { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow };
-export { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate };
-export { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState };
-export { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };
-export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };
-export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
-export { ActiveVisualContext, getActiveVisualContext };
+export * from "./SharedVFXInternal";
 export { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter };
-
-export { getActiveLevelTheme, getScreenAndVFXState, readCanvasSize, createParallaxLayer };
 
 import { ScrollingStarfieldEffect, SkiaScrollingStarfieldEffect } from "./layers/ScrollingStarfieldLayer";
 import { DriftingNebulaBackgroundEffect, SkiaDriftingNebulaBackgroundEffect } from "./layers/DriftingNebulaLayer";

@@ -1,17 +1,11 @@
 /**
  * Hit&Run — platformer run-and-gun / melee on @tiny-aster/core.
- * Branch feature/hit-and-run (fix: make playable).
- *
- * Bootstraps a playable session by:
- * - registering Hit&Run systems (feedback, hurt, melee, weapons, AI, waves)
- * - reusing EchoRunner level generation + canvas visuals as fallback content
- *   until Hit&Run owns its own full level pack and art
+ * Branch feature/hit-and-run (fix: make playable + procedural backdrop).
  */
 import {
   System,
   PhysicsUtils,
   SystemPhase,
-  BlueprintDefinition,
   CoreComponentRegistry,
   EventRegistry,
   RenderContext,
@@ -25,7 +19,8 @@ import {
   SegmentTemplate,
   SegmentGenerator,
   LevelPlan,
-  preloadSharedAudioManifest
+  preloadSharedAudioManifest,
+  generateBackdrop
 } from "@tiny-aster/core";
 import { EchoRunnerDefinition } from "../echorunner/EchoRunnerGame";
 import type { EchoRunnerConfig } from "../echorunner/EchoRunnerGame";
@@ -61,10 +56,14 @@ import { registerHitRunWeapons } from "./weapons/registerHitRunWeapons";
 import { registerHitRunAI } from "./ai/registerHitRunAI";
 import { registerHitRunWaves } from "./waves/registerHitRunWaves";
 import { WAVE_OPENING } from "./waves/sampleWaves";
+import { HIT_RUN_BACKDROP_THEME } from "./rendering/HitAndRunPalette";
+import {
+  drawHitRunProceduralBackdrop,
+  HIT_RUN_BACKDROP_RESOURCE
+} from "./rendering/HitRunBackdropCanvas";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
-/** Contact damage vs enemies/spikes (shared with EchoRunner feel). */
 class HitRunDamageSystem extends System<CoreComponentRegistry> {
   public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
     updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
@@ -79,7 +78,6 @@ class HitRunDamageSystem extends System<CoreComponentRegistry> {
   }
 }
 
-/** Pulse / attack trigger (reuses PlatformerInput.pulsePressed). */
 class HitRunAttackSystem extends System<CoreComponentRegistry> {
   public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
     const players = world.query("PlatformerInput", "Transform");
@@ -162,7 +160,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       runState.elapsedTime += dt;
     }
 
-    // Level complete when archive core collected (same id as EchoRunner plan)
     if (runState && runState.collectedPermanentIds.includes("archive_core_1")) {
       if (!this.gameOver) {
         this.gameOver = true;
@@ -183,10 +180,33 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     }
   }
 
+  /** Build deterministic BackdropSpec and store as presentation resource. */
+  private installProceduralBackdrop(viewportWidth: number, viewportHeight: number): void {
+    const seed = this.getSeed() || 41873;
+    const spec = generateBackdrop({
+      seed,
+      viewportWidth,
+      viewportHeight,
+      chunkWidth: viewportWidth,
+      quality: "high",
+      fantasyDensity: 1.0,
+      theme: HIT_RUN_BACKDROP_THEME,
+      playfieldMask: {
+        enabled: true,
+        x: 0,
+        y: viewportHeight * 0.4,
+        width: viewportWidth,
+        height: viewportHeight * 0.6,
+        opacity: 0.22,
+        colorToken: "#000000"
+      }
+    });
+    this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, spec);
+  }
+
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
-    // --- Blueprints (shared platformer / echo shapes) ---
     this.blueprints.register("pulse_hitbox", {
       spawn: (world, entity, args: { dir: number; x: number; y: number; parent: number }) => {
         ArcadeEntityBuilder.fromEntity(world, entity)
@@ -247,7 +267,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
           type: "Hurtbox"
         } as { type: string; [key: string]: unknown });
 
-        // Starting weapon for Hit&Run arsenal
         world.addComponent(entity, {
           type: "HitRunWeapon",
           weaponId: "hmg",
@@ -305,16 +324,13 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     registerPlatformerEnemyBlueprints(this.blueprints);
     registerEnemyStateMachines(this.world);
 
-    // Input
     this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new HitRunAttackSystem(), { phase: SystemPhase.Input });
 
-    // Shared platformer simulation
     registerCommonPlatformerSystems(this.world, { includeMovingPlatforms: true });
     this.world.addSystem(new HitRunDamageSystem(), { phase: SystemPhase.Simulation });
     registerPresentationSystems(this.world);
 
-    // Hit&Run specific systems (order per README boot sequence)
     registerHitRunFeedback(this.world);
     registerHitRunHurt(this.world);
     registerHitRunMelee(this.world);
@@ -327,7 +343,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       defaultSpawnY: 200
     });
 
-    // Combat / collectible SFX hooks
     const eventBus = this.world.getEventBus();
     if (eventBus) {
       eventBus.on("hitbox:hit", (event: unknown) => {
@@ -378,8 +393,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         5: { solid: true, oneWay: true, kind: "normal" as const }
       };
 
-      // Prefer custom data; fall back to EchoRunner level pack because
-      // src/games/hitandrun/levels/level-01.json currently has empty templates.
       const rawData =
         this.customLevelData &&
         Array.isArray(this.customLevelData.templates) &&
@@ -397,6 +410,16 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);
       this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
       this.world.setResource("GameConfig", DEFAULT_ECHO_RUNNER_CONFIG);
+
+      const gameConfig = this.world.getResource<{
+        viewportWidth?: number;
+        viewportHeight?: number;
+        worldWidth?: number;
+        worldHeight?: number;
+      }>("GameConfig");
+      const vw = gameConfig?.viewportWidth ?? gameConfig?.worldWidth ?? 800;
+      const vh = gameConfig?.viewportHeight ?? gameConfig?.worldHeight ?? 600;
+      this.installProceduralBackdrop(vw, vh);
 
       SegmentGenerator.instantiatePlan(
         this.world,
@@ -432,11 +455,9 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   public initializeRenderer(
     renderer: Renderer<CoreComponentRegistry, RenderContext>
   ): void {
-    // Reuse EchoRunner visuals until Hit&Run has dedicated art.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     if (renderer.type === "canvas") {
       const {
-        drawEchoBackground,
         drawEchoPlayer,
         drawMemoryFragment,
         drawMemoryCore,
@@ -449,7 +470,9 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       } = require("../echorunner/rendering/EchoRunnerCanvasVisuals");
       const { drawPlatformerTilemap } = require("../platformer/rendering/PlatformerCanvasVisuals");
 
-      renderer.registerBackgroundEffect("echo_bg", drawEchoBackground);
+      // Procedural landscape (BackdropGenerator) — replaces EchoRunner grid bg
+      renderer.registerBackgroundEffect("hitrun_backdrop", drawHitRunProceduralBackdrop);
+
       renderer.registerShape("tilemap", drawPlatformerTilemap);
       renderer.registerShape("player", drawEchoPlayer);
       renderer.registerShape("fragment", drawMemoryFragment);
@@ -474,7 +497,9 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         drawSkiaCharger
       } = require("../echorunner/rendering/EchoRunnerSkiaVisuals");
 
+      // Skia parity: fall back to Echo bg until HitRunBackdropSkia exists
       renderer.registerBackgroundEffect("echo_bg", drawSkiaEchoBackground);
+
       renderer.registerShape("player", drawSkiaEchoPlayer);
       renderer.registerShape("fragment", drawSkiaMemoryFragment);
       renderer.registerShape("core", drawSkiaMemoryCore);

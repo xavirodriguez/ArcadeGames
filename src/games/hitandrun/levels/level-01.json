@@ -1,0 +1,5 @@
+{
+  "name": "HitAndRun Level 1",
+  "grammar": ["intro", "movement", "combat", "pressure", "finale"],
+  "templates": []
+}

@@ -86,4 +86,36 @@ export abstract class BaseArcadeAdapter<TGame extends AnyBaseGame = AnyBaseGame>
     }
     this.resultCallback = null;
   }
+
+  protected buildRunnerResult(
+    context: MiniGameRunContext,
+    secretId: string,
+    payload?: Record<string, unknown>
+  ): MiniGameResult {
+    const score = (payload?.score as number | undefined) ?? this.game?.getGameState()?.score ?? 0;
+    const completed = (payload?.completed as boolean | undefined) ?? (score >= (context.config.targetScore ?? 1500));
+    const durationMs = (payload?.durationMs as number | undefined) ?? 35000;
+    const collisions = (payload?.collisions as number | undefined) ?? 0;
+    const distanceCovered = (payload?.distanceCovered as number | undefined) ?? 0;
+    const secretsFound: string[] = Array.isArray(payload?.secretsFound)
+      ? (payload.secretsFound as string[])
+      : [];
+
+    if (payload?.foundMemoryFragment) {
+      secretsFound.push(secretId);
+    }
+
+    return {
+      runId: context.runId,
+      gameId: context.gameId,
+      score,
+      completed,
+      durationMs,
+      metrics: {
+        collisions,
+        distanceCovered
+      },
+      secretsFound
+    };
+  }
 }

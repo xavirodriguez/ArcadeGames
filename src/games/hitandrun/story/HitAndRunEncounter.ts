@@ -5,33 +5,33 @@ import {
   ArcadeGameAdapter,
   StoryRuntimeSnapshot
 } from "@tiny-aster/core";
-import { EchoRunnerGame } from "../EchoRunnerGame";
+import { HitAndRunGame } from "../HitAndRunGame";
 import { STANDARD_RUNNER_MODIFIER_RULES, createRunnerOutcomeRules } from "../../shared/story/helpers/encounterHelpers";
 import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
 
-export const ECHO_RUNNER_DASH_ENCOUNTER_ID = "echo_runner_dash_01";
+export const HIT_AND_RUN_DASH_ENCOUNTER_ID = "hit_and_run_dash_01";
 
 /**
- * `echo_runner_dash_01` encounter definition.
+ * `hit_and_run_dash_01` encounter definition.
  */
-export const echoRunnerDashEncounter: MiniGameEncounter = {
-  id: ECHO_RUNNER_DASH_ENCOUNTER_ID,
-  gameId: "echorunner",
+export const hitAndRunDashEncounter: MiniGameEncounter = {
+  id: HIT_AND_RUN_DASH_ENCOUNTER_ID,
+  gameId: "hitandrun",
   baseConfig: {
     difficulty: "normal",
     timeLimitMs: 60000,
     targetScore: 1500
   },
   modifierRules: STANDARD_RUNNER_MODIFIER_RULES,
-  outcomeRules: createRunnerOutcomeRules("echoCorridorEscaped", "ghostRunner")
+  outcomeRules: createRunnerOutcomeRules("hitCorridorEscaped", "hitRunner")
 };
 
 /**
- * ArcadeGameAdapter implementation for Echo Runner encounters.
+ * ArcadeGameAdapter implementation for Hit&Run encounters.
  */
-export class EchoRunnerArcadeAdapter extends BaseArcadeAdapter<EchoRunnerGame> {
-  protected createGame(context: MiniGameRunContext): EchoRunnerGame {
-    return new EchoRunnerGame({ seed: context.seed });
+export class HitAndRunArcadeAdapter extends BaseArcadeAdapter<HitAndRunGame> {
+  protected createGame(context: MiniGameRunContext): HitAndRunGame {
+    return new HitAndRunGame({ seed: context.seed });
   }
 
   protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {

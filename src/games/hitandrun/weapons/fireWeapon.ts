@@ -101,7 +101,7 @@ export function fireWeapon(args: FireWeaponArgs): number {
   if (!world.isReSimulating && weapon.sfxName) {
     const bus = world.getEventBus();
     if (bus) {
-      bus.emit("PlaySFX" as any, { name: weapon.sfxName });
+      bus.emit("PlaySFX", { name: weapon.sfxName });
     }
   }
 

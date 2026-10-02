@@ -26,9 +26,11 @@ export function computeFormationSlots(
       }
       break;
     }
-    case "line": {
-      const totalW = (n - 1) * spacing;
-      const startX = baseX - totalW * 0.5;
+    case "line":
+    case "wall":
+    case "drop": {
+      // Fila horizontal compacta centrada en baseX
+      const startX = baseX - ((n - 1) * spacing) * 0.5;
       for (let i = 0; i < n; i++) {
         slots.push({ x: startX + i * spacing, y: baseY });
       }
@@ -37,23 +39,6 @@ export function computeFormationSlots(
     case "column": {
       for (let i = 0; i < n; i++) {
         slots.push({ x: baseX, y: baseY - i * spacing });
-      }
-      break;
-    }
-    case "wall": {
-      // Muro denso: una fila compacta
-      const totalW = (n - 1) * spacing;
-      const startX = baseX - totalW * 0.5;
-      for (let i = 0; i < n; i++) {
-        slots.push({ x: startX + i * spacing, y: baseY });
-      }
-      break;
-    }
-    case "drop": {
-      const totalW = (n - 1) * spacing;
-      const startX = baseX - totalW * 0.5;
-      for (let i = 0; i < n; i++) {
-        slots.push({ x: startX + i * spacing, y: baseY });
       }
       break;
     }

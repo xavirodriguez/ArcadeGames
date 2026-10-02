@@ -23,23 +23,27 @@ const poolHooks = createProjectilePoolConfig<HitRunBulletParams>({
   bulletType: "PlayerBullet",
   extraComponents: (data, params) => {
     // Damage data-driven por disparo
-    if (data.damage) {
-      data.damage.amount = params.damageAmount;
-      data.damage.category = params.damageCategory;
-      data.damage.consumption = params.consumption;
-      data.damage.friendlyFire = false;
+    const damageComp = data.damage as { amount: number; category?: string; consumption?: any; friendlyFire?: boolean; sourceEntity?: number } | undefined;
+    if (damageComp) {
+      damageComp.amount = params.damageAmount;
+      damageComp.category = params.damageCategory;
+      damageComp.consumption = params.consumption;
+      damageComp.friendlyFire = false;
       if (params.sourceEntity !== undefined) {
-        data.damage.sourceEntity = params.sourceEntity;
+        damageComp.sourceEntity = params.sourceEntity;
       }
     }
 
     // Render shape override
-    if (params.shape && data.render) {
-      data.render.shape = params.shape;
+    const renderComp = data.render as { shape?: string } | undefined;
+    if (params.shape && renderComp) {
+      renderComp.shape = params.shape;
     }
-    if (params.rotation !== undefined && data.position) {
-      data.position.rotation = params.rotation;
-      data.position.worldRotation = params.rotation;
+
+    const posComp = data.position as { rotation?: number; worldRotation?: number } | undefined;
+    if (params.rotation !== undefined && posComp) {
+      posComp.rotation = params.rotation;
+      posComp.worldRotation = params.rotation;
     }
 
     // Carga explosiva (cohete)
@@ -50,9 +54,9 @@ const poolHooks = createProjectilePoolConfig<HitRunBulletParams>({
         damage: params.explosive.damage,
         detonated: false
       };
-      (data as Record<string, unknown>).explosivePayload = payload;
+      data.explosivePayload = payload;
     } else {
-      delete (data as Record<string, unknown>).explosivePayload;
+      delete data.explosivePayload;
     }
   }
 });
@@ -61,22 +65,16 @@ const poolHooks = createProjectilePoolConfig<HitRunBulletParams>({
  * Pool de balas del jugador para Hit&Run.
  * Resource key recomendado: "PlayerBulletPool".
  */
-export class HitRunBulletPool extends ProjectilePool {
+export class HitRunBulletPool extends ProjectilePool<any, HitRunBulletParams> {
   constructor(initialSize = 64) {
-    super({
-      initialSize,
-      maxSize: 128,
-      factory: poolHooks.factory as any,
-      reset: poolHooks.reset as any,
-      initializer: poolHooks.initializer as any
-    });
+    super(poolHooks);
   }
 
   /**
    * Adquiere un proyectil con parámetros de arma completos.
    */
   public acquireBullet(world: World, params: HitRunBulletParams): Entity {
-    return this.acquire(world, params as unknown as ProjectileParams);
+    return this.acquire(world, params);
   }
 }
 

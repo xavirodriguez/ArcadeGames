@@ -57,11 +57,11 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
     if (this.subscribed) return;
     this.subscribed = true;
 
-    eventBus.on("combat:hit" as any, (payload: unknown) => {
+    eventBus.on("combat:hit", (payload: unknown) => {
       this.pendingHits.push(payload as CombatHitPayload);
     });
 
-    eventBus.on("combat:death" as any, (payload: unknown) => {
+    eventBus.on("combat:death", (payload: unknown) => {
       this.pendingDeaths.push(payload as CombatDeathPayload);
     });
   }

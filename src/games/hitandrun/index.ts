@@ -7,3 +7,4 @@ export * from "./weapons";
 export * from "./waves";
 export * from "./ai";
 export * from "./melee";
+export * from "./hurt";

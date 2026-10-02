@@ -22,6 +22,7 @@ import {
 import { EchoRunnerBlueprintMap } from "../echorunner/EchoRunnerGame";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
+import { registerHitRunHurt } from "./hurt/registerHitRunHurt";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
@@ -52,11 +53,12 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
     registerHitRunFeedback(this.world);
+    registerHitRunHurt(this.world);
     registerHitRunMelee(this.world);
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    // Scaffold — player with MeleeAttack from level/blueprint wiring.
+    // Scaffold — player with MeleeAttack / HitReaction from level wiring.
   }
 
   public initializeRenderer(_renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
@@ -67,7 +69,9 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     const rs = this.world.getResource<RunState>("RunState");
     return {
       type: "HitAndRunGameState",
-      score: rs ? rs.collectedTemporalIds.length * 10 + rs.collectedPermanentIds.length * 100 : 0,
+      score: rs
+        ? rs.collectedTemporalIds.length * 10 + rs.collectedPermanentIds.length * 100
+        : 0,
       isGameOver: this.gameOver,
       attempts: rs?.attempt ?? 1,
       deaths: rs?.deaths ?? 0,

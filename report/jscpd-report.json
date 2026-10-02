@@ -2,43 +2,6 @@
   "duplicates": [
     {
       "firstFile": {
-        "end": 43,
-        "endLoc": {
-          "column": 93,
-          "line": 43,
-          "position": 1733
-        },
-        "name": "ecs/EntityBuilder.ts",
-        "start": 38,
-        "startLoc": {
-          "column": 22,
-          "line": 38,
-          "position": 1321
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public static create<\n    TComponents extends ComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {\n    return createBuilderInstance((w, e, cb) => new EntityBuilder(w, e, cb), world, undefined, false);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 65,
-        "endLoc": {
-          "column": 93,
-          "line": 65,
-          "position": 2851
-        },
-        "name": "ecs/EntityBuilder.ts",
-        "start": 60,
-        "startLoc": {
-          "column": 30,
-          "line": 60,
-          "position": 2439
-        }
-      },
-      "tokens": 72
-    },
-    {
-      "firstFile": {
         "end": 270,
         "endLoc": {
           "column": 9,
@@ -816,43 +779,6 @@
     },
     {
       "firstFile": {
-        "end": 296,
-        "endLoc": {
-          "column": 5,
-          "line": 296,
-          "position": 9264
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 284,
-        "startLoc": {
-          "column": 36,
-          "line": 284,
-          "position": 8874
-        }
-      },
-      "format": "typescript",
-      "fragment": "      for (let x = 0; x <= width; x += 25) {\n        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);\n        if (first) {\n          lastX = displaced.x;\n          lastY = displaced.y;\n          first = false;\n        } else {\n          canvas.drawLine(lastX, lastY, displaced.x, displaced.y, paint);\n          lastX = displaced.x;\n          lastY = displaced.y;\n        }\n      }\n    }",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 315,
-        "endLoc": {
-          "column": 5,
-          "line": 315,
-          "position": 9834
-        },
-        "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 303,
-        "startLoc": {
-          "column": 37,
-          "line": 303,
-          "position": 9444
-        }
-      },
-      "tokens": 80
-    },
-    {
-      "firstFile": {
         "end": 182,
         "endLoc": {
           "column": 47,
@@ -1001,262 +927,114 @@
     },
     {
       "firstFile": {
-        "end": 40,
+        "end": 52,
         "endLoc": {
-          "column": 6,
-          "line": 40,
-          "position": 2310
+          "column": 71,
+          "line": 52,
+          "position": 1659
         },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 31,
+        "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
+        "start": 47,
+        "startLoc": {
+          "column": 12,
+          "line": 47,
+          "position": 1412
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.save();\n\n    for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {\n      const neb = nebulae[i];\n      const { posX, offsetAngle } = advanceNebulaCloud(neb, state.timePhase, i, offsetX);\n      const nebColorHex = resolveNebulaCloudColor(theme, i, neb.color);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 88,
+        "endLoc": {
+          "column": 71,
+          "line": 88,
+          "position": 2828
+        },
+        "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
+        "start": 83,
         "startLoc": {
           "column": 28,
-          "line": 31,
-          "position": 1645
-        }
-      },
-      "format": "typescript",
-      "fragment": "} from \"./SharedVFXInternal\";\n\nexport { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor };\nexport { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow };\nexport { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate };\nexport { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState };\nexport { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };\nexport { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };\nexport { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };\nexport { ActiveVisualContext, getActiveVisualContext };",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 21,
-        "endLoc": {
-          "column": 6,
-          "line": 21,
-          "position": 1948
-        },
-        "name": "shared/rendering/SharedVFXInternal.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 105,
-          "line": 11,
-          "position": 1282
-        }
-      },
-      "tokens": 87
-    },
-    {
-      "firstFile": {
-        "end": 53,
-        "endLoc": {
-          "column": 59,
-          "line": 53,
-          "position": 2201
-        },
-        "name": "shared/rendering/layers/DiffuseMilkyWayLayer.ts",
-        "start": 48,
-        "startLoc": {
-          "column": 72,
-          "line": 48,
-          "position": 2001
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.fillRect(-width, -bandHeight * 0.15, width * 2, bandHeight * 0.3);\n\n    for (let i = 0; i < milkyWay.particles.length; i++) {\n      const p = milkyWay.particles[i];\n      p.twinklePhase += p.twinkleSpeed;\n      const twinkle = 0.5 + 0.5 * Math.sin(p.twinklePhase);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 108,
-        "endLoc": {
-          "column": 59,
-          "line": 108,
-          "position": 4252
-        },
-        "name": "shared/rendering/layers/DiffuseMilkyWayLayer.ts",
-        "start": 104,
-        "startLoc": {
-          "column": 37,
-          "line": 104,
-          "position": 4053
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 26,
-        "endLoc": {
-          "column": 54,
-          "line": 26,
-          "position": 1005
-        },
-        "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
-        "start": 21,
-        "startLoc": {
-          "column": 4,
-          "line": 21,
-          "position": 711
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const layerCtx = resolveLayerFrame(world, \"distant_space_station\", spaceStationLayer);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: st, offsetX, wrapCoordinate } = layerCtx;\n\n    st.rotation += st.rotationSpeed;\n    const posX = wrapCoordinate(st.x - offsetX * 0.1);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 118,
-        "endLoc": {
-          "column": 54,
-          "line": 118,
-          "position": 3888
-        },
-        "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
-        "start": 113,
-        "startLoc": {
-          "column": 4,
-          "line": 113,
-          "position": 3594
+          "line": 83,
+          "position": 2581
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 92,
+        "end": 36,
         "endLoc": {
-          "column": 57,
-          "line": 92,
-          "position": 3110
-        },
-        "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
-        "start": 87,
-        "startLoc": {
-          "column": 15,
-          "line": 87,
-          "position": 2928
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.stroke();\n\n    for (let i = 0; i < st.beacons.length; i++) {\n      const b = st.beacons[i];\n      b.twinklePhase += b.twinkleSpeed;\n      const pulse = 0.3 + 0.7 * Math.sin(b.twinklePhase);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 199,
-        "endLoc": {
-          "column": 57,
-          "line": 199,
-          "position": 6965
-        },
-        "name": "shared/rendering/layers/DistantSpaceStationLayer.ts",
-        "start": 194,
-        "startLoc": {
-          "column": 68,
-          "line": 194,
-          "position": 6783
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 44,
-        "endLoc": {
-          "column": 91,
-          "line": 44,
-          "position": 1454
-        },
-        "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
-        "start": 39,
-        "startLoc": {
-          "column": 12,
-          "line": 39,
-          "position": 1187
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.save();\n\n    for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {\n      const neb = nebulae[i];\n      const { posX, offsetAngle } = advanceNebulaCloud(neb, state.timePhase, i, offsetX);\n      const nebColorHex = theme.nebulaPalette[i % theme.nebulaPalette.length] || neb.color;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 80,
-        "endLoc": {
-          "column": 91,
-          "line": 80,
-          "position": 2643
-        },
-        "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
-        "start": 75,
-        "startLoc": {
-          "column": 28,
-          "line": 75,
-          "position": 2376
-        }
-      },
-      "tokens": 66
-    },
-    {
-      "firstFile": {
-        "end": 28,
-        "endLoc": {
-          "column": 77,
-          "line": 28,
-          "position": 1150
+          "column": 72,
+          "line": 36,
+          "position": 1377
         },
         "name": "shared/rendering/layers/RingingPlanetLayer.ts",
-        "start": 23,
+        "start": 31,
         "startLoc": {
           "column": 4,
-          "line": 23,
-          "position": 823
+          "line": 31,
+          "position": 1055
         }
       },
       "format": "typescript",
-      "fragment": "    const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"ringing_planet\", ringingPlanetLayer);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;\n\n    const posX = wrapCoordinate(planet.x - offsetX * 0.1, planet.radius * 3);",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"ringing_planet\", ringingPlanetLayer);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;\n\n    const posX = resolvePlanetPosition(planet, offsetX, wrapCoordinate);",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 138,
+        "end": 146,
         "endLoc": {
-          "column": 77,
-          "line": 138,
-          "position": 4542
+          "column": 72,
+          "line": 146,
+          "position": 4764
         },
         "name": "shared/rendering/layers/RingingPlanetLayer.ts",
-        "start": 133,
+        "start": 141,
         "startLoc": {
           "column": 4,
-          "line": 133,
-          "position": 4215
+          "line": 141,
+          "position": 4442
         }
       },
-      "tokens": 66
+      "tokens": 58
     },
     {
       "firstFile": {
-        "end": 41,
+        "end": 45,
         "endLoc": {
-          "column": 115,
-          "line": 41,
-          "position": 1489
+          "column": 70,
+          "line": 45,
+          "position": 1609
         },
         "name": "shared/rendering/layers/ScrollingStarfieldLayer.ts",
-        "start": 35,
+        "start": 39,
         "startLoc": {
           "column": 4,
-          "line": 35,
-          "position": 1106
+          "line": 39,
+          "position": 1271
         }
       },
       "format": "typescript",
-      "fragment": "    const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"starfield\", starfieldLayer);\n    if (!layerCtx) return;\n    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;\n\n    const starSpeedMult = theme.starSpeed || 1.0;\n    const activeStarCount = Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (theme.starDensity ?? 1.0))));",
+      "fragment": "    const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"starfield\", starfieldLayer);\n    if (!layerCtx) return;\n    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;\n\n    const starSpeedMult = theme.starSpeed || 1.0;\n    const activeStarCount = resolveActiveStarCount(theme.starDensity);",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 66,
+        "end": 70,
         "endLoc": {
-          "column": 115,
-          "line": 66,
-          "position": 2375
+          "column": 70,
+          "line": 70,
+          "position": 2450
         },
         "name": "shared/rendering/layers/ScrollingStarfieldLayer.ts",
-        "start": 60,
+        "start": 64,
         "startLoc": {
           "column": 4,
-          "line": 60,
-          "position": 1992
+          "line": 64,
+          "position": 2112
         }
       },
-      "tokens": 81
+      "tokens": 59
     },
     {
       "firstFile": {

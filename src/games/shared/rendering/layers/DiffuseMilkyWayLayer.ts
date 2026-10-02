@@ -6,7 +6,8 @@ import {
   MilkyWayBandState,
   initializeMilkyWay,
   getOrCreateCached,
-  resolveLayerFrame
+  resolveLayerFrame,
+  advanceTwinkle
 } from "../SharedVFXInternal";
 
 const diffuseMilkyWayLayer = createParallaxLayer<MilkyWayBandState | undefined>({
@@ -49,8 +50,7 @@ export const DiffuseMilkyWayBackgroundEffect: EffectDrawer<CanvasRenderingContex
 
     for (let i = 0; i < milkyWay.particles.length; i++) {
       const p = milkyWay.particles[i];
-      p.twinklePhase += p.twinkleSpeed;
-      const twinkle = 0.5 + 0.5 * Math.sin(p.twinklePhase);
+      const twinkle = advanceTwinkle(p, 0.5, 0.5);
 
       ctx.fillStyle = p.color;
       ctx.globalAlpha = p.alpha * twinkle;
@@ -104,8 +104,7 @@ export const SkiaDiffuseMilkyWayBackgroundEffect: EffectDrawer<any, CoreComponen
     const particlePaint = Skia.Paint();
     for (let i = 0; i < milkyWay.particles.length; i++) {
       const p = milkyWay.particles[i];
-      p.twinklePhase += p.twinkleSpeed;
-      const twinkle = 0.5 + 0.5 * Math.sin(p.twinklePhase);
+      const twinkle = advanceTwinkle(p, 0.5, 0.5);
 
       particlePaint.setColor(p.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.white));
       particlePaint.setAlphaf(p.alpha * twinkle);

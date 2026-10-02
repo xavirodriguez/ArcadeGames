@@ -393,6 +393,15 @@ export function resolveLayerFrame<TState, TComponents extends CoreComponentRegis
   return layerCtx as ParallaxLayerContext<NonNullable<TState>> & { layerState: NonNullable<TState> };
 }
 
+export function advanceTwinkle(
+  obj: { twinklePhase: number; twinkleSpeed: number },
+  base: number,
+  amplitude: number
+): number {
+  obj.twinklePhase += obj.twinkleSpeed;
+  return base + amplitude * Math.sin(obj.twinklePhase);
+}
+
 export function pickColor(rng: RandomService, colors: string[]): { color: string; skColor: SkColor | null } {
   const color = colors[rng.nextInt(0, colors.length)];
   return { color, skColor: Skia ? Skia.Color(color) : null };

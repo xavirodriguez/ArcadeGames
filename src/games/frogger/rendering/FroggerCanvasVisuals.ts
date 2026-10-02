@@ -9,6 +9,18 @@ import {
 
 export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
+    const frogger = world.getComponent(entity, "Frogger");
+    const health = world.getComponent(entity, "Health");
+    const invulnerableRemaining =
+      frogger?.invulnerableRemaining ?? health?.invulnerableRemaining ?? 0;
+    const isInvulnerable = invulnerableRemaining > 0;
+    const shouldSkip = isInvulnerable && Math.floor(world.tick / 3) % 2 === 0;
+
+    console.log("🐸 [DEBUG-5] Dibujando Frogger | invulnerableRemaining:", invulnerableRemaining, "skipRender:", shouldSkip);
+    if (shouldSkip) {
+      console.log("👻 [DEBUG-5] Render de rana OMITIDO por parpadeo");
+    }
+
     const playerCtx = resolveFroggerPlayerDrawContext(world, entity);
     if (!playerCtx) return;
 

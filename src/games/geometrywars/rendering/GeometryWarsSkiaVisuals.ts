@@ -250,6 +250,42 @@ export const drawSkiaEnemyFastSeeker: ShapeDrawer<any, GeometryWarsComponentRegi
 // GEOMETRY WARS BACKGROUND NEON DEFORMING GRID EFFECT (SKIA)
 // ============================================================================
 
+function drawDisplacedGridLines(
+  canvas: any,
+  width: number,
+  height: number,
+  isVertical: boolean,
+  playerX: number,
+  playerY: number,
+  bulletCount: number,
+  paint: any
+): void {
+  const outerMax = isVertical ? width : height;
+  const innerMax = isVertical ? height : width;
+  const outerStep = 40;
+  const innerStep = 25;
+
+  for (let outer = 0; outer <= outerMax; outer += outerStep) {
+    let lastX = 0;
+    let lastY = 0;
+    let first = true;
+    for (let inner = 0; inner <= innerMax; inner += innerStep) {
+      const sampleX = isVertical ? outer : inner;
+      const sampleY = isVertical ? inner : outer;
+      const displaced = getDisplacedPoint(sampleX, sampleY, playerX, playerY, BULLET_COORDS, bulletCount);
+      if (first) {
+        lastX = displaced.x;
+        lastY = displaced.y;
+        first = false;
+      } else {
+        canvas.drawLine(lastX, lastY, displaced.x, displaced.y, paint);
+        lastX = displaced.x;
+        lastY = displaced.y;
+      }
+    }
+  }
+}
+
 /**
  * Skia-based high-fidelity deforming glowing neon blue background grid.
  * @public
@@ -276,43 +312,8 @@ export const drawSkiaGeometryWarsBackground: EffectDrawer<any, GeometryWarsCompo
 
     canvas.save();
 
-    // Draw horizontal grid lines
-    for (let y = 0; y <= height; y += 40) {
-      let lastX = 0;
-      let lastY = 0;
-      let first = true;
-      for (let x = 0; x <= width; x += 25) {
-        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
-        if (first) {
-          lastX = displaced.x;
-          lastY = displaced.y;
-          first = false;
-        } else {
-          canvas.drawLine(lastX, lastY, displaced.x, displaced.y, paint);
-          lastX = displaced.x;
-          lastY = displaced.y;
-        }
-      }
-    }
-
-    // Draw vertical grid lines
-    for (let x = 0; x <= width; x += 40) {
-      let lastX = 0;
-      let lastY = 0;
-      let first = true;
-      for (let y = 0; y <= height; y += 25) {
-        const displaced = getDisplacedPoint(x, y, playerX, playerY, BULLET_COORDS, bulletCount);
-        if (first) {
-          lastX = displaced.x;
-          lastY = displaced.y;
-          first = false;
-        } else {
-          canvas.drawLine(lastX, lastY, displaced.x, displaced.y, paint);
-          lastX = displaced.x;
-          lastY = displaced.y;
-        }
-      }
-    }
+    drawDisplacedGridLines(canvas, width, height, false, playerX, playerY, bulletCount, paint);
+    drawDisplacedGridLines(canvas, width, height, true, playerX, playerY, bulletCount, paint);
 
     canvas.restore();
   }

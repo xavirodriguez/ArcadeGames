@@ -56,6 +56,7 @@ export default function FroggerScreen() {
 
   const handleInitializeRenderer = useCallback(
     (renderer: any) => {
+      console.log("🎨 [DEBUG-1] handleInitializeRenderer invocado. Instancia game presente:", !!game);
       game?.initializeRenderer(renderer);
     },
     [game]

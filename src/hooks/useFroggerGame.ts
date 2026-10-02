@@ -23,9 +23,16 @@ export function useFroggerGame(started: boolean, isMultiplayer: boolean = false,
 
   useEffect(() => {
     async function loadOptions() {
-      const enabled = await MutatorService.isMutatorModeEnabled();
-      const loaded = enabled ? MutatorService.getActiveMutatorsForGame("frogger") : [];
-      setActiveMutators(loaded);
+      console.log("🐛 [DEBUG-1] Cargando Mutators de Frogger...");
+      try {
+        const enabled = await MutatorService.isMutatorModeEnabled();
+        console.log("🐛 [DEBUG-1] MutatorService.isMutatorModeEnabled():", enabled);
+        const loaded = enabled ? MutatorService.getActiveMutatorsForGame("frogger") : [];
+        console.log("🐛 [DEBUG-1] activeMutators actualizado a:", loaded);
+        setActiveMutators(loaded);
+      } catch (error) {
+        console.error("❌ [DEBUG-1] Error en MutatorService:", error);
+      }
     }
     loadOptions();
   }, []);
@@ -40,6 +47,8 @@ export function useFroggerGame(started: boolean, isMultiplayer: boolean = false,
       isMultiplayer,
       { gameOptions: memoizedGameOptions, initialState: INITIAL_FROGGER_STATE, seed }
     );
+
+  console.log("🐛 [DEBUG-1] Render hook useFroggerGame:", { started, activeMutators, game: !!game, isReady });
 
   const { highScore, updateHighScore } = useHighScore("frogger-high-score");
 

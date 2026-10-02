@@ -1,5 +1,6 @@
 /**
  * Hit&Run Color Palette + procedural backdrop theme tokens.
+ * Tuned for a cinematic dusk battlefield / high-action platformer look.
  */
 import type { BackdropThemeTokens } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "../../echorunner/rendering/EchoRunnerPalette";
@@ -11,16 +12,16 @@ export const HIT_PALETTE = {
   hitRunSmoke: "rgba(255, 255, 255, 0.2)"
 } as const;
 
-/** Theme for generateBackdrop — run-and-gun / dusk battlefield feel. */
+/** Theme for generateBackdrop — dusk horizon, warm accent, cool depths. */
 export const HIT_RUN_BACKDROP_THEME: BackdropThemeTokens = {
-  skyGradientTop: "#0a0a18",
-  skyGradientBottom: "#1a1028",
-  mountainFar: "#2a1a3a",
-  mountainMid: "#3d2848",
-  hills: "#4a3050",
-  river: "#2a6090",
-  waterfall: "#6ec8ff",
-  accentGlow: "#ff4466",
-  fogColor: "rgba(20, 10, 30, 0.45)",
-  maskColor: "#000000"
+  skyGradientTop: "#07060f",
+  skyGradientBottom: "#2a1838",
+  mountainFar: "#1e1528",
+  mountainMid: "#2c2038",
+  hills: "#3a2a44",
+  river: "#3a7a9a",
+  waterfall: "#8fd4ff",
+  accentGlow: "#ff5a7a",
+  fogColor: "rgba(12, 8, 22, 0.55)",
+  maskColor: "#05040a"
 };

@@ -39,43 +39,6 @@
     },
     {
       "firstFile": {
-        "end": 122,
-        "endLoc": {
-          "column": 12,
-          "line": 122,
-          "position": 4884
-        },
-        "name": "physics/dynamics/JointSolverSystem.ts",
-        "start": 114,
-        "startLoc": {
-          "column": 42,
-          "line": 114,
-          "position": 4492
-        }
-      },
-      "format": "typescript",
-      "fragment": "        const fSpring = stiffness * deltaL;\n        const fDamping = damping * (relVx * nx + relVy * ny);\n        const totalForce = fSpring + fDamping;\n\n        const Fx = totalForce * nx;\n        const Fy = totalForce * ny;\n\n        PhysicsUtils.applyBodyPairImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, deltaTime, -deltaTime);\n      } else if (joint.jointType === \"distance\") {",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 151,
-        "endLoc": {
-          "column": 16,
-          "line": 151,
-          "position": 6102
-        },
-        "name": "physics/dynamics/JointSolverSystem.ts",
-        "start": 143,
-        "startLoc": {
-          "column": 43,
-          "line": 143,
-          "position": 5686
-        }
-      },
-      "tokens": 83
-    },
-    {
-      "firstFile": {
         "end": 270,
         "endLoc": {
           "column": 9,
@@ -446,11 +409,11 @@
     },
     {
       "firstFile": {
-        "end": 167,
+        "end": 164,
         "endLoc": {
-          "column": 36,
-          "line": 167,
-          "position": 6645
+          "column": 17,
+          "line": 164,
+          "position": 6484
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 156,
@@ -461,15 +424,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "      EchoRunnerConfigSchema,\n      config.gameOptions?.rawConfig ?? {}\n    );\n    this.config = this.baseConfig;\n    this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);\n  }\n\n  protected override async onRegisterSystems(): Promise<void> {\n    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);\n\n    this.world.setResource(\"GameConfig\", this.config);\n    await super.onRegisterSystems();",
+      "fragment": "      EchoRunnerConfigSchema,\n      config.gameOptions?.rawConfig ?? {}\n    );\n    this.config = this.baseConfig;\n    this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);\n  }\n\n  protected override async onRegisterSystems(): Promise<void> {\n    this.config = this.setupArcadeGameConfig(this.baseConfig, resolveAndApplyMutators);",
       "isNew": false,
-      "lines": 12,
+      "lines": 9,
       "secondFile": {
-        "end": 106,
+        "end": 103,
         "endLoc": {
-          "column": 36,
-          "line": 106,
-          "position": 4229
+          "column": 17,
+          "line": 103,
+          "position": 4068
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 95,
@@ -479,7 +442,7 @@
           "position": 3749
         }
       },
-      "tokens": 101
+      "tokens": 68
     },
     {
       "firstFile": {
@@ -1408,32 +1371,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-01T00:35:31.448Z",
+    "detectionDate": "2026-10-02T00:37:14.277Z",
     "formats": {
       "typescript": {
-        "clones": 38,
-        "duplicatedLines": 296,
-        "duplicatedTokens": 2553,
-        "lines": 68955,
+        "clones": 37,
+        "duplicatedLines": 285,
+        "duplicatedTokens": 2437,
+        "lines": 68994,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.4292654629831049,
-        "percentageTokens": 0.7128397716008879,
+        "percentage": 0.4130793982085399,
+        "percentageTokens": 0.6802569177131979,
         "sources": 416,
-        "tokens": 358145
+        "tokens": 358247
       }
     },
     "total": {
-      "clones": 38,
-      "duplicatedLines": 296,
-      "duplicatedTokens": 2553,
-      "lines": 68955,
+      "clones": 37,
+      "duplicatedLines": 285,
+      "duplicatedTokens": 2437,
+      "lines": 68994,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.4292654629831049,
-      "percentageTokens": 0.7128397716008879,
+      "percentage": 0.4130793982085399,
+      "percentageTokens": 0.6802569177131979,
       "sources": 416,
-      "tokens": 358145
+      "tokens": 358247
     }
   }
 }

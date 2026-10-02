@@ -20,6 +20,61 @@ export class JointSolverSystem<
 > extends System<TRegistry> {
   private relVel = { x: 0, y: 0 };
 
+  private applySpringDampingImpulse(
+    w: World<CoreComponentRegistry>,
+    entityA: number,
+    velA: unknown,
+    isStaticA: boolean,
+    invMassA: number,
+    invInertiaA: number,
+    rxA: number,
+    ryA: number,
+    entityB: number,
+    velB: unknown,
+    isStaticB: boolean,
+    invMassB: number,
+    invInertiaB: number,
+    rxB: number,
+    ryB: number,
+    displacement: number,
+    stiffness: number,
+    damping: number,
+    relVx: number,
+    relVy: number,
+    nx: number,
+    ny: number,
+    deltaTime: number
+  ): void {
+    const fSpring = stiffness * displacement;
+    const fDamping = damping * (relVx * nx + relVy * ny);
+    const totalForce = fSpring + fDamping;
+
+    const Fx = totalForce * nx;
+    const Fy = totalForce * ny;
+
+    PhysicsUtils.applyBodyPairImpulse(
+      w,
+      entityA,
+      velA,
+      isStaticA,
+      invMassA,
+      invInertiaA,
+      rxA,
+      ryA,
+      entityB,
+      velB,
+      isStaticB,
+      invMassB,
+      invInertiaB,
+      rxB,
+      ryB,
+      Fx,
+      Fy,
+      deltaTime,
+      -deltaTime
+    );
+  }
+
   /**
    * Solves active joint constraints across all entities carrying a JointComponent.
    *
@@ -111,14 +166,7 @@ export class JointSolverSystem<
         }
 
         const deltaL = dist - restLength;
-        const fSpring = stiffness * deltaL;
-        const fDamping = damping * (relVx * nx + relVy * ny);
-        const totalForce = fSpring + fDamping;
-
-        const Fx = totalForce * nx;
-        const Fy = totalForce * ny;
-
-        PhysicsUtils.applyBodyPairImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, deltaTime, -deltaTime);
+        this.applySpringDampingImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, deltaL, stiffness, damping, relVx, relVy, nx, ny, deltaTime);
       } else if (joint.jointType === "distance") {
         const restLength = joint.restLength;
         const maxDistance = joint.maxDistance;
@@ -140,14 +188,7 @@ export class JointSolverSystem<
           const ny = dy / dist;
 
           if (stiffness > 0) {
-            const fSpring = stiffness * err;
-            const fDamping = damping * (relVx * nx + relVy * ny);
-            const totalForce = fSpring + fDamping;
-
-            const Fx = totalForce * nx;
-            const Fy = totalForce * ny;
-
-            PhysicsUtils.applyBodyPairImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, Fx, Fy, deltaTime, -deltaTime);
+            this.applySpringDampingImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, err, stiffness, damping, relVx, relVy, nx, ny, deltaTime);
           } else {
             // Rigid distance constraint
             const percent = 0.8;

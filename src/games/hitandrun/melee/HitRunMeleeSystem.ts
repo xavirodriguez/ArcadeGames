@@ -19,13 +19,10 @@ const MELEE_CONFIG_RESOURCE = "MeleeAttackConfig";
 /**
  * HitRunMeleeSystem — sword attack with startup / active / recovery.
  *
- * - Hitbox entity exists only during `active` and carries Damage + trigger collider.
- * - CombatSystem resolves hits; this system records victims so one swing hits each enemy once
- *   by stripping Damage from the hitbox after contacts are processed when needed,
- *   and by tracking hitEntityIds (CombatSystem does not dedupe multi-frame overlaps).
- * - New attacks blocked during startup and recovery.
- *
- * Phase times use simulation deltaTime only.
+ * Hitbox exists only during `active` (trigger collider for overlap queries).
+ * Damage is applied once per enemy per swing in this system (not via Damage+
+ * CombatSystem) so multi-frame overlaps cannot multi-hit.
+ * Emits combat:hit / combat:death deferred for juice (Paso B).
  */
 export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
@@ -71,7 +68,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
     if (phase === "idle") {
       if (this.wantsAttack(world, entity)) {
-        this.beginSwing(world, entity, melee, transform);
+        this.beginSwing(world, melee, transform);
       }
       return;
     }
@@ -87,7 +84,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
     if (phase === "active") {
       this.syncHitboxTransform(world, melee, transform, config);
-      this.recordHitsFromHitbox(world, melee);
+      this.recordHitsFromHitbox(world, entity, melee, config);
 
       if (melee.phaseElapsed >= config.activeSeconds) {
         this.enterRecovery(world, melee);
@@ -120,7 +117,6 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
   private beginSwing(
     world: World<CoreComponentRegistry>,
-    entity: Entity,
     melee: MeleeAttackComponent,
     transform: { scaleX?: number }
   ): void {
@@ -160,9 +156,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
   ): void {
     melee.phase = "active";
     melee.phaseElapsed = 0;
-
-    const hitbox = this.spawnHitbox(world, owner, melee, transform, config);
-    melee.hitboxEntity = hitbox;
+    melee.hitboxEntity = this.spawnHitbox(world, melee, transform, config);
   }
 
   private enterRecovery(
@@ -176,7 +170,6 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
   private spawnHitbox(
     world: World<CoreComponentRegistry>,
-    owner: Entity,
     melee: MeleeAttackComponent,
     transform: {
       x: number;
@@ -218,7 +211,6 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       angularVelocity: 0
     });
 
-    // Trigger collider — CombatSystem reads triggersEntered / collisions.
     world.addComponent(e, {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: halfW, halfHeight: halfH },
@@ -236,22 +228,13 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       triggersExited: []
     });
 
-    world.addComponent(e, {
-      type: "Damage",
-      amount: config.damage,
-      category: config.damageCategory,
-      friendlyFire: false,
-      consumption: "none",
-      sourceEntity: owner
-    });
-
+    // No Damage component: avoids CombatSystem multi-hit on sustained overlap.
     world.addComponent(e, {
       type: "Faction",
       faction: "player",
       value: "player"
     });
 
-    // Tag for queries / cleanup
     world.addComponent(e, {
       type: "Tag",
       tags: ["MeleeHitbox"]
@@ -290,8 +273,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     const hy = oy + config.hitboxOffsetY;
 
     const ht = world.getComponent(melee.hitboxEntity, "Transform");
-    if (!ht) return;
-    if (ht.x === hx && ht.y === hy) return;
+    if (!ht || (ht.x === hx && ht.y === hy)) return;
 
     const mut = world.getMutableComponent(melee.hitboxEntity, "Transform");
     if (mut) {
@@ -303,57 +285,11 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     }
   }
 
-  /**
-   * After CombatSystem runs in the same frame order, overlaps may persist across active frames.
-   * We mark entities that already took damage this swing and disable further damage to them
-   * by temporarily clearing Damage amount against already-hit targets via a filter list.
-   *
-   * Primary guarantee: track hitEntityIds from combat:hit where source is this hitbox.
-   * Secondary: if CollisionEvents list other entities already in hitEntityIds, remove Damage
-   * until end of swing is not needed if we zero-out by removing hitbox contacts — simplest
-   * approach used here: on combat events buffered is out of scope; instead scan triggers
-   * and if other is already in hit list, skip by ensuring Damage stays but CombatSystem
-   * will re-hit. So we MUST remove Damage from hitbox when all slots full OR filter.
-   *
-   * Practical approach without modifying CombatSystem:
-   * keep a parallel "already hit" list and strip Health changes is wrong.
-   * Better: when we detect a new collision with an enemy, if already in list, do nothing;
-   * if not, rely on CombatSystem once, then add to list and set Damage.amount = 0 until
-   * that contact ends — still multi-hit risk same frame.
-   *
-   * Frame order assumption: MeleeSystem runs AFTER CombatSystem in active frames for
-   * recording, and BEFORE next CombatSystem we set amount=0 if hitCount>0 for entities
-   * still overlapping — complex.
-   *
-   * Spec: "Cada swing golpea como máximo una vez a cada enemigo."
-   * Implementation: listen is heavy; instead on each active frame after recording
-   * collision partners into hitEntityIds when they have Health and we haven't listed them,
-   * apply damage once ourselves? That duplicates CombatSystem.
-   *
-   * Clean approach: hitbox keeps Damage; after first successful combat:hit on a target
-   * (recorded via pending from event or CollisionEvents + Health check), add to list.
-   * For subsequent frames, if otherEntity is in list, removeComponent Damage and re-add
-   * only for non-listed — too heavy.
-   *
-   * Simpler: consumption stays none; active window is short (0.1s); track hits by
-   * reading CollisionEvents on hitbox and if target already in hitEntityIds, skip;
-   * if not in list and has Health, manually apply one damage via same rules and push id.
-   * That bypasses CombatSystem for melee.
-   *
-   * Preferred for determinism + one-hit: manual resolve once per target in this system
-   * during active, using overlap from CollisionEvents, and hitbox has NO Damage component
-   * — only a marker. Then CombatSystem won't double-apply.
-   *
-   * Current spawn includes Damage for CombatSystem integration. recordHitsFromHitbox
-   * adds entities from triggersEntered to the list; if already listed, we remove Damage
-   * from hitbox when ANY listed entity is still in contact... imperfect.
-   *
-   * Final: apply one-shot damage in this system when seeing a new Hurtbox/Health enemy
-   * in collision events, and do not put Damage on the hitbox. Emit combat:hit deferred.
-   */
   private recordHitsFromHitbox(
     world: World<CoreComponentRegistry>,
-    melee: MeleeAttackComponent
+    owner: Entity,
+    melee: MeleeAttackComponent,
+    config: MeleeAttackConfig
   ): void {
     if (melee.hitboxEntity < 0 || !world.hasEntity(melee.hitboxEntity)) return;
 
@@ -367,7 +303,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     if (!events) return;
 
     const tryHit = (other: number): void => {
-      if (other === melee.hitboxEntity) return;
+      if (other === melee.hitboxEntity || other === owner) return;
       if (this.alreadyHit(melee, other)) return;
       if (!world.hasEntity(other)) return;
       if (!world.hasComponent(other, "Health")) return;
@@ -389,10 +325,6 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
         return;
       }
 
-      const config =
-        world.getResource<MeleeAttackConfig>(MELEE_CONFIG_RESOURCE) ??
-        DEFAULT_MELEE_ATTACK_CONFIG;
-
       const prev = health.current;
       const next = Math.max(0, prev - config.damage);
       const mutH = world.getMutableComponent(other, "Health") as
@@ -402,7 +334,6 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
       this.markHit(melee, other);
 
-      // Knockback direction from attacker facing (Paso C will own feel; apply baseline here)
       if (world.hasComponent(other, "Velocity")) {
         const vel = world.getMutableComponent(other, "Velocity") as
           | { vx: number; vy: number }
@@ -417,7 +348,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       if (bus) {
         bus.emitDeferred("combat:hit", {
           targetEntity: other,
-          sourceEntity: melee.hitboxEntity,
+          sourceEntity: owner,
           amount: config.damage,
           remainingHealth: next,
           category: config.damageCategory
@@ -426,7 +357,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
           world.getCommandBuffer().addComponent(other, { type: "Dead" });
           bus.emitDeferred("combat:death", {
             entity: other,
-            sourceEntity: melee.hitboxEntity,
+            sourceEntity: owner,
             category: config.damageCategory
           });
         }
@@ -469,7 +400,6 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
   }
 }
 
-/** True if the entity is in startup or recovery (cannot start a new swing). */
 export function isMeleeAttackLocked(
   melee: MeleeAttackComponent | undefined
 ): boolean {

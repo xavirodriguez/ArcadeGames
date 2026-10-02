@@ -1,12 +1,6 @@
 /**
- * Hit&Run — Option A clone of EchoRunner.
- *
- * This file is a full structural clone entry point. For the initial scaffold we
- * re-export a renamed subclass so the game is playable immediately while the
- * full line-by-line copy lives on the branch for divergence (kids / violent modes).
- *
- * To fully detach from EchoRunner later: replace the body with the copied
- * HitAndRunGame implementation (same systems, blueprints, gameId "hitandrun").
+ * Hit&Run — platformer run-and-gun / melee on @tiny-aster/core.
+ * Branch feature/hit-and-run; still thin vs EchoRunner until full detach.
  */
 import {
   EchoRunnerDefinition
@@ -26,12 +20,10 @@ import {
   RenderContext
 } from "@tiny-aster/core";
 import { EchoRunnerBlueprintMap } from "../echorunner/EchoRunnerGame";
+import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
-/**
- * HitAndRunGame is an arcade platformer game based on EchoRunner with a distinct gameId "hitandrun".
- */
 export class HitAndRunGame extends PlatformerArcadeGame<
   HitAndRunGameState,
   HitAndRunInput,
@@ -58,10 +50,11 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+    registerHitRunMelee(this.world);
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    // Scaffold initial entities
+    // Scaffold — player with MeleeAttack is expected from level/blueprint wiring.
   }
 
   public initializeRenderer(_renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
@@ -94,10 +87,9 @@ export const HitAndRunDefinition = {
     return new HitAndRunGame({ seed });
   },
   inputSchema: {
-    actions: ["left", "right", "jump", "pulse"]
+    actions: ["left", "right", "jump", "pulse", "attack"]
   },
   assets: EchoRunnerDefinition.assets
 };
 
-// Re-export input/state types used by hooks and tests
 export type { HitAndRunGameState, HitAndRunInput };

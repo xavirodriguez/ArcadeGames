@@ -6,3 +6,4 @@ export { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
 export * from "./weapons";
 export * from "./waves";
 export * from "./ai";
+export * from "./melee";

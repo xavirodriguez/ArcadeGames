@@ -1,24 +1,20 @@
 import type { HitRunEnemyArchetypeId } from "../waves/HitRunWaveTypes";
 import { getEnemyArchetype } from "../waves/HitRunEnemyArchetypes";
 
-/** Machine IDs registrados en StateMachineRegistry para Hit&Run. */
 export type HitRunMachineId =
   | "hr_walk"
   | "hr_hop"
   | "hr_charge"
   | "hr_shooter"
-  | "hr_tank";
+  | "hr_tank"
+  | "hr_flank";
 
 export interface ResolvedEnemyAI {
   machineId: HitRunMachineId;
   initialState: string;
-  /** Datos inyectados en StateMachine.data (duraciones, speeds, etc.). */
   data: Record<string, unknown>;
-  /** Si debe spawnear con PlayerSensor. */
   needsPlayerSensor: boolean;
-  /** Si debe spawnear con Patrol + GroundDetector. */
   needsPatrol: boolean;
-  /** Si dispara proyectiles. */
   canShoot: boolean;
   shootCooldown: number;
   shootDamage: number;
@@ -26,8 +22,8 @@ export interface ResolvedEnemyAI {
 }
 
 /**
- * Resuelve behaviorTags del arquetipo → máquina + parámetros.
- * Prioridad de locomoción: charge > hop > tank > walk > shooter puro.
+ * Prioridad: flank > charge > hop > tank > walk > shooter.
+ * Tag `flank` activa useFlank en cualquier máquina y puede forzar hr_flank.
  */
 export function resolveAIFromTags(
   tags: string[] | undefined,
@@ -40,6 +36,7 @@ export function resolveAIFromTags(
 
   const canShoot = t.has("shoot_slow") || t.has("shoot_heavy");
   const shootHeavy = t.has("shoot_heavy");
+  const useFlank = t.has("flank") || t.has("pincer");
 
   const baseData: Record<string, unknown> = {
     patrolSpeed: speed,
@@ -55,15 +52,53 @@ export function resolveAIFromTags(
     shootCooldown: shootHeavy ? 1.4 : 0.9,
     shootDamage: shootHeavy ? 2 : 1,
     shootCategory: shootHeavy ? "enemy_heavy" : "enemy_bullet",
-    shootSpeed: shootHeavy ? 200 : 280
+    shootSpeed: shootHeavy ? 200 : 280,
+    useFlank,
+    // Parámetros de flanqueo data-driven
+    flankOffsetX: useFlank ? 72 : 48,
+    flankArriveRadius: 18,
+    flankMaxDuration: 1.4,
+    flankSpeedMult: 1.2
   };
 
-  // Locomoción dominante
+  // Especialista en pinza
+  if (t.has("flank") || t.has("pincer")) {
+    // Si también es charge/hop, se queda en esa locomoción con useFlank=true
+    if (!t.has("charge") && !t.has("hop") && !t.has("tank")) {
+      return {
+        machineId: "hr_flank",
+        initialState: "Patrol",
+        data: {
+          ...baseData,
+          useFlank: true,
+          patrolSpeed: speed * 1.05,
+          attackDuration: 0.35,
+          recoveryDuration: 0.28,
+          flankOffsetX: 80,
+          flankMaxDuration: 1.6
+        },
+        needsPlayerSensor: true,
+        needsPatrol: true,
+        canShoot,
+        shootCooldown: baseData.shootCooldown as number,
+        shootDamage: baseData.shootDamage as number,
+        shootCategory: baseData.shootCategory as string
+      };
+    }
+  }
+
   if (t.has("charge")) {
     return {
       machineId: "hr_charge",
       initialState: "Idle",
-      data: { ...baseData, attackDuration: 0.9, recoveryDuration: 0.5 },
+      data: {
+        ...baseData,
+        attackDuration: 0.9,
+        recoveryDuration: 0.5,
+        // Charge + flank: breve reposicionamiento lateral antes de embestir
+        useFlank,
+        alertDuration: useFlank ? 0.15 : 0.25
+      },
       needsPlayerSensor: true,
       needsPatrol: false,
       canShoot,
@@ -77,7 +112,7 @@ export function resolveAIFromTags(
     return {
       machineId: "hr_hop",
       initialState: "Idle",
-      data: { ...baseData, attackDuration: 0.85 },
+      data: { ...baseData, attackDuration: 0.85, useFlank },
       needsPlayerSensor: true,
       needsPatrol: false,
       canShoot,
@@ -98,7 +133,11 @@ export function resolveAIFromTags(
         windupDuration: 0.4,
         attackDuration: 0.15,
         recoveryDuration: 0.8,
-        visionRange: 220
+        visionRange: 220,
+        useFlank: useFlank || true, // tanks siempre buscan ángulo
+        flankOffsetX: 96,
+        flankMaxDuration: 1.8,
+        flankSpeedMult: 0.9
       },
       needsPlayerSensor: true,
       needsPatrol: true,
@@ -110,12 +149,11 @@ export function resolveAIFromTags(
   }
 
   if (t.has("walk") || t.has("block") || t.has("shoot_slow")) {
-    // Caminante / muro / shooter ligero
     if (canShoot && !t.has("walk") && !t.has("block")) {
       return {
         machineId: "hr_shooter",
         initialState: "Idle",
-        data: baseData,
+        data: { ...baseData, useFlank },
         needsPlayerSensor: true,
         needsPatrol: false,
         canShoot: true,
@@ -129,8 +167,8 @@ export function resolveAIFromTags(
       initialState: "Patrol",
       data: {
         ...baseData,
-        // block = más lento
-        patrolSpeed: t.has("block") ? speed * 0.55 : speed
+        patrolSpeed: t.has("block") ? speed * 0.55 : speed,
+        useFlank: useFlank || t.has("walk") // walk flanquea por defecto (presión lateral)
       },
       needsPlayerSensor: true,
       needsPatrol: true,
@@ -141,11 +179,10 @@ export function resolveAIFromTags(
     };
   }
 
-  // Fallback
   return {
     machineId: "hr_walk",
     initialState: "Patrol",
-    data: baseData,
+    data: { ...baseData, useFlank: true },
     needsPlayerSensor: true,
     needsPatrol: true,
     canShoot: false,

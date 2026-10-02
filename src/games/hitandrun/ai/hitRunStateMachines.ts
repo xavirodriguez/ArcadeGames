@@ -1,8 +1,13 @@
 import type { World, CoreComponentRegistry } from "@tiny-aster/core";
 import type { StateMachineDefinition } from "@tiny-aster/core";
 import { tryEnemyShoot } from "./enemyShoot";
-
-/** Helpers locales (espejo de EnemyBehaviorHelpers del core, sin acoplar imports frágiles). */
+import {
+  DEFAULT_FLANK,
+  computeFlankTarget,
+  steerTowardFlank,
+  flipFlankSide,
+  type FlankConfig
+} from "./flankingHelpers";
 
 function zeroVx(world: World<CoreComponentRegistry>, entity: number): void {
   const vel = world.getComponent(entity, "Velocity");
@@ -54,7 +59,16 @@ function facePlayer(world: World<CoreComponentRegistry>, entity: number): void {
   }
 }
 
-/** Alert → Windup compartido */
+function flankConfigFromData(data: Record<string, unknown>): FlankConfig {
+  return {
+    offsetX: (data.flankOffsetX as number) ?? DEFAULT_FLANK.offsetX,
+    arriveRadius: (data.flankArriveRadius as number) ?? DEFAULT_FLANK.arriveRadius,
+    maxDuration: (data.flankMaxDuration as number) ?? DEFAULT_FLANK.maxDuration,
+    speedMult: (data.flankSpeedMult as number) ?? DEFAULT_FLANK.speedMult
+  };
+}
+
+/** Estados Alert / Windup compartidos */
 const alertWindup = {
   Alert: {
     onEnter(world: World<CoreComponentRegistry>, entity: number) {
@@ -66,7 +80,9 @@ const alertWindup = {
       data: Record<string, unknown>,
       elapsed: number
     ) {
-      return timed(data, "alertDuration", 0.25, elapsed, "Windup");
+      // Si useFlank → Flank; si no → Windup
+      const next = data.useFlank ? "Flank" : "Windup";
+      return timed(data, "alertDuration", 0.25, elapsed, next);
     }
   },
   Windup: {
@@ -82,12 +98,52 @@ const alertWindup = {
     ) {
       return timed(data, "windupDuration", 0.2, elapsed, "Attack");
     }
+  },
+  /** Estado de flanqueo compartido (hr_walk, hr_flank, hr_tank). */
+  Flank: {
+    onEnter(
+      world: World<CoreComponentRegistry>,
+      entity: number,
+      data: Record<string, unknown>
+    ) {
+      // Fijar lado al entrar (pinza / hash)
+      computeFlankTarget(world, entity, data);
+    },
+    onUpdate(
+      world: World<CoreComponentRegistry>,
+      entity: number,
+      data: Record<string, unknown>,
+      elapsed: number
+    ) {
+      const cfg = flankConfigFromData(data);
+      if (elapsed >= cfg.maxDuration) return "Windup";
+
+      const sensor = world.getComponent(entity, "PlayerSensor") as
+        | { detectedPlayerEntity?: number }
+        | undefined;
+      if (!playerDetected(sensor)) return "Patrol";
+
+      const target = computeFlankTarget(world, entity, data, cfg);
+      if (!target) return "Windup";
+
+      const baseSpeed = (data.patrolSpeed as number) ?? 60;
+      const speed = baseSpeed * cfg.speedMult;
+      const arrived = steerTowardFlank(
+        world,
+        entity,
+        target,
+        speed,
+        cfg.arriveRadius
+      );
+
+      // Disparo mientras flanquea (presión lateral)
+      if (data.canShoot) tryEnemyShoot(world, entity, data);
+
+      if (arrived) return "Windup";
+    }
   }
 };
 
-/**
- * Registra las 5 máquinas Hit&Run en StateMachineRegistry.
- */
 export function registerHitRunStateMachines(
   world: World<CoreComponentRegistry>
 ): void {
@@ -99,7 +155,7 @@ export function registerHitRunStateMachines(
     world.setResource("StateMachineRegistry", registry);
   }
 
-  // ─── hr_walk: patrulla + alerta ─────────────────────────────
+  // ─── hr_walk ────────────────────────────────────────────────
   registry["hr_walk"] = {
     states: {
       Patrol: {
@@ -147,7 +203,6 @@ export function registerHitRunStateMachines(
             }
           }
 
-          // Disparo ocasional en patrulla si canShoot
           if (data.canShoot && playerDetected(sensor)) {
             tryEnemyShoot(world, entity, data);
           }
@@ -172,8 +227,9 @@ export function registerHitRunStateMachines(
         }
       },
       Recovery: {
-        onEnter(world, entity) {
+        onEnter(world, entity, data) {
           zeroVx(world, entity);
+          if (data.useFlank) flipFlankSide(data);
         },
         onUpdate(_w, _e, data, elapsed) {
           return timed(data, "recoveryDuration", 0.35, elapsed, "Patrol");
@@ -182,7 +238,82 @@ export function registerHitRunStateMachines(
     }
   };
 
-  // ─── hr_hop: idle → salto hacia jugador ─────────────────────
+  // ─── hr_flank: especialista en pinza ─────────────────────────
+  registry["hr_flank"] = {
+    states: {
+      Patrol: {
+        onUpdate(world, entity, data) {
+          // Misma patrulla ligera que walk
+          const patrol = world.getComponent(entity, "Patrol") as
+            | { direction: number; startX: number; endX: number }
+            | undefined;
+          const gd = world.getComponent(entity, "GroundDetector") as
+            | { hasWallAhead?: boolean; hasGroundAhead?: boolean }
+            | undefined;
+          const sensor = world.getComponent(entity, "PlayerSensor") as
+            | { detectedPlayerEntity?: number }
+            | undefined;
+          const speed = ((data.patrolSpeed as number) ?? 70) * 0.85;
+
+          if (patrol) {
+            if (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) {
+              const mp = world.getMutableComponent(entity, "Patrol") as
+                | { direction: number }
+                | undefined;
+              if (mp) mp.direction = -mp.direction;
+            }
+            const cur = world.getComponent(entity, "Patrol") as
+              | { direction: number }
+              | undefined;
+            const targetVx = (cur?.direction ?? 1) * speed;
+            const vel = world.getComponent(entity, "Velocity");
+            if (vel && vel.vx !== targetVx) {
+              const mv = world.getMutableComponent(entity, "Velocity");
+              if (mv) mv.vx = targetVx;
+            }
+          }
+
+          if (playerDetected(sensor)) return "Alert";
+        }
+      },
+      ...alertWindup,
+      Attack: {
+        onEnter(world, entity, data) {
+          facePlayer(world, entity);
+          // Desde el flanco: empuje corto hacia el jugador
+          const speed = ((data.patrolSpeed as number) ?? 70) * 1.6;
+          const dir = dirToPlayer(world, entity);
+          const vel = world.getComponent(entity, "Velocity");
+          if (vel) {
+            const mv = world.getMutableComponent(entity, "Velocity");
+            if (mv) mv.vx = dir * speed;
+          }
+          if (data.canShoot) tryEnemyShoot(world, entity, data);
+        },
+        onUpdate(_w, _e, data, elapsed) {
+          return timed(data, "attackDuration", 0.35, elapsed, "Recovery");
+        }
+      },
+      Recovery: {
+        onEnter(world, entity, data) {
+          zeroVx(world, entity);
+          flipFlankSide(data); // alternar lado → pinza dinámica
+        },
+        onUpdate(world, entity, data, elapsed) {
+          // Si el jugador sigue cerca, volver a Flank sin patrullar
+          const sensor = world.getComponent(entity, "PlayerSensor") as
+            | { detectedPlayerEntity?: number }
+            | undefined;
+          const dur = (data.recoveryDuration as number) ?? 0.3;
+          if (elapsed >= dur) {
+            return playerDetected(sensor) ? "Flank" : "Patrol";
+          }
+        }
+      }
+    }
+  };
+
+  // ─── hr_hop ─────────────────────────────────────────────────
   registry["hr_hop"] = {
     states: {
       Idle: {
@@ -197,12 +328,24 @@ export function registerHitRunStateMachines(
           return timed(data, "idleDuration", 0.8, elapsed, "Windup");
         }
       },
-      ...alertWindup,
+      Alert: alertWindup.Alert,
+      Windup: alertWindup.Windup,
       Attack: {
         onEnter(world, entity, data) {
           const jumpVel = (data.jumpVelocity as number) ?? 240;
           const speed = (data.patrolSpeed as number) ?? 80;
-          const dir = dirToPlayer(world, entity);
+          // Hop con sesgo de flanco: salta hacia el lado preferido del jugador
+          let dir = dirToPlayer(world, entity);
+          if (data.useFlank) {
+            const target = computeFlankTarget(world, entity, data);
+            if (target) {
+              const self = world.getComponent(entity, "Transform");
+              if (self) {
+                const sx = self.worldX ?? self.x;
+                dir = target.x >= sx ? 1 : -1;
+              }
+            }
+          }
           const vel = world.getComponent(entity, "Velocity");
           if (vel) {
             const mv = world.getMutableComponent(entity, "Velocity");
@@ -223,8 +366,9 @@ export function registerHitRunStateMachines(
         }
       },
       Recovery: {
-        onEnter(world, entity) {
+        onEnter(world, entity, data) {
           zeroVx(world, entity);
+          if (data.useFlank) flipFlankSide(data);
         },
         onUpdate(_w, _e, data, elapsed) {
           return timed(data, "recoveryDuration", 0.35, elapsed, "Idle");
@@ -233,7 +377,7 @@ export function registerHitRunStateMachines(
     }
   };
 
-  // ─── hr_charge: idle → carga ────────────────────────────────
+  // ─── hr_charge ──────────────────────────────────────────────
   registry["hr_charge"] = {
     states: {
       Idle: {
@@ -247,7 +391,10 @@ export function registerHitRunStateMachines(
           if (playerDetected(sensor)) return "Alert";
         }
       },
-      ...alertWindup,
+      Alert: alertWindup.Alert,
+      // Charge puede flanquear brevemente antes de embestir
+      Flank: alertWindup.Flank,
+      Windup: alertWindup.Windup,
       Attack: {
         onEnter(world, entity, data) {
           const chargeSpeed = (data.chargeSpeed as number) ?? 300;
@@ -273,8 +420,9 @@ export function registerHitRunStateMachines(
         }
       },
       Recovery: {
-        onEnter(world, entity) {
+        onEnter(world, entity, data) {
           zeroVx(world, entity);
+          if (data.useFlank) flipFlankSide(data);
         },
         onUpdate(_w, _e, data, elapsed) {
           return timed(data, "recoveryDuration", 0.5, elapsed, "Idle");
@@ -283,7 +431,7 @@ export function registerHitRunStateMachines(
     }
   };
 
-  // ─── hr_shooter: idle, mira y dispara ───────────────────────
+  // ─── hr_shooter ─────────────────────────────────────────────
   registry["hr_shooter"] = {
     states: {
       Idle: {
@@ -297,7 +445,7 @@ export function registerHitRunStateMachines(
           if (playerDetected(sensor)) {
             facePlayer(world, entity);
             tryEnemyShoot(world, entity, data);
-            return "Alert";
+            return data.useFlank ? "Alert" : "Alert";
           }
           return timed(data, "idleDuration", 1.0, elapsed, "Idle");
         }
@@ -316,8 +464,9 @@ export function registerHitRunStateMachines(
         }
       },
       Recovery: {
-        onEnter(world, entity) {
+        onEnter(world, entity, data) {
           zeroVx(world, entity);
+          if (data.useFlank) flipFlankSide(data);
         },
         onUpdate(_w, _e, data, elapsed) {
           return timed(data, "recoveryDuration", 0.6, elapsed, "Idle");
@@ -326,7 +475,7 @@ export function registerHitRunStateMachines(
     }
   };
 
-  // ─── hr_tank: patrulla lenta + disparo pesado ───────────────
+  // ─── hr_tank ────────────────────────────────────────────────
   registry["hr_tank"] = {
     states: {
       Idle: {
@@ -341,7 +490,6 @@ export function registerHitRunStateMachines(
             facePlayer(world, entity);
             return "Alert";
           }
-          // Micro-patrulla si tiene Patrol
           const patrol = world.getComponent(entity, "Patrol") as
             | { direction: number }
             | undefined;
@@ -369,8 +517,9 @@ export function registerHitRunStateMachines(
         }
       },
       Recovery: {
-        onEnter(world, entity) {
+        onEnter(world, entity, data) {
           zeroVx(world, entity);
+          if (data.useFlank) flipFlankSide(data);
         },
         onUpdate(_w, _e, data, elapsed) {
           return timed(data, "recoveryDuration", 0.8, elapsed, "Idle");

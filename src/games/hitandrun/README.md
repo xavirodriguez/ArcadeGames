@@ -2,26 +2,18 @@
 
 Platformer + run-and-gun (Metal Slug feel) on `@tiny-aster/core`.
 
-**Branch:** `feature/hit-and-run` · **gameId:** `hitandrun` · **Route:** `/hitandrun`
+**Branch:** `feature/hit-and-run` · **gameId:** `hitandrun`
 
 ---
 
-## Sprint status
-
-| Task | Status | Entry point |
-|------|--------|-------------|
-| **A — Juice** | ✅ | `registerHitRunFeedback(world)` |
-| **B — Arsenal** | ✅ | `registerHitRunWeapons(world)` |
-| **C — Wave Director** | ✅ | `registerHitRunWaves(world)` |
-
-### Boot mínimo
+## Boot
 
 ```ts
 registerHitRunFeedback(this.world);
 registerHitRunWeapons(this.world);
+registerHitRunAI(this.world);      // FSMs + sensors + shoot cooldown
 registerHitRunWaves(this.world, { script: WAVE_OPENING });
 
-// jugador
 world.addComponent(player, {
   type: "HitRunWeapon",
   weaponId: "hmg",
@@ -31,64 +23,43 @@ world.addComponent(player, {
 
 ---
 
-## Task A — Feedback
-
-Events `combat:hit` / `combat:death` → `HitStopRemaining`, `HitRunScreenShake`, `Render.hitFlashFrames`.
-
-## Task B — Arsenal
-
-| Arma | consumption | category |
-|------|-------------|----------|
-| HMG | destroy-entity | bullet |
-| Shotgun | destroy-entity | shotgun |
-| Rocket | remove-component | explosive → AOE |
-
-## Task C — Wave Director
+## AI por behaviorTags ✅
 
 ```
-waves/
-  HitRunWaveTypes.ts
-  HitRunEnemyArchetypes.ts   # popcorn, wall, hopper, charger, elite
-  sampleWaves.ts             # opening, pressure, boss_lead, endless
-  waveFormations.ts          # point, line, column, wall, scatter, drop
-  HitRunEnemyPool.ts
-  HitRunWaveSystem.ts
-  registerHitRunWaves.ts
+ai/
+  behaviorTagResolver.ts   # tags → machineId + data
+  hitRunStateMachines.ts   # hr_walk | hr_hop | hr_charge | hr_shooter | hr_tank
+  enemyShoot.ts            # disparo data-driven
+  attachEnemyAI.ts         # StateMachine + PlayerSensor + Patrol
+  HitRunShootCooldownSystem.ts
+  registerHitRunAI.ts
 ```
 
-### JSON de oleada
+| Tag | Máquina | Comportamiento |
+|-----|---------|----------------|
+| `walk` / `block` | `hr_walk` | Patrulla, alerta, carga corta |
+| `hop` | `hr_hop` | Idle → salto hacia el jugador |
+| `charge` | `hr_charge` | Idle → charge a alta velocidad |
+| `shoot_slow` | (con walk o `hr_shooter`) | Disparo periódico |
+| `shoot_heavy` / `tank` | `hr_tank` | Lento + disparo pesado |
 
-```json
-[
-  { "t": 0, "type": "popcorn", "count": 6, "formation": "line" },
-  { "t": 5, "type": "wall", "count": 5, "formation": "wall" },
-  { "t": 8, "type": "hopper", "count": 4, "formation": "drop", "interval": 0.15 }
-]
-```
+Los arquetipos en `HitRunEnemyArchetypes` ya llevan `behaviorTags`. Al spawnear, `HitRunEnemyPool` llama `attachEnemyAI` automáticamente.
 
-- `t`: segundos desde el inicio del script
-- `formation`: `point` | `line` | `column` | `wall` | `scatter` | `drop`
-- `interval`: stagger entre unidades del mismo evento
-- `loop` + `loopDelay` en el script para endless
+### Añadir un comportamiento nuevo
 
-### Cambio de script en runtime
+1. Nueva entrada en `registerHitRunStateMachines`
+2. Mapear tags en `resolveAIFromTags`
+3. (Opcional) tag en el arquetipo JSON/catálogo
 
-```ts
-import { startWaveScript, WAVE_PRESSURE } from "./waves";
-startWaveScript(world, WAVE_PRESSURE);
-```
-
-### Determinismo
-
-- Timeline y formaciones fijas (sin `Math.random`)
-- Scatter usa hash de índice reproducible
-- Respeta `isSimulationFrozen` (hit-stop / pause)
+**Sin sistemas nuevos por enemigo** — solo datos + FSM registry.
 
 ---
 
-## Próximos pasos opcionales
+## Tasks A / B / C
 
-1. Detach completo de `EchoRunnerGame`
-2. PrefabPool real por arquetipo de enemigo
-3. Modos `kids` / `violent` (paleta + damage tables)
-4. AI StateMachines por `behaviorTags`
+| Task | Entry |
+|------|-------|
+| Juice | `registerHitRunFeedback` |
+| Arsenal | `registerHitRunWeapons` |
+| Waves | `registerHitRunWaves` |
+| AI | `registerHitRunAI` |

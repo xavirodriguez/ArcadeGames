@@ -5,3 +5,4 @@ export * from "./systems";
 export { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
 export * from "./weapons";
 export * from "./waves";
+export * from "./ai";

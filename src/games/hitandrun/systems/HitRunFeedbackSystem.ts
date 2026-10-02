@@ -14,26 +14,19 @@ import {
 } from "./HitRunFeedbackTypes";
 
 /**
- * HitRunFeedbackSystem — juice de combate para Hit&Run.
+ * HitRunFeedbackSystem — combat juice (Paso B).
  *
- * Fase recomendada: SystemPhase.GameRules
- *
- * Responsabilidades:
- *  1. Escuchar combat:hit / combat:death (emitidos diferidos por CombatSystem).
- *  2. Aplicar hit-stop global (resource "HitStopRemaining").
- *  3. Escribir screen-shake singleton (resource "HitRunScreenShake").
- *  4. Setear Render.hitFlashFrames en la víctima.
- *
- * NO muta Health, Damage, ni destruye entidades.
- * NO usa Math.random ni gameplayRandom (valores fijos desde config).
- *
- * @public
+ * - Hit-stop: resource "HitStopRemaining" (sim reads via isSimulationFrozen).
+ *   Always decremented; applied on combat:hit / combat:death.
+ * - Screen shake: presentation only — skipped when world.isReSimulating.
+ *   Writes HitRunScreenShake resource AND core ScreenShake on main Camera2D
+ *   so ScreenShakeSystem can drive VisualOffset.
+ * - hitFlashFrames on victim Render (also skipped on re-sim).
  */
 export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
   private config: HitRunFeedbackConfig;
   private subscribed = false;
 
-  /** Buffers reutilizables — cero allocs en el hot path. */
   private pendingHits: CombatHitPayload[] = [];
   private pendingDeaths: CombatDeathPayload[] = [];
 
@@ -49,10 +42,6 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
     };
   }
 
-  /**
-   * Llamar una vez tras registrar el sistema (p.ej. en onRegisterSystems).
-   * Los handlers solo encolan; el trabajo real ocurre en update().
-   */
   public subscribe(eventBus: EventBus): void {
     if (this.subscribed) return;
     this.subscribed = true;
@@ -66,18 +55,21 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
     });
   }
 
+  /** Test helper: enqueue without going through the bus. */
+  public enqueueHitForTest(payload: CombatHitPayload): void {
+    this.pendingHits.push(payload);
+  }
+
+  public enqueueDeathForTest(payload: CombatDeathPayload): void {
+    this.pendingDeaths.push(payload);
+  }
+
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    // Visual juice se omite en rollback re-sim (evita doble shake/flash).
-    // Hit-stop sí se aplica/decrementa para pacing determinista.
     const reSim = world.isReSimulating === true;
 
-    // 1) Decrementar hit-stop SIEMPRE (sim pausada, reloj sigue).
     this.tickHitStop(world, deltaTime);
+    this.tickScreenShakeResource(world, deltaTime);
 
-    // 2) Tick de screen-shake (elapsed); la capa de render lee intensity residual.
-    this.tickScreenShake(world, deltaTime);
-
-    // 3) Consumir eventos pendientes de este tick.
     if (this.pendingHits.length > 0) {
       this.processHits(world, reSim);
       this.pendingHits.length = 0;
@@ -87,8 +79,6 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
       this.pendingDeaths.length = 0;
     }
   }
-
-  // ─── Hit-stop ───────────────────────────────────────────────
 
   private tickHitStop(world: World<CoreComponentRegistry>, dt: number): void {
     const remaining = world.getResource<number>("HitStopRemaining");
@@ -104,8 +94,7 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
 
   private applyHitStop(world: World<CoreComponentRegistry>, seconds: number): void {
     if (seconds <= 0) return;
-    const current = (world.getResource<number>("HitStopRemaining") as number) || 0;
-    // Nos quedamos con el mayor (no apilar a ciegas).
+    const current = world.getResource<number>("HitStopRemaining") ?? 0;
     const next = Math.min(
       this.config.maxHitStopSeconds,
       Math.max(current, seconds)
@@ -113,9 +102,10 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
     world.setResource("HitStopRemaining", next);
   }
 
-  // ─── Screen shake (singleton de presentación) ───────────────
-
-  private tickScreenShake(world: World<CoreComponentRegistry>, dt: number): void {
+  private tickScreenShakeResource(
+    world: World<CoreComponentRegistry>,
+    dt: number
+  ): void {
     const shake = world.getResource<HitRunScreenShake>("HitRunScreenShake");
     if (!shake || shake.duration <= 0) return;
 
@@ -127,6 +117,10 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
     }
   }
 
+  /**
+   * Presentation-only. Must not run meaningful camera writes during re-sim
+   * (caller skips). Bridges to core ScreenShake for ScreenShakeSystem.
+   */
   private applyScreenShake(
     world: World<CoreComponentRegistry>,
     intensity: number,
@@ -134,22 +128,69 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
   ): void {
     if (intensity <= 0 || duration <= 0) return;
 
+    const capped = Math.min(intensity, this.config.maxShakeIntensity);
+
     let shake = world.getResource<HitRunScreenShake>("HitRunScreenShake");
     if (!shake) {
       shake = { intensity: 0, duration: 0, elapsed: 0 };
       world.setResource("HitRunScreenShake", shake);
     }
-
-    // Si ya hay un shake más fuerte, no lo degradamos.
-    const capped = Math.min(intensity, this.config.maxShakeIntensity);
     if (capped >= shake.intensity) {
       shake.intensity = capped;
       shake.duration = duration;
       shake.elapsed = 0;
     }
+
+    this.applyCoreCameraShake(world, capped, duration);
   }
 
-  // ─── Event processing ───────────────────────────────────────
+  private applyCoreCameraShake(
+    world: World<CoreComponentRegistry>,
+    intensity: number,
+    duration: number
+  ): void {
+    const cameras = world.query("Camera2D");
+    const len = cameras.length;
+    let mainCam: number | undefined;
+
+    for (let i = 0; i < len; i++) {
+      const cam = world.getComponent(cameras[i], "Camera2D") as
+        | { isMain?: boolean }
+        | undefined;
+      if (cam?.isMain) {
+        mainCam = cameras[i];
+        break;
+      }
+    }
+    if (mainCam === undefined && len > 0) {
+      mainCam = cameras[0];
+    }
+    if (mainCam === undefined) return;
+
+    if (world.hasComponent(mainCam, "ScreenShake")) {
+      const existing = world.getComponent(mainCam, "ScreenShake") as
+        | { intensity: number; duration: number; remaining: number }
+        | undefined;
+      if (existing && existing.intensity > intensity && existing.remaining > 0) {
+        return;
+      }
+      const mut = world.getMutableComponent(mainCam, "ScreenShake") as
+        | { intensity: number; duration: number; remaining: number }
+        | undefined;
+      if (mut) {
+        mut.intensity = intensity;
+        mut.duration = duration;
+        mut.remaining = duration;
+      }
+    } else {
+      world.getCommandBuffer().addComponent(mainCam, {
+        type: "ScreenShake",
+        intensity,
+        duration,
+        remaining: duration
+      });
+    }
+  }
 
   private resolveProfile(category?: string): HitFeedbackProfile {
     if (category && this.config.byCategory[category]) {
@@ -184,7 +225,11 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
 
       if (reSim) continue;
 
-      this.applyScreenShake(world, deathProfile.shakeIntensity, deathProfile.shakeDuration);
+      this.applyScreenShake(
+        world,
+        deathProfile.shakeIntensity,
+        deathProfile.shakeDuration
+      );
       this.applyHitFlash(world, death.entity, deathProfile.hitFlashFrames);
     }
   }
@@ -198,22 +243,20 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
     if (!world.hasEntity(entity)) return;
     if (!world.hasComponent(entity, "Render")) return;
 
-    const render = world.getComponent(entity, "Render");
-    // Evitar bump de stateVersion si ya tiene un flash igual o mayor
+    const render = world.getComponent(entity, "Render") as
+      | { hitFlashFrames?: number }
+      | undefined;
     if (render && (render.hitFlashFrames ?? 0) >= frames) return;
 
-    const mutable = world.getMutableComponent(entity, "Render");
+    const mutable = world.getMutableComponent(entity, "Render") as
+      | { hitFlashFrames?: number }
+      | undefined;
     if (mutable) {
       mutable.hitFlashFrames = frames;
     }
   }
 }
 
-/**
- * Helper para sistemas de SIMULACIÓN.
- * Usar al inicio de update():
- *   if (isSimulationFrozen(world)) return;
- */
 export function isSimulationFrozen(world: World<CoreComponentRegistry>): boolean {
   if (world.getResource("IsPaused") === true) return true;
   const hitStop = world.getResource<number>("HitStopRemaining");

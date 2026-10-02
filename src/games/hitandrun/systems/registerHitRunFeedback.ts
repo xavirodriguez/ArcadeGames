@@ -1,4 +1,9 @@
-import { SystemPhase, World, CoreComponentRegistry } from "@tiny-aster/core";
+import {
+  SystemPhase,
+  World,
+  CoreComponentRegistry,
+  ScreenShakeSystem
+} from "@tiny-aster/core";
 import {
   HitRunFeedbackSystem,
   DEFAULT_HIT_RUN_FEEDBACK_CONFIG,
@@ -6,8 +11,7 @@ import {
 } from "./index";
 
 /**
- * Registra HitRunFeedbackSystem + recursos iniciales en el world.
- * Llamar desde HitAndRunGame.onRegisterSystems().
+ * Registers HitRunFeedbackSystem + ScreenShakeSystem + resources.
  */
 export function registerHitRunFeedback(
   world: World<CoreComponentRegistry>,
@@ -19,6 +23,12 @@ export function registerHitRunFeedback(
   });
 
   world.addSystem(feedback, { phase: SystemPhase.GameRules, priority: 10 });
+
+  // Presentation: applies VisualOffset on main camera from ScreenShake components.
+  world.addSystem(new ScreenShakeSystem(), {
+    phase: SystemPhase.Presentation,
+    priority: 5
+  });
 
   const bus = world.getEventBus();
   if (bus) {

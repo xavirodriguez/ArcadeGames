@@ -1,9 +1,9 @@
 import type { Entity } from "@tiny-aster/core";
 
-/** Payload emitido por CombatSystem (emitDeferred). */
+/** Payload emitido por CombatSystem / HitRunMeleeSystem (emitDeferred). */
 export interface CombatHitPayload {
   targetEntity: Entity;
-  sourceEntity: Entity;
+  sourceEntity?: Entity;
   amount: number;
   remainingHealth: number;
   category?: string;
@@ -11,22 +11,16 @@ export interface CombatHitPayload {
 
 export interface CombatDeathPayload {
   entity: Entity;
-  sourceEntity: Entity;
+  sourceEntity?: Entity;
   category?: string;
 }
 
-/**
- * Hit-stop global. La simulación lo lee; HitRunFeedbackSystem lo decrementa.
- * Resource key: "HitStopRemaining" (number, segundos).
- */
+/** Resource key: "HitStopRemaining" (seconds of global sim freeze). */
 export type HitStopRemaining = number;
 
 /**
- * Screen-shake singleton de presentación.
- * Resource key: "HitRunScreenShake"
- *
- * La capa de render calcula el offset con renderRandom/Math.random;
- * este resource solo guarda intensity/duration/elapsed.
+ * Presentation mirror resource (optional readers).
+ * Camera path uses core ScreenShake + ScreenShakeSystem.
  */
 export interface HitRunScreenShake {
   intensity: number;
@@ -34,7 +28,6 @@ export interface HitRunScreenShake {
   elapsed: number;
 }
 
-/** Tabla data-driven: category de daño → feedback. */
 export interface HitFeedbackProfile {
   hitStopSeconds: number;
   shakeIntensity: number;
@@ -43,61 +36,72 @@ export interface HitFeedbackProfile {
 }
 
 export interface HitRunFeedbackConfig {
-  /** Feedback por categoría de DamageComponent.category */
   byCategory: Record<string, HitFeedbackProfile>;
-  /** Fallback si category no está en la tabla */
   defaultHit: HitFeedbackProfile;
-  /** Feedback específico de muerte */
   death: HitFeedbackProfile;
-  /** Tope de hit-stop apilado (evita freezes eternos en combos) */
   maxHitStopSeconds: number;
-  /** Tope de intensidad de shake */
   maxShakeIntensity: number;
 }
 
+// ─── Tunables (Paso B) — adjust by hand; do not scatter magic numbers ───
+
+/** Hit-stop on a normal (non-lethal) hit — starting feel value. */
+export const HIT_STOP_NORMAL_SECONDS = 0.045;
+/** Hit-stop when the hit kills (combat:death) — longer freeze. */
+export const HIT_STOP_KILL_SECONDS = 0.1;
+/** Cap so combos cannot freeze the sim indefinitely. */
+export const HIT_STOP_MAX_SECONDS = 0.2;
+
+/** Screen-shake intensity on a normal hit (pixels scale for ScreenShakeSystem). */
+export const SCREEN_SHAKE_NORMAL_INTENSITY = 4;
+/** Screen-shake duration on a normal hit (seconds). */
+export const SCREEN_SHAKE_NORMAL_DURATION = 0.1;
+/** Screen-shake intensity on kill. */
+export const SCREEN_SHAKE_KILL_INTENSITY = 10;
+/** Screen-shake duration on kill. */
+export const SCREEN_SHAKE_KILL_DURATION = 0.25;
+/** Hard cap on shake intensity. */
+export const SCREEN_SHAKE_MAX_INTENSITY = 18;
+
 export const DEFAULT_HIT_RUN_FEEDBACK_CONFIG: HitRunFeedbackConfig = {
   byCategory: {
-    // Metal Slug feel: balas rápidas = poco freeze, flash corto
     bullet: {
       hitStopSeconds: 0.03,
       shakeIntensity: 2.5,
       shakeDuration: 0.08,
       hitFlashFrames: 4
     },
-    // Escopeta / impacto pesado
     shotgun: {
       hitStopSeconds: 0.07,
       shakeIntensity: 8,
       shakeDuration: 0.18,
       hitFlashFrames: 6
     },
-    // Cohete / explosión
     explosive: {
       hitStopSeconds: 0.12,
       shakeIntensity: 14,
       shakeDuration: 0.35,
       hitFlashFrames: 8
     },
-    // Contacto cuerpo a cuerpo / kamikaze
     melee: {
-      hitStopSeconds: 0.05,
-      shakeIntensity: 5,
-      shakeDuration: 0.12,
+      hitStopSeconds: HIT_STOP_NORMAL_SECONDS,
+      shakeIntensity: SCREEN_SHAKE_NORMAL_INTENSITY,
+      shakeDuration: SCREEN_SHAKE_NORMAL_DURATION,
       hitFlashFrames: 5
     }
   },
   defaultHit: {
-    hitStopSeconds: 0.04,
-    shakeIntensity: 3,
-    shakeDuration: 0.1,
+    hitStopSeconds: HIT_STOP_NORMAL_SECONDS,
+    shakeIntensity: SCREEN_SHAKE_NORMAL_INTENSITY,
+    shakeDuration: SCREEN_SHAKE_NORMAL_DURATION,
     hitFlashFrames: 4
   },
   death: {
-    hitStopSeconds: 0.1,
-    shakeIntensity: 10,
-    shakeDuration: 0.25,
+    hitStopSeconds: HIT_STOP_KILL_SECONDS,
+    shakeIntensity: SCREEN_SHAKE_KILL_INTENSITY,
+    shakeDuration: SCREEN_SHAKE_KILL_DURATION,
     hitFlashFrames: 8
   },
-  maxHitStopSeconds: 0.2,
-  maxShakeIntensity: 18
+  maxHitStopSeconds: HIT_STOP_MAX_SECONDS,
+  maxShakeIntensity: SCREEN_SHAKE_MAX_INTENSITY
 };

@@ -1,6 +1,6 @@
 /**
  * Hit&Run — platformer run-and-gun / melee on @tiny-aster/core.
- * Branch feature/hit-and-run; still thin vs EchoRunner until full detach.
+ * Branch feature/hit-and-run.
  */
 import {
   EchoRunnerDefinition
@@ -21,6 +21,7 @@ import {
 } from "@tiny-aster/core";
 import { EchoRunnerBlueprintMap } from "../echorunner/EchoRunnerGame";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
+import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
@@ -50,11 +51,12 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+    registerHitRunFeedback(this.world);
     registerHitRunMelee(this.world);
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    // Scaffold — player with MeleeAttack is expected from level/blueprint wiring.
+    // Scaffold — player with MeleeAttack from level/blueprint wiring.
   }
 
   public initializeRenderer(_renderer: Renderer<CoreComponentRegistry, RenderContext>): void {

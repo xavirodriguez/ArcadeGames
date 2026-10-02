@@ -23,6 +23,10 @@ export function advanceStarPosition(
   return { posX, currentSize };
 }
 
+export function resolveActiveStarCount(starDensity?: number): number {
+  return Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (starDensity ?? 1.0))));
+}
+
 const starfieldLayer = createParallaxLayer<Star[]>({
   layerName: "layer2_distant_stars",
   isInitialized: (state) => state.starsInitialized,
@@ -38,7 +42,7 @@ export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, Co
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
 
     const starSpeedMult = theme.starSpeed || 1.0;
-    const activeStarCount = Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (theme.starDensity ?? 1.0))));
+    const activeStarCount = resolveActiveStarCount(theme.starDensity);
 
     ctx.save();
 
@@ -63,7 +67,7 @@ export const SkiaScrollingStarfieldEffect: EffectDrawer<any, CoreComponentRegist
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
 
     const starSpeedMult = theme.starSpeed || 1.0;
-    const activeStarCount = Math.min(STAR_COUNT, Math.max(1, Math.floor(STAR_COUNT * (theme.starDensity ?? 1.0))));
+    const activeStarCount = resolveActiveStarCount(theme.starDensity);
 
     canvas.save();
     const paint = Skia.Paint();

@@ -6,8 +6,18 @@ import {
   SpaceStationState,
   initializeSpaceStation,
   getOrCreateCached,
-  resolveLayerFrame
+  resolveLayerFrame,
+  advanceTwinkle
 } from "../SharedVFXInternal";
+
+export function advanceStationFrame(
+  st: SpaceStationState,
+  offsetX: number,
+  wrapCoordinate: (val: number) => number
+): number {
+  st.rotation += st.rotationSpeed;
+  return wrapCoordinate(st.x - offsetX * 0.1);
+}
 
 const spaceStationLayer = createParallaxLayer<SpaceStationState | undefined>({
   layerName: "layer5_near_objects",
@@ -22,8 +32,7 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
     if (!layerCtx) return;
     const { width, height, state, layerState: st, offsetX, wrapCoordinate } = layerCtx;
 
-    st.rotation += st.rotationSpeed;
-    const posX = wrapCoordinate(st.x - offsetX * 0.1);
+    const posX = advanceStationFrame(st, offsetX, wrapCoordinate);
 
     ctx.save();
     ctx.translate(posX, st.y);
@@ -88,8 +97,7 @@ export const DistantSpaceStationBackgroundEffect: EffectDrawer<CanvasRenderingCo
 
     for (let i = 0; i < st.beacons.length; i++) {
       const b = st.beacons[i];
-      b.twinklePhase += b.twinkleSpeed;
-      const pulse = 0.3 + 0.7 * Math.sin(b.twinklePhase);
+      const pulse = advanceTwinkle(b, 0.3, 0.7);
 
       ctx.fillStyle = b.color;
       ctx.globalAlpha = pulse;
@@ -114,8 +122,7 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, CoreComp
     if (!layerCtx) return;
     const { width, height, state, layerState: st, offsetX, wrapCoordinate } = layerCtx;
 
-    st.rotation += st.rotationSpeed;
-    const posX = wrapCoordinate(st.x - offsetX * 0.1);
+    const posX = advanceStationFrame(st, offsetX, wrapCoordinate);
 
     canvas.save();
     canvas.translate(posX, st.y);
@@ -195,8 +202,7 @@ export const SkiaDistantSpaceStationBackgroundEffect: EffectDrawer<any, CoreComp
 
     for (let i = 0; i < st.beacons.length; i++) {
       const b = st.beacons[i];
-      b.twinklePhase += b.twinkleSpeed;
-      const pulse = 0.3 + 0.7 * Math.sin(b.twinklePhase);
+      const pulse = advanceTwinkle(b, 0.3, 0.7);
 
       beaconPaint.setColor(b.skColor || Skia.Color(COSMIC_ARCADE_PALETTE.dangerRed));
       beaconPaint.setAlphaf(pulse);

@@ -20,6 +20,21 @@ export class JointSolverSystem<
 > extends System<TRegistry> {
   private relVel = { x: 0, y: 0 };
 
+  private computeDistanceError(joint: any, dist: number): number {
+    const restLength = joint.restLength;
+    const maxDistance = joint.maxDistance;
+    const minLength = joint.minLength;
+
+    if (maxDistance !== undefined && dist > maxDistance) {
+      return dist - maxDistance;
+    } else if (minLength !== undefined && dist < minLength) {
+      return dist - minLength;
+    } else if (maxDistance === undefined && minLength === undefined) {
+      return dist - restLength;
+    }
+    return 0;
+  }
+
   private applySpringDampingImpulse(
     w: World<CoreComponentRegistry>,
     entityA: number,
@@ -168,20 +183,10 @@ export class JointSolverSystem<
         const deltaL = dist - restLength;
         this.applySpringDampingImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, deltaL, stiffness, damping, relVx, relVy, nx, ny, deltaTime);
       } else if (joint.jointType === "distance") {
-        const restLength = joint.restLength;
-        const maxDistance = joint.maxDistance;
-        const minLength = joint.minLength;
         const stiffness = joint.stiffness ?? 0;
         const damping = joint.damping ?? 0;
 
-        let err = 0;
-        if (maxDistance !== undefined && dist > maxDistance) {
-          err = dist - maxDistance;
-        } else if (minLength !== undefined && dist < minLength) {
-          err = dist - minLength;
-        } else if (maxDistance === undefined && minLength === undefined) {
-          err = dist - restLength;
-        }
+        const err = this.computeDistanceError(joint, dist);
 
         if (Math.abs(err) > 0.0001 && dist > 0.0001) {
           const nx = dx / dist;

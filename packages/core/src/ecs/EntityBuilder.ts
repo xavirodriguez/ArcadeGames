@@ -32,6 +32,7 @@ export class EntityBuilder<
     this.useCommandBuffer = useCommandBuffer;
   }
 
+  // jscpd:ignore-start - Preserving explicit generic TypeScript static factory method signatures for full type inference
   /**
    * Creates a new Entity in the given World and initializes an EntityBuilder instance.
    */
@@ -64,6 +65,7 @@ export class EntityBuilder<
   >(world: World<TComponents, TEvents, TBlueprints>): EntityBuilder<TComponents, TEvents, TBlueprints> {
     return createBuilderInstance((w, e, cb) => new EntityBuilder(w, e, cb), world, undefined, true);
   }
+  // jscpd:ignore-end
 
   /**
    * Attaches a Transform component with default values, merged with optional config.

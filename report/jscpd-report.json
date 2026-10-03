@@ -1297,6 +1297,43 @@
     },
     {
       "firstFile": {
+        "end": 154,
+        "endLoc": {
+          "column": 9,
+          "line": 154,
+          "position": 3837
+        },
+        "name": "hitandrun/ai/enemyShoot.ts",
+        "start": 140,
+        "startLoc": {
+          "column": 11,
+          "line": 140,
+          "position": 3570
+        }
+      },
+      "format": "typescript",
+      "fragment": "    mask: 1,\n    offsetX: 0,\n    offsetY: 0,\n    isTrigger: true,\n    enabled: true\n  });\n  world.addComponent(e, {\n    type: \"CollisionEvents\",\n    collisions: [],\n    activeTriggers: [],\n    triggersEntered: [],\n    triggersExited: []\n  });\n  world.addComponent(e, {\n    type: \"Render\",",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 274,
+        "endLoc": {
+          "column": 11,
+          "line": 274,
+          "position": 7333
+        },
+        "name": "hitandrun/melee/HitRunMeleeSystem.ts",
+        "start": 258,
+        "startLoc": {
+          "column": 18,
+          "line": 258,
+          "position": 7036
+        }
+      },
+      "tokens": 61
+    },
+    {
+      "firstFile": {
         "end": 138,
         "endLoc": {
           "column": 3,
@@ -2148,32 +2185,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-03T11:44:50.172Z",
+    "detectionDate": "2026-10-03T11:56:51.316Z",
     "formats": {
       "typescript": {
-        "clones": 58,
-        "duplicatedLines": 611,
-        "duplicatedTokens": 4517,
-        "lines": 75805,
+        "clones": 59,
+        "duplicatedLines": 625,
+        "duplicatedTokens": 4578,
+        "lines": 75798,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.8060154343381044,
-        "percentageTokens": 1.1521048805682732,
+        "percentage": 0.8245600147761154,
+        "percentageTokens": 1.1678213932226564,
         "sources": 465,
-        "tokens": 392065
+        "tokens": 392012
       }
     },
     "total": {
-      "clones": 58,
-      "duplicatedLines": 611,
-      "duplicatedTokens": 4517,
-      "lines": 75805,
+      "clones": 59,
+      "duplicatedLines": 625,
+      "duplicatedTokens": 4578,
+      "lines": 75798,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.8060154343381044,
-      "percentageTokens": 1.1521048805682732,
+      "percentage": 0.8245600147761154,
+      "percentageTokens": 1.1678213932226564,
       "sources": 465,
-      "tokens": 392065
+      "tokens": 392012
     }
   }
 }

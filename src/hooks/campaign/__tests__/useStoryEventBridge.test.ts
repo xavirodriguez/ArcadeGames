@@ -82,4 +82,58 @@ describe("useStoryEventBridge isolated unit test", () => {
     eventBus.emit("story:scene_change", { sceneToLoad: "flappybird" });
     expect(onSceneChange).toHaveBeenCalledTimes(1);
   });
+
+  it("bridges game:over and objective events from game's private EventBus to campaign EventBus", () => {
+    const onSceneChange = jest.fn();
+    const onGameOver = jest.fn();
+
+    const activeGameIdRef = { current: "asteroids" };
+    const activeRunContextRef = { current: { runId: "test_run_2" } as MiniGameRunContext };
+    const sessionStartTimeRef = { current: Date.now() - 3000 };
+
+    const privateGameBus = new EventBus();
+
+    const mockGetMiniGameResult = jest.fn().mockReturnValue({
+      runId: "test_run_2",
+      gameId: "asteroids",
+      score: 2000,
+      completed: true,
+      durationMs: 3000,
+      metrics: {},
+      secretsFound: []
+    } as MiniGameResult);
+
+    const mockGame: Partial<BaseGame> = {
+      getEventBus: () => privateGameBus as any,
+      getMiniGameResult: mockGetMiniGameResult
+    };
+
+    const currentGameRef = { current: mockGame as BaseGame };
+
+    const cleanup = setupStoryEventBridge({
+      eventBus,
+      runtime,
+      midGameDirector,
+      activeGameIdRef,
+      activeRunContextRef,
+      sessionStartTimeRef,
+      currentGameRef,
+      onSceneChange,
+      onGameOver
+    });
+
+    // Emit game:over on the GAME'S PRIVATE EventBus
+    privateGameBus.emit("game:over", { score: 2000, level: 1 });
+
+    // Verify onGameOver was triggered via campaign EventBus bridge
+    expect(onGameOver).toHaveBeenCalledTimes(1);
+    expect(onGameOver).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameId: "asteroids",
+        score: 2000
+      })
+    );
+
+    cleanup();
+  });
 });

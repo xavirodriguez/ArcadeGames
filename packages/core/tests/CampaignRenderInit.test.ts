@@ -8,12 +8,12 @@ describe("Campaign Render Init Test (Hypothesis A)", () => {
 
     const mockRenderer = {
       type: "canvas",
+      render: jest.fn(),
       registerShape: jest.fn(),
-      registerShapeRenderer: jest.fn(),
       registerBackgroundEffect: jest.fn(),
       registerPostProcessEffect: jest.fn(),
       registerParticleEffect: jest.fn()
-    } satisfies Partial<Renderer<Record<string, never>, Record<string, never>>> as Renderer<Record<string, never>, Record<string, never>>;
+    } as any;
 
     const spy = jest.spyOn(game, "initializeRenderer");
 

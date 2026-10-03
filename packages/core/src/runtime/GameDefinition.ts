@@ -13,7 +13,7 @@ export type GameId =
   | "geometrywars"
   | "platformer"
   | "frogger"
-  | "racing";
+  | "racing"
   | "vertical-shmup";
 
 /**

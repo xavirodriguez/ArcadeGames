@@ -50,6 +50,8 @@ export const GAME_ACCENTS = {
   racing: {
     primary: 'cyan' as const,
     secondary: 'gold' as const,
+    accent: 'pink' as const,
+  },
   'vertical-shmup': {
     primary: 'cyan' as const,
     secondary: 'purple' as const,

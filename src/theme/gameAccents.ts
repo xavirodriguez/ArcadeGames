@@ -184,6 +184,7 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     log: accentColors.secondary,
     turtle: accentColors.secondary,
     lily_pad: accentColors.primary,
+    "track-wall": accentColors.accent,
   };
 
   return {

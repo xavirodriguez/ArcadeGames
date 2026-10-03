@@ -47,6 +47,11 @@ export const GAME_ACCENTS = {
     secondary: 'cyan' as const,
     accent: 'pink' as const,
   },
+  racing: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'pink' as const,
+  },
   campaign: {
     primary: 'cyan' as const,
     secondary: 'gold' as const,
@@ -184,6 +189,7 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     log: accentColors.secondary,
     turtle: accentColors.secondary,
     lily_pad: accentColors.primary,
+    "track-wall": accentColors.accent,
     "track-wall": accentColors.accent,
   };
 

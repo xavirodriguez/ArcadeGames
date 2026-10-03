@@ -1,7 +1,5 @@
 /**
  * Hit&Run — fantasy belt-scroll beat'em-up (melee + ranged) on @tiny-aster/core.
- * Conversion from platformer run-and-gun toward classic belt-scroll feel.
- * Branch feature/hit-and-run → belt systems live under ./belt and ./fantasy.
  */
 import {
   EchoRunnerDefinition
@@ -24,8 +22,17 @@ import { EchoRunnerBlueprintMap } from "../echorunner/EchoRunnerGame";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
 import { registerHitRunHurt } from "./hurt/registerHitRunHurt";
+import { registerHitRunWeapons } from "./weapons/registerHitRunWeapons";
 import { registerBeltSystems } from "./belt/registerBeltSystems";
-import { DEFAULT_COMBO_MELEE_CONFIG, COMBO_MELEE_CONFIG_RESOURCE } from "./melee/ComboMeleeTypes";
+import {
+  registerBeltPlayerBlueprint,
+  DEFAULT_BELT_PLAYER_SPAWN
+} from "./belt/registerBeltPlayerBlueprint";
+import { mutateBeltInputState } from "./belt/mutateBeltInputState";
+import {
+  DEFAULT_COMBO_MELEE_CONFIG,
+  COMBO_MELEE_CONFIG_RESOURCE
+} from "./melee/ComboMeleeTypes";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
@@ -61,6 +68,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     registerHitRunFeedback(this.world);
     registerHitRunHurt(this.world);
     registerHitRunMelee(this.world);
+    registerHitRunWeapons(this.world);
 
     this.world.setResource(COMBO_MELEE_CONFIG_RESOURCE, {
       ...DEFAULT_COMBO_MELEE_CONFIG
@@ -68,20 +76,37 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    // Scaffold — player should receive BeltMovement + BeltInput + ComboMelee
-    // + HitRunWeapon when level/blueprint wiring is completed.
+    registerBeltPlayerBlueprint(this.blueprints);
+
+    const playerEntity = this.world.createEntity();
+    const playerBp = this.blueprints.get("player");
+    if (playerBp) {
+      playerBp.spawn(this.world, playerEntity, {
+        x: DEFAULT_BELT_PLAYER_SPAWN.x,
+        y: DEFAULT_BELT_PLAYER_SPAWN.y,
+        weaponId: "longbow",
+        health: 5
+      });
+    } else {
+      throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
+    }
   }
 
-  public initializeRenderer(_renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
-    // Fantasy drawers: goblin, skeleton, orc, wraith, arrows, fireballs…
+  public override setInputState(input: Partial<HitAndRunInput>): void {
+    mutateBeltInputState(this.getWorld(), input);
   }
+
+  public initializeRenderer(
+    _renderer: Renderer<CoreComponentRegistry, RenderContext>
+  ): void {}
 
   public getGameState(): HitAndRunGameState {
     const rs = this.world.getResource<RunState>("RunState");
     return {
       type: "HitAndRunGameState",
       score: rs
-        ? rs.collectedTemporalIds.length * 10 + rs.collectedPermanentIds.length * 100
+        ? rs.collectedTemporalIds.length * 10 +
+          rs.collectedPermanentIds.length * 100
         : 0,
       isGameOver: this.gameOver,
       attempts: rs?.attempt ?? 1,
@@ -104,7 +129,16 @@ export const HitAndRunDefinition = {
     return new HitAndRunGame({ seed });
   },
   inputSchema: {
-    actions: ["left", "right", "up", "down", "jump", "attack", "fire", "special"]
+    actions: [
+      "left",
+      "right",
+      "up",
+      "down",
+      "jump",
+      "attack",
+      "fire",
+      "special"
+    ]
   },
   assets: EchoRunnerDefinition.assets
 };

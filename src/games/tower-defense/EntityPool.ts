@@ -24,7 +24,8 @@ export class TowerProjectilePool {
     y: number,
     targetEntity: number | null,
     damage: number,
-    speed: number
+    speed: number,
+    slow?: { factor: number; durationMs: number }
   ): Entity {
     // Prefer fresh spawn for correctness with full component setup;
     // pool recycling can be tightened later once blueprints are fully wired.
@@ -33,7 +34,7 @@ export class TowerProjectilePool {
       // Re-init via factory-like path is safer than partial mutate for now
       world.destroyEntity(entity);
     }
-    return spawnTowerProjectile(world, config, x, y, targetEntity, damage, speed);
+    return spawnTowerProjectile(world, config, x, y, targetEntity, damage, speed, slow);
   }
 
   release(entity: Entity): void {

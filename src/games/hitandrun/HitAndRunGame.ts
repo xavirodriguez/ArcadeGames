@@ -54,6 +54,7 @@ import { registerHitRunHurt } from "./hurt/registerHitRunHurt";
 import { registerHitRunWeapons } from "./weapons/registerHitRunWeapons";
 import { registerHitRunAI } from "./ai/registerHitRunAI";
 import { registerHitRunWaves } from "./waves/registerHitRunWaves";
+import { registerHitRunDeathFlow } from "./systems/HitRunDeathFlowSystem";
 import { WAVE_OPENING } from "./waves/sampleWaves";
 import {
   WAVE_DIRECTOR_RESOURCE,
@@ -179,7 +180,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   public override setInputState(input: Partial<HitAndRunInput>): void {
     mutatePlatformerInputState(this.getWorld(), input);
 
-    // Map attack → fireHeld/firePressed for HitRunWeaponSystem (HMG hold-to-fire)
     const world = this.getWorld();
     const playerEntity = world.query("PlatformerInput")[0];
     if (playerEntity !== undefined && input.attack !== undefined) {
@@ -364,6 +364,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       defaultSpawnX: 520,
       defaultSpawnY: 320
     });
+    registerHitRunDeathFlow(this.world);
 
     const eventBus = this.world.getEventBus();
     if (eventBus) {
@@ -399,9 +400,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         this.audio.playSFX("score");
       });
 
-      eventBus.on("PlayerDied", () => {
-        this.audio.playSFX("game_over");
-      });
+      // PlayerDied → HitRunDeathFlowSystem (slow-mo + SFX + restart flag)
     }
   }
 

@@ -7,6 +7,7 @@ import { PongDefinition } from "../games/pong/PongGame";
 import { FlappyBirdDefinition } from "../games/flappybird/FlappyBirdGame";
 import { PlatformerDefinition } from "../games/platformer/PlatformerGame";
 import { FroggerDefinition } from "../games/frogger/FroggerGame";
+import { RacingDefinition } from "../games/racing/RacingGame";
 
 let isRegistered = false;
 

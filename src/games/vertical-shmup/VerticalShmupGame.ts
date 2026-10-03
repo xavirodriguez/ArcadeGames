@@ -1,4 +1,4 @@
-import { BaseGame, ConfigService, NetworkManager, NetworkController, NullBaseGame, WebAudioPlayer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, GameDefinition, BaseGameConfig, SystemPhase } from "@tiny-aster/core";
+import { BaseGame, ConfigService, NetworkManager, NetworkController, NullBaseGame, WebAudioPlayer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, GameDefinition, BaseGameConfig, World } from "@tiny-aster/core";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { loadAndMutateConfig } from "../shared/configHelper";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";

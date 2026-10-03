@@ -1,14 +1,6 @@
 import type { HitRunWeaponDefinition, HitRunWeaponId } from "./HitRunWeaponTypes";
 
-/**
- * Catálogo data-driven de armas Hit&Run.
- * Cambiar feel = editar números aquí; cero sistemas nuevos por arma.
- */
-export const HIT_RUN_WEAPON_CATALOG: Record<HitRunWeaponId, HitRunWeaponDefinition> = {
-  /**
-   * Heavy Machine Gun
-   * Alta cadencia, hitbox pequeña, inercia (recoil) al disparar.
-   */
+export const HIT_RUN_WEAPON_CATALOG: Record<string, HitRunWeaponDefinition> = {
   hmg: {
     id: "hmg",
     cooldownDuration: 0.08,
@@ -29,11 +21,6 @@ export const HIT_RUN_WEAPON_CATALOG: Record<HitRunWeaponId, HitRunWeaponDefiniti
     explosionDamage: 0,
     recoilImpulse: 18
   },
-
-  /**
-   * Escopeta
-   * Cono de pellets, consumption destroy-entity, alto daño + shake (category shotgun).
-   */
   shotgun: {
     id: "shotgun",
     cooldownDuration: 0.55,
@@ -46,7 +33,7 @@ export const HIT_RUN_WEAPON_CATALOG: Record<HitRunWeaponId, HitRunWeaponDefiniti
     damageCategory: "shotgun",
     consumption: "destroy-entity",
     pelletCount: 5,
-    spreadRadians: 0.45, // ~26° total
+    spreadRadians: 0.45,
     muzzleOffset: 12,
     sfxName: "shoot",
     explosive: false,
@@ -54,12 +41,6 @@ export const HIT_RUN_WEAPON_CATALOG: Record<HitRunWeaponId, HitRunWeaponDefiniti
     explosionDamage: 0,
     recoilImpulse: 40
   },
-
-  /**
-   * Lanzacohetes
-   * Proyectil lento, consumption remove-component al impactar,
-   * genera combat:explosion radial en cadena.
-   */
   rocket: {
     id: "rocket",
     cooldownDuration: 1.1,
@@ -79,9 +60,89 @@ export const HIT_RUN_WEAPON_CATALOG: Record<HitRunWeaponId, HitRunWeaponDefiniti
     explosionRadius: 56,
     explosionDamage: 4,
     recoilImpulse: 28
+  },
+  longbow: {
+    id: "longbow",
+    cooldownDuration: 0.28,
+    projectileSpeed: 480,
+    projectileTtl: 1.2,
+    projectileSize: 3.5,
+    projectileColor: "#a8a29e",
+    projectileShape: "arrow",
+    damage: 1,
+    damageCategory: "bullet",
+    consumption: "destroy-entity",
+    pelletCount: 1,
+    spreadRadians: 0,
+    muzzleOffset: 16,
+    sfxName: "shoot",
+    explosive: false,
+    explosionRadius: 0,
+    explosionDamage: 0,
+    recoilImpulse: 12
+  },
+  rune_scatter: {
+    id: "rune_scatter",
+    cooldownDuration: 0.6,
+    projectileSpeed: 400,
+    projectileTtl: 0.4,
+    projectileSize: 4,
+    projectileColor: "#8b5cf6",
+    projectileShape: "bolt",
+    damage: 2,
+    damageCategory: "shotgun",
+    consumption: "destroy-entity",
+    pelletCount: 5,
+    spreadRadians: 0.42,
+    muzzleOffset: 14,
+    sfxName: "shoot",
+    explosive: false,
+    explosionRadius: 0,
+    explosionDamage: 0,
+    recoilImpulse: 36
+  },
+  fire_staff: {
+    id: "fire_staff",
+    cooldownDuration: 1.15,
+    projectileSpeed: 200,
+    projectileTtl: 2.2,
+    projectileSize: 8,
+    projectileColor: "#f97316",
+    projectileShape: "fireball",
+    damage: 3,
+    damageCategory: "explosive",
+    consumption: "remove-component",
+    pelletCount: 1,
+    spreadRadians: 0,
+    muzzleOffset: 18,
+    sfxName: "shoot",
+    explosive: true,
+    explosionRadius: 58,
+    explosionDamage: 4,
+    recoilImpulse: 28
+  },
+  crossbow: {
+    id: "crossbow",
+    cooldownDuration: 0.75,
+    projectileSpeed: 520,
+    projectileTtl: 1.4,
+    projectileSize: 4.5,
+    projectileColor: "#fbbf24",
+    projectileShape: "bolt",
+    damage: 3,
+    damageCategory: "bullet",
+    consumption: "destroy-entity",
+    pelletCount: 1,
+    spreadRadians: 0,
+    muzzleOffset: 15,
+    sfxName: "shoot",
+    explosive: false,
+    explosionRadius: 0,
+    explosionDamage: 0,
+    recoilImpulse: 22
   }
 };
 
 export function getWeaponDefinition(id: HitRunWeaponId): HitRunWeaponDefinition {
-  return HIT_RUN_WEAPON_CATALOG[id];
+  return HIT_RUN_WEAPON_CATALOG[id] ?? HIT_RUN_WEAPON_CATALOG.hmg;
 }

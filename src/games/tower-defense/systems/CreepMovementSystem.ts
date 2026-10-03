@@ -3,8 +3,8 @@ import type { TowerDefenseComponentRegistry, WaypointList, GameStateComponent } 
 
 /**
  * Moves each creep toward the next waypoint.
- * Purely deterministic — no RNG.
- * When a creep reaches the final waypoint it damages the base (lives--) and is destroyed.
+ * Applies slowFactor while slowRemainingMs > 0.
+ * Deterministic — no RNG.
  */
 export class CreepMovementSystem extends System<TowerDefenseComponentRegistry> {
   readonly phase = SystemPhase.Simulation;
@@ -21,8 +21,22 @@ export class CreepMovementSystem extends System<TowerDefenseComponentRegistry> {
       const transform = world.getComponent(entity, "Transform");
       if (!creep || !transform) continue;
 
+      if (creep.slowRemainingMs > 0) {
+        world.mutateComponent(entity, "Creep", (c) => {
+          c.slowRemainingMs = Math.max(0, c.slowRemainingMs - dt);
+          if (c.slowRemainingMs <= 0) {
+            c.slowFactor = 1;
+            c.speed = c.baseSpeed;
+          }
+        });
+      }
+
+      const effectiveSpeed =
+        creep.slowRemainingMs > 0
+          ? creep.baseSpeed * (creep.slowFactor || 1)
+          : creep.baseSpeed;
+
       if (creep.waypointIndex >= points.length) {
-        // Reached base
         this.reachBase(world, entity);
         continue;
       }
@@ -33,7 +47,6 @@ export class CreepMovementSystem extends System<TowerDefenseComponentRegistry> {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < 2) {
-        // Snap and advance
         world.mutateComponent(entity, "Transform", (t) => {
           t.x = target.x;
           t.y = target.y;
@@ -48,8 +61,7 @@ export class CreepMovementSystem extends System<TowerDefenseComponentRegistry> {
         continue;
       }
 
-      const speed = creep.speed;
-      const step = Math.min(speed * (dt / 1000), dist);
+      const step = Math.min(effectiveSpeed * (dt / 1000), dist);
       const nx = dx / dist;
       const ny = dy / dist;
 
@@ -58,22 +70,25 @@ export class CreepMovementSystem extends System<TowerDefenseComponentRegistry> {
         t.y += ny * step;
       });
 
-      // Update progress for targeting priority
-      const segmentProgress = 1 - dist / (dist + step); // approximate
+      const segmentProgress = 1 - dist / (dist + step);
       world.mutateComponent(entity, "Creep", (c) => {
         c.pathProgress = (c.waypointIndex + segmentProgress) / points.length;
+        c.speed = effectiveSpeed;
       });
 
-      // Also update Velocity for any systems that read it
       world.mutateComponent(entity, "Velocity", (v) => {
-        v.vx = nx * speed;
-        v.vy = ny * speed;
+        v.vx = nx * effectiveSpeed;
+        v.vy = ny * effectiveSpeed;
       });
     }
   }
 
   private reachBase(world: World<TowerDefenseComponentRegistry>, entity: number): void {
     world.eventBus?.emit("creep:reached_base", { entity });
+    const bus = world.getEventBus?.() ?? (world as any).eventBus;
+    if (bus && !(world as any).isReSimulating) {
+      bus.emitDeferred?.("PlaySFX", { name: "hit" }) ?? bus.emit?.("PlaySFX", { name: "hit" });
+    }
     world.mutateSingleton("GameState", (gs: GameStateComponent) => {
       gs.lives = Math.max(0, gs.lives - 1);
     });

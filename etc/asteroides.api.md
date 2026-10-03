@@ -259,6 +259,116 @@ export interface AxisBinding {
 }
 
 // @public
+export interface BackdropConfig {
+    // (undocumented)
+    chunkWidth?: number;
+    fantasyDensity?: number;
+    // (undocumented)
+    playfieldMask?: PlayfieldMaskConfig;
+    // (undocumented)
+    quality?: BackdropQuality;
+    // (undocumented)
+    seed: number;
+    // (undocumented)
+    theme: BackdropThemeTokens;
+    // (undocumented)
+    viewportHeight: number;
+    // (undocumented)
+    viewportWidth: number;
+}
+
+// @public
+export interface BackdropLayerSpec {
+    alpha: number;
+    depth: number;
+    fantasyFeatures: FantasyFeatureSpec[];
+    fillColorToken: string;
+    fogFactor: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    name: string;
+    points: BackdropPoint[];
+    rivers: RiverSpec[];
+    strokeColorToken?: string;
+    waterfalls: WaterfallSpec[];
+}
+
+// @public
+export interface BackdropParticleSpec {
+    // (undocumented)
+    alpha: number;
+    // (undocumented)
+    colorToken: string;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    speedX: number;
+    // (undocumented)
+    speedY: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export interface BackdropPoint {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type BackdropQuality = "low" | "med" | "high";
+
+// @public
+export interface BackdropSpec {
+    chunks: ChunkSpec[];
+    // (undocumented)
+    chunkWidth: number;
+    particles: BackdropParticleSpec[];
+    // (undocumented)
+    playfieldMask: PlayfieldMaskConfig;
+    // (undocumented)
+    quality: BackdropQuality;
+    // (undocumented)
+    seed: number;
+    skyFeatures: FantasyFeatureSpec[];
+    // (undocumented)
+    theme: BackdropThemeTokens;
+    // (undocumented)
+    viewportHeight: number;
+    // (undocumented)
+    viewportWidth: number;
+}
+
+// @public
+export interface BackdropThemeTokens {
+    // (undocumented)
+    accentGlow: string;
+    // (undocumented)
+    fogColor: string;
+    // (undocumented)
+    hills: string;
+    // (undocumented)
+    maskColor?: string;
+    // (undocumented)
+    mountainFar: string;
+    // (undocumented)
+    mountainMid: string;
+    // (undocumented)
+    river: string;
+    // (undocumented)
+    skyGradientBottom: string;
+    // (undocumented)
+    skyGradientTop: string;
+    // (undocumented)
+    waterfall: string;
+}
+
+// @public
 export type BaseConfig = z.infer<typeof BaseConfigSchema>;
 
 // @public
@@ -653,6 +763,18 @@ export interface ChoiceNodeBuilder extends CommonNodeBuilderMethods<ChoiceNodeBu
     }): ChoiceNodeBuilder;
     addDialogueLine(line: DialogueLine): ChoiceNodeBuilder;
     setDialogue(dialogue: Dialogue): ChoiceNodeBuilder;
+}
+
+// @public
+export interface ChunkSpec {
+    // (undocumented)
+    chunkX: number;
+    entryHeight: number;
+    exitHeight: number;
+    // (undocumented)
+    layers: BackdropLayerSpec[];
+    // (undocumented)
+    macroZone: MacroZoneType;
 }
 
 // @public
@@ -1220,6 +1342,9 @@ export function createEmptyRawInputState(): RawInputState;
 export function createEntityBuilder<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity?: Entity): EntityBuilder<TComponents, TEvents, TBlueprints>;
 
 // @public
+export function createMulberry32(seed: number): () => number;
+
+// @public
 export function createRevoluteJoint(entityA: Entity, entityB: Entity, anchorA: {
     x: number;
     y: number;
@@ -1679,6 +1804,25 @@ export class FadeTransition extends BaseTransitionEffect {
 }
 
 // @public
+export interface FantasyFeatureSpec {
+    // (undocumented)
+    alpha: number;
+    // (undocumented)
+    colorToken?: string;
+    // (undocumented)
+    scale: number;
+    // (undocumented)
+    type: FantasyFeatureType;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type FantasyFeatureType = "floating_island" | "giant_tree" | "twin_moons" | "crystal_spire" | "aurora";
+
+// @public
 export class FeedbackSystem extends System<CoreComponentRegistry> {
     constructor(hapticDevice?: IHapticDevice);
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
@@ -1762,7 +1906,7 @@ export class GameDefinitionRegistry {
 }
 
 // @public
-export type GameId = "asteroids" | "echorunner" | "space-invaders" | "flappybird" | "pong" | "geometrywars" | "platformer" | "frogger";
+export type GameId = "asteroids" | "echorunner" | "space-invaders" | "flappybird" | "pong" | "geometrywars" | "platformer" | "frogger" | "racing";
 
 // @public
 export enum GameLifecycleState {
@@ -1898,6 +2042,9 @@ export interface GameVisualProfile {
 }
 
 // @public
+export function generateBackdrop(config: BackdropConfig): BackdropSpec;
+
+// @public
 export type GeometryWarsRoleKey = CommonRoleKey | "chaser" | "evader" | "grunt" | "seeker" | "fast_seeker";
 
 // @public
@@ -1962,6 +2109,9 @@ export function hashAoS(snapshot: {
     seed: number;
     rngState?: number;
 }): string;
+
+// @public
+export function hashChunkSeed(baseSeed: number, layerIndex: number, chunkX: number): number;
 
 // @public
 export function hashSoA(snapshot: SoAWorldSnapshot): string;
@@ -2401,6 +2551,9 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
     reconcile(world: World<TRegistry>, serverTick: number, serverState: AuthoritativeServerState): void;
     update(world: World<TRegistry>, deltaTime: number): void;
 }
+
+// @public
+export type MacroZoneType = "mountain" | "valley" | "plain" | "lake";
 
 // @public
 export function maskOf(...layers: number[]): number;
@@ -3359,6 +3512,24 @@ export interface PlayerSensorComponent extends Component {
 }
 
 // @public
+export interface PlayfieldMaskConfig {
+    // (undocumented)
+    colorToken: string;
+    // (undocumented)
+    enabled: boolean;
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    opacity: number;
+    // (undocumented)
+    width: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
 export type PongRoleKey = CommonRoleKey | "ball" | "paddle" | "left" | "right";
 
 // @public
@@ -3824,6 +3995,13 @@ export interface RigidBodyOptions {
     isStatic?: boolean;
     mass?: number;
     restitution?: number;
+}
+
+// @public
+export interface RiverSpec {
+    colorToken: string;
+    path: BackdropPoint[];
+    width: number;
 }
 
 // @public
@@ -5023,6 +5201,15 @@ export interface VisualOffsetComponent extends Component {
     offsetX: number;
     offsetY: number;
     type: "VisualOffset";
+}
+
+// @public
+export interface WaterfallSpec {
+    alpha: number;
+    bottomY: number;
+    topY: number;
+    width: number;
+    x: number;
 }
 
 // @public

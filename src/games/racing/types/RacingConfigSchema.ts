@@ -1,8 +1,7 @@
 import { z } from "zod";
-import { BaseConfigSchema, ScreenDimensionsSchema } from "@tiny-aster/core";
+import { BaseConfigSchema } from "@tiny-aster/core";
 
 export const RacingConfigSchema = BaseConfigSchema.extend({
-  ...ScreenDimensionsSchema.shape,
   WORLD_WIDTH: z.number().positive().default(1600),
   WORLD_HEIGHT: z.number().positive().default(1000),
   TOTAL_LAPS: z.number().int().positive().default(3),

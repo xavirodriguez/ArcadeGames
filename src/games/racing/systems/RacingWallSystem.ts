@@ -1,4 +1,4 @@
-import { System, World } from "@tiny-aster/core";
+import { System, World, ShapeType, CircleShape } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 
 function resolveCircleAgainstAabb(x: number, y: number, radius: number, wallX: number, wallY: number, width: number, height: number) {
@@ -39,7 +39,7 @@ export class RacingWallSystem extends System<RacingComponentRegistry, RacingEven
       const velocity = world.getMutableComponent(car, "Velocity");
       const collider = world.getComponent(car, "Collider");
       if (!transform || !velocity || !collider) continue;
-      const radius = collider.shape.type === "circle" ? collider.shape.radius : 16;
+      const radius = collider.shape.type === ShapeType.Circle ? (collider.shape as CircleShape).radius : 16;
 
       for (let j = 0; j < walls.length; j += 1) {
         const wall = walls[j];

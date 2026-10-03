@@ -1,5 +1,5 @@
-import { ShapeDrawer, Skia } from "@tiny-aster/core";
-import { getPaint } from "../../shared/rendering/SkiaContext";
+import { ShapeDrawer } from "@tiny-aster/core";
+import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import type { RacingComponentRegistry } from "../types/RacingRegistry";
 
 export const drawSkiaRacingCar: ShapeDrawer<any, RacingComponentRegistry> = {

@@ -11,18 +11,29 @@ import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
 
 export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
-  constructor(private readonly config: ShmupConfig, private readonly playerPool: PlayerBulletPool, private readonly enemyPool: EnemyBulletPool) { super(new World<ShmupComponentRegistry>()); }
+  constructor(
+    private readonly config: ShmupConfig,
+    private readonly playerPool: PlayerBulletPool,
+    private readonly enemyPool: EnemyBulletPool,
+    world: World<ShmupComponentRegistry>
+  ) { super(world); }
+
   public onEnter(): void {
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("PlayerBulletPool", this.playerPool);
     this.world.setResource("EnemyBulletPool", this.enemyPool);
+
     const state = this.world.createEntity();
     this.world.addComponent(state, { type: "ShmupGameState", score: 0, wave: 1, scrollDistance: 0, isGameOver: false, spawnTimer: 0 });
     createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
     this.registerSystems();
+
     const rng = this.world.gameplayRandom;
-    for (let i = 0; i < 6; i += 1) createEnemy(this.world, 55 + rng.next() * (this.config.WORLD_WIDTH - 110), 80 + i * 45, i % 3 === 0 ? "sine" : "straight");
+    for (let i = 0; i < 6; i += 1) {
+      createEnemy(this.world, 55 + rng.next() * (this.config.WORLD_WIDTH - 110), 80 + i * 45, i % 3 === 0 ? "sine" : "straight");
+    }
   }
+
   private registerSystems(): void {
     this.world.addSystem(new ShmupInputSystem() as never, { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });

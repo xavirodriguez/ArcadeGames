@@ -1,6 +1,5 @@
 /**
  * Hit&Run — platformer run-and-gun / melee on @tiny-aster/core.
- * Branch feature/hit-and-run (fix: make playable + procedural backdrop).
  */
 import {
   System,
@@ -48,19 +47,27 @@ import {
   registerCollectibleTriggerBlueprint
 } from "../shared/componentBuilders";
 import { DEFAULT_ECHO_RUNNER_CONFIG } from "../echorunner/types/EchoRunnerConfigSchema";
-import echoDefaultLevelData from "../echorunner/levels/level-01.json";
+import hitRunLevelData from "./levels/level-01.json";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
 import { registerHitRunHurt } from "./hurt/registerHitRunHurt";
 import { registerHitRunWeapons } from "./weapons/registerHitRunWeapons";
 import { registerHitRunAI } from "./ai/registerHitRunAI";
 import { registerHitRunWaves } from "./waves/registerHitRunWaves";
+import { registerHitRunDeathFlow } from "./systems/HitRunDeathFlowSystem";
 import { WAVE_OPENING } from "./waves/sampleWaves";
+import {
+  WAVE_DIRECTOR_RESOURCE,
+  WAVE_SCRIPT_RESOURCE
+} from "./waves/HitRunWaveTypes";
+import type { WaveDirectorState, WaveScript } from "./waves/HitRunWaveTypes";
+import type { HitRunWeaponState } from "./weapons/HitRunWeaponTypes";
 import { HIT_RUN_BACKDROP_THEME } from "./rendering/HitAndRunPalette";
 import {
   drawHitRunProceduralBackdrop,
   HIT_RUN_BACKDROP_RESOURCE
 } from "./rendering/HitRunBackdropCanvas";
+import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
@@ -172,6 +179,19 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
   public override setInputState(input: Partial<HitAndRunInput>): void {
     mutatePlatformerInputState(this.getWorld(), input);
+
+    const world = this.getWorld();
+    const playerEntity = world.query("PlatformerInput")[0];
+    if (playerEntity !== undefined && input.attack !== undefined) {
+      world.mutateComponent(playerEntity, "PlatformerInput", (comp: {
+        fireHeld?: boolean;
+        firePressed?: boolean;
+      }) => {
+        const held = !!input.attack;
+        comp.fireHeld = held;
+        if (held) comp.firePressed = true;
+      });
+    }
   }
 
   protected override async onPreloadAssets(): Promise<void> {
@@ -180,7 +200,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     }
   }
 
-  /** Build deterministic BackdropSpec and store as presentation resource. */
   private installProceduralBackdrop(viewportWidth: number, viewportHeight: number): void {
     const seed = this.getSeed() || 41873;
     const spec = generateBackdrop({
@@ -270,7 +289,8 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         world.addComponent(entity, {
           type: "HitRunWeapon",
           weaponId: "hmg",
-          cooldownRemaining: 0
+          cooldownRemaining: 0,
+          muzzleFlashRemaining: 0
         } as { type: string; [key: string]: unknown });
 
         const config =
@@ -285,7 +305,9 @@ export class HitAndRunGame extends PlatformerArcadeGame<
           jumpHeld: false,
           jumpReleased: false,
           pulsePressed: false,
-          pulseCooldown: 0
+          pulseCooldown: 0,
+          fireHeld: false,
+          firePressed: false
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "PlatformerJumper",
@@ -339,9 +361,10 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     registerHitRunWaves(this.world, {
       script: WAVE_OPENING,
       autoStart: true,
-      defaultSpawnX: 400,
-      defaultSpawnY: 200
+      defaultSpawnX: 520,
+      defaultSpawnY: 320
     });
+    registerHitRunDeathFlow(this.world);
 
     const eventBus = this.world.getEventBus();
     if (eventBus) {
@@ -377,9 +400,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         this.audio.playSFX("score");
       });
 
-      eventBus.on("PlayerDied", () => {
-        this.audio.playSFX("game_over");
-      });
+      // PlayerDied → HitRunDeathFlowSystem (slow-mo + SFX + restart flag)
     }
   }
 
@@ -398,7 +419,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         Array.isArray(this.customLevelData.templates) &&
         this.customLevelData.templates.length > 0
           ? this.customLevelData
-          : echoDefaultLevelData;
+          : hitRunLevelData;
 
       const runnerSeed = this.getSeed() || 41873;
       this.levelPlan = SegmentGenerator.generatePlan(
@@ -408,7 +429,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       );
 
       syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);
-      this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
+      this.world.setResource("PlayerStartPoint", { x: 100, y: 320 });
       this.world.setResource("GameConfig", DEFAULT_ECHO_RUNNER_CONFIG);
 
       const gameConfig = this.world.getResource<{
@@ -431,14 +452,14 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       const playerEntity = this.world.createEntity();
       const playerBp = this.blueprints.get("player");
       if (playerBp) {
-        playerBp.spawn(this.world, playerEntity, { x: 100, y: 350 });
+        playerBp.spawn(this.world, playerEntity, { x: 100, y: 320 });
       } else {
         throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
       }
 
       createMainCamera2D(this.world, playerEntity, {
-        lookAheadX: 80,
-        smoothingX: 6.0,
+        lookAheadX: 100,
+        smoothingX: 7.0,
         smoothingY: 6.0,
         verticalDeadzone: 45
       });
@@ -458,31 +479,42 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     if (renderer.type === "canvas") {
       const {
-        drawEchoPlayer,
         drawMemoryFragment,
         drawMemoryCore,
         drawCheckpointNode,
-        drawPulseAttack,
-        drawSentinel,
-        drawHopper,
-        drawWatcher,
-        drawCharger
+        drawPulseAttack
       } = require("../echorunner/rendering/EchoRunnerCanvasVisuals");
       const { drawPlatformerTilemap } = require("../platformer/rendering/PlatformerCanvasVisuals");
+      const {
+        drawHitRunPlayer,
+        drawHitRunPopcorn,
+        drawHitRunWallTrooper,
+        drawHitRunHopper,
+        drawHitRunCharger,
+        drawHitRunElite,
+        drawHitRunBullet,
+        drawHitRunRocket
+      } = require("./rendering/HitRunCanvasVisuals");
 
-      // Procedural landscape (BackdropGenerator) — replaces EchoRunner grid bg
       renderer.registerBackgroundEffect("hitrun_backdrop", drawHitRunProceduralBackdrop);
+      renderer.registerBackgroundEffect("hitrun_hud", drawHitRunHud);
 
       renderer.registerShape("tilemap", drawPlatformerTilemap);
-      renderer.registerShape("player", drawEchoPlayer);
+      renderer.registerShape("player", drawHitRunPlayer);
       renderer.registerShape("fragment", drawMemoryFragment);
       renderer.registerShape("core", drawMemoryCore);
       renderer.registerShape("node", drawCheckpointNode);
       renderer.registerShape("pulse_attack", drawPulseAttack);
-      renderer.registerShape("sentinel", drawSentinel);
-      renderer.registerShape("hopper", drawHopper);
-      renderer.registerShape("watcher", drawWatcher);
-      renderer.registerShape("charger", drawCharger);
+
+      renderer.registerShape("popcorn", drawHitRunPopcorn);
+      renderer.registerShape("wall_trooper", drawHitRunWallTrooper);
+      renderer.registerShape("hopper", drawHitRunHopper);
+      renderer.registerShape("charger", drawHitRunCharger);
+      renderer.registerShape("elite", drawHitRunElite);
+
+      renderer.registerShape("bullet_hmg", drawHitRunBullet);
+      renderer.registerShape("bullet_shotgun", drawHitRunBullet);
+      renderer.registerShape("bullet_rocket", drawHitRunRocket);
     } else if (renderer.type === "skia") {
       const {
         drawSkiaEchoBackground,
@@ -497,9 +529,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         drawSkiaCharger
       } = require("../echorunner/rendering/EchoRunnerSkiaVisuals");
 
-      // Skia parity: fall back to Echo bg until HitRunBackdropSkia exists
       renderer.registerBackgroundEffect("echo_bg", drawSkiaEchoBackground);
-
       renderer.registerShape("player", drawSkiaEchoPlayer);
       renderer.registerShape("fragment", drawSkiaMemoryFragment);
       renderer.registerShape("core", drawSkiaMemoryCore);
@@ -514,6 +544,17 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
   public getGameState(): HitAndRunGameState {
     const rs = this.world.getResource<RunState>("RunState");
+    const wave = this.world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+    const script = this.world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
+    const players = this.world.query("PlatformerInput", "Health");
+    const player = players[0];
+    const health = player !== undefined
+      ? (this.world.getComponent(player, "Health") as HealthComponent | undefined)
+      : undefined;
+    const weapon = player !== undefined
+      ? (this.world.getComponent(player, "HitRunWeapon") as HitRunWeaponState | undefined)
+      : undefined;
+
     return {
       type: "HitAndRunGameState",
       score: rs
@@ -526,7 +567,13 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       fragments: rs?.collectedTemporalIds.length ?? 0,
       cores: rs?.collectedPermanentIds.length ?? 0,
       activeCheckpoint: rs?.activeCheckpoint ?? null,
-      elapsedTime: rs?.elapsedTime ?? 0
+      elapsedTime: rs?.elapsedTime ?? 0,
+      waveId: script?.id ?? wave?.scriptId,
+      waveElapsed: wave?.elapsed,
+      enemiesSpawned: wave?.totalSpawned,
+      weaponId: weapon?.weaponId,
+      health: health?.current,
+      maxHealth: health?.max
     };
   }
 

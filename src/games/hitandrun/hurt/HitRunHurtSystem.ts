@@ -14,15 +14,7 @@ import {
 } from "./HitReactionTypes";
 
 /**
- * HitRunHurtSystem — Paso C.
- *
- * Listens combat:hit (from melee, CombatSystem, etc.):
- * - Knockback on target (direction away from source).
- * - Player only: invulnerability (Health.invulnerableRemaining) + hitstun.
- * - Enemies: knockback only.
- *
- * Ticks hitstun and invuln blink on HitReaction + Render.opacity.
- * Does not apply damage (already applied by the source system).
+ * combat:hit → knockback + hitstun (player invuln; enemies brief stagger).
  */
 export class HitRunHurtSystem extends System<CoreComponentRegistry> {
   private subscribed = false;
@@ -69,7 +61,7 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
       if (this.isPlayer(world, target)) {
         this.applyPlayerReaction(world, target, hit, config);
       } else {
-        this.applyEnemyKnockback(world, target, hit, config);
+        this.applyEnemyReaction(world, target, hit, config);
       }
     }
   }
@@ -77,9 +69,9 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
   private isPlayer(world: World<CoreComponentRegistry>, entity: Entity): boolean {
     if (world.hasComponent(entity, "PlatformerInput")) return true;
     const faction = world.getComponent(entity, "Faction") as
-      | { faction?: string }
+      | { faction?: string; value?: string }
       | undefined;
-    return faction?.faction === "player";
+    return faction?.faction === "player" || faction?.value === "player";
   }
 
   private applyPlayerReaction(
@@ -88,7 +80,6 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
     hit: CombatHitPayload,
     config: HitReactionConfig
   ): void {
-    // Already invulnerable → ignore reaction (damage should have been skipped upstream)
     const health = world.getComponent(target, "Health") as
       | { invulnerableRemaining?: number }
       | undefined;
@@ -129,13 +120,12 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
     }
   }
 
-  private applyEnemyKnockback(
+  private applyEnemyReaction(
     world: World<CoreComponentRegistry>,
     target: Entity,
     hit: CombatHitPayload,
     config: HitReactionConfig
   ): void {
-    // Melee may already have set velocity; still apply consistent dir from source.
     this.applyKnockback(
       world,
       target,
@@ -143,6 +133,16 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
       config.enemyKnockbackX,
       config.enemyKnockbackY
     );
+    this.ensureHitReaction(world, target, config.enemyHitstunSeconds);
+
+    if (world.hasComponent(target, "Render")) {
+      const render = world.getMutableComponent(target, "Render") as
+        | { hitFlashFrames?: number }
+        | undefined;
+      if (render) {
+        render.hitFlashFrames = Math.max(render.hitFlashFrames ?? 0, 5);
+      }
+    }
   }
 
   private applyKnockback(
@@ -215,6 +215,17 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
 
       if (reaction.hitstunRemaining > 0) {
         reaction.hitstunRemaining = Math.max(0, reaction.hitstunRemaining - dt);
+        // Zero horizontal input-like velocity damping while stunned (enemies)
+        if (
+          reaction.hitstunRemaining > 0 &&
+          !world.hasComponent(entity, "PlatformerInput") &&
+          world.hasComponent(entity, "Velocity")
+        ) {
+          const vel = world.getMutableComponent(entity, "Velocity") as
+            | { vx: number }
+            | undefined;
+          if (vel) vel.vx *= 0.85;
+        }
       }
 
       const health = world.getComponent(entity, "Health") as
@@ -249,7 +260,6 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
     }
   }
 
-  /** Decrement Health.invulnerableRemaining (shared channel with CombatSystem). */
   private tickInvulnerability(
     world: World<CoreComponentRegistry>,
     dt: number
@@ -275,7 +285,6 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
   }
 }
 
-/** True while player should ignore move/attack control. */
 export function isPlayerControlLocked(
   world: World<CoreComponentRegistry>,
   entity: Entity
@@ -286,9 +295,6 @@ export function isPlayerControlLocked(
   return !!reaction && reaction.hitstunRemaining > 0;
 }
 
-/**
- * Call before applying damage to a target: returns false if invulnerable.
- */
 export function canTakeDamage(
   world: World<CoreComponentRegistry>,
   entity: Entity

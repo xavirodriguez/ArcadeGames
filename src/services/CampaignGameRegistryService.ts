@@ -27,4 +27,5 @@ export function registerDefaultCampaignGames(): void {
   GameDefinitionRegistry.register("geometrywars", GeometryWarsDefinition);
   GameDefinitionRegistry.register("platformer", PlatformerDefinition);
   GameDefinitionRegistry.register("frogger", FroggerDefinition);
+  GameDefinitionRegistry.register("vertical-shmup", VerticalShmupDefinition);
 }

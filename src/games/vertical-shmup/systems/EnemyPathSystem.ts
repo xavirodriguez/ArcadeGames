@@ -12,7 +12,8 @@ export class EnemyPathSystem {
       if (path.kind === "sine") {
         transform.x = path.originX + Math.sin(t * path.frequency) * path.amplitude;
       } else if (path.kind === "arc") {
-        transform.x = path.originX + Math.sin(Math.min(1, t / path.duration) * Math.PI) * path.amplitude;
+        const progress = Math.min(1, t / path.duration);
+        transform.x = path.originX + Math.sin(progress * Math.PI) * path.amplitude;
       }
       transform.dirty = true;
     }

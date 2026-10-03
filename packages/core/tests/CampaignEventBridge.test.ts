@@ -35,9 +35,9 @@ describe("Event Bridge & Campaign Context (Hypothesis C)", () => {
 
     // Mirroring bridge setup in useStoryEventBridge
     internalBus.on("game:over", (data) => {
-      campaignEventBus.emit("game:over", data as any);
+      campaignEventBus.emit("game:over", data);
     });
 
-    internalBus.emit("game:over", { score: 100, level: 1 } as any);
+    internalBus.emit("game:over", { score: 100, level: 1 });
   });
 });

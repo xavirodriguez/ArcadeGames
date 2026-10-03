@@ -98,10 +98,9 @@ export class HitRunCameraScrollSystem extends System<CoreComponentRegistry> {
     for (let i = 0; i < cams.length; i++) {
       const cam = world.getComponent(cams[i], "Camera2D") as Camera2DComponent | undefined;
       if (!cam?.isMain) continue;
-      world.mutateComponent(cams[i], "Camera2D", (c: Camera2DComponent & { followEntity?: number }) => {
+      world.mutateComponent(cams[i], "Camera2D", (c: Camera2DComponent) => {
         // Keep followEntity undefined so Camera2DSystem uses targetX/targetY branch
-        (c as { followEntity?: number }).followEntity = undefined as unknown as number;
-        delete (c as { followEntity?: number }).followEntity;
+        c.followEntity = undefined;
       });
       this.owned = true;
       break;

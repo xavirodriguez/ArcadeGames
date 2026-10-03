@@ -58,6 +58,9 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
       const p1Down = activeKeys.has("KeyS");
       const p2Up = activeKeys.has("ArrowUp");
       const p2Down = activeKeys.has("ArrowDown");
+      const moveX = (rotateRight ? 1 : 0) - (rotateLeft ? 1 : 0);
+      const moveY = thrust ? -1 : (moveDown ? 1 : 0);
+      const boost = activeKeys.has("Space");
 
       const fullPayload = {
         rotateLeft,
@@ -78,6 +81,9 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         p1Down,
         p2Up,
         p2Down,
+        moveX,
+        moveY,
+        boost,
       };
 
       let inputPayload: Partial<typeof fullPayload> = fullPayload;
@@ -86,15 +92,15 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         // Only include actions affected by the keys that changed
         const affectedActions = new Set<keyof typeof fullPayload>();
         const keyMap: Record<string, (keyof typeof fullPayload)[]> = {
-          ArrowLeft: ["rotateLeft", "moveLeft", "p1Left"],
-          KeyA: ["rotateLeft", "moveLeft", "p1Left"],
-          ArrowRight: ["rotateRight", "moveRight", "p1Right"],
-          KeyD: ["rotateRight", "moveRight", "p1Right"],
-          ArrowUp: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p2Up"],
-          KeyW: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p1Up"],
-          ArrowDown: ["moveDown", "p2Down"],
-          KeyS: ["moveDown", "p1Down"],
-          Space: ["shoot", "flap", "glide", "p1Launch"],
+          ArrowLeft: ["rotateLeft", "moveLeft", "p1Left", "moveX"],
+          KeyA: ["rotateLeft", "moveLeft", "p1Left", "moveX"],
+          ArrowRight: ["rotateRight", "moveRight", "p1Right", "moveX"],
+          KeyD: ["rotateRight", "moveRight", "p1Right", "moveX"],
+          ArrowUp: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p2Up", "moveY"],
+          KeyW: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p1Up", "moveY"],
+          ArrowDown: ["moveDown", "p2Down", "moveY"],
+          KeyS: ["moveDown", "p1Down", "moveY"],
+          Space: ["shoot", "flap", "glide", "p1Launch", "boost"],
           ShiftLeft: ["hyperspace"],
           KeyH: ["hyperspace"],
         };

@@ -46,6 +46,7 @@ export const es = {
       frogger: "FROGGER // CROSSING",
       "vertical-shmup": "1942 // VERTICAL SHMUP",
       arkanoid: "ARKANOID",
+      racing: "MICRO RACERS",
       campaign: "CAMPAÑA HISTORIA",
       level: "NIVEL",
     },

@@ -9,6 +9,7 @@ import { EnemyPathSystem } from "../systems/EnemyPathSystem";
 import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
+import { createMainCamera2D } from "../../shared/componentBuilders";
 
 export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   constructor(
@@ -25,7 +26,9 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
 
     const state = this.world.createEntity();
     this.world.addComponent(state, { type: "ShmupGameState", score: 0, wave: 1, scrollDistance: 0, isGameOver: false, spawnTimer: 0 });
-    createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
+    const player = createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
+    this.world.setResource("ScreenConfig", { width: this.config.WORLD_WIDTH, height: this.config.WORLD_HEIGHT });
+    createMainCamera2D(this.world, player, { smoothingX: 5, smoothingY: 5 });
     this.registerSystems();
 
     const rng = this.world.gameplayRandom;

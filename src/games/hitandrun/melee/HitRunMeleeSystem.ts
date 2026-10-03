@@ -97,6 +97,18 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
   private wantsAttack(world: World<CoreComponentRegistry>, entity: Entity): boolean {
     if (isPlayerControlLocked(world, entity)) return false;
 
+    // Prefer BeltInput (belt-scroll player), fall back to PlatformerInput
+    const belt = world.getComponent(entity, "BeltInput") as
+      | MeleeAttackInput
+      | undefined;
+    if (belt?.attackPressed === true) {
+      const mut = world.getMutableComponent(entity, "BeltInput") as
+        | MeleeAttackInput
+        | undefined;
+      if (mut) mut.attackPressed = false;
+      return true;
+    }
+
     const input = world.getComponent(entity, "PlatformerInput") as
       | MeleeAttackInput
       | undefined;

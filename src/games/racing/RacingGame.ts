@@ -14,6 +14,7 @@ import {
   FeedbackSystem,
   JuiceSystem,
   TrailSystem,
+  Camera2DSystem,
   RemoteInterpolationSystem,
   LocalPredictionSystem,
   NetworkManager,
@@ -38,6 +39,7 @@ import { RaceStateSystem } from "./systems/RaceStateSystem";
 import { RacingEventsSystem } from "./systems/RacingEventsSystem";
 import { computeCarPhysics } from "./physics/CarPhysics";
 import { initializeRacingRenderer } from "./rendering/RacingRenderer";
+import { createMainCamera2D } from "../shared/componentBuilders";
 import racingConfigRaw from "./config/racing.json";
 
 export class RacingGame extends BaseGame<
@@ -107,6 +109,7 @@ export class RacingGame extends BaseGame<
       this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new TrailSystem(), { phase: SystemPhase.Presentation });
+      this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
     }
 
     if (this.networkManager) {
@@ -194,6 +197,11 @@ export class RacingGame extends BaseGame<
 
     const lap = this.world.getComponent(car, "Lap");
     if (lap) lap.lapStartedAt = 0;
+    createMainCamera2D(this.world, car, {
+      smoothingX: 6,
+      smoothingY: 6,
+      zoom: 1
+    });
     void state;
   }
 

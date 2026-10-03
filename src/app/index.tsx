@@ -33,6 +33,7 @@ const GAMES: GameEntry[] = [
   { id: "hitandrun", key: "hitandrun", href: "/hitandrun" },
   { id: "platformer", key: "platformer", href: "/platformer" },
   { id: "frogger", key: "frogger", href: "/frogger" },
+  { id: "racing", key: "racing", href: "/racing" },
   { id: "cyoa", key: "cyoa", href: "/cyoa" },
   { id: "blindstation", key: "blindstation", href: "/blindstation" },
 ];

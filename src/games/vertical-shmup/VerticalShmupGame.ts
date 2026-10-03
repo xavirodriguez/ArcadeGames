@@ -5,6 +5,8 @@ import { registerMutatorHook } from "../../utils/MutatorRegistry";
 import { ShmupConfigSchema, ShmupConfig } from "./types/ShmupConfigSchema";
 import { ShmupComponentRegistry, ShmupEventRegistry, ShmupInputState, ShmupGameStateComponent } from "./types/ShmupTypes";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
+import { initializeShmupRenderer } from "./rendering/ShmupRenderer";
+import { Renderer, RenderContext } from "@tiny-aster/core";
 import { ShmupGameScene } from "./scenes/ShmupGameScene";
 import configRaw from "./config/vertical-shmup.json";
 
@@ -46,6 +48,10 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
   }
 
   public isGameOver(): boolean { return this.getGameState().isGameOver; }
+
+  public initializeRenderer(renderer: Renderer<ShmupComponentRegistry, RenderContext>): void {
+    initializeShmupRenderer(renderer);
+  }
 }
 
 export class NullVerticalShmupGame extends NullBaseGame<ShmupGameStateComponent, ShmupInputState, ShmupComponentRegistry> {

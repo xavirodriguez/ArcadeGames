@@ -19,14 +19,16 @@ const INITIAL_FROGGER_STATE: FroggerState = {
  * Custom hook to manage the lifecycle of the Frogger game engine.
  */
 export function useFroggerGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {
-  const [activeMutators, setActiveMutators] = useState<Mutator[] | null>(null);
+  const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   useEffect(() => {
     async function loadOptions() {
       try {
         const enabled = await MutatorService.isMutatorModeEnabled();
-        const loaded = enabled ? MutatorService.getActiveMutatorsForGame("frogger") : [];
-        setActiveMutators(loaded);
+        if (enabled) {
+          const loaded = MutatorService.getActiveMutatorsForGame("frogger");
+          setActiveMutators(loaded);
+        }
       } catch (error) {
         console.error("[useFroggerGame] Error loading mutator options:", error);
       }
@@ -35,12 +37,12 @@ export function useFroggerGame(started: boolean, isMultiplayer: boolean = false,
   }, []);
 
   const memoizedGameOptions = useMemo(() => ({
-    activeMutators: activeMutators || [],
+    activeMutators,
   }), [activeMutators]);
 
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<FroggerGame, FroggerState, FroggerInput>(
-      started && activeMutators !== null ? FroggerGame : null,
+      started ? FroggerGame : null,
       isMultiplayer,
       { gameOptions: memoizedGameOptions, initialState: INITIAL_FROGGER_STATE, seed }
     );

@@ -133,6 +133,13 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
       particleShape: "circle",
       backgroundLayers: ["starfield"],
     },
+    racing: {
+      starDensity: 0.1,
+      starSpeed: 0.0,
+      ambientGlow: 0.3,
+      particleShape: "circle",
+      backgroundLayers: [],
+    },
     campaign: {
       starDensity: 0.8,
       starSpeed: 0.8,

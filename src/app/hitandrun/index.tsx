@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -25,6 +25,52 @@ import {
 } from "../../components/ui";
 import { DEATH_FLOW_RESOURCE } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 import type { HitRunDeathFlowState } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
+import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
+
+/** Write aimX/aimY + fire flags onto the player so HitRunWeaponSystem can shoot 8-way. */
+function applyAimToPlayer(
+  game: { getWorld: () => { query: (t: string) => number[]; getComponent: (e: number, t: string) => unknown; mutateComponent: (e: number, t: string, fn: (c: any) => void) => void; hasComponent: (e: number, t: string) => boolean } },
+  keys: {
+    moveLeft: boolean;
+    moveRight: boolean;
+    aimUp: boolean;
+    aimDown: boolean;
+    attack: boolean;
+  }
+) {
+  const world = game.getWorld();
+  const player = world.query("PlatformerInput")[0];
+  if (player === undefined) return;
+
+  const transform = world.getComponent(player, "Transform") as { scaleX?: number } | undefined;
+  const aim = resolveHitRunAim({
+    moveLeft: keys.moveLeft,
+    moveRight: keys.moveRight,
+    aimUp: keys.aimUp,
+    aimDown: keys.aimDown,
+    lastFacingX: transform?.scaleX ?? 1
+  });
+
+  world.mutateComponent(player, "PlatformerInput", (comp: {
+    aimX?: number;
+    aimY?: number;
+    fireHeld?: boolean;
+    firePressed?: boolean;
+  }) => {
+    comp.aimX = aim.aimX;
+    comp.aimY = aim.aimY;
+    comp.fireHeld = keys.attack;
+    comp.firePressed = keys.attack;
+  });
+
+  if (Math.abs(aim.aimX) > 0.01 && world.hasComponent(player, "Transform")) {
+    const face = aim.aimX >= 0 ? 1 : -1;
+    world.mutateComponent(player, "Transform", (t: { scaleX?: number; worldScaleX?: number }) => {
+      t.scaleX = face;
+      t.worldScaleX = face;
+    });
+  }
+}
 
 function HitAndRunContent() {
   const { t } = useTranslation();
@@ -47,7 +93,6 @@ function HitAndRunContent() {
   const { game, gameState, isPaused, isReady, togglePause, highScore, restartWithSeed } =
     useHitAndRunGame(started, initialSeed);
 
-  // Auto-restart after death slow-mo
   useEffect(() => {
     if (!game || !isReady) return;
     const id = setInterval(() => {
@@ -74,6 +119,15 @@ function HitAndRunContent() {
         restartWithSeed?.();
         return;
       }
+      if (
+        e.code === "ArrowUp" ||
+        e.code === "ArrowDown" ||
+        e.code === "ArrowLeft" ||
+        e.code === "ArrowRight" ||
+        e.code === "Space"
+      ) {
+        e.preventDefault();
+      }
       activeKeys.add(e.code);
       updateInput();
     };
@@ -92,16 +146,15 @@ function HitAndRunContent() {
     const updateInput = () => {
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
-      const jump =
-        activeKeys.has("ArrowUp") ||
-        activeKeys.has("KeyW") ||
-        activeKeys.has("Space");
+      // Space / W = jump — ArrowUp is aim, never jump
+      const jump = activeKeys.has("Space") || activeKeys.has("KeyW");
+      const aimUp = activeKeys.has("ArrowUp");
+      const aimDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
       const pulse =
         activeKeys.has("KeyF") ||
         activeKeys.has("KeyJ") ||
         activeKeys.has("KeyE") ||
         activeKeys.has("ShiftLeft");
-      // HMG hold-to-fire
       const attack =
         activeKeys.has("KeyC") ||
         activeKeys.has("KeyX") ||
@@ -114,8 +167,12 @@ function HitAndRunContent() {
         moveRight,
         jump,
         pulse,
-        attack
+        attack,
+        aimUp,
+        aimDown
       });
+
+      applyAimToPlayer(game, { moveLeft, moveRight, aimUp, aimDown, attack });
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -129,14 +186,59 @@ function HitAndRunContent() {
     };
   }, [game, isReady, togglePause, restartWithSeed]);
 
-  const handleTouchLeft = (pressed: boolean) => game?.setInputState({ moveLeft: pressed });
-  const handleTouchRight = (pressed: boolean) => game?.setInputState({ moveRight: pressed });
+  const pushTouch = (partial: {
+    moveLeft?: boolean;
+    moveRight?: boolean;
+    jump?: boolean;
+    attack?: boolean;
+    aimUp?: boolean;
+    aimDown?: boolean;
+    pulse?: boolean;
+  }) => {
+    if (!game) return;
+    game.setInputState(partial);
+    // Re-read current component state is incomplete for multi-button — build from last known
+    // Touch path: merge via successive setInputState; apply aim with best-effort flags
+    const world = game.getWorld();
+    const player = world.query("PlatformerInput")[0];
+    if (player === undefined) return;
+    const inp = world.getComponent(player, "PlatformerInput") as {
+      moveDir?: number;
+      aimX?: number;
+      aimY?: number;
+      fireHeld?: boolean;
+    } | undefined;
+    const moveLeft = partial.moveLeft ?? (inp?.moveDir !== undefined && inp.moveDir < 0);
+    const moveRight = partial.moveRight ?? (inp?.moveDir !== undefined && inp.moveDir > 0);
+    // For aim flags on touch we track via partial only when provided — store on resource
+    let aimBag = world.getResource("HitRunTouchAim") as { up: boolean; down: boolean } | undefined;
+    if (!aimBag) {
+      aimBag = { up: false, down: false };
+      world.setResource("HitRunTouchAim", aimBag);
+    }
+    if (partial.aimUp !== undefined) aimBag.up = partial.aimUp;
+    if (partial.aimDown !== undefined) aimBag.down = partial.aimDown;
+    const attack =
+      partial.attack !== undefined ? partial.attack : !!inp?.fireHeld;
+    applyAimToPlayer(game, {
+      moveLeft: !!moveLeft,
+      moveRight: !!moveRight,
+      aimUp: aimBag.up,
+      aimDown: aimBag.down,
+      attack
+    });
+  };
+
+  const handleTouchLeft = (pressed: boolean) => pushTouch({ moveLeft: pressed });
+  const handleTouchRight = (pressed: boolean) => pushTouch({ moveRight: pressed });
   const handleTouchJump = (pressed: boolean) => game?.setInputState({ jump: pressed });
   const handleTouchPulse = () => {
     game?.setInputState({ pulse: true });
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
-  const handleTouchFire = (pressed: boolean) => game?.setInputState({ attack: pressed });
+  const handleTouchFire = (pressed: boolean) => pushTouch({ attack: pressed });
+  const handleTouchAimUp = (pressed: boolean) => pushTouch({ aimUp: pressed });
+  const handleTouchAimDown = (pressed: boolean) => pushTouch({ aimDown: pressed });
 
   const formatTime = (timeInSecs: number) => {
     const mins = Math.floor(timeInSecs / 60);
@@ -158,7 +260,7 @@ function HitAndRunContent() {
         />
         <GameInstructions>
           {Platform.OS === "web"
-            ? "A/D move · Space jump · F melee · C/X hold fire · R restart"
+            ? "←→/AD move · ↑↓ aim · Space jump · F melee · C/X fire · R restart"
             : t.common.touch_controls}
         </GameInstructions>
         <HighScoreText label={t.common.record} score={highScore} />
@@ -223,7 +325,7 @@ function HitAndRunContent() {
             <View style={styles.dpad} pointerEvents="box-none">
               <GestureActionButton
                 label="◀"
-                size={65}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.borderLight}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -235,7 +337,7 @@ function HitAndRunContent() {
               />
               <GestureActionButton
                 label="▶"
-                size={65}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.borderLight}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -243,6 +345,30 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchRight(true)}
                 onPressOut={() => handleTouchRight(false)}
                 accessibilityLabel="Move right"
+                style={{ marginHorizontal: spacing.sm }}
+              />
+              <GestureActionButton
+                label="▲"
+                size={52}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.gold}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                onPressIn={() => handleTouchAimUp(true)}
+                onPressOut={() => handleTouchAimUp(false)}
+                accessibilityLabel="Aim up"
+                style={{ marginHorizontal: spacing.sm }}
+              />
+              <GestureActionButton
+                label="▼"
+                size={52}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.gold}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                onPressIn={() => handleTouchAimDown(true)}
+                onPressOut={() => handleTouchAimDown(false)}
+                accessibilityLabel="Aim down"
                 style={{ marginHorizontal: spacing.sm }}
               />
             </View>
@@ -382,7 +508,7 @@ const styles = StyleSheet.create({
     height: 180,
     zIndex: 15,
   },
-  dpad: { flexDirection: "row" },
+  dpad: { flexDirection: "row", flexWrap: "wrap", maxWidth: 280 },
   actions: { flexDirection: "row", alignItems: "flex-end" },
   gameOverOverlay: {
     ...StyleSheet.absoluteFillObject,

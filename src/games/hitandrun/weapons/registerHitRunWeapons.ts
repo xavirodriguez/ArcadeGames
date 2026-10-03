@@ -3,19 +3,18 @@ import { registerPlayerBulletPool } from "./HitRunBulletPool";
 import { HitRunWeaponSystem } from "./HitRunWeaponSystem";
 import { HitRunExplosionSystem } from "./HitRunExplosionSystem";
 import { registerHitRunCombat } from "../systems/HitRunCombatBootstrap";
+import { registerHitRunCameraScroll } from "../systems/HitRunCameraScrollSystem";
 
 /**
- * Registra pool de balas + sistemas de arma, combate (daño) y explosión radial.
- * CombatSystem es obligatorio: sin él las balas colisionan pero no quitan vida.
+ * Pool de balas + arma + combate + cámara side-scroll.
  */
 export function registerHitRunWeapons(
   world: World<CoreComponentRegistry>,
   opts?: { bulletPoolSize?: number }
 ): void {
   registerPlayerBulletPool(world, opts?.bulletPoolSize ?? 64);
-
-  // Daño por colisión trigger (HMG / shotgun / rocket)
   registerHitRunCombat(world);
+  registerHitRunCameraScroll(world);
 
   const weaponSys = new HitRunWeaponSystem();
   world.addSystem(weaponSys, { phase: SystemPhase.Simulation, priority: 20 });

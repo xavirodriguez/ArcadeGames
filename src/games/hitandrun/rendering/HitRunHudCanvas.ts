@@ -71,7 +71,6 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ? rs.collectedTemporalIds.length * 10 + rs.collectedPermanentIds.length * 100
       : 0;
 
-    // --- World-space telegraphs (convert with camera) ---
     if (telegraphs && telegraphs.length > 0) {
       for (let i = 0; i < telegraphs.length; i++) {
         const t = telegraphs[i];
@@ -98,7 +97,6 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
 
     ctx.save();
 
-    // Top bar
     const barH = 36;
     const topGrad = ctx.createLinearGradient(0, 0, 0, barH + 12);
     topGrad.addColorStop(0, "rgba(5,4,12,0.75)");
@@ -151,7 +149,6 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.fillStyle = "#e8e4f0";
     ctx.fillText(String(score).padStart(6, "0"), w - 16, 22);
 
-    // CLEAR / wave banner
     if (banner && banner.remaining > 0) {
       const a = Math.min(1, banner.remaining / 0.35);
       ctx.globalAlpha = a;
@@ -171,7 +168,6 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.shadowBlur = 0;
     }
 
-    // Death slow-mo vignette
     if (death?.active) {
       ctx.fillStyle = "rgba(80,0,20,0.25)";
       ctx.fillRect(0, 0, w, h);
@@ -184,7 +180,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.textAlign = "left";
     ctx.font = "10px 'Share Tech Mono', monospace";
     ctx.fillStyle = "rgba(255,255,255,0.28)";
-    ctx.fillText("← → MOVE   SPACE JUMP   F MELEE   C/X FIRE (hold)", 16, h - 12);
+    ctx.fillText("←→ MOVE  ↑↓ AIM  SPACE JUMP  F MELEE  C/X FIRE", 16, h - 12);
 
     ctx.restore();
   }

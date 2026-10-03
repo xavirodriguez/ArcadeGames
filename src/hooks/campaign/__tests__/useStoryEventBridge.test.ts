@@ -104,7 +104,7 @@ describe("useStoryEventBridge isolated unit test", () => {
     } as MiniGameResult);
 
     const mockGame: Partial<BaseGame> = {
-      getEventBus: () => privateGameBus as any,
+      getEventBus: () => privateGameBus as EventBus,
       getMiniGameResult: mockGetMiniGameResult
     };
 

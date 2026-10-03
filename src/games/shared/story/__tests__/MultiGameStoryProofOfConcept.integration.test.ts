@@ -140,6 +140,108 @@ describe("MultiGameStoryProofOfConcept 7-Stage Pipeline Integration Test", () =>
     expect(poc.metaService.getState().unlockedModifiers).toContain("shield_pulse");
   });
 
+  it("evaluates rules and routes transitions correctly on loss (completed: false) vs win (completed: true)", () => {
+    // 1. Loss scenario: player fails minigame
+    const pocLoss = new MultiGameStoryProofOfConcept();
+    pocLoss.startCampaign();
+    pocLoss.storyRuntime.evaluateTransitions(); // intro
+    pocLoss.storyRuntime.evaluateTransitions(); // gameplay
+    expect(pocLoss.storyRuntime.getCurrentNodeId()).toBe("act1_asteroids_gameplay");
+
+    const lossRunContext = pocLoss.startCurrentNodeGameplay();
+    expect(lossRunContext).not.toBeNull();
+
+    const lossResult: MiniGameResult = {
+      runId: lossRunContext!.runId,
+      gameId: "asteroids",
+      score: 200,
+      completed: false, // PLAYER LOST
+      durationMs: 15000,
+      metrics: { wavesCleared: 0, livesRemaining: 0 },
+      secretsFound: []
+    };
+
+    pocLoss.submitGameplayResult(lossResult);
+
+    // Objective must NOT be marked complete when completed is false
+    const act1Obj = pocLoss.storyRuntime.getObjective("survive-asteroids-wave3");
+    expect(act1Obj?.completed).toBe(false);
+
+    // Outcome rule for struggle should have set heroicEntry = false
+    expect(pocLoss.storyRuntime.getFlag("heroicEntry")).toBe(false);
+
+    // Transition history confirms branch_struggling_entry was executed
+    expect(pocLoss.storyRuntime.getState().history).toContain("branch_struggling_entry");
+    expect(pocLoss.storyRuntime.getCurrentNodeId()).toBe("narrative_bridge_choice");
+
+    // 2. Win scenario: player completes minigame
+    const pocWin = new MultiGameStoryProofOfConcept();
+    pocWin.startCampaign();
+    pocWin.storyRuntime.evaluateTransitions(); // intro
+    pocWin.storyRuntime.evaluateTransitions(); // gameplay
+    expect(pocWin.storyRuntime.getCurrentNodeId()).toBe("act1_asteroids_gameplay");
+
+    const winRunContext = pocWin.startCurrentNodeGameplay();
+    const winResult: MiniGameResult = {
+      runId: winRunContext!.runId,
+      gameId: "asteroids",
+      score: 2000,
+      completed: true, // PLAYER WON
+      durationMs: 30000,
+      metrics: { wavesCleared: 3, livesRemaining: 2 },
+      secretsFound: []
+    };
+
+    pocWin.submitGameplayResult(winResult);
+
+    // Objective MUST be marked complete when completed is true
+    const winObj = pocWin.storyRuntime.getObjective("survive-asteroids-wave3");
+    expect(winObj?.completed).toBe(true);
+
+    // Heroic entry flag set to true and history contains branch_heroic_entry
+    expect(pocWin.storyRuntime.getFlag("heroicEntry")).toBe(true);
+    expect(pocWin.storyRuntime.getState().history).toContain("branch_heroic_entry");
+    expect(pocWin.storyRuntime.getCurrentNodeId()).toBe("narrative_bridge_choice");
+  });
+
+  it("handles checkpoint restoration and retrying after minigame failure", () => {
+    const poc = new MultiGameStoryProofOfConcept();
+    poc.startCampaign();
+    poc.storyRuntime.evaluateTransitions(); // intro
+    poc.storyRuntime.evaluateTransitions(); // gameplay
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act1_asteroids_gameplay");
+
+    const initialNode = poc.storyRuntime.getCurrentNode();
+    expect(initialNode?.checkpoint).toBe(true);
+
+    // Simulate failure without advancing node if player decides to retry at checkpoint
+    const checkpointId = initialNode?.id;
+    expect(checkpointId).toBe("act1_asteroids_gameplay");
+
+    // Perform fork/restore at checkpoint
+    poc.storyRuntime.forkAt(checkpointId!);
+    expect(poc.storyRuntime.getCurrentNodeId()).toBe("act1_asteroids_gameplay");
+
+    // Retry minigame run
+    const retryRunContext = poc.startCurrentNodeGameplay();
+    expect(retryRunContext).not.toBeNull();
+
+    const retryResult: MiniGameResult = {
+      runId: retryRunContext!.runId,
+      gameId: "asteroids",
+      score: 1800,
+      completed: true,
+      durationMs: 35000,
+      metrics: { wavesCleared: 3, livesRemaining: 1 },
+      secretsFound: []
+    };
+
+    poc.submitGameplayResult(retryResult);
+    expect(poc.storyRuntime.getObjective("survive-asteroids-wave3")?.completed).toBe(true);
+    expect(poc.storyRuntime.getFlag("heroicEntry")).toBe(true);
+    expect(poc.storyRuntime.getState().history).toContain("branch_heroic_entry");
+  });
+
   it("directly tests ArcadeOrchestrator modifier resolution using runtime.getState() snapshot", () => {
     const runtime = new StoryRuntime();
     const orchestrator = new ArcadeOrchestrator({ runtime });

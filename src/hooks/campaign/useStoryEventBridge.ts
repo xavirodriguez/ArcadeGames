@@ -52,7 +52,10 @@ export function setupStoryEventBridge(options: UseStoryEventBridgeOptions): () =
     "level:completed",
     "spawn:wave_complete",
     "enemy:destroyed",
-    "combat:death"
+    "combat:death",
+    "pipe:passed",
+    "frogger:goal_reached",
+    "frogger:level_cleared"
   ];
 
   let unbridgeActiveGame: (() => void) | null = null;

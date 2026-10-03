@@ -1462,7 +1462,7 @@
       "format": "typescript",
       "fragment": "          const speed = ((data.patrolSpeed as number) ?? 60) * 1.4;\n          const dir = dirToPlayer(world, entity);\n          const vel = world.getComponent(entity, \"Velocity\");\n          if (vel) {\n            const mv = world.getMutableComponent(entity, \"Velocity\");\n            if (mv) mv.vx = dir * speed;\n          }\n          if (data.canShoot) tryEnemyShoot(world, entity, data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"attackDuration\", 0.4, elapsed, \"Recovery\");",
       "isNew": false,
-      "lines": 11,
+      "lines": 7,
       "secondFile": {
         "end": 294,
         "endLoc": {

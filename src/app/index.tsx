@@ -73,6 +73,7 @@ export default function HomeScreen() {
                  gameId === "pong" ? "/pong" :
                  gameId === "flappybird" ? "/flappybird" :
                  gameId === "frogger" ? "/frogger" :
+                 gameId === "racing" ? "/racing" :
                  "/space-invaders";
 
       router.push({

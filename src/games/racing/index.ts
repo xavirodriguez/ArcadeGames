@@ -6,6 +6,7 @@ export * from "./systems/RacingSurfaceSystem";
 export * from "./systems/RacingWallSystem";
 export * from "./systems/LapSystem";
 export * from "./systems/RaceStateSystem";
+export * from "./systems/RacingEventsSystem";
 export * from "./types/RacingTypes";
 export * from "./types/RacingConfigSchema";
 export * from "./types/RacingRegistry";

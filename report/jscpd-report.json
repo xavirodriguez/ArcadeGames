@@ -21,18 +21,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 136,
+        "end": 156,
         "endLoc": {
           "column": 3,
-          "line": 136,
-          "position": 3861
+          "line": 156,
+          "position": 4595
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 127,
+        "start": 147,
         "startLoc": {
           "column": 43,
-          "line": 127,
-          "position": 3605
+          "line": 147,
+          "position": 4339
         }
       },
       "tokens": 50
@@ -409,92 +409,18 @@
     },
     {
       "firstFile": {
-        "end": 87,
-        "endLoc": {
-          "column": 25,
-          "line": 87,
-          "position": 4049
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 64,
-        "startLoc": {
-          "column": 69,
-          "line": 64,
-          "position": 3181
-        }
-      },
-      "format": "typescript",
-      "fragment": "      const input = world.getComponent(player, \"PlatformerInput\") as { pulseCooldown?: number; pulsePressed?: boolean } | undefined;\n      const trans = world.getComponent(player, \"Transform\")!;\n\n      if (!input) continue;\n\n      // Manage attack cooldowns\n      let cd = input.pulseCooldown ?? 0;\n      if (cd > 0) {\n        cd = PhysicsUtils.tickTimer(cd, deltaTime);\n        world.mutateComponent(player, \"PlatformerInput\", (inp: unknown) => {\n          (inp as { pulseCooldown?: number }).pulseCooldown = cd;\n        });\n      }\n\n      // Read trigger and fire!\n      if (input.pulsePressed && cd <= 0) {\n        world.mutateComponent(player, \"PlatformerInput\", (inp: unknown) => {\n          (inp as { pulseCooldown?: number }).pulseCooldown = 0.45; // Cooldown of 0.45s\n        });\n\n        // Determine direction of attack\n        const vel = world.getComponent(player, \"Velocity\")!;\n        let dir = 1;\n        if (vel.vx !== 0) {",
-      "isNew": false,
-      "lines": 24,
-      "secondFile": {
-        "end": 107,
-        "endLoc": {
-          "column": 25,
-          "line": 107,
-          "position": 3905
-        },
-        "name": "hitandrun/HitAndRunGame.ts",
-        "start": 87,
-        "startLoc": {
-          "column": 10,
-          "line": 87,
-          "position": 3157
-        }
-      },
-      "tokens": 165
-    },
-    {
-      "firstFile": {
-        "end": 114,
+        "end": 135,
         "endLoc": {
           "column": 1,
-          "line": 114,
-          "position": 4798
+          "line": 135,
+          "position": 5407
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 100,
-        "startLoc": {
-          "column": 8,
-          "line": 100,
-          "position": 4441
-        }
-      },
-      "format": "typescript",
-      "fragment": "        world.commands.spawnFromBlueprint(\"pulse_hitbox\", {\n          dir,\n          x: trans.x,\n          y: trans.y,\n          parent: player\n        });\n\n        // Clear pulse triggers\n        world.mutateComponent(player, \"PlatformerInput\", (inp: unknown) => {\n          (inp as { pulsePressed?: boolean }).pulsePressed = false;\n        });\n      }\n    }\n  }\n}",
-      "isNew": false,
-      "lines": 15,
-      "secondFile": {
-        "end": 128,
-        "endLoc": {
-          "column": 1,
-          "line": 128,
-          "position": 4490
-        },
-        "name": "hitandrun/HitAndRunGame.ts",
-        "start": 115,
-        "startLoc": {
-          "column": 8,
-          "line": 115,
-          "position": 4165
-        }
-      },
-      "tokens": 66
-    },
-    {
-      "firstFile": {
-        "end": 131,
-        "endLoc": {
-          "column": 1,
-          "line": 131,
-          "position": 5306
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 120,
+        "start": 124,
         "startLoc": {
           "column": 23,
-          "line": 120,
-          "position": 4971
+          "line": 124,
+          "position": 5072
         }
       },
       "format": "typescript",
@@ -520,18 +446,18 @@
     },
     {
       "firstFile": {
-        "end": 164,
+        "end": 168,
         "endLoc": {
           "column": 17,
-          "line": 164,
-          "position": 6484
+          "line": 168,
+          "position": 6585
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 156,
+        "start": 160,
         "startLoc": {
           "column": 28,
-          "line": 156,
-          "position": 6165
+          "line": 160,
+          "position": 6266
         }
       },
       "format": "typescript",
@@ -557,18 +483,18 @@
     },
     {
       "firstFile": {
-        "end": 214,
+        "end": 218,
         "endLoc": {
           "column": 100,
-          "line": 214,
-          "position": 8410
+          "line": 218,
+          "position": 8511
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 165,
+        "start": 169,
         "startLoc": {
           "column": 4,
-          "line": 165,
-          "position": 6559
+          "line": 169,
+          "position": 6660
         }
       },
       "format": "typescript",
@@ -594,24 +520,24 @@
     },
     {
       "firstFile": {
-        "end": 250,
+        "end": 257,
         "endLoc": {
           "column": 28,
-          "line": 250,
-          "position": 9857
+          "line": 257,
+          "position": 10069
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 215,
+        "start": 233,
         "startLoc": {
-          "column": 61,
-          "line": 215,
-          "position": 8472
+          "column": 37,
+          "line": 233,
+          "position": 9091
         }
       },
       "format": "typescript",
-      "fragment": "        const config = world.getResource<EchoRunnerConfigType>(\"GameConfig\") || DEFAULT_ECHO_RUNNER_CONFIG;\n\n        setupPlatformerMovementComponents(world, entity, config);\n        world.addComponent(entity, {\n          type: \"PlatformerInput\",\n          moveDir: 0,\n          jumpPressed: false,\n          jumpHeld: false,\n          jumpReleased: false,\n          pulsePressed: false,\n          pulseCooldown: 0\n        } as { type: string; [key: string]: unknown });\n        world.addComponent(entity, {\n          type: \"PlatformerJumper\",\n          coyoteTimer: 0,\n          jumpBufferTimer: 0,\n          coyoteTimeMax: config.COYOTE_TIME_MAX,\n          jumpBufferMax: config.JUMP_BUFFER_MAX\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);\n\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_fragment\", \"fragment\", 10, 16, 10, \"fragment\", false, false);\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_core\", \"core\", 100, 24, 12, \"core\", true, true);\n\n    registerPlatformerEnvironmentBlueprints(this.blueprints);\n    registerPlatformerEnemyBlueprints(this.blueprints);\n\n    // Register State Machine Behaviors\n    registerEnemyStateMachines(this.world);\n\n    // Input systems\n    this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });\n    this.world.addSystem(new EchoRunnerAttackSystem(), { phase: SystemPhase.Input });",
+      "fragment": "        } as EchoRunnerInputComponent);\n        world.addComponent(entity, {\n          type: \"PlatformerJumper\",\n          coyoteTimer: 0,\n          jumpBufferTimer: 0,\n          coyoteTimeMax: config.COYOTE_TIME_MAX,\n          jumpBufferMax: config.JUMP_BUFFER_MAX\n        } as { type: string; [key: string]: unknown });\n      }\n    });\n\n    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);\n\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_fragment\", \"fragment\", 10, 16, 10, \"fragment\", false, false);\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_core\", \"core\", 100, 24, 12, \"core\", true, true);\n\n    registerPlatformerEnvironmentBlueprints(this.blueprints);\n    registerPlatformerEnemyBlueprints(this.blueprints);\n\n    // Register State Machine Behaviors\n    registerEnemyStateMachines(this.world);\n\n    // Input systems\n    this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });\n    this.world.addSystem(new EchoRunnerAttackSystem(), { phase: SystemPhase.Input });",
       "isNew": false,
-      "lines": 36,
+      "lines": 25,
       "secondFile": {
         "end": 328,
         "endLoc": {
@@ -620,41 +546,41 @@
           "position": 10385
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 277,
+        "start": 289,
         "startLoc": {
-          "column": 61,
-          "line": 277,
-          "position": 8934
+          "column": 53,
+          "line": 289,
+          "position": 9351
         }
       },
-      "tokens": 221
+      "tokens": 156
     },
     {
       "firstFile": {
-        "end": 284,
+        "end": 277,
         "endLoc": {
-          "column": 17,
-          "line": 284,
-          "position": 11263
+          "column": 23,
+          "line": 277,
+          "position": 10861
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 259,
+        "start": 266,
         "startLoc": {
           "column": 42,
-          "line": 259,
-          "position": 10258
+          "line": 266,
+          "position": 10470
         }
       },
       "format": "typescript",
-      "fragment": "    registerPresentationSystems(this.world);\n\n    // Listen to Hit Detection events\n    const eventBus = this.world.getEventBus();\n    if (eventBus) {\n      eventBus.on(\"hitbox:hit\", (event: unknown) => {\n        const payload = event as { victim?: number; attacker?: number } | undefined;\n        const victim = payload?.victim;\n        const attacker = payload?.attacker;\n\n        // If player hits an enemy\n        if (attacker && this.world.hasComponent(attacker, \"PlatformerInput\") && victim && this.world.hasComponent(victim, \"Enemy\")) {\n          // Reduce health of enemy (most enemies have 1 health, so they explode!)\n          if (this.world.hasComponent(victim, \"Health\")) {\n            this.world.mutateComponent(victim, \"Health\", (h) => {\n              h.current--;\n            });\n            this.world.mutateComponent(victim, \"Render\", (r) => {\n              r.hitFlashFrames = 8;\n            });\n\n            // Play hit/kill sound\n            this.audio.playSFX(\"explosion\");\n\n            // Trigger screenshake\n            const cameras = this.world.query(\"Camera2D\");",
+      "fragment": "    registerPresentationSystems(this.world);\n\n    // Listen to Hit Detection events\n    const eventBus = this.world.getEventBus();\n    if (eventBus) {\n      eventBus.on(\"hitbox:hit\", (event: unknown) => {\n        const payload = event as { victim?: number; attacker?: number } | undefined;\n        const victim = payload?.victim;\n        const attacker = payload?.attacker;\n\n        // If player hits an enemy\n        if (attacker && (this.world.hasComponent(attacker, \"PlatformerInput\") || this.world.hasComponent(attacker, \"EchoRunnerInput\")) && victim && this.world.hasComponent(victim, \"Enemy\")) {",
       "isNew": false,
-      "lines": 26,
+      "lines": 12,
       "secondFile": {
-        "end": 368,
+        "end": 354,
         "endLoc": {
-          "column": 17,
-          "line": 368,
-          "position": 11815
+          "column": 21,
+          "line": 354,
+          "position": 11316
         },
         "name": "hitandrun/HitAndRunGame.ts",
         "start": 344,
@@ -664,22 +590,59 @@
           "position": 10987
         }
       },
-      "tokens": 164
+      "tokens": 68
     },
     {
       "firstFile": {
-        "end": 312,
+        "end": 291,
         "endLoc": {
-          "column": 5,
-          "line": 312,
-          "position": 12167
+          "column": 17,
+          "line": 291,
+          "position": 11533
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 295,
+        "start": 277,
+        "startLoc": {
+          "column": 133,
+          "line": 277,
+          "position": 10971
+        }
+      },
+      "format": "typescript",
+      "fragment": "        if (attacker && (this.world.hasComponent(attacker, \"PlatformerInput\") || this.world.hasComponent(attacker, \"EchoRunnerInput\")) && victim && this.world.hasComponent(victim, \"Enemy\")) {\n          // Reduce health of enemy (most enemies have 1 health, so they explode!)\n          if (this.world.hasComponent(victim, \"Health\")) {\n            this.world.mutateComponent(victim, \"Health\", (h) => {\n              h.current--;\n            });\n            this.world.mutateComponent(victim, \"Render\", (r) => {\n              r.hitFlashFrames = 8;\n            });\n\n            // Play hit/kill sound\n            this.audio.playSFX(\"explosion\");\n\n            // Trigger screenshake\n            const cameras = this.world.query(\"Camera2D\");",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 368,
+        "endLoc": {
+          "column": 17,
+          "line": 368,
+          "position": 11815
+        },
+        "name": "hitandrun/HitAndRunGame.ts",
+        "start": 355,
+        "startLoc": {
+          "column": 61,
+          "line": 355,
+          "position": 11378
+        }
+      },
+      "tokens": 87
+    },
+    {
+      "firstFile": {
+        "end": 319,
+        "endLoc": {
+          "column": 5,
+          "line": 319,
+          "position": 12437
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 302,
         "startLoc": {
           "column": 12,
-          "line": 295,
-          "position": 11642
+          "line": 302,
+          "position": 11912
         }
       },
       "format": "typescript",
@@ -705,18 +668,18 @@
     },
     {
       "firstFile": {
-        "end": 354,
+        "end": 361,
         "endLoc": {
           "column": 42,
-          "line": 354,
-          "position": 13408
+          "line": 361,
+          "position": 13678
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 342,
+        "start": 349,
         "startLoc": {
           "column": 2,
-          "line": 342,
-          "position": 12957
+          "line": 349,
+          "position": 13227
         }
       },
       "format": "typescript",
@@ -742,18 +705,18 @@
     },
     {
       "firstFile": {
-        "end": 365,
+        "end": 372,
         "endLoc": {
           "column": 69,
-          "line": 365,
-          "position": 13835
+          "line": 372,
+          "position": 14105
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 354,
+        "start": 361,
         "startLoc": {
           "column": 62,
-          "line": 354,
-          "position": 13428
+          "line": 361,
+          "position": 13698
         }
       },
       "format": "typescript",
@@ -779,18 +742,18 @@
     },
     {
       "firstFile": {
-        "end": 377,
+        "end": 384,
         "endLoc": {
           "column": 24,
-          "line": 377,
-          "position": 14339
+          "line": 384,
+          "position": 14609
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 369,
+        "start": 376,
         "startLoc": {
           "column": 73,
-          "line": 369,
-          "position": 14047
+          "line": 376,
+          "position": 14317
         }
       },
       "format": "typescript",
@@ -816,18 +779,18 @@
     },
     {
       "firstFile": {
-        "end": 410,
+        "end": 417,
         "endLoc": {
           "column": 5,
-          "line": 410,
-          "position": 15411
+          "line": 417,
+          "position": 15681
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 396,
+        "start": 403,
         "startLoc": {
           "column": 18,
-          "line": 396,
-          "position": 14968
+          "line": 403,
+          "position": 15238
         }
       },
       "format": "typescript",
@@ -853,18 +816,18 @@
     },
     {
       "firstFile": {
-        "end": 485,
+        "end": 503,
         "endLoc": {
           "column": 18,
-          "line": 485,
-          "position": 18111
+          "line": 503,
+          "position": 18837
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 462,
+        "start": 480,
         "startLoc": {
           "column": 69,
-          "line": 462,
-          "position": 17180
+          "line": 480,
+          "position": 17906
         }
       },
       "format": "typescript",
@@ -890,18 +853,18 @@
     },
     {
       "firstFile": {
-        "end": 500,
+        "end": 518,
         "endLoc": {
           "column": 24,
-          "line": 500,
-          "position": 18806
+          "line": 518,
+          "position": 19532
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 485,
+        "start": 503,
         "startLoc": {
           "column": 53,
-          "line": 485,
-          "position": 18146
+          "line": 503,
+          "position": 18872
         }
       },
       "format": "typescript",
@@ -1297,43 +1260,6 @@
     },
     {
       "firstFile": {
-        "end": 154,
-        "endLoc": {
-          "column": 9,
-          "line": 154,
-          "position": 3837
-        },
-        "name": "hitandrun/ai/enemyShoot.ts",
-        "start": 140,
-        "startLoc": {
-          "column": 11,
-          "line": 140,
-          "position": 3570
-        }
-      },
-      "format": "typescript",
-      "fragment": "    mask: 1,\n    offsetX: 0,\n    offsetY: 0,\n    isTrigger: true,\n    enabled: true\n  });\n  world.addComponent(e, {\n    type: \"CollisionEvents\",\n    collisions: [],\n    activeTriggers: [],\n    triggersEntered: [],\n    triggersExited: []\n  });\n  world.addComponent(e, {\n    type: \"Render\",",
-      "isNew": false,
-      "lines": 15,
-      "secondFile": {
-        "end": 274,
-        "endLoc": {
-          "column": 11,
-          "line": 274,
-          "position": 7333
-        },
-        "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 258,
-        "startLoc": {
-          "column": 18,
-          "line": 258,
-          "position": 7036
-        }
-      },
-      "tokens": 61
-    },
-    {
-      "firstFile": {
         "end": 138,
         "endLoc": {
           "column": 3,
@@ -1371,55 +1297,55 @@
     },
     {
       "firstFile": {
-        "end": 157,
+        "end": 172,
         "endLoc": {
           "column": 15,
-          "line": 157,
-          "position": 4776
+          "line": 172,
+          "position": 5337
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 148,
+        "start": 159,
         "startLoc": {
-          "column": 10,
-          "line": 148,
-          "position": 4310
+          "column": 20,
+          "line": 159,
+          "position": 4785
         }
       },
       "format": "typescript",
-      "fragment": "          const patrol = world.getComponent(entity, \"Patrol\") as\n            | { direction: number; startX: number; endX: number }\n            | undefined;\n          const gd = world.getComponent(entity, \"GroundDetector\") as\n            | { hasWallAhead?: boolean; hasGroundAhead?: boolean }\n            | undefined;\n          const sensor = world.getComponent(entity, \"PlayerSensor\") as\n            | { detectedPlayerEntity?: number }\n            | undefined;\n          const trans = world.getComponent(entity, \"Transform\");",
+      "fragment": "  registry[\"hr_walk\"] = {\n    states: {\n      Patrol: {\n        onUpdate(world, entity, data) {\n          const patrol = world.getComponent(entity, \"Patrol\") as\n            | { direction: number; startX: number; endX: number }\n            | undefined;\n          const gd = world.getComponent(entity, \"GroundDetector\") as\n            | { hasWallAhead?: boolean; hasGroundAhead?: boolean }\n            | undefined;\n          const sensor = world.getComponent(entity, \"PlayerSensor\") as\n            | { detectedPlayerEntity?: number }\n            | undefined;\n          const trans = world.getComponent(entity, \"Transform\");",
       "isNew": false,
-      "lines": 10,
+      "lines": 14,
       "secondFile": {
-        "end": 275,
+        "end": 256,
         "endLoc": {
           "column": 15,
-          "line": 275,
-          "position": 9267
+          "line": 256,
+          "position": 8605
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 266,
+        "start": 242,
         "startLoc": {
-          "column": 10,
-          "line": 266,
-          "position": 8801
+          "column": 21,
+          "line": 242,
+          "position": 8009
         }
       },
-      "tokens": 79
+      "tokens": 97
     },
     {
       "firstFile": {
-        "end": 166,
+        "end": 181,
         "endLoc": {
           "column": 13,
-          "line": 166,
-          "position": 5191
+          "line": 181,
+          "position": 5752
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 158,
+        "start": 173,
         "startLoc": {
           "column": 58,
-          "line": 158,
-          "position": 4884
+          "line": 173,
+          "position": 5445
         }
       },
       "format": "typescript",
@@ -1427,36 +1353,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 283,
+        "end": 264,
         "endLoc": {
           "column": 13,
-          "line": 283,
-          "position": 9626
+          "line": 264,
+          "position": 8964
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 275,
+        "start": 256,
         "startLoc": {
           "column": 67,
-          "line": 275,
-          "position": 9319
+          "line": 256,
+          "position": 8657
         }
       },
       "tokens": 58
     },
     {
       "firstFile": {
-        "end": 191,
+        "end": 206,
         "endLoc": {
           "column": 14,
-          "line": 191,
-          "position": 6217
+          "line": 206,
+          "position": 6778
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 178,
+        "start": 193,
         "startLoc": {
           "column": 12,
-          "line": 178,
-          "position": 5762
+          "line": 193,
+          "position": 6323
         }
       },
       "format": "typescript",
@@ -1464,36 +1390,36 @@
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 295,
+        "end": 276,
         "endLoc": {
           "column": 14,
-          "line": 295,
-          "position": 10079
+          "line": 276,
+          "position": 9417
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 283,
+        "start": 264,
         "startLoc": {
           "column": 12,
-          "line": 283,
-          "position": 9625
+          "line": 264,
+          "position": 8963
         }
       },
       "tokens": 84
     },
     {
       "firstFile": {
-        "end": 189,
+        "end": 204,
         "endLoc": {
           "column": 11,
-          "line": 189,
-          "position": 6201
+          "line": 204,
+          "position": 6762
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 183,
+        "start": 198,
         "startLoc": {
           "column": 51,
-          "line": 183,
-          "position": 5945
+          "line": 198,
+          "position": 6506
         }
       },
       "format": "typescript",
@@ -1501,73 +1427,184 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 594,
+        "end": 504,
         "endLoc": {
           "column": 11,
-          "line": 594,
-          "position": 20573
+          "line": 504,
+          "position": 17664
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 588,
+        "start": 498,
         "startLoc": {
           "column": 46,
-          "line": 588,
-          "position": 20317
+          "line": 498,
+          "position": 17408
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 209,
+        "end": 226,
         "endLoc": {
-          "column": 53,
-          "line": 209,
-          "position": 6863
+          "column": 46,
+          "line": 226,
+          "position": 7520
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 200,
+        "start": 216,
         "startLoc": {
-          "column": 10,
-          "line": 200,
-          "position": 6529
+          "column": 66,
+          "line": 216,
+          "position": 7098
         }
       },
       "format": "typescript",
-      "fragment": "          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {\n            if (canTakeDamage(world, sensor.detectedPlayerEntity)) {\n              return \"Alert\";\n            }\n          }\n        }\n      },\n      Anticipation: {\n        onEnter(world, entity, data) {\n          enterAnticipationState(world, entity, data, DEFAULT_PATROL_ATTACK_CONFIG.warningColor);",
+      "fragment": "          const speed = ((data.patrolSpeed as number) ?? 60) * 1.4;\n          const dir = dirToPlayer(world, entity);\n          const vel = world.getComponent(entity, \"Velocity\");\n          if (vel) {\n            const mv = world.getMutableComponent(entity, \"Velocity\");\n            if (mv) mv.vx = dir * speed;\n          }\n          if (data.canShoot) tryEnemyShoot(world, entity, data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"attackDuration\", 0.4, elapsed, \"Recovery\");",
       "isNew": false,
-      "lines": 10,
+      "lines": 7,
       "secondFile": {
-        "end": 425,
+        "end": 294,
         "endLoc": {
-          "column": 53,
-          "line": 425,
-          "position": 14713
+          "column": 46,
+          "line": 294,
+          "position": 10138
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 416,
+        "start": 284,
         "startLoc": {
-          "column": 10,
-          "line": 416,
-          "position": 14379
+          "column": 66,
+          "line": 284,
+          "position": 9716
         }
       },
-      "tokens": 54
+      "tokens": 88
     },
     {
       "firstFile": {
-        "end": 344,
+        "end": 235,
         "endLoc": {
-          "column": 37,
-          "line": 344,
-          "position": 11845
+          "column": 48,
+          "line": 235,
+          "position": 7808
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 334,
+        "start": 226,
+        "startLoc": {
+          "column": 50,
+          "line": 226,
+          "position": 7524
+        }
+      },
+      "format": "typescript",
+      "fragment": "          return timed(data, \"attackDuration\", 0.4, elapsed, \"Recovery\");\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, data) {\n          zeroVx(world, entity);\n          if (data.useFlank) flipFlankSide(data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"recoveryDuration\", 0.35, elapsed, \"Patrol\");",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 472,
+        "endLoc": {
+          "column": 48,
+          "line": 472,
+          "position": 16488
+        },
+        "name": "hitandrun/ai/hitRunStateMachines.ts",
+        "start": 463,
+        "startLoc": {
+          "column": 50,
+          "line": 463,
+          "position": 16204
+        }
+      },
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 235,
+        "endLoc": {
+          "column": 48,
+          "line": 235,
+          "position": 7808
+        },
+        "name": "hitandrun/ai/hitRunStateMachines.ts",
+        "start": 226,
+        "startLoc": {
+          "column": 50,
+          "line": 226,
+          "position": 7524
+        }
+      },
+      "format": "typescript",
+      "fragment": "          return timed(data, \"attackDuration\", 0.4, elapsed, \"Recovery\");\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, data) {\n          zeroVx(world, entity);\n          if (data.useFlank) flipFlankSide(data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"recoveryDuration\", 0.35, elapsed, \"Patrol\");",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 525,
+        "endLoc": {
+          "column": 48,
+          "line": 525,
+          "position": 18309
+        },
+        "name": "hitandrun/ai/hitRunStateMachines.ts",
+        "start": 516,
+        "startLoc": {
+          "column": 51,
+          "line": 516,
+          "position": 18025
+        }
+      },
+      "tokens": 59
+    },
+    {
+      "firstFile": {
+        "end": 235,
+        "endLoc": {
+          "column": 63,
+          "line": 235,
+          "position": 7823
+        },
+        "name": "hitandrun/ai/hitRunStateMachines.ts",
+        "start": 227,
+        "startLoc": {
+          "column": 8,
+          "line": 227,
+          "position": 7556
+        }
+      },
+      "format": "typescript",
+      "fragment": "        }\n      },\n      Recovery: {\n        onEnter(world, entity, data) {\n          zeroVx(world, entity);\n          if (data.useFlank) flipFlankSide(data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"recoveryDuration\", 0.35, elapsed, \"Patrol\");",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 374,
+        "endLoc": {
+          "column": 63,
+          "line": 374,
+          "position": 13113
+        },
+        "name": "hitandrun/ai/hitRunStateMachines.ts",
+        "start": 366,
+        "startLoc": {
+          "column": 8,
+          "line": 366,
+          "position": 12846
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 327,
+        "endLoc": {
+          "column": 37,
+          "line": 327,
+          "position": 11349
+        },
+        "name": "hitandrun/ai/hitRunStateMachines.ts",
+        "start": 317,
         "startLoc": {
           "column": 19,
-          "line": 334,
-          "position": 11504
+          "line": 317,
+          "position": 11008
         }
       },
       "format": "typescript",
@@ -1575,73 +1612,73 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 535,
+        "end": 445,
         "endLoc": {
           "column": 37,
-          "line": 535,
-          "position": 18484
+          "line": 445,
+          "position": 15575
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 525,
+        "start": 435,
         "startLoc": {
           "column": 23,
-          "line": 525,
-          "position": 18143
+          "line": 435,
+          "position": 15234
         }
       },
       "tokens": 65
     },
     {
       "firstFile": {
-        "end": 390,
+        "end": 374,
         "endLoc": {
           "column": 48,
-          "line": 390,
-          "position": 13514
+          "line": 374,
+          "position": 13098
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 382,
+        "start": 363,
         "startLoc": {
-          "column": 8,
-          "line": 382,
-          "position": 13262
+          "column": 51,
+          "line": 363,
+          "position": 12772
         }
       },
       "format": "typescript",
-      "fragment": "        }\n      },\n      Recovery: {\n        onEnter(world, entity, data) {\n          zeroVx(world, entity);\n          if (data.useFlank) flipFlankSide(data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"recoveryDuration\", 0.35, elapsed, \"Idle\");",
+      "fragment": "          if ((ground?.isGrounded && elapsed > 0.12) || elapsed >= dur) {\n            return \"Recovery\";\n          }\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, data) {\n          zeroVx(world, entity);\n          if (data.useFlank) flipFlankSide(data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"recoveryDuration\", 0.35, elapsed, \"Idle\");",
       "isNew": false,
-      "lines": 9,
+      "lines": 12,
       "secondFile": {
-        "end": 562,
+        "end": 428,
         "endLoc": {
           "column": 48,
-          "line": 562,
-          "position": 19397
+          "line": 428,
+          "position": 14995
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 554,
+        "start": 415,
         "startLoc": {
-          "column": 8,
-          "line": 554,
-          "position": 19145
+          "column": 67,
+          "line": 415,
+          "position": 14646
         }
       },
-      "tokens": 53
+      "tokens": 64
     },
     {
       "firstFile": {
-        "end": 551,
+        "end": 461,
         "endLoc": {
           "column": 36,
-          "line": 551,
-          "position": 19016
+          "line": 461,
+          "position": 16107
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 541,
+        "start": 451,
         "startLoc": {
           "column": 8,
-          "line": 541,
-          "position": 18716
+          "line": 451,
+          "position": 15807
         }
       },
       "format": "typescript",
@@ -1649,58 +1686,21 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 605,
+        "end": 515,
         "endLoc": {
           "column": 36,
-          "line": 605,
-          "position": 20882
+          "line": 515,
+          "position": 17973
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 595,
+        "start": 505,
         "startLoc": {
           "column": 8,
-          "line": 595,
-          "position": 20582
+          "line": 505,
+          "position": 17673
         }
       },
       "tokens": 61
-    },
-    {
-      "firstFile": {
-        "end": 562,
-        "endLoc": {
-          "column": 48,
-          "line": 562,
-          "position": 19397
-        },
-        "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 553,
-        "startLoc": {
-          "column": 50,
-          "line": 553,
-          "position": 19113
-        }
-      },
-      "format": "typescript",
-      "fragment": "          return timed(data, \"attackDuration\", 0.5, elapsed, \"Recovery\");\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, data) {\n          zeroVx(world, entity);\n          if (data.useFlank) flipFlankSide(data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"recoveryDuration\", 0.6, elapsed, \"Idle\");",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 615,
-        "endLoc": {
-          "column": 48,
-          "line": 615,
-          "position": 21218
-        },
-        "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 606,
-        "startLoc": {
-          "column": 51,
-          "line": 606,
-          "position": 20934
-        }
-      },
-      "tokens": 59
     },
     {
       "firstFile": {
@@ -1708,14 +1708,14 @@
         "endLoc": {
           "column": 38,
           "line": 35,
-          "position": 1116
+          "position": 1111
         },
         "name": "hitandrun/hurt/HitRunHurtSystem.ts",
         "start": 29,
         "startLoc": {
           "column": 39,
           "line": 29,
-          "position": 906
+          "position": 901
         }
       },
       "format": "typescript",
@@ -1745,14 +1745,14 @@
         "endLoc": {
           "column": 7,
           "line": 36,
-          "position": 1143
+          "position": 1138
         },
         "name": "hitandrun/hurt/HitRunHurtSystem.ts",
         "start": 31,
         "startLoc": {
           "column": 2,
           "line": 31,
-          "position": 918
+          "position": 913
         }
       },
       "format": "typescript",
@@ -1778,18 +1778,18 @@
     },
     {
       "firstFile": {
-        "end": 222,
+        "end": 182,
         "endLoc": {
           "column": 9,
-          "line": 222,
-          "position": 6186
+          "line": 182,
+          "position": 4937
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 217,
+        "start": 177,
         "startLoc": {
           "column": 4,
-          "line": 217,
-          "position": 5949
+          "line": 177,
+          "position": 4700
         }
       },
       "format": "typescript",
@@ -1797,18 +1797,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 315,
+        "end": 269,
         "endLoc": {
           "column": 9,
-          "line": 315,
-          "position": 8346
+          "line": 269,
+          "position": 6886
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 309,
+        "start": 263,
         "startLoc": {
           "column": 4,
-          "line": 309,
-          "position": 8108
+          "line": 263,
+          "position": 6648
         }
       },
       "tokens": 57
@@ -2185,32 +2185,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-03T12:08:59.723Z",
+    "detectionDate": "2026-10-03T18:46:38.918Z",
     "formats": {
       "typescript": {
         "clones": 59,
-        "duplicatedLines": 625,
-        "duplicatedTokens": 4578,
-        "lines": 75798,
+        "duplicatedLines": 588,
+        "duplicatedTokens": 4391,
+        "lines": 75263,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.8245600147761154,
-        "percentageTokens": 1.1678213932226564,
-        "sources": 465,
-        "tokens": 392012
+        "percentage": 0.7812603802665321,
+        "percentageTokens": 1.1281073693080803,
+        "sources": 462,
+        "tokens": 389236
       }
     },
     "total": {
       "clones": 59,
-      "duplicatedLines": 625,
-      "duplicatedTokens": 4578,
-      "lines": 75798,
+      "duplicatedLines": 588,
+      "duplicatedTokens": 4391,
+      "lines": 75263,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.8245600147761154,
-      "percentageTokens": 1.1678213932226564,
-      "sources": 465,
-      "tokens": 392012
+      "percentage": 0.7812603802665321,
+      "percentageTokens": 1.1281073693080803,
+      "sources": 462,
+      "tokens": 389236
     }
   }
 }

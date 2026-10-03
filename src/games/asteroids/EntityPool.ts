@@ -49,7 +49,11 @@ function createAsteroidsBulletPoolConfig() {
       data.position.rotation = p.rotation ?? 0;
       data.render.color = p.color || tint;
       data.render.rotation = 0;
-      data.bullet.ownerId = p.ownerId;
+      if (!data.bullet || Object.isFrozen(data.bullet)) {
+        data.bullet = { type: "Bullet", ownerId: p.ownerId };
+      } else {
+        data.bullet.ownerId = p.ownerId;
+      }
 
       const ttlVal = p.ttl ?? gameConfig?.BULLET_TTL ?? 2.0;
       data.ttl.remaining = ttlVal;

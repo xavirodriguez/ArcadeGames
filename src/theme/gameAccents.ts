@@ -47,6 +47,11 @@ export const GAME_ACCENTS = {
     secondary: 'cyan' as const,
     accent: 'pink' as const,
   },
+  'vertical-shmup': {
+    primary: 'cyan' as const,
+    secondary: 'purple' as const,
+    accent: 'pink' as const,
+  },
   campaign: {
     primary: 'cyan' as const,
     secondary: 'gold' as const,

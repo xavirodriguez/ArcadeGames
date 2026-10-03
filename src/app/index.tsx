@@ -34,6 +34,7 @@ const GAMES: GameEntry[] = [
   { id: "hitandrun", key: "hitandrun", href: "/hitandrun" },
   { id: "platformer", key: "platformer", href: "/platformer" },
   { id: "frogger", key: "frogger", href: "/frogger" },
+  { id: "vertical-shmup", key: "vertical-shmup", href: "/vertical-shmup" },
   { id: "cyoa", key: "cyoa", href: "/cyoa" },
   { id: "blindstation", key: "blindstation", href: "/blindstation" },
 ];
@@ -73,6 +74,7 @@ export default function HomeScreen() {
                  gameId === "pong" ? "/pong" :
                  gameId === "flappybird" ? "/flappybird" :
                  gameId === "frogger" ? "/frogger" :
+                 gameId === "vertical-shmup" ? "/vertical-shmup" :
                  "/space-invaders";
 
       router.push({

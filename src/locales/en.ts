@@ -44,6 +44,7 @@ export const en = {
       blindstation: "THE BLIND STATION",
       platformer: "PLATFORMER // 2D",
       frogger: "FROGGER // CROSSING",
+      "vertical-shmup": "1942 // VERTICAL SHMUP",
       arkanoid: "ARKANOID",
       campaign: "STORY CAMPAIGN",
       level: "LEVEL",

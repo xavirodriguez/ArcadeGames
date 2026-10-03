@@ -15,10 +15,6 @@ interface PendingSpawn {
   cooldownMs: number;
 }
 
-/**
- * Reuses the SpawnDirector pattern from Space Invaders.
- * Manages wave progression and timed creep spawning.
- */
 export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry> {
   readonly phase = SystemPhase.Simulation;
   private pending: PendingSpawn[] = [];
@@ -34,14 +30,12 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry> {
     const sd = world.getComponent(director, "SpawnDirector");
     if (!sd) return;
 
-    // Start wave when phase becomes "wave" and director is idle
     if (gs.phase === "wave" && sd.status === "idle" && !this.waveActive) {
       this.startWave(world, gs.wave);
     }
 
     if (!this.waveActive) return;
 
-    // Tick pending spawns
     for (const p of this.pending) {
       if (p.remaining <= 0) continue;
       p.cooldownMs -= dt;
@@ -49,13 +43,14 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry> {
         this.spawnOne(world, p.creepType);
         p.remaining -= 1;
         p.cooldownMs = p.intervalMs;
+        const stillPending = this.pending.reduce((sum, x) => sum + x.remaining, 0);
+        const alive = world.query("Creep").length;
         world.mutateComponent(director, "SpawnDirector", (s) => {
-          s.enemiesRemaining = Math.max(0, (s.enemiesRemaining ?? 0));
+          s.enemiesRemaining = stillPending + alive;
         });
       }
     }
 
-    // Check if wave is finished spawning and all creeps are dead
     const stillSpawning = this.pending.some((p) => p.remaining > 0);
     const liveCreeps = world.query("Creep").length;
 
@@ -78,7 +73,7 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry> {
       creepType: c.type,
       remaining: c.count,
       intervalMs: (c.interval ?? 0.8) * 1000,
-      cooldownMs: 0, // spawn first immediately
+      cooldownMs: 0,
     }));
 
     const total = this.pending.reduce((sum, p) => sum + p.remaining, 0);

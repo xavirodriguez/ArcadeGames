@@ -6,11 +6,6 @@ import type {
 } from "../types/TowerDefenseTypes";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
-/**
- * Manages phase transitions:
- *   build → wave → intermission → build … → victory / game_over
- * Also reacts to lives reaching 0 and to wave:cleared / startWave input.
- */
 export class GameStateSystem extends System<TowerDefenseComponentRegistry> {
   readonly phase = SystemPhase.GameRules;
   private unsubKilled?: () => void;
@@ -26,17 +21,19 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry> {
     const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
     if (!gs) return;
 
-    // Game over check
     if (gs.lives <= 0 && gs.phase !== "game_over") {
       world.mutateSingleton("GameState", (g: GameStateComponent) => {
         g.phase = "game_over";
       });
+      const bus = world.getEventBus?.() ?? (world as any).eventBus;
+      if (bus && !(world as any).isReSimulating) {
+        bus.emitDeferred?.("PlaySFX", { name: "game_over" }) ?? bus.emit?.("PlaySFX", { name: "game_over" });
+      }
       return;
     }
 
     if (gs.phase === "game_over" || gs.phase === "victory") return;
 
-    // Intermission countdown
     if (gs.phase === "intermission") {
       world.mutateSingleton("GameState", (g: GameStateComponent) => {
         g.intermissionRemaining = Math.max(0, g.intermissionRemaining - dt / 1000);
@@ -46,7 +43,6 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry> {
       });
     }
 
-    // Start wave from input (player presses start during build)
     const playerEntity = world.query("Player")[0];
     if (playerEntity !== undefined && gs.phase === "build") {
       const input = world.getComponent(playerEntity, "Input");

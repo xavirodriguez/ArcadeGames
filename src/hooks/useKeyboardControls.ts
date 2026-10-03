@@ -58,6 +58,9 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
       const p1Down = activeKeys.has("KeyS");
       const p2Up = activeKeys.has("ArrowUp");
       const p2Down = activeKeys.has("ArrowDown");
+      const moveX = (rotateRight ? 1 : 0) - (rotateLeft ? 1 : 0);
+      const moveY = thrust ? -1 : (moveDown ? 1 : 0);
+      const boost = activeKeys.has("Space");
 
       const fullPayload = {
         rotateLeft,
@@ -78,6 +81,9 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         p1Down,
         p2Up,
         p2Down,
+        moveX,
+        moveY,
+        boost,
       };
 
       let inputPayload: Partial<typeof fullPayload> = fullPayload;
@@ -94,9 +100,17 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
           KeyW: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p1Up"],
           ArrowDown: ["moveDown", "p2Down"],
           KeyS: ["moveDown", "p1Down"],
-          Space: ["shoot", "flap", "glide", "p1Launch"],
+          Space: ["shoot", "flap", "glide", "p1Launch", "boost"],
           ShiftLeft: ["hyperspace"],
           KeyH: ["hyperspace"],
+          ArrowLeft: ["moveX"],
+          KeyA: ["moveX"],
+          ArrowRight: ["moveX"],
+          KeyD: ["moveX"],
+          ArrowUp: ["moveY"],
+          KeyW: ["moveY"],
+          ArrowDown: ["moveY"],
+          KeyS: ["moveY"],
         };
 
         for (const code of affectedKeys) {

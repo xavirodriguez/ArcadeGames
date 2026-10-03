@@ -1,6 +1,7 @@
 import { Renderer, RendererUtils } from "@tiny-aster/core";
 import type { RacingComponentRegistry } from "../types/RacingRegistry";
 import { drawRacingCar, drawTrackWall, drawCheckpoint } from "./RacingCanvasVisuals";
+import { drawSkiaRacingCar, drawSkiaTrackWall, drawSkiaCheckpoint } from "./RacingSkiaVisuals";
 
 export function initializeRacingRenderer(renderer: Renderer<RacingComponentRegistry, unknown>): void {
   RendererUtils.registerAssets(renderer, {
@@ -10,9 +11,9 @@ export function initializeRacingRenderer(renderer: Renderer<RacingComponentRegis
       r.registerShape("checkpoint", drawCheckpoint);
     },
     skia: (r) => {
-      r.registerShape("racing_car", drawRacingCar as never);
-      r.registerShape("track_wall", drawTrackWall as never);
-      r.registerShape("checkpoint", drawCheckpoint as never);
+      r.registerShape("racing_car", drawSkiaRacingCar);
+      r.registerShape("track_wall", drawSkiaTrackWall);
+      r.registerShape("checkpoint", drawSkiaCheckpoint);
     }
   });
 }

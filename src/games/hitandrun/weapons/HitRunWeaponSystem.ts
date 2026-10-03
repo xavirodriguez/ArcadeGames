@@ -5,6 +5,7 @@ import {
   PhysicsUtils
 } from "@tiny-aster/core";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
+import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import { getWeaponDefinition } from "./HitRunWeaponCatalog";
 import type { HitRunWeaponId, HitRunWeaponState } from "./HitRunWeaponTypes";
 import { fireWeapon, applyRecoil } from "./fireWeapon";
@@ -17,7 +18,7 @@ interface WeaponInputLike {
 }
 
 /**
- * HitRunWeaponSystem — arma equipada + input → fireWeapon + recoil + muzzle flash.
+ * HitRunWeaponSystem — fire + facing + recoil + muzzle flash + micro-shake.
  */
 export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
@@ -47,12 +48,14 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         );
       }
 
+      if (isPlayerControlLocked(world, entity)) continue;
+
       const def = getWeaponDefinition(weaponState.weaponId as HitRunWeaponId);
       const input = this.readInput(world, entity);
       if (!input?.firePressed && !input?.fireHeld) continue;
       if (weaponState.cooldownRemaining > 0) continue;
 
-      const transform = world.getComponent(entity, "Transform");
+      const transform = world.getMutableComponent(entity, "Transform");
       if (!transform) continue;
 
       const ox = transform.worldX ?? transform.x;
@@ -63,6 +66,13 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
       if (Math.abs(dirX) < 1e-4 && Math.abs(dirY) < 1e-4) {
         dirX = (transform.scaleX ?? 1) >= 0 ? 1 : -1;
         dirY = 0;
+      }
+
+      // Face the shot direction (horizontal)
+      if (Math.abs(dirX) > 0.01) {
+        const face = dirX >= 0 ? 1 : -1;
+        transform.scaleX = face;
+        transform.worldScaleX = face;
       }
 
       const spawned = fireWeapon({
@@ -80,7 +90,6 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         weaponState.cooldownRemaining = def.cooldownDuration;
         weaponState.muzzleFlashRemaining = 0.06;
 
-        // Micro screen-shake for continuous HMG feel (presentation resource)
         if (!world.isReSimulating) {
           const shake = world.getResource<{ intensity: number; duration: number; elapsed: number }>(
             "HitRunScreenShake"
@@ -90,7 +99,6 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
             shake.duration = Math.max(shake.duration, def.id === "hmg" ? 0.08 : 0.2);
             shake.elapsed = 0;
           }
-          // Camera shake component on main camera if present
           const cams = world.query("Camera2D");
           for (let c = 0; c < cams.length; c++) {
             const cam = world.getComponent(cams[c], "Camera2D") as { isMain?: boolean } | undefined;
@@ -100,13 +108,19 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
                 type: "ScreenShake",
                 intensity: def.id === "hmg" ? 2.5 : 8,
                 duration: def.id === "hmg" ? 0.06 : 0.18,
-                elapsed: 0
+                remaining: def.id === "hmg" ? 0.06 : 0.18
               } as { type: string; [key: string]: unknown });
             } else {
-              world.mutateComponent(cams[c], "ScreenShake", (s: { intensity: number; duration: number; elapsed: number }) => {
+              world.mutateComponent(cams[c], "ScreenShake", (s: {
+                intensity: number;
+                duration: number;
+                remaining?: number;
+                elapsed?: number;
+              }) => {
                 s.intensity = Math.min(10, s.intensity + (def.id === "hmg" ? 1.5 : 5));
                 s.duration = Math.max(s.duration, def.id === "hmg" ? 0.06 : 0.18);
-                s.elapsed = 0;
+                if (s.remaining !== undefined) s.remaining = s.duration;
+                if (s.elapsed !== undefined) s.elapsed = 0;
               });
             }
             break;

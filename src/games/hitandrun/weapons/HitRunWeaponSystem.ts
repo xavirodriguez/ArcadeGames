@@ -9,28 +9,16 @@ import { getWeaponDefinition } from "./HitRunWeaponCatalog";
 import type { HitRunWeaponId, HitRunWeaponState } from "./HitRunWeaponTypes";
 import { fireWeapon, applyRecoil } from "./fireWeapon";
 
-/**
- * Input mínimo esperado en el componente de input del jugador.
- * (Compatible con PlatformerInput extendido o un Aim component.)
- */
 interface WeaponInputLike {
   firePressed?: boolean;
   fireHeld?: boolean;
-  /** -1..1 o pixels; si no hay aim, se usa facing del Transform.scaleX */
   aimX?: number;
   aimY?: number;
 }
 
 /**
  * HitRunWeaponSystem — lee arma equipada + input y llama a fireWeapon.
- *
- * Fase: SystemPhase.Simulation (o Input, tras leer input).
- * Respeta hit-stop vía isSimulationFrozen.
- *
- * Requiere en el jugador:
- *  - HitRunWeapon (weaponId, cooldownRemaining)
- *  - Transform
- *  - PlatformerInput u otro con firePressed / aim
+ * Prefer BeltInput (belt player), then PlatformerInput, then Aim.
  */
 export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
@@ -46,7 +34,6 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         | undefined;
       if (!weaponState) continue;
 
-      // Cooldown
       if (weaponState.cooldownRemaining > 0) {
         weaponState.cooldownRemaining = PhysicsUtils.tickTimer(
           weaponState.cooldownRemaining,
@@ -68,7 +55,6 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
       let dirX = input.aimX ?? 0;
       let dirY = input.aimY ?? 0;
       if (Math.abs(dirX) < 1e-4 && Math.abs(dirY) < 1e-4) {
-        // Facing por scaleX (platformer)
         dirX = (transform.scaleX ?? 1) >= 0 ? 1 : -1;
         dirY = 0;
       }
@@ -87,7 +73,12 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
 
       weaponState.cooldownRemaining = def.cooldownDuration;
 
-      // Consumir one-shot firePressed si existe en PlatformerInput
+      const beltInput = world.getMutableComponent(entity, "BeltInput") as
+        | WeaponInputLike
+        | undefined;
+      if (beltInput && beltInput.firePressed) {
+        beltInput.firePressed = false;
+      }
       const platInput = world.getMutableComponent(entity, "PlatformerInput") as
         | WeaponInputLike
         | undefined;
@@ -101,6 +92,11 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
     world: World<CoreComponentRegistry>,
     entity: number
   ): WeaponInputLike | undefined {
+    const belt = world.getComponent(entity, "BeltInput") as
+      | WeaponInputLike
+      | undefined;
+    if (belt) return belt;
+
     const plat = world.getComponent(entity, "PlatformerInput") as
       | WeaponInputLike
       | undefined;

@@ -52,6 +52,13 @@ export default function RootLayout() {
           <Stack.Screen name="pong" options={{ title: "Pong" }} />
           <Stack.Screen name="platformer" options={{ title: "Platformer" }} />
           <Stack.Screen name="arkanoid" options={{ title: "Arkanoid" }} />
+          <Stack.Screen name="geometrywars" options={{ title: "Geometry Wars" }} />
+          <Stack.Screen name="echorunner" options={{ title: "Echo Runner" }} />
+          <Stack.Screen name="frogger" options={{ title: "Frogger" }} />
+          <Stack.Screen name="campaign" options={{ title: "Campaign" }} />
+          <Stack.Screen name="cyoa" options={{ title: "Choose Your Own Adventure" }} />
+          <Stack.Screen name="blindstation" options={{ title: "Blind Station" }} />
+          <Stack.Screen name="hitandrun" options={{ title: "Hit and Run" }} />
         </Stack>
       </GameServicesProvider>
     </GestureHandlerRootView>

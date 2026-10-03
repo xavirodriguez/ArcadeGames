@@ -23,6 +23,54 @@ import {
   HighScoreText,
   NeonButton,
 } from "../../components/ui";
+import { DEATH_FLOW_RESOURCE } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
+import type { HitRunDeathFlowState } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
+import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
+
+/** Write aimX/aimY + fire flags onto the player so HitRunWeaponSystem can shoot 8-way. */
+function applyAimToPlayer(
+  game: { getWorld: () => { query: (t: string) => number[]; getComponent: (e: number, t: string) => unknown; mutateComponent: (e: number, t: string, fn: (c: any) => void) => void; hasComponent: (e: number, t: string) => boolean } },
+  keys: {
+    moveLeft: boolean;
+    moveRight: boolean;
+    aimUp: boolean;
+    aimDown: boolean;
+    attack: boolean;
+  }
+) {
+  const world = game.getWorld();
+  const player = world.query("PlatformerInput")[0];
+  if (player === undefined) return;
+
+  const transform = world.getComponent(player, "Transform") as { scaleX?: number } | undefined;
+  const aim = resolveHitRunAim({
+    moveLeft: keys.moveLeft,
+    moveRight: keys.moveRight,
+    aimUp: keys.aimUp,
+    aimDown: keys.aimDown,
+    lastFacingX: transform?.scaleX ?? 1
+  });
+
+  world.mutateComponent(player, "PlatformerInput", (comp: {
+    aimX?: number;
+    aimY?: number;
+    fireHeld?: boolean;
+    firePressed?: boolean;
+  }) => {
+    comp.aimX = aim.aimX;
+    comp.aimY = aim.aimY;
+    comp.fireHeld = keys.attack;
+    comp.firePressed = keys.attack;
+  });
+
+  if (Math.abs(aim.aimX) > 0.01 && world.hasComponent(player, "Transform")) {
+    const face = aim.aimX >= 0 ? 1 : -1;
+    world.mutateComponent(player, "Transform", (t: { scaleX?: number; worldScaleX?: number }) => {
+      t.scaleX = face;
+      t.worldScaleX = face;
+    });
+  }
+}
 
 function HitAndRunContent() {
   const { t } = useTranslation();
@@ -42,8 +90,20 @@ function HitAndRunContent() {
   };
   const isTouchDevice = useTouchDevice();
 
-  const { game, gameState, isPaused, isReady, togglePause, highScore } =
+  const { game, gameState, isPaused, isReady, togglePause, highScore, restartWithSeed } =
     useHitAndRunGame(started, initialSeed);
+
+  useEffect(() => {
+    if (!game || !isReady) return;
+    const id = setInterval(() => {
+      const flow = game.getWorld().getResource(DEATH_FLOW_RESOURCE) as HitRunDeathFlowState | undefined;
+      if (flow?.requestRestart) {
+        flow.requestRestart = false;
+        restartWithSeed?.();
+      }
+    }, 100);
+    return () => clearInterval(id);
+  }, [game, isReady, restartWithSeed]);
 
   useEffect(() => {
     if (Platform.OS !== "web" || !game || !isReady) return;
@@ -55,12 +115,25 @@ function HitAndRunContent() {
         togglePause();
         return;
       }
+      if (e.code === "KeyR") {
+        restartWithSeed?.();
+        return;
+      }
+      if (
+        e.code === "ArrowUp" ||
+        e.code === "ArrowDown" ||
+        e.code === "ArrowLeft" ||
+        e.code === "ArrowRight" ||
+        e.code === "Space"
+      ) {
+        e.preventDefault();
+      }
       activeKeys.add(e.code);
       updateInput();
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === "KeyP") return;
+      if (e.code === "KeyP" || e.code === "KeyR") return;
       activeKeys.delete(e.code);
       updateInput();
     };
@@ -73,15 +146,33 @@ function HitAndRunContent() {
     const updateInput = () => {
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
-      const jump = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("Space");
-      const pulse = activeKeys.has("KeyF") || activeKeys.has("KeyJ") || activeKeys.has("KeyE") || activeKeys.has("ShiftLeft");
+      // Space / W = jump — ArrowUp is aim, never jump
+      const jump = activeKeys.has("Space") || activeKeys.has("KeyW");
+      const aimUp = activeKeys.has("ArrowUp");
+      const aimDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
+      const pulse =
+        activeKeys.has("KeyF") ||
+        activeKeys.has("KeyJ") ||
+        activeKeys.has("KeyE") ||
+        activeKeys.has("ShiftLeft");
+      const attack =
+        activeKeys.has("KeyC") ||
+        activeKeys.has("KeyX") ||
+        activeKeys.has("KeyK") ||
+        activeKeys.has("ControlLeft") ||
+        activeKeys.has("ControlRight");
 
       game.setInputState({
         moveLeft,
         moveRight,
         jump,
-        pulse
+        pulse,
+        attack,
+        aimUp,
+        aimDown
       });
+
+      applyAimToPlayer(game, { moveLeft, moveRight, aimUp, aimDown, attack });
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -93,15 +184,61 @@ function HitAndRunContent() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [game, isReady, togglePause]);
+  }, [game, isReady, togglePause, restartWithSeed]);
 
-  const handleTouchLeft = (pressed: boolean) => game?.setInputState({ moveLeft: pressed });
-  const handleTouchRight = (pressed: boolean) => game?.setInputState({ moveRight: pressed });
+  const pushTouch = (partial: {
+    moveLeft?: boolean;
+    moveRight?: boolean;
+    jump?: boolean;
+    attack?: boolean;
+    aimUp?: boolean;
+    aimDown?: boolean;
+    pulse?: boolean;
+  }) => {
+    if (!game) return;
+    game.setInputState(partial);
+    // Re-read current component state is incomplete for multi-button — build from last known
+    // Touch path: merge via successive setInputState; apply aim with best-effort flags
+    const world = game.getWorld();
+    const player = world.query("PlatformerInput")[0];
+    if (player === undefined) return;
+    const inp = world.getComponent(player, "PlatformerInput") as {
+      moveDir?: number;
+      aimX?: number;
+      aimY?: number;
+      fireHeld?: boolean;
+    } | undefined;
+    const moveLeft = partial.moveLeft ?? (inp?.moveDir !== undefined && inp.moveDir < 0);
+    const moveRight = partial.moveRight ?? (inp?.moveDir !== undefined && inp.moveDir > 0);
+    // For aim flags on touch we track via partial only when provided — store on resource
+    let aimBag = world.getResource("HitRunTouchAim") as { up: boolean; down: boolean } | undefined;
+    if (!aimBag) {
+      aimBag = { up: false, down: false };
+      world.setResource("HitRunTouchAim", aimBag);
+    }
+    if (partial.aimUp !== undefined) aimBag.up = partial.aimUp;
+    if (partial.aimDown !== undefined) aimBag.down = partial.aimDown;
+    const attack =
+      partial.attack !== undefined ? partial.attack : !!inp?.fireHeld;
+    applyAimToPlayer(game, {
+      moveLeft: !!moveLeft,
+      moveRight: !!moveRight,
+      aimUp: aimBag.up,
+      aimDown: aimBag.down,
+      attack
+    });
+  };
+
+  const handleTouchLeft = (pressed: boolean) => pushTouch({ moveLeft: pressed });
+  const handleTouchRight = (pressed: boolean) => pushTouch({ moveRight: pressed });
   const handleTouchJump = (pressed: boolean) => game?.setInputState({ jump: pressed });
   const handleTouchPulse = () => {
     game?.setInputState({ pulse: true });
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
+  const handleTouchFire = (pressed: boolean) => pushTouch({ attack: pressed });
+  const handleTouchAimUp = (pressed: boolean) => pushTouch({ aimUp: pressed });
+  const handleTouchAimDown = (pressed: boolean) => pushTouch({ aimDown: pressed });
 
   const formatTime = (timeInSecs: number) => {
     const mins = Math.floor(timeInSecs / 60);
@@ -122,7 +259,9 @@ function HitAndRunContent() {
           placeholder={t.common.your_name}
         />
         <GameInstructions>
-          {Platform.OS === "web" ? t.echorunner.instructions : t.common.touch_controls}
+          {Platform.OS === "web"
+            ? "←→/AD move · ↑↓ aim · Space jump · F melee · C/X fire · R restart"
+            : t.common.touch_controls}
         </GameInstructions>
         <HighScoreText label={t.common.record} score={highScore} />
         <NeonButton
@@ -133,7 +272,7 @@ function HitAndRunContent() {
           }}
           accessibilityLabel={t.echorunner.start_file}
         >
-          {t.echorunner.start_file}
+          START RUN
         </NeonButton>
       </GameScreen>
     );
@@ -160,12 +299,14 @@ function HitAndRunContent() {
             <Text style={styles.hudValue}>{gameState.attempts.toString().padStart(2, "0")}</Text>
           </View>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.echorunner.fragments}</Text>
-            <Text style={[styles.hudValue, styles.violetGlow]}>◆ {gameState.fragments}</Text>
+            <Text style={styles.hudLabel}>HP</Text>
+            <Text style={[styles.hudValue, styles.pinkGlow]}>
+              {gameState.health ?? 3}/{gameState.maxHealth ?? 3}
+            </Text>
           </View>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.echorunner.cores}</Text>
-            <Text style={[styles.hudValue, styles.goldGlow]}>◉ {gameState.cores}</Text>
+            <Text style={styles.hudLabel}>{t.echorunner.fragments}</Text>
+            <Text style={[styles.hudValue, styles.violetGlow]}>◆ {gameState.fragments}</Text>
           </View>
           <View style={styles.hudItem}>
             <Text style={styles.hudLabel}>{t.echorunner.chrono}</Text>
@@ -184,7 +325,7 @@ function HitAndRunContent() {
             <View style={styles.dpad} pointerEvents="box-none">
               <GestureActionButton
                 label="◀"
-                size={65}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.borderLight}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -196,7 +337,7 @@ function HitAndRunContent() {
               />
               <GestureActionButton
                 label="▶"
-                size={65}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.borderLight}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -206,23 +347,59 @@ function HitAndRunContent() {
                 accessibilityLabel="Move right"
                 style={{ marginHorizontal: spacing.sm }}
               />
+              <GestureActionButton
+                label="▲"
+                size={52}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.gold}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                onPressIn={() => handleTouchAimUp(true)}
+                onPressOut={() => handleTouchAimUp(false)}
+                accessibilityLabel="Aim up"
+                style={{ marginHorizontal: spacing.sm }}
+              />
+              <GestureActionButton
+                label="▼"
+                size={52}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.gold}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                onPressIn={() => handleTouchAimDown(true)}
+                onPressOut={() => handleTouchAimDown(false)}
+                accessibilityLabel="Aim down"
+                style={{ marginHorizontal: spacing.sm }}
+              />
             </View>
             <View style={styles.actions} pointerEvents="box-none">
               <GestureActionButton
-                label="PULSE"
-                size={70}
+                label="MELEE"
+                size={64}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.pink}
                 pressedColor="rgba(30, 41, 59, 0.9)"
                 pressedBorderColor={colors.white}
                 onPressIn={() => handleTouchPulse()}
                 onPressOut={() => {}}
-                accessibilityLabel="Pulse attack"
+                accessibilityLabel="Melee"
+                style={{ marginHorizontal: spacing.sm }}
+              />
+              <GestureActionButton
+                label="FIRE"
+                size={72}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.gold}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                onPressIn={() => handleTouchFire(true)}
+                onPressOut={() => handleTouchFire(false)}
+                accessibilityLabel="Hold to fire"
                 style={{ marginHorizontal: spacing.sm }}
               />
               <GestureActionButton
                 label="JUMP"
-                size={75}
+                size={70}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.cyan}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -238,20 +415,30 @@ function HitAndRunContent() {
 
         {gameState.isGameOver && (
           <View style={styles.gameOverOverlay}>
-            <Text style={styles.gameOverTitle}>{t.echorunner.archive_restored}</Text>
-            <Text style={styles.gameOverSubtitle}>{t.echorunner.archive_restored_sub}</Text>
-            <Text style={styles.gameOverStat}>{t.echorunner.total_attempts}: {gameState.attempts}</Text>
+            <Text style={styles.gameOverTitle}>RUN COMPLETE</Text>
+            <Text style={styles.gameOverSubtitle}>Core secured</Text>
+            <Text style={styles.gameOverStat}>Score: {gameState.score}</Text>
             <Text style={styles.gameOverStat}>{t.echorunner.deaths}: {gameState.deaths}</Text>
             <Text style={styles.gameOverStat}>{t.echorunner.elapsed_time}: {formatTime(gameState.elapsedTime)}</Text>
             <TouchableOpacity
               style={styles.menuButton}
               onPress={() => {
                 hapticSelection();
+                restartWithSeed?.();
+              }}
+              accessibilityRole="button"
+            >
+              <Text style={styles.menuButtonText}>AGAIN</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.menuButton, { marginTop: spacing.md, borderColor: colors.cyan }]}
+              onPress={() => {
+                hapticSelection();
                 router.replace("/");
               }}
               accessibilityRole="button"
             >
-              <Text style={styles.menuButtonText}>{t.echorunner.return_repo}</Text>
+              <Text style={[styles.menuButtonText, { color: colors.cyan }]}>{t.common.menu}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -309,7 +496,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   violetGlow: { color: colors.violet, textShadowColor: colors.violet },
-  goldGlow: { color: colors.gold, textShadowColor: colors.gold },
+  pinkGlow: { color: colors.pink, textShadowColor: colors.pink },
   touchControlsContainer: {
     position: "absolute",
     bottom: 20,
@@ -321,7 +508,7 @@ const styles = StyleSheet.create({
     height: 180,
     zIndex: 15,
   },
-  dpad: { flexDirection: "row" },
+  dpad: { flexDirection: "row", flexWrap: "wrap", maxWidth: 280 },
   actions: { flexDirection: "row", alignItems: "flex-end" },
   gameOverOverlay: {
     ...StyleSheet.absoluteFillObject,

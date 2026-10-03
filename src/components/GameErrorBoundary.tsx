@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform } from 'react-native';
+import { logger } from '../utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -9,6 +10,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  recoveryKey: number;
 }
 
 /**
@@ -18,34 +20,43 @@ interface State {
 export class GameErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null
+    error: null,
+    recoveryKey: 0,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`[GameErrorBoundary] Crash in ${this.props.gameId}:`, error, errorInfo);
+    logger.error(`[GameErrorBoundary] Crash in ${this.props.gameId}:`, error, errorInfo);
   }
 
   private handleRestart = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState((prevState) => ({
+      hasError: false,
+      error: null,
+      recoveryKey: prevState.recoveryKey + 1,
+    }));
   };
 
-  private handleReportBug = () => {
+  private handleReportBug = async () => {
     const errorMsg = this.state.error ? `${this.state.error.name}: ${this.state.error.message}` : "Unknown error";
     const body = `Game ID: ${this.props.gameId}\nError: ${errorMsg}`;
 
     if (Platform.OS === 'web') {
-        window.alert(`Please report this error:\n\n${body}`);
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(body);
+        } catch (_e) {}
+      }
+      window.alert(`Error details copied to clipboard:\n\n${body}`);
     } else {
-        Alert.alert("Report Bug", `Please report this error:\n\n${body}`, [
-            { text: "OK" },
-            { text: "Copy to Clipboard", onPress: () => {
-                // Clipboard is already imported but let's just keep it simple for now
-            }}
-        ]);
+      Alert.alert(
+        "Report Bug",
+        `Error details:\n\n${body}`,
+        [{ text: "OK" }]
+      );
     }
   };
 
@@ -71,11 +82,18 @@ export class GameErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return (
+      <View key={this.state.recoveryKey} style={styles.wrapper}>
+        {this.props.children}
+      </View>
+    );
   }
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#000',

@@ -4,10 +4,6 @@ import type { DamageConsumptionPolicy } from "@tiny-aster/gameplay-kit";
 /** Identificadores de arma de Hit&Run. */
 export type HitRunWeaponId = "hmg" | "shotgun" | "rocket" | "longbow" | "rune_scatter" | "fire_staff" | "crossbow" | string;
 
-/**
- * Definición data-driven de un arma.
- * El CombatSystem no se toca: solo se rellenan componentes al spawnear proyectiles.
- */
 export interface HitRunWeaponDefinition {
   id: HitRunWeaponId;
   cooldownDuration: number;
@@ -29,7 +25,6 @@ export interface HitRunWeaponDefinition {
   recoilImpulse: number;
 }
 
-/** Parámetros de acquire del PlayerBulletPool. */
 export interface HitRunBulletParams {
   x: number;
   y: number;
@@ -73,4 +68,6 @@ export interface HitRunWeaponState {
   type: "HitRunWeapon";
   weaponId: HitRunWeaponId;
   cooldownRemaining: number;
+  /** Presentación: frames restantes de muzzle flash (no afecta sim neta). */
+  muzzleFlashRemaining?: number;
 }

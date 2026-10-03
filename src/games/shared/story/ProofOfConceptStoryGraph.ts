@@ -73,7 +73,13 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       transitions: [
         {
           targetNodeId: "eval_act1_performance",
+          priority: 10,
           condition: { type: "objective", key: "survive-asteroids-wave3", operator: "==", value: true }
+        },
+        {
+          targetNodeId: "eval_act1_performance",
+          priority: 0,
+          condition: { type: "flag", key: "asteroidsStruggle", value: true }
         }
       ]
     },
@@ -207,7 +213,13 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       transitions: [
         {
           targetNodeId: "eval_act2_performance",
+          priority: 10,
           condition: { type: "objective", key: "repel-invaders-wave", operator: "==", value: true }
+        },
+        {
+          targetNodeId: "eval_act2_performance",
+          priority: 0,
+          condition: { type: "flag", key: "reinforcementsReceived", value: false }
         }
       ]
     },
@@ -250,7 +262,13 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       transitions: [
         {
           targetNodeId: "eval_act2_performance",
+          priority: 10,
           condition: { type: "objective", key: "navigate-debris-channel", operator: "==", value: true }
+        },
+        {
+          targetNodeId: "eval_act2_performance",
+          priority: 0,
+          condition: { type: "flag", key: "reinforcementsReceived", value: false }
         }
       ]
     },
@@ -373,7 +391,13 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       transitions: [
         {
           targetNodeId: "final_evaluation_branch",
+          priority: 10,
           condition: { type: "objective", key: "clear-final-sector", operator: "==", value: true }
+        },
+        {
+          targetNodeId: "final_evaluation_branch",
+          priority: 0,
+          condition: { type: "flag", key: "reduxClimaxFlawless", value: false }
         }
       ]
     },
@@ -416,7 +440,13 @@ export const proofOfConceptStoryGraph: StoryGraph = {
       transitions: [
         {
           targetNodeId: "final_evaluation_branch",
+          priority: 10,
           condition: { type: "objective", key: "repel-final-fleet", operator: "==", value: true }
+        },
+        {
+          targetNodeId: "final_evaluation_branch",
+          priority: 0,
+          condition: { type: "flag", key: "reduxClimaxFlawless", value: false }
         }
       ]
     },

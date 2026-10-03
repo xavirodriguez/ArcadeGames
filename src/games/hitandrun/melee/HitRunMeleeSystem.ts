@@ -22,7 +22,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     if (world.getResource("IsPaused") === true) return;
     if (isSimulationFrozen(world)) return;
 
-    const config =
+    const defaultConfig =
       world.getResource<MeleeAttackConfig>(MELEE_CONFIG_RESOURCE) ??
       DEFAULT_MELEE_ATTACK_CONFIG;
 
@@ -39,6 +39,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       const transform = world.getComponent(entity, "Transform");
       if (!transform) continue;
 
+      const config = melee.customConfig ?? defaultConfig;
       this.tickPhase(world, entity, melee, transform, config, deltaTime);
     }
   }
@@ -69,6 +70,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     melee.phaseElapsed += dt;
 
     if (phase === "startup") {
+      this.applyWarningColor(world, entity, melee);
       if (melee.phaseElapsed >= config.startupSeconds) {
         this.enterActive(world, entity, melee, transform, config);
       }
@@ -80,7 +82,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       this.recordHitsFromHitbox(world, entity, melee, config);
 
       if (melee.phaseElapsed >= config.activeSeconds) {
-        this.enterRecovery(world, melee);
+        this.enterRecovery(world, entity, melee);
       }
       return;
     }
@@ -149,6 +151,40 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     }
   }
 
+  private applyWarningColor(
+    world: World<CoreComponentRegistry>,
+    entity: Entity,
+    melee: MeleeAttackComponent
+  ): void {
+    if (melee.warningColor && world.hasComponent(entity, "Render")) {
+      const render = world.getMutableComponent(entity, "Render") as
+        | { color?: string }
+        | undefined;
+      if (render) {
+        if (melee.baseColor === undefined && render.color !== undefined) {
+          melee.baseColor = render.color;
+        }
+        render.color = melee.warningColor;
+      }
+    }
+  }
+
+  private restoreRenderColor(
+    world: World<CoreComponentRegistry>,
+    entity: Entity,
+    melee: MeleeAttackComponent
+  ): void {
+    if (melee.baseColor !== undefined && world.hasComponent(entity, "Render")) {
+      const render = world.getMutableComponent(entity, "Render") as
+        | { color?: string }
+        | undefined;
+      if (render) {
+        render.color = melee.baseColor;
+      }
+      melee.baseColor = undefined;
+    }
+  }
+
   private enterActive(
     world: World<CoreComponentRegistry>,
     owner: Entity,
@@ -161,15 +197,18 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     },
     config: MeleeAttackConfig
   ): void {
+    this.restoreRenderColor(world, owner, melee);
     melee.phase = "active";
     melee.phaseElapsed = 0;
-    melee.hitboxEntity = this.spawnHitbox(world, melee, transform, config);
+    melee.hitboxEntity = this.spawnHitbox(world, owner, melee, transform, config);
   }
 
   private enterRecovery(
     world: World<CoreComponentRegistry>,
+    owner: Entity,
     melee: MeleeAttackComponent
   ): void {
+    this.restoreRenderColor(world, owner, melee);
     this.destroyHitbox(world, melee);
     melee.phase = "recovery";
     melee.phaseElapsed = 0;
@@ -177,6 +216,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
   private spawnHitbox(
     world: World<CoreComponentRegistry>,
+    owner: Entity,
     melee: MeleeAttackComponent,
     transform: {
       x: number;
@@ -193,6 +233,11 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     const hy = oy + config.hitboxOffsetY;
     const halfW = config.hitboxWidth * 0.5;
     const halfH = config.hitboxHeight * 0.5;
+
+    const ownerFaction =
+      melee.ownerFaction ??
+      (world.getComponent(owner, "Faction") as { value?: string } | undefined)?.value ??
+      "player";
 
     const e = world.createEntity();
 
@@ -221,8 +266,10 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     world.addComponent(e, {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: halfW, halfHeight: halfH },
-      layer: 1 << 3,
+      layer: ownerFaction === "player" ? 1 << 3 : 1 << 4,
       mask: 0xffff,
+      offsetX: 0,
+      offsetY: 0,
       isTrigger: true,
       enabled: true
     });
@@ -237,8 +284,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
     world.addComponent(e, {
       type: "Faction",
-      faction: "player",
-      value: "player"
+      value: ownerFaction
     });
 
     world.addComponent(e, {
@@ -299,6 +345,11 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
   ): void {
     if (melee.hitboxEntity < 0 || !world.hasEntity(melee.hitboxEntity)) return;
 
+    const ownerFactionVal =
+      melee.ownerFaction ??
+      (world.getComponent(owner, "Faction") as { value?: string } | undefined)?.value ??
+      "player";
+
     const events = world.getComponent(melee.hitboxEntity, "CollisionEvents") as
       | {
           collisions?: Array<{ otherEntity: number }>;
@@ -315,10 +366,10 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       if (!world.hasComponent(other, "Health")) return;
       if (world.hasComponent(other, "Dead")) return;
 
-      const faction = world.getComponent(other, "Faction") as
-        | { faction?: string }
+      const targetFaction = world.getComponent(other, "Faction") as
+        | { value?: string }
         | undefined;
-      if (faction?.faction === "player") return;
+      if (targetFaction && targetFaction.value === ownerFactionVal) return;
 
       const health = world.getComponent(other, "Health") as
         | { current: number; invulnerableRemaining?: number }

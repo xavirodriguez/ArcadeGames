@@ -111,8 +111,6 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
       const config = w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
       const width = args.vehicleType === "truck" ? config.GRID_SIZE * 2 : config.GRID_SIZE * 1.2;
 
-      console.log("🚗 [DEBUG-4] Vehículo creado:", { vType: args.vehicleType, x: args.x, vx: args.speed * args.direction });
-
       spawnMovingGridObstacle(w, entity, {
         row: args.row,
         x: args.x,

@@ -3,23 +3,23 @@ import type { HitRunWeaponDefinition, HitRunWeaponId } from "./HitRunWeaponTypes
 export const HIT_RUN_WEAPON_CATALOG: Record<string, HitRunWeaponDefinition> = {
   hmg: {
     id: "hmg",
-    cooldownDuration: 0.08,
-    projectileSpeed: 520,
-    projectileTtl: 0.9,
-    projectileSize: 3.5,
+    cooldownDuration: 0.07,
+    projectileSpeed: 560,
+    projectileTtl: 0.85,
+    projectileSize: 3.2,
     projectileColor: "#fbbf24",
     projectileShape: "bullet_hmg",
     damage: 1,
     damageCategory: "bullet",
     consumption: "destroy-entity",
     pelletCount: 1,
-    spreadRadians: 0,
-    muzzleOffset: 14,
+    spreadRadians: 0.055,
+    muzzleOffset: 16,
     sfxName: "shoot",
     explosive: false,
     explosionRadius: 0,
     explosionDamage: 0,
-    recoilImpulse: 18
+    recoilImpulse: 14
   },
   shotgun: {
     id: "shotgun",

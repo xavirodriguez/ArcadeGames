@@ -14,7 +14,15 @@ import {
 } from "./HitReactionTypes";
 
 /**
- * combat:hit → knockback + hitstun (player invuln; enemies brief stagger).
+ * HitRunHurtSystem — Paso C.
+ *
+ * Listens combat:hit (from melee, CombatSystem, etc.):
+ * - Knockback on target (direction away from source).
+ * - Player only: invulnerability (Health.invulnerableRemaining) + hitstun.
+ * - Enemies: knockback + hitstun.
+ *
+ * Ticks hitstun and invuln blink on HitReaction + Render.opacity.
+ * Does not apply damage (already applied by the source system).
  */
 export class HitRunHurtSystem extends System<CoreComponentRegistry> {
   private subscribed = false;
@@ -69,9 +77,9 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
   private isPlayer(world: World<CoreComponentRegistry>, entity: Entity): boolean {
     if (world.hasComponent(entity, "PlatformerInput")) return true;
     const faction = world.getComponent(entity, "Faction") as
-      | { faction?: string; value?: string }
+      | { value?: string; faction?: string }
       | undefined;
-    return faction?.faction === "player" || faction?.value === "player";
+    return faction?.value === "player" || faction?.faction === "player";
   }
 
   private applyPlayerReaction(
@@ -133,16 +141,7 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
       config.enemyKnockbackX,
       config.enemyKnockbackY
     );
-    this.ensureHitReaction(world, target, config.enemyHitstunSeconds);
-
-    if (world.hasComponent(target, "Render")) {
-      const render = world.getMutableComponent(target, "Render") as
-        | { hitFlashFrames?: number }
-        | undefined;
-      if (render) {
-        render.hitFlashFrames = Math.max(render.hitFlashFrames ?? 0, 5);
-      }
-    }
+    this.ensureHitReaction(world, target, config.playerHitstunSeconds);
   }
 
   private applyKnockback(
@@ -194,7 +193,7 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
       type: "HitReaction",
       hitstunRemaining: hitstunSeconds,
       blinkElapsed: 0
-    } satisfies HitReactionComponent);
+    } as HitReactionComponent);
   }
 
   private tickHitstunAndBlink(

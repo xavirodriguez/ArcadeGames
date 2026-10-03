@@ -37,8 +37,6 @@ export function tryEnemyShoot(
   dy /= len;
 
   const speed = (data.shootSpeed as number) ?? 260;
-  const damage = (data.shootDamage as number) ?? 1;
-  const category = (data.shootCategory as string) ?? "enemy_bullet";
 
   const pool = world.getResource<{
     acquireBullet?: (w: World, p: Record<string, unknown>) => number;
@@ -52,8 +50,8 @@ export function tryEnemyShoot(
     size: 4,
     color: "#f87171",
     ttl: 1.5,
-    damageAmount: damage,
-    damageCategory: category,
+    damageAmount: (data.shootDamage as number) ?? 1,
+    damageCategory: (data.shootCategory as string) ?? "enemy_bullet",
     consumption: "destroy-entity",
     sourceEntity: entity,
     shape: "enemy_bullet"
@@ -70,7 +68,7 @@ export function tryEnemyShoot(
   if (!world.isReSimulating) {
     const bus = world.getEventBus();
     if (bus) {
-      bus.emit("PlaySFX" as any, { name: "shoot_enemy" });
+      bus.emit("PlaySFX", { name: "shoot_enemy" });
     }
   }
 
@@ -119,46 +117,39 @@ function spawnFallbackEnemyBullet(
     worldScaleX: 1,
     worldScaleY: 1,
     dirty: true
-  } as any);
+  });
   world.addComponent(e, {
     type: "Velocity",
     vx: p.dx,
     vy: p.dy,
     angularVelocity: 0
-  } as any);
+  });
   world.addComponent(e, {
     type: "TTL",
     remaining: p.ttl,
     timeLeft: p.ttl
-  } as any);
-  world.addComponent(e, {
-    type: "Damage",
-    amount: p.damageAmount,
-    category: p.damageCategory,
-    consumption: p.consumption,
-    friendlyFire: false,
-    sourceEntity: p.sourceEntity
-  } as any);
+  });
   world.addComponent(e, {
     type: "Faction",
-    faction: "enemy",
     value: "enemy"
-  } as any);
+  });
   world.addComponent(e, {
     type: "Collider2D",
     shape: { type: "aabb", halfWidth: p.size, halfHeight: p.size },
     layer: 1 << 5,
-    mask: 1, // player layer — ajustar a tu máscara
+    mask: 1,
+    offsetX: 0,
+    offsetY: 0,
     isTrigger: true,
     enabled: true
-  } as any);
+  });
   world.addComponent(e, {
     type: "CollisionEvents",
     collisions: [],
     activeTriggers: [],
     triggersEntered: [],
     triggersExited: []
-  } as any);
+  });
   world.addComponent(e, {
     type: "Render",
     shape: p.shape,
@@ -170,6 +161,6 @@ function spawnFallbackEnemyBullet(
     rotation: 0,
     angularVelocity: 0,
     hitFlashFrames: 0
-  } as any);
+  });
   return e;
 }

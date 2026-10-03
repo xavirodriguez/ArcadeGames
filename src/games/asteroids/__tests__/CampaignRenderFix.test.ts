@@ -3,12 +3,14 @@ import { initializeAsteroidsRenderer } from "../rendering/AsteroidsRendererManag
 describe("Campaign Render Fix (Hypothesis A)", () => {
   it("verifies initializeRenderer registers player_ship, asteroid, and bullet shapes on canvas renderer", () => {
     const mockRenderer = {
-      type: "canvas",
+      type: "canvas" as const,
       registerShape: jest.fn(),
       registerBackgroundEffect: jest.fn()
     };
 
-    initializeAsteroidsRenderer(mockRenderer as any);
+    initializeAsteroidsRenderer(
+      mockRenderer as Parameters<typeof initializeAsteroidsRenderer>[0]
+    );
 
     expect(mockRenderer.registerShape).toHaveBeenCalledWith("player_ship", expect.objectContaining({ draw: expect.any(Function) }));
     expect(mockRenderer.registerShape).toHaveBeenCalledWith("asteroid", expect.objectContaining({ draw: expect.any(Function) }));

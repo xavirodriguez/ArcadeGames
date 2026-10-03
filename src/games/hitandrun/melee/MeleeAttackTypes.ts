@@ -58,7 +58,7 @@ export const DEFAULT_MELEE_ATTACK_CONFIG: MeleeAttackConfig = {
 };
 
 /**
- * Per-entity melee state. Attached to the player.
+ * Per-entity melee state. Attached to player or enemy.
  * hitEntityIds is a fixed-capacity list for the current swing (rollback-friendly).
  */
 export interface MeleeAttackComponent {
@@ -76,6 +76,14 @@ export interface MeleeAttackComponent {
   facing: number;
   /** Optional override config id; systems read resource MeleeAttackConfig if unset. */
   configId?: string;
+  /** Custom attack config override for enemies or special weapons. */
+  customConfig?: MeleeAttackConfig;
+  /** Base color restored when leaving anticipation/startup phase. */
+  baseColor?: string;
+  /** Warning visual color during anticipation/startup phase. */
+  warningColor?: string;
+  /** Owner faction override (e.g. "player" or "enemy"). */
+  ownerFaction?: string;
 }
 
 /** Input fields expected on PlatformerInput (or dedicated attack buffer). */

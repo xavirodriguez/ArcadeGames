@@ -18,38 +18,34 @@ import {
   WAVE_SCRIPT_RESOURCE,
   ENEMY_POOL_RESOURCE
 } from "./HitRunWaveTypes";
+import {
+  WAVE_TELEGRAPHS_RESOURCE,
+  WAVE_BANNER_RESOURCE,
+  pushTelegraph,
+  tickTelegraphs,
+  tickBanner,
+  type WaveTelegraphMarker,
+  type WaveBannerState
+} from "./HitRunWavePresentation";
 
 export interface HitRunWaveSystemConfig {
-  /** Spawn por defecto si el evento no trae x/y. */
   defaultSpawnX: number;
   defaultSpawnY: number;
-  /** Margen derecho off-screen para spawns tipo "entrar desde la derecha". */
   offscreenOffsetX: number;
+  telegraphLead: number;
 }
 
 const DEFAULT_CFG: HitRunWaveSystemConfig = {
   defaultSpawnX: 400,
   defaultSpawnY: 200,
-  offscreenOffsetX: 40
+  offscreenOffsetX: 40,
+  telegraphLead: 0.55
 };
 
-/**
- * HitRunWaveSystem — director de ritmo por timeline JSON.
- *
- * Fase: SystemPhase.Simulation
- *
- * - Avanza `WaveDirectorState.elapsed`
- * - Dispara WaveEvents cuando elapsed >= event.t
- * - Soporta stagger (interval) y loop de script
- * - Spawnea vía IHitRunEnemyPool (resource HitRunEnemyPool)
- * - Respeta hit-stop / pause vía isSimulationFrozen
- *
- * Determinismo: formaciones fijas; scatter usa hash de índice (no Math.random).
- * Si en el futuro quieres jitter de seed de partida, usa world.gameplayRandom
- * solo en el path de scatter.
- */
 export class HitRunWaveSystem extends System<CoreComponentRegistry> {
   private cfg: HitRunWaveSystemConfig;
+  private telegraphedEventKeys = new Set<string>();
+  private lastClearEventIndex = -1;
 
   constructor(config: Partial<HitRunWaveSystemConfig> = {}) {
     super();
@@ -59,13 +55,26 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (isSimulationFrozen(world)) return;
 
+    let telegraphs = world.getResource<WaveTelegraphMarker[]>(WAVE_TELEGRAPHS_RESOURCE);
+    if (!telegraphs) {
+      telegraphs = [];
+      world.setResource(WAVE_TELEGRAPHS_RESOURCE, telegraphs);
+    }
+    tickTelegraphs(telegraphs, deltaTime);
+
+    let banner = world.getResource<WaveBannerState | null>(WAVE_BANNER_RESOURCE) ?? null;
+    banner = tickBanner(banner, deltaTime);
+    world.setResource(WAVE_BANNER_RESOURCE, banner);
+
     const state = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
     const script = world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
     if (!state || !script || !state.active) return;
 
     state.elapsed += deltaTime;
 
-    // 1) Eventos cuyo t ya llegó
+    // Preview telegraphs for upcoming events
+    this.queueTelegraphs(world, state, script, telegraphs);
+
     const events = script.events;
     const eLen = events.length;
     while (state.nextEventIndex < eLen) {
@@ -75,10 +84,11 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
       state.nextEventIndex++;
     }
 
-    // 2) Staggers en curso
     this.tickStaggers(world, state);
 
-    // 3) Loop del script
+    // CLEAR when a batch finished and there's a breathing gap (or end)
+    this.maybeShowClear(world, state, script);
+
     if (
       state.nextEventIndex >= eLen &&
       state.pendingStaggers.length === 0 &&
@@ -90,8 +100,68 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
         state.elapsed = 0;
         state.nextEventIndex = 0;
         state.pendingStaggers.length = 0;
+        this.telegraphedEventKeys.clear();
+        this.lastClearEventIndex = -1;
+        world.setResource(WAVE_BANNER_RESOURCE, {
+          text: "NEXT WAVE",
+          remaining: 1.2,
+          sub: script.name
+        });
       }
     }
+  }
+
+  private queueTelegraphs(
+    world: World<CoreComponentRegistry>,
+    state: WaveDirectorState,
+    script: WaveScript,
+    telegraphs: WaveTelegraphMarker[]
+  ): void {
+    const lead = this.cfg.telegraphLead;
+    const events = script.events;
+    for (let i = state.nextEventIndex; i < events.length; i++) {
+      const ev = events[i];
+      const eta = ev.t - state.elapsed;
+      if (eta > lead) break;
+      if (eta < -0.05) continue;
+      const key = `${state.scriptId}:${i}`;
+      if (this.telegraphedEventKeys.has(key)) continue;
+      this.telegraphedEventKeys.add(key);
+
+      const count = Math.max(1, ev.count ?? 1);
+      const formation = (ev.formation ?? "point") as WaveFormation;
+      const spacing = ev.spacing ?? 24;
+      const baseX = ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX;
+      const baseY = ev.y ?? this.cfg.defaultSpawnY;
+      const slots = computeFormationSlots(formation, count, baseX, baseY, spacing);
+      for (let s = 0; s < slots.length; s++) {
+        pushTelegraph(telegraphs, slots[s].x, slots[s].y, lead);
+      }
+    }
+  }
+
+  private maybeShowClear(
+    world: World<CoreComponentRegistry>,
+    state: WaveDirectorState,
+    script: WaveScript
+  ): void {
+    if (state.pendingStaggers.length > 0) return;
+    const idx = state.nextEventIndex - 1;
+    if (idx < 0 || idx === this.lastClearEventIndex) return;
+
+    const events = script.events;
+    const next = events[state.nextEventIndex];
+    const gap = next ? next.t - state.elapsed : 999;
+    if (gap < 1.2 && next) return;
+
+    this.lastClearEventIndex = idx;
+    const enemies = world.query("Enemy");
+    // Soft clear: banner even if a few still alive — emphasis on rhythm
+    world.setResource(WAVE_BANNER_RESOURCE, {
+      text: enemies.length === 0 ? "CLEAR" : "PUSH ON",
+      remaining: 1.35,
+      sub: script.name
+    });
   }
 
   private dispatchEvent(
@@ -108,7 +178,6 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
     const interval = ev.interval ?? 0;
 
     if (interval > 0 && count > 1) {
-      // Primer spawn inmediato + el resto en stagger
       this.spawnOne(world, state, ev.type, formation, baseX, baseY, spacing, 0, count, ev.tags);
       const pending: PendingStagger = {
         eventIndex,
@@ -128,7 +197,6 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
       return;
     }
 
-    // Spawn en bloque (formación completa)
     this.spawnGroup(world, state, ev.type, formation, baseX, baseY, spacing, count, ev.tags);
   }
 
@@ -229,9 +297,6 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
   }
 }
 
-/**
- * Arranca (o reinicia) un script de oleada en el world.
- */
 export function startWaveScript(
   world: World<CoreComponentRegistry>,
   script: WaveScript
@@ -247,6 +312,12 @@ export function startWaveScript(
     totalSpawned: 0
   };
   world.setResource(WAVE_DIRECTOR_RESOURCE, state);
+  world.setResource(WAVE_TELEGRAPHS_RESOURCE, []);
+  world.setResource(WAVE_BANNER_RESOURCE, {
+    text: script.name ?? script.id.toUpperCase(),
+    remaining: 1.5,
+    sub: "INCOMING"
+  });
 }
 
 export function stopWaveDirector(world: World<CoreComponentRegistry>): void {

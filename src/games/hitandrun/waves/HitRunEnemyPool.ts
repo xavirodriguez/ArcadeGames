@@ -11,9 +11,12 @@ import type {
 import { ENEMY_POOL_RESOURCE } from "./HitRunWaveTypes";
 import { attachEnemyAI } from "../ai/attachEnemyAI";
 
+/** Layer bit matching HitRunBulletPool mask (1 << 4). */
+export const HIT_RUN_ENEMY_LAYER = 1 << 4;
+
 /**
  * Pool / factory de enemigos para Hit&Run.
- * Tras spawnear componentes base, adjunta AI según behaviorTags.
+ * Faction uses both `faction` and `value` so CombatSystem friendly-fire checks work.
  */
 export class HitRunEnemyPool implements IHitRunEnemyPool {
   public acquireEnemy(
@@ -61,8 +64,10 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       max: health
     });
 
+    // CombatSystem reads Faction.faction — keep value for legacy readers
     world.addComponent(entity, {
       type: "Faction",
+      faction,
       value: faction
     });
 
@@ -73,7 +78,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     world.addComponent(entity, {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
-      layer: 1 << 4,
+      layer: HIT_RUN_ENEMY_LAYER,
       mask: 0xffff,
       offsetX: 0,
       offsetY: 0,
@@ -116,7 +121,6 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       groupSize: params.groupSize ?? 1
     } as CoreComponentRegistry["Enemy"] & { archetypeId?: string; indexInGroup?: number; groupSize?: number });
 
-    // AI data-driven por behaviorTags
     attachEnemyAI(world, entity, {
       archetypeId: params.archetypeId,
       tags: behaviorTags

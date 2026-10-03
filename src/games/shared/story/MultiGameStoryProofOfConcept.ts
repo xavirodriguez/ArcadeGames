@@ -98,21 +98,21 @@ export class MultiGameStoryProofOfConcept {
     // 1. Apply effects calculated by OutcomeRuleEngine via ArcadeOrchestrator
     const effects = this.orchestrator.submitResult(result);
 
-    // 2. Update variables in StoryRuntime if applicable
+    // 2. Complete objective for current gameplay node upon minigame conclusion (only if completed)
+    const currentNode = this.storyRuntime.getCurrentNode();
+    if (result.completed && currentNode?.objective) {
+      this.storyRuntime.applyEffect({
+        type: "completeObjective",
+        objectiveId: currentNode.objective.id
+      });
+    }
+
+    // 3. Update variables in StoryRuntime if applicable
     if (result.gameId === "space-invaders") {
       this.storyRuntime.setVariable("spaceinvadersScore", result.score);
     } else if (result.gameId === "asteroids") {
       const currentLvl = (this.storyRuntime.getVariable("asteroidLevelReached") as number) || 1;
       this.storyRuntime.setVariable("asteroidLevelReached", currentLvl + 1);
-    }
-
-    // 3. Complete objective for current gameplay node upon minigame conclusion
-    const currentNode = this.storyRuntime.getCurrentNode();
-    if (currentNode?.objective) {
-      this.storyRuntime.applyEffect({
-        type: "completeObjective",
-        objectiveId: currentNode.objective.id
-      });
     }
 
     // 4. Update metaprogression minigame mastery upon completion

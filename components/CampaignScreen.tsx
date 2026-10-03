@@ -164,7 +164,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const [lastAppliedEffects, setLastAppliedEffects] = useState<StoryEffect[] | null>(null);
 
   // Connect keyboard controls to active campaign minigame
-  useKeyboardControls(activeGame, !isLoading);
+  useKeyboardControls(activeGame as any, !isLoading);
 
   const activeGameIdRef = useRef<string | null>(null);
   const activeGameSeedRef = useRef<number | null>(null);
@@ -569,7 +569,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
           key={activeRunContextRef.current?.runId ?? activeGameIdRef.current ?? "campaign_canvas"}
           world={activeGame.world as any}
           gameLoop={activeGame.getGameLoop()}
-          onInitialize={(renderer) => activeGame.initializeRenderer(renderer)}
+          onInitialize={(renderer) => (activeGame as any).initializeRenderer?.(renderer)}
         />
       ) : !currentNode ? (
         <View style={styles.placeholderContainer}>

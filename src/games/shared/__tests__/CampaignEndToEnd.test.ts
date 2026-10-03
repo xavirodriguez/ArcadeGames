@@ -92,6 +92,7 @@ describe("Campaign End-to-End Campaign Flow (Act 1 -> Choice Bridge -> Act 2 -> 
     effectApplier.applyEffects(runtime, act2Effects);
     runtime.setVariable("spaceinvadersScore", act2Result.score);
 
+    currentNode = runtime.getCurrentNode();
     if (currentNode?.objective) {
       runtime.applyEffect({
         type: "completeObjective",
@@ -119,6 +120,7 @@ describe("Campaign End-to-End Campaign Flow (Act 1 -> Choice Bridge -> Act 2 -> 
     const act3Effects = ruleEngine.evaluate(act3Result, asteroidsReduxPOCEncounter.outcomeRules);
     effectApplier.applyEffects(runtime, act3Effects);
 
+    currentNode = runtime.getCurrentNode();
     if (currentNode?.objective) {
       runtime.applyEffect({
         type: "completeObjective",

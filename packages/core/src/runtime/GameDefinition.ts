@@ -12,7 +12,8 @@ export type GameId =
   | "pong"
   | "geometrywars"
   | "platformer"
-  | "frogger";
+  | "frogger"
+  | "racing";
 
 /**
  * Declares the asset requirements for a game definition prior to simulation startup.

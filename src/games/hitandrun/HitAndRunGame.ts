@@ -1,6 +1,7 @@
 /**
- * Hit&Run — platformer run-and-gun / melee on @tiny-aster/core.
- * Branch feature/hit-and-run.
+ * Hit&Run — fantasy belt-scroll beat'em-up (melee + ranged) on @tiny-aster/core.
+ * Conversion from platformer run-and-gun toward classic belt-scroll feel.
+ * Branch feature/hit-and-run → belt systems live under ./belt and ./fantasy.
  */
 import {
   EchoRunnerDefinition
@@ -23,6 +24,8 @@ import { EchoRunnerBlueprintMap } from "../echorunner/EchoRunnerGame";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
 import { registerHitRunHurt } from "./hurt/registerHitRunHurt";
+import { registerBeltSystems } from "./belt/registerBeltSystems";
+import { DEFAULT_COMBO_MELEE_CONFIG, COMBO_MELEE_CONFIG_RESOURCE } from "./melee/ComboMeleeTypes";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
@@ -52,17 +55,25 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+
+    registerBeltSystems(this.world);
+
     registerHitRunFeedback(this.world);
     registerHitRunHurt(this.world);
     registerHitRunMelee(this.world);
+
+    this.world.setResource(COMBO_MELEE_CONFIG_RESOURCE, {
+      ...DEFAULT_COMBO_MELEE_CONFIG
+    });
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    // Scaffold — player with MeleeAttack / HitReaction from level wiring.
+    // Scaffold — player should receive BeltMovement + BeltInput + ComboMelee
+    // + HitRunWeapon when level/blueprint wiring is completed.
   }
 
   public initializeRenderer(_renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
-    // Initialize renderer
+    // Fantasy drawers: goblin, skeleton, orc, wraith, arrows, fireballs…
   }
 
   public getGameState(): HitAndRunGameState {
@@ -93,7 +104,7 @@ export const HitAndRunDefinition = {
     return new HitAndRunGame({ seed });
   },
   inputSchema: {
-    actions: ["left", "right", "jump", "pulse", "attack"]
+    actions: ["left", "right", "up", "down", "jump", "attack", "fire", "special"]
   },
   assets: EchoRunnerDefinition.assets
 };

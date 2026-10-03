@@ -1,0 +1,118 @@
+{
+  "worldWidth": 800,
+  "worldHeight": 600,
+  "aspectRatio": 1.3333333333333333,
+  "KEYS": {
+    "PAUSE": "KeyP",
+    "RESTART": "KeyR",
+    "BUILD": "KeyB",
+    "SELL": "KeyX",
+    "UPGRADE": "KeyU"
+  },
+  "STARTING_GOLD": 150,
+  "STARTING_LIVES": 20,
+  "GOLD_PER_KILL_MULTIPLIER": 1,
+  "GRID_COLS": 16,
+  "GRID_ROWS": 12,
+  "CELL_SIZE": 40,
+  "GRID_OFFSET_X": 80,
+  "GRID_OFFSET_Y": 40,
+  "LEVEL_LAYOUT": [
+    "XXXXXXXXXXXXXXXX",
+    "SBBBBBBBBBBBBBBX",
+    "XPPPPPPPPPPPPPBX",
+    "XBBBBBBBBBBBBPBX",
+    "XBBPPPPPPPPPBPBX",
+    "XBBPBBBBBBBPBPBX",
+    "XBBPBBBBBBBPBPBX",
+    "XBBPBBBBBBBPBPBX",
+    "XBBPPPPPPPPPBPBX",
+    "XBBBBBBBBBBBBPBX",
+    "XBBBBBBBBBBBBPBX",
+    "XBBBBBBBBBBBBBBE"
+  ],
+  "TOWERS": [
+    {
+      "id": "basic",
+      "name": "Basic Tower",
+      "cost": 50,
+      "range": 120,
+      "damage": 15,
+      "fireRate": 1.0,
+      "projectileSpeed": 400,
+      "upgradeCost": 40,
+      "maxLevel": 3
+    },
+    {
+      "id": "sniper",
+      "name": "Sniper Tower",
+      "cost": 100,
+      "range": 220,
+      "damage": 40,
+      "fireRate": 0.5,
+      "projectileSpeed": 600,
+      "upgradeCost": 70,
+      "maxLevel": 3
+    },
+    {
+      "id": "rapid",
+      "name": "Rapid Tower",
+      "cost": 80,
+      "range": 90,
+      "damage": 8,
+      "fireRate": 3.0,
+      "projectileSpeed": 450,
+      "upgradeCost": 55,
+      "maxLevel": 3
+    }
+  ],
+  "CREEPS": [
+    { "id": "grunt", "name": "Grunt", "hp": 40, "speed": 60, "reward": 10, "size": 12 },
+    { "id": "fast", "name": "Scout", "hp": 25, "speed": 110, "reward": 15, "size": 10 },
+    { "id": "tank", "name": "Tank", "hp": 120, "speed": 35, "reward": 30, "size": 18 }
+  ],
+  "WAVES": [
+    {
+      "id": "wave1",
+      "creeps": [{ "type": "grunt", "count": 8, "interval": 0.9 }],
+      "delayBeforeStart": 3
+    },
+    {
+      "id": "wave2",
+      "creeps": [
+        { "type": "grunt", "count": 6, "interval": 0.7 },
+        { "type": "fast", "count": 4, "interval": 0.6 }
+      ],
+      "delayBeforeStart": 4
+    },
+    {
+      "id": "wave3",
+      "creeps": [
+        { "type": "grunt", "count": 8, "interval": 0.6 },
+        { "type": "tank", "count": 2, "interval": 1.5 }
+      ],
+      "delayBeforeStart": 5
+    },
+    {
+      "id": "wave4",
+      "creeps": [
+        { "type": "fast", "count": 10, "interval": 0.5 },
+        { "type": "grunt", "count": 6, "interval": 0.7 }
+      ],
+      "delayBeforeStart": 4
+    },
+    {
+      "id": "wave5",
+      "creeps": [
+        { "type": "tank", "count": 4, "interval": 1.2 },
+        { "type": "fast", "count": 6, "interval": 0.5 },
+        { "type": "grunt", "count": 8, "interval": 0.6 }
+      ],
+      "delayBeforeStart": 5
+    }
+  ],
+  "PROJECTILE_SIZE": 4,
+  "PROJECTILE_TTL": 3000,
+  "MAX_DELTA_TIME": 100,
+  "INTERMISSION_DURATION": 5
+}

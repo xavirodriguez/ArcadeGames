@@ -19,7 +19,7 @@ import {
  * Listens combat:hit (from melee, CombatSystem, etc.):
  * - Knockback on target (direction away from source).
  * - Player only: invulnerability (Health.invulnerableRemaining) + hitstun.
- * - Enemies: knockback only.
+ * - Enemies: knockback + hitstun.
  *
  * Ticks hitstun and invuln blink on HitReaction + Render.opacity.
  * Does not apply damage (already applied by the source system).
@@ -77,9 +77,9 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
   private isPlayer(world: World<CoreComponentRegistry>, entity: Entity): boolean {
     if (world.hasComponent(entity, "PlatformerInput")) return true;
     const faction = world.getComponent(entity, "Faction") as
-      | { faction?: string }
+      | { value?: string; faction?: string }
       | undefined;
-    return faction?.faction === "player";
+    return faction?.value === "player" || faction?.faction === "player";
   }
 
   private applyPlayerReaction(
@@ -143,6 +143,7 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
       config.enemyKnockbackX,
       config.enemyKnockbackY
     );
+    this.ensureHitReaction(world, target, config.playerHitstunSeconds);
   }
 
   private applyKnockback(
@@ -194,7 +195,7 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
       type: "HitReaction",
       hitstunRemaining: hitstunSeconds,
       blinkElapsed: 0
-    } satisfies HitReactionComponent);
+    } as HitReactionComponent);
   }
 
   private tickHitstunAndBlink(

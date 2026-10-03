@@ -107,13 +107,14 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       tags: ["Enemy", params.archetypeId, ...(params.tags ?? []), ...(arch?.behaviorTags ?? [])]
     });
 
+    const enemyKind = (params.archetypeId === "charger" ? "charger" : "patrol") as "patrol" | "jumper" | "charger";
     world.addComponent(entity, {
       type: "Enemy",
-      kind: params.archetypeId as "patrol" | "jumper" | "charger",
+      kind: enemyKind,
       archetypeId: params.archetypeId,
       indexInGroup: params.indexInGroup ?? 0,
       groupSize: params.groupSize ?? 1
-    });
+    } as CoreComponentRegistry["Enemy"] & { archetypeId?: string; indexInGroup?: number; groupSize?: number });
 
     // AI data-driven por behaviorTags
     attachEnemyAI(world, entity, {

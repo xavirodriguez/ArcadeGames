@@ -8,7 +8,8 @@ import {
   DEFAULT_HIT_REACTION_CONFIG,
   PLAYER_INVULN_SECONDS,
   PLAYER_HITSTUN_SECONDS,
-  HIT_REACTION_CONFIG_RESOURCE
+  HIT_REACTION_CONFIG_RESOURCE,
+  type HitReactionComponent
 } from "../HitReactionTypes";
 
 function addTransform(
@@ -62,13 +63,13 @@ describe("HitRunHurtSystem (Paso C)", () => {
     });
     world.addComponent(p, {
       type: "PlatformerInput",
-      moveLeft: false,
-      moveRight: false,
-      jumpHeld: false
-    } as CoreComponentRegistry["PlatformerInput"]);
+      moveDir: 0,
+      jumpPressed: false,
+      jumpHeld: false,
+      jumpReleased: false
+    });
     world.addComponent(p, {
       type: "Faction",
-      faction: "player",
       value: "player"
     });
     world.addComponent(p, {
@@ -131,20 +132,16 @@ describe("HitRunHurtSystem (Paso C)", () => {
       amount: 1,
       remainingHealth: 4
     });
-    // ensureHitReaction may use command buffer — apply component directly if needed
     hurt.update(world, 0);
 
-    // Flush command buffer if API exists
-    const flush = (world as unknown as { flushCommands?: () => void }).flushCommands;
-    if (typeof flush === "function") flush.call(world);
+    world.flush();
 
-    // If still no HitReaction (buffer not flushed), simulate add
     if (!world.hasComponent(player, "HitReaction")) {
       world.addComponent(player, {
         type: "HitReaction",
         hitstunRemaining: PLAYER_HITSTUN_SECONDS,
         blinkElapsed: 0
-      });
+      } as HitReactionComponent);
     }
 
     expect(isPlayerControlLocked(world, player)).toBe(true);
@@ -187,7 +184,6 @@ describe("HitRunHurtSystem (Paso C)", () => {
     });
     world.addComponent(enemy, {
       type: "Faction",
-      faction: "enemy",
       value: "enemy"
     });
 

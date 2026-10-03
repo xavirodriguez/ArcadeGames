@@ -8,31 +8,25 @@ import {
   flipFlankSide,
   type FlankConfig
 } from "./flankingHelpers";
-
-function zeroVx(world: World<CoreComponentRegistry>, entity: number): void {
-  const vel = world.getComponent(entity, "Velocity");
-  if (vel && vel.vx !== 0) {
-    const m = world.getMutableComponent(entity, "Velocity");
-    if (m) m.vx = 0;
-  }
-}
-
-function dirToPlayer(world: World<CoreComponentRegistry>, entity: number): number {
-  const sensor = world.getComponent(entity, "PlayerSensor") as
-    | { detectedPlayerEntity?: number }
-    | undefined;
-  const self = world.getComponent(entity, "Transform");
-  if (!sensor?.detectedPlayerEntity || !self) return 1;
-  const pt = world.getComponent(sensor.detectedPlayerEntity, "Transform");
-  if (!pt) return 1;
-  return pt.x >= self.x ? 1 : -1;
-}
-
-function playerDetected(
-  sensor: { detectedPlayerEntity?: number } | undefined
-): boolean {
-  return sensor?.detectedPlayerEntity !== undefined;
-}
+import {
+  DEFAULT_PATROL_ATTACK_CONFIG,
+  DEFAULT_CHARGER_ATTACK_CONFIG
+} from "./EnemyAttackConfig";
+import { canTakeDamage } from "../hurt/HitRunHurtSystem";
+import type { MeleeAttackComponent } from "../melee/MeleeAttackTypes";
+import {
+  zeroVx,
+  dirToPlayer,
+  playerDetected,
+  isEnemyInHitstun,
+  restoreEnemyColor,
+  facePlayer,
+  shouldStartTelegraphedAttack,
+  enterAnticipationState,
+  updateAnticipationState,
+  enterActiveMeleeAttack,
+  enterTelegraphedRecovery
+} from "./telegraphedAttackHelpers";
 
 function timed(
   data: Record<string, unknown>,
@@ -43,20 +37,6 @@ function timed(
 ): string | void {
   const dur = (data[key] as number) ?? fallback;
   if (elapsed >= dur) return next;
-}
-
-function facePlayer(world: World<CoreComponentRegistry>, entity: number): void {
-  const dir = dirToPlayer(world, entity);
-  const tr = world.getComponent(entity, "Transform");
-  if (!tr) return;
-  const desired = dir >= 0 ? 1 : -1;
-  if (tr.scaleX !== desired) {
-    const m = world.getMutableComponent(entity, "Transform");
-    if (m) {
-      m.scaleX = desired;
-      m.dirty = true;
-    }
-  }
 }
 
 function flankConfigFromData(data: Record<string, unknown>): FlankConfig {
@@ -160,6 +140,11 @@ export function registerHitRunStateMachines(
     states: {
       Patrol: {
         onUpdate(world, entity, data) {
+          const cd = (data.attackCooldownRemaining as number) ?? 0;
+          if (cd > 0) {
+            data.attackCooldownRemaining = Math.max(0, cd - 0.016);
+          }
+
           const patrol = world.getComponent(entity, "Patrol") as
             | { direction: number; startX: number; endX: number }
             | undefined;
@@ -207,32 +192,67 @@ export function registerHitRunStateMachines(
             tryEnemyShoot(world, entity, data);
           }
 
-          if (playerDetected(sensor)) return "Alert";
+          // Patrol enemy melee attack trigger check
+          if (shouldStartTelegraphedAttack(world, entity, data, DEFAULT_PATROL_ATTACK_CONFIG)) {
+            return "Anticipation";
+          }
+
+          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
+            if (canTakeDamage(world, sensor.detectedPlayerEntity)) {
+              return "Alert";
+            }
+          }
         }
       },
-      ...alertWindup,
-      Attack: {
+      Anticipation: {
         onEnter(world, entity, data) {
-          const speed = ((data.patrolSpeed as number) ?? 60) * 1.4;
-          const dir = dirToPlayer(world, entity);
-          const vel = world.getComponent(entity, "Velocity");
-          if (vel) {
-            const mv = world.getMutableComponent(entity, "Velocity");
-            if (mv) mv.vx = dir * speed;
-          }
-          if (data.canShoot) tryEnemyShoot(world, entity, data);
+          enterAnticipationState(world, entity, data, DEFAULT_PATROL_ATTACK_CONFIG.warningColor);
         },
-        onUpdate(_w, _e, data, elapsed) {
-          return timed(data, "attackDuration", 0.4, elapsed, "Recovery");
+        onUpdate(world, entity, data, elapsed) {
+          return updateAnticipationState(
+            world,
+            entity,
+            data,
+            elapsed,
+            DEFAULT_PATROL_ATTACK_CONFIG.anticipationSeconds,
+            "Attack"
+          );
+        }
+      },
+      Attack: {
+        onEnter(world, entity) {
+          zeroVx(world, entity);
+          facePlayer(world, entity);
+          const dir = dirToPlayer(world, entity);
+          enterActiveMeleeAttack(world, entity, dir, DEFAULT_PATROL_ATTACK_CONFIG, "enemy_melee");
+        },
+        onUpdate(world, entity, _data, elapsed) {
+          zeroVx(world, entity);
+
+          if (isEnemyInHitstun(world, entity)) {
+            const melee = world.getMutableComponent(entity, "MeleeAttack") as MeleeAttackComponent | undefined;
+            if (melee && melee.hitboxEntity >= 0 && world.hasEntity(melee.hitboxEntity)) {
+              world.getCommandBuffer().removeEntity(melee.hitboxEntity);
+              melee.hitboxEntity = -1;
+            }
+            return "Recovery";
+          }
+
+          if (elapsed >= DEFAULT_PATROL_ATTACK_CONFIG.activeSeconds) {
+            return "Recovery";
+          }
         }
       },
       Recovery: {
         onEnter(world, entity, data) {
-          zeroVx(world, entity);
+          enterTelegraphedRecovery(world, entity, data);
           if (data.useFlank) flipFlankSide(data);
         },
         onUpdate(_w, _e, data, elapsed) {
-          return timed(data, "recoveryDuration", 0.35, elapsed, "Patrol");
+          if (elapsed >= DEFAULT_PATROL_ATTACK_CONFIG.recoverySeconds) {
+            data.attackCooldownRemaining = DEFAULT_PATROL_ATTACK_CONFIG.cooldownSeconds;
+            return "Patrol";
+          }
         }
       }
     }
@@ -243,7 +263,6 @@ export function registerHitRunStateMachines(
     states: {
       Patrol: {
         onUpdate(world, entity, data) {
-          // Misma patrulla ligera que walk
           const patrol = world.getComponent(entity, "Patrol") as
             | { direction: number; startX: number; endX: number }
             | undefined;
@@ -280,7 +299,6 @@ export function registerHitRunStateMachines(
       Attack: {
         onEnter(world, entity, data) {
           facePlayer(world, entity);
-          // Desde el flanco: empuje corto hacia el jugador
           const speed = ((data.patrolSpeed as number) ?? 70) * 1.6;
           const dir = dirToPlayer(world, entity);
           const vel = world.getComponent(entity, "Velocity");
@@ -297,10 +315,9 @@ export function registerHitRunStateMachines(
       Recovery: {
         onEnter(world, entity, data) {
           zeroVx(world, entity);
-          flipFlankSide(data); // alternar lado → pinza dinámica
+          flipFlankSide(data);
         },
         onUpdate(world, entity, data, elapsed) {
-          // Si el jugador sigue cerca, volver a Flank sin patrullar
           const sensor = world.getComponent(entity, "PlayerSensor") as
             | { detectedPlayerEntity?: number }
             | undefined;
@@ -334,7 +351,6 @@ export function registerHitRunStateMachines(
         onEnter(world, entity, data) {
           const jumpVel = (data.jumpVelocity as number) ?? 240;
           const speed = (data.patrolSpeed as number) ?? 80;
-          // Hop con sesgo de flanco: salta hacia el lado preferido del jugador
           let dir = dirToPlayer(world, entity);
           if (data.useFlank) {
             const target = computeFlankTarget(world, entity, data);
@@ -384,48 +400,122 @@ export function registerHitRunStateMachines(
         onEnter(world, entity) {
           zeroVx(world, entity);
         },
-        onUpdate(world, entity) {
+        onUpdate(world, entity, data) {
+          const cd = (data.attackCooldownRemaining as number) ?? 0;
+          if (cd > 0) {
+            data.attackCooldownRemaining = Math.max(0, cd - 0.016);
+          }
+
+          if (shouldStartTelegraphedAttack(world, entity, data, DEFAULT_CHARGER_ATTACK_CONFIG)) {
+            return "Anticipation";
+          }
+
           const sensor = world.getComponent(entity, "PlayerSensor") as
             | { detectedPlayerEntity?: number }
             | undefined;
-          if (playerDetected(sensor)) return "Alert";
+          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
+            if (canTakeDamage(world, sensor.detectedPlayerEntity)) {
+              return "Alert";
+            }
+          }
         }
       },
-      Alert: alertWindup.Alert,
-      // Charge puede flanquear brevemente antes de embestir
-      Flank: alertWindup.Flank,
-      Windup: alertWindup.Windup,
-      Attack: {
+      Anticipation: {
         onEnter(world, entity, data) {
-          const chargeSpeed = (data.chargeSpeed as number) ?? 300;
+          enterAnticipationState(world, entity, data, DEFAULT_CHARGER_ATTACK_CONFIG.warningColor);
           const dir = dirToPlayer(world, entity);
-          facePlayer(world, entity);
-          const vel = world.getComponent(entity, "Velocity");
-          if (vel) {
-            const mv = world.getMutableComponent(entity, "Velocity");
-            if (mv) mv.vx = dir * chargeSpeed;
+          data.chargeDir = dir;
+
+          const tr = world.getComponent(entity, "Transform");
+          if (tr) {
+            data.startChargeX = tr.worldX ?? tr.x;
           }
         },
         onUpdate(world, entity, data, elapsed) {
+          const cfg = DEFAULT_CHARGER_ATTACK_CONFIG;
+          const chargeDir = (data.chargeDir as number) ?? 1;
+
+          const vel = world.getMutableComponent(entity, "Velocity");
+          if (vel) {
+            vel.vx = -chargeDir * (cfg.windupBacktrackDistance / cfg.anticipationSeconds);
+          }
+
+          const res = updateAnticipationState(
+            world,
+            entity,
+            data,
+            elapsed,
+            cfg.anticipationSeconds,
+            "Charge"
+          );
+          if (res === "Recovery") {
+            zeroVx(world, entity);
+          }
+          return res;
+        }
+      },
+      Charge: {
+        onEnter(world, entity, data) {
+          const cfg = DEFAULT_CHARGER_ATTACK_CONFIG;
+          const chargeDir = (data.chargeDir as number) ?? dirToPlayer(world, entity);
+
+          const tr = world.getComponent(entity, "Transform");
+          if (tr && data.startChargeX === undefined) {
+            data.startChargeX = tr.worldX ?? tr.x;
+          }
+
+          const vel = world.getMutableComponent(entity, "Velocity");
+          if (vel) {
+            vel.vx = chargeDir * cfg.chargeSpeed;
+          }
+
+          enterActiveMeleeAttack(world, entity, chargeDir, cfg, "charger_melee");
+        },
+        onUpdate(world, entity, data, elapsed) {
+          const cfg = DEFAULT_CHARGER_ATTACK_CONFIG;
+          const chargeDir = (data.chargeDir as number) ?? 1;
+
+          const vel = world.getMutableComponent(entity, "Velocity");
+          if (vel && vel.vx !== chargeDir * cfg.chargeSpeed) {
+            vel.vx = chargeDir * cfg.chargeSpeed;
+          }
+
+          if (isEnemyInHitstun(world, entity)) {
+            return "Recovery";
+          }
+
           const gd = world.getComponent(entity, "GroundDetector") as
             | { hasWallAhead?: boolean; hasGroundAhead?: boolean }
             | undefined;
-          const dur = (data.attackDuration as number) ?? 0.9;
-          if (
-            (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) ||
-            elapsed >= dur
-          ) {
+          if (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) {
+            return "Recovery";
+          }
+
+          const tr = world.getComponent(entity, "Transform");
+          const startX = (data.startChargeX as number) ?? tr?.x ?? 0;
+          if (tr) {
+            const currentX = tr.worldX ?? tr.x;
+            if (Math.abs(currentX - startX) >= cfg.maxChargeDistance) {
+              return "Recovery";
+            }
+          }
+
+          if (elapsed >= cfg.activeSeconds) {
             return "Recovery";
           }
         }
       },
       Recovery: {
         onEnter(world, entity, data) {
-          zeroVx(world, entity);
+          enterTelegraphedRecovery(world, entity, data);
+          data.startChargeX = undefined;
           if (data.useFlank) flipFlankSide(data);
         },
         onUpdate(_w, _e, data, elapsed) {
-          return timed(data, "recoveryDuration", 0.5, elapsed, "Idle");
+          if (elapsed >= DEFAULT_CHARGER_ATTACK_CONFIG.recoverySeconds) {
+            data.attackCooldownRemaining = DEFAULT_CHARGER_ATTACK_CONFIG.cooldownSeconds;
+            return "Idle";
+          }
         }
       }
     }

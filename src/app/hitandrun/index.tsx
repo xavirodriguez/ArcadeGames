@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -23,6 +23,8 @@ import {
   HighScoreText,
   NeonButton,
 } from "../../components/ui";
+import { DEATH_FLOW_RESOURCE } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
+import type { HitRunDeathFlowState } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 
 function HitAndRunContent() {
   const { t } = useTranslation();
@@ -42,8 +44,21 @@ function HitAndRunContent() {
   };
   const isTouchDevice = useTouchDevice();
 
-  const { game, gameState, isPaused, isReady, togglePause, highScore } =
+  const { game, gameState, isPaused, isReady, togglePause, highScore, restartWithSeed } =
     useHitAndRunGame(started, initialSeed);
+
+  // Auto-restart after death slow-mo
+  useEffect(() => {
+    if (!game || !isReady) return;
+    const id = setInterval(() => {
+      const flow = game.getWorld().getResource(DEATH_FLOW_RESOURCE) as HitRunDeathFlowState | undefined;
+      if (flow?.requestRestart) {
+        flow.requestRestart = false;
+        restartWithSeed?.();
+      }
+    }, 100);
+    return () => clearInterval(id);
+  }, [game, isReady, restartWithSeed]);
 
   useEffect(() => {
     if (Platform.OS !== "web" || !game || !isReady) return;
@@ -55,12 +70,16 @@ function HitAndRunContent() {
         togglePause();
         return;
       }
+      if (e.code === "KeyR") {
+        restartWithSeed?.();
+        return;
+      }
       activeKeys.add(e.code);
       updateInput();
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === "KeyP") return;
+      if (e.code === "KeyP" || e.code === "KeyR") return;
       activeKeys.delete(e.code);
       updateInput();
     };
@@ -73,14 +92,29 @@ function HitAndRunContent() {
     const updateInput = () => {
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
-      const jump = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("Space");
-      const pulse = activeKeys.has("KeyF") || activeKeys.has("KeyJ") || activeKeys.has("KeyE") || activeKeys.has("ShiftLeft");
+      const jump =
+        activeKeys.has("ArrowUp") ||
+        activeKeys.has("KeyW") ||
+        activeKeys.has("Space");
+      const pulse =
+        activeKeys.has("KeyF") ||
+        activeKeys.has("KeyJ") ||
+        activeKeys.has("KeyE") ||
+        activeKeys.has("ShiftLeft");
+      // HMG hold-to-fire
+      const attack =
+        activeKeys.has("KeyC") ||
+        activeKeys.has("KeyX") ||
+        activeKeys.has("KeyK") ||
+        activeKeys.has("ControlLeft") ||
+        activeKeys.has("ControlRight");
 
       game.setInputState({
         moveLeft,
         moveRight,
         jump,
-        pulse
+        pulse,
+        attack
       });
     };
 
@@ -93,7 +127,7 @@ function HitAndRunContent() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [game, isReady, togglePause]);
+  }, [game, isReady, togglePause, restartWithSeed]);
 
   const handleTouchLeft = (pressed: boolean) => game?.setInputState({ moveLeft: pressed });
   const handleTouchRight = (pressed: boolean) => game?.setInputState({ moveRight: pressed });
@@ -102,6 +136,7 @@ function HitAndRunContent() {
     game?.setInputState({ pulse: true });
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
+  const handleTouchFire = (pressed: boolean) => game?.setInputState({ attack: pressed });
 
   const formatTime = (timeInSecs: number) => {
     const mins = Math.floor(timeInSecs / 60);
@@ -122,7 +157,9 @@ function HitAndRunContent() {
           placeholder={t.common.your_name}
         />
         <GameInstructions>
-          {Platform.OS === "web" ? t.echorunner.instructions : t.common.touch_controls}
+          {Platform.OS === "web"
+            ? "A/D move · Space jump · F melee · C/X hold fire · R restart"
+            : t.common.touch_controls}
         </GameInstructions>
         <HighScoreText label={t.common.record} score={highScore} />
         <NeonButton
@@ -133,7 +170,7 @@ function HitAndRunContent() {
           }}
           accessibilityLabel={t.echorunner.start_file}
         >
-          {t.echorunner.start_file}
+          START RUN
         </NeonButton>
       </GameScreen>
     );
@@ -160,12 +197,14 @@ function HitAndRunContent() {
             <Text style={styles.hudValue}>{gameState.attempts.toString().padStart(2, "0")}</Text>
           </View>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.echorunner.fragments}</Text>
-            <Text style={[styles.hudValue, styles.violetGlow]}>◆ {gameState.fragments}</Text>
+            <Text style={styles.hudLabel}>HP</Text>
+            <Text style={[styles.hudValue, styles.pinkGlow]}>
+              {gameState.health ?? 3}/{gameState.maxHealth ?? 3}
+            </Text>
           </View>
           <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.echorunner.cores}</Text>
-            <Text style={[styles.hudValue, styles.goldGlow]}>◉ {gameState.cores}</Text>
+            <Text style={styles.hudLabel}>{t.echorunner.fragments}</Text>
+            <Text style={[styles.hudValue, styles.violetGlow]}>◆ {gameState.fragments}</Text>
           </View>
           <View style={styles.hudItem}>
             <Text style={styles.hudLabel}>{t.echorunner.chrono}</Text>
@@ -209,20 +248,32 @@ function HitAndRunContent() {
             </View>
             <View style={styles.actions} pointerEvents="box-none">
               <GestureActionButton
-                label="PULSE"
-                size={70}
+                label="MELEE"
+                size={64}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.pink}
                 pressedColor="rgba(30, 41, 59, 0.9)"
                 pressedBorderColor={colors.white}
                 onPressIn={() => handleTouchPulse()}
                 onPressOut={() => {}}
-                accessibilityLabel="Pulse attack"
+                accessibilityLabel="Melee"
+                style={{ marginHorizontal: spacing.sm }}
+              />
+              <GestureActionButton
+                label="FIRE"
+                size={72}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.gold}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                onPressIn={() => handleTouchFire(true)}
+                onPressOut={() => handleTouchFire(false)}
+                accessibilityLabel="Hold to fire"
                 style={{ marginHorizontal: spacing.sm }}
               />
               <GestureActionButton
                 label="JUMP"
-                size={75}
+                size={70}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.cyan}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -238,20 +289,30 @@ function HitAndRunContent() {
 
         {gameState.isGameOver && (
           <View style={styles.gameOverOverlay}>
-            <Text style={styles.gameOverTitle}>{t.echorunner.archive_restored}</Text>
-            <Text style={styles.gameOverSubtitle}>{t.echorunner.archive_restored_sub}</Text>
-            <Text style={styles.gameOverStat}>{t.echorunner.total_attempts}: {gameState.attempts}</Text>
+            <Text style={styles.gameOverTitle}>RUN COMPLETE</Text>
+            <Text style={styles.gameOverSubtitle}>Core secured</Text>
+            <Text style={styles.gameOverStat}>Score: {gameState.score}</Text>
             <Text style={styles.gameOverStat}>{t.echorunner.deaths}: {gameState.deaths}</Text>
             <Text style={styles.gameOverStat}>{t.echorunner.elapsed_time}: {formatTime(gameState.elapsedTime)}</Text>
             <TouchableOpacity
               style={styles.menuButton}
               onPress={() => {
                 hapticSelection();
+                restartWithSeed?.();
+              }}
+              accessibilityRole="button"
+            >
+              <Text style={styles.menuButtonText}>AGAIN</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.menuButton, { marginTop: spacing.md, borderColor: colors.cyan }]}
+              onPress={() => {
+                hapticSelection();
                 router.replace("/");
               }}
               accessibilityRole="button"
             >
-              <Text style={styles.menuButtonText}>{t.echorunner.return_repo}</Text>
+              <Text style={[styles.menuButtonText, { color: colors.cyan }]}>{t.common.menu}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -309,7 +370,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   violetGlow: { color: colors.violet, textShadowColor: colors.violet },
-  goldGlow: { color: colors.gold, textShadowColor: colors.gold },
+  pinkGlow: { color: colors.pink, textShadowColor: colors.pink },
   touchControlsContainer: {
     position: "absolute",
     bottom: 20,

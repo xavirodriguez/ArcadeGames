@@ -6,34 +6,29 @@ import type { HitRunWeaponDefinition, HitRunWeaponId } from "./HitRunWeaponTypes
  */
 export const HIT_RUN_WEAPON_CATALOG: Record<HitRunWeaponId, HitRunWeaponDefinition> = {
   /**
-   * Heavy Machine Gun
-   * Alta cadencia, hitbox pequeña, inercia (recoil) al disparar.
+   * Heavy Machine Gun — alta cadencia, micro-spread, recoil continuo.
    */
   hmg: {
     id: "hmg",
-    cooldownDuration: 0.08,
-    projectileSpeed: 520,
-    projectileTtl: 0.9,
-    projectileSize: 3.5,
+    cooldownDuration: 0.07,
+    projectileSpeed: 560,
+    projectileTtl: 0.85,
+    projectileSize: 3.2,
     projectileColor: "#fbbf24",
     projectileShape: "bullet_hmg",
     damage: 1,
     damageCategory: "bullet",
     consumption: "destroy-entity",
     pelletCount: 1,
-    spreadRadians: 0,
-    muzzleOffset: 14,
+    spreadRadians: 0.055,
+    muzzleOffset: 16,
     sfxName: "shoot",
     explosive: false,
     explosionRadius: 0,
     explosionDamage: 0,
-    recoilImpulse: 18
+    recoilImpulse: 14
   },
 
-  /**
-   * Escopeta
-   * Cono de pellets, consumption destroy-entity, alto daño + shake (category shotgun).
-   */
   shotgun: {
     id: "shotgun",
     cooldownDuration: 0.55,
@@ -46,7 +41,7 @@ export const HIT_RUN_WEAPON_CATALOG: Record<HitRunWeaponId, HitRunWeaponDefiniti
     damageCategory: "shotgun",
     consumption: "destroy-entity",
     pelletCount: 5,
-    spreadRadians: 0.45, // ~26° total
+    spreadRadians: 0.45,
     muzzleOffset: 12,
     sfxName: "shoot",
     explosive: false,
@@ -55,11 +50,6 @@ export const HIT_RUN_WEAPON_CATALOG: Record<HitRunWeaponId, HitRunWeaponDefiniti
     recoilImpulse: 40
   },
 
-  /**
-   * Lanzacohetes
-   * Proyectil lento, consumption remove-component al impactar,
-   * genera combat:explosion radial en cadena.
-   */
   rocket: {
     id: "rocket",
     cooldownDuration: 1.1,

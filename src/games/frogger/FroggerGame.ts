@@ -51,7 +51,6 @@ export class FroggerGame extends BaseGame<
   public readonly gameId = "frogger";
   private baseConfig: FroggerConfigType;
   private config: FroggerConfigType;
-  private tickCount: number = 0;
 
   constructor(config: { isMultiplayer?: boolean; seed?: number; gameOptions?: Record<string, unknown>; audio?: any } = {}) {
     const seed = (config.gameOptions?.seed as number) || config.seed;
@@ -135,7 +134,6 @@ export class FroggerGame extends BaseGame<
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    console.log("🎮 [DEBUG-3] Inicio onInitializeEntities");
     const config = this.config;
 
     // Create State singleton
@@ -147,7 +145,6 @@ export class FroggerGame extends BaseGame<
       const x = padSpacing * (i + 1);
       this.spawnBlueprint("lily_pad", { padIndex: i, x });
     }
-    console.log("🎮 [DEBUG-3] Entidades creadas (lily_pads). Total en World:", this.world.entities.length);
 
     // Spawn River Logs & Turtles (rows 1..5)
     // Row 1: Fast Turtles (left)
@@ -181,7 +178,6 @@ export class FroggerGame extends BaseGame<
       { x: 100, speed: 110, dir: 1, length: 3, type: "log" },
       { x: 450, speed: 110, dir: 1, length: 3, type: "log" },
     ]);
-    console.log("🎮 [DEBUG-3] Entidades creadas (logs/turtles). Total en World:", this.world.entities.length);
 
     // Spawn Road Vehicles (rows 7..11)
     const trafficMult = config.TRAFFIC_SPEED_MULTIPLIER || 1.0;
@@ -216,14 +212,12 @@ export class FroggerGame extends BaseGame<
       { x: 180, speed: 90 * trafficMult, dir: -1, vType: "truck" },
       { x: 550, speed: 90 * trafficMult, dir: -1, vType: "truck" },
     ]);
-    console.log("🎮 [DEBUG-3] Entidades creadas (vehicles). Total en World:", this.world.entities.length);
 
     // Spawn Frogger Player
     this.spawnBlueprint("frogger", {
       gridX: Math.floor(config.TOTAL_COLS / 2),
       gridY: 13,
     });
-    console.log("🎮 [DEBUG-3] Entidades creadas (frogger). Total en World:", this.world.entities.length);
   }
 
   private spawnRowEntities(
@@ -259,10 +253,6 @@ export class FroggerGame extends BaseGame<
   }
 
   public override update(dt: number): void {
-    this.tickCount++;
-    if (this.tickCount <= 10 || this.tickCount % 60 === 0) {
-      console.log(`⏱️ [DEBUG-4] Game Loop Tick #${this.tickCount} | dt:${dt}`);
-    }
     this.world.update(dt);
   }
 
@@ -330,14 +320,11 @@ export class FroggerGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    console.log("🔊 [DEBUG-3] Inicio onPreloadAssets. Audio habilitado:", !!this.audio);
     if (this.audio) {
       try {
-        console.log("🔊 [DEBUG-3] Solicitando preloadSharedAudioManifest...");
         await preloadSharedAudioManifest(this.audio);
-        console.log("✅ [DEBUG-3] Audio manifest precargado exitosamente");
       } catch (error) {
-        console.error("❌ [DEBUG-3] Error preloading audio manifest:", error);
+        console.error("[FroggerGame] Error preloading audio manifest:", error);
       }
     }
   }

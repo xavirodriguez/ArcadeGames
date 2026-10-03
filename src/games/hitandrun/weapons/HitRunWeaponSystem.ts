@@ -5,32 +5,20 @@ import {
   PhysicsUtils
 } from "@tiny-aster/core";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
+import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import { getWeaponDefinition } from "./HitRunWeaponCatalog";
 import type { HitRunWeaponId, HitRunWeaponState } from "./HitRunWeaponTypes";
 import { fireWeapon, applyRecoil } from "./fireWeapon";
 
-/**
- * Input mínimo esperado en el componente de input del jugador.
- * (Compatible con PlatformerInput extendido o un Aim component.)
- */
 interface WeaponInputLike {
   firePressed?: boolean;
   fireHeld?: boolean;
-  /** -1..1 o pixels; si no hay aim, se usa facing del Transform.scaleX */
   aimX?: number;
   aimY?: number;
 }
 
 /**
- * HitRunWeaponSystem — lee arma equipada + input y llama a fireWeapon.
- *
- * Fase: SystemPhase.Simulation (o Input, tras leer input).
- * Respeta hit-stop vía isSimulationFrozen.
- *
- * Requiere en el jugador:
- *  - HitRunWeapon (weaponId, cooldownRemaining)
- *  - Transform
- *  - PlatformerInput u otro con firePressed / aim
+ * HitRunWeaponSystem — fire + facing + recoil + muzzle flash + micro-shake.
  */
 export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
@@ -46,7 +34,6 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         | undefined;
       if (!weaponState) continue;
 
-      // Cooldown
       if (weaponState.cooldownRemaining > 0) {
         weaponState.cooldownRemaining = PhysicsUtils.tickTimer(
           weaponState.cooldownRemaining,
@@ -54,12 +41,21 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         );
       }
 
+      if ((weaponState.muzzleFlashRemaining ?? 0) > 0) {
+        weaponState.muzzleFlashRemaining = Math.max(
+          0,
+          (weaponState.muzzleFlashRemaining ?? 0) - deltaTime
+        );
+      }
+
+      if (isPlayerControlLocked(world, entity)) continue;
+
       const def = getWeaponDefinition(weaponState.weaponId as HitRunWeaponId);
       const input = this.readInput(world, entity);
       if (!input?.firePressed && !input?.fireHeld) continue;
       if (weaponState.cooldownRemaining > 0) continue;
 
-      const transform = world.getComponent(entity, "Transform");
+      const transform = world.getMutableComponent(entity, "Transform");
       if (!transform) continue;
 
       const ox = transform.worldX ?? transform.x;
@@ -68,12 +64,18 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
       let dirX = input.aimX ?? 0;
       let dirY = input.aimY ?? 0;
       if (Math.abs(dirX) < 1e-4 && Math.abs(dirY) < 1e-4) {
-        // Facing por scaleX (platformer)
         dirX = (transform.scaleX ?? 1) >= 0 ? 1 : -1;
         dirY = 0;
       }
 
-      fireWeapon({
+      // Face the shot direction (horizontal)
+      if (Math.abs(dirX) > 0.01) {
+        const face = dirX >= 0 ? 1 : -1;
+        transform.scaleX = face;
+        transform.worldScaleX = face;
+      }
+
+      const spawned = fireWeapon({
         world,
         shooterEntity: entity,
         originX: ox,
@@ -83,11 +85,49 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         weapon: def
       });
 
-      applyRecoil(world, entity, dirX, dirY, def.recoilImpulse);
+      if (spawned > 0) {
+        applyRecoil(world, entity, dirX, dirY, def.recoilImpulse);
+        weaponState.cooldownRemaining = def.cooldownDuration;
+        weaponState.muzzleFlashRemaining = 0.06;
 
-      weaponState.cooldownRemaining = def.cooldownDuration;
+        if (!world.isReSimulating) {
+          const shake = world.getResource<{ intensity: number; duration: number; elapsed: number }>(
+            "HitRunScreenShake"
+          );
+          if (shake) {
+            shake.intensity = Math.min(6, shake.intensity + (def.id === "hmg" ? 1.2 : 4));
+            shake.duration = Math.max(shake.duration, def.id === "hmg" ? 0.08 : 0.2);
+            shake.elapsed = 0;
+          }
+          const cams = world.query("Camera2D");
+          for (let c = 0; c < cams.length; c++) {
+            const cam = world.getComponent(cams[c], "Camera2D") as { isMain?: boolean } | undefined;
+            if (!cam?.isMain) continue;
+            if (!world.hasComponent(cams[c], "ScreenShake")) {
+              world.addComponent(cams[c], {
+                type: "ScreenShake",
+                intensity: def.id === "hmg" ? 2.5 : 8,
+                duration: def.id === "hmg" ? 0.06 : 0.18,
+                remaining: def.id === "hmg" ? 0.06 : 0.18
+              } as { type: string; [key: string]: unknown });
+            } else {
+              world.mutateComponent(cams[c], "ScreenShake", (s: {
+                intensity: number;
+                duration: number;
+                remaining?: number;
+                elapsed?: number;
+              }) => {
+                s.intensity = Math.min(10, s.intensity + (def.id === "hmg" ? 1.5 : 5));
+                s.duration = Math.max(s.duration, def.id === "hmg" ? 0.06 : 0.18);
+                if (s.remaining !== undefined) s.remaining = s.duration;
+                if (s.elapsed !== undefined) s.elapsed = 0;
+              });
+            }
+            break;
+          }
+        }
+      }
 
-      // Consumir one-shot firePressed si existe en PlatformerInput
       const platInput = world.getMutableComponent(entity, "PlatformerInput") as
         | WeaponInputLike
         | undefined;

@@ -54,13 +54,6 @@ export default function FroggerScreen() {
 
   useKeyboardControls(game, isReady);
 
-  const handleInitializeRenderer = useCallback(
-    (renderer: any) => {
-      console.log("🎨 [DEBUG-1] handleInitializeRenderer invocado. Instancia game presente:", !!game);
-      game?.initializeRenderer(renderer);
-    },
-    [game]
-  );
 
   useEffect(() => {
     if (params.seed && params.isDaily === "true" && !started) {
@@ -174,7 +167,7 @@ export default function FroggerScreen() {
             <CanvasRenderer
               world={game.getWorld()}
               gameLoop={game.getGameLoop()}
-              onInitialize={handleInitializeRenderer}
+              onInitialize={(renderer) => game.initializeRenderer(renderer)}
             />
           }
           controlsSlot={

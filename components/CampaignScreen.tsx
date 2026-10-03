@@ -163,6 +163,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   const [lastResult, setLastResult] = useState<MiniGameResult | null>(null);
   const [lastAppliedEffects, setLastAppliedEffects] = useState<StoryEffect[] | null>(null);
 
+  // Connect keyboard controls to active campaign minigame
+  useKeyboardControls(activeGame, !isLoading);
+
   const activeGameIdRef = useRef<string | null>(null);
   const activeGameSeedRef = useRef<number | null>(null);
   const sessionStartTimeRef = useRef<number>(0);
@@ -451,13 +454,18 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     }
   }, [currentNode]);
 
-  const renderNarrativeContent = () => (
-    <>
-      {currentNode?.title && (
-        <Text style={styles.nodeTitle}>{getLocalizedText(currentNode.title)}</Text>
+  const renderGameplayHud = () => (
+    <View style={styles.gameplayHudOverlay} pointerEvents="none">
+      {currentNode?.objective && (
+        <View style={styles.objectiveBox}>
+          <Text style={styles.objectiveTitle}>
+            🎯 {getLocalizedText(currentNode.objective.titleKey)}
+          </Text>
+          <Text style={styles.objectiveProgress}>
+            {currentNode.objective.currentCount} / {currentNode.objective.targetCount}
+          </Text>
+        </View>
       )}
-
-      {/* Active State Badges */}
       <View style={styles.badgeContainer}>
         {flags?.heroicEntry === true && (
           <View style={styles.stateBadge}>
@@ -481,17 +489,13 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
           </View>
         ))}
       </View>
+    </View>
+  );
 
-      {/* Active Objective Box */}
-      {currentNode?.objective && (
-        <View style={styles.objectiveBox}>
-          <Text style={styles.objectiveTitle}>
-            🎯 {getLocalizedText(currentNode.objective.titleKey)}
-          </Text>
-          <Text style={styles.objectiveProgress}>
-            {currentNode.objective.currentCount} / {currentNode.objective.targetCount}
-          </Text>
-        </View>
+  const renderNarrativeContent = () => (
+    <>
+      {currentNode?.title && (
+        <Text style={styles.nodeTitle}>{getLocalizedText(currentNode.title)}</Text>
       )}
 
       {/* Typewriter Dialogue Box for Cutscene */}
@@ -606,7 +610,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
       {/* Narrative Dialogue, Cutscene & Choices Layer */}
       {currentNode && !isEndNode && (
-        !activeGame ? (
+        currentNode.type === "gameplay" ? (
+          renderGameplayHud()
+        ) : !activeGame ? (
           <View style={styles.fullScreenNarrativeContainer}>
             <View style={styles.fullScreenNarrativeCard}>
               {renderNarrativeContent()}
@@ -734,6 +740,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     padding: spacing.lg,
+  },
+  gameplayHudOverlay: {
+    position: "absolute",
+    top: spacing.md,
+    left: spacing.lg,
+    zIndex: 50,
+    maxWidth: 320,
   },
   narrativeOverlay: {
     position: "absolute",

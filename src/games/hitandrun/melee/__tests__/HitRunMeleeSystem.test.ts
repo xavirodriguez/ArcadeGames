@@ -40,21 +40,20 @@ describe("HitRunMeleeSystem (Paso A)", () => {
     world.addComponent(p, createMeleeAttackComponent());
     world.addComponent(p, {
       type: "PlatformerInput",
-      moveLeft: false,
-      moveRight: false,
-      jumpHeld: false,
+      moveDir: 0,
       jumpPressed: false,
-      attackPressed: false
-    } as CoreComponentRegistry["PlatformerInput"] & { attackPressed: boolean });
+      jumpHeld: false,
+      jumpReleased: false
+    });
     return p;
   }
 
   it("does not create hitbox during startup; creates only in active", () => {
     const p = spawnPlayer();
-    const input = world.getMutableComponent(p, "PlatformerInput") as {
-      attackPressed: boolean;
-    };
-    input.attackPressed = true;
+    const input = world.getMutableComponent(p, "PlatformerInput") as
+      | (CoreComponentRegistry["PlatformerInput"] & { attackPressed?: boolean })
+      | undefined;
+    if (input) input.attackPressed = true;
 
     // Start swing → startup
     system.update(world, 0.016);
@@ -73,10 +72,10 @@ describe("HitRunMeleeSystem (Paso A)", () => {
 
   it("destroys hitbox when leaving active (recovery)", () => {
     const p = spawnPlayer();
-    const input = world.getMutableComponent(p, "PlatformerInput") as {
-      attackPressed: boolean;
-    };
-    input.attackPressed = true;
+    const input = world.getMutableComponent(p, "PlatformerInput") as
+      | (CoreComponentRegistry["PlatformerInput"] & { attackPressed?: boolean })
+      | undefined;
+    if (input) input.attackPressed = true;
     system.update(world, 0.016);
 
     const startup = DEFAULT_MELEE_ATTACK_CONFIG.startupSeconds;
@@ -87,10 +86,7 @@ describe("HitRunMeleeSystem (Paso A)", () => {
     expect(hitboxId).toBeGreaterThanOrEqual(0);
 
     system.update(world, active + 0.001);
-    // Command buffer may need flush — World.update usually flushes; call if available
-    if (typeof (world as unknown as { flushCommands?: () => void }).flushCommands === "function") {
-      (world as unknown as { flushCommands: () => void }).flushCommands();
-    }
+    world.flush();
 
     melee = world.getComponent(p, "MeleeAttack") as MeleeAttackComponent;
     expect(melee.phase).toBe("recovery");
@@ -99,10 +95,10 @@ describe("HitRunMeleeSystem (Paso A)", () => {
 
   it("blocks a new attack during recovery", () => {
     const p = spawnPlayer();
-    const input = world.getMutableComponent(p, "PlatformerInput") as {
-      attackPressed: boolean;
-    };
-    input.attackPressed = true;
+    const input = world.getMutableComponent(p, "PlatformerInput") as
+      | (CoreComponentRegistry["PlatformerInput"] & { attackPressed?: boolean })
+      | undefined;
+    if (input) input.attackPressed = true;
     system.update(world, 0.016);
     system.update(world, DEFAULT_MELEE_ATTACK_CONFIG.startupSeconds + 0.001);
     system.update(world, DEFAULT_MELEE_ATTACK_CONFIG.activeSeconds + 0.001);
@@ -110,7 +106,10 @@ describe("HitRunMeleeSystem (Paso A)", () => {
     let melee = world.getComponent(p, "MeleeAttack") as MeleeAttackComponent;
     expect(melee.phase).toBe("recovery");
 
-    input.attackPressed = true;
+    const inputMut = world.getMutableComponent(p, "PlatformerInput") as
+      | (CoreComponentRegistry["PlatformerInput"] & { attackPressed?: boolean })
+      | undefined;
+    if (inputMut) inputMut.attackPressed = true;
     system.update(world, 0.016);
     melee = world.getComponent(p, "MeleeAttack") as MeleeAttackComponent;
     expect(melee.phase).toBe("recovery");
@@ -118,10 +117,10 @@ describe("HitRunMeleeSystem (Paso A)", () => {
 
   it("records each enemy at most once per swing (hitEntityIds)", () => {
     const p = spawnPlayer();
-    const input = world.getMutableComponent(p, "PlatformerInput") as {
-      attackPressed: boolean;
-    };
-    input.attackPressed = true;
+    const input = world.getMutableComponent(p, "PlatformerInput") as
+      | (CoreComponentRegistry["PlatformerInput"] & { attackPressed?: boolean })
+      | undefined;
+    if (input) input.attackPressed = true;
     system.update(world, 0.016);
     system.update(world, DEFAULT_MELEE_ATTACK_CONFIG.startupSeconds + 0.001);
 
@@ -138,7 +137,6 @@ describe("HitRunMeleeSystem (Paso A)", () => {
     });
     world.addComponent(enemy, {
       type: "Faction",
-      faction: "enemy",
       value: "enemy"
     });
     world.addComponent(enemy, {

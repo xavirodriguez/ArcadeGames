@@ -18,7 +18,8 @@ interface WeaponInputLike {
 }
 
 /**
- * HitRunWeaponSystem — fire + facing + recoil + muzzle flash + micro-shake.
+ * HitRunWeaponSystem — lee arma equipada + input y llama a fireWeapon.
+ * Prefer BeltInput (belt player), then PlatformerInput, then Aim.
  */
 export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
@@ -128,6 +129,12 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         }
       }
 
+      const beltInput = world.getMutableComponent(entity, "BeltInput") as
+        | WeaponInputLike
+        | undefined;
+      if (beltInput && beltInput.firePressed) {
+        beltInput.firePressed = false;
+      }
       const platInput = world.getMutableComponent(entity, "PlatformerInput") as
         | WeaponInputLike
         | undefined;
@@ -141,6 +148,11 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
     world: World<CoreComponentRegistry>,
     entity: number
   ): WeaponInputLike | undefined {
+    const belt = world.getComponent(entity, "BeltInput") as
+      | WeaponInputLike
+      | undefined;
+    if (belt) return belt;
+
     const plat = world.getComponent(entity, "PlatformerInput") as
       | WeaponInputLike
       | undefined;

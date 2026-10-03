@@ -1,5 +1,5 @@
 /**
- * Hit&Run — platformer run-and-gun / melee on @tiny-aster/core.
+ * Hit&Run — fantasy belt-scroll beat'em-up (melee + ranged) on @tiny-aster/core.
  */
 import {
   System,
@@ -52,22 +52,16 @@ import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
 import { registerHitRunHurt } from "./hurt/registerHitRunHurt";
 import { registerHitRunWeapons } from "./weapons/registerHitRunWeapons";
-import { registerHitRunAI } from "./ai/registerHitRunAI";
-import { registerHitRunWaves } from "./waves/registerHitRunWaves";
-import { registerHitRunDeathFlow } from "./systems/HitRunDeathFlowSystem";
-import { WAVE_OPENING } from "./waves/sampleWaves";
+import { registerBeltSystems } from "./belt/registerBeltSystems";
 import {
-  WAVE_DIRECTOR_RESOURCE,
-  WAVE_SCRIPT_RESOURCE
-} from "./waves/HitRunWaveTypes";
-import type { WaveDirectorState, WaveScript } from "./waves/HitRunWaveTypes";
-import type { HitRunWeaponState } from "./weapons/HitRunWeaponTypes";
-import { HIT_RUN_BACKDROP_THEME } from "./rendering/HitAndRunPalette";
+  registerBeltPlayerBlueprint,
+  DEFAULT_BELT_PLAYER_SPAWN
+} from "./belt/registerBeltPlayerBlueprint";
+import { mutateBeltInputState } from "./belt/mutateBeltInputState";
 import {
-  drawHitRunProceduralBackdrop,
-  HIT_RUN_BACKDROP_RESOURCE
-} from "./rendering/HitRunBackdropCanvas";
-import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
+  DEFAULT_COMBO_MELEE_CONFIG,
+  COMBO_MELEE_CONFIG_RESOURCE
+} from "./melee/ComboMeleeTypes";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
@@ -226,321 +220,42 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
-    this.blueprints.register("pulse_hitbox", {
-      spawn: (world, entity, args: { dir: number; x: number; y: number; parent: number }) => {
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({
-            x: args.dir * 25,
-            y: 0,
-            worldX: args.x + args.dir * 25,
-            worldY: args.y,
-            parentEntity: args.parent
-          })
-          .withCollider2D({
-            shape: { type: "aabb", halfWidth: 15, halfHeight: 15 },
-            layer: 1 << 3,
-            mask: 1 << 4,
-            isTrigger: true
-          })
-          .withCollisionEvents()
-          .withTTL(0.15)
-          .withRender({
-            shape: "pulse_attack",
-            size: 30,
-            order: 5,
-            rotation: args.dir < 0 ? Math.PI : 0
-          });
-
-        world.addComponent(entity, {
-          type: "Hitbox",
-          hitEntities: []
-        } as { type: string; [key: string]: unknown });
-      }
-    });
-
-    this.blueprints.register("player", {
-      spawn: (world, entity, args: { x: number; y: number }) => {
-        ArcadeEntityBuilder.fromEntity(world, entity)
-          .withTransform({ x: args.x, y: args.y })
-          .withVelocity()
-          .withCollider2D({
-            shape: { type: "aabb", halfWidth: 10, halfHeight: 15 },
-            layer: 1,
-            mask: 0xffff,
-            enabled: true,
-            isTrigger: false
-          })
-          .withRender({ shape: "player", size: 24, order: 2 })
-          .withCollisionEvents();
-
-        world.addComponent(entity, {
-          type: "Health",
-          current: 3,
-          max: 3
-        } as HealthComponent);
-        world.addComponent(entity, {
-          type: "Tag",
-          tags: ["TileCollider", "Player"]
-        } as TagComponent);
-        world.addComponent(entity, {
-          type: "Hurtbox"
-        } as { type: string; [key: string]: unknown });
-
-        world.addComponent(entity, {
-          type: "HitRunWeapon",
-          weaponId: "hmg",
-          cooldownRemaining: 0,
-          muzzleFlashRemaining: 0
-        } as { type: string; [key: string]: unknown });
-
-        const config =
-          world.getResource<typeof DEFAULT_ECHO_RUNNER_CONFIG>("GameConfig") ||
-          DEFAULT_ECHO_RUNNER_CONFIG;
-
-        setupPlatformerMovementComponents(world, entity, config);
-        world.addComponent(entity, {
-          type: "PlatformerInput",
-          moveDir: 0,
-          jumpPressed: false,
-          jumpHeld: false,
-          jumpReleased: false,
-          pulsePressed: false,
-          pulseCooldown: 0,
-          fireHeld: false,
-          firePressed: false
-        } as { type: string; [key: string]: unknown });
-        world.addComponent(entity, {
-          type: "PlatformerJumper",
-          coyoteTimer: 0,
-          jumpBufferTimer: 0,
-          coyoteTimeMax: config.COYOTE_TIME_MAX,
-          jumpBufferMax: config.JUMP_BUFFER_MAX
-        } as { type: string; [key: string]: unknown });
-      }
-    });
-
-    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
-    registerCollectibleTriggerBlueprint(
-      this.blueprints,
-      "collectible_fragment",
-      "fragment",
-      10,
-      16,
-      10,
-      "fragment",
-      false,
-      false
-    );
-    registerCollectibleTriggerBlueprint(
-      this.blueprints,
-      "collectible_core",
-      "core",
-      100,
-      24,
-      12,
-      "core",
-      true,
-      true
-    );
-    registerPlatformerEnvironmentBlueprints(this.blueprints);
-    registerPlatformerEnemyBlueprints(this.blueprints);
-    registerEnemyStateMachines(this.world);
-
-    this.world.addSystem(new PlatformerInputSystem(), { phase: SystemPhase.Input });
-    this.world.addSystem(new HitRunAttackSystem(), { phase: SystemPhase.Input });
-
-    registerCommonPlatformerSystems(this.world, { includeMovingPlatforms: true });
-    this.world.addSystem(new HitRunDamageSystem(), { phase: SystemPhase.Simulation });
-    registerPresentationSystems(this.world);
+    registerBeltSystems(this.world);
 
     registerHitRunFeedback(this.world);
     registerHitRunHurt(this.world);
     registerHitRunMelee(this.world);
     registerHitRunWeapons(this.world);
-    registerHitRunAI(this.world);
-    registerHitRunWaves(this.world, {
-      script: WAVE_OPENING,
-      autoStart: true,
-      defaultSpawnX: 520,
-      defaultSpawnY: 320
+
+    this.world.setResource(COMBO_MELEE_CONFIG_RESOURCE, {
+      ...DEFAULT_COMBO_MELEE_CONFIG
     });
-    registerHitRunDeathFlow(this.world);
-
-    const eventBus = this.world.getEventBus();
-    if (eventBus) {
-      eventBus.on("hitbox:hit", (event: unknown) => {
-        const payload = event as { victim?: number; attacker?: number } | undefined;
-        const victim = payload?.victim;
-        const attacker = payload?.attacker;
-
-        if (
-          attacker &&
-          this.world.hasComponent(attacker, "PlatformerInput") &&
-          victim &&
-          this.world.hasComponent(victim, "Enemy")
-        ) {
-          if (this.world.hasComponent(victim, "Health")) {
-            this.world.mutateComponent(victim, "Health", (h) => {
-              h.current--;
-            });
-            this.world.mutateComponent(victim, "Render", (r) => {
-              r.hitFlashFrames = 8;
-            });
-            this.audio.playSFX("explosion");
-
-            const enemyHealth = this.world.getComponent(victim, "Health")!;
-            if (enemyHealth.current <= 0) {
-              this.world.commands.removeEntity(victim);
-            }
-          }
-        }
-      });
-
-      eventBus.on("CollectiblePickedUp", () => {
-        this.audio.playSFX("score");
-      });
-
-      // PlayerDied → HitRunDeathFlowSystem (slow-mo + SFX + restart flag)
-    }
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    try {
-      const tileDefinitions = {
-        1: { solid: true, kind: "normal" as const },
-        2: { solid: true, kind: "ice" as const },
-        3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
-        4: { solid: true, kind: "spike" as const },
-        5: { solid: true, oneWay: true, kind: "normal" as const }
-      };
+    registerBeltPlayerBlueprint(this.blueprints);
 
-      const rawData =
-        this.customLevelData &&
-        Array.isArray(this.customLevelData.templates) &&
-        this.customLevelData.templates.length > 0
-          ? this.customLevelData
-          : hitRunLevelData;
-
-      const runnerSeed = this.getSeed() || 41873;
-      this.levelPlan = SegmentGenerator.generatePlan(
-        rawData.templates as SegmentTemplate[],
-        rawData.grammar as string[],
-        runnerSeed
-      );
-
-      syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);
-      this.world.setResource("PlayerStartPoint", { x: 100, y: 320 });
-      this.world.setResource("GameConfig", DEFAULT_ECHO_RUNNER_CONFIG);
-
-      const gameConfig = this.world.getResource<{
-        viewportWidth?: number;
-        viewportHeight?: number;
-        worldWidth?: number;
-        worldHeight?: number;
-      }>("GameConfig");
-      const vw = gameConfig?.viewportWidth ?? gameConfig?.worldWidth ?? 800;
-      const vh = gameConfig?.viewportHeight ?? gameConfig?.worldHeight ?? 600;
-      this.installProceduralBackdrop(vw, vh);
-
-      SegmentGenerator.instantiatePlan(
-        this.world,
-        this.levelPlan,
-        DEFAULT_ECHO_RUNNER_CONFIG.TILE_SIZE,
-        tileDefinitions
-      );
-
-      const playerEntity = this.world.createEntity();
-      const playerBp = this.blueprints.get("player");
-      if (playerBp) {
-        playerBp.spawn(this.world, playerEntity, { x: 100, y: 320 });
-      } else {
-        throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
-      }
-
-      createMainCamera2D(this.world, playerEntity, {
-        lookAheadX: 100,
-        smoothingX: 7.0,
-        smoothingY: 6.0,
-        verticalDeadzone: 45
+    const playerEntity = this.world.createEntity();
+    const playerBp = this.blueprints.get("player");
+    if (playerBp) {
+      playerBp.spawn(this.world, playerEntity, {
+        x: DEFAULT_BELT_PLAYER_SPAWN.x,
+        y: DEFAULT_BELT_PLAYER_SPAWN.y,
+        weaponId: "longbow",
+        health: 5
       });
-
-      this.world.flush();
-    } catch (err) {
-      console.error("[HitAndRunGame] Failed to initialize entities:", err);
-      throw err instanceof Error
-        ? err
-        : new Error(`[HitAndRunGame] Initialization error: ${String(err)}`);
+    } else {
+      throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
     }
+  }
+
+  public override setInputState(input: Partial<HitAndRunInput>): void {
+    mutateBeltInputState(this.getWorld(), input);
   }
 
   public initializeRenderer(
-    renderer: Renderer<CoreComponentRegistry, RenderContext>
-  ): void {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    if (renderer.type === "canvas") {
-      const {
-        drawMemoryFragment,
-        drawMemoryCore,
-        drawCheckpointNode,
-        drawPulseAttack
-      } = require("../echorunner/rendering/EchoRunnerCanvasVisuals");
-      const { drawPlatformerTilemap } = require("../platformer/rendering/PlatformerCanvasVisuals");
-      const {
-        drawHitRunPlayer,
-        drawHitRunPopcorn,
-        drawHitRunWallTrooper,
-        drawHitRunHopper,
-        drawHitRunCharger,
-        drawHitRunElite,
-        drawHitRunBullet,
-        drawHitRunRocket
-      } = require("./rendering/HitRunCanvasVisuals");
-
-      renderer.registerBackgroundEffect("hitrun_backdrop", drawHitRunProceduralBackdrop);
-      renderer.registerBackgroundEffect("hitrun_hud", drawHitRunHud);
-
-      renderer.registerShape("tilemap", drawPlatformerTilemap);
-      renderer.registerShape("player", drawHitRunPlayer);
-      renderer.registerShape("fragment", drawMemoryFragment);
-      renderer.registerShape("core", drawMemoryCore);
-      renderer.registerShape("node", drawCheckpointNode);
-      renderer.registerShape("pulse_attack", drawPulseAttack);
-
-      renderer.registerShape("popcorn", drawHitRunPopcorn);
-      renderer.registerShape("wall_trooper", drawHitRunWallTrooper);
-      renderer.registerShape("hopper", drawHitRunHopper);
-      renderer.registerShape("charger", drawHitRunCharger);
-      renderer.registerShape("elite", drawHitRunElite);
-
-      renderer.registerShape("bullet_hmg", drawHitRunBullet);
-      renderer.registerShape("bullet_shotgun", drawHitRunBullet);
-      renderer.registerShape("bullet_rocket", drawHitRunRocket);
-    } else if (renderer.type === "skia") {
-      const {
-        drawSkiaEchoBackground,
-        drawSkiaEchoPlayer,
-        drawSkiaMemoryFragment,
-        drawSkiaMemoryCore,
-        drawSkiaCheckpointNode,
-        drawSkiaPulseAttack,
-        drawSkiaSentinel,
-        drawSkiaHopper,
-        drawSkiaWatcher,
-        drawSkiaCharger
-      } = require("../echorunner/rendering/EchoRunnerSkiaVisuals");
-
-      renderer.registerBackgroundEffect("echo_bg", drawSkiaEchoBackground);
-      renderer.registerShape("player", drawSkiaEchoPlayer);
-      renderer.registerShape("fragment", drawSkiaMemoryFragment);
-      renderer.registerShape("core", drawSkiaMemoryCore);
-      renderer.registerShape("node", drawSkiaCheckpointNode);
-      renderer.registerShape("pulse_attack", drawSkiaPulseAttack);
-      renderer.registerShape("sentinel", drawSkiaSentinel);
-      renderer.registerShape("hopper", drawSkiaHopper);
-      renderer.registerShape("watcher", drawSkiaWatcher);
-      renderer.registerShape("charger", drawSkiaCharger);
-    }
-  }
+    _renderer: Renderer<CoreComponentRegistry, RenderContext>
+  ): void {}
 
   public getGameState(): HitAndRunGameState {
     const rs = this.world.getResource<RunState>("RunState");
@@ -588,7 +303,16 @@ export const HitAndRunDefinition = {
     return new HitAndRunGame({ seed });
   },
   inputSchema: {
-    actions: ["left", "right", "jump", "pulse", "attack"]
+    actions: [
+      "left",
+      "right",
+      "up",
+      "down",
+      "jump",
+      "attack",
+      "fire",
+      "special"
+    ]
   },
   assets: EchoRunnerDefinition.assets
 };

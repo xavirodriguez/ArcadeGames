@@ -7,6 +7,7 @@ import { PongDefinition } from "../games/pong/PongGame";
 import { FlappyBirdDefinition } from "../games/flappybird/FlappyBirdGame";
 import { PlatformerDefinition } from "../games/platformer/PlatformerGame";
 import { FroggerDefinition } from "../games/frogger/FroggerGame";
+import { VerticalShmupDefinition } from "../games/vertical-shmup/VerticalShmupGame";
 
 let isRegistered = false;
 

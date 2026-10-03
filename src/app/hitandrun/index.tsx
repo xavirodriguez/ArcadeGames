@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -47,7 +47,6 @@ function HitAndRunContent() {
   const { game, gameState, isPaused, isReady, togglePause, highScore, restartWithSeed } =
     useHitAndRunGame(started, initialSeed);
 
-  // Auto-restart after death slow-mo
   useEffect(() => {
     if (!game || !isReady) return;
     const id = setInterval(() => {
@@ -74,6 +73,16 @@ function HitAndRunContent() {
         restartWithSeed?.();
         return;
       }
+      // Prevent page scroll on arrows / space while playing
+      if (
+        e.code === "ArrowUp" ||
+        e.code === "ArrowDown" ||
+        e.code === "ArrowLeft" ||
+        e.code === "ArrowRight" ||
+        e.code === "Space"
+      ) {
+        e.preventDefault();
+      }
       activeKeys.add(e.code);
       updateInput();
     };
@@ -90,18 +99,17 @@ function HitAndRunContent() {
     };
 
     const updateInput = () => {
+      // ←→ / A D = move (+ horizontal aim). ↑↓ = aim only. Space / W = jump.
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
-      const jump =
-        activeKeys.has("ArrowUp") ||
-        activeKeys.has("KeyW") ||
-        activeKeys.has("Space");
+      const jump = activeKeys.has("Space") || activeKeys.has("KeyW");
+      const aimUp = activeKeys.has("ArrowUp");
+      const aimDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
       const pulse =
         activeKeys.has("KeyF") ||
         activeKeys.has("KeyJ") ||
         activeKeys.has("KeyE") ||
         activeKeys.has("ShiftLeft");
-      // HMG hold-to-fire
       const attack =
         activeKeys.has("KeyC") ||
         activeKeys.has("KeyX") ||
@@ -114,7 +122,9 @@ function HitAndRunContent() {
         moveRight,
         jump,
         pulse,
-        attack
+        attack,
+        aimUp,
+        aimDown
       });
     };
 
@@ -137,6 +147,8 @@ function HitAndRunContent() {
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
   const handleTouchFire = (pressed: boolean) => game?.setInputState({ attack: pressed });
+  const handleTouchAimUp = (pressed: boolean) => game?.setInputState({ aimUp: pressed });
+  const handleTouchAimDown = (pressed: boolean) => game?.setInputState({ aimDown: pressed });
 
   const formatTime = (timeInSecs: number) => {
     const mins = Math.floor(timeInSecs / 60);
@@ -158,7 +170,7 @@ function HitAndRunContent() {
         />
         <GameInstructions>
           {Platform.OS === "web"
-            ? "A/D move · Space jump · F melee · C/X hold fire · R restart"
+            ? "←→/AD move · ↑↓ aim · Space jump · F melee · C/X fire · R restart"
             : t.common.touch_controls}
         </GameInstructions>
         <HighScoreText label={t.common.record} score={highScore} />
@@ -223,7 +235,7 @@ function HitAndRunContent() {
             <View style={styles.dpad} pointerEvents="box-none">
               <GestureActionButton
                 label="◀"
-                size={65}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.borderLight}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -235,7 +247,7 @@ function HitAndRunContent() {
               />
               <GestureActionButton
                 label="▶"
-                size={65}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.borderLight}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -243,6 +255,30 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchRight(true)}
                 onPressOut={() => handleTouchRight(false)}
                 accessibilityLabel="Move right"
+                style={{ marginHorizontal: spacing.sm }}
+              />
+              <GestureActionButton
+                label="▲"
+                size={52}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.gold}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                onPressIn={() => handleTouchAimUp(true)}
+                onPressOut={() => handleTouchAimUp(false)}
+                accessibilityLabel="Aim up"
+                style={{ marginHorizontal: spacing.sm }}
+              />
+              <GestureActionButton
+                label="▼"
+                size={52}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.gold}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                onPressIn={() => handleTouchAimDown(true)}
+                onPressOut={() => handleTouchAimDown(false)}
+                accessibilityLabel="Aim down"
                 style={{ marginHorizontal: spacing.sm }}
               />
             </View>
@@ -382,7 +418,7 @@ const styles = StyleSheet.create({
     height: 180,
     zIndex: 15,
   },
-  dpad: { flexDirection: "row" },
+  dpad: { flexDirection: "row", flexWrap: "wrap", maxWidth: 280 },
   actions: { flexDirection: "row", alignItems: "flex-end" },
   gameOverOverlay: {
     ...StyleSheet.absoluteFillObject,

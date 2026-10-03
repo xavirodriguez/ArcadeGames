@@ -35,7 +35,7 @@ export function attachEnemyAI(
       type: "PlayerSensor",
       visionRange: (resolved.data.visionRange as number) ?? 180,
       detectedPlayerEntity: undefined
-    } as any);
+    });
   }
 
   // Patrol + GroundDetector
@@ -45,17 +45,18 @@ export function attachEnemyAI(
     const half = opts.patrolHalfWidth ?? 64;
     world.addComponent(entity, {
       type: "Patrol",
-      direction: 1,
       startX: x - half,
-      endX: x + half
-    } as any);
+      endX: x + half,
+      direction: 1,
+      patrolSpeed: (resolved.data.patrolSpeed as number) ?? arch?.speed ?? 60
+    });
     world.addComponent(entity, {
       type: "GroundDetector",
       sensorOffsetX: 10,
       sensorOffsetY: 14,
       hasWallAhead: false,
       hasGroundAhead: true
-    } as any);
+    });
   }
 
   // Charger también se beneficia de GroundDetector en Attack
@@ -66,7 +67,7 @@ export function attachEnemyAI(
       sensorOffsetY: 14,
       hasWallAhead: false,
       hasGroundAhead: true
-    } as any);
+    });
   }
 
   // StateMachine
@@ -75,10 +76,11 @@ export function attachEnemyAI(
     machineId: resolved.machineId,
     currentState: resolved.initialState,
     previousState: resolved.initialState,
+    elapsedInState: 0,
     elapsedMs: 0,
     data: {
       ...resolved.data,
       shootCooldownRemaining: 0
     }
-  } as any);
+  });
 }

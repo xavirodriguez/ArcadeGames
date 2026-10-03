@@ -222,6 +222,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     }
   }, []);
 
+  // Activate keyboard controls for Web
+  useKeyboardControls(activeGame, !isLoading && activeGame !== null);
+
   // Reactively synchronized StoryRuntime state hook
   const { currentNode, flags } = useStoryRuntime(runtimeRef.current, eventBusRef.current);
   const availableChoices: StoryChoice[] = currentNode?.choices || [];
@@ -566,7 +569,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       {/* Active Minigame Rendering Layer */}
       {activeGame ? (
         <CanvasRenderer
-          key={activeRunContextRef.current?.runId ?? activeGameIdRef.current ?? "campaign_canvas"}
+          key={activeRunContextRef.current?.runId || activeGameIdRef.current || "canvas"}
           world={activeGame.world as any}
           gameLoop={activeGame.getGameLoop()}
           onInitialize={(renderer) => (activeGame as any).initializeRenderer?.(renderer)}

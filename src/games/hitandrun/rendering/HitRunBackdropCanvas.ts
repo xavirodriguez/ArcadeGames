@@ -22,7 +22,7 @@ const RESOURCE_KEY = "HitRunBackdropSpec";
 /* -------------------------------------------------------------------------- */
 
 function resolveMainCameraX(world: {
-  query: (t: string) => number[];
+  query: (t: string) => readonly number[];
   getComponent: (e: number, t: string) => unknown;
 }): number {
   const cameras = world.query("Camera2D");

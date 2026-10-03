@@ -2,11 +2,22 @@ import { Component, CoreEvents } from "@tiny-aster/core";
 
 export interface HitAndRunEventRegistry extends CoreEvents, Record<string, unknown> {}
 
+/**
+ * Action map for the fantasy belt-scroll control scheme.
+ * Bridged into BeltInput via mutateBeltInputState / setInputState.
+ */
 export interface HitAndRunInput {
-  moveLeft: boolean;
-  moveRight: boolean;
-  jump: boolean;
-  pulse: boolean; // Attack verb
+  left?: boolean;
+  right?: boolean;
+  up?: boolean;
+  down?: boolean;
+  jump?: boolean;
+  attack?: boolean;
+  fire?: boolean;
+  special?: boolean;
+  moveLeft?: boolean;
+  moveRight?: boolean;
+  pulse?: boolean;
   [key: string]: unknown;
 }
 

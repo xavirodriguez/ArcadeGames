@@ -1,5 +1,5 @@
 /**
- * Registers belt-scroll movement + camera systems and default resources.
+ * Registers belt-scroll movement + camera + input edge systems and default resources.
  */
 
 import {
@@ -8,6 +8,7 @@ import {
   CoreComponentRegistry
 } from "@tiny-aster/core";
 import { BeltMovementSystem } from "./BeltMovementSystem";
+import { BeltInputSystem } from "./BeltInputSystem";
 import {
   BELT_MOVEMENT_CONFIG_RESOURCE,
   DEFAULT_BELT_MOVEMENT_CONFIG,
@@ -21,6 +22,7 @@ import {
   type BeltCameraConfig,
   type BeltCameraState
 } from "./BeltCameraTypes";
+import { ensurePhysicsIntegration } from "./registerBeltPlayerBlueprint";
 
 export function registerBeltSystems(
   world: World<CoreComponentRegistry>,
@@ -51,6 +53,13 @@ export function registerBeltSystems(
   world.setResource(BELT_CAMERA_STATE_RESOURCE, cameraState);
   world.setResource("CameraX", cameraState.cameraX);
 
+  ensurePhysicsIntegration(world);
+
+  world.addSystem(new BeltInputSystem(), {
+    phase: SystemPhase.Input,
+    priority: 5
+  });
+
   world.addSystem(new BeltMovementSystem(), {
     phase: SystemPhase.Simulation,
     priority: 10
@@ -65,3 +74,6 @@ export * from "./BeltMovementTypes";
 export * from "./BeltMovementSystem";
 export * from "./BeltCameraTypes";
 export * from "./BeltCameraSystem";
+export * from "./BeltInputSystem";
+export * from "./mutateBeltInputState";
+export * from "./registerBeltPlayerBlueprint";

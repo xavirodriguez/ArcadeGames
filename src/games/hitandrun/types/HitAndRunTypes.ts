@@ -4,23 +4,21 @@ import { DEFAULT_HIT_AND_RUN_CONFIG } from "./HitAndRunConfigSchema";
 export interface HitAndRunEventRegistry extends CoreEvents, Record<string, unknown> {}
 
 /**
- * Input schema — run-and-gun aim like Contra:
- * - moveLeft/Right face + horizontal aim
- * - aimUp / aimDown for vertical & diagonals (NOT jump)
- * - jump is Space / W only
+ * Action map for the fantasy belt-scroll control scheme.
+ * Bridged into BeltInput via mutateBeltInputState / setInputState.
  */
 export interface HitAndRunInput {
-  moveLeft: boolean;
-  moveRight: boolean;
-  jump: boolean;
-  /** Melee / pulse attack */
-  pulse: boolean;
-  /** Hold-to-fire ranged weapon (HMG) */
-  attack: boolean;
-  /** Aim straight up / combine with move for 45° */
-  aimUp?: boolean;
-  /** Aim straight down / combine with move for 45° */
-  aimDown?: boolean;
+  left?: boolean;
+  right?: boolean;
+  up?: boolean;
+  down?: boolean;
+  jump?: boolean;
+  attack?: boolean;
+  fire?: boolean;
+  special?: boolean;
+  moveLeft?: boolean;
+  moveRight?: boolean;
+  pulse?: boolean;
   [key: string]: unknown;
 }
 

@@ -10,6 +10,12 @@ export interface EchoRunnerInput {
   [key: string]: unknown;
 }
 
+export interface EchoRunnerInputComponent extends Component {
+  type: "EchoRunnerInput";
+  pulsePressed: boolean;
+  pulseCooldown: number;
+}
+
 export interface EchoRunnerGameState extends Component {
   type: "EchoRunnerGameState";
   score: number;

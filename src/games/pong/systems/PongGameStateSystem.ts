@@ -196,11 +196,12 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
 
   public resetGameOverState(world: World<PongComponentRegistry>): void {
     this._isGameOver = false;
-    const state = this.getGameState(world);
-    if (state) {
-      state.scoreP1 = 0;
-      state.scoreP2 = 0;
-      state.isGameOver = false;
+    if (world.getSingleton("PongState")) {
+      world.mutateSingleton("PongState", (state: PongState) => {
+        state.scoreP1 = 0;
+        state.scoreP2 = 0;
+        state.isGameOver = false;
+      });
     }
   }
 }

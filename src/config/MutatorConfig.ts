@@ -4,7 +4,7 @@ import { z } from "zod";
  * Definitions and configurations for game mutators.
  */
 
-export type GameId = 'asteroids' | 'flappybird' | 'pong' | 'space-invaders' | 'frogger' | 'racing';
+export type GameId = 'asteroids' | 'flappybird' | 'pong' | 'space-invaders' | 'frogger' | 'racing' | 'vertical-shmup';
 
 /**
  * Schema to enforce strict, safe physical boundaries on mutated parameters,

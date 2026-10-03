@@ -14,6 +14,7 @@ export type GameId =
   | "platformer"
   | "frogger"
   | "racing";
+  | "vertical-shmup";
 
 /**
  * Declares the asset requirements for a game definition prior to simulation startup.

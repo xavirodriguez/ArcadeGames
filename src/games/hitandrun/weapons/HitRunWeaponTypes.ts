@@ -2,7 +2,7 @@ import type { Entity } from "@tiny-aster/core";
 import type { DamageConsumptionPolicy } from "@tiny-aster/gameplay-kit";
 
 /** Identificadores de arma de Hit&Run. */
-export type HitRunWeaponId = "hmg" | "shotgun" | "rocket";
+export type HitRunWeaponId = "hmg" | "shotgun" | "rocket" | "longbow" | "rune_scatter" | "fire_staff" | "crossbow" | string;
 
 export interface HitRunWeaponDefinition {
   id: HitRunWeaponId;
@@ -64,7 +64,6 @@ export interface CombatExplosionPayload {
   category: string;
 }
 
-/** Estado de arma equipada en el jugador. */
 export interface HitRunWeaponState {
   type: "HitRunWeapon";
   weaponId: HitRunWeaponId;

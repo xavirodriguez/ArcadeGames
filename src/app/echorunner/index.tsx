@@ -22,6 +22,7 @@ import {
   PlayerNameInput,
   HighScoreText,
   NeonButton,
+  GameLayoutShell,
 } from "../../components/ui";
 
 function EchoRunnerContent() {
@@ -175,131 +176,128 @@ function EchoRunnerContent() {
 
   return (
     <SafeAreaProvider>
-      <View style={sharedScreenStyles.container}>
-        <RadialBackground />
-
-        {/* Back to menu */}
-        <BackButton label={t.common.menu} />
-
-        {/* Gorgeous Neon HUD */}
-        <View style={styles.hudContainer}>
-          <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.echorunner.attempts}</Text>
-            <Text style={styles.hudValue}>{gameState.attempts.toString().padStart(2, "0")}</Text>
-          </View>
-          <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.echorunner.fragments}</Text>
-            <Text style={[styles.hudValue, styles.violetGlow]}>◆ {gameState.fragments}</Text>
-          </View>
-          <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.echorunner.cores}</Text>
-            <Text style={[styles.hudValue, styles.goldGlow]}>◉ {gameState.cores}</Text>
-          </View>
-          <View style={styles.hudItem}>
-            <Text style={styles.hudLabel}>{t.echorunner.chrono}</Text>
-            <Text style={styles.hudValue}>{formatTime(gameState.elapsedTime)}</Text>
-          </View>
-        </View>
-
-        {/* Canvas Renderer */}
-        <CanvasRenderer
-          world={game.getWorld()}
-          gameLoop={game.getGameLoop()}
-          onInitialize={(renderer) => game.initializeRenderer(renderer)}
-        />
-
-        {/* Virtual controls for touch devices */}
-        {isTouchDevice && (
-          <View style={styles.touchControlsContainer} pointerEvents="box-none">
-            {/* Left D-Pad */}
-            <View style={styles.dpad} pointerEvents="box-none">
-              <GestureActionButton
-                label="◀"
-                size={65}
-                color="rgba(30, 41, 59, 0.7)"
-                borderColor={colors.borderLight}
-                pressedColor="rgba(30, 41, 59, 0.9)"
-                pressedBorderColor={colors.white}
-                onPressIn={() => handleTouchLeft(true)}
-                onPressOut={() => handleTouchLeft(false)}
-                accessibilityLabel={t?.accessibility?.move_left_label || "Move left"}
-                accessibilityHint={t?.accessibility?.move_left_hint || "Moves runner to the left"}
-                style={{ marginHorizontal: spacing.sm }}
-              />
-              <GestureActionButton
-                label="▶"
-                size={65}
-                color="rgba(30, 41, 59, 0.7)"
-                borderColor={colors.borderLight}
-                pressedColor="rgba(30, 41, 59, 0.9)"
-                pressedBorderColor={colors.white}
-                onPressIn={() => handleTouchRight(true)}
-                onPressOut={() => handleTouchRight(false)}
-                accessibilityLabel={t?.accessibility?.move_right_label || "Move right"}
-                accessibilityHint={t?.accessibility?.move_right_hint || "Moves runner to the right"}
-                style={{ marginHorizontal: spacing.sm }}
-              />
+      <GameLayoutShell
+        style={sharedScreenStyles.container}
+        backgroundSlot={<RadialBackground />}
+        topLeftSlot={<BackButton label={t.common.menu} />}
+        centerHudSlot={
+          <View style={styles.hudContainer}>
+            <View style={styles.hudItem}>
+              <Text style={styles.hudLabel}>{t.echorunner.attempts}</Text>
+              <Text style={styles.hudValue}>{gameState.attempts.toString().padStart(2, "0")}</Text>
             </View>
-
-            {/* Right Action buttons */}
-            <View style={styles.actions} pointerEvents="box-none">
-              <GestureActionButton
-                label="PULSE"
-                size={70}
-                color="rgba(30, 41, 59, 0.7)"
-                borderColor={colors.pink}
-                pressedColor="rgba(30, 41, 59, 0.9)"
-                pressedBorderColor={colors.white}
-                onPressIn={() => handleTouchPulse()}
-                onPressOut={() => {}}
-                accessibilityLabel={t?.accessibility?.pulse_button_label || "Pulse wave attack"}
-                accessibilityHint={t?.accessibility?.pulse_button_hint || "Emits an acoustic pulse wave"}
-                style={{ marginHorizontal: spacing.sm }}
-              />
-              <GestureActionButton
-                label="JUMP"
-                size={75}
-                color="rgba(30, 41, 59, 0.7)"
-                borderColor={colors.cyan}
-                pressedColor="rgba(30, 41, 59, 0.9)"
-                pressedBorderColor={colors.white}
-                onPressIn={() => handleTouchJump(true)}
-                onPressOut={() => handleTouchJump(false)}
-                accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
-                accessibilityHint={t?.accessibility?.jump_button_hint || "Jumps over obstacles"}
-                style={{ marginHorizontal: spacing.sm }}
-              />
+            <View style={styles.hudItem}>
+              <Text style={styles.hudLabel}>{t.echorunner.fragments}</Text>
+              <Text style={[styles.hudValue, styles.violetGlow]}>◆ {gameState.fragments}</Text>
+            </View>
+            <View style={styles.hudItem}>
+              <Text style={styles.hudLabel}>{t.echorunner.cores}</Text>
+              <Text style={[styles.hudValue, styles.goldGlow]}>◉ {gameState.cores}</Text>
+            </View>
+            <View style={styles.hudItem}>
+              <Text style={styles.hudLabel}>{t.echorunner.chrono}</Text>
+              <Text style={styles.hudValue}>{formatTime(gameState.elapsedTime)}</Text>
             </View>
           </View>
-        )}
+        }
+        canvasSlot={
+          <CanvasRenderer
+            world={game.getWorld()}
+            gameLoop={game.getGameLoop()}
+            onInitialize={(renderer) => game.initializeRenderer(renderer)}
+          />
+        }
+        controlsSlot={
+          isTouchDevice ? (
+            <View style={styles.touchControlsContainer} pointerEvents="box-none">
+              {/* Left D-Pad */}
+              <View style={styles.dpad} pointerEvents="box-none">
+                <GestureActionButton
+                  label="◀"
+                  size={65}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.borderLight}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  onPressIn={() => handleTouchLeft(true)}
+                  onPressOut={() => handleTouchLeft(false)}
+                  accessibilityLabel={t?.accessibility?.move_left_label || "Move left"}
+                  accessibilityHint={t?.accessibility?.move_left_hint || "Moves runner to the left"}
+                  style={{ marginHorizontal: spacing.sm }}
+                />
+                <GestureActionButton
+                  label="▶"
+                  size={65}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.borderLight}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  onPressIn={() => handleTouchRight(true)}
+                  onPressOut={() => handleTouchRight(false)}
+                  accessibilityLabel={t?.accessibility?.move_right_label || "Move right"}
+                  accessibilityHint={t?.accessibility?.move_right_hint || "Moves runner to the right"}
+                  style={{ marginHorizontal: spacing.sm }}
+                />
+              </View>
 
-        {/* Level Complete / Game Over Screen */}
-        {gameState.isGameOver && (
-          <View style={styles.gameOverOverlay}>
-            <Text style={styles.gameOverTitle}>{t.echorunner.archive_restored}</Text>
-            <Text style={styles.gameOverSubtitle}>{t.echorunner.archive_restored_sub}</Text>
-            <Text style={styles.gameOverStat}>{t.echorunner.total_attempts}: {gameState.attempts}</Text>
-            <Text style={styles.gameOverStat}>{t.echorunner.deaths}: {gameState.deaths}</Text>
-            <Text style={styles.gameOverStat}>{t.echorunner.elapsed_time}: {formatTime(gameState.elapsedTime)}</Text>
+              {/* Right Action buttons */}
+              <View style={styles.actions} pointerEvents="box-none">
+                <GestureActionButton
+                  label="PULSE"
+                  size={70}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.pink}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  onPressIn={() => handleTouchPulse()}
+                  onPressOut={() => {}}
+                  accessibilityLabel={t?.accessibility?.pulse_button_label || "Pulse wave attack"}
+                  accessibilityHint={t?.accessibility?.pulse_button_hint || "Emits an acoustic pulse wave"}
+                  style={{ marginHorizontal: spacing.sm }}
+                />
+                <GestureActionButton
+                  label="JUMP"
+                  size={75}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.cyan}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  onPressIn={() => handleTouchJump(true)}
+                  onPressOut={() => handleTouchJump(false)}
+                  accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
+                  accessibilityHint={t?.accessibility?.jump_button_hint || "Jumps over obstacles"}
+                  style={{ marginHorizontal: spacing.sm }}
+                />
+              </View>
+            </View>
+          ) : undefined
+        }
+        debugSlot={<DebugOverlay game={game} />}
+        overlaySlot={
+          gameState.isGameOver ? (
+            <View style={styles.gameOverOverlay}>
+              <Text style={styles.gameOverTitle}>{t.echorunner.archive_restored}</Text>
+              <Text style={styles.gameOverSubtitle}>{t.echorunner.archive_restored_sub}</Text>
+              <Text style={styles.gameOverStat}>{t.echorunner.total_attempts}: {gameState.attempts}</Text>
+              <Text style={styles.gameOverStat}>{t.echorunner.deaths}: {gameState.deaths}</Text>
+              <Text style={styles.gameOverStat}>{t.echorunner.elapsed_time}: {formatTime(gameState.elapsedTime)}</Text>
 
-            <TouchableOpacity
-              style={styles.menuButton}
-              onPress={() => {
-                hapticSelection();
-                router.replace("/");
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t.echorunner.return_repo}
-              accessibilityHint="Regresa al menú principal del repositorio"
-            >
-              <Text style={styles.menuButtonText}>{t.echorunner.return_repo}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Real-time Debug Overlay for Engine Metrics & Diagnostics */}
-        <DebugOverlay game={game} />
-      </View>
+              <TouchableOpacity
+                style={styles.menuButton}
+                onPress={() => {
+                  hapticSelection();
+                  router.replace("/");
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.echorunner.return_repo}
+                accessibilityHint="Regresa al menú principal del repositorio"
+              >
+                <Text style={styles.menuButtonText}>{t.echorunner.return_repo}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
+        }
+      />
     </SafeAreaProvider>
   );
 }
@@ -461,5 +459,5 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
     userSelect: "none",
-  }
+  },
 });

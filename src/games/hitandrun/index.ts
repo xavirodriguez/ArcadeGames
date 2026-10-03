@@ -8,3 +8,5 @@ export * from "./waves";
 export * from "./ai";
 export * from "./melee";
 export * from "./hurt";
+export * from "./belt";
+export * from "./fantasy";

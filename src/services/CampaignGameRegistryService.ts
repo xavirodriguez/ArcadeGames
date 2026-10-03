@@ -8,6 +8,7 @@ import { FlappyBirdDefinition } from "../games/flappybird/FlappyBirdGame";
 import { PlatformerDefinition } from "../games/platformer/PlatformerGame";
 import { FroggerDefinition } from "../games/frogger/FroggerGame";
 import { RacingDefinition } from "../games/racing/RacingGame";
+import { VerticalShmupDefinition } from "../games/vertical-shmup/VerticalShmupGame";
 
 let isRegistered = false;
 
@@ -28,4 +29,5 @@ export function registerDefaultCampaignGames(): void {
   GameDefinitionRegistry.register("platformer", PlatformerDefinition);
   GameDefinitionRegistry.register("frogger", FroggerDefinition);
   GameDefinitionRegistry.register("racing", RacingDefinition);
+  GameDefinitionRegistry.register("vertical-shmup", VerticalShmupDefinition);
 }

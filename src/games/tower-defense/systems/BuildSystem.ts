@@ -1,0 +1,124 @@
+import { System, SystemPhase, World } from "@tiny-aster/core";
+import type {
+  TowerDefenseComponentRegistry,
+  TileGrid,
+  TowerCatalog,
+  GameStateComponent,
+} from "../types/TowerDefenseTypes";
+import type { GridLayout } from "../../shared/grid/GridTypes";
+import { isBuildable, worldToCellCoords } from "../MapUtils";
+import { spawnTower } from "../EntityFactory";
+
+/**
+ * Handles build / sell / upgrade from Input.
+ * Rule: towers only on `buildable` tiles (no path blocking → no dynamic pathfinding needed).
+ */
+export class BuildSystem extends System<TowerDefenseComponentRegistry> {
+  readonly phase = SystemPhase.Input;
+
+  update(world: World<TowerDefenseComponentRegistry>, _dt: number): void {
+    const playerEntity = world.query("Player")[0];
+    if (playerEntity === undefined) return;
+
+    const input = world.getComponent(playerEntity, "Input");
+    const player = world.getComponent(playerEntity, "Player");
+    if (!input || !player) return;
+
+    const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
+    if (!gs || (gs.phase !== "build" && gs.phase !== "intermission")) return;
+
+    const tileGrid = world.getResource<TileGrid>("TileGrid");
+    const layout = world.getResource<GridLayout>("GridLayout");
+    const catalog = world.getResource<TowerCatalog>("TowerCatalog");
+    if (!tileGrid || !layout || !catalog) return;
+
+    const cell = worldToCellCoords(input.cursorX, input.cursorY, layout);
+    world.mutateComponent(playerEntity, "Player", (p) => {
+      p.selectedCell = cell;
+    });
+    if (player.selectedTowerType && gs.selectedTowerType !== player.selectedTowerType) {
+      world.mutateSingleton("GameState", (g: GameStateComponent) => {
+        g.selectedTowerType = player.selectedTowerType;
+      });
+    }
+
+    if (input.build && player.selectedTowerType) {
+      const def = catalog[player.selectedTowerType];
+      if (!def) return;
+      if (!isBuildable(tileGrid, cell.col, cell.row)) return;
+
+      const existing = world.query("Tower").find((e) => {
+        const t = world.getComponent(e, "Tower");
+        return t && t.col === cell.col && t.row === cell.row;
+      });
+      if (existing !== undefined) return;
+      if (gs.gold < def.cost) return;
+
+      world.mutateSingleton("GameState", (g: GameStateComponent) => {
+        g.gold -= def.cost;
+      });
+
+      const towerEntity = spawnTower(world, def, cell.col, cell.row, layout);
+      world.eventBus?.emit("tower:built", {
+        entity: towerEntity,
+        towerType: def.id,
+        col: cell.col,
+        row: cell.row,
+      });
+
+      world.mutateComponent(playerEntity, "Input", (i) => {
+        i.build = false;
+      });
+    }
+
+    if (input.sell) {
+      const towerAtCell = world.query("Tower").find((e) => {
+        const t = world.getComponent(e, "Tower");
+        return t && t.col === cell.col && t.row === cell.row;
+      });
+      if (towerAtCell !== undefined) {
+        const tower = world.getComponent(towerAtCell, "Tower")!;
+        const refund = Math.floor(tower.cost * 0.6 * tower.level);
+        world.mutateSingleton("GameState", (g: GameStateComponent) => {
+          g.gold += refund;
+        });
+        world.eventBus?.emit("tower:sold", { entity: towerAtCell, refund });
+        world.destroyEntity(towerAtCell);
+      }
+      world.mutateComponent(playerEntity, "Input", (i) => {
+        i.sell = false;
+      });
+    }
+
+    if (input.upgrade) {
+      const towerAtCell = world.query("Tower").find((e) => {
+        const t = world.getComponent(e, "Tower");
+        return t && t.col === cell.col && t.row === cell.row;
+      });
+      if (towerAtCell !== undefined) {
+        const tower = world.getComponent(towerAtCell, "Tower")!;
+        if (tower.level < tower.maxLevel) {
+          const upgradeCost = Math.floor(tower.cost * 0.8 * tower.level);
+          if (gs.gold >= upgradeCost) {
+            world.mutateSingleton("GameState", (g: GameStateComponent) => {
+              g.gold -= upgradeCost;
+            });
+            world.mutateComponent(towerAtCell, "Tower", (t) => {
+              t.level += 1;
+              t.damage = Math.floor(t.damage * 1.35);
+              t.range = Math.floor(t.range * 1.1);
+              t.fireRate = t.fireRate * 1.1;
+            });
+            world.eventBus?.emit("tower:upgraded", {
+              entity: towerAtCell,
+              level: tower.level + 1,
+            });
+          }
+        }
+      }
+      world.mutateComponent(playerEntity, "Input", (i) => {
+        i.upgrade = false;
+      });
+    }
+  }
+}

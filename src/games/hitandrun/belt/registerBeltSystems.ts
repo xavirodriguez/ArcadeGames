@@ -5,7 +5,8 @@
 import {
   SystemPhase,
   World,
-  CoreComponentRegistry
+  CoreComponentRegistry,
+  HierarchySystem
 } from "@tiny-aster/core";
 import { BeltMovementSystem } from "./BeltMovementSystem";
 import { BeltInputSystem } from "./BeltInputSystem";
@@ -54,6 +55,14 @@ export function registerBeltSystems(
   world.setResource("CameraX", cameraState.cameraX);
 
   ensurePhysicsIntegration(world);
+
+  if (world.getResource("BeltHierarchyRegistered") !== true) {
+    world.addSystem(new HierarchySystem(), {
+      phase: SystemPhase.Transform,
+      priority: 0
+    });
+    world.setResource("BeltHierarchyRegistered", true);
+  }
 
   world.addSystem(new BeltInputSystem(), {
     phase: SystemPhase.Input,

@@ -30,7 +30,7 @@ import {
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
-import { EchoRunnerInput, EchoRunnerGameState, EchoRunnerEventRegistry, ECHO_CONFIG } from "./types/EchoRunnerTypes";
+import { EchoRunnerInput, EchoRunnerInputComponent, EchoRunnerGameState, EchoRunnerEventRegistry, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
@@ -58,28 +58,25 @@ export interface EchoRunnerBlueprintMap extends Record<string, BlueprintDefiniti
  */
 class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    const players = world.query("PlatformerInput", "Transform");
+    const players = world.query("EchoRunnerInput", "Transform");
     for (let i = 0; i < players.length; i++) {
       const player = players[i];
-      const input = world.getComponent(player, "PlatformerInput") as { pulseCooldown?: number; pulsePressed?: boolean } | undefined;
+      const echoInput = world.getComponent(player, "EchoRunnerInput") as EchoRunnerInputComponent | undefined;
       const trans = world.getComponent(player, "Transform")!;
 
-      if (!input) continue;
+      if (!echoInput) continue;
+
+      let newCooldown = echoInput.pulseCooldown;
+      let newPulsePressed = echoInput.pulsePressed;
 
       // Manage attack cooldowns
-      let cd = input.pulseCooldown ?? 0;
-      if (cd > 0) {
-        cd = PhysicsUtils.tickTimer(cd, deltaTime);
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulseCooldown?: number }).pulseCooldown = cd;
-        });
+      if (newCooldown > 0) {
+        newCooldown = PhysicsUtils.tickTimer(newCooldown, deltaTime);
       }
 
       // Read trigger and fire!
-      if (input.pulsePressed && cd <= 0) {
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulseCooldown?: number }).pulseCooldown = 0.45; // Cooldown of 0.45s
-        });
+      if (newPulsePressed && newCooldown <= 0) {
+        newCooldown = 0.45; // Cooldown of 0.45s
 
         // Determine direction of attack
         const vel = world.getComponent(player, "Velocity")!;
@@ -104,9 +101,16 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
           parent: player
         });
 
-        // Clear pulse triggers
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulsePressed?: boolean }).pulsePressed = false;
+        // Clear pulse trigger
+        newPulsePressed = false;
+      }
+
+      // Merge component mutations into a single mutateComponent call
+      if (newCooldown !== echoInput.pulseCooldown || newPulsePressed !== echoInput.pulsePressed) {
+        world.mutateComponent(player, "EchoRunnerInput", (inp) => {
+          const input = inp as EchoRunnerInputComponent;
+          input.pulseCooldown = newCooldown;
+          input.pulsePressed = newPulsePressed;
         });
       }
     }
@@ -220,10 +224,13 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           moveDir: 0,
           jumpPressed: false,
           jumpHeld: false,
-          jumpReleased: false,
+          jumpReleased: false
+        } as { type: string; [key: string]: unknown });
+        world.addComponent(entity, {
+          type: "EchoRunnerInput",
           pulsePressed: false,
           pulseCooldown: 0
-        } as { type: string; [key: string]: unknown });
+        } as EchoRunnerInputComponent);
         world.addComponent(entity, {
           type: "PlatformerJumper",
           coyoteTimer: 0,
@@ -267,7 +274,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         const attacker = payload?.attacker;
 
         // If player hits an enemy
-        if (attacker && this.world.hasComponent(attacker, "PlatformerInput") && victim && this.world.hasComponent(victim, "Enemy")) {
+        if (attacker && (this.world.hasComponent(attacker, "PlatformerInput") || this.world.hasComponent(attacker, "EchoRunnerInput")) && victim && this.world.hasComponent(victim, "Enemy")) {
           // Reduce health of enemy (most enemies have 1 health, so they explode!)
           if (this.world.hasComponent(victim, "Health")) {
             this.world.mutateComponent(victim, "Health", (h) => {
@@ -434,6 +441,17 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
   public override setInputState(input: Partial<EchoRunnerInput>): void {
     mutatePlatformerInputState(this.getWorld(), input);
+
+    if (input.pulse !== undefined) {
+      const playerEntity = this.world.query("Tag").find((e) =>
+        this.world.getComponent(e, "Tag")?.tags?.includes("Player")
+      );
+      if (playerEntity !== undefined && this.world.hasComponent(playerEntity, "EchoRunnerInput")) {
+        this.world.mutateComponent(playerEntity, "EchoRunnerInput", (inp) => {
+          (inp as EchoRunnerInputComponent).pulsePressed = input.pulse!;
+        });
+      }
+    }
   }
 
   protected override async onPreloadAssets(): Promise<void> {

@@ -92,25 +92,17 @@ export function useKeyboardControls(game: IGame | null, isReady: boolean, onInpu
         // Only include actions affected by the keys that changed
         const affectedActions = new Set<keyof typeof fullPayload>();
         const keyMap: Record<string, (keyof typeof fullPayload)[]> = {
-          ArrowLeft: ["rotateLeft", "moveLeft", "p1Left"],
-          KeyA: ["rotateLeft", "moveLeft", "p1Left"],
-          ArrowRight: ["rotateRight", "moveRight", "p1Right"],
-          KeyD: ["rotateRight", "moveRight", "p1Right"],
-          ArrowUp: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p2Up"],
-          KeyW: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p1Up"],
-          ArrowDown: ["moveDown", "p2Down"],
-          KeyS: ["moveDown", "p1Down"],
+          ArrowLeft: ["rotateLeft", "moveLeft", "p1Left", "moveX"],
+          KeyA: ["rotateLeft", "moveLeft", "p1Left", "moveX"],
+          ArrowRight: ["rotateRight", "moveRight", "p1Right", "moveX"],
+          KeyD: ["rotateRight", "moveRight", "p1Right", "moveX"],
+          ArrowUp: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p2Up", "moveY"],
+          KeyW: ["thrust", "flap", "glide", "moveUp", "p1Launch", "p1Up", "moveY"],
+          ArrowDown: ["moveDown", "p2Down", "moveY"],
+          KeyS: ["moveDown", "p1Down", "moveY"],
           Space: ["shoot", "flap", "glide", "p1Launch", "boost"],
           ShiftLeft: ["hyperspace"],
           KeyH: ["hyperspace"],
-          ArrowLeft: ["moveX"],
-          KeyA: ["moveX"],
-          ArrowRight: ["moveX"],
-          KeyD: ["moveX"],
-          ArrowUp: ["moveY"],
-          KeyW: ["moveY"],
-          ArrowDown: ["moveY"],
-          KeyS: ["moveY"],
         };
 
         for (const code of affectedKeys) {

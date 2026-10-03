@@ -12,6 +12,7 @@ export const en = {
       platformer: "PLATFORMER // 2D",
       frogger: "FROGGER // CROSSING",
       arkanoid: "ARKANOID",
+      racing: "MICRO RACERS",
       campaign: "STORY CAMPAIGN",
       level: "LEVEL",
     },

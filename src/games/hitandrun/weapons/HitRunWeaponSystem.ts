@@ -17,10 +17,6 @@ interface WeaponInputLike {
   aimY?: number;
 }
 
-/**
- * HitRunWeaponSystem — lee arma equipada + input y llama a fireWeapon.
- * Prefer BeltInput (belt player), then PlatformerInput, then Aim.
- */
 export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (isSimulationFrozen(world)) return;
@@ -59,8 +55,9 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
       const transform = world.getMutableComponent(entity, "Transform");
       if (!transform) continue;
 
-      const ox = transform.worldX ?? transform.x;
-      const oy = transform.worldY ?? transform.y;
+      // Prefer local x/y (worldX can lag a frame)
+      const ox = transform.x ?? transform.worldX ?? 0;
+      const oy = transform.y ?? transform.worldY ?? 0;
 
       let dirX = input.aimX ?? 0;
       let dirY = input.aimY ?? 0;
@@ -69,7 +66,6 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         dirY = 0;
       }
 
-      // Face the shot direction (horizontal)
       if (Math.abs(dirX) > 0.01) {
         const face = dirX >= 0 ? 1 : -1;
         transform.scaleX = face;
@@ -96,8 +92,8 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
             "HitRunScreenShake"
           );
           if (shake) {
-            shake.intensity = Math.min(6, shake.intensity + (def.id === "hmg" ? 1.2 : 4));
-            shake.duration = Math.max(shake.duration, def.id === "hmg" ? 0.08 : 0.2);
+            shake.intensity = Math.min(6, shake.intensity + (def.id === "hmg" || def.id === "longbow" ? 1.2 : 4));
+            shake.duration = Math.max(shake.duration, def.id === "hmg" || def.id === "longbow" ? 0.08 : 0.2);
             shake.elapsed = 0;
           }
           const cams = world.query("Camera2D");
@@ -107,9 +103,9 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
             if (!world.hasComponent(cams[c], "ScreenShake")) {
               world.addComponent(cams[c], {
                 type: "ScreenShake",
-                intensity: def.id === "hmg" ? 2.5 : 8,
-                duration: def.id === "hmg" ? 0.06 : 0.18,
-                remaining: def.id === "hmg" ? 0.06 : 0.18
+                intensity: def.id === "hmg" || def.id === "longbow" ? 2.5 : 8,
+                duration: def.id === "hmg" || def.id === "longbow" ? 0.06 : 0.18,
+                remaining: def.id === "hmg" || def.id === "longbow" ? 0.06 : 0.18
               } as { type: string; [key: string]: unknown });
             } else {
               world.mutateComponent(cams[c], "ScreenShake", (s: {
@@ -118,8 +114,8 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
                 remaining?: number;
                 elapsed?: number;
               }) => {
-                s.intensity = Math.min(10, s.intensity + (def.id === "hmg" ? 1.5 : 5));
-                s.duration = Math.max(s.duration, def.id === "hmg" ? 0.06 : 0.18);
+                s.intensity = Math.min(10, s.intensity + (def.id === "hmg" || def.id === "longbow" ? 1.5 : 5));
+                s.duration = Math.max(s.duration, def.id === "hmg" || def.id === "longbow" ? 0.06 : 0.18);
                 if (s.remaining !== undefined) s.remaining = s.duration;
                 if (s.elapsed !== undefined) s.elapsed = 0;
               });

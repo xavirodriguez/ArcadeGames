@@ -1,17 +1,13 @@
 import type { Entity } from "@tiny-aster/core";
 import type { DamageConsumptionPolicy } from "@tiny-aster/gameplay-kit";
 
-/** Identificadores de arma de Hit&Run (+ fantasy). */
-export type HitRunWeaponId =
-  | "hmg"
-  | "shotgun"
-  | "rocket"
-  | "longbow"
-  | "rune_scatter"
-  | "fire_staff"
-  | "crossbow"
-  | string;
+/** Identificadores de arma de Hit&Run. */
+export type HitRunWeaponId = "hmg" | "shotgun" | "rocket" | "longbow" | "rune_scatter" | "fire_staff" | "crossbow" | string;
 
+/**
+ * Definición data-driven de un arma.
+ * El CombatSystem no se toca: solo se rellenan componentes al spawnear proyectiles.
+ */
 export interface HitRunWeaponDefinition {
   id: HitRunWeaponId;
   cooldownDuration: number;
@@ -33,34 +29,48 @@ export interface HitRunWeaponDefinition {
   recoilImpulse: number;
 }
 
+/** Parámetros de acquire del PlayerBulletPool. */
 export interface HitRunBulletParams {
   x: number;
   y: number;
   dx: number;
   dy: number;
-  speed: number;
-  ttl: number;
   size: number;
   color: string;
-  shape: string;
-  damage: number;
+  ttl: number;
+  shape?: string;
+  layer?: number;
+  mask?: number;
+  damageAmount: number;
   damageCategory: string;
   consumption: DamageConsumptionPolicy;
-  ownerEntity: Entity;
-  explosive?: boolean;
-  explosionRadius?: number;
-  explosionDamage?: number;
-}
-
-export interface HitRunWeaponState {
-  type: "HitRunWeapon";
-  weaponId: HitRunWeaponId;
-  cooldownRemaining: number;
+  explosive?: {
+    radius: number;
+    damage: number;
+  };
+  rotation?: number;
+  sourceEntity?: Entity;
 }
 
 export interface ExplosivePayloadComponent {
   type: "ExplosivePayload";
   radius: number;
   damage: number;
-  ownerEntity: Entity;
+  detonated: boolean;
+}
+
+export interface CombatExplosionPayload {
+  x: number;
+  y: number;
+  radius: number;
+  damage: number;
+  sourceEntity?: Entity;
+  projectileEntity?: Entity;
+  category: string;
+}
+
+export interface HitRunWeaponState {
+  type: "HitRunWeapon";
+  weaponId: HitRunWeaponId;
+  cooldownRemaining: number;
 }

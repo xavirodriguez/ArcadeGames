@@ -1,12 +1,11 @@
 import { System, SystemPhase, World } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, TowerCatalog } from "../types/TowerDefenseTypes";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 import type { TowerProjectilePool } from "../EntityPool";
 
 /**
  * Fires projectiles at the current target when cooldown allows.
- * Projectiles are spawned via the pool / EntityFactory and carry Damage + Faction.
- * Impact resolution is left to CollisionSystem2D (same as Space Invaders bullets).
+ * Frost towers attach slow payload to projectiles.
  */
 export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
   readonly phase = SystemPhase.Simulation;
@@ -20,6 +19,7 @@ export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
   update(world: World<TowerDefenseComponentRegistry>, dt: number): void {
     const config = world.getResource<TowerDefenseConfig>("GameConfig");
     if (!config) return;
+    const catalog = world.getResource<TowerCatalog>("TowerCatalog");
 
     const towers = world.query("Tower");
 
@@ -28,7 +28,6 @@ export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
       const transform = world.getComponent(towerEntity, "Transform");
       if (!tower || !transform) continue;
 
-      // Tick cooldown
       if (tower.cooldownRemaining > 0) {
         world.mutateComponent(towerEntity, "Tower", (t) => {
           t.cooldownRemaining = Math.max(0, t.cooldownRemaining - dt);
@@ -38,7 +37,6 @@ export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
 
       if (tower.targetEntity === null) continue;
 
-      // Validate target still exists and has Creep
       if (!world.hasEntity(tower.targetEntity) || !world.hasComponent(tower.targetEntity, "Creep")) {
         world.mutateComponent(towerEntity, "Tower", (t) => {
           t.targetEntity = null;
@@ -46,7 +44,14 @@ export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
         continue;
       }
 
-      // Fire
+      const def = catalog?.[tower.towerType] as
+        | { slowFactor?: number; slowDurationMs?: number }
+        | undefined;
+      const slow =
+        def?.slowFactor && def?.slowDurationMs
+          ? { factor: def.slowFactor, durationMs: def.slowDurationMs }
+          : undefined;
+
       this.pool.acquire(
         world,
         config,
@@ -54,10 +59,15 @@ export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
         transform.y,
         tower.targetEntity,
         tower.damage,
-        tower.projectileSpeed
+        tower.projectileSpeed,
+        slow
       );
 
-      // Reset cooldown (fireRate is shots/sec → cooldown in ms)
+      const bus = world.getEventBus?.() ?? (world as any).eventBus;
+      if (bus && !(world as any).isReSimulating) {
+        bus.emitDeferred?.("PlaySFX", { name: "shoot" }) ?? bus.emit?.("PlaySFX", { name: "shoot" });
+      }
+
       const cooldownMs = 1000 / tower.fireRate;
       world.mutateComponent(towerEntity, "Tower", (t) => {
         t.cooldownRemaining = cooldownMs;

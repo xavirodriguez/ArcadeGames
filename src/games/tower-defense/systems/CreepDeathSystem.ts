@@ -16,7 +16,6 @@ export class CreepDeathSystem extends System<TowerDefenseComponentRegistry, Towe
       this.bound = true;
     }
 
-    // Safety net: poll Health in case death event was missed (e.g. headless tests)
     const creeps = world.query("Creep");
     for (const entity of creeps) {
       const health = world.getComponent(entity, "Health");
@@ -48,6 +47,12 @@ export class CreepDeathSystem extends System<TowerDefenseComponentRegistry, Towe
   ): void {
     const bus = world.getEventBus?.() ?? (world as any).eventBus;
     bus?.emit?.("creep:killed", { entity, reward, creepType });
+    const director = world.query("SpawnDirector")[0];
+    if (director !== undefined) {
+      world.mutateComponent(director, "SpawnDirector", (s: any) => {
+        s.enemiesRemaining = Math.max(0, (s.enemiesRemaining ?? 1) - 1);
+      });
+    }
     if (world.hasEntity(entity)) {
       world.destroyEntity(entity);
     }

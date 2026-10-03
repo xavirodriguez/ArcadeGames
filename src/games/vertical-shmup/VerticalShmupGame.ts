@@ -6,6 +6,7 @@ import { ShmupConfigSchema, ShmupConfig } from "./types/ShmupConfigSchema";
 import { ShmupComponentRegistry, ShmupEventRegistry, ShmupInputState, ShmupGameStateComponent } from "./types/ShmupTypes";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { initializeShmupRenderer } from "./rendering/ShmupRenderer";
+import { registerSharedVFX } from "../shared/rendering/SharedVFX";
 import { Renderer, RenderContext } from "@tiny-aster/core";
 import { ShmupGameScene } from "./scenes/ShmupGameScene";
 import configRaw from "./config/vertical-shmup.json";
@@ -50,6 +51,7 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
   public isGameOver(): boolean { return this.getGameState().isGameOver; }
 
   public initializeRenderer(renderer: Renderer<ShmupComponentRegistry, RenderContext>): void {
+    registerSharedVFX(renderer);
     initializeShmupRenderer(renderer);
   }
 }

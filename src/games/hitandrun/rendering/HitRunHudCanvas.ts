@@ -37,7 +37,7 @@ function resolveViewport(world: {
 }
 
 function mainCam(world: {
-  query: (t: string) => number[];
+  query: (...tags: string[]) => readonly number[];
   getComponent: (e: number, t: string) => unknown;
 }): { x: number; y: number } {
   const cams = world.query("Camera2D");

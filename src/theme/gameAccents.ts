@@ -188,8 +188,6 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     truck: accentColors.accent,
     log: accentColors.secondary,
     turtle: accentColors.secondary,
-    lily_pad: accentColors.primary,
-    "track-wall": accentColors.accent,
     "track-wall": accentColors.accent,
   };
 

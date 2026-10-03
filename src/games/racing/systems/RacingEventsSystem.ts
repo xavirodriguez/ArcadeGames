@@ -6,7 +6,7 @@ export class RacingEventsSystem extends System<RacingComponentRegistry, RacingEv
 
   public onRegister(world: World<RacingComponentRegistry, RacingEventRegistry>): void {
     world.getEventBus().on("race:finished", (event) => {
-      const state = world.getMutableSingleton("RacingState");
+      const state = world.getSingleton("RacingState");
       if (!state) return;
       state.phase = "finished";
       state.isGameOver = true;

@@ -124,7 +124,7 @@ export class RacingGame extends BaseGame<
             const result = computeCarPhysics(
               transform,
               velocity,
-              input as unknown as RacingInputState,
+              input as RacingInputState,
               this.config,
               dt
             );

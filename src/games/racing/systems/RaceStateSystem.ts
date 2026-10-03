@@ -6,7 +6,7 @@ export class RaceStateSystem extends System<RacingComponentRegistry, RacingEvent
   constructor(private readonly config: RacingConfig) { super(); }
 
   public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {
-    const state = world.getMutableSingleton("RacingState");
+    const state = world.getSingleton("RacingState");
     if (!state) return;
 
     if (state.phase === "countdown") {

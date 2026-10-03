@@ -183,13 +183,11 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     const world = this.getWorld();
     const playerEntity = world.query("PlatformerInput")[0];
     if (playerEntity !== undefined && input.attack !== undefined) {
-      world.mutateComponent(playerEntity, "PlatformerInput", (comp: {
-        fireHeld?: boolean;
-        firePressed?: boolean;
-      }) => {
+      world.mutateComponent(playerEntity, "PlatformerInput", (comp) => {
         const held = !!input.attack;
-        comp.fireHeld = held;
-        if (held) comp.firePressed = true;
+        const c = comp as unknown as { fireHeld?: boolean; firePressed?: boolean };
+        c.fireHeld = held;
+        if (held) c.firePressed = true;
       });
     }
   }

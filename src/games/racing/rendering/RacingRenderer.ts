@@ -9,6 +9,10 @@ export function initializeRacingRenderer(renderer: Renderer<RacingComponentRegis
       r.registerShape("track_wall", drawTrackWall);
       r.registerShape("checkpoint", drawCheckpoint);
     },
-    skia: () => {}
+    skia: (r) => {
+      r.registerShape("racing_car", drawRacingCar as never);
+      r.registerShape("track_wall", drawTrackWall as never);
+      r.registerShape("checkpoint", drawCheckpoint as never);
+    }
   });
 }

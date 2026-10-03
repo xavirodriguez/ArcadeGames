@@ -203,6 +203,7 @@ pnpm story:lint               # Story graph & semantic validation linter
 pnpm typecheck:core           # Strict typecheck of the engine core
 pnpm typecheck:app            # Strict typecheck of the app layer
 pnpm check:core-boundaries    # Enforce core/platform/game isolation
+pnpm check:duplication        # Check code duplication with jscpd ratchet
 pnpm ci                       # Full CI pipeline locally: build core + boundaries + story:lint + docs:check + typecheck
 ```
 

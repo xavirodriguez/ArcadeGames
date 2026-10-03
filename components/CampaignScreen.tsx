@@ -34,6 +34,7 @@ import {
 import { registerDefaultCampaignGames } from "../src/services/CampaignGameRegistryService";
 import { useStoryRuntime } from "../src/hooks/useStoryRuntime";
 import { useTranslation } from "../src/hooks/useTranslation";
+import { useKeyboardControls } from "../src/hooks/useKeyboardControls";
 import { CanvasRenderer } from "./CanvasRenderer";
 import { useStoryEventBridge } from "../src/hooks/campaign/useStoryEventBridge";
 import { useCampaignPersistence } from "../src/hooks/campaign/useCampaignPersistence";
@@ -217,6 +218,9 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       applyEndingRewards(newCurrentNode.id, metaServiceRef.current);
     }
   }, []);
+
+  // Activate keyboard controls for Web
+  useKeyboardControls(activeGame, !isLoading && activeGame !== null);
 
   // Reactively synchronized StoryRuntime state hook
   const { currentNode, flags } = useStoryRuntime(runtimeRef.current, eventBusRef.current);
@@ -561,8 +565,10 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       {/* Active Minigame Rendering Layer */}
       {activeGame ? (
         <CanvasRenderer
+          key={activeRunContextRef.current?.runId || activeGameIdRef.current || "canvas"}
           world={activeGame.world as any}
           gameLoop={activeGame.getGameLoop()}
+          onInitialize={(renderer) => activeGame.initializeRenderer(renderer as any)}
         />
       ) : !currentNode ? (
         <View style={styles.placeholderContainer}>

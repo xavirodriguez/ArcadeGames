@@ -8,6 +8,7 @@ import { GeometryWarsGame } from "../../geometrywars/GeometryWarsGame";
 import { PlatformerGame } from "../../platformer/PlatformerGame";
 import { PongGame } from "../../pong/PongGame";
 import { SpaceInvadersGame } from "../../space-invaders/SpaceInvadersGame";
+import { VerticalShmupGame } from "../../vertical-shmup/VerticalShmupGame";
 
 type GameFactory = () => BaseGame<any, any, any, any, any>;
 
@@ -21,6 +22,7 @@ const gameFactories: Record<string, GameFactory> = {
   platformer: () => new PlatformerGame(),
   pong: () => new PongGame(),
   "space-invaders": () => new SpaceInvadersGame(),
+  "vertical-shmup": () => new VerticalShmupGame(),
 };
 
 describe("Headless Game Smoke Tests", () => {

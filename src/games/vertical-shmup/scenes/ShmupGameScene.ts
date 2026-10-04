@@ -10,13 +10,15 @@ import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
 import { createMainCamera2D } from "../../shared/componentBuilders";
+import { runWithUnlockedRandomAndMutators } from "../../shared/configHelper";
 
 export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   constructor(
     private readonly config: ShmupConfig,
     private readonly playerPool: PlayerBulletPool,
     private readonly enemyPool: EnemyBulletPool,
-    world: World<ShmupComponentRegistry>
+    world: World<ShmupComponentRegistry>,
+    private readonly gameOptions?: Record<string, unknown>
   ) { super(world); }
 
   public onEnter(): void {
@@ -31,17 +33,12 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     createMainCamera2D(this.world, player, { smoothingX: 5, smoothingY: 5 });
     this.registerSystems();
 
-    // gameplayRandom is locked outside simulation ticks (BaseGame constructor).
-    // Unlock for deterministic initial spawns, then re-lock (GeometryWars pattern).
-    const rng = this.world.gameplayRandom;
-    rng.unlock();
-    try {
+    runWithUnlockedRandomAndMutators(this.world, this.gameOptions, () => {
+      const rng = this.world.gameplayRandom;
       for (let i = 0; i < 6; i += 1) {
         createEnemy(this.world, 55 + rng.next() * (this.config.WORLD_WIDTH - 110), 80 + i * 45, i % 3 === 0 ? "sine" : "straight");
       }
-    } finally {
-      rng.lock();
-    }
+    });
   }
 
   private registerSystems(): void {

@@ -68,6 +68,8 @@ export interface HitRunWeaponState {
   type: "HitRunWeapon";
   weaponId: HitRunWeaponId;
   cooldownRemaining: number;
+  ammo: number; // -1 for unlimited (default pistol/HMG)
+  maxAmmo: number; // -1 for unlimited
   /** Presentación: frames restantes de muzzle flash (no afecta sim neta). */
   muzzleFlashRemaining?: number;
 }

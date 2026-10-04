@@ -31,9 +31,16 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     createMainCamera2D(this.world, player, { smoothingX: 5, smoothingY: 5 });
     this.registerSystems();
 
+    // gameplayRandom is locked outside simulation ticks (BaseGame constructor).
+    // Unlock for deterministic initial spawns, then re-lock (GeometryWars pattern).
     const rng = this.world.gameplayRandom;
-    for (let i = 0; i < 6; i += 1) {
-      createEnemy(this.world, 55 + rng.next() * (this.config.WORLD_WIDTH - 110), 80 + i * 45, i % 3 === 0 ? "sine" : "straight");
+    rng.unlock();
+    try {
+      for (let i = 0; i < 6; i += 1) {
+        createEnemy(this.world, 55 + rng.next() * (this.config.WORLD_WIDTH - 110), 80 + i * 45, i % 3 === 0 ? "sine" : "straight");
+      }
+    } finally {
+      rng.lock();
     }
   }
 

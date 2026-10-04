@@ -1,8 +1,8 @@
-import { World } from "@tiny-aster/core";
-import { ShmupComponentRegistry } from "../types/ShmupTypes";
+import { System, World } from "@tiny-aster/core";
+import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 
-export class EnemyPathSystem {
-  update(world: World<ShmupComponentRegistry>, deltaTime: number): void {
+export class EnemyPathSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
+  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
     for (const entity of world.query("ShmupEnemy", "EnemyPath", "Transform")) {
       const path = world.getMutableComponent(entity, "EnemyPath");
       const transform = world.getMutableComponent(entity, "Transform");

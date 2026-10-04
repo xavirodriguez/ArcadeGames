@@ -13,7 +13,7 @@ describe("Campaign Render Init Test (Hypothesis A)", () => {
       registerBackgroundEffect: jest.fn(),
       registerPostProcessEffect: jest.fn(),
       registerParticleEffect: jest.fn()
-    } as any;
+    } as unknown as Renderer<any, any>;
 
     const spy = jest.spyOn(game, "initializeRenderer");
 

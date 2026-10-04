@@ -6,8 +6,11 @@ import { createRigidBody } from "../src/physics/dynamics/RigidBodyComponent";
 import {
   createDistanceJoint,
   createSpringJoint,
-  createRevoluteJoint
+  createRevoluteJoint,
+  createRopeJoint
 } from "../src/physics/dynamics/JointComponent";
+import { PhysicsQuery } from "../src/physics/query/PhysicsQuery";
+import { ShapeType } from "../src/physics/shapes/Shapes";
 import { SnapshotSerializer } from "../src/snapshots/SnapshotSerializer";
 import { SnapshotRestore } from "../src/snapshots/SnapshotRestore";
 import { CoreComponentRegistry } from "../src/ecs/CoreComponents";
@@ -298,6 +301,150 @@ describe("Physics Impulse Solver & Joints Subsystem Tests", () => {
 
       const velB = world.getComponent(entityB, "Velocity")!;
       expect(velB.vx).toBeLessThan(0); // Accelerated left towards origin
+    });
+
+    it("should allow free motion when rope is slack and constrain when taut", () => {
+      const jointSystem = new JointSolverSystem();
+
+      const anchorEntity = world.createEntity();
+      world.addComponent(anchorEntity, {
+        type: "Transform",
+        x: 0,
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 0,
+        worldY: 0,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false,
+      });
+      world.addComponent(anchorEntity, createRigidBody({ isStatic: true }));
+
+      // Player entity at x = 30 (rope maxDistance = 50 -> SLACK state)
+      const playerEntity = world.createEntity();
+      world.addComponent(playerEntity, {
+        type: "Transform",
+        x: 30,
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 30,
+        worldY: 0,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false,
+      });
+      world.addComponent(playerEntity, { type: "Velocity", vx: 10, vy: 0, angularVelocity: 0 });
+      world.addComponent(playerEntity, createRigidBody({ mass: 1, isStatic: false }));
+
+      const ropeJointEntity = world.createEntity();
+      world.addComponent(
+        ropeJointEntity,
+        createRopeJoint(anchorEntity, playerEntity, { x: 0, y: 0 }, { x: 0, y: 0 }, 50)
+      );
+
+      // 1. Slack update: player at 30 < 50 maxDistance -> position unchanged
+      jointSystem.update(world, 0.016);
+      const transSlack = world.getComponent(playerEntity, "Transform")!;
+      expect(transSlack.x).toBe(30);
+
+      // 2. Move player out to x = 80 > 50 maxDistance -> TAUT state
+      const playerTrans = world.getMutableComponent(playerEntity, "Transform")!;
+      playerTrans.x = 80;
+      playerTrans.worldX = 80;
+
+      jointSystem.update(world, 0.016);
+      const transTaut = world.getComponent(playerEntity, "Transform")!;
+      expect(transTaut.x).toBeLessThan(80); // Pulled back toward 50
+    });
+
+    it("should support grapple hook mechanics using raycast hit point and rope joint", () => {
+      const jointSystem = new JointSolverSystem();
+
+      // Wall at x = 100
+      const wall = world.createEntity();
+      world.addComponent(wall, {
+        type: "Transform",
+        x: 100,
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 100,
+        worldY: 0,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false,
+      });
+      world.addComponent(wall, {
+        type: "Collider",
+        shape: { type: ShapeType.Box, width: 20, height: 200 },
+        layer: 1,
+        mask: 0xffff,
+        enabled: true,
+        isTrigger: false,
+      });
+
+      // Player at (0, 0) fires grapple hook raycast rightwards
+      const hit = PhysicsQuery.raycast(world, { x: 0, y: 0 }, { x: 1, y: 0 }, 200);
+      expect(hit).not.toBeNull();
+      expect(hit?.point.x).toBeCloseTo(90); // 100 - 10 halfWidth
+
+      // Create static grapple anchor at hit point
+      const grappleAnchor = world.createEntity();
+      world.addComponent(grappleAnchor, {
+        type: "Transform",
+        x: hit!.point.x,
+        y: hit!.point.y,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: hit!.point.x,
+        worldY: hit!.point.y,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false,
+      });
+      world.addComponent(grappleAnchor, createRigidBody({ isStatic: true }));
+
+      // Player entity
+      const player = world.createEntity();
+      world.addComponent(player, {
+        type: "Transform",
+        x: 0,
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 0,
+        worldY: 0,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false,
+      });
+      world.addComponent(player, { type: "Velocity", vx: 0, vy: 100, angularVelocity: 0 }); // Swinging down
+      world.addComponent(player, createRigidBody({ mass: 1, isStatic: false }));
+
+      // Attach rope joint with maxDistance = 90
+      const rope = world.createEntity();
+      world.addComponent(
+        rope,
+        createRopeJoint(grappleAnchor, player, { x: 0, y: 0 }, { x: 0, y: 0 }, hit!.distance)
+      );
+
+      // Solve joint constraint
+      jointSystem.update(world, 0.016);
+      const playerTrans = world.getComponent(player, "Transform")!;
+      const distFromAnchor = Math.hypot(playerTrans.x - hit!.point.x, playerTrans.y - hit!.point.y);
+      expect(distFromAnchor).toBeLessThanOrEqual(hit!.distance + 0.1);
     });
 
     it("should keep revolute joint anchors aligned", () => {

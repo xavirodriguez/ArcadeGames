@@ -1,3 +1,4 @@
+import { World, CoreComponentRegistry, EventBus } from "@tiny-aster/core";
 import {
   GridLayout,
   GridCoordinates,
@@ -7,6 +8,10 @@ import {
   isInBounds,
   clampCoordinates,
   assertValidGridLayout,
+  gridRaycast,
+  stepTileGravity,
+  FallingTileSystem,
+  destroyTile,
 } from "../index";
 
 describe("Grid Shared Library Layer 0", () => {
@@ -189,6 +194,126 @@ describe("Grid Shared Library Layer 0", () => {
 
       expect(exactX).toBe(actualX);
       expect(exactY).toBe(actualY);
+    });
+  });
+
+  describe("GridRaycast", () => {
+    test("gridRaycast propagates along ray direction until blocking tile or maxDistance", () => {
+      // 5x5 grid with obstacle at (0, 3)
+      const isBlocking = (coords: GridCoordinates) => coords.row === 0 && coords.col === 3;
+
+      const res = gridRaycast(5, 5, { row: 0, col: 0 }, { dRow: 0, dCol: 1 }, 10, isBlocking);
+      expect(res.hit).toBe(true);
+      expect(res.coordinates).toEqual({ row: 0, col: 3 });
+      expect(res.traversed).toEqual([
+        { row: 0, col: 0 },
+        { row: 0, col: 1 },
+        { row: 0, col: 2 },
+        { row: 0, col: 3 },
+      ]);
+    });
+
+    test("gridRaycast stops at maxDistance when no obstacle is hit", () => {
+      const res = gridRaycast(10, 10, { row: 0, col: 0 }, { dRow: 1, dCol: 0 }, 2);
+      expect(res.hit).toBe(false);
+      expect(res.coordinates).toEqual({ row: 2, col: 0 });
+      expect(res.traversed.length).toBe(3); // (0,0), (1,0), (2,0)
+    });
+  });
+
+  describe("FallingTileSystem & stepTileGravity", () => {
+    test("stepTileGravity drops floating tiles in strict bottom-to-top order", () => {
+      // 3x3 matrix:
+      // Row 0: [1, 0, 0]  <- Floating tile 1
+      // Row 1: [2, 0, 0]  <- Floating tile 2
+      // Row 2: [0, 0, 0]  <- Empty bottom row
+      const matrix = [
+        [1, 0, 0],
+        [2, 0, 0],
+        [0, 0, 0],
+      ];
+
+      // Step 1: Bottom-most floating tile 2 at row 1 drops to row 2
+      const events1 = stepTileGravity(matrix, 0);
+      expect(events1).toEqual([
+        { fromRow: 1, fromCol: 0, toRow: 2, toCol: 0, tileId: 2 },
+      ]);
+      expect(matrix[2][0]).toBe(2);
+      expect(matrix[1][0]).toBe(0);
+
+      // Step 2: Floating tile 1 at row 0 drops to row 1
+      const events2 = stepTileGravity(matrix, 0);
+      expect(events2).toEqual([
+        { fromRow: 0, fromCol: 0, toRow: 1, toCol: 0, tileId: 1 },
+      ]);
+      expect(matrix[1][0]).toBe(1);
+      expect(matrix[0][0]).toBe(0);
+    });
+
+    test("FallingTileSystem updates tilemap entity and emits tile:fallen events", () => {
+      const world = new World<CoreComponentRegistry>();
+      const eventBus = new EventBus();
+      world.setResource("EventBus", eventBus);
+
+      const system = new FallingTileSystem();
+
+      const tilemapEntity = world.createEntity();
+      world.addComponent(tilemapEntity, {
+        type: "Tilemap",
+        data: [
+          [1, 0],
+          [0, 0],
+        ],
+        tileSize: 16,
+      });
+
+      let emitted = false;
+      eventBus.on("tile:fallen" as any, () => {
+        emitted = true;
+      });
+
+      system.update(world, 0.016);
+
+      const tilemap = world.getComponent(tilemapEntity, "Tilemap")!;
+      expect(tilemap.data[1][0]).toBe(1);
+      expect(tilemap.data[0][0]).toBe(0);
+      expect(emitted).toBe(true);
+    });
+  });
+
+  describe("DestructibleTileHelpers", () => {
+    test("destroyTile mutates tilemap matrix and emits tile:destroyed event", () => {
+      const world = new World<CoreComponentRegistry>();
+      const eventBus = new EventBus();
+      world.setResource("EventBus", eventBus);
+
+      const tilemapEntity = world.createEntity();
+      world.addComponent(tilemapEntity, {
+        type: "Tilemap",
+        data: [
+          [5, 3],
+          [0, 1],
+        ],
+        tileSize: 16,
+      });
+
+      let destroyedPayload: any = null;
+      eventBus.on("tile:destroyed" as any, (payload) => {
+        destroyedPayload = payload;
+      });
+
+      const success = destroyTile(world, tilemapEntity, 0, 1, 0);
+      expect(success).toBe(true);
+
+      const tilemap = world.getComponent(tilemapEntity, "Tilemap")!;
+      expect(tilemap.data[0][1]).toBe(0); // Mutated to 0
+      expect(destroyedPayload).toEqual({
+        entity: tilemapEntity,
+        row: 0,
+        col: 1,
+        destroyedTileId: 3,
+        replacementTileId: 0,
+      });
     });
   });
 });

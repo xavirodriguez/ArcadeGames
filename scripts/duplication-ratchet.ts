@@ -135,8 +135,10 @@ if (!fs.existsSync(BASELINE_FILE)) {
 
 const baseline: BaselineData = JSON.parse(fs.readFileSync(BASELINE_FILE, "utf-8"));
 
+const MAX_ALLOWED_PERCENTAGE = 1.0;
 const diffLines = currentData.duplicatedLines - baseline.duplicatedLines;
-const isRegression = diffLines > 0 || currentData.percentage > baseline.percentage + 0.05;
+const exceedsThreshold = currentData.percentage > MAX_ALLOWED_PERCENTAGE;
+const isRegression = diffLines > 0 || currentData.percentage > baseline.percentage + 0.05 || exceedsThreshold;
 
 // Output Markdown Report for GitHub Step Summary
 function writeGithubSummary() {
@@ -192,7 +194,12 @@ for (const [folder, stats] of Object.entries(folderBreakdown).sort((a, b) => b[1
 
 if (isRegression) {
   console.error(`\n❌ REGRESION DE DUPLICACION DETECTADA:`);
-  console.error(`  - Líneas duplicadas incrementaron en +${diffLines} (de ${baseline.duplicatedLines} a ${currentData.duplicatedLines}).`);
+  if (exceedsThreshold) {
+    console.error(`  - Porcentaje de duplicación (${currentData.percentage}%) supera el umbral máximo de ${MAX_ALLOWED_PERCENTAGE}%.`);
+  }
+  if (diffLines > 0) {
+    console.error(`  - Líneas duplicadas incrementaron en +${diffLines} (de ${baseline.duplicatedLines} a ${currentData.duplicatedLines}).`);
+  }
   console.error(`  - Porcentaje de duplicación: ${currentData.percentage}% vs baseline=${baseline.percentage}%.`);
   console.error(`\nFavor de evitar duplicar bloques de código o refactorizar el nuevo duplicado.`);
   process.exit(1);

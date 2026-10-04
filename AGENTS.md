@@ -149,6 +149,10 @@ To create a new game without breaking core invariants, follow this process:
 - `GameRules`: High-level logic and game-over evaluation
 - `Presentation`: Particle effects and rendering instructions
 
+### Code Quality & Duplication Checking
+
+- **Code Duplication Check (jscpd):** Run `pnpm run check:duplication` to check code duplication and enforce ratchet threshold limits locally.
+
 ---
 
 ## 5. Security Considerations

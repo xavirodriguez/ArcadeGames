@@ -3,6 +3,15 @@ import { EventRegistry } from "../events/EventBus";
 import { System, SystemPhase, SystemConfig } from "./System";
 import { World, BlueprintRegistryMap } from "./World";
 import { RandomService } from "../utils/RandomService";
+import { GameErrorReporter, normalizeError, ENGINE_VERSION } from "../diagnostics";
+
+export interface ScheduleErrorContext {
+  gameId?: string;
+  sessionId?: string;
+  gitCommit?: string;
+  deploymentId?: string;
+  environment?: string;
+}
 
 /**
  * Orchestrates and executes registered ECS systems sequentially grouped by phases and sorted by priority.
@@ -32,6 +41,16 @@ export class Schedule<
   private systems: { system: System<TComponents, TEvents>; phase: string; priority: number; group?: string }[] = [];
   private phases: string[];
   private phasedSystems = new Map<string, { system: System<TComponents, TEvents>; phase: string; priority: number; group?: string }[]>();
+  private errorReporter?: GameErrorReporter;
+  private errorContext: ScheduleErrorContext = {};
+
+  /**
+   * Configures error reporter and diagnostic context details for system lifecycle reporting.
+   */
+  public setErrorReporter(reporter: GameErrorReporter, context: ScheduleErrorContext = {}): void {
+    this.errorReporter = reporter;
+    this.errorContext = context;
+  }
 
   /**
    * Initializes a new system execution schedule.
@@ -78,7 +97,34 @@ export class Schedule<
       priority: config.priority ?? 0,
       group: config.group
     });
-    system.onRegister(world);
+
+    try {
+      if (system && typeof system.onRegister === "function") {
+        system.onRegister(world);
+      } else {
+        throw new TypeError("system.onRegister is not a function");
+      }
+    } catch (error: unknown) {
+      const err = normalizeError(error);
+      if (this.errorReporter) {
+        this.errorReporter.report({
+          timestamp: Date.now(),
+          error: err,
+          context: {
+            gameId: this.errorContext.gameId ?? "unknown",
+            engineVersion: ENGINE_VERSION,
+            sessionId: this.errorContext.sessionId ?? "unknown",
+            phase: "registration",
+            system: system?.constructor?.name ?? "unknown",
+            gitCommit: this.errorContext.gitCommit,
+            deploymentId: this.errorContext.deploymentId,
+            environment: this.errorContext.environment
+          }
+        });
+      }
+      throw err;
+    }
+
     this.rebuildPhasedSystems();
   }
 
@@ -98,9 +144,45 @@ export class Schedule<
    * Invokes the `dispose()` hook on every registered system before clearing the internal collections.
    */
   public clearSystems(): void {
-    this.systems.forEach(s => s.system.dispose());
+    let firstError: Error | null = null;
+
+    for (const s of this.systems) {
+      try {
+        if (s?.system && typeof s.system.dispose === "function") {
+          s.system.dispose();
+        } else {
+          throw new TypeError("s.system.dispose is not a function");
+        }
+      } catch (error: unknown) {
+        const err = normalizeError(error);
+        if (!firstError) {
+          firstError = err;
+        }
+        if (this.errorReporter) {
+          this.errorReporter.report({
+            timestamp: Date.now(),
+            error: err,
+            context: {
+              gameId: this.errorContext.gameId ?? "unknown",
+              engineVersion: ENGINE_VERSION,
+              sessionId: this.errorContext.sessionId ?? "unknown",
+              phase: "shutdown",
+              system: s?.system?.constructor?.name ?? "unknown",
+              gitCommit: this.errorContext.gitCommit,
+              deploymentId: this.errorContext.deploymentId,
+              environment: this.errorContext.environment
+            }
+          });
+        }
+      }
+    }
+
     this.systems = [];
     this.rebuildPhasedSystems();
+
+    if (firstError) {
+      throw firstError;
+    }
   }
 
   /**

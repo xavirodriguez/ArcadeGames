@@ -1,4 +1,13 @@
 import { FrameScheduler, browserFrameScheduler } from "./FrameScheduler";
+import { GameErrorReporter, normalizeError, ENGINE_VERSION, GameErrorPhase } from "../diagnostics";
+
+export interface GameLoopErrorContext {
+  gameId?: string;
+  sessionId?: string;
+  gitCommit?: string;
+  deploymentId?: string;
+  environment?: string;
+}
 
 /**
  * Callback function signature executed on render frame updates.
@@ -46,6 +55,15 @@ export interface GameLoopConfig {
    * Watchdog timeout in milliseconds. Defaults to 5000.
    */
   watchdogTimeout?: number;
+  /**
+   * Optional error reporter for recording critical loop exceptions.
+   */
+  errorReporter?: GameErrorReporter;
+  gameId?: string;
+  sessionId?: string;
+  gitCommit?: string;
+  deploymentId?: string;
+  environment?: string;
 }
 
 /**
@@ -84,6 +102,13 @@ export class GameLoop {
   private readonly watchdogTimeout: number;
   private readonly onWatchdogTimeout?: () => void;
 
+  private errorReporter?: GameErrorReporter;
+  private gameId?: string;
+  private sessionId?: string;
+  private gitCommit?: string;
+  private deploymentId?: string;
+  private environment?: string;
+
   constructor(config: GameLoopConfig = {}) {
     this.step = config.step ?? 1 / 60;
     this.maxDelta = config.maxDelta ?? 0.25;
@@ -91,6 +116,24 @@ export class GameLoop {
     this.manual = config.manual ?? false;
     this.watchdogTimeout = config.watchdogTimeout ?? 5000;
     this.onWatchdogTimeout = config.onWatchdogTimeout;
+    this.errorReporter = config.errorReporter;
+    this.gameId = config.gameId;
+    this.sessionId = config.sessionId;
+    this.gitCommit = config.gitCommit;
+    this.deploymentId = config.deploymentId;
+    this.environment = config.environment;
+  }
+
+  /**
+   * Sets error reporter and context details for loop tick exception reporting.
+   */
+  public setErrorReporter(reporter: GameErrorReporter, context: GameLoopErrorContext = {}): void {
+    this.errorReporter = reporter;
+    this.gameId = context.gameId;
+    this.sessionId = context.sessionId;
+    this.gitCommit = context.gitCommit;
+    this.deploymentId = context.deploymentId;
+    this.environment = context.environment;
   }
 
   /**
@@ -167,6 +210,15 @@ export class GameLoop {
         }
       }
     }, 1000);
+
+    if (
+      typeof this.watchdogIntervalId === "object" &&
+      this.watchdogIntervalId !== null &&
+      "unref" in this.watchdogIntervalId &&
+      typeof (this.watchdogIntervalId as { unref?: () => void }).unref === "function"
+    ) {
+      (this.watchdogIntervalId as { unref: () => void }).unref();
+    }
   }
 
   private stopWatchdog() {
@@ -184,6 +236,7 @@ export class GameLoop {
     if (!this.isRunning) return;
 
     this.lastTickTime = Date.now();
+    let currentPhase: GameErrorPhase = "update";
 
     try {
       // Use scheduler time if not provided
@@ -212,12 +265,31 @@ export class GameLoop {
         this.accumulator -= this.step;
       }
 
+      currentPhase = "render";
       const alpha = this.accumulator / this.step;
       this.renderSubscribers.forEach(sub => sub(alpha));
     } catch (error: unknown) {
       this.stop();
-      this.lastError = error instanceof Error ? error : new Error(String(error));
-      console.error("[GameLoop] Critical exception in tick, stopping loop:", this.lastError);
+      this.lastError = normalizeError(error);
+
+      if (this.errorReporter) {
+        this.errorReporter.report({
+          timestamp: Date.now(),
+          error: this.lastError,
+          context: {
+            gameId: this.gameId ?? "unknown",
+            engineVersion: ENGINE_VERSION,
+            sessionId: this.sessionId ?? "unknown",
+            phase: currentPhase,
+            gitCommit: this.gitCommit,
+            deploymentId: this.deploymentId,
+            environment: this.environment
+          }
+        });
+      } else {
+        console.error("[GameLoop] Critical exception in tick, stopping loop:", this.lastError);
+      }
+
       this.errorSubscribers.forEach(sub => sub(this.lastError!));
       throw error;
     }

@@ -210,6 +210,9 @@ export { InputValidator } from "./network/InputValidator";
 // Story Domain Engine
 export * from "./story";
 
+// Diagnostics & Error Telemetry
+export * from "./diagnostics";
+
 // Level 3 Systems
 export * from "./systems/CollectibleSystem";
 export * from "./systems/CheckpointSystem";

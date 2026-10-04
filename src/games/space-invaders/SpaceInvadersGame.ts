@@ -69,6 +69,11 @@ export class SpaceInvadersGame
       config.gameOptions?.rawConfig ?? spaceInvadersConfigRaw
     );
     super({
+      gameId: config.gameId ?? "space-invaders",
+      errorReporter: config.errorReporter,
+      gitCommit: config.gitCommit,
+      deploymentId: config.deploymentId,
+      environment: config.environment,
       pauseKey: loadedBaseConfig.KEYS.PAUSE,
       restartKey: loadedBaseConfig.KEYS.RESTART,
       isMultiplayer: config.isMultiplayer,
@@ -857,8 +862,11 @@ export class NullSpaceInvadersGame extends NullBaseGame<GameStateComponent, Inpu
 
 export const SpaceInvadersDefinition = {
   name: "space-invaders",
-  createSimulation: (seed: number) => {
-    const game = new SpaceInvadersGame({ gameOptions: { seed } });
+  createSimulation: (seed: number, options?: { modifiers?: unknown[]; gameOptions?: Record<string, unknown> }) => {
+    const game = new SpaceInvadersGame({
+      gameId: "space-invaders",
+      gameOptions: { seed, ...options?.gameOptions }
+    });
     return game;
   },
   inputSchema: {

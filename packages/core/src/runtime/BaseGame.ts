@@ -28,6 +28,13 @@ import {
   isGameplayFrozen,
   getGameplayFreezeRemaining
 } from "./GameplayFreezeMixin";
+import {
+  GameErrorReporter,
+  ConsoleGameErrorReporter,
+  normalizeError,
+  ENGINE_VERSION,
+  GameErrorPhase
+} from "../diagnostics";
 
 /**
  * Enumeration of lifecycle execution states for a `BaseGame` instance.
@@ -98,6 +105,16 @@ export interface BaseGameConfig<
   theme?: Theme;
   /** Optional HTML Canvas Element target for rendering and viewport dimensions. */
   canvas?: HTMLCanvasElement;
+  /** Game identifier for telemetry and diagnostics. Defaults to `constructor.name` or "unknown". */
+  gameId?: string;
+  /** Custom error reporter instance. Defaults to `ConsoleGameErrorReporter`. */
+  errorReporter?: GameErrorReporter;
+  /** Optional deployment git commit hash for diagnostic context. */
+  gitCommit?: string;
+  /** Optional deployment ID for diagnostic context. */
+  deploymentId?: string;
+  /** Optional deployment environment (e.g. "production", "staging", "development"). */
+  environment?: string;
 }
 
 /**
@@ -232,6 +249,13 @@ export abstract class BaseGame<
     [TBlueprints] extends [BlueprintRegistryMap<TComponents, TEvents>] ? TBlueprints : BlueprintRegistryMap<TComponents, TEvents>
   >;
   public readonly isHeadless: boolean;
+  public readonly gameId: string;
+  public readonly sessionId: string;
+  public readonly errorReporter: GameErrorReporter;
+  protected readonly gitCommit?: string;
+  protected readonly deploymentId?: string;
+  protected readonly environment?: string;
+
   protected loop: GameLoop;
   protected unifiedInput: IInputSystem<TInput>;
   protected _config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>;
@@ -266,7 +290,22 @@ export abstract class BaseGame<
    */
   constructor(config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints> = {}) {
     this._config = config;
+    this.gameId = config.gameId ?? this.constructor.name ?? "unknown";
+    this.errorReporter = config.errorReporter ?? new ConsoleGameErrorReporter();
+    this.gitCommit = config.gitCommit;
+    this.deploymentId = config.deploymentId;
+    this.environment = config.environment;
+    this.sessionId = `session_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+
     this.world = new World<TComponents, TEvents, TBlueprints>(config.schedule);
+    this.world.schedule.setErrorReporter(this.errorReporter, {
+      gameId: this.gameId,
+      sessionId: this.sessionId,
+      gitCommit: this.gitCommit,
+      deploymentId: this.deploymentId,
+      environment: this.environment
+    });
+
     this.eventBus = new EventBus<TEvents>();
     this.kernel = config.arcadeKernel ?? new ArcadeKernel(this.eventBus);
     this.blueprints = new BlueprintRegistry<
@@ -277,7 +316,13 @@ export abstract class BaseGame<
     this.loop = new GameLoop({
       step: 1 / 60,
       maxDelta: 0.25,
-      manual: config.isMultiplayer || config.manualLoop || false
+      manual: config.isMultiplayer || config.manualLoop || false,
+      errorReporter: this.errorReporter,
+      gameId: this.gameId,
+      sessionId: this.sessionId,
+      gitCommit: this.gitCommit,
+      deploymentId: this.deploymentId,
+      environment: this.environment
     });
     this.unifiedInput = config.inputSystem || new NullInputSystem<TInput>();
     this.sceneManager = config.sceneManagerFactory
@@ -450,17 +495,36 @@ export abstract class BaseGame<
     });
 
     const initPromise = (async () => {
-      await this.onRegisterSystems();
+      try {
+        await this.onRegisterSystems();
+      } catch (err) {
+        this.reportLifecycleError(err, "registration");
+        throw err;
+      }
+
       if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
         return;
       }
+
       if (!this.isHeadless) {
-        await this.onPreloadAssets();
+        try {
+          await this.onPreloadAssets();
+        } catch (err) {
+          this.reportLifecycleError(err, "initialization");
+          throw err;
+        }
         if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
           return;
         }
       }
-      await this.onInitializeEntities();
+
+      try {
+        await this.onInitializeEntities();
+      } catch (err) {
+        this.reportLifecycleError(err, "initialization");
+        throw err;
+      }
+
       if ((this.lifecycleState as GameLifecycleState) === GameLifecycleState.DESTROYED) {
         return;
       }
@@ -699,22 +763,60 @@ export abstract class BaseGame<
     this.world.flush();
   }
 
+  /**
+   * Helper method to report lifecycle exceptions to the configured error reporter.
+   */
+  private reportLifecycleError(error: unknown, phase: GameErrorPhase): void {
+    const err = normalizeError(error);
+    this.errorReporter.report({
+      timestamp: Date.now(),
+      error: err,
+      context: {
+        gameId: this.gameId,
+        engineVersion: ENGINE_VERSION,
+        sessionId: this.sessionId,
+        phase,
+        gitCommit: this.gitCommit,
+        deploymentId: this.deploymentId,
+        environment: this.environment
+      }
+    });
+  }
+
   public destroy(): void {
     this.lifecycleState = GameLifecycleState.DESTROYED;
     this.loop.stop();
 
     this.unregisterResizeListener();
-    this.world.schedule.clearSystems();
+
+    try {
+      this.world.schedule.clearSystems();
+    } catch (err) {
+      this.reportLifecycleError(err, "shutdown");
+    }
+
     this.eventBus.clear();
 
     if (typeof this.unifiedInput?.dispose === "function") {
-      this.unifiedInput.dispose();
+      try {
+        this.unifiedInput.dispose();
+      } catch (err) {
+        this.reportLifecycleError(err, "shutdown");
+      }
     }
 
     if (typeof this.audio?.dispose === "function") {
-      this.audio.dispose();
+      try {
+        this.audio.dispose();
+      } catch (err) {
+        this.reportLifecycleError(err, "shutdown");
+      }
     } else if (typeof this.audio?.releaseAll === "function") {
-      this.audio.releaseAll();
+      try {
+        this.audio.releaseAll();
+      } catch (err) {
+        this.reportLifecycleError(err, "shutdown");
+      }
     }
   }
 

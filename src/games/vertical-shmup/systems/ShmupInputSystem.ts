@@ -1,11 +1,11 @@
-import { World, PhysicsUtils, Juice, CoreComponentRegistry } from "@tiny-aster/core";
-import { ShmupComponentRegistry } from "../types/ShmupTypes";
+import { System, World, PhysicsUtils, Juice, CoreComponentRegistry } from "@tiny-aster/core";
+import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { createPlayerBullet } from "../EntityFactory";
 import { PlayerBulletPool } from "../EntityPool";
 
-export class ShmupInputSystem {
-  update(world: World<ShmupComponentRegistry>, deltaTime: number): void {
+export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
+  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const config = world.getResource<ShmupConfig>("GameConfig");
     const pool = world.getResource<PlayerBulletPool>("PlayerBulletPool");
@@ -20,7 +20,12 @@ export class ShmupInputSystem {
 
       const moveX = Math.max(-1, Math.min(1, inputState?.axes?.moveX ?? input.axes.moveX ?? 0));
       const moveY = Math.max(-1, Math.min(1, inputState?.axes?.moveY ?? input.axes.moveY ?? 0));
-      const shooting = inputState?.buttons?.shoot ?? input.actions.has("shoot");
+      const hasAction = (actions: unknown): boolean => {
+        if (actions instanceof Set) return actions.has("shoot");
+        if (Array.isArray(actions)) return actions.includes("shoot");
+        return false;
+      };
+      const shooting = inputState?.buttons?.shoot ?? hasAction(input.actions);
 
       velocity.vx = moveX * config.PLAYER_SPEED;
       velocity.vy = moveY * config.PLAYER_SPEED;

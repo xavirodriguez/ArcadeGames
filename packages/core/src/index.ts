@@ -98,6 +98,7 @@ export * from "./audio/AudioEventMap";
 export * from "./ai/FactionComponent";
 export * from "./ai/SteeringComponent";
 export * from "./ai/SteeringSystem";
+export * from "./ai/GridPathfinding";
 
 // Physics
 export * from "./physics/PhysicsTypes";
@@ -127,6 +128,8 @@ export * from "./physics/dynamics/PhysicsSolveSystem";
 export * from "./physics/dynamics/RigidBodyComponent";
 export * from "./physics/dynamics/JointComponent";
 export * from "./physics/dynamics/JointSolverSystem";
+export * from "./physics/vehicles/VehicleSteeringComponent";
+export * from "./physics/vehicles/VehicleSteeringSystem";
 
 // Rendering
 export * from "./rendering/Renderer";
@@ -206,6 +209,9 @@ export { InputValidator } from "./network/InputValidator";
 
 // Story Domain Engine
 export * from "./story";
+
+// Diagnostics & Error Telemetry
+export * from "./diagnostics";
 
 // Level 3 Systems
 export * from "./systems/CollectibleSystem";

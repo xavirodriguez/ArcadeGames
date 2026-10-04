@@ -17,7 +17,7 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "tower_defense";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense";
   href: Href;
 }
 
@@ -34,6 +34,7 @@ const GAMES: GameEntry[] = [
   { id: "hitandrun", key: "hitandrun", href: "/hitandrun" },
   { id: "platformer", key: "platformer", href: "/platformer" },
   { id: "frogger", key: "frogger", href: "/frogger" },
+  { id: "racing", key: "racing", href: "/racing" },
   { id: "vertical-shmup", key: "vertical-shmup", href: "/vertical-shmup" },
   { id: "cyoa", key: "cyoa", href: "/cyoa" },
   { id: "blindstation", key: "blindstation", href: "/blindstation" },
@@ -74,6 +75,7 @@ export default function HomeScreen() {
                  gameId === "pong" ? "/pong" :
                  gameId === "flappybird" ? "/flappybird" :
                  gameId === "frogger" ? "/frogger" :
+                 gameId === "racing" ? "/racing" :
                  gameId === "vertical-shmup" ? "/vertical-shmup" :
                  "/space-invaders";
 

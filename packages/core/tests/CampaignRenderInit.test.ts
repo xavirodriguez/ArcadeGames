@@ -8,20 +8,20 @@ describe("Campaign Render Init Test (Hypothesis A)", () => {
 
     const mockRenderer = {
       type: "canvas",
+      render: jest.fn(),
       registerShape: jest.fn(),
-      registerShapeRenderer: jest.fn(),
       registerBackgroundEffect: jest.fn(),
       registerPostProcessEffect: jest.fn(),
       registerParticleEffect: jest.fn()
-    } as unknown as Renderer<Record<string, never>, Record<string, never>>;
+    } as unknown as Renderer<any, any>;
 
     const spy = jest.spyOn(game, "initializeRenderer");
 
     // Simulate onInitialize callback passed to CanvasRenderer in CampaignScreen
-    game.initializeRenderer(mockRenderer as unknown as Parameters<typeof game.initializeRenderer>[0]);
+    game.initializeRenderer(mockRenderer);
 
     expect(spy).toHaveBeenCalledWith(mockRenderer);
-    expect((mockRenderer as Record<string, any>).registerShape).toHaveBeenCalled();
+    expect(mockRenderer.registerShape).toHaveBeenCalled();
     game.destroy();
   });
 });

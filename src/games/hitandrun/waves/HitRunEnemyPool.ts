@@ -64,10 +64,8 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       max: health
     });
 
-    // CombatSystem reads Faction.faction — keep value for legacy readers
     world.addComponent(entity, {
       type: "Faction",
-      faction,
       value: faction
     });
 

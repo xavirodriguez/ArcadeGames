@@ -189,23 +189,32 @@ export class CollisionSystem2D<
 
     this.currentFramePairs.clear();
 
-    // Clear previous-frame collision event buffers
+    // Synchronize activePairs from CollisionEvents activeTriggers to remain robust across snapshot restores
     const eventQuery = w.query("CollisionEvents");
     const eqLen = eventQuery.length;
     for (let i = 0; i < eqLen; i++) {
       const entity = eventQuery[i];
       const component = w.getComponent(entity, "CollisionEvents");
-      if (
-        component &&
-        (component.collisions.length > 0 ||
+      if (component) {
+        if (component.activeTriggers.length > 0) {
+          for (let j = 0; j < component.activeTriggers.length; j++) {
+            const other = component.activeTriggers[j];
+            if (w.isAlive(other)) {
+              this.activePairs.add(this.getPairId(entity, other));
+            }
+          }
+        }
+        if (
+          component.collisions.length > 0 ||
           component.triggersEntered.length > 0 ||
-          component.triggersExited.length > 0)
-      ) {
-        const mutable = w.getMutableComponent(entity, "CollisionEvents");
-        if (mutable) {
-          mutable.collisions.length = 0;
-          mutable.triggersEntered.length = 0;
-          mutable.triggersExited.length = 0;
+          component.triggersExited.length > 0
+        ) {
+          const mutable = w.getMutableComponent(entity, "CollisionEvents");
+          if (mutable) {
+            mutable.collisions.length = 0;
+            mutable.triggersEntered.length = 0;
+            mutable.triggersExited.length = 0;
+          }
         }
       }
     }

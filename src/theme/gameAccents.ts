@@ -47,6 +47,11 @@ export const GAME_ACCENTS = {
     secondary: 'cyan' as const,
     accent: 'pink' as const,
   },
+  racing: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'pink' as const,
+  },
   'vertical-shmup': {
     primary: 'cyan' as const,
     secondary: 'purple' as const,
@@ -136,6 +141,13 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
       particleShape: "circle",
       backgroundLayers: ["starfield"],
     },
+    racing: {
+      starDensity: 0.1,
+      starSpeed: 0.0,
+      ambientGlow: 0.3,
+      particleShape: "circle",
+      backgroundLayers: [],
+    },
     campaign: {
       starDensity: 0.8,
       starSpeed: 0.8,
@@ -179,7 +191,7 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     truck: accentColors.accent,
     log: accentColors.secondary,
     turtle: accentColors.secondary,
-    lily_pad: accentColors.primary,
+    "track-wall": accentColors.accent,
   };
 
   return {

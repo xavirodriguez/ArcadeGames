@@ -6,11 +6,19 @@
   "pattern": "**/*.ts",
   "ignore": [
     "**/*.test.ts",
+    "**/*.spec.ts",
     "**/__tests__/**",
+    "**/__mocks__/**",
+    "**/mocks/**",
     "**/dist/**",
     "**/compiled-js/**",
     "**/node_modules/**"
   ],
+  "ignorePattern": [
+    "import\\s+[\\s\\S]*?\\s+from\\s+['\"].*?['\"];?",
+    "export\\s+[\\s\\S]*?\\s+from\\s+['\"].*?['\"];?"
+  ],
+  "threshold": 1.0,
   "format": [
     "typescript"
   ],

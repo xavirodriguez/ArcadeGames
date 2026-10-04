@@ -51,6 +51,24 @@ export interface RevoluteJointOptions {
 }
 
 /**
+ * Rope / Distance limit constraint options for {@link JointComponent}.
+ * Restricts maximum distance (rope length) while allowing free movement at smaller distances.
+ * @public
+ */
+export interface DistanceLimitJointOptions {
+  /** Discriminator joint type. */
+  jointType: "distanceLimit";
+  /** Maximum distance allowed between anchors (rope length). */
+  maxDistance: number;
+  /** Minimum distance allowed (optional lower bound constraint). */
+  minLength?: number;
+  /** Joint stiffness (spring frequency coefficient for soft/elastic ropes). Defaults to 0 (rigid). */
+  stiffness?: number;
+  /** Joint damping coefficient. Defaults to 0. */
+  damping?: number;
+}
+
+/**
  * Component specifying a physical joint or spring constraint connecting two entities.
  *
  * @example
@@ -84,6 +102,7 @@ export type JointComponent = Component & {
   | DistanceJointOptions
   | SpringJointOptions
   | RevoluteJointOptions
+  | DistanceLimitJointOptions
 );
 
 /**
@@ -186,3 +205,43 @@ export function createRevoluteJoint(
     enableMotor: options?.enableMotor
   };
 }
+
+/**
+ * Helper factory function creating a distance limit / rope joint constraint.
+ *
+ * @param entityA - First attached entity ID.
+ * @param entityB - Second attached entity ID.
+ * @param anchorA - Local anchor point offset on entity A.
+ * @param anchorB - Local anchor point offset on entity B.
+ * @param maxDistance - Maximum distance allowed between anchors (rope length).
+ * @param options - Additional options (minLength, stiffness, damping).
+ * @returns Initialized JointComponent.
+ * @public
+ */
+export function createRopeJoint(
+  entityA: Entity,
+  entityB: Entity,
+  anchorA: { x: number; y: number },
+  anchorB: { x: number; y: number },
+  maxDistance: number,
+  options?: Omit<Partial<DistanceLimitJointOptions>, "jointType" | "maxDistance">
+): JointComponent {
+  return {
+    type: "Joint",
+    jointType: "distanceLimit",
+    entityA,
+    entityB,
+    anchorA: { ...anchorA },
+    anchorB: { ...anchorB },
+    maxDistance,
+    minLength: options?.minLength,
+    stiffness: options?.stiffness ?? 0,
+    damping: options?.damping ?? 0,
+  };
+}
+
+/**
+ * Alias for {@link createRopeJoint}.
+ * @public
+ */
+export const createDistanceLimitJoint = createRopeJoint;

@@ -259,6 +259,116 @@ export interface AxisBinding {
 }
 
 // @public
+export interface BackdropConfig {
+    // (undocumented)
+    chunkWidth?: number;
+    fantasyDensity?: number;
+    // (undocumented)
+    playfieldMask?: PlayfieldMaskConfig;
+    // (undocumented)
+    quality?: BackdropQuality;
+    // (undocumented)
+    seed: number;
+    // (undocumented)
+    theme: BackdropThemeTokens;
+    // (undocumented)
+    viewportHeight: number;
+    // (undocumented)
+    viewportWidth: number;
+}
+
+// @public
+export interface BackdropLayerSpec {
+    alpha: number;
+    depth: number;
+    fantasyFeatures: FantasyFeatureSpec[];
+    fillColorToken: string;
+    fogFactor: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    name: string;
+    points: BackdropPoint[];
+    rivers: RiverSpec[];
+    strokeColorToken?: string;
+    waterfalls: WaterfallSpec[];
+}
+
+// @public
+export interface BackdropParticleSpec {
+    // (undocumented)
+    alpha: number;
+    // (undocumented)
+    colorToken: string;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    speedX: number;
+    // (undocumented)
+    speedY: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export interface BackdropPoint {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type BackdropQuality = "low" | "med" | "high";
+
+// @public
+export interface BackdropSpec {
+    chunks: ChunkSpec[];
+    // (undocumented)
+    chunkWidth: number;
+    particles: BackdropParticleSpec[];
+    // (undocumented)
+    playfieldMask: PlayfieldMaskConfig;
+    // (undocumented)
+    quality: BackdropQuality;
+    // (undocumented)
+    seed: number;
+    skyFeatures: FantasyFeatureSpec[];
+    // (undocumented)
+    theme: BackdropThemeTokens;
+    // (undocumented)
+    viewportHeight: number;
+    // (undocumented)
+    viewportWidth: number;
+}
+
+// @public
+export interface BackdropThemeTokens {
+    // (undocumented)
+    accentGlow: string;
+    // (undocumented)
+    fogColor: string;
+    // (undocumented)
+    hills: string;
+    // (undocumented)
+    maskColor?: string;
+    // (undocumented)
+    mountainFar: string;
+    // (undocumented)
+    mountainMid: string;
+    // (undocumented)
+    river: string;
+    // (undocumented)
+    skyGradientBottom: string;
+    // (undocumented)
+    skyGradientTop: string;
+    // (undocumented)
+    waterfall: string;
+}
+
+// @public
 export type BaseConfig = z.infer<typeof BaseConfigSchema>;
 
 // @public
@@ -296,10 +406,18 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     };
     get debugManager(): DebugManager;
     // (undocumented)
+    protected readonly deploymentId?: string;
+    // (undocumented)
     destroy(): void;
     enterGameplayFreeze(duration?: number): void;
+    // (undocumented)
+    protected readonly environment?: string;
+    // (undocumented)
+    readonly errorReporter: GameErrorReporter;
     eventBus: EventBus<TEvents>;
     exitGameplayFreeze(): void;
+    // (undocumented)
+    readonly gameId: string;
     getEventBus(): EventBus<TEvents>;
     getGameLoop(): GameLoop;
     getGameplayFreezeRemaining(): number | undefined;
@@ -313,6 +431,8 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     }): MiniGameResult;
     getSeed(): number;
     getWorld(): World<TComponents, TEvents, TBlueprints>;
+    // (undocumented)
+    protected readonly gitCommit?: string;
     protected handleScreenResize(): void;
     hash(): string;
     init(): Promise<void>;
@@ -340,6 +460,8 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     resume(): void;
     protected runDeterministicStep(deltaTime: number, targetWorld?: World<TComponents, TEvents, TBlueprints>): void;
     sceneManager: SceneManager<TComponents>;
+    // (undocumented)
+    readonly sessionId: string;
     setInputState(input: Partial<TInput>): void;
     protected setupArcadeGameConfig<T>(baseConfig: T, mutatorFn?: (base: T, options?: Record<string, unknown>) => T): T;
     protected setupCommonArcadeResources(canvas?: HTMLCanvasElement): void;
@@ -364,7 +486,12 @@ export interface BaseGameConfig<TComponents extends ComponentRegistry = Componen
     assetProvider?: IAssetProvider;
     audio?: IAudioPlayer;
     canvas?: HTMLCanvasElement;
+    deploymentId?: string;
+    environment?: string;
+    errorReporter?: GameErrorReporter;
+    gameId?: string;
     gameOptions?: Record<string, unknown>;
+    gitCommit?: string;
     headless?: boolean;
     initTimeout?: number;
     inputSystem?: IInputSystem<TInput>;
@@ -613,6 +740,9 @@ export interface CanonicalInputState<TExtra extends string = never> {
 export function canonicalToInputFrame<TExtra extends string = never>(state: CanonicalInputState<TExtra>, tick: number, protocolVersion?: number): InputFrame;
 
 // @public
+export const CARDINAL_DIRECTIONS: ReadonlyArray<GridPoint>;
+
+// @public
 export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
     setCandidates(entities: Entity[] | null): void;
     update(world: World<TRegistry>, deltaTime: number): void;
@@ -653,6 +783,18 @@ export interface ChoiceNodeBuilder extends CommonNodeBuilderMethods<ChoiceNodeBu
     }): ChoiceNodeBuilder;
     addDialogueLine(line: DialogueLine): ChoiceNodeBuilder;
     setDialogue(dialogue: Dialogue): ChoiceNodeBuilder;
+}
+
+// @public
+export interface ChunkSpec {
+    // (undocumented)
+    chunkX: number;
+    entryHeight: number;
+    exitHeight: number;
+    // (undocumented)
+    layers: BackdropLayerSpec[];
+    // (undocumented)
+    macroZone: MacroZoneType;
 }
 
 // @public
@@ -874,6 +1016,15 @@ export interface ComponentSetReleaseContext<T extends Record<string, Component>,
 export type ComponentType<TRegistry extends ComponentRegistry> = Extract<keyof TRegistry, string>;
 
 // @public
+export class CompositeGameErrorReporter implements GameErrorReporter {
+    constructor(reporters?: GameErrorReporter[]);
+    // (undocumented)
+    addReporter(reporter: GameErrorReporter): void;
+    // (undocumented)
+    report(error: GameError): void;
+}
+
+// @public
 export function computeDebugManager<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, eventLog?: Array<{
     timestamp: number;
     event: string;
@@ -916,6 +1067,12 @@ export const cond: {
 // @public
 export class ConfigService {
     static load<T>(gameId: string, schema: unknown, rawConfig: unknown): T;
+}
+
+// @public
+export class ConsoleGameErrorReporter implements GameErrorReporter {
+    // (undocumented)
+    report(error: GameError): void;
 }
 
 // @public
@@ -975,6 +1132,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Trail: TrailComponent;
     Transform: TransformComponent;
     TTL: TTLComponent;
+    VehicleSteering: VehicleSteeringComponent;
     Velocity: VelocityComponent;
     VisualOffset: VisualOffsetComponent;
 }
@@ -1208,6 +1366,9 @@ export function createDistanceJoint(entityA: Entity, entityB: Entity, anchorA: {
 }, restLength: number, options?: Omit<Partial<DistanceJointOptions>, "jointType" | "restLength">): JointComponent;
 
 // @public
+export const createDistanceLimitJoint: typeof createRopeJoint;
+
+// @public
 export function createEmitter<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, config: ParticleEmitterConfig): Entity;
 
 // @public
@@ -1218,6 +1379,9 @@ export function createEmptyRawInputState(): RawInputState;
 
 // @public
 export function createEntityBuilder<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity?: Entity): EntityBuilder<TComponents, TEvents, TBlueprints>;
+
+// @public
+export function createMulberry32(seed: number): () => number;
 
 // @public
 export function createRevoluteJoint(entityA: Entity, entityB: Entity, anchorA: {
@@ -1232,6 +1396,15 @@ export function createRevoluteJoint(entityA: Entity, entityB: Entity, anchorA: {
 export function createRigidBody(options?: RigidBodyOptions): RigidBodyComponent;
 
 // @public
+export function createRopeJoint(entityA: Entity, entityB: Entity, anchorA: {
+    x: number;
+    y: number;
+}, anchorB: {
+    x: number;
+    y: number;
+}, maxDistance: number, options?: Omit<Partial<DistanceLimitJointOptions>, "jointType" | "maxDistance">): JointComponent;
+
+// @public
 export function createSpringJoint(entityA: Entity, entityB: Entity, anchorA: {
     x: number;
     y: number;
@@ -1239,6 +1412,9 @@ export function createSpringJoint(entityA: Entity, entityB: Entity, anchorA: {
     x: number;
     y: number;
 }, restLength: number, stiffness: number, damping: number): JointComponent;
+
+// @public
+export function createVehicleSteering(config: VehicleSteeringOptions): VehicleSteeringComponent;
 
 // @public
 export class CrossfadeTransition extends BaseOffscreenTransitionEffect {
@@ -1461,6 +1637,15 @@ export interface DistanceJointOptions {
 }
 
 // @public
+export interface DistanceLimitJointOptions {
+    damping?: number;
+    jointType: "distanceLimit";
+    maxDistance: number;
+    minLength?: number;
+    stiffness?: number;
+}
+
+// @public
 export class DitherTransition extends BaseTransitionEffect {
     protected readonly autoSave = false;
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
@@ -1530,6 +1715,9 @@ export interface EffectDrawer<TContext = RenderContext, TRegistry extends Compon
 }
 
 // @public
+export const EIGHT_DIRECTIONS: ReadonlyArray<GridPoint>;
+
+// @public
 export interface EncounterAttemptHistory {
     readonly attempts: number;
     readonly consecutiveFailures: number;
@@ -1555,6 +1743,9 @@ export interface EnemyComponent extends Component {
 export class EnemySensorSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
+
+// @public
+export const ENGINE_VERSION = "1.0.0";
 
 // @public
 export function enterGameplayFreeze(world: World, duration?: number): void;
@@ -1679,6 +1870,25 @@ export class FadeTransition extends BaseTransitionEffect {
 }
 
 // @public
+export interface FantasyFeatureSpec {
+    // (undocumented)
+    alpha: number;
+    // (undocumented)
+    colorToken?: string;
+    // (undocumented)
+    scale: number;
+    // (undocumented)
+    type: FantasyFeatureType;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type FantasyFeatureType = "floating_island" | "giant_tree" | "twin_moons" | "crystal_spire" | "aurora";
+
+// @public
 export class FeedbackSystem extends System<CoreComponentRegistry> {
     constructor(hapticDevice?: IHapticDevice);
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
@@ -1762,7 +1972,52 @@ export class GameDefinitionRegistry {
 }
 
 // @public
-export type GameId = "asteroids" | "echorunner" | "space-invaders" | "flappybird" | "pong" | "geometrywars" | "platformer" | "frogger";
+export interface GameError {
+    // (undocumented)
+    readonly context: GameErrorContext;
+    // (undocumented)
+    readonly error: Error;
+    // (undocumented)
+    readonly timestamp: number;
+}
+
+// @public
+export interface GameErrorContext {
+    // (undocumented)
+    readonly component?: string;
+    // (undocumented)
+    readonly deploymentId?: string;
+    // (undocumented)
+    readonly engineVersion: string;
+    // (undocumented)
+    readonly entityId?: number;
+    // (undocumented)
+    readonly environment?: string;
+    // (undocumented)
+    readonly gameId: string;
+    // (undocumented)
+    readonly gitCommit?: string;
+    // (undocumented)
+    readonly metadata?: Readonly<Record<string, string | number | boolean>>;
+    // (undocumented)
+    readonly phase: GameErrorPhase;
+    // (undocumented)
+    readonly sessionId: string;
+    // (undocumented)
+    readonly system?: string;
+}
+
+// @public
+export type GameErrorPhase = "registration" | "initialization" | "update" | "render" | "shutdown" | "audio" | "input";
+
+// @public
+export interface GameErrorReporter {
+    // (undocumented)
+    report(error: GameError): void;
+}
+
+// @public
+export type GameId = "asteroids" | "echorunner" | "space-invaders" | "flappybird" | "pong" | "geometrywars" | "platformer" | "frogger" | "racing" | "vertical-shmup";
 
 // @public
 export enum GameLifecycleState {
@@ -1783,6 +2038,7 @@ export class GameLoop {
     manual: boolean;
     pause(): void;
     resume(): void;
+    setErrorReporter(reporter: GameErrorReporter, context?: GameLoopErrorContext): void;
     start(): void;
     stop(): void;
     stopInternalLoop(): void;
@@ -1794,12 +2050,37 @@ export class GameLoop {
 
 // @public
 export interface GameLoopConfig {
+    // (undocumented)
+    deploymentId?: string;
+    // (undocumented)
+    environment?: string;
+    errorReporter?: GameErrorReporter;
+    // (undocumented)
+    gameId?: string;
+    // (undocumented)
+    gitCommit?: string;
     manual?: boolean;
     maxDelta?: number;
     onWatchdogTimeout?: () => void;
     scheduler?: FrameScheduler;
+    // (undocumented)
+    sessionId?: string;
     step?: number;
     watchdogTimeout?: number;
+}
+
+// @public
+export interface GameLoopErrorContext {
+    // (undocumented)
+    deploymentId?: string;
+    // (undocumented)
+    environment?: string;
+    // (undocumented)
+    gameId?: string;
+    // (undocumented)
+    gitCommit?: string;
+    // (undocumented)
+    sessionId?: string;
 }
 
 // @public
@@ -1898,6 +2179,9 @@ export interface GameVisualProfile {
 }
 
 // @public
+export function generateBackdrop(config: BackdropConfig): BackdropSpec;
+
+// @public
 export type GeometryWarsRoleKey = CommonRoleKey | "chaser" | "evader" | "grunt" | "seeker" | "fast_seeker";
 
 // @public
@@ -1939,6 +2223,27 @@ export function getGameplaySystemContextAndEntities<TRegistry extends CoreCompon
 export function getHorizontalDirectionToPlayer(world: World, entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
 
 // @public
+export interface GridPassabilityMap {
+    getCost?(x: number, y: number): number;
+    height: number;
+    isWalkable(x: number, y: number): boolean;
+    width: number;
+}
+
+// @public
+export class GridPathfinding {
+    static aStar(grid: GridPassabilityMap, start: GridPoint, target: GridPoint, options?: PathfindingOptions): GridPoint[];
+    static bfs(grid: GridPassabilityMap, start: GridPoint, target: GridPoint, options?: PathfindingOptions): GridPoint[];
+    static getNextIntersectionTarget(grid: GridPassabilityMap, current: GridPoint, direction: GridPoint): IntersectionResult;
+}
+
+// @public
+export interface GridPoint {
+    x: number;
+    y: number;
+}
+
+// @public
 export interface GroundDetectorComponent extends Component {
     hasGroundAhead: boolean;
     hasWallAhead: boolean;
@@ -1962,6 +2267,9 @@ export function hashAoS(snapshot: {
     seed: number;
     rngState?: number;
 }): string;
+
+// @public
+export function hashChunkSeed(baseSeed: number, layerIndex: number, chunkX: number): number;
 
 // @public
 export function hashSoA(snapshot: SoAWorldSnapshot): string;
@@ -2203,6 +2511,13 @@ export interface InterpolationSnapshotEntry {
 }
 
 // @public
+export interface IntersectionResult {
+    availableDirections: GridPoint[];
+    distance: number;
+    point: GridPoint;
+}
+
+// @public
 export class InvulnerabilitySystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
@@ -2264,7 +2579,7 @@ export type JointComponent = Component & {
         x: number;
         y: number;
     };
-} & (DistanceJointOptions | SpringJointOptions | RevoluteJointOptions);
+} & (DistanceJointOptions | SpringJointOptions | RevoluteJointOptions | DistanceLimitJointOptions);
 
 // @public
 export class JointSolverSystem<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
@@ -2401,6 +2716,9 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
     reconcile(world: World<TRegistry>, serverTick: number, serverState: AuthoritativeServerState): void;
     update(world: World<TRegistry>, deltaTime: number): void;
 }
+
+// @public
+export type MacroZoneType = "mountain" | "valley" | "plain" | "lake";
 
 // @public
 export function maskOf(...layers: number[]): number;
@@ -3027,6 +3345,9 @@ export interface NetworkTransport<TServerEvents extends Record<string, unknown> 
 }
 
 // @public
+export function normalizeError(error: unknown): Error;
+
+// @public
 export class NullAudioPlayer implements IAudioPlayer {
     loadSFX(_id: string, _options: unknown): Promise<void>;
     pauseBGM(): void;
@@ -3204,6 +3525,14 @@ export class ParticleSystem extends System<CoreComponentRegistry> {
 }
 
 // @public
+export interface PathfindingOptions {
+    allowDiagonal?: boolean;
+    includeStart?: boolean;
+    maxNodes?: number;
+    random?: RandomService;
+}
+
+// @public
 export interface PatrolComponent extends Component {
     direction: number;
     endX: number;
@@ -3223,7 +3552,32 @@ export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry & {
 
 // @public
 export class PhysicsQuery {
+    static nearest<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number, options?: {
+        radius?: number;
+        filter?: (entity: Entity) => boolean;
+    }): {
+        entity: Entity;
+        distance: number;
+    } | null;
     static pointCast<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number): Entity[];
+    static raycast<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, origin: {
+        x: number;
+        y: number;
+    }, direction: {
+        x: number;
+        y: number;
+    }, maxDistance: number, options?: {
+        filter?: (entity: Entity) => boolean;
+    }): RaycastHit | null;
+    static raycastAll<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, origin: {
+        x: number;
+        y: number;
+    }, direction: {
+        x: number;
+        y: number;
+    }, maxDistance: number, options?: {
+        filter?: (entity: Entity) => boolean;
+    }): RaycastHit[];
     static shapeCast<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, shape: Shape, x: number, y: number): Entity[];
 }
 
@@ -3359,6 +3713,24 @@ export interface PlayerSensorComponent extends Component {
 }
 
 // @public
+export interface PlayfieldMaskConfig {
+    // (undocumented)
+    colorToken: string;
+    // (undocumented)
+    enabled: boolean;
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    opacity: number;
+    // (undocumented)
+    width: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
 export type PongRoleKey = CommonRoleKey | "ball" | "paddle" | "left" | "right";
 
 // @public
@@ -3483,6 +3855,20 @@ export interface RawGamepadState {
 export interface RawInputState {
     gamepad?: RawGamepadState;
     keysPressed: Set<string>;
+}
+
+// @public
+export interface RaycastHit {
+    distance: number;
+    entity: Entity;
+    normal: {
+        x: number;
+        y: number;
+    };
+    point: {
+        x: number;
+        y: number;
+    };
 }
 
 // @public
@@ -3827,6 +4213,13 @@ export interface RigidBodyOptions {
 }
 
 // @public
+export interface RiverSpec {
+    colorToken: string;
+    path: BackdropPoint[];
+    width: number;
+}
+
+// @public
 export class RollbackSimulation {
     constructor(simulation: Simulation, rollbackBuffer: SnapshotBuffer);
     processRollback(targetTick: number, correctedInput: CompactInputFrame, currentTick: number, inputsHistory: Map<number, CompactInputFrame>): boolean;
@@ -3941,7 +4334,22 @@ export class Schedule<TComponents extends ComponentRegistry = ComponentRegistry,
     addSystem(system: System<TComponents, TEvents>, config: SystemConfig | undefined, world: World<TComponents, TEvents, TBlueprints>): void;
     clearSystems(): void;
     getSystems(): System<TComponents, TEvents>[];
+    setErrorReporter(reporter: GameErrorReporter, context?: ScheduleErrorContext): void;
     update(world: World<TComponents, TEvents, TBlueprints>, deltaTime: number): void;
+}
+
+// @public
+export interface ScheduleErrorContext {
+    // (undocumented)
+    deploymentId?: string;
+    // (undocumented)
+    environment?: string;
+    // (undocumented)
+    gameId?: string;
+    // (undocumented)
+    gitCommit?: string;
+    // (undocumented)
+    sessionId?: string;
 }
 
 // @public
@@ -4978,6 +5386,33 @@ export type UpdateCallback = (dt: number) => void;
 export function validateSegmentTemplates(templates: SegmentTemplate[], grammar?: string[]): string[];
 
 // @public
+export interface VehicleSteeringComponent extends Component {
+    acceleration: number;
+    driftFactor: number;
+    maxSpeed: number;
+    steering: number;
+    steeringRate: number;
+    throttle: number;
+    traction: number;
+    type: "VehicleSteering";
+}
+
+// @public
+export interface VehicleSteeringOptions {
+    acceleration: number;
+    driftFactor: number;
+    maxSpeed: number;
+    steeringRate: number;
+    traction: number;
+}
+
+// @public
+export class VehicleSteeringSystem extends System<CoreComponentRegistry> {
+    setCandidates(entities: Entity[] | null): void;
+    update(world: World<CoreComponentRegistry>, deltaTime: number): void;
+}
+
+// @public
 export interface VelocityComponent extends Component {
     angularVelocity: number;
     type: "Velocity";
@@ -5023,6 +5458,15 @@ export interface VisualOffsetComponent extends Component {
     offsetX: number;
     offsetY: number;
     type: "VisualOffset";
+}
+
+// @public
+export interface WaterfallSpec {
+    alpha: number;
+    bottomY: number;
+    topY: number;
+    width: number;
+    x: number;
 }
 
 // @public

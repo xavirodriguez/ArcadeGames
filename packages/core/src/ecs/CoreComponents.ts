@@ -5,6 +5,7 @@ import { CollisionLayer, CollisionMask, Collision } from "../physics/collision/C
 import { World } from "./World";
 import { RigidBodyComponent } from "../physics/dynamics/RigidBodyComponent";
 import { JointComponent } from "../physics/dynamics/JointComponent";
+import { VehicleSteeringComponent } from "../physics/vehicles/VehicleSteeringComponent";
 
 /**
  * Component storing 2D spatial position, rotation, scale, and hierarchical world-space transforms.
@@ -1424,6 +1425,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   RigidBody: RigidBodyComponent;
   /** Joint component. */
   Joint: JointComponent;
+  /** VehicleSteering component. */
+  VehicleSteering: VehicleSteeringComponent;
 }
 
 /**

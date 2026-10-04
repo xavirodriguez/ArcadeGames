@@ -21,6 +21,17 @@ export class JointSolverSystem<
   private relVel = { x: 0, y: 0 };
 
   private computeDistanceError(joint: any, dist: number): number {
+    if (joint.jointType === "distanceLimit") {
+      const maxDistance = joint.maxDistance;
+      const minLength = joint.minLength;
+      if (maxDistance !== undefined && dist > maxDistance) {
+        return dist - maxDistance;
+      } else if (minLength !== undefined && dist < minLength) {
+        return dist - minLength;
+      }
+      return 0;
+    }
+
     const restLength = joint.restLength;
     const maxDistance = joint.maxDistance;
     const minLength = joint.minLength;
@@ -182,7 +193,7 @@ export class JointSolverSystem<
 
         const deltaL = dist - restLength;
         this.applySpringDampingImpulse(w, entityA, velA, isStaticA, invMassA, invInertiaA, rxA, ryA, entityB, velB, isStaticB, invMassB, invInertiaB, rxB, ryB, deltaL, stiffness, damping, relVx, relVy, nx, ny, deltaTime);
-      } else if (joint.jointType === "distance") {
+      } else if (joint.jointType === "distance" || joint.jointType === "distanceLimit") {
         const stiffness = joint.stiffness ?? 0;
         const damping = joint.damping ?? 0;
 

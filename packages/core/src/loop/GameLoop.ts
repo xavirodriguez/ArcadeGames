@@ -1,6 +1,10 @@
 import { FrameScheduler, browserFrameScheduler } from "./FrameScheduler";
 import { GameErrorReporter, normalizeError, ENGINE_VERSION, GameErrorPhase } from "../diagnostics";
 
+/**
+ * Diagnostic context options provided to GameLoop for error reporting.
+ * @public
+ */
 export interface GameLoopErrorContext {
   gameId?: string;
   sessionId?: string;

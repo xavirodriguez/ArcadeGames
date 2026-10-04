@@ -1,3 +1,7 @@
+/**
+ * Execution phase during which a game error occurred.
+ * @public
+ */
 export type GameErrorPhase =
   | "registration"
   | "initialization"
@@ -7,6 +11,10 @@ export type GameErrorPhase =
   | "audio"
   | "input";
 
+/**
+ * Diagnostic context metadata capturing game state and runtime environment when an error occurs.
+ * @public
+ */
 export interface GameErrorContext {
   readonly gameId: string;
   readonly engineVersion: string;
@@ -21,11 +29,18 @@ export interface GameErrorContext {
   readonly environment?: string;
 }
 
+/**
+ * Normalized game error payload containing timestamp, original Error instance, and diagnostic context.
+ * @public
+ */
 export interface GameError {
   readonly timestamp: number;
   readonly error: Error;
   readonly context: GameErrorContext;
 }
 
-/** Engine version constant for error telemetry. */
+/**
+ * Engine version constant for error telemetry.
+ * @public
+ */
 export const ENGINE_VERSION = "1.0.0";

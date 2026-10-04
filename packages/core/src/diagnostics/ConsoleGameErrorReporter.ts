@@ -3,6 +3,7 @@ import { GameErrorReporter } from "./GameErrorReporter";
 
 /**
  * Game error reporter implementation that outputs structured error context to console.error.
+ * @public
  */
 export class ConsoleGameErrorReporter implements GameErrorReporter {
   public report(error: GameError): void {

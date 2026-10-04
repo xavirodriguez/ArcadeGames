@@ -2,6 +2,7 @@
  * Normalizes any unknown thrown value into a proper Error instance.
  * Preserves existing Error objects (and subclasses) intact.
  * Converts strings, numbers, objects, and null/undefined into an Error with descriptive details.
+ * @public
  */
 export function normalizeError(error: unknown): Error {
   if (error instanceof Error) {

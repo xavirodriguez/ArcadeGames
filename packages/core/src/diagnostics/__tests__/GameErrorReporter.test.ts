@@ -260,7 +260,12 @@ describe("Diagnostics & GameErrorReporter", () => {
       schedule.setErrorReporter(reporter, { gameId: "type-err-game", sessionId: "sess_type" });
       const world = new World(schedule);
 
-      const fakeSystemNotSystemClass = {} as unknown as System;
+      class FakeSystemWithoutHooks extends System {
+        public override update(): void {}
+      }
+      const fakeSystemNotSystemClass = new FakeSystemWithoutHooks();
+      (fakeSystemNotSystemClass as Partial<System>).onRegister = undefined;
+      (fakeSystemNotSystemClass as Partial<System>).dispose = undefined;
 
       expect(() => {
         schedule.addSystem(fakeSystemNotSystemClass, {}, world);

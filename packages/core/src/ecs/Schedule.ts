@@ -5,6 +5,10 @@ import { World, BlueprintRegistryMap } from "./World";
 import { RandomService } from "../utils/RandomService";
 import { GameErrorReporter, normalizeError, ENGINE_VERSION } from "../diagnostics";
 
+/**
+ * Diagnostic context options provided to Schedule for error reporting.
+ * @public
+ */
 export interface ScheduleErrorContext {
   gameId?: string;
   sessionId?: string;

@@ -2,6 +2,228 @@
   "duplicates": [
     {
       "firstFile": {
+        "end": 120,
+        "endLoc": {
+          "column": 9,
+          "line": 120,
+          "position": 3702
+        },
+        "name": "ai/GridPathfinding.ts",
+        "start": 102,
+        "startLoc": {
+          "column": 19,
+          "line": 102,
+          "position": 3113
+        }
+      },
+      "format": "typescript",
+      "fragment": "  public static bfs(\n    grid: GridPassabilityMap,\n    start: GridPoint,\n    target: GridPoint,\n    options?: PathfindingOptions\n  ): GridPoint[] {\n    if (!grid.isWalkable(start.x, start.y) || !grid.isWalkable(target.x, target.y)) {\n      return [];\n    }\n\n    if (start.x === target.x && start.y === target.y) {\n      return options?.includeStart !== false ? [{ x: start.x, y: start.y }] : [];\n    }\n\n    const directions = options?.allowDiagonal ? EIGHT_DIRECTIONS : CARDINAL_DIRECTIONS;\n    const maxNodes = options?.maxNodes ?? 10000;\n    const includeStart = options?.includeStart !== false;\n\n    const queue: GridPoint[] = [start];",
+      "isNew": false,
+      "lines": 19,
+      "secondFile": {
+        "end": 194,
+        "endLoc": {
+          "column": 9,
+          "line": 194,
+          "position": 5843
+        },
+        "name": "ai/GridPathfinding.ts",
+        "start": 177,
+        "startLoc": {
+          "column": 21,
+          "line": 177,
+          "position": 5255
+        }
+      },
+      "tokens": 135
+    },
+    {
+      "firstFile": {
+        "end": 152,
+        "endLoc": {
+          "column": 13,
+          "line": 152,
+          "position": 4531
+        },
+        "name": "ai/GridPathfinding.ts",
+        "start": 142,
+        "startLoc": {
+          "column": 26,
+          "line": 142,
+          "position": 4330
+        }
+      },
+      "format": "typescript",
+      "fragment": "        const ny = current.y + dir.y;\n\n        if (nx < 0 || nx >= grid.width || ny < 0 || ny >= grid.height) {\n          continue;\n        }\n\n        if (!grid.isWalkable(nx, ny)) {\n          continue;\n        }\n\n        const key = `${nx},${ny}`;",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 273,
+        "endLoc": {
+          "column": 13,
+          "line": 273,
+          "position": 7987
+        },
+        "name": "ai/GridPathfinding.ts",
+        "start": 263,
+        "startLoc": {
+          "column": 32,
+          "line": 263,
+          "position": 7786
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 448,
+        "endLoc": {
+          "column": 1,
+          "line": 448,
+          "position": 13133
+        },
+        "name": "ai/GridPathfinding.ts",
+        "start": 440,
+        "startLoc": {
+          "column": 4,
+          "line": 440,
+          "position": 12942
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const nx = x + d.x;\n    const ny = y + d.y;\n    if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny)) {\n      result.push(d);\n    }\n  }\n\n  return result;\n}",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 464,
+        "endLoc": {
+          "column": 1,
+          "line": 464,
+          "position": 13617
+        },
+        "name": "ai/GridPathfinding.ts",
+        "start": 457,
+        "startLoc": {
+          "column": 4,
+          "line": 457,
+          "position": 13427
+        }
+      },
+      "tokens": 63
+    },
+    {
+      "firstFile": {
+        "end": 121,
+        "endLoc": {
+          "column": 18,
+          "line": 121,
+          "position": 4837
+        },
+        "name": "ecs/Schedule.ts",
+        "start": 113,
+        "startLoc": {
+          "column": 6,
+          "line": 113,
+          "position": 4514
+        }
+      },
+      "format": "typescript",
+      "fragment": "      if (this.errorReporter) {\n        this.errorReporter.report({\n          timestamp: Date.now(),\n          error: err,\n          context: {\n            gameId: this.errorContext.gameId ?? \"unknown\",\n            engineVersion: ENGINE_VERSION,\n            sessionId: this.errorContext.sessionId ?? \"unknown\",\n            phase: \"registration\",",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 173,
+        "endLoc": {
+          "column": 20,
+          "line": 173,
+          "position": 6393
+        },
+        "name": "ecs/Schedule.ts",
+        "start": 165,
+        "startLoc": {
+          "column": 8,
+          "line": 165,
+          "position": 6054
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
+        "end": 239,
+        "endLoc": {
+          "column": 15,
+          "line": 239,
+          "position": 9543
+        },
+        "name": "physics/query/PhysicsQuery.ts",
+        "start": 227,
+        "startLoc": {
+          "column": 26,
+          "line": 227,
+          "position": 9090
+        }
+      },
+      "format": "typescript",
+      "fragment": "  public static raycastAll<\n    TComponents extends ComponentRegistry = ComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    origin: { x: number; y: number },\n    direction: { x: number; y: number },\n    maxDistance: number,\n    options?: {\n      filter?: (entity: Entity) => boolean;\n    }\n  ): RaycastHit[] {",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 333,
+        "endLoc": {
+          "column": 15,
+          "line": 333,
+          "position": 12685
+        },
+        "name": "physics/query/PhysicsQuery.ts",
+        "start": 321,
+        "startLoc": {
+          "column": 23,
+          "line": 321,
+          "position": 12232
+        }
+      },
+      "tokens": 84
+    },
+    {
+      "firstFile": {
+        "end": 370,
+        "endLoc": {
+          "column": 3,
+          "line": 370,
+          "position": 13489
+        },
+        "name": "physics/query/PhysicsQuery.ts",
+        "start": 361,
+        "startLoc": {
+          "column": 23,
+          "line": 361,
+          "position": 13301
+        }
+      },
+      "format": "typescript",
+      "fragment": "    let t2 = (maxX - ox) * invD;\n    if (t1 > t2) {\n      const tmp = t1;\n      t1 = t2;\n      t2 = tmp;\n    }\n    tmin = Math.max(tmin, t1);\n    tmax = Math.min(tmax, t2);\n    if (tmin > tmax) return false;\n  }",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 386,
+        "endLoc": {
+          "column": 3,
+          "line": 386,
+          "position": 13846
+        },
+        "name": "physics/query/PhysicsQuery.ts",
+        "start": 377,
+        "startLoc": {
+          "column": 23,
+          "line": 377,
+          "position": 13658
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
         "end": 21,
         "endLoc": {
           "column": 3,
@@ -354,18 +576,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 80,
+        "end": 89,
         "endLoc": {
           "column": 1,
-          "line": 80,
-          "position": 2675
+          "line": 89,
+          "position": 3031
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 69,
+        "start": 78,
         "startLoc": {
           "column": 50,
-          "line": 69,
-          "position": 2340
+          "line": 78,
+          "position": 2696
         }
       },
       "tokens": 51
@@ -428,18 +650,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 169,
+        "end": 178,
         "endLoc": {
           "column": 5,
-          "line": 169,
-          "position": 5544
+          "line": 178,
+          "position": 5900
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 158,
+        "start": 167,
         "startLoc": {
           "column": 9,
-          "line": 158,
-          "position": 5164
+          "line": 167,
+          "position": 5520
         }
       },
       "tokens": 85
@@ -724,18 +946,18 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 788,
+        "end": 793,
         "endLoc": {
           "column": 34,
-          "line": 788,
-          "position": 33289
+          "line": 793,
+          "position": 33496
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 777,
+        "start": 782,
         "startLoc": {
           "column": 82,
-          "line": 777,
-          "position": 32964
+          "line": 782,
+          "position": 33171
         }
       },
       "tokens": 60
@@ -1889,18 +2111,18 @@
     },
     {
       "firstFile": {
-        "end": 699,
+        "end": 704,
         "endLoc": {
           "column": 20,
-          "line": 699,
-          "position": 29603
+          "line": 704,
+          "position": 29810
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 693,
+        "start": 698,
         "startLoc": {
           "column": 31,
-          "line": 693,
-          "position": 29374
+          "line": 698,
+          "position": 29581
         }
       },
       "format": "typescript",
@@ -2333,32 +2555,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-03T21:01:47.320Z",
+    "detectionDate": "2026-10-04T15:52:45.863Z",
     "formats": {
       "typescript": {
-        "clones": 63,
-        "duplicatedLines": 528,
-        "duplicatedTokens": 3999,
-        "lines": 80311,
+        "clones": 69,
+        "duplicatedLines": 593,
+        "duplicatedTokens": 4443,
+        "lines": 82750,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.6574441857279825,
-        "percentageTokens": 0.9301232954135781,
-        "sources": 509,
-        "tokens": 429943
+        "percentage": 0.7166163141993958,
+        "percentageTokens": 1.008161959414844,
+        "sources": 522,
+        "tokens": 440703
       }
     },
     "total": {
-      "clones": 63,
-      "duplicatedLines": 528,
-      "duplicatedTokens": 3999,
-      "lines": 80311,
+      "clones": 69,
+      "duplicatedLines": 593,
+      "duplicatedTokens": 4443,
+      "lines": 82750,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.6574441857279825,
-      "percentageTokens": 0.9301232954135781,
-      "sources": 509,
-      "tokens": 429943
+      "percentage": 0.7166163141993958,
+      "percentageTokens": 1.008161959414844,
+      "sources": 522,
+      "tokens": 440703
     }
   }
 }

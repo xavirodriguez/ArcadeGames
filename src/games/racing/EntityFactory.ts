@@ -1,4 +1,4 @@
-import { EntityBuilder, ShapeType, CircleShape, BoxShape, Theme, resolveThemeColor, World, BlueprintRegistry } from "@tiny-aster/core";
+import { EntityBuilder, ShapeType, CircleShape, BoxShape, Theme, resolveThemeColor, World, BlueprintRegistry, spawnBlueprintEntity } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry, RacingBlueprintMap } from "./types/RacingRegistry";
 import type { RacingConfig } from "./types/RacingConfigSchema";
 
@@ -7,9 +7,13 @@ const TRACK_LAYER = 2;
 
 export function registerRacingBlueprints(
   world: World<RacingComponentRegistry, RacingEventRegistry>,
-  registry: BlueprintRegistry<RacingComponentRegistry, RacingEventRegistry> = world.blueprints
+  registry?: BlueprintRegistry<RacingComponentRegistry, RacingEventRegistry>
 ): void {
-  registry.register("car", {
+  const targetRegistry = registry ?? world.getResource<BlueprintRegistry<RacingComponentRegistry, RacingEventRegistry>>("BlueprintRegistry");
+  if (!targetRegistry) {
+    throw new Error("[Racing] BlueprintRegistry resource is not set on world and no registry was provided.");
+  }
+  targetRegistry.register("car", {
     spawn: (w: World<RacingComponentRegistry, RacingEventRegistry>, entity: number, args: { x: number; y: number; rotation?: number }) => {
       const config = w.getResource<RacingConfig>("GameConfig");
       const theme = w.getResource<Theme>("Theme");
@@ -27,7 +31,7 @@ export function registerRacingBlueprints(
     }
   });
 
-  registry.register("wall", {
+  targetRegistry.register("wall", {
     spawn: (w: World<RacingComponentRegistry, RacingEventRegistry>, entity: number, args: { x: number; y: number; width: number; height: number }) => {
       const color = resolveThemeColor(w, "track-wall", "accent") ?? "#ff2a6d";
       EntityBuilder.fromEntity(w, entity)
@@ -40,7 +44,7 @@ export function registerRacingBlueprints(
     }
   });
 
-  registry.register("checkpoint", {
+  targetRegistry.register("checkpoint", {
     spawn: (w: World<RacingComponentRegistry, RacingEventRegistry>, entity: number, args: { index: number; x: number; y: number; width?: number; height?: number; isFinish?: boolean }) => {
       const config = w.getResource<RacingConfig>("GameConfig");
       const width = args.width ?? config?.CHECKPOINT_WIDTH ?? 170;
@@ -55,7 +59,7 @@ export function registerRacingBlueprints(
     }
   });
 
-  registry.register("state", {
+  targetRegistry.register("state", {
     spawn: (w: World<RacingComponentRegistry, RacingEventRegistry>, entity: number) => {
       const config = w.getResource<RacingConfig>("GameConfig");
       w.addComponent(entity, { type: "RacingState", phase: "countdown", countdownRemaining: config?.COUNTDOWN_SECONDS ?? 3, currentLap: 1, totalLaps: config?.TOTAL_LAPS ?? 3, lastLapTime: 0, bestLapTime: null, raceTime: 0, isGameOver: false, position: 1 });
@@ -68,9 +72,5 @@ export function spawnBlueprint<K extends keyof RacingBlueprintMap>(
   name: K,
   args: Parameters<RacingBlueprintMap[K]["spawn"]>[2]
 ): number {
-  const entity = world.createEntity();
-  const blueprint = world.blueprints.get(String(name));
-  if (!blueprint) throw new Error("[Racing] Required blueprint '" + String(name) + "' is not registered.");
-  blueprint.spawn(world, entity, args as never);
-  return entity;
+  return spawnBlueprintEntity(world as unknown as World, String(name), args as never);
 }

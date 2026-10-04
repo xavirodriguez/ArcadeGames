@@ -130,6 +130,8 @@ export * from "./physics/dynamics/JointComponent";
 export * from "./physics/dynamics/JointSolverSystem";
 export * from "./physics/vehicles/VehicleSteeringComponent";
 export * from "./physics/vehicles/VehicleSteeringSystem";
+export * from "./physics/vehicles/VehicleWaypointComponent";
+export * from "./physics/vehicles/VehicleWaypointSystem";
 
 // Rendering
 export * from "./rendering/Renderer";

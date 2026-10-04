@@ -6,6 +6,7 @@ import { World } from "./World";
 import { RigidBodyComponent } from "../physics/dynamics/RigidBodyComponent";
 import { JointComponent } from "../physics/dynamics/JointComponent";
 import { VehicleSteeringComponent } from "../physics/vehicles/VehicleSteeringComponent";
+import { VehicleWaypointComponent } from "../physics/vehicles/VehicleWaypointComponent";
 
 /**
  * Component storing 2D spatial position, rotation, scale, and hierarchical world-space transforms.
@@ -824,6 +825,10 @@ export interface Camera2DComponent extends Component {
   y: number;
   /** Target entity to follow. */
   followEntity?: Entity;
+  /** Group of entities to track centroid or leader. */
+  followEntities?: Entity[];
+  /** Whether to focus specifically on the leader entity among followEntities. */
+  followLeader?: boolean;
   /** Horizontal lookahead offset distance. */
   lookAheadX?: number;
   /** Horizontal position smoothing factor. */
@@ -1427,6 +1432,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Joint: JointComponent;
   /** VehicleSteering component. */
   VehicleSteering: VehicleSteeringComponent;
+  /** VehicleWaypoint component. */
+  VehicleWaypoint: VehicleWaypointComponent;
 }
 
 /**

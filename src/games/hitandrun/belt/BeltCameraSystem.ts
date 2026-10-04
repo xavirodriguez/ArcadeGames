@@ -85,7 +85,8 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       state.currentSectionIndex = sectionIndex + 1;
       state.sectionCleared = false;
       state.gateLocked = true;
-      world.getResource("EventBus")?.emit?.("belt:section_advanced", {
+      const bus = world.getResource<{ emit?: (event: string, payload: unknown) => void }>("EventBus");
+      bus?.emit?.("belt:section_advanced", {
         sectionIndex: state.currentSectionIndex
       });
     }

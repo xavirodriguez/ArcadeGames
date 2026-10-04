@@ -7,7 +7,7 @@ const TRACK_LAYER = 2;
 
 export function registerRacingBlueprints(
   world: World<RacingComponentRegistry, RacingEventRegistry>,
-  registry: BlueprintRegistry<RacingComponentRegistry, RacingEventRegistry> = world.getResource("BlueprintRegistry")!
+  registry: BlueprintRegistry<RacingComponentRegistry, RacingEventRegistry> = world.blueprints
 ): void {
   registry.register("car", {
     spawn: (w: World<RacingComponentRegistry, RacingEventRegistry>, entity: number, args: { x: number; y: number; rotation?: number }) => {
@@ -69,7 +69,7 @@ export function spawnBlueprint<K extends keyof RacingBlueprintMap>(
   args: Parameters<RacingBlueprintMap[K]["spawn"]>[2]
 ): number {
   const entity = world.createEntity();
-  const blueprint = world.getResource<BlueprintRegistry<RacingComponentRegistry, RacingEventRegistry>>("BlueprintRegistry")?.get(String(name));
+  const blueprint = world.blueprints.get(String(name));
   if (!blueprint) throw new Error("[Racing] Required blueprint '" + String(name) + "' is not registered.");
   blueprint.spawn(world, entity, args as never);
   return entity;

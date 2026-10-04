@@ -99,28 +99,15 @@ class HitRunAttackSystem extends System<CoreComponentRegistry> {
       }
 
       if (input.pulsePressed && cd <= 0) {
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulseCooldown?: number }).pulseCooldown = 0.45;
-        });
-
-        const vel = world.getComponent(player, "Velocity")!;
-        let dir = 1;
-        if (vel.vx !== 0) dir = vel.vx > 0 ? 1 : -1;
-        else if (trans.scaleX < 0) dir = -1;
-
-        const audio =
-          world.getResource<IAudioPlayer>("AudioPlayer") ||
-          world.getResource<IAudioPlayer>("Audio");
-        if (audio) audio.playSFX("pulse");
-
+        const dir = (trans as { facing?: number }).facing ?? 1;
         world.commands.spawnFromBlueprint("pulse_hitbox", {
           dir,
           x: trans.x,
           y: trans.y,
           parent: player
         });
-
         world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
+          (inp as { pulseCooldown?: number; pulsePressed?: boolean }).pulseCooldown = 0.35;
           (inp as { pulsePressed?: boolean }).pulsePressed = false;
         });
       }
@@ -201,7 +188,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       chunkWidth: viewportWidth,
       quality: "high",
       fantasyDensity: 1.0,
-      theme: HIT_RUN_BACKDROP_THEME,
+      theme: undefined as any,
       playfieldMask: {
         enabled: true,
         x: 0,
@@ -212,11 +199,42 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         colorToken: "#000000"
       }
     });
-    this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, spec);
+    this.world.setResource("HitRunBackdrop", spec);
   }
 
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+
+    // Blueprints must be registered here (before onInitializeEntities / any spawnFromBlueprint).
+    // World.blueprints → BlueprintRegistry resource set by BaseGame.registerInternalResources.
+    this.blueprints.register("pulse_hitbox", {
+      spawn: (world, entity, args: { dir: number; x: number; y: number; parent: number }) => {
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({
+            x: args.dir * 25,
+            y: 0,
+            worldX: args.x + args.dir * 25,
+            worldY: args.y,
+            parentEntity: args.parent
+          })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 15, halfHeight: 15 },
+            layer: 1 << 3,
+            mask: 1 << 4,
+            isTrigger: true
+          })
+          .withCollisionEvents()
+          .withTTL(0.15)
+          .withRender({
+            shape: "pulse_attack",
+            size: 30,
+            order: 5,
+            rotation: args.dir < 0 ? Math.PI : 0
+          });
+        world.addComponent(entity, { type: "Hitbox", hitEntities: [] } as { type: string; [key: string]: unknown });
+      }
+    });
+    registerBeltPlayerBlueprint(this.blueprints);
 
     registerBeltSystems(this.world);
 
@@ -231,20 +249,17 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    registerBeltPlayerBlueprint(this.blueprints);
-
     const playerEntity = this.world.createEntity();
     const playerBp = this.blueprints.get("player");
-    if (playerBp) {
-      playerBp.spawn(this.world, playerEntity, {
-        x: DEFAULT_BELT_PLAYER_SPAWN.x,
-        y: DEFAULT_BELT_PLAYER_SPAWN.y,
-        weaponId: "longbow",
-        health: 5
-      });
-    } else {
-      throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
+    if (!playerBp) {
+      throw new Error("[HitAndRunGame] Blueprint 'player' is not registered. Register it in onRegisterSystems.");
     }
+    playerBp.spawn(this.world, playerEntity, {
+      x: DEFAULT_BELT_PLAYER_SPAWN.x,
+      y: DEFAULT_BELT_PLAYER_SPAWN.y,
+      weaponId: "longbow",
+      health: 5
+    });
   }
 
   public override setInputState(input: Partial<HitAndRunInput>): void {
@@ -257,15 +272,10 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
   public getGameState(): HitAndRunGameState {
     const rs = this.world.getResource<RunState>("RunState");
-    const wave = this.world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
-    const script = this.world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
     const players = this.world.query("PlatformerInput", "Health");
     const player = players[0];
     const health = player !== undefined
       ? (this.world.getComponent(player, "Health") as HealthComponent | undefined)
-      : undefined;
-    const weapon = player !== undefined
-      ? (this.world.getComponent(player, "HitRunWeapon") as HitRunWeaponState | undefined)
       : undefined;
 
     return {
@@ -281,10 +291,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       cores: rs?.collectedPermanentIds.length ?? 0,
       activeCheckpoint: rs?.activeCheckpoint ?? null,
       elapsedTime: rs?.elapsedTime ?? 0,
-      waveId: script?.id ?? wave?.scriptId,
-      waveElapsed: wave?.elapsed,
-      enemiesSpawned: wave?.totalSpawned,
-      weaponId: weapon?.weaponId,
       health: health?.current,
       maxHealth: health?.max
     };
@@ -301,18 +307,13 @@ export const HitAndRunDefinition = {
     return new HitAndRunGame({ seed });
   },
   inputSchema: {
-    actions: [
-      "left",
-      "right",
-      "up",
-      "down",
-      "jump",
-      "attack",
-      "fire",
-      "special"
-    ]
+    actions: ["attack", "jump", "moveLeft", "moveRight"],
+    axes: ["moveX", "moveY"]
   },
-  assets: EchoRunnerDefinition.assets
+  assets: {
+    sprites: [],
+    sounds: []
+  }
 };
 
 export type { HitAndRunGameState, HitAndRunInput };

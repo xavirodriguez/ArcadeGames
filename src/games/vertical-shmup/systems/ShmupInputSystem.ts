@@ -1,11 +1,11 @@
-import { World, PhysicsUtils, Juice, CoreComponentRegistry } from "@tiny-aster/core";
-import { ShmupComponentRegistry } from "../types/ShmupTypes";
+import { System, World, PhysicsUtils, Juice, CoreComponentRegistry } from "@tiny-aster/core";
+import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { createPlayerBullet } from "../EntityFactory";
 import { PlayerBulletPool } from "../EntityPool";
 
-export class ShmupInputSystem {
-  update(world: World<ShmupComponentRegistry>, deltaTime: number): void {
+export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
+  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const config = world.getResource<ShmupConfig>("GameConfig");
     const pool = world.getResource<PlayerBulletPool>("PlayerBulletPool");

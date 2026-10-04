@@ -1,0 +1,41 @@
+{
+  "id": "billiard_table",
+  "name": "Billiard Table Championship",
+  "theme": "billiard",
+  "width": 1600,
+  "height": 1000,
+  "spawnPoints": [
+    { "x": 800, "y": 200, "rotation": 0 },
+    { "x": 800, "y": 230, "rotation": 0 }
+  ],
+  "waypoints": [
+    { "x": 800, "y": 200, "radius": 70 },
+    { "x": 1300, "y": 200, "radius": 70 },
+    { "x": 1300, "y": 800, "radius": 70 },
+    { "x": 800, "y": 800, "radius": 70 },
+    { "x": 300, "y": 800, "radius": 70 },
+    { "x": 300, "y": 200, "radius": 70 }
+  ],
+  "walls": [
+    { "x": 800, "y": 40, "width": 1500, "height": 30 },
+    { "x": 800, "y": 960, "width": 1500, "height": 30 },
+    { "x": 40, "y": 500, "width": 30, "height": 900 },
+    { "x": 1560, "y": 500, "width": 30, "height": 900 }
+  ],
+  "zones": [
+    {
+      "id": "chalk_powder",
+      "x": 600,
+      "y": 400,
+      "width": 160,
+      "height": 120,
+      "surface": "oil",
+      "gripModifier": 0.1,
+      "speedModifier": 0.9
+    }
+  ],
+  "obstacles": [
+    { "id": "eight_ball", "x": 800, "y": 500, "radius": 32, "kind": "billiard_ball" },
+    { "id": "cue_ball", "x": 600, "y": 500, "radius": 32, "kind": "billiard_ball" }
+  ]
+}

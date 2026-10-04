@@ -40,59 +40,88 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
 
       const zoom = cam.zoom || 1;
 
-      // Determine followed entity
-      let targetEntity = cam.followEntity;
-      if (targetEntity === undefined) {
-        const players = world.query("Player" as Extract<keyof CoreComponentRegistry, string>);
-        if (players.length > 0) {
-          targetEntity = players[0];
+      // Determine followed target position (single entity or group centroid/leader)
+      let targetX: number | undefined;
+      let targetY: number | undefined;
+      let targetVelocityX = 0;
+
+      if (cam.followEntities && cam.followEntities.length > 0) {
+        let sumX = 0;
+        let sumY = 0;
+        let count = 0;
+        for (let j = 0; j < cam.followEntities.length; j++) {
+          const ent = cam.followEntities[j];
+          if (world.hasEntity(ent)) {
+            const tComp = world.getComponent(ent, "Transform") as TransformComponent | undefined;
+            if (tComp) {
+              sumX += tComp.x;
+              sumY += tComp.y;
+              count++;
+            }
+          }
+        }
+        if (count > 0) {
+          targetX = sumX / count;
+          targetY = sumY / count;
         }
       }
 
-      if (targetEntity !== undefined && world.hasEntity(targetEntity)) {
-        const targetTransform = world.getComponent(targetEntity, "Transform") as TransformComponent | undefined;
-        const targetVelocity = world.getComponent(targetEntity, "Velocity") as VelocityComponent | undefined;
-
-        if (targetTransform) {
-          world.mutateComponent(camEntity, "Camera2D", (mutableCam) => {
-            // Horizontal look-ahead offset
-            const sign = targetVelocity ? (targetVelocity.vx > 0.01 ? 1 : (targetVelocity.vx < -0.01 ? -1 : 0)) : 0;
-            const lookAheadOffset = sign * (mutableCam.lookAheadX ?? 0);
-
-            const camCenterX = mutableCam.x + (viewportWidth / 2) / zoom;
-            const camCenterY = mutableCam.y + (viewportHeight / 2) / zoom;
-
-            const desiredCenterX = targetTransform.x + lookAheadOffset;
-            let desiredCenterY = camCenterY;
-
-            // Vertical deadzone constraint
-            const verticalDeadzone = mutableCam.verticalDeadzone ?? 0;
-            const diffY = targetTransform.y - camCenterY;
-
-            if (Math.abs(diffY) > verticalDeadzone) {
-              const excess = diffY - Math.sign(diffY) * verticalDeadzone;
-              desiredCenterY = camCenterY + excess;
-            }
-
-            const desiredX = desiredCenterX - (viewportWidth / 2) / zoom;
-            const desiredY = desiredCenterY - (viewportHeight / 2) / zoom;
-
-            // Exponential smoothing factors
-            const smoothingX = mutableCam.smoothingX ?? 5;
-            const smoothingY = mutableCam.smoothingY ?? 5;
-
-            const tx = 1 - Math.exp(-smoothingX * deltaTime);
-            const ty = 1 - Math.exp(-smoothingY * deltaTime);
-
-            mutableCam.x += (desiredX - mutableCam.x) * tx;
-            mutableCam.y += (desiredY - mutableCam.y) * ty;
-
-            mutableCam.targetX = desiredX;
-            mutableCam.targetY = desiredY;
-          });
+      if (targetX === undefined) {
+        let targetEntity = cam.followEntity;
+        if (targetEntity === undefined) {
+          const players = world.query("Player" as Extract<keyof CoreComponentRegistry, string>);
+          if (players.length > 0) targetEntity = players[0];
         }
+
+        if (targetEntity !== undefined && world.hasEntity(targetEntity)) {
+          const targetTransform = world.getComponent(targetEntity, "Transform") as TransformComponent | undefined;
+          const targetVelocity = world.getComponent(targetEntity, "Velocity") as VelocityComponent | undefined;
+          if (targetTransform) {
+            targetX = targetTransform.x;
+            targetY = targetTransform.y;
+            targetVelocityX = targetVelocity?.vx ?? 0;
+          }
+        }
+      }
+
+      if (targetX !== undefined && targetY !== undefined) {
+        const finalTargetX = targetX;
+        const finalTargetY = targetY;
+        const velX = targetVelocityX;
+        world.mutateComponent(camEntity, "Camera2D", (mutableCam) => {
+          const sign = velX > 0.01 ? 1 : (velX < -0.01 ? -1 : 0);
+          const lookAheadOffset = sign * (mutableCam.lookAheadX ?? 0);
+
+          const camCenterX = mutableCam.x + (viewportWidth / 2) / zoom;
+          const camCenterY = mutableCam.y + (viewportHeight / 2) / zoom;
+
+          const desiredCenterX = finalTargetX + lookAheadOffset;
+          let desiredCenterY = camCenterY;
+
+          const verticalDeadzone = mutableCam.verticalDeadzone ?? 0;
+          const diffY = finalTargetY - camCenterY;
+
+          if (Math.abs(diffY) > verticalDeadzone) {
+            const excess = diffY - Math.sign(diffY) * verticalDeadzone;
+            desiredCenterY = camCenterY + excess;
+          }
+
+          const desiredX = desiredCenterX - (viewportWidth / 2) / zoom;
+          const desiredY = desiredCenterY - (viewportHeight / 2) / zoom;
+
+          const smoothingX = mutableCam.smoothingX ?? 5;
+          const smoothingY = mutableCam.smoothingY ?? 5;
+
+          const tx = 1 - Math.exp(-smoothingX * deltaTime);
+          const ty = 1 - Math.exp(-smoothingY * deltaTime);
+
+          mutableCam.x += (desiredX - mutableCam.x) * tx;
+          mutableCam.y += (desiredY - mutableCam.y) * ty;
+
+          mutableCam.targetX = desiredX;
+          mutableCam.targetY = desiredY;
+        });
       } else {
-        // Fallback or smooth towards manual targetX/targetY if no follow entity
         world.mutateComponent(camEntity, "Camera2D", (mutableCam) => {
           const speed = 5;
           const t = 1 - Math.exp(-speed * deltaTime);
@@ -150,6 +179,74 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
       }
     }
     return null;
+  }
+
+  /**
+   * Calculates the world-space bounding box of the active camera viewport.
+   *
+   * @param world - Simulation world instance.
+   * @param cameraEntity - Optional explicit camera entity ID.
+   * @returns Bounding box in world coordinates or null if no camera exists.
+   */
+  public static getViewportBounds<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>,
+    cameraEntity?: number
+  ): { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number; zoom: number } | null {
+    const info = Camera2DSystem.getMainCameraInfo(world, cameraEntity);
+    if (!info) return null;
+
+    const gameConfig = world.getResource<WorldSizeConfig>("GameConfig");
+    const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
+    const viewportWidth = gameConfig?.viewportWidth ?? screenConfig?.width ?? 800;
+    const viewportHeight = gameConfig?.viewportHeight ?? screenConfig?.height ?? 600;
+
+    const viewW = viewportWidth / info.zoom;
+    const viewH = viewportHeight / info.zoom;
+    const minX = info.cam.x + info.offsetX;
+    const minY = info.cam.y + info.offsetY;
+
+    return {
+      minX,
+      minY,
+      maxX: minX + viewW,
+      maxY: minY + viewH,
+      width: viewW,
+      height: viewH,
+      zoom: info.zoom
+    };
+  }
+
+  /**
+   * Evaluates whether an entity is currently located within the active camera viewport.
+   *
+   * @param world - Simulation world.
+   * @param entity - Target entity ID.
+   * @param margin - Boundary tolerance margin in world units.
+   * @param cameraEntity - Optional explicit camera entity ID.
+   * @returns True if entity transform is inside the viewport bounds +/- margin.
+   */
+  public static isEntityInViewport<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>,
+    entity: number,
+    margin = 0,
+    cameraEntity?: number
+  ): boolean {
+    const bounds = Camera2DSystem.getViewportBounds(world, cameraEntity);
+    if (!bounds) return true;
+
+    const transType = "Transform" as Extract<keyof TRegistry, string>;
+    const trans = world.getComponent(entity, transType) as TransformComponent | undefined;
+    if (!trans) return false;
+
+    const x = trans.worldX ?? trans.x;
+    const y = trans.worldY ?? trans.y;
+
+    return (
+      x >= bounds.minX - margin &&
+      x <= bounds.maxX + margin &&
+      y >= bounds.minY - margin &&
+      y <= bounds.maxY + margin
+    );
   }
 
   /**

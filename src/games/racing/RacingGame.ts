@@ -37,6 +37,8 @@ import { RacingWallSystem } from "./systems/RacingWallSystem";
 import { LapSystem } from "./systems/LapSystem";
 import { RaceStateSystem } from "./systems/RaceStateSystem";
 import { RacingEventsSystem } from "./systems/RacingEventsSystem";
+import { HeadToHeadStateSystem } from "./systems/HeadToHeadStateSystem";
+import { VehicleAISystem } from "./systems/VehicleAISystem";
 import { computeCarPhysics } from "./physics/CarPhysics";
 import { initializeRacingRenderer } from "./rendering/RacingRenderer";
 import { createMainCamera2D } from "../shared/componentBuilders";
@@ -84,7 +86,7 @@ export class RacingGame extends BaseGame<
     this.config = loadAndMutateConfig(this.gameId, RacingConfigSchema, racingConfigRaw, this._config.gameOptions);
     this.world.setResource("GameConfig", this.config);
 
-    registerRacingBlueprints(this.world, this.blueprints);
+    registerRacingBlueprints(this.world, this.blueprints as never);
 
     this.network ??= new NetworkController<RacingComponentRegistry>(this.world);
     this.networkManager ??= NetworkManager.registerGame(this.gameId, this, {
@@ -99,7 +101,9 @@ export class RacingGame extends BaseGame<
     this.world.addSystem(new RacingWallSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new VehicleAISystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new LapSystem(this.config), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new HeadToHeadStateSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new RaceStateSystem(this.config), { phase: SystemPhase.GameRules });
     this.world.addSystem(new RacingEventsSystem(), { phase: SystemPhase.GameRules });
 
@@ -113,23 +117,23 @@ export class RacingGame extends BaseGame<
     }
 
     if (this.networkManager) {
-      this.world.addSystem(new LocalPredictionSystem(this.networkManager, {
+      this.world.addSystem(new LocalPredictionSystem(this.networkManager as never, {
         simulateFn: (world, input, dt) => {
-          const cars = world.query("LocalPlayer", "Transform", "Velocity");
+          const cars = world.query("LocalPlayer" as never, "Transform" as never, "Velocity" as never);
           for (let i = 0; i < cars.length; i += 1) {
             const entity = cars[i];
-            const transform = world.getComponent(entity, "Transform");
-            const velocity = world.getComponent(entity, "Velocity");
+            const transform = world.getComponent(entity, "Transform" as never);
+            const velocity = world.getComponent(entity, "Velocity" as never);
             if (!transform || !velocity) continue;
             const result = computeCarPhysics(
-              transform,
-              velocity,
+              transform as unknown as { rotation: number },
+              velocity as unknown as { vx: number; vy: number },
               input as RacingInputState,
               this.config,
               dt
             );
-            const nextVelocity = world.getMutableComponent(entity, "Velocity");
-            const nextTransform = world.getMutableComponent(entity, "Transform");
+            const nextVelocity = world.getMutableComponent(entity, "Velocity" as never) as { vx: number; vy: number } | undefined;
+            const nextTransform = world.getMutableComponent(entity, "Transform" as never) as { rotation: number; dirty: boolean } | undefined;
             if (nextVelocity) {
               nextVelocity.vx = result.vx;
               nextVelocity.vy = result.vy;
@@ -140,8 +144,8 @@ export class RacingGame extends BaseGame<
             }
           }
         }
-      }), { phase: SystemPhase.Input });
-      this.world.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });
+      }) as never, { phase: SystemPhase.Input });
+      this.world.addSystem(new RemoteInterpolationSystem(this.networkManager as never) as never, { phase: SystemPhase.Presentation });
     }
   }
 
@@ -195,7 +199,7 @@ export class RacingGame extends BaseGame<
       rotation: Math.PI / 2
     });
 
-    const lap = this.world.getComponent(car, "Lap");
+    const lap = this.world.getMutableComponent(car, "Lap");
     if (lap) lap.lapStartedAt = 0;
     createMainCamera2D(this.world, car, {
       smoothingX: 6,

@@ -13,6 +13,16 @@ export interface RacingGameState extends Component {
   position: number;
 }
 
+export interface HeadToHeadStateComponent extends Component {
+  type: "HeadToHeadState";
+  leaderEntity: number | null;
+  scores: Record<string, number>;
+  targetScore: number;
+  phase: "countdown" | "racing" | "round_end" | "finished";
+  roundCountdown: number;
+  winner: string | null;
+}
+
 export interface RacingInputState {
   moveX: number;
   moveY: number;
@@ -75,6 +85,7 @@ export interface RacingComponentRegistry extends CoreComponentRegistry {
   Track: TrackComponent;
   RacingWall: RacingWallComponent;
   RacingState: RacingGameState;
+  HeadToHeadState: HeadToHeadStateComponent;
 }
 
 export interface RacingEventRegistry extends Record<string, unknown> {
@@ -82,4 +93,6 @@ export interface RacingEventRegistry extends Record<string, unknown> {
   "race:finished": { totalTime: number; laps: number };
   "race:countdown": { remaining: number };
   "racing:checkpoint": { checkpoint: number };
+  "head_to_head:point": { winnerId: string; scores: Record<string, number> };
+  "head_to_head:round_start": Record<string, never>;
 }

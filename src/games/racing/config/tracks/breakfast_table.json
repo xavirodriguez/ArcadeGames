@@ -1,0 +1,53 @@
+{
+  "id": "breakfast_table",
+  "name": "Breakfast Table Dash",
+  "theme": "breakfast",
+  "width": 1600,
+  "height": 1000,
+  "spawnPoints": [
+    { "x": 800, "y": 200, "rotation": 0 },
+    { "x": 800, "y": 230, "rotation": 0 }
+  ],
+  "waypoints": [
+    { "x": 800, "y": 200, "radius": 70 },
+    { "x": 1220, "y": 380, "radius": 70 },
+    { "x": 1220, "y": 680, "radius": 70 },
+    { "x": 800, "y": 800, "radius": 70 },
+    { "x": 380, "y": 680, "radius": 70 },
+    { "x": 380, "y": 380, "radius": 70 }
+  ],
+  "walls": [
+    { "x": 800, "y": 30, "width": 1540, "height": 24 },
+    { "x": 800, "y": 970, "width": 1540, "height": 24 },
+    { "x": 30, "y": 500, "width": 24, "height": 940 },
+    { "x": 1570, "y": 500, "width": 24, "height": 940 },
+    { "x": 800, "y": 410, "width": 430, "height": 24 },
+    { "x": 800, "y": 590, "width": 430, "height": 24 }
+  ],
+  "zones": [
+    {
+      "id": "milk_spill_1",
+      "x": 1220,
+      "y": 380,
+      "width": 140,
+      "height": 140,
+      "surface": "water",
+      "gripModifier": 0.2,
+      "speedModifier": 0.85
+    },
+    {
+      "id": "deadly_table_edge_top",
+      "x": 800,
+      "y": 10,
+      "width": 1600,
+      "height": 20,
+      "surface": "deadly_edge",
+      "gripModifier": 0,
+      "speedModifier": 0
+    }
+  ],
+  "obstacles": [
+    { "id": "cereal_bowl", "x": 800, "y": 500, "radius": 45, "kind": "bowl" },
+    { "id": "coffee_mug", "x": 400, "y": 300, "radius": 35, "kind": "mug" }
+  ]
+}

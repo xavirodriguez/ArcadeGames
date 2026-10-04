@@ -63,3 +63,29 @@ export const drawSkiaCheckpoint: ShapeDrawer<any, RacingComponentRegistry> = {
     canvas.drawRect(Skia.XYWHRect(-checkpoint.width / 2, -checkpoint.height / 2, checkpoint.width, checkpoint.height), paint);
   }
 };
+
+export const drawSkiaTrackZone: ShapeDrawer<any, RacingComponentRegistry> = {
+  draw(canvas, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render) return;
+    const size = render.size ?? 80;
+    const paint = getPaint();
+    paint.reset();
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(render.color ?? "#38bdf8"));
+    canvas.drawCircle(0, 0, size, paint);
+  }
+};
+
+export const drawSkiaTrackObstacle: ShapeDrawer<any, RacingComponentRegistry> = {
+  draw(canvas, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render) return;
+    const size = render.size ?? 30;
+    const paint = getPaint();
+    paint.reset();
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(render.color ?? "#f59e0b"));
+    canvas.drawCircle(0, 0, size, paint);
+  }
+};

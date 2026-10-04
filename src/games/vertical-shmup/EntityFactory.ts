@@ -17,7 +17,7 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
   world.addComponent(e, { type: "Input", axes: {}, actions: new Set<string>(), shootCooldownRemaining: 0 });
   world.addComponent(e, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 });
   world.addComponent(e, { type: "Faction", faction: "player", value: "player" });
-  world.addComponent(e, { type: "Boundary", width: c.WORLD_WIDTH - c.PLAYER_SIZE, height: c.WORLD_HEIGHT - c.PLAYER_SIZE, mode: "stop" } as BoundaryComponent);
+  world.addComponent(e, { type: "Boundary", width: c.WORLD_WIDTH - c.PLAYER_SIZE, height: c.WORLD_HEIGHT - c.PLAYER_SIZE, mode: "bounce" } as BoundaryComponent);
   world.addComponent(e, { type: "LocalPlayer" });
   return e;
 }

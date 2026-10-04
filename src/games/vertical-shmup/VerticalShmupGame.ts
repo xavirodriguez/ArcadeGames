@@ -28,7 +28,7 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("IsHeadless", this.isHeadless);
     NetworkManager.registerGame(this.gameId, this, {});
-    new ShmupGameScene(this.config, new PlayerBulletPool(), new EnemyBulletPool(), this.world).onEnter();
+    new ShmupGameScene(this.config, new PlayerBulletPool(), new EnemyBulletPool(), this.world, this._config.gameOptions).onEnter();
   }
 
   protected override async onPreloadAssets(): Promise<void> {
@@ -49,6 +49,10 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
   }
 
   public isGameOver(): boolean { return this.getGameState().isGameOver; }
+
+  public override update(dt: number): void {
+    this.world.update(dt);
+  }
 
   public initializeRenderer(renderer: Renderer<ShmupComponentRegistry, RenderContext>): void {
     registerSharedVFX(renderer);

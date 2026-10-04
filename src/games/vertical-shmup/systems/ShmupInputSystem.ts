@@ -20,7 +20,12 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
 
       const moveX = Math.max(-1, Math.min(1, inputState?.axes?.moveX ?? input.axes.moveX ?? 0));
       const moveY = Math.max(-1, Math.min(1, inputState?.axes?.moveY ?? input.axes.moveY ?? 0));
-      const shooting = inputState?.buttons?.shoot ?? input.actions.has("shoot");
+      const hasAction = (actions: unknown): boolean => {
+        if (actions instanceof Set) return actions.has("shoot");
+        if (Array.isArray(actions)) return actions.includes("shoot");
+        return false;
+      };
+      const shooting = inputState?.buttons?.shoot ?? hasAction(input.actions);
 
       velocity.vx = moveX * config.PLAYER_SPEED;
       velocity.vy = moveY * config.PLAYER_SPEED;

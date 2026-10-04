@@ -62,6 +62,15 @@ import {
   DEFAULT_COMBO_MELEE_CONFIG,
   COMBO_MELEE_CONFIG_RESOURCE
 } from "./melee/ComboMeleeTypes";
+import {
+  WAVE_DIRECTOR_RESOURCE,
+  WAVE_SCRIPT_RESOURCE,
+  type WaveDirectorState,
+  type WaveScript
+} from "./waves/HitRunWaveTypes";
+import type { HitRunWeaponState } from "./weapons/HitRunWeaponTypes";
+import { HIT_RUN_BACKDROP_THEME } from "./rendering/HitAndRunPalette";
+import { HIT_RUN_BACKDROP_RESOURCE } from "./rendering/HitRunBackdropCanvas";
 
 export type HitAndRunConfig = EchoRunnerConfig;
 
@@ -171,21 +180,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     this.world.update(dt);
   }
 
-  public override setInputState(input: Partial<HitAndRunInput>): void {
-    mutatePlatformerInputState(this.getWorld(), input);
-
-    const world = this.getWorld();
-    const playerEntity = world.query("PlatformerInput")[0];
-    if (playerEntity !== undefined && input.attack !== undefined) {
-      world.mutateComponent(playerEntity, "PlatformerInput", (comp) => {
-        const held = !!input.attack;
-        const c = comp as unknown as { fireHeld?: boolean; firePressed?: boolean };
-        c.fireHeld = held;
-        if (held) c.firePressed = true;
-      });
-    }
-  }
-
   protected override async onPreloadAssets(): Promise<void> {
     if (this.audio) {
       await preloadSharedAudioManifest(this.audio);
@@ -241,7 +235,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         y: DEFAULT_BELT_PLAYER_SPAWN.y,
         weaponId: "longbow",
         health: 5
-      });
+      } as import("./belt/registerBeltPlayerBlueprint").BeltPlayerSpawnArgs);
     } else {
       throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
     }

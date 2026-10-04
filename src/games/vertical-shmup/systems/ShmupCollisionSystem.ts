@@ -1,7 +1,8 @@
-import { World, WorldUtils } from "@tiny-aster/core";
-import { ShmupComponentRegistry } from "../types/ShmupTypes";
-export class ShmupCollisionSystem {
-  update(world: World<ShmupComponentRegistry>): void {
+import { System, World, WorldUtils } from "@tiny-aster/core";
+import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
+
+export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
+  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, _deltaTime: number): void {
     for (const entity of world.query("ShmupEnemy", "Health")) {
       const health = world.getComponent(entity, "Health");
       const enemy = world.getComponent(entity, "ShmupEnemy");

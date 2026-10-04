@@ -1,11 +1,11 @@
-import { World } from "@tiny-aster/core";
-import { ShmupComponentRegistry } from "../types/ShmupTypes";
+import { System, World } from "@tiny-aster/core";
+import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { EnemyBulletPool } from "../EntityPool";
 import { createEnemyBullet } from "../EntityFactory";
 import { tickBulletPattern, computeBulletPatternAngles } from "../../shared/BulletPatternSystem";
 
-export class ShmupBulletPatternSystem {
-  update(world: World<ShmupComponentRegistry>, deltaTime: number): void {
+export class ShmupBulletPatternSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
+  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
     const pool = world.getResource<EnemyBulletPool>("EnemyBulletPool");
     if (!pool) return;
     const player = world.query("ShmupPlayer", "Transform")[0];

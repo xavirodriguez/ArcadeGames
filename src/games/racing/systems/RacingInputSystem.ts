@@ -9,7 +9,7 @@ export class RacingInputSystem extends System<RacingComponentRegistry, RacingEve
   public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {
     const state = world.getSingleton("RacingState");
     if (!state || state.phase !== "racing") return;
-    const cars = world.query("LocalPlayer", "Transform", "Velocity", "Input", "Car");
+    const cars = world.query("Car", "Transform", "Velocity", "Input");
 
     for (let i = 0; i < cars.length; i += 1) {
       const entity = cars[i];

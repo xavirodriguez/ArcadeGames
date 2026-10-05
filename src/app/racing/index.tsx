@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
+import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
 import { useRacingGame } from "@/hooks/useRacingGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
@@ -56,11 +57,35 @@ export default function RacingScreen() {
           }
           centerHudSlot={
             <View style={styles.hud}>
-              <Text style={styles.hudText}>
-                LAP {gameState.currentLap}/{gameState.totalLaps} · {gameState.raceTime.toFixed(2)}s
-              </Text>
-              <Text style={styles.hudText}>
-                {gameState.phase === "countdown" ? Math.ceil(gameState.countdownRemaining) : gameState.phase.toUpperCase()}
+              <View style={styles.h2hRow}>
+                <Text style={[styles.hudText, { color: "#00e5ff" }]}>P1</Text>
+                <View style={styles.pearlsRow}>
+                  {[...Array(5)].map((_, i) => (
+                    <View
+                      key={`p1_${i}`}
+                      style={[
+                        styles.pearl,
+                        { backgroundColor: i < (game?.getWorld().getSingleton("HeadToHeadState")?.scores.player_1 ?? 0) ? "#00e5ff" : "#1e293b" }
+                      ]}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.vsText}>VS</Text>
+                <View style={styles.pearlsRow}>
+                  {[...Array(5)].map((_, i) => (
+                    <View
+                      key={`p2_${i}`}
+                      style={[
+                        styles.pearl,
+                        { backgroundColor: i < (game?.getWorld().getSingleton("HeadToHeadState")?.scores.player_2 ?? 0) ? "#f43f5e" : "#1e293b" }
+                      ]}
+                    />
+                  ))}
+                </View>
+                <Text style={[styles.hudText, { color: "#f43f5e" }]}>P2</Text>
+              </View>
+              <Text style={styles.subHudText}>
+                LAP {gameState.currentLap}/{gameState.totalLaps} · {gameState.phase.toUpperCase()}
               </Text>
             </View>
           }
@@ -72,22 +97,20 @@ export default function RacingScreen() {
             />
           }
           controlsSlot={
-            <View style={styles.controls}>
-              <View style={styles.steering}>
-                <Pressable style={styles.button} onPressIn={() => input({ moveX: -1 })} onPressOut={() => input({ moveX: 0 })}>
-                  <Text style={styles.buttonText}>◀</Text>
-                </Pressable>
-                <Pressable style={styles.button} onPressIn={() => input({ moveX: 1 })} onPressOut={() => input({ moveX: 0 })}>
-                  <Text style={styles.buttonText}>▶</Text>
-                </Pressable>
+            <View style={styles.controls} pointerEvents="box-none">
+              <View style={styles.leftControlArea} pointerEvents="box-none">
+                <VirtualJoystick
+                  joystickId="steering_joystick"
+                  type="movement"
+                  onMove={(x, y) => {
+                    input({ moveX: x, moveY: y });
+                  }}
+                  onRelease={() => {
+                    input({ moveX: 0, moveY: 0 });
+                  }}
+                />
               </View>
-              <View style={styles.pedals}>
-                <Pressable style={styles.button} onPressIn={() => input({ moveY: -1 })} onPressOut={() => input({ moveY: 0 })}>
-                  <Text style={styles.buttonText}>▲</Text>
-                </Pressable>
-                <Pressable style={styles.button} onPressIn={() => input({ brake: true })} onPressOut={() => input({ brake: false })}>
-                  <Text style={styles.buttonText}>▼</Text>
-                </Pressable>
+              <View style={styles.rightControlArea} pointerEvents="box-none">
                 <Pressable style={styles.boost} onPressIn={() => input({ boost: true })} onPressOut={() => input({ boost: false })}>
                   <Text style={styles.buttonText}>BOOST</Text>
                 </Pressable>
@@ -104,8 +127,6 @@ export default function RacingScreen() {
               </View>
             ) : null
           }
-          onPause={togglePause}
-          isPaused={isPaused}
         />
       </SafeAreaProvider>
     </GameErrorBoundary>
@@ -113,12 +134,16 @@ export default function RacingScreen() {
 }
 
 const styles = StyleSheet.create({
-  hud: { padding: 10, borderWidth: 1, borderColor: "#00e5ff", backgroundColor: "rgba(0,0,0,0.65)", borderRadius: 8 },
+  hud: { padding: 8, borderWidth: 1, borderColor: "#00e5ff", backgroundColor: "rgba(0,0,0,0.75)", borderRadius: 8, alignItems: "center", gap: 4 },
+  h2hRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  pearlsRow: { flexDirection: "row", gap: 4 },
+  pearl: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: "#475569" },
+  vsText: { color: "#fbbf24", fontFamily: "monospace", fontWeight: "bold", fontSize: 12 },
+  subHudText: { color: "#94a3b8", fontFamily: "monospace", fontSize: 11, fontWeight: "bold" },
   hudText: { color: "#00e5ff", fontFamily: "monospace", fontWeight: "bold" },
-  controls: { ...StyleSheet.absoluteFillObject, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", padding: 24 },
-  steering: { flexDirection: "row", gap: 12 },
-  pedals: { flexDirection: "row", gap: 12, alignItems: "flex-end" },
-  button: { width: 58, height: 58, borderRadius: 12, borderWidth: 2, borderColor: "#00e5ff", backgroundColor: "rgba(0,229,255,0.18)", justifyContent: "center", alignItems: "center" },
+  controls: { ...StyleSheet.absoluteFillObject, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
+  leftControlArea: { flex: 1, height: "100%" },
+  rightControlArea: { width: 140, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 40, paddingRight: 20 },
   boost: { width: 80, height: 58, borderRadius: 12, borderWidth: 2, borderColor: "#fbbf24", backgroundColor: "rgba(251,191,36,0.2)", justifyContent: "center", alignItems: "center" },
   buttonText: { color: "#fff", fontFamily: "monospace", fontWeight: "bold" },
   instructions: { marginBottom: 24 },
